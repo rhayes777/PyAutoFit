@@ -124,6 +124,25 @@ class SneakyJob(AbstractJob):
 
 
 class SneakyProcess(Process):
+    def __init__(
+            self,
+            name: str,
+            initializer=None,
+            initargs=None,
+            job_args=tuple()
+    ):
+        """
+        Each SneakyProcess creates its own queue to avoid locking during
+        highly parallel optimisations.
+        """
+        super().__init__(
+            name,
+            job_queue=mp.Queue(),
+            initializer=initializer,
+            initargs=initargs,
+            job_args=job_args,
+        )
+
     def run(self):
         """
         Run this process, completing each job in the job_queue and
@@ -182,11 +201,9 @@ class SneakyPool:
         logger.debug(
             f"Creating SneakyPool with {processes} processes"
         )
-        self._job_queue = mp.Queue()
         self._processes = [
             SneakyProcess(
                 str(number),
-                self.job_queue,
                 initializer=initializer,
                 initargs=initargs,
                 job_args=(fitness,)
@@ -199,10 +216,6 @@ class SneakyPool:
     @property
     def processes(self):
         return self._processes
-
-    @property
-    def job_queue(self):
-        return self._job_queue
 
     def map(self, function, args_list):
         """
@@ -237,8 +250,11 @@ class SneakyPool:
             f"Running {len(jobs)} jobs across {self.processes} processes"
         )
 
-        for job in jobs:
-            self.job_queue.put(
+        for i, job in enumerate(jobs):
+            process = self.processes[
+                i % len(self.processes)
+                ]
+            process.job_queue.put(
                 job
             )
 
@@ -281,8 +297,8 @@ class SneakyPool:
         logger.debug(
             "Terminating processes..."
         )
-        for _ in range(len(self.processes)):
-            self.job_queue.put(StopCommand)
+        for process in self.processes:
+            process.job_queue.put(StopCommand)
 
         logger.debug(
             "Joining processes..."
