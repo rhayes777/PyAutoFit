@@ -1,12 +1,13 @@
 from abc import abstractmethod, ABC
 from pathlib import Path
-from typing import List
+from typing import List, Optional
 
 
 class Item(ABC):
     def __init__(
             self,
-            prefix: str = ""
+            prefix: str = "",
+            parent: Optional["Item"] = None
     ):
         """
         A package, file or import in a project to be converted
@@ -18,8 +19,20 @@ class Item(ABC):
             Some prefix to be added to the names of directories and files
             for the hell of it apparently
         """
-        self._parent = None
-        self.prefix = prefix
+        self._parent = parent
+
+        if prefix or self._parent is None:
+            self.prefix = prefix
+        else:
+            self.prefix = self._parent.prefix
+
+    def __getitem__(self, item):
+        for child in self.children:
+            if child.name == item:
+                return child
+        member = Member(item)
+        member.parent = self
+        return member
 
     @property
     def parent(self):
@@ -111,3 +124,21 @@ class Item(ABC):
         if self.parent is None:
             return self.target_name
         return f"{self.parent.target_import_path}.{self.target_name}"
+
+
+class Member(Item):
+    def __init__(self, name):
+        super().__init__()
+        self._name = name
+
+    @property
+    def target_name(self) -> str:
+        return self.name
+
+    @property
+    def path(self) -> Path:
+        return self.parent.path / self._name
+
+    @property
+    def children(self) -> List["Item"]:
+        return []

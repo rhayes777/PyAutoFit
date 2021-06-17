@@ -1,10 +1,15 @@
 from pathlib import Path
+from typing import Optional
 
 from autofit.tools.edenise.structure.item import Item
 
 
 class Import(Item):
-    def __init__(self, string: str):
+    def __init__(
+            self,
+            string: str,
+            parent: Optional[Item]
+    ):
         """
         An import statement in a file
 
@@ -13,7 +18,9 @@ class Import(Item):
         string
             The original line describing the import
         """
-        super().__init__()
+        super().__init__(
+            parent=parent,
+        )
         self.string = string
 
         self.loc = {}
@@ -65,23 +72,46 @@ else:
         )
 
     @property
+    def _parts(self):
+        return self.string.split(" ")
+
+    @property
+    def items(self):
+        return [
+            self.module[part.replace(",", "")]
+            for part in self._parts[3:]
+        ]
+
+    @property
+    def module_string(self):
+        return self._parts[1]
+
+    @property
+    def module_path(self):
+        return self.module_string.split(".")
+
+    @property
+    def module(self):
+        item = self.top_level
+        for name in self.module_path:
+            item = item[name]
+        return item
+
+    @property
     def target_import_string(self) -> str:
         """
         The string that will describe this import after edenisation
         """
-        parts = self.string.split(" ")
-
-        module = parts[1]
-        items = parts[3:]
-
         module_string = ".".join(map(
             self._edenise_string,
-            module.split(".")
+            self.module_path
         ))
 
-        item_string = " ".join(
-            items
-        )
+        item_string = ", ".join([
+            item.target_name
+            for item
+            in self.items
+        ])
 
         return f"from {module_string} import {item_string}"
 

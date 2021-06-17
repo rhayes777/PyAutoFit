@@ -13,9 +13,10 @@ package_directory = Path(
     name="package"
 )
 def make_package():
-    return Package.from_directory(
+    return Package(
         package_directory,
-        prefix="VIS_CTI"
+        prefix="VIS_CTI",
+        is_top_level=True
     )
 
 
@@ -49,9 +50,10 @@ def test_path(package, child):
     name="import_"
 )
 def make_import(package):
-    import_ = Import("from autofit.tools.edenise import Line")
-    import_.parent = package
-    return import_
+    return Import(
+        "from autofit.tools.edenise import Line",
+        parent=package
+    )
 
 
 def test_project_import(import_):
@@ -60,7 +62,10 @@ def test_project_import(import_):
 
 
 def test_non_project_import(package):
-    import_ = Import("import os")
+    import_ = Import(
+        "import os",
+        parent=package
+    )
     import_.parent = package
     assert import_.is_in_project is False
 
@@ -81,24 +86,41 @@ def test_multi_import(
         package
 ):
     import_ = Import(
-        "from autofit.tools.edenise import Package, File, Import"
+        "from autofit.tools.edenise import Package, File, Import",
+        parent=package
     )
-    import_.parent = package
     string = "from VIS_CTI_Autofit.VIS_CTI_Tools.VIS_CTI_Edenise import Package, File, Import"
     assert import_.target_import_string == string
+
+
+def test_package_import(
+        package
+):
+    import_ = Import(
+        "from autofit.tools import edenise",
+        parent=package["tools"]
+    )
+    string = "from VIS_CTI_Autofit.VIS_CTI_Tools import VIS_CTI_Edenise"
+    assert import_.target_import_string == string
+
+
+def test_get_item(
+        package
+):
+    assert isinstance(
+        package[
+            "mapper"
+        ],
+        Package
+    )
 
 
 def test_file(package):
     file = File(
         Path(__file__),
-        prefix=""
+        prefix="",
+        parent=package
     )
-
-    file.parent = package
 
     assert len(file.imports) > 1
     assert len(file.project_imports) == 1
-
-
-def test_convert_file():
-    pass

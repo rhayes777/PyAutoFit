@@ -9,7 +9,8 @@ class File(Item):
     def __init__(
             self,
             path: Path,
-            prefix: str
+            prefix: str,
+            parent: Item
     ):
         """
         A file to be edenised
@@ -21,7 +22,10 @@ class File(Item):
         prefix
             A prefix to be prepended to package and module names
         """
-        super().__init__(prefix)
+        super().__init__(
+            prefix,
+            parent=parent
+        )
         self._path = path
 
     @property
@@ -58,8 +62,10 @@ class File(Item):
                 ) or line.startswith(
                     "import"
                 ):
-                    import_ = Import(line)
-                    import_.parent = self
+                    import_ = Import(
+                        line,
+                        parent=self
+                    )
                     imports.append(
                         import_
                     )
