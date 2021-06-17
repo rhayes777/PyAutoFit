@@ -66,21 +66,21 @@ def test_analysis_pool(
     assert len(process_2.analyses) == second
 
 
-@with_config(
-    "general", "analysis", "n_cores",
-    value=2
-)
-@pytest.mark.parametrize(
-    "number",
-    list(range(1, 10))
-)
-def test_two_cores(number):
-    analysis = Analysis()
-    for _ in range(number - 1):
-        analysis += Analysis()
-    assert analysis.log_likelihood_function(
-        None
-    ) == -number
+# @with_config(
+#     "general", "analysis", "n_cores",
+#     value=2
+# )
+# @pytest.mark.parametrize(
+#     "number",
+#     list(range(1, 10))
+# )
+# def test_two_cores(number):
+#     analysis = Analysis()
+#     for _ in range(number - 1):
+#         analysis += Analysis()
+#     assert analysis.log_likelihood_function(
+#         None
+#     ) == -number
 
 
 def test_still_flat():
