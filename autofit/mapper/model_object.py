@@ -4,8 +4,8 @@ from collections import Iterable
 from hashlib import md5
 from typing import Optional
 
-from autofit.tools.util import get_class
 from autoconf import conf
+from autofit.tools.util import get_class, get_class_path
 
 # floats are rounded to this increment so floating point errors
 # have no impact on identifier value
@@ -131,6 +131,13 @@ class Identifier:
         value
             An object
         """
+        if self._identifier_version >= 3:
+            if inspect.isclass(value):
+                self.add_value_to_hash_list(
+                    get_class_path(value)
+                )
+                return
+
         if isinstance(
                 value, Exception
         ):

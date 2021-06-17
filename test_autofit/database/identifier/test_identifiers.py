@@ -1,3 +1,4 @@
+import numpy as np
 import pytest
 
 import autofit as af
@@ -28,7 +29,18 @@ def test_identifier_version():
     )
 
 
+def test_class_path():
+    identifier = Identifier(
+        Class,
+        version=3
+    )
+    string, = identifier.hash_list
+    assert "test_autofit.database.identifier.test_identifiers.Class" in string
+
+
 class Class:
+    __doc__ = "hello"
+
     def __init__(self, one=1, two=2, three=3):
         self.one = one
         self.two = two
@@ -37,10 +49,25 @@ class Class:
 
     __identifier_fields__ = ("one", "two")
 
+    def __eq__(self, other):
+        return self.one == other.one
+
 
 class AttributeClass:
     def __init__(self):
         self.attribute = None
+
+
+def test_numpy_array():
+    identifier = Identifier(np.array([0]))
+    assert identifier.hash_list == []
+
+
+def test_hash_list():
+    identifier = Identifier(Class())
+    assert identifier.hash_list == [
+        "one", "1", "two", "2"
+    ]
 
 
 def test_constructor_only():
