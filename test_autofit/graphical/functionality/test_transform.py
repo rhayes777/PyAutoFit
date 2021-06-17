@@ -7,12 +7,13 @@ from scipy import stats, linalg, optimize
 
 import autofit.graphical as graph
 import autofit.graphical.factor_graphs.transform as transform
+from autofit.graphical.utils import numerical_jacobian
 
 def test_cholesky_transform():
     d = 10
     A = stats.wishart(d, np.eye(d)).rvs()
 
-    cho_factor = transform.CholeskyTransform(linalg.cho_factor(A))
+    cho_factor = transform.CholeskyOperator(linalg.cho_factor(A))
 
     U = np.triu(cho_factor.U)
     iU = np.linalg.inv(U)
@@ -43,7 +44,7 @@ def test_diagonal_transform():
     scale = np.random.rand(d)
     D = np.diag(scale)
     iD = np.diag(scale**-1)
-    diag_scale = transform.DiagonalTransform(scale)
+    diag_scale = transform.DiagonalMatrix(scale)
 
     b = np.random.rand(d)
     assert np.allclose(diag_scale * b, D @ b)
@@ -92,7 +93,7 @@ def test_simple_transform_cholesky():
     assert 1 - np.square(H - iA).mean()/np.square(iA).mean() > 0.95
     
     # cho = transform.CholeskyTransform(linalg.cho_factor(A))
-    cho = transform.CholeskyTransform.from_dense(A)
+    cho = transform.CholeskyOperator.from_dense(A)
     whiten = transform.VariableTransform({x: cho})
     white_factor = transform.TransformedNode(factor, whiten)
     white_func = white_factor.flatten(param_shapes)
@@ -111,7 +112,7 @@ def test_simple_transform_cholesky():
 
     # testing CovarianceTransform,
 
-    cho = transform.CovarianceTransform.from_dense(iA)
+    cho = transform.InvCholeskyTransform.from_dense(iA)
     whiten = transform.VariableTransform({x: cho})
     white_factor = transform.TransformedNode(factor, whiten)
     white_func = white_factor.flatten(param_shapes)
@@ -176,7 +177,7 @@ def test_simple_transform_diagonal():
     scale = np.random.exponential(size=d)
     A = np.diag(scale**-2)
     
-    diag = transform.DiagonalTransform(scale**-1)
+    diag = transform.DiagonalMatrix(scale**-1)
     whiten = transform.VariableTransform({x: diag})
     white_factor = transform.TransformedNode(factor, whiten)
     white_func = white_factor.flatten(param_shapes)
@@ -222,7 +223,7 @@ def test_complex_transform():
 
     factor = graph.Factor(likelihood, x1=x1, x2=x2, is_scalar=True)
 
-    cho = transform.CholeskyTransform(linalg.cho_factor(A))
+    cho = transform.CholeskyOperator(linalg.cho_factor(A))
     whiten = transform.FullCholeskyTransform(cho, param_shapes)
     trans_factor = transform.TransformedNode(factor, whiten)
 
@@ -244,7 +245,7 @@ def test_complex_transform():
         for v, X in param_shapes.unflatten(linalg.inv(A)).items()
     }
     cho_factors = {
-        v:  transform.CovarianceTransform.from_dense(cov)
+        v:  transform.InvCholeskyTransform.from_dense(cov)
         for v, cov in var_cov.items()
     }
     whiten = transform.VariableTransform(cho_factors)
@@ -271,7 +272,7 @@ def test_complex_transform():
 
     # test VariableTransform with CholeskyTransform
     diag_factors = {
-        v: transform.DiagonalTransform(cov.diagonal()**-0.5)
+        v: transform.DiagonalMatrix(cov.diagonal()**-0.5)
         for v, cov in var_cov.items()
     }
     whiten = transform.VariableTransform(diag_factors)

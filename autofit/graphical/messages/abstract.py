@@ -1,6 +1,4 @@
-from ..factor_graphs.jacobians import FactorJacobian
 from abc import ABC, abstractmethod
-from autofit.graphical.messages.transform import LinearShiftTransform
 from functools import reduce, lru_cache
 from itertools import chain
 from operator import and_
@@ -9,10 +7,10 @@ from inspect import getfullargspec
 
 import numpy as np
 
-from autofit.mapper.variable import Variable
-from .transform import AbstractTransform, LinearShiftTransform
+from ...mapper.variable import Variable
+from ..factor_graphs.jacobians import FactorJacobian
 from ..utils import cached_property, jac_grad_betaln
-
+from .transform import AbstractDensityTransform, LinearShiftTransform
 
 class AbstractMessage(ABC):
     log_base_measure: float
@@ -452,7 +450,7 @@ class AbstractMessage(ABC):
         return FactorJacobian(self, x=variable, name=name, vectorised=True)
 
     @classmethod
-    def transformed(cls, transform: AbstractTransform, clsname: Optional[str] = None) -> Type["AbstractMessage"]:
+    def transformed(cls, transform: AbstractDensityTransform, clsname: Optional[str] = None) -> Type["AbstractMessage"]:
         support = tuple(zip(*map(
             transform.inv_transform, map(np.array, zip(*cls._support))
         ))) if cls._support else cls._support 
@@ -514,7 +512,7 @@ class AbstractMessage(ABC):
 
 class TransformedMessage(AbstractMessage):
     _Message: Type[AbstractMessage]
-    _transform: AbstractTransform
+    _transform: AbstractDensityTransform
     _depth = 0
 
     @classmethod
@@ -522,7 +520,7 @@ class TransformedMessage(AbstractMessage):
             cls,
             Message: 'AbstractMessage',
             clsname: str,
-            transform: AbstractTransform,
+            transform: AbstractDensityTransform,
             parameters: Tuple[np.ndarray, ...],
             log_norm: float
     ):

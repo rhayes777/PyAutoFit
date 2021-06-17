@@ -1,8 +1,14 @@
 from .declarative import AnalysisFactor, FactorGraphModel, HierarchicalFactor
-from .factor_graphs import \
-    Factor, FactorJacobian, FactorGraph, AbstractFactor, FactorValue, \
-    DiagonalTransform, CholeskyTransform, VariableTransform, \
-    FullCholeskyTransform , CovarianceTransform, identity_transform
+from .factor_graphs import (
+    Factor, 
+    FactorJacobian, 
+    FactorGraph, 
+    AbstractFactor, 
+    FactorValue,
+    VariableTransform,
+    FullCholeskyTransform,
+    identity_transform
+)
 from .mean_field import FactorApproximation, MeanField
 from .expectation_propagation import EPMeanField, EPOptimiser
 from .messages import FixedMessage, NormalMessage, UniformNormalMessage, GammaMessage, AbstractMessage, BetaMessage

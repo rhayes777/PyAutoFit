@@ -6,7 +6,7 @@ from autofit.graphical.messages.abstract import AbstractMessage
 from autofit.mapper.prior.prior import GaussianPrior
 from autofit.graphical.utils import cached_property
 
-from .transform import phi_transform
+from .transform import phi_transform, log_transform, multinomial_logit_transform
 
 
 class NormalMessage(AbstractMessage):
@@ -142,3 +142,7 @@ class NormalMessage(AbstractMessage):
 
 UniformNormalMessage = NormalMessage.transformed(
     phi_transform, 'UniformNormalMessage')
+LogNormalMessage = NormalMessage.transformed(
+    log_transform, 'LogNormalMessage')
+MultiLogitNormalMessage = NormalMessage.transformed(
+    multinomial_logit_transform, 'MultiLogitNormalMessage')

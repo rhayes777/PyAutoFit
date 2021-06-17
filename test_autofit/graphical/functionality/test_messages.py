@@ -6,6 +6,8 @@ import numpy as np
 
 import autofit.graphical.messages.normal
 from autofit import graphical as graph
+from autofit.graphical.messages import transform
+from autofit.graphical.utils import numerical_jacobian
 
 
 def check_dist_norm(dist):
@@ -154,4 +156,81 @@ def test_transforms():
     shift = (0.3, 5.1)
     beta = graph.BetaMessage.shifted(0.3, 5.1)(a, b[::-1])
 
+
+def check_transforms(transform, x):
+    y, logd, logd_grad, jac = transform.transform_det_jac(x)
+
+    njac = numerical_jacobian(X, transform.transform)
+    nlogd_grad = numerical_jacobian(x, transform.log_det)
+
+    assert np.allclose(transform.inv_transform(y), x)
+    assert np.allclose(jac.to_dense(), njac)
+    assert np.isclose(logd.sum(), np.linalg.slogdet(njac)[1])
+    assert np.allclose(nlogd_grad.sum(0), logd_grad)
+
+
+def test_transforms():
+    tests = [
+        (transform.log_transform, np.r_[10, 2, 0.1]),
+        (transform.exp_transform, np.r_[10, -2, 0.1]),
+        (transform.logistic_transform, np.r_[0.22, 0.51, 0.1]),
+        (transform.phi_transform, np.r_[0.22, 0.51, 0.1]),
+        (transform.shifted_phi(11, 5.1), np.r_[11.1, 12, 16]),,
+    ]
+    [check_transforms(*args) for args in tests]
+
+
+def test_multinomial_logit():
+    mult_logit = transform.MultinomialLogitTransform()
+
+    d = 3
+    p = np.random.dirichlet(np.ones(d+1))[:d]
+
+    x, logd, logd_grad, jac = mult_logit.transform_det_jac(p)
+
+    njac = numerical_jacobian(p, mult_logit.transform)
+    nlogd_grad = numerical_jacobian(p, mult_logit.log_det)
+
+    assert np.allclose(mult_logit.inv_transform(x), p)
+    assert np.allclose(jac.to_dense(), njac)
+    assert np.isclose(logd.sum(), np.linalg.slogdet(njac)[1])
+    assert np.allclose(nlogd_grad.sum(0), logd_grad)
+
+    n = 5
+
+    ps = np.random.dirichlet(np.ones(d+1), size=n)[:, :d]
+    xs, logd, logd_grad, jac = mult_logit.transform_det_jac(ps)
+    njac = numerical_jacobian(ps, mult_logit.transform).reshape(jac.shape)
+    nlogd_grad = numerical_jacobian(ps, mult_logit.log_det)
+
+    assert np.allclose(mult_logit.inv_transform(x), ps)
+    assert np.allclose(njac, jac.to_dense())
+    assert np.isclose(logd.sum(), np.linalg.slogdet(njac)[1])
+    assert np.allclose(nlogd_grad.sum((0, 1)), logd_grad, 1e-5, 1e-3)
+
+    assert np.allclose(xs[0], mult_logit.transform(ps[0]))
+    assert np.allclose(logd[0], mult_logit.log_det(ps[0]))
+    assert np.allclose(logd_grad[0], mult_logit.log_det_grad(ps[0])[1])
+    
+
+def test_normal_simplex():
+    mult_logit = transform.MultinomialLogitTransform()
+    NormalSimplex = graph.messages.NormalMessage.transformed(mult_logit)
+
+    message = NormalSimplex([-1, 2], [.3, .3])
+
+    def func(*p):
+        return message.pdf(p).prod()
+
+    def simplex_lims(*args):
+        return [0, 1 - sum(args)]
+
+    # verify transformation normalises correctly 
+    res, err = integrate.nquad(
+        func, 
+        [simplex_lims] * message.size
+    )
+    assert res == pytest.approx(1, rel=err)
+ 
+    check_numerical_gradient_hessians(message, message.sample())
 
