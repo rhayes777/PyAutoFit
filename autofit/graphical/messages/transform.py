@@ -3,7 +3,7 @@
 from abc import ABC, abstractmethod
 from autofit.graphical.utils import numerical_jacobian
 from autofit.mapper.operator import MultiVecOuterProduct
-from functools import cached_property, wraps
+from functools import wraps
 from typing import Type, Union, Tuple
 
 import numpy as np
