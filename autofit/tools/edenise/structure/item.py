@@ -1,4 +1,3 @@
-import os
 from abc import abstractmethod, ABC
 from pathlib import Path
 from typing import List
@@ -19,8 +18,17 @@ class Item(ABC):
             Some prefix to be added to the names of directories and files
             for the hell of it apparently
         """
-        self.parent = None
+        self._parent = None
         self.prefix = prefix
+
+    @property
+    def parent(self):
+        return self._parent
+
+    @parent.setter
+    def parent(self, parent):
+        self._parent = parent
+        self.prefix = parent.prefix
 
     @property
     def top_level(self) -> "Item":
@@ -68,17 +76,22 @@ class Item(ABC):
         """
         return self.path.name
 
+    def _edenise_string(self, string):
+        suffix = "".join(
+            string.title()
+            for string
+            in string.split("_")
+        )
+        return f"{self.prefix}_{suffix}"
+
     @property
     def target_name(self) -> str:
         """
         The name this object will be given after Edenisation
         """
-        suffix = "".join(
-            string.title()
-            for string
-            in self.name.split("_")
+        return self._edenise_string(
+            self.name
         )
-        return f"{self.prefix}_{suffix}"
 
     @property
     def target_path(self) -> str:

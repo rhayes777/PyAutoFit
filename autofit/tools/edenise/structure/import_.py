@@ -69,7 +69,21 @@ else:
         """
         The string that will describe this import after edenisation
         """
-        return f"from {self.file.target_import_path} import {self.suffix}"
+        parts = self.string.split(" ")
+
+        module = parts[1]
+        items = parts[3:]
+
+        module_string = ".".join(map(
+            self._edenise_string,
+            module.split(".")
+        ))
+
+        item_string = " ".join(
+            items
+        )
+
+        return f"from {module_string} import {item_string}"
 
     @property
     def suffix(self) -> str:
