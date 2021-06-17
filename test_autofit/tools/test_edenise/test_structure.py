@@ -1,3 +1,4 @@
+import shutil
 from pathlib import Path
 
 import pytest
@@ -145,3 +146,26 @@ def test_file(package):
 
     assert len(file.imports) > 1
     assert len(file.project_imports) == 1
+
+
+def test_generate_target_directories(
+        output_path
+):
+    assert output_path.exists()
+    assert (
+            output_path / "VIS_CTI_Autofit/VIS_CTI_Tools/VIS_CTI_Edenise/VIS_CTI_Structure/VIS_CTI_Item.py"
+    )
+
+
+@pytest.fixture(
+    name="output_path"
+)
+def make_output_path(package):
+    output_directory = Path(
+        __file__
+    ).parent / "output"
+    package.generate_target(
+        output_directory
+    )
+    yield output_directory
+    shutil.rmtree(output_directory)

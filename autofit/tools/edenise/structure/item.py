@@ -126,6 +126,11 @@ class Item(ABC):
         return f"{self.parent.target_import_path}.{self.target_name}"
 
 
+class DirectoryItem(Item, ABC):
+    def generate_target(self, output_path):
+        pass
+
+
 class Member(Item):
     def __init__(self, name):
         super().__init__()

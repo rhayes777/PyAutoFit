@@ -2,10 +2,10 @@ from pathlib import Path
 from typing import List
 
 from .import_ import Import
-from .item import Item
+from .item import Item, DirectoryItem
 
 
-class File(Item):
+class File(DirectoryItem):
     def __init__(
             self,
             path: Path,
@@ -27,6 +27,9 @@ class File(Item):
             parent=parent
         )
         self._path = path
+
+    def generate_target(self, output_path):
+        pass
 
     @property
     def name(self) -> str:

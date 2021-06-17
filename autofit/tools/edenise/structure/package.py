@@ -3,10 +3,10 @@ from pathlib import Path
 from typing import List, Optional
 
 from .file import File
-from .item import Item
+from .item import DirectoryItem
 
 
-class Package(Item):
+class Package(DirectoryItem):
     def __init__(
             self,
             path: Path,
@@ -61,8 +61,18 @@ class Package(Item):
 
         self.is_top_level = is_top_level
 
+    def generate_target(self, output_path: Path):
+        (output_path / self.target_path).mkdir(
+            parents=True,
+            exist_ok=True
+        )
+        for child in self.children:
+            child.generate_target(
+                output_path
+            )
+
     @property
-    def children(self) -> List[Item]:
+    def children(self) -> List[DirectoryItem]:
         """
         Packages and files contained directly in this package
         """
