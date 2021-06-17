@@ -4,7 +4,47 @@ from typing import Optional
 from autofit.tools.edenise.structure.item import Item
 
 
-class Import(Item):
+class LineItem(Item):
+    def __init__(
+            self,
+            string: str,
+            parent: Item
+    ):
+        self.string = string
+        super().__init__(
+            parent=parent
+        )
+
+    def __new__(cls, string, parent):
+        if string.startswith(
+                "from"
+        ) or string.startswith(
+            "import"
+        ):
+            return object.__new__(Import)
+        return object.__new__(LineItem)
+
+    @property
+    def children(self):
+        """
+        Imports don't have any children
+        """
+        return []
+
+    @property
+    def path(self) -> Path:
+        return self.parent.path / self.string
+
+    @property
+    def name(self) -> str:
+        return self.string
+
+    @property
+    def target_name(self) -> str:
+        return self.string
+
+
+class Import(LineItem):
     def __init__(
             self,
             string: str,
@@ -19,9 +59,9 @@ class Import(Item):
             The original line describing the import
         """
         super().__init__(
+            string=string,
             parent=parent,
         )
-        self.string = string
 
         self.loc = {}
         exec(
@@ -39,13 +79,6 @@ else:
             globals(),
             self.loc
         )
-
-    @property
-    def children(self):
-        """
-        Imports don't have any children
-        """
-        return []
 
     @property
     def file(self) -> Item:

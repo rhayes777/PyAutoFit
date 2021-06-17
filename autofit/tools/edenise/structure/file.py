@@ -1,7 +1,7 @@
 from pathlib import Path
-from typing import List
+from typing import List, cast
 
-from .import_ import Import
+from .import_ import Import, LineItem
 from .item import Item, DirectoryItem
 
 
@@ -60,27 +60,28 @@ class File(DirectoryItem):
         """
         return self._path
 
+    def lines(self):
+        with open(self.path) as f:
+            for line in f.read().split("\n"):
+                yield LineItem(
+                    line,
+                    self
+                )
+
     @property
     def imports(self) -> List[Import]:
         """
         Imports in the file
         """
-        imports = list()
-        with open(self.path) as f:
-            for line in f.read().split("\n"):
-                if line.startswith(
-                        "from"
-                ) or line.startswith(
-                    "import"
-                ):
-                    import_ = Import(
-                        line,
-                        parent=self
-                    )
-                    imports.append(
-                        import_
-                    )
-        return imports
+        return cast(
+            List[Import],
+            list(filter(
+                lambda item: isinstance(
+                    item, Import
+                ),
+                self.lines()
+            ))
+        )
 
     @property
     def project_imports(self) -> List[Import]:
