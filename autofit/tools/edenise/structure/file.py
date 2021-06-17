@@ -32,6 +32,14 @@ class File(DirectoryItem):
         pass
 
     @property
+    def target_name(self) -> str:
+        if self.name == "__init__":
+            target_name = self.name
+        else:
+            target_name = super().target_name
+        return f"{target_name}.py"
+
+    @property
     def name(self) -> str:
         """
         The name of the file without the .py suffix

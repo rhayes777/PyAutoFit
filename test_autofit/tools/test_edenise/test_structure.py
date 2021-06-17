@@ -94,6 +94,12 @@ def test_multi_import(
     assert import_.target_import_string == string
 
 
+def test_init(
+        package
+):
+    assert package["__init__"].target_name == "__init__.py"
+
+
 def test_import_as(
         package
 ):

@@ -107,7 +107,7 @@ class Item(ABC):
         )
 
     @property
-    def target_path(self) -> str:
+    def target_path(self) -> Path:
         """
         The path this object will have after edenisation
         """
