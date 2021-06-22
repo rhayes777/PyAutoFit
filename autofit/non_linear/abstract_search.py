@@ -24,6 +24,10 @@ from autofit.non_linear.timer import Timer
 from .analysis import Analysis
 from ..graphical.expectation_propagation import AbstractFactorOptimiser
 
+logger = logging.getLogger(
+    __name__
+)
+
 
 def check_cores(func):
     """
@@ -99,11 +103,10 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         self.path_prefix_no_unique_tag = path_prefix
 
-        self.logger = logging.getLogger(
-            name
-        )
+        self._logger = None
+        self._paths = None
 
-        self.logger.info(
+        logger.info(
             f"Creating search"
         )
 
@@ -113,7 +116,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         self.unique_tag = unique_tag
 
         if session is not None:
-            self.logger.debug(
+            logger.debug(
                 "Session found. Using database."
             )
             paths = DatabasePaths(
@@ -127,7 +130,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                 unique_tag=unique_tag
             )
         else:
-            self.logger.debug(
+            logger.debug(
                 "Session not found. Using directory output."
             )
             paths = DirectoryPaths(
@@ -135,8 +138,6 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                 path_prefix=path_prefix,
                 unique_tag=unique_tag
             )
-
-        self._paths = None
 
         self.paths: AbstractPaths = paths
 
@@ -291,37 +292,26 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         Remove the logger for pickling
         """
         state = self.__dict__.copy()
-        del state["logger"]
+        del state["_logger"]
         return state
 
-    def __setstate__(self, state):
-        """
-        Recreate the logger when unpickling.
-
-        Determines whether logger should be configured for the
-        specific search by checking whether a model has been
-        set on the paths object (as a proxy to whether the search
-        has run).
-        """
-        self.__dict__.update(
-            state
-        )
-
-        logger_name = self.__class__.__name__
-        try:
-            # This is here so that old pickles don't throw an error
-            logger_name = self.name
-        except AttributeError:
-            pass
-
-        self.logger = logging.getLogger(
-            logger_name
-        )
-        try:
-            if self.paths.model is not None:
-                self.setup_log_file()
-        except AttributeError:
-            pass
+    @property
+    def logger(self):
+        if self._logger is None:
+            logger = logging.getLogger(
+                self.name
+            )
+            if self.paths is not None and self.paths.model is not None:
+                log_path = path.join(
+                    self.paths.output_path,
+                    "output.log"
+                )
+                logger.handlers.append(
+                    logging.FileHandler(log_path)
+                )
+                self._logger = logger
+            return logger
+        return self._logger
 
     @property
     def timer(self):
@@ -474,7 +464,6 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         self.paths.model = model
         self.paths.unique_tag = self.unique_tag
         self.paths.restore()
-        self.setup_log_file()
 
         if not self.paths.is_complete or self.force_pickle_overwrite:
             self.logger.info(
@@ -659,21 +648,6 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                 pass
 
         return samples
-
-    def setup_log_file(self):
-        """
-        Sets up the log file. This happens when the search commences.
-
-        A file handler is used to output logs into a file in the search
-        directory.
-        """
-        log_path = path.join(
-            self.paths.output_path,
-            "output.log"
-        )
-        self.logger.handlers.append(
-            logging.FileHandler(log_path)
-        )
 
     @property
     def samples_cls(self):

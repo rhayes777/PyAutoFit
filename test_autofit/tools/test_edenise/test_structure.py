@@ -18,7 +18,8 @@ def make_package():
         package_directory,
         prefix="VIS_CTI",
         is_top_level=True,
-        eden_dependencies=["autoconf"]
+        eden_dependencies=["autoconf"],
+        should_rename_modules=True
     )
 
 
@@ -146,6 +147,18 @@ def test_relative_import(
     )
 
     assert import_.string == result
+
+
+def test_module_import_name(
+        package
+):
+    conf = package["conf"]
+    assert conf.target_import_string == "VIS_CTI_Conf as conf"
+    assert conf.target_name == "VIS_CTI_Conf.py"
+
+    package._should_rename_modules = False
+    assert conf.target_import_string == "conf"
+    assert conf.target_name == "conf.py"
 
 
 def test_get_item(
