@@ -38,7 +38,7 @@ class File(DirectoryItem):
         """
         The name of this file after edenisation
         """
-        if self.name == "__init__":
+        if not self.should_rename_modules or self.name == "__init__":
             target_name = self.name
         else:
             target_name = super().target_name
@@ -49,8 +49,10 @@ class File(DirectoryItem):
         """
         The string for importing this file after edenisation
         """
-        name = self.target_name.replace(".py", "")
-        return f"{name} as {self.name}"
+        string = self.target_name.replace(".py", "")
+        if self.should_rename_modules:
+            string = f"{string} as {self.name}"
+        return string
 
     @property
     def name(self) -> str:
