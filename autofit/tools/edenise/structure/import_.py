@@ -142,12 +142,14 @@ class Import(LineItem):
         """
         Is this object within the top level object?
         """
-        top_level_name = self.top_level.name
-        return (self.string.startswith(
-            f"from {top_level_name}"
-        ) or self.string.startswith(
-            f"import {top_level_name}"
-        ))
+        for dependency in self.eden_dependencies:
+            if (self.string.startswith(
+                    f"from {dependency}"
+            ) or self.string.startswith(
+                f"import {dependency}"
+            )):
+                return True
+        return False
 
     @property
     def target_import_string(self) -> str:

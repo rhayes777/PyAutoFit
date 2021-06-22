@@ -16,7 +16,8 @@ def make_package():
     return Package(
         package_directory,
         prefix="VIS_CTI",
-        is_top_level=True
+        is_top_level=True,
+        eden_dependencies=["autoconf"]
     )
 
 

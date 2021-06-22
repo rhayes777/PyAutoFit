@@ -12,7 +12,8 @@ class Package(DirectoryItem):
             path: Path,
             prefix: str,
             is_top_level: bool,
-            parent: Optional["Package"] = None
+            parent: Optional["Package"] = None,
+            eden_dependencies: Optional[List[str]] = None
     ):
         """
         A package in the project.
@@ -60,6 +61,11 @@ class Package(DirectoryItem):
                     )
 
         self.is_top_level = is_top_level
+        self._eden_dependencies = eden_dependencies or list()
+
+    @property
+    def eden_dependencies(self):
+        return self._eden_dependencies + [self.name]
 
     def generate_target(self, output_path: Path):
         (output_path / self.target_path).mkdir(

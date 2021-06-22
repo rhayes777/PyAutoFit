@@ -35,6 +35,10 @@ class Item(ABC):
         return member
 
     @property
+    def eden_dependencies(self):
+        return self.top_level.eden_dependencies
+
+    @property
     def target_import_string(self) -> str:
         return self.target_name
 
