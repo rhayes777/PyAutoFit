@@ -40,7 +40,7 @@ class AbstractMessage(ABC):
     def to_canonical_form(x: np.ndarray) -> np.ndarray:
         pass
 
-    @property
+    @cached_property
     @abstractmethod
     def log_partition(self) -> np.ndarray:
         pass
@@ -55,7 +55,7 @@ class AbstractMessage(ABC):
     def variance(self) -> np.ndarray:
         pass
 
-    @property
+    @cached_property
     def scale(self) -> np.ndarray:
         return self.variance ** 0.5
 
@@ -455,6 +455,53 @@ class AbstractMessage(ABC):
 
     @classmethod
     def transformed(cls, transform: AbstractDensityTransform, clsname: Optional[str] = None) -> Type["AbstractMessage"]:
+        """
+        transforms the distribution according the passed transform, 
+        returns a newly created class that encodes the transformation. 
+
+        examples
+        --------
+        >>> from autofit.graphical.messages import NormalMessage, transform
+
+        Normal distributions have infinite univariate support
+        >>> NormalMessage._support
+        ((-inf, inf),)
+
+        We can tranform the NormalMessage to the unit interval 
+        using `transform.phi_transform`
+        >>> UnitNormal = NormalMessage.transformed(transform.phi_transform)
+        >>> message = UnitNormal(1.2, 0.8)
+        >>> message._support
+        ((0.0, 1.0),)
+
+        Samples from the UnitNormal will exist in the Unit interval
+        >>> samples = message.sample(1000)
+        >>> samples.min(), samples.mean(), samples.max()
+        (0.06631750944045942, 0.8183189295040845, 0.9999056316923468)
+
+        Projections still work for the transformed class
+        >>> UnitNormal.project(samples, samples*0) 
+        TransformedNormalMessage(mu=1.20273342, sigma=0.80929032)
+
+        Can specify the name of the new transformed class
+        >>> NormalMessage.transformed(transform.phi_transform, 'UnitNormal')(0, 1.)
+        UnitNormal(mu=0, sigma=1.)
+
+        The transformed objects are pickleable
+        >>> import pickle
+        >>> pickle.loads(pickle.dumps(message))
+        TransformedNormalMessage(mu=1.2, sigma=0.8)
+
+        The transformed objects also are normalised,
+        >>> from scipy.integrate import quad
+        >>> quad(message.pdf, 0, 1)
+        (1.0000000000114622, 3.977073226302252e-09)
+
+        Can also nest transforms
+        >>> WeirdNormal = NormalMessage.transformed(
+            transform.log_transform).transformed(
+            transform.exp_transform)
+        """
         support = tuple(zip(*map(
             transform.inv_transform, map(np.array, zip(*cls._support))
         ))) if cls._support else cls._support 

@@ -10,7 +10,7 @@ from .transform import phi_transform, log_transform, multinomial_logit_transform
 
 
 class NormalMessage(AbstractMessage):
-    @property
+    @cached_property
     def log_partition(self):
         eta1, eta2 = self.natural_parameters
         return - eta1 ** 2 / 4 / eta2 - np.log(-2 * eta2) / 2
@@ -77,11 +77,11 @@ class NormalMessage(AbstractMessage):
         sigma = np.sqrt(m2 - m1 ** 2)
         return cls.calc_natural_parameters(m1, sigma)
 
-    @property
+    @cached_property
     def mean(self):
         return self.mu
 
-    @property
+    @cached_property
     def variance(self):
         return self.sigma ** 2
 
