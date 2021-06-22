@@ -1,6 +1,7 @@
 import shutil
 from configparser import ConfigParser
 from os import walk
+from pathlib import Path
 
 from .converter import Converter, Line
 from .structure import Import, Item, File, Package
@@ -74,3 +75,14 @@ def edenise(
             continue
 
     open(f"{target_directory}/{name}/__init__.py", "w+").close()
+
+    target_directory = Path(target_directory)
+
+    package = Package(
+        target_directory / name,
+        prefix="VIS_CTI",
+        is_top_level=True
+    )
+    package.generate_target(
+        target_directory
+    )

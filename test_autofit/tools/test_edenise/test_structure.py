@@ -59,7 +59,7 @@ def make_import(package):
 
 def test_project_import(import_, package):
     import_.parent = package["tools"]["edenise"]["converter"]
-    assert "autofit/tools/edenise/converter.py" in str(import_.path)
+    assert "autofit/tools/edenise" in str(import_.path)
     assert import_.is_in_project is True
 
 
@@ -196,4 +196,4 @@ def make_output_path(package):
         output_directory
     )
     yield output_directory
-    shutil.rmtree(output_directory)
+    # shutil.rmtree(output_directory)

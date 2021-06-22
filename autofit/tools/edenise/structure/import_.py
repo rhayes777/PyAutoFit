@@ -148,7 +148,7 @@ class Import(LineItem):
 
     @property
     def module_string(self):
-        return self._parts[1]
+        return self._parts[1].replace(",", "")
 
     @property
     def module_path(self):
@@ -166,6 +166,9 @@ class Import(LineItem):
         """
         The string that will describe this import after edenisation
         """
+        if not self.is_in_project:
+            return self.string
+
         module_string = ".".join(map(
             self._edenise_string,
             self.module_path
@@ -186,38 +189,21 @@ class Import(LineItem):
 
         e.g. from os import path -> path
         """
-        return self.string.split(" ")[-1]
+        return self.string.replace("(", "").replace(")", "").split(" ")[-1]
 
     @property
     def path(self) -> Path:
         """
         The path to the file containing this import
         """
-        import_string = self.string
-        suffix = self.suffix
-        if "*" in import_string:
-            import_string = import_string.replace(
-                " import *", ""
-            ).replace(
-                "from ", "import "
-            )
-            suffix = import_string.replace(
-                "import ", ""
-            )
-
         loc = {}
         try:
             exec(
                 f"""
-{import_string}
+import {self.module_string}
 import inspect
 
-is_class = inspect.isclass({suffix})
-
-if is_class:
-    path = inspect.getfile({suffix})
-else:
-    path = {suffix}.__file__
+path = {self.module_string}.__file__
 """,
                 globals(),
                 loc
@@ -226,7 +212,7 @@ else:
             print(e)
         except (ModuleNotFoundError, SyntaxError) as e:
             raise e
-        return Path(loc["path"])
+        return Path(loc.get("path", ""))
 
 
 class As:
