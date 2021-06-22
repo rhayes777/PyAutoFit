@@ -35,6 +35,10 @@ class Item(ABC):
         return member
 
     @property
+    def should_rename_modules(self):
+        return self.top_level.should_rename_modules
+
+    @property
     def eden_dependencies(self):
         return self.top_level.eden_dependencies
 

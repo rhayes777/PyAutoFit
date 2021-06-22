@@ -13,7 +13,8 @@ class Package(DirectoryItem):
             prefix: str,
             is_top_level: bool,
             parent: Optional["Package"] = None,
-            eden_dependencies: Optional[List[str]] = None
+            eden_dependencies: Optional[List[str]] = None,
+            should_rename_modules: bool = False
     ):
         """
         A package in the project.
@@ -37,6 +38,11 @@ class Package(DirectoryItem):
 
         self.is_top_level = is_top_level
         self._eden_dependencies = eden_dependencies or list()
+        self._should_rename_modules = should_rename_modules
+
+    @property
+    def should_rename_modules(self):
+        return self._should_rename_modules
 
     @property
     def eden_dependencies(self):
