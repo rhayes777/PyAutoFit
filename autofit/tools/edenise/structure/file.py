@@ -42,6 +42,10 @@ class File(DirectoryItem):
         return f"{target_name}.py"
 
     @property
+    def target_import_string(self):
+        return self.target_name.replace(".py", "")
+
+    @property
     def name(self) -> str:
         """
         The name of the file without the .py suffix

@@ -35,6 +35,10 @@ class Item(ABC):
         return member
 
     @property
+    def target_import_string(self) -> str:
+        return self.target_name
+
+    @property
     def parent(self):
         return self._parent
 

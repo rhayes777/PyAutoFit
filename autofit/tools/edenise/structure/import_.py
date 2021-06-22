@@ -172,7 +172,7 @@ class Import(LineItem):
         ))
 
         item_string = ", ".join([
-            item.target_name
+            item.target_import_string
             for item
             in self.items
         ])
@@ -235,5 +235,5 @@ class As:
         self.alias = alias
 
     @property
-    def target_name(self):
-        return f"{self.item.target_name} as {self.alias}"
+    def target_import_string(self):
+        return f"{self.item.target_import_string} as {self.alias}"
