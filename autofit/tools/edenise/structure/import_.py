@@ -60,7 +60,7 @@ class Import(LineItem):
             The original line describing the import
         """
         match = re.match(
-            r"from (\.+)([a-zA-Z0-9_]*) import (.*)",
+            r"from (\.+)([a-zA-Z0-9_.]*) import (.*)",
             string
         )
         if match is not None:
@@ -98,6 +98,8 @@ else:
             )
         except AttributeError as e:
             print(e)
+        except ModuleNotFoundError as e:
+            raise e
 
     @property
     def file(self) -> Item:
