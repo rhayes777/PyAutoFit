@@ -136,7 +136,8 @@ def test_package_import(
     "string, result",
     [
         ("from . import util", "from autofit.tools import util"),
-        ("from .. import conf", "from autofit import conf")
+        ("from .. import conf", "from autofit import conf"),
+        ("from ..tools import util", "from autofit.tools import util")
     ]
 )
 def test_relative_import(

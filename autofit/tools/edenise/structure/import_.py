@@ -68,7 +68,11 @@ class Import(LineItem):
             for _ in match[1]:
                 level = level.parent
 
-            string = f"from {level.import_path} import {match[3]}"
+            import_path = level.import_path
+            if match[2] != "":
+                import_path = f"{import_path}.{match[2]}"
+
+            string = f"from {import_path} import {match[3]}"
 
         super().__init__(
             string=string,
