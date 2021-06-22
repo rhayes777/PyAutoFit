@@ -3,6 +3,7 @@ from functools import reduce, lru_cache
 from itertools import chain
 from operator import and_
 from typing import Optional, Tuple, Union, Iterator, Type, List
+from numbers import Real 
 from inspect import getfullargspec
 
 import numpy as np
@@ -103,14 +104,16 @@ class AbstractMessage(ABC):
         pass
 
     @classmethod
-    def from_sufficient_statistics(cls, suff_stats: np.ndarray, **kwargs
-                                   ) -> "AbstractMessage":
+    def from_sufficient_statistics(
+        cls, suff_stats: np.ndarray, **kwargs
+    ) -> "AbstractMessage":
         natural_params = cls.invert_sufficient_statistics(suff_stats)
         cls = cls._projection_class or cls
         return cls.from_natural_parameters(natural_params, **kwargs)
 
-    def sum_natural_parameters(self, *dists: "AbstractMessage"
-                               ) -> "AbstractMessage":
+    def sum_natural_parameters(
+            self, *dists: "AbstractMessage"
+    ) -> "AbstractMessage":
         """return the unnormalised result of multiplying the pdf
         of this distribution with another distribution of the same
         type
@@ -122,8 +125,9 @@ class AbstractMessage(ABC):
         mul_dist = self.from_natural_parameters(new_params)
         return mul_dist
 
-    def sub_natural_parameters(self, other: "AbstractMessage"
-                               ) -> "AbstractMessage":
+    def sub_natural_parameters(
+            self, other: "AbstractMessage"
+    ) -> "AbstractMessage":
         """return the unnormalised result of dividing the pdf
         of this distribution with another distribution of the same
         type"""
@@ -135,7 +139,7 @@ class AbstractMessage(ABC):
     _multiply = sum_natural_parameters
     _divide = sub_natural_parameters
 
-    def __mul__(self, other: Union["AbstractMessage", int, float]) -> "AbstractMessage":
+    def __mul__(self, other: Union["AbstractMessage", Real]) -> "AbstractMessage":
         if isinstance(other, AbstractMessage):
             return self._multiply(other)
         else:
@@ -145,14 +149,14 @@ class AbstractMessage(ABC):
     def __rmul__(self, other: "AbstractMessage") -> "AbstractMessage":
         return self * other
 
-    def __truediv__(self, other: Union["AbstractMessage", int, float]) -> "AbstractMessage":
+    def __truediv__(self, other: Union["AbstractMessage", Real]) -> "AbstractMessage":
         if isinstance(other, AbstractMessage):
             return self._divide(other)
         else:
             log_norm = self.log_norm - np.log(other)
             return type(self)(*self.parameters, log_norm=log_norm)
 
-    def __pow__(self, other: Union[int, float]) -> "AbstractMessage":
+    def __pow__(self, other: Real) -> "AbstractMessage":
         natural = self.natural_parameters
         new_params = other * natural
         log_norm = other * self.log_norm
