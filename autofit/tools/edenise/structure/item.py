@@ -78,15 +78,6 @@ class Item(ABC):
         """
 
     @property
-    def is_in_project(self) -> bool:
-        """
-        Is this object within the top level object?
-        """
-        return str(self.path).startswith(
-            str(self.top_level.path)
-        )
-
-    @property
     def name(self) -> str:
         """
         The current name of this object

@@ -138,16 +138,23 @@ class Import(LineItem):
         return item
 
     @property
+    def is_in_project(self) -> bool:
+        """
+        Is this object within the top level object?
+        """
+        top_level_name = self.top_level.name
+        return (self.string.startswith(
+                f"from {top_level_name}"
+        ) or self.string.startswith(
+            f"import {top_level_name}"
+        ))
+
+    @property
     def target_import_string(self) -> str:
         """
         The string that will describe this import after edenisation
         """
-        top_level_name = self.top_level.name
-        if not (self.string.startswith(
-                f"from {top_level_name}"
-        ) or self.string.startswith(
-            f"import {top_level_name}"
-        )):
+        if not self.is_in_project:
             return self.string
 
         module_string = ".".join(map(
