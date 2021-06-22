@@ -11,6 +11,20 @@ class LineItem(Item):
             string: str,
             parent: Item
     ):
+        """
+        A line in a file.
+
+        Special consideration is given to lines containing imports.
+
+        When parentheses are not balanced a line can span multiple lines in a file.
+
+        Parameters
+        ----------
+        string
+            The string on the line
+        parent
+            The file containing the line
+        """
         self.string = string
         super().__init__(
             parent=parent
@@ -26,15 +40,24 @@ class LineItem(Item):
         return object.__new__(LineItem)
 
     @property
-    def open_count(self):
+    def open_count(self) -> int:
+        """
+        How many opening parentheses have been encountered?
+        """
         return len(re.findall(r"\(", self.string))
 
     @property
     def close_count(self):
+        """
+        How many closing parentheses have been encountered?
+        """
         return len(re.findall(r"\)", self.string))
 
     @property
     def is_open(self):
+        """
+        Is there a parenthesis imbalance?
+        """
         return self.open_count > self.close_count
 
     def __add__(self, other):

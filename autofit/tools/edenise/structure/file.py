@@ -35,6 +35,9 @@ class File(DirectoryItem):
 
     @property
     def target_name(self) -> str:
+        """
+        The name of this file after edenisation
+        """
         if self.name == "__init__":
             target_name = self.name
         else:
@@ -42,7 +45,10 @@ class File(DirectoryItem):
         return f"{target_name}.py"
 
     @property
-    def target_import_string(self):
+    def target_import_string(self) -> str:
+        """
+        The string for importing this file after edenisation
+        """
         name = self.target_name.replace(".py", "")
         return f"{name} as {self.name}"
 
@@ -68,6 +74,12 @@ class File(DirectoryItem):
         return self._path
 
     def lines(self):
+        """
+        Yield objects comprising 'lines'
+
+        Open parentheses are used to determine if a 'line' goes across several
+        true lines
+        """
         with open(self.path) as f:
             line_item = None
             for line in f.read().split("\n"):

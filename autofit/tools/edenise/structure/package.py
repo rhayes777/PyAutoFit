@@ -26,6 +26,8 @@ class Package(DirectoryItem):
             A prefix that must be prepended to all packages and modules
         is_top_level
             Is this the top level package of the project?
+        eden_dependencies
+            Other projects for which imports should be converted
         """
         super().__init__(
             prefix,
