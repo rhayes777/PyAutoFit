@@ -12,7 +12,7 @@ def edenise(
         prefix,
         eden_prefix,
         eden_dependencies,
-        target_eden_directory=None
+        target_eden_directory=None,
 ):
     target_directory = f"{root_directory}/../eden/{name}_eden"
 
