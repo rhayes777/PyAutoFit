@@ -31,7 +31,7 @@ class File(DirectoryItem):
     def generate_target(self, output_path):
         with open(output_path / self.target_path, "w+") as f:
             for line in self.lines():
-                f.write(f"{line.target_name}\n")
+                f.write(f"{line.target_string}\n")
 
     @property
     def target_name(self) -> str:

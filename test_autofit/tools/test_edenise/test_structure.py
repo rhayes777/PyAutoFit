@@ -1,4 +1,3 @@
-import shutil
 from pathlib import Path
 
 import pytest
@@ -196,4 +195,4 @@ def make_output_path(package):
         output_directory
     )
     yield output_directory
-    shutil.rmtree(output_directory)
+    # shutil.rmtree(output_directory)

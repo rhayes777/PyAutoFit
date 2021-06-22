@@ -59,7 +59,7 @@ class LineItem(Item):
         return self.string
 
     @property
-    def target_name(self) -> str:
+    def target_string(self) -> str:
         return self.string
 
 
@@ -96,6 +96,10 @@ class Import(LineItem):
             string=string,
             parent=parent,
         )
+
+    @property
+    def target_string(self) -> str:
+        return self.target_import_string
 
     @property
     def file(self) -> Item:
