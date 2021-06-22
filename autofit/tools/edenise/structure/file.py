@@ -43,7 +43,8 @@ class File(DirectoryItem):
 
     @property
     def target_import_string(self):
-        return self.target_name.replace(".py", "")
+        name = self.target_name.replace(".py", "")
+        return f"{name} as {self.name}"
 
     @property
     def name(self) -> str:

@@ -144,7 +144,7 @@ class Import(LineItem):
         """
         top_level_name = self.top_level.name
         return (self.string.startswith(
-                f"from {top_level_name}"
+            f"from {top_level_name}"
         ) or self.string.startswith(
             f"import {top_level_name}"
         ))
@@ -163,7 +163,7 @@ class Import(LineItem):
         ))
 
         item_string = ", ".join([
-            item.target_import_string
+            f"{item.target_import_string}"
             for item
             in self.items
         ])
