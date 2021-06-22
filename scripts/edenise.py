@@ -29,7 +29,8 @@ def main(
             config.get("eden", "name"),
             config.get("eden", "prefix"),
             config.get("eden", "eden_prefix"),
-            eden_dependencies
+            eden_dependencies,
+            config.get("eden", "should_rename_modules").lower().startswith("t")
         )
     except ValueError:
         print("Usage: ./edenise.py root_directory")

@@ -11,7 +11,8 @@ def edenise(
         name,
         prefix,
         eden_prefix,
-        eden_dependencies
+        eden_dependencies,
+        should_rename_modules
 ):
     target_directory = f"{root_directory}/../eden/{name}_eden"
 
@@ -67,7 +68,8 @@ def edenise(
         target_directory / name,
         prefix=eden_prefix,
         is_top_level=True,
-        eden_dependencies=eden_dependencies
+        eden_dependencies=eden_dependencies,
+        should_rename_modules=should_rename_modules
     )
     package.generate_target(
         target_directory
