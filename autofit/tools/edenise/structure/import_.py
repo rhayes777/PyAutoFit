@@ -39,7 +39,7 @@ class LineItem(Item):
 
     def __add__(self, other):
         return LineItem(
-            self.string + " " + other.string,
+            self.string + "\n" + other.string,
             self.parent
         )
 
