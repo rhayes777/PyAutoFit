@@ -125,6 +125,12 @@ class Item(ABC):
             return self.target_name
         return f"{self.parent.target_import_path}.{self.target_name}"
 
+    @property
+    def import_path(self) -> str:
+        if self.parent is None:
+            return self.name
+        return f"{self.parent.import_path}.{self.name}"
+
 
 class DirectoryItem(Item, ABC):
     def generate_target(self, output_path):

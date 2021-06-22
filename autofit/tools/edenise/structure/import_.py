@@ -1,3 +1,4 @@
+import re
 from pathlib import Path
 from typing import Optional
 
@@ -58,14 +59,26 @@ class Import(LineItem):
         string
             The original line describing the import
         """
+        match = re.match(
+            r"from (\.+)([a-zA-Z0-9_]*) import (.*)",
+            string
+        )
+        if match is not None:
+            level = parent
+            for _ in match[1]:
+                level = level.parent
+
+            string = f"from {level.import_path} import {match[3]}"
+
         super().__init__(
             string=string,
             parent=parent,
         )
 
         self.loc = {}
-        exec(
-            f"""
+        try:
+            exec(
+                f"""
 {self.string}
 import inspect
 
@@ -76,9 +89,11 @@ if is_class:
 else:
     path = {self.suffix}.__file__
 """,
-            globals(),
-            self.loc
-        )
+                globals(),
+                self.loc
+            )
+        except AttributeError as e:
+            print(e)
 
     @property
     def file(self) -> Item:

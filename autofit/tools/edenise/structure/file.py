@@ -29,7 +29,9 @@ class File(DirectoryItem):
         self._path = path
 
     def generate_target(self, output_path):
-        pass
+        with open(output_path / self.target_path, "w+") as f:
+            for line in self.lines():
+                f.write(f"{line.target_name}\n")
 
     @property
     def target_name(self) -> str:

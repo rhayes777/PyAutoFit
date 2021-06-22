@@ -132,6 +132,26 @@ def test_package_import(
     assert import_.target_import_string == string
 
 
+@pytest.mark.parametrize(
+    "string, result",
+    [
+        ("from . import util", "from autofit.tools import util"),
+        ("from .. import conf", "from autofit import conf")
+    ]
+)
+def test_relative_import(
+        package,
+        string,
+        result
+):
+    import_ = Import(
+        string,
+        parent=package["tools"]["namer"]
+    )
+
+    assert import_.string == result
+
+
 def test_get_item(
         package
 ):
