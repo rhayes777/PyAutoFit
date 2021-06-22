@@ -26,6 +26,24 @@ class LineItem(Item):
         return object.__new__(LineItem)
 
     @property
+    def open_count(self):
+        return len(re.findall(r"\(", self.string))
+
+    @property
+    def close_count(self):
+        return len(re.findall(r"\)", self.string))
+
+    @property
+    def is_open(self):
+        return self.open_count > self.close_count
+
+    def __add__(self, other):
+        return LineItem(
+            self.string + " " + other.string,
+            self.parent
+        )
+
+    @property
     def children(self):
         """
         Imports don't have any children
@@ -78,28 +96,6 @@ class Import(LineItem):
             string=string,
             parent=parent,
         )
-
-        self.loc = {}
-        try:
-            exec(
-                f"""
-{self.string}
-import inspect
-
-is_class = inspect.isclass({self.suffix})
-
-if is_class:
-    path = inspect.getfile({self.suffix})
-else:
-    path = {self.suffix}.__file__
-""",
-                globals(),
-                self.loc
-            )
-        except AttributeError as e:
-            print(e)
-        except ModuleNotFoundError as e:
-            raise e
 
     @property
     def file(self) -> Item:
@@ -188,15 +184,45 @@ else:
         """
         return self.string.split(" ")[-1]
 
-    # def is_class(self) -> bool:
-    #     return self.loc["is_class"]
-
     @property
     def path(self) -> Path:
         """
         The path to the file containing this import
         """
-        return Path(self.loc["path"])
+        import_string = self.string
+        suffix = self.suffix
+        if "*" in import_string:
+            import_string = import_string.replace(
+                " import *", ""
+            ).replace(
+                "from ", "import "
+            )
+            suffix = import_string.replace(
+                "import ", ""
+            )
+
+        loc = {}
+        try:
+            exec(
+                f"""
+{import_string}
+import inspect
+
+is_class = inspect.isclass({suffix})
+
+if is_class:
+    path = inspect.getfile({suffix})
+else:
+    path = {suffix}.__file__
+""",
+                globals(),
+                loc
+            )
+        except AttributeError as e:
+            print(e)
+        except (ModuleNotFoundError, SyntaxError) as e:
+            raise e
+        return Path(loc["path"])
 
 
 class As:

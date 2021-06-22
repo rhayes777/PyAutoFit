@@ -57,7 +57,8 @@ def make_import(package):
     )
 
 
-def test_project_import(import_):
+def test_project_import(import_, package):
+    import_.parent = package["tools"]["edenise"]["converter"]
     assert "autofit/tools/edenise/converter.py" in str(import_.path)
     assert import_.is_in_project is True
 

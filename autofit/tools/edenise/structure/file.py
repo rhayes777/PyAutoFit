@@ -64,11 +64,20 @@ class File(DirectoryItem):
 
     def lines(self):
         with open(self.path) as f:
+            line_item = None
             for line in f.read().split("\n"):
-                yield LineItem(
+                new_item = LineItem(
                     line,
                     self
                 )
+                if line_item is None:
+                    line_item = new_item
+                else:
+                    line_item += new_item
+
+                if not line_item.is_open:
+                    yield line_item
+                    line_item = None
 
     @property
     def imports(self) -> List[Import]:
