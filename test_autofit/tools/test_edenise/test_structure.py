@@ -1,4 +1,3 @@
-import shutil
 from pathlib import Path
 
 import pytest
@@ -70,13 +69,6 @@ def test_non_project_import(package):
     )
     import_.parent = package
     assert import_.is_in_project is False
-
-
-def test_import_file(import_):
-    assert isinstance(
-        import_.file,
-        File
-    )
 
 
 def test_target_import_string(import_):

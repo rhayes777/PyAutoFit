@@ -102,30 +102,6 @@ class Import(LineItem):
         return self.target_import_string
 
     @property
-    def file(self) -> Item:
-        """
-        The file containing this import
-        """
-        path = str(self.path)
-
-        def get_from_item(
-                item
-        ):
-            for child in item.children:
-                if path == str(child.path):
-                    return child
-                if path.startswith(
-                        str(child.path)
-                ):
-                    return get_from_item(
-                        child
-                    )
-
-        return get_from_item(
-            self.top_level
-        )
-
-    @property
     def _parts(self):
         return self.string.split(" ")
 
@@ -166,7 +142,12 @@ class Import(LineItem):
         """
         The string that will describe this import after edenisation
         """
-        if not self.is_in_project:
+        top_level_name = self.top_level.name
+        if not (self.string.startswith(
+                f"from {top_level_name}"
+        ) or self.string.startswith(
+            f"import {top_level_name}"
+        )):
             return self.string
 
         module_string = ".".join(map(
@@ -181,38 +162,6 @@ class Import(LineItem):
         ])
 
         return f"from {module_string} import {item_string}"
-
-    @property
-    def suffix(self) -> str:
-        """
-        The final component of this import.
-
-        e.g. from os import path -> path
-        """
-        return self.string.replace("(", "").replace(")", "").split(" ")[-1]
-
-    @property
-    def path(self) -> Path:
-        """
-        The path to the file containing this import
-        """
-        loc = {}
-        try:
-            exec(
-                f"""
-import {self.module_string}
-import inspect
-
-path = {self.module_string}.__file__
-""",
-                globals(),
-                loc
-            )
-        except AttributeError as e:
-            print(e)
-        except (ModuleNotFoundError, SyntaxError) as e:
-            raise e
-        return Path(loc.get("path", ""))
 
 
 class As:

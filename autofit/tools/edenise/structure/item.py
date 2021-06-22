@@ -137,6 +137,7 @@ class Item(ABC):
 
 
 class DirectoryItem(Item, ABC):
+    @abstractmethod
     def generate_target(self, output_path):
         pass
 
