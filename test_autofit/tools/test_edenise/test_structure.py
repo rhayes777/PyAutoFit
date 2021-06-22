@@ -43,8 +43,8 @@ def test_child(child):
 
 def test_path(package, child):
     assert package.target_name == "VIS_CTI_Autofit"
-    assert str(package.target_path) == "VIS_CTI_Autofit"
-    assert str(child.target_path) == f"VIS_CTI_Autofit/{child.target_name}"
+    assert str(package.target_path) == "VIS_CTI/VIS_CTI_Autofit/python/VIS_CTI_Autofit"
+    assert str(child.target_path) == f"VIS_CTI/VIS_CTI_Autofit/python/VIS_CTI_Autofit/{child.target_name}"
 
 
 @pytest.fixture(

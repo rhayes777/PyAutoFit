@@ -32,33 +32,6 @@ class Package(DirectoryItem):
             parent=parent
         )
         self._path = path
-        self._children = list()
-
-        for item in os.listdir(
-                path
-        ):
-            item_path = path / item
-            if item.endswith(".py"):
-                self.children.append(
-                    File(
-                        item_path,
-                        prefix,
-                        parent=self
-                    )
-                )
-
-            if os.path.isdir(item_path):
-                if "__init__.py" in os.listdir(
-                        item_path
-                ):
-                    self.children.append(
-                        Package(
-                            item_path,
-                            prefix=prefix,
-                            is_top_level=False,
-                            parent=self
-                        )
-                    )
 
         self.is_top_level = is_top_level
         self._eden_dependencies = eden_dependencies or list()
@@ -82,7 +55,45 @@ class Package(DirectoryItem):
         """
         Packages and files contained directly in this package
         """
-        return self._children
+        children = list()
+        for item in os.listdir(
+                self.path
+        ):
+            item_path = self.path / item
+            if item.endswith(".py"):
+                children.append(
+                    File(
+                        item_path,
+                        self.prefix,
+                        parent=self
+                    )
+                )
+
+            if os.path.isdir(item_path):
+                if "__init__.py" in os.listdir(
+                        item_path
+                ):
+                    children.append(
+                        Package(
+                            item_path,
+                            prefix=self.prefix,
+                            is_top_level=False,
+                            parent=self
+                        )
+                    )
+        return children
+
+    @property
+    def target_path(self) -> Path:
+        """
+        The path this object will have after edenisation
+        """
+        target_path = super().target_path
+        if self.is_top_level:
+            target_path = Path(
+                self.prefix
+            ) / self.target_name / "python" / target_path
+        return target_path
 
     @property
     def path(self) -> Path:

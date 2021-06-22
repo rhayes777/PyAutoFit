@@ -1,5 +1,4 @@
 import shutil
-from configparser import ConfigParser
 from os import walk
 from pathlib import Path
 
@@ -7,29 +6,12 @@ from .converter import Converter, Line
 from .structure import Import, Item, File, Package
 
 
-def edenise_directory(
-        root_directory
-):
-    try:
-        config = ConfigParser()
-        config.read(
-            f"{root_directory}/eden.ini"
-        )
-
-        edenise(
-            root_directory,
-            config.get("eden", "name"),
-            config.get("eden", "prefix")
-        )
-    except ValueError:
-        print("Usage: ./edenise.py root_directory")
-        exit(1)
-
-
 def edenise(
         root_directory,
         name,
-        prefix
+        prefix,
+        eden_prefix,
+        eden_dependencies
 ):
     target_directory = f"{root_directory}/../eden/{name}_eden"
 
@@ -80,8 +62,9 @@ def edenise(
 
     package = Package(
         target_directory / name,
-        prefix="VIS_CTI",
-        is_top_level=True
+        prefix=eden_prefix,
+        is_top_level=True,
+        eden_dependencies=eden_dependencies
     )
     package.generate_target(
         target_directory
