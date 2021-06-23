@@ -11,8 +11,7 @@ from autofit.graphical.utils import cached_property
 
 
 class LinearOperator(ABC):
-    """
-    Implements the functionality of a linear operator. 
+    """Implements the functionality of a linear operator. 
 
     All linear operators can be expressed as a tensor/matrix
     However for some it there may be more efficient representations
@@ -25,6 +24,10 @@ class LinearOperator(ABC):
     see `ShermanMorrison`, `MultiVecOuterProduct`, or 
     `autofit.graphical.messages.transform.MultinomialLogitTransform` 
     for examples of this use case
+
+    If `M` is the dense matrix represenation of the LinearOperator then the
+    actions of the methods can be represented by the appropriate matrix
+    operation, 
 
     Methods
     -------
@@ -45,6 +48,7 @@ class LinearOperator(ABC):
         M \ x
 
     log_det():
+        log(det(M))
         log |M|
 
     quad(x):
@@ -404,6 +408,12 @@ class InvCholeskyTransform(CholeskyOperator):
 
 
 class DiagonalMatrix(LinearOperator):
+    """
+    Represents the DiagonalMatrix with diagonal `scale`
+
+    M = np.diag(scale.ravel())
+    
+    """
     def __init__(self, scale, inv_scale=None):
         self.scale = np.asanyarray(scale)
         self._fscale = np.ravel(self.scale)
@@ -450,7 +460,6 @@ class VecOuterProduct(LinearOperator):
 
     outer = vec[:, None] * vecT[None, :]
     """
-
     def __init__(self, vec, vecT=None):
         self.vec = np.asanyarray(vec)
         self.vecT = np.asanyarray(vec if vecT is None else vecT)
