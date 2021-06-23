@@ -96,7 +96,7 @@ class File(DirectoryItem):
                 else:
                     line_item += new_item
 
-                if not line_item.is_open:
+                if line_item.is_complete:
                     yield line_item
                     line_item = None
 

@@ -40,6 +40,36 @@ class LineItem(Item):
         return object.__new__(LineItem)
 
     @property
+    def is_complete(self):
+        if self.is_open_doc_string:
+            return False
+        if not self.is_doc_string and self.is_open:
+            return False
+        return True
+
+    @property
+    def lines(self):
+        return self.string.split("\n")
+
+    @property
+    def is_doc_string(self):
+        return '"""' in self.lines[0]
+
+    @property
+    def is_open_doc_string(self):
+        if self.is_doc_string:
+            return len(self.lines) == 1 or '"""' not in self.lines[-1]
+        return False
+
+    @property
+    def is_closed_doc_string(self):
+        return all([
+            self.is_doc_string,
+            len(self.lines) > 1,
+            '"""' in self.lines[-1]
+        ])
+
+    @property
     def open_count(self) -> int:
         """
         How many opening parentheses have been encountered?
@@ -56,7 +86,7 @@ class LineItem(Item):
     @property
     def is_open(self):
         """
-        Is there a parenthesis imbalance?
+        Is there a parenthesis or quote imbalance?
         """
         return self.open_count > self.close_count
 
