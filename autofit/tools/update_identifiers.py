@@ -1,6 +1,8 @@
 import os
 import shutil
 
+from sqlalchemy.orm import Session
+
 from autofit.aggregator import Aggregator as ClassicAggregator
 from autofit.database.aggregator import Aggregator as DatabaseAggregator
 from autofit.non_linear.paths.database import DatabasePaths
@@ -51,7 +53,17 @@ def update_directory_identifiers(
         )
 
 
-def update_database_identifiers(session):
+def update_database_identifiers(
+        session: Session
+):
+    """
+    Update identifiers for a database.
+
+    Parameters
+    ----------
+    session
+        A SQLAlchemy session connected to the database
+    """
     aggregator = DatabaseAggregator(session)
 
     args = list()
@@ -74,6 +86,6 @@ def update_database_identifiers(session):
         })
 
     session.execute(
-        "UPDATE fit SET id = :new_id WHERE id= :old_id",
+        "UPDATE fit SET id = :new_id WHERE id = :old_id",
         args
     )
