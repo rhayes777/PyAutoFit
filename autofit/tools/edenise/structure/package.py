@@ -59,6 +59,10 @@ class Package(DirectoryItem):
             )
 
     @property
+    def target_file_name(self):
+        return self.target_name
+
+    @property
     def children(self) -> List[DirectoryItem]:
         """
         Packages and files contained directly in this package

@@ -39,10 +39,12 @@ class File(DirectoryItem):
         The name of this file after edenisation
         """
         if not self.should_rename_modules or self.name == "__init__":
-            target_name = self.name
-        else:
-            target_name = super().target_name
-        return f"{target_name}.py"
+            return self.name
+        return super().target_name
+
+    @property
+    def target_file_name(self) -> str:
+        return f"{self.target_name}.py"
 
     @property
     def target_import_string(self) -> str:

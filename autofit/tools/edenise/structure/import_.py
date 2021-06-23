@@ -182,10 +182,12 @@ class Import(LineItem):
         if not self.is_in_project:
             return self.string
 
-        module_string = ".".join(map(
-            self._edenise_string,
-            self.module_path
-        ))
+        item = self.top_level
+        module_string = item.target_file_name
+
+        for name in self.module_path[1:]:
+            item = item[name]
+            module_string = f"{module_string}.{item.target_name}"
 
         item_string = ", ".join([
             f"{item.target_import_string}"
