@@ -141,6 +141,18 @@ def test_sneaky_pool(
         )
 
 
+def test_arbitrary_map(
+        pool
+):
+    args_list = [(1,), (1, 2), (1, 2, 3)]
+    results = list(pool.map(
+        identity,
+        args_list
+    ))
+
+    assert results == [([1],), ([1, 2],), ([1, 2, 3],)]
+
+
 def get_pid(*_):
     return mp.current_process().pid
 
