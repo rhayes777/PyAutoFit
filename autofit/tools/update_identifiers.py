@@ -52,6 +52,11 @@ def update_directory_identifiers(
             source_directory
         )
 
+        paths.zip_remove()
+        shutil.rmtree(
+            target_directory
+        )
+
 
 def update_database_identifiers(
         session: Session

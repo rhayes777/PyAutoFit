@@ -41,13 +41,17 @@ def test_directory():
         output_directory
     )
 
-    identifier, = listdir(
+    print(listdir(
+        output_directory / "name"
+    ))
+
+    filename, = listdir(
         output_directory / "name"
     )
+
+    identifier, suffix = filename.split(".")
     assert identifier != search.paths.identifier
-    assert af.SearchOutput(
-        output_directory / "name" / identifier
-    ).search.paths.identifier == identifier
+    assert suffix == "zip"
 
 
 def test_database(session):
