@@ -292,7 +292,8 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         Remove the logger for pickling
         """
         state = self.__dict__.copy()
-        del state["_logger"]
+        if "_logger" in state:
+            del state["_logger"]
         return state
 
     @property

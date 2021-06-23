@@ -1,9 +1,11 @@
+from os import listdir
 from pathlib import Path
 
 import autofit as af
 from autoconf.conf import output_path_for_test
 from autofit import Gaussian
 from autofit import conf
+from autofit.tools.update_identifiers import update_identifiers
 
 output_directory = Path(
     __file__
@@ -27,11 +29,21 @@ def test_consistent_identifier():
         pickle_files=[]
     )
 
+    assert listdir(
+        output_directory / "name"
+    ) == [
+               search.paths.identifier
+           ]
+
     conf.instance["general"]["output"]["identifier_version"] = 3
-    search_output = af.SearchOutput(
-        search.paths.output_path
+    update_identifiers(
+        output_directory
     )
-    search_output.search.paths._identifier = None
-    assert search_output.model is not None
-    assert search_output.search.paths.identifier != search.paths.identifier
-    print(search.paths.output_path)
+
+    identifier, = listdir(
+        output_directory / "name"
+    )
+    assert identifier != search.paths.identifier
+    assert af.SearchOutput(
+        output_directory / "name" / identifier
+    ).search.paths.identifier == identifier
