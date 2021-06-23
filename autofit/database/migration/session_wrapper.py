@@ -19,6 +19,9 @@ def needs_revision_table(
     of the revision table. If the table does not exist
     it is created and then the function is executed.
 
+    If the table already existed but an OperationalError
+    is raised then that error is propagated.
+
     Parameters
     ----------
     func
@@ -33,7 +36,9 @@ def needs_revision_table(
     def wrapper(self, *args, **kwargs):
         try:
             return func(self, *args, **kwargs)
-        except OperationalError:
+        except OperationalError as e:
+            if self.is_table:
+                raise e
             self._init_revision_table()
             return func(self, *args, **kwargs)
 
@@ -62,6 +67,19 @@ class SessionWrapper:
         self.session.execute(
             "INSERT INTO revision (revision_id) VALUES (null)"
         )
+
+    @property
+    def is_table(self) -> bool:
+        """
+        Does the revision table exist?
+        """
+        try:
+            self.session.execute(
+                "SELECT 1 FROM revision"
+            )
+            return True
+        except OperationalError:
+            return False
 
     @property
     @needs_revision_table
