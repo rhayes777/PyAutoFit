@@ -93,7 +93,7 @@ def test_multi_import(
 def test_init(
         package
 ):
-    assert package["__init__"].target_name == "__init__.py"
+    assert package["__init__"].target_file_name == "__init__.py"
 
 
 def test_import_as(
@@ -154,11 +154,22 @@ def test_module_import_name(
 ):
     conf = package["conf"]
     assert conf.target_import_string == "VIS_CTI_Conf as conf"
-    assert conf.target_name == "VIS_CTI_Conf.py"
+    assert conf.target_file_name == "VIS_CTI_Conf.py"
 
     package._should_rename_modules = False
     assert conf.target_import_string == "conf"
-    assert conf.target_name == "conf.py"
+    assert conf.target_file_name == "conf.py"
+
+
+def test_module_path_import_name(
+        package
+):
+    package._should_rename_modules = False
+    import_ = Import(
+        "from autofit.non_linear.samples import NestSamples, Sample",
+        parent=package
+    )
+    assert import_.target_string == "from VIS_CTI_Autofit.VIS_CTI_NonLinear.samples import NestSamples, Sample"
 
 
 def test_get_item(

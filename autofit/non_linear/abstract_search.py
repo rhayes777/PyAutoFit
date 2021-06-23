@@ -292,13 +292,14 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         Remove the logger for pickling
         """
         state = self.__dict__.copy()
-        del state["_logger"]
+        if "_logger" in state:
+            del state["_logger"]
         return state
 
     @property
     def logger(self):
         if self._logger is None:
-            logger = logging.getLogger(
+            logger_ = logging.getLogger(
                 self.name
             )
             if self.paths is not None and self.paths.model is not None:
@@ -306,11 +307,11 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                     self.paths.output_path,
                     "output.log"
                 )
-                logger.handlers.append(
+                logger_.handlers.append(
                     logging.FileHandler(log_path)
                 )
-                self._logger = logger
-            return logger
+                self._logger = logger_
+            return logger_
         return self._logger
 
     @property
@@ -355,12 +356,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             self.log_likelihood_cap = log_likelihood_cap
 
         def fit_instance(self, instance):
-
-            #      start = time.time()
             log_likelihood = self.analysis.log_likelihood_function(instance=instance)
-            #      fit_time = (time.time() - start)
-
-            #      print(mp.current_process().pid, log_likelihood, fit_time)
 
             if self.log_likelihood_cap is not None:
                 if log_likelihood > self.log_likelihood_cap:

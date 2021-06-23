@@ -31,7 +31,8 @@ def open_database(
     )
 
     engine = create_engine(
-        f'sqlite:///{output_path}/{filename}'
+        f'sqlite:///{output_path}/{filename}',
+        connect_args={'timeout': 15}
     )
     session = sessionmaker(bind=engine)()
     Base.metadata.create_all(engine)

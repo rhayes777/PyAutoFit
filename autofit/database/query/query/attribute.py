@@ -60,6 +60,15 @@ class Attribute:
             value=other
         )
 
+    def in_(self, item: str) -> AttributeQuery:
+        """
+        Check whether an attribute is contained within a substring
+        """
+        return self._make_query(
+            cls=c.InAttributeCondition,
+            value=item
+        )
+
     def contains(self, item: str) -> AttributeQuery:
         """
         Check whether an attribute, such as a search name, contains
