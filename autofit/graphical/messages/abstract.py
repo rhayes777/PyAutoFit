@@ -291,7 +291,7 @@ class AbstractMessage(ABC):
     logpdf_gradient_hessian = numerical_logpdf_gradient_hessian
 
     @classmethod
-    def project(cls, samples: np.ndarray, log_weight_list: np.ndarray) -> "AbstractMessage":
+    def project(cls, samples: np.ndarray, log_weight_list: Optional[np.ndarray] = None) -> "AbstractMessage":
         """Calculates the sufficient statistics of a set of samples
         and returns the distribution with the appropriate parameters
         that match the sufficient statistics
@@ -301,6 +301,9 @@ class AbstractMessage(ABC):
         # Numerically stable weighting for very small/large weight_list
 
         # rescale coordinates to 'natural parameter space'
+        if log_weight_list is None:
+            log_weight_list = np.zeros_like(samples) 
+
         log_w_max = np.max(log_weight_list, axis=0, keepdims=True)
         w = np.exp(log_weight_list - log_w_max)
         norm = w.mean(0)
@@ -454,7 +457,12 @@ class AbstractMessage(ABC):
         return FactorJacobian(self, x=variable, name=name, vectorised=True)
 
     @classmethod
-    def transformed(cls, transform: AbstractDensityTransform, clsname: Optional[str] = None) -> Type["AbstractMessage"]:
+    def transformed(
+        cls, 
+        transform: AbstractDensityTransform, 
+        clsname: Optional[str] = None, 
+        support: Optional[Tuple[Tuple[float, float], ...]] = None, 
+    ) -> Type["AbstractMessage"]:
         """
         transforms the distribution according the passed transform, 
         returns a newly created class that encodes the transformation. 
@@ -501,8 +509,23 @@ class AbstractMessage(ABC):
         >>> WeirdNormal = NormalMessage.transformed(
             transform.log_transform).transformed(
             transform.exp_transform)
+        This transformation is equivalent to the identity transform!
+        >>> WeirdNormal.project(NormalMessage(0.3, 0.8).sample(1000))
+        Transformed2NormalMessage(mu=0.31663248, sigma=0.79426984)
+
+        This functionality is more useful for applying linear shifts
+        e.g.
+        >>> ShiftedUnitNormal = NormalMessage.transformed(
+            transform.phi_transform
+        ).shifted(shift=0.7, scale=2.3)
+        >>> ShiftedUnitNormal._support
+        ((0.7, 3.0),)
+        >>> samples = ShiftedUnitNormal(0.2, 0.8).sample(1000)
+        >>> samples.min(), samples.mean(), samples.max()
+
+
         """
-        support = tuple(zip(*map(
+        support = support or tuple(zip(*map(
             transform.inv_transform, map(np.array, zip(*cls._support))
         ))) if cls._support else cls._support 
         projectionClass = (
@@ -520,6 +543,7 @@ class AbstractMessage(ABC):
                 _support = support
                 __projection_class = projectionClass
                 _depth = depth
+
         else:
             clsname = clsname or f"Transformed{cls.__name__}"
 
@@ -532,6 +556,7 @@ class AbstractMessage(ABC):
                 parameter_names = cls.parameter_names
                 _depth = 1
 
+               
         Transformed.__name__ = clsname
         return Transformed
 
@@ -560,6 +585,16 @@ class AbstractMessage(ABC):
                 self.log_norm
             ),
         )
+
+    @classmethod
+    def _sample(cls, self, n_samples):
+        # Needed for nested TransformedMessage method resolution
+        return cls.sample(self, n_samples)
+        
+    @classmethod
+    def _logpdf_gradient(cls, self, x):
+        # Needed for nested TransformedMessage method resolution
+        return cls.logpdf_gradient(self, x)
 
 class TransformedMessage(AbstractMessage):
     _Message: Type[AbstractMessage]
@@ -611,20 +646,32 @@ class TransformedMessage(AbstractMessage):
     def variance(self) -> np.ndarray:
         return self._transform.inv_transform(self._Message.variance.func(self))
 
-    def sample(self, n_samples=None) -> np.ndarray:
-        x = self._Message.sample(self, n_samples)
-        return self._transform.inv_transform(x)
+    @classmethod
+    def _sample(cls, self, n_samples) -> np.ndarray:
+        x = cls._Message._sample(self, n_samples)
+        return cls._transform.inv_transform(x)
 
-    def logpdf_gradient(  # type: ignore
+    @classmethod
+    def _logpdf_gradient(  # type: ignore
+        cls, 
         self,
         x: np.ndarray, 
     ) -> Tuple[np.ndarray, np.ndarray]:
-        x, logd, logd_grad, jac = self._transform.transform_det_jac(x)
-        logl, grad = self._Message.logpdf_gradient(self, x)
+        x, logd, logd_grad, jac = cls._transform.transform_det_jac(x)
+        logl, grad = cls._Message._logpdf_gradient(self, x)
         return logl + logd, jac * grad + logd_grad
+
+    def sample(self, n_samples=None) -> np.ndarray:
+        return self._sample(self, n_samples)
+
+    def logpdf_gradient(
+        self, x: np.ndarray
+    ) -> Tuple[np.ndarray, np.ndarray]:
+        return self._logpdf_gradient(self, x)
 
     logpdf_gradient_hessian = AbstractMessage.numerical_logpdf_gradient_hessian
     
+    # TODO code for analytic hessians when Jacobian is fixed e.g. for shifted messages
     # def logpdf_gradient_hessian(  # type: ignore
     #     self,
     #     x: np.ndarray, 

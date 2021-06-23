@@ -78,8 +78,15 @@ def test_message_norm():
 def test_numerical_gradient_hessians():
     N = graph.NormalMessage
     UN = graph.UniformNormalMessage
+    SUN = UN.shifted(shift=0.3, scale=0.8)
     LN = graph.LogNormalMessage
     MLN = graph.MultiLogitNormalMessage
+    # test doubly transformed distributions
+    WN = graph.NormalMessage.transformed(
+        transform.log_transform
+    ).transformed(
+        transform.exp_transform,
+    )
     test_cases = [
         (N, 1., 0.5, 0.3),
         (N, 1., 0.5, [0.3, 2.1]),
@@ -87,10 +94,16 @@ def test_numerical_gradient_hessians():
         (N, [0.1, 1., 2.], [2., 0.5, 3.], [[0.1, 0.2, 0.3], [2., 1., -1]]),
         (UN, 1., 0.5, None),
         (UN, [0.1, 1., 2.], [.1, 0.5, 0.2], None),
+        (SUN, 1., 0.5, None),
+        (SUN, [0.1, 1., 2.], [.1, 0.5, 0.2], None),
         (LN, 1., 0.5, None),
         (LN, [0.1, 1., 2.], [2., 0.5, 3.], None),
         (LN, [0.1, 1., 2.], [2., 0.5, 3.], None),
         (MLN, [0.1, 1., 2.], [.1, 0.5, 0.2], None),
+        (WN, 1., 0.5, 0.3),
+        (WN, 1., 0.5, [0.3, 2.1]),
+        (WN, [0.1, 1., 2.], [2., 0.5, 3.], [0.1, 0.2, 0.3]),
+        (WN, [0.1, 1., 2.], [2., 0.5, 3.], [[0.1, 0.2, 0.3], [2., 1., -1]]),
     ]
     for M, m, s, x in test_cases:
         check_numerical_gradient_hessians(M(m, s), x)

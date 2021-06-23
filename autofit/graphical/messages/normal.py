@@ -144,5 +144,6 @@ UniformNormalMessage = NormalMessage.transformed(
     phi_transform, 'UniformNormalMessage')
 LogNormalMessage = NormalMessage.transformed(
     log_transform, 'LogNormalMessage')
+# Support is the simplex
 MultiLogitNormalMessage = NormalMessage.transformed(
-    multinomial_logit_transform, 'MultiLogitNormalMessage')
+    multinomial_logit_transform, 'MultiLogitNormalMessage', ((0, 1),))
