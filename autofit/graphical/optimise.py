@@ -53,7 +53,7 @@ class OptFactor:
             model_dist: Optional[MeanField] = None,
             transform: Optional[LinearOperator] = None,
             bounds: Optional[Dict[str, Tuple[float, float]]] = None,
-            method: str = 'L-BFGS-B', jac=False, tol=None, options=None, 
+            method: str = 'L-BFGS-B', jac=False, tol=None, options=None,
             callback=None, constraints=None
     ):
         self.factor = factor
@@ -89,10 +89,10 @@ class OptFactor:
 
         self.default_kws = {
             'jac': self.jac,
-            'bounds': self.bounds, 
+            'bounds': self.bounds,
             'method': self.method,
             # Might want to automatically specify constraint from messages
-            'constraints': constraints, 
+            'constraints': constraints,
             'tol': tol,
             'callback': callback,
             'options': options
@@ -194,7 +194,10 @@ class OptFactor:
             status: Status = Status()) -> OptResult:
         success, messages = status
         success = result.success
-        message = result.message.decode()
+        try:
+            message = result.message.decode()
+        except AttributeError:
+            message = result.message
         messages += (
             "optimise.find_factor_mode: "
             f"nfev={result.nfev}, nit={result.nit}, "
@@ -224,7 +227,7 @@ class OptFactor:
 
     def _minimise(self, arrays_dict, **kwargs):
         x0 = self.transform * self.param_shapes.flatten(arrays_dict)
-        opt_kws = {**self.default_kws, **kwargs} 
+        opt_kws = {**self.default_kws, **kwargs}
         func = self.func_jacobian if opt_kws['jac'] else self
         return minimize(func, x0, **opt_kws)
 
@@ -232,7 +235,7 @@ class OptFactor:
             self,
             arrays_dict: Optional[ArraysDict] = None,
             status: Status = Status(),
-            **kwargs, 
+            **kwargs,
     ):
         self.sign = 1
         p0 = self.get_random_start(arrays_dict or {})
@@ -248,7 +251,7 @@ class OptFactor:
                 ]
             ] = None,
             status: Status = Status(),
-            **kwargs, 
+            **kwargs,
     ):
         self.sign = -1
         p0 = self.get_random_start(arrays_dict or {})

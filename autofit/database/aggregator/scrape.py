@@ -53,6 +53,8 @@ def scrape_directory(directory: str):
                 model,
                 search.unique_tag
             ])),
+            name=item.search.name,
+            unique_tag=item.search.unique_tag,
             model=model,
             instance=instance,
             is_complete=is_complete,

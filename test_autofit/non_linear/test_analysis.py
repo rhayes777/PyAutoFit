@@ -33,6 +33,16 @@ def test_visualise():
     assert analysis_1.did_visualise is True
     assert analysis_2.did_visualise is True
 
+def test_make_result():
+
+    analysis_1 = Analysis()
+    analysis_2 = Analysis()
+
+    result = (analysis_1 + analysis_2).make_result(
+        samples=None, model=None, search=None
+    )
+
+    assert len(result) == 2
 
 def test_add_analysis():
     assert (Analysis() + Analysis()).log_likelihood_function(
