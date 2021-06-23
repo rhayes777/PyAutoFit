@@ -35,6 +35,10 @@ class Item(ABC):
         return member
 
     @property
+    def target_file_name(self):
+        return self.target_name
+
+    @property
     def should_rename_modules(self):
         return self.top_level.should_rename_modules
 
@@ -114,10 +118,10 @@ class Item(ABC):
         """
         The path this object will have after edenisation
         """
-        target_name = self.target_name
+        target_file_name = self.target_file_name
         if self.parent is None:
-            return Path(target_name)
-        return self.parent.target_path / target_name
+            return Path(target_file_name)
+        return self.parent.target_path / target_file_name
 
     @property
     def target_import_path(self) -> str:
@@ -138,6 +142,10 @@ class Item(ABC):
 class DirectoryItem(Item, ABC):
     @abstractmethod
     def generate_target(self, output_path):
+        pass
+
+    @abstractmethod
+    def target_file_name(self):
         pass
 
 

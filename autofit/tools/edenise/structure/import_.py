@@ -1,6 +1,6 @@
 import re
 from pathlib import Path
-from typing import Optional
+from typing import Optional, List
 
 from autofit.tools.edenise.structure.item import Item
 
@@ -40,6 +40,46 @@ class LineItem(Item):
         return object.__new__(LineItem)
 
     @property
+    def is_complete(self) -> bool:
+        """
+        Is this a complete line? If a doc string or parenthesis has been
+        opened then it is not complete.
+
+        Doc strings take precedence to mitigate issue with unbalanced
+        parentheses in doc strings.
+        """
+        if self.is_open_doc_string:
+            return False
+        if not self.is_doc_string and self.is_open:
+            return False
+        return True
+
+    @property
+    def lines(self) -> List[str]:
+        """
+        Lines in this 'line' split by newline.
+
+        Multiple lines occur when a doc string or parenthesis is opened.
+        """
+        return self.string.split("\n")
+
+    @property
+    def is_doc_string(self):
+        """
+        Does this line start with the opening of a doc string?
+        """
+        return '"""' in self.lines[0]
+
+    @property
+    def is_open_doc_string(self) -> bool:
+        """
+        Has a doc string been opened but not closed?
+        """
+        if self.is_doc_string:
+            return len(self.lines) == 1 or '"""' not in self.lines[-1]
+        return False
+
+    @property
     def open_count(self) -> int:
         """
         How many opening parentheses have been encountered?
@@ -56,7 +96,7 @@ class LineItem(Item):
     @property
     def is_open(self):
         """
-        Is there a parenthesis imbalance?
+        Is there a parenthesis or quote imbalance?
         """
         return self.open_count > self.close_count
 
@@ -182,10 +222,12 @@ class Import(LineItem):
         if not self.is_in_project:
             return self.string
 
-        module_string = ".".join(map(
-            self._edenise_string,
-            self.module_path
-        ))
+        item = self.top_level
+        module_string = item.target_file_name
+
+        for name in self.module_path[1:]:
+            item = item[name]
+            module_string = f"{module_string}.{item.target_name}"
 
         item_string = ", ".join([
             f"{item.target_import_string}"
