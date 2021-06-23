@@ -669,7 +669,7 @@ class TransformedMessage(AbstractMessage):
     ) -> Tuple[np.ndarray, np.ndarray]:
         x, logd, logd_grad, jac = cls._transform.transform_det_jac(x)
         logl, grad = cls._Message._logpdf_gradient(self, x)
-        return logl + logd, jac * grad + logd_grad
+        return logl + logd, grad * jac + logd_grad
 
     def sample(self, n_samples=None) -> np.ndarray:
         return self._sample(self, n_samples)

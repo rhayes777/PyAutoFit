@@ -222,7 +222,10 @@ def test_multinomial_logit():
 
     assert np.allclose(mult_logit.inv_transform(xs), ps)
     assert np.allclose(njac, jac.to_dense())
-    assert np.isclose(logd.sum(), np.linalg.slogdet(njac)[1])
+    assert np.isclose(
+        logd.sum(), 
+        np.linalg.slogdet(njac.reshape(jac.lsize, jac.rsize))[1]
+    )
     assert np.allclose(nlogd_grad.sum((0, 1)), logd_grad, 1e-5, 1e-3)
 
     assert np.allclose(xs[0], mult_logit.transform(ps[0]))

@@ -11,6 +11,8 @@ from autofit.graphical.utils import cached_property
 
 
 class LinearOperator(ABC):
+    _ldim = 1
+
     @abstractmethod
     def __mul__(self, x: np.ndarray) -> np.ndarray:
         pass
@@ -33,19 +35,38 @@ class LinearOperator(ABC):
         pass
 
     def __len__(self) -> int:
-        return self.shape[0]
+        return self.lsize
+
+    @property
+    def lsize(self) -> int:
+        return np.prod(self.lshape, dtype=int)
+        
+    @property
+    def rsize(self) -> int:
+        return np.prod(self.rshape, dtype=int)
 
     @property
     def size(self) -> int:
         return np.prod(self.shape, dtype=int)
 
+    @property 
+    def ldim(self):
+        return self._ldim
+        
+    @property 
+    def rdim(self):
+        return self.ndim - self.ldim 
+
+    def ndim(self):
+        return len(self.shape)
+
     @property
     def lshape(self):
-        return self.shape[:1]
+        return self.shape[:self.ldim]
     
     @property 
     def rshape(self):
-        return self.shape[1:]
+        return self.shape[self.ldim:]
 
     @cached_property
     @abstractmethod
@@ -59,24 +80,24 @@ class LinearOperator(ABC):
         return (M / self).T / self
 
     def __array_ufunc__(self, ufunc, method, *inputs, **kwargs):
-        if ufunc is np.multiply:
+        if ufunc in (np.multiply, np.matmul):
             return self.__rmul__(inputs[0])
         elif ufunc is np.divide:
             return self.__rtruediv__(inputs[0])
-        elif ufunc is np.matmul:
-            return self.__rmul__(inputs[0])
         else:
             return NotImplemented
 
 
 class MatrixOperator(LinearOperator):
 
-    def __init__(self, M: np.ndarray):
-        self.M = M
+    def __init__(self, M: np.ndarray, shape=None, ldim=1):
+        self.M = np.asanyarray(M)
+        self._shape = shape or self.M.shape
+        self._ldim = 1
 
     @property
     def shape(self):
-        return self.M.shape
+        return self._shape
 
     @cached_property
     def log_det(self):
@@ -208,7 +229,7 @@ def _wrap_leftop(method):
     @wraps(method)
     def leftmethod(self, x: np.ndarray) -> np.ndarray:
         x = np.asanyarray(x)
-        return method(self, x.reshape(*self.rshape, -1)).reshape(x.shape)
+        return method(self, x.reshape(self.rsize, -1)).reshape(x.shape)
 
     return leftmethod
 
@@ -217,7 +238,7 @@ def _wrap_rightop(method):
     @wraps(method)
     def rightmethod(self, x: np.ndarray) -> np.ndarray:
         x = np.asanyarray(x)
-        return method(self, x.reshape(-1, *self.lshape)).reshape(x.shape)
+        return method(self, x.reshape(-1, self.lsize)).reshape(x.shape)
 
     return rightmethod
 
@@ -301,6 +322,10 @@ class InverseLinearOperator(LinearOperator):
     def shape(self) -> Tuple[int, ...]:
         return self.transform.shape
 
+    @property 
+    def ldim(self):
+        return self.transform.ldim
+
     @cached_property
     def log_det(self):
         return - self.transform.log_det
@@ -334,25 +359,27 @@ class InvCholeskyTransform(CholeskyOperator):
 
 class DiagonalMatrix(LinearOperator):
     def __init__(self, scale, inv_scale=None):
-        self.scale = np.ravel(scale)
-        self.inv_scale = 1 / \
+        self.scale = np.asanyarray(scale)
+        self._fscale = np.ravel(self.scale)
+        self._finv_scale = 1 / \
             scale if inv_scale is None else np.ravel(inv_scale)
+        self._ldim = len(self.scale.shape)
 
     @_wrap_leftop
     def __mul__(self, x):
-        return self.scale[:, None] * x
+        return self._fscale[:, None] * x
 
     @_wrap_rightop
     def __rmul__(self, x):
-        return x * self.scale
+        return x * self._fscale
 
     @_wrap_rightop
     def __rtruediv__(self, x):
-        return x * self.inv_scale
+        return x * self._finv_scale
 
     @_wrap_leftop
     def ldiv(self, x):
-        return self.inv_scale[:, None] * x
+        return self._finv_scale[:, None] * x
 
     @cached_property
     def log_det(self):
@@ -367,12 +394,8 @@ class DiagonalMatrix(LinearOperator):
     def shape(self):
         return self.scale.shape * 2
 
-    @cached_property
-    def log_scale(self):
-        return np.log(self.scale)
-
     def to_dense(self):
-        return np.diag(self.scale)
+        return np.diag(self._fscale).reshape(self.shape)
 
 
 class VecOuterProduct(LinearOperator):
@@ -382,16 +405,18 @@ class VecOuterProduct(LinearOperator):
     outer = vec[:, None] * vecT[None, :]
     """
     def __init__(self, vec, vecT=None):
-        self.vec = np.ravel(vec)[:, None]
-        self.vecT = np.ravel(vec if vecT is None else vecT)[None, :]
+        self.vec = np.asanyarray(vec)
+        self.vecT = np.asanyarray(vec if vecT is None else vecT)
+        self._fvec = np.ravel(self.vec)[:, None]
+        self._fvecT = np.ravel(self.vecT)[None, :]
         
     @_wrap_leftop
     def __mul__(self, x):
-        return self.vec @ self.vecT.dot(x)
+        return self._fvec @ self._fvecT.dot(x)
         
     @_wrap_rightop
     def __rmul__(self, x):
-        return x.dot(self.vec) @ self.vecT
+        return x.dot(self._fvec) @ self._fvecT
     
     def __rtruediv__(self, x):
         raise NotImplementedError()
@@ -413,8 +438,12 @@ class VecOuterProduct(LinearOperator):
     def shape(self):
         return (self.vec.size, self.vecT.size)
 
+    @property
+    def ldim(self):
+        return len(self.vec.shape)
+
     def to_dense(self):
-        return np.outer(self.vec, self.vecT)
+        return np.outer(self._fvec, self._fvecT).reshape(self.shape)
     
 
 class MultiVecOuterProduct(LinearOperator):
@@ -438,14 +467,14 @@ class MultiVecOuterProduct(LinearOperator):
     def __mul__(self, x):
         return np.einsum(
             "ij,ik,ikl -> ijl",
-            self.vec, self.vecT, x
+            self.vec, self.vecT, x.reshape(*self.lshape, -1)
         )
         
     @_wrap_rightop
     def __rmul__(self, x):
         return np.einsum(
             "ij,ik,lij -> lik",
-            self.vec, self.vecT, x
+            self.vec, self.vecT, x.reshape(-1, *self.rshape)
         )
     
     def __rtruediv__(self, x):
@@ -479,7 +508,7 @@ class MultiVecOuterProduct(LinearOperator):
     def to_dense(self):
         return block_diag(*(
             self.vec[:, :, None] * self.vecT[:, None, :]
-        ))
+        )).reshape(self.shape)
 
 
 class ShermanMorrison(LinearOperator):
@@ -497,7 +526,8 @@ class ShermanMorrison(LinearOperator):
         else: 
             raise ValueError("vec must be 1 or 2 dimensional")
             
-        self.inv_scale = 1 + linear.quad(vec.ravel())
+        self.inv_scale = 1 + linear.quad(vec)
+        self._ldim = self.linear.ldim
         
     @_wrap_leftop
     def __mul__(self, x):
@@ -533,4 +563,4 @@ class ShermanMorrison(LinearOperator):
 
     def to_dense(self):
         dense_outer = self.outer.to_dense()
-        return self.linear.to_dense().reshape(dense_outer.shape) + dense_outer
+        return self.linear.to_dense().reshape(self.shape) + dense_outer
