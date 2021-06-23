@@ -552,7 +552,7 @@ class MultiVecOuterProduct(LinearOperator):
 
     @property
     def shape(self):
-        return (self.n, self.d, self.nT, self.dT)
+        return self.vec.shape + self.vecT.shape
 
     @property
     def lshape(self):
