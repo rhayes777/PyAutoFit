@@ -68,6 +68,23 @@ def test_unique_tag(
     ) == [gaussian_2]
 
 
+def test_in(
+        aggregator,
+        gaussian_1,
+        gaussian_2
+):
+    assert aggregator.query(
+        aggregator.search.unique_tag.in_(
+            "one something"
+        )
+    ) == [gaussian_1]
+    assert aggregator.query(
+        aggregator.search.unique_tag.in_(
+            "one something two"
+        )
+    ) == [gaussian_1, gaussian_2]
+
+
 def test_contains(
         aggregator,
         gaussian_1,
