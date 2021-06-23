@@ -20,10 +20,44 @@ from ..factor_graphs import transform
 
 class AbstractDensityTransform(ABC):
     """
-    Apply transforms and inverse transforms, 
+    This class allows the transformation of a probability density function, p(x)
+    whilst preserving the measure of the distribution, i.e.
 
-    def f(x):
-        return 2*x
+    \int p(x) dx = 1
+
+    p'(f) = p(f(x)) * |df/dx|
+
+    \inf p'(f) df = 1
+
+    Methods
+    -------
+    transform
+        calculates f(x)
+    
+    inv_transform
+        calculates f^{-1}(y)
+
+    jacobian
+        calculates df/dx
+
+    log_det
+        calculates log |df/dx|
+
+    log_det_grad
+        calculates |df/dx|, d log_det/dx
+
+    transform_det
+        calculates f(x), |df/dx|
+
+    transform_jac
+        calculates f(x), df/dx
+
+    transform_det_jac
+        calculates f(x), log_det, d log_det/dx, df/dx
+
+    These final 3 functions are defined so that child classes
+    can define custom methods that avoid recalculation of intermediate 
+    values that are needed to calculate multiple versions of the quantities
     """
     @abstractmethod
     def transform(self, x):
@@ -238,9 +272,6 @@ def shifted_logistic(shift=0, scale=1):
 
 def ndtri_grad(x):
     return np.reciprocal(_norm_pdf(ndtri(x)))
-
-def ndtri_hess(x):
-    return
 
 def ndtri_grad_hess(x):
     f = ndtri(x)

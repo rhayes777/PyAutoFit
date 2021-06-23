@@ -167,20 +167,10 @@ def test_beta():
         graph.BetaMessage(a, b)
         for a, b in (np.random.poisson(5, size=(10, 2)) + 1)
     ]
-    [check_dist_norm(b) for b in betas]
+    for b in betas:
+        check_dist_norm(b)
+
     check_log_normalisation(betas)
-
-
-def test_message_transforms():
-    a = b = np.r_[2., 3.2, 1.5]
-    mx, sigma = np.r_[-0.5, .1, 0.], np.r_[0.3, 0.5, 0.9]
-    test_cases = [
-        (graph.BetaMessage, (a, b)),
-        (graph.NormalMessage, (mx, sigma)),
-        (graph.UniformNormalMessage, (mx, sigma)),
-    ]
-    shift = (0.3, 5.1)
-    beta = graph.BetaMessage.shifted(0.3, 5.1)(a, b[::-1])
 
 
 def check_transforms(transform, x):
@@ -203,7 +193,8 @@ def test_transforms():
         (transform.phi_transform, np.r_[0.22, 0.51, 0.1]),
         (transform.shifted_logistic(shift=11, scale=5.1), np.r_[11.1, 12, 16]),
     ]
-    [check_transforms(*args) for args in tests]
+    for args in tests:
+        check_transforms(*args)
 
 
 def test_multinomial_logit():

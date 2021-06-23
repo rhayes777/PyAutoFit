@@ -1,7 +1,7 @@
 from typing import Optional, Tuple
 import numpy as np
 
-from autofit.graphical.messages.abstract import AbstractMessage
+from autofit.graphical.messages.abstract import AbstractMessage, cached_property
 
 
 class FixedMessage(AbstractMessage):
@@ -11,7 +11,7 @@ class FixedMessage(AbstractMessage):
         self.value = value
         super().__init__(value, log_norm=log_norm)
 
-    @property
+    @cached_property
     def natural_parameters(self) -> Tuple[np.ndarray, ...]:
         return self.parameters
 
@@ -24,7 +24,7 @@ class FixedMessage(AbstractMessage):
     def to_canonical_form(x: np.ndarray) -> np.ndarray:
         return x
 
-    @property
+    @cached_property
     def log_partition(self) -> np.ndarray:
         return 0.
 
@@ -46,11 +46,11 @@ class FixedMessage(AbstractMessage):
     def logpdf(self, x: np.ndarray) -> np.ndarray:
         return np.zeros_like(x)
 
-    @property
+    @cached_property
     def mean(self) -> np.ndarray:
         return self.value
 
-    @property
+    @cached_property
     def variance(self) -> np.ndarray:
         return np.zeros_like(self.mean)
 

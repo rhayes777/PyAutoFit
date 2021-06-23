@@ -26,49 +26,50 @@ class BetaMessage(AbstractMessage):
         )
     
     @cached_property
-    def log_partition(self):
+    def log_partition(self) -> np.ndarray:
         return betaln(*self.parameters)
     
     @cached_property
-    def natural_parameters(self):
+    def natural_parameters(self) -> np.ndarray:
         return self.calc_natural_parameters(
             self.alpha,
             self.beta
         )
     
     @staticmethod
-    def calc_natural_parameters(alpha, beta):
+    def calc_natural_parameters(
+            alpha: np.ndarray, beta: np.ndarray
+    ) -> np.ndarray:
         return np.array([alpha - 1, beta - 1]) 
     
     @staticmethod
-    def invert_natural_parameters(natural_parameters):
+    def invert_natural_parameters(
+            natural_parameters: np.ndarray
+    ) -> np.ndarray:
         return natural_parameters + 1
     
     @classmethod
-    def invert_sufficient_statistics(cls, suff_stats):
-        a, b = inv_beta_suffstats(*suff_stats)
+    def invert_sufficient_statistics(
+            cls, sufficient_statistics: np.ndarray
+    ) -> np.ndarray:
+        a, b = inv_beta_suffstats(*sufficient_statistics)
         return cls.calc_natural_parameters(a, b)
     
-    # @classmethod
-    # def calc_log_base_measure(cls, x):
-    #     return - np.log(x) - np.log1p(- x)
-    
     @classmethod
-    def to_canonical_form(cls, x):
+    def to_canonical_form(cls, x: np.ndarray) -> np.ndarray:
         return np.array([np.log(x), np.log1p(-x)])
 
     @cached_property
-    def mean(self):
+    def mean(self) -> np.ndarray:
         return self.alpha / (self.alpha + self.beta)
 
     @cached_property
-    def variance(self):
-        var = (
+    def variance(self) -> np.ndarray:
+        return (
             self.alpha * self.beta
             / (self.alpha + self.beta)**2 
             / (self.alpha + self.beta + 1)
         )
-        return var
 
     def sample(self, n_samples=None):
         a, b = self.parameters

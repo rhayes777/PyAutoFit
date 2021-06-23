@@ -20,7 +20,7 @@ class AbstractMessage(ABC):
     _parameter_support: Optional[Tuple[Tuple[float, float], ...]] = None
     _support: Optional[Tuple[Tuple[float, float], ...]] = None
 
-    @property
+    @cached_property
     @abstractmethod
     def natural_parameters(self):
         pass
@@ -99,8 +99,9 @@ class AbstractMessage(ABC):
 
     @classmethod
     @abstractmethod
-    def invert_sufficient_statistics(cls, sufficient_statistics: np.ndarray
-                                     ) -> np.ndarray:
+    def invert_sufficient_statistics(
+            cls, sufficient_statistics: np.ndarray
+    ) -> np.ndarray:
         pass
 
     @classmethod
@@ -404,7 +405,7 @@ class AbstractMessage(ABC):
     def check_valid(self) -> np.ndarray:
         return self.check_finite() & self.check_support()
 
-    @property
+    @cached_property
     def is_valid(self) -> np.bool_:
         return np.all(self.check_finite()) and np.all(self.check_support())
 
@@ -465,9 +466,20 @@ class AbstractMessage(ABC):
     ) -> Type["AbstractMessage"]:
         """
         transforms the distribution according the passed transform, 
-        returns a newly created class that encodes the transformation. 
+        returns a newly created class that encodes the transformation.
 
-        examples
+        Parameters
+        ----------
+        transform: AbstractDensityTransform
+            object that transforms the density
+        clsname: str, optional
+            the class name of the newly created class.
+            defaults to "Transformed<OriginalClassName>"
+        support: Tuple[Tuple[float, float], optional
+            the support of the new class. Generally this can be 
+            automatically calculated from the parent class
+
+        Examples
         --------
         >>> from autofit.graphical.messages import NormalMessage, transform
 
@@ -522,8 +534,6 @@ class AbstractMessage(ABC):
         ((0.7, 3.0),)
         >>> samples = ShiftedUnitNormal(0.2, 0.8).sample(1000)
         >>> samples.min(), samples.mean(), samples.max()
-
-
         """
         support = support or tuple(zip(*map(
             transform.inv_transform, map(np.array, zip(*cls._support))
@@ -669,17 +679,8 @@ class TransformedMessage(AbstractMessage):
     ) -> Tuple[np.ndarray, np.ndarray]:
         return self._logpdf_gradient(self, x)
 
+    # TODO add code for analytic hessians when Jacobian is fixed e.g. for shifted messages
     logpdf_gradient_hessian = AbstractMessage.numerical_logpdf_gradient_hessian
-    
-    # TODO code for analytic hessians when Jacobian is fixed e.g. for shifted messages
-    # def logpdf_gradient_hessian(  # type: ignore
-    #     self,
-    #     x: np.ndarray, 
-    # ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
-    #     x, logd, logd_grad, jac = self._transform.transform_det_jac(x)
-    #     logd_hess = self._transform.log_det_hess(x)
-    #     logl, grad, hess = self._Message.logpdf_gradient_hessian(self, x)
-    #     return logl + logd, jac * grad + logd_grad, jac.quad(hess) + logd_hess
 
     @classmethod
     def from_mode(cls, mode: np.ndarray, covariance: np.ndarray
