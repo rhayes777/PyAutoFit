@@ -1,6 +1,6 @@
 import re
 from pathlib import Path
-from typing import Optional
+from typing import Optional, List
 
 from autofit.tools.edenise.structure.item import Item
 
@@ -40,7 +40,14 @@ class LineItem(Item):
         return object.__new__(LineItem)
 
     @property
-    def is_complete(self):
+    def is_complete(self) -> bool:
+        """
+        Is this a complete line? If a doc string or parenthesis has been
+        opened then it is not complete.
+
+        Doc strings take precedence to mitigate issue with unbalanced
+        parentheses in doc strings.
+        """
         if self.is_open_doc_string:
             return False
         if not self.is_doc_string and self.is_open:
@@ -48,26 +55,29 @@ class LineItem(Item):
         return True
 
     @property
-    def lines(self):
+    def lines(self) -> List[str]:
+        """
+        Lines in this 'line' split by newline.
+
+        Multiple lines occur when a doc string or parenthesis is opened.
+        """
         return self.string.split("\n")
 
     @property
     def is_doc_string(self):
+        """
+        Does this line start with the opening of a doc string?
+        """
         return '"""' in self.lines[0]
 
     @property
-    def is_open_doc_string(self):
+    def is_open_doc_string(self) -> bool:
+        """
+        Has a doc string been opened but not closed?
+        """
         if self.is_doc_string:
             return len(self.lines) == 1 or '"""' not in self.lines[-1]
         return False
-
-    @property
-    def is_closed_doc_string(self):
-        return all([
-            self.is_doc_string,
-            len(self.lines) > 1,
-            '"""' in self.lines[-1]
-        ])
 
     @property
     def open_count(self) -> int:
