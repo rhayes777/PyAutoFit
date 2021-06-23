@@ -265,6 +265,11 @@ class ContainsAttributeCondition(AttributeCondition):
         return f"{self.attribute} LIKE '%{self._value}%'"
 
 
+class InAttributeCondition(AttributeCondition):
+    def __str__(self):
+        return f"'{self._value}' LIKE '%' || {self.attribute} || '%'"
+
+
 class AttributeCondition(AbstractCondition):
     def __init__(self, attribute):
         self.attribute = attribute
