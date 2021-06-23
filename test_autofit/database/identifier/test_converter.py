@@ -14,4 +14,9 @@ def test_consistent_identifier():
         info={},
         pickle_files=[]
     )
+    search_output = af.SearchOutput(
+        search.paths.output_path
+    )
+    assert search_output.model is not None
+    assert search_output.search.paths.identifier == search.paths.identifier
     print(search.paths.output_path)
