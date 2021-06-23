@@ -1,12 +1,13 @@
 import os
 import shutil
 
-from autofit.aggregator import Aggregator
+from autofit.aggregator import Aggregator as ClassicAggregator
+from autofit.database.aggregator import Aggregator as DatabaseAggregator
+from autofit.non_linear.paths.database import DatabasePaths
 
 
-def update_identifiers(
-        output_directory: str,
-        keep_source_directory=False
+def update_directory_identifiers(
+        output_directory: str
 ):
     """
     Update identifiers in a given directory.
@@ -22,10 +23,8 @@ def update_identifiers(
     ----------
     output_directory
         A directory containing output results
-    keep_source_directory
-        If True then the source directory is not removed
     """
-    aggregator = Aggregator(
+    aggregator = ClassicAggregator(
         output_directory
     )
     for output in aggregator:
@@ -47,7 +46,34 @@ def update_identifiers(
 
         paths.save_object("search", output.search)
 
-        if not keep_source_directory:
-            shutil.rmtree(
-                source_directory
-            )
+        shutil.rmtree(
+            source_directory
+        )
+
+
+def update_database_identifiers(session):
+    aggregator = DatabaseAggregator(session)
+
+    args = list()
+
+    for output in aggregator:
+        search = output["search"]
+        model = output["model"]
+        paths = DatabasePaths(
+            session=session,
+            name=output.name,
+            path_prefix=output.path_prefix,
+            unique_tag=output.unique_tag,
+        )
+        paths.search = search
+        paths.model = model
+
+        args.append({
+            "old_id": output.id,
+            "new_id": paths.identifier
+        })
+
+    session.execute(
+        "UPDATE fit SET id = :new_id WHERE id= :old_id",
+        args
+    )

@@ -7,10 +7,9 @@ Usage:
 """
 from sys import argv
 
-from autofit.tools.update_identifiers import update_identifiers
+from autofit.tools.update_identifiers import update_directory_identifiers
 
 if __name__ == "__main__":
-    update_identifiers(
-        argv[1],
-        keep_source_directory=True
+    update_directory_identifiers(
+        argv[1]
     )
