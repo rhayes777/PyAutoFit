@@ -89,6 +89,14 @@ class SneakyJob(AbstractJob):
             else:
                 self.args.append(arg)
 
+    @property
+    def is_not_fitness(self) -> bool:
+        """
+        If the map is not being applied to a fitness function and a fitness
+        function is not one of the arguments then this map need not be sneaky
+        """
+        return self.function is not None and self.fitness_index is None
+
     def perform(self, likelihood_function):
         """
         Computes the log likelihood. The likelihood function
@@ -113,6 +121,8 @@ class SneakyJob(AbstractJob):
             return likelihood_function(
                 self.args
             )
+        if self.is_not_fitness:
+            return self.function(self.args)
         args = (
                 self.args[:self.fitness_index]
                 + [likelihood_function]
