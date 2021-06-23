@@ -206,7 +206,10 @@ class AbstractPriorModel(AbstractModel):
         strings = list()
 
         for path, prior_model in tuples:
-            path = "->".join(path)
+            if len(path) == 0:
+                path = "(root)"
+            else:
+                path = "->".join(path)
             suffix = f"{prior_model.cls.__name__} (N={prior_model.prior_count})"
             spaces = (90 - (len(path) + len(suffix) + 1)) * " "
             strings.append(
