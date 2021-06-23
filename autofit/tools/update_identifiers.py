@@ -5,7 +5,8 @@ from autofit.aggregator import Aggregator
 
 
 def update_identifiers(
-        output_directory: str
+        output_directory: str,
+        keep_source_directory=False
 ):
     """
     Update identifiers in a given directory.
@@ -21,6 +22,8 @@ def update_identifiers(
     ----------
     output_directory
         A directory containing output results
+    keep_source_directory
+        If True then the source directory is not removed
     """
     aggregator = Aggregator(
         output_directory
@@ -41,8 +44,10 @@ def update_identifiers(
                     f"{source_directory}/{file}",
                     target_directory
                 )
-        shutil.rmtree(
-            source_directory
-        )
 
         paths.save_object("search", output.search)
+
+        if not keep_source_directory:
+            shutil.rmtree(
+                source_directory
+            )
