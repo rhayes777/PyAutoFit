@@ -21,7 +21,7 @@ if __name__ == "__main__":
     argument = argv[1]
 
     if argument.endswith(
-            "sqlite"
+            ".sqlite"
     ):
         update_database_identifiers(
             af.database.open_database(

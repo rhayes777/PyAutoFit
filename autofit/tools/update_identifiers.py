@@ -1,3 +1,4 @@
+import logging
 import os
 import shutil
 
@@ -6,6 +7,10 @@ from sqlalchemy.orm import Session
 from autofit.aggregator import Aggregator as ClassicAggregator
 from autofit.database.aggregator import Aggregator as DatabaseAggregator
 from autofit.non_linear.paths.database import DatabasePaths
+
+logger = logging.getLogger(
+    __name__
+)
 
 
 def update_directory_identifiers(
@@ -31,9 +36,13 @@ def update_directory_identifiers(
     )
     for output in aggregator:
         paths = output.search.paths
-        source_directory = paths.output_path
+        source_directory = output.directory
         paths._identifier = None
         target_directory = paths.output_path
+
+        logger.info(
+            f"Moving output from {source_directory} to {target_directory}"
+        )
 
         for file in os.listdir(
                 source_directory
