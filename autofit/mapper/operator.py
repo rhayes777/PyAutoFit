@@ -11,6 +11,52 @@ from autofit.graphical.utils import cached_property
 
 
 class LinearOperator(ABC):
+    """
+    Implements the functionality of a linear operator. 
+
+    All linear operators can be expressed as a tensor/matrix
+    However for some it there may be more efficient representations
+
+    e.g. The Diagonal Matrix (see `DiagonalMatrix`), 
+    Sherman-Morrison Matrix (see `ShermanMorrison`)
+    or the vector-Jacobian product of a function see jax.jvp [0]
+
+    The class also has the attributes, lshape, rshape, lsize, rsize to allow multidimensional tensors to be used,
+    see `ShermanMorrison`, `MultiVecOuterProduct`, or 
+    `autofit.graphical.messages.transform.MultinomialLogitTransform` 
+    for examples of this use case
+
+    Methods
+    -------
+    __mul__(x):
+        M.dot(x) 
+        M·x
+
+    __rmul__(x):
+        x.dot(M) 
+        x·M
+
+    __rtruediv__(x):
+        x.dot(inv(M)) 
+        x / M
+
+    ldiv(x):
+        inv(M).dot(x) 
+        M \ x
+
+    log_det():
+        log |M|
+
+    quad(x):
+        x.T.dot(M).dot(x)
+        xᵀ·M·x
+
+    invquad(x):
+        x.T.dot(inv(M)).dot(x)
+        xᵀ·M⁻¹·x
+
+    [0] https://jax.readthedocs.io/en/latest/notebooks/autodiff_cookbook.html#vector-jacobian-product
+    """
     _ldim = 1
 
     @abstractmethod
@@ -40,7 +86,7 @@ class LinearOperator(ABC):
     @property
     def lsize(self) -> int:
         return np.prod(self.lshape, dtype=int)
-        
+
     @property
     def rsize(self) -> int:
         return np.prod(self.rshape, dtype=int)
@@ -49,13 +95,13 @@ class LinearOperator(ABC):
     def size(self) -> int:
         return np.prod(self.shape, dtype=int)
 
-    @property 
+    @property
     def ldim(self):
         return self._ldim
-        
-    @property 
+
+    @property
     def rdim(self):
-        return self.ndim - self.ldim 
+        return self.ndim - self.ldim
 
     def ndim(self):
         return len(self.shape)
@@ -63,8 +109,8 @@ class LinearOperator(ABC):
     @property
     def lshape(self):
         return self.shape[:self.ldim]
-    
-    @property 
+
+    @property
     def rshape(self):
         return self.shape[self.ldim:]
 
@@ -255,6 +301,7 @@ class CholeskyOperator(LinearOperator):
     >>> df_dy = df_df * M
     >>> 
     """
+    # TODO implement tensor shape functionality
 
     def __init__(self, cho_factor):
         self.c, self.lower = self.cho_factor = cho_factor
@@ -322,7 +369,7 @@ class InverseLinearOperator(LinearOperator):
     def shape(self) -> Tuple[int, ...]:
         return self.transform.shape
 
-    @property 
+    @property
     def ldim(self):
         return self.transform.ldim
 
@@ -354,7 +401,6 @@ class InvCholeskyTransform(CholeskyOperator):
 
     def to_dense(self):
         return solve_triangular(self.U, np.triul(self.L), lower=False)
-
 
 
 class DiagonalMatrix(LinearOperator):
@@ -401,23 +447,24 @@ class DiagonalMatrix(LinearOperator):
 class VecOuterProduct(LinearOperator):
     """
     represents the matrix vector outer product
-    
+
     outer = vec[:, None] * vecT[None, :]
     """
+
     def __init__(self, vec, vecT=None):
         self.vec = np.asanyarray(vec)
         self.vecT = np.asanyarray(vec if vecT is None else vecT)
         self._fvec = np.ravel(self.vec)[:, None]
         self._fvecT = np.ravel(self.vecT)[None, :]
-        
+
     @_wrap_leftop
     def __mul__(self, x):
         return self._fvec @ self._fvecT.dot(x)
-        
+
     @_wrap_rightop
     def __rmul__(self, x):
         return x.dot(self._fvec) @ self._fvecT
-    
+
     def __rtruediv__(self, x):
         raise NotImplementedError()
 
@@ -433,7 +480,7 @@ class VecOuterProduct(LinearOperator):
     lmul = __mul__
     __matmul__ = __mul__
     __rmatmul__ = __rmul__
-    
+
     @property
     def shape(self):
         return (self.vec.size, self.vecT.size)
@@ -444,12 +491,12 @@ class VecOuterProduct(LinearOperator):
 
     def to_dense(self):
         return np.outer(self._fvec, self._fvecT).reshape(self.shape)
-    
+
 
 class MultiVecOuterProduct(LinearOperator):
     """
     represents the matrix vector outer product for stacked vectors,
-    
+
     outer -> block_diag(*
         (v[:, None] * u[None, :] for v, u in zip(vec, vecT)
     )
@@ -457,26 +504,27 @@ class MultiVecOuterProduct(LinearOperator):
         v[:, None] * u[None, :] @ x for v, u in zip(vec, vecT)
     ])
     """
+
     def __init__(self, vec, vecT=None):
         self.vec = np.asanyarray(vec)
         self.vecT = np.asanyarray(vec if vecT is None else vecT)
         self.n, self.d = self.vec.shape
         self.nT, self.dT = self.vecT.shape
-        
+
     @_wrap_leftop
     def __mul__(self, x):
         return np.einsum(
             "ij,ik,ikl -> ijl",
             self.vec, self.vecT, x.reshape(*self.lshape, -1)
         )
-        
+
     @_wrap_rightop
     def __rmul__(self, x):
         return np.einsum(
             "ij,ik,lij -> lik",
             self.vec, self.vecT, x.reshape(-1, *self.rshape)
         )
-    
+
     def __rtruediv__(self, x):
         raise NotImplementedError()
 
@@ -492,16 +540,16 @@ class MultiVecOuterProduct(LinearOperator):
     lmul = __mul__
     __matmul__ = __mul__
     __rmatmul__ = __rmul__
-    
+
     @property
     def shape(self):
         return (self.n, self.d, self.nT, self.dT)
-    
+
     @property
     def lshape(self):
         return self.shape[:2]
-    
-    @property 
+
+    @property
     def rshape(self):
         return self.shape[2:]
 
@@ -517,26 +565,27 @@ class ShermanMorrison(LinearOperator):
     inv(A + vec @ vec.T) = 
         inv(A) - inv(A) @ vec @ vec.T @ inv(A) / (1 + vec @ inv(A) @ vec/T)
     """
+
     def __init__(self, linear, vec):
         self.linear = linear
         if np.ndim(vec) == 2:
             self.outer = MultiVecOuterProduct(vec)
         elif np.ndim(vec) == 1:
             self.outer = VecOuterProduct(vec)
-        else: 
+        else:
             raise ValueError("vec must be 1 or 2 dimensional")
-            
+
         self.inv_scale = 1 + linear.quad(vec)
         self._ldim = self.linear.ldim
-        
+
     @_wrap_leftop
     def __mul__(self, x):
         return self.linear * x + self.outer * x
-    
+
     @_wrap_rightop
     def __rmul__(self, x):
         return x * self.linear + x * self.outer
-    
+
     @_wrap_rightop
     def __rtruediv__(self, x):
         x1 = x / self.linear
@@ -546,15 +595,15 @@ class ShermanMorrison(LinearOperator):
     def ldiv(self, x):
         x1 = self.linear.ldiv(x)
         return x1 - self.linear.ldiv(self.outer.dot(x1/self.inv_scale))
-    
+
     @cached_property
     def log_det(self):
         return self.linear.log_det + np.log(self.inv_scale)
-    
+
     @property
     def shape(self):
         return self.linear.shape
-    
+
     rdiv = __rtruediv__
     rmul = __rmul__
     lmul = __mul__
