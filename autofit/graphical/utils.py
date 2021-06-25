@@ -355,3 +355,40 @@ def numerical_jacobian(x, func, eps=1e-8, args=(), **kwargs):
             xi -= eps
             
     return jac
+
+
+def rescale_to_artists(artists, ax=None):
+    import matplotlib.pyplot as plt
+    ax = ax or plt.gca()
+    while True:
+        r = ax.figure.canvas.get_renderer()
+        extents = [
+            t.get_window_extent(
+                renderer=r
+            ).transformed(
+                ax.transData.inverted()
+            )
+            for t in artists
+        ]
+        min_extent = np.min(
+            [e.min for e in extents], axis=0
+        )
+        max_extent = np.max(
+            [e.max for e in extents], axis=0
+        )
+        min_lim, max_lim = zip(ax.get_xlim(), ax.get_ylim())
+        
+        # Sometimes the window doesn't always rescale first time around
+        if (min_extent < min_lim).any() or (max_extent > max_lim).any():
+            extent = max_extent - min_extent
+            max_extent += extent * 0.05
+            min_extent -= extent * 0.05
+            xlim, ylim = zip(
+                np.minimum(min_lim, min_extent), np.maximum(max_lim, max_extent)
+            )
+            ax.set_xlim(*xlim)
+            ax.set_ylim(*ylim)
+        else:
+            break
+
+    return xlim, ylim
