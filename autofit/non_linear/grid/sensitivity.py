@@ -4,7 +4,12 @@ from itertools import count
 from os import path
 from typing import List, Generator, Callable, Type, Union, Tuple
 
-from autofit import AbstractPriorModel, ModelInstance, DirectoryPaths, Result, Analysis, NonLinearSearch
+from autofit.mapper.prior_model.abstract import AbstractPriorModel
+from autofit.mapper.model import ModelInstance
+from autofit.non_linear.paths.directory import DirectoryPaths
+from autofit.non_linear.analysis import Analysis
+from autofit.non_linear.abstract_search import NonLinearSearch
+from autofit.non_linear.result import Result
 from autofit.non_linear.grid.grid_search import make_lists
 from autofit.non_linear.parallel import AbstractJob, Process, AbstractJobResult
 

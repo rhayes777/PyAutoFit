@@ -2,7 +2,10 @@ from typing import Union
 
 from sqlalchemy import Column, Integer, ForeignKey
 
-from autofit import mapper as af
+from autofit.mapper.prior import prior
+from autofit.mapper.prior_model import prior_model
+from autofit.mapper.prior_model import collection
+
 from .model import Object
 
 
@@ -29,7 +32,7 @@ class CollectionPriorModel(Object):
     def _from_object(
             cls,
             source: Union[
-                af.CollectionPriorModel,
+                collection.CollectionPriorModel,
                 list,
                 dict
             ]
@@ -37,15 +40,15 @@ class CollectionPriorModel(Object):
         instance = cls()
         if not isinstance(
                 source,
-                af.CollectionPriorModel
+                collection.CollectionPriorModel
         ):
-            source = af.CollectionPriorModel(
+            source = collection.CollectionPriorModel(
                 source
             )
         instance._add_children(
             source.items()
         )
-        instance.cls = af.CollectionPriorModel
+        instance.cls = collection.CollectionPriorModel
         return instance
 
 
@@ -71,7 +74,7 @@ class PriorModel(Object):
     @classmethod
     def _from_object(
             cls,
-            model: af.PriorModel,
+            model: prior_model.PriorModel,
     ):
         instance = cls()
         instance.cls = model.cls
@@ -79,7 +82,7 @@ class PriorModel(Object):
         return instance
 
     def _make_instance(self):
-        instance = object.__new__(af.PriorModel)
+        instance = object.__new__(prior_model.PriorModel)
         instance.cls = self.cls
         instance._assertions = []
         return instance
@@ -107,7 +110,7 @@ class Prior(Object):
     @classmethod
     def _from_object(
             cls,
-            model: af.Prior
+            model: prior.Prior
     ):
         instance = cls()
         instance.cls = type(model)

@@ -12,12 +12,10 @@ def edenise(
         prefix,
         eden_prefix,
         eden_dependencies,
-        should_rename_modules
+        target_eden_directory=None,
+        should_rename_modules=False
 ):
     target_directory = f"{root_directory}/../eden/{name}_eden"
-
-    print(target_directory)
-    stop
 
     print(f"Creating {target_directory}...")
     shutil.copytree(
@@ -71,6 +69,9 @@ def edenise(
         eden_dependencies=eden_dependencies,
         should_rename_modules=should_rename_modules
     )
+
+    target_eden_directory = Path(target_eden_directory) or target_directory
+
     package.generate_target(
-        target_directory
+        target_eden_directory
     )

@@ -1,6 +1,8 @@
 import pytest
+from sqlalchemy.exc import OperationalError
 
 from autofit.database.migration import SessionWrapper
+from autofit.database.migration.session_wrapper import needs_revision_table
 
 
 @pytest.fixture(
@@ -79,3 +81,11 @@ def test_session_wrapper(session):
 
     wrapper.revision_id = "revision_id"
     assert wrapper.revision_id == "revision_id"
+
+
+def test_table_exists(session):
+    wrapper = SessionWrapper(session)
+    assert wrapper.is_table is False
+
+    _ = wrapper.revision_id
+    assert wrapper.is_table is True

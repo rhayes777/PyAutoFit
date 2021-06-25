@@ -101,6 +101,9 @@ class Package(DirectoryItem):
         The path this object will have after edenisation
         """
         target_path = super().target_path
+ #       target_path = Path(str(target_path).replace("Auto", ""))
+ #       print(target_path)
+ #       stop
         if self.is_top_level:
             target_path = Path(
                 self.prefix

@@ -377,7 +377,7 @@ def rescale_to_artists(artists, ax=None):
             [e.max for e in extents], axis=0
         )
         min_lim, max_lim = zip(ax.get_xlim(), ax.get_ylim())
-        
+
         # Sometimes the window doesn't always rescale first time around
         if (min_extent < min_lim).any() or (max_extent > max_lim).any():
             extent = max_extent - min_extent
