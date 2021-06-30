@@ -114,20 +114,3 @@ class AnalysisFactor(AbstractModelFactor):
             instance: ModelInstance
     ) -> float:
         return self.analysis.log_likelihood_function(instance)
-
-    def optimise(self, optimiser) -> PriorModel:
-        """
-        Optimise this factor on its own returning a PriorModel
-        representing the final state of the messages.
-
-        Parameters
-        ----------
-        optimiser
-
-        Returns
-        -------
-        A PriorModel representing the optimised factor
-        """
-        return super().optimise(
-            optimiser
-        )

@@ -3,9 +3,11 @@ from operator import mul
 from typing import (
     Iterable, Tuple, TypeVar, Dict, NamedTuple, Optional, Union
 )
+import warnings
 
 import numpy as np
 from scipy import special
+from scipy.special import psi, polygamma
 from scipy.linalg import block_diag
 from scipy.optimize import OptimizeResult
 
@@ -288,3 +290,105 @@ def invpsilog(c: np.ndarray) -> np.ndarray:
         x0 = x0 - f0 / grad_psilog(x0)
 
     return x0
+
+
+def grad_betaln(ab):
+    psiab = psi(ab.sum(axis=1, keepdims=True))
+    return psi(ab) - psiab
+
+
+def jac_grad_betaln(ab):
+    psi1ab = polygamma(1, ab.sum(axis=1, keepdims=True))
+    fii = polygamma(1, ab) - psi1ab
+    fij = -psi1ab[:, 0]
+    return np.array([[fii[:, 0], fij], [fij, fii[:, 1]]]).T
+
+
+def inv_beta_suffstats(lnX, ln1X):
+    """Solve for a, b for, 
+    
+    psi(a) + psi(a + b) = lnX
+    psi(b) + psi(a + b) = ln1X
+    """
+    _lnX, _ln1X = np.ravel(lnX), np.ravel(ln1X)
+    lnXs = np.c_[_lnX, _ln1X]
+    
+    # Find initial starting location
+    Gs = np.exp(lnXs)
+    dG = 1 - Gs.sum(axis=1, keepdims=True)
+    ab = np.maximum(1, (1 + Gs / dG)/2)
+    
+    # 5 Newton Raphson itertions is generally enough
+    for i in range(5):
+        f = grad_betaln(ab) - lnXs
+        jac = jac_grad_betaln(ab)
+        ab += np.linalg.solve(jac, - f)
+        
+    if np.any(ab < 0):
+        warnings.warn(
+            "invalid negative parameters found for inv_beta_suffstats, "
+            "clampling value to 0.5",
+            RuntimeWarning
+        )
+        b = np.clip(ab, 0.5, None)
+
+    shape = np.shape(lnX)
+    if shape:
+        a = ab[:, 0].reshape(shape)
+        b = ab[:, 1].reshape(shape)
+    else:
+        a, b = ab[0,:]
+        
+    return a, b
+
+
+def numerical_jacobian(x, func, eps=1e-8, args=(), **kwargs):
+    x = np.array(x)
+    f0 = func(x, *args, **kwargs)
+    jac = np.empty(np.shape(f0) + np.shape(x))
+    fslice = (slice(None), ) * np.ndim(f0)
+    with np.nditer(x, flags=['multi_index'], op_flags=['readwrite']) as it:
+        for xi in it:
+            xi += eps
+            f1 = func(x, *args, **kwargs)
+            jac[fslice + it.multi_index] = (f1 - f0)/eps
+            xi -= eps
+            
+    return jac
+
+
+def rescale_to_artists(artists, ax=None):
+    import matplotlib.pyplot as plt
+    ax = ax or plt.gca()
+    while True:
+        r = ax.figure.canvas.get_renderer()
+        extents = [
+            t.get_window_extent(
+                renderer=r
+            ).transformed(
+                ax.transData.inverted()
+            )
+            for t in artists
+        ]
+        min_extent = np.min(
+            [e.min for e in extents], axis=0
+        )
+        max_extent = np.max(
+            [e.max for e in extents], axis=0
+        )
+        min_lim, max_lim = zip(ax.get_xlim(), ax.get_ylim())
+
+        # Sometimes the window doesn't always rescale first time around
+        if (min_extent < min_lim).any() or (max_extent > max_lim).any():
+            extent = max_extent - min_extent
+            max_extent += extent * 0.05
+            min_extent -= extent * 0.05
+            xlim, ylim = zip(
+                np.minimum(min_lim, min_extent), np.maximum(max_lim, max_extent)
+            )
+            ax.set_xlim(*xlim)
+            ax.set_ylim(*ylim)
+        else:
+            break
+
+    return xlim, ylim

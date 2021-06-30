@@ -121,8 +121,8 @@ class AbstractModelFactor(Analysis, ABC):
 
     def optimise(
             self,
-            optimiser:
-            AbstractFactorOptimiser
+            optimiser: AbstractFactorOptimiser,
+            **kwargs
     ) -> CollectionPriorModel:
         """
         Use an EP Optimiser to optimise the graph associated with this collection
@@ -144,7 +144,8 @@ class AbstractModelFactor(Analysis, ABC):
             optimiser
         )
         updated_model = opt.run(
-            self.mean_field_approximation()
+            self.mean_field_approximation(),
+            **kwargs
         )
 
         collection = CollectionPriorModel([

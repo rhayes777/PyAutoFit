@@ -42,7 +42,7 @@ class AbstractModelFactor(Factor, AbstractDeclarativeFactor, ABC):
             name=name or namer(self.__class__.__name__)
         )
 
-    def optimise(self, optimiser) -> PriorModel:
+    def optimise(self, optimiser, **kwargs) -> PriorModel:
         """
         Optimise this factor on its own returning a PriorModel
         representing the final state of the messages.
@@ -56,5 +56,5 @@ class AbstractModelFactor(Factor, AbstractDeclarativeFactor, ABC):
         A PriorModel representing the optimised factor
         """
         return super().optimise(
-            optimiser
+            optimiser, **kwargs
         )[0]

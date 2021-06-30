@@ -506,6 +506,7 @@ class Factor(AbstractFactor):
         return DeterministicFactor(
             self._factor,
             other,
+            name=self.name, 
             **self._kwargs
         )
 
@@ -548,6 +549,7 @@ class DeterministicFactor(Factor):
             factor: Callable,
             variable: Variable,
             *args: Variable,
+            name: str = '', 
             **kwargs: Variable
     ):
         """
@@ -568,6 +570,7 @@ class DeterministicFactor(Factor):
         super().__init__(
             factor,
             *args,
+            name=name or factor.__name__, 
             **kwargs
         )
         self._deterministic_variables = {

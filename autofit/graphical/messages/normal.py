@@ -6,8 +6,11 @@ from autofit.graphical.messages.abstract import AbstractMessage
 from autofit.mapper.prior.prior import GaussianPrior
 from autofit.graphical.utils import cached_property
 
+from .transform import phi_transform, log_transform, multinomial_logit_transform
+
+
 class NormalMessage(AbstractMessage):
-    @property
+    @cached_property
     def log_partition(self):
         eta1, eta2 = self.natural_parameters
         return - eta1 ** 2 / 4 / eta2 - np.log(-2 * eta2) / 2
@@ -20,7 +23,8 @@ class NormalMessage(AbstractMessage):
             self,
             mu=0.,
             sigma=1.,
-            log_norm=0.
+            log_norm=0.,
+            **kwargs
     ):
         super().__init__(
             mu, sigma,
@@ -73,16 +77,15 @@ class NormalMessage(AbstractMessage):
         sigma = np.sqrt(m2 - m1 ** 2)
         return cls.calc_natural_parameters(m1, sigma)
 
-    @property
+    @cached_property
     def mean(self):
         return self.mu
 
-    @property
+    @cached_property
     def variance(self):
         return self.sigma ** 2
 
     def sample(self, n_samples=None):
-        
         mu, sigma = self.parameters
         if n_samples:
             x = np.random.randn(n_samples, *self.shape)
@@ -90,23 +93,24 @@ class NormalMessage(AbstractMessage):
                 return x * sigma[None, ...] + mu[None, ...]
         else:
             x = np.random.randn(*self.shape)
-            
+
         return x * sigma + mu
 
     def kl(self, dist):
         return (
-        np.log(dist.sigma/self.sigma) 
-        + (self.sigma**2 + (self.mu - dist.mu)**2) / 2 / dist.sigma**2
-        - 1/2
-    )
+            np.log(dist.sigma/self.sigma)
+            + (self.sigma**2 + (self.mu - dist.mu)**2) / 2 / dist.sigma**2
+            - 1/2
+        )
 
     @classmethod
     def from_mode(cls, mode: np.ndarray, covariance: float = 1.):
         mode, variance = cls._get_mean_variance(mode, covariance)
         return cls(mode, variance ** 0.5)
 
-    def logpdf_gradient_hessian(self, x:np.ndarray
-    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+    def _logpdf_gradient_hessian(self, x: np.ndarray
+                                 ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+        # raise Exception
         shape = np.shape(x)
         if shape:
             x = np.asanyarray(x)
@@ -118,7 +122,7 @@ class NormalMessage(AbstractMessage):
 
             if shape[1:] == self.shape:
                 hess_logl = np.repeat(
-                    np.reshape(hess_logl, (1,) + np.shape(hess_logl)), 
+                    np.reshape(hess_logl, (1,) + np.shape(hess_logl)),
                     shape[0], 0)
 
         else:
@@ -130,5 +134,16 @@ class NormalMessage(AbstractMessage):
 
         return logl, grad_logl, hess_logl
 
-    def logpdf_gradient(self, x:np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
-        return self.logpdf_gradient_hessian(x)[:2]
+    logpdf_gradient_hessian = _logpdf_gradient_hessian
+
+    def logpdf_gradient(self, x: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
+        return self._logpdf_gradient_hessian(x)[:2]
+
+
+UniformNormalMessage = NormalMessage.transformed(
+    phi_transform, 'UniformNormalMessage')
+LogNormalMessage = NormalMessage.transformed(
+    log_transform, 'LogNormalMessage')
+# Support is the simplex
+MultiLogitNormalMessage = NormalMessage.transformed(
+    multinomial_logit_transform, 'MultiLogitNormalMessage', ((0, 1),))

@@ -9,9 +9,8 @@ import numpy as np
 
 from autofit.graphical.factor_graphs.abstract import FactorValue, AbstractNode
 from autofit.graphical.factor_graphs.factor import Factor
-from autofit.graphical.utils import \
-    (
-    add_arrays, aggregate, Axis, cached_property
+from autofit.graphical.utils import (
+    add_arrays, aggregate, Axis, cached_property, rescale_to_artists
 )
 from autofit.mapper.variable import Variable, Plate
 
@@ -258,7 +257,7 @@ class FactorGraph(AbstractNode):
             pos=None, ax=None, size=20, color='k', fill='w',
             factor_shape='s', variable_shape='o',
             factor_kws=None, variable_kws=None, edge_kws=None,
-            factors=None,
+            factors=None, draw_labels=False, label_kws=None, 
             **kwargs
     ):
         try:
@@ -266,9 +265,9 @@ class FactorGraph(AbstractNode):
             import networkx as nx
         except ImportError as e:
             raise ImportError("Matplotlib and networkx required for draw_graph()") from e
-        except RuntimeError:
+        except RuntimeError as e:
             print("Matplotlib unable to open display")
-            raise
+            raise e
 
         if ax is None:
             ax = plt.gca()
@@ -307,7 +306,11 @@ class FactorGraph(AbstractNode):
             labelbottom=False,
             labelleft=False,
         )
-        return fs, vs, edges
+        if draw_labels:
+            self.draw_graph_labels(
+                pos, ax=ax, **(label_kws or {})
+            )
+        return pos, fs, vs, edges
 
     def draw_graph_labels(
             self,
@@ -322,13 +325,16 @@ class FactorGraph(AbstractNode):
             f_kws=None,
             v_kws=None,
             graph=None,
+            ax=None,
+            rescale=True,
             **kwargs
     ):
         try:
+            import matplotlib.pyplot as plt
             import networkx as nx
         except ImportError as e:
             raise ImportError("Matplotlib and networkx required for draw_graph()") from e
-
+        ax = ax or plt.gca()
         graph = graph or self.graph
         factor_labels = (
                 factor_labels or {f: f.name for f in self.factors})
@@ -342,13 +348,16 @@ class FactorGraph(AbstractNode):
         v_shift = v_shift or shift
         v_pos = {f: (x + v_shift, y) for f, (x, y) in pos.items()}
 
-        return {
+        text = {
             **nx.draw_networkx_labels(
-                graph, f_pos, labels=factor_labels, **f_kws, **kwargs),
+                graph, f_pos, labels=factor_labels, ax=ax, **f_kws, **kwargs),
             **nx.draw_networkx_labels(
-                graph, v_pos, labels=variable_labels, **v_kws, **kwargs)
+                graph, v_pos, labels=variable_labels, ax=ax, **v_kws, **kwargs)
         }
+        if rescale:
+            rescale_to_artists(text.values(), ax=ax)
 
+        return text
 
 def bipartite_layout(factors):
     n_factors = len(factors)

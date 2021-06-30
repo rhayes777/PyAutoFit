@@ -51,7 +51,7 @@ def test_hierarchical_factor(
 
     laplace = g.LaplaceFactorOptimiser()
 
-    gaussian = factor.optimise(laplace)
+    gaussian = factor.optimise(laplace, max_steps=10)
     assert gaussian.instance_from_prior_medians().mean == pytest.approx(100, abs=1)
 
 
@@ -95,7 +95,7 @@ def test_generate_data(
     if should_plot:
         for gaussian in data:
             plt.plot(x, gaussian)
-        plt.show()
+        plt.show(block=False)
 
 
 def test_model_factor(
@@ -122,8 +122,8 @@ def test_model_factor(
     )
     laplace = g.LaplaceFactorOptimiser()
 
-    gaussian = factor.optimise(laplace)
-    # assert gaussian.centre.mean == pytest.approx(centres[0], abs=0.1)
+    gaussian = factor.optimise(laplace, max_steps=10)
+    assert gaussian.centre.mean == pytest.approx(centres[0], abs=0.1)
 
 
 def test_full_fit(centre_model, data, centres):
@@ -157,7 +157,7 @@ def test_full_fit(centre_model, data, centres):
 
     laplace = g.LaplaceFactorOptimiser()
 
-    collection = graph.optimise(laplace)
+    collection = graph.optimise(laplace, max_steps=10)
 
     for gaussian, centre in zip(
             collection.with_prefix(

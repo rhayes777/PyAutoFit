@@ -22,9 +22,9 @@ from autofit.graphical.factor_graphs import (
     JacobianValue
 )
 from autofit.graphical.factor_graphs.transform import (
-    AbstractArray1DarTransform,
+    LinearOperator,
     identity_transform,
-    CovarianceTransform
+    InvCholeskyTransform
 )
 from autofit.graphical.mean_field import (
     MeanField,
@@ -51,7 +51,7 @@ class OptFactor:
             param_shapes: FlattenArrays,
             fixed_kws: Optional[Dict[str, np.ndarray]] = None,
             model_dist: Optional[MeanField] = None,
-            transform: Optional[AbstractArray1DarTransform] = None,
+            transform: Optional[LinearOperator] = None,
             bounds: Optional[Dict[str, Tuple[float, float]]] = None,
             method: str = 'L-BFGS-B', jac=False, tol=None, options=None,
             callback=None, constraints=None
@@ -109,7 +109,7 @@ class OptFactor:
     def from_approx(
             cls,
             factor_approx: FactorApproximation,
-            transform: Optional[AbstractArray1DarTransform] = None,
+            transform: Optional[LinearOperator] = None,
     ) -> 'OptFactor':
         value_shapes = {}
         fixed_kws = {}
@@ -333,7 +333,7 @@ class LaplaceFactorOptimiser(AbstractFactorOptimiser):
             res.mode, opt.free_vars, axis=None)
         update_det_cov(res, jacobian)
 
-        self.transforms[factor] = CovarianceTransform.from_dense(
+        self.transforms[factor] = InvCholeskyTransform.from_dense(
             res.full_hess_inv)
 
         # Project Laplace's approximation

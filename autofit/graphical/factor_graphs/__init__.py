@@ -7,16 +7,18 @@ from .factor import \
 from .jacobians import \
     FactorJacobian, DeterministicFactorJacobian
 from .graph import FactorGraph
-from .transform import \
-    DiagonalTransform, CholeskyTransform, VariableTransform, \
-    FullCholeskyTransform, identity_transform, TransformedNode, \
-    CovarianceTransform
+from .transform import (
+    VariableTransform,
+    FullCholeskyTransform, 
+    identity_transform, 
+    TransformedNode,
+)
 
 FactorNode = Union[
-    Factor, 
+    Factor,
     FactorJacobian
 ]
 DeterministicFactorNode = Union[
     DeterministicFactor,
     DeterministicFactorJacobian
-    ]
+]
