@@ -15,15 +15,17 @@ def test_parameterization():
 
     parameterization = model.parameterization
     assert parameterization == (
-        'collection->gaussian:                                                       Gaussian (N=3)'
+        """collection
+    gaussian                                                                              Gaussian (N=3)"""
     )
 
 
 def test_root():
     model = af.Model(af.Gaussian)
     parameterization = model.parameterization
+    print(parameterization)
     assert parameterization == (
-        '(root):                                                                     Gaussian (N=3)'
+        '(root)                                                                                    Gaussian (N=3)'
     )
 
 

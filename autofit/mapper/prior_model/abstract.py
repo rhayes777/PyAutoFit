@@ -929,23 +929,33 @@ class AbstractPriorModel(AbstractModel):
         and its number of free parameters
         """
         from .prior_model import PriorModel
-        tuples = self.path_instance_tuples_for_class(
-            PriorModel
-        )
 
-        strings = list()
+        formatter = TextFormatter()
 
-        for path, prior_model in tuples:
-            if len(path) == 0:
-                path = "(root)"
-            else:
-                path = "->".join(path)
-            suffix = f"{prior_model.cls.__name__} (N={prior_model.prior_count})"
-            spaces = (90 - (len(path) + len(suffix) + 1)) * " "
-            strings.append(
-                f"{path}:{spaces}{suffix}"
+        for t in self.path_instance_tuples_for_class((
+                Prior, float, tuple
+        )):
+            path = t[0][:-1]
+            obj = self.object_for_path(
+                path
             )
-        return "\n".join(strings)
+            if isinstance(obj, AbstractPriorModel):
+                n = obj.prior_count
+            else:
+                n = 0
+            if isinstance(obj, PriorModel):
+                name = obj.cls.__name__
+            else:
+                name = type(obj).__name__
+
+            if len(path) == 0:
+                path = ("(root)",)
+
+            formatter.add(
+                path, f"{name} (N={n})"
+            )
+
+        return formatter.text
 
     @property
     def model_component_and_parameter_names(self) -> [str]:
