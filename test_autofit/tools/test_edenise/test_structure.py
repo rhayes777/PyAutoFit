@@ -3,24 +3,7 @@ from pathlib import Path
 
 import pytest
 
-from autofit.tools.edenise import Package, File, Import, LineItem
-
-package_directory = Path(
-    __file__
-).parent.parent.parent.parent / "autofit"
-
-
-@pytest.fixture(
-    name="package"
-)
-def make_package():
-    return Package(
-        package_directory,
-        prefix="VIS_CTI",
-        is_top_level=True,
-        eden_dependencies=["autoconf"],
-        should_rename_modules=True
-    )
+from autofit.tools.edenise import Package, File, Import
 
 
 @pytest.fixture(
@@ -105,60 +88,6 @@ def test_import_as(
     )
     string = "from VIS_CTI_Autofit.VIS_CTI_Tools import VIS_CTI_Edenise as e"
     assert import_.target_import_string == string
-
-
-@pytest.mark.parametrize(
-    "string",
-    [
-        "def my_func() -> dict:",
-        "def my_func()->dict:",
-        "def my_func() -> dict :",
-    ]
-)
-def test_strip_return_type(
-        package,
-        string
-):
-    assert LineItem(
-        string,
-        parent=package
-    ).target_string == "def my_func():"
-
-
-@pytest.mark.parametrize(
-    "string",
-    [
-        "def my_func() -> dict:",
-        "def my_func()->dict:",
-        "def my_func() -> dict :",
-    ]
-)
-def test_strip_return_type(
-        package,
-        string
-):
-    assert LineItem(
-        string,
-        parent=package
-    ).target_string == "def my_func():"
-
-
-@pytest.mark.parametrize(
-    "string",
-    [
-        "def my_func(arg: dict):",
-        "def my_func(arg: dict ):",
-        "def my_func(arg : dict ):",
-    ]
-)
-def test_strip_argument_type(
-        package,
-        string
-):
-    assert LineItem(
-        string,
-        parent=package
-    ).target_string == "def my_func(arg):"
 
 
 def test_package_import(
