@@ -2,9 +2,9 @@ import numpy as np
 from scipy import special
 
 from autofit.graphical.messages.abstract import AbstractMessage
+from autofit.graphical.utils import cached_property
 from autofit.graphical.utils import invpsilog
 
-from autofit.graphical.utils import cached_property
 
 class GammaMessage(AbstractMessage):
     @property
@@ -82,23 +82,22 @@ class GammaMessage(AbstractMessage):
         # TODO check this is correct
         # https://arxiv.org/pdf/0911.4863.pdf
         return (
-            (P.alpha - Q.alpha) * special.psi(P.alpha)
-            - special.gammaln(P.alpha) + special.gammaln(Q.alpha)
-            + Q.alpha * (np.log(P.beta / Q.beta))
-            + P.alpha * (Q.beta/P.beta - 1)
+                (P.alpha - Q.alpha) * special.psi(P.alpha)
+                - special.gammaln(P.alpha) + special.gammaln(Q.alpha)
+                + Q.alpha * (np.log(P.beta / Q.beta))
+                + P.alpha * (Q.beta / P.beta - 1)
         )
 
     def logpdf_gradient(self, x):
         logl = self.logpdf(x)
         eta1 = self.natural_parameters[0]
-        gradl = eta1/x - self.beta 
-        return logl, gradl 
+        gradl = eta1 / x - self.beta
+        return logl, gradl
 
     def logpdf_gradient_hessian(self, x):
         logl = self.logpdf(x)
         eta1 = self.natural_parameters[0]
-        gradl = eta1/x
-        hessl = - gradl/x
-        gradl -= self.beta 
+        gradl = eta1 / x
+        hessl = - gradl / x
+        gradl -= self.beta
         return logl, gradl, hessl
-    
