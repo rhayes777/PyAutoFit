@@ -2,12 +2,16 @@ import math
 
 import numpy as np
 
-import autofit as af
+from autofit.non_linear.analysis import Analysis
+from autofit.mapper.model import ModelInstance
+from autofit.mapper.model_mapper import ModelMapper
+from autofit.non_linear.abstract_search import NonLinearSearch
+from autofit.non_linear.samples import PDFSamples
 from autoconf import conf
 from autofit.non_linear.samples import Sample
 
 
-class MockAnalysis(af.Analysis):
+class MockAnalysis(Analysis):
     prior_count = 2
 
     def __init__(self):
@@ -34,8 +38,8 @@ class MockResult:
             analysis=None,
             search=None,
     ):
-        self.instance = instance or af.ModelInstance()
-        self.model = model or af.ModelMapper()
+        self.instance = instance or ModelInstance()
+        self.model = model or ModelMapper()
         self.samples = samples or MockSamples(max_log_likelihood_instance=self.instance)
 
         self.gaussian_tuples = None
@@ -55,7 +59,7 @@ class MockResult:
 
 
 
-class MockSamples(af.PDFSamples):
+class MockSamples(PDFSamples):
     def __init__(
             self,
             model=None,
@@ -116,7 +120,7 @@ class MockSamples(af.PDFSamples):
         pass
 
 
-class MockSearch(af.NonLinearSearch):
+class MockSearch(NonLinearSearch):
     def __init__(self, samples=None, name=""):
         super().__init__(name=name)
 

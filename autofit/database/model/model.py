@@ -6,7 +6,6 @@ from sqlalchemy import Column, Integer, String, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 
-import autofit as af
 from autofit.tools.util import get_class_path, get_class
 
 Base = declarative_base()
@@ -96,18 +95,23 @@ class Object(Base):
         -------
         An instance of a concrete child of this class
         """
+
+        from autofit.mapper.prior_model.prior_model import PriorModel
+        from autofit.mapper.prior.prior import Prior
+        from autofit.mapper.prior_model.collection import CollectionPriorModel
+
         if source is None or isinstance(
                 source,
                 np.ndarray
         ):
             from .instance import NoneInstance
             instance = NoneInstance()
-        elif isinstance(source, af.PriorModel):
+        elif isinstance(source, PriorModel):
             from .prior import PriorModel
             instance = PriorModel._from_object(
                 source
             )
-        elif isinstance(source, af.Prior):
+        elif isinstance(source, Prior):
             from .prior import Prior
             instance = Prior._from_object(
                 source
@@ -122,7 +126,7 @@ class Object(Base):
             instance = Collection._from_object(
                 source
             )
-        elif isinstance(source, (af.CollectionPriorModel, dict)):
+        elif isinstance(source, (CollectionPriorModel, dict)):
             from .prior import CollectionPriorModel
             instance = CollectionPriorModel._from_object(
                 source

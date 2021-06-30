@@ -7,11 +7,12 @@ We strongly recommend that you install **PyAutoFit** in a
 `Python virtual environment <https://www.geeksforgeeks.org/python-virtual-environment/>`_, with the link attached
 describing what a virtual enviroment is and how to create one.
 
-**PyAutoFit** is via pip as follows:
+The latest version of **PyAutoFit** is installed via pip as follows (specifying the version as shown below ensures
+the installation has clean dependencies):
 
 .. code-block:: bash
 
-    pip install autofit
+    pip install autofit==2021.6.7.1
 
 If this raises no errors **PyAutoFit** is installed! If there is an error check out
 the `troubleshooting section <https://pyautofit.readthedocs.io/en/latest/installation/troubleshooting.html>`_.

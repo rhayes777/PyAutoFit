@@ -9,7 +9,7 @@ from scipy._lib._util import _asarray_validated
 from scipy.special import ndtr, ndtri
 from scipy.stats._continuous_distns import _norm_pdf
 
-# from ...mapper.operator import (
+# from ...mapper.operator import
 from autofit.mapper.operator import (
     LinearOperator, 
     CholeskyOperator, 

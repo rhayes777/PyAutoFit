@@ -12,6 +12,57 @@ from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.mcmc.auto_correlations import AutoCorrelations, AutoCorrelationsSettings
 
 
+def quantile(x, q, weights=None):
+    """
+    Copied from corner.py
+
+    Compute sample quantiles with support for weighted samples.
+
+    Note
+    ----
+    When ``weight_list`` is ``None``, this method simply calls numpy's percentile
+    function with the values of ``q`` multiplied by 100.
+
+    Parameters
+    ----------
+    x : array_like[nsamples,]
+       The samples.
+    q : array_like[nquantiles,]
+       The list of quantiles to compute. These should all be in the range
+       ``[0, 1]``.
+    weights : Optional[array_like[nsamples,]]
+        An optional weight corresponding to each sample. These
+
+    Returns
+    -------
+    quantiles : array_like[nquantiles,]
+        The sample quantiles computed at ``q``.
+
+    Raises
+    ------
+    ValueError
+        For invalid quantiles; ``q`` not in ``[0, 1]`` or dimension mismatch between ``x`` and ``weight_list``.
+    """
+    x = np.atleast_1d(x)
+    q = np.atleast_1d(q)
+
+    if np.any(q < 0.0) or np.any(q > 1.0):
+        raise ValueError("Quantiles must be between 0 and 1")
+
+    if weights is None:
+        return np.percentile(x, list(100.0 * q))
+    else:
+        weights = np.atleast_1d(weights)
+        if len(x) != len(weights):
+            raise ValueError("Dimension mismatch: len(weight_list) != len(x)")
+        idx = np.argsort(x)
+        sw = weights[idx]
+        cdf = np.cumsum(sw)[:-1]
+        cdf /= cdf[-1]
+        cdf = np.append(0, cdf)
+        return np.interp(q, cdf, x[idx]).tolist()
+
+
 class Sample:
     def __init__(
             self,
@@ -30,6 +81,7 @@ class Sample:
         log_prior
             A logarithmic prior of the instance
         weight
+            The weight this sample contributes to the PDF.
         kwargs
             Dictionary mapping model paths to values for the sample
         """
@@ -83,20 +135,7 @@ class Sample:
             weight_list: List[float]
     ) -> List["Sample"]:
         """
-        Convenience method to create a list of samples
-        from lists of contained values
-
-        Parameters
-        ----------
-        model
-        parameter_lists
-        log_likelihood_list
-        log_prior_list
-        weight_list
-
-        Returns
-        -------
-        A list of samples
+        Convenience method to create a list of samples from lists of contained values
         """
         samples = list()
 
@@ -299,7 +338,7 @@ class OptimizerSamples:
 
     def write_table(self, filename: str):
         """
-        Write a table of parameters, posteriors, priors and likelihoods
+        Write a table of parameters, posteriors, priors and likelihoods.
 
         Parameters
         ----------
@@ -323,7 +362,9 @@ class OptimizerSamples:
 
     @property
     def max_log_likelihood_sample(self) -> Sample:
-        """The index of the sample with the highest log likelihood."""
+        """
+        The index of the sample with the highest log likelihood.
+        """
         most_likely_sample = None
         for sample in self.samples:
             if most_likely_sample is None or sample.log_likelihood > most_likely_sample.log_likelihood:
@@ -338,51 +379,62 @@ class OptimizerSamples:
 
     @property
     def max_log_likelihood_vector(self) -> [float]:
-        """ The parameters of the maximum log likelihood sample of the `NonLinearSearch` returned as a list of values."""
+        """
+        The parameters of the maximum log likelihood sample of the `NonLinearSearch` returned as a list of values.
+        """
         return self.max_log_likelihood_sample.parameter_lists_for_model(
             self.model
         )
 
     @property
     def max_log_likelihood_instance(self) -> ModelInstance:
-        """  The parameters of the maximum log likelihood sample of the `NonLinearSearch` returned as a model instance."""
+        """
+        The parameters of the maximum log likelihood sample of the `NonLinearSearch` returned as a model instance.
+        """
         return self.max_log_likelihood_sample.instance_for_model(
             self.model
         )
 
     @property
     def max_log_posterior_index(self) -> int:
-        """The index of the sample with the highest log posterior."""
+        """
+        The index of the sample with the highest log posterior.
+        """
         return int(np.argmax(self.log_posterior_list))
 
     @property
     def max_log_posterior_vector(self) -> [float]:
-        """ The parameters of the maximum log posterior sample of the `NonLinearSearch` returned as a list of values."""
+        """
+        The parameters of the maximum log posterior sample of the `NonLinearSearch` returned as a list of values.
+        """
         return self.parameter_lists[self.max_log_posterior_index]
 
     @property
     def max_log_posterior_instance(self) -> ModelInstance:
-        """  The parameters of the maximum log posterior sample of the `NonLinearSearch` returned as a model instance."""
+        """
+        The parameters of the maximum log posterior sample of the `NonLinearSearch` returned as a model instance.
+        """
         return self.model.instance_from_vector(vector=self.max_log_posterior_vector)
 
-    def gaussian_priors_at_sigma(self, sigma) -> [list]:
-        """`GaussianPrior`s of every parameter used to link its inferred values and errors to priors used to sample the
+    def gaussian_priors_at_sigma(self, sigma : float) -> [list]:
+        """
+        `GaussianPrior`s of every parameter used to link its inferred values and errors to priors used to sample the
         same (or similar) parameters in a subsequent search, where:
 
-         - The mean is given by maximum log likelihood model values.
-         - Their errors are omitted, as this information is not available from an search. When these priors are
-           used to link to another search, it will thus automatically use the prior config values.
+        - The mean is given by maximum log likelihood model values.
+        - Their errors are omitted, as this information is not available from an search. When these priors are
+        used to link to another search, it will thus automatically use the prior config values.
 
         Parameters
         -----------
-        sigma : float
-            The sigma limit within which the PDF is used to estimate errors (e.g. sigma = 1.0 uses 0.6826 of the \
-            PDF).
+        sigma
+            The sigma limit within which the PDF is used to estimate errors (e.g. sigma = 1.0 uses 0.6826 of the PDF).
         """
         return list(map(lambda vector: (vector, 0.0), self.max_log_likelihood_vector))
 
     def instance_from_sample_index(self, sample_index) -> ModelInstance:
-        """The parameters of an individual saple of the non-linear search, returned as a model instance.
+        """
+        The parameters of an individual sample of the non-linear search, returned as a model instance.
 
         Parameters
         -----------
@@ -450,19 +502,22 @@ class PDFSamples(OptimizerSamples):
 
     @property
     def unconverged_sample_size(self):
-        """If a set of samples are unconverged, alternative methods to compute their means, errors, etc are used as
+        """
+        If a set of samples are unconverged, alternative methods to compute their means, errors, etc are used as
         an alternative to corner.py.
 
         These use a subset of samples spanning the range from the most recent sample to the valaue of the
         unconverted_sample_size. However, if there are fewer samples than this size, we change the size to be the
-         the size of the total number of samples"""
+        the size of the total number of samples.
+        """
         if self.total_samples > self._unconverged_sample_size:
             return self._unconverged_sample_size
         return self.total_samples
 
     @property
     def pdf_converged(self) -> bool:
-        """ To analyse and visualize samples the analysis must be sufficiently converged to produce smooth enough
+        """
+        To analyse and visualize samples the analysis must be sufficiently converged to produce smooth enough
         PDF for error estimate and PDF generation.
 
         This property checks whether the non-linear search's samples are sufficiently converged for this, by checking
@@ -470,15 +525,18 @@ class PDFSamples(OptimizerSamples):
         for error estimate and visualization has not been met.
 
         This does not necessarily imply the `NonLinearSearch` has converged overall, only that errors and visualization
-        can be performed numerically.."""
+        can be performed numerically.
+        """
         if np.max(self.weight_list) > 0.99:
             return False
         return True
 
     @property
     def median_pdf_vector(self) -> [float]:
-        """ The median of the probability density function (PDF) of every parameter marginalized in 1D, returned
-        as a list of values."""
+        """
+        The median of the probability density function (PDF) of every parameter marginalized in 1D, returned
+        as a list of values.
+        """
         if self.pdf_converged:
             return [
                 quantile(x=params, q=0.5, weights=self.weight_list)[0]
@@ -488,12 +546,15 @@ class PDFSamples(OptimizerSamples):
 
     @property
     def median_pdf_instance(self) -> ModelInstance:
-        """ The median of the probability density function (PDF) of every parameter marginalized in 1D, returned
-        as a model instance."""
+        """
+        The median of the probability density function (PDF) of every parameter marginalized in 1D, returned
+        as a model instance.
+        """
         return self.model.instance_from_vector(vector=self.median_pdf_vector)
 
-    def vector_at_sigma(self, sigma) -> [(float, float)]:
-        """ The value of every parameter marginalized in 1D at an input sigma value of its probability density function
+    def vector_at_sigma(self, sigma : float) -> [(float, float)]:
+        """
+        The value of every parameter marginalized in 1D at an input sigma value of its probability density function
         (PDF), returned as two lists of values corresponding to the lower and upper values parameter values.
 
         For example, if sigma is 1.0, the marginalized values of every parameter at 31.7% and 68.2% percentiles of each
@@ -503,14 +564,15 @@ class PDFSamples(OptimizerSamples):
         whereby x decreases as y gets larger to give the same PDF, this function will still return both at their
         upper values. Thus, caution is advised when using the function to reperform a model-fits.
 
-        For *Dynesty*, this is estimated using *corner.py* if the samples have converged, by sampling the density
+        For Dynesty, this is estimated using corner.py if the samples have converged, by sampling the density
         function at an input PDF %. If not converged, a crude estimate using the range of values of the current
         physical live points is used.
 
         Parameters
         ----------
-        sigma : float
-            The sigma within which the PDF is used to estimate errors (e.g. sigma = 1.0 uses 0.6826 of the PDF)."""
+        sigma
+            The sigma within which the PDF is used to estimate errors (e.g. sigma = 1.0 uses 0.6826 of the PDF).
+        """
 
         if self.pdf_converged:
 
@@ -539,109 +601,111 @@ class PDFSamples(OptimizerSamples):
             for index in range(len(parameters_min))
         ]
 
-    def vector_at_upper_sigma(self, sigma) -> [float]:
-        """The upper value of every parameter marginalized in 1D at an input sigma value of its probability density
+    def vector_at_upper_sigma(self, sigma : float) -> [float]:
+        """
+        The upper value of every parameter marginalized in 1D at an input sigma value of its probability density
         function (PDF), returned as a list.
 
-        See *vector_at_sigma* for a full description of how the parameters at sigma are computed.
+        See vector_at_sigma for a full description of how the parameters at sigma are computed.
 
         Parameters
         -----------
-        sigma : float
-            The sigma within which the PDF is used to estimate errors (e.g. sigma = 1.0 uses 0.6826 of the \
-            PDF).
+        sigma
+            The sigma within which the PDF is used to estimate errors (e.g. sigma = 1.0 uses 0.6826 of the PDF).
         """
         return list(map(lambda param: param[1], self.vector_at_sigma(sigma)))
 
-    def vector_at_lower_sigma(self, sigma) -> [float]:
-        """The lower value of every parameter marginalized in 1D at an input sigma value of its probability density
+    def vector_at_lower_sigma(self, sigma : float) -> [float]:
+        """
+        The lower value of every parameter marginalized in 1D at an input sigma value of its probability density
         function (PDF), returned as a list.
 
-        See *vector_at_sigma* for a full description of how the parameters at sigma are computed.
+        See vector_at_sigma for a full description of how the parameters at sigma are computed.
 
         Parameters
         -----------
-        sigma : float
-            The sigma limit within which the PDF is used to estimate errors (e.g. sigma = 1.0 uses 0.6826 of the \
-            PDF).
+        sigma
+            The sigma limit within which the PDF is used to estimate errors (e.g. sigma = 1.0 uses 0.6826 of the PDF).
         """
         return list(map(lambda param: param[0], self.vector_at_sigma(sigma)))
 
-    def instance_at_sigma(self, sigma) -> ModelInstance:
-        """ The value of every parameter marginalized in 1D at an input sigma value of its probability density function
+    def instance_at_sigma(self, sigma : float) -> ModelInstance:
+        """
+        The value of every parameter marginalized in 1D at an input sigma value of its probability density function
         (PDF), returned as a list of model instances corresponding to the lower and upper values estimated from the PDF.
 
-        See *vector_at_sigma* for a full description of how the parameters at sigma are computed.
+        See vector_at_sigma for a full description of how the parameters at sigma are computed.
 
         Parameters
         ----------
-        sigma : float
-            The sigma within which the PDF is used to estimate errors (e.g. sigma = 1.0 uses 0.6826 of the PDF)."""
+        sigma
+            The sigma within which the PDF is used to estimate errors (e.g. sigma = 1.0 uses 0.6826 of the PDF).
+        """
         return self.model.instance_from_vector(
             vector=self.vector_at_sigma(sigma=sigma), assert_priors_in_limits=False
         )
 
-    def instance_at_upper_sigma(self, sigma) -> ModelInstance:
-        """The upper value of every parameter marginalized in 1D at an input sigma value of its probability density
+    def instance_at_upper_sigma(self, sigma : float) -> ModelInstance:
+        """
+        The upper value of every parameter marginalized in 1D at an input sigma value of its probability density
         function (PDF), returned as a model instance.
 
-        See *vector_at_sigma* for a full description of how the parameters at sigma are computed.
+        See vector_at_sigma for a full description of how the parameters at sigma are computed.
 
         Parameters
         -----------
-        sigma : float
-            The sigma limit within which the PDF is used to estimate errors (e.g. sigma = 1.0 uses 0.6826 of the \
-            PDF).
+        sigma
+            The sigma within which the PDF is used to estimate errors (e.g. sigma = 1.0 uses 0.6826 of the PDF).
         """
         return self.model.instance_from_vector(
             vector=self.vector_at_upper_sigma(sigma=sigma),
             assert_priors_in_limits=False,
         )
 
-    def instance_at_lower_sigma(self, sigma) -> ModelInstance:
-        """The lower value of every parameter marginalized in 1D at an input sigma value of its probability density
+    def instance_at_lower_sigma(self, sigma : float) -> ModelInstance:
+        """
+        The lower value of every parameter marginalized in 1D at an input sigma value of its probability density
         function (PDF), returned as a model instance.
 
-        See *vector_at_sigma* for a full description of how the parameters at sigma are computed.
+        See vector_at_sigma for a full description of how the parameters at sigma are computed.
 
         Parameters
         -----------
-        sigma : float
-            The sigma limit within which the PDF is used to estimate errors (e.g. sigma = 1.0 uses 0.6826 of the \
-            PDF).
+        sigma
+            The sigma within which the PDF is used to estimate errors (e.g. sigma = 1.0 uses 0.6826 of the PDF).
         """
         return self.model.instance_from_vector(
             vector=self.vector_at_lower_sigma(sigma=sigma),
             assert_priors_in_limits=False,
         )
 
-    def error_vector_at_sigma(self, sigma) -> [(float, float)]:
-        """The lower and upper error of every parameter marginalized in 1D at an input sigma value of its probability
+    def error_vector_at_sigma(self, sigma : float) -> [(float, float)]:
+        """
+        The lower and upper error of every parameter marginalized in 1D at an input sigma value of its probability
         density function (PDF), returned as a list.
 
-        See *vector_at_sigma* for a full description of how the parameters at sigma are computed.
+        See vector_at_sigma for a full description of how the parameters at sigma are computed.
 
         Parameters
         -----------
-        sigma : float
-            The sigma within which the PDF is used to estimate errors (e.g. sigma = 1.0 uses 0.6826 of the \
-            PDF).
+        sigma
+            The sigma within which the PDF is used to estimate errors (e.g. sigma = 1.0 uses 0.6826 of the PDF).
         """
         error_vector_lower = self.error_vector_at_lower_sigma(sigma=sigma)
         error_vector_upper = self.error_vector_at_upper_sigma(sigma=sigma)
         return [(lower, upper) for lower, upper in zip(error_vector_lower, error_vector_upper)]
 
-    def error_vector_at_upper_sigma(self, sigma) -> [float]:
-        """The upper error of every parameter marginalized in 1D at an input sigma value of its probability density
+    def error_vector_at_upper_sigma(self, sigma : float) -> [float]:
+        """
+        The upper error of every parameter marginalized in 1D at an input sigma value of its probability density
         function (PDF), returned as a list.
 
-        See *vector_at_sigma* for a full description of how the parameters at sigma are computed.
+        See vector_at_sigma for a full description of how the parameters at sigma are computed.
 
         Parameters
         -----------
-        sigma : float
-            The sigma within which the PDF is used to estimate errors (e.g. sigma = 1.0 uses 0.6826 of the \
-            PDF).
+        sigma
+            The sigma within which the PDF is used to estimate errors (e.g. sigma = 1.0 uses 0.6826 of the PDF).
         """
         uppers = self.vector_at_upper_sigma(sigma=sigma)
         return list(
@@ -652,17 +716,17 @@ class PDFSamples(OptimizerSamples):
             )
         )
 
-    def error_vector_at_lower_sigma(self, sigma) -> [float]:
-        """The lower error of every parameter marginalized in 1D at an input sigma value of its probability density
+    def error_vector_at_lower_sigma(self, sigma : float) -> [float]:
+        """
+        The lower error of every parameter marginalized in 1D at an input sigma value of its probability density
         function (PDF), returned as a list.
 
-        See *vector_at_sigma* for a full description of how the parameters at sigma are computed.
+        See vector_at_sigma for a full description of how the parameters at sigma are computed.
 
         Parameters
         -----------
-        sigma : float
-            The sigma within which the PDF is used to estimate errors (e.g. sigma = 1.0 uses 0.6826 of the \
-            PDF).
+        sigma
+            The sigma within which the PDF is used to estimate errors (e.g. sigma = 1.0 uses 0.6826 of the PDF).
         """
         lowers = self.vector_at_lower_sigma(sigma=sigma)
         return list(
@@ -673,8 +737,9 @@ class PDFSamples(OptimizerSamples):
             )
         )
 
-    def error_magnitude_vector_at_sigma(self, sigma) -> [float]:
-        """ The magnitude of every error after marginalization in 1D at an input sigma value of the probability density
+    def error_magnitude_vector_at_sigma(self, sigma : float) -> [float]:
+        """
+        The magnitude of every error after marginalization in 1D at an input sigma value of the probability density
         function (PDF), returned as two lists of values corresponding to the lower and upper errors.
 
         For example, if sigma is 1.0, the difference in the inferred values marginalized at 31.7% and 68.2% percentiles
@@ -682,73 +747,76 @@ class PDFSamples(OptimizerSamples):
 
         Parameters
         ----------
-        sigma : float
-            The sigma within which the PDF is used to estimate errors (e.g. sigma = 1.0 uses 0.6826 of the PDF)."""
+        sigma
+            The sigma within which the PDF is used to estimate errors (e.g. sigma = 1.0 uses 0.6826 of the PDF).
+        """
         uppers = self.vector_at_upper_sigma(sigma=sigma)
         lowers = self.vector_at_lower_sigma(sigma=sigma)
         return list(map(lambda upper, lower: upper - lower, uppers, lowers))
 
-    def error_instance_at_sigma(self, sigma) -> ModelInstance:
-        """ The error of every parameter marginalized in 1D at an input sigma value of its probability density function
+    def error_instance_at_sigma(self, sigma : float) -> ModelInstance:
+        """
+        The error of every parameter marginalized in 1D at an input sigma value of its probability density function
         (PDF), returned as a list of model instances corresponding to the lower and upper errors.
 
-        See *vector_at_sigma* for a full description of how the parameters at sigma are computed.
+        See vector_at_sigma for a full description of how the parameters at sigma are computed.
 
         Parameters
         ----------
-        sigma : float
-            The sigma within which the PDF is used to estimate errors (e.g. sigma = 1.0 uses 0.6826 of the PDF)."""
+        sigma
+            The sigma within which the PDF is used to estimate errors (e.g. sigma = 1.0 uses 0.6826 of the PDF).
+        """
         return self.model.instance_from_vector(
             vector=self.error_magnitude_vector_at_sigma(sigma=sigma),
             assert_priors_in_limits=False,
         )
 
-    def error_instance_at_upper_sigma(self, sigma) -> ModelInstance:
-        """The upper error of every parameter marginalized in 1D at an input sigma value of its probability density
+    def error_instance_at_upper_sigma(self, sigma : float) -> ModelInstance:
+        """
+        The upper error of every parameter marginalized in 1D at an input sigma value of its probability density
         function (PDF), returned as a model instance.
 
-        See *vector_at_sigma* for a full description of how the parameters at sigma are computed.
+        See vector_at_sigma for a full description of how the parameters at sigma are computed.
 
         Parameters
         -----------
-        sigma : float
-            The sigma within which the PDF is used to estimate errors (e.g. sigma = 1.0 uses 0.6826 of the \
-            PDF).
+        sigma
+            The sigma within which the PDF is used to estimate errors (e.g. sigma = 1.0 uses 0.6826 of the PDF).
         """
         return self.model.instance_from_vector(
             vector=self.error_vector_at_upper_sigma(sigma=sigma),
             assert_priors_in_limits=False,
         )
 
-    def error_instance_at_lower_sigma(self, sigma) -> ModelInstance:
-        """The lower error of every parameter marginalized in 1D at an input sigma value of its probability density
+    def error_instance_at_lower_sigma(self, sigma : float) -> ModelInstance:
+        """
+        The lower error of every parameter marginalized in 1D at an input sigma value of its probability density
         function (PDF), returned as a model instance.
 
-        See *vector_at_sigma* for a full description of how the parameters at sigma are computed.
+        See vector_at_sigma for a full description of how the parameters at sigma are computed.
 
         Parameters
         -----------
-        sigma : float
-            The sigma within which the PDF is used to estimate errors (e.g. sigma = 1.0 uses 0.6826 of the \
-            PDF).
+        sigma
+            The sigma within which the PDF is used to estimate errors (e.g. sigma = 1.0 uses 0.6826 of the PDF).
         """
         return self.model.instance_from_vector(
             vector=self.error_vector_at_lower_sigma(sigma=sigma),
             assert_priors_in_limits=False,
         )
 
-    def gaussian_priors_at_sigma(self, sigma) -> [list]:
-        """`GaussianPrior`s of every parameter used to link its inferred values and errors to priors used to sample the
+    def gaussian_priors_at_sigma(self, sigma : float) -> [list]:
+        """
+        `GaussianPrior`s of every parameter used to link its inferred values and errors to priors used to sample the
         same (or similar) parameters in a subsequent search, where:
 
-         - The mean is given by their most-probable values (using *median_pdf_vector*).
-         - Their errors are computed at an input sigma value (using *errors_at_sigma*).
+        - The mean is given by their most-probable values (using median_pdf_vector).
+        - Their errors are computed at an input sigma value (using errors_at_sigma).
 
         Parameters
         -----------
-        sigma : float
-            The sigma limit within which the PDF is used to estimate errors (e.g. sigma = 1.0 uses 0.6826 of the \
-            PDF).
+        sigma
+            The sigma within which the PDF is used to estimate errors (e.g. sigma = 1.0 uses 0.6826 of the PDF).
         """
 
         means = self.median_pdf_vector
@@ -768,37 +836,39 @@ class PDFSamples(OptimizerSamples):
 
         return list(map(lambda mean, sigma: (mean, sigma), means, sigmas))
 
-    def log_likelihood_from_sample_index(self, sample_index) -> float:
-        """The log likelihood of an individual sample of the non-linear search.
+    def log_likelihood_from_sample_index(self, sample_index : int) -> float:
+        """
+        The log likelihood of an individual sample of the non-linear search.
 
         Parameters
         ----------
-        sample_index : int
+        sample_index
             The index of the sample in the non-linear search, e.g. 0 gives the first sample.
         """
         raise NotImplementedError()
 
-    def vector_from_sample_index(self, sample_index) -> [float]:
-        """The parameters of an individual sample of the non-linear search, returned as a 1D list.
+    def vector_from_sample_index(self, sample_index : int) -> [float]:
+        """
+        The parameters of an individual sample of the non-linear search, returned as a 1D list.
 
         Parameters
         ----------
-        sample_index : int
+        sample_index
             The index of the sample in the non-linear search, e.g. 0 gives the first sample.
         """
         raise NotImplementedError()
 
-    def offset_vector_from_input_vector(self, input_vector) -> [float]:
-        """ The values of an input_vector offset by the *median_pdf_vector* (the PDF medians).
+    def offset_vector_from_input_vector(self, input_vector : List) -> [float]:
+        """
+        The values of an input_vector offset by the median_pdf_vector (the PDF medians).
 
-        If the 'true' values of a model are known and input as the *input_vector*, this function returns the results
+        If the 'true' values of a model are known and input as the input_vector, this function returns the results
         of the `NonLinearSearch` as values offset from the 'true' model. For example, a value 0.0 means the non-linear
         search estimated the model parameter value correctly.
 
         Parameters
         ----------
-
-        input_vector : list
+        input_vector
             A 1D list of values the most-probable model is offset by. This list must have the same dimensions as free
             parameters in the model-fit.
         """
@@ -842,7 +912,7 @@ class MCMCSamples(PDFSamples):
         raise NotImplementedError
 
     @classmethod
-    def from_table(self, filename: str, model, number_live_points=None):
+    def from_table(self, filename: str, model : ModelMapper, number_live_points : int = None):
         """
         Write a table of parameters, posteriors, priors and likelihoods
 
@@ -873,12 +943,14 @@ class MCMCSamples(PDFSamples):
 
     @property
     def pdf_converged(self):
-        """ To analyse and visualize samples using *corner.py*, the analysis must be sufficiently converged to produce
+        """
+        To analyse and visualize samples using corner.py, the analysis must be sufficiently converged to produce
         smooth enough PDF for analysis. This property checks whether the non-linear search's samples are sufficiently
-        converged for *corner.py* use.
+        converged for corner.py use.
 
         Emcee samples can be analysed by corner.py irrespective of how long the sampler has run, albeit low run times
-        will likely produce inaccurate results."""
+        will likely produce inaccurate results.
+        """
         try:
             samples_after_burn_in = self.samples_after_burn_in
             if len(samples_after_burn_in) == 0:
@@ -889,9 +961,11 @@ class MCMCSamples(PDFSamples):
 
     @property
     def samples_after_burn_in(self) -> [list]:
-        """The emcee samples with the initial burn-in samples removed.
+        """
+        The emcee samples with the initial burn-in samples removed.
 
-        The burn-in period is estimated using the auto-correlation times of the parameters."""
+        The burn-in period is estimated using the auto-correlation times of the parameters.
+        """
         raise NotImplementedError()
 
     @property
@@ -906,10 +980,12 @@ class MCMCSamples(PDFSamples):
 
     @property
     def median_pdf_vector(self) -> [float]:
-        """ The median of the probability density function (PDF) of every parameter marginalized in 1D, returned
+        """
+        The median of the probability density function (PDF) of every parameter marginalized in 1D, returned
         as a list of values.
 
-        This is computed by binning all sampls after burn-in into a histogram and take its median (e.g. 50%) value. """
+        This is computed by binning all sampls after burn-in into a histogram and take its median (e.g. 50%) value.
+        """
 
         if self.pdf_converged:
             return [
@@ -919,8 +995,9 @@ class MCMCSamples(PDFSamples):
 
         return self.max_log_likelihood_vector
 
-    def vector_at_sigma(self, sigma) -> [float]:
-        """ The value of every parameter marginalized in 1D at an input sigma value of its probability density function
+    def vector_at_sigma(self, sigma : float) -> [float]:
+        """
+        The value of every parameter marginalized in 1D at an input sigma value of its probability density function
         (PDF), returned as two lists of values corresponding to the lower and upper values parameter values.
 
         For example, if sigma is 1.0, the marginalized values of every parameter at 31.7% and 68.2% percentiles of each
@@ -930,13 +1007,14 @@ class MCMCSamples(PDFSamples):
         whereby x decreases as y gets larger to give the same PDF, this function will still return both at their
         upper values. Thus, caution is advised when using the function to reperform a model-fits.
 
-        For *Emcee*, if the samples have converged this is estimated by binning the samples after burn-in into a
+        For Emcee, if the samples have converged this is estimated by binning the samples after burn-in into a
         histogram and taking the parameter values at the input PDF %.
 
         Parameters
         ----------
-        sigma : float
-            The sigma within which the PDF is used to estimate errors (e.g. sigma = 1.0 uses 0.6826 of the PDF)."""
+        sigma
+            The sigma within which the PDF is used to estimate errors (e.g. sigma = 1.0 uses 0.6826 of the PDF).
+        """
         limit = math.erf(0.5 * sigma * math.sqrt(2))
 
         if self.pdf_converged:
@@ -974,8 +1052,8 @@ class NestSamples(PDFSamples):
             time: Optional[float] = None,
     ):
         """
-        The *Output* classes in **PyAutoFit** provide an interface between the results of a `NonLinearSearch` (e.g.
-        as files on your hard-disk) and Python.
+        The Output classes in PyAutoFit provide an interface between the results of a `NonLinearSearch`
+        (e.g.as files on your hard-disk) and Python.
 
         For example, the output class can be used to load an instance of the best-fit model, get an instance of any
         individual sample by the `NonLinearSearch` and return information on the likelihoods, errors, etc.
@@ -1018,13 +1096,16 @@ class NestSamples(PDFSamples):
 
     @property
     def total_accepted_samples(self) -> int:
-        """The total number of accepted samples performed by the nested sampler.
+        """
+        The total number of accepted samples performed by the nested sampler.
         """
         return len(self.log_likelihood_list)
 
     @property
     def acceptance_ratio(self) -> float:
-        """The ratio of accepted samples to total samples."""
+        """
+        The ratio of accepted samples to total samples.
+        """
         return self.total_accepted_samples / self.total_samples
 
     def samples_within_parameter_range(
@@ -1047,10 +1128,10 @@ class NestSamples(PDFSamples):
 
         Parameters
         ----------
-        parameter_index : int
+        parameter_index
             The 1D index of the parameter (in the model's vector representation) whose values lie between the parameter
             range if a sample is kept.
-        parameter_range : [float, float]
+        parameter_range
             The minimum and maximum values of the range of parameter values this parameter must lie between for it
             to be kept.
         """
@@ -1096,7 +1177,8 @@ class StoredSamples(PDFSamples):
             unconverged_sample_size: int = 100,
             time: Optional[float] = None,
     ):
-        """The `Samples` of a non-linear search, specifically the samples of a `NonLinearSearch` which maps out the
+        """
+        The `Samples` of a non-linear search, specifically the samples of a `NonLinearSearch` which maps out the
         posterior of parameter space and thus does provide information on parameter errors.
 
         Parameters
@@ -1116,50 +1198,3 @@ class StoredSamples(PDFSamples):
     @property
     def samples(self):
         return self._samples
-
-def quantile(x, q, weights=None):
-    """
-    Copied from corner.py
-
-    Compute sample quantiles with support for weighted samples.
-    Note
-    ----
-    When ``weight_list`` is ``None``, this method simply calls numpy's percentile
-    function with the values of ``q`` multiplied by 100.
-    Parameters
-    ----------
-    x : array_like[nsamples,]
-       The samples.
-    q : array_like[nquantiles,]
-       The list of quantiles to compute. These should all be in the range
-       ``[0, 1]``.
-    weights : Optional[array_like[nsamples,]]
-        An optional weight corresponding to each sample. These
-    Returns
-    -------
-    quantiles : array_like[nquantiles,]
-        The sample quantiles computed at ``q``.
-    Raises
-    ------
-    ValueError
-        For invalid quantiles; ``q`` not in ``[0, 1]`` or dimension mismatch
-        between ``x`` and ``weight_list``.
-    """
-    x = np.atleast_1d(x)
-    q = np.atleast_1d(q)
-
-    if np.any(q < 0.0) or np.any(q > 1.0):
-        raise ValueError("Quantiles must be between 0 and 1")
-
-    if weights is None:
-        return np.percentile(x, list(100.0 * q))
-    else:
-        weights = np.atleast_1d(weights)
-        if len(x) != len(weights):
-            raise ValueError("Dimension mismatch: len(weight_list) != len(x)")
-        idx = np.argsort(x)
-        sw = weights[idx]
-        cdf = np.cumsum(sw)[:-1]
-        cdf /= cdf[-1]
-        cdf = np.append(0, cdf)
-        return np.interp(q, cdf, x[idx]).tolist()

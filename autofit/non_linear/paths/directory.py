@@ -156,7 +156,7 @@ class DirectoryPaths(AbstractPaths):
     @make_path
     def _pickle_path(self) -> str:
         """
-        This is private for a reason - use the save_object etc. methods to save and load pickles
+        This is private for a reason, use the save_object etc. methods to save and load pickles
         """
         return path.join(self._make_path(), "pickles")
 
@@ -179,7 +179,9 @@ class DirectoryPaths(AbstractPaths):
             [shutil.copy(file, self._pickle_path) for file in pickle_files]
 
     def _save_model_info(self, model):
-        """Save the model.info file, which summarizes every parameter and prior."""
+        """
+        Save the model.info file, which summarizes every parameter and prior.
+        """
         with open(path.join(
                 self.output_path,
                 "model.info"
@@ -189,10 +191,12 @@ class DirectoryPaths(AbstractPaths):
             f.write(model.info)
 
     def _save_parameter_names_file(self, model):
-        """Create the param_names file listing every parameter's label and Latex tag, which is used for *corner.py*
+        """
+        Create the param_names file listing every parameter's label and Latex tag, which is used for corner.py
         visualization.
 
-        The parameter labels are determined using the label.ini and label_format.ini config files."""
+        The parameter labels are determined using the label.ini and label_format.ini config files.
+        """
 
         parameter_names = model.model_component_and_parameter_names
         parameter_labels = model.parameter_labels

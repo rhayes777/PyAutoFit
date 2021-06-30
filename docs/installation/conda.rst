@@ -21,11 +21,12 @@ Activate the conda environment (you will have to do this every time you want to 
 
     conda activate autofit
 
-Install autofit:
+The latest version of **PyAutoFit** is installed via pip as follows (specifying the version as shown below ensures
+the installation has clean dependencies):
 
 .. code-block:: bash
 
-    pip install autofit
+    pip install autofit==2021.6.7.1
 
 Next, clone the ``autofit workspace`` (the line ``--depth 1`` clones only the most recent branch on
 the ``autofit_workspace``, reducing the download size):

@@ -1,4 +1,4 @@
-from autoconf.exc import PriorException
+from autoconf.exc import ConfigException, PriorException
 
 
 class FitException(Exception):

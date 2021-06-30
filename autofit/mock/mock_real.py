@@ -1,6 +1,10 @@
 import math
 
-import autofit as af
+from autofit.mapper.prior_model.prior_model import PriorModel
+from autofit.mapper.prior_model.util import PriorModelNameValue
+from autofit.mapper.prior.prior import Prior
+from autofit.mapper.prior_model.abstract import AbstractPriorModel
+
 # noinspection PyAbstractClass
 from autofit.mapper.prior_model import attribute_pair
 
@@ -328,11 +332,11 @@ class Tracer:
 
 
 # noinspection PyAbstractClass
-class GalaxyModel(af.PriorModel):
+class GalaxyModel(PriorModel):
     def __init__(self, model_redshift=False, **kwargs):
         super().__init__(
             Galaxy,
-            redshift=af.PriorModel(Redshift) if model_redshift else None,
+            redshift=PriorModel(Redshift) if model_redshift else None,
             **kwargs
         )
 
@@ -346,17 +350,17 @@ class GalaxyModel(af.PriorModel):
     )
     def unique_prior_tuples(self):
         return (
-            [item for item in self.__dict__.items() if isinstance(item[1], af.Prior)]
+            [item for item in self.__dict__.items() if isinstance(item[1], Prior)]
             + [("redshift", self.redshift.redshift)]
             if self.redshift is not None
             else []
         )
 
     @property
-    @attribute_pair.cast_collection(af.PriorModelNameValue)
+    @attribute_pair.cast_collection(PriorModelNameValue)
     def flat_prior_model_tuples(self):
         return [
             item
             for item in self.__dict__.items()
-            if isinstance(item[1], af.AbstractPriorModel)
+            if isinstance(item[1], AbstractPriorModel)
         ]

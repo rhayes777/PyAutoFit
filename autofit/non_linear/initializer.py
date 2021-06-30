@@ -19,16 +19,15 @@ class Initializer:
 
         Although most non-linear searches have in-built functionality to do this, some do not cope well with parameter
         resamples that are raised as FitException's. Thus, PyAutoFit uses its own initializer to bypass these problems.
-
-        Parameters
-        ----------
         """
         self.lower_limit = lower_limit
         self.upper_limit = upper_limit
 
     @classmethod
     def from_config(cls, config):
-        """Load the Initializer from a non_linear config file."""
+        """
+        Load the Initializer from a non_linear config file.
+        """
 
         try:
 
@@ -51,16 +50,16 @@ class Initializer:
                 lower_limit=ball_lower_limit, upper_limit=ball_upper_limit
             )
 
-    def initial_samples_from_model(self, total_points, model, fitness_function):
+    def initial_samples_from_model(self, total_points : int, model, fitness_function):
         """
         Generate the initial points of the non-linear search, by randomly drawing unit values from a uniform
         distribution between the ball_lower_limit and ball_upper_limit values.
 
         Parameters
         ----------
-        total_points : int
+        total_points
             The number of points in non-linear paramemter space which initial points are created for.
-        model : ModelMapper
+        model
             An object that represents possible instances of some model with a given dimensionality which is the number
             of free dimensions of the model.
         """
@@ -151,12 +150,11 @@ class InitializerPrior(Initializer):
         The InitializerPrior class generates from the priors, by drawing all values as unit values between 0.0 and 1.0
         and mapping them to physical values via the prior.
         """
-
         super().__init__(lower_limit=0.0, upper_limit=1.0)
 
 
 class InitializerBall(Initializer):
-    def __init__(self, lower_limit, upper_limit):
+    def __init__(self, lower_limit : float, upper_limit : float):
         """
         The Initializer creates the initial set of samples in non-linear parameter space that can be passed into a
         `NonLinearSearch` to define where to begin sampling.
@@ -169,12 +167,11 @@ class InitializerBall(Initializer):
 
         Parameters
         ----------
-        lower_limit : float
+        lower_limit
             The lower limit of the uniform distribution unit values are drawn from when initializing walkers in a small
             compact ball.
-        upper_limit : float
+        upper_limit
             The upper limit of the uniform distribution unit values are drawn from when initializing walkers in a small
             compact ball.
         """
-
         super().__init__(lower_limit=lower_limit, upper_limit=upper_limit)
