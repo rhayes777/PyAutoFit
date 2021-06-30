@@ -19,6 +19,19 @@ def test_is_function(
     ).is_function is True
 
 
+def test_regression(
+        package
+):
+    assert LineItem(
+        """def path_instances_of_class(
+        obj, cls: type, ignore_class: Optional[Union[type, Tuple[type]]] = None
+):""",
+        parent=package
+    ).target_string == """def path_instances_of_class(
+        obj, cls, ignore_class= None
+):"""
+
+
 class TestStripAnnotations:
     @pytest.mark.parametrize(
         "string",
@@ -57,12 +70,20 @@ class TestStripAnnotations:
             ):
             """
 
+    @pytest.mark.parametrize(
+        "annotation",
+        [
+            "Optional[Union[list, str]]",
+            "Optional[Union[type, Tuple[type]]]"
+        ]
+    )
     def test_complex_type_annotation(
             self,
-            package
+            package,
+            annotation
     ):
         assert LineItem(
-            "def my_func(complex: Optional[Union[list, str]]):",
+            f"def my_func(complex: {annotation}):",
             parent=package
         ).target_string == "def my_func(complex):"
 
