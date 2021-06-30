@@ -1,5 +1,6 @@
 import configparser
 import logging
+from typing import List, Iterable, Tuple
 
 from autoconf import conf
 
@@ -12,20 +13,19 @@ class TextFormatter:
         self.line_length = line_length
         self.indent = indent
 
-    def add_to_dict(self, path_item_tuple: tuple, info_dict: dict):
-        path_tuple = path_item_tuple[0]
-        key = path_tuple[0]
-        if len(path_tuple) == 1:
-            info_dict[key] = path_item_tuple[1]
+    def add_to_dict(self, path: Tuple[str, ...], value: str, info_dict: dict):
+        key = path[0]
+        if len(path) == 1:
+            info_dict[key] = value
         else:
             if key not in info_dict:
                 info_dict[key] = dict()
             self.add_to_dict(
-                (path_item_tuple[0][1:], path_item_tuple[1]), info_dict[key]
+                path[1:], value, info_dict[key]
             )
 
-    def add(self, path_item_tuple: tuple):
-        self.add_to_dict(path_item_tuple, self.dict)
+    def add(self, path: Tuple[str, ...], value):
+        self.add_to_dict(path, value, self.dict)
 
     def dict_to_list(self, info_dict, line_length):
         lines = []
