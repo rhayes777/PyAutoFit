@@ -19,6 +19,15 @@ def test_dotted_annotation(
     ).target_string == "def my_func():"
 
 
+def test_ellipsis(
+        package
+):
+    assert LineItem(
+        "def my_func(t: Tuple[int, ...]) -> Tuple[int, ...]:",
+        parent=package
+    ).target_string == "def my_func(t):"
+
+
 def test_complex_example(
         package
 ):
