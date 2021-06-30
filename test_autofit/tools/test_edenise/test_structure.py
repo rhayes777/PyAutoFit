@@ -143,11 +143,20 @@ def test_strip_return_type(
     ).target_string == "def my_func():"
 
 
+@pytest.mark.parametrize(
+    "string",
+    [
+        "def my_func(arg: dict):",
+        "def my_func(arg: dict ):",
+        "def my_func(arg : dict ):",
+    ]
+)
 def test_strip_argument_type(
-        package
+        package,
+        string
 ):
     assert LineItem(
-        "def my_func(arg: dict):",
+        string,
         parent=package
     ).target_string == "def my_func(arg):"
 

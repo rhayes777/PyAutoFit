@@ -128,7 +128,7 @@ class LineItem(Item):
             self.string
         )
         matches += re.findall(
-            r"def *[a-zA-Z0-9_]* *\(*[a-zA-Z0-9_]+( *: *[a-zA-Z0-9_]+)\):",
+            r"def *[a-zA-Z0-9_]* *\( *[a-zA-Z0-9_]+( *: *[a-zA-Z0-9_]+ *)\):",
             self.string
         )
         string = self.string
