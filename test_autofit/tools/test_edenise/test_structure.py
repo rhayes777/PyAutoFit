@@ -125,6 +125,33 @@ def test_strip_return_type(
     ).target_string == "def my_func():"
 
 
+@pytest.mark.parametrize(
+    "string",
+    [
+        "def my_func() -> dict:",
+        "def my_func()->dict:",
+        "def my_func() -> dict :",
+    ]
+)
+def test_strip_return_type(
+        package,
+        string
+):
+    assert LineItem(
+        string,
+        parent=package
+    ).target_string == "def my_func():"
+
+
+def test_strip_argument_type(
+        package
+):
+    assert LineItem(
+        "def my_func(arg: dict):",
+        parent=package
+    ).target_string == "def my_func(arg):"
+
+
 def test_package_import(
         package
 ):

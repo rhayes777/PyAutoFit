@@ -127,6 +127,10 @@ class LineItem(Item):
             r"\)( *-> *[a-zA-Z_0-9.]* *):",
             self.string
         )
+        matches += re.findall(
+            r"def *[a-zA-Z0-9_]* *\(*[a-zA-Z0-9_]+( *: *[a-zA-Z0-9_]+)\):",
+            self.string
+        )
         string = self.string
         for match in matches:
             string = string.replace(
