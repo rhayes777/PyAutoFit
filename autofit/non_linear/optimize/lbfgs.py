@@ -71,7 +71,15 @@ class LBFGS(AbstractOptimizer):
     @property
     def config_dict_options(self):
 
-        return copy.copy(self._class_config["options"]._dict)
+        config_dict = copy.copy(self._class_config["options"]._dict)
+
+        for key, value in config_dict.items():
+            try:
+                config_dict[key] = self.kwargs[key]
+            except KeyError:
+                pass
+
+        return config_dict
 
     def _fit(self, model: AbstractPriorModel, analysis : Analysis, log_likelihood_cap : float=None):
         """
@@ -116,24 +124,51 @@ class LBFGS(AbstractOptimizer):
 
             self.logger.info("No PySwarms samples found, beginning new non-linear search. ")
 
-        lbfgs = optimize.minimize(fun=fitness_function.__call__, x0=x0, method="L-BFGS-B")
+        while total_iterations < self.config_dict_options["maxiter"]:
 
-        print(lbfgs.nit)
-        print(fitness_function.log_posterior_from(parameter_list=lbfgs.x))
-        print(lbfgs.x)
+            iterations_remaining = self.config_dict_options["maxiter"] - total_iterations
 
-        self.paths.save_object(
-            "total_iterations",
-            lbfgs.nit
-        )
-        self.paths.save_object(
-            "log_posterior",
-            fitness_function.log_posterior_from(parameter_list=lbfgs.x)
-        )
-        self.paths.save_object(
-            "x0",
-            lbfgs.x
-        )
+            if self.iterations_per_update > iterations_remaining:
+                iterations = iterations_remaining
+            else:
+                iterations = self.iterations_per_update
+
+            if iterations > 0:
+
+                config_dict_options = self.config_dict_options
+                config_dict_options["maxiter"] = iterations_remaining
+
+                lbfgs = optimize.minimize(
+                    fun=fitness_function.__call__,
+                    x0=x0,
+                    method="L-BFGS-B",
+                    options=self.config_dict_options,
+                    **self.config_dict_search
+                )
+
+                total_iterations += lbfgs.nit
+
+                self.paths.save_object(
+                    "total_iterations",
+                    total_iterations
+                )
+                self.paths.save_object(
+                    "log_posterior",
+                    fitness_function.log_posterior_from(parameter_list=lbfgs.x)
+                )
+                self.paths.save_object(
+                    "x0",
+                    lbfgs.x
+                )
+
+                self.perform_update(
+                    model=model, analysis=analysis, during_analysis=True
+                )
+
+                x0 = lbfgs.x
+
+                if lbfgs.nit != iterations_remaining:
+                    return
 
         self.logger.info("L-BFGS sampling complete.")
 

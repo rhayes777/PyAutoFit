@@ -31,17 +31,15 @@ class TestLBFGSConfig:
         assert lbfgs.prior_passer.use_errors is False
         assert lbfgs.prior_passer.use_widths is False
         assert lbfgs.config_dict_search["tol"] == 0.2
-        assert lbfgs.config_dict_search["disp"] == True
-        assert lbfgs.config_dict_search["maxcor"] == 11
-        assert lbfgs.config_dict_search["ftol"] == 2.
-        assert lbfgs.config_dict_search["gtol"] == 3.
-        assert lbfgs.config_dict_search["eps"] == 4.
-        assert lbfgs.config_dict_search["maxfun"] == 25000
-        assert lbfgs.config_dict_search["maxiter"] == 26000
-        assert lbfgs.config_dict_search["iprint"] == -2
-        assert lbfgs.config_dict_search["maxls"] == 21
-        assert lbfgs.config_dict_options["maxiter"] == None
-        assert lbfgs.config_dict_options["disp"] == False
+        assert lbfgs.config_dict_options["maxcor"] == 11
+        assert lbfgs.config_dict_options["ftol"] == 2.
+        assert lbfgs.config_dict_options["gtol"] == 3.
+        assert lbfgs.config_dict_options["eps"] == 4.
+        assert lbfgs.config_dict_options["maxfun"] == 25000
+        assert lbfgs.config_dict_options["maxiter"] == 26000
+        assert lbfgs.config_dict_options["iprint"] == -2
+        assert lbfgs.config_dict_options["maxls"] == 21
+        assert lbfgs.config_dict_options["disp"] == True
         assert isinstance(lbfgs.initializer, af.InitializerBall)
         assert lbfgs.initializer.lower_limit == 0.2
         assert lbfgs.initializer.upper_limit == 0.8
@@ -54,16 +52,15 @@ class TestLBFGSConfig:
         assert lbfgs.prior_passer.use_errors is True
         assert lbfgs.prior_passer.use_widths is True
         assert lbfgs.config_dict_search["tol"] == None
-        assert lbfgs.config_dict_search["disp"] == None
-        assert lbfgs.config_dict_search["maxcor"] == 10
-        assert lbfgs.config_dict_search["ftol"] == 2.220446049250313e-09
-        assert lbfgs.config_dict_search["gtol"] == 1e-05
-        assert lbfgs.config_dict_search["eps"] == 1e-08
-        assert lbfgs.config_dict_search["maxfun"] == 15000
-        assert lbfgs.config_dict_search["maxiter"] == 15000
-        assert lbfgs.config_dict_search["iprint"] == -1
-        assert lbfgs.config_dict_search["maxls"] == 20
-        assert lbfgs.config_dict_options["maxiter"] == None
+        assert lbfgs.config_dict_options["maxcor"] == 10
+        assert lbfgs.config_dict_options["ftol"] == 2.220446049250313e-09
+        assert lbfgs.config_dict_options["gtol"] == 1e-05
+        assert lbfgs.config_dict_options["eps"] == 1e-08
+        assert lbfgs.config_dict_options["maxfun"] == 15000
+        assert lbfgs.config_dict_options["maxiter"] == 15000
+        assert lbfgs.config_dict_options["iprint"] == -1
+        assert lbfgs.config_dict_options["maxls"] == 20
+        assert lbfgs.config_dict_options["maxiter"] == 15000
         assert lbfgs.config_dict_options["disp"] == False
         assert isinstance(lbfgs.initializer, af.InitializerPrior)
         assert lbfgs.iterations_per_update == 11
@@ -78,7 +75,6 @@ class TestLBFGSConfig:
         model.mock_class.one = af.LogUniformPrior(lower_limit=1e-8, upper_limit=100.0)
         model.mock_class.two = af.LogUniformPrior(lower_limit=1e-8, upper_limit=100.0)
         model.mock_class.three = af.LogUniformPrior(lower_limit=1e-8, upper_limit=100.0)
-        # model.mock_class.four = af.LogUniformPrior(lower_limit=1e-8, upper_limit=100.0)
 
         samples = LBFGS.samples_from(model=model)
 
@@ -89,12 +85,12 @@ class TestLBFGSConfig:
         assert isinstance(samples.log_posterior_list, list)
 
         assert samples.parameter_lists[0] == pytest.approx(
-            [50.1254, 1.04626, 10.09456], 1.0e-4
+            [50.005469, 25.143677, 10.06950], 1.0e-4
         )
 
-        assert samples.log_likelihood_list[0] == pytest.approx(-5071.80777, 1.0e-4)
-        assert samples.log_posterior_list[0] == pytest.approx(-5070.73298, 1.0e-4)
+        assert samples.log_likelihood_list[0] == pytest.approx(-45.134121, 1.0e-4)
+        assert samples.log_posterior_list[0] == pytest.approx(-44.97504284, 1.0e-4)
         assert samples.weight_list[0] == 1.0
 
-        assert len(samples.parameter_lists) == 500
-        assert len(samples.log_likelihood_list) == 500
+        assert len(samples.parameter_lists) == 1
+        assert len(samples.log_likelihood_list) == 1
