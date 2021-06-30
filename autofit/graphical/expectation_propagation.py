@@ -87,10 +87,6 @@ class EPMeanField(FactorGraph):
     def deterministic_variables(self):
         return self.factor_graph.deterministic_variables
 
-    # @property
-    # def variable_names(self) -> Dict[str, Variable]: 
-    #     return self.factor_graph.variable_names
-
     @property
     def factor_mean_field(self) -> Dict[Factor, MeanField]:
         return self._factor_mean_field.copy()
@@ -219,11 +215,6 @@ class EPMeanField(FactorGraph):
         return (
             f"{clsname}({self.factor_graph}, "
             f"log_evidence={self.log_evidence})")
-
-    @property
-    def is_valid(self) -> bool:
-        return all(mean_field.is_valid
-                   for mean_field in self.factor_mean_field.values())
 
 
 class AbstractFactorOptimiser(ABC):
