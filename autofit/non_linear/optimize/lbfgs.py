@@ -7,6 +7,7 @@ from autofit.non_linear.optimize.abstract_optimize import AbstractOptimizer
 from autofit.non_linear.samples import OptimizerSamples, Sample
 from autofit.non_linear.abstract_search import Analysis
 
+import copy
 from scipy import optimize
 import numpy as np
 
@@ -66,6 +67,11 @@ class LBFGS(AbstractOptimizer):
         )
 
         self.logger.debug("Creating LBFGS Search")
+
+    @property
+    def config_dict_options(self):
+
+        return copy.copy(self._class_config["options"]._dict)
 
     def _fit(self, model: AbstractPriorModel, analysis : Analysis, log_likelihood_cap : float=None):
         """
