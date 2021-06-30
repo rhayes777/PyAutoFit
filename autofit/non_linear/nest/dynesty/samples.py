@@ -48,15 +48,6 @@ class DynestySamples(NestSamples):
         Create a `Samples` object from this non-linear search's output files on the hard-disk and model.
 
         For Emcee, all quantities are extracted via the hdf5 backend of results.
-
-        Parameters
-        ----------
-        model
-            The model which generates instances for different points in parameter space. This maps the points from unit
-            cube values to physical values via the priors.
-        paths : af.Paths
-            Manages all paths, e.g. where the search outputs are stored, the `NonLinearSearch` chains,
-            etc.
         """
 
         if self._samples is not None:

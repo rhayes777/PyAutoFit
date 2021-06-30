@@ -4,6 +4,7 @@ from sqlalchemy.orm import Session
 
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.optimize.abstract_optimize import AbstractOptimizer
+from autofit.non_linear.samples import OptimizerSamples, Sample
 from autofit.non_linear.abstract_search import Analysis
 
 from scipy import optimize
@@ -88,9 +89,9 @@ class LBFGS(AbstractOptimizer):
             model=model, analysis=analysis
         )
 
-        if self.paths.is_object("points"):
+        if self.paths.is_object("x0"):
 
-            x0 = self.paths.load_object("points")[-1]
+            x0 = self.paths.load_object("x0")
             total_iterations = self.paths.load_object("total_iterations")
 
             self.logger.info("Existing PySwarms samples found, resuming non-linear search.")
@@ -111,5 +112,94 @@ class LBFGS(AbstractOptimizer):
 
         lbfgs = optimize.minimize(fun=fitness_function.__call__, x0=x0, method="L-BFGS-B")
 
+        print(lbfgs.nit)
+        print(fitness_function.log_posterior_from(parameter_list=lbfgs.x))
+        print(lbfgs.x)
+
+        self.paths.save_object(
+            "total_iterations",
+            lbfgs.nit
+        )
+        self.paths.save_object(
+            "log_posterior",
+            fitness_function.log_posterior_from(parameter_list=lbfgs.x)
+        )
+        self.paths.save_object(
+            "x0",
+            lbfgs.x
+        )
+
         self.logger.info("L-BFGS sampling complete.")
 
+    def samples_from(self, model):
+
+        return LBFGSSamples(
+            model=model,
+            x0=self.paths.load_object("x0"),
+            log_posterior_list=np.array([self.paths.load_object("log_posterior")]),
+            total_iterations=self.paths.load_object("total_iterations"),
+            time=self.timer.time
+        )
+
+
+class LBFGSSamples(OptimizerSamples):
+
+    def __init__(
+            self,
+            model: AbstractPriorModel,
+            x0: np.ndarray,
+            log_posterior_list: np.ndarray,
+            total_iterations: int,
+            time: Optional[float] = None,
+    ):
+        """
+        Create an *OptimizerSamples* object from this non-linear search's output files on the hard-disk and model.
+
+        For PySwarms, all quantities are extracted via pickled states of the particle and cost histories.
+
+        Parameters
+        ----------
+        model
+            The model which generates instances for different points in parameter space. This maps the points from unit
+            cube values to physical values via the priors.
+        """
+
+        self.x0 = x0
+        self._log_posterior_list = log_posterior_list
+        self.total_iterations = total_iterations
+
+        super().__init__(
+            model=model,
+            time=time,
+        )
+
+        self._samples = None
+
+    @property
+    def samples(self):
+        """
+        Create a `Samples` object from this non-linear search's output files on the hard-disk and model.
+
+        For L-BFGS, only a single ndarray of parameters is returned, alongside its log posterior value. Thus, the
+        `LBFGSSamples` object contains only one entry.
+        """
+
+        if self._samples is not None:
+            return self._samples
+
+        parameter_lists = [list(self.x0)]
+        log_prior_list = [
+            sum(self.model.log_prior_list_from_vector(vector=vector)) for vector in parameter_lists
+        ]
+        log_likelihood_list = [lp - prior for lp, prior in zip(self._log_posterior_list, log_prior_list)]
+        weight_list = len(log_likelihood_list) * [1.0]
+
+        self._samples = Sample.from_lists(
+            model=self.model,
+            parameter_lists=parameter_lists,
+            log_likelihood_list=log_likelihood_list,
+            log_prior_list=log_prior_list,
+            weight_list=weight_list
+        )
+
+        return self._samples
