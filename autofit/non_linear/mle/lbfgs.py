@@ -88,62 +88,28 @@ class LBFGS(AbstractMLE):
             model=model, analysis=analysis
         )
 
-        optimize.minimize(fun=fitness_function.__call__, method="L-BFGS-B")
-
         if self.paths.is_object("points"):
 
-            init_pos = self.load_points[-1]
-            total_iterations = self.load_total_iterations
+            x0 = self.paths.load_object("points")[-1]
+            total_iterations = self.paths.load_object("total_iterations")
 
             self.logger.info("Existing PySwarms samples found, resuming non-linear search.")
 
         else:
 
             initial_unit_parameter_lists, initial_parameter_lists, initial_log_posterior_list = self.initializer.initial_samples_from_model(
-                total_points=self.config_dict_search["n_particles"],
+                total_points=1,
                 model=model,
                 fitness_function=fitness_function,
             )
 
-            init_pos = np.zeros(shape=(self.config_dict_search["n_particles"], model.prior_count))
-
-            for index, parameters in enumerate(initial_parameter_lists):
-
-                init_pos[index, :] = np.asarray(parameters)
+            x0 = np.asarray(initial_parameter_lists[0])
 
             total_iterations = 0
 
             self.logger.info("No PySwarms samples found, beginning new non-linear search. ")
 
-        while iterations_remaining > 0:
+        lbfgs = optimize.minimize(fun=fitness_function.__call__, x0=x0, method="L-BFGS-B")
 
-            if self.iterations_per_update > iterations_remaining:
-                iterations = iterations_remaining
-            else:
-                iterations = self.iterations_per_update
-
-            for sample in emcee_sampler.sample(
-                    initial_state=emcee_state,
-                    iterations=iterations,
-                    progress=True,
-                    skip_initial_state_check=True,
-                    store=True,
-            ):
-                pass
-
-            emcee_state = emcee_sampler.get_last_sample()
-
-            total_iterations += iterations
-            iterations_remaining = self.config_dict_run["nsteps"] - total_iterations
-
-            samples = self.perform_update(
-                model=model, analysis=analysis, during_analysis=True
-            )
-
-            if self.auto_correlations_settings.check_for_convergence:
-                if emcee_sampler.iteration > self.auto_correlations_settings.check_size:
-                    if samples.converged:
-                        iterations_remaining = 0
-
-        self.logger.info("Emcee sampling complete.")
+        self.logger.info("L-BFGS sampling complete.")
 
