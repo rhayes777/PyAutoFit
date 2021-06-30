@@ -124,7 +124,7 @@ class LineItem(Item):
     @property
     def target_string(self) -> str:
         matches = re.findall(
-            r"\)( -> [a-zA-Z_0-9.]*):",
+            r"\)( *-> *[a-zA-Z_0-9.]* *):",
             self.string
         )
         string = self.string

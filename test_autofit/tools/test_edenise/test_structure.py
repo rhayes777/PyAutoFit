@@ -107,9 +107,20 @@ def test_import_as(
     assert import_.target_import_string == string
 
 
-def test_strip_return_type(package):
-    assert LineItem(
+@pytest.mark.parametrize(
+    "string",
+    [
         "def my_func() -> dict:",
+        "def my_func()->dict:",
+        "def my_func() -> dict :",
+    ]
+)
+def test_strip_return_type(
+        package,
+        string
+):
+    assert LineItem(
+        string,
         parent=package
     ).target_string == "def my_func():"
 
