@@ -30,10 +30,10 @@ def test_root():
 @pytest.fixture(name="formatter")
 def make_info_dict():
     formatter = frm.TextFormatter(line_length=20, indent=4)
-    formatter.add((("one", "one"), 1))
-    formatter.add((("one", "two"), 2))
-    formatter.add((("one", "three", "four"), 4))
-    formatter.add((("three", "four"), 4))
+    formatter.add(("one", "one"), 1)
+    formatter.add(("one", "two"), 2)
+    formatter.add(("one", "three", "four"), 4)
+    formatter.add(("three", "four"), 4)
 
     return formatter
 
