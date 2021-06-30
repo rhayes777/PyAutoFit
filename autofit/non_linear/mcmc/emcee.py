@@ -93,7 +93,8 @@ class Emcee(AbstractMCMC):
                 return self.resample_figure_of_merit
 
         def figure_of_merit_from(self, parameter_list):
-            """The figure of merit is the value that the `NonLinearSearch` uses to sample parameter space. `Emcee`
+            """
+            The figure of merit is the value that the `NonLinearSearch` uses to sample parameter space. `Emcee`
             uses the log posterior.
             """
             return self.log_posterior_from(parameter_list=parameter_list)

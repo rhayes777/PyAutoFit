@@ -92,8 +92,11 @@ class AbstractPySwarms(AbstractOptimizer):
             return np.asarray(figures_of_merit)
 
         def figure_of_merit_from(self, parameter_list):
-            """The figure of merit is the value that the `NonLinearSearch` uses to sample parameter space. *PySwarms*
-            uses the chi-squared value, which is the -2.0*log_posterior."""
+            """
+            The figure of merit is the value that the `NonLinearSearch` uses to sample parameter space.
+
+            PySwarms uses the chi-squared value, which is the -2.0*log_posterior.
+            """
             return -2.0 * self.log_posterior_from(parameter_list=parameter_list)
 
     def _fit(self, model: AbstractPriorModel, analysis, log_likelihood_cap=None):
