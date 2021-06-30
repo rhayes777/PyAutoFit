@@ -256,7 +256,6 @@ class FactorApproximation(AbstractNode):
 
     Parameters
     ----------
-    is_valid
     factor: Factor
         fₐ(xₐ)
     cavity_dist: MeanField
@@ -383,7 +382,7 @@ class FactorApproximation(AbstractNode):
             model_dist: MeanField,
             delta: float = 1.,
             status: Optional[Status] = None,
-    ) -> "FactorApprox":
+    ) -> Tuple["FactorApproximation", Status]:
         success, messages = Status() if status is None else status
 
         factor_dist = (model_dist / self.cavity_dist)
