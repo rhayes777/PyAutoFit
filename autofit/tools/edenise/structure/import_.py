@@ -122,8 +122,26 @@ class LineItem(Item):
         return self.string
 
     @property
+    def is_function(self):
+        return re.match(r"def +\w+", self.string) is not None
+
+    @property
     def target_string(self) -> str:
-        return self.string
+        string = self.string
+        if self.is_function and self.should_remove_type_annotations:
+            matches = re.findall(
+                r"\)( *-> *[\w.\[\], ]* *):",
+                self.string
+            )
+            matches += re.findall(
+                r"[\w]+( *: *[\w\[\], ]+ *)[ \n]*[,)=]",
+                self.string
+            )
+            for match in matches:
+                string = string.replace(
+                    match, ""
+                )
+        return string
 
 
 class Import(LineItem):
