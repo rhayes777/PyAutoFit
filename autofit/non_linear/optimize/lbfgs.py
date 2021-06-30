@@ -124,9 +124,14 @@ class LBFGS(AbstractOptimizer):
 
             self.logger.info("No PySwarms samples found, beginning new non-linear search. ")
 
-        while total_iterations < self.config_dict_options["maxiter"]:
+        maxiter = self.config_dict_options["maxiter"]
 
-            iterations_remaining = self.config_dict_options["maxiter"] - total_iterations
+        if maxiter is None:
+            maxiter = 1e8
+
+        while total_iterations < maxiter:
+
+            iterations_remaining = maxiter - total_iterations
 
             if self.iterations_per_update > iterations_remaining:
                 iterations = iterations_remaining
@@ -136,13 +141,13 @@ class LBFGS(AbstractOptimizer):
             if iterations > 0:
 
                 config_dict_options = self.config_dict_options
-                config_dict_options["maxiter"] = iterations_remaining
+                config_dict_options["maxiter"] = iterations
 
                 lbfgs = optimize.minimize(
                     fun=fitness_function.__call__,
                     x0=x0,
                     method="L-BFGS-B",
-                    options=self.config_dict_options,
+                    options=config_dict_options,
                     **self.config_dict_search
                 )
 
@@ -167,7 +172,7 @@ class LBFGS(AbstractOptimizer):
 
                 x0 = lbfgs.x
 
-                if lbfgs.nit != iterations_remaining:
+                if lbfgs.nit < iterations:
                     return
 
         self.logger.info("L-BFGS sampling complete.")
