@@ -55,7 +55,6 @@ def make_info_dict():
 
 class TestGenerateModelInfo:
     def test_add_to_info_dict(self, formatter):
-        print(formatter.dict)
         assert formatter.dict == {
             "one": {"one": 1, "two": 2, "three": {"four": 4}},
             "three": {"four": 4},
