@@ -22,75 +22,6 @@ VariableFactorDist = Dict[str, Dict[Factor, AbstractMessage]]
 Projection = Dict[str, AbstractMessage]
 
 
-def project_on_to_factor_approx(
-        factor_approx: "FactorApproximation",
-        model_dist: Dict[str, AbstractMessage],
-        delta: float = 1.,
-        status: Optional[Status] = None
-) -> Tuple["FactorApproximation", Status]:
-    """
-    For a passed FactorApproximation this calculates the 
-    factor messages such that 
-    
-    model_dist = factor_dist * cavity_dist
-    """
-    success, messages = Status() if status is None else status
-    assert 0 < delta <= 1
-
-    factor_projection = {}
-    #     log_norm = 0.
-    for v, q_fit in model_dist.items():
-        q_cavity = factor_approx.cavity_dist.get(v)
-        if isinstance(q_fit, FixedMessage):
-            factor_projection[v] = q_fit
-        elif q_fit.is_valid:
-            if q_cavity:
-                q_f0 = factor_approx.factor_dist[v]
-                q_f1 = (q_fit / q_cavity)
-            else:
-                # In the case that q_cavity does not exist the model fit
-                # equals the factor approximation
-                q_f1 = q_fit
-
-            # weighted update
-            if delta != 1:
-                q_f1 = (q_f1 ** delta).sum_natural_parameters(q_f0 ** (1 - delta))
-
-            if not q_f1.is_valid:
-                # partial updating of values
-                q_f1 = q_f1.update_invalid(q_f0)
-                messages += (
-                    f"factor projection for {v} with {factor_approx.factor} contained "
-                    "invalid values",)
-
-            if not q_f1.is_valid:
-                success = False
-                messages += (
-                    f"factor projection for {v} with {factor_approx.factor} is invalid",)
-
-            factor_projection[v] = q_f1
-        else:
-            success = False
-            messages += (
-                f"model projection for {v} with {factor_approx.factor} is invalid",)
-
-            factor_projection[v] = factor_approx.factor_dist[v]
-            q_model = (q_fit ** delta).sum_natural_parameters(
-                factor_approx.model_dist[v] ** (1 - delta))
-            if q_model.is_valid:
-                model_dist[v] = q_model
-
-    projection = FactorApproximation(
-        factor_approx.factor,
-        factor_approx.cavity_dist,
-        factor_dist=MeanField(factor_projection),
-        model_dist=MeanField(model_dist),
-    )
-    status = Status(success, messages)
-
-    return projection, status
-
-
 class MeanField(CollectionPriorModel, Dict[Variable, AbstractMessage], Factor):
     """For a factor with multiple variables, this class represents the 
     the mean field approximation to that factor, 
@@ -390,18 +321,6 @@ class FactorApproximation(AbstractNode):
         """
         return MeanField({
             v: self.cavity_dist[v] for v in self.deterministic_variables})
-
-    @property
-    def is_valid(self) -> bool:
-        """
-        returns whether all the distributions in the factor approximation
-        are valid
-        """
-        dists = chain(
-            self.cavity_dist.values(),
-            self.factor_dist.values(),
-            self.model_dist.values())
-        return all(d.is_valid for d in dists if isinstance(d, AbstractMessage))
 
     def __call__(
             self,

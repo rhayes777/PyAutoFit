@@ -148,17 +148,6 @@ class EPMeanField(FactorGraph):
     model_dist = mean_field
 
     @property
-    def variable_factor_message(self
-                                ) -> Dict[Variable, Dict[Factor, AbstractMessage]]:
-        variable_factor_message = {
-            v: {} for v in self.all_variables}
-        for factor, meanfield in self.factor_mean_field.items():
-            for v, message in meanfield.items():
-                variable_factor_message[v][factor] = message
-
-        return variable_factor_message
-
-    @property
     def variable_messages(self) -> Dict[Variable, List[AbstractMessage]]:
         variable_messages = {
             v: [] for v in self.all_variables}
