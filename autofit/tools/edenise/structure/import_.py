@@ -134,7 +134,7 @@ class LineItem(Item):
                 self.string
             )
             matches += re.findall(
-                r"[\w]+( *: *[\w\[\], ]+ *)[ \n]*[,)=]",
+                r"[\w]+( *: *[\w.\[\], ]+ *)[ \n]*[,)=]",
                 self.string
             )
             for match in matches:
