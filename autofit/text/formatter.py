@@ -55,7 +55,8 @@ class TextFormatter:
                 sub_lines = self.dict_to_list(
                     value, line_length=line_length - self.indent
                 )
-                lines.append(key)
+                if value.value is None:
+                    lines.append(key)
                 for line in sub_lines:
                     lines.append(f"{indent_string}{line}")
         return lines

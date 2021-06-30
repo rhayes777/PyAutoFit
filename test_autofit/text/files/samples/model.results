@@ -1,4 +1,5 @@
-mock_class                                                                                MockClassx2 (N=2)
+(root)                                                                                    ModelMapper (N=2)
+    mock_class                                                                            MockClassx2 (N=2)
 
 Maximum Log Likelihood                                                                    3.00000000
 Maximum Log Posterior                                                                     1.00000000

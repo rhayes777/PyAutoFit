@@ -935,25 +935,23 @@ class AbstractPriorModel(AbstractModel):
         for t in self.path_instance_tuples_for_class((
                 Prior, float, tuple
         )):
-            path = t[0][:-1]
-            obj = self.object_for_path(
-                path
-            )
-            if isinstance(obj, AbstractPriorModel):
-                n = obj.prior_count
-            else:
-                n = 0
-            if isinstance(obj, PriorModel):
-                name = obj.cls.__name__
-            else:
-                name = type(obj).__name__
+            for i in range(len(t[0])):
+                path = t[0][:i]
+                obj = self.object_for_path(
+                    path
+                )
+                if isinstance(obj, AbstractPriorModel):
+                    n = obj.prior_count
+                else:
+                    n = 0
+                if isinstance(obj, PriorModel):
+                    name = obj.cls.__name__
+                else:
+                    name = type(obj).__name__
 
-            if len(path) == 0:
-                path = ("(root)",)
-
-            formatter.add(
-                path, f"{name} (N={n})"
-            )
+                formatter.add(
+                    ("(root)",) + path, f"{name} (N={n})"
+                )
 
         return formatter.text
 
