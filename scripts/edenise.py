@@ -25,12 +25,13 @@ def main(
         ]
 
         edenise.edenise(
-            root_directory,
-            config.get("eden", "name"),
-            config.get("eden", "prefix"),
-            config.get("eden", "eden_prefix"),
-            eden_dependencies,
-            config.get("eden", "should_rename_modules").lower().startswith("t")
+            root_directory=root_directory,
+            name=config.get("eden", "name"),
+            prefix=config.get("eden", "prefix"),
+            eden_prefix=config.get("eden", "eden_prefix"),
+            eden_dependencies=eden_dependencies,
+            should_rename_modules=config.get("eden", "should_rename_modules").lower().startswith("t"),
+            should_remove_type_annotations=config.get("eden", "should_remove_type_annotations").lower().startswith("t"),
         )
     except ValueError:
         print("Usage: ./edenise.py root_directory")

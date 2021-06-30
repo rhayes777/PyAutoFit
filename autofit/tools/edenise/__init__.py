@@ -3,7 +3,7 @@ from os import walk
 from pathlib import Path
 
 from .converter import Converter, Line
-from .structure import Import, Item, File, Package
+from .structure import Import, Item, File, Package, LineItem
 
 
 def edenise(
@@ -13,7 +13,8 @@ def edenise(
         eden_prefix,
         eden_dependencies,
         target_eden_directory=None,
-        should_rename_modules=False
+        should_rename_modules=False,
+        should_remove_type_annotations=False
 ):
     target_directory = f"{root_directory}/../eden/{name}_eden"
 
@@ -67,10 +68,11 @@ def edenise(
         prefix=eden_prefix,
         is_top_level=True,
         eden_dependencies=eden_dependencies,
-        should_rename_modules=should_rename_modules
+        should_rename_modules=should_rename_modules,
+        should_remove_type_annotations=should_remove_type_annotations
     )
 
-    target_eden_directory = Path(target_eden_directory) or target_directory
+    target_eden_directory = Path(target_eden_directory or target_directory)
 
     package.generate_target(
         target_eden_directory

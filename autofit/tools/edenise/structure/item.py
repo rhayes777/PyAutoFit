@@ -39,6 +39,10 @@ class Item(ABC):
         return self.target_name
 
     @property
+    def should_remove_type_annotations(self):
+        return self.top_level.should_remove_type_annotations
+
+    @property
     def should_rename_modules(self):
         return self.top_level.should_rename_modules
 

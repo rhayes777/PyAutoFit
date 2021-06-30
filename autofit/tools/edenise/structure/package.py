@@ -14,7 +14,8 @@ class Package(DirectoryItem):
             is_top_level: bool,
             parent: Optional["Package"] = None,
             eden_dependencies: Optional[List[str]] = None,
-            should_rename_modules: bool = False
+            should_rename_modules: bool = False,
+            should_remove_type_annotations: bool = False
     ):
         """
         A package in the project.
@@ -39,10 +40,15 @@ class Package(DirectoryItem):
         self.is_top_level = is_top_level
         self._eden_dependencies = eden_dependencies or list()
         self._should_rename_modules = should_rename_modules
+        self._should_remove_type_annotations = should_remove_type_annotations
 
     @property
     def should_rename_modules(self):
         return self._should_rename_modules
+
+    @property
+    def should_remove_type_annotations(self):
+        return self._should_remove_type_annotations
 
     @property
     def eden_dependencies(self):
@@ -101,9 +107,9 @@ class Package(DirectoryItem):
         The path this object will have after edenisation
         """
         target_path = super().target_path
- #       target_path = Path(str(target_path).replace("Auto", ""))
- #       print(target_path)
- #       stop
+        #       target_path = Path(str(target_path).replace("Auto", ""))
+        #       print(target_path)
+        #       stop
         if self.is_top_level:
             target_path = Path(
                 self.prefix
