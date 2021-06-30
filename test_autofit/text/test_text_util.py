@@ -94,6 +94,7 @@ def test__results_to_file(samples):
 
     results.readline()
     results.readline()
+    results.readline()
 
     line = results.readline()
 

@@ -15,8 +15,9 @@ def test_parameterization():
 
     parameterization = model.parameterization
     assert parameterization == (
-        """collection
-    gaussian                                                                              Gaussian (N=3)"""
+        """(root)                                                                                    CollectionPriorModel (N=3)
+    collection                                                                            CollectionPriorModel (N=3)
+        gaussian                                                                          Gaussian (N=3)"""
     )
 
 
@@ -37,8 +38,9 @@ def test_instance():
 
     parameterization = model.parameterization
     assert parameterization == (
-        """collection
-    gaussian                                                                              Gaussian (N=0)"""
+        """(root)                                                                                    CollectionPriorModel (N=0)
+    collection                                                                            CollectionPriorModel (N=0)
+        gaussian                                                                          Gaussian (N=0)"""
     )
 
 
@@ -54,12 +56,6 @@ def make_info_dict():
 
 
 class TestGenerateModelInfo:
-    def test_add_to_info_dict(self, formatter):
-        assert formatter.dict == {
-            "one": {"one": 1, "two": 2, "three": {"four": 4}},
-            "three": {"four": 4},
-        }
-
     def test_info_string(self, formatter):
         ls = formatter.list
 

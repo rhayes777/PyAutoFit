@@ -1,27 +1,42 @@
-import configparser
 import logging
-from typing import List, Iterable, Tuple
+from typing import Tuple
 
 from autoconf import conf
 
 logger = logging.getLogger(__name__)
 
 
+class FormatNode:
+    def __init__(self):
+        self._dict = dict()
+        self.value = None
+
+    def __getitem__(self, item):
+        if item not in self._dict:
+            self._dict[item] = FormatNode()
+        return self._dict[item]
+
+    def __len__(self):
+        return len(self._dict)
+
+    def items(self):
+        return self._dict.items()
+
+
 class TextFormatter:
     def __init__(self, line_length=90, indent=4):
-        self.dict = dict()
+        self.dict = FormatNode()
         self.line_length = line_length
         self.indent = indent
 
-    def add_to_dict(self, path: Tuple[str, ...], value: str, info_dict: dict):
+    def add_to_dict(self, path: Tuple[str, ...], value: str, info_dict: FormatNode):
         key = path[0]
+        node = info_dict[key]
         if len(path) == 1:
-            info_dict[key] = value
+            node.value = value
         else:
-            if key not in info_dict:
-                info_dict[key] = dict()
             self.add_to_dict(
-                path[1:], value, info_dict[key]
+                path[1:], value, node
             )
 
     def add(self, path: Tuple[str, ...], value):
@@ -31,17 +46,19 @@ class TextFormatter:
         lines = []
         for key, value in info_dict.items():
             indent_string = self.indent * " "
-            if isinstance(value, dict):
+            if value.value is not None:
+                value_string = str(value.value)
+                space_string = max((line_length - len(key)), 1) * " "
+                lines.append(f"{key}{space_string}{value_string}")
+
+            if len(value) > 0:
                 sub_lines = self.dict_to_list(
                     value, line_length=line_length - self.indent
                 )
-                lines.append(key)
+                if value.value is None:
+                    lines.append(key)
                 for line in sub_lines:
                     lines.append(f"{indent_string}{line}")
-            else:
-                value_string = str(value)
-                space_string = max((line_length - len(key)), 1) * " "
-                lines.append(f"{key}{space_string}{value_string}")
         return lines
 
     @property
@@ -73,9 +90,9 @@ def format_string_for_parameter_name(parameter_name: str) -> str:
     try:
         # noinspection PyProtectedMember
         for key, value in sorted(
-            label_conf["format"].items(),
-            key=lambda item: len(item[0]),
-            reverse=True,
+                label_conf["format"].items(),
+                key=lambda item: len(item[0]),
+                reverse=True,
         ):
             if key in parameter_name:
                 return value
@@ -92,7 +109,6 @@ def format_string_for_parameter_name(parameter_name: str) -> str:
 
 
 def convert_name_to_label(parameter_name, name_to_label):
-
     if not name_to_label:
         return parameter_name
 
@@ -114,9 +130,8 @@ def add_whitespace(str0, str1, whitespace):
 
 
 def value_result_string_from(
-    parameter_name, value, values_at_sigma=None, unit=None, format_string=None
+        parameter_name, value, values_at_sigma=None, unit=None, format_string=None
 ):
-
     format_str = format_string or format_string_for_parameter_name(parameter_name)
     value = format_str.format(value)
 
@@ -134,15 +149,14 @@ def value_result_string_from(
 
 
 def parameter_result_latex_from(
-    parameter_name,
-    value,
-    errors=None,
-    subscript=None,
-    unit=None,
-    format_string=None,
-    name_to_label=False,
+        parameter_name,
+        value,
+        errors=None,
+        subscript=None,
+        unit=None,
+        format_string=None,
+        name_to_label=False,
 ):
-
     format_str = format_string or format_string_for_parameter_name(parameter_name)
     value = format_str.format(value)
 
