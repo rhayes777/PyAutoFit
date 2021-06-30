@@ -58,11 +58,6 @@ class Emcee(AbstractMCMC):
             and also acts as the folder after the path prefix and before the search name.
         prior_passer
             Controls how priors are passed from the results of this `NonLinearSearch` to a subsequent non-linear search.
-        nwalkers : int
-            The number of walkers in the ensemble used to sample parameter space.
-        nsteps : int
-            The number of steps that must be taken by every walker. The `NonLinearSearch` will thus run for nwalkers *
-            nsteps iterations.
         initializer
             Generates the initialize samples of non-linear parameter space (see autofit.non_linear.initializer).
         auto_correlations_settings : AutoCorrelationsSettings
