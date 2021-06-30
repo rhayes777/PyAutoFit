@@ -30,7 +30,8 @@ def main(
             config.get("eden", "prefix"),
             config.get("eden", "eden_prefix"),
             eden_dependencies,
-            config.get("eden", "should_rename_modules").lower().startswith("t")
+            config.get("eden", "should_rename_modules").lower().startswith("t"),
+            config.get("eden", "should_remove_type_annotations").lower().startswith("t"),
         )
     except ValueError:
         print("Usage: ./edenise.py root_directory")
