@@ -54,12 +54,6 @@ def make_info_dict():
 
 
 class TestGenerateModelInfo:
-    def test_add_to_info_dict(self, formatter):
-        assert formatter.dict == {
-            "one": {"one": 1, "two": 2, "three": {"four": 4}},
-            "three": {"four": 4},
-        }
-
     def test_info_string(self, formatter):
         ls = formatter.list
 
