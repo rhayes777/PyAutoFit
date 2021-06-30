@@ -192,31 +192,6 @@ class AbstractPriorModel(AbstractModel):
             except AttributeError:
                 pass
 
-    @property
-    def parameterization(self) -> str:
-        """
-        Describes the path to each of the PriorModels, its class
-        and its number of free parameters
-        """
-        from .prior_model import PriorModel
-        tuples = self.path_instance_tuples_for_class(
-            PriorModel
-        )
-
-        strings = list()
-
-        for path, prior_model in tuples:
-            if len(path) == 0:
-                path = "(root)"
-            else:
-                path = "->".join(path)
-            suffix = f"{prior_model.cls.__name__} (N={prior_model.prior_count})"
-            spaces = (90 - (len(path) + len(suffix) + 1)) * " "
-            strings.append(
-                f"{path}:{spaces}{suffix}"
-            )
-        return "\n".join(strings)
-
     def instance_from_unit_vector(self, unit_vector, assert_priors_in_limits=True):
         """
         Returns a ModelInstance, which has an attribute and class instance corresponding
@@ -946,6 +921,31 @@ class AbstractPriorModel(AbstractModel):
             formatter.add(t)
 
         return formatter.text
+
+    @property
+    def parameterization(self) -> str:
+        """
+        Describes the path to each of the PriorModels, its class
+        and its number of free parameters
+        """
+        from .prior_model import PriorModel
+        tuples = self.path_instance_tuples_for_class(
+            PriorModel
+        )
+
+        strings = list()
+
+        for path, prior_model in tuples:
+            if len(path) == 0:
+                path = "(root)"
+            else:
+                path = "->".join(path)
+            suffix = f"{prior_model.cls.__name__} (N={prior_model.prior_count})"
+            spaces = (90 - (len(path) + len(suffix) + 1)) * " "
+            strings.append(
+                f"{path}:{spaces}{suffix}"
+            )
+        return "\n".join(strings)
 
     @property
     def model_component_and_parameter_names(self) -> [str]:
