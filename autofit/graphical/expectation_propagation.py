@@ -67,11 +67,6 @@ class EPMeanField(FactorGraph):
     ):
         self._factor_graph = factor_graph
         self._factor_mean_field = factor_mean_field
-        variable_factor = {}
-        for factor, vs in factor_graph.factor_all_variables.items():
-            for v in vs:
-                variable_factor.setdefault(v, set()).add(factor)
-        self._variable_factor = variable_factor
 
         super().__init__(self.factor_graph.factors)
 
