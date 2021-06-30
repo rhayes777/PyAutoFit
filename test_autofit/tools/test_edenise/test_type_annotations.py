@@ -10,6 +10,28 @@ def set_flag(package):
     package._should_remove_type_annotations = True
 
 
+def test_dotted_annotation(
+        package
+):
+    assert LineItem(
+        "def my_func() -> np.ndarray:",
+        parent=package
+    ).target_string == "def my_func():"
+
+
+def test_complex_example(
+        package
+):
+    assert LineItem(
+        """def grid_2d_radial_projected_from(
+    self, centre: Tuple[float, float] = (0.0, 0.0), angle: float = 0.0
+) -> grid_2d_irregular.Grid2DIrregular:""",
+        parent=package
+    ).target_string == """def grid_2d_radial_projected_from(
+    self, centre= (0.0, 0.0), angle= 0.0
+):"""
+
+
 def test_is_function(
         package
 ):
