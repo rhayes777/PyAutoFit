@@ -92,6 +92,9 @@ def test__results_to_file(samples):
 
     results = open(file_results)
 
+    results.readline()
+    results.readline()
+
     line = results.readline()
 
     assert (
@@ -105,7 +108,6 @@ def test__results_to_file(samples):
             line
             == "Maximum Log Posterior                                                                     1.00000000\n"
     )
-
 
 
 def test__search_summary_to_file(model):

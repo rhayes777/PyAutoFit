@@ -10,7 +10,7 @@ from test_autofit.graphical.gaussian.model import Analysis
 x = np.arange(200)
 n = 1
 
-should_plot = True
+should_plot = False
 
 
 @pytest.fixture(

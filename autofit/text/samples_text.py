@@ -42,7 +42,7 @@ def summary(
             values_at_sigma=values_at_sigma[i],
         )
 
-        sigma_formatter.add((prior_path, value_result))
+        sigma_formatter.add(prior_path, value_result)
 
     return "\n\nSummary ({} sigma limits):\n\n{}".format(sigma, sigma_formatter.text)
 

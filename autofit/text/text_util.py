@@ -7,7 +7,9 @@ def results_to_file(samples, filename):
     sigma confidence and information on the maximum log likelihood.
     """
 
-    results = []
+    results = [
+        samples.model.parameterization, "\n\n"
+    ]
 
     if hasattr(samples, "log_evidence"):
         if samples.log_evidence is not None:
@@ -44,7 +46,7 @@ def results_to_file(samples, filename):
 
     for i, prior_path in enumerate(samples.model.unique_prior_paths):
         formatter.add(
-            (prior_path, format_str().format(samples.max_log_likelihood_vector[i]))
+            prior_path, format_str().format(samples.max_log_likelihood_vector[i])
         )
     results += [formatter.text + "\n"]
 
@@ -69,7 +71,7 @@ def results_to_file(samples, filename):
     formatter = frm.TextFormatter()
 
     for t in samples.model.path_float_tuples:
-        formatter.add(t)
+        formatter.add(*t)
 
     results += ["\n" + formatter.text]
 
