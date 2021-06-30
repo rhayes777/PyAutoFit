@@ -3,13 +3,13 @@ from typing import Optional
 from sqlalchemy.orm import Session
 
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
-from autofit.non_linear.mle.abstract_mle import AbstractMLE
+from autofit.non_linear.optimize.abstract_optimize import AbstractOptimizer
 from autofit.non_linear.abstract_search import Analysis
 
 from scipy import optimize
 import numpy as np
 
-class LBFGS(AbstractMLE):
+class LBFGS(AbstractOptimizer):
     __identifier_fields__ = ()
 
     def __init__(
