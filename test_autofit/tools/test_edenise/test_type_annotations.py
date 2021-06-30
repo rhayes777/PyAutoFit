@@ -57,6 +57,15 @@ class TestStripAnnotations:
             ):
             """
 
+    def test_complex_type_annotation(
+            self,
+            package
+    ):
+        assert LineItem(
+            "def my_func(complex: Optional[Union[list, str]]):",
+            parent=package
+        ).target_string == "def my_func(complex):"
+
     def test_dont_convert_dict(
             self,
             package
