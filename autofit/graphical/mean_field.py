@@ -15,6 +15,7 @@ from autofit.graphical.messages import (
 from autofit.graphical.utils import (
     prod, add_arrays, OptResult, Status, aggregate, Axis
 )
+from autofit.mapper.prior_model.collection import CollectionPriorModel
 from autofit.mapper.variable import Variable
 
 VariableFactorDist = Dict[str, Dict[Factor, AbstractMessage]]
@@ -90,7 +91,7 @@ def project_on_to_factor_approx(
     return projection, status
 
 
-class MeanField(Dict[Variable, AbstractMessage], Factor):
+class MeanField(CollectionPriorModel, Dict[Variable, AbstractMessage], Factor):
     """For a factor with multiple variables, this class represents the 
     the mean field approximation to that factor, 
 
@@ -124,6 +125,7 @@ class MeanField(Dict[Variable, AbstractMessage], Factor):
         dict.__init__(self, dists)
         Factor.__init__(
             self, self._logpdf, **{v.name: v for v in dists})
+        CollectionPriorModel.__init__(self)
 
         if isinstance(dists, MeanField):
             self.log_norm = dists.log_norm
@@ -182,7 +184,8 @@ class MeanField(Dict[Variable, AbstractMessage], Factor):
             self,
             values: Dict[Variable, np.ndarray],
             axis: Axis = False,
-            **kwargs):
+            **kwargs
+    ):
         logl = 0
         gradl = {}
         for v, m in self.items():
@@ -214,7 +217,7 @@ class MeanField(Dict[Variable, AbstractMessage], Factor):
     def __repr__(self):
         reprdict = "{\n" + "\n".join(
             "  {}: {}".format(k, v) for k, v in self.items()) + "\n  }"
-        classname = (type(self).__name__)
+        classname = type(self).__name__
         return f"{classname}({reprdict}, log_norm={self.log_norm})"
 
     @property
