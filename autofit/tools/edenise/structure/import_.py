@@ -123,7 +123,16 @@ class LineItem(Item):
 
     @property
     def target_string(self) -> str:
-        return self.string
+        matches = re.findall(
+            r"\)( -> [a-zA-Z_0-9.]*):",
+            self.string
+        )
+        string = self.string
+        for match in matches:
+            string = string.replace(
+                match, ""
+            )
+        return string
 
 
 class Import(LineItem):

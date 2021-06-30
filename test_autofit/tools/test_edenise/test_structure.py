@@ -3,7 +3,7 @@ from pathlib import Path
 
 import pytest
 
-from autofit.tools.edenise import Package, File, Import
+from autofit.tools.edenise import Package, File, Import, LineItem
 
 package_directory = Path(
     __file__
@@ -105,6 +105,13 @@ def test_import_as(
     )
     string = "from VIS_CTI_Autofit.VIS_CTI_Tools import VIS_CTI_Edenise as e"
     assert import_.target_import_string == string
+
+
+def test_strip_return_type(package):
+    assert LineItem(
+        "def my_func() -> dict:",
+        parent=package
+    ).target_string == "def my_func():"
 
 
 def test_package_import(

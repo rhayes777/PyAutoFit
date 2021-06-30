@@ -3,7 +3,7 @@ from os import walk
 from pathlib import Path
 
 from .converter import Converter, Line
-from .structure import Import, Item, File, Package
+from .structure import Import, Item, File, Package, LineItem
 
 
 def edenise(
