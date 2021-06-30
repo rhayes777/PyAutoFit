@@ -125,7 +125,7 @@ class AbstractPySwarms(AbstractOptimizer):
         if self.paths.is_object("points"):
 
             init_pos = self.paths.load_object("points")[-1]
-            total_iterations = self.load_total_iterations
+            total_iterations = self.paths.load_object("total_iterations")
 
             self.logger.info("Existing PySwarms samples found, resuming non-linear search.")
 
@@ -225,21 +225,9 @@ class AbstractPySwarms(AbstractOptimizer):
         return PySwarmsSamples(
             model=model,
             points=self.paths.load_object("points"),
-            log_posterior_list=self.load_log_posterior_list,
-            total_iterations=self.load_total_iterations,
+            log_posterior_list=self.paths.load_object("log_posterior_list"),
+            total_iterations=self.paths.load_object("total_iterations"),
             time=self.timer.time
-        )
-
-    @property
-    def load_log_posterior_list(self):
-        return self.paths.load_object(
-            "log_posterior_list"
-        )
-
-    @property
-    def load_total_iterations(self):
-        return self.paths.load_object(
-            "total_iterations"
         )
 
     def plot_results(self, samples):
