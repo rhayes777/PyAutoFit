@@ -134,7 +134,7 @@ class EPMeanField(FactorGraph):
         cavity_dist = MeanField.prod(
             {v: 1. for v in factor_dist.all_variables},
             *(dist for fac, dist in factor_mean_field.items()))
-        
+
         model_dist = factor_dist.prod(cavity_dist)
 
         return FactorApproximation(
