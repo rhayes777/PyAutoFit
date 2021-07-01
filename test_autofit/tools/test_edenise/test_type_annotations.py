@@ -41,6 +41,15 @@ def test_complex_example(
 ):"""
 
 
+def test_lost_argument(
+        package
+):
+    assert LineItem(
+        "def convert_grid_2d(grid_2d: Union[np.ndarray, List], mask_2d):",
+        parent=package
+    ).target_string == "def convert_grid_2d(grid_2d, mask_2d):"
+
+
 def test_is_function(
         package
 ):
@@ -155,20 +164,11 @@ class TestStripAnnotations:
             parent=package
         ).target_string == "def my_func(arg1, arg2):"
 
-    @pytest.mark.parametrize(
-        "string",
-        [
-            "def my_func(arg: dict):",
-            "def my_func(arg: dict ):",
-            "def my_func(arg : dict ):",
-        ]
-    )
     def test_strip_argument_type(
             self,
-            package,
-            string
+            package
     ):
         assert LineItem(
-            string,
+            "def my_func(arg: dict):",
             parent=package
         ).target_string == "def my_func(arg):"
