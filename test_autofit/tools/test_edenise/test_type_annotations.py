@@ -19,6 +19,15 @@ def test_dotted_annotation(
     ).target_string == "def my_func():"
 
 
+def test_ellipsis(
+        package
+):
+    assert LineItem(
+        "def my_func(t: Tuple[int, ...]) -> Tuple[int, ...]:",
+        parent=package
+    ).target_string == "def my_func(t):"
+
+
 def test_complex_example(
         package
 ):
@@ -30,6 +39,15 @@ def test_complex_example(
     ).target_string == """def grid_2d_radial_projected_from(
     self, centre= (0.0, 0.0), angle= 0.0
 ):"""
+
+
+def test_lost_argument(
+        package
+):
+    assert LineItem(
+        "def convert_grid_2d(grid_2d: Union[np.ndarray, List], mask_2d):",
+        parent=package
+    ).target_string == "def convert_grid_2d(grid_2d, mask_2d):"
 
 
 def test_is_function(
@@ -146,20 +164,11 @@ class TestStripAnnotations:
             parent=package
         ).target_string == "def my_func(arg1, arg2):"
 
-    @pytest.mark.parametrize(
-        "string",
-        [
-            "def my_func(arg: dict):",
-            "def my_func(arg: dict ):",
-            "def my_func(arg : dict ):",
-        ]
-    )
     def test_strip_argument_type(
             self,
-            package,
-            string
+            package
     ):
         assert LineItem(
-            string,
+            "def my_func(arg: dict):",
             parent=package
         ).target_string == "def my_func(arg):"

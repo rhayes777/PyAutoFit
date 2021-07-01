@@ -127,21 +127,40 @@ class LineItem(Item):
 
     @property
     def target_string(self) -> str:
-        string = self.string
         if self.is_function and self.should_remove_type_annotations:
-            matches = re.findall(
-                r"\)( *-> *[\w.\[\], ]* *):",
-                self.string
-            )
-            matches += re.findall(
-                r"[\w]+( *: *[\w\[\], ]+ *)[ \n]*[,)=]",
-                self.string
-            )
-            for match in matches:
-                string = string.replace(
-                    match, ""
-                )
-        return string
+            result = list()
+            open_square_count = 0
+            open_bracket_count = 0
+
+            should_add = True
+            for i, character in enumerate(self.string):
+                def is_window(string):
+                    return self.string[i: i + len(string)] == string
+
+                if is_window(" -> ") or is_window(" ->") or is_window("-> ") or is_window("->"):
+                    should_add = False
+                if character == ":":
+                    should_add = open_bracket_count == 0
+                if character == "=":
+                    should_add = True
+                if character == "(":
+                    open_bracket_count += 1
+                if character == ")":
+                    open_bracket_count -= 1
+                    if open_bracket_count == 0:
+                        should_add = True
+                if character == "[":
+                    open_square_count += 1
+                if character == "]":
+                    open_square_count -= 1
+                if character in (",", "\n") and open_square_count == 0:
+                    should_add = True
+
+                if should_add:
+                    result.append(character)
+
+            return "".join(result)
+        return self.string
 
 
 class Import(LineItem):
