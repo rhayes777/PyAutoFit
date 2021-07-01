@@ -15,7 +15,7 @@ def test_parameterization():
 
     parameterization = model.parameterization
     assert parameterization == (
-        """(root)                                                                                    CollectionPriorModel (N=3)
+        """model                                                                                     CollectionPriorModel (N=3)
     collection                                                                            CollectionPriorModel (N=3)
         gaussian                                                                          Gaussian (N=3)"""
     )
@@ -25,7 +25,7 @@ def test_root():
     model = af.Model(af.Gaussian)
     parameterization = model.parameterization
     assert parameterization == (
-        '(root)                                                                                    Gaussian (N=3)'
+        'model                                                                                     Gaussian (N=3)'
     )
 
 
@@ -38,9 +38,24 @@ def test_instance():
 
     parameterization = model.parameterization
     assert parameterization == (
-        """(root)                                                                                    CollectionPriorModel (N=0)
+        """model                                                                                     CollectionPriorModel (N=0)
     collection                                                                            CollectionPriorModel (N=0)
         gaussian                                                                          Gaussian (N=0)"""
+    )
+
+
+def test_tuple_prior():
+    centre = af.TuplePrior()
+    centre.centre_0 = af.UniformPrior()
+    centre.centre_1 = af.UniformPrior()
+
+    model = af.Model(
+        af.Gaussian,
+        centre=centre
+    )
+    parameterization = model.parameterization
+    assert parameterization == (
+        'model                                                                                     Gaussian (N=4)'
     )
 
 
