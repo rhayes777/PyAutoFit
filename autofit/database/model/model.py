@@ -38,7 +38,7 @@ class Object(Base):
     )
 
     samples_for_id = Column(
-        Integer,
+        String,
         ForeignKey(
             "fit.id"
         )
