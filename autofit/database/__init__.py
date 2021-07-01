@@ -22,7 +22,10 @@ def open_database(
     database which is connected to.
 
     To connect to a postgres database one must be created.
+
     1) Install postgres https://www.postgresql.org/download/
+    2) Install the python postgres client
+        psycopg2==2.9.1
     2) Create a user
         createuser autofit
     3) Create a database
