@@ -7,7 +7,13 @@ from sqlalchemy import String, Column
 from sqlalchemy.exc import OperationalError
 
 import autofit as af
+from autoconf.conf import output_path_for_test
 from autofit.database import Fit
+
+directory = Path(
+    __file__
+).parent
+
 
 origin = Path(
     __file__
@@ -37,7 +43,7 @@ def _check_migration():
     try:
         print(
             af.Aggregator.from_database(
-                copy
+                "database_copy.sqlite"
             ).fits
         )
     except OperationalError as e:
@@ -46,6 +52,10 @@ def _check_migration():
         ) from e
 
 
+@output_path_for_test(
+    str(directory),
+    remove=False
+)
 def test():
     """
     Raises an exception if changes to autofit/database/migration/steps.py
@@ -54,6 +64,10 @@ def test():
     _check_migration()
 
 
+@output_path_for_test(
+    str(directory),
+    remove=False
+)
 def test_fail():
     Fit.random_column = Column(
         String

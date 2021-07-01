@@ -1,14 +1,11 @@
-import os
 import logging
 from typing import Optional, List, Union
 
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, Session
+from sqlalchemy.orm import Session
 
 from autofit.database import query as q
 from .scrape import scrape_directory
 from .. import model as m
-from ..migration.steps import migrator
 from ..query.query import AbstractQuery, Attribute
 
 logger = logging.getLogger(
@@ -397,22 +394,9 @@ class Aggregator:
         -------
         An aggregator connected to the database specified by the file.
         """
-        exists = os.path.exists(filename)
-
-        engine = create_engine(
-            f'sqlite:///{filename}'
-        )
-        session = sessionmaker(
-            bind=engine
-        )()
-
-        if exists:
-            migrator.migrate(
-                session
-            )
-
-        m.Base.metadata.create_all(
-            engine
+        from autofit.database import open_database
+        session = open_database(
+            str(filename)
         )
         aggregator = Aggregator(
             session,
