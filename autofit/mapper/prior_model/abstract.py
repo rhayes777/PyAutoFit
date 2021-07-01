@@ -940,6 +940,8 @@ class AbstractPriorModel(AbstractModel):
                 obj = self.object_for_path(
                     path
                 )
+                if isinstance(obj, TuplePrior):
+                    continue
                 if isinstance(obj, AbstractPriorModel):
                     n = obj.prior_count
                 else:
@@ -950,7 +952,7 @@ class AbstractPriorModel(AbstractModel):
                     name = type(obj).__name__
 
                 formatter.add(
-                    ("(root)",) + path, f"{name} (N={n})"
+                    ("model",) + path, f"{name} (N={n})"
                 )
 
         return formatter.text
