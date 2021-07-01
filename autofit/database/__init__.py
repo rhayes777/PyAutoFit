@@ -5,6 +5,7 @@ from sqlalchemy.orm import sessionmaker, Session
 
 from autoconf import conf
 from .aggregator import *
+from .migration.steps import migrator
 from .model import *
 
 
@@ -64,18 +65,30 @@ def open_database(
             output_path,
             exist_ok=True
         )
-        string = f'sqlite:///{output_path}/{filename}'
+
+        if not filename.startswith("/"):
+            filename = f"{output_path}/{filename}"
+
+        exists = os.path.exists(filename)
+
+        string = f'sqlite:///{filename}'
         kwargs = dict(
             connect_args={'timeout': 15}
         )
+
     else:
         string = filename
         kwargs = dict()
+        exists = True
 
     engine = create_engine(
         string,
         **kwargs
     )
     session = sessionmaker(bind=engine)()
+    if exists:
+        migrator.migrate(
+            session
+        )
     Base.metadata.create_all(engine)
     return session
