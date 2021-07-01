@@ -61,13 +61,13 @@ def open_database(
     ):
         output_path = conf.instance.output_path
 
-        os.makedirs(
-            output_path,
-            exist_ok=True
-        )
-
         if not filename.startswith("/"):
             filename = f"{output_path}/{filename}"
+
+        os.makedirs(
+            "/".join(filename.split("/")[:-1]),
+            exist_ok=True
+        )
 
         exists = os.path.exists(filename)
 
