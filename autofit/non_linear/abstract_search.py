@@ -339,6 +339,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         )
         search_instance = copy.copy(self)
         search_instance.paths = paths
+        search_instance._logger = None
 
         return search_instance
 
