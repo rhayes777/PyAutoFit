@@ -108,12 +108,33 @@ class EPMeanField(FactorGraph):
     from_kws = from_approx_dists
 
     def factor_approximation(self, factor: Factor) -> FactorApproximation:
+        """
+        Create an approximation for one factor.
+
+        This comprises:
+        - The factor
+        - The factor's variable distributions
+        - The cavity distribution, which is the product of the distributions
+        for each variable for all other factors
+        - The model distribution, which is the product of the distributions
+        for each variable for all factors
+
+        Parameters
+        ----------
+        factor
+            Some factor
+
+        Returns
+        -------
+        An object comprising distributions with a specific distribution excluding
+        that factor
+        """
         factor_mean_field = self._factor_mean_field.copy()
         factor_dist = factor_mean_field.pop(factor)
         cavity_dist = MeanField.prod(
             {v: 1. for v in factor_dist.all_variables},
             *(dist for fac, dist in factor_mean_field.items()))
-        # cavity_dist.log_norm = 0.
+        
         model_dist = factor_dist.prod(cavity_dist)
 
         return FactorApproximation(
