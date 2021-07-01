@@ -90,7 +90,7 @@ class MockSearch(NonLinearSearch):
                     raise e
                 index = (index + 1) % model.prior_count
         samples = MockSamples(
-            samples=samples_with_log_likelihood_list(self.sample_multiplier * fit),
+            sample_list=samples_with_log_likelihood_list(self.sample_multiplier * fit),
             model=model,
             gaussian_tuples=[
                 (prior.mean, prior.width if math.isfinite(prior.width) else 1.0)
@@ -111,7 +111,7 @@ class MockSearch(NonLinearSearch):
 
     def perform_update(self, model, analysis, during_analysis):
         return MockSamples(
-            samples=samples_with_log_likelihood_list([1.0, 2.0]),
+            sample_list=samples_with_log_likelihood_list([1.0, 2.0]),
             gaussian_tuples=[
                 (prior.mean, prior.width if math.isfinite(prior.width) else 1.0)
                 for prior in sorted(model.priors, key=lambda prior: prior.id)
@@ -155,29 +155,24 @@ class MockSamples(PDFSamples):
     def __init__(
             self,
             model=None,
-            samples=None,
+            sample_list=None,
             max_log_likelihood_instance=None,
             gaussian_tuples=None
     ):
 
-        self._samples = samples
+        if sample_list is None:
+
+            sample_list = samples_with_log_likelihood_list(
+                    [1.0, 2.0, 3.0]
+                )
 
         super().__init__(
             model=model,
+            sample_list=sample_list
         )
 
         self._max_log_likelihood_instance = max_log_likelihood_instance
         self.gaussian_tuples = gaussian_tuples
-
-    @property
-    def samples(self):
-
-        if self._samples is None:
-            return samples_with_log_likelihood_list(
-                [1.0, 2.0, 3.0]
-            )
-
-        return self._samples
 
     @property
     def max_log_likelihood_instance(self):

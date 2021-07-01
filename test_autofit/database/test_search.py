@@ -63,7 +63,7 @@ def test_save_all_samples(
         af.db.Fit
     ).one()
 
-    assert len(fit.samples.samples) == n_samples
+    assert len(fit.samples.sample_list) == n_samples
 
 
 def test_unique_tag(session):

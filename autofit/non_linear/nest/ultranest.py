@@ -310,52 +310,30 @@ class UltraNestSamples(NestSamples):
             The log of the Bayesian evidence estimated by the nested sampling algorithm.
         """
 
-        super().__init__(
-            model=model,
-            unconverged_sample_size=unconverged_sample_size,
-            time=time,
-        )
-
         self.results = results
-        self._samples = None
         self._number_live_points = number_live_points
-
-    @property
-    def samples(self):
-        """
-        Create a `Samples` object from this non-linear search's output files on the hard-disk and model.
-
-        For Emcee, all quantities are extracted via the hdf5 backend of results.
-
-        Parameters
-        ----------
-        model
-            The model which generates instances for different points in parameter space. This maps the points from unit
-            cube values to physical values via the priors.
-        paths : af.Paths
-            Manages all paths, e.g. where the search outputs are stored, the `NonLinearSearch` chains,
-            etc.
-        """
-
-        if self._samples is not None:
-            return self._samples
 
         parameters = self.results["weighted_samples"]["points"]
         log_likelihood_list = self.results["weighted_samples"]["logl"]
         log_prior_list = [
-            sum(self.model.log_prior_list_from_vector(vector=vector)) for vector in parameters
+            sum(model.log_prior_list_from_vector(vector=vector)) for vector in parameters
         ]
         weight_list = self.results["weighted_samples"]["weights"]
 
-        self._samples = Sample.from_lists(
-            model=self.model,
+        sample_list = Sample.from_lists(
+            model=model,
             parameter_lists=parameters,
             log_likelihood_list=log_likelihood_list,
             log_prior_list=log_prior_list,
             weight_list=weight_list
         )
 
-        return self._samples
+        super().__init__(
+            model=model,
+            sample_list=sample_list,
+            unconverged_sample_size=unconverged_sample_size,
+            time=time,
+        )
 
     @property
     def number_live_points(self):

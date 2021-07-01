@@ -598,8 +598,8 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         samples = self.samples_from(model=model)
 
-        self.paths.save_samples(
-            samples
+        self.paths.save_object(
+            "samples", samples
         )
 
         if not during_analysis:

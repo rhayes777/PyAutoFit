@@ -14,22 +14,16 @@ class MockSamples(af.PDFSamples):
     def __init__(
             self,
             model,
-            samples=None,
+            sample_list=None,
             unconverged_sample_size=10,
             **kwargs,
     ):
 
-        self.model = model
-        self._samples = samples
-
         super().__init__(
-            model=model, unconverged_sample_size=unconverged_sample_size,  **kwargs
+            model=model,
+            sample_list=sample_list,
+            unconverged_sample_size=unconverged_sample_size,  **kwargs
         )
-
-    @property
-    def samples(self):
-        return self._samples
-
 
 @pytest.fixture(name="samples")
 def make_samples():
@@ -45,7 +39,7 @@ def make_samples():
 
     return MockSamples(
         model=model,
-        samples=Sample.from_lists(
+        sample_list=Sample.from_lists(
             model=model,
             parameter_lists=parameters,
             log_likelihood_list=[1.0, 2.0, 3.0, 10.0, 5.0],
@@ -110,7 +104,7 @@ class TestOptimizerSamples:
 
         samples = MockSamples(
             model=model,
-            samples=Sample.from_lists(
+            sample_list=Sample.from_lists(
                 model=model,
                 parameter_lists=parameters,
                 log_likelihood_list=[1.0, 2.0, 3.0, 0.0, 5.0],
@@ -142,7 +136,7 @@ class TestOptimizerSamples:
         model = af.ModelMapper(mock_class=MockClassx4)
         samples = MockSamples(
             model=model,
-            samples=Sample.from_lists(
+            sample_list=Sample.from_lists(
                 model=model,
                 parameter_lists=parameters,
                 log_likelihood_list=[10.0, 0.0, 0.0, 0.0, 0.0],
@@ -176,7 +170,7 @@ class TestOptimizerSamples:
 
         samples = MockSamples(
             model=model,
-            samples=Sample.from_lists(
+            sample_list=Sample.from_lists(
                 model=model,
                 parameter_lists=parameters,
                 log_likelihood_list=[0.0, 0.0, 0.0, 0.0, 0.0],
@@ -239,7 +233,7 @@ class TestPDFSamples:
         model = af.ModelMapper(mock_class=MockClassx2)
         samples = MockSamples(
             model=model,
-            samples=Sample.from_lists(
+            sample_list=Sample.from_lists(
                 model=model,
                 parameter_lists=parameters,
                 log_likelihood_list=log_likelihood_list,
@@ -280,7 +274,7 @@ class TestPDFSamples:
         model = af.ModelMapper(mock_class=MockClassx2)
         samples = MockSamples(
             model=model,
-            samples=Sample.from_lists(
+            sample_list=Sample.from_lists(
                 model=model,
                 parameter_lists=parameters,
                 log_likelihood_list=log_likelihood_list,
@@ -316,7 +310,7 @@ class TestPDFSamples:
         model = af.ModelMapper(mock_class=MockClassx2)
         samples = MockSamples(
             model=model,
-            samples=Sample.from_lists(
+            sample_list=Sample.from_lists(
                 model=model,
                 parameter_lists=parameters,
                 log_likelihood_list=log_likelihood_list,
@@ -381,7 +375,7 @@ class TestPDFSamples:
         model = af.ModelMapper(mock_class=MockClassx2)
         samples = MockSamples(
             model=model,
-            samples=Sample.from_lists(
+            sample_list=Sample.from_lists(
                 model=model,
                 parameter_lists=parameters,
                 log_likelihood_list=log_likelihood_list,
@@ -422,7 +416,7 @@ class TestPDFSamples:
         model = af.ModelMapper(mock_class=MockClassx2)
         samples = MockSamples(
             model=model,
-            samples=Sample.from_lists(
+            sample_list=Sample.from_lists(
                 model=model,
                 parameter_lists=parameters,
                 log_likelihood_list=log_likelihood_list,
@@ -475,7 +469,7 @@ class TestPDFSamples:
 
         samples = MockSamples(
             model=model,
-            samples=Sample.from_lists(
+            sample_list=Sample.from_lists(
                 model=model,
                 parameter_lists=5 * [[]],
                 log_likelihood_list=log_likelihood_list,
@@ -491,7 +485,7 @@ class TestPDFSamples:
 
         samples = MockSamples(
             model=model,
-            samples=Sample.from_lists(
+            sample_list=Sample.from_lists(
                 model=model,
                 parameter_lists=5 * [[]],
                 log_likelihood_list=log_likelihood_list,
@@ -521,7 +515,7 @@ class TestPDFSamples:
 
         samples = MockSamples(
             model=model,
-            samples=Sample.from_lists(
+            sample_list=Sample.from_lists(
 
                 model=model,
                 parameter_lists=parameters,
@@ -541,37 +535,35 @@ class MockNestSamples(af.NestSamples):
     def __init__(
             self,
             model,
-            samples=None,
+            sample_list=None,
             total_samples=10,
             log_evidence=0.0,
             number_live_points=5,
     ):
 
         self.model = model
-        self._samples = samples
+
+        if sample_list is None:
+
+            sample_list = [
+                Sample(
+                    log_likelihood=log_likelihood,
+                    log_prior=0.0,
+                    weight=0.0
+                )
+                for log_likelihood
+                in self.log_likelihood_list
+            ]
 
         super().__init__(
             model=model,
+            sample_list=sample_list
         )
 
         self._total_samples = total_samples
         self._log_evidence = log_evidence
         self._number_live_points = number_live_points
 
-    @property
-    def samples(self):
-        if self._samples is not None:
-            return self._samples
-
-        return [
-            Sample(
-                log_likelihood=log_likelihood,
-                log_prior=0.0,
-                weight=0.0
-            )
-            for log_likelihood
-            in self.log_likelihood_list
-        ]
 
     @property
     def total_samples(self):
@@ -592,7 +584,7 @@ class TestNestSamples:
 
         samples = MockNestSamples(
             model=model,
-            samples=Sample.from_lists(
+            sample_list=Sample.from_lists(
                 model=model,
                 parameter_lists=5 * [[]],
                 log_likelihood_list=[1.0, 2.0, 3.0, 4.0, 5.0],
@@ -619,7 +611,7 @@ class TestNestSamples:
 
         samples = MockNestSamples(
             model=model,
-            samples=Sample.from_lists(
+            sample_list=Sample.from_lists(
                 model=model,
                 parameter_lists=parameters,
                 log_likelihood_list=[1.0, 2.0, 3.0, 10.0, 5.0],

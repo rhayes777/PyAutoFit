@@ -23,7 +23,7 @@ def make_samples(model):
 
     return StoredSamples(
         model=model,
-        samples=Sample.from_lists(
+        sample_list=Sample.from_lists(
             parameter_lists=parameters,
             log_likelihood_list=log_likelihood_list,
             log_prior_list=[0.0, 0.0],

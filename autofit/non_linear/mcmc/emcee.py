@@ -291,40 +291,12 @@ class EmceeSamples(MCMCSamples):
             to the total steps * total walkers).
         """
 
-        super().__init__(
-            model=model,
-            auto_correlation_settings=auto_correlation_settings,
-            unconverged_sample_size=unconverged_sample_size,
-            time=time,
-        )
-
         self.backend = backend
-        self._samples = None
-
-    @property
-    def samples(self):
-        """
-        Create a `Samples` object from this non-linear search's output files on the hard-disk and model.
-
-        For Emcee, all quantities are extracted via the hdf5 backend of results.
-
-        Parameters
-        ----------
-        model
-            The model which generates instances for different points in parameter space. This maps the points from unit
-            cube values to physical values via the priors.
-        paths : af.Paths
-            Manages all paths, e.g. where the search outputs are stored, the `NonLinearSearch` chains,
-            etc.
-        """
-
-        if self._samples is not None:
-            return self._samples
 
         parameter_lists = self.backend.get_chain(flat=True).tolist()
 
         log_prior_list = [
-            sum(self.model.log_prior_list_from_vector(vector=vector)) for vector in parameter_lists
+            sum(model.log_prior_list_from_vector(vector=vector)) for vector in parameter_lists
         ]
 
         log_posterior_list = self.backend.get_log_prob(flat=True).tolist()
@@ -337,15 +309,21 @@ class EmceeSamples(MCMCSamples):
 
         weight_list = len(log_likelihood_list) * [1.0]
 
-        self._samples = Sample.from_lists(
-            model=self.model,
+        sample_list = Sample.from_lists(
+            model=model,
             parameter_lists=parameter_lists,
             log_likelihood_list=log_likelihood_list,
             log_prior_list=log_prior_list,
             weight_list=weight_list
         )
 
-        return self._samples
+        super().__init__(
+            model=model,
+            sample_list=sample_list,
+            auto_correlation_settings=auto_correlation_settings,
+            unconverged_sample_size=unconverged_sample_size,
+            time=time,
+        )
 
     @property
     def samples_after_burn_in(self) -> [list]:
