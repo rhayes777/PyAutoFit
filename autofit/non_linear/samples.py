@@ -297,10 +297,7 @@ class OptimizerSamples:
 
     @property
     def parameters_extract(self):
-        return [
-            [params[i] for params in self.parameter_lists]
-            for i in range(self.model.prior_count)
-        ]
+        return np.asarray(self.parameter_lists).T
 
     @property
     def _headers(self) -> List[str]:
@@ -924,11 +921,11 @@ class MCMCSamples(PDFSamples):
             Where the table is to be written
         """
 
-        samples = load_from_table(filename=filename)
+        sample_list = load_from_table(filename=filename)
 
         return OptimizerSamples(
             model=model,
-            samples=samples
+            sample_list=sample_list
         )
 
     @property
@@ -991,7 +988,7 @@ class MCMCSamples(PDFSamples):
 
         if self.pdf_converged:
             return [
-                float(np.percentile(self.sample_after_burn_in[:, i], [50]))
+                float(np.percentile(self.samples_after_burn_in[:, i], [50]))
                 for i in range(self.model.prior_count)
             ]
 
