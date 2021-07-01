@@ -131,14 +131,22 @@ class EPMeanField(FactorGraph):
         """
         factor_mean_field = self._factor_mean_field.copy()
         factor_dist = factor_mean_field.pop(factor)
-        cavity_dist = MeanField.prod(
-            {v: 1. for v in factor_dist.all_variables},
-            *(dist for fac, dist in factor_mean_field.items()))
+        cavity_dist = MeanField({
+            v: 1. for v
+            in factor_dist.all_variables
+        }).prod(*(
+            dist for fac, dist
+            in factor_mean_field.items()
+        ))
 
         model_dist = factor_dist.prod(cavity_dist)
 
         return FactorApproximation(
-            factor, cavity_dist, factor_dist, model_dist)
+            factor,
+            cavity_dist,
+            factor_dist,
+            model_dist
+        )
 
     def project_factor_approx(
             self, projection: FactorApproximation, status: Optional[Status] = None,
