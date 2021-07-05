@@ -298,6 +298,8 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
     @property
     def logger(self):
+        if not hasattr(self, "_logger"):
+            self._logger = None
         if self._logger is None:
             logger_ = logging.getLogger(
                 self.name
