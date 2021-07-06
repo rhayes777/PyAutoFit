@@ -2,10 +2,12 @@ import logging
 import multiprocessing as mp
 from typing import Iterable
 
+from autoconf import conf
 from dynesty.dynesty import _function_wrapper
 from emcee.ensemble import _FunctionWrapper
 
 from .process import AbstractJob, Process, StopCommand
+import cProfile
 
 logger = logging.getLogger(
     __name__
@@ -162,6 +164,10 @@ class SneakyProcess(Process):
         This occurs when the SneakyMap goes out of scope.
         """
 
+        if conf.instance["general"]["test"]["parallel_profile"]:
+            pr = cProfile.Profile()
+            pr.enable()
+
         self._init()
         self.logger.debug("starting")
         while True:
@@ -182,6 +188,10 @@ class SneakyProcess(Process):
                 self.queue.put(e)
         self.logger.debug("terminating process {}".format(self.name))
         self.job_queue.close()
+
+        if conf.instance["general"]["test"]["parallel_profile"]:
+            pr.dump_stats(f"sneaky_{self.pid}.prof")
+            pr.disable()
 
 
 class SneakyPool:
