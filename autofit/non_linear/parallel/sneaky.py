@@ -190,6 +190,10 @@ class SneakyProcess(Process):
         self.job_queue.close()
 
         if conf.instance["general"]["test"]["parallel_profile"]:
+
+            # TODO: RICH, is there a way for me to access the path of the search here?
+            # TODO: This is so I can put the sneaky_1234.prof files in a folder in the search path.
+
             pr.dump_stats(f"sneaky_{self.pid}.prof")
             pr.disable()
 
