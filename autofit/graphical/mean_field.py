@@ -1,6 +1,6 @@
 from functools import reduce
 from typing import (
-    Dict, Tuple, Optional, List, Union
+    Dict, Tuple, Optional, List, Union, Iterable
 )
 
 import numpy as np
@@ -11,10 +11,10 @@ from autofit.graphical.factor_graphs import (
 from autofit.graphical.messages import (
     AbstractMessage, FixedMessage
 )
-from autofit.graphical.messages.normal import NormalMessage
 from autofit.graphical.utils import (
     prod, add_arrays, OptResult, Status, aggregate, Axis
 )
+from autofit.mapper.prior.prior import Prior
 from autofit.mapper.prior_model.collection import CollectionPriorModel
 from autofit.mapper.variable import Variable
 
@@ -68,9 +68,27 @@ class MeanField(
             self.log_norm = log_norm
 
     @classmethod
-    def from_priors(cls, priors):
+    def from_priors(
+            cls,
+            priors: Iterable[Prior]
+    ) -> "MeanField":
+        """
+        Create a MeanField from a list of priors.
+
+        This works because priors are a kind of variable and
+        messages can be derived from priors.
+
+        Parameters
+        ----------
+        priors
+            A list of priors
+
+        Returns
+        -------
+        A mean field
+        """
         return MeanField({
-            prior: NormalMessage.from_prior(
+            prior: AbstractMessage.from_prior(
                 prior
             )
             for prior in priors
@@ -99,7 +117,10 @@ class MeanField(
         return {v: dist.scale for v, dist in self.items()}
 
     @property
-    def arguments(self):
+    def arguments(self) -> Dict[Variable, Prior]:
+        """
+        Arguments that can be used to update a PriorModel
+        """
         return {v: dist.as_prior() for v, dist in self.items()}
 
     def logpdf(
