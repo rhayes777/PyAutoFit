@@ -25,6 +25,13 @@ def _make_comparison(
     -------
     A condition
     """
+    if other is None:
+        if symbol != "=":
+            raise AssertionError(
+                "Inequalities to None do not make sense"
+            )
+        return c.NoneCondition()
+
     if isinstance(other, str):
         return c.StringValueCondition(
             symbol, other

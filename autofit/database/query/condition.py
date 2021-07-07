@@ -58,6 +58,7 @@ value_table = Table("value")
 string_value_table = Table("string_value")
 fit_table = Table("fit")
 info_table = Table("info", "info")
+none_table = Table("none")
 
 
 class AbstractCondition(ABC):
@@ -119,6 +120,16 @@ class AbstractCondition(ABC):
 
     def __repr__(self):
         return f"<{self.__class__.__name__} {str(self)}>"
+
+
+class NoneCondition(AbstractCondition):
+
+    @property
+    def tables(self) -> Set[Table]:
+        return {none_table}
+
+    def __str__(self):
+        return "1 = 1"
 
 
 class AbstractValueCondition(AbstractCondition, ABC):
