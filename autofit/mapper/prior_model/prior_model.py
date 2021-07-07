@@ -6,7 +6,8 @@ from autoconf.exc import ConfigException
 from autofit.mapper.model import assert_not_frozen
 from autofit.mapper.model_object import ModelObject
 from autofit.mapper.prior.deferred import DeferredInstance
-from autofit.mapper.prior.prior import TuplePrior, Prior
+from autofit.mapper.prior.prior import Prior
+from autofit.mapper.prior.tuple_prior import TuplePrior
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.mapper.prior_model.abstract import check_assertions
 from autofit.tools.util import get_class_path
@@ -356,4 +357,3 @@ class PriorModel(AbstractPriorModel):
             )
 
         return new_model
-

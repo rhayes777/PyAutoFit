@@ -291,7 +291,7 @@ class ModelObject:
         from autofit.mapper.prior_model.collection import CollectionPriorModel
         from autofit.mapper.prior_model.prior_model import PriorModel
         from autofit.mapper.prior.prior import Prior
-        from autofit.mapper.prior.prior import TuplePrior
+        from autofit.mapper.prior.tuple_prior import TuplePrior
 
         if not isinstance(
                 d, dict
@@ -336,7 +336,7 @@ class ModelObject:
         from autofit.mapper.prior_model.abstract import AbstractPriorModel
         from autofit.mapper.prior_model.collection import CollectionPriorModel
         from autofit.mapper.prior_model.prior_model import PriorModel
-        from autofit.mapper.prior.prior import TuplePrior
+        from autofit.mapper.prior.tuple_prior import TuplePrior
 
         if isinstance(
                 self,
