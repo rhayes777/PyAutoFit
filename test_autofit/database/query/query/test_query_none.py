@@ -36,7 +36,7 @@ def test_not(
         aggregator
 ):
     assert aggregator.query(
-        ~(aggregator.centre == None)
+        aggregator.centre != None
     ) == [gaussian_1, gaussian_2]
 
 

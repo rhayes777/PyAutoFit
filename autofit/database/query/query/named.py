@@ -224,6 +224,9 @@ class NamedQuery(AbstractQuery):
             "Can only extend a simple path query"
         )
 
+    def __ne__(self, other):
+        return ~(self == other)
+
     def __eq__(self, other):
         if isinstance(other, NamedQuery):
             return other.query == self.query
