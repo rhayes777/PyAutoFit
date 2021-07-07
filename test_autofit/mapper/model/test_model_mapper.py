@@ -526,6 +526,11 @@ class TestPriorReplacement:
         result = mapper.mapper_from_gaussian_tuples([(10, 3), (5, 3)])
 
         assert isinstance(result.mock_class.one, af.GaussianPrior)
+        assert {
+            prior.id for prior in mapper.priors
+        } == {
+            prior.id for prior in result.priors
+        }
 
     def test_replace_priors_with_gaussians_from_tuples(self):
         mapper = af.ModelMapper(mock_class=mock.MockClassx2)
