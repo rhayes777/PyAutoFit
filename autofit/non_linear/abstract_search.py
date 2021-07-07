@@ -703,6 +703,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         )
         return SneakyPool(
             processes=self.number_of_cores,
+            paths=self.paths,
             fitness=fitness_function
         )
 

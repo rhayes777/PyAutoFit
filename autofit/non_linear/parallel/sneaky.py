@@ -3,6 +3,7 @@ import multiprocessing as mp
 from typing import Iterable
 
 from autoconf import conf
+from autofit.non_linear.paths.abstract import AbstractPaths
 from dynesty.dynesty import _function_wrapper
 from emcee.ensemble import _FunctionWrapper
 
@@ -139,6 +140,7 @@ class SneakyProcess(Process):
     def __init__(
             self,
             name: str,
+            paths: AbstractPaths,
             initializer=None,
             initargs=None,
             job_args=tuple()
@@ -147,6 +149,7 @@ class SneakyProcess(Process):
         Each SneakyProcess creates its own queue to avoid locking during
         highly parallel optimisations.
         """
+
         super().__init__(
             name,
             job_queue=mp.Queue(),
@@ -154,6 +157,7 @@ class SneakyProcess(Process):
             initargs=initargs,
             job_args=job_args,
         )
+        self.paths = paths
 
     def run(self):
         """
@@ -191,10 +195,7 @@ class SneakyProcess(Process):
 
         if conf.instance["general"]["test"]["parallel_profile"]:
 
-            # TODO: RICH, is there a way for me to access the path of the search here?
-            # TODO: This is so I can put the sneaky_1234.prof files in a folder in the search path.
-
-            pr.dump_stats(f"sneaky_{self.pid}.prof")
+            pr.dump_stats(f"{self.paths.profile_path}sneaky_{self.pid}.prof")
             pr.disable()
 
 
@@ -203,6 +204,7 @@ class SneakyPool:
             self,
             processes: int,
             fitness,
+            paths: AbstractPaths,
             initializer=None,
             initargs=None
     ):
@@ -228,6 +230,7 @@ class SneakyPool:
         self._processes = [
             SneakyProcess(
                 str(number),
+                paths=paths,
                 initializer=initializer,
                 initargs=initargs,
                 job_args=(fitness,)

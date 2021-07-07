@@ -191,6 +191,13 @@ class AbstractPaths(ABC):
         return path.join(self.output_path, "image")
 
     @property
+    def profile_path(self) -> str:
+        """
+        The path to the profile folder.
+        """
+        return path.join(self.output_path, "profile")
+
+    @property
     @make_path
     def output_path(self) -> str:
         """
