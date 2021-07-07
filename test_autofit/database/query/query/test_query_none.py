@@ -28,3 +28,13 @@ def test_query_none(
     assert aggregator.query(
         aggregator.centre == None
     ) == [gaussian_none]
+
+
+def test_combined(
+        gaussian_none,
+        gaussian_1,
+        aggregator
+):
+    assert aggregator.query(
+        (aggregator.centre == None) | (aggregator.centre == 1.0)
+    ) == [gaussian_1, gaussian_none]
