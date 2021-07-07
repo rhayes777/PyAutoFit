@@ -7,6 +7,8 @@ from autofit.non_linear.paths.abstract import AbstractPaths
 from dynesty.dynesty import _function_wrapper
 from emcee.ensemble import _FunctionWrapper
 
+import os
+from os import path
 from .process import AbstractJob, Process, StopCommand
 import cProfile
 
@@ -195,8 +197,22 @@ class SneakyProcess(Process):
 
         if conf.instance["general"]["test"]["parallel_profile"]:
 
-            pr.dump_stats(f"{self.paths.profile_path}sneaky_{self.pid}.prof")
+            try:
+                os.makedirs(self.paths.profile_path)
+            except FileExistsError:
+                pass
+
+            sneaky_path = path.join(self.paths.profile_path, f"sneaky_{self.pid}.prof")
+
+            pr.dump_stats(sneaky_path)
             pr.disable()
+
+
+    def open_profiler(self):
+
+        if conf.instance["general"]["test"]["parallel_profile"]:
+            pr = cProfile.Profile()
+            pr.enable()
 
 
 class SneakyPool:
