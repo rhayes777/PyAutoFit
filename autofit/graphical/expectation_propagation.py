@@ -165,9 +165,11 @@ class EPMeanField(FactorGraph):
 
     @property
     def mean_field(self) -> MeanField:
-        return MeanField.prod(
-            {v: 1. for v in self.all_variables},
-            *self._factor_mean_field.values())
+        return MeanField({
+            v: 1. for v in self.all_variables
+        }).prod(
+            *self._factor_mean_field.values()
+        )
 
     model_dist = mean_field
 
@@ -365,7 +367,8 @@ class EPOptimiser:
                 except (ValueError, ArithmeticError, RuntimeError) as e:
                     status = Status(
                         False,
-                        f"Factor: {factor} experienced error {e}")
+                        (f"Factor: {factor} experienced error {e}",)
+                    )
 
                 if self.callback(factor, model_approx, status):
                     break  # callback controls convergence

@@ -5,13 +5,13 @@ from typing import (
 
 import numpy as np
 
-from autofit.graphical.messages.normal import NormalMessage
 from autofit.graphical.factor_graphs import (
     Factor, AbstractNode, FactorValue, JacobianValue
 )
 from autofit.graphical.messages import (
     AbstractMessage, FixedMessage
 )
+from autofit.graphical.messages.normal import NormalMessage
 from autofit.graphical.utils import (
     prod, add_arrays, OptResult, Status, aggregate, Axis
 )
@@ -228,7 +228,11 @@ class MeanField(
         Projects the mode and covariance 
         """
         projection = MeanField({
-            v: dist.from_mode(mode[v], covar.get(v))
+            v: dist.from_mode(
+                mode[v],
+                covar.get(v),
+                id_=dist.id_
+            )
             for v, dist in self.items()})
         if fun is not None:
             projection.log_norm = fun - projection(mode).log_value
