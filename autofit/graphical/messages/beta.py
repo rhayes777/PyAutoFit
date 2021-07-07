@@ -70,11 +70,11 @@ class BetaMessage(AbstractMessage):
         return np.array([np.log(x), np.log1p(-x)])
 
     @cached_property
-    def mean(self) -> np.ndarray:
+    def mean(self) -> Union[np.ndarray, float]:
         return self.alpha / (self.alpha + self.beta)
 
     @cached_property
-    def variance(self) -> np.ndarray:
+    def variance(self) -> Union[np.ndarray, float]:
         return (
                 self.alpha * self.beta
                 / (self.alpha + self.beta) ** 2
