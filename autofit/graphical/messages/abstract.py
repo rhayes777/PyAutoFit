@@ -59,14 +59,23 @@ class AbstractMessage(ABC):
     def scale(self) -> np.ndarray:
         return self.variance ** 0.5
 
-    def __init__(self, *parameters: np.ndarray, log_norm=0.):
+    def __init__(
+            self,
+            *parameters: np.ndarray,
+            log_norm=0.,
+            id_=None
+    ):
         self.log_norm = log_norm
         self._broadcast = np.broadcast(*parameters)
+        self.id = id_
         if self.shape:
             self.parameters = tuple(
                 np.asanyarray(p) for p in parameters)
         else:
             self.parameters = tuple(parameters)
+
+    def __hash__(self):
+        return self.id or super().__hash__()
 
     @classmethod
     def calc_log_base_measure(cls, x):

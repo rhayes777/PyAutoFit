@@ -1,11 +1,10 @@
-import numpy as np
-
 from typing import Tuple
 
-from autofit.graphical.messages.abstract import AbstractMessage
-from autofit.mapper.prior.prior import GaussianPrior
-from autofit.graphical.utils import cached_property
+import numpy as np
 
+from autofit.graphical.messages.abstract import AbstractMessage
+from autofit.graphical.utils import cached_property
+from autofit.mapper.prior.prior import GaussianPrior
 from .transform import phi_transform, log_transform, multinomial_logit_transform
 
 
@@ -24,11 +23,13 @@ class NormalMessage(AbstractMessage):
             mu=0.,
             sigma=1.,
             log_norm=0.,
+            id_=None,
             **kwargs
     ):
         super().__init__(
             mu, sigma,
-            log_norm=log_norm
+            log_norm=log_norm,
+            id_=id_
         )
         self.mu, self.sigma = self.parameters
 
@@ -39,7 +40,8 @@ class NormalMessage(AbstractMessage):
     ):
         return NormalMessage(
             mu=prior.mean,
-            sigma=prior.sigma
+            sigma=prior.sigma,
+            id_=prior.id
         )
 
     def as_prior(self):
@@ -98,9 +100,9 @@ class NormalMessage(AbstractMessage):
 
     def kl(self, dist):
         return (
-            np.log(dist.sigma/self.sigma)
-            + (self.sigma**2 + (self.mu - dist.mu)**2) / 2 / dist.sigma**2
-            - 1/2
+                np.log(dist.sigma / self.sigma)
+                + (self.sigma ** 2 + (self.mu - dist.mu) ** 2) / 2 / dist.sigma ** 2
+                - 1 / 2
         )
 
     @classmethod
@@ -115,7 +117,7 @@ class NormalMessage(AbstractMessage):
         if shape:
             x = np.asanyarray(x)
             deltax = x - self.mu
-            hess_logl = - self.sigma**-2
+            hess_logl = - self.sigma ** -2
             grad_logl = deltax * hess_logl
             eta_t = 0.5 * grad_logl * deltax
             logl = self.log_base_measure + eta_t - np.log(self.sigma)
@@ -127,7 +129,7 @@ class NormalMessage(AbstractMessage):
 
         else:
             deltax = x - self.mu
-            hess_logl = - self.sigma**-2
+            hess_logl = - self.sigma ** -2
             grad_logl = deltax * hess_logl
             eta_t = 0.5 * grad_logl * deltax
             logl = self.log_base_measure + eta_t - np.log(self.sigma)
