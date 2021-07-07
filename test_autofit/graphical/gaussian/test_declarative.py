@@ -146,7 +146,7 @@ def test_factor_model_attributes(
     assert len(factor_model.graph.factors) == 7
 
 
-def test_optimise_factor_model(
+def _test_optimise_factor_model(
         factor_model
 ):
     """

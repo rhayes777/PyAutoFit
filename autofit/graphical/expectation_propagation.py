@@ -67,11 +67,6 @@ class EPMeanField(FactorGraph):
     ):
         self._factor_graph = factor_graph
         self._factor_mean_field = factor_mean_field
-        variable_factor = {}
-        for factor, vs in factor_graph.factor_all_variables.items():
-            for v in vs:
-                variable_factor.setdefault(v, set()).add(factor)
-        self._variable_factor = variable_factor
 
         super().__init__(self.factor_graph.factors)
 
@@ -86,10 +81,6 @@ class EPMeanField(FactorGraph):
     @property
     def deterministic_variables(self):
         return self.factor_graph.deterministic_variables
-
-    # @property
-    # def variable_names(self) -> Dict[str, Variable]: 
-    #     return self.factor_graph.variable_names
 
     @property
     def factor_mean_field(self) -> Dict[Factor, MeanField]:
@@ -117,16 +108,45 @@ class EPMeanField(FactorGraph):
     from_kws = from_approx_dists
 
     def factor_approximation(self, factor: Factor) -> FactorApproximation:
+        """
+        Create an approximation for one factor.
+
+        This comprises:
+        - The factor
+        - The factor's variable distributions
+        - The cavity distribution, which is the product of the distributions
+        for each variable for all other factors
+        - The model distribution, which is the product of the distributions
+        for each variable for all factors
+
+        Parameters
+        ----------
+        factor
+            Some factor
+
+        Returns
+        -------
+        An object comprising distributions with a specific distribution excluding
+        that factor
+        """
         factor_mean_field = self._factor_mean_field.copy()
         factor_dist = factor_mean_field.pop(factor)
-        cavity_dist = MeanField.prod(
-            {v: 1. for v in factor_dist.all_variables},
-            *(dist for fac, dist in factor_mean_field.items()))
-        # cavity_dist.log_norm = 0.
+        cavity_dist = MeanField({
+            v: 1. for v
+            in factor_dist.all_variables
+        }).prod(*(
+            dist for fac, dist
+            in factor_mean_field.items()
+        ))
+
         model_dist = factor_dist.prod(cavity_dist)
 
         return FactorApproximation(
-            factor, cavity_dist, factor_dist, model_dist)
+            factor,
+            cavity_dist,
+            factor_dist,
+            model_dist
+        )
 
     def project_factor_approx(
             self, projection: FactorApproximation, status: Optional[Status] = None,
@@ -150,17 +170,6 @@ class EPMeanField(FactorGraph):
             *self._factor_mean_field.values())
 
     model_dist = mean_field
-
-    @property
-    def variable_factor_message(self
-                                ) -> Dict[Variable, Dict[Factor, AbstractMessage]]:
-        variable_factor_message = {
-            v: {} for v in self.all_variables}
-        for factor, meanfield in self.factor_mean_field.items():
-            for v, message in meanfield.items():
-                variable_factor_message[v][factor] = message
-
-        return variable_factor_message
 
     @property
     def variable_messages(self) -> Dict[Variable, List[AbstractMessage]]:
@@ -219,11 +228,6 @@ class EPMeanField(FactorGraph):
         return (
             f"{clsname}({self.factor_graph}, "
             f"log_evidence={self.log_evidence})")
-
-    @property
-    def is_valid(self) -> bool:
-        return all(mean_field.is_valid
-                   for mean_field in self.factor_mean_field.values())
 
 
 class AbstractFactorOptimiser(ABC):
