@@ -10,6 +10,7 @@ import numpy as np
 from .transform import AbstractDensityTransform, LinearShiftTransform
 from ..factor_graphs.jacobians import FactorJacobian
 from ..utils import cached_property
+from autofit.mapper.prior.prior import Prior, GaussianPrior
 from ...mapper.variable import Variable
 
 
@@ -19,6 +20,21 @@ class AbstractMessage(ABC):
     _multivariate: bool = False
     _parameter_support: Optional[Tuple[Tuple[float, float], ...]] = None
     _support: Optional[Tuple[Tuple[float, float], ...]] = None
+
+    @classmethod
+    def from_prior(cls, prior: Prior) -> "AbstractMessage":
+        from autofit.graphical import NormalMessage
+        if isinstance(
+                prior, GaussianPrior
+        ):
+            return NormalMessage(
+                mu=prior.mean,
+                sigma=prior.sigma,
+                id_=prior.id
+            )
+        raise TypeError(
+            f"No message exists for prior of type {type(prior)}"
+        )
 
     @cached_property
     @abstractmethod

@@ -4,7 +4,7 @@ import numpy as np
 
 from autofit.graphical.messages.abstract import AbstractMessage
 from autofit.graphical.utils import cached_property
-from autofit.mapper.prior.prior import GaussianPrior
+from autofit.mapper.prior.prior import GaussianPrior, Prior
 from .transform import phi_transform, log_transform, multinomial_logit_transform
 
 
@@ -34,9 +34,9 @@ class NormalMessage(AbstractMessage):
         self.mu, self.sigma = self.parameters
 
     @classmethod
-    def from_prior(
+    def _from_prior(
             cls,
-            prior
+            prior: GaussianPrior
     ):
         return NormalMessage(
             mu=prior.mean,

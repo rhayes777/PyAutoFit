@@ -16,7 +16,7 @@ def test_from_prior():
         mean=1,
         sigma=2
     )
-    message = g.NormalMessage.from_prior(
+    message = g.AbstractMessage.from_prior(
         prior
     )
 
