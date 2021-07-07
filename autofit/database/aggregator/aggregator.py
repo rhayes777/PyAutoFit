@@ -135,7 +135,32 @@ class Aggregator:
             self.fits
         )
 
-    def order_by(self, item, reverse=False):
+    def order_by(
+            self,
+            item: Attribute,
+            reverse=False
+    ) -> "Aggregator":
+        """
+        Order the results by a given attribute of the search. Can be applied
+        multiple times with the first application taking precedence.
+
+        Parameters
+        ----------
+        item
+            An attribute of the search
+        reverse
+            If True reverse the results
+
+        Returns
+        -------
+        An aggregator with ordering applied
+
+        Examples
+        --------
+        aggregator = aggregator.order_by(
+            aggregator.search.unique_tag
+        )
+        """
         if reverse:
             item = Reverse(item)
         return self._new_with(
