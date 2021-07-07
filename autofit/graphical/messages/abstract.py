@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from functools import reduce, wraps
 from inspect import getfullargspec
+from itertools import count
 from numbers import Real
 from operator import and_
 from typing import Optional, Tuple, Union, Iterator, Type, List
@@ -38,13 +39,15 @@ class AbstractMessage(ABC):
     _parameter_support: Optional[Tuple[Tuple[float, float], ...]] = None
     _support: Optional[Tuple[Tuple[float, float], ...]] = None
 
+    _ids = count()
+
     def __init__(
             self,
             *parameters: Union[np.ndarray, float],
             log_norm=0.,
             id_=None
     ):
-        # assert id_ is not None
+        self.id_ = id_ or next(self._ids)
         self.log_norm = log_norm
         self._broadcast = np.broadcast(*parameters)
         self.id = id_
