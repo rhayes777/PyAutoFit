@@ -156,7 +156,7 @@ class DatabasePaths(AbstractPaths):
         return samples
 
     def load_samples(self):
-        return self._load_samples().samples
+        return self._load_samples().sample_list
 
     def load_samples_info(self):
         return self._load_samples().info_json

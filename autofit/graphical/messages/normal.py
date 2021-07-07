@@ -4,7 +4,7 @@ import numpy as np
 
 from autofit.graphical.messages.abstract import AbstractMessage
 from autofit.graphical.utils import cached_property
-from autofit.mapper.prior.prior import GaussianPrior, Prior
+from autofit.mapper.prior.prior import GaussianPrior
 from .transform import phi_transform, log_transform, multinomial_logit_transform
 
 
@@ -106,9 +106,9 @@ class NormalMessage(AbstractMessage):
         )
 
     @classmethod
-    def from_mode(cls, mode: np.ndarray, covariance: float = 1.):
+    def from_mode(cls, mode: np.ndarray, covariance: float = 1., id_=None):
         mode, variance = cls._get_mean_variance(mode, covariance)
-        return cls(mode, variance ** 0.5)
+        return cls(mode, variance ** 0.5, id_=id_)
 
     def _logpdf_gradient_hessian(self, x: np.ndarray
                                  ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:

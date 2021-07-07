@@ -22,11 +22,17 @@ class GammaMessage(AbstractMessage):
             self,
             alpha=1.,
             beta=1.,
-            log_norm=0.
+            log_norm=0.,
+            id_=None
     ):
         self.alpha = alpha
         self.beta = beta
-        super().__init__(alpha, beta, log_norm=log_norm)
+        super().__init__(
+            alpha,
+            beta,
+            log_norm=log_norm,
+            id_=id_
+        )
 
     @cached_property
     def natural_parameters(self):
@@ -69,12 +75,17 @@ class GammaMessage(AbstractMessage):
         return np.random.gamma(a1, scale=1 / b1, size=shape)
 
     @classmethod
-    def from_mode(cls, mode, covariance):
+    def from_mode(
+            cls,
+            mode,
+            covariance,
+            id_
+    ):
         m, V = cls._get_mean_variance(mode, covariance)
 
         alpha = 1 + m ** 2 * V  # match variance
         beta = alpha / m  # match mean
-        return cls(alpha, beta)
+        return cls(alpha, beta, id_=id_)
 
     def kl(self, dist):
         P, Q = dist, self

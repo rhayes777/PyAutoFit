@@ -546,11 +546,13 @@ class AbstractPriorModel(AbstractModel):
                 raise exc.PriorException("use_passed_errors and use_widths are both False, meaning there is no "
                                          "way to pass priors to set up the new model's Gaussian Priors.")
 
-            arguments[prior] = GaussianPrior(
+            new_prior = GaussianPrior(
                 mean,
                 sigma,
                 *limits
             )
+            new_prior.id = prior.id
+            arguments[prior] = new_prior
 
         return self.mapper_from_prior_arguments(arguments)
 

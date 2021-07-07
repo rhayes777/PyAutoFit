@@ -1,7 +1,6 @@
 from functools import reduce
-from itertools import chain
 from typing import (
-    Dict, Tuple, Optional, List, Union
+    Dict, Tuple, Optional, List, Union, Iterable
 )
 
 import numpy as np
@@ -15,6 +14,7 @@ from autofit.graphical.messages import (
 from autofit.graphical.utils import (
     prod, add_arrays, OptResult, Status, aggregate, Axis
 )
+from autofit.mapper.prior.prior import Prior
 from autofit.mapper.prior_model.collection import CollectionPriorModel
 from autofit.mapper.variable import Variable
 
@@ -22,7 +22,11 @@ VariableFactorDist = Dict[str, Dict[Factor, AbstractMessage]]
 Projection = Dict[str, AbstractMessage]
 
 
-class MeanField(CollectionPriorModel, Dict[Variable, AbstractMessage], Factor):
+class MeanField(
+    CollectionPriorModel,
+    Dict[Variable, AbstractMessage],
+    Factor
+):
     """For a factor with multiple variables, this class represents the 
     the mean field approximation to that factor, 
 
@@ -63,6 +67,33 @@ class MeanField(CollectionPriorModel, Dict[Variable, AbstractMessage], Factor):
         else:
             self.log_norm = log_norm
 
+    @classmethod
+    def from_priors(
+            cls,
+            priors: Iterable[Prior]
+    ) -> "MeanField":
+        """
+        Create a MeanField from a list of priors.
+
+        This works because priors are a kind of variable and
+        messages can be derived from priors.
+
+        Parameters
+        ----------
+        priors
+            A list of priors
+
+        Returns
+        -------
+        A mean field
+        """
+        return MeanField({
+            prior: AbstractMessage.from_prior(
+                prior
+            )
+            for prior in priors
+        })
+
     pop = dict.pop
     values = dict.values
     items = dict.items
@@ -84,6 +115,13 @@ class MeanField(CollectionPriorModel, Dict[Variable, AbstractMessage], Factor):
     @property
     def scale(self):
         return {v: dist.scale for v, dist in self.items()}
+
+    @property
+    def arguments(self) -> Dict[Variable, Prior]:
+        """
+        Arguments that can be used to update a PriorModel
+        """
+        return {v: dist.as_prior() for v, dist in self.items()}
 
     def logpdf(
             self,
@@ -190,8 +228,13 @@ class MeanField(CollectionPriorModel, Dict[Variable, AbstractMessage], Factor):
 
     def project_mode(self, res: OptResult):
         projection = type(self)({
-            v: dist.from_mode(res.mode[v], res.hess_inv.get(v))
-            for v, dist in self.items()})
+            v: dist.from_mode(
+                res.mode[v],
+                res.hess_inv.get(v),
+                id_=dist.id
+            )
+            for v, dist in self.items()
+        })
 
         projection.log_norm = (
                 res.log_norm - projection(res.mode, axis=None).log_value)
@@ -206,7 +249,11 @@ class MeanField(CollectionPriorModel, Dict[Variable, AbstractMessage], Factor):
         Projects the mode and covariance 
         """
         projection = MeanField({
-            v: dist.from_mode(mode[v], covar.get(v))
+            v: dist.from_mode(
+                mode[v],
+                covar.get(v),
+                id_=dist.id_
+            )
             for v, dist in self.items()})
         if fun is not None:
             projection.log_norm = fun - projection(mode).log_value

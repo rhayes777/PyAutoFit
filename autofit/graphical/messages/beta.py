@@ -1,3 +1,5 @@
+from typing import Union
+
 import numpy as np
 from scipy.special import betaln, psi
 
@@ -16,11 +18,20 @@ class BetaMessage(AbstractMessage):
     _range = 1
     _parameter_support = ((0, np.inf), (0, np.inf))
 
-    def __init__(self, alpha=0.5, beta=0.5, log_norm=0):
+    def __init__(
+            self,
+            alpha=0.5,
+            beta=0.5,
+            log_norm=0,
+            id_=None
+    ):
         self.alpha = alpha
         self.beta = beta
         super().__init__(
-            alpha, beta, log_norm=log_norm
+            alpha,
+            beta,
+            log_norm=log_norm,
+            id_=id_
         )
 
     @cached_property
@@ -36,7 +47,8 @@ class BetaMessage(AbstractMessage):
 
     @staticmethod
     def calc_natural_parameters(
-            alpha: np.ndarray, beta: np.ndarray
+            alpha: Union[float, np.ndarray],
+            beta: Union[float, np.ndarray]
     ) -> np.ndarray:
         return np.array([alpha - 1, beta - 1])
 
@@ -58,11 +70,11 @@ class BetaMessage(AbstractMessage):
         return np.array([np.log(x), np.log1p(-x)])
 
     @cached_property
-    def mean(self) -> np.ndarray:
+    def mean(self) -> Union[np.ndarray, float]:
         return self.alpha / (self.alpha + self.beta)
 
     @cached_property
-    def variance(self) -> np.ndarray:
+    def variance(self) -> Union[np.ndarray, float]:
         return (
                 self.alpha * self.beta
                 / (self.alpha + self.beta) ** 2

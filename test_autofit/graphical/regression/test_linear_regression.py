@@ -73,6 +73,7 @@ def make_model_approx(
         }
     )
 
+
 @pytest.fixture(
     name='model_jac_approx'
 )
@@ -129,8 +130,7 @@ def test_jacobian(
     a = np.random.rand(d, m)
     b = np.random.rand(m)
 
-    
-    values = {x_:x, a_: a, b_: b}
+    values = {x_: x, a_: a, b_: b}
 
     fval0, fjac0 = linear_factor.func_jacobian(values)
     fval1, fjac1 = linear_factor_jac.func_jacobian(values)
@@ -161,7 +161,6 @@ def test_jacobian(
     assert len(fjac0[a_].keys() - (z_,)) == 0
     assert len(fjac1[a_].keys() - (z_,)) == 0
 
-    
     assert np.allclose(fval0, fval1)
     det0, det1 = fval0.deterministic_values, fval1.deterministic_values
     for d in det0:
@@ -193,16 +192,17 @@ def test_laplace_old(
     assert q_b.mu[0] == pytest.approx(-0.5, rel=1)
     assert q_b.sigma[0] == pytest.approx(0.2, rel=1)
 
+
 def test_laplace(
         model_approx,
         a_,
         b_,
-        y_, 
-        z_, 
+        y_,
+        z_,
 ):
     laplace = graph.LaplaceFactorOptimiser()
     opt = graph.EPOptimiser(
-        model_approx.factor_graph, 
+        model_approx.factor_graph,
         default_optimiser=laplace)
     model_approx = opt.run(model_approx)
 
@@ -211,6 +211,7 @@ def test_laplace(
 
     assert graph.utils.r2_score(y, y_pred) > 0.95
 
+
 def test_laplace_jac(
         model_jac_approx,
 ):
@@ -218,7 +219,7 @@ def test_laplace_jac(
         default_opt_kws={'jac': True}
     )
     opt = graph.EPOptimiser(
-        model_jac_approx.factor_graph, 
+        model_jac_approx.factor_graph,
         default_optimiser=laplace)
     approx = opt.run(model_jac_approx)
 
@@ -233,9 +234,9 @@ def test_laplace_jac(
 def test_importance_sampling(
         model,
         model_approx,
-        linear_factor, 
+        linear_factor,
         y_,
-        z_, 
+        z_,
 ):
     laplace = graph.LaplaceFactorOptimiser()
     sampler = graph.ImportanceSampler(
@@ -248,5 +249,5 @@ def test_importance_sampling(
 
     y = model_approx.mean_field[y_].mean
     y_pred = model_approx.mean_field[z_].mean
-    
+
     assert graph.utils.r2_score(y, y_pred) > 0.90

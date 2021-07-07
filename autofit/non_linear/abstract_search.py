@@ -13,7 +13,7 @@ from sqlalchemy.orm import Session
 
 from autoconf import conf
 from autofit import exc
-from autofit.graphical import EPMeanField, MeanField, NormalMessage, Factor, AnalysisFactor
+from autofit.graphical import EPMeanField, MeanField, Factor, AnalysisFactor
 from autofit.graphical.utils import Status
 from autofit.non_linear.initializer import Initializer
 from autofit.non_linear.parallel import SneakyPool
@@ -240,17 +240,8 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             factor
         )
 
-        arguments = dict()
-
-        for prior in factor_approx.variables:
-            new_prior = factor_approx.cavity_dist[
-                prior
-            ].as_prior()
-            new_prior.id = prior.id
-            arguments[prior] = new_prior
-
         model = factor.prior_model.mapper_from_prior_arguments(
-            arguments
+            factor_approx.cavity_dist.arguments
         )
 
         analysis = factor.analysis
@@ -260,21 +251,9 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             analysis=analysis
         )
 
-        mean_field_dict = dict()
-
-        for prior in factor_approx.variables:
-            new_prior = result.model.object_for_path(
-                model.path_for_prior(
-                    prior
-                )
-            )
-            mean_field_dict[
-                prior
-            ] = NormalMessage.from_prior(
-                new_prior
-            )
-
-        new_model_dist = MeanField(mean_field_dict)
+        new_model_dist = MeanField.from_priors(
+            result.model.priors
+        )
 
         projection, status = factor_approx.project(
             new_model_dist,
