@@ -98,7 +98,8 @@ class Aggregator:
             filename: Optional[str] = None,
             predicate: AbstractQuery = NullPredicate(),
             offset=0,
-            limit=None
+            limit=None,
+            order_bys=None
     ):
         """
         Query results from an intermediary SQLite database.
@@ -117,10 +118,16 @@ class Aggregator:
         self._predicate = predicate
         self._offset = offset
         self._limit = limit
+        self._order_bys = order_bys or list()
 
     def __iter__(self):
         return iter(
             self.fits
+        )
+
+    def order_by(self, item):
+        return self._new_with(
+            order_bys=self._order_bys + [item]
         )
 
     @property
@@ -251,6 +258,7 @@ class Aggregator:
             "session": self.session,
             "filename": self.filename,
             "predicate": self._predicate,
+            "order_bys": self._order_bys,
             **kwargs
         }
         return Aggregator(
@@ -323,16 +331,26 @@ class Aggregator:
                 query
             )
         }
+
         logger.info(
             f"{len(fit_ids)} fit(s) found matching query"
         )
-        return self.session.query(
+        query = self.session.query(
             m.Fit
         ).filter(
             m.Fit.id.in_(
                 fit_ids
             )
-        ).offset(
+        )
+        for order_by in self._order_bys:
+            query = query.order_by(
+                getattr(
+                    m.Fit,
+                    order_by.attribute
+                )
+            )
+
+        return query.offset(
             self._offset
         ).limit(
             self._limit

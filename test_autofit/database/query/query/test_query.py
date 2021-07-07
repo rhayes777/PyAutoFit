@@ -1,4 +1,5 @@
 from autofit import database as db
+from autofit.mock import mock as m
 
 
 def test_is_complete(
@@ -83,6 +84,29 @@ def test_in(
             "one something two"
         )
     ) == [gaussian_1, gaussian_2]
+
+
+def test_order_by(
+        aggregator,
+        gaussian_1,
+        gaussian_2,
+        session
+):
+    gaussian_0 = db.Fit(
+        id="gaussian_0",
+        instance=m.Gaussian(
+            centre=1
+        ),
+        info={"info": 1},
+        is_complete=True,
+        unique_tag="zero"
+    )
+    session.add(gaussian_0)
+    session.commit()
+
+    assert aggregator.order_by(
+        aggregator.search.unique_tag
+    ) == [gaussian_1, gaussian_2, gaussian_0]
 
 
 def test_contains(
