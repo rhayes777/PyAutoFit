@@ -21,7 +21,11 @@ VariableFactorDist = Dict[str, Dict[Factor, AbstractMessage]]
 Projection = Dict[str, AbstractMessage]
 
 
-class MeanField(CollectionPriorModel, Dict[Variable, AbstractMessage], Factor):
+class MeanField(
+    CollectionPriorModel,
+    Dict[Variable, AbstractMessage],
+    Factor
+):
     """For a factor with multiple variables, this class represents the 
     the mean field approximation to that factor, 
 
@@ -83,6 +87,10 @@ class MeanField(CollectionPriorModel, Dict[Variable, AbstractMessage], Factor):
     @property
     def scale(self):
         return {v: dist.scale for v, dist in self.items()}
+
+    @property
+    def arguments(self):
+        return {v: dist.as_prior() for v, dist in self.items()}
 
     def logpdf(
             self,

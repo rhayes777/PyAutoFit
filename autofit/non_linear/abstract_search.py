@@ -240,17 +240,8 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             factor
         )
 
-        arguments = dict()
-
-        for prior in factor_approx.variables:
-            new_prior = factor_approx.cavity_dist[
-                prior
-            ].as_prior()
-            new_prior.id = prior.id
-            arguments[prior] = new_prior
-
         model = factor.prior_model.mapper_from_prior_arguments(
-            arguments
+            factor_approx.cavity_dist.arguments
         )
 
         analysis = factor.analysis
