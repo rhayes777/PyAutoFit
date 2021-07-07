@@ -5,6 +5,7 @@ from typing import (
 
 import numpy as np
 
+from autofit.graphical.messages.normal import NormalMessage
 from autofit.graphical.factor_graphs import (
     Factor, AbstractNode, FactorValue, JacobianValue
 )
@@ -65,6 +66,15 @@ class MeanField(
             self.log_norm = dists.log_norm
         else:
             self.log_norm = log_norm
+
+    @classmethod
+    def from_priors(cls, priors):
+        return MeanField({
+            prior: NormalMessage.from_prior(
+                prior
+            )
+            for prior in priors
+        })
 
     pop = dict.pop
     values = dict.values
