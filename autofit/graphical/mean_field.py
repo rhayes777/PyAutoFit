@@ -1,5 +1,4 @@
 from functools import reduce
-from itertools import chain
 from typing import (
     Dict, Tuple, Optional, List, Union
 )
@@ -190,8 +189,13 @@ class MeanField(CollectionPriorModel, Dict[Variable, AbstractMessage], Factor):
 
     def project_mode(self, res: OptResult):
         projection = type(self)({
-            v: dist.from_mode(res.mode[v], res.hess_inv.get(v))
-            for v, dist in self.items()})
+            v: dist.from_mode(
+                res.mode[v],
+                res.hess_inv.get(v),
+                id_=dist.id
+            )
+            for v, dist in self.items()
+        })
 
         projection.log_norm = (
                 res.log_norm - projection(res.mode, axis=None).log_value)

@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from functools import reduce
+from functools import reduce, wraps
 from inspect import getfullargspec
 from numbers import Real
 from operator import and_
@@ -7,11 +7,28 @@ from typing import Optional, Tuple, Union, Iterator, Type, List
 
 import numpy as np
 
+from autofit.mapper.prior.prior import Prior, GaussianPrior
 from .transform import AbstractDensityTransform, LinearShiftTransform
 from ..factor_graphs.jacobians import FactorJacobian
 from ..utils import cached_property
-from autofit.mapper.prior.prior import Prior, GaussianPrior
 from ...mapper.variable import Variable
+
+
+def pass_id(func):
+    @wraps(func)
+    def wrapper(self, other):
+        if isinstance(
+                other,
+                AbstractMessage
+        ) and self.id != other.id:
+            raise AssertionError(
+                f"Message with id {self.id} should not be compared to message with id {other.id}"
+            )
+        result = func(self, other)
+        result.id = self.id
+        return result
+
+    return wrapper
 
 
 class AbstractMessage(ABC):
@@ -20,6 +37,22 @@ class AbstractMessage(ABC):
     _multivariate: bool = False
     _parameter_support: Optional[Tuple[Tuple[float, float], ...]] = None
     _support: Optional[Tuple[Tuple[float, float], ...]] = None
+
+    def __init__(
+            self,
+            *parameters: Union[np.ndarray, float],
+            log_norm=0.,
+            id_=None
+    ):
+        # assert id_ is not None
+        self.log_norm = log_norm
+        self._broadcast = np.broadcast(*parameters)
+        self.id = id_
+        if self.shape:
+            self.parameters = tuple(
+                np.asanyarray(p) for p in parameters)
+        else:
+            self.parameters = tuple(parameters)
 
     @classmethod
     def from_prior(cls, prior: Prior) -> "AbstractMessage":
@@ -74,21 +107,6 @@ class AbstractMessage(ABC):
     @cached_property
     def scale(self) -> np.ndarray:
         return self.variance ** 0.5
-
-    def __init__(
-            self,
-            *parameters: np.ndarray,
-            log_norm=0.,
-            id_=None
-    ):
-        self.log_norm = log_norm
-        self._broadcast = np.broadcast(*parameters)
-        self.id = id_
-        if self.shape:
-            self.parameters = tuple(
-                np.asanyarray(p) for p in parameters)
-        else:
-            self.parameters = tuple(parameters)
 
     def __hash__(self):
         return self.id or super().__hash__()
@@ -148,9 +166,13 @@ class AbstractMessage(ABC):
             (dist.natural_parameters for dist in self._iter_dists(dists)
              if isinstance(dist, AbstractMessage)),
             self.natural_parameters)
-        mul_dist = self.from_natural_parameters(new_params)
+        mul_dist = self.from_natural_parameters(
+            new_params,
+            id_=self.id
+        )
         return mul_dist
 
+    @pass_id
     def sub_natural_parameters(
             self, other: "AbstractMessage"
     ) -> "AbstractMessage":
@@ -159,34 +181,54 @@ class AbstractMessage(ABC):
         type"""
         log_norm = self.log_norm - other.log_norm
         new_params = (self.natural_parameters - other.natural_parameters)
-        div_dist = self.from_natural_parameters(new_params, log_norm=log_norm)
+        div_dist = self.from_natural_parameters(
+            new_params,
+            log_norm=log_norm,
+            id_=self.id
+        )
         return div_dist
 
     _multiply = sum_natural_parameters
     _divide = sub_natural_parameters
 
+    @pass_id
     def __mul__(self, other: Union["AbstractMessage", Real]) -> "AbstractMessage":
         if isinstance(other, AbstractMessage):
             return self._multiply(other)
         else:
             log_norm = self.log_norm + np.log(other)
-            return type(self)(*self.parameters, log_norm=log_norm)
+            return type(self)(
+                *self.parameters,
+                log_norm=log_norm,
+                id_=self.id
+            )
 
+    @pass_id
     def __rmul__(self, other: "AbstractMessage") -> "AbstractMessage":
         return self * other
 
+    @pass_id
     def __truediv__(self, other: Union["AbstractMessage", Real]) -> "AbstractMessage":
         if isinstance(other, AbstractMessage):
             return self._divide(other)
         else:
             log_norm = self.log_norm - np.log(other)
-            return type(self)(*self.parameters, log_norm=log_norm)
+            return type(self)(
+                *self.parameters,
+                log_norm=log_norm,
+                id_=self.id
+            )
 
+    @pass_id
     def __pow__(self, other: Real) -> "AbstractMessage":
         natural = self.natural_parameters
         new_params = other * natural
         log_norm = other * self.log_norm
-        return self.from_natural_parameters(new_params, log_norm=log_norm)
+        return self.from_natural_parameters(
+            new_params,
+            log_norm=log_norm,
+            id_=self.id
+        )
 
     @classmethod
     def parameter_names(cls):
@@ -317,7 +359,12 @@ class AbstractMessage(ABC):
     logpdf_gradient_hessian = numerical_logpdf_gradient_hessian
 
     @classmethod
-    def project(cls, samples: np.ndarray, log_weight_list: Optional[np.ndarray] = None) -> "AbstractMessage":
+    def project(
+            cls,
+            samples: np.ndarray,
+            log_weight_list: Optional[np.ndarray] = None,
+            id_=None
+    ) -> "AbstractMessage":
         """Calculates the sufficient statistics of a set of samples
         and returns the distribution with the appropriate parameters
         that match the sufficient statistics
@@ -342,7 +389,11 @@ class AbstractMessage(ABC):
         assert np.isfinite(suff_stats).all()
 
         cls = cls._projection_class or cls
-        return cls.from_sufficient_statistics(suff_stats, log_norm=log_norm)
+        return cls.from_sufficient_statistics(
+            suff_stats,
+            log_norm=log_norm,
+            id_=id_
+        )
 
     def has_exact_projection(self, x: "AbstractMessage") -> bool:
         return type(self) == type(x)
@@ -352,8 +403,7 @@ class AbstractMessage(ABC):
             projection = self * x
             projection.log_norm = self.log_normalisation(x)
             return {'x': projection}
-        else:
-            raise NotImplementedError()
+        raise NotImplementedError()
 
     def calc_exact_update(self, x: "AbstractMessage"):
         if type(self) == type(x):
@@ -363,8 +413,12 @@ class AbstractMessage(ABC):
             raise NotImplementedError()
 
     @classmethod
-    def from_mode(cls, mode: np.ndarray, covariance: np.ndarray
-                  ) -> "AbstractMessage":
+    def from_mode(
+            cls,
+            mode: np.ndarray,
+            covariance: np.ndarray,
+            id_
+    ) -> "AbstractMessage":
         pass
 
     def log_normalisation(self, *elems: Union["AbstractMessage", float]
@@ -410,7 +464,11 @@ class AbstractMessage(ABC):
         else:
             # TODO: Fairly certain this would not work
             valid_parameters = iter(self if valid else other)
-        return type(self)(*valid_parameters, log_norm=self.log_norm)
+        return type(self)(
+            *valid_parameters,
+            log_norm=self.log_norm,
+            id_=self.id
+        )
 
     def check_support(self) -> np.ndarray:
         if self._parameter_support is not None:
@@ -708,8 +766,12 @@ class TransformedMessage(AbstractMessage):
     logpdf_gradient_hessian = AbstractMessage.numerical_logpdf_gradient_hessian
 
     @classmethod
-    def from_mode(cls, mode: np.ndarray, covariance: np.ndarray
-                  ) -> "AbstractMessage":
+    def from_mode(
+            cls,
+            mode: np.ndarray,
+            covariance: np.ndarray,
+            id_=None
+    ) -> "AbstractMessage":
         mode, jac = cls._transform.transform_jac(mode)
         covariance = jac.invquad(covariance)
-        return cls.from_mode(mode, covariance)
+        return cls.from_mode(mode, covariance, id_=id_)
