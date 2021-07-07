@@ -1,3 +1,5 @@
+from random import seed
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pytest
@@ -61,6 +63,7 @@ def test_hierarchical_factor(
 def make_centre(
         centre_model
 ):
+    seed(1)
     centres = list()
     for _ in range(n):
         centres.append(
