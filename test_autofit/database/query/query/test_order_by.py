@@ -45,3 +45,30 @@ def test_reversed(
         aggregator.search.unique_tag,
         reverse=True
     ) == [gaussian_0, gaussian_2, gaussian_1]
+
+
+def test_boolean(
+        aggregator,
+        gaussian_1,
+        gaussian_2
+):
+    assert aggregator.order_by(
+        aggregator.search.is_complete
+    ) == [gaussian_2, gaussian_1]
+    assert aggregator.order_by(
+        aggregator.search.is_complete,
+        reverse=True
+    ) == [gaussian_1, gaussian_2]
+
+
+def test_combined(
+        aggregator,
+        gaussian_1,
+        gaussian_2,
+        gaussian_0
+):
+    assert aggregator.order_by(
+        aggregator.search.is_complete
+    ).order_by(
+        aggregator.search.unique_tag
+    ) == [gaussian_2, gaussian_1, gaussian_0]
