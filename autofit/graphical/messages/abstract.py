@@ -15,7 +15,7 @@ from ..utils import cached_property
 from ...mapper.variable import Variable
 
 
-def pass_id(func):
+def assert_ids_match(func):
     @wraps(func)
     def wrapper(self, other):
         if isinstance(
@@ -26,7 +26,6 @@ def pass_id(func):
                 f"Message with id {self.id} should not be compared to message with id {other.id}"
             )
         result = func(self, other)
-        result.id = self.id
         return result
 
     return wrapper
@@ -175,7 +174,7 @@ class AbstractMessage(ABC):
         )
         return mul_dist
 
-    @pass_id
+    @assert_ids_match
     def sub_natural_parameters(
             self, other: "AbstractMessage"
     ) -> "AbstractMessage":
@@ -194,7 +193,7 @@ class AbstractMessage(ABC):
     _multiply = sum_natural_parameters
     _divide = sub_natural_parameters
 
-    @pass_id
+    @assert_ids_match
     def __mul__(self, other: Union["AbstractMessage", Real]) -> "AbstractMessage":
         if isinstance(other, AbstractMessage):
             return self._multiply(other)
@@ -206,11 +205,11 @@ class AbstractMessage(ABC):
                 id_=self.id
             )
 
-    @pass_id
+    @assert_ids_match
     def __rmul__(self, other: "AbstractMessage") -> "AbstractMessage":
         return self * other
 
-    @pass_id
+    @assert_ids_match
     def __truediv__(self, other: Union["AbstractMessage", Real]) -> "AbstractMessage":
         if isinstance(other, AbstractMessage):
             return self._divide(other)
@@ -222,7 +221,7 @@ class AbstractMessage(ABC):
                 id_=self.id
             )
 
-    @pass_id
+    @assert_ids_match
     def __pow__(self, other: Real) -> "AbstractMessage":
         natural = self.natural_parameters
         new_params = other * natural
