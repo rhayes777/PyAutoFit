@@ -1,6 +1,7 @@
 import logging
 from typing import Optional, List, Union
 
+from sqlalchemy import desc
 from sqlalchemy.orm import Session
 
 from autofit.database import query as q
@@ -91,6 +92,15 @@ class FitQuery(Query):
         return q.A(name)
 
 
+class Reverse:
+    def __init__(self, item):
+        self.item = item
+
+    @property
+    def attribute(self):
+        return self.item.attribute
+
+
 class Aggregator:
     def __init__(
             self,
@@ -125,7 +135,9 @@ class Aggregator:
             self.fits
         )
 
-    def order_by(self, item):
+    def order_by(self, item, reverse=False):
+        if reverse:
+            item = Reverse(item)
         return self._new_with(
             order_bys=self._order_bys + [item]
         )
@@ -343,11 +355,17 @@ class Aggregator:
             )
         )
         for order_by in self._order_bys:
+            attribute = getattr(
+                m.Fit,
+                order_by.attribute
+            )
+            if isinstance(
+                    order_by,
+                    Reverse
+            ):
+                attribute = desc(attribute)
             query = query.order_by(
-                getattr(
-                    m.Fit,
-                    order_by.attribute
-                )
+                attribute
             )
 
         return query.offset(
