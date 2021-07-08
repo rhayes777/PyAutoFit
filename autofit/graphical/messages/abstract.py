@@ -777,5 +777,6 @@ class TransformedMessage(AbstractMessage):
             covariance: np.ndarray,
             id_=None
     ) -> "AbstractMessage":
-        mode, covariance = TransformedMessage._from_mode(cls, mode, covariance)
+        mode, jac = cls._transform.transform_jac(mode)
+        covariance = jac.invquad(covariance)
         return cls._Message.from_mode(mode, covariance, id_=id_)
