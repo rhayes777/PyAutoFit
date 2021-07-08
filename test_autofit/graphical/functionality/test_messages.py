@@ -196,6 +196,10 @@ def test_transforms():
     for args in tests:
         check_transforms(*args)
 
+def test_transformed_from_mode():
+    m = graph.NormalMessage.shifted(scale=0.5).shifted(scale=4.).shifted(shift=-0.5).from_mode(0.0, 100)
+    assert np.isclose(m.mu, 0.25)
+    assert np.isclose(m.sigma, 20.)
 
 def test_multinomial_logit():
     mult_logit = transform.multinomial_logit_transform
