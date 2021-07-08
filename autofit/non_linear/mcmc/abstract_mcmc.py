@@ -4,20 +4,22 @@ from sqlalchemy.orm import Session
 from autoconf import conf
 from autofit.non_linear.abstract_search import NonLinearSearch
 from autofit.non_linear.mcmc.auto_correlations import AutoCorrelationsSettings
+from autofit.non_linear.abstract_search import PriorPasser
+from autofit.non_linear.initializer import Initializer
 
 
 class AbstractMCMC(NonLinearSearch):
 
     def __init__(
             self,
-            name=None,
-            path_prefix=None,
+            name: Optional[str] = None,
+            path_prefix: Optional[str] = None,
             unique_tag : Optional[str] = None,
-            prior_passer=None,
-            initializer=None,
+            prior_passer: Optional[PriorPasser] = None,
+            initializer: Optional[Initializer] = None,
             auto_correlations_settings = AutoCorrelationsSettings(),
-            iterations_per_update : int = None,
-            number_of_cores : int = None,
+            iterations_per_update : Optional[int] = None,
+            number_of_cores : Optional[int] = None,
             session : Optional[Session] = None,
             **kwargs
     ):

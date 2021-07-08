@@ -6,10 +6,10 @@ from sqlalchemy.orm import Session
 
 from autoconf import conf
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
-from autofit.non_linear.abstract_search import PriorPasser
 from autofit.non_linear.nest import abstract_nest
 from autofit.non_linear.nest.abstract_nest import AbstractNest
 from autofit.non_linear.samples import NestSamples, Sample
+from autofit.non_linear.abstract_search import PriorPasser
 from autofit.plot import UltraNestPlotter
 from autofit.plot.mat_wrap.wrap.wrap_base import Output
 

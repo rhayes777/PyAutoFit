@@ -6,6 +6,8 @@ from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.optimize.abstract_optimize import AbstractOptimizer
 from autofit.non_linear.samples import OptimizerSamples, Sample
 from autofit.non_linear.abstract_search import Analysis
+from autofit.non_linear.abstract_search import PriorPasser
+from autofit.non_linear.initializer import Initializer
 
 import copy
 from scipy import optimize
@@ -16,11 +18,11 @@ class LBFGS(AbstractOptimizer):
 
     def __init__(
             self,
-            name=None,
-            path_prefix=None,
+            name: Optional[str] = None,
+            path_prefix: Optional[str] = None,
             unique_tag: Optional[str] = None,
-            prior_passer=None,
-            initializer=None,
+            prior_passer: Optional[PriorPasser] = None,
+            initializer: Optional[Initializer] = None,
             iterations_per_update: int = None,
             session: Optional[Session] = None,
             **kwargs
@@ -48,7 +50,7 @@ class LBFGS(AbstractOptimizer):
             Controls how priors are passed from the results of this `NonLinearSearch` to a subsequent non-linear search.
         initializer
             Generates the initialize samples of non-linear parameter space (see autofit.non_linear.initializer).
-        number_of_cores : int
+        number_of_cores: int
             The number of cores Emcee sampling is performed using a Python multiprocessing Pool instance. If 1, a
             pool instance is not created and the job runs in serial.
         session
@@ -81,7 +83,12 @@ class LBFGS(AbstractOptimizer):
 
         return config_dict
 
-    def _fit(self, model: AbstractPriorModel, analysis : Analysis, log_likelihood_cap : float=None):
+    def _fit(
+            self,
+            model: AbstractPriorModel,
+            analysis: Analysis,
+            log_likelihood_cap: Optional[float] = None
+    ):
         """
         Fit a model using the scipy L-BFGS method and the Analysis class which contains the data and returns the log
         likelihood from instances of the model, which the `NonLinearSearch` seeks to maximize.
@@ -108,35 +115,29 @@ class LBFGS(AbstractOptimizer):
             x0 = self.paths.load_object("x0")
             total_iterations = self.paths.load_object("total_iterations")
 
-            self.logger.info("Existing PySwarms samples found, resuming non-linear search.")
+            self.logger.info("Existing LBGFS samples found, resuming non-linear search.")
 
         else:
 
-            initial_unit_parameter_lists, initial_parameter_lists, initial_log_posterior_list = self.initializer.initial_samples_from_model(
+            unit_parameter_lists, parameter_lists, log_posterior_list = self.initializer.samples_from_model(
                 total_points=1,
                 model=model,
                 fitness_function=fitness_function,
             )
 
-            x0 = np.asarray(initial_parameter_lists[0])
+            x0 = np.asarray(parameter_lists[0])
 
             total_iterations = 0
 
-            self.logger.info("No PySwarms samples found, beginning new non-linear search. ")
+            self.logger.info("No LBFGS samples found, beginning new non-linear search. ")
 
-        maxiter = self.config_dict_options["maxiter"]
-
-        if maxiter is None:
-            maxiter = 1e8
+        maxiter = self.config_dict_options.get("maxiter", 1e8)
 
         while total_iterations < maxiter:
 
             iterations_remaining = maxiter - total_iterations
 
-            if self.iterations_per_update > iterations_remaining:
-                iterations = iterations_remaining
-            else:
-                iterations = self.iterations_per_update
+            iterations = min(self.iterations_per_update, iterations_remaining)
 
             if iterations > 0:
 
@@ -177,7 +178,10 @@ class LBFGS(AbstractOptimizer):
 
         self.logger.info("L-BFGS sampling complete.")
 
-    def samples_from(self, model):
+    def samples_from(
+            self,
+            model: AbstractPriorModel
+    ):
 
         return LBFGSSamples(
             model=model,
@@ -201,7 +205,7 @@ class LBFGSSamples(OptimizerSamples):
         """
         Create an *OptimizerSamples* object from this non-linear search's output files on the hard-disk and model.
 
-        For PySwarms, all quantities are extracted via pickled states of the particle and cost histories.
+        For LBFGS, all quantities are extracted via pickled states of the particle and cost histories.
 
         Parameters
         ----------

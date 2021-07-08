@@ -13,6 +13,8 @@ from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.mcmc.abstract_mcmc import AbstractMCMC
 from autofit.non_linear.mcmc.auto_correlations import AutoCorrelationsSettings, AutoCorrelations
 from autofit.non_linear.samples import MCMCSamples, Sample
+from autofit.non_linear.abstract_search import PriorPasser
+from autofit.non_linear.initializer import Initializer
 from autofit.plot import EmceePlotter
 from autofit.plot.mat_wrap.wrap.wrap_base import Output
 
@@ -24,11 +26,11 @@ class Emcee(AbstractMCMC):
 
     def __init__(
             self,
-            name=None,
-            path_prefix=None,
+            name: Optional[str] = None,
+            path_prefix: Optional[str] = None,
             unique_tag: Optional[str] = None,
-            prior_passer=None,
-            initializer=None,
+            prior_passer: Optional[PriorPasser] = None,
+            initializer: Optional[Initializer] = None,
             auto_correlations_settings=AutoCorrelationsSettings(),
             iterations_per_update: int = None,
             number_of_cores: int = None,
@@ -151,7 +153,7 @@ class Emcee(AbstractMCMC):
 
         except AttributeError:
 
-            initial_unit_parameter_lists, initial_parameter_lists, initial_log_posterior_list = self.initializer.initial_samples_from_model(
+            unit_parameter_lists, parameter_lists, log_posterior_list = self.initializer.samples_from_model(
                 total_points=emcee_sampler.nwalkers,
                 model=model,
                 fitness_function=fitness_function,
@@ -161,7 +163,7 @@ class Emcee(AbstractMCMC):
 
             self.logger.info("No Emcee samples found, beginning new non-linear search.")
 
-            for index, parameters in enumerate(initial_parameter_lists):
+            for index, parameters in enumerate(parameter_lists):
                 emcee_state[index, :] = np.asarray(parameters)
 
             total_iterations = 0
@@ -175,10 +177,10 @@ class Emcee(AbstractMCMC):
                 iterations = self.iterations_per_update
 
             for sample in emcee_sampler.sample(
-                    initial_state=emcee_state,
+                    state=emcee_state,
                     iterations=iterations,
                     progress=True,
-                    skip_initial_state_check=True,
+                    skip_state_check=True,
                     store=True,
             ):
                 pass

@@ -5,6 +5,7 @@ from autofit import exc
 from autofit.non_linear.abstract_search import NonLinearSearch
 
 
+
 class AbstractOptimizer(NonLinearSearch, ABC):
     @property
     def config_type(self):

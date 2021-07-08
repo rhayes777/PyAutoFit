@@ -239,11 +239,11 @@ class AbstractDynesty(AbstractNest, ABC):
             time=self.timer.time,
         )
 
-    def initial_live_points_from_model_and_fitness_function(
+    def live_points_from_model_and_fitness_function(
             self, model, fitness_function
     ):
 
-        unit_parameters, parameters, log_likelihood_list = self.initializer.initial_samples_from_model(
+        unit_parameters, parameters, log_likelihood_list = self.initializer.samples_from_model(
             total_points=self.total_live_points,
             model=model,
             fitness_function=fitness_function,
