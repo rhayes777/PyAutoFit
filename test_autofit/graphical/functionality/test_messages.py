@@ -197,7 +197,9 @@ def test_transforms():
         check_transforms(*args)
 
 def test_transformed_from_mode():
-    m = graph.NormalMessage.shifted(scale=0.5).shifted(scale=4.).shifted(shift=-0.5).from_mode(0.0, 100)
+    M = graph.NormalMessage.shifted(scale=0.5).shifted(scale=4.).shifted(shift=-0.5)
+    m = M.from_mode(0.0, 100)
+    assert isinstance(m, M)
     assert np.isclose(m.mu, 0.25)
     assert np.isclose(m.sigma, 20.)
 
