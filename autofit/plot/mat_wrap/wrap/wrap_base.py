@@ -206,7 +206,7 @@ class Figure(AbstractMatWrap):
 
         Parameters
         ----------
-        shape_native : (int, int)
+        shape_native
             The two dimensional shape of an `Array2D` that is to be plotted.
         """
         if isinstance(self.config_dict["aspect"], str):

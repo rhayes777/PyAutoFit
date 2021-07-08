@@ -20,7 +20,7 @@ def save_samples(
         ),
 
     )
-    samples._samples = [sample]
+    samples.sample_list = [sample]
     paths.save_samples(
         samples
     )
@@ -59,5 +59,5 @@ def test_load_samples(
 
     assert samples.model.cls is mock.Gaussian
 
-    sample, = samples.samples
+    sample, = samples.sample_list
     assert sample.weight == 0.5

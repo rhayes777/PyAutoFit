@@ -1,4 +1,5 @@
 from typing import Optional, Tuple
+
 import numpy as np
 
 from autofit.graphical.messages.abstract import AbstractMessage, cached_property
@@ -7,9 +8,18 @@ from autofit.graphical.messages.abstract import AbstractMessage, cached_property
 class FixedMessage(AbstractMessage):
     log_base_measure = 0
 
-    def __init__(self, value: np.ndarray, log_norm: np.ndarray=0.):
+    def __init__(
+            self,
+            value: np.ndarray,
+            log_norm: np.ndarray = 0.,
+            id_=None
+    ):
         self.value = value
-        super().__init__(value, log_norm=log_norm)
+        super().__init__(
+            value,
+            log_norm=log_norm,
+            id_=id_
+        )
 
     @cached_property
     def natural_parameters(self) -> Tuple[np.ndarray, ...]:
@@ -17,7 +27,7 @@ class FixedMessage(AbstractMessage):
 
     @staticmethod
     def invert_natural_parameters(natural_parameters: np.ndarray
-    ) -> Tuple[np.ndarray]:
+                                  ) -> Tuple[np.ndarray]:
         return natural_parameters,
 
     @staticmethod
@@ -30,7 +40,7 @@ class FixedMessage(AbstractMessage):
 
     @classmethod
     def invert_sufficient_statistics(cls, suff_stats: np.ndarray
-    ) -> np.ndarray:
+                                     ) -> np.ndarray:
         return suff_stats
 
     def sample(self, n_samples: Optional[int] = None) -> np.ndarray:

@@ -230,6 +230,7 @@ class OptimizerSamples:
     def __init__(
             self,
             model: AbstractPriorModel,
+            sample_list : List[Sample],
             time: Optional[float] = None,
     ):
         """
@@ -243,11 +244,8 @@ class OptimizerSamples:
             Maps input vectors of unit parameter values to physical values and model instances via priors.
         """
         self.model = model
+        self.sample_list = sample_list
         self.time = time
-
-    @property
-    def samples(self):
-        raise NotImplementedError
 
     @property
     def parameter_lists(self):
@@ -258,19 +256,19 @@ class OptimizerSamples:
             sample.parameter_lists_for_model(
                 self.model, paths
             )
-            for sample in self.samples
+            for sample in self.sample_list
         ]
 
     @property
     def total_samples(self):
-        return len(self.samples)
+        return len(self.sample_list)
 
     @property
     def weight_list(self):
         return [
             sample.weight
             for sample
-            in self.samples
+            in self.sample_list
         ]
 
     @property
@@ -278,7 +276,7 @@ class OptimizerSamples:
         return [
             sample.log_likelihood
             for sample
-            in self.samples
+            in self.sample_list
         ]
 
     @property
@@ -286,7 +284,7 @@ class OptimizerSamples:
         return [
             sample.log_posterior
             for sample
-            in self.samples
+            in self.sample_list
         ]
 
     @property
@@ -294,15 +292,12 @@ class OptimizerSamples:
         return [
             sample.log_prior
             for sample
-            in self.samples
+            in self.sample_list
         ]
 
     @property
     def parameters_extract(self):
-        return [
-            [params[i] for params in self.parameter_lists]
-            for i in range(self.model.prior_count)
-        ]
+        return np.asarray(self.parameter_lists).T
 
     @property
     def _headers(self) -> List[str]:
@@ -366,14 +361,14 @@ class OptimizerSamples:
         The index of the sample with the highest log likelihood.
         """
         most_likely_sample = None
-        for sample in self.samples:
+        for sample in self.sample_list:
             if most_likely_sample is None or sample.log_likelihood > most_likely_sample.log_likelihood:
                 most_likely_sample = sample
         return most_likely_sample
 
     @property
     def max_log_posterior_sample(self) -> Sample:
-        return self.samples[
+        return self.sample_list[
             self.max_log_posterior_index
         ]
 
@@ -449,7 +444,7 @@ class OptimizerSamples:
         """
         samples = copy(self)
         samples.model = None
-        samples._samples = list({
+        samples.sample_list = list({
             self.max_log_likelihood_sample,
             self.max_log_posterior_sample
         })
@@ -460,6 +455,7 @@ class PDFSamples(OptimizerSamples):
     def __init__(
             self,
             model: AbstractPriorModel,
+            sample_list: List[Sample],
             unconverged_sample_size: int = 100,
             time: Optional[float] = None,
     ):
@@ -475,6 +471,7 @@ class PDFSamples(OptimizerSamples):
 
         super().__init__(
             model=model,
+            sample_list=sample_list,
             time=time,
         )
 
@@ -491,13 +488,13 @@ class PDFSamples(OptimizerSamples):
             Where the table is to be written
         """
 
-        samples = load_from_table(
+        sample_list = load_from_table(
             filename=filename
         )
 
         return StoredSamples(
             model=model,
-            samples=samples
+            sample_list=sample_list
         )
 
     @property
@@ -886,6 +883,7 @@ class MCMCSamples(PDFSamples):
     def __init__(
             self,
             model: ModelMapper,
+            sample_list: List[Sample],
             auto_correlation_settings: AutoCorrelationsSettings,
             unconverged_sample_size: int = 100,
             time: Optional[float] = None,
@@ -895,6 +893,7 @@ class MCMCSamples(PDFSamples):
 
         super().__init__(
             model=model,
+            sample_list=sample_list,
             unconverged_sample_size=unconverged_sample_size,
             time=time,
         )
@@ -922,11 +921,11 @@ class MCMCSamples(PDFSamples):
             Where the table is to be written
         """
 
-        samples = load_from_table(filename=filename)
+        sample_list = load_from_table(filename=filename)
 
         return OptimizerSamples(
             model=model,
-            samples=samples
+            sample_list=sample_list
         )
 
     @property
@@ -1048,6 +1047,7 @@ class NestSamples(PDFSamples):
     def __init__(
             self,
             model: AbstractPriorModel,
+            sample_list: List[Sample],
             unconverged_sample_size: int = 100,
             time: Optional[float] = None,
     ):
@@ -1068,6 +1068,7 @@ class NestSamples(PDFSamples):
 
         super().__init__(
             model=model,
+            sample_list=sample_list,
             unconverged_sample_size=unconverged_sample_size,
             time=time,
         )
@@ -1141,7 +1142,7 @@ class NestSamples(PDFSamples):
         log_prior_list = []
         weight_list = []
 
-        for sample in self.samples:
+        for sample in self.sample_list:
 
             parameters = sample.parameter_lists_for_model(model=self.model)
 
@@ -1153,7 +1154,7 @@ class NestSamples(PDFSamples):
                 log_prior_list.append(sample.log_prior)
                 weight_list.append(sample.weight)
 
-        samples = Sample.from_lists(
+        sample_list = Sample.from_lists(
             model=self.model,
             parameter_lists=parameter_list,
             log_likelihood_list=log_likelihood_list,
@@ -1163,7 +1164,7 @@ class NestSamples(PDFSamples):
 
         return StoredSamples(
             model=self.model,
-            samples=samples,
+            sample_list=sample_list,
             unconverged_sample_size=self.unconverged_sample_size,
         )
 
@@ -1173,7 +1174,7 @@ class StoredSamples(PDFSamples):
     def __init__(
             self,
             model: AbstractPriorModel,
-            samples,
+            sample_list : List[Sample],
             unconverged_sample_size: int = 100,
             time: Optional[float] = None,
     ):
@@ -1189,12 +1190,9 @@ class StoredSamples(PDFSamples):
 
         super().__init__(
             model=model,
+            sample_list=sample_list,
             time=time,
         )
 
-        self._samples = samples
         self._unconverged_sample_size = int(unconverged_sample_size)
 
-    @property
-    def samples(self):
-        return self._samples

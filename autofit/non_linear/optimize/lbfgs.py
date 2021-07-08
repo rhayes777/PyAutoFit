@@ -214,38 +214,23 @@ class LBFGSSamples(OptimizerSamples):
         self._log_posterior_list = log_posterior_list
         self.total_iterations = total_iterations
 
-        super().__init__(
-            model=model,
-            time=time,
-        )
-
-        self._samples = None
-
-    @property
-    def samples(self):
-        """
-        Create a `Samples` object from this non-linear search's output files on the hard-disk and model.
-
-        For L-BFGS, only a single ndarray of parameters is returned, alongside its log posterior value. Thus, the
-        `LBFGSSamples` object contains only one entry.
-        """
-
-        if self._samples is not None:
-            return self._samples
-
         parameter_lists = [list(self.x0)]
         log_prior_list = [
-            sum(self.model.log_prior_list_from_vector(vector=vector)) for vector in parameter_lists
+            sum(model.log_prior_list_from_vector(vector=vector)) for vector in parameter_lists
         ]
         log_likelihood_list = [lp - prior for lp, prior in zip(self._log_posterior_list, log_prior_list)]
         weight_list = len(log_likelihood_list) * [1.0]
 
-        self._samples = Sample.from_lists(
-            model=self.model,
+        sample_list = Sample.from_lists(
+            model=model,
             parameter_lists=parameter_lists,
             log_likelihood_list=log_likelihood_list,
             log_prior_list=log_prior_list,
             weight_list=weight_list
         )
 
-        return self._samples
+        super().__init__(
+            model=model,
+            sample_list=sample_list,
+            time=time,
+        )

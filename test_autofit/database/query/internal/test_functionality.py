@@ -4,11 +4,11 @@ from autofit.database import query as q
 
 
 def test_trivial():
-    assert q.Q("a") & q.Q("a") == q.Q("a")
+    assert (q.Q("a") & q.Q("a")).query == q.Q("a").query
 
 
 def test_second():
-    assert q.Q("a") & q.Q("a", q.Q("b")) == q.Q("a", q.Q("b"))
+    assert (q.Q("a") & q.Q("a", q.Q("b"))).query == (q.Q("a", q.Q("b"))).query
 
 
 def test_and_commutativity():
@@ -35,6 +35,6 @@ def test_already_compared(
         print((aggregator.centre == 1) == 1)
 
     with pytest.raises(
-            AssertionError
+            AttributeError
     ):
         print((aggregator.centre == 1).intesity)

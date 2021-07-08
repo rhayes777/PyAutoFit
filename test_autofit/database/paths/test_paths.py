@@ -1,3 +1,4 @@
+import logging
 import os
 from pathlib import Path
 
@@ -22,13 +23,36 @@ output_path = str(
     ).parent / "temp"
 )
 
-
 @output_path_for_test(
     output_path
 )
 def test_create():
     m.open_database("test.sqlite")
     assert os.path.exists(
+        output_path
+    )
+
+
+@output_path_for_test(
+    output_path
+)
+def test_make_dirs():
+    m.open_database(
+        f"a/long/path.sqlite"
+    )
+
+
+@output_path_for_test(
+    output_path
+)
+def test_create_postgres():
+    try:
+        m.open_database(
+            "postgresql://autofit:autofit@localhost/autofit"
+        )
+    except Exception as e:
+        logging.exception(e)
+    assert not os.path.exists(
         output_path
     )
 

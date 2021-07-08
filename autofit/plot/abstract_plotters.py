@@ -127,7 +127,7 @@ class AbstractPlotter:
 
         Parameters
         -----------
-        figsize : (int, int)
+        figsize
             The size of the figure in (total_y_pixels, total_x_pixels).
         as_subplot : bool
             If the figure is a subplot, the setup_figure function is omitted to ensure that each subplot does not create a \

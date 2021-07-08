@@ -23,7 +23,7 @@ def make_samples(model):
 
     return MockSamples(
         model=model,
-        samples=Sample.from_lists(
+        sample_list=Sample.from_lists(
             parameter_lists=parameters,
             log_likelihood_list=log_likelihood_list,
             log_prior_list=[0.0, 0.0],
@@ -37,7 +37,7 @@ class MockNestSamples(af.NestSamples):
     def __init__(
             self,
             model,
-            samples=None,
+            sample_list=None,
             total_samples=10,
             log_evidence=0.0,
             number_live_points=5,
@@ -45,30 +45,14 @@ class MockNestSamples(af.NestSamples):
     ):
 
         self.model = model
-        self._samples = samples
-
-        super().__init__(
-            model=model, time=time
-        )
 
         self._total_samples = total_samples
         self._log_evidence = log_evidence
         self._number_live_points = number_live_points
 
-    @property
-    def samples(self):
-        if self._samples is not None:
-            return self._samples
-
-        return [
-            Sample(
-                log_likelihood=log_likelihood,
-                log_prior=0.0,
-                weight=0.0
-            )
-            for log_likelihood
-            in self.log_likelihood_list
-        ]
+        super().__init__(
+            model=model, sample_list=sample_list, time=time
+        )
 
     @property
     def total_samples(self):
@@ -120,7 +104,7 @@ def test__search_summary_to_file(model):
 
     samples = MockSamples(
         model=model,
-        samples=Sample.from_lists(
+        sample_list=Sample.from_lists(
             parameter_lists=parameters,
             log_likelihood_list=log_likelihood_list,
             log_prior_list=[0.0, 0.0],
@@ -139,7 +123,7 @@ def test__search_summary_to_file(model):
 
     samples = MockNestSamples(
         model=model,
-        samples=Sample.from_lists(
+        sample_list=Sample.from_lists(
             parameter_lists=parameters,
             log_likelihood_list=log_likelihood_list + [2.0],
             log_prior_list=[1.0, 1.0],

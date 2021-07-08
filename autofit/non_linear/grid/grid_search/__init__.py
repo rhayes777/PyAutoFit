@@ -318,6 +318,7 @@ class GridSearch:
         )
 
     def search_instance(self, name_path):
+
         search_instance = self.search.copy_with_paths(
             self.paths.create_child(
                 name=name_path,
@@ -332,6 +333,13 @@ class GridSearch:
                     setattr(search_instance, key, value)
                 except AttributeError:
                     pass
+
+        search_instance.number_of_cores = self.number_of_cores
+
+        if self.number_of_cores > 1:
+
+            search_instance.number_of_cores = 1
+
         return search_instance
 
 

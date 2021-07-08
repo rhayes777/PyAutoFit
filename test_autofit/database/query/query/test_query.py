@@ -33,7 +33,7 @@ def test_completed_only(
         session
 ):
     aggregator = db.Aggregator.from_database(
-        '',
+        'sqlite://',
         completed_only=True
     )
     aggregator.session = session

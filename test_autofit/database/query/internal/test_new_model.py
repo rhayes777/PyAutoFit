@@ -8,13 +8,13 @@ class TestCombination:
             greater_than,
             simple_and
     ):
-        assert q.Q(
+        assert (q.Q(
             "a",
             less_than
         ) & q.Q(
             "a",
             greater_than
-        ) == simple_and
+        )).query == simple_and.query
 
     def test_second_level(
             self,
@@ -28,7 +28,7 @@ class TestCombination:
             q.Q('b', greater_than)
         )
 
-        assert first & second == second_level
+        assert (first & second).query == second_level.query
 
     def test_complicated(
             self,
@@ -77,4 +77,4 @@ class TestCombination:
             )
         )
 
-        assert first & second == combined
+        assert (first & second).query == combined.query
