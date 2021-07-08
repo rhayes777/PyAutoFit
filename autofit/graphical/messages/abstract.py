@@ -770,18 +770,6 @@ class TransformedMessage(AbstractMessage):
     # TODO add code for analytic hessians when Jacobian is fixed e.g. for shifted messages
     logpdf_gradient_hessian = AbstractMessage.numerical_logpdf_gradient_hessian
 
-    @staticmethod
-    def _from_mode(
-            cls: "TransformedMessage",
-            mode: np.ndarray,
-            covariance: np.ndarray
-    ) -> "AbstractMessage":
-        mode, jac = cls._transform.transform_jac(mode)
-        covariance = jac.invquad(covariance)
-        if cls._depth > 1:
-            return TransformedMessage._from_mode(cls._Message, mode, covariance)
-        return mode, covariance
-
     @classmethod
     def from_mode(
             cls,
@@ -790,4 +778,4 @@ class TransformedMessage(AbstractMessage):
             id_=None
     ) -> "AbstractMessage":
         mode, covariance = TransformedMessage._from_mode(cls, mode, covariance)
-        return super(TransformedMessage, cls).from_mode(mode, covariance, id_=id_)
+        return cls._Message.from_mode(mode, covariance, id_=id_)
