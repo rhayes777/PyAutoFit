@@ -23,8 +23,8 @@ class DynestyStatic(AbstractDynesty):
 
     def __init__(
             self,
-            name=None,
-            path_prefix=None,
+            name: Optional[str] = None,
+            path_prefix: Optional[str] = None,
             unique_tag: Optional[str] = None,
             prior_passer=None,
             iterations_per_update: int = None,
@@ -78,7 +78,7 @@ class DynestyStatic(AbstractDynesty):
         """Get the static Dynesty sampler which performs the non-linear search, passing it all associated input Dynesty
         variables."""
 
-        live_points = self.initial_live_points_from_model_and_fitness_function(
+        live_points = self.live_points_from_model_and_fitness_function(
             model=model, fitness_function=fitness_function
         )
 

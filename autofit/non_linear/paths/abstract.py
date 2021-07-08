@@ -36,8 +36,8 @@ pattern = re.compile(r'(?<!^)(?=[A-Z])')
 class AbstractPaths(ABC):
     def __init__(
             self,
-            name=None,
-            path_prefix=None,
+            name: Optional[str] = None,
+            path_prefix: Optional[str] = None,
             is_identifier_in_paths=True,
             parent: Optional["AbstractPaths"] = None,
             unique_tag: Optional[str] = None

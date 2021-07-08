@@ -8,16 +8,17 @@ from autofit import exc
 from autofit.non_linear.abstract_search import IntervalCounter
 from autofit.non_linear.abstract_search import NonLinearSearch
 from autofit.non_linear.initializer import InitializerPrior
+from autofit.non_linear.abstract_search import PriorPasser
 
 
 class AbstractNest(NonLinearSearch):
     def __init__(
             self,
-            name=None,
-            path_prefix=None,
+            name: Optional[str] = None,
+            path_prefix: Optional[str] = None,
             unique_tag: Optional[str] = None,
-            prior_passer=None,
-            iterations_per_update=None,
+            prior_passer: Optional[PriorPasser] = None,
+            iterations_per_update: Optional[int] = None,
             session: Optional[Session] = None,
             **kwargs
     ):

@@ -11,6 +11,7 @@ from autofit.non_linear import abstract_search
 from autofit.non_linear import result as res
 from autofit.non_linear.nest import abstract_nest
 from autofit.non_linear.samples import NestSamples, Sample
+from autofit.non_linear.abstract_search import PriorPasser
 
 
 class MultiNest(abstract_nest.AbstractNest):
@@ -26,10 +27,10 @@ class MultiNest(abstract_nest.AbstractNest):
 
     def __init__(
             self,
-            name=None,
-            path_prefix=None,
+            name: Optional[str] = None,
+            path_prefix: Optional[str] = None,
             unique_tag: Optional[str] = None,
-            prior_passer=None,
+            prior_passer: Optional[PriorPasser] = None,
             session: Optional[Session] = None,
             **kwargs
     ):

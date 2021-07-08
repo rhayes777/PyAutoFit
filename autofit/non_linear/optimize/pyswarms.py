@@ -9,6 +9,8 @@ from autofit import exc
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.optimize.abstract_optimize import AbstractOptimizer
 from autofit.non_linear.samples import OptimizerSamples, Sample
+from autofit.non_linear.abstract_search import PriorPasser
+from autofit.non_linear.initializer import Initializer
 from autofit.plot import PySwarmsPlotter
 from autofit.plot.mat_wrap.wrap.wrap_base import Output
 
@@ -16,11 +18,11 @@ from autofit.plot.mat_wrap.wrap.wrap_base import Output
 class AbstractPySwarms(AbstractOptimizer):
     def __init__(
             self,
-            name=None,
-            path_prefix=None,
+            name: Optional[str] = None,
+            path_prefix: Optional[str] = None,
             unique_tag: Optional[str] = None,
-            prior_passer=None,
-            initializer=None,
+            prior_passer: Optional[PriorPasser] = None,
+            initializer: Optional[Initializer] = None,
             iterations_per_update: int = None,
             number_of_cores: int = None,
             session: Optional[Session] = None,
@@ -92,8 +94,11 @@ class AbstractPySwarms(AbstractOptimizer):
             return np.asarray(figures_of_merit)
 
         def figure_of_merit_from(self, parameter_list):
-            """The figure of merit is the value that the `NonLinearSearch` uses to sample parameter space. *PySwarms*
-            uses the chi-squared value, which is the -2.0*log_posterior."""
+            """
+            The figure of merit is the value that the `NonLinearSearch` uses to sample parameter space.
+
+            PySwarms uses the chi-squared value, which is the -2.0*log_posterior.
+            """
             return -2.0 * self.log_posterior_from(parameter_list=parameter_list)
 
     def _fit(self, model: AbstractPriorModel, analysis, log_likelihood_cap=None):
@@ -121,14 +126,14 @@ class AbstractPySwarms(AbstractOptimizer):
 
         if self.paths.is_object("points"):
 
-            init_pos = self.load_points[-1]
-            total_iterations = self.load_total_iterations
+            init_pos = self.paths.load_object("points")[-1]
+            total_iterations = self.paths.load_object("total_iterations")
 
             self.logger.info("Existing PySwarms samples found, resuming non-linear search.")
 
         else:
 
-            initial_unit_parameter_lists, initial_parameter_lists, initial_log_posterior_list = self.initializer.initial_samples_from_model(
+            unit_parameter_lists, parameter_lists, log_posterior_list = self.initializer.samples_from_model(
                 total_points=self.config_dict_search["n_particles"],
                 model=model,
                 fitness_function=fitness_function,
@@ -136,7 +141,7 @@ class AbstractPySwarms(AbstractOptimizer):
 
             init_pos = np.zeros(shape=(self.config_dict_search["n_particles"], model.prior_count))
 
-            for index, parameters in enumerate(initial_parameter_lists):
+            for index, parameters in enumerate(parameter_lists):
 
                 init_pos[index, :] = np.asarray(parameters)
 
@@ -172,10 +177,7 @@ class AbstractPySwarms(AbstractOptimizer):
 
             iterations_remaining = self.config_dict_run["iters"] - total_iterations
 
-            if self.iterations_per_update > iterations_remaining:
-                iterations = iterations_remaining
-            else:
-                iterations = self.iterations_per_update
+            iterations = min(self.iterations_per_update, iterations_remaining)
 
             if iterations > 0:
 
@@ -200,7 +202,7 @@ class AbstractPySwarms(AbstractOptimizer):
                     model=model, analysis=analysis, during_analysis=True
                 )
 
-                init_pos = self.load_points[-1]
+                init_pos = self.paths.load_object("points")[-1]
 
         self.logger.info("PySwarmsGlobal complete")
 
@@ -221,28 +223,10 @@ class AbstractPySwarms(AbstractOptimizer):
 
         return PySwarmsSamples(
             model=model,
-            points=self.load_points,
-            log_posterior_list=self.load_log_posterior_list,
-            total_iterations=self.load_total_iterations,
+            points=self.paths.load_object("points"),
+            log_posterior_list=self.paths.load_object("log_posterior_list"),
+            total_iterations=self.paths.load_object("total_iterations"),
             time=self.timer.time
-        )
-
-    @property
-    def load_points(self):
-        return self.paths.load_object(
-            "points"
-        )
-
-    @property
-    def load_log_posterior_list(self):
-        return self.paths.load_object(
-            "log_posterior_list"
-        )
-
-    @property
-    def load_total_iterations(self):
-        return self.paths.load_object(
-            "total_iterations"
         )
 
     def plot_results(self, samples):
@@ -278,11 +262,11 @@ class PySwarmsGlobal(AbstractPySwarms):
 
     def __init__(
             self,
-            name=None,
-            path_prefix=None,
+            name: Optional[str] = None,
+            path_prefix: Optional[str] = None,
             unique_tag: Optional[str] = None,
-            prior_passer=None,
-            initializer=None,
+            prior_passer: Optional[PriorPasser] = None,
+            initializer: Optional[Initializer] = None,
             iterations_per_update: int = None,
             number_of_cores: int = None,
             session: Optional[Session] = None,
@@ -367,8 +351,8 @@ class PySwarmsLocal(AbstractPySwarms):
 
     def __init__(
             self,
-            name=None,
-            path_prefix=None,
+            name: Optional[str] = None,
+            path_prefix: Optional[str] = None,
             unique_tag: Optional[str] = None,
             prior_passer=None,
             iterations_per_update: int = None,

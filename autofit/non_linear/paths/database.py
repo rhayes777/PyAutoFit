@@ -11,8 +11,8 @@ class DatabasePaths(AbstractPaths):
     def __init__(
             self,
             session,
-            name=None,
-            path_prefix=None,
+            name: Optional[str] = None,
+            path_prefix: Optional[str] = None,
             is_identifier_in_paths=True,
             parent=None,
             save_all_samples=False,
