@@ -444,7 +444,7 @@ class OptimizerSamples:
         """
         samples = copy(self)
         samples.model = None
-        samples._samples = list({
+        samples.sample_list = list({
             self.max_log_likelihood_sample,
             self.max_log_posterior_sample
         })

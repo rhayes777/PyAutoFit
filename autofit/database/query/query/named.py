@@ -25,6 +25,13 @@ def _make_comparison(
     -------
     A condition
     """
+    if other is None:
+        if symbol != "=":
+            raise AssertionError(
+                "Inequalities to None do not make sense"
+            )
+        return c.NoneCondition()
+
     if isinstance(other, str):
         return c.StringValueCondition(
             symbol, other
@@ -50,7 +57,8 @@ class NamedQuery(AbstractQuery):
     def __init__(
             self,
             name: str,
-            condition: Optional[c.AbstractCondition] = None
+            condition: Optional[c.AbstractCondition] = None,
+            inverted=False
     ):
         """
         An object which can be converted into SQL and used to query the database.
@@ -76,6 +84,14 @@ class NamedQuery(AbstractQuery):
         """
         super().__init__(condition)
         self.name = name
+        self._inverted = inverted
+
+    def __invert__(self):
+        return NamedQuery(
+            name=self.name,
+            condition=self._condition,
+            inverted=not self._inverted
+        )
 
     @property
     def other_condition(self) -> c.AbstractCondition:
@@ -119,8 +135,14 @@ class NamedQuery(AbstractQuery):
         return f"SELECT parent_id FROM {self.tables_string} WHERE {self.condition}"
 
     @property
+    def _in(self):
+        if self._inverted:
+            return f"NOT IN"
+        return "IN"
+
+    @property
     def fit_query(self) -> str:
-        return f"SELECT id FROM fit WHERE instance_id IN ({self.query})"
+        return f"SELECT id FROM fit WHERE instance_id {self._in} ({self.query})"
 
     @property
     def tables_string(self) -> str:
@@ -147,7 +169,7 @@ class NamedQuery(AbstractQuery):
         return string
 
     def __str__(self):
-        return f"o.id IN ({self.query})"
+        return f"o.id {self._in} ({self.query})"
 
     def __getattr__(self, item: str):
         """
@@ -175,6 +197,9 @@ class NamedQuery(AbstractQuery):
         A newly created query that is the same as this query but with an additional
         NamedQuery added on the end for the new attribute.
         """
+        if item == "__setstate__":
+            raise AttributeError()
+
         if self.other_condition is None:
             return NamedQuery(
                 self.name,
@@ -195,9 +220,12 @@ class NamedQuery(AbstractQuery):
                 )
             )
 
-        raise AssertionError(
+        raise AttributeError(
             "Can only extend a simple path query"
         )
+
+    def __ne__(self, other):
+        return ~(self == other)
 
     def __eq__(self, other):
         if isinstance(other, NamedQuery):

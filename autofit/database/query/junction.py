@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from collections import defaultdict
 from typing import Set, Iterable
 
-from .condition import AbstractCondition, Table
+from .condition import AbstractCondition, Table, none_table
 
 
 class AbstractJunction(AbstractCondition, ABC):
@@ -96,7 +96,7 @@ class AbstractJunction(AbstractCondition, ABC):
                 elif isinstance(
                         condition,
                         NamedQuery
-                ):
+                ) and none_table not in condition.tables:
                     named_query_dict[
                         condition.name
                     ].add(

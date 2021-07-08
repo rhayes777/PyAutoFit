@@ -2,9 +2,9 @@ import numpy as np
 from scipy import special
 
 from autofit.graphical.messages.abstract import AbstractMessage
+from autofit.graphical.utils import cached_property
 from autofit.graphical.utils import invpsilog
 
-from autofit.graphical.utils import cached_property
 
 class GammaMessage(AbstractMessage):
     @property
@@ -22,11 +22,17 @@ class GammaMessage(AbstractMessage):
             self,
             alpha=1.,
             beta=1.,
-            log_norm=0.
+            log_norm=0.,
+            id_=None
     ):
         self.alpha = alpha
         self.beta = beta
-        super().__init__(alpha, beta, log_norm=log_norm)
+        super().__init__(
+            alpha,
+            beta,
+            log_norm=log_norm,
+            id_=id_
+        )
 
     @cached_property
     def natural_parameters(self):
@@ -69,12 +75,17 @@ class GammaMessage(AbstractMessage):
         return np.random.gamma(a1, scale=1 / b1, size=shape)
 
     @classmethod
-    def from_mode(cls, mode, covariance):
+    def from_mode(
+            cls,
+            mode,
+            covariance,
+            id_
+    ):
         m, V = cls._get_mean_variance(mode, covariance)
 
         alpha = 1 + m ** 2 * V  # match variance
         beta = alpha / m  # match mean
-        return cls(alpha, beta)
+        return cls(alpha, beta, id_=id_)
 
     def kl(self, dist):
         P, Q = dist, self
@@ -82,23 +93,22 @@ class GammaMessage(AbstractMessage):
         # TODO check this is correct
         # https://arxiv.org/pdf/0911.4863.pdf
         return (
-            (P.alpha - Q.alpha) * special.psi(P.alpha)
-            - special.gammaln(P.alpha) + special.gammaln(Q.alpha)
-            + Q.alpha * (np.log(P.beta / Q.beta))
-            + P.alpha * (Q.beta/P.beta - 1)
+                (P.alpha - Q.alpha) * special.psi(P.alpha)
+                - special.gammaln(P.alpha) + special.gammaln(Q.alpha)
+                + Q.alpha * (np.log(P.beta / Q.beta))
+                + P.alpha * (Q.beta / P.beta - 1)
         )
 
     def logpdf_gradient(self, x):
         logl = self.logpdf(x)
         eta1 = self.natural_parameters[0]
-        gradl = eta1/x - self.beta 
-        return logl, gradl 
+        gradl = eta1 / x - self.beta
+        return logl, gradl
 
     def logpdf_gradient_hessian(self, x):
         logl = self.logpdf(x)
         eta1 = self.natural_parameters[0]
-        gradl = eta1/x
-        hessl = - gradl/x
-        gradl -= self.beta 
+        gradl = eta1 / x
+        hessl = - gradl / x
+        gradl -= self.beta
         return logl, gradl, hessl
-    

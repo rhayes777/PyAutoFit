@@ -1,6 +1,7 @@
 import logging
 from typing import Optional, List, Union
 
+from sqlalchemy import desc
 from sqlalchemy.orm import Session
 
 from autofit.database import query as q
@@ -91,6 +92,15 @@ class FitQuery(Query):
         return q.A(name)
 
 
+class Reverse:
+    def __init__(self, item):
+        self.item = item
+
+    @property
+    def attribute(self):
+        return self.item.attribute
+
+
 class Aggregator:
     def __init__(
             self,
@@ -98,7 +108,8 @@ class Aggregator:
             filename: Optional[str] = None,
             predicate: AbstractQuery = NullPredicate(),
             offset=0,
-            limit=None
+            limit=None,
+            order_bys=None
     ):
         """
         Query results from an intermediary SQLite database.
@@ -117,10 +128,43 @@ class Aggregator:
         self._predicate = predicate
         self._offset = offset
         self._limit = limit
+        self._order_bys = order_bys or list()
 
     def __iter__(self):
         return iter(
             self.fits
+        )
+
+    def order_by(
+            self,
+            item: Attribute,
+            reverse=False
+    ) -> "Aggregator":
+        """
+        Order the results by a given attribute of the search. Can be applied
+        multiple times with the first application taking precedence.
+
+        Parameters
+        ----------
+        item
+            An attribute of the search
+        reverse
+            If True reverse the results
+
+        Returns
+        -------
+        An aggregator with ordering applied
+
+        Examples
+        --------
+        aggregator = aggregator.order_by(
+            aggregator.search.unique_tag
+        )
+        """
+        if reverse:
+            item = Reverse(item)
+        return self._new_with(
+            order_bys=self._order_bys + [item]
         )
 
     @property
@@ -251,6 +295,7 @@ class Aggregator:
             "session": self.session,
             "filename": self.filename,
             "predicate": self._predicate,
+            "order_bys": self._order_bys,
             **kwargs
         }
         return Aggregator(
@@ -323,16 +368,32 @@ class Aggregator:
                 query
             )
         }
+
         logger.info(
             f"{len(fit_ids)} fit(s) found matching query"
         )
-        return self.session.query(
+        query = self.session.query(
             m.Fit
         ).filter(
             m.Fit.id.in_(
                 fit_ids
             )
-        ).offset(
+        )
+        for order_by in self._order_bys:
+            attribute = getattr(
+                m.Fit,
+                order_by.attribute
+            )
+            if isinstance(
+                    order_by,
+                    Reverse
+            ):
+                attribute = desc(attribute)
+            query = query.order_by(
+                attribute
+            )
+
+        return query.offset(
             self._offset
         ).limit(
             self._limit
