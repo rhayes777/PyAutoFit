@@ -202,6 +202,21 @@ def test_transformed_from_mode():
     assert isinstance(m, M)
     assert np.isclose(m.mu, 0.25)
     assert np.isclose(m.sigma, 20.)
+    
+    M = graph.NormalMessage.shifted(
+        shift=-0.5, scale=0.2
+    ).transformed(
+        transform.log_transform
+    ).transformed(
+        transform.exp_transform
+    ).shifted(
+        shift=0.5, scale=2.5
+    )
+    m = M.from_mode(0.0, 100)
+    print(m, m.mu, m.sigma)
+    assert isinstance(m, M)
+    assert np.isclose(m.mu, 1.5)
+    assert np.isclose(m.sigma, 5.)
 
 def test_multinomial_logit():
     mult_logit = transform.multinomial_logit_transform
