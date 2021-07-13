@@ -90,5 +90,6 @@ def open_database(
         migrator.migrate(
             session
         )
-    Base.metadata.create_all(engine)
+    else:
+        Base.metadata.create_all(engine)
     return session

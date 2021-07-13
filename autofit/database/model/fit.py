@@ -183,7 +183,7 @@ class NamedInstancesWrapper:
         )
 
 
-class Fit(Base, InstanceMixin):
+class Fit(Base):
     __tablename__ = "fit"
 
     id = Column(
@@ -197,6 +197,20 @@ class Fit(Base, InstanceMixin):
     _named_instances: List[NamedInstance] = relationship(
         "NamedInstance"
     )
+
+    @property
+    @try_none
+    def instance(self):
+        """
+        The instance of the model that had the highest likelihood
+        """
+        return self.__instance()
+
+    @instance.setter
+    def instance(self, instance):
+        self.__instance = Object.from_object(
+            instance
+        )
 
     @property
     def named_instances(self):
