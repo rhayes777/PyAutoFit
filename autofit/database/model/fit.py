@@ -97,25 +97,7 @@ def try_none(func):
     return wrapper
 
 
-class InstanceMixin:
-    __instance: relationship
-
-    @property
-    @try_none
-    def instance(self):
-        """
-        The instance of the model that had the highest likelihood
-        """
-        return self.__instance()
-
-    @instance.setter
-    def instance(self, instance):
-        self.__instance = Object.from_object(
-            instance
-        )
-
-
-class NamedInstance(Base, InstanceMixin):
+class NamedInstance(Base):
     __tablename__ = "named_instance"
 
     id = Column(
@@ -137,6 +119,20 @@ class NamedInstance(Base, InstanceMixin):
         backref="named_instance",
         foreign_keys=[instance_id]
     )
+
+    @property
+    @try_none
+    def instance(self):
+        """
+        The instance of the model that had the highest likelihood
+        """
+        return self.__instance()
+
+    @instance.setter
+    def instance(self, instance):
+        self.__instance = Object.from_object(
+            instance
+        )
 
     fit_id = Column(
         String,

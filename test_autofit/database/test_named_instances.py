@@ -16,3 +16,28 @@ def test_set_and_retrieve(
         ],
         af.Gaussian
     )
+
+
+def test_query(
+        session
+):
+    fit = db.Fit(
+        id="test_query"
+    )
+    fit.named_instances[
+        "one"
+    ] = af.Gaussian()
+
+    session.add(fit)
+    session.commit()
+
+    fit, = db.Fit.all(
+        session
+    )
+
+    assert isinstance(
+        fit.named_instances[
+            "one"
+        ],
+        af.Gaussian
+    )
