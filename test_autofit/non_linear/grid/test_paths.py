@@ -87,6 +87,24 @@ def make_database_paths(
     )
 
 
+def test_save_instance(
+        session
+):
+    paths = af.DatabasePaths(
+        session=session
+    )
+    paths.save_named_instance(
+        "name",
+        af.Gaussian()
+    )
+    assert isinstance(
+        paths.fit.named_instances[
+            "name"
+        ],
+        af.Gaussian
+    )
+
+
 def test_paths_type(
         database_paths
 ):
