@@ -31,10 +31,9 @@ class LineItem(Item):
         )
 
     def __new__(cls, string, parent):
-        if string.startswith(
-                "from"
-        ) or string.startswith(
-            "import"
+        if re.match(
+                r" *(import|from).*",
+                string
         ):
             return object.__new__(Import)
         return object.__new__(LineItem)

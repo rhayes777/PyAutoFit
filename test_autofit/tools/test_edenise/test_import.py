@@ -1,6 +1,6 @@
 import pytest
 
-from autofit.tools.edenise import Package, Import
+from autofit.tools.edenise import Package, Import, LineItem
 
 
 @pytest.fixture(
@@ -10,6 +10,19 @@ def make_import(package):
     return Import(
         "from autofit.tools.edenise import Line",
         parent=package
+    )
+
+
+def test_local_import_type(
+        package
+):
+    item = LineItem(
+        "    from autofit.tools.edenise import Line",
+        parent=package
+    )
+    assert isinstance(
+        item,
+        Import
     )
 
 
