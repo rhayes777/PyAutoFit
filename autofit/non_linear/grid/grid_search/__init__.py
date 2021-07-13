@@ -1,18 +1,33 @@
 import copy
 import logging
 from os import path
-from typing import List, Tuple, Union
+from typing import List, Tuple, Union, Type
 
 from autofit import exc
 from autofit.mapper.prior import prior as p
 from autofit.non_linear.parallel import Process
+from autofit.non_linear.result import Result
 from .job import Job
 from .result import GridSearchResult
 
 
+class Sequential:
+    # noinspection PyUnusedLocal
+    @staticmethod
+    def run_jobs(jobs, *_, **kwargs):
+        for job_ in jobs:
+            yield job_.perform()
+
+
 class GridSearch:
 
-    def __init__(self, search, number_of_steps=4, number_of_cores=1):
+    def __init__(
+            self,
+            search,
+            number_of_steps: int = 4,
+            number_of_cores: int = 1,
+            result_output_interval: int = 100
+    ):
         """
         Performs a non linear optimiser search for each square in a grid. The dimensionality of the search depends on
         the number of distinct priors passed to the fit function. (1 / step_size) ^ no_dimension steps are performed
@@ -20,10 +35,12 @@ class GridSearch:
 
         Parameters
         ----------
-        number_of_steps: int
+        number_of_steps
             The number of steps to go in each direction
-        search: class
+        search
             The class of the search that is run at each step
+        result_output_interval
+            The interval between saving a GridSearchResult object via paths
         """
         self.logger = logging.getLogger(
             f"GridSearch ({search.name})"
@@ -44,6 +61,8 @@ class GridSearch:
         self.number_of_steps = number_of_steps
         self.search = search
         self.prior_passer = search.prior_passer
+
+        self.result_output_interval = result_output_interval
 
     @property
     def parallel(self) -> bool:
@@ -142,17 +161,26 @@ class GridSearch:
             grid_priors=grid_priors
         )
 
-    def fit_parallel(self, model, analysis, grid_priors):
+    def fit_parallel(
+            self,
+            model,
+            analysis,
+            grid_priors,
+            process_class=Union[Type[Process], Type[Sequential]]
+    ):
         """
         Perform the grid search in parallel, with all the optimisation for each grid square being performed on a
         different process.
 
         Parameters
         ----------
+        model
         analysis
             An analysis
         grid_priors
             Priors describing the position in the grid
+        process_class
+            Class used to dispatch jobs
 
         Returns
         -------
@@ -174,28 +202,46 @@ class GridSearch:
             + ["likelihood_merit"]
         ]
 
-        for result in Process.run_jobs(
-                self.make_jobs(
-                    model,
-                    analysis,
-                    grid_priors
-                ),
-                self.number_of_cores
-        ):
-            results.append(result)
-            results = sorted(results)
-            results_list.append(result.result_list_row)
-            self.write_results(results_list)
+        def make_grid_search_result():
+            return GridSearchResult(
+                [
+                    Result(
+                        samples=r.result.samples,
+                        model=r.result.model
+                    )
+                    for r
+                    in results
+                ],
+                lists,
+                physical_lists
+            )
 
-        return GridSearchResult(
-            [
-                result.result
-                for result
-                in results
-            ],
-            lists,
-            physical_lists
-        )
+        def save_results():
+            self.paths.save_object(
+                "result",
+                make_grid_search_result()
+            )
+
+        for i, job_result in enumerate(
+                process_class.run_jobs(
+                    self.make_jobs(
+                        model,
+                        analysis,
+                        grid_priors
+                    ),
+                    self.number_of_cores
+                )
+        ):
+            results.append(job_result)
+            results = sorted(results)
+            results_list.append(job_result.result_list_row)
+            self.write_results(results_list)
+            if i % self.result_output_interval == 0:
+                save_results()
+
+        save_results()
+
+        return make_grid_search_result()
 
     def fit_sequential(self, model, analysis, grid_priors):
         """
@@ -204,6 +250,8 @@ class GridSearch:
 
         Parameters
         ----------
+        model
+            The model on which grid search is run
         analysis
             An analysis
         grid_priors
@@ -218,31 +266,12 @@ class GridSearch:
             "...sequentially"
         )
 
-        grid_priors = list(sorted(set(grid_priors), key=lambda prior: prior.id))
-        results = []
-        lists = self.make_lists(grid_priors)
-        physical_lists = self.make_physical_lists(grid_priors)
-
-        results_list = [
-            ["index"]
-            + list(map(model.name_for_prior, grid_priors))
-            + ["max_log_likelihood"]
-        ]
-
-        for job in self.make_jobs(
-                model,
-                analysis,
-                grid_priors
-        ):
-
-            result = job.perform()
-
-            results.append(result.result)
-            results_list.append(result.result_list_row)
-
-            self.write_results(results_list)
-
-        return GridSearchResult(results, lists, physical_lists)
+        return self.fit_parallel(
+            model,
+            analysis,
+            grid_priors,
+            process_class=Sequential
+        )
 
     def make_jobs(self, model, analysis, grid_priors):
         grid_priors = list(set(grid_priors))
