@@ -218,7 +218,8 @@ class Fit(Base):
         )
 
     pickles: List[Pickle] = relationship(
-        "Pickle"
+        "Pickle",
+        lazy="joined"
     )
 
     def __getitem__(self, item: str):
