@@ -13,7 +13,8 @@ def make_children():
             id=f"child_{i}",
             instance=Gaussian(
                 centre=i
-            )
+            ),
+            max_log_likelihood=i
         )
         for i in range(10)
     ]
@@ -44,6 +45,15 @@ def add_to_session(
         grid_fit
     )
     session.flush()
+
+
+def test_grid_search_best_fits(
+        aggregator,
+        children
+):
+    assert aggregator.grid_searches().best_fits == [
+        children[-1]
+    ]
 
 
 def test_grid_search(

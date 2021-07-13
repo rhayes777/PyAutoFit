@@ -479,4 +479,10 @@ class Aggregator:
 
 
 class GridSearchAggregator(Aggregator):
-    pass
+    @property
+    def best_fits(self):
+        return [
+            fit.best_fit
+            for fit
+            in self
+        ]
