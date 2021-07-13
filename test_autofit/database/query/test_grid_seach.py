@@ -57,6 +57,16 @@ def test_grid_search(
     assert result is grid_fit
 
 
+def test_grid_searches(
+        aggregator
+):
+    aggregator = aggregator.grid_searches()
+    assert isinstance(
+        aggregator,
+        db.GridSearchAggregator
+    )
+
+
 class TestChildren:
     def test_simple(
             self,

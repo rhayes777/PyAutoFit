@@ -289,7 +289,8 @@ class Aggregator:
 
     def _new_with(
             self,
-            **kwargs
+            type_=None,
+            **kwargs,
     ):
         kwargs = {
             "session": self.session,
@@ -298,7 +299,8 @@ class Aggregator:
             "order_bys": self._order_bys,
             **kwargs
         }
-        return Aggregator(
+        type_ = type_ or Aggregator
+        return type_(
             **kwargs
         )
 
@@ -468,3 +470,13 @@ class Aggregator:
                 aggregator.search.is_complete
             )
         return aggregator
+
+    def grid_searches(self):
+        return self._new_with(
+            type_=GridSearchAggregator,
+            predicate=self._predicate & self.search.is_grid_search
+        )
+
+
+class GridSearchAggregator(Aggregator):
+    pass
