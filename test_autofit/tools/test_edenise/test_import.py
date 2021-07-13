@@ -13,17 +13,32 @@ def make_import(package):
     )
 
 
-def test_local_import_type(
+@pytest.fixture(
+    name="local_import"
+)
+def make_local_import(
         package
 ):
-    item = LineItem(
+    return LineItem(
         "    from autofit.tools.edenise import Line",
         parent=package
     )
+
+
+def test_local_import_type(
+        local_import
+):
     assert isinstance(
-        item,
+        local_import,
         Import
     )
+
+
+def test_local_import_target(
+        local_import
+):
+    string = "    from VIS_CTI_Autofit.VIS_CTI_Tools.VIS_CTI_Edenise import Line"
+    assert local_import.target_import_string == string
 
 
 def test_project_import(import_, package):

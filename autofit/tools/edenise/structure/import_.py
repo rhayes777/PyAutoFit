@@ -202,7 +202,7 @@ class Import(LineItem):
 
     @property
     def _parts(self):
-        return self.string.split(" ")
+        return self.string.lstrip().split(" ")
 
     @property
     def items(self):
@@ -241,14 +241,25 @@ class Import(LineItem):
         """
         Is this object within the top level object?
         """
+        string = self.string.lstrip()
         for dependency in self.eden_dependencies:
-            if (self.string.startswith(
+            if (string.startswith(
                     f"from {dependency}"
-            ) or self.string.startswith(
+            ) or string.startswith(
                 f"import {dependency}"
             )):
                 return True
         return False
+
+    @property
+    def _space_prefix(self) -> str:
+        """
+        A string of spaces at the start of the import string
+        """
+        return re.findall(
+            f"( *).*",
+            self.string
+        )[0]
 
     @property
     def target_import_string(self) -> str:
@@ -271,7 +282,7 @@ class Import(LineItem):
             in self.items
         ])
 
-        return f"from {module_string} import {item_string}"
+        return f"{self._space_prefix}from {module_string} import {item_string}"
 
 
 class As:
