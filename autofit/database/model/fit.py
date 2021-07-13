@@ -124,7 +124,7 @@ class NamedInstance(Base):
     @try_none
     def instance(self):
         """
-        The instance of the model that had the highest likelihood
+        An instance of the model labelled with a given name
         """
         return self.__instance()
 
@@ -148,15 +148,32 @@ class NamedInstance(Base):
 
 # noinspection PyProtectedMember
 class NamedInstancesWrapper:
-    def __init__(self, fit):
+    def __init__(self, fit: "Fit"):
+        """
+        Provides dictionary like interface for accessing
+        instance objects
+
+        Parameters
+        ----------
+        fit
+            A fit from which instances are accessed
+        """
         self.fit = fit
 
-    def __getitem__(self, item):
+    def __getitem__(self, item: str):
+        """
+        Get an instance with a given name.
+
+        Raises a KeyError if no such instance exists.
+        """
         return self._get_named_instance(
             item
         ).instance
 
-    def __setitem__(self, key, value):
+    def __setitem__(self, key: str, value):
+        """
+        Set an instance for a given name
+        """
         try:
             named_instance = self._get_named_instance(
                 key
@@ -170,12 +187,18 @@ class NamedInstancesWrapper:
             )
         named_instance.instance = value
 
-    def _get_named_instance(self, item):
+    def _get_named_instance(
+            self,
+            item: str
+    ) -> "NamedInstance":
+        """
+        Retrieve a NamedInstance by its name.
+        """
         for named_instance in self.fit._named_instances:
             if named_instance.name == item:
                 return named_instance
         raise KeyError(
-            "Instance not found"
+            f"Instance {item} not found"
         )
 
 
