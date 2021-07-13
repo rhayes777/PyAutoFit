@@ -31,6 +31,18 @@ class DatabasePaths(AbstractPaths):
 
     parent: "DatabasePaths"
 
+    def save_named_instance(
+            self,
+            name: str,
+            instance
+    ):
+        """
+        Save an instance, such as that at a given sigma
+        """
+        self.fit.named_instances[
+            name
+        ] = instance
+
     def create_child(
             self,
             name: Optional[str] = None,
