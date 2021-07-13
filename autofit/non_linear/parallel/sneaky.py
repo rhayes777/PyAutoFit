@@ -2,10 +2,15 @@ import logging
 import multiprocessing as mp
 from typing import Iterable
 
+from autoconf import conf
+from autofit.non_linear.paths.abstract import AbstractPaths
 from dynesty.dynesty import _function_wrapper
 from emcee.ensemble import _FunctionWrapper
 
+import os
+from os import path
 from .process import AbstractJob, Process, StopCommand
+import cProfile
 
 logger = logging.getLogger(
     __name__
@@ -137,6 +142,7 @@ class SneakyProcess(Process):
     def __init__(
             self,
             name: str,
+            paths: AbstractPaths,
             initializer=None,
             initargs=None,
             job_args=tuple()
@@ -145,6 +151,7 @@ class SneakyProcess(Process):
         Each SneakyProcess creates its own queue to avoid locking during
         highly parallel optimisations.
         """
+
         super().__init__(
             name,
             job_queue=mp.Queue(),
@@ -152,6 +159,7 @@ class SneakyProcess(Process):
             initargs=initargs,
             job_args=job_args,
         )
+        self.paths = paths
 
     def run(self):
         """
@@ -161,6 +169,10 @@ class SneakyProcess(Process):
         The process continues to execute until a StopCommand is passed.
         This occurs when the SneakyMap goes out of scope.
         """
+
+        if conf.instance["general"]["test"]["parallel_profile"]:
+            pr = cProfile.Profile()
+            pr.enable()
 
         self._init()
         self.logger.debug("starting")
@@ -183,12 +195,32 @@ class SneakyProcess(Process):
         self.logger.debug("terminating process {}".format(self.name))
         self.job_queue.close()
 
+        if conf.instance["general"]["test"]["parallel_profile"]:
+
+            try:
+                os.makedirs(self.paths.profile_path)
+            except FileExistsError:
+                pass
+
+            sneaky_path = path.join(self.paths.profile_path, f"sneaky_{self.pid}.prof")
+
+            pr.dump_stats(sneaky_path)
+            pr.disable()
+
+
+    def open_profiler(self):
+
+        if conf.instance["general"]["test"]["parallel_profile"]:
+            pr = cProfile.Profile()
+            pr.enable()
+
 
 class SneakyPool:
     def __init__(
             self,
             processes: int,
             fitness,
+            paths: AbstractPaths,
             initializer=None,
             initargs=None
     ):
@@ -214,6 +246,7 @@ class SneakyPool:
         self._processes = [
             SneakyProcess(
                 str(number),
+                paths=paths,
                 initializer=initializer,
                 initargs=initargs,
                 job_args=(fitness,)
