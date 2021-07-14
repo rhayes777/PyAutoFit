@@ -101,6 +101,11 @@ class DatabasePaths(AbstractPaths):
                 ignore_errors=True
             )
 
+    def __getstate__(self):
+        d = self.__dict__.copy()
+        del d["session"]
+        return d
+
     def save_object(self, name: str, obj: object):
         self.fit[name] = obj
 
