@@ -62,7 +62,7 @@ class GridSearch:
         self.search = search
         self.prior_passer = search.prior_passer
 
-        self.result_output_interval = result_output_interval
+        self._result_output_interval = result_output_interval
 
     @property
     def parallel(self) -> bool:
@@ -237,7 +237,7 @@ class GridSearch:
             results = sorted(results)
             results_list.append(job_result.result_list_row)
             self.write_results(results_list)
-            if i % self.result_output_interval == 0:
+            if i % self._result_output_interval == 0:
                 save_results()
 
         save_results()
