@@ -320,19 +320,6 @@ class Aggregator:
             **kwargs
         )
 
-    def children(self) -> "Aggregator":
-        """
-        An aggregator comprising the children of the fits encapsulated
-        by this aggregator. This is used to query children in a grid search.
-        """
-        return Aggregator(
-            session=self.session,
-            filename=self.filename,
-            predicate=q.ChildQuery(
-                self._predicate
-            )
-        )
-
     def __getitem__(self, item):
         offset = self._offset
         limit = self._limit
@@ -512,3 +499,16 @@ class GridSearchAggregator(Aggregator):
             for fit
             in self
         ]
+
+    def children(self) -> "GridSearchAggregator":
+        """
+        An aggregator comprising the children of the fits encapsulated
+        by this aggregator. This is used to query children in a grid search.
+        """
+        return GridSearchAggregator(
+            session=self.session,
+            filename=self.filename,
+            predicate=q.ChildQuery(
+                self._predicate
+            )
+        )

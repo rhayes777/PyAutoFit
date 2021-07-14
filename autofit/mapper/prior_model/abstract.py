@@ -925,6 +925,19 @@ class AbstractPriorModel(AbstractModel):
         return formatter.text
 
     @property
+    def order_no(self) -> str:
+        values = [
+            str(float(value))
+            for _, value in sorted(
+                self.path_instance_tuples_for_class((
+                    Prior, float
+                )),
+                key=lambda t: t[0]
+            )
+        ]
+        return ":".join(values)
+
+    @property
     def parameterization(self) -> str:
         """
         Describes the path to each of the PriorModels, its class
