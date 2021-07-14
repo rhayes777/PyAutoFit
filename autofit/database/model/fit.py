@@ -3,7 +3,7 @@ from functools import wraps
 from typing import List
 
 from sqlalchemy import Column, Integer, ForeignKey, String, Boolean, inspect, Float
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, backref
 
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.samples import OptimizerSamples
@@ -259,15 +259,13 @@ class Fit(Base):
             "fit.id"
         )
     )
-    parent: "Fit" = relationship(
-        "Fit",
-        uselist=False,
-        foreign_keys=[
-            parent_id
-        ]
-    )
+
     children: List["Fit"] = relationship(
-        "Fit"
+        "Fit",
+        backref=backref(
+            'parent',
+            remote_side=[id]
+        )
     )
 
     @property
