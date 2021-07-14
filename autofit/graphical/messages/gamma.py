@@ -34,6 +34,9 @@ class GammaMessage(AbstractMessage):
             id_=id_
         )
 
+    def value_for(self, unit: float) -> float:
+        raise NotImplemented()
+
     @cached_property
     def natural_parameters(self):
         return self.calc_natural_parameters(

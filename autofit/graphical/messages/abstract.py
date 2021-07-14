@@ -31,7 +31,7 @@ def assert_ids_match(func):
     return wrapper
 
 
-class AbstractMessage(ABC):
+class AbstractMessage(Prior, ABC):
     log_base_measure: float
     _projection_class: Optional[Type['AbstractMessage']] = None
     _multivariate: bool = False
@@ -46,6 +46,7 @@ class AbstractMessage(ABC):
             log_norm=0.,
             id_=None
     ):
+        super().__init__()
         self.id_ = id_ or next(self._ids)
         self.log_norm = log_norm
         self._broadcast = np.broadcast(*parameters)

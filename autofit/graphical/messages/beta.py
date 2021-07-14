@@ -34,6 +34,9 @@ class BetaMessage(AbstractMessage):
             id_=id_
         )
 
+    def value_for(self, unit: float) -> float:
+        raise NotImplemented()
+
     @cached_property
     def log_partition(self) -> np.ndarray:
         return betaln(*self.parameters)

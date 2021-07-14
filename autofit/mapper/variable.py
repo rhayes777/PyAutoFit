@@ -56,9 +56,9 @@ class Variable(ModelObject):
         plates
             Representation of the dimensions of this variable
         """
+        self.plates = plates
         super().__init__()
         self.name = name or f"{self.__class__.__name__.lower()}_{self.id}"
-        self.plates = plates
 
     def __repr__(self):
         args = ", ".join(chain([self.name], map(repr, self.plates)))

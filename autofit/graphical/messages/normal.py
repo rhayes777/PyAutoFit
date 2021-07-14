@@ -33,6 +33,11 @@ class NormalMessage(AbstractMessage):
         )
         self.mu, self.sigma = self.parameters
 
+    def value_for(self, unit: float) -> float:
+        return self.as_prior().value_for(
+            unit
+        )
+
     @classmethod
     def _from_prior(
             cls,

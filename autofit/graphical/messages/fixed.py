@@ -21,6 +21,9 @@ class FixedMessage(AbstractMessage):
             id_=id_
         )
 
+    def value_for(self, unit: float) -> float:
+        raise NotImplemented()
+
     @cached_property
     def natural_parameters(self) -> Tuple[np.ndarray, ...]:
         return self.parameters
