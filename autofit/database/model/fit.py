@@ -2,8 +2,8 @@ import pickle
 from functools import wraps
 from typing import List
 
-from sqlalchemy import Column, Integer, ForeignKey, String, Boolean, inspect
-from sqlalchemy.orm import relationship
+from sqlalchemy import Column, Integer, ForeignKey, String, Boolean, inspect, Float
+from sqlalchemy.orm import relationship, backref
 
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.samples import OptimizerSamples
@@ -249,22 +249,49 @@ class Fit(Base):
             **kwargs
         )
 
+    max_log_likelihood = Column(
+        Float
+    )
+
     parent_id = Column(
         String,
         ForeignKey(
             "fit.id"
         )
     )
-    parent: "Fit" = relationship(
+
+    children: List["Fit"] = relationship(
         "Fit",
-        uselist=False,
-        foreign_keys=[
-            parent_id
-        ]
+        backref=backref(
+            'parent',
+            remote_side=[id]
+        )
     )
-    children = relationship(
-        "Fit"
-    )
+
+    @property
+    def best_fit(self) -> "Fit":
+        """
+        Only for grid searches. Returns the child search with
+        the highest log likelihood.
+        """
+        if not self.is_grid_search:
+            raise TypeError(
+                f"Fit {self.id} is not a grid search"
+            )
+        if len(self.children) == 0:
+            raise TypeError(
+                f"Grid search fit {self.id} has no children"
+            )
+
+        best_fit = None
+        max_log_likelihood = float("-inf")
+
+        for fit in self.children:
+            if fit.max_log_likelihood > max_log_likelihood:
+                best_fit = fit
+                max_log_likelihood = fit.max_log_likelihood
+
+        return best_fit
 
     is_grid_search = Column(
         Boolean

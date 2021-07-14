@@ -927,6 +927,28 @@ class AbstractPriorModel(AbstractModel):
         return formatter.text
 
     @property
+    def order_no(self) -> str:
+        """
+        A string that can be used to order models by their
+        parametrisation.
+
+        Priors and constants are ordered by their paths and then
+        joined into a string which means that models with higher
+        associated values are consistently ordered later in a
+        collection.
+        """
+        values = [
+            str(float(value))
+            for _, value in sorted(
+                self.path_instance_tuples_for_class((
+                    Prior, float
+                )),
+                key=lambda t: t[0]
+            )
+        ]
+        return ":".join(values)
+
+    @property
     def parameterization(self) -> str:
         """
         Describes the path to each of the PriorModels, its class

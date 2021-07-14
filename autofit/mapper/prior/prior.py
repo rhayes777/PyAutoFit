@@ -110,6 +110,9 @@ class Prior(Variable, ABC, ArithmeticMixin):
             self.__class__.__name__, self.id, self.lower_limit, self.upper_limit
         )
 
+    def __float__(self):
+        return self.value_for(0.5)
+
     @classmethod
     def from_dict(cls, prior_dict: dict) -> Union["Prior", DeferredArgument]:
         """
