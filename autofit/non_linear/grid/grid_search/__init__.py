@@ -153,15 +153,16 @@ class GridSearch:
         self.logger.info(
             "Running grid search..."
         )
-        func = self.fit_parallel if self.parallel else self.fit_sequential
+        process_class = Process if self.parallel else Sequential
         # noinspection PyArgumentList
-        return func(
+        return self._fit(
             model=model,
             analysis=analysis,
-            grid_priors=grid_priors
+            grid_priors=grid_priors,
+            process_class=process_class
         )
 
-    def fit_parallel(
+    def _fit(
             self,
             model,
             analysis,
@@ -242,36 +243,6 @@ class GridSearch:
         save_results()
 
         return make_grid_search_result()
-
-    def fit_sequential(self, model, analysis, grid_priors):
-        """
-        Perform the grid search sequentially, with all the optimisation for each grid square being performed on the
-        same process.
-
-        Parameters
-        ----------
-        model
-            The model on which grid search is run
-        analysis
-            An analysis
-        grid_priors
-            Priors describing the position in the grid
-
-        Returns
-        -------
-        result: GridSearchResult
-            The result of the grid search
-        """
-        self.logger.info(
-            "...sequentially"
-        )
-
-        return self.fit_parallel(
-            model,
-            analysis,
-            grid_priors,
-            process_class=Sequential
-        )
 
     def make_jobs(self, model, analysis, grid_priors):
         grid_priors = list(set(grid_priors))

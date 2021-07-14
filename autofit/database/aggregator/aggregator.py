@@ -1,5 +1,5 @@
 import logging
-from typing import Optional, List, Union
+from typing import Optional, List, Union, cast
 
 from sqlalchemy import desc
 from sqlalchemy.orm import Session
@@ -291,7 +291,23 @@ class Aggregator:
             self,
             type_=None,
             **kwargs,
-    ):
+    ) -> "Aggregator":
+        """
+        Create a new instance with the same attribute values except
+        for those overridden by kwargs
+
+        Parameters
+        ----------
+        type_
+            The type of the new instance (defaults to Aggregator)
+        kwargs
+            Names and values of attributes to override
+
+        Returns
+        -------
+        A new Aggregator with the same attributes except where they
+        have been overridden
+        """
         kwargs = {
             "session": self.session,
             "filename": self.filename,
@@ -471,16 +487,26 @@ class Aggregator:
             )
         return aggregator
 
-    def grid_searches(self):
-        return self._new_with(
-            type_=GridSearchAggregator,
-            predicate=self._predicate & self.search.is_grid_search
+    def grid_searches(self) -> "GridSearchAggregator":
+        """
+        Filter to only grid searches and return an aggregator
+        with grid search specific functionality.
+        """
+        return cast(
+            GridSearchAggregator,
+            self._new_with(
+                type_=GridSearchAggregator,
+                predicate=self._predicate & self.search.is_grid_search
+            )
         )
 
 
 class GridSearchAggregator(Aggregator):
     @property
-    def best_fits(self):
+    def best_fits(self) -> List[m.Fit]:
+        """
+        The best fit from each of the grid searches
+        """
         return [
             fit.best_fit
             for fit
