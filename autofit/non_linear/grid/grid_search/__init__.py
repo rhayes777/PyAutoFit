@@ -50,8 +50,6 @@ class GridSearch:
             "Creating grid search"
         )
 
-        self.paths = search.paths
-
         self.number_of_cores = number_of_cores or 1
 
         self.logger.info(
@@ -63,6 +61,10 @@ class GridSearch:
         self.prior_passer = search.prior_passer
 
         self._result_output_interval = result_output_interval
+
+    @property
+    def paths(self):
+        return self.search.paths
 
     @property
     def parallel(self) -> bool:
@@ -328,7 +330,7 @@ class GridSearch:
         )
 
         for key, value in self.__dict__.items():
-            if key not in ("model", "instance", "paths"):
+            if key not in ("model", "instance", "paths", "search"):
                 try:
                     setattr(search_instance, key, value)
                 except AttributeError:

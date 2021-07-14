@@ -78,7 +78,7 @@ def make_database_paths(
         mapper,
         session
 ):
-    grid_search.paths = af.DatabasePaths(
+    grid_search.search.paths = af.DatabasePaths(
         session=session,
         name="grid_search"
     )
@@ -94,12 +94,11 @@ def test_save_result(
         session
 ):
     search = af.SearchGridSearch(
-        search=MockOptimizer(), number_of_steps=2
+        search=MockOptimizer(
+            session=session
+        ),
+        number_of_steps=2
     )
-    paths = af.DatabasePaths(
-        session
-    )
-    search.paths = paths
     search.fit(
         model=mapper,
         analysis=MockAnalysis(),
@@ -109,7 +108,7 @@ def test_save_result(
         ]
     )
     assert isinstance(
-        paths.load_object(
+        search.paths.load_object(
             "result"
         ),
         af.GridSearchResult

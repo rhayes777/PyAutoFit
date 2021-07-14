@@ -273,6 +273,8 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         state = self.__dict__.copy()
         if "_logger" in state:
             del state["_logger"]
+        if "paths" in state:
+            del state["paths"]
         return state
 
     @property

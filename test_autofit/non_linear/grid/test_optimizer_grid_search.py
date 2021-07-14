@@ -46,10 +46,12 @@ class TestGridSearchablePriors:
         assert mappers[-1].component.one_tuple.one_tuple_1.upper_limit == 2.0
 
     def test_non_grid_searched_dimensions(self, mapper):
+        search = af.MockSearch()
+        search.paths = af.DirectoryPaths(name="")
         grid_search = af.SearchGridSearch(
-            number_of_steps=10, search=af.MockSearch()
+            number_of_steps=10,
+            search=search
         )
-        grid_search.paths = af.DirectoryPaths(name="")
 
         mappers = list(
             grid_search.model_mappers(
@@ -252,10 +254,12 @@ class TestGridNLOBehaviour:
     #         assert instance.component.centre[1] == 2
 
     def test_passes_attributes(self):
+        search = af.DynestyStatic()
+        search.paths = af.DirectoryPaths(name="")
         grid_search = af.SearchGridSearch(
-            number_of_steps=10, search=af.DynestyStatic()
+            number_of_steps=10,
+            search=search
         )
-        grid_search.paths = af.DirectoryPaths(name="")
 
         grid_search.nlive = 20
         grid_search.facc = 0.3
