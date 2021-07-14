@@ -1,6 +1,8 @@
 import pytest
 
 import autofit as af
+from autofit.mock.mock import MockAnalysis
+from test_autofit.non_linear.grid.test_optimizer_grid_search import MockOptimizer
 
 
 def _make_grid_paths(
@@ -87,6 +89,33 @@ def make_database_paths(
     )
 
 
+def test_save_result(
+        mapper,
+        session
+):
+    search = af.SearchGridSearch(
+        search=MockOptimizer(), number_of_steps=2
+    )
+    paths = af.DatabasePaths(
+        session
+    )
+    search.paths = paths
+    search.fit(
+        model=mapper,
+        analysis=MockAnalysis(),
+        grid_priors=[
+            mapper.component.one_tuple.one_tuple_0,
+            mapper.component.one_tuple.one_tuple_1,
+        ]
+    )
+    assert isinstance(
+        paths.load_object(
+            "result"
+        ),
+        af.GridSearchResult
+    )
+
+
 def test_save_instance(
         session
 ):
@@ -102,6 +131,7 @@ def test_save_instance(
             "name"
         ],
         af.Gaussian
+
     )
 
 

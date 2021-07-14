@@ -1,5 +1,6 @@
 import logging
-from typing import Optional, List, Union
+from abc import ABC, abstractmethod
+from typing import Optional, List, Union, cast
 
 from sqlalchemy import desc
 from sqlalchemy.orm import Session
@@ -101,7 +102,47 @@ class Reverse:
         return self.item.attribute
 
 
-class Aggregator:
+class AbstractAggregator(ABC):
+    @property
+    @abstractmethod
+    def fits(self) -> List[m.Fit]:
+        pass
+
+    def values(self, name: str) -> list:
+        """
+        Retrieve the value associated with each fit with the given
+        parameter name
+
+        Parameters
+        ----------
+        name
+            The name of some pickle, such as 'samples'
+
+        Returns
+        -------
+        A list of objects, one for each fit
+        """
+        return [
+            fit[name]
+            for fit
+            in self
+        ]
+
+    def __iter__(self):
+        return iter(
+            self.fits
+        )
+
+    def __len__(self):
+        return len(self.fits)
+
+    def __eq__(self, other):
+        if isinstance(other, list):
+            return self.fits == other
+        return super().__eq__(other)
+
+
+class Aggregator(AbstractAggregator):
     def __init__(
             self,
             session: Session,
@@ -129,11 +170,6 @@ class Aggregator:
         self._offset = offset
         self._limit = limit
         self._order_bys = order_bys or list()
-
-    def __iter__(self):
-        return iter(
-            self.fits
-        )
 
     def order_by(
             self,
@@ -185,34 +221,6 @@ class Aggregator:
         Query info associated with the fit in the info dictionary
         """
         return q.AnonymousInfo()
-
-    def values(self, name: str) -> list:
-        """
-        Retrieve the value associated with each fit with the given
-        parameter name
-
-        Parameters
-        ----------
-        name
-            The name of some pickle, such as 'samples'
-
-        Returns
-        -------
-        A list of objects, one for each fit
-        """
-        return [
-            fit[name]
-            for fit
-            in self
-        ]
-
-    def __len__(self):
-        return len(self.fits)
-
-    def __eq__(self, other):
-        if isinstance(other, list):
-            return self.fits == other
-        return super().__eq__(other)
 
     @property
     def fits(self) -> List[m.Fit]:
@@ -289,8 +297,25 @@ class Aggregator:
 
     def _new_with(
             self,
-            **kwargs
-    ):
+            type_=None,
+            **kwargs,
+    ) -> "Aggregator":
+        """
+        Create a new instance with the same attribute values except
+        for those overridden by kwargs
+
+        Parameters
+        ----------
+        type_
+            The type of the new instance (defaults to Aggregator)
+        kwargs
+            Names and values of attributes to override
+
+        Returns
+        -------
+        A new Aggregator with the same attributes except where they
+        have been overridden
+        """
         kwargs = {
             "session": self.session,
             "filename": self.filename,
@@ -298,21 +323,9 @@ class Aggregator:
             "order_bys": self._order_bys,
             **kwargs
         }
-        return Aggregator(
+        type_ = type_ or Aggregator
+        return type_(
             **kwargs
-        )
-
-    def children(self) -> "Aggregator":
-        """
-        An aggregator comprising the children of the fits encapsulated
-        by this aggregator. This is used to query children in a grid search.
-        """
-        return Aggregator(
-            session=self.session,
-            filename=self.filename,
-            predicate=q.ChildQuery(
-                self._predicate
-            )
         )
 
     def __getitem__(self, item):
@@ -468,3 +481,103 @@ class Aggregator:
                 aggregator.search.is_complete
             )
         return aggregator
+
+    def grid_searches(self) -> "GridSearchAggregator":
+        """
+        Filter to only grid searches and return an aggregator
+        with grid search specific functionality.
+        """
+        return cast(
+            GridSearchAggregator,
+            self._new_with(
+                type_=GridSearchAggregator,
+                predicate=self._predicate & self.search.is_grid_search
+            )
+        )
+
+
+class GridSearchAggregator(Aggregator):
+    @property
+    def best_fits(self) -> List[m.Fit]:
+        """
+        The best fit from each of the grid searches
+        """
+        return [
+            fit.best_fit
+            for fit
+            in self
+        ]
+
+    def children(self) -> "GridSearchAggregator":
+        """
+        An aggregator comprising the children of the fits encapsulated
+        by this aggregator. This is used to query children in a grid search.
+        """
+        return GridSearchAggregator(
+            session=self.session,
+            filename=self.filename,
+            predicate=q.ChildQuery(
+                self._predicate
+            )
+        )
+
+    def cell_number(
+            self,
+            number: int
+    ) -> "CellAggregator":
+        """
+        Create an aggregator for accessing all values for child fits
+        with a given index, ordered by parameter values.
+
+        Parameters
+        ----------
+        number
+            The number of the fit in the grid search
+
+        Returns
+        -------
+        An aggregator comprising fits for a given cell for each grid search
+        """
+        return CellAggregator(
+            number,
+            self
+        )
+
+
+class CellAggregator(AbstractAggregator):
+    def __init__(
+            self,
+            number: int,
+            aggregator: GridSearchAggregator
+    ):
+        """
+        Aggregator for accessing data for a specific fit number in each
+        grid search.
+
+        Parameters
+        ----------
+        number
+            The number of the fit
+        aggregator
+            An aggregator comprising 0 or more grid searches
+        """
+        self.number = number
+        self.aggregator = aggregator
+        self._fits = None
+
+    @property
+    def fits(self) -> List[m.Fit]:
+        """
+        Retrieve one fit for each grid search matching the number of
+        the cell.
+        """
+        if self._fits is None:
+            self._fits = list()
+            for fit in self.aggregator:
+                self._fits.append(
+                    sorted(
+                        fit.children,
+                        key=lambda f: f.model.order_no
+                    )[self.number]
+                )
+        return self._fits
