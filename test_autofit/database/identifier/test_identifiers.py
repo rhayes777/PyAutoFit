@@ -81,6 +81,21 @@ def test_constructor_only():
     )
 
 
+class PrivateClass:
+    def __init__(self, argument):
+        self._argument = argument
+
+
+def test_private_not_included():
+    instance = PrivateClass(
+        argument="one"
+    )
+    identifier = str(Identifier(instance))
+
+    instance._argument = "two"
+    assert Identifier(instance) == identifier
+
+
 def test_missing_field():
     instance = Class()
     instance.__identifier_fields__ = ("five",)
