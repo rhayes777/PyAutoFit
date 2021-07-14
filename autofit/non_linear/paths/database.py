@@ -31,6 +31,18 @@ class DatabasePaths(AbstractPaths):
 
     parent: "DatabasePaths"
 
+    def save_named_instance(
+            self,
+            name: str,
+            instance
+    ):
+        """
+        Save an instance, such as that at a given sigma
+        """
+        self.fit.named_instances[
+            name
+        ] = instance
+
     def create_child(
             self,
             name: Optional[str] = None,
@@ -139,6 +151,7 @@ class DatabasePaths(AbstractPaths):
             log_likelihood_function_time
     ):
         self.fit.instance = samples.max_log_likelihood_instance
+        self.fit.max_log_likelihood = samples.max_log_likelihood_sample.log_likelihood
         super().save_summary(
             samples,
             log_likelihood_function_time

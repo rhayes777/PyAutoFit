@@ -1,5 +1,6 @@
 import pytest
 
+import autofit as af
 from autofit import database as db
 from autofit.mock.mock import Gaussian
 
@@ -13,7 +14,12 @@ def make_children():
             id=f"child_{i}",
             instance=Gaussian(
                 centre=i
-            )
+            ),
+            model=af.Model(
+                Gaussian,
+                centre=float(-i)
+            ),
+            max_log_likelihood=i
         )
         for i in range(10)
     ]
@@ -46,6 +52,82 @@ def add_to_session(
     session.flush()
 
 
+def test_convert_prior():
+    assert float(
+        af.UniformPrior(
+            lower_limit=0,
+            upper_limit=1
+        )
+    ) == 0.5
+
+
+def test_cell_aggregator(
+        aggregator
+):
+    assert aggregator.grid_searches().cell_number(
+        2
+    ).values(
+        "id"
+    ) == [
+        "child_3"
+    ]
+
+
+
+def test_model_order_no():
+    model_1 = af.Model(
+        Gaussian,
+        centre=1.0
+    )
+    model_2 = af.Model(
+        Gaussian,
+        centre=2.0
+    )
+
+    assert model_1.order_no < model_2.order_no
+
+
+def test_negative():
+    model_1 = af.Model(
+        Gaussian,
+        centre=-3.0
+    )
+    model_2 = af.Model(
+        Gaussian,
+        centre=2.0
+    )
+    assert model_1.order_no < model_2.order_no
+
+
+def test_model_order_no_complicated():
+    model_1 = af.Model(
+        Gaussian,
+        centre=1.0,
+        intensity=af.UniformPrior(0.0, 1.0)
+    )
+    model_2 = af.Model(
+        Gaussian,
+        centre=2.0,
+        intensity=af.UniformPrior(0.0, 0.5)
+    )
+    model_3 = af.Model(
+        Gaussian,
+        centre=2.0,
+        intensity=af.UniformPrior(0.0, 1.0)
+    )
+
+    assert model_1.order_no < model_2.order_no < model_3.order_no
+
+
+def test_grid_search_best_fits(
+        aggregator,
+        children
+):
+    assert aggregator.grid_searches().best_fits == [
+        children[-1]
+    ]
+
+
 def test_grid_search(
         aggregator,
         grid_fit
@@ -57,23 +139,29 @@ def test_grid_search(
     assert result is grid_fit
 
 
+def test_grid_searches(
+        aggregator
+):
+    aggregator = aggregator.grid_searches()
+    assert isinstance(
+        aggregator,
+        db.GridSearchAggregator
+    )
+
+
 class TestChildren:
     def test_simple(
             self,
             aggregator,
             children
     ):
-        assert aggregator.query(
-            aggregator.search.is_grid_search
-        ).children().fits == children
+        assert aggregator.grid_searches().children().fits == children
 
     def test_query_after(
             self,
             aggregator
     ):
-        results = aggregator.query(
-            aggregator.search.is_grid_search
-        ).children().query(
+        results = aggregator.grid_searches().children().query(
             aggregator.centre <= 5
         ).fits
         assert len(results) == 6
@@ -103,12 +191,12 @@ class TestChildren:
 
         assert result is grid_fit
 
-        child_aggregator = parent_aggregator.children()
+        child_aggregator = parent_aggregator.grid_searches().children()
 
         results = child_aggregator.fits
         assert len(results) == 10
 
         results = aggregator.query(
             aggregator.search.is_grid_search & (aggregator.centre == 2)
-        ).children().fits
+        ).grid_searches().children().fits
         assert len(results) == 0
