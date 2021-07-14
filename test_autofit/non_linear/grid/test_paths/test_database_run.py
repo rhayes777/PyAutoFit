@@ -1,18 +1,29 @@
+import pytest
+
 import autofit as af
 from autofit.mock.mock import MockAnalysis
 from test_autofit.non_linear.grid.test_optimizer_grid_search import MockOptimizer
 
 
-def test_save_result(
-        mapper,
-        session
-):
-    search = af.SearchGridSearch(
+@pytest.fixture(
+    name="search"
+)
+def make_search(session):
+    return af.SearchGridSearch(
         search=MockOptimizer(
             session=session
         ),
         number_of_steps=2
     )
+
+
+@pytest.fixture(
+    autouse=True
+)
+def run_search(
+        search,
+        mapper
+):
     search.fit(
         model=mapper,
         analysis=MockAnalysis(),
@@ -21,9 +32,30 @@ def test_save_result(
             mapper.component.one_tuple.one_tuple_1,
         ]
     )
+
+
+def test_save_result(
+        search
+):
     assert isinstance(
         search.paths.load_object(
             "result"
         ),
         af.GridSearchResult
     )
+
+
+def test_aggregate(
+        session
+):
+    aggregator = af.Aggregator(
+        session
+    )
+
+    grid_searches = aggregator.grid_searches()
+    assert len(
+        grid_searches
+    ) == 1
+    assert len(
+        grid_searches.children()
+    ) > 0
