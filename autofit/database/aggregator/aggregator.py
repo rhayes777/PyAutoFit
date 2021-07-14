@@ -521,7 +521,23 @@ class GridSearchAggregator(Aggregator):
             )
         )
 
-    def cell_number(self, number):
+    def cell_number(
+            self,
+            number: int
+    ) -> "CellAggregator":
+        """
+        Create an aggregator for accessing all values for child fits
+        with a given index, ordered by parameter values.
+
+        Parameters
+        ----------
+        number
+            The number of the fit in the grid search
+
+        Returns
+        -------
+        An aggregator comprising fits for a given cell for each grid search
+        """
         return CellAggregator(
             number,
             self
@@ -531,15 +547,30 @@ class GridSearchAggregator(Aggregator):
 class CellAggregator(AbstractAggregator):
     def __init__(
             self,
-            number,
-            aggregator
+            number: int,
+            aggregator: GridSearchAggregator
     ):
+        """
+        Aggregator for accessing data for a specific fit number in each
+        grid search.
+
+        Parameters
+        ----------
+        number
+            The number of the fit
+        aggregator
+            An aggregator comprising 0 or more grid searches
+        """
         self.number = number
         self.aggregator = aggregator
         self._fits = None
 
     @property
     def fits(self) -> List[m.Fit]:
+        """
+        Retrieve one fit for each grid search matching the number of
+        the cell.
+        """
         if self._fits is None:
             self._fits = list()
             for fit in self.aggregator:
