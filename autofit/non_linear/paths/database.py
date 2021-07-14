@@ -183,10 +183,6 @@ class DatabasePaths(AbstractPaths):
         self.fit.info = info
         self.fit.model = self.model
 
-        if self.search is not None:
-            self.search.paths = None
         self.save_object("search", self.search)
-        if self.search is not None:
-            self.search.paths = self
 
         self.session.commit()
