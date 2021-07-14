@@ -64,8 +64,8 @@ def check_cores(func):
 class NonLinearSearch(AbstractFactorOptimiser, ABC):
     def __init__(
             self,
-            name=None,
-            path_prefix=None,
+            name: Optional[str] = None,
+            path_prefix: Optional[str] = None,
             unique_tag: Optional[str] = None,
             prior_passer: "PriorPasser" = None,
             initializer: Initializer = None,
@@ -682,6 +682,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         )
         return SneakyPool(
             processes=self.number_of_cores,
+            paths=self.paths,
             fitness=fitness_function
         )
 

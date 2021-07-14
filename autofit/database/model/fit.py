@@ -97,6 +97,111 @@ def try_none(func):
     return wrapper
 
 
+class NamedInstance(Base):
+    __tablename__ = "named_instance"
+
+    id = Column(
+        Integer,
+        primary_key=True
+    )
+    name = Column(String)
+
+    instance_id = Column(
+        Integer,
+        ForeignKey(
+            "object.id"
+        )
+    )
+
+    __instance = relationship(
+        "Object",
+        uselist=False,
+        backref="named_instance",
+        foreign_keys=[instance_id]
+    )
+
+    @property
+    @try_none
+    def instance(self):
+        """
+        An instance of the model labelled with a given name
+        """
+        return self.__instance()
+
+    @instance.setter
+    def instance(self, instance):
+        self.__instance = Object.from_object(
+            instance
+        )
+
+    fit_id = Column(
+        String,
+        ForeignKey(
+            "fit.id"
+        )
+    )
+    fit = relationship(
+        "Fit",
+        uselist=False
+    )
+
+
+# noinspection PyProtectedMember
+class NamedInstancesWrapper:
+    def __init__(self, fit: "Fit"):
+        """
+        Provides dictionary like interface for accessing
+        instance objects
+
+        Parameters
+        ----------
+        fit
+            A fit from which instances are accessed
+        """
+        self.fit = fit
+
+    def __getitem__(self, item: str):
+        """
+        Get an instance with a given name.
+
+        Raises a KeyError if no such instance exists.
+        """
+        return self._get_named_instance(
+            item
+        ).instance
+
+    def __setitem__(self, key: str, value):
+        """
+        Set an instance for a given name
+        """
+        try:
+            named_instance = self._get_named_instance(
+                key
+            )
+        except KeyError:
+            named_instance = NamedInstance(
+                name=key
+            )
+            self.fit._named_instances.append(
+                named_instance
+            )
+        named_instance.instance = value
+
+    def _get_named_instance(
+            self,
+            item: str
+    ) -> "NamedInstance":
+        """
+        Retrieve a NamedInstance by its name.
+        """
+        for named_instance in self.fit._named_instances:
+            if named_instance.name == item:
+                return named_instance
+        raise KeyError(
+            f"Instance {item} not found"
+        )
+
+
 class Fit(Base):
     __tablename__ = "fit"
 
@@ -107,6 +212,30 @@ class Fit(Base):
     is_complete = Column(
         Boolean
     )
+
+    _named_instances: List[NamedInstance] = relationship(
+        "NamedInstance"
+    )
+
+    @property
+    @try_none
+    def instance(self):
+        """
+        The instance of the model that had the highest likelihood
+        """
+        return self.__instance()
+
+    @instance.setter
+    def instance(self, instance):
+        self.__instance = Object.from_object(
+            instance
+        )
+
+    @property
+    def named_instances(self):
+        return NamedInstancesWrapper(
+            self
+        )
 
     _info: List[Info] = relationship(
         "Info"
@@ -197,28 +326,15 @@ class Fit(Base):
         """
         return self.__model()
 
-    @property
-    @try_none
-    def instance(self):
-        """
-        The instance of the model that had the highest likelihood
-        """
-        return self.__instance()
-
     @model.setter
     def model(self, model: AbstractPriorModel):
         self.__model = Object.from_object(
             model
         )
 
-    @instance.setter
-    def instance(self, instance):
-        self.__instance = Object.from_object(
-            instance
-        )
-
     pickles: List[Pickle] = relationship(
-        "Pickle"
+        "Pickle",
+        lazy="joined"
     )
 
     def __getitem__(self, item: str):
@@ -321,6 +437,7 @@ class Fit(Base):
             "object.id"
         )
     )
+
     __instance = relationship(
         "Object",
         uselist=False,

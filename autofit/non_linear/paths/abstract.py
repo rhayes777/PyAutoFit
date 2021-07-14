@@ -36,8 +36,8 @@ pattern = re.compile(r'(?<!^)(?=[A-Z])')
 class AbstractPaths(ABC):
     def __init__(
             self,
-            name=None,
-            path_prefix=None,
+            name: Optional[str] = None,
+            path_prefix: Optional[str] = None,
             is_identifier_in_paths=True,
             parent: Optional["AbstractPaths"] = None,
             unique_tag: Optional[str] = None
@@ -132,6 +132,16 @@ class AbstractPaths(ABC):
     model = IdentifierField()
     unique_tag = IdentifierField()
 
+    @abstractmethod
+    def save_named_instance(
+            self,
+            name: str,
+            instance
+    ):
+        """
+        Save an instance, such as that at a given sigma
+        """
+
     @property
     def non_linear_name(self):
         if self._non_linear_name is None:
@@ -189,6 +199,13 @@ class AbstractPaths(ABC):
         The path to the image folder.
         """
         return path.join(self.output_path, "image")
+
+    @property
+    def profile_path(self) -> str:
+        """
+        The path to the profile folder.
+        """
+        return path.join(self.output_path, "profile")
 
     @property
     @make_path

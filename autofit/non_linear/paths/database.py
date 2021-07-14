@@ -11,8 +11,8 @@ class DatabasePaths(AbstractPaths):
     def __init__(
             self,
             session,
-            name=None,
-            path_prefix=None,
+            name: Optional[str] = None,
+            path_prefix: Optional[str] = None,
             is_identifier_in_paths=True,
             parent=None,
             save_all_samples=False,
@@ -30,6 +30,18 @@ class DatabasePaths(AbstractPaths):
         self.unique_tag = unique_tag
 
     parent: "DatabasePaths"
+
+    def save_named_instance(
+            self,
+            name: str,
+            instance
+    ):
+        """
+        Save an instance, such as that at a given sigma
+        """
+        self.fit.named_instances[
+            name
+        ] = instance
 
     def create_child(
             self,

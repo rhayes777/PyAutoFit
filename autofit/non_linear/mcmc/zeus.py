@@ -12,6 +12,8 @@ from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.mcmc.abstract_mcmc import AbstractMCMC
 from autofit.non_linear.mcmc.auto_correlations import AutoCorrelationsSettings, AutoCorrelations
 from autofit.non_linear.samples import MCMCSamples, Sample
+from autofit.non_linear.abstract_search import PriorPasser
+from autofit.non_linear.initializer import Initializer
 from autofit.plot import ZeusPlotter
 from autofit.plot.mat_wrap.wrap.wrap_base import Output
 
@@ -28,11 +30,11 @@ class Zeus(AbstractMCMC):
 
     def __init__(
             self,
-            name=None,
-            path_prefix=None,
+            name: Optional[str] = None,
+            path_prefix: Optional[str] = None,
             unique_tag: Optional[str] = None,
-            prior_passer=None,
-            initializer=None,
+            prior_passer: Optional[PriorPasser] = None,
+            initializer: Optional[Initializer] = None,
             auto_correlations_settings=AutoCorrelationsSettings(),
             iterations_per_update: int = None,
             number_of_cores: int = None,
@@ -139,7 +141,7 @@ class Zeus(AbstractMCMC):
             zeus_sampler = self.zeus_pickled
 
             zeus_state = zeus_sampler.get_last_sample()
-            initial_log_posterior_list = zeus_sampler.get_last_log_prob()
+            log_posterior_list = zeus_sampler.get_last_log_prob()
 
             samples = self.samples_from(model=model)
 
@@ -163,7 +165,7 @@ class Zeus(AbstractMCMC):
 
             zeus_sampler.ncall_total = 0
 
-            initial_unit_parameter_lists, initial_parameter_lists, initial_log_posterior_list = self.initializer.initial_samples_from_model(
+            unit_parameter_lists, parameter_lists, log_posterior_list = self.initializer.samples_from_model(
                 total_points=zeus_sampler.nwalkers,
                 model=model,
                 fitness_function=fitness_function,
@@ -173,7 +175,7 @@ class Zeus(AbstractMCMC):
 
             self.logger.info("No Zeus samples found, beginning new non-linear search.")
 
-            for index, parameters in enumerate(initial_parameter_lists):
+            for index, parameters in enumerate(parameter_lists):
 
                 zeus_state[index, :] = np.asarray(parameters)
 
@@ -189,7 +191,7 @@ class Zeus(AbstractMCMC):
 
             for sample in zeus_sampler.sample(
                     start=zeus_state,
-                    log_prob0=initial_log_posterior_list,
+                    log_prob0=log_posterior_list,
                     iterations=iterations,
                     progress=True,
             ):
@@ -204,7 +206,7 @@ class Zeus(AbstractMCMC):
             )
 
             zeus_state = zeus_sampler.get_last_sample()
-            initial_log_posterior_list = zeus_sampler.get_last_log_prob()
+            log_posterior_list = zeus_sampler.get_last_log_prob()
 
             total_iterations += iterations
             iterations_remaining = self.config_dict_run["nsteps"] - total_iterations

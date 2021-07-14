@@ -163,6 +163,7 @@ def get_pid(*_):
 def make_pool(fitness):
     return SneakyPool(
         processes=1,
+        paths=af.DirectoryPaths(name="test"),
         fitness=fitness
     )
 
