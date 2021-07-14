@@ -61,6 +61,19 @@ def test_convert_prior():
     ) == 0.5
 
 
+def test_cell_aggregator(
+        aggregator
+):
+    assert aggregator.grid_searches().cell_number(
+        2
+    ).values(
+        "id"
+    ) == [
+        "child_3"
+    ]
+
+
+
 def test_model_order_no():
     model_1 = af.Model(
         Gaussian,

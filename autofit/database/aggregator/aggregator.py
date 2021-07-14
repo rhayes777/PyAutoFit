@@ -1,4 +1,5 @@
 import logging
+from abc import ABC, abstractmethod
 from typing import Optional, List, Union, cast
 
 from sqlalchemy import desc
@@ -101,7 +102,47 @@ class Reverse:
         return self.item.attribute
 
 
-class Aggregator:
+class AbstractAggregator(ABC):
+    @property
+    @abstractmethod
+    def fits(self) -> List[m.Fit]:
+        pass
+
+    def values(self, name: str) -> list:
+        """
+        Retrieve the value associated with each fit with the given
+        parameter name
+
+        Parameters
+        ----------
+        name
+            The name of some pickle, such as 'samples'
+
+        Returns
+        -------
+        A list of objects, one for each fit
+        """
+        return [
+            fit[name]
+            for fit
+            in self
+        ]
+
+    def __iter__(self):
+        return iter(
+            self.fits
+        )
+
+    def __len__(self):
+        return len(self.fits)
+
+    def __eq__(self, other):
+        if isinstance(other, list):
+            return self.fits == other
+        return super().__eq__(other)
+
+
+class Aggregator(AbstractAggregator):
     def __init__(
             self,
             session: Session,
@@ -129,11 +170,6 @@ class Aggregator:
         self._offset = offset
         self._limit = limit
         self._order_bys = order_bys or list()
-
-    def __iter__(self):
-        return iter(
-            self.fits
-        )
 
     def order_by(
             self,
@@ -185,34 +221,6 @@ class Aggregator:
         Query info associated with the fit in the info dictionary
         """
         return q.AnonymousInfo()
-
-    def values(self, name: str) -> list:
-        """
-        Retrieve the value associated with each fit with the given
-        parameter name
-
-        Parameters
-        ----------
-        name
-            The name of some pickle, such as 'samples'
-
-        Returns
-        -------
-        A list of objects, one for each fit
-        """
-        return [
-            fit[name]
-            for fit
-            in self
-        ]
-
-    def __len__(self):
-        return len(self.fits)
-
-    def __eq__(self, other):
-        if isinstance(other, list):
-            return self.fits == other
-        return super().__eq__(other)
 
     @property
     def fits(self) -> List[m.Fit]:
@@ -512,3 +520,33 @@ class GridSearchAggregator(Aggregator):
                 self._predicate
             )
         )
+
+    def cell_number(self, number):
+        return CellAggregator(
+            number,
+            self
+        )
+
+
+class CellAggregator(AbstractAggregator):
+    def __init__(
+            self,
+            number,
+            aggregator
+    ):
+        self.number = number
+        self.aggregator = aggregator
+        self._fits = None
+
+    @property
+    def fits(self) -> List[m.Fit]:
+        if self._fits is None:
+            self._fits = list()
+            for fit in self.aggregator:
+                self._fits.append(
+                    sorted(
+                        fit.children,
+                        key=lambda f: f.model.order_no
+                    )[self.number]
+                )
+        return self._fits
