@@ -22,7 +22,6 @@ class MultiNest(abstract_nest.AbstractNest):
         "importance_nested_sampling",
         "max_modes",
         "mode_tolerance",
-        "seed",
     )
 
     def __init__(
