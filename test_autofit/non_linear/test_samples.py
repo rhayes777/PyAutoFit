@@ -6,6 +6,8 @@ import autofit as af
 from autofit.mock.mock import MockClassx2, MockClassx4
 from autofit.non_linear.samples import Sample
 
+import numpy as np
+
 pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
 
 
@@ -530,6 +532,64 @@ class TestPDFSamples:
 
         assert offset_values == pytest.approx([0.0, 1.0, 1.0, 1.025], 1.0e-4)
 
+    def test__covariance_matrix(self):
+
+        log_likelihood_list = list(range(3))
+
+        weight_list = 3 * [0.1]
+
+        parameters = [
+            [2.0, 2.0],
+            [1.0, 1.0],
+            [0.0, 0.0],
+        ]
+
+        model = af.ModelMapper(mock_class=MockClassx2)
+        samples = MockSamples(
+            model=model,
+            sample_list=Sample.from_lists(
+                model=model,
+                parameter_lists=parameters,
+                log_likelihood_list=log_likelihood_list,
+                log_prior_list=3 * [0.0],
+                weight_list=weight_list,
+            ))
+
+        assert samples.covariance_matrix() == pytest.approx(np.array([[1.0, 1.0], [1.0, 1.0]]), 1.0e-4)
+
+        parameters = [
+            [0.0, 2.0],
+            [1.0, 1.0],
+            [2.0, 0.0],
+        ]
+
+        model = af.ModelMapper(mock_class=MockClassx2)
+        samples = MockSamples(
+            model=model,
+            sample_list=Sample.from_lists(
+                model=model,
+                parameter_lists=parameters,
+                log_likelihood_list=log_likelihood_list,
+                log_prior_list=3 * [0.0],
+                weight_list=weight_list,
+            ))
+
+        assert samples.covariance_matrix() == pytest.approx(np.array([[1.0, -1.0], [-1.0, 1.0]]), 1.0e-4)
+
+        weight_list = [0.1, 0.2, 0.3]
+
+        model = af.ModelMapper(mock_class=MockClassx2)
+        samples = MockSamples(
+            model=model,
+            sample_list=Sample.from_lists(
+                model=model,
+                parameter_lists=parameters,
+                log_likelihood_list=log_likelihood_list,
+                log_prior_list=10 * [0.0],
+                weight_list=weight_list,
+            ))
+
+        assert samples.covariance_matrix() == pytest.approx(np.array([[0.90909, -0.90909], [-0.90909, 0.90909]]), 1.0e-4)
 
 class MockNestSamples(af.NestSamples):
     def __init__(

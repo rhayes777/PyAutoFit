@@ -877,6 +877,22 @@ class PDFSamples(OptimizerSamples):
             )
         )
 
+    def covariance_matrix(self) -> np.ndarray:
+        """
+        Compute the covariance matrix of the non-linear search samples, using the method `np.cov()` which is described
+        at the following link:
+
+        https://numpy.org/doc/stable/reference/generated/numpy.cov.html
+
+        Follow that link for a description of what the covariance matrix is.
+
+        Returns
+        -------
+        ndarray
+            A covariance matrix of shape [total_parameters, total_parameters] for the model parameters of the
+            non-linear search.
+        """
+        return np.cov(m=self.parameter_lists, rowvar=False, aweights=self.weight_list)
 
 class MCMCSamples(PDFSamples):
 
