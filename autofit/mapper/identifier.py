@@ -97,6 +97,8 @@ class Identifier:
         ---------------
         1 - Original version
         2 - Accounts for the class of objects
+        3 - Include class path to distinguish prior models
+        4 - __exclude_identifier_fields__ can be used to exclude specific fields
 
         """
         self._identifier_version = version or conf.instance[
@@ -149,13 +151,16 @@ class Identifier:
                         value.__class__.__name__
                     )
             d = value.__dict__
-            if hasattr(
-                    value,
-                    "__identifier_fields__"
+
+            def _assert_fields_exist(
+                    attribute
             ):
-                fields = value.__identifier_fields__
+                fields_ = getattr(
+                    value,
+                    attribute
+                )
                 missing_fields = [
-                    field for field in fields
+                    field for field in fields_
                     if field not in d
                 ]
                 if len(missing_fields) > 0:
@@ -163,13 +168,38 @@ class Identifier:
                         missing_fields
                     )
                     raise AssertionError(
-                        f"The following __identifier_fields__ do not exist for {type(value)}:\n{string}"
+                        f"The following {attribute} do not exist for {type(value)}:\n{string}"
                     )
+
+            if hasattr(
+                    value,
+                    "__identifier_fields__"
+            ):
+                _assert_fields_exist(
+                    "__identifier_fields__"
+                )
+                fields = value.__identifier_fields__
+
                 d = {
                     k: v
                     for k, v
                     in d.items()
                     if k in fields
+                }
+            elif self._identifier_version >= 4 and hasattr(
+                    value,
+                    "__exclude_identifier_fields__"
+            ):
+                _assert_fields_exist(
+                    "__exclude_identifier_fields__"
+                )
+                excluded_fields = value.__exclude_identifier_fields__
+
+                d = {
+                    k: v
+                    for k, v
+                    in d.items()
+                    if k not in excluded_fields
                 }
             elif hasattr(
                     value,
