@@ -319,6 +319,7 @@ class Fit(Base):
     )
 
     @property
+    @try_none
     def samples(self) -> OptimizerSamples:
         return self._samples()
 

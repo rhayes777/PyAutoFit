@@ -6,7 +6,7 @@ from sqlalchemy import desc
 from sqlalchemy.orm import Session
 
 from autofit.database import query as q
-from .scrape import scrape_directory
+from .scrape import Scraper
 from .. import model as m
 from ..query.query import AbstractQuery, Attribute
 
@@ -122,11 +122,14 @@ class AbstractAggregator(ABC):
         -------
         A list of objects, one for each fit
         """
-        return [
-            fit[name]
-            for fit
-            in self
-        ]
+        return list(filter(
+            None,
+            [
+                fit[name]
+                for fit
+                in self
+            ]
+        ))
 
     def __iter__(self):
         return iter(
@@ -438,12 +441,12 @@ class Aggregator(AbstractAggregator):
             A directory containing autofit results embedded in a
             file structure
         """
-        for fit in scrape_directory(
-                directory
-        ):
-            self.session.add(
-                fit
-            )
+        scraper = Scraper(
+            directory,
+            self.session
+        )
+        scraper.scrape()
+
         if auto_commit:
             self.session.commit()
 
