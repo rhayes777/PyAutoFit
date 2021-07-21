@@ -177,10 +177,10 @@ class Emcee(AbstractMCMC):
                 iterations = self.iterations_per_update
 
             for sample in emcee_sampler.sample(
-                    state=emcee_state,
+                    initial_state=emcee_state,
                     iterations=iterations,
                     progress=True,
-                    skip_state_check=True,
+                    skip_initial_state_check=True,
                     store=True,
             ):
                 pass

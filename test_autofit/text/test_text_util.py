@@ -76,10 +76,6 @@ def test__results_to_file(samples):
 
     results = open(file_results)
 
-    results.readline()
-    results.readline()
-    results.readline()
-
     line = results.readline()
 
     assert (
