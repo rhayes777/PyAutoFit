@@ -43,6 +43,10 @@ class DatabasePaths(AbstractPaths):
             name
         ] = instance
 
+    @property
+    def is_grid_search(self) -> bool:
+        return self.fit.is_grid_search
+
     def create_child(
             self,
             name: Optional[str] = None,
