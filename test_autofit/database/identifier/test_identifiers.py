@@ -117,6 +117,18 @@ def test_constructor_only():
     )
 
 
+def test_exclude_does_no_effect_constructor():
+    attribute = AttributeClass()
+    attribute.__exclude_identifier_fields__ = tuple()
+    attribute.attribute = 1
+
+    assert Identifier(
+        AttributeClass()
+    ) == Identifier(
+        attribute
+    )
+
+
 class PrivateClass:
     def __init__(self, argument):
         self._argument = argument

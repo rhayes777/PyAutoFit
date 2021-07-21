@@ -186,21 +186,6 @@ class Identifier:
                     in d.items()
                     if k in fields
                 }
-            elif self._identifier_version >= 4 and hasattr(
-                    value,
-                    "__exclude_identifier_fields__"
-            ):
-                _assert_fields_exist(
-                    "__exclude_identifier_fields__"
-                )
-                excluded_fields = value.__exclude_identifier_fields__
-
-                d = {
-                    k: v
-                    for k, v
-                    in d.items()
-                    if k not in excluded_fields
-                }
             elif hasattr(
                     value,
                     "__class__"
@@ -219,6 +204,21 @@ class Identifier:
                     in d.items()
                     if k in args
                 }
+                if self._identifier_version >= 4 and hasattr(
+                        value,
+                        "__exclude_identifier_fields__"
+                ):
+                    _assert_fields_exist(
+                        "__exclude_identifier_fields__"
+                    )
+                    excluded_fields = value.__exclude_identifier_fields__
+
+                    d = {
+                        k: v
+                        for k, v
+                        in d.items()
+                        if k not in excluded_fields
+                    }
             self.add_value_to_hash_list(
                 d
             )
