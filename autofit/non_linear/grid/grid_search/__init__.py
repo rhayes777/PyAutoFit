@@ -210,7 +210,8 @@ class GridSearch:
                 [
                     Result(
                         samples=r.result.samples,
-                        model=r.result.model
+                        model=r.result.model,
+                        search=r.result.search
                     )
                     for r
                     in results
