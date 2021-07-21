@@ -12,7 +12,7 @@ from typing import Optional
 
 from autoconf import conf
 from autofit.mapper import link
-from autofit.mapper.model_object import Identifier, IdentifierField
+from autofit.mapper.identifier import Identifier, IdentifierField
 from autofit.text import text_util
 
 logger = logging.getLogger(
