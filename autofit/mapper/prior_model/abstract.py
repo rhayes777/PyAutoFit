@@ -796,6 +796,18 @@ class AbstractPriorModel(AbstractModel):
             arguments
         )
 
+    def instance_from_path_arguments(self, path_arguments):
+        arguments = {
+            self.object_for_path(
+                path
+            ): value
+            for path, value
+            in path_arguments.items()
+        }
+        return self._instance_for_arguments(
+            arguments
+        )
+
     @property
     def prior_count(self):
         return len(self.unique_prior_tuples)
