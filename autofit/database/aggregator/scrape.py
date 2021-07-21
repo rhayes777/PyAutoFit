@@ -20,10 +20,25 @@ class Scraper:
             directory: str,
             session: Session
     ):
+        """
+        Facilitates scraping of data output into a directory
+        into the database.
+
+        Parameters
+        ----------
+        directory
+            A directory in which data has been stored
+        session
+            A database session
+        """
         self.directory = directory
         self.session = session
 
     def scrape(self):
+        """
+        Recursively scrape fits from the directory and
+        add them to the session
+        """
         for fit in self._fits():
             self.session.add(
                 fit
@@ -138,7 +153,24 @@ class Scraper:
     def _retrieve_model_fit(
             self,
             item
-    ):
+    ) -> m.Fit:
+        """
+        Retrieve a Fit, if one exists, corresponding to a given SearchOutput
+
+        Parameters
+        ----------
+        item
+            A SearchOutput from the classic Aggregator
+
+        Returns
+        -------
+        A fit with the corresponding identifier
+
+        Raises
+        ------
+        NoResultFound
+            If no fit is found with the identifier
+        """
         return self.session.query(
             m.Fit
         ).filter(
@@ -150,7 +182,22 @@ class Scraper:
 
 def _make_identifier(
         item
-):
+) -> str:
+    """
+    Create a unique identifier for a SearchOutput.
+
+    This accounts for the Search, Model and unique_tag
+
+    Parameters
+    ----------
+    item
+        An output from the classic aggregator
+
+    Returns
+    -------
+    A unique identifier that is sensitive to changes that affect
+    the search
+    """
     search = item.search
     model = item.model
     return str(Identifier([
@@ -161,9 +208,19 @@ def _make_identifier(
 
 
 def _add_pickles(
-        fit,
-        pickle_path
+        fit: m.Fit,
+        pickle_path: Path
 ):
+    """
+    Load pickles from the path and add them to the database.
+
+    Parameters
+    ----------
+    fit
+        A fit to which the pickles belong
+    pickle_path
+        The path in which the pickles are stored
+    """
     for filename in os.listdir(
             pickle_path
     ):
