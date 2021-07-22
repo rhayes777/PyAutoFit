@@ -796,12 +796,29 @@ class AbstractPriorModel(AbstractModel):
             arguments
         )
 
+    def path_for_name(self, name):
+        exploded = tuple(name.split("_"))
+        for path, _ in self.path_priors_tuples:
+            exploded_path = tuple(
+                string
+                for part in path
+                for string
+                in part.split(
+                    "_"
+                )
+            )
+            if exploded_path == exploded:
+                return path
+        raise AssertionError(
+            f"No path was found matching {name}"
+        )
+
     def instance_from_prior_name_arguments(
             self,
             prior_name_arguments
     ):
         return self.instance_from_path_arguments({
-            tuple(name.split("_")): value
+            self.path_for_name(name): value
             for name, value
             in prior_name_arguments.items()
         })
