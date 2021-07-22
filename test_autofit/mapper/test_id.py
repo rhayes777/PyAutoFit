@@ -82,6 +82,26 @@ class TestInstanceFromPriorNames:
         assert instance.gaussian_component.intensity == 0.2
         assert instance.gaussian_component.sigma == 0.3
 
+    def test_prior_linking(self, underscore_model):
+        underscore_model.gaussian_component.intensity = (
+            underscore_model.gaussian_component.centre
+        )
+        instance = underscore_model.instance_from_prior_name_arguments({
+            "gaussian_component_centre": 0.1,
+            "gaussian_component_sigma": 0.3
+        })
+        assert instance.gaussian_component.centre == 0.1
+        assert instance.gaussian_component.intensity == 0.1
+        assert instance.gaussian_component.sigma == 0.3
+
+        instance = underscore_model.instance_from_prior_name_arguments({
+            "gaussian_component_intensity": 0.2,
+            "gaussian_component_sigma": 0.3
+        })
+        assert instance.gaussian_component.centre == 0.2
+        assert instance.gaussian_component.intensity == 0.2
+        assert instance.gaussian_component.sigma == 0.3
+
     def test_path_for_name(self, underscore_model):
         assert underscore_model.path_for_name(
             "gaussian_component_centre"
