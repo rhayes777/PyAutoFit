@@ -796,6 +796,16 @@ class AbstractPriorModel(AbstractModel):
             arguments
         )
 
+    def instance_from_prior_name_arguments(
+            self,
+            prior_name_arguments
+    ):
+        return self.instance_from_path_arguments({
+            tuple(name.split("_")): value
+            for name, value
+            in prior_name_arguments.items()
+        })
+
     def instance_from_path_arguments(self, path_arguments):
         arguments = {
             self.object_for_path(

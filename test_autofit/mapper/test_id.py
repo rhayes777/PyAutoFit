@@ -7,40 +7,55 @@ import autofit as af
     name="model"
 )
 def make_model():
-    return af.Model(
-        af.Gaussian
+    return af.Collection(
+        gaussian=af.Model(
+            af.Gaussian
+        )
     )
 
 
-def test_instance_from_path_arguments(
-        model
-):
-    instance = model.instance_from_path_arguments({
-        ("centre",): 1,
-        ("intensity",): 2,
-        ("sigma",): 3
-    })
-    assert instance.centre == 1
-    assert instance.intensity == 2
-    assert instance.sigma == 3
+class TestInstanceFromPathArguments:
+    def test(
+            self,
+            model
+    ):
+        instance = model.instance_from_path_arguments({
+            ("gaussian", "centre"): 0.1,
+            ("gaussian", "intensity"): 0.2,
+            ("gaussian", "sigma"): 0.3
+        })
+        assert instance.gaussian.centre == 0.1
+        assert instance.gaussian.intensity == 0.2
+        assert instance.gaussian.sigma == 0.3
+
+    def test_prior_linking(
+            self,
+            model
+    ):
+        model.gaussian.centre = model.gaussian.intensity
+        instance = model.instance_from_path_arguments({
+            ("gaussian", "centre",): 0.1,
+            ("gaussian", "sigma",): 0.3
+        })
+        assert instance.gaussian.centre == 0.1
+        assert instance.gaussian.intensity == 0.1
+        assert instance.gaussian.sigma == 0.3
+
+        instance = model.instance_from_path_arguments({
+            ("gaussian", "intensity",): 0.2,
+            ("gaussian", "sigma",): 0.3
+        })
+        assert instance.gaussian.centre == 0.2
+        assert instance.gaussian.intensity == 0.2
+        assert instance.gaussian.sigma == 0.3
 
 
-def test_prior_linking(
-        model
-):
-    model.centre = model.intensity
-    instance = model.instance_from_path_arguments({
-        ("centre",): 1,
-        ("sigma",): 3
+def test_instance_from_prior_names(model):
+    instance = model.instance_from_prior_name_arguments({
+        "gaussian_centre": 0.1,
+        "gaussian_intensity": 0.2,
+        "gaussian_sigma": 0.3
     })
-    assert instance.centre == 1
-    assert instance.intensity == 1
-    assert instance.sigma == 3
-
-    instance = model.instance_from_path_arguments({
-        ("intensity",): 2,
-        ("sigma",): 3
-    })
-    assert instance.centre == 2
-    assert instance.intensity == 2
-    assert instance.sigma == 3
+    assert instance.gaussian.centre == 0.1
+    assert instance.gaussian.intensity == 0.2
+    assert instance.gaussian.sigma == 0.3
