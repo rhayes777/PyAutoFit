@@ -69,7 +69,7 @@ class Sample:
             log_likelihood: float,
             log_prior: float,
             weight: float,
-            kwargs
+            kwargs=None
     ):
         """
         One sample taken during a search
@@ -88,7 +88,7 @@ class Sample:
         self.log_likelihood = log_likelihood
         self.log_prior = log_prior
         self.weight = weight
-        self.kwargs = kwargs
+        self.kwargs = kwargs or dict()
 
     @property
     def log_posterior(self) -> float:
@@ -99,8 +99,7 @@ class Sample:
 
     def parameter_lists_for_model(
             self,
-            model: AbstractPriorModel,
-            paths=None
+            model: AbstractPriorModel
     ) -> List[float]:
         """
         Values for instantiating a model, in the same order as priors
@@ -115,12 +114,10 @@ class Sample:
         -------
         A list of physical values
         """
-
-        if paths is None:
-            if self.is_path_kwargs:
-                paths = model.paths
-            else:
-                paths = model.model_component_and_parameter_names
+        if self.is_path_kwargs:
+            paths = model.paths
+        else:
+            paths = model.model_component_and_parameter_names
 
         return [
             self.kwargs[path]
@@ -207,9 +204,9 @@ class Sample:
                 )
 
         except KeyError:
-            paths = model.model_component_and_parameter_names
+            # TODO: Does this get used? If so, why?
             return model.instance_from_vector(
-                self.parameter_lists_for_model(model, paths)
+                self.parameter_lists_for_model(model)
             )
 
 
@@ -228,19 +225,38 @@ def load_from_table(filename: str) -> List[Sample]:
     """
     samples = list()
 
+    sample_args = (
+        "log_likelihood",
+        "log_prior",
+        "weight",
+    )
+
     with open(filename, "r+", newline="") as f:
         reader = csv.reader(f)
         headers = next(reader)
         for row in reader:
+            d = {
+                header: float(value)
+                for header, value
+                in zip(
+                    headers,
+                    row
+                )
+            }
+
             samples.append(
                 Sample(
                     **{
-                        header: float(value)
-                        for header, value
-                        in zip(
-                            headers,
-                            row
-                        )
+                        key: value
+                        for key, value
+                        in d.items()
+                        if key in sample_args
+                    },
+                    kwargs={
+                        key: value
+                        for key, value
+                        in d.items()
+                        if key not in sample_args
                     }
                 )
             )
