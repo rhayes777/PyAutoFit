@@ -219,25 +219,23 @@ class AbstractDynesty(AbstractNest, ABC):
 
         try:
 
+            return self.paths.load_object(
+                "samples"
+            )
+
+        except (FileNotFoundError, AttributeError):
             sampler = self.paths.load_object(
                 "dynesty"
             )
             results = sampler.results
 
-        except (FileNotFoundError, AttributeError):
-
-            samples = self.paths.load_object(
-                "samples"
+            return DynestySamples(
+                model=model,
+                results=results,
+                number_live_points=self.total_live_points,
+                unconverged_sample_size=1,
+                time=self.timer.time,
             )
-            results = samples.results
-
-        return DynestySamples(
-            model=model,
-            results=results,
-            number_live_points=self.total_live_points,
-            unconverged_sample_size=1,
-            time=self.timer.time,
-        )
 
     def live_points_from_model_and_fitness_function(
             self, model, fitness_function
