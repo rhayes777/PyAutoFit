@@ -34,9 +34,11 @@ def make_sample():
         log_likelihood=1.0,
         log_prior=1.0,
         weight=0.5,
-        centre=1.0,
-        intensity=2.0,
-        sigma=3.0
+        kwargs=dict(
+            centre=1.0,
+            intensity=2.0,
+            sigma=3.0
+        )
     )
 
 

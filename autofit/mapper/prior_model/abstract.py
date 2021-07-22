@@ -5,7 +5,7 @@ import logging
 from functools import wraps
 from numbers import Number
 from random import random
-from typing import Tuple, Optional
+from typing import Tuple, Optional, Dict, List
 
 import numpy as np
 
@@ -796,6 +796,108 @@ class AbstractPriorModel(AbstractModel):
             arguments
         )
 
+    def path_for_name(
+            self,
+            name: str
+    ) -> Tuple[str, ...]:
+        """
+        Find the path to a prior in the model that matches
+        a given name.
+
+        For example, name_of_model_name_of_prior could match
+        (name_of_model, name_of_prior). Unfortunately it is
+        possible for ambiguity to occur. For example, another
+        valid path could be (name, of_model, name_of_prior)
+        in which case there is no way to determine which path
+        actually matches the name.
+
+        Parameters
+        ----------
+        name
+            A name for a prior where names of models and the
+            name of the prior have been joined by underscores.
+
+        Returns
+        -------
+        A path to that model
+
+        Raises
+        ------
+        AssertionError
+            Iff no matching path is found
+        """
+        exploded = tuple(name.split("_"))
+        for path, _ in self.path_priors_tuples:
+            exploded_path = tuple(
+                string
+                for part in path
+                for string
+                in part.split(
+                    "_"
+                )
+            )
+            if exploded_path == exploded:
+                return path
+        raise AssertionError(
+            f"No path was found matching {name}"
+        )
+
+    def instance_from_prior_name_arguments(
+            self,
+            prior_name_arguments: Dict[str, float]
+    ):
+        """
+        Instantiate the model from the names of priors and
+        corresponding values.
+
+        Parameters
+        ----------
+        prior_name_arguments
+            The names of priors where names of models and the
+            name of the prior have been joined by underscores,
+            mapped to corresponding values.
+
+        Returns
+        -------
+        An instance of the model
+        """
+        return self.instance_from_path_arguments({
+            self.path_for_name(name): value
+            for name, value
+            in prior_name_arguments.items()
+        })
+
+    def instance_from_path_arguments(
+            self,
+            path_arguments: Dict[Tuple[str], float]
+    ):
+        """
+        Create an instance from a dictionary mapping paths to tuples
+        to corresponding values.
+
+        Parameters
+        ----------
+        path_arguments
+            A dictionary mapping paths to priors to corresponding values.
+            Note that, for linked priors, each path only needs to be
+            specified once. If multiple paths for the same prior are
+            specified then the value for the last path will be used.
+
+        Returns
+        -------
+        An instance of the model
+        """
+        arguments = {
+            self.object_for_path(
+                path
+            ): value
+            for path, value
+            in path_arguments.items()
+        }
+        return self._instance_for_arguments(
+            arguments
+        )
+
     @property
     def prior_count(self):
         return len(self.unique_prior_tuples)
@@ -865,6 +967,18 @@ class AbstractPriorModel(AbstractModel):
     def path_priors_tuples(self):
         path_priors_tuples = self.path_instance_tuples_for_class(Prior)
         return sorted(path_priors_tuples, key=lambda item: item[1].id)
+
+    @property
+    def paths(self) -> List[Tuple[str, ...]]:
+        """
+        A list of paths to all the priors in the model, ordered by their
+        ids
+        """
+        return [
+            path
+            for path, _
+            in self.path_priors_tuples
+        ]
 
     def path_for_prior(self, prior: Prior) -> Optional[Tuple[str]]:
         """
