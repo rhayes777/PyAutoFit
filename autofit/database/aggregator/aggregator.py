@@ -9,6 +9,7 @@ from autofit.database import query as q
 from .scrape import Scraper
 from .. import model as m
 from ..query.query import AbstractQuery, Attribute
+from ..query.query.attribute import BestFitQuery
 
 logger = logging.getLogger(
     __name__
@@ -326,7 +327,7 @@ class Aggregator(AbstractAggregator):
             "order_bys": self._order_bys,
             **kwargs
         }
-        type_ = type_ or Aggregator
+        type_ = type_ or type(self)
         return type_(
             **kwargs
         )
@@ -501,24 +502,24 @@ class Aggregator(AbstractAggregator):
 
 class GridSearchAggregator(Aggregator):
     @property
-    def best_fits(self) -> List[m.Fit]:
+    def best_fits(self) -> "GridSearchAggregator":
         """
         The best fit from each of the grid searches
         """
-        return [
-            fit.best_fit
-            for fit
-            in self
-        ]
+        return self._new_with(
+            predicate=BestFitQuery(
+                q.ChildQuery(
+                    self._predicate
+                )
+            )
+        )
 
     def children(self) -> "GridSearchAggregator":
         """
         An aggregator comprising the children of the fits encapsulated
         by this aggregator. This is used to query children in a grid search.
         """
-        return GridSearchAggregator(
-            session=self.session,
-            filename=self.filename,
+        return self._new_with(
             predicate=q.ChildQuery(
                 self._predicate
             )

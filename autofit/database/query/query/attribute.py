@@ -102,3 +102,14 @@ class ChildQuery(AttributeQuery):
     @property
     def condition(self):
         return f"parent_id in ({super().condition})"
+
+
+class BestFitQuery(AttributeQuery):
+    def __init__(self, predicate: AbstractQuery):
+        super().__init__(
+            predicate
+        )
+
+    @property
+    def fit_query(self) -> str:
+        return f"WITH children AS (SELECT id, parent_id, max_log_likelihood FROM fit WHERE parent_id in ({self.condition})), best AS (SELECT parent_id, max(max_log_likelihood) as max_log_likelihood FROM children GROUP BY parent_id) SELECT id FROM children, best WHERE children.parent_id = best.parent_id and children.max_log_likelihood = best.max_log_likelihood;"
