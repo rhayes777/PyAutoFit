@@ -32,7 +32,6 @@ class DynestySamples(NestSamples):
             Maps input vectors of unit parameter values to physical values and model instances via priors.
         """
 
-
         self.results = results
         self._number_live_points = number_live_points
 

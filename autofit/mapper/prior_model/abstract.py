@@ -826,18 +826,33 @@ class AbstractPriorModel(AbstractModel):
         AssertionError
             Iff no matching path is found
         """
-        exploded = tuple(name.split("_"))
-        for path, _ in self.path_priors_tuples:
-            exploded_path = tuple(
+
+        def _explode_path(path_):
+            return tuple(
                 string
-                for part in path
+                for part in path_
                 for string
                 in part.split(
                     "_"
                 )
             )
+
+        exploded = tuple(name.split("_"))
+        for path, _ in self.path_priors_tuples:
+            exploded_path = _explode_path(path)
             if exploded_path == exploded:
                 return path
+
+        for path, prior_tuple in self.path_instance_tuples_for_class(
+                TuplePrior
+        ):
+            for name, prior in prior_tuple.prior_tuples:
+                total_path = path[:-1] + (name,)
+                exploded_path = _explode_path(
+                    total_path
+                )
+                if exploded_path == exploded:
+                    return path + (name,)
         raise AssertionError(
             f"No path was found matching {name}"
         )
