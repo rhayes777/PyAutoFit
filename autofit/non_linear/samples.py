@@ -181,8 +181,8 @@ class Sample:
         The instance corresponding to this sample
         """
         try:
-            return model.instance_from_vector(
-                self.parameter_lists_for_model(model)
+            return model.instance_from_prior_name_arguments(
+                self.kwargs
             )
         except KeyError:
             paths = model.model_component_and_parameter_names
