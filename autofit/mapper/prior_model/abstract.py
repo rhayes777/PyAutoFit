@@ -5,7 +5,7 @@ import logging
 from functools import wraps
 from numbers import Number
 from random import random
-from typing import Tuple, Optional, Dict
+from typing import Tuple, Optional, Dict, List
 
 import numpy as np
 
@@ -967,6 +967,18 @@ class AbstractPriorModel(AbstractModel):
     def path_priors_tuples(self):
         path_priors_tuples = self.path_instance_tuples_for_class(Prior)
         return sorted(path_priors_tuples, key=lambda item: item[1].id)
+
+    @property
+    def paths(self) -> List[Tuple[str, ...]]:
+        """
+        A list of paths to all the priors in the model, ordered by their
+        ids
+        """
+        return [
+            path
+            for path, _
+            in self.path_priors_tuples
+        ]
 
     def path_for_prior(self, prior: Prior) -> Optional[Tuple[str]]:
         """

@@ -9,7 +9,7 @@ import numpy as np
 from autofit.mapper.model import ModelInstance
 from autofit.mapper.model_mapper import ModelMapper
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
-from autofit.non_linear.mcmc.auto_correlations import AutoCorrelations, AutoCorrelationsSettings
+from autofit.non_linear.mcmc.auto_correlations import AutoCorrelationsSettings
 
 
 def quantile(x, q, weights=None):
@@ -69,7 +69,7 @@ class Sample:
             log_likelihood: float,
             log_prior: float,
             weight: float,
-            **kwargs
+            kwargs
     ):
         """
         One sample taken during a search
@@ -117,13 +117,29 @@ class Sample:
         """
 
         if paths is None:
-            paths = model.model_component_and_parameter_names
+            if self.is_path_kwargs:
+                paths = model.paths
+            else:
+                paths = model.model_component_and_parameter_names
 
         return [
             self.kwargs[path]
             for path
             in paths
         ]
+
+    @property
+    def is_path_kwargs(self) -> bool:
+        """
+        Are the keys in the kwargs dictionary tuples? If they
+        are this indicates that they are explicit paths through
+        the model.
+        """
+        for key in self.kwargs.keys():
+            return isinstance(
+                key, tuple
+            )
+        return False
 
     @classmethod
     def from_lists(
@@ -140,7 +156,7 @@ class Sample:
         samples = list()
 
         # Another speed up.
-        model_component_and_parameter_names = model.model_component_and_parameter_names
+        paths = model.paths
 
         for params, log_likelihood, log_prior, weight in zip(
                 parameter_lists,
@@ -152,7 +168,7 @@ class Sample:
                 t: param
                 for t, param
                 in zip(
-                    model_component_and_parameter_names,
+                    paths,
                     params
                 )
             }
@@ -162,7 +178,7 @@ class Sample:
                     log_likelihood=log_likelihood,
                     log_prior=log_prior,
                     weight=weight,
-                    **arg_dict
+                    kwargs=arg_dict
                 )
             )
         return samples
@@ -181,9 +197,15 @@ class Sample:
         The instance corresponding to this sample
         """
         try:
-            return model.instance_from_prior_name_arguments(
-                self.kwargs
-            )
+            if self.is_path_kwargs:
+                return model.instance_from_path_arguments(
+                    self.kwargs
+                )
+            else:
+                return model.instance_from_prior_name_arguments(
+                    self.kwargs
+                )
+
         except KeyError:
             paths = model.model_component_and_parameter_names
             return model.instance_from_vector(
@@ -230,7 +252,7 @@ class OptimizerSamples:
     def __init__(
             self,
             model: AbstractPriorModel,
-            sample_list : List[Sample],
+            sample_list: List[Sample],
             time: Optional[float] = None,
     ):
         """
@@ -249,12 +271,9 @@ class OptimizerSamples:
 
     @property
     def parameter_lists(self):
-
-        paths = self.model.model_component_and_parameter_names
-
         return [
             sample.parameter_lists_for_model(
-                self.model, paths
+                self.model
             )
             for sample in self.sample_list
         ]
@@ -411,7 +430,7 @@ class OptimizerSamples:
         """
         return self.model.instance_from_vector(vector=self.max_log_posterior_vector)
 
-    def gaussian_priors_at_sigma(self, sigma : float) -> [list]:
+    def gaussian_priors_at_sigma(self, sigma: float) -> [list]:
         """
         `GaussianPrior`s of every parameter used to link its inferred values and errors to priors used to sample the
         same (or similar) parameters in a subsequent search, where:
@@ -549,7 +568,7 @@ class PDFSamples(OptimizerSamples):
         """
         return self.model.instance_from_vector(vector=self.median_pdf_vector)
 
-    def vector_at_sigma(self, sigma : float) -> [(float, float)]:
+    def vector_at_sigma(self, sigma: float) -> [(float, float)]:
         """
         The value of every parameter marginalized in 1D at an input sigma value of its probability density function
         (PDF), returned as two lists of values corresponding to the lower and upper values parameter values.
@@ -598,7 +617,7 @@ class PDFSamples(OptimizerSamples):
             for index in range(len(parameters_min))
         ]
 
-    def vector_at_upper_sigma(self, sigma : float) -> [float]:
+    def vector_at_upper_sigma(self, sigma: float) -> [float]:
         """
         The upper value of every parameter marginalized in 1D at an input sigma value of its probability density
         function (PDF), returned as a list.
@@ -612,7 +631,7 @@ class PDFSamples(OptimizerSamples):
         """
         return list(map(lambda param: param[1], self.vector_at_sigma(sigma)))
 
-    def vector_at_lower_sigma(self, sigma : float) -> [float]:
+    def vector_at_lower_sigma(self, sigma: float) -> [float]:
         """
         The lower value of every parameter marginalized in 1D at an input sigma value of its probability density
         function (PDF), returned as a list.
@@ -626,7 +645,7 @@ class PDFSamples(OptimizerSamples):
         """
         return list(map(lambda param: param[0], self.vector_at_sigma(sigma)))
 
-    def instance_at_sigma(self, sigma : float) -> ModelInstance:
+    def instance_at_sigma(self, sigma: float) -> ModelInstance:
         """
         The value of every parameter marginalized in 1D at an input sigma value of its probability density function
         (PDF), returned as a list of model instances corresponding to the lower and upper values estimated from the PDF.
@@ -642,7 +661,7 @@ class PDFSamples(OptimizerSamples):
             vector=self.vector_at_sigma(sigma=sigma), assert_priors_in_limits=False
         )
 
-    def instance_at_upper_sigma(self, sigma : float) -> ModelInstance:
+    def instance_at_upper_sigma(self, sigma: float) -> ModelInstance:
         """
         The upper value of every parameter marginalized in 1D at an input sigma value of its probability density
         function (PDF), returned as a model instance.
@@ -659,7 +678,7 @@ class PDFSamples(OptimizerSamples):
             assert_priors_in_limits=False,
         )
 
-    def instance_at_lower_sigma(self, sigma : float) -> ModelInstance:
+    def instance_at_lower_sigma(self, sigma: float) -> ModelInstance:
         """
         The lower value of every parameter marginalized in 1D at an input sigma value of its probability density
         function (PDF), returned as a model instance.
@@ -676,7 +695,7 @@ class PDFSamples(OptimizerSamples):
             assert_priors_in_limits=False,
         )
 
-    def error_vector_at_sigma(self, sigma : float) -> [(float, float)]:
+    def error_vector_at_sigma(self, sigma: float) -> [(float, float)]:
         """
         The lower and upper error of every parameter marginalized in 1D at an input sigma value of its probability
         density function (PDF), returned as a list.
@@ -692,7 +711,7 @@ class PDFSamples(OptimizerSamples):
         error_vector_upper = self.error_vector_at_upper_sigma(sigma=sigma)
         return [(lower, upper) for lower, upper in zip(error_vector_lower, error_vector_upper)]
 
-    def error_vector_at_upper_sigma(self, sigma : float) -> [float]:
+    def error_vector_at_upper_sigma(self, sigma: float) -> [float]:
         """
         The upper error of every parameter marginalized in 1D at an input sigma value of its probability density
         function (PDF), returned as a list.
@@ -713,7 +732,7 @@ class PDFSamples(OptimizerSamples):
             )
         )
 
-    def error_vector_at_lower_sigma(self, sigma : float) -> [float]:
+    def error_vector_at_lower_sigma(self, sigma: float) -> [float]:
         """
         The lower error of every parameter marginalized in 1D at an input sigma value of its probability density
         function (PDF), returned as a list.
@@ -734,7 +753,7 @@ class PDFSamples(OptimizerSamples):
             )
         )
 
-    def error_magnitude_vector_at_sigma(self, sigma : float) -> [float]:
+    def error_magnitude_vector_at_sigma(self, sigma: float) -> [float]:
         """
         The magnitude of every error after marginalization in 1D at an input sigma value of the probability density
         function (PDF), returned as two lists of values corresponding to the lower and upper errors.
@@ -751,7 +770,7 @@ class PDFSamples(OptimizerSamples):
         lowers = self.vector_at_lower_sigma(sigma=sigma)
         return list(map(lambda upper, lower: upper - lower, uppers, lowers))
 
-    def error_instance_at_sigma(self, sigma : float) -> ModelInstance:
+    def error_instance_at_sigma(self, sigma: float) -> ModelInstance:
         """
         The error of every parameter marginalized in 1D at an input sigma value of its probability density function
         (PDF), returned as a list of model instances corresponding to the lower and upper errors.
@@ -768,7 +787,7 @@ class PDFSamples(OptimizerSamples):
             assert_priors_in_limits=False,
         )
 
-    def error_instance_at_upper_sigma(self, sigma : float) -> ModelInstance:
+    def error_instance_at_upper_sigma(self, sigma: float) -> ModelInstance:
         """
         The upper error of every parameter marginalized in 1D at an input sigma value of its probability density
         function (PDF), returned as a model instance.
@@ -785,7 +804,7 @@ class PDFSamples(OptimizerSamples):
             assert_priors_in_limits=False,
         )
 
-    def error_instance_at_lower_sigma(self, sigma : float) -> ModelInstance:
+    def error_instance_at_lower_sigma(self, sigma: float) -> ModelInstance:
         """
         The lower error of every parameter marginalized in 1D at an input sigma value of its probability density
         function (PDF), returned as a model instance.
@@ -802,7 +821,7 @@ class PDFSamples(OptimizerSamples):
             assert_priors_in_limits=False,
         )
 
-    def gaussian_priors_at_sigma(self, sigma : float) -> [list]:
+    def gaussian_priors_at_sigma(self, sigma: float) -> [list]:
         """
         `GaussianPrior`s of every parameter used to link its inferred values and errors to priors used to sample the
         same (or similar) parameters in a subsequent search, where:
@@ -833,7 +852,7 @@ class PDFSamples(OptimizerSamples):
 
         return list(map(lambda mean, sigma: (mean, sigma), means, sigmas))
 
-    def log_likelihood_from_sample_index(self, sample_index : int) -> float:
+    def log_likelihood_from_sample_index(self, sample_index: int) -> float:
         """
         The log likelihood of an individual sample of the non-linear search.
 
@@ -844,7 +863,7 @@ class PDFSamples(OptimizerSamples):
         """
         raise NotImplementedError()
 
-    def vector_from_sample_index(self, sample_index : int) -> [float]:
+    def vector_from_sample_index(self, sample_index: int) -> [float]:
         """
         The parameters of an individual sample of the non-linear search, returned as a 1D list.
 
@@ -855,7 +874,7 @@ class PDFSamples(OptimizerSamples):
         """
         raise NotImplementedError()
 
-    def offset_vector_from_input_vector(self, input_vector : List) -> [float]:
+    def offset_vector_from_input_vector(self, input_vector: List) -> [float]:
         """
         The values of an input_vector offset by the median_pdf_vector (the PDF medians).
 
@@ -911,7 +930,7 @@ class MCMCSamples(PDFSamples):
         raise NotImplementedError
 
     @classmethod
-    def from_table(self, filename: str, model : ModelMapper, number_live_points : int = None):
+    def from_table(self, filename: str, model: ModelMapper, number_live_points: int = None):
         """
         Write a table of parameters, posteriors, priors and likelihoods
 
@@ -994,7 +1013,7 @@ class MCMCSamples(PDFSamples):
 
         return self.max_log_likelihood_vector
 
-    def vector_at_sigma(self, sigma : float) -> [float]:
+    def vector_at_sigma(self, sigma: float) -> [float]:
         """
         The value of every parameter marginalized in 1D at an input sigma value of its probability density function
         (PDF), returned as two lists of values corresponding to the lower and upper values parameter values.
@@ -1174,7 +1193,7 @@ class StoredSamples(PDFSamples):
     def __init__(
             self,
             model: AbstractPriorModel,
-            sample_list : List[Sample],
+            sample_list: List[Sample],
             unconverged_sample_size: int = 100,
             time: Optional[float] = None,
     ):
@@ -1195,4 +1214,3 @@ class StoredSamples(PDFSamples):
         )
 
         self._unconverged_sample_size = int(unconverged_sample_size)
-
