@@ -109,3 +109,4 @@ class TestInstanceFromPriorNames:
                    "gaussian_component",
                    "centre"
                )
+
