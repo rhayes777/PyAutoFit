@@ -127,7 +127,7 @@ def test_model_order_no_complicated():
 def test_grid_search_best_fits(
         aggregator
 ):
-    best_fit = aggregator.grid_searches().best_fits
+    best_fit = aggregator.grid_searches().best_fits()
     assert isinstance(
         best_fit,
         db.GridSearchAggregator
@@ -150,7 +150,7 @@ def test_multiple_best_fits(
         )
     )
     session.commit()
-    best_fit = aggregator.grid_searches().best_fits
+    best_fit = aggregator.grid_searches().best_fits()
     assert best_fit.values(
         "max_log_likelihood"
     ) == [10, 11]

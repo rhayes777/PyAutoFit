@@ -501,7 +501,6 @@ class Aggregator(AbstractAggregator):
 
 
 class GridSearchAggregator(Aggregator):
-    @property
     def best_fits(self) -> "GridSearchAggregator":
         """
         The best fit from each of the grid searches
