@@ -112,4 +112,17 @@ class BestFitQuery(ChildQuery):
 
     @property
     def fit_query(self) -> str:
-        return f"WITH children AS (SELECT id, parent_id, max_log_likelihood FROM fit WHERE {self.condition}), best AS (SELECT parent_id, max(max_log_likelihood) as max_log_likelihood FROM children GROUP BY parent_id) SELECT id FROM children, best WHERE children.parent_id = best.parent_id and children.max_log_likelihood = best.max_log_likelihood;"
+        return f"""WITH children AS (
+                    SELECT id, parent_id, max_log_likelihood 
+                    FROM fit WHERE {self.condition}
+                   ), 
+                   best AS (
+                    SELECT parent_id, max(max_log_likelihood) AS max_log_likelihood 
+                    FROM children 
+                    GROUP BY parent_id
+                   ) 
+                   SELECT id 
+                   FROM children, best 
+                   WHERE children.parent_id = best.parent_id 
+                   AND children.max_log_likelihood = best.max_log_likelihood;
+               """
