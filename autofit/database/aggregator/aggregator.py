@@ -508,9 +508,7 @@ class GridSearchAggregator(Aggregator):
         """
         return self._new_with(
             predicate=BestFitQuery(
-                q.ChildQuery(
-                    self._predicate
-                )
+                self._predicate
             )
         )
 
