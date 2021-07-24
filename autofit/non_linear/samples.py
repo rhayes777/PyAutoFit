@@ -1126,10 +1126,11 @@ class NestSamples(PDFSamples):
         """
         The parameters of an individual sample of the non-linear search drawn randomly from the PDF, returned as a 1D
         list.
+
+        For the samples of a Nested Sampling non-linear search, the draw is weighted by the sample weights to ensure
+        that the sample is drawn from the PDF.
         """
         sample_index = np.random.choice(a=range(len(self.sample_list)), p=self.weight_list)
-
-        print(self.parameter_lists)
 
         return self.parameter_lists[sample_index][:]
 
