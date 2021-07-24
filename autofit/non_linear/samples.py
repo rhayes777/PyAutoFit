@@ -844,14 +844,10 @@ class PDFSamples(OptimizerSamples):
         """
         raise NotImplementedError()
 
-    def vector_from_sample_index(self, sample_index : int) -> [float]:
+    def vector_drawn_randomly_from_pdf(self) -> [float]:
         """
-        The parameters of an individual sample of the non-linear search, returned as a 1D list.
-
-        Parameters
-        ----------
-        sample_index
-            The index of the sample in the non-linear search, e.g. 0 gives the first sample.
+        The parameters of an individual sample of the non-linear search drawn randomly from the PDF, returned as a 1D
+        list.
         """
         raise NotImplementedError()
 
@@ -893,6 +889,7 @@ class PDFSamples(OptimizerSamples):
             non-linear search.
         """
         return np.cov(m=self.parameter_lists, rowvar=False, aweights=self.weight_list)
+
 
 class MCMCSamples(PDFSamples):
 
@@ -1053,6 +1050,17 @@ class MCMCSamples(PDFSamples):
             (parameters_min[index], parameters_max[index])
             for index in range(len(parameters_min))
         ]
+
+    def vector_drawn_randomly_from_pdf(self) -> [float]:
+        """
+        The parameters of an individual sample of the non-linear search drawn randomly from the PDF, returned as a 1D
+        list.
+        """
+        samples = self.samples_after_burn_in
+
+        sample_index = np.random.choice(range(len(samples)))
+
+        print(samples.parameter_lists[sample_index][:])
 
     @property
     def log_evidence(self):
