@@ -530,7 +530,6 @@ class TestPDFSamples:
 
         assert offset_values == pytest.approx([0.0, 1.0, 1.0, 1.025], 1.0e-4)
 
-
 class MockNestSamples(af.NestSamples):
     def __init__(
             self,
