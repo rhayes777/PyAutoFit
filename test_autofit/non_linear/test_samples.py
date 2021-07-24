@@ -689,6 +689,16 @@ class TestNestSamples:
 
         assert vector == [21.0, 22.0, 23.0, 24.0]
 
+        instance = samples.instance_drawn_randomly_from_pdf()
+
+        assert vector == [21.0, 22.0, 23.0, 24.0]
+
+        assert instance.mock_class_1.one == 21.0
+        assert instance.mock_class_1.two == 22.0
+        assert instance.mock_class_1.three == 23.0
+        assert instance.mock_class_1.four == 24.0
+
+
     def test__samples_within_parameter_range(self, samples):
         model = af.ModelMapper(mock_class_1=MockClassx4)
 

@@ -1124,8 +1124,8 @@ class NestSamples(PDFSamples):
 
     def vector_drawn_randomly_from_pdf(self) -> [float]:
         """
-        The parameters of an individual sample of the non-linear search drawn randomly from the PDF, returned as a 1D
-        list.
+        The parameter vector of an individual sample of the non-linear search drawn randomly from the PDF, returned as
+        a 1D list.
 
         For the samples of a Nested Sampling non-linear search, the draw is weighted by the sample weights to ensure
         that the sample is drawn from the PDF.
@@ -1133,6 +1133,16 @@ class NestSamples(PDFSamples):
         sample_index = np.random.choice(a=range(len(self.sample_list)), p=self.weight_list)
 
         return self.parameter_lists[sample_index][:]
+
+    def instance_drawn_randomly_from_pdf(self) -> ModelInstance:
+        """
+        The parameter instance of an individual sample of the non-linear search drawn randomly from the PDF, returned
+        as a 1D list.
+
+        For the samples of a Nested Sampling non-linear search, the draw is weighted by the sample weights to ensure
+        that the sample is drawn from the PDF.
+        """
+        return self.model.instance_from_vector(vector=self.vector_drawn_randomly_from_pdf())
 
     def samples_within_parameter_range(
             self,
