@@ -1051,17 +1051,6 @@ class MCMCSamples(PDFSamples):
             for index in range(len(parameters_min))
         ]
 
-    def vector_drawn_randomly_from_pdf(self) -> [float]:
-        """
-        The parameters of an individual sample of the non-linear search drawn randomly from the PDF, returned as a 1D
-        list.
-        """
-        samples = self.samples_after_burn_in
-
-        sample_index = np.random.choice(range(len(samples)))
-
-        print(samples.parameter_lists[sample_index][:])
-
     @property
     def log_evidence(self):
         return None
@@ -1132,6 +1121,17 @@ class NestSamples(PDFSamples):
         The ratio of accepted samples to total samples.
         """
         return self.total_accepted_samples / self.total_samples
+
+    def vector_drawn_randomly_from_pdf(self) -> [float]:
+        """
+        The parameters of an individual sample of the non-linear search drawn randomly from the PDF, returned as a 1D
+        list.
+        """
+        sample_index = np.random.choice(a=range(len(self.sample_list)), p=self.weight_list)
+
+        print(self.parameter_lists)
+
+        return self.parameter_lists[sample_index][:]
 
     def samples_within_parameter_range(
             self,
