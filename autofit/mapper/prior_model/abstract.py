@@ -57,6 +57,25 @@ def check_assertions(func):
     return wrapper
 
 
+class TuplePathModifier:
+    def __init__(self, model_):
+        tuple_priors = model_.path_instance_tuples_for_class(
+            TuplePrior
+        )
+        try:
+            self.tuple_paths, _ = zip(
+                *tuple_priors
+            )
+        except ValueError:
+            self.tuple_paths = None
+
+    def __call__(self, path):
+        if self.tuple_paths is not None:
+            if path[:-1] in self.tuple_paths:
+                return path[:-2] + (path[-1],)
+        return path
+
+
 class AbstractPriorModel(AbstractModel):
     """
     Abstract model that maps a set of priors to a particular class. Must be
@@ -1123,6 +1142,13 @@ class AbstractPriorModel(AbstractModel):
         return formatter.text
 
     @property
+    def all_paths(self):
+        if self.prior_count == 0:
+            return []
+        paths, _ = zip(*self.all_paths_prior_tuples)
+        return paths
+
+    @property
     def all_paths_prior_tuples(self):
         prior_paths_dict = defaultdict(tuple)
         for path, prior in self.path_priors_tuples:
@@ -1135,6 +1161,13 @@ class AbstractPriorModel(AbstractModel):
             ],
             key=lambda item: item[1].id
         )
+
+    @property
+    def all_names(self):
+        if self.prior_count == 0:
+            return []
+        names, _ = zip(*self.all_name_prior_tuples)
+        return names
 
     @property
     def all_name_prior_tuples(self):
@@ -1158,18 +1191,14 @@ class AbstractPriorModel(AbstractModel):
         model_mapper. Latex tags are properties of each model class."""
         prior_paths = self.unique_prior_paths
 
-        tuple_priors = self.path_instance_tuples_for_class(
-            TuplePrior
+        tuple_filter = TuplePathModifier(
+            self
         )
 
-        if len(tuple_priors) > 0:
-            tuple_paths, _ = zip(
-                *tuple_priors
-            )
-
-            for i, prior_path in enumerate(prior_paths):
-                if prior_path[:-1] in tuple_paths:
-                    prior_paths[i] = prior_path[:-2] + (prior_path[-1],)
+        prior_paths = list(map(
+            tuple_filter,
+            prior_paths
+        ))
 
         return [
             "_".join(path)

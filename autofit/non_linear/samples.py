@@ -115,9 +115,9 @@ class Sample:
         A list of physical values
         """
         if self.is_path_kwargs:
-            paths = model.unique_prior_paths
+            paths = model.all_paths
         else:
-            paths = model.model_component_and_parameter_names
+            paths = model.all_names
 
         return self.parameter_lists_for_paths(
             paths
@@ -127,14 +127,21 @@ class Sample:
             self,
             paths
     ):
-        try:
-            return [
-                self.kwargs[path]
-                for path
-                in paths
-            ]
-        except KeyError:
-            pass
+        result = list()
+        for keys in paths:
+            for key in keys:
+                if key in self.kwargs:
+                    result.append(
+                        self.kwargs[
+                            key
+                        ]
+                    )
+                    break
+                else:
+                    raise KeyError(
+                        f"Could not find any of the following keys in kwargs {keys}"
+                    )
+        return result
 
     @property
     def is_path_kwargs(self) -> bool:
@@ -307,7 +314,7 @@ class OptimizerSamples:
         Uses hasattr to make backwards compatible
         """
         if not hasattr(self, "_paths") or self._paths is None:
-            self._paths = self.model.unique_prior_paths
+            self._paths = self.model.all_paths
         return self._paths
 
     @property
@@ -319,17 +326,21 @@ class OptimizerSamples:
         Uses hasattr to make backwards compatible
         """
         if not hasattr(self, "_names") or self._names is None:
-            self._names = self.model.model_component_and_parameter_names
+            self._names = self.model.all_names
         return self._names
 
     @property
     def parameter_lists(self):
-        return [
-            sample.parameter_lists_for_paths(
-                self.paths if sample.is_path_kwargs else self.names
+        result = list()
+        for sample in self.sample_list:
+            tuples = self.paths if sample.is_path_kwargs else self.names
+            result.append(
+                sample.parameter_lists_for_paths(
+                    tuples
+                )
             )
-            for sample in self.sample_list
-        ]
+
+        return result
 
     @property
     def total_samples(self):
