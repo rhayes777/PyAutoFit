@@ -352,7 +352,7 @@ class GaussianPrior(Prior):
     def __str__(self):
         """The line of text describing this prior for the model_mapper.info file"""
         return (
-                "GaussianPrior, mean = " + str(self.mean) + ", sigma = " + str(self.sigma)
+            f"GaussianPrior, mean = {self.mean}, sigma = {self.sigma}"
         )
 
     def __repr__(self):
@@ -418,12 +418,7 @@ class UniformPrior(Prior):
 
     def __str__(self):
         """The line of text describing this prior for the model_mapper.info file"""
-        return (
-                "UniformPrior, lower_limit = "
-                + str(self.lower_limit)
-                + ", upper_limit = "
-                + str(self.upper_limit)
-        )
+        return f"UniformPrior, lower_limit = {self.lower_limit}, upper_limit = {self.upper_limit}"
 
 
 class LogUniformPrior(UniformPrior):
@@ -442,7 +437,7 @@ class LogUniformPrior(UniformPrior):
             The highest value this prior can return
         """
         super().__init__(lower_limit=lower_limit, upper_limit=upper_limit)
-        if (self.lower_limit <= 0.0):
+        if self.lower_limit <= 0.0:
             raise exc.PriorException(
                 "The lower limit of a LogUniformPrior cannot be zero or negative."
             )
@@ -479,12 +474,7 @@ class LogUniformPrior(UniformPrior):
 
     def __str__(self):
         """The line of text describing this prior for the model_mapper.info file"""
-        return (
-                "LogUniformPrior, lower_limit = "
-                + str(self.lower_limit)
-                + ", upper_limit = "
-                + str(self.upper_limit)
-        )
+        return f"LogUniformPrior, lower_limit = {self.lower_limit}, upper_limit = {self.upper_limit}"
 
 
 def make_type_dict(cls):

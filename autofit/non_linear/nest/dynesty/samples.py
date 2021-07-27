@@ -4,7 +4,8 @@ import numpy as np
 from dynesty.results import Results
 
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
-from autofit.non_linear.samples import NestSamples, Sample
+from autofit.non_linear.samples import Sample
+from autofit import NestSamples
 
 
 class DynestySamples(NestSamples):
@@ -31,7 +32,6 @@ class DynestySamples(NestSamples):
         model
             Maps input vectors of unit parameter values to physical values and model instances via priors.
         """
-
 
         self.results = results
         self._number_live_points = number_live_points
