@@ -152,8 +152,7 @@ class Sample:
         """
         samples = list()
 
-        # Another speed up.
-        paths = model.paths
+        paths = model.unique_prior_paths
 
         for params, log_likelihood, log_prior, weight in zip(
                 parameter_lists,
