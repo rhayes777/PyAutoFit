@@ -403,6 +403,28 @@ class PDFSamples(OptimizerSamples):
         """
         raise NotImplementedError()
 
+    def vector_drawn_randomly_from_pdf(self) -> [float]:
+        """
+        The parameter vector of an individual sample of the non-linear search drawn randomly from the PDF, returned as
+        a 1D list.
+
+        The draw is weighted by the sample weights to ensure that the sample is drawn from the PDF (which is important
+        for non-linear searches like nested sampling).
+        """
+        sample_index = np.random.choice(a=range(len(self.sample_list)), p=self.weight_list)
+
+        return self.parameter_lists[sample_index][:]
+
+    def instance_drawn_randomly_from_pdf(self) -> ModelInstance:
+        """
+        The parameter instance of an individual sample of the non-linear search drawn randomly from the PDF, returned
+        as a 1D list.
+
+        The draw is weighted by the sample weights to ensure that the sample is drawn from the PDF (which is important
+        for non-linear searches like nested sampling).
+        """
+        return self.model.instance_from_vector(vector=self.vector_drawn_randomly_from_pdf())
+
     def vector_from_sample_index(self, sample_index: int) -> [float]:
         """
         The parameters of an individual sample of the non-linear search, returned as a 1D list.
@@ -436,6 +458,22 @@ class PDFSamples(OptimizerSamples):
             )
         )
 
+    def covariance_matrix(self) -> np.ndarray:
+        """
+        Compute the covariance matrix of the non-linear search samples, using the method `np.cov()` which is described
+        at the following link:
+
+        https://numpy.org/doc/stable/reference/generated/numpy.cov.html
+
+        Follow that link for a description of what the covariance matrix is.
+
+        Returns
+        -------
+        ndarray
+            A covariance matrix of shape [total_parameters, total_parameters] for the model parameters of the
+            non-linear search.
+        """
+        return np.cov(m=self.parameter_lists, rowvar=False, aweights=self.weight_list)
 
 def quantile(x, q, weights=None):
     """

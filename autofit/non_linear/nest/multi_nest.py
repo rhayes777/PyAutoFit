@@ -184,18 +184,6 @@ class MultiNest(abstract_nest.AbstractNest):
             time=self.timer.time
         )
 
-    def copy_from_sym(self):
-        """
-        Copy files from the sym-linked search folder to the samples folder.
-        """
-
-        src_files = os.listdir(self.paths.path)
-        for file_name in src_files:
-            full_file_name = path.join(self.paths.path, file_name)
-            if path.isfile(full_file_name):
-                shutil.copy(full_file_name, self.paths.samples_path)
-
-
 class MultiNestSamples(NestSamples):
 
     def __init__(
@@ -230,7 +218,6 @@ class MultiNestSamples(NestSamples):
         self.file_resume = file_resume
 
         self._number_live_points = number_live_points
-
 
         parameters = parameters_from_file_weighted_samples(
             file_weighted_samples=self.file_weighted_samples,
