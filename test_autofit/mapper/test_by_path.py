@@ -212,6 +212,28 @@ def make_result(
     )
 
 
+@pytest.fixture(
+    name="modified_result"
+)
+def make_modified_result(
+        model,
+        samples
+):
+    model.gaussian.sigma = af.GaussianPrior(
+        mean=0.5,
+        sigma=1
+    )
+    model.gaussian.centre = af.GaussianPrior(
+        mean=0.5,
+        sigma=1
+    )
+    return af.Result(
+        samples,
+        model,
+        MockSearch()
+    )
+
+
 class TestFromResult:
     def test_instance(
             self,
@@ -228,6 +250,26 @@ class TestFromResult:
             result
     ):
         model = result.model
+
+        assert model.gaussian.centre.mean == 0.1
+        assert model.gaussian.intensity.mean == 0.2
+        assert model.gaussian.sigma.mean == 0.3
+
+    def test_modified_instance(
+            self,
+            modified_result
+    ):
+        instance = modified_result.max_log_likelihood_instance
+
+        assert instance.gaussian.centre == 0.1
+        assert instance.gaussian.intensity == 0.2
+        assert instance.gaussian.sigma == 0.3
+
+    def test_modified_model(
+            self,
+            modified_result
+    ):
+        model = modified_result.model
 
         assert model.gaussian.centre.mean == 0.1
         assert model.gaussian.intensity.mean == 0.2
