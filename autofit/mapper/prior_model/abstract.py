@@ -58,7 +58,26 @@ def check_assertions(func):
 
 
 class TuplePathModifier:
-    def __init__(self, model_):
+    def __init__(self, model_: "AbstractPriorModel"):
+        """
+        Modifies paths to priors contained in tuples.
+
+        When a tuple is found in a signature a PriorTuple is created.
+
+        The true path to a variable in the tuple is
+        ("some", "preamble", "tuple_name", "tuple_name_0")
+
+        Where 0 is the index of the tuple member. "tuple_name" must be
+        removed from this path for some uses.
+
+        When called, instances of this class remove the name of the tuple
+        i.e:
+        -> ("some", "preamble", "tuple_name_0")
+
+        Parameters
+        ----------
+        model_
+        """
         tuple_priors = model_.path_instance_tuples_for_class(
             TuplePrior
         )
@@ -74,6 +93,9 @@ class TuplePathModifier:
             if path[:-1] in self.tuple_paths:
                 return path[:-2] + (path[-1],)
         return path
+
+
+Path = Tuple[str, ...]
 
 
 class AbstractPriorModel(AbstractModel):
@@ -934,7 +956,10 @@ class AbstractPriorModel(AbstractModel):
         )
 
     @property
-    def prior_count(self):
+    def prior_count(self) -> int:
+        """
+        How many unique priors does this model contain?
+        """
         return len(self.unique_prior_tuples)
 
     @property
@@ -999,12 +1024,12 @@ class AbstractPriorModel(AbstractModel):
         return mapper
 
     @property
-    def path_priors_tuples(self):
+    def path_priors_tuples(self) -> List[Tuple[Path, Prior]]:
         path_priors_tuples = self.path_instance_tuples_for_class(Prior)
         return sorted(path_priors_tuples, key=lambda item: item[1].id)
 
     @property
-    def paths(self) -> List[Tuple[str, ...]]:
+    def paths(self) -> List[Path]:
         """
         A list of paths to all the priors in the model, ordered by their
         ids
@@ -1015,7 +1040,7 @@ class AbstractPriorModel(AbstractModel):
             in self.path_priors_tuples
         ]
 
-    def path_for_prior(self, prior: Prior) -> Optional[Tuple[str]]:
+    def path_for_prior(self, prior: Prior) -> Optional[Path]:
         """
         Find a path that points at the given tuple.
         Returns the first path or None if no path is found.
@@ -1142,14 +1167,21 @@ class AbstractPriorModel(AbstractModel):
         return formatter.text
 
     @property
-    def all_paths(self):
+    def all_paths(self) -> List[Tuple[Path]]:
+        """
+        All possible paths to all priors grouped such that all
+        paths to the same prior are collected together in a tuple.
+        """
         if self.prior_count == 0:
             return []
         paths, _ = zip(*self.all_paths_prior_tuples)
         return paths
 
     @property
-    def all_paths_prior_tuples(self):
+    def all_paths_prior_tuples(self) -> List[Tuple[Tuple[Path], Prior]]:
+        """
+        Maps a tuple containing all paths to a given prior to that prior.
+        """
         prior_paths_dict = defaultdict(tuple)
         path_modifier = TuplePathModifier(self)
         for path, prior in self.path_priors_tuples:
@@ -1164,14 +1196,21 @@ class AbstractPriorModel(AbstractModel):
         )
 
     @property
-    def all_names(self):
+    def all_names(self) -> List[Tuple[str]]:
+        """
+        All possible names for all priors grouped such that all
+        names for a given prior are collected together in a tuple.
+        """
         if self.prior_count == 0:
             return []
         names, _ = zip(*self.all_name_prior_tuples)
         return names
 
     @property
-    def all_name_prior_tuples(self):
+    def all_name_prior_tuples(self) -> List[Tuple[Tuple[str], Prior]]:
+        """
+        Maps a tuple containing all names for a given prior to that prior.
+        """
         return [
             (
                 tuple(
