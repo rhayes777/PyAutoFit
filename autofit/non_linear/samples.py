@@ -115,7 +115,7 @@ class Sample:
         A list of physical values
         """
         if self.is_path_kwargs:
-            paths = model.paths
+            paths = model.unique_prior_paths
         else:
             paths = model.model_component_and_parameter_names
 
