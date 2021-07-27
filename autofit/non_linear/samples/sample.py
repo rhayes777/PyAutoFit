@@ -70,6 +70,7 @@ class Sample:
     ):
         result = list()
         for keys in paths:
+            is_found = False
             for key in keys:
                 if key in self.kwargs:
                     result.append(
@@ -77,11 +78,12 @@ class Sample:
                             key
                         ]
                     )
+                    is_found = True
                     break
-                else:
-                    raise KeyError(
-                        f"Could not find any of the following keys in kwargs {keys}"
-                    )
+            if not is_found:
+                raise KeyError(
+                    f"Could not find any of the following keys in kwargs {keys}"
+                )
         return result
 
     @property

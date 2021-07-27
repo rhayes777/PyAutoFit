@@ -1183,9 +1183,8 @@ class AbstractPriorModel(AbstractModel):
         Maps a tuple containing all paths to a given prior to that prior.
         """
         prior_paths_dict = defaultdict(tuple)
-        path_modifier = TuplePathModifier(self)
         for path, prior in self.path_priors_tuples:
-            prior_paths_dict[prior] += (path_modifier(path),)
+            prior_paths_dict[prior] += (path,)
         return sorted(
             [
                 (paths, prior)
@@ -1211,10 +1210,11 @@ class AbstractPriorModel(AbstractModel):
         """
         Maps a tuple containing all names for a given prior to that prior.
         """
+        path_modifier = TuplePathModifier(self)
         return [
             (
                 tuple(
-                    "_".join(path)
+                    "_".join(path_modifier(path))
                     for path in paths
                 ),
                 prior
