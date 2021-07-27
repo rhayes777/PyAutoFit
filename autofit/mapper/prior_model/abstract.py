@@ -1127,11 +1127,14 @@ class AbstractPriorModel(AbstractModel):
         prior_paths_dict = defaultdict(tuple)
         for path, prior in self.path_priors_tuples:
             prior_paths_dict[prior] += (path,)
-        return [
-            (paths, prior)
-            for prior, paths
-            in prior_paths_dict.items()
-        ]
+        return sorted(
+            [
+                (paths, prior)
+                for prior, paths
+                in prior_paths_dict.items()
+            ],
+            key=lambda item: item[1].id
+        )
 
     @property
     def model_component_and_parameter_names(self) -> [str]:
