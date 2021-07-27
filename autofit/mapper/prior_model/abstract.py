@@ -2,6 +2,7 @@ import copy
 import inspect
 import json
 import logging
+from collections import defaultdict
 from functools import wraps
 from numbers import Number
 from random import random
@@ -1120,6 +1121,17 @@ class AbstractPriorModel(AbstractModel):
                 )
 
         return formatter.text
+
+    @property
+    def all_paths_prior_tuples(self):
+        prior_paths_dict = defaultdict(tuple)
+        for path, prior in self.path_priors_tuples:
+            prior_paths_dict[prior] += (path,)
+        return [
+            (paths, prior)
+            for prior, paths
+            in prior_paths_dict.items()
+        ]
 
     @property
     def model_component_and_parameter_names(self) -> [str]:

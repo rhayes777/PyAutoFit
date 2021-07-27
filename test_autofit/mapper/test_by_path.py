@@ -125,10 +125,30 @@ def test_with_tuple():
     with_tuple = af.Model(
         WithTuple
     )
-    result = with_tuple.name_for_prior(
-        with_tuple.tup.tup_0
-    )
-    print(result)
     assert with_tuple.model_component_and_parameter_names == [
         "tup_0", "tup_1"
     ]
+
+
+class TestAllPaths:
+    def test_independent(self):
+        model = af.Model(
+            af.Gaussian
+        )
+
+        assert model.all_paths_prior_tuples == [
+            ((("centre",),), model.centre),
+            ((("intensity",),), model.intensity),
+            ((("sigma",),), model.sigma),
+        ]
+
+    def test_linked(self):
+        model = af.Model(
+            af.Gaussian
+        )
+        model.sigma = model.centre
+
+        assert model.all_paths_prior_tuples == [
+            ((("centre",), ("sigma",)), model.centre),
+            ((("intensity",),), model.intensity)
+        ]
