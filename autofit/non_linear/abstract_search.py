@@ -477,7 +477,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         else:
             self.logger.info(f"Already completed, skipping non-linear search.")
-            samples = self.samples_from(model=model)
+            samples = self.paths.load_object("samples")
 
             if self.force_pickle_overwrite:
                 self.logger.info(

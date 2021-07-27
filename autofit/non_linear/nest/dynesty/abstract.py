@@ -216,26 +216,18 @@ class AbstractDynesty(AbstractNest, ABC):
             The model which generates instances for different points in parameter space. This maps the points from unit
             cube values to physical values via the priors.
         """
+        sampler = self.paths.load_object(
+            "dynesty"
+        )
+        results = sampler.results
 
-        try:
-
-            return self.paths.load_object(
-                "samples"
-            )
-
-        except (FileNotFoundError, AttributeError):
-            sampler = self.paths.load_object(
-                "dynesty"
-            )
-            results = sampler.results
-
-            return DynestySamples(
-                model=model,
-                results=results,
-                number_live_points=self.total_live_points,
-                unconverged_sample_size=1,
-                time=self.timer.time,
-            )
+        return DynestySamples(
+            model=model,
+            results=results,
+            number_live_points=self.total_live_points,
+            unconverged_sample_size=1,
+            time=self.timer.time,
+        )
 
     def live_points_from_model_and_fitness_function(
             self, model, fitness_function
