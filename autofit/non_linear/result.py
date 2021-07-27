@@ -1,4 +1,5 @@
 from autofit import exc
+from autofit.non_linear.samples.optimizer import OptimizerSamples
 
 
 class Result:
@@ -6,7 +7,7 @@ class Result:
     @DynamicAttrs
     """
 
-    def __init__(self, samples, model, search=None):
+    def __init__(self, samples: OptimizerSamples, model, search=None):
         """
         The result of an optimization.
 
@@ -15,6 +16,8 @@ class Result:
         model
             The model mapper from the stage that produced this result
         """
+        if samples is not None:
+            samples.model = model
 
         self.samples = samples
         self.search = search

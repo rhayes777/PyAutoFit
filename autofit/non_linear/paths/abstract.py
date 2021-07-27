@@ -12,7 +12,7 @@ from typing import Optional
 
 from autoconf import conf
 from autofit.mapper import link
-from autofit.mapper.model_object import Identifier, IdentifierField
+from autofit.mapper.identifier import Identifier, IdentifierField
 from autofit.text import text_util
 
 logger = logging.getLogger(
@@ -94,6 +94,12 @@ class AbstractPaths(ABC):
         except NoSectionError as e:
             logger.exception(e)
 
+    @property
+    @abstractmethod
+    def is_grid_search(self) -> bool:
+        pass
+
+    @abstractmethod
     def create_child(
             self,
             name: Optional[str] = None,
@@ -117,16 +123,7 @@ class AbstractPaths(ABC):
         -------
         A new paths object
         """
-        return type(self)(
-            name=name or self.name,
-            path_prefix=path_prefix or self.path_prefix,
-            is_identifier_in_paths=(
-                is_identifier_in_paths
-                if is_identifier_in_paths is not None
-                else self.is_identifier_in_paths
-            ),
-            parent=self
-        )
+
 
     search = IdentifierField()
     model = IdentifierField()

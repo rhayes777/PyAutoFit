@@ -7,6 +7,8 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
 import autofit as af
+import autofit.non_linear.samples.sample
+import autofit.non_linear.samples.stored
 from autoconf import conf
 from autofit import database as db
 from autofit.mock import mock
@@ -67,10 +69,10 @@ def model():
 
 @pytest.fixture(name="samples")
 def make_samples():
-    sample_0 = samp.Sample(log_likelihood=1.0, log_prior=2.0, weight=0.25)
-    sample_1 = samp.Sample(log_likelihood=3.0, log_prior=5.0, weight=0.75)
+    sample_0 = autofit.non_linear.samples.sample.Sample(log_likelihood=1.0, log_prior=2.0, weight=0.25)
+    sample_1 = autofit.non_linear.samples.sample.Sample(log_likelihood=3.0, log_prior=5.0, weight=0.75)
 
-    return af.StoredSamples(
+    return autofit.non_linear.samples.stored.StoredSamples(
         model=af.Mapper(),
         samples=[sample_0, sample_1],
     )

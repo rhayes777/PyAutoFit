@@ -1,7 +1,8 @@
 import pytest
 
 import autofit as af
-from autofit import database as db, OptimizerSamples
+from autofit import database as db
+from autofit.non_linear.samples import OptimizerSamples
 from autofit.mock import mock as m
 
 

@@ -5,9 +5,11 @@ from uuid import uuid1
 class Line:
     def __init__(self, string):
         if "*" in string:
+            print(string)
             print("Please ensure no imports in the __init__ contain a *")
             exit(1)
         if "," in string:
+            print(string)
             print("Comma separated imports not allowed")
             exit(1)
         self.string = string.replace("\n", "")

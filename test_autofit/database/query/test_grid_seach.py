@@ -5,13 +5,12 @@ from autofit import database as db
 from autofit.mock.mock import Gaussian
 
 
-@pytest.fixture(
-    name="children"
-)
-def make_children():
+def _make_children(
+        grid_id
+):
     return [
         db.Fit(
-            id=f"child_{i}",
+            id=f"child_{grid_id}_{i}",
             instance=Gaussian(
                 centre=i
             ),
@@ -19,10 +18,17 @@ def make_children():
                 Gaussian,
                 centre=float(-i)
             ),
-            max_log_likelihood=i
+            max_log_likelihood=grid_id + i
         )
         for i in range(10)
     ]
+
+
+@pytest.fixture(
+    name="children"
+)
+def make_children():
+    return _make_children(1)
 
 
 @pytest.fixture(
@@ -69,9 +75,8 @@ def test_cell_aggregator(
     ).values(
         "id"
     ) == [
-        "child_3"
-    ]
-
+               "child_1_3"
+           ]
 
 
 def test_model_order_no():
@@ -120,12 +125,35 @@ def test_model_order_no_complicated():
 
 
 def test_grid_search_best_fits(
-        aggregator,
-        children
+        aggregator
 ):
-    assert aggregator.grid_searches().best_fits == [
-        children[-1]
-    ]
+    best_fit = aggregator.grid_searches().best_fits()
+    assert isinstance(
+        best_fit,
+        db.GridSearchAggregator
+    )
+    assert best_fit[0].max_log_likelihood == 10
+
+
+def test_multiple_best_fits(
+        aggregator,
+        session
+):
+    session.add(
+        db.Fit(
+            id="grid_2",
+            is_grid_search=True,
+            children=_make_children(2),
+            instance=Gaussian(
+                centre=1
+            )
+        )
+    )
+    session.commit()
+    best_fit = aggregator.grid_searches().best_fits()
+    assert best_fit.values(
+        "max_log_likelihood"
+    ) == [10, 11]
 
 
 def test_grid_search(

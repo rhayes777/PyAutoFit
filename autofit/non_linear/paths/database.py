@@ -43,6 +43,10 @@ class DatabasePaths(AbstractPaths):
             name
         ] = instance
 
+    @property
+    def is_grid_search(self) -> bool:
+        return self.fit.is_grid_search
+
     def create_child(
             self,
             name: Optional[str] = None,
@@ -100,6 +104,11 @@ class DatabasePaths(AbstractPaths):
                 self.output_path,
                 ignore_errors=True
             )
+
+    def __getstate__(self):
+        d = self.__dict__.copy()
+        del d["session"]
+        return d
 
     def save_object(self, name: str, obj: object):
         self.fit[name] = obj
@@ -178,10 +187,6 @@ class DatabasePaths(AbstractPaths):
         self.fit.info = info
         self.fit.model = self.model
 
-        if self.search is not None:
-            self.search.paths = None
         self.save_object("search", self.search)
-        if self.search is not None:
-            self.search.paths = self
 
         self.session.commit()

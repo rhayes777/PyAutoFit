@@ -6,9 +6,8 @@ from autofit.non_linear.analysis import Analysis
 from autofit.mapper.model import ModelInstance
 from autofit.mapper.model_mapper import ModelMapper
 from autofit.non_linear.abstract_search import NonLinearSearch
-from autofit.non_linear.samples import PDFSamples
+from autofit.non_linear.samples import PDFSamples, Sample
 from autoconf import conf
-from autofit.non_linear.samples import Sample
 
 
 class MockAnalysis(Analysis):
