@@ -175,3 +175,32 @@ class TestAllPaths:
             (("centre", "sigma"), linked_model.centre),
             (("intensity",), linked_model.intensity)
         ]
+
+
+def test_changing_model(model):
+    samples = af.OptimizerSamples(
+        model,
+        [
+            af.Sample(
+                log_likelihood=1.0,
+                log_prior=1.0,
+                weight=1.0,
+                kwargs={
+                    ("gaussian", "centre"): 0.1,
+                    ("gaussian", "intensity"): 0.2,
+                    ("gaussian", "sigma"): 0.3,
+                }
+            )
+        ]
+    )
+
+    result = af.Result(
+        samples,
+        model
+    )
+
+    instance = result.max_log_likelihood_instance
+
+    assert instance.gaussian.centre == 0.1
+    assert instance.gaussian.intensity == 0.2
+    assert instance.gaussian.sigma == 0.3
