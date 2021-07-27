@@ -1151,8 +1151,9 @@ class AbstractPriorModel(AbstractModel):
     @property
     def all_paths_prior_tuples(self):
         prior_paths_dict = defaultdict(tuple)
+        path_modifier = TuplePathModifier(self)
         for path, prior in self.path_priors_tuples:
-            prior_paths_dict[prior] += (path,)
+            prior_paths_dict[prior] += (path_modifier(path),)
         return sorted(
             [
                 (paths, prior)
