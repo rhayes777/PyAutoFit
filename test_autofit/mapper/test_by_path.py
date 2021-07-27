@@ -1,7 +1,7 @@
 import pytest
 
 import autofit as af
-from autofit.mock.mock import WithTuple
+from autofit.mock.mock import WithTuple, MockSearch
 
 
 @pytest.fixture(
@@ -177,8 +177,11 @@ class TestAllPaths:
         ]
 
 
-def test_changing_model(model):
-    samples = af.OptimizerSamples(
+@pytest.fixture(
+    name="samples"
+)
+def make_samples(model):
+    return af.OptimizerSamples(
         model,
         [
             af.Sample(
@@ -194,13 +197,38 @@ def test_changing_model(model):
         ]
     )
 
-    result = af.Result(
+
+@pytest.fixture(
+    name="result"
+)
+def make_result(
+        model,
+        samples
+):
+    return af.Result(
         samples,
-        model
+        model,
+        MockSearch()
     )
 
-    instance = result.max_log_likelihood_instance
 
-    assert instance.gaussian.centre == 0.1
-    assert instance.gaussian.intensity == 0.2
-    assert instance.gaussian.sigma == 0.3
+class TestFromResult:
+    def test_instance(
+            self,
+            result
+    ):
+        instance = result.max_log_likelihood_instance
+
+        assert instance.gaussian.centre == 0.1
+        assert instance.gaussian.intensity == 0.2
+        assert instance.gaussian.sigma == 0.3
+
+    def test_model(
+            self,
+            result
+    ):
+        model = result.model
+
+        assert model.gaussian.centre.mean == 0.1
+        assert model.gaussian.intensity.mean == 0.2
+        assert model.gaussian.sigma.mean == 0.3
