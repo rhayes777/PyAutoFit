@@ -1,6 +1,7 @@
 import pytest
 
 import autofit as af
+from autofit.mock.mock import WithTuple
 
 
 @pytest.fixture(
@@ -110,3 +111,24 @@ class TestInstanceFromPriorNames:
                    "centre"
                )
 
+
+def test_component_names():
+    model = af.Model(
+        af.Gaussian
+    )
+    assert model.model_component_and_parameter_names == [
+        'centre', 'intensity', 'sigma'
+    ]
+
+
+def test_with_tuple():
+    with_tuple = af.Model(
+        WithTuple
+    )
+    result = with_tuple.name_for_prior(
+        with_tuple.tup.tup_0
+    )
+    print(result)
+    assert with_tuple.model_component_and_parameter_names == [
+        "tup_0", "tup_1"
+    ]

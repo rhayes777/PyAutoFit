@@ -1018,8 +1018,19 @@ class AbstractPriorModel(AbstractModel):
 
     @property
     def unique_prior_paths(self):
-        unique = {item[1]: item for item in self.path_priors_tuples}.values()
-        return [item[0] for item in sorted(unique, key=lambda item: item[1].id)]
+        return [
+            item[0] for item in
+            self.unique_path_prior_tuples
+        ]
+
+    @property
+    def unique_path_prior_tuples(self):
+        unique = {
+            item[1]: item
+            for item
+            in self.path_priors_tuples
+        }.values()
+        return sorted(unique, key=lambda item: item[1].id)
 
     @property
     def prior_prior_model_dict(self):
@@ -1116,12 +1127,25 @@ class AbstractPriorModel(AbstractModel):
         for *corner.py* visualization.
         The parameter names are determined from the class instance names of the
         model_mapper. Latex tags are properties of each model class."""
-        return [
-            self.name_for_prior(
-                prior
+        prior_paths = self.unique_prior_paths
+
+        tuple_priors = self.path_instance_tuples_for_class(
+            TuplePrior
+        )
+
+        if len(tuple_priors) > 0:
+            tuple_paths, _ = zip(
+                *tuple_priors
             )
-            for _, prior
-            in self.prior_tuples_ordered_by_id
+
+            for i, prior_path in enumerate(prior_paths):
+                if prior_path[:-1] in tuple_paths:
+                    prior_paths[i] = prior_path[:-2] + (prior_path[-1],)
+
+        return [
+            "_".join(path)
+            for path
+            in prior_paths
         ]
 
     @property

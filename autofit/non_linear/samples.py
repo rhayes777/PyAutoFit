@@ -119,11 +119,22 @@ class Sample:
         else:
             paths = model.model_component_and_parameter_names
 
-        return [
-            self.kwargs[path]
-            for path
-            in paths
-        ]
+        return self.parameter_lists_for_paths(
+            paths
+        )
+
+    def parameter_lists_for_paths(
+            self,
+            paths
+    ):
+        try:
+            return [
+                self.kwargs[path]
+                for path
+                in paths
+            ]
+        except KeyError:
+            pass
 
     @property
     def is_path_kwargs(self) -> bool:
@@ -284,11 +295,38 @@ class OptimizerSamples:
         self.sample_list = sample_list
         self.time = time
 
+        self._paths = None
+        self._names = None
+
+    @property
+    def paths(self):
+        """
+        A list of paths to unique priors in the same order as prior
+        ids (and therefore sample columns)
+
+        Uses hasattr to make backwards compatible
+        """
+        if not hasattr(self, "_paths") or self._paths is None:
+            self._paths = self.model.unique_prior_paths
+        return self._paths
+
+    @property
+    def names(self) -> List[str]:
+        """
+        A list of names of unique priors in the same order as prior
+        ids (and therefore sample columns)
+
+        Uses hasattr to make backwards compatible
+        """
+        if not hasattr(self, "_names") or self._names is None:
+            self._names = self.model.model_component_and_parameter_names
+        return self._names
+
     @property
     def parameter_lists(self):
         return [
-            sample.parameter_lists_for_model(
-                self.model
+            sample.parameter_lists_for_paths(
+                self.paths if sample.is_path_kwargs else self.names
             )
             for sample in self.sample_list
         ]
@@ -411,8 +449,9 @@ class OptimizerSamples:
         """
         The parameters of the maximum log likelihood sample of the `NonLinearSearch` returned as a list of values.
         """
-        return self.max_log_likelihood_sample.parameter_lists_for_model(
-            self.model
+        sample = self.max_log_likelihood_sample
+        return sample.parameter_lists_for_paths(
+            self.paths if sample.is_path_kwargs else self.names
         )
 
     @property
