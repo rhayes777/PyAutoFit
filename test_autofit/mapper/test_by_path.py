@@ -130,6 +130,17 @@ def test_with_tuple():
     ]
 
 
+@pytest.fixture(
+    name="linked_model"
+)
+def make_linked_model():
+    model = af.Model(
+        af.Gaussian
+    )
+    model.sigma = model.centre
+    return model
+
+
 class TestAllPaths:
     def test_independent(self):
         model = af.Model(
@@ -142,13 +153,25 @@ class TestAllPaths:
             ((("sigma",),), model.sigma),
         ]
 
-    def test_linked(self):
+    def test_linked(self, linked_model):
+        assert linked_model.all_paths_prior_tuples == [
+            ((("centre",), ("sigma",)), linked_model.centre),
+            ((("intensity",),), linked_model.intensity)
+        ]
+
+    def test_names_independent(self):
         model = af.Model(
             af.Gaussian
         )
-        model.sigma = model.centre
 
-        assert model.all_paths_prior_tuples == [
-            ((("centre",), ("sigma",)), model.centre),
-            ((("intensity",),), model.intensity)
+        assert model.all_name_prior_tuples == [
+            (("centre",), model.centre),
+            (("intensity",), model.intensity),
+            (("sigma",), model.sigma),
+        ]
+
+    def test_names_linked(self, linked_model):
+        assert linked_model.all_name_prior_tuples == [
+            (("centre", "sigma"), linked_model.centre),
+            (("intensity",), linked_model.intensity)
         ]

@@ -1137,6 +1137,20 @@ class AbstractPriorModel(AbstractModel):
         )
 
     @property
+    def all_name_prior_tuples(self):
+        return [
+            (
+                tuple(
+                    "_".join(path)
+                    for path in paths
+                ),
+                prior
+            )
+            for paths, prior
+            in self.all_paths_prior_tuples
+        ]
+
+    @property
     def model_component_and_parameter_names(self) -> [str]:
         """The param_names vector is a list each parameter's analysis_path, and is used
         for *corner.py* visualization.
