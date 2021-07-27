@@ -1,6 +1,13 @@
 from .non_linear.grid.grid_search import GridSearch as SearchGridSearch
 from . import conf
 from . import exc
+from .non_linear.samples import MCMCSamples
+from .non_linear.samples import NestSamples
+from .non_linear.samples import OptimizerSamples
+from .non_linear.samples import PDFSamples
+from .non_linear.samples import Sample
+from .non_linear.samples import load_from_table
+from .non_linear.samples import StoredSamples
 from .database.aggregator import Aggregator
 from .database.aggregator import Query
 from .aggregator.search_output import SearchOutput
@@ -61,11 +68,6 @@ from .non_linear.paths import DatabasePaths
 from .non_linear.paths import make_path
 from .non_linear.result import Result
 from .non_linear.result import ResultsCollection
-from .non_linear.samples import StoredSamples
-from .non_linear.samples import MCMCSamples
-from .non_linear.samples import NestSamples
-from .non_linear.samples import OptimizerSamples
-from .non_linear.samples import PDFSamples
 from .mock.mock import Gaussian
 from .text import formatter
 from .text import samples_text
