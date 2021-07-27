@@ -352,11 +352,11 @@ class GaussianPrior(Prior):
     def __str__(self):
         """The line of text describing this prior for the model_mapper.info file"""
         return (
-            f"GaussianPrior({self.id}), mean = {self.mean}, sigma = {self.sigma}"
+            f"GaussianPrior, mean = {self.mean}, sigma = {self.sigma}"
         )
 
     def __repr__(self):
-        return (
+        return 
             "<GaussianPrior id={} mean={} sigma={} "
             "lower_limit={} upper_limit={}>".format(
                 self.id, self.mean, self.sigma, self.lower_limit, self.upper_limit
@@ -418,7 +418,7 @@ class UniformPrior(Prior):
 
     def __str__(self):
         """The line of text describing this prior for the model_mapper.info file"""
-        return f"UniformPrior({self.id}), lower_limit = {self.lower_limit}, upper_limit = {self.upper_limit}"
+        return f"UniformPrior, lower_limit = {self.lower_limit}, upper_limit = {self.upper_limit}"
 
 
 class LogUniformPrior(UniformPrior):
@@ -474,7 +474,7 @@ class LogUniformPrior(UniformPrior):
 
     def __str__(self):
         """The line of text describing this prior for the model_mapper.info file"""
-        return f"LogUniformPrior({self.id}), lower_limit = {self.lower_limit}, upper_limit = {self.upper_limit}"
+        return f"LogUniformPrior, lower_limit = {self.lower_limit}, upper_limit = {self.upper_limit}"
 
 
 def make_type_dict(cls):
