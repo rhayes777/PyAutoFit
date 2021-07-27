@@ -4,7 +4,8 @@ import numpy as np
 from dynesty.results import Results
 
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
-from autofit.non_linear.samples import NestSamples, Sample
+from autofit.non_linear.samples import Sample
+from autofit import NestSamples
 
 
 class DynestySamples(NestSamples):

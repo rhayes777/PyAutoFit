@@ -3,13 +3,15 @@ import os
 import pytest
 
 import autofit as af
+import autofit.non_linear.samples.nest
+import autofit.non_linear.samples.pdf
 from autofit.mock.mock import MockClassx2, MockClassx4
 from autofit.non_linear.samples import Sample
 
 pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
 
 
-class MockSamples(af.PDFSamples):
+class MockSamples(autofit.non_linear.samples.pdf.PDFSamples):
 
     def __init__(
             self,
@@ -199,7 +201,7 @@ class TestPDFSamples:
         filename = "samples.csv"
         samples.write_table(filename=filename)
 
-        samples = af.NestSamples.from_table(filename=filename, model=samples.model)
+        samples = autofit.non_linear.samples.nest.NestSamples.from_table(filename=filename, model=samples.model)
 
         assert samples.parameter_lists == [
             [0.0, 1.0, 2.0, 3.0],
@@ -531,7 +533,7 @@ class TestPDFSamples:
         assert offset_values == pytest.approx([0.0, 1.0, 1.0, 1.025], 1.0e-4)
 
 
-class MockNestSamples(af.NestSamples):
+class MockNestSamples(autofit.non_linear.samples.nest.NestSamples):
     def __init__(
             self,
             model,

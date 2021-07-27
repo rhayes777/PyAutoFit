@@ -4,7 +4,8 @@ import pytest
 
 import autofit as af
 from autofit.mock.mock import MockClassx2
-from autofit.non_linear.samples import Sample, StoredSamples
+from autofit.non_linear.samples import Sample
+from autofit import StoredSamples
 from autofit.text import samples_text
 
 text_path = path.join("{}".format(path.dirname(path.realpath(__file__))), "files", "samples")
