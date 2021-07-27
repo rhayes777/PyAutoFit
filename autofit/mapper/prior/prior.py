@@ -356,7 +356,7 @@ class GaussianPrior(Prior):
         )
 
     def __repr__(self):
-        return 
+        return (
             "<GaussianPrior id={} mean={} sigma={} "
             "lower_limit={} upper_limit={}>".format(
                 self.id, self.mean, self.sigma, self.lower_limit, self.upper_limit
