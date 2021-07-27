@@ -1,12 +1,12 @@
 import csv
 import json
 from copy import copy
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 import numpy as np
 
 from autofit.mapper.model import ModelInstance
-from autofit.mapper.prior_model.abstract import AbstractPriorModel
+from autofit.mapper.prior_model.abstract import AbstractPriorModel, Path
 from autofit.non_linear.samples.sample import Sample
 
 
@@ -35,7 +35,7 @@ class OptimizerSamples:
         self._names = None
 
     @property
-    def paths(self):
+    def paths(self) -> List[Tuple[Path]]:
         """
         A list of paths to unique priors in the same order as prior
         ids (and therefore sample columns)
@@ -47,7 +47,7 @@ class OptimizerSamples:
         return self._paths
 
     @property
-    def names(self) -> List[str]:
+    def names(self) -> List[Tuple[str]]:
         """
         A list of names of unique priors in the same order as prior
         ids (and therefore sample columns)
