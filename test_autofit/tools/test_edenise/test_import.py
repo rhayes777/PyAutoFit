@@ -145,4 +145,4 @@ def test_module_path_import_name(
         "from autofit.non_linear.samples import NestSamples, Sample",
         parent=package
     )
-    assert import_.target_string == "from VIS_CTI_Autofit.VIS_CTI_NonLinear.samples import NestSamples, Sample"
+    assert import_.target_string == "from VIS_CTI_Autofit.VIS_CTI_NonLinear.VIS_CTI_Samples import NestSamples, Sample"
