@@ -16,6 +16,8 @@ class Result:
         model
             The model mapper from the stage that produced this result
         """
+        if samples is not None:
+            samples.model = model
 
         self.samples = samples
         self.search = search
