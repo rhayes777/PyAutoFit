@@ -7,12 +7,12 @@ import numpy as np
 from sqlalchemy.orm import Session
 
 from autoconf import conf
-from autofit import exc
+from autofit import exc, MCMCSamples
 from autofit.mapper.model_mapper import ModelMapper
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.mcmc.abstract_mcmc import AbstractMCMC
 from autofit.non_linear.mcmc.auto_correlations import AutoCorrelationsSettings, AutoCorrelations
-from autofit.non_linear.samples import MCMCSamples, Sample
+from autofit.non_linear.samples import Sample
 from autofit.non_linear.abstract_search import PriorPasser
 from autofit.non_linear.initializer import Initializer
 from autofit.plot import EmceePlotter
@@ -177,10 +177,10 @@ class Emcee(AbstractMCMC):
                 iterations = self.iterations_per_update
 
             for sample in emcee_sampler.sample(
-                    state=emcee_state,
+                    initial_state=emcee_state,
                     iterations=iterations,
                     progress=True,
-                    skip_state_check=True,
+                    skip_initial_state_check=True,
                     store=True,
             ):
                 pass

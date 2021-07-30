@@ -3,13 +3,17 @@ import os
 import pytest
 
 import autofit as af
+import autofit.non_linear.samples.nest
+import autofit.non_linear.samples.pdf
 from autofit.mock.mock import MockClassx2, MockClassx4
 from autofit.non_linear.samples import Sample
+
+import numpy as np
 
 pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
 
 
-class MockSamples(af.PDFSamples):
+class MockSamples(autofit.non_linear.samples.pdf.PDFSamples):
 
     def __init__(
             self,
@@ -199,7 +203,7 @@ class TestPDFSamples:
         filename = "samples.csv"
         samples.write_table(filename=filename)
 
-        samples = af.NestSamples.from_table(filename=filename, model=samples.model)
+        samples = autofit.non_linear.samples.nest.NestSamples.from_table(filename=filename, model=samples.model)
 
         assert samples.parameter_lists == [
             [0.0, 1.0, 2.0, 3.0],
@@ -531,7 +535,103 @@ class TestPDFSamples:
         assert offset_values == pytest.approx([0.0, 1.0, 1.0, 1.025], 1.0e-4)
 
 
+    def test__vector_drawn_randomly_from_pdf(self):
+
+        parameters = [
+            [0.0, 1.0, 2.0, 3.0],
+            [0.0, 1.0, 2.0, 3.0],
+            [0.0, 1.0, 2.0, 3.0],
+            [21.0, 22.0, 23.0, 24.0],
+            [0.0, 1.0, 2.0, 3.0],
+        ]
+
+        model = af.ModelMapper(mock_class_1=MockClassx4)
+
+        samples = MockSamples(
+            model=model,
+            sample_list=Sample.from_lists(
+                model=model,
+                parameter_lists=parameters,
+                log_likelihood_list=[1.0, 2.0, 3.0, 4.0, 5.0],
+                log_prior_list=5 * [0.0],
+                weight_list=[0.0, 0.0, 0.0, 1.0, 0.0],
+            ),
+        )
+
+        vector = samples.vector_drawn_randomly_from_pdf()
+
+        assert vector == [21.0, 22.0, 23.0, 24.0]
+
+        instance = samples.instance_drawn_randomly_from_pdf()
+
+        assert vector == [21.0, 22.0, 23.0, 24.0]
+
+        assert instance.mock_class_1.one == 21.0
+        assert instance.mock_class_1.two == 22.0
+        assert instance.mock_class_1.three == 23.0
+        assert instance.mock_class_1.four == 24.0
+
+    def test__covariance_matrix(self):
+
+        log_likelihood_list = list(range(3))
+
+        weight_list = 3 * [0.1]
+
+        parameters = [
+            [2.0, 2.0],
+            [1.0, 1.0],
+            [0.0, 0.0],
+        ]
+
+        model = af.ModelMapper(mock_class=MockClassx2)
+        samples = MockSamples(
+            model=model,
+            sample_list=Sample.from_lists(
+                model=model,
+                parameter_lists=parameters,
+                log_likelihood_list=log_likelihood_list,
+                log_prior_list=3 * [0.0],
+                weight_list=weight_list,
+            ))
+
+        assert samples.covariance_matrix() == pytest.approx(np.array([[1.0, 1.0], [1.0, 1.0]]), 1.0e-4)
+
+        parameters = [
+            [0.0, 2.0],
+            [1.0, 1.0],
+            [2.0, 0.0],
+        ]
+
+        model = af.ModelMapper(mock_class=MockClassx2)
+        samples = MockSamples(
+            model=model,
+            sample_list=Sample.from_lists(
+                model=model,
+                parameter_lists=parameters,
+                log_likelihood_list=log_likelihood_list,
+                log_prior_list=3 * [0.0],
+                weight_list=weight_list,
+            ))
+
+        assert samples.covariance_matrix() == pytest.approx(np.array([[1.0, -1.0], [-1.0, 1.0]]), 1.0e-4)
+
+        weight_list = [0.1, 0.2, 0.3]
+
+        model = af.ModelMapper(mock_class=MockClassx2)
+        samples = MockSamples(
+            model=model,
+            sample_list=Sample.from_lists(
+                model=model,
+                parameter_lists=parameters,
+                log_likelihood_list=log_likelihood_list,
+                log_prior_list=10 * [0.0],
+                weight_list=weight_list,
+            ))
+
+        assert samples.covariance_matrix() == pytest.approx(np.array([[0.90909, -0.90909], [-0.90909, 0.90909]]), 1.0e-4)
+
 class MockNestSamples(af.NestSamples):
+
     def __init__(
             self,
             model,
@@ -579,24 +679,6 @@ class MockNestSamples(af.NestSamples):
 
 
 class TestNestSamples:
-    def test__acceptance_ratio_is_correct(self):
-        model = af.ModelMapper(mock_class_1=MockClassx4)
-
-        samples = MockNestSamples(
-            model=model,
-            sample_list=Sample.from_lists(
-                model=model,
-                parameter_lists=5 * [[]],
-                log_likelihood_list=[1.0, 2.0, 3.0, 4.0, 5.0],
-                log_prior_list=5 * [0.0],
-                weight_list=5 * [0.0],
-            ),
-            total_samples=10,
-            log_evidence=0.0,
-            number_live_points=5,
-        )
-
-        assert samples.acceptance_ratio == 0.5
 
     def test__samples_within_parameter_range(self, samples):
         model = af.ModelMapper(mock_class_1=MockClassx4)
@@ -640,3 +722,22 @@ class TestNestSamples:
         assert samples_range.parameter_lists[1] == [0.0, 1.0, 2.0, 3.0]
         assert samples_range.parameter_lists[2] == [0.0, 1.0, 2.0, 3.0]
         assert samples_range.parameter_lists[3] == [0.0, 1.0, 2.0, 3.0]
+
+    def test__acceptance_ratio_is_correct(self):
+        model = af.ModelMapper(mock_class_1=MockClassx4)
+
+        samples = MockNestSamples(
+            model=model,
+            sample_list=Sample.from_lists(
+                model=model,
+                parameter_lists=5 * [[]],
+                log_likelihood_list=[1.0, 2.0, 3.0, 4.0, 5.0],
+                log_prior_list=5 * [0.0],
+                weight_list=5 * [0.0],
+            ),
+            total_samples=10,
+            log_evidence=0.0,
+            number_live_points=5,
+        )
+
+        assert samples.acceptance_ratio == 0.5

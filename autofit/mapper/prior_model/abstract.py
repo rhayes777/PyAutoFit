@@ -2,10 +2,11 @@ import copy
 import inspect
 import json
 import logging
+from collections import defaultdict
 from functools import wraps
 from numbers import Number
 from random import random
-from typing import Tuple, Optional
+from typing import Tuple, Optional, Dict, List
 
 import numpy as np
 
@@ -56,6 +57,47 @@ def check_assertions(func):
         return func(s, arguments)
 
     return wrapper
+
+
+class TuplePathModifier:
+    def __init__(self, model_: "AbstractPriorModel"):
+        """
+        Modifies paths to priors contained in tuples.
+
+        When a tuple is found in a signature a PriorTuple is created.
+
+        The true path to a variable in the tuple is
+        ("some", "preamble", "tuple_name", "tuple_name_0")
+
+        Where 0 is the index of the tuple member. "tuple_name" must be
+        removed from this path for some uses.
+
+        When called, instances of this class remove the name of the tuple
+        i.e:
+        -> ("some", "preamble", "tuple_name_0")
+
+        Parameters
+        ----------
+        model_
+        """
+        tuple_priors = model_.path_instance_tuples_for_class(
+            TuplePrior
+        )
+        try:
+            self.tuple_paths, _ = zip(
+                *tuple_priors
+            )
+        except ValueError:
+            self.tuple_paths = None
+
+    def __call__(self, path):
+        if self.tuple_paths is not None:
+            if path[:-1] in self.tuple_paths:
+                return path[:-2] + (path[-1],)
+        return path
+
+
+Path = Tuple[str, ...]
 
 
 class AbstractPriorModel(AbstractModel):
@@ -798,8 +840,128 @@ class AbstractPriorModel(AbstractModel):
             arguments
         )
 
+    def path_for_name(
+            self,
+            name: str
+    ) -> Tuple[str, ...]:
+        """
+        Find the path to a prior in the model that matches
+        a given name.
+
+        For example, name_of_model_name_of_prior could match
+        (name_of_model, name_of_prior). Unfortunately it is
+        possible for ambiguity to occur. For example, another
+        valid path could be (name, of_model, name_of_prior)
+        in which case there is no way to determine which path
+        actually matches the name.
+
+        Parameters
+        ----------
+        name
+            A name for a prior where names of models and the
+            name of the prior have been joined by underscores.
+
+        Returns
+        -------
+        A path to that model
+
+        Raises
+        ------
+        AssertionError
+            Iff no matching path is found
+        """
+
+        def _explode_path(path_):
+            return tuple(
+                string
+                for part in path_
+                for string
+                in part.split(
+                    "_"
+                )
+            )
+
+        exploded = tuple(name.split("_"))
+        for path, _ in self.path_priors_tuples:
+            exploded_path = _explode_path(path)
+            if exploded_path == exploded:
+                return path
+
+        for path, prior_tuple in self.path_instance_tuples_for_class(
+                TuplePrior
+        ):
+            for name, prior in prior_tuple.prior_tuples:
+                total_path = path[:-1] + (name,)
+                exploded_path = _explode_path(
+                    total_path
+                )
+                if exploded_path == exploded:
+                    return path + (name,)
+        raise AssertionError(
+            f"No path was found matching {name}"
+        )
+
+    def instance_from_prior_name_arguments(
+            self,
+            prior_name_arguments: Dict[str, float]
+    ):
+        """
+        Instantiate the model from the names of priors and
+        corresponding values.
+
+        Parameters
+        ----------
+        prior_name_arguments
+            The names of priors where names of models and the
+            name of the prior have been joined by underscores,
+            mapped to corresponding values.
+
+        Returns
+        -------
+        An instance of the model
+        """
+        return self.instance_from_path_arguments({
+            self.path_for_name(name): value
+            for name, value
+            in prior_name_arguments.items()
+        })
+
+    def instance_from_path_arguments(
+            self,
+            path_arguments: Dict[Tuple[str], float]
+    ):
+        """
+        Create an instance from a dictionary mapping paths to tuples
+        to corresponding values.
+
+        Parameters
+        ----------
+        path_arguments
+            A dictionary mapping paths to priors to corresponding values.
+            Note that, for linked priors, each path only needs to be
+            specified once. If multiple paths for the same prior are
+            specified then the value for the last path will be used.
+
+        Returns
+        -------
+        An instance of the model
+        """
+        arguments = {
+            self.object_for_path(
+                path
+            ): value
+            for path, value
+            in path_arguments.items()
+        }
+        return self._instance_for_arguments(
+            arguments
+        )
+
     @property
-    def prior_count(self):
+    def prior_count(self) -> int:
+        """
+        How many unique priors does this model contain?
+        """
         return len(self.unique_prior_tuples)
 
     @property
@@ -864,11 +1026,23 @@ class AbstractPriorModel(AbstractModel):
         return mapper
 
     @property
-    def path_priors_tuples(self):
+    def path_priors_tuples(self) -> List[Tuple[Path, Prior]]:
         path_priors_tuples = self.path_instance_tuples_for_class(Prior)
         return sorted(path_priors_tuples, key=lambda item: item[1].id)
 
-    def path_for_prior(self, prior: Prior) -> Optional[Tuple[str]]:
+    @property
+    def paths(self) -> List[Path]:
+        """
+        A list of paths to all the priors in the model, ordered by their
+        ids
+        """
+        return [
+            path
+            for path, _
+            in self.path_priors_tuples
+        ]
+
+    def path_for_prior(self, prior: Prior) -> Optional[Path]:
         """
         Find a path that points at the given tuple.
         Returns the first path or None if no path is found.
@@ -891,8 +1065,19 @@ class AbstractPriorModel(AbstractModel):
 
     @property
     def unique_prior_paths(self):
-        unique = {item[1]: item for item in self.path_priors_tuples}.values()
-        return [item[0] for item in sorted(unique, key=lambda item: item[1].id)]
+        return [
+            item[0] for item in
+            self.unique_path_prior_tuples
+        ]
+
+    @property
+    def unique_path_prior_tuples(self):
+        unique = {
+            item[1]: item
+            for item
+            in self.path_priors_tuples
+        }.values()
+        return sorted(unique, key=lambda item: item[1].id)
 
     @property
     def prior_prior_model_dict(self):
@@ -984,17 +1169,83 @@ class AbstractPriorModel(AbstractModel):
         return formatter.text
 
     @property
+    def all_paths(self) -> List[Tuple[Path]]:
+        """
+        All possible paths to all priors grouped such that all
+        paths to the same prior are collected together in a tuple.
+        """
+        if self.prior_count == 0:
+            return []
+        paths, _ = zip(*self.all_paths_prior_tuples)
+        return paths
+
+    @property
+    def all_paths_prior_tuples(self) -> List[Tuple[Tuple[Path], Prior]]:
+        """
+        Maps a tuple containing all paths to a given prior to that prior.
+        """
+        prior_paths_dict = defaultdict(tuple)
+        for path, prior in self.path_priors_tuples:
+            prior_paths_dict[prior] += (path,)
+        return sorted(
+            [
+                (paths, prior)
+                for prior, paths
+                in prior_paths_dict.items()
+            ],
+            key=lambda item: item[1].id
+        )
+
+    @property
+    def all_names(self) -> List[Tuple[str]]:
+        """
+        All possible names for all priors grouped such that all
+        names for a given prior are collected together in a tuple.
+        """
+        if self.prior_count == 0:
+            return []
+        names, _ = zip(*self.all_name_prior_tuples)
+        return names
+
+    @property
+    def all_name_prior_tuples(self) -> List[Tuple[Tuple[str], Prior]]:
+        """
+        Maps a tuple containing all names for a given prior to that prior.
+        """
+        path_modifier = TuplePathModifier(self)
+        return [
+            (
+                tuple(
+                    "_".join(path_modifier(path))
+                    for path in paths
+                ),
+                prior
+            )
+            for paths, prior
+            in self.all_paths_prior_tuples
+        ]
+
+    @property
     def model_component_and_parameter_names(self) -> [str]:
         """The param_names vector is a list each parameter's analysis_path, and is used
         for *corner.py* visualization.
         The parameter names are determined from the class instance names of the
         model_mapper. Latex tags are properties of each model class."""
+        prior_paths = self.unique_prior_paths
+
+        tuple_filter = TuplePathModifier(
+            self
+        )
+
+        prior_paths = list(map(
+            tuple_filter,
+            prior_paths
+        ))
+
         return [
-            self.name_for_prior(
-                prior
-            )
-            for _, prior
-            in self.prior_tuples_ordered_by_id
+            "_".join(path)
+            for path
+            in prior_paths
         ]
 
     @property

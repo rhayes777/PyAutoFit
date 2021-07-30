@@ -2,6 +2,7 @@ import json
 import os
 import shutil
 from os import path
+from typing import Optional
 
 import dill
 
@@ -161,6 +162,51 @@ class DirectoryPaths(AbstractPaths):
             search_name=type(self.search).__name__.lower()
         )
         self._move_pickle_files(pickle_files=pickle_files)
+
+    @property
+    def _grid_search_path(self) -> str:
+        return path.join(self.output_path, ".is_grid_search")
+
+    @property
+    def is_grid_search(self) -> bool:
+        return os.path.exists(
+            self._grid_search_path
+        )
+
+    def create_child(
+            self,
+            name: Optional[str] = None,
+            path_prefix: Optional[str] = None,
+            is_identifier_in_paths: Optional[bool] = None
+    ) -> "AbstractPaths":
+        """
+        Create a paths object which is the child of some parent
+        paths object. This is done during a GridSearch so that
+        results can be stored in the correct directory.
+
+        Parameters
+        ----------
+        name
+        path_prefix
+        is_identifier_in_paths
+            If False then this path's identifier will not be
+            added to its output path.
+
+        Returns
+        -------
+        A new paths object
+        """
+        open(self._grid_search_path, "w+").close()
+        return type(self)(
+            name=name or self.name,
+            path_prefix=path_prefix or self.path_prefix,
+            is_identifier_in_paths=(
+                is_identifier_in_paths
+                if is_identifier_in_paths is not None
+                else self.is_identifier_in_paths
+            ),
+            parent=self
+        )
 
     @property
     @make_path

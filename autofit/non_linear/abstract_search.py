@@ -5,8 +5,8 @@ import time
 from abc import ABC, abstractmethod
 from functools import wraps
 from os import path
-from typing import Optional
-from typing import Tuple
+from typing import Optional, Union
+from typing import Tuple, List
 
 import numpy as np
 from sqlalchemy.orm import Session
@@ -405,7 +405,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             info=None,
             pickle_files=None,
             log_likelihood_cap=None
-    ) -> "Result":
+    ) -> Union["Result", List["Result"]]:
         """
         Fit a model, M with some function f that takes instances of the
         class represented by model M and gives a score for their fitness.
@@ -477,7 +477,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         else:
             self.logger.info(f"Already completed, skipping non-linear search.")
-            samples = self.samples_from(model=model)
+            samples = self.paths.load_object("samples")
 
             if self.force_pickle_overwrite:
                 self.logger.info(

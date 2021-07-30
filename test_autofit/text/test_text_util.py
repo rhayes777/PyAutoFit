@@ -3,6 +3,7 @@ from os import path
 import pytest
 
 import autofit as af
+import autofit.non_linear.samples.nest
 from autofit.mock.mock import MockSamples, MockClassx2
 from autofit.non_linear.samples import Sample
 from autofit.text import text_util
@@ -33,7 +34,7 @@ def make_samples(model):
     )
 
 
-class MockNestSamples(af.NestSamples):
+class MockNestSamples(autofit.non_linear.samples.nest.NestSamples):
     def __init__(
             self,
             model,
@@ -75,10 +76,6 @@ def test__results_to_file(samples):
     )
 
     results = open(file_results)
-
-    results.readline()
-    results.readline()
-    results.readline()
 
     line = results.readline()
 

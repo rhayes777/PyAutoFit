@@ -7,16 +7,24 @@ from autofit.mapper.model_object import Identifier
 from autofit.mock.mock import Gaussian
 
 
-def test_identifier_version():
-    def set_version(version):
-        conf.instance[
-            "general"
-        ][
-            "output"
-        ][
-            "identifier_version"
-        ] = version
+def set_version(version):
+    conf.instance[
+        "general"
+    ][
+        "output"
+    ][
+        "identifier_version"
+    ] = version
 
+
+@pytest.fixture(
+    autouse=True
+)
+def set_high_version():
+    set_version(99)
+
+
+def test_identifier_version():
     set_version(1)
     identifier = Identifier(Gaussian())
 
@@ -53,9 +61,37 @@ class Class:
         return self.one == other.one
 
 
+class ExcludeClass:
+    def __init__(self, one=1, two=2, three=3):
+        self.one = one
+        self.two = two
+        self.three = three
+
+    __exclude_identifier_fields__ = ("three",)
+
+
 class AttributeClass:
     def __init__(self):
         self.attribute = None
+
+
+def test_exclude_identifier_fields():
+    other = ExcludeClass(
+        three=4
+    )
+    assert Identifier(
+        other
+    ) == Identifier(
+        ExcludeClass()
+    )
+
+    other.__exclude_identifier_fields__ = tuple()
+
+    assert Identifier(
+        other
+    ) != Identifier(
+        ExcludeClass()
+    )
 
 
 def test_numpy_array():
@@ -72,6 +108,18 @@ def test_hash_list():
 
 def test_constructor_only():
     attribute = AttributeClass()
+    attribute.attribute = 1
+
+    assert Identifier(
+        AttributeClass()
+    ) == Identifier(
+        attribute
+    )
+
+
+def test_exclude_does_no_effect_constructor():
+    attribute = AttributeClass()
+    attribute.__exclude_identifier_fields__ = tuple()
     attribute.attribute = 1
 
     assert Identifier(

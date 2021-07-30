@@ -62,6 +62,8 @@ class GridSearch:
 
         self._result_output_interval = result_output_interval
 
+    __exclude_identifier_fields__ = ("number_of_cores",)
+
     @property
     def paths(self):
         return self.search.paths
@@ -210,7 +212,8 @@ class GridSearch:
                 [
                     Result(
                         samples=r.result.samples,
-                        model=r.result.model
+                        model=r.result.model,
+                        search=r.result.search
                     )
                     for r
                     in results

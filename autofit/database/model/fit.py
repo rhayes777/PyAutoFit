@@ -58,9 +58,12 @@ class Pickle(Base):
 
     @value.setter
     def value(self, value):
-        self.string = pickle.dumps(
-            value
-        )
+        try:
+            self.string = pickle.dumps(
+                value
+            )
+        except pickle.PicklingError:
+            pass
 
 
 class Info(Base):
@@ -316,6 +319,7 @@ class Fit(Base):
     )
 
     @property
+    @try_none
     def samples(self) -> OptimizerSamples:
         return self._samples()
 

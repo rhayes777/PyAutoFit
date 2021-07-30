@@ -6,9 +6,8 @@ from autofit.non_linear.analysis import Analysis
 from autofit.mapper.model import ModelInstance
 from autofit.mapper.model_mapper import ModelMapper
 from autofit.non_linear.abstract_search import NonLinearSearch
-from autofit.non_linear.samples import PDFSamples
+from autofit.non_linear.samples import PDFSamples, Sample
 from autoconf import conf
-from autofit.non_linear.samples import Sample
 
 
 class MockAnalysis(Analysis):
@@ -56,8 +55,6 @@ class MockResult:
     @property
     def last(self):
         return self
-
-
 
 class MockSamples(PDFSamples):
     def __init__(
@@ -117,29 +114,32 @@ class MockSamples(PDFSamples):
 
 
 class MockSearch(NonLinearSearch):
-    def __init__(self, samples=None, name=""):
+    def __init__(self, samples=None, result=None, name=""):
         super().__init__(name=name)
 
         self.samples = samples or MockSamples()
+        self.result = result or MockResult()
 
     def _fit(self, model, analysis, log_likelihood_cap=None):
         class Fitness:
-            def __init__(self, instance_from_vector):
-                self.result = None
+            def __init__(self, instance_from_vector, result):
+                self.result = result
                 self.instance_from_vector = instance_from_vector
 
             def __call__(self, vector):
                 instance = self.instance_from_vector(vector)
 
                 log_likelihood = analysis.log_likelihood_function(instance)
-                self.result = MockResult(instance=instance)
+
+                if self.result.instance is None:
+                    self.result.instance = instance
 
                 # Return Chi squared
                 return -2 * log_likelihood
 
         analysis.save_attributes_for_aggregator(paths=self.paths)
 
-        fitness_function = Fitness(model.instance_from_vector)
+        fitness_function = Fitness(model.instance_from_vector, result=self.result)
         fitness_function(model.prior_count * [0.5])
 
         return fitness_function.result

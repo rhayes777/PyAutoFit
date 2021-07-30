@@ -7,9 +7,7 @@ def results_to_file(samples, filename):
     sigma confidence and information on the maximum log likelihood.
     """
 
-    results = [
-        samples.model.parameterization, "\n\n"
-    ]
+    results = []
 
     if hasattr(samples, "log_evidence"):
         if samples.log_evidence is not None:
@@ -38,7 +36,9 @@ def results_to_file(samples, filename):
             whitespace=90
         )
     ]
-    results += ["\n\n"]
+    results += ["\n"]
+
+    results += ["\n", samples.model.parameterization, "\n\n"]
 
     results += ["Maximum Log Likelihood Model:\n\n"]
 
