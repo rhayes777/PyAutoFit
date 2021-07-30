@@ -38,8 +38,6 @@ class AbstractMessage(Prior, ABC):
     _parameter_support: Optional[Tuple[Tuple[float, float], ...]] = None
     _support: Optional[Tuple[Tuple[float, float], ...]] = None
 
-    _ids = count()
-
     def __init__(
             self,
             *parameters: Union[np.ndarray, float],
@@ -47,10 +45,10 @@ class AbstractMessage(Prior, ABC):
             id_=None
     ):
         super().__init__()
-        self.id_ = id_ or next(self._ids)
         self.log_norm = log_norm
         self._broadcast = np.broadcast(*parameters)
-        self.id = id_
+        if id_ is not None:
+            self.id = id_
         if self.shape:
             self.parameters = tuple(
                 np.asanyarray(p) for p in parameters)
