@@ -83,7 +83,6 @@ class ModelObject:
             )
         return instance
 
-    @property
     def dict(self) -> dict:
         """
         A dictionary representation of this object
@@ -130,7 +129,7 @@ class ModelObject:
                     value = AbstractPriorModel.from_instance(
                         value
                     )
-                value = value.dict
+                value = value.dict()
             except AttributeError:
                 pass
             dict_[key] = value

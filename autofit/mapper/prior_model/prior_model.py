@@ -132,13 +132,12 @@ class PriorModel(AbstractPriorModel):
                     self, key, PriorModel(value) if inspect.isclass(value) else value
                 )
 
-    @property
     def dict(self):
         return {
             "class_path": get_class_path(
                 self.cls
             ),
-            **super().dict
+            **super().dict()
         }
 
     # noinspection PyAttributeOutsideInit

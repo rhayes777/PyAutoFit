@@ -1,7 +1,6 @@
 from abc import ABC, abstractmethod
 from functools import reduce, wraps
 from inspect import getfullargspec
-from itertools import count
 from numbers import Real
 from operator import and_
 from typing import Optional, Tuple, Union, Iterator, Type, List
@@ -38,6 +37,8 @@ class AbstractMessage(Prior, ABC):
     _parameter_support: Optional[Tuple[Tuple[float, float], ...]] = None
     _support: Optional[Tuple[Tuple[float, float], ...]] = None
 
+    # ids = count()
+
     def __init__(
             self,
             *parameters: Union[np.ndarray, float],
@@ -49,11 +50,15 @@ class AbstractMessage(Prior, ABC):
         self._broadcast = np.broadcast(*parameters)
         if id_ is not None:
             self.id = id_
+        
         if self.shape:
             self.parameters = tuple(
                 np.asanyarray(p) for p in parameters)
         else:
             self.parameters = tuple(parameters)
+
+    def __bool__(self):
+        return True
 
     @classmethod
     def from_prior(cls, prior: Prior) -> "AbstractMessage":
@@ -110,7 +115,7 @@ class AbstractMessage(Prior, ABC):
         return self.variance ** 0.5
 
     def __hash__(self):
-        return self.id or super().__hash__()
+        return self.id
 
     @classmethod
     def calc_log_base_measure(cls, x):
