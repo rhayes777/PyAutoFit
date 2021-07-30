@@ -8,15 +8,14 @@ import numpy as np
 from autofit.graphical.factor_graphs import (
     Factor, AbstractNode, FactorValue, JacobianValue
 )
-from autofit.messages import (
-    AbstractMessage, FixedMessage
-)
 from autofit.graphical.utils import (
     prod, add_arrays, OptResult, Status, aggregate, Axis
 )
 from autofit.mapper.prior.prior import Prior
 from autofit.mapper.prior_model.collection import CollectionPriorModel
 from autofit.mapper.variable import Variable
+from autofit.messages.abstract import AbstractMessage
+from autofit.messages.fixed import FixedMessage
 
 VariableFactorDist = Dict[str, Dict[Factor, AbstractMessage]]
 Projection = Dict[str, AbstractMessage]

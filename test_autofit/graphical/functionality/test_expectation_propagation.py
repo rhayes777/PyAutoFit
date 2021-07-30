@@ -2,9 +2,9 @@ import numpy as np
 import pytest
 from scipy import stats
 
-import autofit.graphical.messages.normal
+import autofit.messages.normal
 from autofit import graphical as mp
-from autofit.graphical.messages import abstract
+from autofit.messages import abstract
 
 
 @pytest.fixture(
@@ -72,7 +72,7 @@ def test_approximations(
     opt_probit = mp.OptFactor.from_approx(probit_approx)
     result = opt_probit.maximise({x: 0.})
 
-    probit_model = autofit.graphical.messages.normal.NormalMessage.from_mode(
+    probit_model = autofit.messages.normal.NormalMessage.from_mode(
         result.mode[x],
         covariance=result.hess_inv[x],
         id_=message.id
@@ -104,7 +104,7 @@ def test_looped_importance_sampling(
     model_approx = mp.EPMeanField.from_kws(
         model,
         {
-            x: autofit.graphical.messages.normal.NormalMessage(
+            x: autofit.messages.normal.NormalMessage(
                 0, 1, id_=message.id
             )
         }

@@ -12,7 +12,7 @@ from autofit.graphical.factor_graphs import (
     Factor, FactorGraph
 )
 from autofit.graphical.mean_field import MeanField, FactorApproximation
-from autofit.graphical.messages.abstract import AbstractMessage
+from autofit.messages.abstract import AbstractMessage
 from autofit.graphical.utils import Status
 from autofit.mapper.variable import Variable
 

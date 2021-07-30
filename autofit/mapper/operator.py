@@ -22,7 +22,7 @@ class LinearOperator(ABC):
 
     The class also has the attributes, lshape, rshape, lsize, rsize to allow multidimensional tensors to be used,
     see `ShermanMorrison`, `MultiVecOuterProduct`, or 
-    `autofit.graphical.messages.transform.MultinomialLogitTransform` 
+    `autofit.messages.transform.MultinomialLogitTransform`
     for examples of this use case
 
     If `M` is the dense matrix represenation of the LinearOperator then the

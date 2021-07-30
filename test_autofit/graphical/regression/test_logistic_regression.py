@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 
 from autofit import graphical as mp
-from autofit.graphical.messages import abstract
+from autofit.messages import abstract
 
 
 def likelihood_jacobian(z, y, _variables=None):

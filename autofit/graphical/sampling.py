@@ -14,9 +14,8 @@ from autofit.graphical.mean_field import \
     (
     MeanField, FactorApproximation, Status
 )
-from autofit.graphical.messages import map_dists
-from autofit.graphical.messages.abstract import AbstractMessage
 from autofit.graphical.utils import add_arrays
+from autofit.messages.abstract import AbstractMessage, map_dists
 
 
 class SamplingResult(NamedTuple):

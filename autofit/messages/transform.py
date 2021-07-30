@@ -6,12 +6,26 @@ import numpy as np
 from scipy.special import ndtr, ndtri
 from scipy.stats._continuous_distns import _norm_pdf
 
-from autofit.graphical.utils import numerical_jacobian
 from ..mapper.operator import (
     DiagonalMatrix,
     LinearOperator,
     ShermanMorrison
 )
+
+
+def numerical_jacobian(x, func, eps=1e-8, args=(), **kwargs):
+    x = np.array(x)
+    f0 = func(x, *args, **kwargs)
+    jac = np.empty(np.shape(f0) + np.shape(x))
+    fslice = (slice(None),) * np.ndim(f0)
+    with np.nditer(x, flags=['multi_index'], op_flags=['readwrite']) as it:
+        for xi in it:
+            xi += eps
+            f1 = func(x, *args, **kwargs)
+            jac[fslice + it.multi_index] = (f1 - f0) / eps
+            xi -= eps
+
+    return jac
 
 
 class AbstractDensityTransform(ABC):

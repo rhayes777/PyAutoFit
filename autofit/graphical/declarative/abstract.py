@@ -8,7 +8,7 @@ from autofit.graphical.expectation_propagation import EPMeanField
 from autofit.graphical.expectation_propagation import EPOptimiser
 from autofit.graphical.factor_graphs.factor import Factor
 from autofit.graphical.factor_graphs.graph import FactorGraph
-from autofit.graphical.messages import NormalMessage
+from autofit.messages.normal import NormalMessage
 from autofit.mapper.model import ModelInstance
 from autofit.mapper.prior.prior import Prior
 from autofit.mapper.prior_model.collection import CollectionPriorModel

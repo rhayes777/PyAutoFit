@@ -22,7 +22,6 @@ from autofit.graphical.factor_graphs import (
     JacobianValue
 )
 from autofit.graphical.factor_graphs.transform import (
-    LinearOperator,
     identity_transform,
     InvCholeskyTransform
 )
@@ -31,12 +30,13 @@ from autofit.graphical.mean_field import (
     FactorApproximation,
     Status
 )
-from autofit.graphical.messages import FixedMessage
 from autofit.graphical.utils import (
     propagate_uncertainty,
     FlattenArrays,
     OptResult
 )
+from autofit.mapper.operator import LinearOperator
+from autofit.messages.fixed import FixedMessage
 
 ArraysDict = Dict[Variable, np.ndarray]
 

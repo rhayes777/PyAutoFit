@@ -3,7 +3,10 @@ from functools import reduce, wraps
 from inspect import getfullargspec
 from numbers import Real
 from operator import and_
-from typing import Optional, Tuple, Union, Iterator, Type, List
+from typing import (
+    Dict, Tuple, Iterator
+)
+from typing import Optional, Union, Type, List
 
 import numpy as np
 
@@ -553,7 +556,7 @@ class AbstractMessage(Prior, ABC):
 
         Examples
         --------
-        
+
 
         Normal distributions have infinite univariate support
         >>> NormalMessage._support
@@ -768,3 +771,17 @@ class TransformedMessage(AbstractMessage):
         mode, jac = cls._transform.transform_jac(mode)
         covariance = jac.invquad(covariance)
         return cls.from_mode(mode, covariance, id_=id_)
+
+
+def map_dists(dists: Dict[str, AbstractMessage],
+              values: Dict[str, np.ndarray],
+              _call: str = 'logpdf'
+              ) -> Iterator[Tuple[str, np.ndarray]]:
+    """
+    Calls a method (default: logpdf) for each Message in dists
+    on the corresponding value in values
+    """
+    for v in dists.keys() & values.keys():
+        dist = dists[v]
+        if isinstance(dist, AbstractMessage):
+            yield v, getattr(dist, _call)(values[v])

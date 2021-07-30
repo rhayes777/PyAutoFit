@@ -2,7 +2,7 @@ import math
 
 from scipy.special import erfcinv
 
-from autofit.graphical.messages.normal import NormalMessage
+from autofit.messages.normal import NormalMessage
 
 
 class GaussianPrior(NormalMessage):

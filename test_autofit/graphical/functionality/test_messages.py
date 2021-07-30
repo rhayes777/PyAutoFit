@@ -1,13 +1,10 @@
 import numpy as np
 import pytest
-from scipy import stats, integrate
+from scipy import integrate
 
-import numpy as np
-
-import autofit.graphical.messages.normal
 from autofit import graphical as graph
-from autofit.graphical.messages import transform
 from autofit.graphical.utils import numerical_jacobian
+from autofit.messages import transform
 
 
 def check_dist_norm(dist):
@@ -33,11 +30,11 @@ def check_log_normalisation(ms):
         *m1._support[0])
 
     # verify within tolerance
-    assert np.abs(A - i12) < ierr < 1e-1, m1 
+    assert np.abs(A - i12) < ierr < 1e-1, m1
 
 
 def check_numerical_gradient_hessians(message, x=None):
-    x = message.sample() if x is None else x 
+    x = message.sample() if x is None else x
 
     res = message.logpdf_gradient(x)
     nres = message.numerical_logpdf_gradient(x)
@@ -108,6 +105,7 @@ def test_numerical_gradient_hessians():
     for M, m, s, x in test_cases:
         check_numerical_gradient_hessians(M(m, s), x)
 
+
 def test_meanfield_gradients():
     n1, n2, n3 = 2, 3, 5
     p1, p2, p3 = [graph.Plate() for i in range(3)]
@@ -125,7 +123,8 @@ def test_meanfield_gradients():
             np.random.exponential(size=(n2, n3))),
         v3: graph.NormalMessage(
             np.random.randn(n3, n1),
-            np.random.exponential(size=(n3, n1)))})
+            np.random.exponential(size=(n3, n1)))
+    })
 
     values = mean_field.sample()
     l0 = mean_field(values, axis=None)
@@ -201,7 +200,7 @@ def test_multinomial_logit():
     mult_logit = transform.multinomial_logit_transform
 
     d = 3
-    p = np.random.dirichlet(np.ones(d+1))[:d]
+    p = np.random.dirichlet(np.ones(d + 1))[:d]
 
     x, logd, logd_grad, jac = mult_logit.transform_det_jac(p)
 
@@ -215,7 +214,7 @@ def test_multinomial_logit():
 
     n = 5
 
-    ps = np.random.dirichlet(np.ones(d+1), size=n)[:, :d]
+    ps = np.random.dirichlet(np.ones(d + 1), size=n)[:, :d]
     xs, logd, logd_grad, jac = mult_logit.transform_det_jac(ps)
     njac = numerical_jacobian(ps, mult_logit.transform).reshape(jac.shape)
     nlogd_grad = numerical_jacobian(ps, mult_logit.log_det)
@@ -223,7 +222,7 @@ def test_multinomial_logit():
     assert np.allclose(mult_logit.inv_transform(xs), ps)
     assert np.allclose(njac, jac.to_dense())
     assert np.isclose(
-        logd.sum(), 
+        logd.sum(),
         np.linalg.slogdet(njac.reshape(jac.lsize, jac.rsize))[1]
     )
     assert np.allclose(nlogd_grad.sum((0, 1)), logd_grad, 1e-5, 1e-3)
@@ -238,7 +237,7 @@ def test_normal_simplex():
     NormalSimplex = graph.messages.NormalMessage.transformed(mult_logit)
 
     message = NormalSimplex([-1, 2], [.3, .3])
-    
+
     check_numerical_gradient_hessians(message, message.sample())
 
     def func(*p):

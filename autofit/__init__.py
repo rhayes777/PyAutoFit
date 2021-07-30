@@ -29,7 +29,7 @@ from .mapper.prior.deferred import DeferredInstance
 from .mapper.prior.width_modifier import AbsoluteWidthModifier
 from .mapper.prior.width_modifier import RelativeWidthModifier
 from .mapper.prior.width_modifier import WidthModifier
-from .mapper.prior.prior import GaussianPrior
+from .mapper.prior.gaussian import GaussianPrior
 from .mapper.prior.prior import LogUniformPrior
 from .mapper.prior.prior import Prior
 from .mapper.prior.tuple_prior import TuplePrior
