@@ -42,8 +42,8 @@ class NormalMessage(AbstractMessage):
             log_norm=log_norm,
             id_=id_
         )
-        if is_nan(sigma):
-            raise AssertionError("Oh my")
+        # if is_nan(sigma):
+        #     raise AssertionError("Oh my")
         self.mu, self.sigma = self.parameters
 
     def value_for(self, unit: float) -> float:
@@ -85,8 +85,8 @@ class NormalMessage(AbstractMessage):
         eta1, eta2 = natural_parameters
         mu = - 0.5 * eta1 / eta2
         sigma = np.sqrt(- 0.5 / eta2)
-        if is_nan(sigma):
-            raise AssertionError("oh")
+        # if is_nan(sigma):
+        #     raise AssertionError("oh")
         return mu, sigma
 
     @staticmethod
