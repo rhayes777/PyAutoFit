@@ -8,7 +8,7 @@ import numpy as np
 from autofit.graphical.factor_graphs import (
     Factor, AbstractNode, FactorValue, JacobianValue
 )
-from autofit.graphical.messages import (
+from autofit.messages import (
     AbstractMessage, FixedMessage
 )
 from autofit.graphical.utils import (

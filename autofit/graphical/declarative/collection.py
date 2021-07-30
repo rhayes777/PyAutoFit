@@ -1,5 +1,5 @@
 from autofit.mapper.model import ModelInstance
-from autofit.mapper.prior_model.collection import CollectionPriorModel
+
 from autofit.tools.namer import namer
 from .abstract import AbstractDeclarativeFactor
 
@@ -7,6 +7,7 @@ from .abstract import AbstractDeclarativeFactor
 class FactorGraphModel(AbstractDeclarativeFactor):
     @property
     def prior_model(self):
+        from autofit.mapper.prior_model.collection import CollectionPriorModel
         return CollectionPriorModel({
             factor.name: factor.prior_model
             for factor

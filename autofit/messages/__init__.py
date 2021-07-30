@@ -10,6 +10,7 @@ from .gamma import GammaMessage
 from .normal import NormalMessage, UniformNormalMessage, LogNormalMessage, MultiLogitNormalMessage
 from .beta import BetaMessage
 
+
 def map_dists(dists: Dict[str, AbstractMessage],
               values: Dict[str, np.ndarray],
               _call: str = 'logpdf'

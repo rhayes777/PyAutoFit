@@ -2,9 +2,8 @@ from typing import Tuple
 
 import numpy as np
 
-from autofit.graphical.messages.abstract import AbstractMessage
-from autofit.graphical.utils import cached_property
-from autofit.mapper.prior.prior import GaussianPrior
+from autofit.messages.abstract import AbstractMessage
+from autofit.tools.cached_property import cached_property
 from .transform import phi_transform, log_transform, multinomial_logit_transform
 
 
@@ -34,16 +33,13 @@ class NormalMessage(AbstractMessage):
             mu=0.,
             sigma=1.,
             log_norm=0.,
-            id_=None,
             **kwargs
     ):
         super().__init__(
             mu, sigma,
             log_norm=log_norm,
-            id_=id_
+            **kwargs
         )
-        # if is_nan(sigma):
-        #     raise AssertionError("Oh my")
         self.mu, self.sigma = self.parameters
 
     def value_for(self, unit: float) -> float:
@@ -54,7 +50,7 @@ class NormalMessage(AbstractMessage):
     @classmethod
     def _from_prior(
             cls,
-            prior: GaussianPrior
+            prior
     ):
         return NormalMessage(
             mu=prior.mean,
@@ -63,6 +59,7 @@ class NormalMessage(AbstractMessage):
         )
 
     def as_prior(self):
+        from autofit.mapper.prior.prior import GaussianPrior
         return GaussianPrior(
             mean=self.mu,
             sigma=self.sigma
@@ -85,8 +82,6 @@ class NormalMessage(AbstractMessage):
         eta1, eta2 = natural_parameters
         mu = - 0.5 * eta1 / eta2
         sigma = np.sqrt(- 0.5 / eta2)
-        # if is_nan(sigma):
-        #     raise AssertionError("oh")
         return mu, sigma
 
     @staticmethod

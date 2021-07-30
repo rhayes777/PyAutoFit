@@ -7,7 +7,7 @@ import numpy as np
 from scipy.linalg import cho_factor, solve_triangular, get_blas_funcs, block_diag
 from scipy._lib._util import _asarray_validated
 
-from autofit.graphical.utils import cached_property
+from autofit.tools.cached_property import cached_property
 
 
 class LinearOperator(ABC):

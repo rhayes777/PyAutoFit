@@ -2,7 +2,8 @@ from typing import Optional, Tuple
 
 import numpy as np
 
-from autofit.graphical.messages.abstract import AbstractMessage, cached_property
+from autofit.messages.abstract import AbstractMessage
+from autofit.tools.cached_property import cached_property
 
 
 class FixedMessage(AbstractMessage):

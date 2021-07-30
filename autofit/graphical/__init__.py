@@ -1,4 +1,7 @@
-from .declarative import AnalysisFactor, FactorGraphModel, HierarchicalFactor
+from .declarative.factor.analysis import AnalysisFactor
+from .declarative.collection import FactorGraphModel
+from .declarative.factor.hierarchical import HierarchicalFactor
+
 from .factor_graphs import (
     Factor, 
     FactorJacobian, 

@@ -7,12 +7,10 @@ from typing import Optional, Tuple, Union, Iterator, Type, List
 
 import numpy as np
 
-from autofit.mapper.prior.prior import Prior, GaussianPrior
+from autofit.mapper.prior.prior import Prior
 from .transform import AbstractDensityTransform, LinearShiftTransform
-from ..factor_graphs.jacobians import FactorJacobian
-from ..utils import cached_property
-from ...mapper.variable import Variable
-
+from ..mapper.variable import Variable
+from ..tools.cached_property import cached_property
 
 enforce_id_match = True
 
@@ -45,10 +43,10 @@ class AbstractMessage(Prior, ABC):
             self,
             *parameters: Union[np.ndarray, float],
             log_norm=0.,
-            id_=None
+            **kwargs
     ):
         super().__init__(
-            id_=id_
+            **kwargs
         )
         self.log_norm = log_norm
         self._broadcast = np.broadcast(*parameters)
@@ -64,7 +62,8 @@ class AbstractMessage(Prior, ABC):
 
     @classmethod
     def from_prior(cls, prior: Prior) -> "AbstractMessage":
-        from autofit.graphical import NormalMessage
+        from .normal import NormalMessage
+        from ..mapper.prior.gaussian import GaussianPrior
         if isinstance(
                 prior, GaussianPrior
         ):
@@ -520,7 +519,7 @@ class AbstractMessage(Prior, ABC):
                 return self.logpdf(x), ()
 
     def as_factor(self, variable: "Variable", name: Optional[str] = None
-                  ) -> "FactorJacobian":
+                  ):
         from autofit.graphical import FactorJacobian
         if name is None:
             shape = self.shape
@@ -554,7 +553,7 @@ class AbstractMessage(Prior, ABC):
 
         Examples
         --------
-        >>> from autofit.graphical.messages import NormalMessage, transform
+        
 
         Normal distributions have infinite univariate support
         >>> NormalMessage._support

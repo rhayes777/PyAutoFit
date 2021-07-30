@@ -1,18 +1,24 @@
-
 from itertools import repeat, chain
 from typing import \
-    Tuple, Dict, List, Callable, Optional, Union
-from functools import reduce 
+    (
+    Tuple, Dict, Callable, Optional, Union
+)
 
 import numpy as np
 
-from autofit.mapper.variable import Variable
 from autofit.graphical.factor_graphs.abstract import \
+    (
     FactorValue, JacobianValue
+)
 from autofit.graphical.factor_graphs.factor import \
+    (
     AbstractFactor, Factor, DeterministicFactor
+)
 from autofit.graphical.utils import \
-    aggregate, Axis, cached_property
+    (
+    aggregate, Axis
+)
+from autofit.mapper.variable import Variable
 
 
 class FactorJacobian(Factor):
@@ -51,13 +57,14 @@ class FactorJacobian(Factor):
     kwargs: Variables
         Variables for each keyword argument for the function
     """
+
     def __init__(
             self,
             factor_jacobian: Callable,
-            *, 
+            *,
             name="",
             vectorised=False,
-            is_scalar=False, 
+            is_scalar=False,
             **kwargs: Variable
     ):
         self.vectorised = vectorised
@@ -65,7 +72,7 @@ class FactorJacobian(Factor):
         self._set_factor(factor_jacobian)
 
         AbstractFactor.__init__(
-            self, 
+            self,
             **kwargs,
             name=name or factor_jacobian.__name__
         )
@@ -77,7 +84,7 @@ class FactorJacobian(Factor):
     def _call_factor(
             self,
             values: Dict[str, np.ndarray],
-            variables: Optional[Tuple[str, ...]] = None, 
+            variables: Optional[Tuple[str, ...]] = None,
     ) -> Union[np.ndarray, Tuple[np.ndarray, Tuple[np.ndarray, ...]]]:
         """
         Call the underlying function
@@ -95,7 +102,7 @@ class FactorJacobian(Factor):
         """
         if self.vectorised:
             return self._factor(**values, _variables=variables)
-            
+
         """Some factors may not be vectorised to broadcast over
         multiple inputs
 
@@ -118,14 +125,14 @@ class FactorJacobian(Factor):
     def _multicall_factor(
             self,
             values: Dict[str, np.ndarray],
-            variables: Optional[Tuple[str, ...]] = None, 
+            variables: Optional[Tuple[str, ...]] = None,
     ) -> Union[np.ndarray, Tuple[np.ndarray, Tuple[np.ndarray, ...]]]:
         """call the factor multiple times and aggregates 
         the results together
         """
         # Check dimensions of inputs match plates + 1
         vectorised = all(
-            dim + 1 == np.ndim(values[k]) 
+            dim + 1 == np.ndim(values[k])
             for k, dim in self._kwargs_dims.items())
 
         if not vectorised:
@@ -152,13 +159,13 @@ class FactorJacobian(Factor):
         # TODO this loop can also be parallelised for increased performance
         fjacs = [
             self._factor(**{
-                    k: next(a) for k, a in iter_kws.items()}, 
-                    _variables=variables)
-             for _ in range(dim0)]
-        
+                k: next(a) for k, a in iter_kws.items()},
+                         _variables=variables)
+            for _ in range(dim0)]
+
         if variables is None:
             res = np.array([fjac for fjac in fjacs])
-            return res 
+            return res
         else:
             res = np.array([fjac[0] for fjac in fjacs])
             njac = len(fjacs[0][1])
@@ -171,7 +178,7 @@ class FactorJacobian(Factor):
     def __call__(
             self,
             variable_dict: Dict[Variable, np.ndarray],
-            axis: Axis = False, 
+            axis: Axis = False,
     ) -> FactorValue:
         values = self.resolve_variable_dict(variable_dict)
         val = self._call_factor(values, variables=None)
@@ -182,7 +189,7 @@ class FactorJacobian(Factor):
             self,
             variable_dict: Dict[Variable, np.ndarray],
             variables: Optional[Tuple[Variable, ...]] = None,
-            axis: Axis = False, 
+            axis: Axis = False,
             **kwargs
     ) -> Tuple[FactorValue, JacobianValue]:
         """
@@ -215,7 +222,7 @@ class FactorJacobian(Factor):
         val, jacs = self._call_factor(
             kwargs, variables=variable_names)
         grad_axis = tuple(range(np.ndim(val))) if axis is None else axis
-        
+
         fval = FactorValue(
             aggregate(self._reshape_factor(val, kwargs), axis))
         fjac = {
@@ -281,6 +288,7 @@ class DeterministicFactorJacobian(FactorJacobian):
     kwargs
         Variables for the original factor
     """
+
     def __init__(
             self,
             factor_jacobian: Callable,
@@ -289,14 +297,14 @@ class DeterministicFactorJacobian(FactorJacobian):
             is_scalar=False,
             **kwargs: Variable
     ):
-        
+
         super().__init__(
             factor_jacobian,
             vectorised=vectorised,
-            is_scalar=is_scalar, 
+            is_scalar=is_scalar,
             **kwargs
         )
-        self._deterministic_variables = variable, 
+        self._deterministic_variables = variable,
 
     @property
     def deterministic_variables(self):
@@ -306,8 +314,8 @@ class DeterministicFactorJacobian(FactorJacobian):
             self,
             variable_dict: Dict[Variable, np.ndarray],
             variables: Optional[Tuple[Variable, ...]] = None,
-            axis: Axis = False, 
-            **kwargs, 
+            axis: Axis = False,
+            **kwargs,
     ) -> Tuple[FactorValue, JacobianValue]:
         """
         Call this factor with a set of arguments
@@ -334,7 +342,6 @@ class DeterministicFactorJacobian(FactorJacobian):
         shift, shape = self._function_shape(**kwargs)
         plate_dim = dict(zip(self.plates, shape[shift:]))
 
-
         det_shapes = {
             v: shape[:shift] + tuple(
                 plate_dim[p] for p in v.plates)
@@ -347,7 +354,7 @@ class DeterministicFactorJacobian(FactorJacobian):
             vals = vals,
 
         log_val = (
-            0. if (shape == () or axis is None) else 
+            0. if (shape == () or axis is None) else
             aggregate(np.zeros(tuple(1 for _ in shape)), axis))
         det_vals = {
             k: np.reshape(val, det_shapes[k])
@@ -372,7 +379,7 @@ class DeterministicFactorJacobian(FactorJacobian):
     def __call__(
             self,
             variable_dict: Dict[Variable, np.ndarray],
-            axis: Axis = False, 
+            axis: Axis = False,
     ) -> FactorValue:
         return self.func_jacobian(variable_dict, (), axis=axis)[0]
 

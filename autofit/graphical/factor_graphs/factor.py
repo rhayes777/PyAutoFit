@@ -13,10 +13,8 @@ from autofit.graphical.factor_graphs.abstract import \
     (
     AbstractNode, FactorValue
 )
-from autofit.graphical.utils import \
-    (
-    aggregate, Axis, cached_property
-)
+from autofit.graphical.utils import aggregate, Axis
+from autofit.tools.cached_property import cached_property
 from autofit.mapper.variable import Variable
 
 
