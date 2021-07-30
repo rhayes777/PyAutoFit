@@ -41,19 +41,17 @@ class AbstractMessage(Prior, ABC):
     _parameter_support: Optional[Tuple[Tuple[float, float], ...]] = None
     _support: Optional[Tuple[Tuple[float, float], ...]] = None
 
-    # ids = count()
-
     def __init__(
             self,
             *parameters: Union[np.ndarray, float],
             log_norm=0.,
             id_=None
     ):
-        super().__init__()
+        super().__init__(
+            id_=id_
+        )
         self.log_norm = log_norm
         self._broadcast = np.broadcast(*parameters)
-        if id_ is not None:
-            self.id = id_
 
         if self.shape:
             self.parameters = tuple(

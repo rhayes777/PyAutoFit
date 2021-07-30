@@ -26,7 +26,12 @@ class Limits:
 
 
 class Prior(Variable, ABC, ArithmeticMixin):
-    def __init__(self, lower_limit=0.0, upper_limit=1.0):
+    def __init__(
+            self,
+            lower_limit=0.0,
+            upper_limit=1.0,
+            id_=None
+    ):
         """
         An object used to mappers a unit value to an attribute value for a specific
         class attribute.
@@ -38,7 +43,9 @@ class Prior(Variable, ABC, ArithmeticMixin):
         upper_limit: Float
             The highest value this prior can return
         """
-        super().__init__()
+        super().__init__(
+            id_=id_
+        )
         self.lower_limit = float(lower_limit)
         self.upper_limit = float(upper_limit)
         if self.lower_limit >= self.upper_limit:
@@ -141,7 +148,6 @@ class Prior(Variable, ABC, ArithmeticMixin):
             }
         )
 
-    @property
     def dict(self) -> dict:
         """
         A dictionary representation of this prior
