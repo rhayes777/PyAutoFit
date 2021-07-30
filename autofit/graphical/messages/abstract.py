@@ -14,16 +14,20 @@ from ..utils import cached_property
 from ...mapper.variable import Variable
 
 
+enforce_id_match = True
+
+
 def assert_ids_match(func):
     @wraps(func)
     def wrapper(self, other):
-        if isinstance(
-                other,
-                AbstractMessage
-        ) and self.id != other.id:
-            raise AssertionError(
-                f"Message with id {self.id} should not be compared to message with id {other.id}"
-            )
+        if enforce_id_match:
+            if isinstance(
+                    other,
+                    AbstractMessage
+            ) and self.id != other.id:
+                raise AssertionError(
+                    f"Message with id {self.id} should not be compared to message with id {other.id}"
+                )
         result = func(self, other)
         return result
 
@@ -50,7 +54,7 @@ class AbstractMessage(Prior, ABC):
         self._broadcast = np.broadcast(*parameters)
         if id_ is not None:
             self.id = id_
-        
+
         if self.shape:
             self.parameters = tuple(
                 np.asanyarray(p) for p in parameters)

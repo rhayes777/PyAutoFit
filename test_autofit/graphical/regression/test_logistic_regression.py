@@ -2,6 +2,7 @@ import numpy as np
 import pytest
 
 from autofit import graphical as mp
+from autofit.graphical.messages import abstract
 
 
 def likelihood_jacobian(z, y, _variables=None):
@@ -16,15 +17,16 @@ def likelihood_jacobian(z, y, _variables=None):
         for v in _variables:
             if v == 'z':
                 jacs += np.expand_dims(
-                    y - 1/(1 + expz),
+                    y - 1 / (1 + expz),
                     tuple(range(np.ndim(loglike)))),
-                
+
             elif v == 'y':
                 jacs += np.expand_dims(
                     logp - log1p,
                     tuple(range(np.ndim(loglike)))),
-                
+
         return loglike, jacs
+
 
 @pytest.fixture(
     name="likelihood_factor_jac"
@@ -33,6 +35,7 @@ def make_likelihood_factor_jac(z_, y_, obs, dims):
     factor = mp.FactorJacobian(likelihood_jacobian, z=z_, y=y_)
     factor._plates = (obs, dims)
     return factor
+
 
 @pytest.fixture(
     name="model"
@@ -125,12 +128,14 @@ def test_importance_sampling(
         y_,
         z_,
 ):
+    abstract.enforce_id_match = False
+
     sampler = mp.ImportanceSampler(n_samples=500)
 
     print_factor = lambda *args: print(args[0])
     print_status = lambda *args: print(args[2])
     callback = mp.expectation_propagation.EPHistory(
-        callbacks=(print_factor,print_status))
+        callbacks=(print_factor, print_status))
     opt = mp.EPOptimiser(
         model_approx.factor_graph,
         default_optimiser=sampler,
