@@ -194,12 +194,11 @@ class MockResult(Result):
             analysis=None,
             search=None
     ):
-        super().__init__(samples, None, search)
+        super().__init__(samples, model, search)
         self._instance = instance or ModelInstance()
         self.model = model or ModelMapper()
         self.samples = samples or MockSamples(max_log_likelihood_instance=self.instance)
 
-        self.model = model
         self.gaussian_tuples = None
         self.analysis = analysis
         self.search = search

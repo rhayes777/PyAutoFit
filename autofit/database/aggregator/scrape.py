@@ -1,6 +1,7 @@
 import logging
 import os
 import pickle
+import sys
 from pathlib import Path
 
 from sqlalchemy.orm import Session
@@ -80,18 +81,24 @@ class Scraper:
             except (AttributeError, NotImplementedError):
                 instance = None
 
+            id = _make_identifier(item)
+
+            logger.info(
+                f"Creating fit for: "
+                f"{item.search.unique_tag} "
+                f"{item.search.name} "
+                f"{id} ")
+
             try:
                 fit = self._retrieve_model_fit(
                     item
                 )
                 logger.warning(
-                    f"Fit already existed with identifier {_make_identifier(item)}"
+                    f"Fit already existed with identifier {id}"
                 )
             except NoResultFound:
                 fit = m.Fit(
-                    id=_make_identifier(
-                        item
-                    ),
+                    id=id,
                     name=item.search.name,
                     unique_tag=item.search.unique_tag,
                     model=model,
@@ -100,7 +107,6 @@ class Scraper:
                     info=item.info,
                     max_log_likelihood=samples.max_log_likelihood_sample.log_likelihood
                 )
-                logger.info(f"Created fit {fit.id}")
 
             pickle_path = Path(item.pickle_path)
             _add_pickles(
