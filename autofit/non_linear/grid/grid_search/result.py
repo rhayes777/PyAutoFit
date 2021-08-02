@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Tuple
 
 import numpy as np
 
@@ -11,6 +11,7 @@ class GridSearchResult:
 
     def __init__(
             self,
+            shape_native: Tuple[int],
             results: List[Result],
             lower_limit_lists: List[List[float]],
             physical_lower_limits_lists: List[List[float]],
@@ -18,22 +19,29 @@ class GridSearchResult:
         """
         The result of a grid search.
 
+        The results are stored as a list of values or lists, which does not account for the dimensionality of the
+        grid search. For example, the results are stored as a 1D list irrespective of whether the grid search was
+        performed over one, two or more dimensions.
+
+        The `native` methods map the results from these 1D list structures to the higher dimensional grid dimensions.
+
         Parameters
         ----------
         results
-            The results of the non linear optimizations performed at each grid step
+            The results of the non linear optimizations performed at each grid cell, stored as a list of results.
         lower_limit_lists
-            A list of lists of values representing the lower bounds of the grid searched values at each step
+            The lower bounds of the grid search unit prior values for each cell of the grid search. This is stored
+            as a list of lists, where the outer list contains an entry for every grid cell and inner list has the lower
+            bound of every unit prior.
         physical_lower_limits_lists
-            A list of lists of values representing the lower physical bounds of the grid search values
-            at each step.
+            The lower bounds of the grid search physical prior values for each cell of the grid search. This is stored
+            as a list of lists, where the outer list contains an entry for every grid cell and inner list has the lower
+            bound of every physical prior.
         """
+        self.results = results
         self.lower_limit_lists = lower_limit_lists
         self.physical_lower_limits_lists = physical_lower_limits_lists
-        self.results = results
-        self.no_dimensions = len(self.lower_limit_lists[0])
-        self.no_steps = len(self.lower_limit_lists)
-        self.side_length = int(self.no_steps ** (1 / self.no_dimensions))
+        self.shape_native = shape_native
 
     def __getattr__(self, item: str) -> object:
         """
@@ -48,13 +56,22 @@ class GridSearchResult:
         self.__dict__.update(state)
 
     @property
-    def shape(self):
-        return tuple([
-            self.side_length
-            for _ in range(
-                self.no_dimensions
-            )
-        ])
+    def no_dimensions(self):
+        """
+        The number of dimensions of the grid search, where a dimension corresponds to a specific parameter in a model.
+        """
+        return len(self.shape_native)
+
+    @property
+    def no_steps(self):
+        """
+        The number of steps taken in every dimension of the grid search.
+        """
+        return self.shape_native[0]
+
+    @property
+    def side_length(self):
+        return int(self.no_steps ** (1 / self.no_dimensions))
 
     @property
     def best_result(self):
@@ -96,7 +113,14 @@ class GridSearchResult:
         return [result.model for result in self.results]
 
     @property
-    def physical_step_sizes(self):
+    def physical_step_sizes(self) -> Tuple[int]:
+        """
+        The largest physical step sizes of every parameter
+
+        Returns
+        -------
+
+        """
 
         physical_step_sizes = []
 
@@ -139,43 +163,44 @@ class GridSearchResult:
         ]
 
     @property
-    def results_reshaped(self):
+    def results_native(self):
         """
-        Returns
-        -------
-        likelihood_merit_array: np.ndarray
-            An arrays of figures of merit. This arrays has the same dimensionality as the grid search, with the value in
-            each entry being the figure of merit taken from the optimization performed at that point.
+        The result of every grid search on a NumPy array whose shape is the native dimensions of the grid search.
+
+        For example, for a 2x2 grid search the shape of the Numpy array is (2,2) and it is numerically ordered such
+        that the first search's result (corresponding to unit priors (0.0, 0.0)) are in the first value (E.g. entry
+        [0, 0]) of the NumPy array.
         """
         return np.reshape(
             np.array([result for result in self.results]),
-            tuple(self.side_length for _ in range(self.no_dimensions)),
+            self.shape_native,
         )
 
     @property
-    def max_log_likelihood_values(self):
+    def log_likelihoods_native(self):
         """
-        Returns
-        -------
-        likelihood_merit_array: np.ndarray
-            An arrays of figures of merit. This arrays has the same dimensionality as the grid search, with the value in
-            each entry being the figure of merit taken from the optimization performed at that point.
+        The maximum log likelihood of every grid search on a NumPy array whose shape is the native dimensions of the
+        grid search.
+
+        For example, for a 2x2 grid search the shape of the Numpy array is (2,2) and it is numerically ordered such
+        that the first search's maximum likelihood (corresponding to unit priors (0.0, 0.0)) are in the first
+        value (E.g. entry [0, 0]) of the NumPy array.
         """
         return np.reshape(
             np.array([result.log_likelihood for result in self.results]),
-            tuple(self.side_length for _ in range(self.no_dimensions)),
+            self.shape_native
         )
 
     @property
-    def log_evidence_values(self):
+    def log_evidences_native(self):
         """
-        Returns
-        -------
-        likelihood_merit_array: np.ndarray
-            An arrays of figures of merit. This arrays has the same dimensionality as the grid search, with the value in
-            each entry being the figure of merit taken from the optimization performed at that point.
+        The log evidence of every grid search on a NumPy array whose shape is the native dimensions of the grid search.
+
+        For example, for a 2x2 grid search the shape of the Numpy array is (2,2) and it is numerically ordered such
+        that the first search's log evidence (corresponding to unit priors (0.0, 0.0)) are in the first value (E.g.
+        entry [0, 0]) of the NumPy array.
         """
         return np.reshape(
             np.array([result.samples.log_evidence for result in self.results]),
-            tuple(self.side_length for _ in range(self.no_dimensions)),
+            self.shape_native
         )

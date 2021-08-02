@@ -28,7 +28,7 @@ class GridSearch:
             search,
             number_of_steps: int = 4,
             number_of_cores: int = 1,
-            result_output_interval: int = 100
+            result_output_interval: int = 100,
     ):
         """
         Performs a non linear optimiser search for each square in a grid. The dimensionality of the search depends on
@@ -63,6 +63,10 @@ class GridSearch:
         self.prior_passer = search.prior_passer
 
         self._result_output_interval = result_output_interval
+
+    @property
+    def grid_search_result_cls(self):
+        return GridSearchResult
 
     @property
     def paths(self):
@@ -208,8 +212,8 @@ class GridSearch:
         ]
 
         def make_grid_search_result():
-            return GridSearchResult(
-                [
+            return self.grid_search_result_cls(
+                results=[
                     Result(
                         samples=r.result.samples,
                         model=r.result.model,
@@ -218,8 +222,9 @@ class GridSearch:
                     for r
                     in results
                 ],
-                lists,
-                physical_lists
+                lower_limit_lists=lists,
+                physical_lower_limits_lists=physical_lists,
+                shape_native=tuple([self.number_of_steps for i in range(len(grid_priors))])
             )
 
         def save_results():

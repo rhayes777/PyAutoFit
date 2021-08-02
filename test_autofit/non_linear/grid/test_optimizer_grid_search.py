@@ -2,7 +2,7 @@ import pickle
 from typing import Tuple
 
 import pytest
-
+import numpy as np
 import autofit as af
 from autofit import exc
 from autofit.graphical import FactorApproximation
@@ -12,7 +12,8 @@ from autofit.mock.mock import MockAnalysis
 
 def test_unpickle_result():
     result = af.GridSearchResult(
-        [af.Result(samples=None, model=None)],
+        shape_native=(1,),
+        results=[af.Result(samples=None, model=None)],
         lower_limit_lists=[[1]],
         physical_lower_limits_lists=[[1]],
     )
@@ -205,7 +206,7 @@ class TestGridNLOBehaviour:
 
         assert len(result.results) == 100
         assert result.no_dimensions == 2
-        assert result.max_log_likelihood_values.shape == (10, 10)
+        assert result.log_likelihoods_native.shape == (10, 10)
 
     # def test_results_parallel(self, mapper, container):
     #     grid_search = af.SearchGridSearch(
@@ -276,58 +277,66 @@ class MockResult:
         self.log_likelihood = log_likelihood
         self.model = log_likelihood
 
+@pytest.fixture(name="grid_search_result_2x2")
+def make_grid_search_result_2x2():
 
-@pytest.fixture(name="grid_search_result")
-def make_grid_search_result():
     one = MockResult(1)
     two = MockResult(2)
+    three = MockResult(3)
+    four = MockResult(4)
 
     # noinspection PyTypeChecker
-    return af.GridSearchResult([one, two], [[1], [2]], [[1], [2]])
-
+    return af.GridSearchResult(
+        shape_native=(2,2),
+        results=[one, two, three, four],
+        lower_limit_lists=[[0.0, 0.0], [0.0, 0.5], [0.5, 0.0], [0.5, 0.5]],
+        physical_lower_limits_lists=[[-2.0, -3.0], [-2.0, 0.0], [0.0, -3.0], [0.0, 0.0]],
+    )
 
 class TestGridSearchResult:
 
-    def test_best_result(self, grid_search_result):
-        assert grid_search_result.best_result.log_likelihood == 2
+    def test_best_result(self, grid_search_result_2x2):
+        assert grid_search_result_2x2.best_result.log_likelihood == 4
 
-    def test_attributes(self, grid_search_result):
-        assert grid_search_result.model == 2
+    def test_attributes(self, grid_search_result_2x2):
+        assert grid_search_result_2x2.model == 4
 
-    def test_best_model(self, grid_search_result):
-        assert grid_search_result.best_model == 2
+    def test_best_model(self, grid_search_result_2x2):
+        assert grid_search_result_2x2.best_model == 4
 
-    def test_all_models(self, grid_search_result):
-        assert grid_search_result.all_models == [1, 2]
+    def test_all_models(self, grid_search_result_2x2):
+        assert grid_search_result_2x2.all_models == [1, 2, 3, 4]
 
-    def test__result_derived_properties(self):
-        lower_limit_lists = [[0.0, 0.0], [0.0, 0.5], [0.5, 0.0], [0.5, 0.5]]
-        physical_lower_limits_lists = [
-            [-2.0, -3.0],
-            [-2.0, 0.0],
-            [0.0, -3.0],
-            [0.0, 0.0],
-        ]
+    def test__result_derived_properties(self, grid_search_result_2x2):
 
-        grid_search_result = af.GridSearchResult(
-            results=None,
-            physical_lower_limits_lists=physical_lower_limits_lists,
-            lower_limit_lists=lower_limit_lists,
-        )
-
-        print(grid_search_result)
-
-        assert grid_search_result.shape == (2, 2)
-        assert grid_search_result.physical_step_sizes == (2.0, 3.0)
-        assert grid_search_result.physical_centres_lists == [
+        assert grid_search_result_2x2.shape_native == (2, 2)
+        assert grid_search_result_2x2.no_steps == 2
+        assert grid_search_result_2x2.no_dimensions == 2
+        assert grid_search_result_2x2.side_length == 1
+        assert grid_search_result_2x2.physical_step_sizes == (2.0, 3.0)
+        assert grid_search_result_2x2.physical_centres_lists == [
             [-1.0, -1.5],
             [-1.0, 1.5],
             [1.0, -1.5],
             [1.0, 1.5],
         ]
-        assert grid_search_result.physical_upper_limits_lists == [
+        assert grid_search_result_2x2.physical_upper_limits_lists == [
             [0.0, 0.0],
             [0.0, 3.0],
             [2.0, 0.0],
             [2.0, 3.0],
         ]
+
+    def test__results_on_native_grid(self, grid_search_result_2x2):
+
+        assert (grid_search_result_2x2.results_native == np.array([
+            [grid_search_result_2x2.results[0], grid_search_result_2x2.results[1]],
+            [grid_search_result_2x2.results[2], grid_search_result_2x2.results[3]]
+            ])).all()
+
+        assert (grid_search_result_2x2.log_likelihoods_native == np.array([
+            [1, 2],
+            [3, 4]
+            ])).all()
+
+
