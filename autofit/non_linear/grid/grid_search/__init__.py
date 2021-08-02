@@ -21,6 +21,8 @@ class Sequential:
 
 class GridSearch:
 
+    __exclude_identifier_fields__ = ("number_of_cores",)
+
     def __init__(
             self,
             search,
@@ -61,8 +63,6 @@ class GridSearch:
         self.prior_passer = search.prior_passer
 
         self._result_output_interval = result_output_interval
-
-    __exclude_identifier_fields__ = ("number_of_cores",)
 
     @property
     def paths(self):

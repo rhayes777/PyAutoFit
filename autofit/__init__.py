@@ -9,6 +9,7 @@ from .non_linear.samples import Sample
 from .non_linear.samples import load_from_table
 from .non_linear.samples import StoredSamples
 from .database.aggregator import Aggregator
+from .database.aggregator import GridSearchAggregator
 from .database.aggregator import Query
 from .aggregator.search_output import SearchOutput
 from .mapper import link
