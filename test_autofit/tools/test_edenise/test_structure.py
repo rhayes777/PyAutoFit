@@ -10,7 +10,10 @@ from autofit.tools.edenise import Package, File
     name="child"
 )
 def make_child(package):
-    return package.children[0]
+    return sorted(
+        package.children,
+        key=str
+    )[1]
 
 
 def test_top_level(package):
