@@ -7,7 +7,11 @@ from scipy import stats, linalg, optimize
 
 import autofit.graphical as graph
 import autofit.graphical.factor_graphs.transform as transform
+from autofit.graphical import Factor, utils, MeanField
 from autofit.graphical.utils import numerical_jacobian
+from autofit.mapper.variable import Variable, Plate
+from autofit.messages.normal import NormalMessage
+
 
 def test_cholesky_transform():
     d = 10
@@ -79,11 +83,11 @@ def test_simple_transform_cholesky():
         x = x - b
         return 0.5 * np.linalg.multi_dot((x, A, x))
 
-    x = graph.Variable('x', graph.Plate())
+    x = Variable('x', Plate())
     x0 = np.random.randn(d)
 
-    factor = graph.Factor(likelihood, x=x, is_scalar=True)
-    param_shapes = graph.utils.FlattenArrays({x: (d,)})
+    factor = Factor(likelihood, x=x, is_scalar=True)
+    param_shapes = utils.FlattenArrays({x: (d,)})
     func = factor.flatten(param_shapes)
 
     res = optimize.minimize(func, x0)
@@ -156,15 +160,15 @@ def test_simple_transform_diagonal():
     A = np.diag(scale**-1)
     b = np.random.randn(d)
     
-    x = graph.Variable('x', graph.Plate())
+    x = Variable('x', Plate())
     x0 = np.random.randn(d)
-    param_shapes = graph.utils.FlattenArrays({x: (d,)})
+    param_shapes = utils.FlattenArrays({x: (d,)})
 
     def likelihood(x):
         x = x - b
         return 0.5 * np.linalg.multi_dot((x, A, x))
     
-    factor = graph.Factor(likelihood, x=x, is_scalar=True)
+    factor = Factor(likelihood, x=x, is_scalar=True)
     func = factor.flatten(param_shapes)
     
     res = optimize.minimize(func, x0)
@@ -204,24 +208,24 @@ def test_complex_transform():
     A = stats.wishart(d, np.eye(d)).rvs()
     b = np.random.rand(d)
 
-    p1, p2, p3 = (graph.Plate() for i in range(3))
-    x1 = graph.Variable('x1', p1)
-    x2 = graph.Variable('x2', p2, p3)
+    p1, p2, p3 = (Plate() for i in range(3))
+    x1 = Variable('x1', p1)
+    x2 = Variable('x2', p2, p3)
 
-    mean_field = graph.MeanField({
-        x1: graph.NormalMessage(np.zeros(n1),100*np.ones(n1)),
-        x2: graph.NormalMessage(np.zeros((n2, n3)),100*np.ones((n2, n3))),
+    mean_field = MeanField({
+        x1: NormalMessage(np.zeros(n1),100*np.ones(n1)),
+        x2: NormalMessage(np.zeros((n2, n3)),100*np.ones((n2, n3))),
     })
 
     values = mean_field.sample()
-    param_shapes = graph.utils.FlattenArrays(
+    param_shapes = utils.FlattenArrays(
         {v: x.shape for v, x in values.items()})
 
     def likelihood(x1, x2):
         x = np.r_[x1, x2.ravel()] - b
         return 0.5 * np.linalg.multi_dot((x, A, x))
 
-    factor = graph.Factor(likelihood, x1=x1, x2=x2, is_scalar=True)
+    factor = Factor(likelihood, x1=x1, x2=x2, is_scalar=True)
 
     cho = transform.CholeskyOperator(linalg.cho_factor(A))
     whiten = transform.FullCholeskyTransform(cho, param_shapes)

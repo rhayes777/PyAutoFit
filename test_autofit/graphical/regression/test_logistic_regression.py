@@ -3,6 +3,8 @@ import pytest
 
 from autofit import graphical as mp
 from autofit.messages import abstract
+from autofit.messages.fixed import FixedMessage
+from autofit.messages.normal import NormalMessage
 
 
 def likelihood_jacobian(z, y, _variables=None):
@@ -76,14 +78,14 @@ def make_model_approx(
     return mp.EPMeanField.from_approx_dists(
         model,
         {
-            a_: mp.NormalMessage.from_mode(
+            a_: NormalMessage.from_mode(
                 np.zeros((n_features, n_dims)), 10),
-            b_: mp.NormalMessage.from_mode(
+            b_: NormalMessage.from_mode(
                 np.zeros(n_dims), 10),
-            z_: mp.NormalMessage.from_mode(
+            z_: NormalMessage.from_mode(
                 np.zeros((n_obs, n_dims)), 100),
-            x_: mp.FixedMessage(x),
-            y_: mp.FixedMessage(y)
+            x_: FixedMessage(x),
+            y_: FixedMessage(y)
         }
     )
 

@@ -5,6 +5,7 @@ from scipy import stats
 import autofit.messages.normal
 from autofit import graphical as mp
 from autofit.messages import abstract
+from autofit.messages.normal import NormalMessage
 
 
 @pytest.fixture(
@@ -34,7 +35,7 @@ def make_model(
     name="message"
 )
 def make_message():
-    return mp.NormalMessage(0, 1)
+    return NormalMessage(0, 1)
 
 
 @pytest.fixture(

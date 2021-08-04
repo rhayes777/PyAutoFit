@@ -2,6 +2,7 @@ import pytest
 
 import autofit as af
 from autofit import graphical as g
+from autofit.messages.abstract import AbstractMessage
 
 
 @pytest.fixture(
@@ -18,7 +19,7 @@ def make_prior():
     name="message"
 )
 def make_message(prior):
-    return g.AbstractMessage.from_prior(
+    return AbstractMessage.from_prior(
         prior
     )
 
