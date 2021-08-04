@@ -4,7 +4,10 @@ import numpy as np
 
 from autofit import exc
 from autofit.mapper import model_mapper as mm
+from autofit.mapper.prior.prior import Prior
 from autofit.non_linear.result import Result
+
+LimitLists = List[List[float]]
 
 
 class GridSearchResult:
@@ -12,8 +15,8 @@ class GridSearchResult:
     def __init__(
             self,
             results: List[Result],
-            lower_limit_lists: List[List[float]],
-            physical_lower_limits_lists: List[List[float]],
+            lower_limits_lists: LimitLists,
+            grid_priors: List[Prior]
     ):
         """
         The result of a grid search.
@@ -22,30 +25,116 @@ class GridSearchResult:
         ----------
         results
             The results of the non linear optimizations performed at each grid step
-        lower_limit_lists
+        lower_limits_lists
             A list of lists of values representing the lower bounds of the grid searched values at each step
-        physical_lower_limits_lists
-            A list of lists of values representing the lower physical bounds of the grid search values
-            at each step.
         """
-        self.lower_limit_lists = lower_limit_lists
-        self.physical_lower_limits_lists = physical_lower_limits_lists
+        self.lower_limits_lists = lower_limits_lists
         self.results = results
-        self.no_dimensions = len(self.lower_limit_lists[0])
-        self.no_steps = len(self.lower_limit_lists)
+        self.no_dimensions = len(self.lower_limits_lists[0])
+        self.no_steps = len(self.lower_limits_lists)
         self.side_length = int(self.no_steps ** (1 / self.no_dimensions))
+        self.step_size = 1 / self.side_length
+        self.grid_priors = grid_priors
+
+    @property
+    def physical_lower_limits_lists(self) -> LimitLists:
+        """
+        The lower physical values for each grid square
+        """
+        return self._physical_values_for(
+            self.lower_limits_lists
+        )
+
+    @property
+    def physical_centres_lists(self) -> LimitLists:
+        """
+        The middle physical values for each grid square
+        """
+        return self._physical_values_for(
+            self.centres_lists
+        )
+
+    @property
+    def physical_upper_limits_lists(self) -> LimitLists:
+        """
+        The upper physical values for each grid square
+        """
+        return self._physical_values_for(
+            self.upper_limits_lists
+        )
+
+    @property
+    def upper_limits_lists(self) -> LimitLists:
+        """
+        The upper values for each grid square
+        """
+        return [
+            [
+                limit + self.step_size
+                for limit in limits
+            ]
+            for limits in self.lower_limits_lists
+        ]
+
+    @property
+    def centres_lists(self) -> LimitLists:
+        """
+        The centre values for each grid square
+        """
+        return [
+            [
+                (upper + lower) / 2
+                for upper, lower
+                in zip(upper_limits, lower_limits)
+            ]
+            for upper_limits, lower_limits in zip(
+                self.lower_limits_lists,
+                self.upper_limits_lists
+            )
+        ]
+
+    def _physical_values_for(
+            self,
+            unit_lists: LimitLists
+    ) -> LimitLists:
+        """
+        Compute physical values for lists of lists of unit hypercube
+        values.
+
+        Parameters
+        ----------
+        unit_lists
+            A list of lists of hypercube values
+
+        Returns
+        -------
+        A list of lists of physical values
+        """
+        return [
+            [
+                prior.value_for(
+                    limit
+                )
+                for prior, limit in
+                zip(
+                    self.grid_priors,
+                    limits
+                )
+            ]
+            for limits in unit_lists
+        ]
+
+    def __setstate__(self, state):
+        return self.__dict__.update(state)
+
+    def __getstate__(self):
+        return self.__dict__
 
     def __getattr__(self, item: str) -> object:
         """
         We default to getting attributes from the best result. This allows promises to reference best results.
         """
         return getattr(self.best_result, item)
-
-    def __getstate__(self):
-        return self.__dict__
-
-    def __setstate__(self, state):
-        self.__dict__.update(state)
 
     @property
     def shape(self):
@@ -117,26 +206,6 @@ class GridSearchResult:
                 )
 
         return tuple(physical_step_sizes)
-
-    @property
-    def physical_centres_lists(self):
-        return [
-            [
-                lower_limit[dim] + self.physical_step_sizes[dim] / 2
-                for dim in range(self.no_dimensions)
-            ]
-            for lower_limit in self.physical_lower_limits_lists
-        ]
-
-    @property
-    def physical_upper_limits_lists(self):
-        return [
-            [
-                lower_limit[dim] + self.physical_step_sizes[dim]
-                for dim in range(self.no_dimensions)
-            ]
-            for lower_limit in self.physical_lower_limits_lists
-        ]
 
     @property
     def results_reshaped(self):
