@@ -61,7 +61,6 @@ def test_limits_lists(result):
 
 
 def test_physical_centres_lists(
-        model,
         result
 ):
     assert result.physical_centres_lists == [
@@ -70,9 +69,20 @@ def test_physical_centres_lists(
 
 
 def test_physical_upper_limits_lists(
-        model,
         result
 ):
     assert result.physical_upper_limits_lists == [
         [0.5], [1.0]
     ]
+
+
+def test_log_uniform_prior(
+        result
+):
+    result.grid_priors = [af.LogUniformPrior()]
+
+    assert result.physical_lower_limits_lists == [[1e-06], [0.001]]
+    assert result.physical_centres_lists == [
+        [3.1622776601683795e-05], [0.03162277660168379]
+    ]
+    assert result.physical_upper_limits_lists == [[0.001], [1.0]]
