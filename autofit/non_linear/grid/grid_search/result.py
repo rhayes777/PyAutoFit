@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Tuple
 
 import numpy as np
 
@@ -207,44 +207,39 @@ class GridSearchResult:
 
         return tuple(physical_step_sizes)
 
-    @property
-    def results_reshaped(self):
-        """
-        Returns
-        -------
-        likelihood_merit_array: np.ndarray
-            An arrays of figures of merit. This arrays has the same dimensionality as the grid search, with the value in
-            each entry being the figure of merit taken from the optimization performed at that point.
-        """
-        return np.reshape(
-            np.array([result for result in self.results]),
-            tuple(self.side_length for _ in range(self.no_dimensions)),
-        )
+    def _list_to_native(self, lst : List):
+        return np.reshape(np.array(lst), self.shape)
 
     @property
-    def max_log_likelihood_values(self):
+    def results_native(self):
         """
-        Returns
-        -------
-        likelihood_merit_array: np.ndarray
-            An arrays of figures of merit. This arrays has the same dimensionality as the grid search, with the value in
-            each entry being the figure of merit taken from the optimization performed at that point.
+        The result of every grid search on a NumPy array whose shape is the native dimensions of the grid search.
+
+        For example, for a 2x2 grid search the shape of the Numpy array is (2,2) and it is numerically ordered such
+        that the first search's result (corresponding to unit priors (0.0, 0.0)) are in the first value (E.g. entry
+        [0, 0]) of the NumPy array.
         """
-        return np.reshape(
-            np.array([result.log_likelihood for result in self.results]),
-            tuple(self.side_length for _ in range(self.no_dimensions)),
-        )
+        return self._list_to_native(lst=[result for result in self.results])
 
     @property
-    def log_evidence_values(self):
+    def log_likelihoods_native(self):
         """
-        Returns
-        -------
-        likelihood_merit_array: np.ndarray
-            An arrays of figures of merit. This arrays has the same dimensionality as the grid search, with the value in
-            each entry being the figure of merit taken from the optimization performed at that point.
+        The maximum log likelihood of every grid search on a NumPy array whose shape is the native dimensions of the
+        grid search.
+
+        For example, for a 2x2 grid search the shape of the Numpy array is (2,2) and it is numerically ordered such
+        that the first search's maximum likelihood (corresponding to unit priors (0.0, 0.0)) are in the first
+        value (E.g. entry [0, 0]) of the NumPy array.
         """
-        return np.reshape(
-            np.array([result.samples.log_evidence for result in self.results]),
-            tuple(self.side_length for _ in range(self.no_dimensions)),
-        )
+        return self._list_to_native(lst=[result.log_likelihood for result in self.results])
+
+    @property
+    def log_evidences_native(self):
+        """
+        The log evidence of every grid search on a NumPy array whose shape is the native dimensions of the grid search.
+
+        For example, for a 2x2 grid search the shape of the Numpy array is (2,2) and it is numerically ordered such
+        that the first search's log evidence (corresponding to unit priors (0.0, 0.0)) are in the first value (E.g.
+        entry [0, 0]) of the NumPy array.
+        """
+        return self._list_to_native(lst=[result.samples.log_evidence for result in self.results])

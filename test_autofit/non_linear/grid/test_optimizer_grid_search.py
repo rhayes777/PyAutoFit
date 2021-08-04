@@ -2,6 +2,7 @@ import pickle
 from typing import Tuple
 
 import pytest
+import numpy as np
 
 import autofit as af
 from autofit import exc
@@ -12,7 +13,7 @@ from autofit.mock.mock import MockAnalysis
 
 def test_unpickle_result():
     result = af.GridSearchResult(
-        [af.Result(samples=None, model=None)],
+        results=[af.Result(samples=None, model=None)],
         lower_limits_lists=[[1]],
         grid_priors=[],
     )
@@ -283,7 +284,11 @@ def make_grid_search_result():
     two = MockResult(2)
 
     # noinspection PyTypeChecker
-    return af.GridSearchResult([one, two], [[1], [2]], [[1], [2]])
+    return af.GridSearchResult(
+        results=[one, two],
+        lower_limits_lists=[[1], [2]],
+        grid_priors=[[1], [2]]
+    )
 
 
 class TestGridSearchResult:
@@ -334,3 +339,15 @@ class TestGridSearchResult:
             [2.0, 0.0],
             [2.0, 3.0],
         ]
+
+    def test__results_on_native_grid(self, grid_search_result):
+
+        print(grid_search_result.results_native)
+
+        assert (grid_search_result.results_native == np.array([
+            [grid_search_result.results[0], grid_search_result.results[1]],
+            ])).all()
+
+        assert (grid_search_result.log_likelihoods_native == np.array([
+            [1, 2],
+            ])).all()
