@@ -71,10 +71,9 @@ class GaussianPrior(NormalMessage):
             )
         )
 
-    @property
     def dict(self) -> dict:
         """
         A dictionary representation of this prior
         """
-        prior_dict = super().dict
+        prior_dict = super().dict()
         return {**prior_dict, "mean": self.mean, "sigma": self.sigma}
