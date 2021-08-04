@@ -219,7 +219,7 @@ class GridSearch:
                     in results
                 ],
                 lists,
-                physical_lists
+                grid_priors
             )
 
         def save_results():
