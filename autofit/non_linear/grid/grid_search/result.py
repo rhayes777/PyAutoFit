@@ -13,7 +13,7 @@ class GridSearchResult:
     def __init__(
             self,
             results: List[Result],
-            lower_limit_lists: List[List[float]],
+            lower_limits_lists: List[List[float]],
             grid_priors: List[Prior]
     ):
         """
@@ -23,19 +23,33 @@ class GridSearchResult:
         ----------
         results
             The results of the non linear optimizations performed at each grid step
-        lower_limit_lists
+        lower_limits_lists
             A list of lists of values representing the lower bounds of the grid searched values at each step
         """
-        self.lower_limit_lists = lower_limit_lists
+        self.lower_limits_lists = lower_limits_lists
         self.results = results
-        self.no_dimensions = len(self.lower_limit_lists[0])
-        self.no_steps = len(self.lower_limit_lists)
+        self.no_dimensions = len(self.lower_limits_lists[0])
+        self.no_steps = len(self.lower_limits_lists)
         self.side_length = int(self.no_steps ** (1 / self.no_dimensions))
         self.step_size = 1 / self.side_length
         self.grid_priors = grid_priors
 
     @property
     def physical_lower_limits_lists(self):
+        return self._physical_values_for(
+            self.lower_limits_lists
+        )
+
+    @property
+    def physical_centres_lists(self):
+        return self._physical_values_for(
+            self.centres_lists
+        )
+
+    def _physical_values_for(
+            self,
+            unit_lists
+    ):
         return [
             [
                 prior.value_for(
@@ -47,7 +61,7 @@ class GridSearchResult:
                     limits
                 )
             ]
-            for limits in self.lower_limit_lists
+            for limits in unit_lists
         ]
 
     def __setstate__(self, state):
@@ -140,7 +154,7 @@ class GridSearchResult:
                 limit + self.step_size
                 for limit in limits
             ]
-            for limits in self.lower_limit_lists
+            for limits in self.lower_limits_lists
         ]
 
     @property
@@ -152,25 +166,9 @@ class GridSearchResult:
                 in zip(upper_limits, lower_limits)
             ]
             for upper_limits, lower_limits in zip(
-                self.lower_limit_lists,
+                self.lower_limits_lists,
                 self.upper_limits_lists
             )
-        ]
-
-    @property
-    def physical_centres_lists(self):
-        return [
-            [
-                prior.value_for(
-                    limit
-                )
-                for prior, limit in
-                zip(
-                    self.grid_priors,
-                    limits
-                )
-            ]
-            for limits in self.centres_lists
         ]
 
     @property

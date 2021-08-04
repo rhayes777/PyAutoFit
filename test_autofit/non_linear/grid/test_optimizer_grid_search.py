@@ -13,7 +13,7 @@ from autofit.mock.mock import MockAnalysis
 def test_unpickle_result():
     result = af.GridSearchResult(
         [af.Result(samples=None, model=None)],
-        lower_limit_lists=[[1]],
+        lower_limits_lists=[[1]],
         grid_priors=[],
     )
     result = pickle.loads(pickle.dumps(result))
@@ -315,7 +315,7 @@ class TestGridSearchResult:
                     upper_limit=3.0
                 )
             ],
-            lower_limit_lists=lower_limit_lists,
+            lower_limits_lists=lower_limit_lists,
         )
 
         print(grid_search_result)

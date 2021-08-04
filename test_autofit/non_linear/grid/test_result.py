@@ -22,7 +22,7 @@ def make_model():
 def make_result(model):
     return af.GridSearchResult(
         results=[],
-        lower_limit_lists=[
+        lower_limits_lists=[
             [0.0],
             [0.5]
         ],
@@ -52,7 +52,7 @@ def test_physical_lower_limits(
 
 
 def test_limits_lists(result):
-    assert result.lower_limit_lists == [
+    assert result.lower_limits_lists == [
         [0.0], [0.5]
     ]
     assert result.upper_limits_lists == [
