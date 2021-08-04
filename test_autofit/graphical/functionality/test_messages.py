@@ -3,12 +3,12 @@ import pytest
 from scipy import integrate
 
 from autofit.graphical import MeanField
-from autofit.graphical.utils import numerical_jacobian
 from autofit.mapper.variable import Plate, Variable
 from autofit.messages import transform
 from autofit.messages.beta import BetaMessage
 from autofit.messages.gamma import GammaMessage
 from autofit.messages.normal import NormalMessage, UniformNormalMessage, LogNormalMessage, MultiLogitNormalMessage
+from autofit.messages.transform import numerical_jacobian
 
 
 def check_dist_norm(dist):
