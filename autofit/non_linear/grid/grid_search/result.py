@@ -39,7 +39,7 @@ class GridSearchResult:
         self.grid_priors = grid_priors
 
     @property
-    def physical_lower_limit_lists(self):
+    def physical_lower_limits_lists(self):
         return [
             [
                 prior.value_for(
@@ -53,6 +53,12 @@ class GridSearchResult:
             ]
             for limits in self.lower_limit_lists
         ]
+
+    def __setstate__(self, state):
+        return self.__dict__.update(state)
+
+    def __getstate__(self):
+        return self.__dict__
 
     def __getattr__(self, item: str) -> object:
         """

@@ -30,4 +30,4 @@ def test_physical_lower_limits(
         grid_priors=[model.centre]
     )
 
-    assert result.physical_lower_limit_lists == [[physical_value]]
+    assert result.physical_lower_limits_lists == [[physical_value]]

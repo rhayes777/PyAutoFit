@@ -14,7 +14,7 @@ def test_unpickle_result():
     result = af.GridSearchResult(
         [af.Result(samples=None, model=None)],
         lower_limit_lists=[[1]],
-        physical_lower_limits_lists=[[1]],
+        grid_priors=[],
     )
     result = pickle.loads(pickle.dumps(result))
     assert result is not None
@@ -311,7 +311,16 @@ class TestGridSearchResult:
 
         grid_search_result = af.GridSearchResult(
             results=None,
-            physical_lower_limits_lists=physical_lower_limits_lists,
+            grid_priors=[
+                af.UniformPrior(
+                    lower_limit=-2.0,
+                    upper_limit=2.0
+                ),
+                af.UniformPrior(
+                    lower_limit=-3.0,
+                    upper_limit=3.0
+                )
+            ],
             lower_limit_lists=lower_limit_lists,
         )
 
