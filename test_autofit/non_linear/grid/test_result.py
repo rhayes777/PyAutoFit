@@ -8,7 +8,11 @@ import autofit as af
 )
 def make_model():
     return af.Model(
-        af.Gaussian
+        af.Gaussian,
+        centre=af.UniformPrior(
+            lower_limit=0.0,
+            upper_limit=1.0
+        )
     )
 
 
@@ -19,6 +23,7 @@ def make_result(model):
     return af.GridSearchResult(
         results=[],
         lower_limit_lists=[
+            [0.0],
             [0.5]
         ],
         grid_priors=[model.centre]
@@ -40,6 +45,25 @@ def test_physical_lower_limits(
         result
 ):
     model.centre.upper_limit = upper_limit
-    assert result.physical_lower_limits_lists == [[
-        physical_value
-    ]]
+    assert result.physical_lower_limits_lists == [
+        [0.0],
+        [physical_value]
+    ]
+
+
+def test_limits_lists(result):
+    assert result.lower_limit_lists == [
+        [0.0], [0.5]
+    ]
+    assert result.upper_limits_lists == [
+        [0.5], [1.0]
+    ]
+
+
+def test_physical_centres_lists(
+        model,
+        result
+):
+    assert result.physical_centres_lists == [
+        [0.25], [0.75]
+    ]

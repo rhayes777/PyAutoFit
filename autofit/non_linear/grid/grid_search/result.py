@@ -31,6 +31,7 @@ class GridSearchResult:
         self.no_dimensions = len(self.lower_limit_lists[0])
         self.no_steps = len(self.lower_limit_lists)
         self.side_length = int(self.no_steps ** (1 / self.no_dimensions))
+        self.step_size = 1 / self.side_length
         self.grid_priors = grid_priors
 
     @property
@@ -133,13 +134,43 @@ class GridSearchResult:
         return tuple(physical_step_sizes)
 
     @property
+    def upper_limits_lists(self):
+        return [
+            [
+                limit + self.step_size
+                for limit in limits
+            ]
+            for limits in self.lower_limit_lists
+        ]
+
+    @property
+    def centres_lists(self):
+        return [
+            [
+                (upper + lower) / 2
+                for upper, lower
+                in zip(upper_limits, lower_limits)
+            ]
+            for upper_limits, lower_limits in zip(
+                self.lower_limit_lists,
+                self.upper_limits_lists
+            )
+        ]
+
+    @property
     def physical_centres_lists(self):
         return [
             [
-                lower_limit[dim] + self.physical_step_sizes[dim] / 2
-                for dim in range(self.no_dimensions)
+                prior.value_for(
+                    limit
+                )
+                for prior, limit in
+                zip(
+                    self.grid_priors,
+                    limits
+                )
             ]
-            for lower_limit in self.physical_lower_limits_lists
+            for limits in self.centres_lists
         ]
 
     @property
