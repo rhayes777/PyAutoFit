@@ -302,12 +302,6 @@ class TestGridSearchResult:
 
     def test__result_derived_properties(self):
         lower_limit_lists = [[0.0, 0.0], [0.0, 0.5], [0.5, 0.0], [0.5, 0.5]]
-        physical_lower_limits_lists = [
-            [-2.0, -3.0],
-            [-2.0, 0.0],
-            [0.0, -3.0],
-            [0.0, 0.0],
-        ]
 
         grid_search_result = af.GridSearchResult(
             results=None,

@@ -14,8 +14,7 @@ class GridSearchResult:
             self,
             results: List[Result],
             lower_limit_lists: List[List[float]],
-            grid_priors: List[Prior],
-            _physical_lower_limits_lists: List[List[float]] = None,
+            grid_priors: List[Prior]
     ):
         """
         The result of a grid search.
@@ -26,12 +25,8 @@ class GridSearchResult:
             The results of the non linear optimizations performed at each grid step
         lower_limit_lists
             A list of lists of values representing the lower bounds of the grid searched values at each step
-        physical_lower_limits_lists
-            A list of lists of values representing the lower physical bounds of the grid search values
-            at each step.
         """
         self.lower_limit_lists = lower_limit_lists
-        self._physical_lower_limits_lists = _physical_lower_limits_lists
         self.results = results
         self.no_dimensions = len(self.lower_limit_lists[0])
         self.no_steps = len(self.lower_limit_lists)
