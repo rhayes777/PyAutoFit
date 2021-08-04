@@ -44,6 +44,9 @@ class GaussianPrior(NormalMessage):
         """
         return self.mean + (self.sigma * math.sqrt(2) * erfcinv(2.0 * (1.0 - unit)))
 
+    def __call__(self, x):
+        return self.logpdf(x)
+
     def log_prior_from_value(self, value):
         """
         Returns the log prior of a physical value, so the log likelihood of a model evaluation can be converted to a
