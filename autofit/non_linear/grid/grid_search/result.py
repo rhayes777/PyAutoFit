@@ -46,6 +46,12 @@ class GridSearchResult:
             self.centres_lists
         )
 
+    @property
+    def physical_upper_limits_lists(self):
+        return self._physical_values_for(
+            self.upper_limits_lists
+        )
+
     def _physical_values_for(
             self,
             unit_lists
@@ -169,16 +175,6 @@ class GridSearchResult:
                 self.lower_limits_lists,
                 self.upper_limits_lists
             )
-        ]
-
-    @property
-    def physical_upper_limits_lists(self):
-        return [
-            [
-                lower_limit[dim] + self.physical_step_sizes[dim]
-                for dim in range(self.no_dimensions)
-            ]
-            for lower_limit in self.physical_lower_limits_lists
         ]
 
     @property

@@ -67,3 +67,12 @@ def test_physical_centres_lists(
     assert result.physical_centres_lists == [
         [0.25], [0.75]
     ]
+
+
+def test_physical_upper_limits_lists(
+        model,
+        result
+):
+    assert result.physical_upper_limits_lists == [
+        [0.5], [1.0]
+    ]
