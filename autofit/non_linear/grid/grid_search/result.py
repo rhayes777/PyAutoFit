@@ -7,13 +7,15 @@ from autofit.mapper import model_mapper as mm
 from autofit.mapper.prior.prior import Prior
 from autofit.non_linear.result import Result
 
+LimitLists = List[List[float]]
+
 
 class GridSearchResult:
 
     def __init__(
             self,
             results: List[Result],
-            lower_limits_lists: List[List[float]],
+            lower_limits_lists: LimitLists,
             grid_priors: List[Prior]
     ):
         """
@@ -35,27 +37,79 @@ class GridSearchResult:
         self.grid_priors = grid_priors
 
     @property
-    def physical_lower_limits_lists(self):
+    def physical_lower_limits_lists(self) -> LimitLists:
+        """
+        The lower physical values for each grid square
+        """
         return self._physical_values_for(
             self.lower_limits_lists
         )
 
     @property
-    def physical_centres_lists(self):
+    def physical_centres_lists(self) -> LimitLists:
+        """
+        The middle physical values for each grid square
+        """
         return self._physical_values_for(
             self.centres_lists
         )
 
     @property
-    def physical_upper_limits_lists(self):
+    def physical_upper_limits_lists(self) -> LimitLists:
+        """
+        The upper physical values for each grid square
+        """
         return self._physical_values_for(
             self.upper_limits_lists
         )
 
+    @property
+    def upper_limits_lists(self) -> LimitLists:
+        """
+        The upper values for each grid square
+        """
+        return [
+            [
+                limit + self.step_size
+                for limit in limits
+            ]
+            for limits in self.lower_limits_lists
+        ]
+
+    @property
+    def centres_lists(self) -> LimitLists:
+        """
+        The centre values for each grid square
+        """
+        return [
+            [
+                (upper + lower) / 2
+                for upper, lower
+                in zip(upper_limits, lower_limits)
+            ]
+            for upper_limits, lower_limits in zip(
+                self.lower_limits_lists,
+                self.upper_limits_lists
+            )
+        ]
+
     def _physical_values_for(
             self,
-            unit_lists
-    ):
+            unit_lists: LimitLists
+    ) -> LimitLists:
+        """
+        Compute physical values for lists of lists of unit hypercube
+        values.
+
+        Parameters
+        ----------
+        unit_lists
+            A list of lists of hypercube values
+
+        Returns
+        -------
+        A list of lists of physical values
+        """
         return [
             [
                 prior.value_for(
@@ -152,30 +206,6 @@ class GridSearchResult:
                 )
 
         return tuple(physical_step_sizes)
-
-    @property
-    def upper_limits_lists(self):
-        return [
-            [
-                limit + self.step_size
-                for limit in limits
-            ]
-            for limits in self.lower_limits_lists
-        ]
-
-    @property
-    def centres_lists(self):
-        return [
-            [
-                (upper + lower) / 2
-                for upper, lower
-                in zip(upper_limits, lower_limits)
-            ]
-            for upper_limits, lower_limits in zip(
-                self.lower_limits_lists,
-                self.upper_limits_lists
-            )
-        ]
 
     @property
     def results_reshaped(self):
