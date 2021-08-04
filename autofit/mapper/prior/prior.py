@@ -136,6 +136,12 @@ class Prior(Variable, ABC, ArithmeticMixin):
         if prior_dict["type"] == "Deferred":
             return DeferredArgument()
 
+        # TODO: make this more elegant
+        from .gaussian import GaussianPrior
+        prior_type_dict[
+            GaussianPrior.name_of_class()
+        ] = GaussianPrior
+
         # noinspection PyProtectedMember
         return prior_type_dict[prior_dict["type"]](
             **{
