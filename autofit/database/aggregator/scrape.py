@@ -80,18 +80,24 @@ class Scraper:
             except (AttributeError, NotImplementedError):
                 instance = None
 
+            id = _make_identifier(item)
+
+            logger.info(
+                f"Creating fit for: "
+                f"{item.search.unique_tag} "
+                f"{item.search.name} "
+                f"{id} ")
+
             try:
                 fit = self._retrieve_model_fit(
                     item
                 )
                 logger.warning(
-                    f"Fit already existed with identifier {_make_identifier(item)}"
+                    f"Fit already existed with identifier {id}"
                 )
             except NoResultFound:
                 fit = m.Fit(
-                    id=_make_identifier(
-                        item
-                    ),
+                    id=id,
                     name=item.search.name,
                     unique_tag=item.search.unique_tag,
                     model=model,
