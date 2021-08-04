@@ -4,6 +4,7 @@ import numpy as np
 
 from autofit import exc
 from autofit.mapper import model_mapper as mm
+from autofit.mapper.prior.prior import Prior
 from autofit.non_linear.result import Result
 
 
@@ -13,7 +14,8 @@ class GridSearchResult:
             self,
             results: List[Result],
             lower_limit_lists: List[List[float]],
-            physical_lower_limits_lists: List[List[float]],
+            grid_priors: List[Prior],
+            _physical_lower_limits_lists: List[List[float]] = None,
     ):
         """
         The result of a grid search.
@@ -29,23 +31,34 @@ class GridSearchResult:
             at each step.
         """
         self.lower_limit_lists = lower_limit_lists
-        self.physical_lower_limits_lists = physical_lower_limits_lists
+        self._physical_lower_limits_lists = _physical_lower_limits_lists
         self.results = results
         self.no_dimensions = len(self.lower_limit_lists[0])
         self.no_steps = len(self.lower_limit_lists)
         self.side_length = int(self.no_steps ** (1 / self.no_dimensions))
+        self.grid_priors = grid_priors
+
+    @property
+    def physical_lower_limit_lists(self):
+        return [
+            [
+                prior.value_for(
+                    limit
+                )
+                for prior, limit in
+                zip(
+                    self.grid_priors,
+                    limits
+                )
+            ]
+            for limits in self.lower_limit_lists
+        ]
 
     def __getattr__(self, item: str) -> object:
         """
         We default to getting attributes from the best result. This allows promises to reference best results.
         """
         return getattr(self.best_result, item)
-
-    def __getstate__(self):
-        return self.__dict__
-
-    def __setstate__(self, state):
-        self.__dict__.update(state)
 
     @property
     def shape(self):
