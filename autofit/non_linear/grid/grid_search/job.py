@@ -1,5 +1,6 @@
 from autofit.non_linear.parallel import AbstractJob, AbstractJobResult
 
+from typing import Optional, Dict
 
 class JobResult(AbstractJobResult):
     def __init__(self, result, result_list_row, number):
@@ -19,7 +20,7 @@ class JobResult(AbstractJobResult):
 
 
 class Job(AbstractJob):
-    def __init__(self, search_instance, model, analysis, arguments, index):
+    def __init__(self, search_instance, model, analysis, arguments, index, info : Optional[Dict] = None):
         """
         A job to be performed in parallel.
 
@@ -38,9 +39,10 @@ class Job(AbstractJob):
         self.model = model
         self.arguments = arguments
         self.index = index
+        self.info = info
 
     def perform(self):
-        result = self.search_instance.fit(model=self.model, analysis=self.analysis)
+        result = self.search_instance.fit(model=self.model, analysis=self.analysis, info=self.info)
         result_list_row = [
             self.index,
             *[prior.lower_limit for prior in self.arguments.values()],

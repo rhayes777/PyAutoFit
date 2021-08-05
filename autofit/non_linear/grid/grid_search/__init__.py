@@ -1,7 +1,7 @@
 import copy
 import logging
 from os import path
-from typing import List, Tuple, Union, Type
+from typing import List, Tuple, Union, Type, Optional, Dict
 
 from autofit import exc
 from autofit.mapper.prior import prior as p
@@ -136,7 +136,7 @@ class GridSearch:
             arguments = self.make_arguments(values, grid_priors)
             yield model.mapper_from_partial_prior_arguments(arguments)
 
-    def fit(self, model, analysis, grid_priors):
+    def fit(self, model, analysis, grid_priors, info : Optional[Dict] = None):
         """
         Fit an analysis with a set of grid priors. The grid priors are priors associated with the model mapper
         of this instance that are replaced by uniform priors for each step of the grid search.
@@ -163,7 +163,8 @@ class GridSearch:
             model=model,
             analysis=analysis,
             grid_priors=grid_priors,
-            process_class=process_class
+            process_class=process_class,
+            info=info
         )
 
     def _fit(
@@ -171,7 +172,8 @@ class GridSearch:
             model,
             analysis,
             grid_priors,
-            process_class=Union[Type[Process], Type[Sequential]]
+            process_class=Union[Type[Process], Type[Sequential]],
+            info : Optional[Dict] = None
     ):
         """
         Perform the grid search in parallel, with all the optimisation for each grid square being performed on a
@@ -232,7 +234,8 @@ class GridSearch:
                     self.make_jobs(
                         model,
                         analysis,
-                        grid_priors
+                        grid_priors,
+                        info
                     ),
                     self.number_of_cores
                 )
@@ -248,7 +251,7 @@ class GridSearch:
 
         return make_grid_search_result()
 
-    def make_jobs(self, model, analysis, grid_priors):
+    def make_jobs(self, model, analysis, grid_priors, info : Optional[Dict] = None):
         grid_priors = list(set(grid_priors))
         lists = self.make_lists(grid_priors)
 
@@ -262,6 +265,7 @@ class GridSearch:
                     grid_priors=grid_priors,
                     values=values,
                     index=index,
+                    info=info
                 )
             )
         return jobs
@@ -288,7 +292,7 @@ class GridSearch:
             )
 
     def job_for_analysis_grid_priors_and_values(
-            self, model, analysis, grid_priors, values, index
+            self, model, analysis, grid_priors, values, index, info : Optional[Dict] = None
     ):
         self.paths.model = model
         self.paths.search = self
@@ -319,6 +323,7 @@ class GridSearch:
             analysis=analysis,
             arguments=arguments,
             index=index,
+            info=info
         )
 
     def search_instance(self, name_path):
