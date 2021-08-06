@@ -70,9 +70,7 @@ class AbstractDeclarativeFactor(Analysis, ABC):
         TODO: should support more than just GaussianPriors/NormalMessages
         """
         return {
-            prior: NormalMessage.from_prior(
-                prior
-            )
+            prior: prior
             for prior
             in self.priors
         }

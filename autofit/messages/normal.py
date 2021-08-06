@@ -47,17 +47,6 @@ class NormalMessage(AbstractMessage):
             unit
         )
 
-    @classmethod
-    def _from_prior(
-            cls,
-            prior
-    ):
-        return NormalMessage(
-            mu=prior.mean,
-            sigma=prior.sigma,
-            id_=prior.id
-        )
-
     def as_prior(self):
         from autofit.mapper.prior.gaussian import GaussianPrior
         return GaussianPrior(

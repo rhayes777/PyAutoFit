@@ -87,9 +87,7 @@ class MeanField(
         A mean field
         """
         return MeanField({
-            prior: AbstractMessage.from_prior(
-                prior
-            )
+            prior: prior
             for prior in priors
         })
 

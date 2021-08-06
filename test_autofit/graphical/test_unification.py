@@ -2,7 +2,6 @@ import pytest
 
 import autofit as af
 from autofit import graphical as g
-from autofit.messages.abstract import AbstractMessage
 
 
 @pytest.fixture(
@@ -15,47 +14,27 @@ def make_prior():
     )
 
 
-@pytest.fixture(
-    name="message"
-)
-def make_message(prior):
-    return AbstractMessage.from_prior(
-        prior
-    )
-
-
 def test():
     mean_field = g.MeanField({
 
     })
-
-    print(mean_field.prior_count)
     mean_field.instance_for_arguments({})
 
 
-def test_from_prior(
-        prior,
-        message
-):
-    assert message.id == prior.id
-    assert message.mu == prior.mean
-    assert message.sigma == prior.sigma
-
-
 def test_retain_id(
-        message
+        prior
 ):
-    new_message = message * message
-    assert new_message.id == message.id
+    new_message = prior * prior
+    assert new_message.id == prior.id
 
 
 def test_bad_id(
-        message
+        prior
 ):
-    new_message = message * message
+    new_message = prior * prior
     new_message.id = 2
 
     with pytest.raises(
-        AssertionError
+            AssertionError
     ):
-        new_message * message
+        new_message * prior
