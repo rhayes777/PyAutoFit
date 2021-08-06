@@ -10,6 +10,8 @@ class GaussianPrior(NormalMessage):
 
     __name__ = "gaussian_prior"
 
+    __default_fields__ = ("log_norm", "id_")
+
     def __init__(
             self,
             mean,
