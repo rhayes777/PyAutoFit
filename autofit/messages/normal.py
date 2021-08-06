@@ -62,7 +62,8 @@ class NormalMessage(AbstractMessage):
         from autofit.mapper.prior.gaussian import GaussianPrior
         return GaussianPrior(
             mean=self.mu,
-            sigma=self.sigma
+            sigma=self.sigma,
+            id_=self.id
         )
 
     @cached_property
