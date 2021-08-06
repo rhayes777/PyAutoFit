@@ -1,4 +1,5 @@
 from autofit import exc
+from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.samples.optimizer import OptimizerSamples
 
 
@@ -65,7 +66,7 @@ class Result:
             )
         )
 
-    def model_absolute(self, a: float) -> "mm.ModelMapper":
+    def model_absolute(self, a: float) -> AbstractPriorModel:
         """
         Parameters
         ----------
@@ -81,7 +82,7 @@ class Result:
             self.samples.gaussian_priors_at_sigma(sigma=self.search.prior_passer.sigma), a=a
         )
 
-    def model_relative(self, r: float) -> "mm.ModelMapper":
+    def model_relative(self, r: float) -> AbstractPriorModel:
         """
         Parameters
         ----------
@@ -101,7 +102,7 @@ class Result:
 class ResultsCollection:
     def __init__(self, result_list=None):
         """
-        A collection of results from previous searchs. Results can be obtained using an index or the name of the search
+        A collection of results from previous searches. Results can be obtained using an index or the name of the search
         from whence they came.
         """
         self.__result_list = []

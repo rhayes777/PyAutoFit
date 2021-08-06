@@ -1,8 +1,8 @@
 import pickle
 from typing import Tuple
 
-import pytest
 import numpy as np
+import pytest
 
 import autofit as af
 from autofit import exc
@@ -12,6 +12,7 @@ from autofit.mock.mock import MockAnalysis
 
 
 def test_unpickle_result():
+    # noinspection PyTypeChecker
     result = af.GridSearchResult(
         results=[af.Result(samples=None, model=None)],
         lower_limits_lists=[[1]],
@@ -151,7 +152,7 @@ def make_grid_search_05():
     search = af.SearchGridSearch(
         search=MockOptimizer(), number_of_steps=2
     )
-    search.paths = af.DirectoryPaths(name="sample_name")
+    search.search.paths = af.DirectoryPaths(name="sample_name")
     return search
 
 
@@ -160,15 +161,17 @@ class MockOptimizer(af.MockSearch):
     def samples_cls(self):
         return MockOptimizer
 
-    def project(self, factor_approx: FactorApproximation, status: Status = Status()) -> Tuple[
-        FactorApproximation, Status]:
+    def project(
+            self,
+            factor_approx: FactorApproximation,
+            status: Status = Status()
+    ) -> Tuple[FactorApproximation, Status]:
         pass
 
     init_args = list()
 
     def __init__(self, **kwargs):
         super().__init__(fit_fast=False, **kwargs)
-        # self.init_args.append(paths)
 
 
 @pytest.fixture(autouse=True)
@@ -177,7 +180,7 @@ def empty_args():
 
 
 class TestGridNLOBehaviour:
-    def _test_results(self, grid_search_05, mapper):
+    def test_results(self, grid_search_05, mapper):
         result = grid_search_05.fit(
             model=mapper,
             analysis=MockAnalysis(),
@@ -194,7 +197,7 @@ class TestGridNLOBehaviour:
             search=MockOptimizer(),
             number_of_steps=10,
         )
-        grid_search.paths = af.DirectoryPaths(name="sample_name")
+        grid_search.search.paths = af.DirectoryPaths(name="sample_name")
         result = grid_search.fit(
             model=mapper,
             analysis=MockAnalysis(),
@@ -206,7 +209,7 @@ class TestGridNLOBehaviour:
 
         assert len(result.results) == 100
         assert result.no_dimensions == 2
-        assert result.max_log_likelihood_values.shape == (10, 10)
+        assert result.log_likelihoods_native.shape == (10, 10)
 
     # def test_results_parallel(self, mapper, container):
     #     grid_search = af.SearchGridSearch(
@@ -308,6 +311,7 @@ class TestGridSearchResult:
     def test__result_derived_properties(self):
         lower_limit_lists = [[0.0, 0.0], [0.0, 0.5], [0.5, 0.0], [0.5, 0.5]]
 
+        # noinspection PyTypeChecker
         grid_search_result = af.GridSearchResult(
             results=None,
             grid_priors=[
@@ -339,13 +343,60 @@ class TestGridSearchResult:
         ]
 
     def test__results_on_native_grid(self, grid_search_result):
-
-        print(grid_search_result.results_native)
-
         assert (grid_search_result.results_native == np.array([
             [grid_search_result.results[0], grid_search_result.results[1]],
-            ])).all()
+        ])).all()
 
         assert (grid_search_result.log_likelihoods_native == np.array([
             [1, 2],
-            ])).all()
+        ])).all()
+
+
+@pytest.mark.parametrize(
+    "n_dimensions, n_steps",
+    [
+        (2, 2),
+        (3, 3),
+        (2, 3),
+        (3, 2),
+        (4, 4),
+    ]
+)
+def test_higher_dimensions(
+        n_dimensions,
+        n_steps
+):
+    shape = n_dimensions * (n_steps,)
+    total = n_steps ** n_dimensions
+    model = af.Model(
+        af.Gaussian
+    )
+    result = af.GridSearchResult(
+        results=total * [
+            af.Result(
+                af.NestSamples(
+                    model,
+                    [
+                        af.Sample(
+                            1.0,
+                            1.0,
+                            1.0,
+                            {
+                                "centre": 1.0,
+                                "sigma": 1.0,
+                                "intensity": 1.0
+                            }
+                        )
+                    ]
+                ),
+                model=model
+            )
+        ],
+        grid_priors=[],
+        lower_limits_lists=total * [
+            n_dimensions * [0.0]
+        ]
+    )
+    assert result.shape == shape
+    assert result.results_native.shape == shape
+    assert result.log_likelihoods_native.shape == shape

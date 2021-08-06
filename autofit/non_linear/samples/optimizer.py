@@ -35,6 +35,10 @@ class OptimizerSamples:
         self._names = None
 
     @property
+    def log_evidence(self) -> float:
+        return None
+
+    @property
     def paths(self) -> List[Tuple[Path]]:
         """
         A list of paths to unique priors in the same order as prior

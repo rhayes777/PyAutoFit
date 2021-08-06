@@ -1,4 +1,4 @@
-from typing import List, Tuple
+from typing import List
 
 import numpy as np
 
@@ -138,12 +138,7 @@ class GridSearchResult:
 
     @property
     def shape(self):
-        return tuple([
-            self.side_length
-            for _ in range(
-                self.no_dimensions
-            )
-        ])
+        return self.no_dimensions * (int(self.no_steps ** (1 / self.no_dimensions)),)
 
     @property
     def best_result(self):
@@ -207,7 +202,7 @@ class GridSearchResult:
 
         return tuple(physical_step_sizes)
 
-    def _list_to_native(self, lst : List):
+    def _list_to_native(self, lst: List):
         return np.reshape(np.array(lst), self.shape)
 
     @property
