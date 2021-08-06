@@ -2,6 +2,7 @@ import logging
 import os
 import pickle
 from pathlib import Path
+from typing import Optional
 
 from sqlalchemy.orm import Session
 from sqlalchemy.orm.exc import NoResultFound
@@ -12,6 +13,21 @@ from ...mapper.model_object import Identifier
 logger = logging.getLogger(
     __name__
 )
+
+
+def _parent_identifier(
+        directory: str
+) -> Optional[str]:
+    """
+    Read the parent identifier for a fit in a directory.
+
+    Defaults to None if no .parent_identifier file is found.
+    """
+    try:
+        with open(f"{directory}/.parent_identifier") as f:
+            return f.read()
+    except FileNotFoundError:
+        return None
 
 
 class Scraper:
@@ -72,11 +88,9 @@ class Scraper:
                 f"{item.directory}/.completed"
             )
 
-            try:
-                with open(f"{item.directory}/.parent_identifier") as f:
-                    parent_identifier = f.read()
-            except FileNotFoundError:
-                parent_identifier = None
+            parent_identifier = _parent_identifier(
+                directory=item.directory
+            )
 
             model = item.model
             samples = item.samples
@@ -142,7 +156,10 @@ class Scraper:
                 path = Path(root)
                 grid_search = m.Fit(
                     id=path.name,
-                    is_grid_search=True
+                    is_grid_search=True,
+                    parent_id=_parent_identifier(
+                        root
+                    )
                 )
 
                 pickle_path = path / "pickles"
