@@ -5,6 +5,7 @@ from typing import List, Tuple, Union, Type, Optional, Dict
 
 from autofit import exc
 from autofit.mapper.prior import prior as p
+from autofit.non_linear.abstract_search import NonLinearSearch
 from autofit.non_linear.parallel import Process
 from autofit.non_linear.result import Result
 from .job import Job
@@ -26,7 +27,8 @@ class GridSearch:
             search,
             number_of_steps: int = 4,
             number_of_cores: int = 1,
-            result_output_interval: int = 100
+            result_output_interval: int = 100,
+            previous_search=Optional[NonLinearSearch]
     ):
         """
         Performs a non linear optimiser search for each square in a grid. The dimensionality of the search depends on
@@ -61,6 +63,12 @@ class GridSearch:
         self.prior_passer = search.prior_passer
 
         self._result_output_interval = result_output_interval
+
+        self.previous_search_identifier = None
+
+        if previous_search is not None:
+            identifier = previous_search.paths.identifier
+            self.previous_search_identifier = identifier
 
     __exclude_identifier_fields__ = ("number_of_cores",)
 
@@ -136,7 +144,7 @@ class GridSearch:
             arguments = self.make_arguments(values, grid_priors)
             yield model.mapper_from_partial_prior_arguments(arguments)
 
-    def fit(self, model, analysis, grid_priors, info : Optional[Dict] = None):
+    def fit(self, model, analysis, grid_priors, info: Optional[Dict] = None):
         """
         Fit an analysis with a set of grid priors. The grid priors are priors associated with the model mapper
         of this instance that are replaced by uniform priors for each step of the grid search.
@@ -173,7 +181,7 @@ class GridSearch:
             analysis,
             grid_priors,
             process_class=Union[Type[Process], Type[Sequential]],
-            info : Optional[Dict] = None
+            info: Optional[Dict] = None
     ):
         """
         Perform the grid search in parallel, with all the optimisation for each grid square being performed on a
@@ -251,7 +259,7 @@ class GridSearch:
 
         return make_grid_search_result()
 
-    def make_jobs(self, model, analysis, grid_priors, info : Optional[Dict] = None):
+    def make_jobs(self, model, analysis, grid_priors, info: Optional[Dict] = None):
         grid_priors = list(set(grid_priors))
         lists = self.make_lists(grid_priors)
 
@@ -292,10 +300,11 @@ class GridSearch:
             )
 
     def job_for_analysis_grid_priors_and_values(
-            self, model, analysis, grid_priors, values, index, info : Optional[Dict] = None
+            self, model, analysis, grid_priors, values, index, info: Optional[Dict] = None
     ):
         self.paths.model = model
         self.paths.search = self
+        self.paths.previous_search_identifier = self.previous_search_identifier
 
         arguments = self.make_arguments(values=values, grid_priors=grid_priors)
         model = model.mapper_from_partial_prior_arguments(arguments=arguments)

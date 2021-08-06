@@ -168,10 +168,30 @@ class DirectoryPaths(AbstractPaths):
         return path.join(self.output_path, ".is_grid_search")
 
     @property
+    def _previous_identifier_path(self) -> str:
+        return path.join(self.output_path, ".previous_search_identifier")
+
+    @property
     def is_grid_search(self) -> bool:
         return os.path.exists(
             self._grid_search_path
         )
+
+    @property
+    def previous_search_identifier(self) -> Optional[str]:
+        try:
+            with open(self._previous_identifier_path) as f:
+                return f.read()
+        except FileNotFoundError:
+            return None
+
+    @previous_search_identifier.setter
+    def previous_search_identifier(
+            self,
+            previous_search_identifier: str
+    ):
+        with open(self._previous_identifier_path, "w+") as f:
+            f.write(previous_search_identifier)
 
     def create_child(
             self,

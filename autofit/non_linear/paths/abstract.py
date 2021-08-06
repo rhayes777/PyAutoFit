@@ -96,6 +96,19 @@ class AbstractPaths(ABC):
 
     @property
     @abstractmethod
+    def previous_search_identifier(self) -> str:
+        pass
+
+    @previous_search_identifier.setter
+    @abstractmethod
+    def previous_search_identifier(
+            self,
+            previous_search_identifier: str
+    ):
+        pass
+
+    @property
+    @abstractmethod
     def is_grid_search(self) -> bool:
         pass
 
@@ -123,7 +136,6 @@ class AbstractPaths(ABC):
         -------
         A new paths object
         """
-
 
     search = IdentifierField()
     model = IdentifierField()
