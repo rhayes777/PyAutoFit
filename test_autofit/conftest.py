@@ -1,4 +1,5 @@
 import os
+import shutil
 from os import path
 
 import pytest
@@ -12,7 +13,6 @@ import autofit.non_linear.samples.stored
 from autoconf import conf
 from autofit import database as db
 from autofit.mock import mock
-from autofit.non_linear import samples as samp
 
 directory = path.dirname(path.realpath(__file__))
 
