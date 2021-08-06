@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Callable, cast, Set, List, Dict
+from typing import cast, Set, List, Dict, Callable
 
 import numpy as np
 
@@ -8,10 +8,10 @@ from autofit.graphical.expectation_propagation import EPMeanField
 from autofit.graphical.expectation_propagation import EPOptimiser
 from autofit.graphical.factor_graphs.factor import Factor
 from autofit.graphical.factor_graphs.graph import FactorGraph
-from autofit.messages.normal import NormalMessage
 from autofit.mapper.model import ModelInstance
 from autofit.mapper.prior.prior import Prior
 from autofit.mapper.prior_model.collection import CollectionPriorModel
+from autofit.messages.normal import NormalMessage
 from autofit.non_linear.analysis import Analysis
 from autofit.non_linear.paths.abstract import AbstractPaths
 
@@ -52,10 +52,7 @@ class AbstractDeclarativeFactor(Analysis, ABC):
         """
         return [
             Factor(
-                cast(
-                    Callable,
-                    prior
-                ),
+                lambda x: cast(Callable, prior)(x)[0],
                 x=prior
             )
             for prior
