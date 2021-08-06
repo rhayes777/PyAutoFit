@@ -163,35 +163,12 @@ class DirectoryPaths(AbstractPaths):
         )
         self._move_pickle_files(pickle_files=pickle_files)
 
-    @AbstractPaths.parent.setter
-    def parent(
-            self,
-            parent: AbstractPaths
-    ):
-        """
-        The search performed before this search. For example, a search
-        that is then compared to searches during a grid search.
-        """
-        self._parent = parent
-        if self.parent is not None:
-            with open(self._parent_identifier_path, "w+") as f:
-                f.write(
-                    self.parent.identifier
-                )
-
-    @property
-    def _parent_identifier_path(self) -> str:
-        return path.join(self.output_path, ".parent_identifier")
-
     @property
     def _grid_search_path(self) -> str:
         return path.join(self.output_path, ".is_grid_search")
 
     @property
     def is_grid_search(self) -> bool:
-        """
-        Is this a grid search which comprises a number of child searches?
-        """
         return os.path.exists(
             self._grid_search_path
         )

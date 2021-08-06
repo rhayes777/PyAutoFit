@@ -84,7 +84,6 @@ class AbstractPaths(ABC):
 
         self.is_identifier_in_paths = is_identifier_in_paths
 
-        self._parent = None
         self.parent = parent
 
         try:
@@ -94,22 +93,6 @@ class AbstractPaths(ABC):
                 self.remove_files = True
         except NoSectionError as e:
             logger.exception(e)
-
-    @property
-    def parent(self) -> "AbstractPaths":
-        """
-        The search performed before this search. For example, a search
-        that is then compared to searches during a grid search.
-        """
-        return self._parent
-
-    @parent.setter
-    @abstractmethod
-    def parent(
-            self,
-            parent: "AbstractPaths"
-    ):
-        pass
 
     @property
     @abstractmethod
@@ -140,6 +123,7 @@ class AbstractPaths(ABC):
         -------
         A new paths object
         """
+
 
     search = IdentifierField()
     model = IdentifierField()

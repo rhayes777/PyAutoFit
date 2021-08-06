@@ -48,7 +48,6 @@ def make_database_paths(
         session=session,
         name="grid_search"
     )
-    grid_search.search.paths.model = mapper
 
     return _make_grid_paths(
         grid_search,
