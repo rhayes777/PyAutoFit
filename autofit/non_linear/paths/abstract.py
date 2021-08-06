@@ -84,6 +84,7 @@ class AbstractPaths(ABC):
 
         self.is_identifier_in_paths = is_identifier_in_paths
 
+        self._parent = None
         self.parent = parent
 
         try:
@@ -93,6 +94,14 @@ class AbstractPaths(ABC):
                 self.remove_files = True
         except NoSectionError as e:
             logger.exception(e)
+
+    @property
+    def parent(self):
+        return self._parent
+
+    @parent.setter
+    def parent(self, parent):
+        self._parent = parent
 
     @property
     @abstractmethod

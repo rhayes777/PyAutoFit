@@ -164,6 +164,30 @@ class DirectoryPaths(AbstractPaths):
         self._move_pickle_files(pickle_files=pickle_files)
 
     @property
+    def parent(self):
+        return self._parent
+
+    @parent.setter
+    def parent(self, parent):
+        self._parent = parent
+        if self.parent is not None:
+            with open(self._parent_identifier_path, "w+") as f:
+                f.write(
+                    self.parent.identifier
+                )
+        else:
+            try:
+                os.remove(
+                    self._parent_identifier_path
+                )
+            except FileNotFoundError:
+                pass
+
+    @property
+    def _parent_identifier_path(self) -> str:
+        return path.join(self.output_path, ".parent_identifier")
+
+    @property
     def _grid_search_path(self) -> str:
         return path.join(self.output_path, ".is_grid_search")
 

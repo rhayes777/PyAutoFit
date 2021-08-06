@@ -80,7 +80,14 @@ class TestDirectory:
             grid_search,
             parent_search
     ):
-        assert parent_search.paths is grid_search.paths.parent
+        grid_paths = grid_search.paths
+        parent_paths = parent_search.paths
+
+        assert parent_paths is grid_paths.parent
+        with open(
+                grid_paths._parent_identifier_path
+        ) as f:
+            assert f.read() == parent_paths.identifier
 
     def test_is_grid_search(
             self,
@@ -95,7 +102,10 @@ class TestDatabase:
             database_grid_search,
             database_parent_search
     ):
-        assert database_parent_search.paths is database_grid_search.paths.parent
+        parent_paths = database_parent_search.paths
+
+        assert parent_paths is database_grid_search.paths.parent
+        assert database_grid_search.paths.fit.parent_id == parent_paths.identifier
 
     def test_is_grid_search(
             self,
