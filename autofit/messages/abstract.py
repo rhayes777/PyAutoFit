@@ -657,9 +657,14 @@ class AbstractMessage(Prior, ABC):
             cls,
             parameters: Tuple[np.ndarray, ...],
             log_norm: float,
+            id_,
             *args
     ):
-        return cls(*parameters, log_norm=log_norm)
+        return cls(
+            *parameters,
+            log_norm=log_norm,
+            id_=id_
+        )
 
     def __reduce__(self):
         # serialises TransformedMessage during pickling
@@ -667,7 +672,8 @@ class AbstractMessage(Prior, ABC):
             self._reconstruct,
             (
                 self.parameters,
-                self.log_norm
+                self.log_norm,
+                self.id
             ),
         )
 
@@ -697,11 +703,16 @@ class TransformedMessage(AbstractMessage):
             clsname: str,
             transform: AbstractDensityTransform,
             parameters: Tuple[np.ndarray, ...],
-            log_norm: float
+            log_norm: float,
+            id_
     ):
         # Reconstructs TransformedMessage during unpickling
         Transformed = Message.transformed(transform, clsname)
-        return Transformed(*parameters, log_norm=log_norm)
+        return Transformed(
+            *parameters,
+            log_norm=log_norm,
+            id_=id_
+        )
 
     def __reduce__(self):
         # serialises TransformedMessage during pickling
@@ -712,7 +723,8 @@ class TransformedMessage(AbstractMessage):
                 self.__class__.__name__,
                 self._transform,
                 self.parameters,
-                self.log_norm
+                self.log_norm,
+                self.id
             ),
         )
 
