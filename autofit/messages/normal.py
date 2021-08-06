@@ -48,14 +48,6 @@ class NormalMessage(AbstractMessage):
         )
         self.mu, self.sigma = self.parameters
 
-    def as_prior(self):
-        from autofit.mapper.prior.gaussian import GaussianPrior
-        return GaussianPrior(
-            mean=self.mu,
-            sigma=self.sigma,
-            id_=self.id
-        )
-
     @cached_property
     def natural_parameters(self):
         return self.calc_natural_parameters(

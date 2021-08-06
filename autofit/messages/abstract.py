@@ -687,9 +687,6 @@ class AbstractMessage(Prior, ABC):
         # Needed for nested TransformedMessage method resolution
         return cls.logpdf_gradient(self, x)
 
-    def as_prior(self):
-        raise NotImplemented()
-
 
 class TransformedMessage(AbstractMessage):
     _Message: Type[AbstractMessage]

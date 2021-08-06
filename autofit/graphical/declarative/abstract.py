@@ -145,7 +145,7 @@ class AbstractDeclarativeFactor(Analysis, ABC):
         arguments = {
             prior: updated_model.mean_field[
                 prior
-            ].as_prior()
+            ]
             for prior
             in collection.priors
         }

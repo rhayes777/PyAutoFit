@@ -118,7 +118,7 @@ class MeanField(
         """
         Arguments that can be used to update a PriorModel
         """
-        return {v: dist.as_prior() for v, dist in self.items()}
+        return {v: dist for v, dist in self.items()}
 
     def logpdf(
             self,
