@@ -33,9 +33,9 @@ class NormalMessage(AbstractMessage):
             self,
             mean,
             sigma,
-            log_norm=0.0,
             lower_limit=-math.inf,
             upper_limit=math.inf,
+            log_norm=0.0,
             id_=None
     ):
         super().__init__(

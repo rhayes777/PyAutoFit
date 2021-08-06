@@ -12,24 +12,6 @@ class GaussianPrior(NormalMessage):
 
     __default_fields__ = ("log_norm", "id_")
 
-    def __init__(
-            self,
-            mean,
-            sigma,
-            lower_limit=-math.inf,
-            upper_limit=math.inf,
-            log_norm=0.0,
-            id_=None,
-    ):
-        super().__init__(
-            mean=mean,
-            sigma=sigma,
-            lower_limit=lower_limit,
-            upper_limit=upper_limit,
-            id_=id_,
-            log_norm=log_norm
-        )
-
     def value_for(self, unit):
         """
 
@@ -43,9 +25,6 @@ class GaussianPrior(NormalMessage):
             A value for the attribute biased to the gaussian distribution
         """
         return self.mean + (self.sigma * math.sqrt(2) * erfcinv(2.0 * (1.0 - unit)))
-
-    def __call__(self, x):
-        return self.logpdf(x)
 
     def log_prior_from_value(self, value):
         """
@@ -80,3 +59,6 @@ class GaussianPrior(NormalMessage):
         """
         prior_dict = super().dict()
         return {**prior_dict, "mean": self.mean, "sigma": self.sigma}
+
+    def __call__(self, x):
+        return self.logpdf(x)
