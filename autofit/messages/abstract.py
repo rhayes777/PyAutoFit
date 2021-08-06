@@ -10,7 +10,7 @@ from typing import Optional, Union, Type, List
 
 import numpy as np
 
-from autofit.mapper.prior.prior import Prior
+from autofit.mapper.prior.abstract import Prior
 from .transform import AbstractDensityTransform, LinearShiftTransform
 from ..mapper.variable import Variable
 from ..tools.cached_property import cached_property
@@ -62,22 +62,6 @@ class AbstractMessage(Prior, ABC):
 
     def __bool__(self):
         return True
-
-    @classmethod
-    def from_prior(cls, prior: Prior) -> "AbstractMessage":
-        from .normal import NormalMessage
-        from ..mapper.prior.gaussian import GaussianPrior
-        if isinstance(
-                prior, GaussianPrior
-        ):
-            return NormalMessage(
-                mean=prior.mean,
-                sigma=prior.sigma,
-                id_=prior.id
-            )
-        raise TypeError(
-            f"No message exists for prior of type {type(prior)}"
-        )
 
     @cached_property
     @abstractmethod
