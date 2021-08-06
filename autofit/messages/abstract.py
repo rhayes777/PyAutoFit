@@ -71,7 +71,7 @@ class AbstractMessage(Prior, ABC):
                 prior, GaussianPrior
         ):
             return NormalMessage(
-                mu=prior.mean,
+                mean=prior.mean,
                 sigma=prior.sigma,
                 id_=prior.id
             )

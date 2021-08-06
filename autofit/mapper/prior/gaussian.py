@@ -16,14 +16,16 @@ class GaussianPrior(NormalMessage):
             sigma,
             lower_limit=-math.inf,
             upper_limit=math.inf,
-            **kwargs
+            log_norm=0.0,
+            id_=None,
     ):
         super().__init__(
-            mu=mean,
+            mean=mean,
             sigma=sigma,
             lower_limit=lower_limit,
             upper_limit=upper_limit,
-            **kwargs
+            id_=id_,
+            log_norm=log_norm
         )
         self.mu = float(mean)
         self.sigma = float(sigma)

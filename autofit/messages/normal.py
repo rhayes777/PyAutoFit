@@ -1,3 +1,4 @@
+import math
 from typing import Tuple
 
 import numpy as np
@@ -30,15 +31,19 @@ class NormalMessage(AbstractMessage):
 
     def __init__(
             self,
-            mu=0.,
-            sigma=1.,
-            log_norm=0.,
-            **kwargs
+            mean,
+            sigma,
+            log_norm=0.0,
+            lower_limit=-math.inf,
+            upper_limit=math.inf,
+            id_=None
     ):
         super().__init__(
-            mu, sigma,
+            mean, sigma,
             log_norm=log_norm,
-            **kwargs
+            lower_limit=lower_limit,
+            upper_limit=upper_limit,
+            id_=id_
         )
         self.mu, self.sigma = self.parameters
 
