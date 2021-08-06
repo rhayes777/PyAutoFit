@@ -175,13 +175,6 @@ class DirectoryPaths(AbstractPaths):
                 f.write(
                     self.parent.identifier
                 )
-        else:
-            try:
-                os.remove(
-                    self._parent_identifier_path
-                )
-            except FileNotFoundError:
-                pass
 
     @property
     def _parent_identifier_path(self) -> str:
