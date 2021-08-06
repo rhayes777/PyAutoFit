@@ -125,7 +125,15 @@ class PriorModel(AbstractPriorModel):
                 else:
                     setattr(self, arg, PriorModel(annotations[arg]))
             else:
-                setattr(self, arg, self.make_prior(arg))
+                prior = self.make_prior(arg)
+                if isinstance(
+                        prior,
+                        ConfigException
+                ) and hasattr(
+                    cls, "__default_fields__"
+                ) and arg in cls.__default_fields__:
+                    prior = defaults[arg]
+                setattr(self, arg, prior)
         for key, value in kwargs.items():
             if not hasattr(self, key):
                 setattr(
