@@ -17,7 +17,7 @@ class GridSearchResult:
             results: List[Result],
             lower_limits_lists: LimitLists,
             grid_priors: List[Prior]
-    ):
+    ) -> object:
         """
         The result of a grid search.
 

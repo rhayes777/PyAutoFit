@@ -350,3 +350,45 @@ class TestGridSearchResult:
         assert (grid_search_result.log_likelihoods_native == np.array([
             [1, 2],
         ])).all()
+
+
+def test_higher_dimensions():
+    model = af.Model(
+        af.Gaussian
+    )
+    result = af.GridSearchResult(
+        results=4 * [
+            af.Result(
+                af.OptimizerSamples(
+                    model,
+                    [
+                        af.Sample(
+                            1.0,
+                            1.0,
+                            1.0,
+                            {
+                                "centre": 1.0,
+                                "sigma": 1.0,
+                                "intensity": 1.0
+                            }
+                        )
+                    ]
+                ),
+                model=model
+            )
+        ],
+        grid_priors=[],
+        lower_limits_lists=[
+            [0.0, 0.0],
+            [0.0, 0.5],
+            [0.5, 0.0],
+            [0.5, 0.5],
+        ]
+    )
+    assert result.shape == (2, 2)
+    assert result.results_native.shape == (2, 2)
+    assert result.log_likelihoods_native.shape == (2, 2)
+    assert result.log_evidences_native.shape == (2, 2)
+    # results_native
+    # log_likelihoods_native
+    # log_evidences_native
