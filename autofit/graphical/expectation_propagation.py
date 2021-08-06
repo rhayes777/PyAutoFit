@@ -137,7 +137,7 @@ class EPMeanField(FactorGraph):
             v: 1. for v
             in factor_dist.all_variables
         }).prod(*(
-            dist for fac, dist
+            dist for _, dist
             in factor_mean_field.items()
         ))
 
