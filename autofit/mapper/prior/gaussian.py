@@ -29,10 +29,6 @@ class GaussianPrior(NormalMessage):
             id_=id_,
             log_norm=log_norm
         )
-        self.mu = float(mean)
-        self.sigma = float(sigma)
-
-        self._log_pdf = None
 
     def value_for(self, unit):
         """
