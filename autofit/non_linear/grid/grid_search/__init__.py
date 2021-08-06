@@ -1,10 +1,11 @@
 import copy
 import logging
 from os import path
-from typing import List, Tuple, Union, Type
+from typing import List, Tuple, Union, Type, Optional, Dict
 
 from autofit import exc
 from autofit.mapper.prior import prior as p
+from autofit.non_linear.abstract_search import NonLinearSearch
 from autofit.non_linear.parallel import Process
 from autofit.non_linear.result import Result
 from .job import Job
@@ -26,7 +27,7 @@ class GridSearch:
             search,
             number_of_steps: int = 4,
             number_of_cores: int = 1,
-            result_output_interval: int = 100
+            result_output_interval: int = 100,
     ):
         """
         Performs a non linear optimiser search for each square in a grid. The dimensionality of the search depends on
@@ -136,13 +137,23 @@ class GridSearch:
             arguments = self.make_arguments(values, grid_priors)
             yield model.mapper_from_partial_prior_arguments(arguments)
 
-    def fit(self, model, analysis, grid_priors):
+    def fit(
+            self,
+            model,
+            analysis,
+            grid_priors,
+            info: Optional[Dict] = None,
+            parent: Optional[NonLinearSearch] = None
+    ):
         """
         Fit an analysis with a set of grid priors. The grid priors are priors associated with the model mapper
         of this instance that are replaced by uniform priors for each step of the grid search.
 
         Parameters
         ----------
+        parent
+            Optionally specify a parent, for example a search performed prior
+            to this grid search
         model
         analysis: autofit.non_linear.non_linear.Analysis
             An analysis used to determine the fitness of a given model instance
@@ -154,6 +165,11 @@ class GridSearch:
         result: GridSearchResult
             An object that comprises the results from each individual fit
         """
+        self.paths.model = model
+        self.paths.search = self
+        if parent is not None:
+            self.paths.parent = parent.paths
+
         self.logger.info(
             "Running grid search..."
         )
@@ -163,7 +179,8 @@ class GridSearch:
             model=model,
             analysis=analysis,
             grid_priors=grid_priors,
-            process_class=process_class
+            process_class=process_class,
+            info=info
         )
 
     def _fit(
@@ -171,7 +188,8 @@ class GridSearch:
             model,
             analysis,
             grid_priors,
-            process_class=Union[Type[Process], Type[Sequential]]
+            process_class=Union[Type[Process], Type[Sequential]],
+            info: Optional[Dict] = None
     ):
         """
         Perform the grid search in parallel, with all the optimisation for each grid square being performed on a
@@ -199,7 +217,6 @@ class GridSearch:
         grid_priors = list(set(grid_priors))
         results = []
         lists = self.make_lists(grid_priors)
-        physical_lists = self.make_physical_lists(grid_priors)
 
         results_list = [
             ["index"]
@@ -233,7 +250,8 @@ class GridSearch:
                     self.make_jobs(
                         model,
                         analysis,
-                        grid_priors
+                        grid_priors,
+                        info
                     ),
                     self.number_of_cores
                 )
@@ -249,7 +267,7 @@ class GridSearch:
 
         return make_grid_search_result()
 
-    def make_jobs(self, model, analysis, grid_priors):
+    def make_jobs(self, model, analysis, grid_priors, info: Optional[Dict] = None):
         grid_priors = list(set(grid_priors))
         lists = self.make_lists(grid_priors)
 
@@ -263,6 +281,7 @@ class GridSearch:
                     grid_priors=grid_priors,
                     values=values,
                     index=index,
+                    info=info
                 )
             )
         return jobs
@@ -289,11 +308,8 @@ class GridSearch:
             )
 
     def job_for_analysis_grid_priors_and_values(
-            self, model, analysis, grid_priors, values, index
+            self, model, analysis, grid_priors, values, index, info: Optional[Dict] = None
     ):
-        self.paths.model = model
-        self.paths.search = self
-
         arguments = self.make_arguments(values=values, grid_priors=grid_priors)
         model = model.mapper_from_partial_prior_arguments(arguments=arguments)
 
@@ -320,6 +336,7 @@ class GridSearch:
             analysis=analysis,
             arguments=arguments,
             index=index,
+            info=info
         )
 
     def search_instance(self, name_path):

@@ -31,6 +31,26 @@ class DatabasePaths(AbstractPaths):
 
     parent: "DatabasePaths"
 
+    @AbstractPaths.parent.setter
+    def parent(
+            self,
+            parent: "DatabasePaths"
+    ):
+        """
+        The search performed before this search. For example, a search
+        that is then compared to searches during a grid search.
+
+        For database paths the parent must also be database paths.
+        """
+        if not (
+                parent is None or
+                isinstance(parent, DatabasePaths)
+        ):
+            raise TypeError(
+                "The parent of search that uses the database must also use the database"
+            )
+        self._parent = parent
+
     def save_named_instance(
             self,
             name: str,

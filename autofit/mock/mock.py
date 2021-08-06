@@ -118,7 +118,7 @@ class MockSearch(NonLinearSearch):
         super().__init__(name=name)
 
         self.samples = samples or MockSamples()
-        self.result = result or MockResult()
+        self.result = result or MockResult(samples=samples)
 
     def _fit(self, model, analysis, log_likelihood_cap=None):
         class Fitness:

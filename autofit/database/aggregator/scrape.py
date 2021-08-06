@@ -2,6 +2,7 @@ import logging
 import os
 import pickle
 from pathlib import Path
+from typing import Optional
 
 from sqlalchemy.orm import Session
 from sqlalchemy.orm.exc import NoResultFound
@@ -12,6 +13,21 @@ from ...mapper.model_object import Identifier
 logger = logging.getLogger(
     __name__
 )
+
+
+def _parent_identifier(
+        directory: str
+) -> Optional[str]:
+    """
+    Read the parent identifier for a fit in a directory.
+
+    Defaults to None if no .parent_identifier file is found.
+    """
+    try:
+        with open(f"{directory}/.parent_identifier") as f:
+            return f.read()
+    except FileNotFoundError:
+        return None
 
 
 class Scraper:
@@ -72,6 +88,10 @@ class Scraper:
                 f"{item.directory}/.completed"
             )
 
+            parent_identifier = _parent_identifier(
+                directory=item.directory
+            )
+
             model = item.model
             samples = item.samples
 
@@ -80,25 +100,32 @@ class Scraper:
             except (AttributeError, NotImplementedError):
                 instance = None
 
+            identifier = _make_identifier(item)
+
+            logger.info(
+                f"Creating fit for: "
+                f"{item.search.unique_tag} "
+                f"{item.search.name} "
+                f"{identifier} ")
+
             try:
                 fit = self._retrieve_model_fit(
                     item
                 )
                 logger.warning(
-                    f"Fit already existed with identifier {_make_identifier(item)}"
+                    f"Fit already existed with identifier {identifier}"
                 )
             except NoResultFound:
                 fit = m.Fit(
-                    id=_make_identifier(
-                        item
-                    ),
+                    id=identifier,
                     name=item.search.name,
                     unique_tag=item.search.unique_tag,
                     model=model,
                     instance=instance,
                     is_complete=is_complete,
                     info=item.info,
-                    max_log_likelihood=samples.max_log_likelihood_sample.log_likelihood
+                    max_log_likelihood=samples.max_log_likelihood_sample.log_likelihood,
+                    parent_id=parent_identifier
                 )
                 logger.info(f"Created fit {fit.id}")
 
@@ -129,7 +156,10 @@ class Scraper:
                 path = Path(root)
                 grid_search = m.Fit(
                     id=path.name,
-                    is_grid_search=True
+                    is_grid_search=True,
+                    parent_id=_parent_identifier(
+                        root
+                    )
                 )
 
                 pickle_path = path / "pickles"
