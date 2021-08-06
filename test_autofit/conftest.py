@@ -62,17 +62,6 @@ def set_config_path():
     )
 
 
-# @pytest.fixture(
-#     autouse=True,
-#     scope="session"
-# )
-# def remove_output():
-#     shutil.rmtree(
-#         path.join(directory, "output"),
-#         ignore_errors=True
-#     )
-
-
 @pytest.fixture
 def model():
     return af.ModelMapper()
