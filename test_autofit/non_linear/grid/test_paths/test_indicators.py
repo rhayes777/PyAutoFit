@@ -32,8 +32,7 @@ def _make_grid_search(
         search=MockOptimizer(
             session=session
         ),
-        number_of_steps=2,
-        parent_search=parent_search
+        number_of_steps=2
     )
     search.fit(
         model=mapper,
@@ -41,7 +40,8 @@ def _make_grid_search(
         grid_priors=[
             mapper.component.one_tuple.one_tuple_0,
             mapper.component.one_tuple.one_tuple_1,
-        ]
+        ],
+        parent=parent_search
     )
     return search
 
@@ -72,6 +72,34 @@ def make_database_grid_search(
         database_parent_search,
         session=session
     )
+
+
+class TestMiscombination:
+    def test_directory_for_database(
+            self,
+            parent_search,
+            session,
+            mapper
+    ):
+        with pytest.raises(TypeError):
+            _make_grid_search(
+                mapper,
+                parent_search,
+                session
+            )
+
+    def test_database_for_directory(
+            self,
+            grid_search,
+            database_parent_search
+    ):
+        grid_paths = grid_search.paths
+        parent_paths = database_parent_search.paths
+
+        with open(
+                grid_paths._parent_identifier_path
+        ) as f:
+            assert f.read() == parent_paths.identifier
 
 
 class TestDirectory:

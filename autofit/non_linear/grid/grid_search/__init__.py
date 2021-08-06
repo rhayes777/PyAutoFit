@@ -28,7 +28,6 @@ class GridSearch:
             number_of_steps: int = 4,
             number_of_cores: int = 1,
             result_output_interval: int = 100,
-            parent_search: Optional[NonLinearSearch] = None
     ):
         """
         Performs a non linear optimiser search for each square in a grid. The dimensionality of the search depends on
@@ -63,8 +62,6 @@ class GridSearch:
         self.prior_passer = search.prior_passer
 
         self._result_output_interval = result_output_interval
-
-        self.parent = parent_search
 
     __exclude_identifier_fields__ = ("number_of_cores",)
 
@@ -145,7 +142,8 @@ class GridSearch:
             model,
             analysis,
             grid_priors,
-            info: Optional[Dict] = None
+            info: Optional[Dict] = None,
+            parent: Optional[NonLinearSearch] = None
     ):
         """
         Fit an analysis with a set of grid priors. The grid priors are priors associated with the model mapper
@@ -153,6 +151,9 @@ class GridSearch:
 
         Parameters
         ----------
+        parent
+            Optionally specify a parent, for example a search performed prior
+            to this grid search
         model
         analysis: autofit.non_linear.non_linear.Analysis
             An analysis used to determine the fitness of a given model instance
@@ -166,8 +167,8 @@ class GridSearch:
         """
         self.paths.model = model
         self.paths.search = self
-        if self.parent is not None:
-            self.paths.parent = self.parent.paths
+        if parent is not None:
+            self.paths.parent = parent.paths
 
         self.logger.info(
             "Running grid search..."

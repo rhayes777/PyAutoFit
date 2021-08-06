@@ -163,11 +163,7 @@ class DirectoryPaths(AbstractPaths):
         )
         self._move_pickle_files(pickle_files=pickle_files)
 
-    @property
-    def parent(self):
-        return self._parent
-
-    @parent.setter
+    @AbstractPaths.parent.setter
     def parent(self, parent):
         self._parent = parent
         if self.parent is not None:
