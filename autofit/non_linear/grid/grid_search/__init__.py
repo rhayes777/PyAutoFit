@@ -28,7 +28,7 @@ class GridSearch:
             number_of_steps: int = 4,
             number_of_cores: int = 1,
             result_output_interval: int = 100,
-            previous_search=Optional[NonLinearSearch]
+            parent_search=Optional[NonLinearSearch]
     ):
         """
         Performs a non linear optimiser search for each square in a grid. The dimensionality of the search depends on
@@ -64,11 +64,7 @@ class GridSearch:
 
         self._result_output_interval = result_output_interval
 
-        self.previous_search_identifier = None
-
-        if previous_search is not None:
-            identifier = previous_search.paths.identifier
-            self.previous_search_identifier = identifier
+        self.parent = parent_search
 
     __exclude_identifier_fields__ = ("number_of_cores",)
 
@@ -144,7 +140,13 @@ class GridSearch:
             arguments = self.make_arguments(values, grid_priors)
             yield model.mapper_from_partial_prior_arguments(arguments)
 
-    def fit(self, model, analysis, grid_priors, info: Optional[Dict] = None):
+    def fit(
+            self,
+            model,
+            analysis,
+            grid_priors,
+            info: Optional[Dict] = None
+    ):
         """
         Fit an analysis with a set of grid priors. The grid priors are priors associated with the model mapper
         of this instance that are replaced by uniform priors for each step of the grid search.
@@ -162,6 +164,10 @@ class GridSearch:
         result: GridSearchResult
             An object that comprises the results from each individual fit
         """
+        self.paths.model = model
+        self.paths.search = self
+        self.paths.parent = self.parent.paths
+
         self.logger.info(
             "Running grid search..."
         )
@@ -302,10 +308,6 @@ class GridSearch:
     def job_for_analysis_grid_priors_and_values(
             self, model, analysis, grid_priors, values, index, info: Optional[Dict] = None
     ):
-        self.paths.model = model
-        self.paths.search = self
-        self.paths.previous_search_identifier = self.previous_search_identifier
-
         arguments = self.make_arguments(values=values, grid_priors=grid_priors)
         model = model.mapper_from_partial_prior_arguments(arguments=arguments)
 
