@@ -28,7 +28,7 @@ class GridSearch:
             number_of_steps: int = 4,
             number_of_cores: int = 1,
             result_output_interval: int = 100,
-            parent_search=Optional[NonLinearSearch]
+            parent_search: Optional[NonLinearSearch] = None
     ):
         """
         Performs a non linear optimiser search for each square in a grid. The dimensionality of the search depends on
@@ -166,7 +166,8 @@ class GridSearch:
         """
         self.paths.model = model
         self.paths.search = self
-        self.paths.parent = self.parent.paths
+        if self.parent is not None:
+            self.paths.parent = self.parent.paths
 
         self.logger.info(
             "Running grid search..."
