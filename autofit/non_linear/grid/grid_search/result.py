@@ -17,7 +17,7 @@ class GridSearchResult:
             results: List[Result],
             lower_limits_lists: LimitLists,
             grid_priors: List[Prior]
-    ) -> object:
+    ):
         """
         The result of a grid search.
 
@@ -138,12 +138,7 @@ class GridSearchResult:
 
     @property
     def shape(self):
-        return tuple([
-            self.side_length
-            for _ in range(
-                self.no_dimensions
-            )
-        ])
+        return self.no_dimensions * (int(self.no_steps ** (1 / self.no_dimensions)),)
 
     @property
     def best_result(self):

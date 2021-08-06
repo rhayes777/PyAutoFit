@@ -352,14 +352,26 @@ class TestGridSearchResult:
         ])).all()
 
 
-def test_higher_dimensions():
+@pytest.mark.parametrize(
+    "n_dimensions, n_steps",
+    [
+        (2, 2),
+        (3, 3),
+    ]
+)
+def test_higher_dimensions(
+        n_dimensions,
+        n_steps
+):
+    shape = n_dimensions * (n_steps,)
+    total = n_steps ** n_dimensions
     model = af.Model(
         af.Gaussian
     )
     result = af.GridSearchResult(
-        results=4 * [
+        results=total * [
             af.Result(
-                af.OptimizerSamples(
+                af.NestSamples(
                     model,
                     [
                         af.Sample(
@@ -378,17 +390,10 @@ def test_higher_dimensions():
             )
         ],
         grid_priors=[],
-        lower_limits_lists=[
-            [0.0, 0.0],
-            [0.0, 0.5],
-            [0.5, 0.0],
-            [0.5, 0.5],
+        lower_limits_lists=total * [
+            n_dimensions * [0.0]
         ]
     )
-    assert result.shape == (2, 2)
-    assert result.results_native.shape == (2, 2)
-    assert result.log_likelihoods_native.shape == (2, 2)
-    assert result.log_evidences_native.shape == (2, 2)
-    # results_native
-    # log_likelihoods_native
-    # log_evidences_native
+    assert result.shape == shape
+    assert result.results_native.shape == shape
+    assert result.log_likelihoods_native.shape == shape
