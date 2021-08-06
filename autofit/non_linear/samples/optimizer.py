@@ -34,8 +34,9 @@ class OptimizerSamples:
         self._paths = None
         self._names = None
 
+    @property
     def log_evidence(self) -> float:
-        raise NotImplemented()
+        return None
 
     @property
     def paths(self) -> List[Tuple[Path]]:
