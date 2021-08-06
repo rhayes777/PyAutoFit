@@ -1,8 +1,8 @@
 import pickle
 from typing import Tuple
 
-import pytest
 import numpy as np
+import pytest
 
 import autofit as af
 from autofit import exc
@@ -151,7 +151,7 @@ def make_grid_search_05():
     search = af.SearchGridSearch(
         search=MockOptimizer(), number_of_steps=2
     )
-    search.paths = af.DirectoryPaths(name="sample_name")
+    search.search.paths = af.DirectoryPaths(name="sample_name")
     return search
 
 
@@ -177,7 +177,7 @@ def empty_args():
 
 
 class TestGridNLOBehaviour:
-    def _test_results(self, grid_search_05, mapper):
+    def test_results(self, grid_search_05, mapper):
         result = grid_search_05.fit(
             model=mapper,
             analysis=MockAnalysis(),
@@ -194,7 +194,7 @@ class TestGridNLOBehaviour:
             search=MockOptimizer(),
             number_of_steps=10,
         )
-        grid_search.paths = af.DirectoryPaths(name="sample_name")
+        grid_search.search.paths = af.DirectoryPaths(name="sample_name")
         result = grid_search.fit(
             model=mapper,
             analysis=MockAnalysis(),
@@ -206,7 +206,7 @@ class TestGridNLOBehaviour:
 
         assert len(result.results) == 100
         assert result.no_dimensions == 2
-        assert result.max_log_likelihood_values.shape == (10, 10)
+        assert result.log_likelihoods_native.shape == (10, 10)
 
     # def test_results_parallel(self, mapper, container):
     #     grid_search = af.SearchGridSearch(
@@ -339,13 +339,10 @@ class TestGridSearchResult:
         ]
 
     def test__results_on_native_grid(self, grid_search_result):
-
-        print(grid_search_result.results_native)
-
         assert (grid_search_result.results_native == np.array([
             [grid_search_result.results[0], grid_search_result.results[1]],
-            ])).all()
+        ])).all()
 
         assert (grid_search_result.log_likelihoods_native == np.array([
             [1, 2],
-            ])).all()
+        ])).all()
