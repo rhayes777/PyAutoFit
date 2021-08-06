@@ -134,11 +134,16 @@ class MeanField(
         """
         return reduce(
             add_arrays,
-            (aggregate(
-                self._broadcast(
-                    self._variable_plates[v], m.logpdf(values[v])),
-                axis=axis)
-                for v, m in self.items())
+            (
+                aggregate(
+                    self._broadcast(
+                        self._variable_plates[v],
+                        m.logpdf(values[v])
+                    ),
+                    axis=axis
+                )
+                for v, m in self.items()
+            )
         )
 
     def __call__(
