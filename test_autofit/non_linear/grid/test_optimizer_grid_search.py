@@ -12,6 +12,7 @@ from autofit.mock.mock import MockAnalysis
 
 
 def test_unpickle_result():
+    # noinspection PyTypeChecker
     result = af.GridSearchResult(
         results=[af.Result(samples=None, model=None)],
         lower_limits_lists=[[1]],
@@ -160,15 +161,17 @@ class MockOptimizer(af.MockSearch):
     def samples_cls(self):
         return MockOptimizer
 
-    def project(self, factor_approx: FactorApproximation, status: Status = Status()) -> Tuple[
-        FactorApproximation, Status]:
+    def project(
+            self,
+            factor_approx: FactorApproximation,
+            status: Status = Status()
+    ) -> Tuple[FactorApproximation, Status]:
         pass
 
     init_args = list()
 
     def __init__(self, **kwargs):
         super().__init__(fit_fast=False, **kwargs)
-        # self.init_args.append(paths)
 
 
 @pytest.fixture(autouse=True)
@@ -308,6 +311,7 @@ class TestGridSearchResult:
     def test__result_derived_properties(self):
         lower_limit_lists = [[0.0, 0.0], [0.0, 0.5], [0.5, 0.0], [0.5, 0.5]]
 
+        # noinspection PyTypeChecker
         grid_search_result = af.GridSearchResult(
             results=None,
             grid_priors=[
