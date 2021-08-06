@@ -96,12 +96,20 @@ class AbstractPaths(ABC):
             logger.exception(e)
 
     @property
-    def parent(self):
+    def parent(self) -> "AbstractPaths":
+        """
+        The search performed before this search. For example, a search
+        that is then compared to searches during a grid search.
+        """
         return self._parent
 
     @parent.setter
-    def parent(self, parent):
-        self._parent = parent
+    @abstractmethod
+    def parent(
+            self,
+            parent: "AbstractPaths"
+    ):
+        pass
 
     @property
     @abstractmethod
