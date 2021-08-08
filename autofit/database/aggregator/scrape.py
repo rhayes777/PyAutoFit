@@ -127,7 +127,6 @@ class Scraper:
                     max_log_likelihood=samples.max_log_likelihood_sample.log_likelihood,
                     parent_id=parent_identifier
                 )
-                logger.info(f"Created fit {fit.id}")
 
             pickle_path = Path(item.pickle_path)
             _add_pickles(
