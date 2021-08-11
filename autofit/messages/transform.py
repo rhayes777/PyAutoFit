@@ -168,7 +168,9 @@ class LinearShiftTransform(LinearTransform):
     def __init__(self, shift: float = 0, scale: float = 1):
         self.shift = shift
         self.scale = scale
-        self.linear = DiagonalMatrix(np.reciprocal(self.scale))
+        super().__init__(
+            DiagonalMatrix(np.reciprocal(self.scale))
+        )
 
     def inv_transform(self, x: np.ndarray) -> np.ndarray:
         return x * self.scale + self.shift
