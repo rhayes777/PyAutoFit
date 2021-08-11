@@ -1,3 +1,4 @@
+import inspect
 from abc import ABC, abstractmethod
 from functools import reduce, wraps
 from inspect import getfullargspec
@@ -519,7 +520,10 @@ class AbstractMessage(Prior, ABC):
     @classmethod
     def transformed(
             cls,
-            transform: AbstractDensityTransform,
+            transform: Union[
+                AbstractDensityTransform,
+                Type[AbstractDensityTransform]
+            ],
             clsname: Optional[str] = None,
             support: Optional[Tuple[Tuple[float, float], ...]] = None,
     ) -> Type["AbstractMessage"]:
@@ -540,7 +544,6 @@ class AbstractMessage(Prior, ABC):
 
         Examples
         --------
-
 
         Normal distributions have infinite univariate support
         >>> NormalMessage._support
@@ -594,13 +597,16 @@ class AbstractMessage(Prior, ABC):
         >>> samples = ShiftedUnitNormal(0.2, 0.8).sample(1000)
         >>> samples.min(), samples.mean(), samples.max()
         """
-        support = support or tuple(zip(*map(
-            transform.inv_transform, map(np.array, zip(*cls._support))
-        ))) if cls._support else cls._support
         projectionClass = (
             None if cls._projection_class is None
             else cls._projection_class.transformed(transform)
         )
+
+        def compute_support():
+            return support or tuple(zip(*map(
+                transform.inv_transform, map(np.array, zip(*cls._support))
+            ))) if cls._support else cls._support
+
         if issubclass(cls, TransformedMessage):
             depth = cls._depth + 1
             clsname = clsname or f"Transformed{depth}{cls._Message.__name__}"
@@ -608,25 +614,45 @@ class AbstractMessage(Prior, ABC):
             # Don't doubly inherit if transforming already transformed message
             class Transformed(cls):  # type: ignore
                 __qualname__ = clsname
-                _Message = cls
-                _transform = transform
-                _support = support
-                __projection_class = projectionClass
                 _depth = depth
-
         else:
             clsname = clsname or f"Transformed{cls.__name__}"
 
             class Transformed(TransformedMessage, cls):  # type: ignore
                 __qualname__ = clsname
-                _Message = cls
-                _transform = transform
-                _support = support
-                __projection_class = projectionClass
                 parameter_names = cls.parameter_names
                 _depth = 1
 
+        Transformed._Message = cls
+        Transformed._transform = transform
+        Transformed._support = property(
+            fget=compute_support
+        )
+        Transformed.__projection_class = projectionClass
         Transformed.__name__ = clsname
+
+        if inspect.isclass(transform):
+            transform_args = inspect.getfullargspec(
+                transform
+            ).args[1:]
+
+            def init(self, **kwargs):
+                transform_dict = dict()
+                for arg in transform_args:
+                    if arg in kwargs:
+                        transform_dict[
+                            arg
+                        ] = kwargs.pop(arg)
+                Transformed._transform = self._transform(
+                    **transform_dict
+                )
+                cls.__init__(
+                    self,
+                    **kwargs
+                )
+
+            Transformed.__init__ = init
+
         return Transformed
 
     @classmethod

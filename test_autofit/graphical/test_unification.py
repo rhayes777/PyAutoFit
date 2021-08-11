@@ -1,10 +1,10 @@
 import numpy as np
 import pytest
-from matplotlib import pyplot as plt
 
 import autofit as af
 from autofit import graphical as g
 from autofit.messages.normal import UniformNormalMessage
+from autofit.messages.transform import LinearShiftTransform
 
 
 @pytest.fixture(
@@ -71,3 +71,20 @@ def test_uniform_normal(x):
     #     x, message.pdf(x)
     # )
     # plt.show()
+
+
+def test_deferred_transform():
+    cls = UniformNormalMessage.transformed(
+        LinearShiftTransform,
+        clsname=f"ShiftedUniformNormalMessage"
+    )
+    message = cls(
+        shift=1,
+        scale=2.1,
+        mean=0.0,
+        sigma=1.0
+    )
+
+    assert np.isnan(message.pdf(0.9))
+    assert np.isnan(message.pdf(3.2))
+    assert message.pdf(1.5) > 0
