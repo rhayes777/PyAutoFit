@@ -153,8 +153,14 @@ class Scraper:
         for root, _, filenames in os.walk(self.directory):
             if ".is_grid_search" in filenames:
                 path = Path(root)
+                with open(
+                    path / ".is_grid_search"
+                ) as f:
+                    unique_tag = f.read()
+
                 grid_search = m.Fit(
                     id=path.name,
+                    unique_tag=unique_tag,
                     is_grid_search=True,
                     parent_id=_parent_identifier(
                         root
