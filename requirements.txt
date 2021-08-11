@@ -8,7 +8,6 @@ gprof2dot==2021.2.21
 numpydoc>=1.0.0
 pyprojroot==0.2.0
 pyswarms==1.1.0
-PyYAML>=3.12
 h5py>=2.10.0
 SQLAlchemy==1.3.20
 scipy>=1.5.1
