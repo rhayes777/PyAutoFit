@@ -205,7 +205,7 @@ class TestChildren:
             aggregator
     ):
         results = aggregator.grid_searches().children().query(
-            aggregator.centre <= 5
+            af.Query().centre <= 5
         ).fits
         assert len(results) == 6
 
@@ -243,7 +243,7 @@ class TestChildren:
         session.flush()
 
         parent_aggregator = aggregator.query(
-            aggregator.search.is_grid_search & (aggregator.centre == 1)
+            aggregator.search.is_grid_search & (aggregator.model.centre == 1)
         )
 
         result, = parent_aggregator.fits
@@ -256,6 +256,6 @@ class TestChildren:
         assert len(results) == 10
 
         results = aggregator.query(
-            aggregator.search.is_grid_search & (aggregator.centre == 2)
+            aggregator.search.is_grid_search & (aggregator.model.centre == 2)
         ).grid_searches().children().fits
         assert len(results) == 0

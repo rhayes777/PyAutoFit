@@ -26,7 +26,7 @@ def test_query_none(
         aggregator
 ):
     assert aggregator.query(
-        aggregator.centre == None
+        aggregator.model.centre == None
     ) == [gaussian_none]
 
 
@@ -36,7 +36,7 @@ def test_not(
         aggregator
 ):
     assert aggregator.query(
-        aggregator.centre != None
+        aggregator.model.centre != None
     ) == [gaussian_1, gaussian_2]
 
 
@@ -46,5 +46,5 @@ def test_combined(
         aggregator
 ):
     assert aggregator.query(
-        (aggregator.centre == None) | (aggregator.centre == 1.0)
+        (aggregator.model.centre == None) | (aggregator.model.centre == 1.0)
     ) == [gaussian_1, gaussian_none]

@@ -45,13 +45,13 @@ def test_combine(
         gaussian_1
 ):
     assert aggregator.query(
-        aggregator.search.is_complete & (aggregator.centre == 1)
+        aggregator.search.is_complete & (aggregator.model.centre == 1)
     ) == [gaussian_1]
     assert aggregator.query(
-        (~aggregator.search.is_complete) & (aggregator.centre == 1)
+        (~aggregator.search.is_complete) & (aggregator.model.centre == 1)
     ) == []
     assert aggregator.query(
-        aggregator.search.is_complete & (aggregator.centre == 2)
+        aggregator.search.is_complete & (aggregator.model.centre == 2)
     ) == []
 
 

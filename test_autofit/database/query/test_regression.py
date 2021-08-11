@@ -27,5 +27,5 @@ def test_float_inequality(session):
     assert len(aggregator) == 3
 
     assert len(aggregator.query(
-        aggregator.gaussian.sigma < 3
+        aggregator.model.gaussian.sigma < 3
     )) == 1

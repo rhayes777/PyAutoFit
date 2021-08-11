@@ -245,23 +245,19 @@ class Aggregator(AbstractAggregator):
     def __repr__(self):
         return f"<{self.__class__.__name__} {self.filename} {len(self)}>"
 
-    def __getattr__(self, name: str) -> Union[AbstractQuery, q.A]:
+    @property
+    def model(self) -> Query:
         """
         Facilitates query construction. If the Fit class has an
         attribute with the given name then a predicate is generated
         based on that attribute. Otherwise the query is assumed to
         apply to the best fit instance.
 
-        Parameters
-        ----------
-        name
-            The name of an attribute of the Fit class or the model
-
         Returns
         -------
         A query
         """
-        return Query.for_name(name)
+        return Query()
 
     def __call__(self, predicate) -> "Aggregator":
         """
