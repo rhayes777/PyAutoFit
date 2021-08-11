@@ -54,6 +54,7 @@ def make_grid_fit_2():
         id="grid2",
         unique_tag="grid_fit_2",
         is_grid_search=True,
+        children=_make_children(2),
         instance=Gaussian(
             centre=2
         )
@@ -152,23 +153,21 @@ def test_grid_search_best_fits(
 
 def test_multiple_best_fits(
         aggregator,
-        session
+        session,
+        grid_fit_2
 ):
-    session.add(
-        db.Fit(
-            id="grid_2",
-            is_grid_search=True,
-            children=_make_children(2),
-            instance=Gaussian(
-                centre=1
-            )
-        )
-    )
+    session.add(grid_fit_2)
     session.commit()
     best_fit = aggregator.grid_searches().best_fits()
     assert best_fit.values(
         "max_log_likelihood"
     ) == [10, 11]
+
+    for parent, fit in zip(
+            aggregator.grid_searches(),
+            best_fit
+    ):
+        assert parent is fit.parent
 
 
 def test_grid_search(
@@ -277,4 +276,4 @@ class TestChildren:
         results = aggregator.query(
             aggregator.search.is_grid_search & (aggregator.model.centre == 2)
         ).grid_searches().children().fits
-        assert len(results) == 0
+        assert len(results) == 10
