@@ -4,8 +4,7 @@ from matplotlib import pyplot as plt
 
 import autofit as af
 from autofit import graphical as g
-from autofit.messages.beta import BetaMessage
-from autofit.messages.normal import NormalMessage, UniformNormalMessage
+from autofit.messages.normal import UniformNormalMessage
 
 
 @pytest.fixture(
@@ -62,9 +61,13 @@ def test_uniform_normal(x):
         sigma=1.0
     )
 
-    x = np.linspace(*message._support[0])
+    assert np.isnan(message.pdf(0.9))
+    assert np.isnan(message.pdf(3.2))
+    assert message.pdf(1.5) > 0
 
-    plt.plot(
-        x, message.pdf(x)
-    )
-    plt.show()
+    # x = np.linspace(*message._support[0])
+    #
+    # plt.plot(
+    #     x, message.pdf(x)
+    # )
+    # plt.show()
