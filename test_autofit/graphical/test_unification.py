@@ -73,12 +73,20 @@ def test_uniform_normal(x):
     # plt.show()
 
 
-def test_deferred_transform():
-    cls = UniformNormalMessage.transformed(
+@pytest.fixture(
+    name="ShiftedMessage"
+)
+def make_shifted_message():
+    return UniformNormalMessage.transformed(
         LinearShiftTransform,
         clsname=f"ShiftedUniformNormalMessage"
     )
-    message = cls(
+
+
+def test_deferred_transform(
+        ShiftedMessage
+):
+    message = ShiftedMessage(
         shift=1,
         scale=2.1,
         mean=0.0,
@@ -88,3 +96,23 @@ def test_deferred_transform():
     assert np.isnan(message.pdf(0.9))
     assert np.isnan(message.pdf(3.2))
     assert message.pdf(1.5) > 0
+
+
+def test_values_stay_same(
+        ShiftedMessage
+):
+    message_1 = ShiftedMessage(
+        shift=1,
+        scale=2.1,
+        mean=0.0,
+        sigma=1.0
+    )
+    assert message_1._transform.shift == 1
+
+    ShiftedMessage(
+        shift=1,
+        scale=2.1,
+        mean=0.0,
+        sigma=1.0
+    )
+    assert message_1._transform.shift == 1
