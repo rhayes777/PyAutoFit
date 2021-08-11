@@ -37,10 +37,25 @@ def make_children():
 def make_grid_fit(children):
     return db.Fit(
         id="grid",
+        unique_tag="grid_fit_1",
         is_grid_search=True,
         children=children,
         instance=Gaussian(
             centre=1
+        )
+    )
+
+
+@pytest.fixture(
+    name="grid_fit_2"
+)
+def make_grid_fit_2():
+    return db.Fit(
+        id="grid2",
+        unique_tag="grid_fit_2",
+        is_grid_search=True,
+        instance=Gaussian(
+            centre=2
         )
     )
 
@@ -190,29 +205,64 @@ class TestChildren:
             aggregator
     ):
         results = aggregator.grid_searches().children().query(
-            aggregator.centre <= 5
+            af.Query().centre <= 5
         ).fits
         assert len(results) == 6
+
+    def test_query_grid_unique_tag(
+            self,
+            aggregator,
+            grid_fit,
+            grid_fit_2,
+            session
+    ):
+        session.add(
+            grid_fit_2
+        )
+        session.flush()
+
+        grid_agg = aggregator.grid_searches()
+        assert grid_agg[0].unique_tag == "grid_fit_1"
+
+        one = grid_agg.query(
+            grid_agg.search.unique_tag == "grid_fit_1"
+        )
+        assert len(one) == 1
+        assert one[0].unique_tag == "grid_fit_1"
+
+    def test_query_grid_unique_tag_none(
+            self,
+            aggregator,
+            grid_fit,
+            grid_fit_2,
+            session
+    ):
+        grid_fit_2.unique_tag = None
+        session.add(
+            grid_fit_2
+        )
+        session.flush()
+
+        grid_agg = aggregator.grid_searches()
+        none = grid_agg.query(
+            grid_agg.search.unique_tag == "grid_fit_3"
+        )
+        assert len(none) == 0
 
     def test_query_before(
             self,
             aggregator,
             grid_fit,
+            grid_fit_2,
             session
     ):
         session.add(
-            db.Fit(
-                id="grid2",
-                is_grid_search=True,
-                instance=Gaussian(
-                    centre=2
-                )
-            )
+            grid_fit_2
         )
         session.flush()
 
         parent_aggregator = aggregator.query(
-            aggregator.search.is_grid_search & (aggregator.centre == 1)
+            aggregator.search.is_grid_search & (aggregator.model.centre == 1)
         )
 
         result, = parent_aggregator.fits
@@ -225,6 +275,6 @@ class TestChildren:
         assert len(results) == 10
 
         results = aggregator.query(
-            aggregator.search.is_grid_search & (aggregator.centre == 2)
+            aggregator.search.is_grid_search & (aggregator.model.centre == 2)
         ).grid_searches().children().fits
         assert len(results) == 0

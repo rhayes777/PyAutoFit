@@ -32,9 +32,9 @@ def test_already_compared(
     with pytest.raises(
             AssertionError
     ):
-        print((aggregator.centre == 1) == 1)
+        print((aggregator.model.centre == 1) == 1)
 
     with pytest.raises(
             AttributeError
     ):
-        print((aggregator.centre == 1).intesity)
+        print((aggregator.model.centre == 1).intesity)
