@@ -230,6 +230,25 @@ class TestChildren:
         assert len(one) == 1
         assert one[0].unique_tag == "grid_fit_1"
 
+    def test_query_grid_unique_tag_none(
+            self,
+            aggregator,
+            grid_fit,
+            grid_fit_2,
+            session
+    ):
+        grid_fit_2.unique_tag = None
+        session.add(
+            grid_fit_2
+        )
+        session.flush()
+
+        grid_agg = aggregator.grid_searches()
+        none = grid_agg.query(
+            grid_agg.search.unique_tag == "grid_fit_3"
+        )
+        assert len(none) == 0
+
     def test_query_before(
             self,
             aggregator,
