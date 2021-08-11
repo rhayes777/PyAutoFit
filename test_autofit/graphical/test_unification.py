@@ -1,7 +1,10 @@
+import numpy as np
 import pytest
+from matplotlib import pyplot as plt
 
 import autofit as af
 from autofit import graphical as g
+from autofit.messages.normal import NormalMessage
 
 
 @pytest.fixture(
@@ -38,3 +41,28 @@ def test_bad_id(
             AssertionError
     ):
         new_message * prior
+
+
+def test_uniform():
+    message = NormalMessage(
+        mean=0.5,
+        sigma=0.15
+    )
+
+    x = np.linspace(
+        0, 1, 100
+    )
+
+    def _plot(func):
+        plt.plot(
+            x, func(x)
+        )
+
+    _plot(message.ppf)
+    _plot(message.cdf)
+
+    plt.plot(
+        x, message.cdf(message.ppf(x))
+    )
+
+    plt.show()

@@ -130,9 +130,9 @@ class AbstractMessage(Prior, ABC):
             natural_parameters: np.ndarray,
             **kwargs
     ) -> "AbstractMessage":
-        cls = cls._projection_class or cls
-        args = cls.invert_natural_parameters(natural_parameters)
-        return cls(*args, **kwargs)
+        cls_ = cls._projection_class or cls
+        args = cls_.invert_natural_parameters(natural_parameters)
+        return cls_(*args, **kwargs)
 
     @classmethod
     @abstractmethod
@@ -146,8 +146,8 @@ class AbstractMessage(Prior, ABC):
             cls, suff_stats: np.ndarray, **kwargs
     ) -> "AbstractMessage":
         natural_params = cls.invert_sufficient_statistics(suff_stats)
-        cls = cls._projection_class or cls
-        return cls.from_natural_parameters(natural_params, **kwargs)
+        cls_ = cls._projection_class or cls
+        return cls_.from_natural_parameters(natural_params, **kwargs)
 
     def sum_natural_parameters(
             self, *dists: "AbstractMessage"

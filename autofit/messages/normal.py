@@ -3,6 +3,7 @@ from typing import Tuple
 
 import numpy as np
 from scipy.special.cython_special import erfcinv
+from scipy.stats import norm
 
 from autofit.messages.abstract import AbstractMessage
 from autofit.tools.cached_property import cached_property
@@ -47,6 +48,13 @@ class NormalMessage(AbstractMessage):
             id_=id_
         )
         self.mu, self.sigma = self.parameters
+
+    def cdf(self, x):
+        return norm.cdf(x, loc=self.mu, scale=self.sigma)
+        # return (1 + math.erf((x - self.mu) / self.sigma / math.sqrt(2))) / 2
+
+    def ppf(self, x):
+        return norm.ppf(x, loc=self.mu, scale=self.sigma)
 
     @cached_property
     def natural_parameters(self):
