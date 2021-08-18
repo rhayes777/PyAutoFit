@@ -279,9 +279,10 @@ def path_instances_of_class(
     """
     if ignore_class is not None and isinstance(obj, ignore_class):
         return []
-    if isinstance(obj, cls):
-        return [(tuple(), obj)]
+
     results = []
+    if isinstance(obj, cls):
+        results.append((tuple(), obj))
     try:
         from autofit.mapper.prior_model.annotation import AnnotationPriorModel
 

@@ -22,6 +22,18 @@ def test_inheritance():
     )
 
 
+def test_embedded():
+    collection = af.Collection(
+        galaxy=af.Model(
+            m.Gaussian,
+            centre=GaussianChild
+        )
+    )
+    assert collection.has_model(
+        GaussianChild
+    )
+
+
 def test_instance():
     collection = af.CollectionPriorModel(
         gaussian=m.Gaussian()
