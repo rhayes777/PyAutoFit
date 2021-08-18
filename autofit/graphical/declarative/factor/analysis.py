@@ -4,7 +4,7 @@ import numpy as np
 
 from autofit.graphical.expectation_propagation import AbstractFactorOptimiser
 from autofit.mapper.model import ModelInstance
-from autofit.mapper.prior_model.prior_model import PriorModel, AbstractPriorModel
+from autofit.mapper.prior_model.prior_model import AbstractPriorModel
 from autofit.non_linear.analysis import Analysis
 from autofit.non_linear.paths.abstract import AbstractPaths
 from .abstract import AbstractModelFactor

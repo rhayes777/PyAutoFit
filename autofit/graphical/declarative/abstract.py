@@ -8,7 +8,7 @@ from autofit.graphical.expectation_propagation import EPMeanField
 from autofit.graphical.expectation_propagation import EPOptimiser
 from autofit.graphical.factor_graphs.factor import Factor
 from autofit.graphical.factor_graphs.graph import FactorGraph
-from autofit.graphical.messages import NormalMessage
+from autofit.messages.normal import NormalMessage
 from autofit.mapper.model import ModelInstance
 from autofit.mapper.prior.prior import Prior
 from autofit.mapper.prior_model.collection import CollectionPriorModel
@@ -52,10 +52,7 @@ class AbstractDeclarativeFactor(Analysis, ABC):
         """
         return [
             Factor(
-                cast(
-                    Callable,
-                    prior
-                ),
+                prior.logpdf,
                 x=prior
             )
             for prior
@@ -70,9 +67,7 @@ class AbstractDeclarativeFactor(Analysis, ABC):
         TODO: should support more than just GaussianPriors/NormalMessages
         """
         return {
-            prior: NormalMessage.from_prior(
-                prior
-            )
+            prior: prior
             for prior
             in self.priors
         }
@@ -150,7 +145,7 @@ class AbstractDeclarativeFactor(Analysis, ABC):
         arguments = {
             prior: updated_model.mean_field[
                 prior
-            ].as_prior()
+            ]
             for prior
             in collection.priors
         }

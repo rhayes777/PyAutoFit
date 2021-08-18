@@ -7,8 +7,8 @@ from .identifier import Identifier
 class ModelObject:
     _ids = itertools.count()
 
-    def __init__(self):
-        self.id = next(self._ids)
+    def __init__(self, id_=None):
+        self.id = next(self._ids) if id_ is None else id_
 
     @property
     def component_number(self):
@@ -46,7 +46,7 @@ class ModelObject:
         from autofit.mapper.prior_model.collection import CollectionPriorModel
         from autofit.mapper.prior_model.prior_model import PriorModel
         from autofit.mapper.prior.prior import Prior
-        from autofit.mapper.prior.prior import TuplePrior
+        from autofit.mapper.prior.tuple_prior import TuplePrior
 
         if not isinstance(
                 d, dict
@@ -83,7 +83,6 @@ class ModelObject:
             )
         return instance
 
-    @property
     def dict(self) -> dict:
         """
         A dictionary representation of this object
@@ -91,7 +90,7 @@ class ModelObject:
         from autofit.mapper.prior_model.abstract import AbstractPriorModel
         from autofit.mapper.prior_model.collection import CollectionPriorModel
         from autofit.mapper.prior_model.prior_model import PriorModel
-        from autofit.mapper.prior.prior import TuplePrior
+        from autofit.mapper.prior.tuple_prior import TuplePrior
 
         if isinstance(
                 self,
@@ -130,8 +129,10 @@ class ModelObject:
                     value = AbstractPriorModel.from_instance(
                         value
                     )
-                value = value.dict
+                value = value.dict()
             except AttributeError:
+                pass
+            except TypeError:
                 pass
             dict_[key] = value
         return dict_

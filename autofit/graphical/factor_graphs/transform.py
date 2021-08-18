@@ -1,33 +1,29 @@
-
-from abc import ABC, abstractmethod
-from functools import wraps, lru_cache
+from abc import abstractmethod
 from typing import Dict, Tuple, Optional, List
 
 import numpy as np
 from scipy.linalg import cho_factor
-from scipy._lib._util import _asarray_validated
-from scipy.special import ndtr, ndtri
-from scipy.stats._continuous_distns import _norm_pdf
 
 # from ...mapper.operator import
 from autofit.mapper.operator import (
-    LinearOperator, 
-    CholeskyOperator, 
-    MatrixOperator, 
+    CholeskyOperator,
     InvCholeskyTransform,
     IdentityOperator,
     DiagonalMatrix,
-    ShermanMorrison,
 )
-from ...mapper.variable import Variable
-from ..utils import cached_property, Axis, FlattenArrays
+from autofit.tools.cached_property import cached_property
 from .abstract import \
+    (
     AbstractNode, Value, FactorValue, JacobianValue, HessianValue
+)
+from ..utils import Axis
+from ...mapper.variable import Variable
 
 
 class VariableTransform:
     """
     """
+
     def __init__(self, transforms):
         self.transforms = transforms
 
@@ -54,13 +50,13 @@ class VariableTransform:
 
     def quad(self, values):
         return {
-            v: H.T if np.ndim(H) else H
-            for v, H in (values * self).items()} * self
+                   v: H.T if np.ndim(H) else H
+                   for v, H in (values * self).items()} * self
 
     def invquad(self, values):
         return {
-            v: H.T if np.ndim(H) else H
-            for v, H in (values / self).items()} / self
+                   v: H.T if np.ndim(H) else H
+                   for v, H in (values / self).items()} / self
 
     @cached_property
     def log_det(self):
@@ -162,9 +158,9 @@ identity_variable_transform = IdentityVariableTransform()
 
 class TransformedNode(AbstractNode):
     def __init__(
-        self,
-        node: AbstractNode,
-        transform: VariableTransform
+            self,
+            node: AbstractNode,
+            transform: VariableTransform
     ):
         self.node = node
         self.transform = transform

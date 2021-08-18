@@ -16,8 +16,9 @@ from autofit import exc
 from autofit.mapper import model
 from autofit.mapper.model import AbstractModel, frozen_cache
 from autofit.mapper.prior.deferred import DeferredArgument
-from autofit.mapper.prior.prior import GaussianPrior
-from autofit.mapper.prior.prior import TuplePrior, Prior, WidthModifier, Limits
+from autofit.mapper.prior.prior import Prior, Limits, GaussianPrior
+from autofit.mapper.prior.tuple_prior import TuplePrior
+from autofit.mapper.prior.width_modifier import WidthModifier
 from autofit.mapper.prior_model.attribute_pair import DeferredNameValue
 from autofit.mapper.prior_model.attribute_pair import cast_collection, PriorNameValue, InstanceNameValue
 from autofit.mapper.prior_model.recursion import DynamicRecursionCache

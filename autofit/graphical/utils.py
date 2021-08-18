@@ -3,11 +3,9 @@ from operator import mul
 from typing import (
     Iterable, Tuple, TypeVar, Dict, NamedTuple, Optional, Union
 )
-import warnings
 
 import numpy as np
 from scipy import special
-from scipy.special import psi, polygamma
 from scipy.linalg import block_diag
 from scipy.optimize import OptimizeResult
 
@@ -176,28 +174,6 @@ def r2_score(y_true, y_pred, axis=None):
     return 1 - mse / var
 
 
-class CachedProperty(object):
-    """
-    A property that is only computed once per instance and then replaces
-    itself with an ordinary attribute. Deleting the attribute resets the
-    property. 
-    
-    Source: https://github.com/bottlepy/bottle/commit/fa7733e075da0d790d809aa3d2f53071897e6f76
-    """
-
-    def __init__(self, func):
-        self.func = func
-
-    def __get__(self, obj, cls):
-        if obj is None:
-            return self
-        value = obj.__dict__[self.func.__name__] = self.func(obj)
-        return value
-
-
-cached_property = CachedProperty
-
-
 def propagate_uncertainty(
         cov: np.ndarray, jac: np.ndarray) -> np.ndarray:
     """Propagates the uncertainty of a covariance matrix given the
@@ -225,23 +201,6 @@ def propagate_uncertainty(
         jac2d, cov2d, jac2d.T))
     det_cov = det_cov2d.reshape(det_shape + det_shape)
     return det_cov
-
-
-def numerical_jacobian(x: np.ndarray, func, eps=1e-8, args=(), **kwargs):
-    """
-    Calculates numerical jacobian of passed function
-    """
-    x0 = np.array(x)
-    f0 = func(x, *args, **kwargs)
-    jac = np.empty((np.size(f0), np.size(x0)))
-    with np.nditer(x0, op_flags=['readwrite']) as it:
-        for i, val in enumerate(it):
-            val += eps
-            f1 = func(x0, *args, **kwargs)
-            jac[:, i] = (f1 - f0) / eps
-            val -= eps
-
-    return jac.reshape(np.shape(f0) + np.shape(x0))
 
 
 def psilog(x: np.ndarray) -> np.ndarray:
@@ -290,71 +249,6 @@ def invpsilog(c: np.ndarray) -> np.ndarray:
         x0 = x0 - f0 / grad_psilog(x0)
 
     return x0
-
-
-def grad_betaln(ab):
-    psiab = psi(ab.sum(axis=1, keepdims=True))
-    return psi(ab) - psiab
-
-
-def jac_grad_betaln(ab):
-    psi1ab = polygamma(1, ab.sum(axis=1, keepdims=True))
-    fii = polygamma(1, ab) - psi1ab
-    fij = -psi1ab[:, 0]
-    return np.array([[fii[:, 0], fij], [fij, fii[:, 1]]]).T
-
-
-def inv_beta_suffstats(lnX, ln1X):
-    """Solve for a, b for, 
-    
-    psi(a) + psi(a + b) = lnX
-    psi(b) + psi(a + b) = ln1X
-    """
-    _lnX, _ln1X = np.ravel(lnX), np.ravel(ln1X)
-    lnXs = np.c_[_lnX, _ln1X]
-    
-    # Find initial starting location
-    Gs = np.exp(lnXs)
-    dG = 1 - Gs.sum(axis=1, keepdims=True)
-    ab = np.maximum(1, (1 + Gs / dG)/2)
-    
-    # 5 Newton Raphson itertions is generally enough
-    for i in range(5):
-        f = grad_betaln(ab) - lnXs
-        jac = jac_grad_betaln(ab)
-        ab += np.linalg.solve(jac, - f)
-        
-    if np.any(ab < 0):
-        warnings.warn(
-            "invalid negative parameters found for inv_beta_suffstats, "
-            "clampling value to 0.5",
-            RuntimeWarning
-        )
-        b = np.clip(ab, 0.5, None)
-
-    shape = np.shape(lnX)
-    if shape:
-        a = ab[:, 0].reshape(shape)
-        b = ab[:, 1].reshape(shape)
-    else:
-        a, b = ab[0,:]
-        
-    return a, b
-
-
-def numerical_jacobian(x, func, eps=1e-8, args=(), **kwargs):
-    x = np.array(x)
-    f0 = func(x, *args, **kwargs)
-    jac = np.empty(np.shape(f0) + np.shape(x))
-    fslice = (slice(None), ) * np.ndim(f0)
-    with np.nditer(x, flags=['multi_index'], op_flags=['readwrite']) as it:
-        for xi in it:
-            xi += eps
-            f1 = func(x, *args, **kwargs)
-            jac[fslice + it.multi_index] = (f1 - f0)/eps
-            xi -= eps
-            
-    return jac
 
 
 def rescale_to_artists(artists, ax=None):

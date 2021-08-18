@@ -2,7 +2,8 @@ from typing import Optional, Tuple
 
 import numpy as np
 
-from autofit.graphical.messages.abstract import AbstractMessage, cached_property
+from autofit.messages.abstract import AbstractMessage
+from autofit.tools.cached_property import cached_property
 
 
 class FixedMessage(AbstractMessage):
@@ -20,6 +21,9 @@ class FixedMessage(AbstractMessage):
             log_norm=log_norm,
             id_=id_
         )
+
+    def value_for(self, unit: float) -> float:
+        raise NotImplemented()
 
     @cached_property
     def natural_parameters(self) -> Tuple[np.ndarray, ...]:

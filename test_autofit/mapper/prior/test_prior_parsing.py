@@ -72,13 +72,13 @@ class TestWidth:
 
 class TestDict:
     def test_uniform(self, uniform_prior, uniform_dict):
-        assert uniform_prior.dict == uniform_dict
+        assert uniform_prior.dict() == uniform_dict
 
     def test_log_uniform(self, log_uniform_prior, log_uniform_dict):
-        assert log_uniform_prior.dict == log_uniform_dict
+        assert log_uniform_prior.dict() == log_uniform_dict
 
     def test_gaussian(self, gaussian_prior, gaussian_dict):
-        assert gaussian_prior.dict == gaussian_dict
+        assert gaussian_prior.dict() == gaussian_dict
 
 
 class TestFromDict:

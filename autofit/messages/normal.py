@@ -1,11 +1,23 @@
+import math
 from typing import Tuple
 
 import numpy as np
+from scipy.special.cython_special import erfcinv
 
-from autofit.graphical.messages.abstract import AbstractMessage
-from autofit.graphical.utils import cached_property
-from autofit.mapper.prior.prior import GaussianPrior
+from autofit.messages.abstract import AbstractMessage
+from autofit.tools.cached_property import cached_property
 from .transform import phi_transform, log_transform, multinomial_logit_transform
+
+
+def is_nan(value):
+    is_nan_ = np.isnan(
+        value
+    )
+    if isinstance(
+            is_nan_, np.ndarray
+    ):
+        is_nan_ = is_nan_.all()
+    return is_nan_
 
 
 class NormalMessage(AbstractMessage):
@@ -20,35 +32,21 @@ class NormalMessage(AbstractMessage):
 
     def __init__(
             self,
-            mu=0.,
-            sigma=1.,
-            log_norm=0.,
-            id_=None,
-            **kwargs
+            mean,
+            sigma,
+            lower_limit=-math.inf,
+            upper_limit=math.inf,
+            log_norm=0.0,
+            id_=None
     ):
         super().__init__(
-            mu, sigma,
+            mean, sigma,
             log_norm=log_norm,
+            lower_limit=lower_limit,
+            upper_limit=upper_limit,
             id_=id_
         )
         self.mu, self.sigma = self.parameters
-
-    @classmethod
-    def _from_prior(
-            cls,
-            prior: GaussianPrior
-    ):
-        return NormalMessage(
-            mu=prior.mean,
-            sigma=prior.sigma,
-            id_=prior.id
-        )
-
-    def as_prior(self):
-        return GaussianPrior(
-            mean=self.mu,
-            sigma=self.sigma
-        )
 
     @cached_property
     def natural_parameters(self):
@@ -140,6 +138,58 @@ class NormalMessage(AbstractMessage):
 
     def logpdf_gradient(self, x: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
         return self._logpdf_gradient_hessian(x)[:2]
+
+    __name__ = "gaussian_prior"
+
+    __default_fields__ = ("log_norm", "id_")
+
+    def value_for(self, unit):
+        """
+
+        Parameters
+        ----------
+        unit: Float
+            A unit hypercube value between 0 and 1
+        Returns
+        -------
+        value: Float
+            A value for the attribute biased to the gaussian distribution
+        """
+        return self.mean + (self.sigma * math.sqrt(2) * erfcinv(2.0 * (1.0 - unit)))
+
+    def log_prior_from_value(self, value):
+        """
+        Returns the log prior of a physical value, so the log likelihood of a model evaluation can be converted to a
+        posterior as log_prior + log_likelihood.
+
+        This is used by Emcee in the log likelihood function evaluation.
+
+        Parameters
+        ----------
+        value : float
+            The physical value of this prior's corresponding parameter in a `NonLinearSearch` sample."""
+        return (value - self.mean) ** 2.0 / (2 * self.sigma ** 2.0)
+
+    def __str__(self):
+        """The line of text describing this prior for the model_mapper.info file"""
+        return (
+            f"GaussianPrior, mean = {self.mean}, sigma = {self.sigma}"
+        )
+
+    def __repr__(self):
+        return (
+            "<GaussianPrior id={} mean={} sigma={} "
+            "lower_limit={} upper_limit={}>".format(
+                self.id, self.mean, self.sigma, self.lower_limit, self.upper_limit
+            )
+        )
+
+    def dict(self) -> dict:
+        """
+        A dictionary representation of this prior
+        """
+        prior_dict = super().dict()
+        return {**prior_dict, "mean": self.mean, "sigma": self.sigma}
 
 
 UniformNormalMessage = NormalMessage.transformed(

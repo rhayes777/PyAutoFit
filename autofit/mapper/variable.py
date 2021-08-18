@@ -44,7 +44,12 @@ class Plate:
 class Variable(ModelObject):
     __slots__ = ("name", "plates")
 
-    def __init__(self, name: str = None, *plates: Plate):
+    def __init__(
+            self,
+            name: str = None,
+            *plates: Plate,
+            id_=None
+    ):
         """
         Represents a variable in the problem. This may be fixed data or some coefficient
         that we are optimising for.
@@ -56,9 +61,11 @@ class Variable(ModelObject):
         plates
             Representation of the dimensions of this variable
         """
-        super().__init__()
-        self.name = name or f"{self.__class__.__name__.lower()}_{self.id}"
         self.plates = plates
+        super().__init__(
+            id_=id_
+        )
+        self.name = name or f"{self.__class__.__name__.lower()}_{self.id}"
 
     def __repr__(self):
         args = ", ".join(chain([self.name], map(repr, self.plates)))

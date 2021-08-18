@@ -1,9 +1,9 @@
 import numpy as np
 from scipy import integrate, stats
 
-import autofit.graphical.messages.fixed
-import autofit.graphical.messages.gamma
-import autofit.graphical.messages.normal
+import autofit.messages.fixed
+import autofit.messages.gamma
+import autofit.messages.normal
 import autofit.mapper.variable
 from autofit import graphical as mp
 
@@ -111,13 +111,13 @@ def _test():
     model_approx = mp.EPMeanField.from_kws(
         LV_model,
         {
-            A_: autofit.graphical.messages.normal.NormalMessage.from_mode(A, 100.),
-            r_: autofit.graphical.messages.normal.NormalMessage.from_mode(r, 100.),
-            y0_: autofit.graphical.messages.gamma.GammaMessage.from_mode(np.ones_like(y0), 1),
-            y_: autofit.graphical.messages.normal.NormalMessage.from_mode(y, 1),
-            K_: autofit.graphical.messages.fixed.FixedMessage(1),
-            y_obs_: autofit.graphical.messages.fixed.FixedMessage(y),
-            t_obs_: autofit.graphical.messages.fixed.FixedMessage(t_obs)
+            A_: autofit.messages.normal.NormalMessage.from_mode(A, 100.),
+            r_: autofit.messages.normal.NormalMessage.from_mode(r, 100.),
+            y0_: autofit.messages.gamma.GammaMessage.from_mode(np.ones_like(y0), 1),
+            y_: autofit.messages.normal.NormalMessage.from_mode(y, 1),
+            K_: autofit.messages.fixed.FixedMessage(1),
+            y_obs_: autofit.messages.fixed.FixedMessage(y),
+            t_obs_: autofit.messages.fixed.FixedMessage(t_obs)
         },
     )
 

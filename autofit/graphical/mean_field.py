@@ -8,15 +8,14 @@ import numpy as np
 from autofit.graphical.factor_graphs import (
     Factor, AbstractNode, FactorValue, JacobianValue
 )
-from autofit.graphical.messages import (
-    AbstractMessage, FixedMessage
-)
 from autofit.graphical.utils import (
     prod, add_arrays, OptResult, Status, aggregate, Axis
 )
 from autofit.mapper.prior.prior import Prior
 from autofit.mapper.prior_model.collection import CollectionPriorModel
 from autofit.mapper.variable import Variable
+from autofit.messages.abstract import AbstractMessage
+from autofit.messages.fixed import FixedMessage
 
 VariableFactorDist = Dict[str, Dict[Factor, AbstractMessage]]
 Projection = Dict[str, AbstractMessage]
@@ -88,9 +87,7 @@ class MeanField(
         A mean field
         """
         return MeanField({
-            prior: AbstractMessage.from_prior(
-                prior
-            )
+            prior: prior
             for prior in priors
         })
 
@@ -121,7 +118,7 @@ class MeanField(
         """
         Arguments that can be used to update a PriorModel
         """
-        return {v: dist.as_prior() for v, dist in self.items()}
+        return {v: dist for v, dist in self.items()}
 
     def logpdf(
             self,
@@ -135,11 +132,16 @@ class MeanField(
         """
         return reduce(
             add_arrays,
-            (aggregate(
-                self._broadcast(
-                    self._variable_plates[v], m.logpdf(values[v])),
-                axis=axis)
-                for v, m in self.items())
+            (
+                aggregate(
+                    self._broadcast(
+                        self._variable_plates[v],
+                        m.logpdf(values[v])
+                    ),
+                    axis=axis
+                )
+                for v, m in self.items()
+            )
         )
 
     def __call__(

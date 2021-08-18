@@ -1,5 +1,4 @@
 temp/
-
 test_autofit/mapper/model/model.json
 
 *.sqlite

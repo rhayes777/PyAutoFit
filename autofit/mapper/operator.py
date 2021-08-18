@@ -7,7 +7,7 @@ import numpy as np
 from scipy.linalg import cho_factor, solve_triangular, get_blas_funcs, block_diag
 from scipy._lib._util import _asarray_validated
 
-from autofit.graphical.utils import cached_property
+from autofit.tools.cached_property import cached_property
 
 
 class LinearOperator(ABC):
@@ -22,7 +22,7 @@ class LinearOperator(ABC):
 
     The class also has the attributes, lshape, rshape, lsize, rsize to allow multidimensional tensors to be used,
     see `ShermanMorrison`, `MultiVecOuterProduct`, or 
-    `autofit.graphical.messages.transform.MultinomialLogitTransform` 
+    `autofit.messages.transform.MultinomialLogitTransform`
     for examples of this use case
 
     If `M` is the dense matrix represenation of the LinearOperator then the

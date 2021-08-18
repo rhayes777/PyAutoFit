@@ -2,8 +2,10 @@ import numpy as np
 import pytest
 from scipy import stats
 
-import autofit.graphical.messages.normal
+import autofit.messages.normal
 from autofit import graphical as mp
+from autofit.messages import abstract
+from autofit.messages.normal import NormalMessage
 
 
 @pytest.fixture(
@@ -30,15 +32,23 @@ def make_model(
 
 
 @pytest.fixture(
+    name="message"
+)
+def make_message():
+    return NormalMessage(0, 1)
+
+
+@pytest.fixture(
     name="model_approx"
 )
 def make_model_approx(
         model,
-        x
+        x,
+        message
 ):
     return mp.EPMeanField.from_kws(
         model,
-        {x: autofit.graphical.messages.normal.NormalMessage(0, 1)}
+        {x: message}
     )
 
 
@@ -57,14 +67,16 @@ def make_probit_approx(
 def test_approximations(
         probit_approx,
         model_approx,
-        x
+        x,
+        message
 ):
     opt_probit = mp.OptFactor.from_approx(probit_approx)
     result = opt_probit.maximise({x: 0.})
 
-    probit_model = autofit.graphical.messages.normal.NormalMessage.from_mode(
+    probit_model = autofit.messages.normal.NormalMessage.from_mode(
         result.mode[x],
-        covariance=result.hess_inv[x]
+        covariance=result.hess_inv[x],
+        id_=message.id
     )
 
     probit_model_dist = mp.MeanField({x: probit_model})
@@ -85,11 +97,18 @@ def test_looped_importance_sampling(
         model,
         normal_factor,
         probit_factor,
-        x
+        x,
+        message
 ):
+    abstract.enforce_id_match = False
+
     model_approx = mp.EPMeanField.from_kws(
         model,
-        {x: autofit.graphical.messages.normal.NormalMessage(0, 1)}
+        {
+            x: autofit.messages.normal.NormalMessage(
+                0, 1, id_=message.id
+            )
+        }
     )
 
     np.random.seed(1)
@@ -124,7 +143,6 @@ def test_looped_importance_sampling(
 
             # save and print current approximation
             history.append(model_approx)
-            
 
     result = history[-1].mean_field[x]
 

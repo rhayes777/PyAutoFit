@@ -76,7 +76,7 @@ class CollectionPriorModel(AbstractPriorModel):
             key: value.as_model()
             if isinstance(value, AbstractPriorModel)
             else value
-            for key, value in self.dict.items()
+            for key, value in self.dict().items()
         })
 
     def __init__(self, *arguments, **kwargs):
