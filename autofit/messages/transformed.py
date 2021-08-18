@@ -30,8 +30,11 @@ class TransformedMessage(AbstractMessage):
             )
         self.instance = self._Message(*args, **kwargs)
         super().__init__(
-            *args,
-            **kwargs
+            *self.instance.parameters,
+            self.instance.log_norm,
+            lower_limit=self.instance.lower_limit,
+            upper_limit=self.instance.upper_limit,
+            id_=self.instance.id
         )
 
     @property

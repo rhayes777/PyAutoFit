@@ -94,15 +94,14 @@ class NormalMessage(AbstractMessage):
         return self.sigma ** 2
 
     def sample(self, n_samples=None):
-        mu, sigma = self.parameters
         if n_samples:
             x = np.random.randn(n_samples, *self.shape)
             if self.shape:
-                return x * sigma[None, ...] + mu[None, ...]
+                return x * self.sigma[None, ...] + self.mu[None, ...]
         else:
             x = np.random.randn(*self.shape)
 
-        return x * sigma + mu
+        return x * self.sigma + self.mu
 
     def kl(self, dist):
         return (
