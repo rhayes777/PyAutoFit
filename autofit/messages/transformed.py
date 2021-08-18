@@ -1,4 +1,5 @@
-from typing import Type, Tuple
+import inspect
+from typing import Type, Tuple, Union
 
 import numpy as np
 
@@ -9,8 +10,64 @@ from ..tools.cached_property import cached_property
 
 class TransformedMessage(AbstractMessage):
     _Message: Type[AbstractMessage]
-    _transform: AbstractDensityTransform
+    _transform: Union[AbstractDensityTransform, Type[AbstractDensityTransform]]
     _depth = 0
+
+    def __init__(self, *args, **kwargs):
+        if inspect.isclass(self._transform):
+            transform_args = inspect.getfullargspec(
+                self._transform
+            ).args[1:]
+
+            transform_dict = dict()
+            for arg in transform_args:
+                if arg in kwargs:
+                    transform_dict[
+                        arg
+                    ] = kwargs.pop(arg)
+            self._transform = self._transform(
+                **transform_dict
+            )
+        self.instance = self._Message(*args, **kwargs)
+        super().__init__(
+            *args,
+            **kwargs
+        )
+
+    @property
+    def natural_parameters(self):
+        return self.instance.natural_parameters
+
+    @property
+    def log_partition(self) -> np.ndarray:
+        return self.instance.log_partition
+
+    def __getattr__(self, item):
+        return getattr(
+            self.instance,
+            item
+        )
+
+    def invert_natural_parameters(
+            self,
+            natural_parameters
+    ):
+        return self.instance.invert_natural_parameters(
+            natural_parameters
+        )
+
+    def invert_sufficient_statistics(
+            self,
+            sufficient_statistics
+    ):
+        return self.instance.invert_sufficient_statistics(
+            sufficient_statistics
+        )
+
+    def value_for(self, unit):
+        return self.instance.value_for(
+            unit
+        )
 
     # noinspection PyMethodOverriding
     @classmethod
@@ -45,10 +102,9 @@ class TransformedMessage(AbstractMessage):
             ),
         )
 
-    @classmethod
-    def calc_log_base_measure(cls, x) -> np.ndarray:
-        x, log_det = cls._transform.transform_det(x)
-        log_base = cls._Message.calc_log_base_measure(x)
+    def calc_log_base_measure(self, x) -> np.ndarray:
+        x, log_det = self._transform.transform_det(x)
+        log_base = self.instance.calc_log_base_measure(x)
         return log_base + log_det
 
     @classmethod

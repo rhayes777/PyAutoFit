@@ -106,9 +106,8 @@ class AbstractMessage(Prior, ABC):
     def __hash__(self):
         return self.id
 
-    @classmethod
-    def calc_log_base_measure(cls, x):
-        return cls.log_base_measure
+    def calc_log_base_measure(self, x):
+        return self.log_base_measure
 
     def __iter__(self) -> Iterator[np.ndarray]:
         return iter(self.parameters)
@@ -623,7 +622,7 @@ class AbstractMessage(Prior, ABC):
         else:
             clsname = clsname or f"Transformed{cls.__name__}"
 
-            class Transformed(TransformedMessage, cls):  # type: ignore
+            class Transformed(TransformedMessage):  # type: ignore
                 __qualname__ = clsname
                 parameter_names = cls.parameter_names
                 _depth = 1
@@ -635,28 +634,6 @@ class AbstractMessage(Prior, ABC):
         )
         Transformed.__projection_class = projectionClass
         Transformed.__name__ = clsname
-
-        if inspect.isclass(transform):
-            transform_args = inspect.getfullargspec(
-                transform
-            ).args[1:]
-
-            def init(self, **kwargs):
-                transform_dict = dict()
-                for arg in transform_args:
-                    if arg in kwargs:
-                        transform_dict[
-                            arg
-                        ] = kwargs.pop(arg)
-                Transformed._transform = self._transform(
-                    **transform_dict
-                )
-                cls.__init__(
-                    self,
-                    **kwargs
-                )
-
-            Transformed.__init__ = init
 
         return Transformed
 
