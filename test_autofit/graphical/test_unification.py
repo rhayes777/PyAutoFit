@@ -65,13 +65,6 @@ def test_uniform_normal(x):
     assert np.isnan(message.pdf(3.2))
     assert message.pdf(1.5) > 0
 
-    # x = np.linspace(*message._support[0])
-    #
-    # plt.plot(
-    #     x, message.pdf(x)
-    # )
-    # plt.show()
-
 
 @pytest.fixture(
     name="ShiftedMessage"
@@ -98,21 +91,55 @@ def test_deferred_transform(
     assert message.pdf(1.5) > 0
 
 
-def test_values_stay_same(
+@pytest.fixture(
+    name="message_1"
+)
+def make_message_1(
         ShiftedMessage
 ):
-    message_1 = ShiftedMessage(
+    return ShiftedMessage(
         shift=1,
-        scale=2.1,
+        scale=2.0,
         mean=0.0,
         sigma=1.0
     )
-    assert message_1._transform.shift == 1
 
-    ShiftedMessage(
-        shift=1,
-        scale=2.1,
+
+def test_values_stay_same(
+        message_1,
+        ShiftedMessage
+):
+    assert message_1._transform.shift == 1.0
+    assert message_1._transform.scale == 2.0
+
+    message_2 = ShiftedMessage(
+        shift=2.0,
+        scale=3.0,
         mean=0.0,
         sigma=1.0
     )
     assert message_1._transform.shift == 1
+    assert message_1._transform.scale == 2.0
+
+    assert message_2._transform.shift == 2.0
+    assert message_2._transform.scale == 3.0
+
+
+@pytest.mark.parametrize(
+    "unit_value, physical_value",
+    [
+        (0.5, 2),
+        (0.0, 1),
+        (1.0, 3),
+    ]
+)
+def test_value_for(
+        message_1,
+        unit_value,
+        physical_value
+):
+    assert message_1.value_for(
+        unit_value
+    ) == pytest.approx(
+        physical_value
+    )
