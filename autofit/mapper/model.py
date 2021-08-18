@@ -180,7 +180,8 @@ class AbstractModel(ModelObject):
     def path_instance_tuples_for_class(
             self,
             cls: Union[Tuple, Type],
-            ignore_class=None
+            ignore_class=None,
+            ignore_children=False
     ):
         """
         Tuples containing the path tuple and instance for every instance of the class
@@ -190,6 +191,8 @@ class AbstractModel(ModelObject):
         ----------
         ignore_class
             Children of instances of this class are ignored
+        ignore_children
+            If true do not continue to recurse the children of an object once found
         cls
             The type to find instances of
 
@@ -201,7 +204,8 @@ class AbstractModel(ModelObject):
         return path_instances_of_class(
             self,
             cls,
-            ignore_class=ignore_class
+            ignore_class=ignore_class,
+            ignore_children=ignore_children
         )
 
     @frozen_cache
@@ -222,7 +226,10 @@ class AbstractModel(ModelObject):
             in self.attribute_tuples_with_type(
                 PriorModel
             )
-            if model.cls == cls
+            if model.cls == cls or issubclass(
+                model.cls,
+                cls
+            )
         ]
 
     @frozen_cache
@@ -256,7 +263,10 @@ class AbstractModel(ModelObject):
 
 @DynamicRecursionCache()
 def path_instances_of_class(
-        obj, cls: type, ignore_class: Optional[Union[type, Tuple[type]]] = None
+        obj,
+        cls: type,
+        ignore_class: Optional[Union[type, Tuple[type]]] = None,
+        ignore_children: bool = False
 ):
     """
     Recursively search the object for instances of a given class
@@ -268,7 +278,9 @@ def path_instances_of_class(
     cls
         The type to search for
     ignore_class
-        A type or
+        A type or tuple of classes to skip
+    ignore_children
+        If true stop recursion at found objects
 
     Returns
     -------
@@ -276,9 +288,12 @@ def path_instances_of_class(
     """
     if ignore_class is not None and isinstance(obj, ignore_class):
         return []
-    if isinstance(obj, cls):
-        return [(tuple(), obj)]
+
     results = []
+    if isinstance(obj, cls):
+        results.append((tuple(), obj))
+        if ignore_children:
+            return results
     try:
         from autofit.mapper.prior_model.annotation import AnnotationPriorModel
 
@@ -293,7 +308,8 @@ def path_instances_of_class(
             for item in path_instances_of_class(
                     value,
                     cls,
-                    ignore_class=ignore_class
+                    ignore_class=ignore_class,
+                    ignore_children=True
             ):
                 if isinstance(value, AnnotationPriorModel):
                     path = (key,)
@@ -302,7 +318,7 @@ def path_instances_of_class(
                 results.append((path, item[1]))
         return results
     except (AttributeError, TypeError):
-        return []
+        return results
 
 
 class ModelInstance(AbstractModel):
