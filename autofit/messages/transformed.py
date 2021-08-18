@@ -110,10 +110,9 @@ class TransformedMessage(AbstractMessage):
         log_base = self.instance.calc_log_base_measure(x)
         return log_base + log_det
 
-    @classmethod
-    def to_canonical_form(cls, x) -> np.ndarray:
-        x = cls._transform.transform(x)
-        return cls._Message.to_canonical_form(x)
+    def to_canonical_form(self, x) -> np.ndarray:
+        x = self._transform.transform(x)
+        return self.instance.to_canonical_form(x)
 
     @cached_property
     def mean(self) -> np.ndarray:
