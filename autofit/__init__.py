@@ -32,7 +32,7 @@ from .mapper.prior.width_modifier import RelativeWidthModifier
 from .mapper.prior.width_modifier import WidthModifier
 from .mapper.prior.prior import GaussianPrior
 from .mapper.prior.prior import LogUniformPrior
-from .mapper.prior.prior import Prior
+from .mapper.prior.abstract import Prior
 from .mapper.prior.tuple_prior import TuplePrior
 from .mapper.prior.prior import UniformPrior
 from .mapper.prior_model.abstract import AbstractPriorModel

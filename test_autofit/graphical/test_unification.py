@@ -3,8 +3,8 @@ import pytest
 
 import autofit as af
 from autofit import graphical as g
+from autofit.mapper.prior.prior import ShiftedMessage
 from autofit.messages.normal import UniformNormalMessage
-from autofit.messages.transform import LinearShiftTransform
 
 
 @pytest.fixture(
@@ -66,19 +66,7 @@ def test_uniform_normal(x):
     assert message.pdf(1.5) > 0
 
 
-@pytest.fixture(
-    name="ShiftedMessage"
-)
-def make_shifted_message():
-    return UniformNormalMessage.transformed(
-        LinearShiftTransform,
-        clsname=f"ShiftedUniformNormalMessage"
-    )
-
-
-def test_deferred_transform(
-        ShiftedMessage
-):
+def test_deferred_transform():
     message = ShiftedMessage(
         shift=1,
         scale=2.1,
@@ -94,9 +82,7 @@ def test_deferred_transform(
 @pytest.fixture(
     name="message_1"
 )
-def make_message_1(
-        ShiftedMessage
-):
+def make_message_1():
     return ShiftedMessage(
         shift=1,
         scale=2.0,
@@ -107,7 +93,6 @@ def make_message_1(
 
 def test_values_stay_same(
         message_1,
-        ShiftedMessage
 ):
     assert message_1._transform.shift == 1.0
     assert message_1._transform.scale == 2.0

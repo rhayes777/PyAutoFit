@@ -28,10 +28,11 @@ class TransformedMessage(AbstractMessage):
             self._transform = self._transform(
                 **transform_dict
             )
+
         self.instance = self._Message(*args, **kwargs)
         super().__init__(
             *self.instance.parameters,
-            self.instance.log_norm,
+            log_norm=self.instance.log_norm,
             lower_limit=self.instance.lower_limit,
             upper_limit=self.instance.upper_limit,
             id_=self.instance.id
@@ -81,14 +82,18 @@ class TransformedMessage(AbstractMessage):
             transform: AbstractDensityTransform,
             parameters: Tuple[np.ndarray, ...],
             log_norm: float,
-            id_
+            id_,
+            lower_limit,
+            upper_limit
     ):
         # Reconstructs TransformedMessage during unpickling
         Transformed = Message.transformed(transform, clsname)
         return Transformed(
             *parameters,
             log_norm=log_norm,
-            id_=id_
+            id_=id_,
+            lower_limit=lower_limit,
+            upper_limit=upper_limit
         )
 
     def __reduce__(self):
@@ -101,7 +106,9 @@ class TransformedMessage(AbstractMessage):
                 self._transform,
                 self.parameters,
                 self.log_norm,
-                self.id
+                self.id,
+                self.lower_limit,
+                self.upper_limit
             ),
         )
 

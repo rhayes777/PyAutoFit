@@ -2,8 +2,8 @@ import numpy as np
 
 from autoconf import conf
 from autofit import exc
-from autofit.messages.normal import NormalMessage
-from .abstract import Prior
+from autofit.messages.normal import NormalMessage, UniformNormalMessage
+from autofit.messages.transform import LinearShiftTransform
 
 
 class Limits:
@@ -15,8 +15,32 @@ class Limits:
         return limit_dict["lower"], limit_dict["upper"]
 
 
-class UniformPrior(Prior):
+ShiftedMessage = UniformNormalMessage.transformed(
+    LinearShiftTransform,
+    clsname=f"ShiftedUniformNormalMessage"
+)
+
+
+class UniformPrior(ShiftedMessage):
     """A prior with a uniform distribution between a lower and upper limit"""
+
+    def __init__(
+            self,
+            lower_limit=0.0,
+            upper_limit=1.0,
+            log_norm=0.0,
+            id_=None
+    ):
+        super().__init__(
+            mean=0.0,
+            sigma=1.0,
+            id_=id_,
+            upper_limit=upper_limit,
+            lower_limit=lower_limit,
+            log_norm=log_norm,
+            shift=lower_limit,
+            scale=upper_limit
+        )
 
     def value_for(self, unit):
         """
@@ -34,7 +58,7 @@ class UniformPrior(Prior):
 
     def log_prior_from_value(self, value):
         """
-    Returns the log prior of a physical value, so the log likelihood of a model evaluation can be converted to a
+        Returns the log prior of a physical value, so the log likelihood of a model evaluation can be converted to a
         posterior as log_prior + log_likelihood.
 
         This is used by Emcee in the log likelihood function evaluation.

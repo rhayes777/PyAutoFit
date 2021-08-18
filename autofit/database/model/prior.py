@@ -2,7 +2,7 @@ from typing import Union
 
 from sqlalchemy import Column, Integer, ForeignKey
 
-from autofit.mapper.prior import prior
+from autofit.mapper.prior.abstract import Prior
 from autofit.mapper.prior_model import prior_model
 from autofit.mapper.prior_model import collection
 
@@ -110,7 +110,7 @@ class Prior(Object):
     @classmethod
     def _from_object(
             cls,
-            model: prior.Prior
+            model: Prior
     ):
         instance = cls()
         instance.cls = type(model)
