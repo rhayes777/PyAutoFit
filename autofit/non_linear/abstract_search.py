@@ -445,6 +445,8 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         self.paths.unique_tag = self.unique_tag
         self.paths.restore()
 
+        analysis.modify_before_fit(model=model)
+
         if not self.paths.is_complete or self.force_pickle_overwrite:
             self.logger.info(
                 "Saving path info"

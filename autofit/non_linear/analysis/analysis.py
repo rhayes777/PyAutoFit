@@ -33,6 +33,9 @@ class Analysis(ABC):
                                     samples: OptimizerSamples):
         pass
 
+    def modify_before_fit(self, model):
+        pass
+
     def make_result(self, samples, model, search):
         return Result(samples=samples, model=model, search=search)
 
