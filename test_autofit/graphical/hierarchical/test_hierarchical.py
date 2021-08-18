@@ -3,6 +3,8 @@ import pytest
 from scipy import stats
 
 from autofit import graphical as g
+from autofit.mapper.variable import Variable
+from autofit.messages.normal import NormalMessage
 
 
 def normal_loglike(x, centre, precision, _variables=None):
@@ -71,14 +73,14 @@ def make_model_approx(
         widths
 ):
     centres_ = [
-        g.Variable(f'x_{i}')
+        Variable(f'x_{i}')
         for i in range(n)
     ]
-    mu_ = g.Variable('mu')
-    logt_ = g.Variable('logt')
+    mu_ = Variable('mu')
+    logt_ = Variable('logt')
 
     centre_likelihoods = [
-        g.NormalMessage(c, w).as_factor(x)
+        NormalMessage(c, w).as_factor(x)
         for c, w, x
         in zip(
             centres,
@@ -101,10 +103,10 @@ def make_model_approx(
     model_approx = g.EPMeanField.from_approx_dists(
         model,
         {
-            mu_: g.NormalMessage(0, 10),
-            logt_: g.NormalMessage(0, 10),
+            mu_: NormalMessage(0, 10),
+            logt_: NormalMessage(0, 10),
             **{
-                x_: g.NormalMessage(0, 10) for x_ in centres_
+                x_: NormalMessage(0, 10) for x_ in centres_
             },
         }
     )

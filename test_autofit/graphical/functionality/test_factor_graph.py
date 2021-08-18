@@ -3,6 +3,8 @@ import pytest
 from scipy.optimize import approx_fprime
 
 import autofit.mapper.variable
+from autofit.messages.normal import NormalMessage
+from autofit.mapper.variable import Variable, Plate
 from autofit import graphical as mp
 
 
@@ -22,14 +24,14 @@ def plus_two(x):
     name="x"
 )
 def make_x():
-    return mp.Variable('x')
+    return Variable('x')
 
 
 @pytest.fixture(
     name="y"
 )
 def make_y():
-    return mp.Variable('y')
+    return Variable('y')
 
 
 @pytest.fixture(
@@ -100,8 +102,8 @@ def make_flat_compound(
 
 def test_factor_jacobian():
     shape = 4, 3
-    z_ = mp.Variable('z', *(mp.Plate() for _ in shape))
-    likelihood = mp.NormalMessage(
+    z_ = Variable('z', *(Plate() for _ in shape))
+    likelihood = NormalMessage(
         np.random.randn(*shape),
         np.random.exponential(size=shape))
     likelihood_factor = likelihood.as_factor(z_)
@@ -133,7 +135,7 @@ class TestFactorGraph:
             phi,
             compound
     ):
-        values = {mp.Variable('x'): 5}
+        values = {Variable('x'): 5}
         assert sigmoid(values).log_value == -0.006715348489118068
         assert phi(values).log_value == -13.418938533204672
         assert compound(values).log_value == -13.42565388169379
@@ -144,17 +146,17 @@ class TestFactorGraph:
             phi,
             compound
     ):
-        values = {mp.Variable('x'): [5]}
+        values = {Variable('x'): [5]}
         assert sigmoid(values).log_value[0] == -0.006715348489118068
         assert phi(values).log_value[0] == -13.418938533204672
         assert compound(values).log_value[0] == -13.42565388169379
 
     def test_multivariate_message(
             self):
-        p1, p2, p3 = mp.Plate(), mp.Plate(), mp.Plate()
-        x_ = mp.Variable('x', p3, p1)
-        y_ = mp.Variable('y', p1, p2)
-        z_ = mp.Variable('z', p2, p3)
+        p1, p2, p3 = Plate(), Plate(), Plate()
+        x_ = Variable('x', p3, p1)
+        y_ = Variable('y', p1, p2)
+        z_ = Variable('z', p2, p3)
 
         n1, n2, n3 = shape = (2, 3, 4)
 
@@ -173,9 +175,9 @@ class TestFactorGraph:
         factor(variables)
 
         model_dist = mp.MeanField({
-            x_: mp.NormalMessage(x, 1 * np.ones_like(x)),
-            y_: mp.NormalMessage(y, 1 * np.ones_like(y)),
-            z_: mp.NormalMessage(z, 1 * np.ones_like(z)),
+            x_: NormalMessage(x, 1 * np.ones_like(x)),
+            y_: NormalMessage(y, 1 * np.ones_like(y)),
+            z_: NormalMessage(z, 1 * np.ones_like(z)),
         })
 
         assert model_dist(variables).log_value.shape == shape
@@ -185,7 +187,7 @@ class TestFactorGraph:
             sigmoid,
             vectorised_sigmoid
     ):
-        variables = {mp.Variable('x'): np.full(1000, 5.)}
+        variables = {Variable('x'): np.full(1000, 5.)}
         assert np.allclose(
             sigmoid(variables).log_value,
             vectorised_sigmoid(variables).log_value)
@@ -196,7 +198,7 @@ class TestFactorGraph:
     ):
         length = 2 ** 10
         array = np.linspace(-5, 5, length)
-        variables = {mp.Variable('x'): array}
+        variables = {Variable('x'): array}
         result = compound(variables)
         log_value = result.log_value
 

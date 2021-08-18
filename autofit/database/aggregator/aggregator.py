@@ -123,14 +123,13 @@ class AbstractAggregator(ABC):
         -------
         A list of objects, one for each fit
         """
-        return list(filter(
-            None,
-            [
-                fit[name]
-                for fit
-                in self
-            ]
-        ))
+        values = list()
+        for fit in self:
+            value = fit[name]
+            if value is not None:
+                values.append(value)
+
+        return values
 
     def __iter__(self):
         return iter(

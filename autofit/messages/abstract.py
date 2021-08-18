@@ -1,75 +1,67 @@
 from abc import ABC, abstractmethod
 from functools import reduce, wraps
 from inspect import getfullargspec
-from itertools import count
 from numbers import Real
 from operator import and_
-from typing import Optional, Tuple, Union, Iterator, Type, List
+from typing import (
+    Dict, Tuple, Iterator
+)
+from typing import Optional, Union, Type, List
 
 import numpy as np
 
-from autofit.mapper.prior.prior import Prior, GaussianPrior
+from autofit.mapper.prior.abstract import Prior
 from .transform import AbstractDensityTransform, LinearShiftTransform
-from ..factor_graphs.jacobians import FactorJacobian
-from ..utils import cached_property
-from ...mapper.variable import Variable
+from ..mapper.variable import Variable
+from ..tools.cached_property import cached_property
+
+enforce_id_match = True
 
 
 def assert_ids_match(func):
     @wraps(func)
     def wrapper(self, other):
-        if isinstance(
-                other,
-                AbstractMessage
-        ) and self.id != other.id:
-            raise AssertionError(
-                f"Message with id {self.id} should not be compared to message with id {other.id}"
-            )
+        if enforce_id_match:
+            if isinstance(
+                    other,
+                    AbstractMessage
+            ) and self.id != other.id:
+                raise AssertionError(
+                    f"Message with id {self.id} should not be compared to message with id {other.id}"
+                )
         result = func(self, other)
         return result
 
     return wrapper
 
 
-class AbstractMessage(ABC):
+class AbstractMessage(Prior, ABC):
     log_base_measure: float
     _projection_class: Optional[Type['AbstractMessage']] = None
     _multivariate: bool = False
     _parameter_support: Optional[Tuple[Tuple[float, float], ...]] = None
     _support: Optional[Tuple[Tuple[float, float], ...]] = None
 
-    _ids = count()
-
     def __init__(
             self,
             *parameters: Union[np.ndarray, float],
             log_norm=0.,
-            id_=None
+            **kwargs
     ):
-        self.id_ = id_ or next(self._ids)
+        super().__init__(
+            **kwargs
+        )
         self.log_norm = log_norm
         self._broadcast = np.broadcast(*parameters)
-        self.id = id_
+
         if self.shape:
             self.parameters = tuple(
                 np.asanyarray(p) for p in parameters)
         else:
             self.parameters = tuple(parameters)
 
-    @classmethod
-    def from_prior(cls, prior: Prior) -> "AbstractMessage":
-        from autofit.graphical import NormalMessage
-        if isinstance(
-                prior, GaussianPrior
-        ):
-            return NormalMessage(
-                mu=prior.mean,
-                sigma=prior.sigma,
-                id_=prior.id
-            )
-        raise TypeError(
-            f"No message exists for prior of type {type(prior)}"
-        )
+    def __bool__(self):
+        return True
 
     @cached_property
     @abstractmethod
@@ -111,7 +103,7 @@ class AbstractMessage(ABC):
         return self.variance ** 0.5
 
     def __hash__(self):
-        return self.id or super().__hash__()
+        return self.id
 
     @classmethod
     def calc_log_base_measure(cls, x):
@@ -397,23 +389,6 @@ class AbstractMessage(ABC):
             id_=id_
         )
 
-    def has_exact_projection(self, x: "AbstractMessage") -> bool:
-        return type(self) == type(x)
-
-    def calc_exact_projection(self, x: "AbstractMessage"):
-        if type(self) == type(x):
-            projection = self * x
-            projection.log_norm = self.log_normalisation(x)
-            return {'x': projection}
-        raise NotImplementedError()
-
-    def calc_exact_update(self, x: "AbstractMessage"):
-        if type(self) == type(x):
-            log_norm = self.log_normalisation(x)
-            return {'x': type(x)(*self.parameters, log_norm=log_norm)}
-        else:
-            raise NotImplementedError()
-
     @classmethod
     def from_mode(
             cls,
@@ -531,7 +506,7 @@ class AbstractMessage(ABC):
                 return self.logpdf(x), ()
 
     def as_factor(self, variable: "Variable", name: Optional[str] = None
-                  ) -> "FactorJacobian":
+                  ):
         from autofit.graphical import FactorJacobian
         if name is None:
             shape = self.shape
@@ -565,7 +540,7 @@ class AbstractMessage(ABC):
 
         Examples
         --------
-        >>> from autofit.graphical.messages import NormalMessage, transform
+
 
         Normal distributions have infinite univariate support
         >>> NormalMessage._support
@@ -666,9 +641,14 @@ class AbstractMessage(ABC):
             cls,
             parameters: Tuple[np.ndarray, ...],
             log_norm: float,
+            id_,
             *args
     ):
-        return cls(*parameters, log_norm=log_norm)
+        return cls(
+            *parameters,
+            log_norm=log_norm,
+            id_=id_
+        )
 
     def __reduce__(self):
         # serialises TransformedMessage during pickling
@@ -676,7 +656,8 @@ class AbstractMessage(ABC):
             self._reconstruct,
             (
                 self.parameters,
-                self.log_norm
+                self.log_norm,
+                self.id
             ),
         )
 
@@ -689,9 +670,6 @@ class AbstractMessage(ABC):
     def _logpdf_gradient(cls, self, x):
         # Needed for nested TransformedMessage method resolution
         return cls.logpdf_gradient(self, x)
-
-    def as_prior(self):
-        raise NotImplemented()
 
 
 class TransformedMessage(AbstractMessage):
@@ -706,11 +684,16 @@ class TransformedMessage(AbstractMessage):
             clsname: str,
             transform: AbstractDensityTransform,
             parameters: Tuple[np.ndarray, ...],
-            log_norm: float
+            log_norm: float,
+            id_
     ):
         # Reconstructs TransformedMessage during unpickling
         Transformed = Message.transformed(transform, clsname)
-        return Transformed(*parameters, log_norm=log_norm)
+        return Transformed(
+            *parameters,
+            log_norm=log_norm,
+            id_=id_
+        )
 
     def __reduce__(self):
         # serialises TransformedMessage during pickling
@@ -721,7 +704,8 @@ class TransformedMessage(AbstractMessage):
                 self.__class__.__name__,
                 self._transform,
                 self.parameters,
-                self.log_norm
+                self.log_norm,
+                self.id
             ),
         )
 
@@ -780,3 +764,17 @@ class TransformedMessage(AbstractMessage):
         mode, jac = cls._transform.transform_jac(mode)
         covariance = jac.invquad(covariance)
         return cls.from_mode(mode, covariance, id_=id_)
+
+
+def map_dists(dists: Dict[str, AbstractMessage],
+              values: Dict[str, np.ndarray],
+              _call: str = 'logpdf'
+              ) -> Iterator[Tuple[str, np.ndarray]]:
+    """
+    Calls a method (default: logpdf) for each Message in dists
+    on the corresponding value in values
+    """
+    for v in dists.keys() & values.keys():
+        dist = dists[v]
+        if isinstance(dist, AbstractMessage):
+            yield v, getattr(dist, _call)(values[v])

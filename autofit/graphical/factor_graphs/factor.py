@@ -13,11 +13,9 @@ from autofit.graphical.factor_graphs.abstract import \
     (
     AbstractNode, FactorValue
 )
-from autofit.graphical.utils import \
-    (
-    aggregate, Axis, cached_property
-)
+from autofit.graphical.utils import aggregate, Axis
 from autofit.mapper.variable import Variable
+from autofit.tools.cached_property import cached_property
 
 
 class AbstractFactor(AbstractNode, ABC):
@@ -189,7 +187,7 @@ class Factor(AbstractFactor):
                 arg: Variable(arg)
                 for arg
                 in args
-                if arg not in kwargs and arg != "self"
+                if arg not in kwargs and arg != "self" and not arg.startswith("_")
             }
         }
 
@@ -506,7 +504,7 @@ class Factor(AbstractFactor):
         return DeterministicFactor(
             self._factor,
             other,
-            name=self.name, 
+            name=self.name,
             **self._kwargs
         )
 
@@ -549,7 +547,7 @@ class DeterministicFactor(Factor):
             factor: Callable,
             variable: Variable,
             *args: Variable,
-            name: str = '', 
+            name: str = '',
             **kwargs: Variable
     ):
         """
@@ -570,7 +568,7 @@ class DeterministicFactor(Factor):
         super().__init__(
             factor,
             *args,
-            name=name or factor.__name__, 
+            name=name or factor.__name__,
             **kwargs
         )
         self._deterministic_variables = {

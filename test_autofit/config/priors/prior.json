@@ -1,5 +1,5 @@
 {
-  "GaussianPrior": {
+  "gaussian.GaussianPrior": {
     "lower_limit": {
       "type": "Constant",
       "value": "-inf"

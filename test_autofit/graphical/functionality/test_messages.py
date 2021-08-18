@@ -1,13 +1,14 @@
 import numpy as np
 import pytest
-from scipy import stats, integrate
+from scipy import integrate
 
-import numpy as np
-
-import autofit.graphical.messages.normal
-from autofit import graphical as graph
-from autofit.graphical.messages import transform
-from autofit.graphical.utils import numerical_jacobian
+from autofit.graphical import MeanField
+from autofit.mapper.variable import Plate, Variable
+from autofit.messages import transform
+from autofit.messages.beta import BetaMessage
+from autofit.messages.gamma import GammaMessage
+from autofit.messages.normal import NormalMessage, UniformNormalMessage, LogNormalMessage, MultiLogitNormalMessage
+from autofit.messages.transform import numerical_jacobian
 
 
 def check_dist_norm(dist):
@@ -33,11 +34,11 @@ def check_log_normalisation(ms):
         *m1._support[0])
 
     # verify within tolerance
-    assert np.abs(A - i12) < ierr < 1e-1, m1 
+    assert np.abs(A - i12) < ierr < 1e-1, m1
 
 
 def check_numerical_gradient_hessians(message, x=None):
-    x = message.sample() if x is None else x 
+    x = message.sample() if x is None else x
 
     res = message.logpdf_gradient(x)
     nres = message.numerical_logpdf_gradient(x)
@@ -53,19 +54,19 @@ def check_numerical_gradient_hessians(message, x=None):
 def test_message_norm():
     messages = [
         tuple(
-            map(graph.NormalMessage,
+            map(NormalMessage,
                 [0.5, 0.1], [0.2, 0.3])),
         tuple(
-            map(graph.NormalMessage,
+            map(NormalMessage,
                 [0.5, 0.1, -0.5], [0.2, 0.3, 1.3])),
         tuple(
-            map(graph.GammaMessage,
+            map(GammaMessage,
                 [0.5, 1.1], [0.2, 1.3])),
         tuple(
-            map(graph.GammaMessage,
+            map(GammaMessage,
                 [0.5, 1.1, 2], [0.2, 1.3, 1])),
         tuple(
-            map(graph.BetaMessage,
+            map(BetaMessage,
                 [2., 3.2, 1.5], [4.1, 2.3, 3])),
     ]
     for ms in messages:
@@ -76,13 +77,13 @@ def test_message_norm():
 
 
 def test_numerical_gradient_hessians():
-    N = graph.NormalMessage
-    UN = graph.UniformNormalMessage
+    N = NormalMessage
+    UN = UniformNormalMessage
     SUN = UN.shifted(shift=0.3, scale=0.8)
-    LN = graph.LogNormalMessage
-    MLN = graph.MultiLogitNormalMessage
+    LN = LogNormalMessage
+    MLN = MultiLogitNormalMessage
     # test doubly transformed distributions
-    WN = graph.NormalMessage.transformed(
+    WN = NormalMessage.transformed(
         transform.log_transform
     ).transformed(
         transform.exp_transform,
@@ -108,24 +109,26 @@ def test_numerical_gradient_hessians():
     for M, m, s, x in test_cases:
         check_numerical_gradient_hessians(M(m, s), x)
 
+
 def test_meanfield_gradients():
     n1, n2, n3 = 2, 3, 5
-    p1, p2, p3 = [graph.Plate() for i in range(3)]
+    p1, p2, p3 = [Plate() for i in range(3)]
 
-    v1 = graph.Variable('v1', p1, p2)
-    v2 = graph.Variable('v2', p2, p3)
-    v3 = graph.Variable('v3', p3, p1)
+    v1 = Variable('v1', p1, p2)
+    v2 = Variable('v2', p2, p3)
+    v3 = Variable('v3', p3, p1)
 
-    mean_field = graph.MeanField({
-        v1: graph.NormalMessage(
+    mean_field = MeanField({
+        v1: NormalMessage(
             np.random.randn(n1, n2),
             np.random.exponential(size=(n1, n2))),
-        v2: graph.NormalMessage(
+        v2: NormalMessage(
             np.random.randn(n2, n3),
             np.random.exponential(size=(n2, n3))),
-        v3: graph.NormalMessage(
+        v3: NormalMessage(
             np.random.randn(n3, n1),
-            np.random.exponential(size=(n3, n1)))})
+            np.random.exponential(size=(n3, n1)))
+    })
 
     values = mean_field.sample()
     l0 = mean_field(values, axis=None)
@@ -160,11 +163,11 @@ def test_meanfield_gradients():
 
 def test_beta():
     a = b = np.r_[2., 3.2, 1.5]
-    beta = graph.BetaMessage(a, b[::-1])
+    beta = BetaMessage(a, b[::-1])
     check_dist_norms(beta)
 
     betas = [
-        graph.BetaMessage(a, b)
+        BetaMessage(a, b)
         for a, b in (np.random.poisson(5, size=(10, 2)) + 1)
     ]
     for b in betas:
@@ -201,7 +204,7 @@ def test_multinomial_logit():
     mult_logit = transform.multinomial_logit_transform
 
     d = 3
-    p = np.random.dirichlet(np.ones(d+1))[:d]
+    p = np.random.dirichlet(np.ones(d + 1))[:d]
 
     x, logd, logd_grad, jac = mult_logit.transform_det_jac(p)
 
@@ -215,7 +218,7 @@ def test_multinomial_logit():
 
     n = 5
 
-    ps = np.random.dirichlet(np.ones(d+1), size=n)[:, :d]
+    ps = np.random.dirichlet(np.ones(d + 1), size=n)[:, :d]
     xs, logd, logd_grad, jac = mult_logit.transform_det_jac(ps)
     njac = numerical_jacobian(ps, mult_logit.transform).reshape(jac.shape)
     nlogd_grad = numerical_jacobian(ps, mult_logit.log_det)
@@ -223,7 +226,7 @@ def test_multinomial_logit():
     assert np.allclose(mult_logit.inv_transform(xs), ps)
     assert np.allclose(njac, jac.to_dense())
     assert np.isclose(
-        logd.sum(), 
+        logd.sum(),
         np.linalg.slogdet(njac.reshape(jac.lsize, jac.rsize))[1]
     )
     assert np.allclose(nlogd_grad.sum((0, 1)), logd_grad, 1e-5, 1e-3)
@@ -235,10 +238,10 @@ def test_multinomial_logit():
 
 def test_normal_simplex():
     mult_logit = transform.MultinomialLogitTransform()
-    NormalSimplex = graph.messages.NormalMessage.transformed(mult_logit)
+    NormalSimplex = NormalMessage.transformed(mult_logit)
 
     message = NormalSimplex([-1, 2], [.3, .3])
-    
+
     check_numerical_gradient_hessians(message, message.sample())
 
     def func(*p):

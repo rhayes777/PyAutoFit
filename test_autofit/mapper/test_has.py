@@ -2,6 +2,38 @@ import autofit as af
 from autofit.mock import mock as m
 
 
+class GaussianChild(m.Gaussian):
+    pass
+
+
+def test_inheritance():
+    collection = af.CollectionPriorModel(
+        first=af.Model(
+            GaussianChild
+        ),
+        second=GaussianChild()
+    )
+
+    assert collection.has_instance(
+        m.Gaussian
+    )
+    assert collection.has_model(
+        m.Gaussian
+    )
+
+
+def test_embedded():
+    collection = af.Collection(
+        galaxy=af.Model(
+            m.Gaussian,
+            centre=GaussianChild
+        )
+    )
+    assert collection.has_model(
+        GaussianChild
+    )
+
+
 def test_instance():
     collection = af.CollectionPriorModel(
         gaussian=m.Gaussian()

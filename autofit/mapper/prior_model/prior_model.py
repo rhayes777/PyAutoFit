@@ -6,7 +6,8 @@ from autoconf.exc import ConfigException
 from autofit.mapper.model import assert_not_frozen
 from autofit.mapper.model_object import ModelObject
 from autofit.mapper.prior.deferred import DeferredInstance
-from autofit.mapper.prior.prior import TuplePrior, Prior
+from autofit.mapper.prior.prior import Prior
+from autofit.mapper.prior.tuple_prior import TuplePrior
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.mapper.prior_model.abstract import check_assertions
 from autofit.tools.util import get_class_path
@@ -124,20 +125,27 @@ class PriorModel(AbstractPriorModel):
                 else:
                     setattr(self, arg, PriorModel(annotations[arg]))
             else:
-                setattr(self, arg, self.make_prior(arg))
+                prior = self.make_prior(arg)
+                if isinstance(
+                        prior,
+                        ConfigException
+                ) and hasattr(
+                    cls, "__default_fields__"
+                ) and arg in cls.__default_fields__:
+                    prior = defaults[arg]
+                setattr(self, arg, prior)
         for key, value in kwargs.items():
             if not hasattr(self, key):
                 setattr(
                     self, key, PriorModel(value) if inspect.isclass(value) else value
                 )
 
-    @property
     def dict(self):
         return {
             "class_path": get_class_path(
                 self.cls
             ),
-            **super().dict
+            **super().dict()
         }
 
     # noinspection PyAttributeOutsideInit
@@ -356,4 +364,3 @@ class PriorModel(AbstractPriorModel):
             )
 
         return new_model
-

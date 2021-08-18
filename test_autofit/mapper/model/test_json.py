@@ -64,7 +64,7 @@ class TestTuple:
         tuple_prior.tup_1 = 1
 
         result = af.Model.from_dict(
-            tuple_prior.dict
+            tuple_prior.dict()
         )
         assert isinstance(
             result,
@@ -74,7 +74,7 @@ class TestTuple:
     def test_model_with_tuple(self):
         tuple_model = af.Model(WithTuple)
         tuple_model.instance_from_prior_medians()
-        model_dict = tuple_model.dict
+        model_dict = tuple_model.dict()
 
         model = af.Model.from_dict(
             model_dict
@@ -130,7 +130,7 @@ class TestToDict:
             model,
             model_dict
     ):
-        assert model.dict == model_dict
+        assert model.dict() == model_dict
 
     def test_model_floats(
             self,
@@ -143,7 +143,7 @@ class TestToDict:
             sigma=0.01
         )
 
-        assert model.dict == instance_dict
+        assert model.dict() == instance_dict
 
     def test_collection(
             self,
@@ -153,7 +153,7 @@ class TestToDict:
         collection = af.Collection(
             gaussian=model
         )
-        assert collection.dict == collection_dict
+        assert collection.dict() == collection_dict
 
     def test_collection_instance(
             self,
@@ -162,7 +162,7 @@ class TestToDict:
         collection = af.Collection(
             gaussian=Gaussian()
         )
-        assert collection.dict == {
+        assert collection.dict() == {
             "gaussian": instance_dict,
             "type": "collection"
         }
@@ -184,7 +184,7 @@ class TestFromJson:
             pass
 
         with open(model_file, "w+") as f:
-            json.dump(model.dict, f, indent=4)
+            json.dump(model.dict(), f, indent=4)
 
         model = af.Model.from_json(file=model_file)
 

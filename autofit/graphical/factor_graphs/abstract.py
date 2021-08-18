@@ -1,41 +1,44 @@
 from abc import ABC, abstractmethod
-from functools import wraps
+from itertools import count
 from typing import \
     (
-    List, Tuple, Dict, cast, Set, NamedTuple, Optional, Union, Collection
+    List, Tuple, Dict, cast, Set, Optional, Union, Collection
 )
-from itertools import count
 
 import numpy as np
 
+from autofit.graphical.utils import FlattenArrays
 from autofit.mapper.variable import Variable, Plate
-from autofit.graphical.utils import FlattenArrays, cached_property
+from autofit.tools.cached_property import cached_property
 
 Value = Dict[Variable, np.ndarray]
+
+
 class FactorValue(np.ndarray):
 
     def __new__(cls, input_array, deterministic_values=None):
         obj = np.asarray(input_array).view(cls)
-        
+
         if deterministic_values is None:
             obj.deterministic_values = {}
         else:
             obj.deterministic_values = deterministic_values
-            
+
         return obj
 
     def __array_finalize__(self, obj):
-        if obj is None: return
+        if obj is None:
+            return
         self.deterministic_values = getattr(
             obj, 'deterministic_values', None)
-        
+
     @property
     def log_value(self) -> np.ndarray:
         if self.shape:
             return self.base
         else:
             return self.item()
-        
+
     def __getitem__(self, index) -> np.ndarray:
         if isinstance(index, Variable):
             return self.deterministic_values[index]
@@ -51,11 +54,13 @@ class FactorValue(np.ndarray):
     def items(self):
         return self.deterministic_values.items()
 
+
 JacobianValue = Dict[Variable, FactorValue]
 HessianValue = Dict[Variable, np.ndarray]
 
 from autofit.graphical.factor_graphs.numerical import (
-    numerical_func_jacobian, numerical_func_jacobian_hessian)
+    numerical_func_jacobian, numerical_func_jacobian_hessian
+)
 
 
 class AbstractNode(ABC):
@@ -84,7 +89,7 @@ class AbstractNode(ABC):
         self.id = next(self._id)
 
     def resolve_variable_dict(
-            self, variable_dict:Dict[Variable, np.ndarray]
+            self, variable_dict: Dict[Variable, np.ndarray]
     ) -> Dict[str, np.ndarray]:
         return {
             self._variable_name_kw[v.name]: x
@@ -181,11 +186,11 @@ class AbstractNode(ABC):
         newshape = np.ones(self.ndim + shift, dtype=int)
         newshape[:shift] = shape[:shift]
         newshape[shift + plate_inds] = shape[shift:]
-        
+
         # reorder axes of value to match ordering of newshape
         movedvalue = np.moveaxis(
-            value, 
-            np.arange(plate_inds.size) + shift, 
+            value,
+            np.arange(plate_inds.size) + shift,
             np.argsort(plate_inds) + shift)
         return np.reshape(movedvalue, newshape)
 
@@ -219,8 +224,8 @@ class AbstractNode(ABC):
         # reorder axes of value to match ordering of newshape
         plate_order = np.argsort(plate_inds)
         movedvalue = np.moveaxis(
-            value, 
-            np.arange(plate_inds.size * 2), 
+            value,
+            np.arange(plate_inds.size * 2),
             np.r_[plate_order, plate_order + ndim])
         return np.reshape(movedvalue, newshape)
 
@@ -277,10 +282,10 @@ class AbstractNode(ABC):
     @abstractmethod
     def __call__(self, **kwargs) -> FactorValue:
         pass
-    
+
     def __hash__(self):
         return hash((
-            self._factor, 
+            self._factor,
             frozenset(self.name_variable_dict.items()),
             frozenset(self._deterministic_variables),))
 
@@ -290,25 +295,25 @@ class AbstractNode(ABC):
     func_jacobian_hessian = numerical_func_jacobian_hessian
 
     def jacobian(
-            self, 
+            self,
             values: Dict[Variable, np.array],
             variables: Optional[Tuple[Variable, ...]] = None,
-            axis: Optional[Union[bool, int, Tuple[int, ...]]] = False, 
+            axis: Optional[Union[bool, int, Tuple[int, ...]]] = False,
             _eps: float = 1e-6,
-            _calc_deterministic: bool = True ) -> JacobianValue:
+            _calc_deterministic: bool = True) -> JacobianValue:
         return self.func_jacobian(
-            values, variables, axis, 
+            values, variables, axis,
             _eps=_eps, _calc_deterministic=_calc_deterministic)[1]
-            
+
     def hessian(
-            self, 
+            self,
             values: Dict[Variable, np.array],
             variables: Optional[Tuple[Variable, ...]] = None,
-            axis: Optional[Union[bool, int, Tuple[int, ...]]] = False, 
+            axis: Optional[Union[bool, int, Tuple[int, ...]]] = False,
             _eps: float = 1e-6,
-            _calc_deterministic: bool = True ) -> HessianValue:
+            _calc_deterministic: bool = True) -> HessianValue:
         return self.func_jacobian_hessian(
-            values, variables, axis, 
+            values, variables, axis,
             _eps=_eps, _calc_deterministic=_calc_deterministic)[2]
 
     def flatten(self, param_shapes: FlattenArrays) -> 'FlattenedNode':
@@ -317,23 +322,23 @@ class AbstractNode(ABC):
 
 class FlattenedNode:
     def __init__(
-            self, 
-            node: 'AbstractNode', 
+            self,
+            node: 'AbstractNode',
             param_shapes: FlattenArrays
     ):
-        self.node = node 
+        self.node = node
         self.param_shapes = param_shapes
 
     def flatten(self, values: Value) -> np.ndarray:
         return self.param_shapes.flatten(values)
-    
+
     def unflatten(self, x0: np.ndarray) -> Value:
         return self.param_shapes.unflatten(x0)
-        
+
     def __call__(self, x: np.ndarray, axis=None) -> np.ndarray:
         values = self.unflatten(x)
         return self.node(values, axis=axis)
-    
+
     def func_jacobian(self, x: np.ndarray, axis=None):
         values = self.unflatten(x)
         fval, jval = self.node.func_jacobian(values, axis=axis)

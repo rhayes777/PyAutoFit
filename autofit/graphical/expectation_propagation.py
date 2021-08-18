@@ -12,9 +12,9 @@ from autofit.graphical.factor_graphs import (
     Factor, FactorGraph
 )
 from autofit.graphical.mean_field import MeanField, FactorApproximation
-from autofit.graphical.messages.abstract import AbstractMessage
 from autofit.graphical.utils import Status
 from autofit.mapper.variable import Variable
+from autofit.messages.abstract import AbstractMessage
 
 
 class EPMeanField(FactorGraph):
@@ -98,8 +98,10 @@ class EPMeanField(FactorGraph):
     ) -> "EPMeanField":
         factor_mean_field = {
             factor: MeanField({
-                v: approx_dists[v] for v in factor.all_variables})
-            for factor in factor_graph.factors}
+                v: approx_dists[v] for v in factor.all_variables
+            })
+            for factor in factor_graph.factors
+        }
 
         return cls(
             factor_graph,
@@ -134,10 +136,9 @@ class EPMeanField(FactorGraph):
         cavity_dist = MeanField({
             v: 1. for v
             in factor_dist.all_variables
-        }).prod(*(
-            dist for fac, dist
-            in factor_mean_field.items()
-        ))
+        }).prod(
+            *factor_mean_field.values()
+        )
 
         model_dist = factor_dist.prod(cavity_dist)
 
