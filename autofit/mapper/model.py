@@ -308,7 +308,8 @@ def path_instances_of_class(
             for item in path_instances_of_class(
                     value,
                     cls,
-                    ignore_class=ignore_class
+                    ignore_class=ignore_class,
+                    ignore_children=True
             ):
                 if isinstance(value, AnnotationPriorModel):
                     path = (key,)
