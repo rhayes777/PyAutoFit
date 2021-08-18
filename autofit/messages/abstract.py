@@ -383,8 +383,8 @@ class AbstractMessage(Prior, ABC):
 
         assert np.isfinite(suff_stats).all()
 
-        cls = cls._projection_class or cls
-        return cls.from_sufficient_statistics(
+        cls_ = cls._projection_class or cls
+        return cls_.from_sufficient_statistics(
             suff_stats,
             log_norm=log_norm,
             id_=id_
@@ -466,7 +466,7 @@ class AbstractMessage(Prior, ABC):
         return self.check_finite() & self.check_support()
 
     @cached_property
-    def is_valid(self) -> np.bool_:
+    def is_valid(self) -> Union[np.ndarray, np.bool_]:
         return np.all(self.check_finite()) and np.all(self.check_support())
 
     @staticmethod
@@ -527,8 +527,9 @@ class AbstractMessage(Prior, ABC):
             clsname: Optional[str] = None,
             support: Optional[Tuple[Tuple[float, float], ...]] = None,
     ) -> Type["AbstractMessage"]:
+        # noinspection PyUnresolvedReferences
         """
-        transforms the distribution according the passed transform, 
+        transforms the distribution according the passed transform,
         returns a newly created class that encodes the transformation.
 
         Parameters
@@ -539,17 +540,18 @@ class AbstractMessage(Prior, ABC):
             the class name of the newly created class.
             defaults to "Transformed<OriginalClassName>"
         support: Tuple[Tuple[float, float], optional
-            the support of the new class. Generally this can be 
+            the support of the new class. Generally this can be
             automatically calculated from the parent class
 
         Examples
         --------
+        >>> from autofit.messages.normal import NormalMessage
 
         Normal distributions have infinite univariate support
         >>> NormalMessage._support
         ((-inf, inf),)
 
-        We can tranform the NormalMessage to the unit interval 
+        We can tranform the NormalMessage to the unit interval
         using `transform.phi_transform`
         >>> UnitNormal = NormalMessage.transformed(transform.phi_transform)
         >>> message = UnitNormal(1.2, 0.8)
@@ -562,7 +564,7 @@ class AbstractMessage(Prior, ABC):
         (0.06631750944045942, 0.8183189295040845, 0.9999056316923468)
 
         Projections still work for the transformed class
-        >>> UnitNormal.project(samples, samples*0) 
+        >>> UnitNormal.project(samples, samples*0)
         TransformedNormalMessage(mu=1.20273342, sigma=0.80929032)
 
         Can specify the name of the new transformed class
@@ -576,6 +578,7 @@ class AbstractMessage(Prior, ABC):
 
         The transformed objects also are normalised,
         >>> from scipy.integrate import quad
+        >>> # noinspection PyTypeChecker
         >>> quad(message.pdf, 0, 1)
         (1.0000000000114622, 3.977073226302252e-09)
 
@@ -703,6 +706,7 @@ class TransformedMessage(AbstractMessage):
     _transform: AbstractDensityTransform
     _depth = 0
 
+    # noinspection PyMethodOverriding
     @classmethod
     def _reconstruct(  # type: ignore
             cls,
@@ -748,10 +752,12 @@ class TransformedMessage(AbstractMessage):
 
     @cached_property
     def mean(self) -> np.ndarray:
+        # noinspection PyUnresolvedReferences
         return self._transform.inv_transform(self._Message.mean.func(self))
 
     @cached_property
     def variance(self) -> np.ndarray:
+        # noinspection PyUnresolvedReferences
         return self._transform.inv_transform(self._Message.variance.func(self))
 
     @classmethod
