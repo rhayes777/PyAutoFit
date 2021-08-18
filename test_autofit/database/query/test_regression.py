@@ -1,5 +1,7 @@
 from uuid import uuid4
 
+import numpy as np
+
 import autofit as af
 from autofit.mock.mock import Gaussian
 
@@ -29,3 +31,26 @@ def test_float_inequality(session):
     assert len(aggregator.query(
         aggregator.model.gaussian.sigma < 3
     )) == 1
+
+
+def test_numpy_values(
+        session
+):
+    aggregator = af.Aggregator(session)
+    fit = af.db.Fit(
+        id=str(uuid4())
+    )
+    array = np.zeros(
+        (10, 10)
+    )
+    fit["data"] = array
+    session.add(
+        fit
+    )
+    session.commit()
+
+    assert (
+            aggregator.values(
+                "data"
+            )[0] == array
+    ).all()
