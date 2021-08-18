@@ -7,6 +7,7 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 
 from autofit.tools.util import get_class_path, get_class
+import numpy as np
 
 Base = declarative_base()
 
@@ -97,12 +98,15 @@ class Object(Base):
         """
 
         from autofit.mapper.prior_model.prior_model import PriorModel
-        from autofit.mapper.prior.prior import Prior
+        from autofit.mapper.prior.abstract import Prior
         from autofit.mapper.prior_model.collection import CollectionPriorModel
 
         if source is None or isinstance(
                 source,
-                np.ndarray
+                (
+                        np.ndarray,
+                        np.broadcast
+                )
         ):
             from .instance import NoneInstance
             instance = NoneInstance()

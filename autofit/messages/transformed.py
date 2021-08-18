@@ -47,16 +47,19 @@ class TransformedMessage(AbstractMessage):
         return self.instance.log_partition
 
     def __getattr__(self, item):
+        if item == "__setstate__":
+            raise AttributeError()
         return getattr(
             self.instance,
             item
         )
 
+    @classmethod
     def invert_natural_parameters(
-            self,
+            cls,
             natural_parameters
     ):
-        return self.instance.invert_natural_parameters(
+        return cls._Message.invert_natural_parameters(
             natural_parameters
         )
 

@@ -201,6 +201,8 @@ class NormalMessage(AbstractMessage):
 
 UniformNormalMessage = NormalMessage.transformed(
     phi_transform, 'UniformNormalMessage')
+UniformNormalMessage.__module__ = __name__
+
 LogNormalMessage = NormalMessage.transformed(
     log_transform, 'LogNormalMessage')
 # Support is the simplex
