@@ -1141,9 +1141,14 @@ class AbstractPriorModel(AbstractModel):
 
         formatter = TextFormatter()
 
-        for t in self.path_instance_tuples_for_class((
-                Prior, float, tuple
-        )):
+        for t in self.path_instance_tuples_for_class(
+                (
+                        Prior,
+                        float,
+                        tuple,
+                ),
+                ignore_children=True
+        ):
             for i in range(len(t[0])):
                 path = t[0][:i]
                 obj = self.object_for_path(

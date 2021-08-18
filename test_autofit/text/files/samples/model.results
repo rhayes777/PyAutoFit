@@ -3,6 +3,8 @@ Maximum Log Posterior                                                           
 
 model                                                                                     ModelMapper (N=2)
     mock_class                                                                            MockClassx2 (N=2)
+        one                                                                               UniformPrior (N=0)
+        two                                                                               UniformPrior (N=0)
 
 Maximum Log Likelihood Model:
 
