@@ -123,14 +123,13 @@ class AbstractAggregator(ABC):
         -------
         A list of objects, one for each fit
         """
-        return list(filter(
-            None,
-            [
-                fit[name]
-                for fit
-                in self
-            ]
-        ))
+        values = list()
+        for fit in self:
+            value = fit[name]
+            if value is not None:
+                values.append(value)
+
+        return values
 
     def __iter__(self):
         return iter(
@@ -245,23 +244,19 @@ class Aggregator(AbstractAggregator):
     def __repr__(self):
         return f"<{self.__class__.__name__} {self.filename} {len(self)}>"
 
-    def __getattr__(self, name: str) -> Union[AbstractQuery, q.A]:
+    @property
+    def model(self) -> Query:
         """
         Facilitates query construction. If the Fit class has an
         attribute with the given name then a predicate is generated
         based on that attribute. Otherwise the query is assumed to
         apply to the best fit instance.
 
-        Parameters
-        ----------
-        name
-            The name of an attribute of the Fit class or the model
-
         Returns
         -------
         A query
         """
-        return Query.for_name(name)
+        return Query()
 
     def __call__(self, predicate) -> "Aggregator":
         """
@@ -401,6 +396,7 @@ class Aggregator(AbstractAggregator):
                 m.Fit,
                 order_by.attribute
             )
+
             if isinstance(
                     order_by,
                     Reverse
@@ -490,13 +486,16 @@ class Aggregator(AbstractAggregator):
         """
         Filter to only grid searches and return an aggregator
         with grid search specific functionality.
+
+        Grid searches are initially implicitly ordered by their id
         """
         return cast(
             GridSearchAggregator,
             self._new_with(
                 type_=GridSearchAggregator,
-                predicate=self._predicate & self.search.is_grid_search
-            )
+                predicate=self._predicate & self.search.is_grid_search,
+                order_bys=[Attribute("id")]
+            ),
         )
 
 
@@ -504,22 +503,28 @@ class GridSearchAggregator(Aggregator):
     def best_fits(self) -> "GridSearchAggregator":
         """
         The best fit from each of the grid searches
+
+        Best fits are initially implicitly ordered by their parent id
         """
         return self._new_with(
             predicate=BestFitQuery(
                 self._predicate
-            )
+            ),
+            order_bys=[Attribute("parent_id")]
         )
 
     def children(self) -> "GridSearchAggregator":
         """
         An aggregator comprising the children of the fits encapsulated
         by this aggregator. This is used to query children in a grid search.
+
+        Children are initially implicitly ordered by their parent id
         """
         return self._new_with(
             predicate=q.ChildQuery(
                 self._predicate
-            )
+            ),
+            order_bys=[Attribute("parent_id")]
         )
 
     def cell_number(

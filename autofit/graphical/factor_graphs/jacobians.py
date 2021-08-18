@@ -1,23 +1,11 @@
 from itertools import repeat, chain
-from typing import \
-    (
-    Tuple, Dict, Callable, Optional, Union
-)
+from typing import Tuple, Dict, Callable, Optional, Union
 
 import numpy as np
 
-from autofit.graphical.factor_graphs.abstract import \
-    (
-    FactorValue, JacobianValue
-)
-from autofit.graphical.factor_graphs.factor import \
-    (
-    AbstractFactor, Factor, DeterministicFactor
-)
-from autofit.graphical.utils import \
-    (
-    aggregate, Axis
-)
+from autofit.graphical.factor_graphs.abstract import FactorValue, JacobianValue
+from autofit.graphical.factor_graphs.factor import AbstractFactor, Factor, DeterministicFactor
+from autofit.graphical.utils import aggregate, Axis
 from autofit.mapper.variable import Variable
 
 

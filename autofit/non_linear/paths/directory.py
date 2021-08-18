@@ -219,7 +219,9 @@ class DirectoryPaths(AbstractPaths):
         -------
         A new paths object
         """
-        open(self._grid_search_path, "w+").close()
+        with open(self._grid_search_path, "w+") as f:
+            if self.unique_tag is not None:
+                f.write(self.unique_tag)
         return type(self)(
             name=name or self.name,
             path_prefix=path_prefix or self.path_prefix,

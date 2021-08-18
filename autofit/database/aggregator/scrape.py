@@ -127,7 +127,6 @@ class Scraper:
                     max_log_likelihood=samples.max_log_likelihood_sample.log_likelihood,
                     parent_id=parent_identifier
                 )
-                logger.info(f"Created fit {fit.id}")
 
             pickle_path = Path(item.pickle_path)
             _add_pickles(
@@ -154,8 +153,14 @@ class Scraper:
         for root, _, filenames in os.walk(self.directory):
             if ".is_grid_search" in filenames:
                 path = Path(root)
+                with open(
+                    path / ".is_grid_search"
+                ) as f:
+                    unique_tag = f.read()
+
                 grid_search = m.Fit(
                     id=path.name,
+                    unique_tag=unique_tag,
                     is_grid_search=True,
                     parent_id=_parent_identifier(
                         root
