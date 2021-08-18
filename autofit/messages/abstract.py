@@ -669,10 +669,9 @@ class AbstractMessage(Prior, ABC):
             ),
         )
 
-    @classmethod
-    def _sample(cls, self, n_samples):
+    def _sample(self, n_samples):
         # Needed for nested TransformedMessage method resolution
-        return cls.sample(self, n_samples)
+        return self.sample(n_samples)
 
     @classmethod
     def _logpdf_gradient(cls, self, x):

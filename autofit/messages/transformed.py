@@ -124,10 +124,9 @@ class TransformedMessage(AbstractMessage):
         # noinspection PyUnresolvedReferences
         return self._transform.inv_transform(self._Message.variance.func(self))
 
-    @classmethod
-    def _sample(cls, self, n_samples) -> np.ndarray:
-        x = cls._Message._sample(self, n_samples)
-        return cls._transform.inv_transform(x)
+    def _sample(self, n_samples) -> np.ndarray:
+        x = self.instance._sample(n_samples)
+        return self._transform.inv_transform(x)
 
     @classmethod
     def _logpdf_gradient(  # type: ignore
@@ -140,7 +139,7 @@ class TransformedMessage(AbstractMessage):
         return logl + logd, grad * jac + logd_grad
 
     def sample(self, n_samples=None) -> np.ndarray:
-        return self._sample(self, n_samples)
+        return self._sample(n_samples)
 
     def logpdf_gradient(
             self, x: np.ndarray
