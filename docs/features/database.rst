@@ -102,7 +102,7 @@ composed model using the name ``gaussian``):
 
 .. code-block:: bash
 
-    gaussian = agg.gaussian
+    gaussian = agg.model.gaussian
     agg_query = agg.query(gaussian == m.Gaussian)
 
 Queries using the results of model-fitting are also supported. Below, we query the database to find all fits where the
