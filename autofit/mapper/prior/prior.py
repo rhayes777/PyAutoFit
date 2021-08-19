@@ -2,8 +2,8 @@ import numpy as np
 
 from autoconf import conf
 from autofit import exc
-from autofit.messages.normal import NormalMessage, UniformNormalMessage, LogNormalMessage
-from autofit.messages.transform import LinearShiftTransform
+from autofit.messages.normal import NormalMessage, UniformNormalMessage
+from autofit.messages.transform import LinearShiftTransform, log_10_transform
 
 
 class Limits:
@@ -19,10 +19,6 @@ ShiftedUniformMessage = UniformNormalMessage.transformed(
     LinearShiftTransform,
     clsname=f"ShiftedUniformMessage"
 )
-# ShiftedLogUniformMessage = LogNormalMessage.transformed(
-#     LinearShiftTransform,
-#     clsname=f"ShiftedLogUniformMessage"
-# )
 
 
 class UniformPrior(ShiftedUniformMessage):
@@ -81,12 +77,17 @@ class UniformPrior(ShiftedUniformMessage):
         return f"UniformPrior, lower_limit = {self.lower_limit}, upper_limit = {self.upper_limit}"
 
 
-class LogUniformPrior(UniformPrior):
+Log10ShiftedUniformMessage = ShiftedUniformMessage.transformed(
+    log_10_transform
+)
+
+
+class LogUniformPrior(Log10ShiftedUniformMessage):
     """A prior with a uniform distribution between a lower and upper limit"""
 
     def __init__(
             self,
-            lower_limit=1e-6,
+            lower_limit=0.0,
             upper_limit=1.0,
             log_norm=0.0,
             id_=None
@@ -94,32 +95,19 @@ class LogUniformPrior(UniformPrior):
         lower_limit = float(lower_limit)
         upper_limit = float(upper_limit)
         super().__init__(
+            mean=0.0,
+            sigma=1.0,
             id_=id_,
             upper_limit=upper_limit,
             lower_limit=lower_limit,
             log_norm=log_norm,
+            shift=np.log10(lower_limit),
+            scale=np.log10(upper_limit) - np.log10(lower_limit),
         )
         if self.lower_limit <= 0.0:
             raise exc.PriorException(
                 "The lower limit of a LogUniformPrior cannot be zero or negative."
             )
-
-    def value_for(self, unit):
-        """
-
-        Parameters
-        ----------
-        unit: Float
-            A unit hypercube value between 0 and 1
-        Returns
-        -------
-        value: Float
-            A value for the attribute between the upper and lower limits
-        """
-        return 10.0 ** (
-                np.log10(self.lower_limit)
-                + unit * (np.log10(self.upper_limit) - np.log10(self.lower_limit))
-        )
 
     @staticmethod
     def log_prior_from_value(value):

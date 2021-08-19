@@ -5,7 +5,6 @@ import autofit as af
 from autofit import graphical as g
 from autofit.mapper.prior.prior import ShiftedUniformMessage
 from autofit.messages.normal import UniformNormalMessage
-from autofit.messages.transform import log_10_transform
 
 
 @pytest.fixture(
@@ -171,37 +170,34 @@ def test_uniform_odd_result():
 @pytest.mark.parametrize(
     "lower_limit",
     [
-        1, 5, 10, 90
+        1, 90
+    ]
+)
+@pytest.mark.parametrize(
+    "upper_limit",
+    [
+        110, 200
     ]
 )
 @pytest.mark.parametrize(
     "unit",
     [
-        0.0, 0.1, 0.5, 0.9
+        0.0, 0.5, 0.9
     ]
 )
 def test_log10(
         lower_limit,
+        upper_limit,
         unit
 ):
-    upper_limit = 100
-
-    message = UniformNormalMessage.shifted(
-        shift=np.log10(lower_limit),
-        scale=np.log10(upper_limit) - np.log10(lower_limit)
-    ).transformed(
-        log_10_transform
-    )(
-        mean=0.0,
-        sigma=1.0
-    )
     prior = af.LogUniformPrior(
         lower_limit=lower_limit,
         upper_limit=upper_limit
     )
 
-    assert message.value_for(
-        unit
+    assert 10.0 ** (
+            np.log10(lower_limit)
+            + unit * (np.log10(upper_limit) - np.log10(lower_limit))
     ) == pytest.approx(
         prior.value_for(
             unit
