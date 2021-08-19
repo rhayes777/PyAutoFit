@@ -147,7 +147,6 @@ class BetaMessage(AbstractMessage):
         if self._support != dist._support:
             raise TypeError('Support does not match')
 
-        P, Q = self, dist
         aP, bP = dist.parameters
         aQ, bQ = self.parameters
         return (

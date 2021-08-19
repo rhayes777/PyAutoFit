@@ -38,7 +38,9 @@ class Prior(Variable, ABC, ArithmeticMixin):
             )
 
     def assert_within_limits(self, value):
-        if not (self.lower_limit <= value <= self.upper_limit):
+        if not (
+                self.lower_limit <= value <= self.upper_limit
+        ):
             raise exc.PriorLimitException(
                 "The physical value {} for a prior "
                 "was not within its limits {}, {}".format(

@@ -11,7 +11,7 @@ from autofit.graphical.factor_graphs import (
 from autofit.graphical.utils import (
     prod, add_arrays, OptResult, Status, aggregate, Axis
 )
-from autofit.mapper.prior.prior import Prior
+from autofit.mapper.prior.abstract import Prior
 from autofit.mapper.prior_model.collection import CollectionPriorModel
 from autofit.mapper.variable import Variable
 from autofit.messages.abstract import AbstractMessage

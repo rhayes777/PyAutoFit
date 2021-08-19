@@ -1,7 +1,10 @@
+import numpy as np
 import pytest
 
 import autofit as af
 from autofit import graphical as g
+from autofit.mapper.prior.prior import ShiftedUniformMessage
+from autofit.messages.normal import UniformNormalMessage
 
 
 @pytest.fixture(
@@ -38,3 +41,166 @@ def test_bad_id(
             AssertionError
     ):
         new_message * prior
+
+
+@pytest.fixture(
+    name="x"
+)
+def make_x():
+    return np.linspace(
+        0, 1, 100
+    )
+
+
+def test_uniform_normal(x):
+    message = UniformNormalMessage.shifted(
+        shift=1,
+        scale=2.1
+    )(
+        mean=0.0,
+        sigma=1.0
+    )
+
+    assert np.isnan(message.pdf(0.9))
+    assert np.isnan(message.pdf(3.2))
+    assert message.pdf(1.5) > 0
+
+
+def test_deferred_transform():
+    message = ShiftedUniformMessage(
+        shift=1,
+        scale=2.1,
+        mean=0.0,
+        sigma=1.0
+    )
+
+    assert np.isnan(message.pdf(0.9))
+    assert np.isnan(message.pdf(3.2))
+    assert message.pdf(1.5) > 0
+
+
+@pytest.fixture(
+    name="message_1"
+)
+def make_message_1():
+    return ShiftedUniformMessage(
+        shift=1,
+        scale=2.0,
+        mean=0.0,
+        sigma=1.0
+    )
+
+
+def test_values_stay_same(
+        message_1,
+):
+    assert message_1._transform.shift == 1.0
+    assert message_1._transform.scale == 2.0
+
+    message_2 = ShiftedUniformMessage(
+        shift=2.0,
+        scale=3.0,
+        mean=0.0,
+        sigma=1.0
+    )
+    assert message_1._transform.shift == 1
+    assert message_1._transform.scale == 2.0
+
+    assert message_2._transform.shift == 2.0
+    assert message_2._transform.scale == 3.0
+
+
+@pytest.mark.parametrize(
+    "unit_value, physical_value",
+    [
+        (0.5, 2),
+        (0.0, 1),
+        (1.0, 3),
+    ]
+)
+def test_value_for(
+        message_1,
+        unit_value,
+        physical_value
+):
+    assert message_1.value_for(
+        unit_value
+    ) == pytest.approx(
+        physical_value
+    )
+
+
+@pytest.mark.parametrize(
+    "lower_limit, upper_limit, unit_value, physical_value",
+    [
+        (0.0, 1.0, 0.5, 0.5),
+        (0.0, 1.0, 1.0, 1.0),
+        (0.0, 1.0, 0.0, 0.0),
+        (1.0, 2.0, 0.5, 1.5),
+        (1.0, 2.0, 1.0, 2.0),
+        (1.0, 2.0, 0.0, 1.0),
+        (0.0, 2.0, 0.5, 1.0),
+        (0.0, 2.0, 1.0, 2.0),
+        (0.0, 2.0, 0.0, 0.0),
+    ]
+)
+def test_uniform_prior(
+        lower_limit,
+        upper_limit,
+        unit_value,
+        physical_value
+):
+    assert af.UniformPrior(
+        lower_limit=lower_limit,
+        upper_limit=upper_limit,
+    ).value_for(
+        unit_value
+    ) == pytest.approx(
+        physical_value
+    )
+
+
+def test_uniform_odd_result():
+    prior = af.UniformPrior(90.0, 100.0)
+    assert prior.value_for(
+        0.0
+    ) == pytest.approx(90.0)
+
+
+@pytest.mark.parametrize(
+    "lower_limit",
+    [
+        1, 90
+    ]
+)
+@pytest.mark.parametrize(
+    "upper_limit",
+    [
+        110, 200
+    ]
+)
+@pytest.mark.parametrize(
+    "unit",
+    [
+        0.0, 0.5, 0.9
+    ]
+)
+def test_log10(
+        lower_limit,
+        upper_limit,
+        unit
+):
+    prior = af.LogUniformPrior(
+        lower_limit=lower_limit,
+        upper_limit=upper_limit
+    )
+
+    assert 10.0 ** (
+            np.log10(lower_limit)
+            + unit * (np.log10(upper_limit) - np.log10(lower_limit))
+    ) == pytest.approx(
+        prior.value_for(
+            unit
+        ),
+        abs=0.001
+    )

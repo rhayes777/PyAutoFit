@@ -76,19 +76,22 @@ def test_message_norm():
             check_numerical_gradient_hessians(m)
 
 
-def test_numerical_gradient_hessians():
-    N = NormalMessage
-    UN = UniformNormalMessage
-    SUN = UN.shifted(shift=0.3, scale=0.8)
-    LN = LogNormalMessage
-    MLN = MultiLogitNormalMessage
-    # test doubly transformed distributions
-    WN = NormalMessage.transformed(
-        transform.log_transform
-    ).transformed(
-        transform.exp_transform,
-    )
-    test_cases = [
+N = NormalMessage
+UN = UniformNormalMessage
+SUN = UN.shifted(shift=0.3, scale=0.8)
+LN = LogNormalMessage
+MLN = MultiLogitNormalMessage
+# test doubly transformed distributions
+WN = NormalMessage.transformed(
+    transform.log_transform
+).transformed(
+    transform.exp_transform,
+)
+
+
+@pytest.mark.parametrize(
+    "M, m, s, x",
+    [
         (N, 1., 0.5, 0.3),
         (N, 1., 0.5, [0.3, 2.1]),
         (N, [0.1, 1., 2.], [2., 0.5, 3.], [0.1, 0.2, 0.3]),
@@ -106,8 +109,11 @@ def test_numerical_gradient_hessians():
         (WN, [0.1, 1., 2.], [2., 0.5, 3.], [0.1, 0.2, 0.3]),
         (WN, [0.1, 1., 2.], [2., 0.5, 3.], [[0.1, 0.2, 0.3], [2., 1., -1]]),
     ]
-    for M, m, s, x in test_cases:
-        check_numerical_gradient_hessians(M(m, s), x)
+)
+def test_numerical_gradient_hessians(
+        M, m, s, x
+):
+    check_numerical_gradient_hessians(M(m, s), x)
 
 
 def test_meanfield_gradients():

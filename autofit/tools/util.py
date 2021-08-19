@@ -1,12 +1,13 @@
-import numpy as np
-from contextlib import contextmanager
-import sys, os
-import json
-
 import builtins
 import importlib
+import json
+import os
 import re
+import sys
+from contextlib import contextmanager
 from typing import List, Type
+
+import numpy as np
 
 
 def get_class_path(cls: type) -> str:
@@ -70,6 +71,7 @@ class GetClass:
             self._class_name
         )
 
+
 @contextmanager
 def suppress_stdout():
     with open(os.devnull, "w") as devnull:
@@ -80,8 +82,9 @@ def suppress_stdout():
         finally:
             sys.stdout = old_stdout
 
+
 def numpy_array_to_json(
-    array: np.ndarray, file_path: str, overwrite: bool = False
+        array: np.ndarray, file_path: str, overwrite: bool = False
 ):
     """
     Write a NumPy array to a json file.
@@ -116,6 +119,7 @@ def numpy_array_to_json(
 
     with open(file_path, "w+") as f:
         json.dump(array.tolist(), f)
+
 
 def numpy_array_from_json(file_path: str):
     """

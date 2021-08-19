@@ -4,7 +4,7 @@ from autofit.mapper.prior_model.attribute_pair import (
     PriorNameValue,
     InstanceNameValue,
 )
-from .prior import Prior
+from .abstract import Prior
 
 
 class TuplePrior(ModelObject):

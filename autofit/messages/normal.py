@@ -3,10 +3,11 @@ from typing import Tuple
 
 import numpy as np
 from scipy.special.cython_special import erfcinv
+from scipy.stats import norm
 
 from autofit.messages.abstract import AbstractMessage
 from autofit.tools.cached_property import cached_property
-from .transform import phi_transform, log_transform, multinomial_logit_transform
+from .transform import phi_transform, log_transform, multinomial_logit_transform, log_10_transform
 
 
 def is_nan(value):
@@ -48,6 +49,12 @@ class NormalMessage(AbstractMessage):
         )
         self.mu, self.sigma = self.parameters
 
+    def cdf(self, x):
+        return norm.cdf(x, loc=self.mu, scale=self.sigma)
+
+    def ppf(self, x):
+        return norm.ppf(x, loc=self.mu, scale=self.sigma)
+
     @cached_property
     def natural_parameters(self):
         return self.calc_natural_parameters(
@@ -86,15 +93,14 @@ class NormalMessage(AbstractMessage):
         return self.sigma ** 2
 
     def sample(self, n_samples=None):
-        mu, sigma = self.parameters
         if n_samples:
             x = np.random.randn(n_samples, *self.shape)
             if self.shape:
-                return x * sigma[None, ...] + mu[None, ...]
+                return x * self.sigma[None, ...] + self.mu[None, ...]
         else:
             x = np.random.randn(*self.shape)
 
-        return x * sigma + mu
+        return x * self.sigma + self.mu
 
     def kl(self, dist):
         return (
@@ -194,8 +200,15 @@ class NormalMessage(AbstractMessage):
 
 UniformNormalMessage = NormalMessage.transformed(
     phi_transform, 'UniformNormalMessage')
+UniformNormalMessage.__module__ = __name__
+
+Log10UniformNormalMessage = UniformNormalMessage.transformed(
+    log_10_transform
+)
+
 LogNormalMessage = NormalMessage.transformed(
     log_transform, 'LogNormalMessage')
+
 # Support is the simplex
 MultiLogitNormalMessage = NormalMessage.transformed(
     multinomial_logit_transform, 'MultiLogitNormalMessage', ((0, 1),))

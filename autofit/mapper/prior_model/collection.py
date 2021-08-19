@@ -1,5 +1,5 @@
 from autofit.mapper.model import ModelInstance, assert_not_frozen
-from autofit.mapper.prior.prior import Prior
+from autofit.mapper.prior.abstract import Prior
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.mapper.prior_model.abstract import check_assertions
 
