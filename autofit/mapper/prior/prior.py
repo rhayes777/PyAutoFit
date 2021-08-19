@@ -75,16 +75,6 @@ class UniformPrior(ShiftedMessage):
             The physical value of this prior's corresponding parameter in a `NonLinearSearch` sample."""
         return 0.0
 
-    @property
-    def mean(self):
-        return self.lower_limit + (self.upper_limit - self.lower_limit) / 2
-
-    @mean.setter
-    def mean(self, new_value):
-        difference = new_value - self.mean
-        self.lower_limit += difference
-        self.upper_limit += difference
-
     def __str__(self):
         """The line of text describing this prior for the model_mapper.info file"""
         return f"UniformPrior, lower_limit = {self.lower_limit}, upper_limit = {self.upper_limit}"
