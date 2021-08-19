@@ -72,8 +72,10 @@ class TransformedMessage(AbstractMessage):
         )
 
     def value_for(self, unit):
-        return self.instance.value_for(
-            self._transform.inv_transform(unit)
+        return self._transform.inv_transform(
+            self.instance.value_for(
+                unit
+            )
         )
 
     # noinspection PyMethodOverriding

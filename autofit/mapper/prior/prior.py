@@ -56,7 +56,7 @@ class UniformPrior(ShiftedMessage):
         value: Float
             A value for the attribute between the upper and lower limits
         """
-        return round(super().value_for(unit), 15)
+        return round(super().value_for(unit), 14)
 
     def log_prior_from_value(self, value):
         """

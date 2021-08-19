@@ -161,7 +161,7 @@ def test_uniform_prior(
 
 
 def test_uniform_odd_result():
-    prior = af.UniformPrior(16, 32)
+    prior = af.UniformPrior(90.0, 100.0)
     assert prior.value_for(
         0.0
-    ) == pytest.approx(16)
+    ) == pytest.approx(90.0)
