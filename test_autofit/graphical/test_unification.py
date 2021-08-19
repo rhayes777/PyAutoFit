@@ -3,7 +3,7 @@ import pytest
 
 import autofit as af
 from autofit import graphical as g
-from autofit.mapper.prior.prior import ShiftedMessage
+from autofit.mapper.prior.prior import ShiftedUniformMessage
 from autofit.messages.normal import UniformNormalMessage
 
 
@@ -67,7 +67,7 @@ def test_uniform_normal(x):
 
 
 def test_deferred_transform():
-    message = ShiftedMessage(
+    message = ShiftedUniformMessage(
         shift=1,
         scale=2.1,
         mean=0.0,
@@ -83,7 +83,7 @@ def test_deferred_transform():
     name="message_1"
 )
 def make_message_1():
-    return ShiftedMessage(
+    return ShiftedUniformMessage(
         shift=1,
         scale=2.0,
         mean=0.0,
@@ -97,7 +97,7 @@ def test_values_stay_same(
     assert message_1._transform.shift == 1.0
     assert message_1._transform.scale == 2.0
 
-    message_2 = ShiftedMessage(
+    message_2 = ShiftedUniformMessage(
         shift=2.0,
         scale=3.0,
         mean=0.0,

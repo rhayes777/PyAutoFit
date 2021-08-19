@@ -2,7 +2,7 @@ import numpy as np
 
 from autoconf import conf
 from autofit import exc
-from autofit.messages.normal import NormalMessage, UniformNormalMessage
+from autofit.messages.normal import NormalMessage, UniformNormalMessage, LogNormalMessage
 from autofit.messages.transform import LinearShiftTransform
 
 
@@ -15,13 +15,17 @@ class Limits:
         return limit_dict["lower"], limit_dict["upper"]
 
 
-ShiftedMessage = UniformNormalMessage.transformed(
+ShiftedUniformMessage = UniformNormalMessage.transformed(
     LinearShiftTransform,
-    clsname=f"ShiftedUniformNormalMessage"
+    clsname=f"ShiftedUniformMessage"
 )
+# ShiftedLogUniformMessage = LogNormalMessage.transformed(
+#     LinearShiftTransform,
+#     clsname=f"ShiftedLogUniformMessage"
+# )
 
 
-class UniformPrior(ShiftedMessage):
+class UniformPrior(ShiftedUniformMessage):
     """A prior with a uniform distribution between a lower and upper limit"""
 
     def __init__(
@@ -58,7 +62,8 @@ class UniformPrior(ShiftedMessage):
         """
         return round(super().value_for(unit), 14)
 
-    def log_prior_from_value(self, value):
+    @staticmethod
+    def log_prior_from_value(_):
         """
         Returns the log prior of a physical value, so the log likelihood of a model evaluation can be converted to a
         posterior as log_prior + log_likelihood.
@@ -68,11 +73,7 @@ class UniformPrior(ShiftedMessage):
         NOTE: For a UniformPrior this is always zero, provided the value is between the lower and upper limit. Given
         this is check for when the instance is made (in the *instance_from_vector* function), we thus can simply return
         zero in this function.
-
-        Parameters
-        ----------
-        value : float
-            The physical value of this prior's corresponding parameter in a `NonLinearSearch` sample."""
+        """
         return 0.0
 
     def __str__(self):
@@ -83,19 +84,21 @@ class UniformPrior(ShiftedMessage):
 class LogUniformPrior(UniformPrior):
     """A prior with a uniform distribution between a lower and upper limit"""
 
-    def __init__(self, lower_limit=1e-6, upper_limit=1.0):
-        """
-        An object used to mappers a unit value to an attribute value for a specific
-        class attribute.
-
-        Parameters
-        ----------
-        lower_limit: Float
-            The lowest value this prior can return
-        upper_limit: Float
-            The highest value this prior can return
-        """
-        super().__init__(lower_limit=lower_limit, upper_limit=upper_limit)
+    def __init__(
+            self,
+            lower_limit=0.0,
+            upper_limit=1.0,
+            log_norm=0.0,
+            id_=None
+    ):
+        lower_limit = float(lower_limit)
+        upper_limit = float(upper_limit)
+        super().__init__(
+            id_=id_,
+            upper_limit=upper_limit,
+            lower_limit=lower_limit,
+            log_norm=log_norm,
+        )
         if self.lower_limit <= 0.0:
             raise exc.PriorException(
                 "The lower limit of a LogUniformPrior cannot be zero or negative."
@@ -118,10 +121,11 @@ class LogUniformPrior(UniformPrior):
                 + unit * (np.log10(self.upper_limit) - np.log10(self.lower_limit))
         )
 
-    def log_prior_from_value(self, value):
+    @staticmethod
+    def log_prior_from_value(value):
         """
-    Returns the log prior of a physical value, so the log likelihood of a model evaluation can be converted to a
-        posterior as log_prior + log_likelihood.
+        Returns the log prior of a physical value, so the log likelihood of a model evaluation can be converted to a
+            posterior as log_prior + log_likelihood.
 
         This is used by Emcee in the log likelihood function evaluation.
 
