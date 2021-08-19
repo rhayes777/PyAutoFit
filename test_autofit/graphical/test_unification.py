@@ -158,3 +158,10 @@ def test_uniform_prior(
     ) == pytest.approx(
         physical_value
     )
+
+
+def test_uniform_odd_result():
+    prior = af.UniformPrior(16, 32)
+    assert prior.value_for(
+        0.0
+    ) == pytest.approx(16)
