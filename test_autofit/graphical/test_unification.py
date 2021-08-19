@@ -5,6 +5,7 @@ import autofit as af
 from autofit import graphical as g
 from autofit.mapper.prior.prior import ShiftedUniformMessage
 from autofit.messages.normal import UniformNormalMessage
+from autofit.messages.transform import FunctionTransform
 
 
 @pytest.fixture(
@@ -165,3 +166,36 @@ def test_uniform_odd_result():
     assert prior.value_for(
         0.0
     ) == pytest.approx(90.0)
+
+
+log_10_transform = FunctionTransform(
+    np.log10, lambda x: 10 ** x, np.reciprocal
+)
+
+
+def test_log10():
+    lower_limit = 10
+    upper_limit = 100
+
+    Log10Normal = UniformNormalMessage.transformed(
+        log_10_transform
+    ).shifted(
+        shift=lower_limit - 10,
+        scale=10 ** (np.log10(upper_limit) - np.log10(lower_limit))
+    )
+    message = Log10Normal(
+        mean=0.0,
+        sigma=1.0
+    )
+    prior = af.LogUniformPrior(
+        lower_limit=10.0,
+        upper_limit=100.0
+    )
+    print(message.value_for(0.0))
+    print(prior.value_for(0.0))
+
+    print(message.value_for(0.5))
+    print(prior.value_for(0.5))
+
+    print(message.value_for(0.9))
+    print(prior.value_for(0.9))

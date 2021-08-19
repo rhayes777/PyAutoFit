@@ -208,7 +208,6 @@ class FunctionTransform(AbstractDensityTransform):
         if self.func_grad_hess:
             x0, gs, hs = self.func_grad_hess(x, *self.args)
         else:
-            x0 = self.func(x, *self.args)
             gs = self.grad(x, *self.args)
             hs = self.hess(x, *self.args)
         return np.log(gs), hs / gs
