@@ -239,10 +239,10 @@ class AbstractModel(ModelObject):
             in self.attribute_tuples_with_type(
                 PriorModel
             )
-            if (model.cls == cls or issubclass(
+            if issubclass(
                 model.cls,
                 cls
-            )) and model.prior_count > 0
+            ) and model.prior_count > 0
         ]
 
     @frozen_cache
