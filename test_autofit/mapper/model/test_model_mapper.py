@@ -120,7 +120,6 @@ class TestRegression:
             "$three_label$",
         ]
 
-
     def test__subscripts_of_parameters(self):
         mm = af.ModelMapper()
         mm.one = mock.MockClassRelativeWidth
@@ -471,8 +470,9 @@ class TestModelInstancesRealClasses:
         assert vector == pytest.approx([0.21467, 0.4184677], 1.0e-4)
 
     def test_random_vector_from_prior(self):
-        mapper = af.ModelMapper()
-        mapper.mock_class = af.PriorModel(mock.MockClassx2)
+        mapper = af.Collection(
+            mock_class=af.Model(mock.MockClassx2)
+        )
 
         np.random.seed(1)
 
@@ -485,6 +485,16 @@ class TestModelInstancesRealClasses:
 
         # By default, this seeded random will draw a value < -0.15, which is below the lower limit below. This
         # test ensures that this value is resampled to the next draw, which is above 0.15
+
+        mapper = af.Collection(
+            mock_class=af.Model(
+                mock.MockClassx2,
+                one=af.UniformPrior(
+                    lower_limit=0.15,
+                    upper_limit=1.0
+                )
+            )
+        )
 
         mapper.mock_class.one.lower_limit = 0.15
 
@@ -527,10 +537,10 @@ class TestPriorReplacement:
 
         assert isinstance(result.mock_class.one, af.GaussianPrior)
         assert {
-            prior.id for prior in mapper.priors
-        } == {
-            prior.id for prior in result.priors
-        }
+                   prior.id for prior in mapper.priors
+               } == {
+                   prior.id for prior in result.priors
+               }
 
     def test_replace_priors_with_gaussians_from_tuples(self):
         mapper = af.ModelMapper(mock_class=mock.MockClassx2)
