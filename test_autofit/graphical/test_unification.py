@@ -201,5 +201,6 @@ def test_log10(
     ) == pytest.approx(
         prior.value_for(
             unit
-        )
+        ),
+        abs=0.001
     )
