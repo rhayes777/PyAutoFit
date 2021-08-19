@@ -86,8 +86,8 @@ def test_log_uniform_prior(
 ):
     result.grid_priors = [af.LogUniformPrior()]
 
-    assert result.physical_lower_limits_lists == [[1e-06], [pytest.approx(0.001, abs=0.00001)]]
+    assert result.physical_lower_limits_lists == [[1e-06], [pytest.approx(0.001, rel=0.01)]]
     assert result.physical_centres_lists == [
-        [3.1622776601683795e-05], [0.03162277660168379]
+        [pytest.approx(3.1622776601683795e-05, rel=0.01)], [pytest.approx(0.03162277660168379, rel=0.01)]
     ]
-    assert result.physical_upper_limits_lists == [[0.001], [1.0]]
+    assert result.physical_upper_limits_lists == [[pytest.approx(0.001, rel=0.01)], [pytest.approx(1.0, rel=0.01)]]
