@@ -87,11 +87,15 @@ class LogUniformPrior(Log10ShiftedUniformMessage):
 
     def __init__(
             self,
-            lower_limit=0.0,
+            lower_limit=1e-6,
             upper_limit=1.0,
             log_norm=0.0,
             id_=None
     ):
+        if lower_limit <= 0.0:
+            raise exc.PriorException(
+                "The lower limit of a LogUniformPrior cannot be zero or negative."
+            )
         lower_limit = float(lower_limit)
         upper_limit = float(upper_limit)
         super().__init__(
@@ -104,10 +108,6 @@ class LogUniformPrior(Log10ShiftedUniformMessage):
             shift=np.log10(lower_limit),
             scale=np.log10(upper_limit / lower_limit),
         )
-        if self.lower_limit <= 0.0:
-            raise exc.PriorException(
-                "The lower limit of a LogUniformPrior cannot be zero or negative."
-            )
 
     @staticmethod
     def log_prior_from_value(value):

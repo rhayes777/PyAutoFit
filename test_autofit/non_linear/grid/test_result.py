@@ -86,7 +86,7 @@ def test_log_uniform_prior(
 ):
     result.grid_priors = [af.LogUniformPrior()]
 
-    assert result.physical_lower_limits_lists == [[1e-06], [0.001]]
+    assert result.physical_lower_limits_lists == [[1e-06], [pytest.approx(0.001, abs=0.00001)]]
     assert result.physical_centres_lists == [
         [3.1622776601683795e-05], [0.03162277660168379]
     ]

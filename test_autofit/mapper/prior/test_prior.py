@@ -267,7 +267,7 @@ class TestLogUniformPrior:
 
         assert log_uniform_simple.value_for(0.0) == 1.0e-8
         assert log_uniform_simple.value_for(1.0) == 1.0
-        assert log_uniform_simple.value_for(0.5) == 0.0001
+        assert log_uniform_simple.value_for(0.5) == pytest.approx(0.0001, abs=0.000001)
 
     def test__non_zero_lower_limit(self):
         log_uniform_half = af.LogUniformPrior(lower_limit=0.5, upper_limit=1.0)
