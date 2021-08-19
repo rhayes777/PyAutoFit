@@ -219,6 +219,19 @@ class AbstractModel(ModelObject):
 
     @frozen_cache
     def model_tuples_with_type(self, cls):
+        """
+        All models of the class in this model which have at least
+        one free parameter, recursively.
+
+        Parameters
+        ----------
+        cls
+            The type of the model
+
+        Returns
+        -------
+        Models with free parameters
+        """
         from .prior_model.prior_model import PriorModel
         return [
             (path, model)
@@ -226,10 +239,10 @@ class AbstractModel(ModelObject):
             in self.attribute_tuples_with_type(
                 PriorModel
             )
-            if model.cls == cls or issubclass(
+            if issubclass(
                 model.cls,
                 cls
-            )
+            ) and model.prior_count > 0
         ]
 
     @frozen_cache
@@ -254,8 +267,8 @@ class AbstractModel(ModelObject):
         Tuples containing the name and instance of each attribute with the type
         """
         return [
-            (t[0][-1], t[1])
-            for t in self.path_instance_tuples_for_class(
+            (path[-1] if len(path) > 0 else "", value)
+            for path, value in self.path_instance_tuples_for_class(
                 class_type, ignore_class=ignore_class
             )
         ]
@@ -309,7 +322,7 @@ def path_instances_of_class(
                     value,
                     cls,
                     ignore_class=ignore_class,
-                    ignore_children=True
+                    ignore_children=ignore_children
             ):
                 if isinstance(value, AnnotationPriorModel):
                     path = (key,)

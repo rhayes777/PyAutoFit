@@ -34,6 +34,21 @@ def test_embedded():
     )
 
 
+def test_no_free_parameters():
+    collection = af.CollectionPriorModel(
+        gaussian=af.Model(
+            m.Gaussian,
+            centre=1.0,
+            intensity=1.0,
+            sigma=1.0,
+        )
+    )
+    assert collection.prior_count == 0
+    assert collection.has_model(
+        m.Gaussian
+    ) is False
+
+
 def test_instance():
     collection = af.CollectionPriorModel(
         gaussian=m.Gaussian()
