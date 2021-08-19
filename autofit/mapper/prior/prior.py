@@ -102,7 +102,7 @@ class LogUniformPrior(Log10ShiftedUniformMessage):
             lower_limit=lower_limit,
             log_norm=log_norm,
             shift=np.log10(lower_limit),
-            scale=np.log10(upper_limit) - np.log10(lower_limit),
+            scale=np.log10(upper_limit / lower_limit),
         )
         if self.lower_limit <= 0.0:
             raise exc.PriorException(
