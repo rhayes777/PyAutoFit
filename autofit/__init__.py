@@ -10,6 +10,7 @@ from .non_linear.samples import Sample
 from .non_linear.samples import load_from_table
 from .non_linear.samples import StoredSamples
 from .database.aggregator import Aggregator
+from .database.model import Fit
 from .database.aggregator import Query
 from .database.model.fit import Fit
 from .aggregator.search_output import SearchOutput
