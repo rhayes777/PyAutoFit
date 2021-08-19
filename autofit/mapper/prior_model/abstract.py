@@ -780,7 +780,10 @@ class AbstractPriorModel(AbstractModel):
         priors: [(String, Prior))]
         """
         # noinspection PyUnresolvedReferences
-        return self.attribute_tuples_with_type(Prior)
+        return self.attribute_tuples_with_type(
+            Prior,
+            ignore_children=True
+        )
 
     def __eq__(self, other):
         return (

@@ -249,7 +249,8 @@ class AbstractModel(ModelObject):
     def attribute_tuples_with_type(
             self,
             class_type,
-            ignore_class=None
+            ignore_class=None,
+            ignore_children=False
     ) -> List[tuple]:
         """
         Tuples describing the name and instance for attributes in the model
@@ -257,6 +258,8 @@ class AbstractModel(ModelObject):
 
         Parameters
         ----------
+        ignore_children
+            If True then recursion stops at instances with the type
         class_type
             The type of the objects to find
         ignore_class
@@ -269,7 +272,9 @@ class AbstractModel(ModelObject):
         return [
             (path[-1] if len(path) > 0 else "", value)
             for path, value in self.path_instance_tuples_for_class(
-                class_type, ignore_class=ignore_class
+                class_type,
+                ignore_class=ignore_class,
+                ignore_children=ignore_children
             )
         ]
 
