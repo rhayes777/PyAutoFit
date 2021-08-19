@@ -44,7 +44,12 @@ def test_physical_lower_limits(
         model,
         result
 ):
-    model.centre.upper_limit = upper_limit
+    result.grid_priors = [
+        af.UniformPrior(
+            lower_limit=0.0,
+            upper_limit=upper_limit
+        )
+    ]
     assert result.physical_lower_limits_lists == [
         [0.0],
         [physical_value]
