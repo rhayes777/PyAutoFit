@@ -219,6 +219,19 @@ class AbstractModel(ModelObject):
 
     @frozen_cache
     def model_tuples_with_type(self, cls):
+        """
+        All models of the class in this model which have at least
+        one free parameter, recursively.
+
+        Parameters
+        ----------
+        cls
+            The type of the model
+
+        Returns
+        -------
+        Models with free parameters
+        """
         from .prior_model.prior_model import PriorModel
         return [
             (path, model)
@@ -226,10 +239,10 @@ class AbstractModel(ModelObject):
             in self.attribute_tuples_with_type(
                 PriorModel
             )
-            if model.cls == cls or issubclass(
+            if (model.cls == cls or issubclass(
                 model.cls,
                 cls
-            )
+            )) and model.prior_count > 0
         ]
 
     @frozen_cache
