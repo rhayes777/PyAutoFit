@@ -181,7 +181,7 @@ class AbstractModel(ModelObject):
             self,
             cls: Union[Tuple, Type],
             ignore_class=None,
-            ignore_children=False
+            ignore_children=True
     ):
         """
         Tuples containing the path tuple and instance for every instance of the class
@@ -250,7 +250,7 @@ class AbstractModel(ModelObject):
             self,
             class_type,
             ignore_class=None,
-            ignore_children=False
+            ignore_children=True
     ) -> List[tuple]:
         """
         Tuples describing the name and instance for attributes in the model

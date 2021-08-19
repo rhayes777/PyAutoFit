@@ -7,12 +7,8 @@ model                                                                           
 Maximum Log Likelihood Model:
 
 mock_class
-    one
-        instance
-            instance                                                                      1.000
-    two
-        instance
-            instance                                                                      2.000
+    one                                                                                   1.000
+    two                                                                                   2.000
 
  WARNING: The samples have not converged enough to compute a PDF and model errors. 
  The model below over estimates errors. 
@@ -22,12 +18,8 @@ mock_class
 Summary (1.0 sigma limits):
 
 mock_class
-    one
-        instance
-            instance                                                                      1.0000 (1.0000, 1.2000)
-    two
-        instance
-            instance                                                                      2.0000 (2.0000, 2.2000)
+    one                                                                                   1.00 (1.00, 1.20)
+    two                                                                                   2.00 (2.00, 2.20)
 
 instances
 
