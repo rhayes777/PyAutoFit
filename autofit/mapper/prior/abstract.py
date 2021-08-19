@@ -9,7 +9,7 @@ from autofit.mapper.prior.deferred import DeferredArgument
 from autofit.mapper.variable import Variable
 
 
-class Prior(Variable, ABC, ArithmeticMixin):
+class Prior(Variable, ABC):
     def __init__(
             self,
             lower_limit=0.0,

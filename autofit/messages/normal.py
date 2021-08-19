@@ -51,7 +51,6 @@ class NormalMessage(AbstractMessage):
 
     def cdf(self, x):
         return norm.cdf(x, loc=self.mu, scale=self.sigma)
-        # return (1 + math.erf((x - self.mu) / self.sigma / math.sqrt(2))) / 2
 
     def ppf(self, x):
         return norm.ppf(x, loc=self.mu, scale=self.sigma)
