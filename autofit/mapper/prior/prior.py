@@ -86,7 +86,7 @@ class LogUniformPrior(UniformPrior):
 
     def __init__(
             self,
-            lower_limit=0.0,
+            lower_limit=1e-6,
             upper_limit=1.0,
             log_norm=0.0,
             id_=None
