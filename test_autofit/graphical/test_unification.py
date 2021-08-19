@@ -128,3 +128,33 @@ def test_value_for(
     ) == pytest.approx(
         physical_value
     )
+
+
+@pytest.mark.parametrize(
+    "lower_limit, upper_limit, unit_value, physical_value",
+    [
+        (0.0, 1.0, 0.5, 0.5),
+        (0.0, 1.0, 1.0, 1.0),
+        (0.0, 1.0, 0.0, 0.0),
+        (1.0, 2.0, 0.5, 1.5),
+        (1.0, 2.0, 1.0, 2.0),
+        (1.0, 2.0, 0.0, 1.0),
+        (0.0, 2.0, 0.5, 1.0),
+        (0.0, 2.0, 1.0, 2.0),
+        (0.0, 2.0, 0.0, 0.0),
+    ]
+)
+def test_uniform_prior(
+        lower_limit,
+        upper_limit,
+        unit_value,
+        physical_value
+):
+    assert af.UniformPrior(
+        lower_limit=lower_limit,
+        upper_limit=upper_limit,
+    ).value_for(
+        unit_value
+    ) == pytest.approx(
+        physical_value
+    )
