@@ -447,15 +447,15 @@ class AbstractPriorModel(AbstractModel):
         of type cls, recursively.
         """
         from .prior_model import PriorModel
-        return self.has_model(
-            cls
-        ) and len(
-            self.model_tuples_with_type(cls)
-        ) == len(
-            self.attribute_tuples_with_type(
+        cls_models = self.model_tuples_with_type(cls)
+        other_models = [
+            value for _, value
+            in self.attribute_tuples_with_type(
                 PriorModel
             )
-        )
+            if value.prior_count > 0
+        ]
+        return len(cls_models) > 0 and len(cls_models) == len(other_models)
 
     def mapper_from_partial_prior_arguments(self, arguments):
         """
@@ -1104,9 +1104,12 @@ class AbstractPriorModel(AbstractModel):
         """
         formatter = TextFormatter()
 
-        for t in self.path_instance_tuples_for_class((
-                Prior, float, tuple
-        )):
+        for t in self.path_instance_tuples_for_class(
+                (
+                        Prior, float, tuple
+                ),
+                ignore_children=True
+        ):
             formatter.add(*t)
 
         return formatter.text
