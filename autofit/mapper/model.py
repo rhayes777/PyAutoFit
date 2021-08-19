@@ -180,8 +180,8 @@ class AbstractModel(ModelObject):
     def path_instance_tuples_for_class(
             self,
             cls: Union[Tuple, Type],
-            ignore_class=None,
-            ignore_children=True
+            ignore_class: bool = None,
+            ignore_children: bool = True
     ):
         """
         Tuples containing the path tuple and instance for every instance of the class
