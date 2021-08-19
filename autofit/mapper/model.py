@@ -378,8 +378,14 @@ class ModelInstance(AbstractModel):
         return {
             key: value
             for key, value in self.__dict__.items()
-            if key not in ("id", "component_number", "item_number")
-               and not (isinstance(key, str) and key.startswith("_"))
+            if key not in (
+                "id",
+                "component_number",
+                "item_number"
+            ) and not (
+                    isinstance(key, str)
+                    and key.startswith("_")
+            )
         }
 
     def values(self):
