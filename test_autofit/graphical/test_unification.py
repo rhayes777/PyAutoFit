@@ -4,7 +4,7 @@ import pytest
 import autofit as af
 from autofit import graphical as g
 from autofit.mapper.prior.prior import ShiftedUniformMessage
-from autofit.messages.normal import UniformNormalMessage
+from autofit.messages.normal import UniformNormalMessage, Log10UniformNormalMessage
 from autofit.messages.transform import FunctionTransform
 
 
@@ -168,22 +168,14 @@ def test_uniform_odd_result():
     ) == pytest.approx(90.0)
 
 
-log_10_transform = FunctionTransform(
-    np.log10, lambda x: 10 ** x, np.reciprocal
-)
-
-
 def test_log10():
     lower_limit = 10
     upper_limit = 100
 
-    Log10Normal = UniformNormalMessage.transformed(
-        log_10_transform
-    ).shifted(
+    message = Log10UniformNormalMessage.shifted(
         shift=lower_limit - 10,
         scale=10 ** (np.log10(upper_limit) - np.log10(lower_limit))
-    )
-    message = Log10Normal(
+    )(
         mean=0.0,
         sigma=1.0
     )

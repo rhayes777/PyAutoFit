@@ -7,7 +7,7 @@ from scipy.stats import norm
 
 from autofit.messages.abstract import AbstractMessage
 from autofit.tools.cached_property import cached_property
-from .transform import phi_transform, log_transform, multinomial_logit_transform
+from .transform import phi_transform, log_transform, multinomial_logit_transform, log_10_transform
 
 
 def is_nan(value):
@@ -202,8 +202,13 @@ UniformNormalMessage = NormalMessage.transformed(
     phi_transform, 'UniformNormalMessage')
 UniformNormalMessage.__module__ = __name__
 
+Log10UniformNormalMessage = UniformNormalMessage.transformed(
+    log_10_transform
+)
+
 LogNormalMessage = NormalMessage.transformed(
     log_transform, 'LogNormalMessage')
+
 # Support is the simplex
 MultiLogitNormalMessage = NormalMessage.transformed(
     multinomial_logit_transform, 'MultiLogitNormalMessage', ((0, 1),))
