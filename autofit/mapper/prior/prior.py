@@ -63,7 +63,7 @@ class UniformPrior(ShiftedUniformMessage):
         return round(super().value_for(unit), 14)
 
     @staticmethod
-    def log_prior_from_value(_):
+    def log_prior_from_value(value):
         """
         Returns the log prior of a physical value, so the log likelihood of a model evaluation can be converted to a
         posterior as log_prior + log_likelihood.
