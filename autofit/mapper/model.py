@@ -267,8 +267,8 @@ class AbstractModel(ModelObject):
         Tuples containing the name and instance of each attribute with the type
         """
         return [
-            (t[0][-1], t[1])
-            for t in self.path_instance_tuples_for_class(
+            (path[-1] if len(path) > 0 else "", value)
+            for path, value in self.path_instance_tuples_for_class(
                 class_type, ignore_class=ignore_class
             )
         ]
@@ -322,7 +322,7 @@ def path_instances_of_class(
                     value,
                     cls,
                     ignore_class=ignore_class,
-                    ignore_children=True
+                    ignore_children=ignore_children
             ):
                 if isinstance(value, AnnotationPriorModel):
                     path = (key,)

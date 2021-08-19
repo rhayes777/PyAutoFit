@@ -1103,9 +1103,12 @@ class AbstractPriorModel(AbstractModel):
         """
         formatter = TextFormatter()
 
-        for t in self.path_instance_tuples_for_class((
-                Prior, float, tuple
-        )):
+        for t in self.path_instance_tuples_for_class(
+                (
+                        Prior, float, tuple
+                ),
+                ignore_children=True
+        ):
             formatter.add(*t)
 
         return formatter.text
