@@ -95,7 +95,7 @@ class LogUniformPrior(Log10ShiftedUniformMessage):
         lower_limit = float(lower_limit)
         upper_limit = float(upper_limit)
         super().__init__(
-            mean=0.0,
+            mean=1e-6,
             sigma=1.0,
             id_=id_,
             upper_limit=upper_limit,
