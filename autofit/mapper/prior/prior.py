@@ -31,6 +31,8 @@ class UniformPrior(ShiftedMessage):
             log_norm=0.0,
             id_=None
     ):
+        lower_limit = float(lower_limit)
+        upper_limit = float(upper_limit)
         super().__init__(
             mean=0.0,
             sigma=1.0,
@@ -39,7 +41,7 @@ class UniformPrior(ShiftedMessage):
             lower_limit=lower_limit,
             log_norm=log_norm,
             shift=lower_limit,
-            scale=upper_limit
+            scale=(upper_limit - lower_limit)
         )
 
     def value_for(self, unit):
