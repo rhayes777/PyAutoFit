@@ -1,11 +1,10 @@
-
 from abc import ABC, abstractmethod
 from functools import wraps
 from typing import Tuple
 
 import numpy as np
-from scipy.linalg import cho_factor, solve_triangular, get_blas_funcs, block_diag
 from scipy._lib._util import _asarray_validated
+from scipy.linalg import cho_factor, solve_triangular, get_blas_funcs, block_diag
 
 from autofit.tools.cached_property import cached_property
 
@@ -305,6 +304,7 @@ class CholeskyOperator(LinearOperator):
     >>> df_dy = df_df * M
     >>> 
     """
+
     # TODO implement tensor shape functionality
 
     def __init__(self, cho_factor):
@@ -414,11 +414,15 @@ class DiagonalMatrix(LinearOperator):
     M = np.diag(scale.ravel())
     
     """
+
     def __init__(self, scale, inv_scale=None):
         self.scale = np.asanyarray(scale)
         self._fscale = np.ravel(self.scale)
-        self._finv_scale = 1 / \
-            scale if inv_scale is None else np.ravel(inv_scale)
+        self._finv_scale = (
+            1 / scale
+            if inv_scale is None
+            else np.ravel(inv_scale)
+        )
         self._ldim = len(self.scale.shape)
 
     @_wrap_leftop
@@ -460,6 +464,7 @@ class VecOuterProduct(LinearOperator):
 
     outer = vec[:, None] * vecT[None, :]
     """
+
     def __init__(self, vec, vecT=None):
         self.vec = np.asanyarray(vec)
         self.vecT = np.asanyarray(vec if vecT is None else vecT)
@@ -564,7 +569,7 @@ class MultiVecOuterProduct(LinearOperator):
 
     def to_dense(self):
         return block_diag(*(
-            self.vec[:, :, None] * self.vecT[:, None, :]
+                self.vec[:, :, None] * self.vecT[:, None, :]
         )).reshape(self.shape)
 
 
@@ -598,12 +603,12 @@ class ShermanMorrison(LinearOperator):
     @_wrap_rightop
     def __rtruediv__(self, x):
         x1 = x / self.linear
-        return x1 - ((x1/self.inv_scale) * self.outer) / self.linear
+        return x1 - ((x1 / self.inv_scale) * self.outer) / self.linear
 
     @_wrap_leftop
     def ldiv(self, x):
         x1 = self.linear.ldiv(x)
-        return x1 - self.linear.ldiv(self.outer.dot(x1/self.inv_scale))
+        return x1 - self.linear.ldiv(self.outer.dot(x1 / self.inv_scale))
 
     @cached_property
     def log_det(self):

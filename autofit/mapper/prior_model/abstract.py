@@ -15,8 +15,9 @@ from autoconf.exc import ConfigException
 from autofit import exc
 from autofit.mapper import model
 from autofit.mapper.model import AbstractModel, frozen_cache
+from autofit.mapper.prior.abstract import Prior
 from autofit.mapper.prior.deferred import DeferredArgument
-from autofit.mapper.prior.prior import Prior, Limits, GaussianPrior
+from autofit.mapper.prior.prior import Limits, GaussianPrior
 from autofit.mapper.prior.tuple_prior import TuplePrior
 from autofit.mapper.prior.width_modifier import WidthModifier
 from autofit.mapper.prior_model.attribute_pair import DeferredNameValue
@@ -779,7 +780,10 @@ class AbstractPriorModel(AbstractModel):
         priors: [(String, Prior))]
         """
         # noinspection PyUnresolvedReferences
-        return self.attribute_tuples_with_type(Prior)
+        return self.attribute_tuples_with_type(
+            Prior,
+            ignore_children=True
+        )
 
     def __eq__(self, other):
         return (

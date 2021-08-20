@@ -48,7 +48,6 @@ class TestPriorLimits:
         prior.assert_within_limits(1.0)
 
     def test_prior_creation(self):
-
         mapper = af.ModelMapper()
         mapper.component = mock.MockClassx2
 
@@ -125,7 +124,6 @@ class TestPriorLimits:
         assert prior_tuples[1].prior.sigma == 0.4
 
     def test__only_use_widths_to_pass_priors(self):
-
         mm = af.ModelMapper()
         mm.mock_class_gaussian = mock.MockClassx2
 
@@ -142,7 +140,6 @@ class TestPriorLimits:
         assert prior_tuples[1].prior.sigma == 2.0
 
     def test__use_max_of_widths_and_passed_errors_to_pass_priors(self):
-
         mm = af.ModelMapper()
         mm.mock_class_gaussian = mock.MockClassx2
 
@@ -178,17 +175,9 @@ class TestPriorMean:
         uniform_prior = af.UniformPrior(0.0, 1.0)
         assert uniform_prior.mean == 0.5
 
-        uniform_prior.mean = 1.0
-        assert uniform_prior.lower_limit == 0.5
-        assert uniform_prior.upper_limit == 1.5
-
     def test_higher(self):
         uniform_prior = af.UniformPrior(1.0, 2.0)
         assert uniform_prior.mean == 1.5
-
-        uniform_prior.mean = 2.0
-        assert uniform_prior.lower_limit == 1.5
-        assert uniform_prior.upper_limit == 2.5
 
 
 class TestAddition:
@@ -260,7 +249,6 @@ class TestUniformPrior:
         assert prior.value_for(1.0) == 0.0
 
     def test__log_prior_from_value(self):
-
         gaussian_simple = af.UniformPrior(lower_limit=-40, upper_limit=70)
 
         log_prior = gaussian_simple.log_prior_from_value(value=0.0)
@@ -279,7 +267,7 @@ class TestLogUniformPrior:
 
         assert log_uniform_simple.value_for(0.0) == 1.0e-8
         assert log_uniform_simple.value_for(1.0) == 1.0
-        assert log_uniform_simple.value_for(0.5) == 0.0001
+        assert log_uniform_simple.value_for(0.5) == pytest.approx(0.0001, abs=0.000001)
 
     def test__non_zero_lower_limit(self):
         log_uniform_half = af.LogUniformPrior(lower_limit=0.5, upper_limit=1.0)
@@ -289,7 +277,6 @@ class TestLogUniformPrior:
         assert log_uniform_half.value_for(0.5) == pytest.approx(0.70710678118, 1.0e-4)
 
     def test__log_prior_from_value(self):
-
         gaussian_simple = af.LogUniformPrior(lower_limit=1e-8, upper_limit=1.0)
 
         log_prior = gaussian_simple.log_prior_from_value(value=1.0)
@@ -319,13 +306,10 @@ class TestLogUniformPrior:
         assert log_prior == 0.25
 
     def test__lower_limit_zero_or_below_raises_error(self):
-
         with pytest.raises(exc.PriorException):
-
             af.LogUniformPrior(lower_limit=-1.0, upper_limit=1.0)
 
         with pytest.raises(exc.PriorException):
-
             af.LogUniformPrior(lower_limit=0.0, upper_limit=1.0)
 
 
@@ -345,7 +329,6 @@ class TestGaussianPrior:
         assert gaussian_half.value_for(0.5) == 0.5
 
     def test__log_prior_from_value(self):
-
         gaussian_simple = af.GaussianPrior(mean=0.0, sigma=1.0)
 
         log_prior = gaussian_simple.log_prior_from_value(value=0.0)
