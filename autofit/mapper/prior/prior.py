@@ -109,6 +109,22 @@ class LogUniformPrior(Log10ShiftedUniformMessage):
             scale=np.log10(upper_limit / lower_limit),
         )
 
+    def value_for(self, unit):
+        """
+        Parameters
+        ----------
+        unit: Float
+            A unit hypercube value between 0 and 1
+        Returns
+        -------
+        value: Float
+            A value for the attribute between the upper and lower limits
+        """
+        return 10.0 ** (
+                np.log10(self.lower_limit)
+                + unit * (np.log10(self.upper_limit) - np.log10(self.lower_limit))
+        )
+
     @staticmethod
     def log_prior_from_value(value):
         """
