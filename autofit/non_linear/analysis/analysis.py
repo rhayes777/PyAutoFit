@@ -34,14 +34,14 @@ class Analysis(ABC):
                                     samples: OptimizerSamples):
         pass
 
-    def modify_before_fit(self, model: AbstractPriorModel):
+    def modify_before_fit(self, paths: AbstractPaths, model: AbstractPriorModel):
         """
-        Overwrote this method to modify the attributes of the `Analysis` class before the non-linear search begins.
+        Overwrite this method to modify the attributes of the `Analysis` class before the non-linear search begins.
 
         An example use-case is using properties of the model to alter the `Analysis` class in ways that can speed up
         the fitting performed in the `log_likelihood_function`.
         """
-        pass
+        return self
 
     def make_result(self, samples, model, search):
         return Result(samples=samples, model=model, search=search)
