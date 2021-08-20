@@ -180,8 +180,8 @@ class AbstractModel(ModelObject):
     def path_instance_tuples_for_class(
             self,
             cls: Union[Tuple, Type],
-            ignore_class=None,
-            ignore_children=False
+            ignore_class: bool = None,
+            ignore_children: bool = True
     ):
         """
         Tuples containing the path tuple and instance for every instance of the class
@@ -249,7 +249,8 @@ class AbstractModel(ModelObject):
     def attribute_tuples_with_type(
             self,
             class_type,
-            ignore_class=None
+            ignore_class=None,
+            ignore_children=True
     ) -> List[tuple]:
         """
         Tuples describing the name and instance for attributes in the model
@@ -257,6 +258,8 @@ class AbstractModel(ModelObject):
 
         Parameters
         ----------
+        ignore_children
+            If True then recursion stops at instances with the type
         class_type
             The type of the objects to find
         ignore_class
@@ -269,7 +272,9 @@ class AbstractModel(ModelObject):
         return [
             (path[-1] if len(path) > 0 else "", value)
             for path, value in self.path_instance_tuples_for_class(
-                class_type, ignore_class=ignore_class
+                class_type,
+                ignore_class=ignore_class,
+                ignore_children=ignore_children
             )
         ]
 
@@ -373,8 +378,14 @@ class ModelInstance(AbstractModel):
         return {
             key: value
             for key, value in self.__dict__.items()
-            if key not in ("id", "component_number", "item_number")
-               and not (isinstance(key, str) and key.startswith("_"))
+            if key not in (
+                "id",
+                "component_number",
+                "item_number"
+            ) and not (
+                    isinstance(key, str)
+                    and key.startswith("_")
+            )
         }
 
     def values(self):

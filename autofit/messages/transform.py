@@ -168,7 +168,9 @@ class LinearShiftTransform(LinearTransform):
     def __init__(self, shift: float = 0, scale: float = 1):
         self.shift = shift
         self.scale = scale
-        self.linear = DiagonalMatrix(np.reciprocal(self.scale))
+        super().__init__(
+            DiagonalMatrix(np.reciprocal(self.scale))
+        )
 
     def inv_transform(self, x: np.ndarray) -> np.ndarray:
         return x * self.scale + self.shift
@@ -206,7 +208,6 @@ class FunctionTransform(AbstractDensityTransform):
         if self.func_grad_hess:
             x0, gs, hs = self.func_grad_hess(x, *self.args)
         else:
-            x0 = self.func(x, *self.args)
             gs = self.grad(x, *self.args)
             hs = self.hess(x, *self.args)
         return np.log(gs), hs / gs
@@ -238,6 +239,12 @@ def log3(x):
 
 log_transform = FunctionTransform(
     np.log, np.exp, np.reciprocal, func_grad_hess=log3)
+
+
+# TODO: what should func_grad_hess look like? np.log10, ... ?
+log_10_transform = FunctionTransform(
+    np.log10, lambda x: 10 ** x, np.reciprocal
+)
 
 
 def sigmoid(x, scale=1, shift=0):

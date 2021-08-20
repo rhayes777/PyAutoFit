@@ -30,7 +30,7 @@ class TestAddition:
         assert sum_prior.instance_from_unit_vector([1.0]) == 2.0
 
 
-class TestMultiplication:
+class _TestMultiplication:
     def test_prior_times_prior(self, prior):
         multiple_prior = (prior + prior) * (prior + prior)
         assert multiple_prior.instance_from_unit_vector([1.0]) == 4
@@ -44,7 +44,7 @@ class TestMultiplication:
         assert multiple_prior.instance_from_unit_vector([1.0]) == 2.0
 
 
-class TestDivision:
+class _TestDivision:
     def test_prior_over_prior(self, prior):
         division_prior = prior / prior
         assert (
@@ -63,7 +63,7 @@ class TestDivision:
         assert division_prior.instance_from_unit_vector([0.5]) == 8.0
 
 
-class TestFloorDiv:
+class _TestFloorDiv:
     def test_prior_over_int(self, prior):
         division_prior = prior // 2
         assert (
@@ -83,7 +83,7 @@ class TestFloorDiv:
         )
 
 
-class TestMod:
+class _TestMod:
     def test_prior_mod_int(self, prior):
         mod_prior = prior % 3
         assert (
@@ -106,7 +106,7 @@ def test_abs(prior):
     assert prior.instance_from_unit_vector([0.0]) == 1.0
 
 
-class TestPowers:
+class _TestPowers:
     def test_prior_to_prior(self, prior):
         power_prior = prior ** prior
         assert (
@@ -129,7 +129,7 @@ class TestPowers:
         )
 
 
-class TestInequality:
+class _TestInequality:
     def test_prior_lt_prior(self, prior):
         inequality_prior = (prior * prior) < prior
         assert (

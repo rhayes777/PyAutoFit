@@ -105,9 +105,8 @@ class AbstractMessage(Prior, ABC):
     def __hash__(self):
         return self.id
 
-    @classmethod
-    def calc_log_base_measure(cls, x):
-        return cls.log_base_measure
+    def calc_log_base_measure(self, x):
+        return self.log_base_measure
 
     def __iter__(self) -> Iterator[np.ndarray]:
         return iter(self.parameters)
@@ -130,9 +129,9 @@ class AbstractMessage(Prior, ABC):
             natural_parameters: np.ndarray,
             **kwargs
     ) -> "AbstractMessage":
-        cls = cls._projection_class or cls
-        args = cls.invert_natural_parameters(natural_parameters)
-        return cls(*args, **kwargs)
+        cls_ = cls._projection_class or cls
+        args = cls_.invert_natural_parameters(natural_parameters)
+        return cls_(*args, **kwargs)
 
     @classmethod
     @abstractmethod
@@ -146,8 +145,8 @@ class AbstractMessage(Prior, ABC):
             cls, suff_stats: np.ndarray, **kwargs
     ) -> "AbstractMessage":
         natural_params = cls.invert_sufficient_statistics(suff_stats)
-        cls = cls._projection_class or cls
-        return cls.from_natural_parameters(natural_params, **kwargs)
+        cls_ = cls._projection_class or cls
+        return cls_.from_natural_parameters(natural_params, **kwargs)
 
     def sum_natural_parameters(
             self, *dists: "AbstractMessage"
@@ -382,8 +381,8 @@ class AbstractMessage(Prior, ABC):
 
         assert np.isfinite(suff_stats).all()
 
-        cls = cls._projection_class or cls
-        return cls.from_sufficient_statistics(
+        cls_ = cls._projection_class or cls
+        return cls_.from_sufficient_statistics(
             suff_stats,
             log_norm=log_norm,
             id_=id_
@@ -465,7 +464,7 @@ class AbstractMessage(Prior, ABC):
         return self.check_finite() & self.check_support()
 
     @cached_property
-    def is_valid(self) -> np.bool_:
+    def is_valid(self) -> Union[np.ndarray, np.bool_]:
         return np.all(self.check_finite()) and np.all(self.check_support())
 
     @staticmethod
@@ -519,12 +518,16 @@ class AbstractMessage(Prior, ABC):
     @classmethod
     def transformed(
             cls,
-            transform: AbstractDensityTransform,
+            transform: Union[
+                AbstractDensityTransform,
+                Type[AbstractDensityTransform]
+            ],
             clsname: Optional[str] = None,
             support: Optional[Tuple[Tuple[float, float], ...]] = None,
     ) -> Type["AbstractMessage"]:
+        # noinspection PyUnresolvedReferences
         """
-        transforms the distribution according the passed transform, 
+        transforms the distribution according the passed transform,
         returns a newly created class that encodes the transformation.
 
         Parameters
@@ -535,18 +538,18 @@ class AbstractMessage(Prior, ABC):
             the class name of the newly created class.
             defaults to "Transformed<OriginalClassName>"
         support: Tuple[Tuple[float, float], optional
-            the support of the new class. Generally this can be 
+            the support of the new class. Generally this can be
             automatically calculated from the parent class
 
         Examples
         --------
-
+        >>> from autofit.messages.normal import NormalMessage
 
         Normal distributions have infinite univariate support
         >>> NormalMessage._support
         ((-inf, inf),)
 
-        We can tranform the NormalMessage to the unit interval 
+        We can tranform the NormalMessage to the unit interval
         using `transform.phi_transform`
         >>> UnitNormal = NormalMessage.transformed(transform.phi_transform)
         >>> message = UnitNormal(1.2, 0.8)
@@ -559,7 +562,7 @@ class AbstractMessage(Prior, ABC):
         (0.06631750944045942, 0.8183189295040845, 0.9999056316923468)
 
         Projections still work for the transformed class
-        >>> UnitNormal.project(samples, samples*0) 
+        >>> UnitNormal.project(samples, samples*0)
         TransformedNormalMessage(mu=1.20273342, sigma=0.80929032)
 
         Can specify the name of the new transformed class
@@ -573,6 +576,7 @@ class AbstractMessage(Prior, ABC):
 
         The transformed objects also are normalised,
         >>> from scipy.integrate import quad
+        >>> # noinspection PyTypeChecker
         >>> quad(message.pdf, 0, 1)
         (1.0000000000114622, 3.977073226302252e-09)
 
@@ -594,13 +598,18 @@ class AbstractMessage(Prior, ABC):
         >>> samples = ShiftedUnitNormal(0.2, 0.8).sample(1000)
         >>> samples.min(), samples.mean(), samples.max()
         """
-        support = support or tuple(zip(*map(
-            transform.inv_transform, map(np.array, zip(*cls._support))
-        ))) if cls._support else cls._support
+        from .transformed import TransformedMessage
+
         projectionClass = (
             None if cls._projection_class is None
             else cls._projection_class.transformed(transform)
         )
+
+        def compute_support():
+            return support or tuple(zip(*map(
+                transform.inv_transform, map(np.array, zip(*cls._support))
+            ))) if cls._support else cls._support
+
         if issubclass(cls, TransformedMessage):
             depth = cls._depth + 1
             clsname = clsname or f"Transformed{depth}{cls._Message.__name__}"
@@ -608,25 +617,23 @@ class AbstractMessage(Prior, ABC):
             # Don't doubly inherit if transforming already transformed message
             class Transformed(cls):  # type: ignore
                 __qualname__ = clsname
-                _Message = cls
-                _transform = transform
-                _support = support
-                __projection_class = projectionClass
                 _depth = depth
-
         else:
             clsname = clsname or f"Transformed{cls.__name__}"
 
-            class Transformed(TransformedMessage, cls):  # type: ignore
+            class Transformed(TransformedMessage):  # type: ignore
                 __qualname__ = clsname
-                _Message = cls
-                _transform = transform
-                _support = support
-                __projection_class = projectionClass
                 parameter_names = cls.parameter_names
                 _depth = 1
 
+        Transformed._Message = cls
+        Transformed._transform = transform
+        Transformed._support = property(
+            fget=compute_support
+        )
+        Transformed.__projection_class = projectionClass
         Transformed.__name__ = clsname
+
         return Transformed
 
     @classmethod
@@ -661,109 +668,14 @@ class AbstractMessage(Prior, ABC):
             ),
         )
 
-    @classmethod
-    def _sample(cls, self, n_samples):
+    def _sample(self, n_samples):
         # Needed for nested TransformedMessage method resolution
-        return cls.sample(self, n_samples)
+        return self.sample(n_samples)
 
     @classmethod
     def _logpdf_gradient(cls, self, x):
         # Needed for nested TransformedMessage method resolution
         return cls.logpdf_gradient(self, x)
-
-
-class TransformedMessage(AbstractMessage):
-    _Message: Type[AbstractMessage]
-    _transform: AbstractDensityTransform
-    _depth = 0
-
-    @classmethod
-    def _reconstruct(  # type: ignore
-            cls,
-            Message: 'AbstractMessage',
-            clsname: str,
-            transform: AbstractDensityTransform,
-            parameters: Tuple[np.ndarray, ...],
-            log_norm: float,
-            id_
-    ):
-        # Reconstructs TransformedMessage during unpickling
-        Transformed = Message.transformed(transform, clsname)
-        return Transformed(
-            *parameters,
-            log_norm=log_norm,
-            id_=id_
-        )
-
-    def __reduce__(self):
-        # serialises TransformedMessage during pickling
-        return (
-            TransformedMessage._reconstruct,
-            (
-                self._Message,
-                self.__class__.__name__,
-                self._transform,
-                self.parameters,
-                self.log_norm,
-                self.id
-            ),
-        )
-
-    @classmethod
-    def calc_log_base_measure(cls, x) -> np.ndarray:
-        x, log_det = cls._transform.transform_det(x)
-        log_base = cls._Message.calc_log_base_measure(x)
-        return log_base + log_det
-
-    @classmethod
-    def to_canonical_form(cls, x) -> np.ndarray:
-        x = cls._transform.transform(x)
-        return cls._Message.to_canonical_form(x)
-
-    @cached_property
-    def mean(self) -> np.ndarray:
-        return self._transform.inv_transform(self._Message.mean.func(self))
-
-    @cached_property
-    def variance(self) -> np.ndarray:
-        return self._transform.inv_transform(self._Message.variance.func(self))
-
-    @classmethod
-    def _sample(cls, self, n_samples) -> np.ndarray:
-        x = cls._Message._sample(self, n_samples)
-        return cls._transform.inv_transform(x)
-
-    @classmethod
-    def _logpdf_gradient(  # type: ignore
-            cls,
-            self,
-            x: np.ndarray,
-    ) -> Tuple[np.ndarray, np.ndarray]:
-        x, logd, logd_grad, jac = cls._transform.transform_det_jac(x)
-        logl, grad = cls._Message._logpdf_gradient(self, x)
-        return logl + logd, grad * jac + logd_grad
-
-    def sample(self, n_samples=None) -> np.ndarray:
-        return self._sample(self, n_samples)
-
-    def logpdf_gradient(
-            self, x: np.ndarray
-    ) -> Tuple[np.ndarray, np.ndarray]:
-        return self._logpdf_gradient(self, x)
-
-    # TODO add code for analytic hessians when Jacobian is fixed e.g. for shifted messages
-    logpdf_gradient_hessian = AbstractMessage.numerical_logpdf_gradient_hessian
-
-    @classmethod
-    def from_mode(
-            cls,
-            mode: np.ndarray,
-            covariance: np.ndarray,
-            id_=None
-    ) -> "AbstractMessage":
-        mode, jac = cls._transform.transform_jac(mode)
-        covariance = jac.invquad(covariance)
-        return cls.from_mode(mode, covariance, id_=id_)
 
 
 def map_dists(dists: Dict[str, AbstractMessage],

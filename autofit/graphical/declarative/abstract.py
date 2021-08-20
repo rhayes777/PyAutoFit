@@ -10,7 +10,7 @@ from autofit.graphical.factor_graphs.factor import Factor
 from autofit.graphical.factor_graphs.graph import FactorGraph
 from autofit.messages.normal import NormalMessage
 from autofit.mapper.model import ModelInstance
-from autofit.mapper.prior.prior import Prior
+from autofit.mapper.prior.abstract import Prior
 from autofit.mapper.prior_model.collection import CollectionPriorModel
 from autofit.non_linear.analysis import Analysis
 from autofit.non_linear.paths.abstract import AbstractPaths

@@ -4,7 +4,7 @@ import numpy as np
 
 from autofit import exc
 from autofit.mapper import model_mapper as mm
-from autofit.mapper.prior.prior import Prior
+from autofit.mapper.prior.abstract import Prior
 from autofit.non_linear.result import Result
 
 LimitLists = List[List[float]]

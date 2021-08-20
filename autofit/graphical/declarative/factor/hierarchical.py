@@ -1,6 +1,6 @@
 from typing import Set, Optional
 
-from autofit.mapper.prior.prior import Prior
+from autofit.mapper.prior.abstract import Prior
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from .abstract import AbstractModelFactor
 

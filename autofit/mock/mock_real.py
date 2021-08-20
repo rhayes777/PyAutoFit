@@ -2,7 +2,7 @@ import math
 
 from autofit.mapper.prior_model.prior_model import PriorModel
 from autofit.mapper.prior_model.util import PriorModelNameValue
-from autofit.mapper.prior.prior import Prior
+from autofit.mapper.prior.abstract import Prior
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 
 # noinspection PyAbstractClass
