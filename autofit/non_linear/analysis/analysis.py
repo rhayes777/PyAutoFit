@@ -2,6 +2,7 @@ import logging
 from abc import ABC
 
 from autoconf import conf
+from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.mapper.prior_model.collection import CollectionPriorModel
 from autofit.non_linear.analysis.multiprocessing import AnalysisPool
 from autofit.non_linear.paths.abstract import AbstractPaths
@@ -32,6 +33,15 @@ class Analysis(ABC):
     def save_results_for_aggregator(self, paths: AbstractPaths, model: CollectionPriorModel,
                                     samples: OptimizerSamples):
         pass
+
+    def modify_before_fit(self, paths: AbstractPaths, model: AbstractPriorModel):
+        """
+        Overwrite this method to modify the attributes of the `Analysis` class before the non-linear search begins.
+
+        An example use-case is using properties of the model to alter the `Analysis` class in ways that can speed up
+        the fitting performed in the `log_likelihood_function`.
+        """
+        return self
 
     def make_result(self, samples, model, search):
         return Result(samples=samples, model=model, search=search)
