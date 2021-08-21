@@ -19,6 +19,7 @@ ShiftedUniformMessage = UniformNormalMessage.transformed(
     LinearShiftTransform,
     clsname=f"ShiftedUniformMessage"
 )
+ShiftedUniformMessage.__module__ = __name__
 
 
 class UniformPrior(ShiftedUniformMessage):
@@ -80,6 +81,7 @@ class UniformPrior(ShiftedUniformMessage):
 Log10ShiftedUniformMessage = ShiftedUniformMessage.transformed(
     log_10_transform
 )
+Log10ShiftedUniformMessage.__module__ = __name__
 
 
 class LogUniformPrior(UniformPrior):
