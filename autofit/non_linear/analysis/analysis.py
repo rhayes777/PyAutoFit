@@ -43,6 +43,15 @@ class Analysis(ABC):
         """
         return self
 
+    def modify_after_fit(self, paths: AbstractPaths, model: AbstractPriorModel, result: Result):
+        """
+        Overwrite this method to modify the attributes of the `Analysis` class before the non-linear search begins.
+
+        An example use-case is using properties of the model to alter the `Analysis` class in ways that can speed up
+        the fitting performed in the `log_likelihood_function`.
+        """
+        return self
+
     def make_result(self, samples, model, search):
         return Result(samples=samples, model=model, search=search)
 
