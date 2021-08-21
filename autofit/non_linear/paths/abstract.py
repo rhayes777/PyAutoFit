@@ -11,6 +11,7 @@ from os import path
 from typing import Optional
 
 from autoconf import conf
+from autofit import exc
 from autofit.mapper import link
 from autofit.mapper.identifier import Identifier, IdentifierField
 from autofit.text import text_util

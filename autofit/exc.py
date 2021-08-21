@@ -1,6 +1,10 @@
 from autoconf.exc import ConfigException, PriorException
 
 
+class PathsException(Exception):
+    pass
+
+
 class FitException(Exception):
     """
     An exception to be thrown if the non linear search must resample; equivalent to returning an infinitely bad fit
