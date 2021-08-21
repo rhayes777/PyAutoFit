@@ -104,22 +104,6 @@ class LogUniformPrior(UniformPrior):
                 "The lower limit of a LogUniformPrior cannot be zero or negative."
             )
 
-    def value_for(self, unit):
-        """
-        Parameters
-        ----------
-        unit: Float
-            A unit hypercube value between 0 and 1
-        Returns
-        -------
-        value: Float
-            A value for the attribute between the upper and lower limits
-        """
-        return 10.0 ** (
-                np.log10(self.lower_limit)
-                + unit * (np.log10(self.upper_limit) - np.log10(self.lower_limit))
-        )
-
     def log_prior_from_value(self, value):
         """
     Returns the log prior of a physical value, so the log likelihood of a model evaluation can be converted to a
