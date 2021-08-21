@@ -84,31 +84,42 @@ Log10ShiftedUniformMessage = ShiftedUniformMessage.transformed(
 Log10ShiftedUniformMessage.__module__ = __name__
 
 
-class LogUniformPrior(UniformPrior):
+
+class LogUniformPrior(Log10ShiftedUniformMessage):
     """A prior with a uniform distribution between a lower and upper limit"""
 
-    def __init__(self, lower_limit=1e-6, upper_limit=1.0):
-        """
-        An object used to mappers a unit value to an attribute value for a specific
-        class attribute.
-        Parameters
-        ----------
-        lower_limit: Float
-            The lowest value this prior can return
-        upper_limit: Float
-            The highest value this prior can return
-        """
-        super().__init__(lower_limit=lower_limit, upper_limit=upper_limit)
-        if self.lower_limit <= 0.0:
+    def __init__(
+            self,
+            lower_limit=1e-6,
+            upper_limit=1.0,
+            log_norm=0.0,
+            id_=None
+    ):
+        if lower_limit <= 0.0:
             raise exc.PriorException(
                 "The lower limit of a LogUniformPrior cannot be zero or negative."
             )
+        lower_limit = float(lower_limit)
+        upper_limit = float(upper_limit)
+        super().__init__(
+            mean=1e-6,
+            sigma=1.0,
+            id_=id_,
+            upper_limit=upper_limit,
+            lower_limit=lower_limit,
+            log_norm=log_norm,
+            shift=np.log10(lower_limit),
+            scale=np.log10(upper_limit / lower_limit),
+        )
 
-    def log_prior_from_value(self, value):
+    @staticmethod
+    def log_prior_from_value(value):
         """
-    Returns the log prior of a physical value, so the log likelihood of a model evaluation can be converted to a
-        posterior as log_prior + log_likelihood.
+        Returns the log prior of a physical value, so the log likelihood of a model evaluation can be converted to a
+            posterior as log_prior + log_likelihood.
+
         This is used by Emcee in the log likelihood function evaluation.
+
         Parameters
         ----------
         value : float
@@ -118,52 +129,6 @@ class LogUniformPrior(UniformPrior):
     def __str__(self):
         """The line of text describing this prior for the model_mapper.info file"""
         return f"LogUniformPrior, lower_limit = {self.lower_limit}, upper_limit = {self.upper_limit}"
-
-
-# class LogUniformPrior(Log10ShiftedUniformMessage):
-#     """A prior with a uniform distribution between a lower and upper limit"""
-#
-#     def __init__(
-#             self,
-#             lower_limit=1e-6,
-#             upper_limit=1.0,
-#             log_norm=0.0,
-#             id_=None
-#     ):
-#         if lower_limit <= 0.0:
-#             raise exc.PriorException(
-#                 "The lower limit of a LogUniformPrior cannot be zero or negative."
-#             )
-#         lower_limit = float(lower_limit)
-#         upper_limit = float(upper_limit)
-#         super().__init__(
-#             mean=1e-6,
-#             sigma=1.0,
-#             id_=id_,
-#             upper_limit=upper_limit,
-#             lower_limit=lower_limit,
-#             log_norm=log_norm,
-#             shift=np.log10(lower_limit),
-#             scale=np.log10(upper_limit / lower_limit),
-#         )
-#
-#     @staticmethod
-#     def log_prior_from_value(value):
-#         """
-#         Returns the log prior of a physical value, so the log likelihood of a model evaluation can be converted to a
-#             posterior as log_prior + log_likelihood.
-#
-#         This is used by Emcee in the log likelihood function evaluation.
-#
-#         Parameters
-#         ----------
-#         value : float
-#             The physical value of this prior's corresponding parameter in a `NonLinearSearch` sample."""
-#         return 1.0 / value
-#
-#     def __str__(self):
-#         """The line of text describing this prior for the model_mapper.info file"""
-#         return f"LogUniformPrior, lower_limit = {self.lower_limit}, upper_limit = {self.upper_limit}"
 
 
 class GaussianPrior(NormalMessage):
