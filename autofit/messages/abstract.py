@@ -90,11 +90,6 @@ class AbstractMessage(Prior, ABC):
 
     @cached_property
     @abstractmethod
-    def mean(self) -> np.ndarray:
-        pass
-
-    @cached_property
-    @abstractmethod
     def variance(self) -> np.ndarray:
         pass
 
