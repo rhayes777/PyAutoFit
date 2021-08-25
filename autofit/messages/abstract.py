@@ -105,8 +105,9 @@ class AbstractMessage(Prior, ABC):
     def __hash__(self):
         return self.id
 
-    def calc_log_base_measure(self, x):
-        return self.log_base_measure
+    @classmethod
+    def calc_log_base_measure(cls, x):
+        return cls.log_base_measure
 
     def __iter__(self) -> Iterator[np.ndarray]:
         return iter(self.parameters)
