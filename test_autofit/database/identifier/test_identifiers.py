@@ -234,6 +234,8 @@ def test_unique_tag():
 
 def test_prior():
     identifier = af.UniformPrior().identifier
+    one = Identifier(af.UniformPrior())
+    two = Identifier(af.UniformPrior())
     assert identifier == af.UniformPrior().identifier
     assert identifier != af.UniformPrior(
         lower_limit=0.5

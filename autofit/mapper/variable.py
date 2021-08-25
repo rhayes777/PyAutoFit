@@ -42,7 +42,7 @@ class Plate:
 
 
 class Variable(ModelObject):
-    __slots__ = ("name", "plates")
+    # __slots__ = ("name", "plates")
 
     def __init__(
             self,

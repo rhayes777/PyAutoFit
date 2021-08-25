@@ -4,6 +4,7 @@ from autoconf import conf
 from autofit import exc
 from autofit.messages.normal import NormalMessage, UniformNormalMessage
 from autofit.messages.transform import LinearShiftTransform, log_10_transform
+from .abstract import Prior
 
 
 class Limits:
@@ -22,28 +23,52 @@ ShiftedUniformMessage = UniformNormalMessage.transformed(
 ShiftedUniformMessage.__module__ = __name__
 
 
-class UniformPrior(ShiftedUniformMessage):
+class UniformPrior(Prior):
     """A prior with a uniform distribution between a lower and upper limit"""
 
-    def __init__(
-            self,
+    def __new__(
+            cls,
             lower_limit=0.0,
             upper_limit=1.0,
             log_norm=0.0,
             id_=None
     ):
-        lower_limit = float(lower_limit)
-        upper_limit = float(upper_limit)
-        super().__init__(
+        class UniformPrior(
+            UniformNormalMessage.shifted(
+                shift=lower_limit,
+                scale=(upper_limit - lower_limit)
+            )
+        ):
+            pass
+
+        UniformPrior.__class_path__ = cls
+        return UniformPrior(
             mean=0.0,
             sigma=1.0,
             id_=id_,
-            upper_limit=upper_limit,
             lower_limit=lower_limit,
-            log_norm=log_norm,
-            shift=lower_limit,
-            scale=(upper_limit - lower_limit)
+            upper_limit=upper_limit,
         )
+
+    # def __init__(
+    #         self,
+    #         lower_limit=0.0,
+    #         upper_limit=1.0,
+    #         log_norm=0.0,
+    #         id_=None
+    # ):
+    #     lower_limit = float(lower_limit)
+    #     upper_limit = float(upper_limit)
+    #     super().__init__(
+    #         mean=0.0,
+    #         sigma=1.0,
+    #         id_=id_,
+    #         upper_limit=upper_limit,
+    #         lower_limit=lower_limit,
+    #         log_norm=log_norm,
+    #         shift=lower_limit,
+    #         scale=(upper_limit - lower_limit)
+    #     )
 
     def value_for(self, unit):
         """

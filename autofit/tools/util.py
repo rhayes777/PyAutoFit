@@ -14,6 +14,11 @@ def get_class_path(cls: type) -> str:
     """
     The full import path of the type
     """
+    if hasattr(
+        cls,
+        "__class_path__"
+    ):
+        cls = cls.__class_path__
     return re.search("'(.*)'", str(cls))[1]
 
 
