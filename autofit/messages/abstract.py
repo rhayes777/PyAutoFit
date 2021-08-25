@@ -605,10 +605,9 @@ class AbstractMessage(Prior, ABC):
             else cls._projection_class.transformed(transform)
         )
 
-        def compute_support():
-            return support or tuple(zip(*map(
-                transform.inv_transform, map(np.array, zip(*cls._support))
-            ))) if cls._support else cls._support
+        support = support or tuple(zip(*map(
+            transform.inv_transform, map(np.array, zip(*cls._support))
+        ))) if cls._support else cls._support
 
         if issubclass(cls, TransformedMessage):
             depth = cls._depth + 1
@@ -628,9 +627,7 @@ class AbstractMessage(Prior, ABC):
 
         Transformed._Message = cls
         Transformed._transform = transform
-        Transformed._support = property(
-            fget=compute_support
-        )
+        Transformed._support = support
         Transformed.__projection_class = projectionClass
         Transformed.__name__ = clsname
 
