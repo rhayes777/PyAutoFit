@@ -15,13 +15,6 @@ class Limits:
         return limit_dict["lower"], limit_dict["upper"]
 
 
-# ShiftedUniformMessage = UniformNormalMessage.transformed(
-#     LinearShiftTransform,
-#     clsname=f"ShiftedUniformMessage"
-# )
-# ShiftedUniformMessage.__module__ = __name__
-
-
 class UniformPrior:
     """A prior with a uniform distribution between a lower and upper limit"""
 
@@ -61,6 +54,7 @@ class UniformPrior:
                 """
                 return round(super().value_for(unit), 14)
 
+            # noinspection PyUnusedLocal
             @staticmethod
             def log_prior_from_value(value):
                 """
@@ -139,30 +133,6 @@ class LogUniformPrior:
             lower_limit=lower_limit,
             upper_limit=upper_limit,
         )
-
-    # def __init__(
-    #         self,
-    #         lower_limit=1e-6,
-    #         upper_limit=1.0,
-    #         log_norm=0.0,
-    #         id_=None
-    # ):
-    #     if lower_limit <= 0.0:
-    #         raise exc.PriorException(
-    #             "The lower limit of a LogUniformPrior cannot be zero or negative."
-    #         )
-    #     lower_limit = float(lower_limit)
-    #     upper_limit = float(upper_limit)
-    #     super().__init__(
-    #         mean=1e-6,
-    #         sigma=1.0,
-    #         id_=id_,
-    #         upper_limit=upper_limit,
-    #         lower_limit=lower_limit,
-    #         log_norm=log_norm,
-    #         shift=np.log10(lower_limit),
-    #         scale=np.log10(upper_limit / lower_limit),
-    #     )
 
 
 class GaussianPrior(NormalMessage):
