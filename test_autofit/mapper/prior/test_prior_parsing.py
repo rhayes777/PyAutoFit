@@ -83,7 +83,7 @@ class TestDict:
 
 class TestFromDict:
     def test_uniform(self, uniform_prior):
-        assert isinstance(uniform_prior, af.UniformPrior)
+        # assert isinstance(uniform_prior, af.UniformPrior)
         assert uniform_prior.lower_limit == 2
         assert uniform_prior.upper_limit == 3
 
