@@ -54,8 +54,7 @@ class FixedMessage(AbstractMessage):
         """
         if n_samples is None:
             return self.value
-        else:
-            return np.array([self.value])
+        return np.array([self.value])
 
     def logpdf(self, x: np.ndarray) -> np.ndarray:
         return np.zeros_like(x)
