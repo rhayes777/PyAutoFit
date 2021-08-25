@@ -39,7 +39,7 @@ class UniformPrior(Prior):
                 scale=(upper_limit - lower_limit)
             )
         ):
-            pass
+            __identifier_fields__ = ("lower_limit", "upper_limit")
 
         UniformPrior.__class_path__ = cls
         return UniformPrior(
