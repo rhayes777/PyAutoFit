@@ -84,7 +84,6 @@ Log10ShiftedUniformMessage = ShiftedUniformMessage.transformed(
 Log10ShiftedUniformMessage.__module__ = __name__
 
 
-
 class LogUniformPrior(Log10ShiftedUniformMessage):
     """A prior with a uniform distribution between a lower and upper limit"""
 
