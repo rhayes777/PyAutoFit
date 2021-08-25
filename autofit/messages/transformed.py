@@ -1,4 +1,3 @@
-import inspect
 from typing import Type, Tuple, Union
 
 import numpy as np
@@ -14,21 +13,6 @@ class TransformedMessage(AbstractMessage):
     _depth = 0
 
     def __init__(self, *args, **kwargs):
-        if inspect.isclass(self._transform):
-            transform_args = inspect.getfullargspec(
-                self._transform
-            ).args[1:]
-
-            transform_dict = dict()
-            for arg in transform_args:
-                if arg in kwargs:
-                    transform_dict[
-                        arg
-                    ] = kwargs.pop(arg)
-            self._transform = self._transform(
-                **transform_dict
-            )
-
         self.instance = self._Message(*args, **kwargs)
         super().__init__(
             *self.instance.parameters,
