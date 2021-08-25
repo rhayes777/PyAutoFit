@@ -86,10 +86,10 @@ def test_approximations(
         probit_model_dist, delta=1.
     )
 
-    assert probit_project.model_dist[x].mu == pytest.approx(0.506, rel=0.1)
+    assert probit_project.model_dist[x].mean == pytest.approx(0.506, rel=0.1)
     assert probit_project.model_dist[x].sigma == pytest.approx(0.814, rel=0.1)
 
-    assert probit_project.factor_dist[x].mu == pytest.approx(1.499, rel=0.1)
+    assert probit_project.factor_dist[x].mean == pytest.approx(1.499, rel=0.1)
     assert probit_project.factor_dist[x].sigma == pytest.approx(1.401, rel=0.1)
 
 
@@ -146,5 +146,5 @@ def test_looped_importance_sampling(
 
     result = history[-1].mean_field[x]
 
-    assert result.mu == pytest.approx(-0.243, rel=0.1)
+    assert result.mean == pytest.approx(-0.243, rel=0.1)
     assert result.sigma == pytest.approx(0.466, rel=0.1)
