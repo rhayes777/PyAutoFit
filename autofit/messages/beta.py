@@ -5,7 +5,7 @@ import numpy as np
 from scipy.special import betaln
 from scipy.special import psi, polygamma
 
-from autofit.tools.cached_property import cached_property
+from autoconf.cached_property import cached_property
 from ..messages.abstract import AbstractMessage
 
 

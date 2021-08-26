@@ -10,10 +10,10 @@ from typing import Optional, Union, Type, List
 
 import numpy as np
 
+from autoconf.cached_property import cached_property
 from autofit.mapper.prior.abstract import Prior
 from .transform import AbstractDensityTransform, LinearShiftTransform
 from ..mapper.variable import Variable
-from ..tools.cached_property import cached_property
 
 enforce_id_match = True
 

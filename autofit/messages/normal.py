@@ -5,8 +5,8 @@ import numpy as np
 from scipy.special.cython_special import erfcinv
 from scipy.stats import norm
 
+from autoconf.cached_property import cached_property
 from autofit.messages.abstract import AbstractMessage
-from autofit.tools.cached_property import cached_property
 from .transform import phi_transform, log_transform, multinomial_logit_transform, log_10_transform
 
 
