@@ -19,13 +19,6 @@ def make_make_model_factor(
             sigma: float,
             optimiser=None
     ) -> ep.AnalysisFactor:
-        """
-        We'll make a LikelihoodModel for each Gaussian we're fitting.
-
-        First we'll make the actual data to be fit.
-
-        Note that the intensity value is shared.
-        """
         y = make_data(
             Gaussian(
                 centre=centre,
@@ -35,11 +28,6 @@ def make_make_model_factor(
             x
         )
 
-        """
-        Next we need a prior model.
-    
-        Note that the intensity prior is shared.
-        """
         prior_model = af.PriorModel(
             Gaussian,
             centre=af.UniformPrior(lower_limit=10, upper_limit=100),
@@ -47,14 +35,6 @@ def make_make_model_factor(
             sigma=af.UniformPrior(lower_limit=0, upper_limit=20),
         )
 
-        """
-        Finally we combine the likelihood function with the prior model to produce a likelihood
-        factor - this will be converted into a ModelFactor which is like any other factor in the
-        factor graph.
-        
-        We can also pass a custom optimiser in here that will be used to fit the factor instead
-        of the default optimiser.
-        """
         return ep.AnalysisFactor(
             prior_model,
             analysis=Analysis(
@@ -87,16 +67,6 @@ def make_intensity_prior():
 def make_factor_model_collection(
         make_model_factor
 ):
-    """
-    Here's a good example in which we have two Gaussians fit with a shared variable
-
-    We have a shared intensity value and a shared intensity prior
-
-    Multiplying together multiple LikelihoodModels gives us a factor model.
-
-    The factor model can compute all the variables and messages required as well as construct
-    a factor graph representing a fit on the ensemble.
-    """
     return ep.FactorGraphModel(
         make_model_factor(
             centre=40,
@@ -109,31 +79,13 @@ def make_factor_model_collection(
     )
 
 
-def test_factor_model_attributes(
+def test_optimise_factor_model(
         factor_model
 ):
-    """
-    There are:
-    - 5 messages - one for each prior
-    - 7 factors - one for each prior plus one for each likelihood
-    """
-    assert len(factor_model.message_dict) == 5
-    assert len(factor_model.graph.factors) == 7
-
-
-def _test_optimise_factor_model(
-        factor_model
-):
-    """
-    We optimise the model
-    """
     laplace = ep.LaplaceFactorOptimiser()
 
     collection = factor_model.optimise(laplace)
 
-    """
-    And what we get back is actually a PriorModelCollection
-    """
     assert 25.0 == pytest.approx(collection[0].intensity.mean, rel=0.1)
     assert collection[0].intensity is collection[1].intensity
 
@@ -166,40 +118,3 @@ def test_gaussian():
     assert model.centre.mean == pytest.approx(50, rel=0.1)
     assert model.intensity.mean == pytest.approx(25, rel=0.1)
     assert model.sigma.mean == pytest.approx(10, rel=0.1)
-
-
-@pytest.fixture(name="prior_model")
-def make_prior_model():
-    return af.PriorModel(Gaussian)
-
-
-@pytest.fixture(name="likelihood_model")
-def make_factor_model(prior_model):
-    class MockAnalysis(af.Analysis):
-        @staticmethod
-        def log_likelihood_function(*_):
-            return 1
-
-    return ep.AnalysisFactor(
-        prior_model,
-        analysis=MockAnalysis()
-    )
-
-
-def test_messages(likelihood_model):
-    assert len(likelihood_model.message_dict) == 3
-
-
-def test_graph(likelihood_model):
-    graph = likelihood_model.graph
-    assert len(graph.factors) == 4
-
-
-def test_prior_model_node(likelihood_model):
-    prior_model_node = likelihood_model.graph
-
-    result = prior_model_node(
-        {variable: np.array([0.5]) for variable in prior_model_node.variables}
-    )
-
-    assert isinstance(result, ep.FactorValue)
