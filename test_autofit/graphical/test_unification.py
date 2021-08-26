@@ -1,3 +1,4 @@
+import dill
 import numpy as np
 import pytest
 
@@ -141,19 +142,43 @@ def test_log10(
     )
 
 
-def test_prior_arithmetic():
-    prior_1 = af.UniformPrior(
+@pytest.fixture(
+    name="uniform_prior"
+)
+def make_uniform_prior():
+    return af.UniformPrior(
         lower_limit=10,
         upper_limit=20,
         id_=1
     )
 
-    multiplied = prior_1 * prior_1
-    divided = multiplied / prior_1
+
+def test_prior_arithmetic(
+        uniform_prior
+):
+    multiplied = uniform_prior * uniform_prior
+    divided = multiplied / uniform_prior
 
     multiplied_value = multiplied.value_for(0.3)
     divided_value = divided.value_for(0.3)
-    prior_1_value = prior_1.value_for(0.3)
+    uniform_prior_value = uniform_prior.value_for(0.3)
 
     assert multiplied_value != divided_value
-    assert divided_value == prior_1_value
+    assert divided_value == uniform_prior_value
+
+
+def test_pickle_uniform_prior(
+        uniform_prior
+):
+    pickled_prior = dill.loads(
+        dill.dumps(uniform_prior)
+    )
+    assert pickled_prior == uniform_prior
+
+
+def test_pickle_log_uniform_prior():
+    log_uniform_prior = af.LogUniformPrior()
+    pickled_prior = dill.loads(
+        dill.dumps(log_uniform_prior)
+    )
+    assert pickled_prior == log_uniform_prior
