@@ -1,4 +1,3 @@
-import inspect
 from typing import Type, Tuple, Union
 
 import numpy as np
@@ -14,21 +13,6 @@ class TransformedMessage(AbstractMessage):
     _depth = 0
 
     def __init__(self, *args, **kwargs):
-        if inspect.isclass(self._transform):
-            transform_args = inspect.getfullargspec(
-                self._transform
-            ).args[1:]
-
-            transform_dict = dict()
-            for arg in transform_args:
-                if arg in kwargs:
-                    transform_dict[
-                        arg
-                    ] = kwargs.pop(arg)
-            self._transform = self._transform(
-                **transform_dict
-            )
-
         self.instance = self._Message(*args, **kwargs)
         super().__init__(
             *self.instance.parameters,
@@ -63,11 +47,12 @@ class TransformedMessage(AbstractMessage):
             natural_parameters
         )
 
+    @classmethod
     def invert_sufficient_statistics(
-            self,
+            cls,
             sufficient_statistics
     ):
-        return self.instance.invert_sufficient_statistics(
+        return cls._Message.invert_sufficient_statistics(
             sufficient_statistics
         )
 
@@ -117,14 +102,16 @@ class TransformedMessage(AbstractMessage):
             ),
         )
 
-    def calc_log_base_measure(self, x) -> np.ndarray:
-        x, log_det = self._transform.transform_det(x)
-        log_base = self.instance.calc_log_base_measure(x)
+    @classmethod
+    def calc_log_base_measure(cls, x) -> np.ndarray:
+        x, log_det = cls._transform.transform_det(x)
+        log_base = cls._Message.calc_log_base_measure(x)
         return log_base + log_det
 
-    def to_canonical_form(self, x) -> np.ndarray:
-        x = self._transform.transform(x)
-        return self.instance.to_canonical_form(x)
+    @classmethod
+    def to_canonical_form(cls, x) -> np.ndarray:
+        x = cls._transform.transform(x)
+        return cls._Message.to_canonical_form(x)
 
     @cached_property
     def mean(self) -> np.ndarray:

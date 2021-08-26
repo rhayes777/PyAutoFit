@@ -189,10 +189,10 @@ def test_laplace_old(
     q_a = model_approx.mean_field[a_]
     q_b = model_approx.mean_field[b_]
 
-    assert q_a.mu[0] == pytest.approx(-1.2, rel=1)
+    assert q_a.mean[0] == pytest.approx(-1.2, rel=1)
     assert q_a.sigma[0][0] == pytest.approx(0.04, rel=1)
 
-    assert q_b.mu[0] == pytest.approx(-0.5, rel=1)
+    assert q_b.mean[0] == pytest.approx(-0.5, rel=1)
     assert q_b.sigma[0] == pytest.approx(0.2, rel=1)
 
 
@@ -227,7 +227,7 @@ def test_laplace_jac(
     approx = opt.run(model_jac_approx)
 
     like = approx.factors[0]
-    y = like._factor.mu
+    y = like._factor.mean
     z_, = like.variables
     y_pred = approx.mean_field[z_].mean
 

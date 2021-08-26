@@ -77,11 +77,11 @@ class TestPriorLimits:
 
         prior_tuples = mm.prior_tuples_ordered_by_id
 
-        assert prior_tuples[0].prior.lower_limit == -math.inf
+        assert prior_tuples[0].prior.lower_limit == float("-inf")
         assert prior_tuples[0].prior.upper_limit == 0
 
         assert prior_tuples[1].prior.lower_limit == 0
-        assert prior_tuples[1].prior.upper_limit == math.inf
+        assert prior_tuples[1].prior.upper_limit == float("inf")
 
         assert mm.instance_from_vector([-10000, 10000]) is not None
 

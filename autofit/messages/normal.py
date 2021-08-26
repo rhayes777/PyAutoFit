@@ -47,18 +47,18 @@ class NormalMessage(AbstractMessage):
             upper_limit=upper_limit,
             id_=id_
         )
-        self.mu, self.sigma = self.parameters
+        self.mean, self.sigma = self.parameters
 
     def cdf(self, x):
-        return norm.cdf(x, loc=self.mu, scale=self.sigma)
+        return norm.cdf(x, loc=self.mean, scale=self.sigma)
 
     def ppf(self, x):
-        return norm.ppf(x, loc=self.mu, scale=self.sigma)
+        return norm.ppf(x, loc=self.mean, scale=self.sigma)
 
     @cached_property
     def natural_parameters(self):
         return self.calc_natural_parameters(
-            self.mu,
+            self.mean,
             self.sigma
         )
 
@@ -85,10 +85,6 @@ class NormalMessage(AbstractMessage):
         return cls.calc_natural_parameters(m1, sigma)
 
     @cached_property
-    def mean(self):
-        return self.mu
-
-    @cached_property
     def variance(self):
         return self.sigma ** 2
 
@@ -96,16 +92,16 @@ class NormalMessage(AbstractMessage):
         if n_samples:
             x = np.random.randn(n_samples, *self.shape)
             if self.shape:
-                return x * self.sigma[None, ...] + self.mu[None, ...]
+                return x * self.sigma[None, ...] + self.mean[None, ...]
         else:
             x = np.random.randn(*self.shape)
 
-        return x * self.sigma + self.mu
+        return x * self.sigma + self.mean
 
     def kl(self, dist):
         return (
                 np.log(dist.sigma / self.sigma)
-                + (self.sigma ** 2 + (self.mu - dist.mu) ** 2) / 2 / dist.sigma ** 2
+                + (self.sigma ** 2 + (self.mean - dist.mean) ** 2) / 2 / dist.sigma ** 2
                 - 1 / 2
         )
 
@@ -120,7 +116,7 @@ class NormalMessage(AbstractMessage):
         shape = np.shape(x)
         if shape:
             x = np.asanyarray(x)
-            deltax = x - self.mu
+            deltax = x - self.mean
             hess_logl = - self.sigma ** -2
             grad_logl = deltax * hess_logl
             eta_t = 0.5 * grad_logl * deltax
@@ -132,7 +128,7 @@ class NormalMessage(AbstractMessage):
                     shape[0], 0)
 
         else:
-            deltax = x - self.mu
+            deltax = x - self.mean
             hess_logl = - self.sigma ** -2
             grad_logl = deltax * hess_logl
             eta_t = 0.5 * grad_logl * deltax
