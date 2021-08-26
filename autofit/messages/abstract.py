@@ -90,11 +90,6 @@ class AbstractMessage(Prior, ABC):
 
     @cached_property
     @abstractmethod
-    def mean(self) -> np.ndarray:
-        pass
-
-    @cached_property
-    @abstractmethod
     def variance(self) -> np.ndarray:
         pass
 
@@ -105,8 +100,9 @@ class AbstractMessage(Prior, ABC):
     def __hash__(self):
         return self.id
 
-    def calc_log_base_measure(self, x):
-        return self.log_base_measure
+    @classmethod
+    def calc_log_base_measure(cls, x):
+        return cls.log_base_measure
 
     def __iter__(self) -> Iterator[np.ndarray]:
         return iter(self.parameters)
@@ -605,10 +601,9 @@ class AbstractMessage(Prior, ABC):
             else cls._projection_class.transformed(transform)
         )
 
-        def compute_support():
-            return support or tuple(zip(*map(
-                transform.inv_transform, map(np.array, zip(*cls._support))
-            ))) if cls._support else cls._support
+        support = support or tuple(zip(*map(
+            transform.inv_transform, map(np.array, zip(*cls._support))
+        ))) if cls._support else cls._support
 
         if issubclass(cls, TransformedMessage):
             depth = cls._depth + 1
@@ -628,9 +623,7 @@ class AbstractMessage(Prior, ABC):
 
         Transformed._Message = cls
         Transformed._transform = transform
-        Transformed._support = property(
-            fget=compute_support
-        )
+        Transformed._support = support
         Transformed.__projection_class = projectionClass
         Transformed.__name__ = clsname
 

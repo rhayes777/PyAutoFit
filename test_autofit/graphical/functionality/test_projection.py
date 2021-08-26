@@ -37,7 +37,7 @@ def test_integration(
         [ni_1 / ni_0, ni_2 / ni_0]
     )
 
-    assert q_numerical.mu == pytest.approx(-0.253, rel=0.01)
+    assert q_numerical.mean == pytest.approx(-0.253, rel=0.01)
     assert q_numerical.sigma == pytest.approx(0.462, rel=0.01)
 
 
@@ -51,7 +51,7 @@ def test_importance_sampling(
 
     q_importance_sampling = q_cavity.project(x_samples, log_weight_list)
 
-    assert q_importance_sampling.mu == pytest.approx(-0.284, rel=0.5)
+    assert q_importance_sampling.mean == pytest.approx(-0.284, rel=0.5)
     assert q_importance_sampling.sigma == pytest.approx(0.478, rel=0.5)
 
     mean = np.exp(log_weight_list).mean()
@@ -74,5 +74,5 @@ def test_laplace_method(probit_factor, q_cavity, x):
         covariance=result.hess_inv[x]
     )
 
-    assert q_probit_laplace.mu == pytest.approx(-0.258, rel=0.01)
+    assert q_probit_laplace.mean == pytest.approx(-0.258, rel=0.01)
     assert q_probit_laplace.sigma == pytest.approx(0.462, rel=0.01)

@@ -83,12 +83,12 @@ class TestDict:
 
 class TestFromDict:
     def test_uniform(self, uniform_prior):
-        assert isinstance(uniform_prior, af.UniformPrior)
+        # assert isinstance(uniform_prior, af.UniformPrior)
         assert uniform_prior.lower_limit == 2
         assert uniform_prior.upper_limit == 3
 
     def test_log_uniform(self, log_uniform_prior, absolute_width_modifier):
-        assert isinstance(log_uniform_prior, af.LogUniformPrior)
+        # assert isinstance(log_uniform_prior, af.LogUniformPrior)
         assert log_uniform_prior.lower_limit == 0.2
         assert log_uniform_prior.upper_limit == 0.3
 
