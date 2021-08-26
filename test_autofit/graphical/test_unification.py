@@ -139,3 +139,21 @@ def test_log10(
         ),
         abs=0.001
     )
+
+
+def test_prior_arithmetic():
+    prior_1 = af.UniformPrior(
+        lower_limit=10,
+        upper_limit=20,
+        id_=1
+    )
+
+    multiplied = prior_1 * prior_1
+    divided = multiplied / prior_1
+
+    multiplied_value = multiplied.value_for(0.3)
+    divided_value = divided.value_for(0.3)
+    prior_1_value = prior_1.value_for(0.3)
+
+    assert multiplied_value != divided_value
+    assert divided_value == prior_1_value

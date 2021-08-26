@@ -79,7 +79,7 @@ def make_factor_model_collection(
     )
 
 
-def test_optimise_factor_model(
+def _test_optimise_factor_model(
         factor_model
 ):
     laplace = ep.LaplaceFactorOptimiser()
@@ -112,8 +112,6 @@ def test_gaussian():
 
     laplace = ep.LaplaceFactorOptimiser()
     model = factor_model.optimise(laplace)
-
-    print(model.centre)
 
     assert model.centre.mean == pytest.approx(50, rel=0.1)
     assert model.intensity.mean == pytest.approx(25, rel=0.1)
