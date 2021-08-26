@@ -80,7 +80,7 @@ class AutoCorrelations(AutoCorrelationsSettings):
         required_length : int
             The length an auto_correlation chain must be for it to be used to evaluate whether its change threshold is
             sufficiently small to terminate sampling early.
-        change_threshold : float
+        change_threshold
             The threshold value by which if the change in auto_correlations is below sampling will be terminated early.
         """
 

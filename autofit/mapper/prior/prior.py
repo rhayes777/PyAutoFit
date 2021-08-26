@@ -122,7 +122,7 @@ class LogUniformPrior(Log10ShiftedUniformMessage):
 
         Parameters
         ----------
-        value : float
+        value
             The physical value of this prior's corresponding parameter in a `NonLinearSearch` sample."""
         return 1.0 / value
 

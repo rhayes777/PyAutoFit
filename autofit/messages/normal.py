@@ -172,7 +172,7 @@ class NormalMessage(AbstractMessage):
 
         Parameters
         ----------
-        value : float
+        value
             The physical value of this prior's corresponding parameter in a `NonLinearSearch` sample."""
         return (value - self.mean) ** 2.0 / (2 * self.sigma ** 2.0)
 

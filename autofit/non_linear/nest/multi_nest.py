@@ -154,7 +154,7 @@ class MultiNest(abstract_nest.AbstractNest):
             verbose=not self.silence,
             **self.config_dict_search
         )
-        self.copy_from_sym()
+        self.paths.copy_from_sym()
 
     def samples_from(self, model: AbstractPriorModel):
         """
