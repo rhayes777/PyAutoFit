@@ -7,7 +7,7 @@ from typing import (
 
 import numpy as np
 
-from autoconf.cached_property import cached_property
+from autoconf import cached_property
 from autofit.graphical.factor_graphs.abstract import FactorValue, AbstractNode
 from autofit.graphical.factor_graphs.factor import Factor
 from autofit.graphical.utils import (

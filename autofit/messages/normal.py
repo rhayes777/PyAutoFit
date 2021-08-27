@@ -5,7 +5,7 @@ import numpy as np
 from scipy.special.cython_special import erfcinv
 from scipy.stats import norm
 
-from autoconf.cached_property import cached_property
+from autoconf import cached_property
 from autofit.messages.abstract import AbstractMessage
 from .transform import phi_transform, log_transform, multinomial_logit_transform, log_10_transform
 
@@ -152,6 +152,7 @@ class NormalMessage(AbstractMessage):
         ----------
         unit: Float
             A unit hypercube value between 0 and 1
+
         Returns
         -------
         value: Float
@@ -169,11 +170,14 @@ class NormalMessage(AbstractMessage):
         Parameters
         ----------
         value
-            The physical value of this prior's corresponding parameter in a `NonLinearSearch` sample."""
+            The physical value of this prior's corresponding parameter in a `NonLinearSearch` sample.
+        """
         return (value - self.mean) ** 2.0 / (2 * self.sigma ** 2.0)
 
     def __str__(self):
-        """The line of text describing this prior for the model_mapper.info file"""
+        """
+        The line of text describing this prior for the model_mapper.info file
+        """
         return (
             f"GaussianPrior, mean = {self.mean}, sigma = {self.sigma}"
         )

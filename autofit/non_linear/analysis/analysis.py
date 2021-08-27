@@ -1,5 +1,5 @@
-import logging
 from abc import ABC
+import logging
 
 from autoconf import conf
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
@@ -12,7 +12,6 @@ from autofit.non_linear.samples import OptimizerSamples
 logger = logging.getLogger(
     __name__
 )
-
 
 class Analysis(ABC):
     """
@@ -54,6 +53,14 @@ class Analysis(ABC):
 
     def make_result(self, samples, model, search):
         return Result(samples=samples, model=model, search=search)
+
+    def profile_log_likelihood_function(self, instance):
+
+        conf.instance["general"]["profiling"]["global"] = True
+
+        self.log_likelihood_function(instance=instance)
+
+        conf.instance["general"]["profiling"]["global"] = False
 
     def __add__(
             self,

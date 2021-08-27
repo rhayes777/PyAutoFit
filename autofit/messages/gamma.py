@@ -1,7 +1,7 @@
 import numpy as np
 from scipy import special
 
-from autoconf.cached_property import cached_property
+from autoconf import cached_property
 from autofit.messages.abstract import AbstractMessage
 from autofit.graphical.utils import invpsilog
 

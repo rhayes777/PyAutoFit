@@ -2,7 +2,7 @@ from typing import Type, Tuple, Union
 
 import numpy as np
 
-from autoconf.cached_property import cached_property
+from autoconf import cached_property
 
 from .abstract import AbstractMessage
 from .transform import AbstractDensityTransform

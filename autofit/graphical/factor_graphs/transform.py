@@ -11,7 +11,7 @@ from autofit.mapper.operator import (
     IdentityOperator,
     DiagonalMatrix,
 )
-from autoconf.cached_property import cached_property
+from autoconf import cached_property
 from .abstract import \
     (
     AbstractNode, Value, FactorValue, JacobianValue, HessianValue
