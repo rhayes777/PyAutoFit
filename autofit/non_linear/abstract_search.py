@@ -175,6 +175,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         self.should_output_model_results = IntervalCounter(
             self.model_results_every_update
         )
+        self.should_profile = conf.instance["general"]["profiling"]["should_profile"]
 
         self.silence = self._config("printing", "silence")
 
@@ -607,6 +608,13 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                 paths=self.paths,
                 instance=instance,
                 during_analysis=during_analysis
+            )
+
+        if self.should_profile:
+            self.logger.debug("Profiling Maximum Likelihood Model")
+            analysis.profile_log_likelihood_function(
+                paths=self.paths,
+                instance=instance,
             )
 
         if self.should_output_model_results() or not during_analysis:

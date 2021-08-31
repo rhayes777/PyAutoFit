@@ -1,7 +1,5 @@
 import pytest
 
-from autoconf import profile_func
-
 import autofit as af
 
 from autofit.non_linear.analysis.multiprocessing import AnalysisPool
@@ -11,6 +9,7 @@ from autofit.non_linear.paths.abstract import AbstractPaths
 class Analysis(af.Analysis):
     def __init__(self):
         self.did_visualise = False
+        self.did_profile = False
 
     def log_likelihood_function(self, instance):
         return -1
@@ -23,6 +22,13 @@ class Analysis(af.Analysis):
     ):
         self.did_visualise = True
 
+    def profile_log_likelihood_function(
+            self,
+            paths: AbstractPaths,
+            instance
+    ):
+
+        self.did_profile = True
 
 
 def test_visualise():
@@ -35,6 +41,19 @@ def test_visualise():
 
     assert analysis_1.did_visualise is True
     assert analysis_2.did_visualise is True
+
+def test__profile_log_likelihood():
+
+    analysis_1 = Analysis()
+    analysis_2 = Analysis()
+
+    (analysis_1 + analysis_2).profile_log_likelihood_function(
+        af.DirectoryPaths(), None,
+    )
+
+    assert analysis_1.did_profile is True
+    assert analysis_2.did_profile is True
+
 
 def test_make_result():
 
@@ -106,25 +125,3 @@ def test_still_flat():
     assert len(analysis) == 3
 
 
-
-class AnalysisProfiler(Analysis):
-
-    def log_likelihood_function(self, instance):
-        return self.log_likelihood
-
-    @property
-    @profile_func
-    def log_likelihood(self):
-        return 1.0
-
-
-
-
-
-def test__profile_log_likelihood__uses_profile_func_correctly():
-
-    analysis = AnalysisProfiler()
-
-    analysis.profile_log_likelihood_function(instance=None)
-
-    assert "log_likelihood" in analysis._profiling_dict
