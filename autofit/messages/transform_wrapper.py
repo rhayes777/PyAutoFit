@@ -156,9 +156,17 @@ class TransformedWrapperInstance(Prior):
         )
 
     def __mul__(self, other):
+        if isinstance(
+                other,
+                TransformedWrapperInstance
+        ):
+            other = other.instance()
         return self._new_for_base_message(
-            self.instance() * other.instance()
+            self.instance() * other
         )
+
+    def __rmul__(self, other):
+        return self * other
 
     def __truediv__(self, other):
         return self._new_for_base_message(
