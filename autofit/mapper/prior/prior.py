@@ -21,6 +21,13 @@ class WrappedInstance(
 ):
     __identifier_fields__ = ("lower_limit", "upper_limit")
 
+    __database_args__ = (
+        "lower_limit",
+        "upper_limit",
+        "log_norm",
+        "id_",
+    )
+
     def __init__(
             self,
             transformed_wrapper,
@@ -118,6 +125,9 @@ class UniformPrior:
         )
 
 
+UniformWrapperInstance.cls = UniformPrior
+
+
 class LogUniformInstanceWrapper(
     WrappedInstance
 ):
@@ -184,6 +194,9 @@ class LogUniformPrior:
             lower_limit=lower_limit,
             upper_limit=upper_limit,
         )
+
+
+LogUniformInstanceWrapper.cls = LogUniformPrior
 
 
 class GaussianPrior(NormalMessage):

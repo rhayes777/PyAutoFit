@@ -10,6 +10,13 @@ from autofit.mapper.variable import Variable
 
 
 class Prior(Variable, ABC, ArithmeticMixin):
+    __database_args__ = (
+        "lower_limit",
+        "upper_limit",
+        "id_"
+    )
+    cls: type
+
     def __init__(
             self,
             lower_limit=0.0,

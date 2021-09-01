@@ -113,6 +113,27 @@ class Prior(Object):
             model: abstract.Prior
     ):
         instance = cls()
-        instance.cls = type(model)
-        instance._add_children(model.__dict__.items())
+        instance.cls = model.cls
+        instance._add_children([
+            (key, value)
+            for key, value
+            in model.__dict__.items()
+            if key in model.__database_args__
+        ])
         return instance
+
+    def __call__(self):
+        """
+        Create the real instance for this object, with child
+        attributes attached.
+
+        If the instance implements __setstate__ then this is
+        called with a dictionary of instantiated children.
+        """
+        arguments = {
+            child.name: child()
+            for child in self.children
+        }
+        return self.cls(
+            **arguments
+        )

@@ -106,7 +106,8 @@ class Object(Base):
                 (
                         np.ndarray,
                         np.broadcast,
-                        abc.ABCMeta
+                        abc.ABCMeta,
+                        np.ufunc,
                 )
         ):
             from .instance import NoneInstance
@@ -242,3 +243,4 @@ class Object(Base):
     @cls.setter
     def cls(self, cls: type):
         self.class_path = get_class_path(cls)
+        print(self.class_path)

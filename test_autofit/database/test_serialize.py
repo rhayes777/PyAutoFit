@@ -2,6 +2,7 @@ import pytest
 
 import autofit as af
 from autofit import database as db
+from autofit.mapper.prior.prior import UniformWrapperInstance
 from autofit.non_linear.samples import OptimizerSamples
 from autofit.mock import mock as m
 
@@ -89,7 +90,7 @@ class TestPriors:
         assert len(model.priors) == 3
         assert isinstance(
             model.centre,
-            af.UniformPrior
+            UniformWrapperInstance
         )
 
 
