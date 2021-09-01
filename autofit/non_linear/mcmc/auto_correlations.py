@@ -6,10 +6,10 @@ class AutoCorrelationsSettings:
 
     def __init__(
             self,
-            check_for_convergence : Optional[bool] = None,
-            check_size : Optional[int] = None,
-            required_length : Optional[int] = None,
-            change_threshold : Optional[float] = None,
+            check_for_convergence: Optional[bool] = None,
+            check_size: Optional[int] = None,
+            required_length: Optional[int] = None,
+            change_threshold: Optional[float] = None,
     ):
         """
         Class for performing and customizing AutoCorrelation calculations, which are used:

@@ -20,7 +20,7 @@ class JobResult(AbstractJobResult):
 
 
 class Job(AbstractJob):
-    def __init__(self, search_instance, model, analysis, arguments, index, info : Optional[Dict] = None):
+    def __init__(self, search_instance, model, analysis, arguments, index, info: Optional[Dict] = None):
         """
         A job to be performed in parallel.
 

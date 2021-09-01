@@ -493,7 +493,7 @@ def quantile(x, q, weights=None):
     q : array_like[nquantiles,]
        The list of quantiles to compute. These should all be in the range
        ``[0, 1]``.
-    weights : Optional[array_like[nsamples,]]
+    weights: Optional[array_like[nsamples,]]
         An optional weight corresponding to each sample. These
 
     Returns

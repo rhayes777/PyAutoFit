@@ -14,13 +14,13 @@ class AbstractMCMC(NonLinearSearch):
             self,
             name: Optional[str] = None,
             path_prefix: Optional[str] = None,
-            unique_tag : Optional[str] = None,
+            unique_tag: Optional[str] = None,
             prior_passer: Optional[PriorPasser] = None,
             initializer: Optional[Initializer] = None,
             auto_correlations_settings = AutoCorrelationsSettings(),
-            iterations_per_update : Optional[int] = None,
-            number_of_cores : Optional[int] = None,
-            session : Optional[Session] = None,
+            iterations_per_update: Optional[int] = None,
+            number_of_cores: Optional[int] = None,
+            session: Optional[Session] = None,
             **kwargs
     ):
 

@@ -1,5 +1,3 @@
-import os
-import shutil
 from os import path
 from typing import Optional
 
@@ -11,7 +9,7 @@ from autofit.non_linear import abstract_search
 from autofit.non_linear import result as res
 from autofit.non_linear.nest import abstract_nest
 from autofit.non_linear.samples import Sample
-from autofit import NestSamples
+from autofit.non_linear.samples.nest import NestSamples
 from autofit.non_linear.abstract_search import PriorPasser
 
 
