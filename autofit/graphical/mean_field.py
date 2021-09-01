@@ -200,7 +200,7 @@ class MeanField(
             (k, prod((m.get(k, 1.) for m in approxs), m))
             for k, m in self.items())
         return MeanField({
-            k: m for k, m in dists if isinstance(m, AbstractMessage)})
+            k: m for k, m in dists if isinstance(m, Prior)})
 
     __mul__ = prod
 
