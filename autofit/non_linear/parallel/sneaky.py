@@ -170,7 +170,7 @@ class SneakyProcess(Process):
         This occurs when the SneakyMap goes out of scope.
         """
 
-        if conf.instance["general"]["test"]["parallel_profile"]:
+        if conf.instance["general"]["profiling"]["parallel_profile"]:
             pr = cProfile.Profile()
             pr.enable()
 
