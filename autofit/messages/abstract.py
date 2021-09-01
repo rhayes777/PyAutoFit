@@ -12,6 +12,7 @@ import numpy as np
 
 from autofit.mapper.prior.abstract import Prior
 from .transform import AbstractDensityTransform, LinearShiftTransform
+from .transform_wrapper import TransformedWrapper
 from ..mapper.variable import Variable
 from ..tools.cached_property import cached_property
 
@@ -520,7 +521,7 @@ class AbstractMessage(Prior, ABC):
             ],
             clsname: Optional[str] = None,
             support: Optional[Tuple[Tuple[float, float], ...]] = None,
-    ) -> Type["AbstractMessage"]:
+    ):
         # noinspection PyUnresolvedReferences
         """
         transforms the distribution according the passed transform,
@@ -594,40 +595,12 @@ class AbstractMessage(Prior, ABC):
         >>> samples = ShiftedUnitNormal(0.2, 0.8).sample(1000)
         >>> samples.min(), samples.mean(), samples.max()
         """
-        from .transformed import TransformedMessage
-
-        projectionClass = (
-            None if cls._projection_class is None
-            else cls._projection_class.transformed(transform)
+        return TransformedWrapper(
+            cls=cls,
+            transform=transform,
+            clsname=clsname,
+            support=support,
         )
-
-        support = support or tuple(zip(*map(
-            transform.inv_transform, map(np.array, zip(*cls._support))
-        ))) if cls._support else cls._support
-
-        if issubclass(cls, TransformedMessage):
-            depth = cls._depth + 1
-            clsname = clsname or f"Transformed{depth}{cls._Message.__name__}"
-
-            # Don't doubly inherit if transforming already transformed message
-            class Transformed(cls):  # type: ignore
-                __qualname__ = clsname
-                _depth = depth
-        else:
-            clsname = clsname or f"Transformed{cls.__name__}"
-
-            class Transformed(TransformedMessage):  # type: ignore
-                __qualname__ = clsname
-                parameter_names = cls.parameter_names
-                _depth = 1
-
-        Transformed._Message = cls
-        Transformed._transform = transform
-        Transformed._support = support
-        Transformed.__projection_class = projectionClass
-        Transformed.__name__ = clsname
-
-        return Transformed
 
     @classmethod
     def shifted(cls, shift: float = 0, scale: float = 1) -> Type["AbstractMessage"]:
