@@ -499,7 +499,6 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         self.paths.zip_remove()
         return result
 
-
     @abstractmethod
     def _fit(self, model, analysis, log_likelihood_cap=None):
         pass
