@@ -17,6 +17,7 @@ class TransformedWrapper:
             support: Optional[Tuple[Tuple[float, float], ...]] = None,
     ):
         self.cls = cls
+        print(self.cls)
         self.transform = transform
         self.clsname = clsname
         self.support = support
@@ -34,6 +35,22 @@ class TransformedWrapper:
             *args, **kwargs
         )
 
+    def transformed(
+            self,
+            transform: Union[
+                AbstractDensityTransform,
+                Type[AbstractDensityTransform]
+            ],
+            clsname: Optional[str] = None,
+            support: Optional[Tuple[Tuple[float, float], ...]] = None,
+    ):
+        return TransformedWrapper(
+            cls=self,
+            transform=transform,
+            clsname=clsname,
+            support=support,
+        )
+
     def transformed_class(self):
         if self.__transformed_class is None:
             self.__transformed_class = self._transformed_class()
@@ -43,24 +60,19 @@ class TransformedWrapper:
 
         from .transformed import TransformedMessage
 
-        projectionClass = (
-            None if self.cls._projection_class is None
-            else self.cls._projection_class.transformed(self.transform)
-        )
-
-        support = self.support or tuple(zip(*map(
-            self.transform.inv_transform, map(np.array, zip(*self.cls._support))
-        ))) if self.cls._support else self.cls._support
-
-        if issubclass(self.cls, TransformedMessage):
+        if isinstance(self.cls, TransformedWrapper):
             depth = self.cls._depth + 1
             clsname = self.clsname or f"Transformed{depth}{self.cls._Message.__name__}"
 
             # Don't doubly inherit if transforming already transformed message
-            class Transformed(self.cls):  # type: ignore
+            cls = self.cls.transformed_class()
+
+            class Transformed(cls):
                 __qualname__ = clsname
                 _depth = depth
+                _Message = cls
         else:
+            cls = self.cls
             clsname = self.clsname or f"Transformed{self.cls.__name__}"
 
             class Transformed(TransformedMessage):  # type: ignore
@@ -68,10 +80,19 @@ class TransformedWrapper:
                 parameter_names = self.cls.parameter_names
                 _depth = 1
 
-        Transformed._Message = self.cls
+        projectionClass = (
+            None if cls._projection_class is None
+            else cls._projection_class.transformed(self.transform)
+        )
+
+        support = self.support or tuple(zip(*map(
+            self.transform.inv_transform, map(np.array, zip(*cls._support))
+        ))) if cls._support else cls._support
+
         Transformed._transform = self.transform
         Transformed._support = support
         Transformed.__projection_class = projectionClass
         Transformed.__name__ = clsname
+        Transformed._Message = cls
 
         return Transformed

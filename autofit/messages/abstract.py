@@ -521,6 +521,7 @@ class AbstractMessage(Prior, ABC):
             ],
             clsname: Optional[str] = None,
             support: Optional[Tuple[Tuple[float, float], ...]] = None,
+            wrapper_cls=TransformedWrapper,
     ):
         # noinspection PyUnresolvedReferences
         """
@@ -529,6 +530,7 @@ class AbstractMessage(Prior, ABC):
 
         Parameters
         ----------
+        wrapper_cls
         transform: AbstractDensityTransform
             object that transforms the density
         clsname: str, optional
@@ -595,7 +597,7 @@ class AbstractMessage(Prior, ABC):
         >>> samples = ShiftedUnitNormal(0.2, 0.8).sample(1000)
         >>> samples.min(), samples.mean(), samples.max()
         """
-        return TransformedWrapper(
+        return wrapper_cls(
             cls=cls,
             transform=transform,
             clsname=clsname,
@@ -603,10 +605,16 @@ class AbstractMessage(Prior, ABC):
         )
 
     @classmethod
-    def shifted(cls, shift: float = 0, scale: float = 1) -> Type["AbstractMessage"]:
+    def shifted(
+            cls,
+            shift: float = 0,
+            scale: float = 1,
+            wrapper_cls=TransformedWrapper,
+    ):
         return cls.transformed(
             LinearShiftTransform(shift=shift, scale=scale),
-            clsname=f"Shifted{cls.__name__}"
+            clsname=f"Shifted{cls.__name__}",
+            wrapper_cls=wrapper_cls
         )
 
     @classmethod

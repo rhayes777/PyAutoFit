@@ -4,6 +4,7 @@ from autoconf import conf
 from autofit import exc
 from autofit.messages.normal import NormalMessage, UniformNormalMessage
 from autofit.messages.transform import log_10_transform
+from autofit.messages.transform_wrapper import TransformedWrapper
 
 
 class Limits:
@@ -28,11 +29,8 @@ class UniformPrior:
         lower_limit = float(lower_limit)
         upper_limit = float(upper_limit)
 
-        class UniformPrior(
-            UniformNormalMessage.shifted(
-                shift=lower_limit,
-                scale=(upper_limit - lower_limit)
-            )
+        class UniformWrapper(
+            TransformedWrapper
         ):
             __identifier_fields__ = ("lower_limit", "upper_limit")
 
@@ -68,6 +66,12 @@ class UniformPrior:
                 zero in this function.
                 """
                 return 0.0
+
+        UniformPrior = UniformNormalMessage.shifted(
+            shift=lower_limit,
+            scale=(upper_limit - lower_limit),
+            wrapper_cls=UniformWrapper
+        )
 
         UniformPrior.__class_path__ = cls
         return UniformPrior(
