@@ -5,6 +5,7 @@ import pytest
 import autofit as af
 from autofit import graphical as g
 from autofit.messages.normal import UniformNormalMessage
+from autofit.messages.transform import log_10_transform
 
 
 @pytest.fixture(
@@ -182,3 +183,16 @@ def test_pickle_log_uniform_prior():
         dill.dumps(log_uniform_prior)
     )
     assert pickled_prior == log_uniform_prior
+
+
+def test_pickle_transformed():
+    LogMessage = UniformNormalMessage.shifted(
+        shift=1,
+        scale=2,
+    ).transformed(
+        log_10_transform
+    )
+    Pickled = dill.loads(
+        dill.dumps(LogMessage)
+    )
+    assert LogMessage == Pickled
