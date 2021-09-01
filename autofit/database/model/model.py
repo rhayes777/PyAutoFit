@@ -1,3 +1,4 @@
+import abc
 import inspect
 from typing import List, Tuple, Any, Iterable, Union, ItemsView, Type
 
@@ -104,7 +105,8 @@ class Object(Base):
                 source,
                 (
                         np.ndarray,
-                        np.broadcast
+                        np.broadcast,
+                        abc.ABCMeta
                 )
         ):
             from .instance import NoneInstance

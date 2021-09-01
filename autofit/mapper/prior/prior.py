@@ -4,7 +4,7 @@ from autoconf import conf
 from autofit import exc
 from autofit.messages.normal import NormalMessage, UniformNormalMessage
 from autofit.messages.transform import log_10_transform
-from autofit.messages.transform_wrapper import TransformedWrapper
+from autofit.messages.transform_wrapper import TransformedWrapper, TransformedWrapperInstance
 
 
 class Limits:
@@ -16,10 +16,10 @@ class Limits:
         return limit_dict["lower"], limit_dict["upper"]
 
 
-class UniformWrapper(
-    TransformedWrapper
+class UniformWrapperInstance(
+    TransformedWrapperInstance
 ):
-    # __identifier_fields__ = ("lower_limit", "upper_limit")  TODO
+    __identifier_fields__ = ("lower_limit", "upper_limit")
 
     def __str__(self):
         """The line of text describing this prior for the model_mapper.info file"""
@@ -53,6 +53,12 @@ class UniformWrapper(
         zero in this function.
         """
         return 0.0
+
+
+class UniformWrapper(
+    TransformedWrapper
+):
+    InstanceWrapper = UniformWrapperInstance
 
 
 class UniformPrior:
