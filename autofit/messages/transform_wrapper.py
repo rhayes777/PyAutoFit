@@ -2,6 +2,7 @@ from typing import Union, Type, Optional, Tuple
 
 import numpy as np
 
+from autofit.mapper.variable import Variable
 from autofit.messages.transform import AbstractDensityTransform, LinearShiftTransform
 
 
@@ -125,13 +126,16 @@ class TransformedWrapper:
         self.__dict__.update(state)
 
 
-class TransformedWrapperInstance:
+class TransformedWrapperInstance(Variable):
     def __init__(
             self,
             transformed_wrapper,
             *args,
             **kwargs
     ):
+        super().__init__(
+            id_=kwargs.get("id_")
+        )
         self.transformed_wrapper = transformed_wrapper
         self.args = args
         self.kwargs = kwargs
@@ -164,6 +168,7 @@ class TransformedWrapperInstance:
             cls = self.transformed_wrapper.transformed_class()
             self._instance = cls(
                 *self.args,
-                **self.kwargs
+                **self.kwargs,
             )
+            self._instance.id = self.id
         return self._instance

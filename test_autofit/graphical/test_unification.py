@@ -175,6 +175,7 @@ def test_pickle_uniform_prior(
         dill.dumps(uniform_prior)
     )
     assert pickled_prior == uniform_prior
+    assert pickled_prior.id == uniform_prior.id
 
 
 def test_pickle_log_uniform_prior():
