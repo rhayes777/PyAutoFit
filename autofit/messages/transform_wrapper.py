@@ -94,8 +94,8 @@ class TransformedWrapperInstance(Prior):
             self._instance = cls(
                 *self.args,
                 **self.kwargs,
-                id_=self.id
             )
+            self._instance.id = self.id
         return self._instance
 
 

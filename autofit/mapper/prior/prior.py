@@ -98,6 +98,8 @@ class UniformPrior:
             log_norm=0.0,
             id_=None
     ):
+        lower_limit = float(lower_limit)
+        upper_limit = float(upper_limit)
         UniformPrior = UniformNormalMessage.shifted(
             shift=lower_limit,
             scale=(upper_limit - lower_limit),
