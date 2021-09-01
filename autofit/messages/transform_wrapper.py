@@ -2,7 +2,7 @@ from typing import Union, Type, Optional, Tuple
 
 import numpy as np
 
-from autofit.mapper.variable import Variable
+from autofit.mapper.prior.abstract import Prior
 from autofit.messages.transform import AbstractDensityTransform, LinearShiftTransform
 
 
@@ -126,7 +126,10 @@ class TransformedWrapper:
         self.__dict__.update(state)
 
 
-class TransformedWrapperInstance(Variable):
+class TransformedWrapperInstance(Prior):
+    def value_for(self, unit: float) -> float:
+        return self.instance().value_for(unit)
+
     def __init__(
             self,
             transformed_wrapper,
@@ -162,6 +165,15 @@ class TransformedWrapperInstance(Variable):
             self.instance() / other.instance()
         )
 
+    def __sub__(self, other):
+        instance = self.instance()
+        if isinstance(
+                other,
+                TransformedWrapperInstance
+        ):
+            other = other.instance()
+        return instance - other
+
     def __eq__(self, other):
         return other.instance() == self.instance()
 
@@ -170,6 +182,9 @@ class TransformedWrapperInstance(Variable):
             self.instance(),
             item
         )
+
+    def __hash__(self):
+        return hash(self.instance())
 
     def __setstate__(self, state):
         self._instance = None

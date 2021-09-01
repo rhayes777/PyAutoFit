@@ -19,7 +19,7 @@ class Limits:
 class UniformWrapper(
     TransformedWrapper
 ):
-    __identifier_fields__ = ("lower_limit", "upper_limit")
+    # __identifier_fields__ = ("lower_limit", "upper_limit")  TODO
 
     def __str__(self):
         """The line of text describing this prior for the model_mapper.info file"""
@@ -84,7 +84,7 @@ class UniformPrior:
 class LogUniformWrapper(
     TransformedWrapper
 ):
-    __identifier_fields__ = ("lower_limit", "upper_limit")
+    # __identifier_fields__ = ("lower_limit", "upper_limit")  TODO
 
     @staticmethod
     def log_prior_from_value(value):
