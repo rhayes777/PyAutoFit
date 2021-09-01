@@ -195,6 +195,24 @@ class LogUniformPrior:
             upper_limit=upper_limit,
         )
 
+    @staticmethod
+    def log_prior_from_value(value):
+        """
+        Returns the log prior of a physical value, so the log likelihood of a model evaluation can be converted to a
+            posterior as log_prior + log_likelihood.
+
+        This is used by Emcee in the log likelihood function evaluation.
+
+        Parameters
+        ----------
+        value
+            The physical value of this prior's corresponding parameter in a `NonLinearSearch` sample."""
+        return 1.0 / value
+
+    def __str__(self):
+        """The line of text describing this prior for the model_mapper.info file"""
+        return f"LogUniformPrior, lower_limit = {self.lower_limit}, upper_limit = {self.upper_limit}"
+
 
 LogUniformInstanceWrapper.cls = LogUniformPrior
 

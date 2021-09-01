@@ -50,9 +50,9 @@ from .mapper.prior_model.prior_model import PriorModel as Model
 from .mapper.prior_model.util import PriorModelNameValue
 from .mock.mock_search import MockResult
 from .mock.mock_search import MockSearch
-from .non_linear.abstract_search import Analysis
 from .non_linear.abstract_search import NonLinearSearch
 from .non_linear.abstract_search import PriorPasser
+from .non_linear.analysis.analysis import Analysis
 from .non_linear.grid.grid_search import GridSearchResult
 from .non_linear.initializer import InitializerBall
 from .non_linear.initializer import InitializerPrior

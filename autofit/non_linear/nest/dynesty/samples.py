@@ -5,7 +5,7 @@ from dynesty.results import Results
 
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.samples import Sample
-from autofit import NestSamples
+from autofit.non_linear.samples.nest import NestSamples
 
 
 class DynestySamples(NestSamples):

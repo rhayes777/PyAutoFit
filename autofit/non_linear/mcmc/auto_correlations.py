@@ -6,10 +6,10 @@ class AutoCorrelationsSettings:
 
     def __init__(
             self,
-            check_for_convergence : Optional[bool] = None,
-            check_size : Optional[int] = None,
-            required_length : Optional[int] = None,
-            change_threshold : Optional[float] = None,
+            check_for_convergence: Optional[bool] = None,
+            check_size: Optional[int] = None,
+            required_length: Optional[int] = None,
+            change_threshold: Optional[float] = None,
     ):
         """
         Class for performing and customizing AutoCorrelation calculations, which are used:
@@ -80,7 +80,7 @@ class AutoCorrelations(AutoCorrelationsSettings):
         required_length : int
             The length an auto_correlation chain must be for it to be used to evaluate whether its change threshold is
             sufficiently small to terminate sampling early.
-        change_threshold : float
+        change_threshold
             The threshold value by which if the change in auto_correlations is below sampling will be terminated early.
         """
 

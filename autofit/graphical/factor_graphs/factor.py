@@ -9,13 +9,13 @@ from typing import \
 
 import numpy as np
 
+from autoconf import cached_property
 from autofit.graphical.factor_graphs.abstract import \
     (
     AbstractNode, FactorValue
 )
 from autofit.graphical.utils import aggregate, Axis
 from autofit.mapper.variable import Variable
-from autofit.tools.cached_property import cached_property
 
 
 class AbstractFactor(AbstractNode, ABC):

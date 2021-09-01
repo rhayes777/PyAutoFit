@@ -281,7 +281,7 @@ class Profile:
 
         Parameters
         ----------
-        centre : float
+        centre
             The x coordinate of the profile centre.
         intensity
             Overall intensity normalisation of the profile.
@@ -302,11 +302,11 @@ class Gaussian(Profile):
 
         Parameters
         ----------
-        centre : float
+        centre
             The x coordinate of the profile centre.
         intensity
             Overall intensity normalisation of the Gaussian profile.
-        sigma : float
+        sigma
             The sigma value controlling the size of the Gaussian.
         """
         super().__init__(centre=centre, intensity=intensity)

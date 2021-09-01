@@ -1,5 +1,5 @@
-import logging
 from abc import ABC
+import logging
 
 from autoconf import conf
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
@@ -12,7 +12,6 @@ from autofit.non_linear.samples import OptimizerSamples
 logger = logging.getLogger(
     __name__
 )
-
 
 class Analysis(ABC):
     """
@@ -54,6 +53,23 @@ class Analysis(ABC):
 
     def make_result(self, samples, model, search):
         return Result(samples=samples, model=model, search=search)
+
+    def profile_log_likelihood_function(self, paths: AbstractPaths, instance):
+        """
+        Overwrite this function for profiling of the log likelihood function to be performed every update of a 
+        non-linear search.
+        
+        This behaves analogously to overwriting the `visualize` function of the `Analysis` class, whereby the user 
+        fills in the project-specific behaviour of the profiling.
+        
+        Parameters
+        ----------
+        paths
+            An object describing the paths for saving data (e.g. hard-disk directories or entries in sqlite database).
+        instance
+            The maximum likliehood instance of the model so far in the non-linear search.
+        """
+        pass
 
     def __add__(
             self,
@@ -134,12 +150,14 @@ class CombinedAnalysis(Analysis):
         func
             Some function of the analysis class
         paths
-            An object describing how data should be saved
+            An object describing the paths for saving data (e.g. hard-disk directories or entries in sqlite database).
         """
         for i, analysis in enumerate(self.analyses):
             child_paths = paths.create_child(
                 name=f"{paths.name}_{i}"
             )
+            print(child_paths.output_path)
+         #   stop
             func(child_paths, analysis)
 
     def save_attributes_for_aggregator(self, paths: AbstractPaths):
@@ -186,9 +204,9 @@ class CombinedAnalysis(Analysis):
         Parameters
         ----------
         paths
-            Paths object for overall fit
+            An object describing the paths for saving data (e.g. hard-disk directories or entries in sqlite database).
         instance
-            An instance of the model
+            The maximum likliehood instance of the model so far in the non-linear search.
         during_analysis
             Is this visualisation during analysis?
         """
@@ -198,6 +216,35 @@ class CombinedAnalysis(Analysis):
                 child_paths,
                 instance,
                 during_analysis
+            )
+
+        self._for_each_analysis(
+            func,
+            paths
+        )
+
+    def profile_log_likelihood_function(
+            self,
+            paths: AbstractPaths,
+            instance,
+    ):
+        """
+        Profile the log likliehood function of the maximum likelihood model instance using each analysis.
+
+        Profiling output is distinguished by using an integer suffix for each analysis path.
+
+        Parameters
+        ----------
+        paths
+            An object describing the paths for saving data (e.g. hard-disk directories or entries in sqlite database).
+        instance
+            The maximum likliehood instance of the model so far in the non-linear search.
+        """
+
+        def func(child_paths, analysis):
+            analysis.profile_log_likelihood_function(
+                child_paths,
+                instance,
             )
 
         self._for_each_analysis(

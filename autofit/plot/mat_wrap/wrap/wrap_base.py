@@ -52,7 +52,7 @@ class Units:
         use_scaled : bool
             If True, plot the 2D data with y and x ticks corresponding to its scaled coordinates (its `pixel_scales`
             attribute is used as the `conversion_factor`). If `False` plot them in pixel units.
-        conversion_factor : float
+        conversion_factor
             If plotting the labels in scaled units, this factor multiplies the values that are used for the labels.
             This allows for additional unit conversions of the figure labels.
         in_kpc : bool
@@ -485,9 +485,9 @@ class AbstractTicks(AbstractMatWrap):
 
         Parameters
         ----------
-        min_value : float
+        min_value
             the minimum value of the ticks that figure is plotted using.
-        max_value : float
+        max_value
             the maximum value of the ticks that figure is plotted using.
         """
         if self.manual_values is not None:
@@ -509,9 +509,9 @@ class AbstractTicks(AbstractMatWrap):
         array : array_2d.Array2D
             The array of data that is to be plotted, whose 2D shape is used to determine the tick values in units of
             pixels if this is the units specified by `units`.
-        min_value : float
+        min_value
             the minimum value of the ticks that figure is plotted using.
-        max_value : float
+        max_value
             the maximum value of the ticks that figure is plotted using.
         units : Units
             The units the tick values are plotted using.
@@ -554,9 +554,9 @@ class YTicks(AbstractTicks):
         -----------
         array : array_2d.Array2D
             The 2D array of data which is plotted.
-        min_value : float
+        min_value
             the minimum value of the yticks that figure is plotted using.
-        max_value : float
+        max_value
             the maximum value of the yticks that figure is plotted using.
         units : Units
             The units of the figure.
@@ -584,9 +584,9 @@ class XTicks(AbstractTicks):
         -----------
         array : array_2d.Array2D
             The 2D array of data which is plotted.
-        min_value : float
+        min_value
             the minimum value of the xticks that figure is plotted using.
-        max_value : float
+        max_value
             the maximum value of the xticks that figure is plotted using.
         units : Units
             The units of the figure.
