@@ -32,6 +32,8 @@ class TransformedWrapperInstance(Prior):
         return type(self)(
             self.transformed_wrapper,
             *message.parameters,
+            lower_limit=self.lower_limit,
+            upper_limit=self.upper_limit,
             id_=self.instance().id
         )
 
@@ -92,8 +94,8 @@ class TransformedWrapperInstance(Prior):
             self._instance = cls(
                 *self.args,
                 **self.kwargs,
+                id_=self.id
             )
-            self._instance.id = self.id
         return self._instance
 
 

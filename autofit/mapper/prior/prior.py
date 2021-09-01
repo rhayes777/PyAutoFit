@@ -16,7 +16,7 @@ class Limits:
         return limit_dict["lower"], limit_dict["upper"]
 
 
-class UniformWrapperInstance(
+class WrappedInstance(
     TransformedWrapperInstance
 ):
     __identifier_fields__ = ("lower_limit", "upper_limit")
@@ -39,6 +39,15 @@ class UniformWrapperInstance(
         self.lower_limit = lower_limit
         self.upper_limit = upper_limit
 
+        if self.lower_limit >= self.upper_limit:
+            raise exc.PriorException(
+                "The upper limit of a prior must be greater than its lower limit"
+            )
+
+
+class UniformWrapperInstance(
+    WrappedInstance
+):
     def __str__(self):
         """The line of text describing this prior for the model_mapper.info file"""
         return f"UniformPrior, lower_limit = {self.lower_limit}, upper_limit = {self.upper_limit}"
@@ -106,27 +115,9 @@ class UniformPrior:
 
 
 class LogUniformInstanceWrapper(
-    TransformedWrapperInstance
+    WrappedInstance
 ):
     __identifier_fields__ = ("lower_limit", "upper_limit")
-
-    def __init__(
-            self,
-            transformed_wrapper,
-            *args,
-            lower_limit,
-            upper_limit,
-            **kwargs
-    ):
-        super().__init__(
-            transformed_wrapper,
-            *args,
-            lower_limit=lower_limit,
-            upper_limit=upper_limit,
-            **kwargs
-        )
-        self.lower_limit = lower_limit
-        self.upper_limit = upper_limit
 
     @staticmethod
     def log_prior_from_value(value):
