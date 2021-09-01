@@ -48,6 +48,8 @@ class WrappedInstance(
 class UniformWrapperInstance(
     WrappedInstance
 ):
+    _type = "Uniform"
+
     def __str__(self):
         """The line of text describing this prior for the model_mapper.info file"""
         return f"UniformPrior, lower_limit = {self.lower_limit}, upper_limit = {self.upper_limit}"
@@ -121,6 +123,8 @@ class LogUniformInstanceWrapper(
 ):
     __identifier_fields__ = ("lower_limit", "upper_limit")
 
+    _type = "LogUniform"
+
     @staticmethod
     def log_prior_from_value(value):
         """
@@ -184,3 +188,5 @@ class LogUniformPrior:
 
 class GaussianPrior(NormalMessage):
     """A prior with a gaussian distribution"""
+
+    _type = "Gaussian"
