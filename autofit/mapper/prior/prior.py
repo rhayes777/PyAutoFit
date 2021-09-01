@@ -21,6 +21,24 @@ class UniformWrapperInstance(
 ):
     __identifier_fields__ = ("lower_limit", "upper_limit")
 
+    def __init__(
+            self,
+            transformed_wrapper,
+            *args,
+            lower_limit,
+            upper_limit,
+            **kwargs
+    ):
+        super().__init__(
+            transformed_wrapper,
+            *args,
+            lower_limit=lower_limit,
+            upper_limit=upper_limit,
+            **kwargs
+        )
+        self.lower_limit = lower_limit
+        self.upper_limit = upper_limit
+
     def __str__(self):
         """The line of text describing this prior for the model_mapper.info file"""
         return f"UniformPrior, lower_limit = {self.lower_limit}, upper_limit = {self.upper_limit}"
@@ -87,10 +105,28 @@ class UniformPrior:
         )
 
 
-class LogUniformWrapper(
-    TransformedWrapper
+class LogUniformInstanceWrapper(
+    TransformedWrapperInstance
 ):
-    # __identifier_fields__ = ("lower_limit", "upper_limit")  TODO
+    __identifier_fields__ = ("lower_limit", "upper_limit")
+
+    def __init__(
+            self,
+            transformed_wrapper,
+            *args,
+            lower_limit,
+            upper_limit,
+            **kwargs
+    ):
+        super().__init__(
+            transformed_wrapper,
+            *args,
+            lower_limit=lower_limit,
+            upper_limit=upper_limit,
+            **kwargs
+        )
+        self.lower_limit = lower_limit
+        self.upper_limit = upper_limit
 
     @staticmethod
     def log_prior_from_value(value):
@@ -109,6 +145,12 @@ class LogUniformWrapper(
     def __str__(self):
         """The line of text describing this prior for the model_mapper.info file"""
         return f"LogUniformPrior, lower_limit = {self.lower_limit}, upper_limit = {self.upper_limit}"
+
+
+class LogUniformWrapper(
+    TransformedWrapper
+):
+    InstanceWrapper = LogUniformInstanceWrapper
 
 
 class LogUniformPrior:
