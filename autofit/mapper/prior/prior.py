@@ -52,9 +52,36 @@ class WrappedInstance(
             )
 
 
-class UniformWrapperInstance(
-    WrappedInstance
-):
+class UniformPrior(WrappedInstance):
+    """A prior with a uniform distribution between a lower and upper limit"""
+
+    def __init__(self, lower_limit=0.0, upper_limit=1.0, id_=None, params=(0.0, 1.0)):
+        lower_limit = float(lower_limit)
+        upper_limit = float(upper_limit)
+
+        Message = UniformNormalMessage.shifted(
+            shift=lower_limit,
+            scale=(upper_limit - lower_limit)
+        )
+        super().__init__(
+            Message,
+            *params,
+            lower_limit=lower_limit,
+            upper_limit=upper_limit,
+            id_=id_
+        )
+
+    def _new_for_base_message(
+            self,
+            message
+    ):
+        return type(self)(
+            lower_limit=self.lower_limit,
+            upper_limit=self.upper_limit,
+            id_=self.instance().id,
+            params=message.parameters
+        )
+
     _type = "Uniform"
 
     def __str__(self):
@@ -89,43 +116,6 @@ class UniformWrapperInstance(
         zero in this function.
         """
         return 0.0
-
-
-class UniformWrapper(
-    TransformedWrapper
-):
-    InstanceWrapper = UniformWrapperInstance
-
-
-class UniformPrior:
-    """A prior with a uniform distribution between a lower and upper limit"""
-
-    def __new__(
-            cls,
-            lower_limit=0.0,
-            upper_limit=1.0,
-            log_norm=0.0,
-            id_=None
-    ):
-        lower_limit = float(lower_limit)
-        upper_limit = float(upper_limit)
-        UniformPrior = UniformNormalMessage.shifted(
-            shift=lower_limit,
-            scale=(upper_limit - lower_limit),
-            wrapper_cls=UniformWrapper
-        )
-
-        UniformPrior.__class_path__ = cls
-        return UniformPrior(
-            0.0,
-            1.0,
-            id_=id_,
-            lower_limit=float(lower_limit),
-            upper_limit=float(upper_limit),
-        )
-
-
-UniformWrapperInstance.cls = UniformPrior
 
 
 class LogUniformInstanceWrapper(
