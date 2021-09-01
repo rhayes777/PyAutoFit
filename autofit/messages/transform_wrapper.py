@@ -32,8 +32,10 @@ class TransformedWrapper:
         )
 
     def __call__(self, *args, **kwargs):
-        return self.transformed_class()(
-            *args, **kwargs
+        return TransformedWrapperInstance(
+            self,
+            *args,
+            **kwargs
         )
 
     def transformed(
@@ -119,3 +121,55 @@ class TransformedWrapper:
         Transformed._Message = cls
 
         return Transformed
+
+    def __setstate__(self, state):
+        self.__transformed_class = None
+        self.__dict__.update(state)
+
+
+class TransformedWrapperInstance:
+    def __init__(
+            self,
+            transformed_wrapper,
+            *args,
+            **kwargs
+    ):
+        self.transformed_wrapper = transformed_wrapper
+        self.args = args
+        self.kwargs = kwargs
+
+        self._instance = None
+
+    def __eq__(self, other):
+        return other.instance() == self.instance()
+
+    def __getattr__(self, item):
+        print(item)
+        if item == "_instance":
+            return None
+        if item == "transformed_wrapper":
+            raise AttributeError()
+        return getattr(
+            self.instance(),
+            item
+        )
+
+    def __setstate__(self, state):
+        self.__dict__.update(state)
+
+    def __getstate__(self):
+        return {
+            key: value
+            for key, value
+            in self.__dict__.items()
+            if "_instance" != key
+        }
+
+    def instance(self):
+        if self._instance is None:
+            cls = self.transformed_wrapper.transformed_class()
+            self._instance = cls(
+                *self.args,
+                **self.kwargs
+            )
+        return self._instance

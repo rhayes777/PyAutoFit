@@ -185,13 +185,33 @@ def test_pickle_log_uniform_prior():
     assert pickled_prior == log_uniform_prior
 
 
-def test_pickle_transformed():
-    LogMessage = UniformNormalMessage.shifted(
+@pytest.fixture(
+    name="LogMessage"
+)
+def make_log_message():
+    return UniformNormalMessage.shifted(
         shift=1,
         scale=2,
     ).transformed(
         log_10_transform
     )
+
+
+def test_pickle_transformed(
+        LogMessage
+):
     dill.loads(
         dill.dumps(LogMessage)
+    )
+
+
+def test_pickle_transformed_instantiated(
+        LogMessage
+):
+    instance = LogMessage(
+        mean=1,
+        sigma=2
+    )
+    dill.loads(
+        dill.dumps(instance)
     )
