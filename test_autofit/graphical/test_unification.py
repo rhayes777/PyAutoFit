@@ -192,7 +192,6 @@ def test_pickle_transformed():
     ).transformed(
         log_10_transform
     )
-    Pickled = dill.loads(
+    dill.loads(
         dill.dumps(LogMessage)
     )
-    assert LogMessage == Pickled

@@ -2,7 +2,7 @@ from typing import Union, Type, Optional, Tuple
 
 import numpy as np
 
-from autofit.messages.transform import AbstractDensityTransform
+from autofit.messages.transform import AbstractDensityTransform, LinearShiftTransform
 
 
 class TransformedWrapper:
@@ -24,6 +24,8 @@ class TransformedWrapper:
         self.__transformed_class = None
 
     def __getattr__(self, item):
+        if "__transformed_class" in item:
+            raise AttributeError()
         return getattr(
             self.transformed_class(),
             item
@@ -51,6 +53,26 @@ class TransformedWrapper:
             clsname=clsname,
             support=support,
         )
+
+    def shifted(
+            self,
+            shift: float = 0,
+            scale: float = 1,
+            wrapper_cls=None,
+    ):
+        return self.transformed(
+            LinearShiftTransform(shift=shift, scale=scale),
+            clsname=f"Shifted{self.transformed_class().__name__}",
+            wrapper_cls=wrapper_cls
+        )
+
+    def __getstate__(self):
+        return {
+            key: value
+            for key, value
+            in self.__dict__.items()
+            if "__transformed_class" not in key
+        }
 
     def transformed_class(self):
         if self.__transformed_class is None:
