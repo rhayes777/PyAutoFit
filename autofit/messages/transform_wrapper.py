@@ -24,8 +24,6 @@ class TransformedWrapper:
         self.__transformed_class = None
 
     def __getattr__(self, item):
-        if "__transformed_class" in item:
-            raise AttributeError()
         return getattr(
             self.transformed_class(),
             item
@@ -144,17 +142,13 @@ class TransformedWrapperInstance:
         return other.instance() == self.instance()
 
     def __getattr__(self, item):
-        print(item)
-        if item == "_instance":
-            return None
-        if item == "transformed_wrapper":
-            raise AttributeError()
         return getattr(
             self.instance(),
             item
         )
 
     def __setstate__(self, state):
+        self._instance = None
         self.__dict__.update(state)
 
     def __getstate__(self):
