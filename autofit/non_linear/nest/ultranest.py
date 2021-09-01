@@ -307,7 +307,7 @@ class UltraNestSamples(NestSamples):
             Maps input vectors of unit parameter values to physical values and model instances via priors.
         number_live_points : int
             The number of live points used by the nested sampler.
-        log_evidence : float
+        log_evidence
             The log of the Bayesian evidence estimated by the nested sampling algorithm.
         """
 

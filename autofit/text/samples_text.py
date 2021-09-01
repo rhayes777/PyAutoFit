@@ -21,7 +21,7 @@ def summary(
 
     Parameters
     ----------
-    sigma : float
+    sigma
         The sigma within which the PDF is used to estimate errors (e.g. sigma = 1.0 uses 0.6826 of the PDF)."""
 
     values = values_from_samples(samples=samples, median_pdf_model=median_pdf_model)
@@ -54,7 +54,7 @@ def latex(samples, median_pdf_model=True, sigma=3.0, name_to_label=True) -> str:
 
     Parameters
     ----------
-    sigma : float
+    sigma
         The sigma within which the PDF is used to estimate errors (e.g. sigma = 1.0 uses 0.6826 of the PDF)."""
 
     values = values_from_samples(samples=samples, median_pdf_model=median_pdf_model)

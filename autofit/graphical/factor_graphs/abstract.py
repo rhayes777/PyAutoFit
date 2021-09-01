@@ -7,9 +7,9 @@ from typing import \
 
 import numpy as np
 
+from autoconf.cached_property import cached_property
 from autofit.graphical.utils import FlattenArrays
 from autofit.mapper.variable import Variable, Plate
-from autofit.tools.cached_property import cached_property
 
 Value = Dict[Variable, np.ndarray]
 

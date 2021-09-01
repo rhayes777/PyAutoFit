@@ -7,12 +7,12 @@ from typing import (
 
 import numpy as np
 
+from autoconf.cached_property import cached_property
 from autofit.graphical.factor_graphs.abstract import FactorValue, AbstractNode
 from autofit.graphical.factor_graphs.factor import Factor
 from autofit.graphical.utils import (
     add_arrays, aggregate, Axis, rescale_to_artists
 )
-from autofit.tools.cached_property import cached_property
 from autofit.mapper.variable import Variable, Plate
 
 

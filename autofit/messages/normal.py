@@ -5,8 +5,8 @@ import numpy as np
 from scipy.special.cython_special import erfcinv
 from scipy.stats import norm
 
+from autoconf.cached_property import cached_property
 from autofit.messages.abstract import AbstractMessage
-from autofit.tools.cached_property import cached_property
 from .transform import phi_transform, log_transform, multinomial_logit_transform, log_10_transform
 
 
@@ -168,7 +168,7 @@ class NormalMessage(AbstractMessage):
 
         Parameters
         ----------
-        value : float
+        value
             The physical value of this prior's corresponding parameter in a `NonLinearSearch` sample."""
         return (value - self.mean) ** 2.0 / (2 * self.sigma ** 2.0)
 
