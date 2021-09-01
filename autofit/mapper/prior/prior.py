@@ -26,9 +26,6 @@ class UniformPrior:
             log_norm=0.0,
             id_=None
     ):
-        lower_limit = float(lower_limit)
-        upper_limit = float(upper_limit)
-
         class UniformWrapper(
             TransformedWrapper
         ):
@@ -78,8 +75,8 @@ class UniformPrior:
             mean=0.0,
             sigma=1.0,
             id_=id_,
-            lower_limit=lower_limit,
-            upper_limit=upper_limit,
+            lower_limit=float(lower_limit),
+            upper_limit=float(upper_limit),
         )
 
 
@@ -101,13 +98,8 @@ class LogUniformPrior:
         lower_limit = float(lower_limit)
         upper_limit = float(upper_limit)
 
-        class LogUniformPrior(
-            UniformNormalMessage.shifted(
-                shift=np.log10(lower_limit),
-                scale=np.log10(upper_limit / lower_limit),
-            ).transformed(
-                log_10_transform
-            )
+        class LogUniformWrapper(
+            TransformedWrapper
         ):
             __identifier_fields__ = ("lower_limit", "upper_limit")
 
@@ -128,6 +120,14 @@ class LogUniformPrior:
             def __str__(self):
                 """The line of text describing this prior for the model_mapper.info file"""
                 return f"LogUniformPrior, lower_limit = {self.lower_limit}, upper_limit = {self.upper_limit}"
+
+        LogUniformPrior = UniformNormalMessage.shifted(
+            shift=np.log10(lower_limit),
+            scale=np.log10(upper_limit / lower_limit),
+        ).transformed(
+            log_10_transform,
+            wrapper_cls=LogUniformWrapper
+        )
 
         LogUniformPrior.__class_path__ = cls
         return LogUniformPrior(

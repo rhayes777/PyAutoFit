@@ -17,7 +17,6 @@ class TransformedWrapper:
             support: Optional[Tuple[Tuple[float, float], ...]] = None,
     ):
         self.cls = cls
-        print(self.cls)
         self.transform = transform
         self.clsname = clsname
         self.support = support
@@ -43,8 +42,10 @@ class TransformedWrapper:
             ],
             clsname: Optional[str] = None,
             support: Optional[Tuple[Tuple[float, float], ...]] = None,
+            wrapper_cls=None
     ):
-        return TransformedWrapper(
+        wrapper_cls = wrapper_cls or TransformedWrapper
+        return wrapper_cls(
             cls=self,
             transform=transform,
             clsname=clsname,
