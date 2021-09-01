@@ -73,8 +73,8 @@ class UniformPrior:
 
         UniformPrior.__class_path__ = cls
         return UniformPrior(
-            mean=0.0,
-            sigma=1.0,
+            0.0,
+            1.0,
             id_=id_,
             lower_limit=float(lower_limit),
             upper_limit=float(upper_limit),
@@ -133,8 +133,8 @@ class LogUniformPrior:
 
         LogUniformPrior.__class_path__ = cls
         return LogUniformPrior(
-            mean=0.0,
-            sigma=1.0,
+            0.0,
+            1.0,
             id_=id_,
             lower_limit=lower_limit,
             upper_limit=upper_limit,

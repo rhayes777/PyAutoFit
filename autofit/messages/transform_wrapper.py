@@ -142,6 +142,26 @@ class TransformedWrapperInstance(Variable):
 
         self._instance = None
 
+    def _new_for_base_message(
+            self,
+            message
+    ):
+        return type(self)(
+            self.transformed_wrapper,
+            *message.parameters,
+            id_=self.instance().id
+        )
+
+    def __mul__(self, other):
+        return self._new_for_base_message(
+            self.instance() * other.instance()
+        )
+
+    def __truediv__(self, other):
+        return self._new_for_base_message(
+            self.instance() / other.instance()
+        )
+
     def __eq__(self, other):
         return other.instance() == self.instance()
 
