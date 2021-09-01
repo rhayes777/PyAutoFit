@@ -4,7 +4,7 @@ from autoconf import conf
 from autofit import exc
 from autofit.messages.normal import NormalMessage, UniformNormalMessage
 from autofit.messages.transform import log_10_transform
-from autofit.messages.transform_wrapper import TransformedWrapper, TransformedWrapperInstance
+from autofit.messages.transform_wrapper import TransformedWrapperInstance
 
 
 class Limits:
@@ -51,11 +51,42 @@ class WrappedInstance(
                 "The upper limit of a prior must be greater than its lower limit"
             )
 
+    def _new_for_base_message(
+            self,
+            message
+    ):
+        return type(self)(
+            lower_limit=self.lower_limit,
+            upper_limit=self.upper_limit,
+            id_=self.instance().id,
+            params=message.parameters
+        )
 
-class UniformWrapperInstance(
-    WrappedInstance
-):
-    _type = "Uniform"
+
+class UniformPrior(WrappedInstance):
+    """A prior with a uniform distribution between a lower and upper limit"""
+
+    def __init__(
+            self,
+            lower_limit=0.0,
+            upper_limit=1.0,
+            id_=None,
+            params=(0.0, 1.0)
+    ):
+        lower_limit = float(lower_limit)
+        upper_limit = float(upper_limit)
+
+        Message = UniformNormalMessage.shifted(
+            shift=lower_limit,
+            scale=(upper_limit - lower_limit)
+        )
+        super().__init__(
+            Message,
+            *params,
+            lower_limit=lower_limit,
+            upper_limit=upper_limit,
+            id_=id_
+        )
 
     def __str__(self):
         """The line of text describing this prior for the model_mapper.info file"""
@@ -91,49 +122,40 @@ class UniformWrapperInstance(
         return 0.0
 
 
-class UniformWrapper(
-    TransformedWrapper
-):
-    InstanceWrapper = UniformWrapperInstance
-
-
-class UniformPrior:
+class LogUniformPrior(WrappedInstance):
     """A prior with a uniform distribution between a lower and upper limit"""
 
-    def __new__(
+    def __init__(
             cls,
-            lower_limit=0.0,
+            lower_limit=1e-6,
             upper_limit=1.0,
-            log_norm=0.0,
-            id_=None
+            id_=None,
+            params=(0.0, 1.0)
     ):
+        if lower_limit <= 0.0:
+            raise exc.PriorException(
+                "The lower limit of a LogUniformPrior cannot be zero or negative."
+            )
+
         lower_limit = float(lower_limit)
         upper_limit = float(upper_limit)
-        UniformPrior = UniformNormalMessage.shifted(
-            shift=lower_limit,
-            scale=(upper_limit - lower_limit),
-            wrapper_cls=UniformWrapper
+
+        Message = UniformNormalMessage.shifted(
+            shift=np.log10(lower_limit),
+            scale=np.log10(upper_limit / lower_limit),
+        ).transformed(
+            log_10_transform
         )
 
-        UniformPrior.__class_path__ = cls
-        return UniformPrior(
-            0.0,
-            1.0,
+        super().__init__(
+            Message,
+            *params,
             id_=id_,
-            lower_limit=float(lower_limit),
-            upper_limit=float(upper_limit),
+            lower_limit=lower_limit,
+            upper_limit=upper_limit,
         )
 
-
-UniformWrapperInstance.cls = UniformPrior
-
-
-class LogUniformInstanceWrapper(
-    WrappedInstance
-):
     __identifier_fields__ = ("lower_limit", "upper_limit")
-
-    _type = "LogUniform"
 
     @staticmethod
     def log_prior_from_value(value):
@@ -154,70 +176,5 @@ class LogUniformInstanceWrapper(
         return f"LogUniformPrior, lower_limit = {self.lower_limit}, upper_limit = {self.upper_limit}"
 
 
-class LogUniformWrapper(
-    TransformedWrapper
-):
-    InstanceWrapper = LogUniformInstanceWrapper
-
-
-class LogUniformPrior:
-    """A prior with a uniform distribution between a lower and upper limit"""
-
-    def __new__(
-            cls,
-            lower_limit=1e-6,
-            upper_limit=1.0,
-            log_norm=0.0,
-            id_=None
-    ):
-        if lower_limit <= 0.0:
-            raise exc.PriorException(
-                "The lower limit of a LogUniformPrior cannot be zero or negative."
-            )
-
-        lower_limit = float(lower_limit)
-        upper_limit = float(upper_limit)
-
-        LogUniformPrior = UniformNormalMessage.shifted(
-            shift=np.log10(lower_limit),
-            scale=np.log10(upper_limit / lower_limit),
-        ).transformed(
-            log_10_transform,
-            wrapper_cls=LogUniformWrapper
-        )
-
-        LogUniformPrior.__class_path__ = cls
-        return LogUniformPrior(
-            0.0,
-            1.0,
-            id_=id_,
-            lower_limit=lower_limit,
-            upper_limit=upper_limit,
-        )
-
-    @staticmethod
-    def log_prior_from_value(value):
-        """
-        Returns the log prior of a physical value, so the log likelihood of a model evaluation can be converted to a
-            posterior as log_prior + log_likelihood.
-
-        This is used by Emcee in the log likelihood function evaluation.
-
-        Parameters
-        ----------
-        value
-            The physical value of this prior's corresponding parameter in a `NonLinearSearch` sample."""
-        return 1.0 / value
-
-    def __str__(self):
-        """The line of text describing this prior for the model_mapper.info file"""
-        return f"LogUniformPrior, lower_limit = {self.lower_limit}, upper_limit = {self.upper_limit}"
-
-
-LogUniformInstanceWrapper.cls = LogUniformPrior
-
-
 class GaussianPrior(NormalMessage):
     """A prior with a gaussian distribution"""
-
-    _type = "Gaussian"

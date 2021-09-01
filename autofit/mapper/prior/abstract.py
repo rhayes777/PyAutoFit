@@ -15,7 +15,6 @@ class Prior(Variable, ABC, ArithmeticMixin):
         "upper_limit",
         "id_"
     )
-    cls: type
 
     def __init__(
             self,
@@ -158,11 +157,16 @@ class Prior(Variable, ABC, ArithmeticMixin):
         prior_dict = {
             "lower_limit": self.lower_limit,
             "upper_limit": self.upper_limit,
-            "type": self._type,
+            "type": self.name_of_class(),
         }
         return prior_dict
 
-    _type: str
+    @classmethod
+    def name_of_class(cls) -> str:
+        """
+        A string name for the class, with the prior suffix removed.
+        """
+        return cls.__name__.replace("Prior", "")
 
     @property
     def limits(self) -> Tuple[float, float]:

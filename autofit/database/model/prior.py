@@ -113,7 +113,7 @@ class Prior(Object):
             model: abstract.Prior
     ):
         instance = cls()
-        instance.cls = model.cls
+        instance.cls = type(model)
         instance._add_children([
             (key, value)
             for key, value
