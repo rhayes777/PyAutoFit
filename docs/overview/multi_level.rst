@@ -3,12 +3,12 @@
 Multi-level Models
 ------------------
 
-A **graphical model** is a network of model components, where the graph expresses the conditional dependence between 
-different parameters and model-components in the model. Using hierarchies of Python classes **PyAutoFit** can 
-construct **graphical models** via the ``Model`` and ``Collection`` objects, and these can be linked together to form 
+A **multi-level model** is a hierarchy of model components, where the different levels express the conditional
+dependence between different parameters and model-components. Using hierarchies of Python classes **PyAutoFit** can
+construct **multi-level models** via the ``Model`` and ``Collection`` objects, and these can be linked together to form
 one over-arching model.
 
-Graphical models are a fairly abstract concept, and so to describe them we are going to introduce a real-world
+Multi-level models are a fairly abstract concept, and so to describe them we are going to introduce a real-world
 model-fitting example. We will use an example from Astronomy; fitting images of gravitationally lensed galaxies.
 This is the science case that sparked the development of **PyAutoFit** as a spin off of our astronomy software
 `PyAutoLens <https://github.com/Jammy2211/PyAutoLens>`_.
@@ -27,7 +27,7 @@ a strong lens, we ray-trace the traversal of light throughout the Universe so as
 lens. The amount light is deflected by is defined by the distances between each galaxy, which is called their redshift.
 
 We therefore need a model which contains separate model-components for every galaxy, and where each galaxy contains
-separate model-components describing its light and mass. A graphical representation of this model is as follows:
+separate model-components describing its light and mass. A multi-level representation of this model is as follows:
 
 .. image:: https://github.com/rhayes777/PyAutoFit/blob/master/docs/overview/image/lens_model.png?raw=true
   :width: 600
@@ -38,8 +38,8 @@ The image above shows that we need a model consisting of individual model-compon
  1) The lens galaxy's *light* and *mass*.
  2) The source galaxy's *light*.
 
-We need each galaxy to be a **model-component** and for it to contain an additional parameter, its ``redshift``. The 
-galaxies can then be combined into an overall model for the strong lens system.
+We also need each galaxy to be a **model-component** itself and for each of them to contain an additional parameter,
+its ``redshift``. The galaxies can then be combined into an overall model for the strong lens system.
 
 To model the light of a galaxy, we define a ``LightProfile`` as a Python class, which behaves in the same way as
 the ``Gaussian`` used in other **PyAutoFit** tutorials:
@@ -75,7 +75,7 @@ the ``Gaussian`` used in other **PyAutoFit** tutorials:
             """This function creates an image of the light profile, which is used in strong lens model-fitting"""
             ...
 
-We have omitted the code that creates the image from the light profile as we want to focus purely on graphical model
+We have omitted the code that creates the image from the light profile as we want to focus purely on multi-level model
 composition with **PyAutoFit**.
 
 We also define a ``MassProfile``:
@@ -156,10 +156,11 @@ which in the image above contains a light and mass profile:
 
     lens = Galaxy(redshift=0.5, light_profiles=[light], mass_profiles=[mass])
 
-This code creates instances of the ``LightProfile`` and ``MassProfile`` classes and uses them to create an
+The code creates instances of the ``LightProfile`` and ``MassProfile`` classes and uses them to create an
 instance of the ``Galaxy`` class. This uses a **hierarchy of Python classes**.
 
-We can compose a graphical model using this same hierarchy of classes, using the ``Model`` and ``Collection`` objects. 
+We can compose a multi-level model using this same hierarchy of classes, using the ``Model`` and ``Collection`` objects.
+
 Lets first create a model of the lens galaxy:
 
 .. code-block:: bash
@@ -220,8 +221,6 @@ We can now create a model of our source galaxy using the same API.
     )
 
 We can now create our overall strong lens model, using a ``Collection`` in the same way we have seen previously. 
-However, whereas you may have previous consdiered a ``Collection`` as an object that simply combines model-components,
-you can now consider that it is an object that connects them on the model graph!
 
 .. code-block:: bash
 
@@ -230,7 +229,7 @@ you can now consider that it is an object that connects them on the model graph!
 The model contains both galaxies in the strong lens, alongside all of their light and mass profiles.
 
 For every iteration of the non-linear search **PyAutoFit** generates an instance of this model, where all of the
-``LightProfile``, ``MassMass`` and ``Galaxy`` parameters of the are determined via their priors.
+``LightProfile``, ``MassProfile`` and ``Galaxy`` parameters of the are determined via their priors.
 
 An example instance is show below:
 
@@ -249,14 +248,16 @@ This model can therefore be used in a **PyAutoFit** ``Analysis`` class and ``log
 
 **Extensibility:**
 
-This example highlights how graphical models can make certain model-fitting problem fully extensible. For example:
+This example highlights how multi-level models can make certain model-fitting problem fully extensible. For example:
 
  1) A ``Galaxy`` class can be created using any combination of light and mass profiles. Although this was not shown 
-explicitly in this example, this is because it implements their ``image_from_grid`` and ``deflections_from_grid`` methods as the sum of individual profiles.
+explicitly in this example, this is because it implements their ``image_from_grid`` and ``deflections_from_grid`` methods
+as the sum of individual profiles.
 
- 2) The overall strong lens model can contain any number of ``Galaxy``'s, as these methods and their redshifts are used to implement the lensing calculations in the ``Analysis`` class and ``log_likelihood_function``.
+ 2) The overall strong lens model can contain any number of ``Galaxy``'s, as these methods and their redshifts are used
+to implement the lensing calculations in the ``Analysis`` class and ``log_likelihood_function``.
 
-Thus, for problems of this nature, we can design and write code in a way that fully utilizes **PyAutoFit**'s graphical
+Thus, for problems of this nature, we can design and write code in a way that fully utilizes **PyAutoFit**'s multi-level
 modeling features to compose and fits models of arbitrary complexity and dimensionality.
 
 To illustrate this further, consider the following dataset which is called a **strong lens galaxy cluster**:
@@ -311,3 +312,16 @@ Here is an illustration of this model's graph:
 
 **PyAutoFit** therefore gives us full control over the composition and customization of high dimensional graphical
 models.
+
+Wrap-Up
+-------
+
+An example project on the **autofit_workspace** shows how to use **PyAutoFit** to set up code which fits strong
+lensing data, using **multi-level model composition**.
+
+If you'd like to perform the fit shown in this script, checkout the
+`simple examples <https://github.com/Jammy2211/autofit_workspace/tree/master/notebooks/overview/simplee>`_ on the
+``autofit_workspace``. We detail how **PyAutoFit** works in the first 3 tutorials of
+the `HowToFit lecture series <https://pyautofit.readthedocs.io/en/latest/howtofit/howtofit.html>`_.
+
+https://github.com/Jammy2211/autofit_workspace/tree/release/projects/astro
