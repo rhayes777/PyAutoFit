@@ -256,8 +256,8 @@ class TestModelInstancesRealClasses:
         model_map = mapper.instance_from_unit_vector([0.25, 0.5, 0.75, 1.0])
 
         assert model_map.profile_1.centre == (0.25, 0.5)
-        assert model_map.profile_1._axis_ratio == 1.5
-        assert model_map.profile_1.phi == 2.0
+        assert model_map.profile_1.axis_ratio == 1.5
+        assert model_map.profile_1.angle == 2.0
 
     def test__in_order_of_class_constructor___multiple_profiles(self):
         mapper = af.ModelMapper(
@@ -271,14 +271,14 @@ class TestModelInstancesRealClasses:
         )
 
         assert model_map.profile_1.centre == (0.1, 0.2)
-        assert model_map.profile_1._axis_ratio == 0.6
-        assert model_map.profile_1.phi == 0.8
+        assert model_map.profile_1.axis_ratio == 0.6
+        assert model_map.profile_1.angle == 0.8
 
         assert model_map.profile_2.centre == (0.5, 0.6)
 
         assert model_map.profile_3.centre == (0.7, 0.8)
-        assert model_map.profile_3._axis_ratio == 1.8
-        assert model_map.profile_3.phi == 2.0
+        assert model_map.profile_3.axis_ratio == 1.8
+        assert model_map.profile_3.angle == 2.0
 
     def test__check_order_for_different_unit_values(self):
         mapper = af.ModelMapper(
@@ -289,30 +289,30 @@ class TestModelInstancesRealClasses:
 
         mapper.profile_1.centre.centre_0 = af.UniformPrior(0.0, 1.0)
         mapper.profile_1.centre.centre_1 = af.UniformPrior(0.0, 1.0)
-        mapper.profile_1._axis_ratio = af.UniformPrior(0.0, 1.0)
-        mapper.profile_1.phi = af.UniformPrior(0.0, 1.0)
+        mapper.profile_1.axis_ratio = af.UniformPrior(0.0, 1.0)
+        mapper.profile_1.angle = af.UniformPrior(0.0, 1.0)
 
         mapper.profile_2.centre.centre_0 = af.UniformPrior(0.0, 1.0)
         mapper.profile_2.centre.centre_1 = af.UniformPrior(0.0, 1.0)
 
         mapper.profile_3.centre.centre_0 = af.UniformPrior(0.0, 1.0)
         mapper.profile_3.centre.centre_1 = af.UniformPrior(0.0, 1.0)
-        mapper.profile_3._axis_ratio = af.UniformPrior(0.0, 1.0)
-        mapper.profile_3.phi = af.UniformPrior(0.0, 1.0)
+        mapper.profile_3.axis_ratio = af.UniformPrior(0.0, 1.0)
+        mapper.profile_3.angle = af.UniformPrior(0.0, 1.0)
 
         model_map = mapper.instance_from_unit_vector(
             [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
         )
 
         assert model_map.profile_1.centre == (0.1, 0.2)
-        assert model_map.profile_1._axis_ratio == 0.3
-        assert model_map.profile_1.phi == 0.4
+        assert model_map.profile_1.axis_ratio == 0.3
+        assert model_map.profile_1.angle == 0.4
 
         assert model_map.profile_2.centre == (0.5, 0.6)
 
         assert model_map.profile_3.centre == (0.7, 0.8)
-        assert model_map.profile_3._axis_ratio == 0.9
-        assert model_map.profile_3.phi == 1.0
+        assert model_map.profile_3.axis_ratio == 0.9
+        assert model_map.profile_3.angle == 1.0
 
     def test__check_order_for_different_unit_values_and_set_priors_equal_to_one_another(
             self
@@ -325,18 +325,18 @@ class TestModelInstancesRealClasses:
 
         mapper.profile_1.centre.centre_0 = af.UniformPrior(0.0, 1.0)
         mapper.profile_1.centre.centre_1 = af.UniformPrior(0.0, 1.0)
-        mapper.profile_1._axis_ratio = af.UniformPrior(0.0, 1.0)
-        mapper.profile_1.phi = af.UniformPrior(0.0, 1.0)
+        mapper.profile_1.axis_ratio = af.UniformPrior(0.0, 1.0)
+        mapper.profile_1.angle = af.UniformPrior(0.0, 1.0)
 
         mapper.profile_2.centre.centre_0 = af.UniformPrior(0.0, 1.0)
         mapper.profile_2.centre.centre_1 = af.UniformPrior(0.0, 1.0)
 
         mapper.profile_3.centre.centre_0 = af.UniformPrior(0.0, 1.0)
         mapper.profile_3.centre.centre_1 = af.UniformPrior(0.0, 1.0)
-        mapper.profile_3._axis_ratio = af.UniformPrior(0.0, 1.0)
-        mapper.profile_3.phi = af.UniformPrior(0.0, 1.0)
+        mapper.profile_3.axis_ratio = af.UniformPrior(0.0, 1.0)
+        mapper.profile_3.angle = af.UniformPrior(0.0, 1.0)
 
-        mapper.profile_1._axis_ratio = mapper.profile_1.phi
+        mapper.profile_1.axis_ratio = mapper.profile_1.angle
         mapper.profile_3.centre.centre_1 = mapper.profile_2.centre.centre_1
 
         model_map = mapper.instance_from_unit_vector(
@@ -344,14 +344,14 @@ class TestModelInstancesRealClasses:
         )
 
         assert model_map.profile_1.centre == (0.2, 0.3)
-        assert model_map.profile_1._axis_ratio == 0.4
-        assert model_map.profile_1.phi == 0.4
+        assert model_map.profile_1.axis_ratio == 0.4
+        assert model_map.profile_1.angle == 0.4
 
         assert model_map.profile_2.centre == (0.5, 0.6)
 
         assert model_map.profile_3.centre == (0.7, 0.6)
-        assert model_map.profile_3._axis_ratio == 0.8
-        assert model_map.profile_3.phi == 0.9
+        assert model_map.profile_3.axis_ratio == 0.8
+        assert model_map.profile_3.angle == 0.9
 
     def test__check_order_for_physical_values(self):
         mapper = af.ModelMapper(
@@ -365,14 +365,14 @@ class TestModelInstancesRealClasses:
         )
 
         assert model_map.profile_1.centre == (0.1, 0.2)
-        assert model_map.profile_1._axis_ratio == 0.3
-        assert model_map.profile_1.phi == 0.4
+        assert model_map.profile_1.axis_ratio == 0.3
+        assert model_map.profile_1.angle == 0.4
 
         assert model_map.profile_2.centre == (0.5, 0.6)
 
         assert model_map.profile_3.centre == (0.7, 0.8)
-        assert model_map.profile_3._axis_ratio == 0.9
-        assert model_map.profile_3.phi == 1.0
+        assert model_map.profile_3.axis_ratio == 0.9
+        assert model_map.profile_3.angle == 1.0
 
     def test__from_prior_medians__one_model(self):
         mapper = af.ModelMapper(profile_1=mock_real.EllProfile)
@@ -382,8 +382,8 @@ class TestModelInstancesRealClasses:
         model_2 = mapper.instance_from_unit_vector([0.5, 0.5, 0.5, 0.5])
 
         assert model_map.profile_1.centre == model_2.profile_1.centre == (0.5, 0.5)
-        assert model_map.profile_1._axis_ratio == model_2.profile_1._axis_ratio == 1.0
-        assert model_map.profile_1.phi == model_2.profile_1.phi == 1.0
+        assert model_map.profile_1.axis_ratio == model_2.profile_1.axis_ratio == 1.0
+        assert model_map.profile_1.angle == model_2.profile_1.angle == 1.0
 
     def test__from_prior_medians__multiple_models(self):
         mapper = af.ModelMapper(
@@ -399,27 +399,27 @@ class TestModelInstancesRealClasses:
         )
 
         assert model_map.profile_1.centre == model_2.profile_1.centre == (0.5, 0.5)
-        assert model_map.profile_1._axis_ratio == model_2.profile_1._axis_ratio == 1.0
-        assert model_map.profile_1.phi == model_2.profile_1.phi == 1.0
+        assert model_map.profile_1.axis_ratio == model_2.profile_1.axis_ratio == 1.0
+        assert model_map.profile_1.angle == model_2.profile_1.angle == 1.0
 
         assert model_map.profile_2.centre == model_2.profile_2.centre == (0.5, 0.5)
 
         assert model_map.profile_3.centre == model_2.profile_3.centre == (0.5, 0.5)
-        assert model_map.profile_3._axis_ratio == model_2.profile_3._axis_ratio == 1.0
-        assert model_map.profile_3.phi == model_2.profile_3.phi == 1.0
+        assert model_map.profile_3.axis_ratio == model_2.profile_3.axis_ratio == 1.0
+        assert model_map.profile_3.angle == model_2.profile_3.angle == 1.0
 
     def test__from_prior_medians__one_model__set_one_parameter_to_another(self):
         mapper = af.ModelMapper(profile_1=mock_real.EllProfile)
 
-        mapper.profile_1._axis_ratio = mapper.profile_1.phi
+        mapper.profile_1.axis_ratio = mapper.profile_1.angle
 
         model_map = mapper.instance_from_prior_medians()
 
         model_2 = mapper.instance_from_unit_vector([0.5, 0.5, 0.5])
 
         assert model_map.profile_1.centre == model_2.profile_1.centre == (0.5, 0.5)
-        assert model_map.profile_1._axis_ratio == model_2.profile_1._axis_ratio == 1.0
-        assert model_map.profile_1.phi == model_2.profile_1.phi == 1.0
+        assert model_map.profile_1.axis_ratio == model_2.profile_1.axis_ratio == 1.0
+        assert model_map.profile_1.angle == model_2.profile_1.angle == 1.0
 
     def test_log_prior_list_from_vector(self):
         mapper = af.ModelMapper()
@@ -728,7 +728,7 @@ class Testinstance:
         prior_model.centre_0 = 1.0
         prior_model.centre_1 = 2.0
         prior_model.axis_ratio = 1.0
-        prior_model.phi = 1.0
+        prior_model.angle = 1.0
         prior_model.intensity = 1.0
         prior_model.effective_radius = 1.0
         prior_model.sersic_index = 1.0

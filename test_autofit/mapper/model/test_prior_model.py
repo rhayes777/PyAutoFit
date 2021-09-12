@@ -148,14 +148,14 @@ class TestSum:
         profile_2 = af.PriorModel(mock_real.EllProfile)
 
         profile_1.axis_ratio = 1.0
-        profile_2.phi = 0.0
+        profile_2.angle = 0.0
 
         result = profile_1 + profile_2
 
         assert isinstance(result, af.PriorModel)
         assert result.cls == mock_real.EllProfile
         assert isinstance(result.axis_ratio, af.Prior)
-        assert isinstance(result.phi, af.Prior)
+        assert isinstance(result.angle, af.Prior)
 
     def test_fail_for_mismatch(self):
         profile_1 = af.PriorModel(mock_real.EllProfile)

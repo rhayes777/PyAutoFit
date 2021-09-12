@@ -39,10 +39,10 @@ class ModelMapper(CollectionPriorModel):
 
     Or maybe we want to tie two priors together:
 
-    mapper.sersic.phi = mapper.other_sersic.phi
+    mapper.sersic.angle = mapper.other_sersic.angle
 
     This statement reduces the number of priors by one and means that the two
-    sersic instances will always share # the same rotation angle phi.
+    sersic instances will always share # the same rotation angle angle.
 
     We can then create instances of every class for a unit hypercube vector
     with length equal to # len(mapper.priors):
