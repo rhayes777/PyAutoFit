@@ -1,7 +1,7 @@
 .. _composition:
 
-Composition
------------
+Multi-level Models
+------------------
 
 A **graphical model** is a network of model components, where the graph expresses the conditional dependence between 
 different parameters and model-components in the model. Using hierarchies of Python classes **PyAutoFit** can 

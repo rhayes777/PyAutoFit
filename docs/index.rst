@@ -159,6 +159,7 @@ provides new users with a more detailed introduction to **PyAutoFit**.
    overview/model_complex
    overview/non_linear_search
    overview/result
+   overview/multi_level
 
 .. toctree::
    :caption: Installation:
@@ -206,7 +207,6 @@ provides new users with a more detailed introduction to **PyAutoFit**.
    :maxdepth: 1
    :hidden:
 
-   graphical/composition
    graphical/multiple_datasets
    graphical/expectation_propagation
 
