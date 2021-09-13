@@ -5,8 +5,8 @@ Cookbook
 
 This cookbook therefore provides an API reference for model composition, in particular:
 
-- Creating individual model components via `af.Model`.
-- Creating collections of model components as a single model using `af.Collection`.
+- Creating individual model components via ``af.Model``.
+- Creating collections of model components as a single model using ``af.Collection``.
 - Creating multi-level models using hierarchies of Python classes.
 
 Examples using different **PyAutoFit** API's for model composition are provided, which produce more concise and
@@ -19,9 +19,9 @@ A model component is written as a Python class using the following format:
 
 - The name of the class is the name of the model component, in this case, "Gaussian".
 
-- The input arguments of the constructor are the parameters of the mode (here `centre`, `normalization` and `sigma`).
+- The input arguments of the constructor are the parameters of the mode (here ``centre``, ``normalization`` and ``sigma``).
 
-- The default values of the input arguments tell **PyAutoFit** whether a parameter is a single-valued `float` or a multi-valued `tuple`.
+- The default values of the input arguments tell **PyAutoFit** whether a parameter is a single-valued ``float`` or a multi-valued ``tuple``.
 
 .. code-block:: bash
 
@@ -29,7 +29,7 @@ A model component is written as a Python class using the following format:
         def __init__(
             self,
             centre=30.0,  # <- **PyAutoFit** recognises these constructor arguments
-            normalization=1.0,  # <- are the Gaussian`s model parameters.
+            normalization=1.0,  # <- are the Gaussian``s model parameters.
             sigma=5.0,
         ):
             self.centre = centre
@@ -39,7 +39,7 @@ A model component is written as a Python class using the following format:
 Model
 -----
 
-To instantiate a Python class as a model component using the `af.Model` object:
+To instantiate a Python class as a model component using the ``af.Model`` object:
 
 .. code-block:: bash
 
@@ -107,7 +107,7 @@ This API can also be used for fixing a parameter to a certain value:
 Collection
 ----------
 
-To instantiate multiple Python classes into a combined model component using `af.Collection` and `af.Model`:
+To instantiate multiple Python classes into a combined model component using ``af.Collection`` and ``af.Model``:
 
 .. code-block:: bash
 
@@ -116,7 +116,7 @@ To instantiate multiple Python classes into a combined model component using `af
 
     model = af.Collection(gaussian_0=gaussian_0, gaussian_1=gaussian_1)
 
-By setting up each `Model` first the model can be customized using either of the `af.Model` API's shown above:
+By setting up each ``Model`` first the model can be customized using either of the ``af.Model`` API's shown above:
 
 .. code-block:: bash
 
@@ -136,20 +136,20 @@ By setting up each `Model` first the model can be customized using either of the
 Collection (Alternative API)
 ----------------------------
 
-To create the `Collection` in one line of Python by not defining each `Model` beforehand:
+To create the ``Collection`` in one line of Python by not defining each ``Model`` beforehand:
 
 .. code-block:: bash
 
     model = af.Collection(gaussian_0=af.Model(Gaussian), gaussian_1=af.Model(Gaussian))
 
-Using this API, the `af.Model()` command can be omitted altogether (**PyAutoFit** will automatically determine
-the `Gaussian` python classes should be set up as `Model`'s):
+Using this API, the ``af.Model()`` command can be omitted altogether (**PyAutoFit** will automatically determine
+the ``Gaussian`` python classes should be set up as ``Model``'s):
 
 .. code-block:: bash
 
     model = af.Collection(gaussian_0=Gaussian, gaussian_1=Gaussian)
 
-To customize a model using this API the name of the model subcomponents (e.g. `gaussian_0` and `gaussian_1`) are used
+To customize a model using this API the name of the model subcomponents (e.g. ``gaussian_0`` and ``gaussian_1``) are used
 to access and customize the parameters.
 
 .. code-block:: bash
@@ -171,11 +171,11 @@ A multi-level model component is written as a Python class using the following f
 
 - The input arguments include one or more optional lists of Python classes that themselves are instantiated as model components.
 
-- Addition parameters specific to the higher level of the model can be included in the constructor (in this example a parameter called the `higher_level_parameter` is used).
+- Addition parameters specific to the higher level of the model can be included in the constructor (in this example a parameter called the ``higher_level_parameter`` is used).
 
 Like a normal model component, the name of the Python class is the name of the model component, input arguments are
-the parameters of the model and default values tell **PyAutoFit** whether a parameter is a single-valued `float` or a
-multi-valued `tuple`.
+the parameters of the model and default values tell **PyAutoFit** whether a parameter is a single-valued ``float`` or a
+multi-valued ``tuple``.
 
 .. code-block:: bash
 
@@ -184,14 +184,14 @@ multi-valued `tuple`.
         def __init__(
             self,
             higher_level_parameter=1.0,
-            gaussian_list=None,  # This will optionally contain a list of `af.Model(Gaussian)`'s
+            gaussian_list=None,  # This will optionally contain a list of ``af.Model(Gaussian)``'s
         ):
 
             self.higher_level_parameter = higher_level_parameter
 
             self.gaussian_list = gaussian_list
 
-This multi-level model is instantiated via the `af.Model()` command, which is passed one or more `Gaussian` components:
+This multi-level model is instantiated via the ``af.Model()`` command, which is passed one or more ``Gaussian`` components:
 
 .. code-block:: bash
 
@@ -199,13 +199,13 @@ This multi-level model is instantiated via the `af.Model()` command, which is pa
         MultiLevelGaussians, gaussian_list=[af.Model(Gaussian), af.Model(Gaussian)]
     )
 
-Again, if the `af.Model()` on the individual `Gaussian`'s is omitted they are still created as model components:
+Again, if the ``af.Model()`` on the individual ``Gaussian``'s is omitted they are still created as model components:
 
 .. code-block:: bash
 
     multi_level = af.Model(MultiLevelGaussians, gaussian_list=[Gaussian, Gaussian])
 
-To customize the higher level parameters of a multi-level the usual `Model` API is used:
+To customize the higher level parameters of a multi-level the usual ``Model`` API is used:
 
 .. code-block:: bash
 
@@ -254,7 +254,7 @@ This means no list input parameter is required in the Python class of the model 
 
         multi_level = af.Model(MultiLevelGaussians, gaussian_0=Gaussian, gaussian_1=Gaussian)
 
-Each model subcomponent can be customized using its name, analogous to the `Collection` API:
+Each model subcomponent can be customized using its name, analogous to the ``Collection`` API:
 
 .. code-block:: bash
 
