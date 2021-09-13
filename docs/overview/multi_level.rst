@@ -1,12 +1,15 @@
 .. _composition:
 
 Multi-level Models
-------------------
+==================
 
 A **multi-level model** is a hierarchy of model components, where the different levels express the conditional
 dependence between different parameters and model-components. Using hierarchies of Python classes **PyAutoFit** can
 construct **multi-level models** via the ``Model`` and ``Collection`` objects, and these can be linked together to form
 one over-arching model.
+
+Astronomy Use Case
+------------------
 
 Multi-level models are a fairly abstract concept, and so to describe them we are going to introduce a real-world
 model-fitting example. We will use an example from Astronomy; fitting images of gravitationally lensed galaxies.
@@ -26,6 +29,9 @@ A strong gravitational lens is a system consisting of multiple galaxy's down the
 a strong lens, we ray-trace the traversal of light throughout the Universe so as to fit it to imaging data of a strong
 lens. The amount light is deflected by is defined by the distances between each galaxy, which is called their redshift.
 
+Model Overview
+--------------
+
 We therefore need a model which contains separate model-components for every galaxy, and where each galaxy contains
 separate model-components describing its light and mass. A multi-level representation of this model is as follows:
 
@@ -40,6 +46,9 @@ The image above shows that we need a model consisting of individual model-compon
 
 We also need each galaxy to be a **model-component** itself and for each of them to contain an additional parameter,
 its ``redshift``. The galaxies can then be combined into an overall model for the strong lens system.
+
+Model Example
+-------------
 
 To model the light of a galaxy, we define a ``LightProfile`` as a Python class, which behaves in the same way as
 the ``Gaussian`` used in other **PyAutoFit** tutorials:
@@ -159,6 +168,9 @@ which in the image above contains a light and mass profile:
 The code creates instances of the ``LightProfile`` and ``MassProfile`` classes and uses them to create an
 instance of the ``Galaxy`` class. This uses a **hierarchy of Python classes**.
 
+Multi-level Model
+-----------------
+
 We can compose a multi-level model using this same hierarchy of classes, using the ``Model`` and ``Collection`` objects.
 
 Lets first create a model of the lens galaxy:
@@ -207,9 +219,6 @@ individual parameters to customize the model, where below we:
     lens.light_profiles[0].axis_ratio = af.UniformPrior(lower_limit=0.7, upper_limit=0.9)
     lens.mass_profiles[0].axis_ratio = 0.8
 
-Now that we are thinking about graphical models, note that by aligning the centre of the light and mass profiles we
-are actually linking two node of the model's graph that were previously unconnected!
-
 We can now create a model of our source galaxy using the same API.
 
 .. code-block:: bash
@@ -246,7 +255,8 @@ An example instance is show below:
 
 This model can therefore be used in a **PyAutoFit** ``Analysis`` class and ``log_likelihood_function``.
 
-**Extensibility:**
+Extensibility
+-------------
 
 This example highlights how multi-level models can make certain model-fitting problem fully extensible. For example:
 

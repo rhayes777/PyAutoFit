@@ -1,0 +1,15 @@
+{
+    "higher_level_parameter": {
+        "type": "Uniform",
+        "lower_limit": 0.0,
+        "upper_limit": 100.0,
+        "width_modifier": {
+            "type": "Absolute",
+            "value": 20.0
+        },
+        "gaussian_limits": {
+            "lower": "-inf",
+            "upper": "inf"
+        }
+    }
+}

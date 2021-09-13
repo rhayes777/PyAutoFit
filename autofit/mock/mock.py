@@ -155,7 +155,6 @@ class MockSearch(NonLinearSearch):
     def samples_from(self, model):
         return self.samples
 
-
 ### Mock Classes ###
 
 class ListClass:

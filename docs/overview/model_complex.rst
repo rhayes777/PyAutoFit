@@ -146,7 +146,7 @@ You are free to choose whichever names you want;  the names are used to pass the
 
             return log_likelihood
 
-Model_Fit
+Model Fit
 ---------
 
 Performing the *model-fit* uses the same steps as the previous example, whereby we  *compose* our *model* (now using a
