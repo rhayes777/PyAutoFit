@@ -4,6 +4,10 @@ from .abstract import AbstractPaths
 
 
 class NullPaths(AbstractPaths):
+    def __init__(self):
+        super().__init__()
+        self.objects = dict()
+
     @AbstractPaths.parent.setter
     def parent(self, parent):
         pass
@@ -23,10 +27,10 @@ class NullPaths(AbstractPaths):
         pass
 
     def save_object(self, name: str, obj: object):
-        pass
+        self.objects[name] = obj
 
     def load_object(self, name: str):
-        pass
+        return self.objects[name]
 
     def remove_object(self, name: str):
         pass

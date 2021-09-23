@@ -93,6 +93,27 @@ class TestDynesty:
         factor_model.optimiser = dynesty
         factor_model.optimise(laplace)
 
+    def test_null_paths(
+            self,
+            factor_model
+    ):
+        optimizer = af.DynestyStatic(
+            maxcall=10
+        )
+        result, status = optimizer.optimise(
+            factor_model,
+            factor_model.mean_field_approximation()
+        )
+
+        assert isinstance(
+            result,
+            g.EPMeanField
+        )
+        assert isinstance(
+            status,
+            Status
+        )
+
     @output_path_for_test()
     def test_optimise(
             self,
