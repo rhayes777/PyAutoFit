@@ -2,13 +2,13 @@ import logging
 import os
 import shutil
 from hashlib import md5
+from pathlib import Path
 
 import yaml
 from sqlalchemy.orm import Session
 
 from autofit.aggregator import Aggregator as ClassicAggregator
 from autofit.database.aggregator import Aggregator as DatabaseAggregator
-from autofit.mapper.prior_model.abstract import Path
 from autofit.non_linear.paths.database import DatabasePaths
 
 logger = logging.getLogger(
@@ -63,15 +63,20 @@ def update_identifiers_from_file(
             ).parent / new_identifier
         )
 
-        logger.info(
+        print(
             f"Moving output from {directory} to {new_directory}"
+        )
+
+        os.makedirs(
+            new_directory,
+            exist_ok=True
         )
 
         for file in os.listdir(
                 directory
         ):
             if file.endswith(
-                ".pickle"
+                    ".pickle"
             ):
                 print(f"Skipping {file}")
                 continue

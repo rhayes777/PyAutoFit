@@ -30,7 +30,7 @@ if __name__ == "__main__":
             map_filename=map_file
         )
     except Exception as e:
-        logging.debug(e)
+        logging.exception(e)
         print(
             "Usage: update_identifiers_from_file.py directory map_file.yaml"
         )
