@@ -173,6 +173,18 @@ class TransformedWrapper:
             clsname: Optional[str] = None,
             support: Optional[Tuple[Tuple[float, float], ...]] = None,
     ):
+        """
+        Parameters
+        ----------
+        cls
+            The class or TransformWrapper being transformed
+        transform
+            The transform applied
+        clsname
+            A custom name for the newly created class
+        support
+            The supported region
+        """
         self.cls = cls
         self.transform = transform
         self.clsname = clsname
@@ -181,12 +193,20 @@ class TransformedWrapper:
         self.__transformed_class = None
 
     def __getattr__(self, item):
+        """
+        By default attributes values are taken from the underlying message class
+        """
         return getattr(
             self.transformed_class(),
             item
         )
 
     def __call__(self, *args, **kwargs):
+        """
+        'Instantiate' the message. Creates an instance wrapper and
+        passes arguments and keyword arguments to it for lazy instantiation
+        of the underlying message.
+        """
         return self.InstanceWrapper(
             self,
             *args,
@@ -202,7 +222,10 @@ class TransformedWrapper:
             clsname: Optional[str] = None,
             support: Optional[Tuple[Tuple[float, float], ...]] = None,
             wrapper_cls=None
-    ):
+    ) -> "TransformedWrapper":
+        """
+        Apply a further transformation to an already transformed message
+        """
         wrapper_cls = wrapper_cls or TransformedWrapper
         return wrapper_cls(
             cls=self,
@@ -224,6 +247,14 @@ class TransformedWrapper:
         )
 
     def __getstate__(self):
+        """
+        The definition of the transformed class is not included in the state
+        to circumvent an issue with pickling arbitrarily parameterised on-the-fly
+        class definitions.
+
+        The definition of the class is lazily created from the state of an instance
+        as required.
+        """
         return {
             key: value
             for key, value
@@ -232,12 +263,18 @@ class TransformedWrapper:
         }
 
     def transformed_class(self):
+        """
+        The transformed class is lazily created
+        """
         if self.__transformed_class is None:
             self.__transformed_class = self._transformed_class()
         return self.__transformed_class
 
     def _transformed_class(self):
-
+        """
+        The transformed class is lazily defined. This means it does not have to be
+        pickled; it can entirely be derived from the state of the TransformedWrapper
+        """
         from .transformed import TransformedMessage
 
         if isinstance(self.cls, TransformedWrapper):
