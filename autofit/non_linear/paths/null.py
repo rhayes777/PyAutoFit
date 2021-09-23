@@ -4,6 +4,10 @@ from .abstract import AbstractPaths
 
 
 class NullPaths(AbstractPaths):
+    """
+    Null version of paths object for avoiding writing of files to disk
+    """
+
     def __init__(self):
         super().__init__()
         self.objects = dict()
