@@ -182,7 +182,7 @@ class AbstractMessage(Prior, ABC):
 
     @assert_ids_match
     def __mul__(self, other: Union["AbstractMessage", Real]) -> "AbstractMessage":
-        if isinstance(other, AbstractMessage):
+        if isinstance(other, Prior):
             return self._multiply(other)
         else:
             log_norm = self.log_norm + np.log(other)
@@ -198,7 +198,7 @@ class AbstractMessage(Prior, ABC):
 
     @assert_ids_match
     def __truediv__(self, other: Union["AbstractMessage", Real]) -> "AbstractMessage":
-        if isinstance(other, AbstractMessage):
+        if isinstance(other, Prior):
             return self._divide(other)
         else:
             log_norm = self.log_norm - np.log(other)
@@ -420,7 +420,7 @@ class AbstractMessage(Prior, ABC):
     @staticmethod
     def _iter_dists(dists) -> Iterator[Union["AbstractMessage", float]]:
         for elem in dists:
-            if isinstance(elem, AbstractMessage):
+            if isinstance(elem, Prior):
                 yield elem
             elif np.isscalar(elem):
                 yield elem
