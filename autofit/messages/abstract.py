@@ -13,7 +13,6 @@ import numpy as np
 from autoconf import cached_property
 from autofit.mapper.prior.abstract import Prior
 from .transform import AbstractDensityTransform, LinearShiftTransform
-from .transform_wrapper import TransformedWrapper
 from ..mapper.variable import Variable
 
 enforce_id_match = True
@@ -521,7 +520,7 @@ class AbstractMessage(Prior, ABC):
             ],
             clsname: Optional[str] = None,
             support: Optional[Tuple[Tuple[float, float], ...]] = None,
-            wrapper_cls=TransformedWrapper,
+            wrapper_cls=None,
     ):
         # noinspection PyUnresolvedReferences
         """
@@ -597,6 +596,8 @@ class AbstractMessage(Prior, ABC):
         >>> samples = ShiftedUnitNormal(0.2, 0.8).sample(1000)
         >>> samples.min(), samples.mean(), samples.max()
         """
+        from .transform_wrapper import TransformedWrapper
+        wrapper_cls = wrapper_cls or TransformedWrapper
         return wrapper_cls(
             cls=cls,
             transform=transform,
@@ -609,7 +610,7 @@ class AbstractMessage(Prior, ABC):
             cls,
             shift: float = 0,
             scale: float = 1,
-            wrapper_cls=TransformedWrapper,
+            wrapper_cls=None,
     ):
         return cls.transformed(
             LinearShiftTransform(shift=shift, scale=scale),
