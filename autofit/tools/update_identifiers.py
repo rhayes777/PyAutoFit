@@ -70,6 +70,11 @@ def update_identifiers_from_file(
         for file in os.listdir(
                 directory
         ):
+            if file.endswith(
+                ".pickle"
+            ):
+                print(f"Skipping {file}")
+                continue
             if not os.path.exists(
                     f"{new_directory}/{file}"
             ):
