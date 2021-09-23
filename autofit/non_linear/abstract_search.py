@@ -22,6 +22,7 @@ from autofit.non_linear.paths.directory import DirectoryPaths
 from autofit.non_linear.result import Result
 from autofit.non_linear.timer import Timer
 from .analysis import Analysis
+from .paths.null import NullPaths
 from ..graphical.expectation_propagation import AbstractFactorOptimiser
 
 logger = logging.getLogger(
@@ -98,7 +99,6 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         """
         from autofit.non_linear.paths.database import DatabasePaths
 
-        name = name or ""
         path_prefix = path_prefix or ""
 
         self.path_prefix_no_unique_tag = path_prefix
@@ -129,7 +129,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                 ),
                 unique_tag=unique_tag
             )
-        else:
+        elif name is not None:
             logger.debug(
                 "Session not found. Using directory output."
             )
@@ -138,6 +138,8 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                 path_prefix=path_prefix,
                 unique_tag=unique_tag
             )
+        else:
+            paths = NullPaths()
 
         self.paths: AbstractPaths = paths
 
