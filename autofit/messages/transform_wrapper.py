@@ -98,6 +98,20 @@ class TransformedWrapperInstance(Prior):
             self._instance.id = self.id
         return self._instance
 
+    def from_mode(
+            self,
+            mode: np.ndarray,
+            covariance: np.ndarray,
+            id_=None
+    ) -> "AbstractMessage":
+        return self._new_for_base_message(
+            self.transformed_wrapper.from_mode(
+                mode,
+                covariance,
+                id_=id_
+            )
+        )
+
 
 class TransformedWrapper:
     InstanceWrapper = TransformedWrapperInstance
@@ -219,3 +233,13 @@ class TransformedWrapper:
     def __setstate__(self, state):
         self.__transformed_class = None
         self.__dict__.update(state)
+
+    def from_mode(
+            self,
+            mode: np.ndarray,
+            covariance: np.ndarray,
+            id_=None
+    ) -> "AbstractMessage":
+        mode, jac = self._transform.transform_jac(mode)
+        covariance = jac.invquad(covariance)
+        return self.cls.from_mode(mode, covariance, id_=id_)

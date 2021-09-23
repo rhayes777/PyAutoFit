@@ -151,13 +151,13 @@ class TransformedMessage(AbstractMessage):
     # TODO add code for analytic hessians when Jacobian is fixed e.g. for shifted messages
     logpdf_gradient_hessian = AbstractMessage.numerical_logpdf_gradient_hessian
 
-    @classmethod
-    def from_mode(
-            cls,
-            mode: np.ndarray,
-            covariance: np.ndarray,
-            id_=None
-    ) -> "AbstractMessage":
-        mode, jac = cls._transform.transform_jac(mode)
-        covariance = jac.invquad(covariance)
-        return cls.from_mode(mode, covariance, id_=id_)
+    # @classmethod
+    # def from_mode(
+    #         cls,
+    #         mode: np.ndarray,
+    #         covariance: np.ndarray,
+    #         id_=None
+    # ) -> "AbstractMessage":
+    #     mode, jac = cls._transform.transform_jac(mode)
+    #     covariance = jac.invquad(covariance)
+    #     return cls.from_mode(mode, covariance, id_=id_)
