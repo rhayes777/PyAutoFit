@@ -104,7 +104,46 @@ def test_logarithmic_prior(
     ) == "0e8220c88678dcb31a398f9a34dcbc8a"
 
 
-def test_model_identifier():
-    assert af.Model(
-        af.Gaussian
-    ).identifier == "1719f29d2938d146d230d52ef7379a84"
+@pytest.fixture(
+    name="model"
+)
+def make_model():
+    return Identifier(
+        af.Model(
+            af.Gaussian
+        )
+    )
+
+
+def test_model_identifier(
+        model
+):
+    assert str(model) == "1719f29d2938d146d230d52ef7379a84"
+
+
+def test_model_identifier_fields(
+        model
+):
+    assert model.hash_list == [
+        'PriorModel',
+        'cls',
+        'autofit.mock.mock.Gaussian',
+        'centre',
+        'UniformPrior',
+        'lower_limit',
+        '0.0',
+        'upper_limit',
+        '1.0',
+        'normalization',
+        'UniformPrior',
+        'lower_limit',
+        '0.0',
+        'upper_limit',
+        '1.0',
+        'sigma',
+        'UniformPrior',
+        'lower_limit',
+        '0.0',
+        'upper_limit',
+        '1.0'
+    ]
