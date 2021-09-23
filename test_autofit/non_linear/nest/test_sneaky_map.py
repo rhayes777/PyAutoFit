@@ -17,6 +17,7 @@ from autofit.non_linear.parallel.sneaky import _is_likelihood_function
 )
 def make_search():
     return af.DynestyStatic(
+        name="",
         number_of_cores=2,
         maxcall=2
     )

@@ -6,6 +6,16 @@ import pytest
 
 import autofit as af
 from autoconf.conf import output_path_for_test
+from autofit.non_linear.paths.null import NullPaths
+
+
+def test_null_paths():
+    search = af.DynestyStatic()
+
+    assert isinstance(
+        search.paths,
+        NullPaths
+    )
 
 
 class TestPathDecorator:
