@@ -178,3 +178,10 @@ class LogUniformPrior(WrappedInstance):
 
 class GaussianPrior(NormalMessage):
     """A prior with a gaussian distribution"""
+
+    __identifier_fields__ = (
+        "lower_limit",
+        "upper_limit",
+        "mean",
+        "sigma"
+    )
