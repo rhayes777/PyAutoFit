@@ -4,11 +4,7 @@ from .abstract import AbstractPaths
 
 
 class NullPaths(AbstractPaths):
-    @property
-    def parent(self) -> "AbstractPaths":
-        pass
-
-    @parent.setter
+    @AbstractPaths.parent.setter
     def parent(self, parent):
         pass
 

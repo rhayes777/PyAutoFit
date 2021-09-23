@@ -97,7 +97,6 @@ class AbstractPaths(ABC):
             logger.exception(e)
 
     @property
-    @abstractmethod
     def parent(self) -> "AbstractPaths":
         """
         The search performed before this search. For example, a search

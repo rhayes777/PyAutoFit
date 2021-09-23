@@ -44,6 +44,7 @@ def make_laplace():
 )
 def make_dynesty():
     return af.DynestyStatic(
+        name="",
         maxcall=10
     )
 
