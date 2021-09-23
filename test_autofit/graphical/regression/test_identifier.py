@@ -118,7 +118,7 @@ def make_model():
 def test_model_identifier(
         model
 ):
-    assert str(model) == "1719f29d2938d146d230d52ef7379a84"
+    assert str(model) == "626c1beb5b1fb99781f30950595f36de"
 
 
 def test_model_identifier_fields(
@@ -134,7 +134,7 @@ def test_model_identifier_fields(
         '0.0',
         'upper_limit',
         '1.0',
-        'normalization',
+        'intensity',
         'UniformPrior',
         'lower_limit',
         '0.0',
