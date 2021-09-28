@@ -172,15 +172,17 @@ class CollectionPriorModel(AbstractPriorModel):
 
     def gaussian_prior_model_for_arguments(self, arguments):
         """
+        Create a new collection, updating its priors according to the argument
+        dictionary.
+
         Parameters
         ----------
-        arguments: {Prior: float}
+        arguments
             A dictionary of arguments
 
         Returns
         -------
-        prior_models: [PriorModel]
-            A new list of prior models with gaussian priors
+        A new collection
         """
         collection = CollectionPriorModel()
 
