@@ -88,5 +88,5 @@ class AbsoluteWidthModifier(WidthModifier):
 width_modifier_type_dict = {
     obj.name_of_class(): obj
     for _, obj in inspect.getmembers(sys.modules[__name__])
-    if inspect.isclass(obj) and isinstance(obj, WidthModifier)
+    if inspect.isclass(obj) and issubclass(obj, WidthModifier)
 }
