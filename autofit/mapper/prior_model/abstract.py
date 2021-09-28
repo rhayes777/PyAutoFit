@@ -577,7 +577,7 @@ class AbstractPriorModel(AbstractModel):
                         cls,
                         name
                     )
-                except exc.PriorException:
+                except exc.ConfigException:
                     limits = prior.limits
 
             if use_errors and not use_widths:
