@@ -69,6 +69,17 @@ class TestWidth:
         assert isinstance(absolute_width_modifier, af.AbsoluteWidthModifier)
         assert absolute_width_modifier.value == 2.0
 
+    def test_default(self):
+        modifier = af.WidthModifier.for_class_and_attribute_name(
+            af.Gaussian,
+            "not_real"
+        )
+        assert modifier.value == 0.5
+        assert isinstance(
+            modifier,
+            af.RelativeWidthModifier
+        )
+
 
 class TestDict:
     def test_uniform(self, uniform_prior, uniform_dict):
