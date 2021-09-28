@@ -5,8 +5,7 @@ from autofit import exc
 from autofit.messages.normal import NormalMessage, UniformNormalMessage
 from autofit.messages.transform import log_10_transform
 from autofit.messages.transform_wrapper import TransformedWrapperInstance
-
-epsilon = 1e-14
+from .abstract import epsilon
 
 
 class Limits:
