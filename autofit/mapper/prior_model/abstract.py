@@ -488,18 +488,7 @@ class AbstractPriorModel(AbstractModel):
         """
         logger.debug(f"Creating a new mapper from arguments")
 
-        mapper = copy.deepcopy(self)
-
-        for prior_model_tuple in self.prior_model_tuples:
-            setattr(
-                mapper,
-                prior_model_tuple.name,
-                prior_model_tuple.prior_model.gaussian_prior_model_for_arguments(
-                    arguments
-                ),
-            )
-
-        return mapper
+        return self.gaussian_prior_model_for_arguments(arguments)
 
     def mapper_from_gaussian_tuples(
             self,
