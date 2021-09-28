@@ -79,6 +79,15 @@ def make_factor_model_collection(
     )
 
 
+def test_uniform_edge():
+    uniform_prior = af.UniformPrior(
+        lower_limit=10,
+        upper_limit=20
+    )
+    assert not np.isnan(uniform_prior.factor(10))
+    assert not np.isnan(uniform_prior.factor(20))
+
+
 def _test_optimise_factor_model(
         factor_model
 ):

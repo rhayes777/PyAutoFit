@@ -247,6 +247,11 @@ class AbstractMessage(Prior, ABC):
     def pdf(self, x: np.ndarray) -> np.ndarray:
         return np.exp(self.logpdf(x))
 
+    def factor(self, x):
+        result = self.logpdf(x)
+        print(f"prior: {x} -> {result}")
+        return result
+
     def logpdf(self, x: np.ndarray) -> np.ndarray:
         shape = np.shape(x)
         if shape:

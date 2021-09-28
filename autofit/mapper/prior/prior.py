@@ -6,6 +6,8 @@ from autofit.messages.normal import NormalMessage, UniformNormalMessage
 from autofit.messages.transform import log_10_transform
 from autofit.messages.transform_wrapper import TransformedWrapperInstance
 
+epsilon = 1e-14
+
 
 class Limits:
     @staticmethod
@@ -77,8 +79,8 @@ class UniformPrior(WrappedInstance):
         upper_limit = float(upper_limit)
 
         Message = UniformNormalMessage.shifted(
-            shift=lower_limit,
-            scale=(upper_limit - lower_limit)
+            shift=lower_limit - epsilon,
+            scale=upper_limit - lower_limit + 2 * epsilon
         )
         super().__init__(
             Message,
