@@ -182,15 +182,26 @@ class CollectionPriorModel(AbstractPriorModel):
         prior_models: [PriorModel]
             A new list of prior models with gaussian priors
         """
-        return CollectionPriorModel({
-            key: value.gaussian_prior_model_for_arguments(arguments)
-            if isinstance(value, AbstractPriorModel)
-            else value
-            for key, value in self.__dict__.items()
-            if key not in ("component_number", "item_number", "id") and not key.startswith(
-                "_"
-            )
-        })
+        collection = CollectionPriorModel()
+
+        for key, value in self.items():
+            if key in (
+                    "component_number",
+                    "item_number",
+                    "id"
+            ) or key.startswith(
+                    "_"
+            ):
+                continue
+
+            if isinstance(value, AbstractPriorModel):
+                collection[key] = value.gaussian_prior_model_for_arguments(
+                    arguments
+                )
+            if isinstance(value, Prior):
+                collection[key] = arguments[value]
+
+        return collection
 
     @property
     def prior_class_dict(self):
