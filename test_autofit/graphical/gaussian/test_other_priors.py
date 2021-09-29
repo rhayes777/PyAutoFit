@@ -120,7 +120,7 @@ def test_trivial():
     class TrivialAnalysis(af.Analysis):
         def log_likelihood_function(self, instance):
             result = -10e10 * (instance.value - 14) ** 2
-            print(f"analysis: {instance.value} -> {result}")
+            # print(f"analysis: {instance.value} -> {result}")
             return result
 
     factor_model = ep.AnalysisFactor(
