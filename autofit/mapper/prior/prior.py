@@ -78,8 +78,8 @@ class UniformPrior(WrappedInstance):
         upper_limit = float(upper_limit)
 
         Message = UniformNormalMessage.shifted(
-            shift=lower_limit - epsilon,
-            scale=upper_limit - lower_limit + 2 * epsilon
+            shift=lower_limit,
+            scale=upper_limit - lower_limit,
         )
         super().__init__(
             Message,
@@ -88,6 +88,14 @@ class UniformPrior(WrappedInstance):
             upper_limit=upper_limit,
             id_=id_
         )
+
+    def logpdf(self, x):
+        # TODO: handle x as a numpy array
+        if x == self.lower_limit:
+            x += epsilon
+        elif x == self.upper_limit:
+            x -= epsilon
+        return self.instance().logpdf(x)
 
     def __str__(self):
         """The line of text describing this prior for the model_mapper.info file"""

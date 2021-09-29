@@ -247,11 +247,6 @@ class AbstractMessage(Prior, ABC):
     def pdf(self, x: np.ndarray) -> np.ndarray:
         return np.exp(self.logpdf(x))
 
-    def factor(self, x):
-        result = self.logpdf(x)
-        print(f"prior: {x} -> {result}")
-        return result
-
     def logpdf(self, x: np.ndarray) -> np.ndarray:
         shape = np.shape(x)
         if shape:
@@ -263,18 +258,21 @@ class AbstractMessage(Prior, ABC):
             log_base = self.calc_log_base_measure(x)
             # TODO this can be made more efficient using tensordot
             eta_t = np.multiply(eta, t).sum(0)
-            return log_base + eta_t - self.log_partition
 
         elif shape[1:] == self.shape:
             eta = self.natural_parameters
             t = self.to_canonical_form(x)
             log_base = self.calc_log_base_measure(x)
             eta_t = np.multiply(eta[:, None, ...], t).sum(0)
-            return log_base + eta_t - self.log_partition
+        else:
+            raise ValueError(
+                f"shape of passed value {shape} does not "
+                f"match message shape {self.shape}")
 
-        raise ValueError(
-            f"shape of passed value {shape} does not "
-            f"match message shape {self.shape}")
+        return np.nan_to_num(
+            log_base + eta_t - self.log_partition,
+            nan=-np.inf
+        )
 
     def numerical_logpdf_gradient(self, x: np.ndarray, eps: float = 1e-6
                                   ) -> Tuple[np.ndarray, np.ndarray]:

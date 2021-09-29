@@ -52,7 +52,7 @@ class AbstractDeclarativeFactor(Analysis, ABC):
         """
         return [
             Factor(
-                prior.factor,
+                prior.logpdf,
                 x=prior
             )
             for prior
