@@ -314,6 +314,12 @@ class AbstractPriorModel(AbstractModel):
             list(self.unique_prior_tuples), key=lambda prior_tuple: prior_tuple.prior.id
         )
 
+    @property
+    def priors_ordered_by_id(self):
+        return [
+            prior for _, prior in self.prior_tuples_ordered_by_id
+        ]
+
     def vector_from_unit_vector(self, unit_vector):
         """
         Parameters
