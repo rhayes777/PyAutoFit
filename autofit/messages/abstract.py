@@ -247,30 +247,29 @@ class AbstractMessage(Prior, ABC):
     def pdf(self, x: np.ndarray) -> np.ndarray:
         return np.exp(self.logpdf(x))
 
-    def logpdf(self, x: np.ndarray) -> np.ndarray:
+
+    def _broadcast_natural_parameters(self, x):
         shape = np.shape(x)
-        if shape:
-            x = np.asanyarray(x)
-
         if shape == self.shape:
-            eta = self.natural_parameters
-            t = self.to_canonical_form(x)
-            log_base = self.calc_log_base_measure(x)
-            # TODO this can be made more efficient using tensordot
-            eta_t = np.multiply(eta, t).sum(0)
-
+            return self.natural_parameters
         elif shape[1:] == self.shape:
-            eta = self.natural_parameters
-            t = self.to_canonical_form(x)
-            log_base = self.calc_log_base_measure(x)
-            eta_t = np.multiply(eta[:, None, ...], t).sum(0)
+            return self.natural_parameters[:, None, ...]
         else:
             raise ValueError(
                 f"shape of passed value {shape} does not "
                 f"match message shape {self.shape}")
 
+    def logpdf(self, x: np.ndarray) -> np.ndarray:
+        eta = self._broadcast_natural_parameters(x)
+        t = self.to_canonical_form(x)
+        log_base = self.calc_log_base_measure(x)
+        return self.natural_logpdf(eta, t, log_base, self.log_partition)
+
+    @classmethod
+    def natural_logpdf(cls, eta, t, log_base, log_partition):
+        eta_t = np.multiply(eta, t).sum(0)
         return np.nan_to_num(
-            log_base + eta_t - self.log_partition,
+            log_base + eta_t - log_partition,
             nan=-np.inf
         )
 
@@ -654,6 +653,11 @@ class AbstractMessage(Prior, ABC):
     def _logpdf_gradient(cls, self, x):
         # Needed for nested TransformedMessage method resolution
         return cls.logpdf_gradient(self, x)
+        
+    @classmethod
+    def _logpdf_gradient_hessian(cls, self, x):
+        # Needed for nested TransformedMessage method resolution
+        return cls.logpdf_gradient_hessian(self, x)
 
 
 def map_dists(dists: Dict[str, AbstractMessage],

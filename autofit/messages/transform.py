@@ -341,9 +341,9 @@ class MultinomialLogitTransform(AbstractDensityTransform):
     def jacobian(self, p):
         p = np.asanyarray(p)
         pn1 = 1 - np.sum(p, axis=-1, keepdims=True)
-        ln1p = np.log(pn1)
-        lnp = np.log(p)
-        jac = ShermanMorrison(
+        # ln1p = np.log(pn1)
+        # lnp = np.log(p)
+        return ShermanMorrison(
             DiagonalMatrix(1 / p),
             1 / np.sqrt(pn1) * np.ones_like(p)
         )
