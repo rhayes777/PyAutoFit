@@ -55,7 +55,8 @@ def make_x():
 
 def test_projected_model():
     model = af.Model(
-        af.Gaussian
+        af.Gaussian,
+        centre=af.UniformPrior()
     )
     samples = af.OptimizerSamples(
         model,
@@ -80,6 +81,10 @@ def test_projected_model():
     assert projected_model.prior_count == 3
     assert projected_model.centre is not model.centre
     assert projected_model.centre.id == model.centre.id
+    assert isinstance(
+        projected_model.centre,
+        af.UniformPrior
+    )
 
 
 def test_uniform_normal(x):
