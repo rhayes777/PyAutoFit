@@ -53,6 +53,33 @@ def make_x():
     )
 
 
+def test_projected_model():
+    model = af.Model(
+        af.Gaussian
+    )
+    samples = af.OptimizerSamples(
+        model,
+        [
+            af.Sample(
+                -1.0, -1.0,
+                weight=0.1,
+                kwargs={
+                    ("centre",): 0.5,
+                    ("intensity",): 0.5,
+                    ("sigma",): 0.5,
+                }
+            )
+        ]
+    )
+    result = af.Result(
+        samples=samples,
+        model=model
+    )
+    projected_model = result.projected_model
+
+    assert projected_model.prior_count == 3
+
+
 def test_uniform_normal(x):
     message = UniformNormalMessage.shifted(
         shift=1,
