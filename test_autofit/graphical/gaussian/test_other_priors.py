@@ -99,6 +99,44 @@ def _test_optimise_factor_model(
     assert collection[0].intensity is collection[1].intensity
 
 
+def test_trivial():
+    uniform_prior = af.UniformPrior(
+        lower_limit=10,
+        upper_limit=20
+    )
+
+    # assert uniform_prior.value_for(0.5) is not None
+
+    # x = list(range(30))
+    # y = list(map(uniform_prior.logpdf, x))
+    #
+    # plt.plot(x, y)
+    # plt.show()
+
+    prior_model = af.Collection(
+        value=uniform_prior
+    )
+
+    class TrivialAnalysis(af.Analysis):
+        def log_likelihood_function(self, instance):
+            result = -10e10 * (instance.value - 14) ** 2
+            print(f"analysis: {instance.value} -> {result}")
+            return result
+
+    factor_model = ep.AnalysisFactor(
+        prior_model,
+        analysis=TrivialAnalysis()
+    )
+
+    # optimiser = ep.LaplaceFactorOptimiser()
+    optimiser = af.DynestyStatic(maxcall=10)
+    model = factor_model.optimise(
+        optimiser
+    )
+
+    assert model.value.mean == 14
+
+
 def test_gaussian():
     n_observations = 100
     x = np.arange(n_observations)
