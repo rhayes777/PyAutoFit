@@ -257,7 +257,8 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         priors = [
             old.from_mode(
                 new.mean,
-                covariance=1.0
+                covariance=1.0,
+                id_=old.id
             )
             for old, new
             in zip(
