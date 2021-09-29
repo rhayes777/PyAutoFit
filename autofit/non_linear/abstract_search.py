@@ -254,21 +254,8 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             analysis=analysis
         )
 
-        priors = [
-            old.from_mode(
-                new.mean,
-                covariance=1.0,
-                id_=old.id
-            )
-            for old, new
-            in zip(
-                model.priors_ordered_by_id,
-                result.model.priors_ordered_by_id
-            )
-        ]
-
         new_model_dist = MeanField.from_priors(
-            priors
+            result.projected_model.priors
         )
 
         projection, status = factor_approx.project(
