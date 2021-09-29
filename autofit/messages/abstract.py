@@ -13,7 +13,6 @@ import numpy as np
 from autoconf import cached_property
 from autofit.mapper.prior.abstract import Prior
 from .transform import AbstractDensityTransform, LinearShiftTransform
-from .transform_wrapper import TransformedWrapper
 from ..mapper.variable import Variable
 
 enforce_id_match = True
@@ -183,7 +182,7 @@ class AbstractMessage(Prior, ABC):
 
     @assert_ids_match
     def __mul__(self, other: Union["AbstractMessage", Real]) -> "AbstractMessage":
-        if isinstance(other, AbstractMessage):
+        if isinstance(other, Prior):
             return self._multiply(other)
         else:
             log_norm = self.log_norm + np.log(other)
@@ -199,7 +198,7 @@ class AbstractMessage(Prior, ABC):
 
     @assert_ids_match
     def __truediv__(self, other: Union["AbstractMessage", Real]) -> "AbstractMessage":
-        if isinstance(other, AbstractMessage):
+        if isinstance(other, Prior):
             return self._divide(other)
         else:
             log_norm = self.log_norm - np.log(other)
@@ -259,18 +258,21 @@ class AbstractMessage(Prior, ABC):
             log_base = self.calc_log_base_measure(x)
             # TODO this can be made more efficient using tensordot
             eta_t = np.multiply(eta, t).sum(0)
-            return log_base + eta_t - self.log_partition
 
         elif shape[1:] == self.shape:
             eta = self.natural_parameters
             t = self.to_canonical_form(x)
             log_base = self.calc_log_base_measure(x)
             eta_t = np.multiply(eta[:, None, ...], t).sum(0)
-            return log_base + eta_t - self.log_partition
+        else:
+            raise ValueError(
+                f"shape of passed value {shape} does not "
+                f"match message shape {self.shape}")
 
-        raise ValueError(
-            f"shape of passed value {shape} does not "
-            f"match message shape {self.shape}")
+        return np.nan_to_num(
+            log_base + eta_t - self.log_partition,
+            nan=-np.inf
+        )
 
     def numerical_logpdf_gradient(self, x: np.ndarray, eps: float = 1e-6
                                   ) -> Tuple[np.ndarray, np.ndarray]:
@@ -421,7 +423,7 @@ class AbstractMessage(Prior, ABC):
     @staticmethod
     def _iter_dists(dists) -> Iterator[Union["AbstractMessage", float]]:
         for elem in dists:
-            if isinstance(elem, AbstractMessage):
+            if isinstance(elem, Prior):
                 yield elem
             elif np.isscalar(elem):
                 yield elem
@@ -521,7 +523,7 @@ class AbstractMessage(Prior, ABC):
             ],
             clsname: Optional[str] = None,
             support: Optional[Tuple[Tuple[float, float], ...]] = None,
-            wrapper_cls=TransformedWrapper,
+            wrapper_cls=None,
     ):
         # noinspection PyUnresolvedReferences
         """
@@ -597,6 +599,8 @@ class AbstractMessage(Prior, ABC):
         >>> samples = ShiftedUnitNormal(0.2, 0.8).sample(1000)
         >>> samples.min(), samples.mean(), samples.max()
         """
+        from .transform_wrapper import TransformedWrapper
+        wrapper_cls = wrapper_cls or TransformedWrapper
         return wrapper_cls(
             cls=cls,
             transform=transform,
@@ -609,7 +613,7 @@ class AbstractMessage(Prior, ABC):
             cls,
             shift: float = 0,
             scale: float = 1,
-            wrapper_cls=TransformedWrapper,
+            wrapper_cls=None,
     ):
         return cls.transformed(
             LinearShiftTransform(shift=shift, scale=scale),

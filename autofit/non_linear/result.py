@@ -1,3 +1,5 @@
+import numpy as np
+
 from autofit import exc
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.samples.optimizer import OptimizerSamples
@@ -41,6 +43,31 @@ class Result:
     @property
     def max_log_likelihood_instance(self):
         return self._instance
+
+    @property
+    def projected_model(self) -> AbstractPriorModel:
+        """
+        Create a new model with the same structure as the previous model,
+        replacing each prior with a new prior created by calculating sufficient
+        statistics from samples and corresponding weights for that prior.
+        """
+        weights = self.samples.weight_list
+        arguments = {
+            prior: prior.project(
+                samples=np.array(
+                    self.samples.values_for_path(
+                        path
+                    )
+                ),
+                log_weight_list=weights,
+                id_=prior.id
+            )
+            for path, prior
+            in self._model.path_priors_tuples
+        }
+        return self._model.mapper_from_prior_arguments(
+            arguments
+        )
 
     @property
     def model(self):

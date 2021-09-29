@@ -79,6 +79,15 @@ def make_factor_model_collection(
     )
 
 
+def test_uniform_edge():
+    uniform_prior = af.UniformPrior(
+        lower_limit=10,
+        upper_limit=20
+    )
+    assert not np.isnan(uniform_prior.logpdf(10))
+    assert not np.isnan(uniform_prior.logpdf(20))
+
+
 def _test_optimise_factor_model(
         factor_model
 ):
@@ -90,7 +99,41 @@ def _test_optimise_factor_model(
     assert collection[0].intensity is collection[1].intensity
 
 
-def test_gaussian():
+def test_trivial():
+    # prior = af.UniformPrior(
+    #     lower_limit=10,
+    #     upper_limit=20
+    # )
+
+    prior = af.GaussianPrior(
+        mean=15,
+        sigma=10
+    )
+
+    prior_model = af.Collection(
+        value=prior
+    )
+
+    class TrivialAnalysis(af.Analysis):
+        def log_likelihood_function(self, instance):
+            result = -10e10 * (instance.value - 14) ** 2
+            return result
+
+    factor_model = ep.AnalysisFactor(
+        prior_model,
+        analysis=TrivialAnalysis()
+    )
+
+    # optimiser = ep.LaplaceFactorOptimiser()
+    optimiser = af.DynestyStatic(maxcall=10)
+    model = factor_model.optimise(
+        optimiser
+    )
+
+    assert model.value.mean == pytest.approx(14, rel=0.1)
+
+
+def _test_gaussian():
     n_observations = 100
     x = np.arange(n_observations)
     y = make_data(Gaussian(centre=50.0, intensity=25.0, sigma=10.0), x)

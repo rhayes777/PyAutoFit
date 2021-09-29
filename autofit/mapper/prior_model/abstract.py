@@ -314,6 +314,12 @@ class AbstractPriorModel(AbstractModel):
             list(self.unique_prior_tuples), key=lambda prior_tuple: prior_tuple.prior.id
         )
 
+    @property
+    def priors_ordered_by_id(self):
+        return [
+            prior for _, prior in self.prior_tuples_ordered_by_id
+        ]
+
     def vector_from_unit_vector(self, unit_vector):
         """
         Parameters
@@ -488,18 +494,7 @@ class AbstractPriorModel(AbstractModel):
         """
         logger.debug(f"Creating a new mapper from arguments")
 
-        mapper = copy.deepcopy(self)
-
-        for prior_model_tuple in self.prior_model_tuples:
-            setattr(
-                mapper,
-                prior_model_tuple.name,
-                prior_model_tuple.prior_model.gaussian_prior_model_for_arguments(
-                    arguments
-                ),
-            )
-
-        return mapper
+        return self.gaussian_prior_model_for_arguments(arguments)
 
     def mapper_from_gaussian_tuples(
             self,

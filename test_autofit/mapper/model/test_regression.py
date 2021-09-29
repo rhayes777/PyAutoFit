@@ -19,3 +19,16 @@ def test_config_error():
         print(Identifier([
             model
         ]))
+
+
+def test_mapper_from_prior_arguments_simple_collection():
+    old = af.UniformPrior()
+    new = af.UniformPrior()
+    collection = af.Collection(
+        value=old
+    )
+    collection = collection.mapper_from_prior_arguments({
+        old: new
+    })
+
+    assert collection.value == new

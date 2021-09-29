@@ -4,18 +4,39 @@ import numpy as np
 
 from autofit.mapper.prior.abstract import Prior
 from autofit.messages.transform import AbstractDensityTransform, LinearShiftTransform
+from .abstract import AbstractMessage
 
 
 class TransformedWrapperInstance(Prior):
+    """
+    An instance of a transformed message. e.g. a UniformNormal message.
+
+    This allows arbitrary transforms to be created on the fly while supporting
+    the same interface. The true underlying message is still the same, but values
+    computed from it are transformed to give the effect of a different distribution.
+    """
+
     def value_for(self, unit: float) -> float:
         return self.instance().value_for(unit)
 
     def __init__(
             self,
-            transformed_wrapper,
+            transformed_wrapper: "TransformedWrapper",
             *args,
             **kwargs
     ):
+        """
+        Parameters
+        ----------
+        transformed_wrapper
+            Acts like a message class but provides a transformation on
+            some underlying class.
+        args
+            Arguments required to instantiate the underlying message class
+        kwargs
+            Keyword arguments required to instantiate the underlying message
+            class
+        """
         super().__init__(
             id_=kwargs.get("id_")
         )
@@ -25,10 +46,30 @@ class TransformedWrapperInstance(Prior):
 
         self._instance = None
 
+    def project(
+            self,
+            samples: np.ndarray,
+            log_weight_list: Optional[np.ndarray] = None,
+            id_=None
+    ):
+        return self._new_for_base_message(
+            self.transformed_wrapper.project(
+                samples=samples,
+                log_weight_list=log_weight_list,
+                id_=id_
+            )
+        )
+
     def _new_for_base_message(
             self,
             message
     ):
+        """
+        Create a new instance of this wrapper but change the parameters used
+        to instantiate the underlying message. This is useful for retaining
+        the same transform stack after recreating the underlying message during
+        projection.
+        """
         return type(self)(
             self.transformed_wrapper,
             *message.parameters,
@@ -38,6 +79,10 @@ class TransformedWrapperInstance(Prior):
         )
 
     def __mul__(self, other):
+        """
+        Multiply this message by some other message. Effectively multiplies the
+        underlying message whilst retaining the same transform stack.
+        """
         if isinstance(
                 other,
                 TransformedWrapperInstance
@@ -51,6 +96,10 @@ class TransformedWrapperInstance(Prior):
         return self * other
 
     def __truediv__(self, other):
+        """
+        Divide this message by some other message. Effectively divides the
+        underlying message whilst retaining the same transform stack.
+        """
         return self._new_for_base_message(
             self.instance() / other.instance()
         )
@@ -68,6 +117,9 @@ class TransformedWrapperInstance(Prior):
         return other.instance() == self.instance()
 
     def __getattr__(self, item):
+        """
+        By default attributes are taken from the underlying message instance
+        """
         return getattr(
             self.instance(),
             item
@@ -81,6 +133,10 @@ class TransformedWrapperInstance(Prior):
         self.__dict__.update(state)
 
     def __getstate__(self):
+        """
+        Representation of state of object for pickling excluding
+        underlying instance as this can be reconstructed.
+        """
         return {
             key: value
             for key, value
@@ -89,6 +145,9 @@ class TransformedWrapperInstance(Prior):
         }
 
     def instance(self):
+        """
+        An instance of the transformed message wrapped by this class.
+        """
         if self._instance is None:
             cls = self.transformed_wrapper.transformed_class()
             self._instance = cls(
@@ -98,20 +157,48 @@ class TransformedWrapperInstance(Prior):
             self._instance.id = self.id
         return self._instance
 
+    def from_mode(
+            self,
+            mode: np.ndarray,
+            covariance: np.ndarray,
+            id_=None
+    ):
+        return self._new_for_base_message(
+            self.transformed_wrapper.from_mode(
+                mode,
+                covariance,
+                id_=id_
+            )
+        )
+
 
 class TransformedWrapper:
+    """
+    A transformed message. This allows transformed messages to be created
+    on the fly whilst retaining the same API.
+    """
+
     InstanceWrapper = TransformedWrapperInstance
 
     def __init__(
             self,
-            cls,
-            transform: Union[
-                AbstractDensityTransform,
-                Type[AbstractDensityTransform]
-            ],
+            cls: Union[Type[AbstractMessage], "TransformedWrapper"],
+            transform: AbstractDensityTransform,
             clsname: Optional[str] = None,
             support: Optional[Tuple[Tuple[float, float], ...]] = None,
     ):
+        """
+        Parameters
+        ----------
+        cls
+            The class or TransformWrapper being transformed
+        transform
+            The transform applied
+        clsname
+            A custom name for the newly created class
+        support
+            The supported region
+        """
         self.cls = cls
         self.transform = transform
         self.clsname = clsname
@@ -120,12 +207,20 @@ class TransformedWrapper:
         self.__transformed_class = None
 
     def __getattr__(self, item):
+        """
+        By default attributes values are taken from the underlying message class
+        """
         return getattr(
             self.transformed_class(),
             item
         )
 
     def __call__(self, *args, **kwargs):
+        """
+        'Instantiate' the message. Creates an instance wrapper and
+        passes arguments and keyword arguments to it for lazy instantiation
+        of the underlying message.
+        """
         return self.InstanceWrapper(
             self,
             *args,
@@ -141,7 +236,10 @@ class TransformedWrapper:
             clsname: Optional[str] = None,
             support: Optional[Tuple[Tuple[float, float], ...]] = None,
             wrapper_cls=None
-    ):
+    ) -> "TransformedWrapper":
+        """
+        Apply a further transformation to an already transformed message
+        """
         wrapper_cls = wrapper_cls or TransformedWrapper
         return wrapper_cls(
             cls=self,
@@ -163,6 +261,14 @@ class TransformedWrapper:
         )
 
     def __getstate__(self):
+        """
+        The definition of the transformed class is not included in the state
+        to circumvent an issue with pickling arbitrarily parameterised on-the-fly
+        class definitions.
+
+        The definition of the class is lazily created from the state of an instance
+        as required.
+        """
         return {
             key: value
             for key, value
@@ -171,12 +277,18 @@ class TransformedWrapper:
         }
 
     def transformed_class(self):
+        """
+        The transformed class is lazily created
+        """
         if self.__transformed_class is None:
             self.__transformed_class = self._transformed_class()
         return self.__transformed_class
 
     def _transformed_class(self):
-
+        """
+        The transformed class is lazily defined. This means it does not have to be
+        pickled; it can entirely be derived from the state of the TransformedWrapper
+        """
         from .transformed import TransformedMessage
 
         if isinstance(self.cls, TransformedWrapper):
@@ -219,3 +331,13 @@ class TransformedWrapper:
     def __setstate__(self, state):
         self.__transformed_class = None
         self.__dict__.update(state)
+
+    def from_mode(
+            self,
+            mode: np.ndarray,
+            covariance: np.ndarray,
+            id_=None
+    ):
+        mode, jac = self._transform.transform_jac(mode)
+        covariance = jac.invquad(covariance)
+        return self.cls.from_mode(mode, covariance, id_=id_)
