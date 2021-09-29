@@ -59,7 +59,8 @@ class Result:
                         path
                     )
                 ),
-                log_weight_list=weights
+                log_weight_list=weights,
+                id_=prior.id
             )
             for path, prior
             in self._model.path_priors_tuples

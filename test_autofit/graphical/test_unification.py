@@ -78,6 +78,8 @@ def test_projected_model():
     projected_model = result.projected_model
 
     assert projected_model.prior_count == 3
+    assert projected_model.centre is not model.centre
+    assert projected_model.centre.id == model.centre.id
 
 
 def test_uniform_normal(x):
