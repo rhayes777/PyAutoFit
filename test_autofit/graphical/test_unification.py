@@ -62,8 +62,8 @@ def test_uniform_normal(x):
         sigma=1.0
     )
 
-    assert np.isnan(message.pdf(0.9))
-    assert np.isnan(message.pdf(3.2))
+    assert message.pdf(0.9) == 0
+    assert message.pdf(3.2) == 0
     assert message.pdf(1.5) > 0
 
 
