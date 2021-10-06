@@ -125,6 +125,10 @@ class TransformedWrapperInstance(Prior):
             item
         )
 
+    @property
+    def cls(self):
+        return self.transformed_wrapper.cls
+
     def __hash__(self):
         return hash(self.instance())
 
