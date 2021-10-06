@@ -105,11 +105,6 @@ def test_trivial():
         upper_limit=20
     )
 
-    # prior = af.GaussianPrior(
-    #     mean=15,
-    #     sigma=10
-    # )
-
     prior_model = af.Collection(
         value=prior
     )
