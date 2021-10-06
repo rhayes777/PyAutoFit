@@ -90,9 +90,12 @@ class AbstractDensityTransform(ABC):
     def log_det_grad(self, x: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
         pass
 
+    def _numerical_jacobian_func(self, x):
+        return self.log_det_grad(x)[1].sum(0)
+
     def log_det_hess(self, x: np.ndarray) -> np.ndarray:
         return numerical_jacobian(
-            x, lambda x: self.log_det_grad(x)[1].sum(0)
+            x, self._numerical_jacobian_func
         )
 
     def transform_det(self, x) -> Tuple[np.ndarray, np.ndarray]:
@@ -241,9 +244,13 @@ log_transform = FunctionTransform(
     np.log, np.exp, np.reciprocal, func_grad_hess=log3)
 
 
+def _log_10_inv(x):
+    return 10 ** x
+
+
 # TODO: what should func_grad_hess look like? np.log10, ... ?
 log_10_transform = FunctionTransform(
-    np.log10, lambda x: 10 ** x, np.reciprocal
+    np.log10, _log_10_inv, np.reciprocal
 )
 
 
