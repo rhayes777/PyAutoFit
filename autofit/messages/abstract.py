@@ -247,7 +247,6 @@ class AbstractMessage(Prior, ABC):
     def pdf(self, x: np.ndarray) -> np.ndarray:
         return np.exp(self.logpdf(x))
 
-
     def _broadcast_natural_parameters(self, x):
         shape = np.shape(x)
         if shape == self.shape:
@@ -258,6 +257,9 @@ class AbstractMessage(Prior, ABC):
             raise ValueError(
                 f"shape of passed value {shape} does not "
                 f"match message shape {self.shape}")
+
+    def factor(self, x):
+        return self.logpdf(x)
 
     def logpdf(self, x: np.ndarray) -> np.ndarray:
         eta = self._broadcast_natural_parameters(x)
@@ -653,7 +655,7 @@ class AbstractMessage(Prior, ABC):
     def _logpdf_gradient(cls, self, x):
         # Needed for nested TransformedMessage method resolution
         return cls.logpdf_gradient(self, x)
-        
+
     @classmethod
     def _logpdf_gradient_hessian(cls, self, x):
         # Needed for nested TransformedMessage method resolution
