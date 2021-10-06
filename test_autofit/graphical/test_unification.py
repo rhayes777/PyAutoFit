@@ -53,6 +53,40 @@ def make_x():
     )
 
 
+def test_projected_model():
+    model = af.Model(
+        af.Gaussian,
+        centre=af.UniformPrior()
+    )
+    samples = af.OptimizerSamples(
+        model,
+        [
+            af.Sample(
+                -1.0, -1.0,
+                weight=0.1,
+                kwargs={
+                    ("centre",): 0.5,
+                    ("intensity",): 0.5,
+                    ("sigma",): 0.5,
+                }
+            )
+        ]
+    )
+    result = af.Result(
+        samples=samples,
+        model=model
+    )
+    projected_model = result.projected_model
+
+    assert projected_model.prior_count == 3
+    assert projected_model.centre is not model.centre
+    assert projected_model.centre.id == model.centre.id
+    assert isinstance(
+        projected_model.centre,
+        af.UniformPrior
+    )
+
+
 def test_uniform_normal(x):
     message = UniformNormalMessage.shifted(
         shift=1,
@@ -62,8 +96,8 @@ def test_uniform_normal(x):
         sigma=1.0
     )
 
-    assert np.isnan(message.pdf(0.9))
-    assert np.isnan(message.pdf(3.2))
+    assert message.pdf(0.9) == 0
+    assert message.pdf(3.2) == 0
     assert message.pdf(1.5) > 0
 
 

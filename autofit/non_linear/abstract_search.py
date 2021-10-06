@@ -255,7 +255,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         )
 
         new_model_dist = MeanField.from_priors(
-            result.model.priors
+            result.projected_model.priors
         )
 
         projection, status = factor_approx.project(

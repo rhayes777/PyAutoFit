@@ -251,7 +251,7 @@ def test_normal_simplex():
     check_numerical_gradient_hessians(message, message.sample())
 
     def func(*p):
-        return message.pdf(p).prod()
+        return np.exp(message.factor(p)).prod()
 
     def simplex_lims(*args):
         return [0, 1 - sum(args)]

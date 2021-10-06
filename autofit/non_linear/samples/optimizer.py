@@ -34,6 +34,22 @@ class OptimizerSamples:
         self._paths = None
         self._names = None
 
+    def values_for_path(
+            self,
+            path: Tuple[str]
+    ) -> List[float]:
+        """
+        Returns the value for a variable with a given path
+        for each sample in the model
+        """
+        return [
+            sample.kwargs[
+                path
+            ]
+            for sample
+            in self.sample_list
+        ]
+
     @property
     def log_evidence(self) -> float:
         return None

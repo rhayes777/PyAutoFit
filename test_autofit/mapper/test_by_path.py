@@ -198,6 +198,24 @@ def make_samples(model):
     )
 
 
+@pytest.mark.parametrize(
+    "path, value",
+    [
+        (("gaussian", "centre"), [0.1]),
+        (("gaussian", "intensity"), [0.2]),
+        (("gaussian", "sigma"), [0.3]),
+    ]
+)
+def test_values_for_path(
+        samples,
+        path,
+        value
+):
+    assert samples.values_for_path(
+        path
+    ) == value
+
+
 @pytest.fixture(
     name="result"
 )

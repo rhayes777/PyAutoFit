@@ -9,6 +9,9 @@ from autofit.mapper.prior.deferred import DeferredArgument
 from autofit.mapper.variable import Variable
 
 
+epsilon = 1e-14
+
+
 class Prior(Variable, ABC, ArithmeticMixin):
     __database_args__ = (
         "lower_limit",
@@ -45,7 +48,7 @@ class Prior(Variable, ABC, ArithmeticMixin):
 
     def assert_within_limits(self, value):
         if not (
-                self.lower_limit <= value <= self.upper_limit
+                self.lower_limit - epsilon <= value <= self.upper_limit + epsilon
         ):
             raise exc.PriorLimitException(
                 "The physical value {} for a prior "
