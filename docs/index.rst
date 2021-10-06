@@ -218,5 +218,5 @@ provides new users with a more detailed introduction to **PyAutoFit**.
 
    features/database
    features/search_grid_search
-   features/search_chaining
+   features/empirical_bayes
    features/sensitivity_mapping
