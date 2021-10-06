@@ -104,9 +104,9 @@ class TransformedMessage(AbstractMessage):
 
     @classmethod
     def calc_log_base_measure(cls, x) -> np.ndarray:
-        x, log_det = cls._transform.transform_det(x)
+        x = cls._transform.transform(x)
         log_base = cls._Message.calc_log_base_measure(x)
-        return log_base + log_det
+        return log_base
 
     @classmethod
     def to_canonical_form(cls, x) -> np.ndarray:
@@ -123,11 +123,40 @@ class TransformedMessage(AbstractMessage):
     @cached_property
     def variance(self) -> np.ndarray:
         # noinspection PyUnresolvedReferences
-        return self._transform.inv_transform(self._Message.variance.func(self))
+        jac = self._transform.jacobian(self.instance.mean)
+        return jac.quad(self._Message.variance.func(self))
 
     def _sample(self, n_samples) -> np.ndarray:
         x = self.instance._sample(n_samples)
         return self._transform.inv_transform(x)
+
+    @classmethod
+    def _factor(
+        cls,
+        self, 
+        x: np.ndarray,    
+    ) -> np.ndarray:
+        x, log_det = cls._transform.transform_det(x)
+        eta = self._broadcast_natural_parameters(x)
+        t = cls._Message.to_canonical_form(x)
+        log_base = self.calc_log_base_measure(x) + log_det
+        return self.natural_logpdf(eta, t, log_base, self.log_partition)
+
+    @classmethod
+    def _factor_gradient(
+        cls,
+        self, 
+        x: np.ndarray,    
+    ) -> np.ndarray:
+        x, logd, logd_grad, jac = cls._transform.transform_det_jac(x)
+        logl, grad = cls._Message._logpdf_gradient(self, x)
+        return logl + logd, grad * jac + logd_grad
+
+    def factor(self, x):
+        return self._factor(self, x)
+
+    def factor_gradient(self, x):
+        return self._factor_gradient(self, x)
 
     @classmethod
     def _logpdf_gradient(  # type: ignore
@@ -135,9 +164,10 @@ class TransformedMessage(AbstractMessage):
             self,
             x: np.ndarray,
     ) -> Tuple[np.ndarray, np.ndarray]:
-        x, logd, logd_grad, jac = cls._transform.transform_det_jac(x)
+        x, jac = cls._transform.transform_jac(x)
         logl, grad = cls._Message._logpdf_gradient(self, x)
-        return logl + logd, grad * jac + logd_grad
+        return logl, grad * jac
+
 
     def sample(self, n_samples=None) -> np.ndarray:
         return self._sample(n_samples)
@@ -147,5 +177,17 @@ class TransformedMessage(AbstractMessage):
     ) -> Tuple[np.ndarray, np.ndarray]:
         return self._logpdf_gradient(self, x)
 
-    # TODO add code for analytic hessians when Jacobian is fixed e.g. for shifted messages
-    logpdf_gradient_hessian = AbstractMessage.numerical_logpdf_gradient_hessian
+    # @classmethod
+    # def _logpdf_gradient_hessian(  # type: ignore
+    #         cls,
+    #         self,
+    #         x: np.ndarray,
+    # ) -> Tuple[np.ndarray, np.ndarray]:
+    #     x, jac = cls._transform.transform_jac(x)
+    #     logl, grad, hess = cls._Message._logpdf_gradient_hessian(self, x)
+    #     return logl, grad * jac, jac.quad(hess)
+
+    # def logpdf_gradient_hessian(
+    #         self, x: np.ndarray
+    # ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+    #     return self._logpdf_gradient_hessian(self, x)

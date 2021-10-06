@@ -110,7 +110,7 @@ class NormalMessage(AbstractMessage):
         mode, variance = cls._get_mean_variance(mode, covariance)
         return cls(mode, variance ** 0.5, id_=id_)
 
-    def _logpdf_gradient_hessian(self, x: np.ndarray
+    def _normal_gradient_hessian(self, x: np.ndarray
                                  ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         # raise Exception
         shape = np.shape(x)
@@ -136,10 +136,12 @@ class NormalMessage(AbstractMessage):
 
         return logl, grad_logl, hess_logl
 
-    logpdf_gradient_hessian = _logpdf_gradient_hessian
-
     def logpdf_gradient(self, x: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
-        return self._logpdf_gradient_hessian(x)[:2]
+        return self._normal_gradient_hessian(x)[:2]
+
+    def logpdf_gradient_hessian(self, x: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
+        return self._normal_gradient_hessian(x)
+
 
     __name__ = "gaussian_prior"
 
