@@ -32,18 +32,6 @@ def test_retain_id(
     assert new_message.id == prior.id
 
 
-def test_bad_id(
-        prior
-):
-    new_message = prior * prior
-    new_message.id = 2
-
-    with pytest.raises(
-            AssertionError
-    ):
-        new_message * prior
-
-
 @pytest.fixture(
     name="x"
 )

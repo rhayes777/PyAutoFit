@@ -100,14 +100,9 @@ def _test_optimise_factor_model(
 
 
 def test_trivial():
-    # prior = af.UniformPrior(
-    #     lower_limit=10,
-    #     upper_limit=20
-    # )
-
-    prior = af.GaussianPrior(
-        mean=15,
-        sigma=10
+    prior = af.UniformPrior(
+        lower_limit=10,
+        upper_limit=20
     )
 
     prior_model = af.Collection(
@@ -116,7 +111,7 @@ def test_trivial():
 
     class TrivialAnalysis(af.Analysis):
         def log_likelihood_function(self, instance):
-            result = -10e10 * (instance.value - 14) ** 2
+            result = -(instance.value - 14) ** 2
             return result
 
     factor_model = ep.AnalysisFactor(
@@ -124,8 +119,8 @@ def test_trivial():
         analysis=TrivialAnalysis()
     )
 
-    # optimiser = ep.LaplaceFactorOptimiser()
-    optimiser = af.DynestyStatic(maxcall=10)
+    optimiser = ep.LaplaceFactorOptimiser()
+    # optimiser = af.DynestyStatic(maxcall=10)
     model = factor_model.optimise(
         optimiser
     )

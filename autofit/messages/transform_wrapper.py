@@ -125,6 +125,10 @@ class TransformedWrapperInstance(Prior):
             item
         )
 
+    @property
+    def cls(self):
+        return self.transformed_wrapper.cls
+
     def __hash__(self):
         return hash(self.instance())
 
@@ -339,5 +343,5 @@ class TransformedWrapper:
             id_=None
     ):
         mode, jac = self._transform.transform_jac(mode)
-        covariance = jac.invquad(covariance)
+        covariance = jac.quad(covariance)
         return self.cls.from_mode(mode, covariance, id_=id_)

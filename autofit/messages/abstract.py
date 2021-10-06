@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from functools import reduce, wraps
+from functools import reduce
 from inspect import getfullargspec
 from numbers import Real
 from operator import and_
@@ -16,23 +16,6 @@ from .transform import AbstractDensityTransform, LinearShiftTransform
 from ..mapper.variable import Variable
 
 enforce_id_match = True
-
-
-def assert_ids_match(func):
-    @wraps(func)
-    def wrapper(self, other):
-        if enforce_id_match:
-            if isinstance(
-                    other,
-                    AbstractMessage
-            ) and self.id != other.id:
-                raise AssertionError(
-                    f"Message with id {self.id} should not be compared to message with id {other.id}"
-                )
-        result = func(self, other)
-        return result
-
-    return wrapper
 
 
 class AbstractMessage(Prior, ABC):
@@ -161,7 +144,6 @@ class AbstractMessage(Prior, ABC):
         )
         return mul_dist
 
-    @assert_ids_match
     def sub_natural_parameters(
             self, other: "AbstractMessage"
     ) -> "AbstractMessage":
@@ -180,7 +162,6 @@ class AbstractMessage(Prior, ABC):
     _multiply = sum_natural_parameters
     _divide = sub_natural_parameters
 
-    @assert_ids_match
     def __mul__(self, other: Union["AbstractMessage", Real]) -> "AbstractMessage":
         if isinstance(other, Prior):
             return self._multiply(other)
@@ -192,11 +173,9 @@ class AbstractMessage(Prior, ABC):
                 id_=self.id
             )
 
-    @assert_ids_match
     def __rmul__(self, other: "AbstractMessage") -> "AbstractMessage":
         return self * other
 
-    @assert_ids_match
     def __truediv__(self, other: Union["AbstractMessage", Real]) -> "AbstractMessage":
         if isinstance(other, Prior):
             return self._divide(other)
@@ -208,7 +187,6 @@ class AbstractMessage(Prior, ABC):
                 id_=self.id
             )
 
-    @assert_ids_match
     def __pow__(self, other: Real) -> "AbstractMessage":
         natural = self.natural_parameters
         new_params = other * natural
@@ -247,7 +225,6 @@ class AbstractMessage(Prior, ABC):
     def pdf(self, x: np.ndarray) -> np.ndarray:
         return np.exp(self.logpdf(x))
 
-
     def _broadcast_natural_parameters(self, x):
         shape = np.shape(x)
         if shape == self.shape:
@@ -258,6 +235,9 @@ class AbstractMessage(Prior, ABC):
             raise ValueError(
                 f"shape of passed value {shape} does not "
                 f"match message shape {self.shape}")
+
+    def factor(self, x):
+        return self.logpdf(x)
 
     def logpdf(self, x: np.ndarray) -> np.ndarray:
         eta = self._broadcast_natural_parameters(x)
@@ -653,7 +633,7 @@ class AbstractMessage(Prior, ABC):
     def _logpdf_gradient(cls, self, x):
         # Needed for nested TransformedMessage method resolution
         return cls.logpdf_gradient(self, x)
-        
+
     @classmethod
     def _logpdf_gradient_hessian(cls, self, x):
         # Needed for nested TransformedMessage method resolution
