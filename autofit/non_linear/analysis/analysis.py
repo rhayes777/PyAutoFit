@@ -6,6 +6,7 @@ from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.mapper.prior_model.collection import CollectionPriorModel
 from autofit.non_linear.analysis.multiprocessing import AnalysisPool
 from autofit.non_linear.paths.abstract import AbstractPaths
+from autofit.non_linear.paths.directory import SubDirectoryPaths
 from autofit.non_linear.result import Result
 from autofit.non_linear.samples import OptimizerSamples
 
@@ -154,11 +155,8 @@ class CombinedAnalysis(Analysis):
             An object describing the paths for saving data (e.g. hard-disk directories or entries in sqlite database).
         """
         for i, analysis in enumerate(self.analyses):
-            analysis_name = f"analysis_{i}"
-            if paths.name:
-                analysis_name = f"{paths.name}/{analysis_name}"
-            child_paths = paths.create_child(
-                name=analysis_name
+            child_paths = paths.for_sub_analysis(
+                analysis_name=f"analysis_{i}"
             )
             func(child_paths, analysis)
 
