@@ -218,6 +218,7 @@ class AbstractPaths(ABC):
         return path.join(self.output_path, "samples")
 
     @property
+    @make_path
     def image_path(self) -> str:
         """
         The path to the image folder.

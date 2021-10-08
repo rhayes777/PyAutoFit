@@ -24,6 +24,7 @@ class Analysis(af.Analysis):
             during_analysis
     ):
         self.did_visualise = True
+        open(f"{paths.image_path}/image.png", "w+").close()
 
     def profile_log_likelihood_function(
             self,
@@ -147,6 +148,52 @@ def test_child_paths(
     assert sub_paths.output_path == f"{paths.output_path}/analysis_0"
 
 
+@pytest.fixture(
+    name="multi_analysis"
+)
+def make_multi_analysis():
+    return Analysis() + Analysis()
+
+
+@pytest.fixture(
+    name="multi_search"
+)
+def make_multi_search(
+        search,
+        multi_analysis
+):
+    search.paths.remove_files = False
+
+    search.fit(
+        af.Model(
+            af.Gaussian
+        ),
+        multi_analysis
+    )
+    return search
+
+
+@with_config(
+    "general",
+    "output",
+    "remove_files",
+    value=False
+)
+def test_visualise(
+        multi_search,
+        multi_analysis
+):
+    multi_analysis.visualize(
+        multi_search.paths,
+        af.Gaussian(),
+        True
+    )
+    search_path = Path(multi_search.paths.output_path)
+    assert search_path.exists()
+    assert (search_path / "analysis_0/image/image.png").exists()
+    assert (search_path / "analysis_1/image/image.png").exists()
+
+
 @with_config(
     "general",
     "output",
@@ -154,18 +201,9 @@ def test_child_paths(
     value=False
 )
 def test_output(
-        search
+        multi_search
 ):
-    search.paths.remove_files = False
-    analysis = Analysis() + Analysis()
-
-    search.fit(
-        af.Model(
-            af.Gaussian
-        ),
-        analysis
-    )
-    search_path = Path(search.paths.output_path)
+    search_path = Path(multi_search.paths.output_path)
     assert search_path.exists()
     assert (search_path / "analysis_0").exists()
     assert (search_path / "analysis_1").exists()
