@@ -222,7 +222,7 @@ class DirectoryPaths(AbstractPaths):
         with open(self._grid_search_path, "w+") as f:
             if self.unique_tag is not None:
                 f.write(self.unique_tag)
-        return type(self)(
+        child = type(self)(
             name=name or self.name,
             path_prefix=path_prefix or self.path_prefix,
             is_identifier_in_paths=(
@@ -232,6 +232,9 @@ class DirectoryPaths(AbstractPaths):
             ),
             parent=self
         )
+        child.model = self.model
+        child.search = self.search
+        return child
 
     @property
     @make_path
