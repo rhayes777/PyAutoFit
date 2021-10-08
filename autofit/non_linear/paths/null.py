@@ -21,9 +21,11 @@ class NullPaths(AbstractPaths):
         return False
 
     def create_child(
-            self, name: Optional[str] = None,
+            self,
+            name: Optional[str] = None,
             path_prefix: Optional[str] = None,
-            is_identifier_in_paths: Optional[bool] = None
+            is_identifier_in_paths: Optional[bool] = None,
+            identifier: Optional[str] = None
     ) -> "AbstractPaths":
         return NullPaths()
 

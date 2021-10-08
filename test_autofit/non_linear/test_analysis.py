@@ -1,9 +1,12 @@
+from pathlib import Path
+
 import pytest
 
 import autofit as af
 from autoconf.conf import with_config
 from autofit.non_linear.analysis.multiprocessing import AnalysisPool
 from autofit.non_linear.paths.abstract import AbstractPaths
+from autofit.non_linear.paths.directory import SubDirectoryPaths
 
 
 class Analysis(af.Analysis):
@@ -124,21 +127,45 @@ def test_still_flat():
     assert len(analysis) == 3
 
 
-def test_output(
-    output_directory
-):
-    analysis = Analysis() + Analysis()
-
-    search = af.MockSearch(
+@pytest.fixture(
+    name="search"
+)
+def make_search():
+    return af.MockSearch(
         "search_name"
     )
+
+
+def test_child_paths(
+        search
+):
+    paths = search.paths
+    sub_paths = SubDirectoryPaths(
+        paths,
+        analysis_name="analysis_0"
+    )
+    assert sub_paths.output_path == f"{paths.output_path}/analysis_0"
+
+
+@with_config(
+    "general",
+    "output",
+    "remove_files",
+    value=False
+)
+def test_output(
+        search
+):
+    search.paths.remove_files = False
+    analysis = Analysis() + Analysis()
+
     search.fit(
         af.Model(
             af.Gaussian
         ),
         analysis
     )
-    search_path = output_directory / "search_name"
+    search_path = Path(search.paths.output_path)
     assert search_path.exists()
     assert (search_path / "analysis_0").exists()
     assert (search_path / "analysis_1").exists()
