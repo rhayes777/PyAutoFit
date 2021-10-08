@@ -1,5 +1,5 @@
-from abc import ABC
 import logging
+from abc import ABC
 
 from autoconf import conf
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
@@ -12,6 +12,7 @@ from autofit.non_linear.samples import OptimizerSamples
 logger = logging.getLogger(
     __name__
 )
+
 
 class Analysis(ABC):
     """
@@ -153,8 +154,11 @@ class CombinedAnalysis(Analysis):
             An object describing the paths for saving data (e.g. hard-disk directories or entries in sqlite database).
         """
         for i, analysis in enumerate(self.analyses):
+            analysis_name = f"analysis_{i}"
+            if paths.name:
+                analysis_name = f"{paths.name}/{analysis_name}"
             child_paths = paths.create_child(
-                name=f"{paths.name}/analysis_{i}"
+                name=analysis_name
             )
             func(child_paths, analysis)
 
@@ -251,7 +255,7 @@ class CombinedAnalysis(Analysis):
         )
 
     def make_result(
-        self, samples, model, search
+            self, samples, model, search
     ):
         return [analysis.make_result(samples, model, search) for analysis in self.analyses]
 

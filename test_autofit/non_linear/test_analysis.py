@@ -125,7 +125,7 @@ def test_still_flat():
 
 
 def test_output(
-        test_directory
+    output_directory
 ):
     analysis = Analysis() + Analysis()
 
@@ -138,7 +138,7 @@ def test_output(
         ),
         analysis
     )
-    search_path = test_directory / "output/search_name"
+    search_path = output_directory / "search_name"
     assert search_path.exists()
     assert (search_path / "analysis_0").exists()
     assert (search_path / "analysis_1").exists()
