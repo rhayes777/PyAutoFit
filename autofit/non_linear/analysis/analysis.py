@@ -156,7 +156,6 @@ class CombinedAnalysis(Analysis):
             child_paths = paths.create_child(
                 name=f"{paths.name}_{i}"
             )
-            print(child_paths.output_path)
          #   stop
             func(child_paths, analysis)
 
