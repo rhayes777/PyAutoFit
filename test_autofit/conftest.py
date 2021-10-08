@@ -19,14 +19,16 @@ directory = Path(__file__).parent
 
 
 @pytest.fixture(
-    name="test_directory"
+    name="test_directory",
+    scope="session"
 )
 def make_test_directory():
     return directory
 
 
 @pytest.fixture(
-    name="output_directory"
+    name="output_directory",
+    scope="session"
 )
 def make_output_directory(
         test_directory
