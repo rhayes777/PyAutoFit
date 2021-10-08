@@ -97,7 +97,7 @@ class DatabasePaths(AbstractPaths):
         self.fit.is_grid_search = True
         if self.fit.instance is None:
             self.fit.instance = self.model.instance_from_prior_medians()
-        return type(self)(
+        child = type(self)(
             session=self.session,
             name=name or self.name,
             path_prefix=path_prefix or self.path_prefix,
@@ -108,6 +108,9 @@ class DatabasePaths(AbstractPaths):
             ),
             parent=self
         )
+        child.model = self.model
+        child.search = self.search
+        return child
 
     def zip_remove(self):
         """

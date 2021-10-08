@@ -1,6 +1,6 @@
 import os
-import shutil
 from os import path
+from pathlib import Path
 
 import pytest
 from matplotlib import pyplot
@@ -15,6 +15,13 @@ from autofit import database as db
 from autofit.mock import mock
 
 directory = path.dirname(path.realpath(__file__))
+
+
+@pytest.fixture(
+    name="test_directory"
+)
+def make_test_directory():
+    return Path(__file__).parent
 
 
 class PlotPatch:

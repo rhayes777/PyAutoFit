@@ -169,10 +169,10 @@ class AbstractPaths(ABC):
 
     @property
     def identifier(self):
-        # if None in (self.model, self.search):
-        #     logger.warning(
-        #         "Both model and search should be set"
-        #     )
+        if None in (self.model, self.search):
+            logger.warning(
+                "Both model and search should be set"
+            )
 
         if self._identifier is None:
             identifier_list = [

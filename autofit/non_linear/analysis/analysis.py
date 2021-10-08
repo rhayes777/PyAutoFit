@@ -154,10 +154,8 @@ class CombinedAnalysis(Analysis):
         """
         for i, analysis in enumerate(self.analyses):
             child_paths = paths.create_child(
-                name=f"{paths.name}_{i}"
+                name=f"{paths.name}/analysis_{i}"
             )
-            print(child_paths.output_path)
-         #   stop
             func(child_paths, analysis)
 
     def save_attributes_for_aggregator(self, paths: AbstractPaths):
@@ -229,7 +227,7 @@ class CombinedAnalysis(Analysis):
             instance,
     ):
         """
-        Profile the log likliehood function of the maximum likelihood model instance using each analysis.
+        Profile the log likelihood function of the maximum likelihood model instance using each analysis.
 
         Profiling output is distinguished by using an integer suffix for each analysis path.
 
