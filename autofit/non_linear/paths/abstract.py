@@ -117,12 +117,21 @@ class AbstractPaths(ABC):
     def is_grid_search(self) -> bool:
         pass
 
+    def for_sub_analysis(
+            self,
+            analysis_name: str
+    ):
+        return self.create_child(
+            name=analysis_name
+        )
+
     @abstractmethod
     def create_child(
             self,
             name: Optional[str] = None,
             path_prefix: Optional[str] = None,
-            is_identifier_in_paths: Optional[bool] = None
+            is_identifier_in_paths: Optional[bool] = None,
+            identifier: Optional[str] = None
     ) -> "AbstractPaths":
         """
         Create a paths object which is the child of some parent
@@ -136,6 +145,7 @@ class AbstractPaths(ABC):
         is_identifier_in_paths
             If False then this path's identifier will not be
             added to its output path.
+        identifier
 
         Returns
         -------
@@ -208,6 +218,7 @@ class AbstractPaths(ABC):
         return path.join(self.output_path, "samples")
 
     @property
+    @make_path
     def image_path(self) -> str:
         """
         The path to the image folder.

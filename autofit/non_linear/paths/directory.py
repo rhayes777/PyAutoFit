@@ -200,7 +200,8 @@ class DirectoryPaths(AbstractPaths):
             self,
             name: Optional[str] = None,
             path_prefix: Optional[str] = None,
-            is_identifier_in_paths: Optional[bool] = None
+            is_identifier_in_paths: Optional[bool] = None,
+            identifier: Optional[str] = None
     ) -> "AbstractPaths":
         """
         Create a paths object which is the child of some parent
@@ -214,6 +215,7 @@ class DirectoryPaths(AbstractPaths):
         is_identifier_in_paths
             If False then this path's identifier will not be
             added to its output path.
+        identifier
 
         Returns
         -------
@@ -234,7 +236,17 @@ class DirectoryPaths(AbstractPaths):
         )
         child.model = self.model
         child.search = self.search
+        child._identifier = identifier
         return child
+
+    def for_sub_analysis(
+            self,
+            analysis_name
+    ):
+        return SubDirectoryPaths(
+            parent=self,
+            analysis_name=analysis_name
+        )
 
     @property
     @make_path
@@ -334,3 +346,19 @@ class DirectoryPaths(AbstractPaths):
                 self.identifier
             )
         return path_
+
+
+class SubDirectoryPaths(DirectoryPaths):
+    def __init__(
+            self,
+            parent,
+            analysis_name
+    ):
+        self.analysis_name = analysis_name
+        super().__init__()
+        self.parent = parent
+
+    @property
+    @make_path
+    def output_path(self) -> str:
+        return f"{self.parent.output_path}/{self.analysis_name}"
