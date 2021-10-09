@@ -229,6 +229,30 @@ class AbstractDynesty(AbstractNest, ABC):
             time=self.timer.time,
         )
 
+    def samples_via_results_from(self, model):
+        """
+        Create a `Samples` object from this non-linear search's output files on the hard-disk and model.
+
+        For Dynesty, all information that we need is available from the instance of the dynesty sampler.
+
+        Parameters
+        ----------
+        model
+            The model which generates instances for different points in parameter space. This maps the points from unit
+            cube values to physical values via the priors.
+        """
+        results = self.paths.load_object(
+            "results"
+        )
+
+        return DynestySamples(
+            model=model,
+            results=results,
+            number_live_points=self.total_live_points,
+            unconverged_sample_size=1,
+            time=self.timer.time,
+        )
+
     def live_points_from_model_and_fitness_function(
             self, model, fitness_function
     ):
