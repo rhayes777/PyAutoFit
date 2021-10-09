@@ -658,6 +658,9 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
     def samples_from(self, model):
         raise NotImplementedError()
 
+    def samples_via_results_from(self, model):
+        raise NotImplementedError()
+
     @check_cores
     def make_pool(self):
         """Make the pool instance used to parallelize a `NonLinearSearch` alongside a set of unique ids for every
