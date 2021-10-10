@@ -492,6 +492,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                     "Forcing pickle overwrite"
                 )
                 self.paths.save_object("samples", samples)
+                self.paths.save_object("results", samples.results)
                 analysis.save_results_for_aggregator(paths=self.paths, model=model, samples=samples)
 
         result = analysis.make_result(samples=samples, model=model, search=self)
