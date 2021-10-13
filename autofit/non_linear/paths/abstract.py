@@ -6,7 +6,6 @@ import shutil
 import zipfile
 from abc import ABC, abstractmethod
 from configparser import NoSectionError
-from functools import wraps
 from os import path
 from typing import Optional
 
@@ -14,21 +13,11 @@ from autoconf import conf
 from autofit.mapper import link
 from autofit.mapper.identifier import Identifier, IdentifierField
 from autofit.text import text_util
+from autofit.tools.util import open_
 
 logger = logging.getLogger(
     __name__
 )
-
-
-def make_path(func):
-    @wraps(func)
-    def wrapper(*args, **kwargs):
-        full_path = func(*args, **kwargs)
-        os.makedirs(full_path, exist_ok=True)
-        return full_path
-
-    return wrapper
-
 
 pattern = re.compile(r'(?<!^)(?=[A-Z])')
 
@@ -80,7 +69,7 @@ class AbstractPaths(ABC):
         self.unique_tag = unique_tag
 
         self._non_linear_name = None
-        self._identifier = None
+        self.__identifier = None
 
         self.is_identifier_in_paths = is_identifier_in_paths
 
@@ -177,13 +166,13 @@ class AbstractPaths(ABC):
         return self._non_linear_name
 
     @property
-    def identifier(self):
+    def _identifier(self):
         if None in (self.model, self.search):
             logger.warning(
                 "Both model and search should be set"
             )
 
-        if self._identifier is None:
+        if self.__identifier is None:
             identifier_list = [
                 self.search,
                 self.model
@@ -193,23 +182,33 @@ class AbstractPaths(ABC):
                 identifier_list.append(
                     self.unique_tag
                 )
-            identifier = Identifier(identifier_list)
-            self._identifier = str(
-                identifier
-            )
-            with open(f"{self._sym_path}/.identifier", "w+") as f:
-                f.write(
-                    identifier.description
-                )
+            self.__identifier = Identifier(identifier_list)
 
-        return self._identifier
+        return self.__identifier
+
+    @_identifier.setter
+    def _identifier(self, identifier):
+        self.__identifier = identifier
+
+    @property
+    def identifier(self):
+        return str(self._identifier)
+
+    def save_identifier(self):
+        with open_(f"{self._sym_path}/.identifier", "w+") as f:
+            f.write(
+                self._identifier.description
+            )
 
     @property
     def path(self):
+        os.makedirs(
+            self._sym_path,
+            exist_ok=True
+        )
         return link.make_linked_folder(self._sym_path)
 
     @property
-    @make_path
     def samples_path(self) -> str:
         """
         The path to the samples folder.
@@ -217,7 +216,6 @@ class AbstractPaths(ABC):
         return path.join(self.output_path, "samples")
 
     @property
-    @make_path
     def image_path(self) -> str:
         """
         The path to the image folder.
@@ -232,7 +230,6 @@ class AbstractPaths(ABC):
         return path.join(self.output_path, "profile")
 
     @property
-    @make_path
     def output_path(self) -> str:
         """
         The path to the output information for a search.
@@ -263,12 +260,6 @@ class AbstractPaths(ABC):
 
         self._zip()
 
-        if self.remove_files:
-            shutil.rmtree(
-                self.path,
-                ignore_errors=True
-            )
-
     def _zip(self):
 
         try:
@@ -284,7 +275,19 @@ class AbstractPaths(ABC):
                         )
 
             if self.remove_files:
-                shutil.rmtree(self.output_path)
+                if os.path.exists(
+                        self.path
+                ):
+                    shutil.rmtree(
+                        self.path,
+                        ignore_errors=True
+                    )
+                if os.path.exists(
+                        self.output_path
+                ):
+                    shutil.rmtree(
+                        self.output_path
+                    )
 
         except FileNotFoundError:
             pass
@@ -295,20 +298,18 @@ class AbstractPaths(ABC):
         """
 
         if path.exists(self._zip_path):
+            shutil.rmtree(
+                self.output_path,
+                ignore_errors=True
+            )
             with zipfile.ZipFile(self._zip_path, "r") as f:
                 f.extractall(self.output_path)
 
             os.remove(self._zip_path)
 
     @property
-    @make_path
     def _sym_path(self) -> str:
-        return path.join(
-            conf.instance.output_path,
-            self.path_prefix,
-            self.name,
-            self.identifier,
-        )
+        return self.output_path
 
     def __eq__(self, other):
         return isinstance(other, AbstractPaths) and all(
@@ -388,7 +389,7 @@ class AbstractPaths(ABC):
 
     def _save_search(self, config_dict):
 
-        with open(path.join(self.output_path, "search.json"), "w+") as f:
+        with open_(path.join(self.output_path, "search.json"), "w+") as f:
             json.dump(config_dict, f, indent=4)
 
     def save_summary(self, samples, log_likelihood_function_time):

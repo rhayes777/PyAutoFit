@@ -6,7 +6,6 @@ from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.mapper.prior_model.collection import CollectionPriorModel
 from autofit.non_linear.analysis.multiprocessing import AnalysisPool
 from autofit.non_linear.paths.abstract import AbstractPaths
-from autofit.non_linear.paths.directory import SubDirectoryPaths
 from autofit.non_linear.result import Result
 from autofit.non_linear.samples import OptimizerSamples
 
@@ -156,7 +155,7 @@ class CombinedAnalysis(Analysis):
         """
         for i, analysis in enumerate(self.analyses):
             child_paths = paths.for_sub_analysis(
-                analysis_name=f"analysis_{i}"
+                analysis_name=f"analyses/analysis_{i}"
             )
             func(child_paths, analysis)
 

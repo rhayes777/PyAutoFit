@@ -5,9 +5,21 @@ import os
 import re
 import sys
 from contextlib import contextmanager
+from pathlib import Path
 from typing import List, Type
 
 import numpy as np
+
+
+def open_(filename, *flags):
+    directory = Path(
+        filename
+    )
+    os.makedirs(
+        directory.parent,
+        exist_ok=True
+    )
+    return open(filename, *flags)
 
 
 def get_class_path(cls: type) -> str:

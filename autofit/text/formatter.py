@@ -2,6 +2,7 @@ import logging
 from typing import Tuple
 
 from autoconf import conf
+from autofit.tools.util import open_
 
 logger = logging.getLogger(__name__)
 
@@ -183,6 +184,5 @@ def parameter_result_latex_from(
 
 
 def output_list_of_strings_to_file(file, list_of_strings):
-    file = open(file, "w")
-    file.write("".join(list_of_strings))
-    file.close()
+    with open_(file, "w") as f:
+        f.write("".join(list_of_strings))

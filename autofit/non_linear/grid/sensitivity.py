@@ -1,17 +1,15 @@
 import logging
 from copy import copy
 from itertools import count
-from os import path
 from typing import List, Generator, Callable, Type, Union, Tuple
 
-from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.mapper.model import ModelInstance
-from autofit.non_linear.paths.directory import DirectoryPaths
-from autofit.non_linear.analysis import Analysis
+from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.abstract_search import NonLinearSearch
-from autofit.non_linear.result import Result
+from autofit.non_linear.analysis import Analysis
 from autofit.non_linear.grid.grid_search import make_lists
 from autofit.non_linear.parallel import AbstractJob, Process, AbstractJobResult
+from autofit.non_linear.result import Result
 
 
 class JobResult(AbstractJobResult):
@@ -70,18 +68,14 @@ class Job(AbstractJob):
 
         self.perturbation_model = perturbation_model
 
-        paths = search.paths
-
         self.search = search.copy_with_paths(
-            DirectoryPaths(
-                name=paths.name + "[base]",
-                path_prefix=paths.path_prefix,
+            search.paths.for_sub_analysis(
+                "[base]",
             )
         )
         self.perturbed_search = search.copy_with_paths(
-            DirectoryPaths(
-                name=paths.name + "[perturbed]",
-                path_prefix=paths.path_prefix,
+            search.paths.for_sub_analysis(
+                "[perturbed]",
             )
         )
 
@@ -271,14 +265,8 @@ class Sensitivity:
         one perturbation.
         """
         for label in self._labels:
-            paths = self.search.paths
-            name_path = path.join(
-                paths.name,
-                paths.identifier,
-                label,
-            )
             yield self._search_instance(
-                name_path
+                label
             )
 
     def _search_instance(
@@ -299,8 +287,8 @@ class Sensitivity:
         """
         paths = self.search.paths
         search_instance = self.search.copy_with_paths(
-            paths.create_child(
-                name=name_path,
+            paths.for_sub_analysis(
+                name_path,
             )
         )
 
