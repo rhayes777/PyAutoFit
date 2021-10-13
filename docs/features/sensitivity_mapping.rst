@@ -76,10 +76,10 @@ with just one ``Gaussian``.
 On my laptop, the increase in Bayesian evidence for the more compelx model is ~30, which is significant.
 
 The model comparison above shows that in this dataset, the ``Gaussian`` feature was detectable and that it increased the
-Bayesian evidence by ~25. Furthermore, the intensity of this ``Gaussian`` was ~0.3.
+Bayesian evidence by ~25. Furthermore, the normalization of this ``Gaussian`` was ~0.3.
 
-A lower value of intensity makes the ``Gaussian`` fainter and harder to detect. We will demonstrate sensitivity mapping
-by answering the following question, at what value of intensity does the ``Gaussian`` feature become undetectable and
+A lower value of normalization makes the ``Gaussian`` fainter and harder to detect. We will demonstrate sensitivity mapping
+by answering the following question, at what value of normalization does the ``Gaussian`` feature become undetectable and
 not provide us with a noticeable increase in Bayesian evidence?
 
 Base Model
@@ -106,16 +106,16 @@ Bayesian evidence we compare to the simpler model-fits consisting of just the ``
 The ``perturbation_model`` is therefore another ``Gaussian`` but now corresponds to the ``gaussian_feature`` above.
 
 By fitting both of these models to every simulated dataset, we will therefore infer the Bayesian evidence of every
-model to every dataset. Sensitivity mapping therefore maps out for what values of ``intensity`` in the ``gaussian_feature``
+model to every dataset. Sensitivity mapping therefore maps out for what values of ``normalization`` in the ``gaussian_feature``
 does the more complex model-fit provide higher values of Bayesian evidence than the simpler model-fit. We also fix the
-values ot the ``centre`` and ``sigma`` of the ``Gaussian`` so we only map over its ``intensity``.
+values ot the ``centre`` and ``sigma`` of the ``Gaussian`` so we only map over its ``normalization``.
 
 .. code-block:: bash
 
     perturbation_model = af.Model(m.Gaussian)
     perturbation_model.centre = 70.0
     perturbation_model.sigma = 0.5
-    perturbation_model.intensity = af.UniformPrior(lower_limit=0.01, upper_limit=100.0)
+    perturbation_model.normalization = af.UniformPrior(lower_limit=0.01, upper_limit=100.0)
 
 Simulation
 ----------
@@ -139,7 +139,7 @@ Note that when this dataset is simulated, the quantity ``instance.perturbation``
 This is an instance of the ``gaussian_feature``, and it is different every time the ``simulate_function`` is called.
 
 In this example, this ``instance.perturbation`` corresponds to different ``gaussian_feature``'s with values of
-``intensity`` ranging over 0.01 -> 100.0, such that our simulated datasets correspond to a very faint and very bright
+``normalization`` ranging over 0.01 -> 100.0, such that our simulated datasets correspond to a very faint and very bright
 gaussian features.
 
 .. code-block:: bash
@@ -158,11 +158,11 @@ gaussian features.
         them together to create the overall model profile.
 
         This print statement will show that, when you run ``Sensitivity`` below the values of the perturbation use fixed
-        values of ``centre=70`` and ``sigma=0.5``, whereas the intensity varies over the ``step_size`` based on its prior.
+        values of ``centre=70`` and ``sigma=0.5``, whereas the normalization varies over the ``step_size`` based on its prior.
         """
 
         print(instance.perturbation.centre)
-        print(instance.perturbation.intensity)
+        print(instance.perturbation.normalization)
         print(instance.perturbation.sigma)
 
         model_line = instance.gaussian_main.profile_from_xvalues(xvalues=xvalues) + instance.perturbation.profile_from_xvalues(xvalues=xvalues)
@@ -180,7 +180,7 @@ gaussian features.
 
         return Dataset(data=data, noise_map=noise_map)
 
-Here are what the two most extreme simulated datasets look like, corresponding to the highest and lowest intensity values
+Here are what the two most extreme simulated datasets look like, corresponding to the highest and lowest normalization values
 
 .. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/master/docs/features/images/sensitivity_data_low.png
   :width: 600
@@ -204,7 +204,7 @@ object below are:
 
 - ``simulate_function``: This is the function that uses the ``instance`` and many instances of the ``perturbation_model`` to simulate many datasets that are fitted with the ``base_model`` and ``base_model`` + ``perturbation_model``.
 
-- ``step_size``: The size of steps over which the parameters in the ``perturbation_model`` are iterated. In this example, intensity has a ``LogUniformPrior`` with lower limit 1e-4 and upper limit 1e2, therefore the ``step_size`` of 0.5 will simulate and fit just 2 datasets where the intensity is 1e-4 and 1e2.
+- ``step_size``: The size of steps over which the parameters in the ``perturbation_model`` are iterated. In this example, normalization has a ``LogUniformPrior`` with lower limit 1e-4 and upper limit 1e2, therefore the ``step_size`` of 0.5 will simulate and fit just 2 datasets where the normalization is 1e-4 and 1e2.
 
 - ``number_of_cores``: The number of cores over which the sensitivity mapping is performed, enabling parallel processing.
 
@@ -238,5 +238,5 @@ feature.
   :alt: Alternative text
 
 The key point to note is that for every dataset, we now have a model-fit with and without the model ``perturbation``. By
-compairing the Bayesian evidence of every pair of fits for every value of ``intensity`` we are able to determine when
+compairing the Bayesian evidence of every pair of fits for every value of ``normalization`` we are able to determine when
 our model was sensitivity to the ``Gaussian`` feature and therefore could detect it!

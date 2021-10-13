@@ -38,19 +38,19 @@ the *model component* name and the constructor arguments are its *parameters*.
         def __init__(
             self,
             centre=0.0,     # <- PyAutoFit recognises these
-            intensity=0.1,  # <- constructor arguments are
+            normalization=0.1,  # <- constructor arguments are
             sigma=0.01,     # <- the Gaussian's parameters.
         ):
 
             self.centre = centre
-            self.intensity = intensity
+            self.normalization = normalization
             self.sigma = sigma
 
 The code above defines a **PyAutoFit** *model component* called a ``Gaussian``. When used for *model-fitting* it has
-three parameters: ``centre``, ``intensity`` and ``sigma``.
+three parameters: ``centre``, ``normalization`` and ``sigma``.
 
 When we fit the model to ``data`` and compute a likelihood an instance of the class above is accessible, with specific
-values of ``centre``, ``intensity`` and ``sigma`` chosen by the non-linear search algorithm that fits the model to
+values of ``centre``, ``normalization`` and ``sigma`` chosen by the non-linear search algorithm that fits the model to
 the data.
 
 This means that the class's functions are available to compute the likelihood, so lets add a ``profile_from_xvalues``
@@ -62,12 +62,12 @@ function that generates the 1D profile from the ``Gaussian``.
         def __init__(
             self,
             centre=0.0,     # <- PyAutoFit recognises these
-            intensity=0.1,  # <- constructor arguments are
+            normalization=0.1,  # <- constructor arguments are
             sigma=0.01,     # <- the Gaussian's parameters.
         ):
 
             self.centre = centre
-            self.intensity = intensity
+            self.normalization = normalization
             self.sigma = sigma
 
         def profile_from_xvalues(self, xvalues):
@@ -75,7 +75,7 @@ function that generates the 1D profile from the ``Gaussian``.
             transformed_xvalues = xvalues - self.centre
 
             return np.multiply(
-                np.divide(self.intensity, self.sigma * np.sqrt(2.0 * np.pi)),
+                np.divide(self.normalization, self.sigma * np.sqrt(2.0 * np.pi)),
                 np.exp(-0.5 * np.square(np.divide(transformed_xvalues, self.sigma))),
             )
 
@@ -117,7 +117,7 @@ define a **PyAutoFit** ``Analysis`` class:
 
             print("Gaussian Instance:")
             print("Centre = ", instance.centre)
-            print("Intensity = ", instance.intensity)
+            print("normalization = ", instance.normalization)
             print("Sigma = ", instance.sigma)
 
             """
@@ -150,7 +150,7 @@ Lets consider exactly what is happening in the ``Analysis`` class above.
   input, but the constructor can be easily extended to add other parts of the dataset.
 
 - The ``log_likelihood_function`` receives an ``instance`` of the model, which in this example is an ``instance`` of the
-  ``Gaussian`` class. This ``instance`` has values for its *parameters* (``centre``, ``intensity`` and ``sigma``) which
+  ``Gaussian`` class. This ``instance`` has values for its *parameters* (``centre``, ``normalization`` and ``sigma``) which
   are chosen by the non-linear search used to fit the model, as discussed next.
 
 - The ``log_likelihood_function`` returns a log likelihood value, which the non-linear search uses evaluate the
@@ -195,7 +195,7 @@ It can even return *instances* of the ``Gaussian`` class using the values of the
 
     print("Maximum Likelihood Gaussian Instance:")
     print("Centre = ", instance.centre)
-    print("Intensity = ", instance.intensity)
+    print("normalization = ", instance.normalization)
     print("Sigma = ", instance.sigma)
 
 This can be used to straight forwardly plot the model fit to the data:

@@ -126,5 +126,5 @@ def test_job_paths(
         search
 ):
     output_path = search.paths.output_path
-    assert job.perturbed_search.paths.output_path == f"{output_path}/[perturbed]"
-    assert job.search.paths.output_path == f"{output_path}/[base]"
+    assert job.perturbed_search.paths.output_path == f"{output_path}/analyses/[perturbed]"
+    assert job.search.paths.output_path == f"{output_path}/analyses/[base]"

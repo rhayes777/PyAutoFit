@@ -90,24 +90,24 @@ defined our graphical model to have a shared value of ``centre`` when it fits ea
 
 We now set up three ``Model`` objects, each of which contain a ``Gaussian`` that is used to fit each of the
 datasets we loaded above. Because all three of these ``Model``'s use the ``centre_shared_prior`` the dimensionality of
-parameter space is N=7, corresponding to three ``Gaussians`` with local parameters (``intensity`` and ``sigma``) and
+parameter space is N=7, corresponding to three ``Gaussians`` with local parameters (``normalization`` and ``sigma``) and
 a global parameter value of ``centre``.
 
 .. code-block:: bash
 
     gaussian_0 = af.Model(m.Gaussian)
     gaussian_0.centre = centre_shared_prior
-    gaussian_0.intensity = af.GaussianPrior(mean=10.0, sigma=10.0)
+    gaussian_0.normalization = af.GaussianPrior(mean=10.0, sigma=10.0)
     gaussian_0.sigma = af.GaussianPrior(mean=10.0, sigma=10.0)  # This prior is used by all 3 Gaussians!
 
     gaussian_1 = af.Model(m.Gaussian)
     gaussian_1.centre = centre_shared_prior
-    gaussian_1.intensity = af.GaussianPrior(mean=10.0, sigma=10.0)
+    gaussian_1.normalization = af.GaussianPrior(mean=10.0, sigma=10.0)
     gaussian_1.sigma = af.GaussianPrior(mean=10.0, sigma=10.0)  # This prior is used by all 3 Gaussians!
 
     gaussian_2 = af.Model(m.Gaussian)
     gaussian_2.centre = centre_shared_prior
-    gaussian_2.intensity = af.GaussianPrior(mean=10.0, sigma=10.0)
+    gaussian_2.normalization = af.GaussianPrior(mean=10.0, sigma=10.0)
     gaussian_2.sigma = af.GaussianPrior(mean=10.0, sigma=10.0)  # This prior is used by all 3 Gaussians!
 
 To build our graphical model which fits multiple datasets, we simply pair each model-component to each ``Analysis``

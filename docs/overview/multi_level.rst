@@ -60,7 +60,7 @@ the ``Gaussian`` used in other **PyAutoFit** tutorials:
         def __init__(
             self,
             centre: typing.Tuple[float, float] = (0.0, 0.0),
-            intensity: float = 0.1,
+            normalization: float = 0.1,
             radius: float = 0.6,
         ):
             """
@@ -70,14 +70,14 @@ the ``Gaussian`` used in other **PyAutoFit** tutorials:
             ----------
             centre
                 The (y,x) coordinates of the profile centre.
-            intensity
-                Overall intensity normalisation of the light profile.
+            normalization
+                Overall normalization normalisation of the light profile.
             radius
                 The circular radius containing half the light of this profile.
             """
 
             self.centre = centre
-            self.intensity = intensity
+            self.normalization = normalization
             self.effective_radius = effective_radius
 
         def image_from_grid(self, grid: np.ndarray) -> np.ndarray:
@@ -160,7 +160,7 @@ which in the image above contains a light and mass profile:
 
 .. code-block:: bash
 
-    light = LightProfile(centre=(0.0, 0.0), intensity=10.0, radius=2.0)
+    light = LightProfile(centre=(0.0, 0.0), normalization=10.0, radius=2.0)
     mass = MassProfile(centre=(0.0, 0.0), mass=0.5)
 
     lens = Galaxy(redshift=0.5, light_profiles=[light], mass_profiles=[mass])
