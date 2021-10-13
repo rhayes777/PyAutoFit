@@ -152,7 +152,16 @@ class DirectoryPaths(AbstractPaths):
         with open_(self._info_file) as infile:
             return json.load(infile)
 
-    def save_all(self, search_config_dict, info, pickle_files):
+    def save_all(
+            self,
+            search_config_dict=None,
+            info=None,
+            pickle_files=None
+    ):
+        search_config_dict = search_config_dict or {}
+        info = info or {}
+        pickle_files = pickle_files or []
+
         self.save_unique_tag()
         self.save_identifier()
         self.save_parent_identifier()
