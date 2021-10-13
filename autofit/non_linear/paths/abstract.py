@@ -267,7 +267,19 @@ class AbstractPaths(ABC):
                         )
 
             if self.remove_files:
-                shutil.rmtree(self.output_path)
+                if os.path.exists(
+                        self.path
+                ):
+                    shutil.rmtree(
+                        self.path,
+                        ignore_errors=True
+                    )
+                if os.path.exists(
+                        self.output_path
+                ):
+                    shutil.rmtree(
+                        self.output_path
+                    )
 
         except FileNotFoundError:
             pass
