@@ -1,7 +1,6 @@
 import logging
 from copy import copy
 from itertools import count
-from os import path
 from typing import List, Generator, Callable, Type, Union, Tuple
 
 from autofit.mapper.model import ModelInstance
@@ -266,14 +265,8 @@ class Sensitivity:
         one perturbation.
         """
         for label in self._labels:
-            paths = self.search.paths
-            name_path = path.join(
-                paths.name,
-                paths.identifier,
-                label,
-            )
             yield self._search_instance(
-                name_path
+                label
             )
 
     def _search_instance(
@@ -294,8 +287,8 @@ class Sensitivity:
         """
         paths = self.search.paths
         search_instance = self.search.copy_with_paths(
-            paths.create_child(
-                name=name_path,
+            paths.for_sub_analysis(
+                name_path,
             )
         )
 
