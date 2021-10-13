@@ -194,7 +194,10 @@ class AbstractPaths(ABC):
 
     @property
     def path(self):
-        os.makedirs(self._sym_path)
+        os.makedirs(
+            self._sym_path,
+            exist_ok=True
+        )
         return link.make_linked_folder(self._sym_path)
 
     @property

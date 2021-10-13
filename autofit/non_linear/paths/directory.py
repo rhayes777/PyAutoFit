@@ -267,14 +267,14 @@ class DirectoryPaths(AbstractPaths):
         """
         This is private for a reason, use the save_object etc. methods to save and load pickles
         """
-        return path.join(self._make_path(), "pickles")
+        return path.join(self.output_path, "pickles")
 
     def _save_metadata(self, search_name):
         """
         Save metadata associated with the phase, such as the name of the pipeline, the
         name of the phase and the name of the dataset being fit
         """
-        with open_(path.join(self._make_path(), "metadata"), "a") as f:
+        with open_(path.join(self.output_path, "metadata"), "a") as f:
             f.write(f"""name={self.name}
             non_linear_search={search_name}
             """)
