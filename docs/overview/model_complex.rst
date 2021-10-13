@@ -27,12 +27,12 @@ we again define our 1D ``Gaussian`` profile as a *model component* in **PyAutoFi
         def __init__(
             self,
             centre=0.0,     # <- PyAutoFit recognises these
-            intensity=0.1,  # <- constructor arguments are
+            normalization=0.1,  # <- constructor arguments are
             sigma=0.01,     # <- the Gaussian's parameters.
         ):
 
             self.centre = centre
-            self.intensity = intensity
+            self.normalization = normalization
             self.sigma = sigma
 
         def profile_from_xvalues(self, xvalues):
@@ -40,7 +40,7 @@ we again define our 1D ``Gaussian`` profile as a *model component* in **PyAutoFi
             transformed_xvalues = xvalues - self.centre
 
             return np.multiply(
-                np.divide(self.intensity, self.sigma * np.sqrt(2.0 * np.pi)),
+                np.divide(self.normalization, self.sigma * np.sqrt(2.0 * np.pi)),
                 np.exp(-0.5 * np.square(np.divide(transformed_xvalues, self.sigma))),
             )
 
@@ -52,19 +52,19 @@ Now lets define a new *model component*, a 1D ``Exponential``, using the same Py
         def __init__(
             self,
             centre=0.0,     # <- PyAutoFit recognises these
-            intensity=0.1,  # <- constructor arguments are
+            normalization=0.1,  # <- constructor arguments are
             rate=0.01,      # <- the Exponential's parameters.
         ):
 
             self.centre = centre
-            self.intensity = intensity
+            self.normalization = normalization
             self.rate = rate
 
         def profile_from_xvalues(self, xvalues):
 
             transformed_xvalues = xvalues - self.centre
 
-            return self.intensity * np.multiply(
+            return self.normalization * np.multiply(
                 self.rate, np.exp(-1.0 * self.rate * abs(transformed_xvalues))
             )
 
@@ -112,12 +112,12 @@ You are free to choose whichever names you want;  the names are used to pass the
 
             print("Gaussian Instance:")
             print("Centre = ", instance.gaussian.centre)
-            print("Intensity = ", instance.gaussian.intensity)
+            print("normalization = ", instance.gaussian.normalization)
             print("Sigma = ", instance.gaussian.sigma)
 
             print("Exponential Instance:")
             print("Centre = ", instance.exponential.centre)
-            print("Intensity = ", instance.exponential.intensity)
+            print("normalization = ", instance.exponential.normalization)
             print("Rate = ", instance.exponential.rate)
 
             """
@@ -182,7 +182,7 @@ Priors can be manually specified as follows:
 .. code-block:: bash
 
     gaussian.centre = af.UniformPrior(lower_limit=0.0, upper_limit=100.0)
-    gaussian.intensity = af.LogUniformPrior(lower_limit=0.0, upper_limit=1e2)
+    gaussian.normalization = af.LogUniformPrior(lower_limit=0.0, upper_limit=1e2)
     gaussian.sigma = af.GaussianPrior(mean=10.0, sigma=5.0, lower_limit=0.0, upper_limit=np.inf)
 
 These priors will be used by the non-linear search to determine how it samples parameter space. The ``lower_limit``
@@ -206,11 +206,11 @@ We can *compose* and *customize* the priors of multiple model components as foll
 .. code-block:: bash
 
     gaussian = af.Model(Gaussian)
-    gaussian.intensity = af.UniformPrior(lower_limit=0.0, upper_limit=1e2)
+    gaussian.normalization = af.UniformPrior(lower_limit=0.0, upper_limit=1e2)
 
     exponential = af.Model(Exponential)
     exponential.centre = af.UniformPrior(lower_limit=0.0, upper_limit=100.0)
-    exponential.intensity = af.UniformPrior(lower_limit=0.0, upper_limit=1e2)
+    exponential.normalization = af.UniformPrior(lower_limit=0.0, upper_limit=1e2)
     exponential.rate = af.UniformPrior(lower_limit=0.0, upper_limit=10.0)
 
     model = af.Collection(gaussian=gaussian, exponential=exponential)
@@ -242,9 +242,9 @@ from *non-linear parameter space*:
 .. code-block:: bash
 
     gaussian.add_assertion(gaussian.sigma > 5.0)
-    gaussian.add_assertion(gaussian.intensity > exponential.intensity)
+    gaussian.add_assertion(gaussian.normalization > exponential.normalization)
 
-Here, the ``Gaussian``'s ``sigma`` value must always be greater than 5.0 and its ``intensity`` is greater
+Here, the ``Gaussian``'s ``sigma`` value must always be greater than 5.0 and its ``normalization`` is greater
 than that of the ``Exponential``.
 
 Wrap Up

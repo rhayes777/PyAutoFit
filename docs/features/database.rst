@@ -86,7 +86,7 @@ We can iterate over the samples to print the maximum log likelihood model ``Gaus
 
         print("Maximum Likelihood Model-fit \n")
         print("centre = ", instance.centre)
-        print("intensity = ", instance.intensity)
+        print("normalization = ", instance.normalization)
         print("sigma = ", instance.sigma)
 
 

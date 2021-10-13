@@ -12,7 +12,7 @@
             "upper": "inf"
         }
     },
-    "intensity": {
+    "normalization": {
         "type": "LogUniform",
         "lower_limit": 1e-06,
         "upper_limit": 1000000.0,

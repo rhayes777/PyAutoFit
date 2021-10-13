@@ -47,11 +47,11 @@ how a *model* representing a 1D Gaussian is written:
         def __init__(
             self,
             centre=0.0,     # <- PyAutoFit recognises these
-            intensity=0.1,  # <- constructor arguments are
+            normalization=0.1,  # <- constructor arguments are
             sigma=0.01,     # <- the Gaussian's parameters.
         ):
             self.centre = centre
-            self.intensity = intensity
+            self.normalization = normalization
             self.sigma = sigma
 
         """
@@ -64,7 +64,7 @@ how a *model* representing a 1D Gaussian is written:
 
             transformed_xvalues = xvalues - self.centre
 
-            return (self.intensity / (self.sigma * (2.0 * np.pi) ** 0.5)) * \
+            return (self.normalization / (self.sigma * (2.0 * np.pi) ** 0.5)) * \
                     np.exp(-0.5 * transformed_xvalues / self.sigma)
 
 A model-fit requires that a **PyAutoFit** ``Analysis`` class is written, which combines the data and model via
@@ -88,7 +88,7 @@ likelihood function:
 
             print("Gaussian Instance:")
             print("Centre = ", instance.centre)
-            print("Intensity = ", instance.intensity)
+            print("normalization = ", instance.normalization)
             print("Sigma = ", instance.sigma)
 
             """

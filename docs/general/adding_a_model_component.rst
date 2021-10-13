@@ -261,7 +261,7 @@ For our ``LinearFit`` update the ``label.ini`` config as follows:
 
     [label]
     centre=x
-    intensity=I
+    normalization=I
     sigma=sigma
     rate=\lambda
     gradient=m
@@ -282,7 +282,7 @@ and ``label_format.ini`` as:
 
     [format]
     centre={:.2f}
-    intensity={:.2f}
+    normalization={:.2f}
     sigma={:.2f}
     rate={:.2f}
     gradient={:.2f}
