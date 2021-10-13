@@ -96,22 +96,40 @@ def test_searches(sensitivity):
     assert len(list(sensitivity._searches)) == 8
 
 
-def test_job(perturbation_model):
+@pytest.fixture(
+    name="job"
+)
+def make_job(
+        perturbation_model,
+        search
+):
     instance = af.ModelInstance()
     instance.gaussian = Gaussian()
     instance.perturbation = Gaussian()
     image = image_function(instance)
     # noinspection PyTypeChecker
-    job = s.Job(
+    return s.Job(
         model=af.Collection(
             gaussian=af.PriorModel(Gaussian)
         ),
         perturbation_model=af.PriorModel(Gaussian),
         analysis=Analysis(image),
-        search=GridSearch(),
+        search=search,
     )
+
+
+def test_perform_job(job):
     result = job.perform()
     assert isinstance(result, s.JobResult)
     assert isinstance(result.perturbed_result, af.Result)
     assert isinstance(result.result, af.Result)
     assert result.log_likelihood_difference > 0
+
+
+def test_job_paths(
+        job,
+        search
+):
+    output_path = search.paths.output_path
+    assert job.perturbed_search.paths.output_path == f"{output_path}/[perturbed]"
+    assert job.search.paths.output_path == f"{output_path}/[base]"
