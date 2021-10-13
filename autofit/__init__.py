@@ -76,6 +76,7 @@ from .text import formatter
 from .text import samples_text
 from .tools import util
 
+from . import example as ex
 from . import database as db
 
 conf.instance.register(__file__)
