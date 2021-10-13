@@ -116,6 +116,9 @@ def update_directory_identifiers(
     )
     for output in aggregator:
         paths = output.search.paths
+        os.remove(
+            f"{paths.output_path}.zip"
+        )
         source_directory = output.directory
         paths._identifier = None
         target_directory = paths.output_path

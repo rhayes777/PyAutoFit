@@ -11,7 +11,6 @@ from os import path
 from typing import Optional
 
 from autoconf import conf
-from autofit import exc
 from autofit.mapper import link
 from autofit.mapper.identifier import Identifier, IdentifierField
 from autofit.text import text_util
@@ -363,7 +362,12 @@ class AbstractPaths(ABC):
         pass
 
     @abstractmethod
-    def save_all(self, search_config_dict, info, pickle_files):
+    def save_all(
+            self,
+            search_config_dict=None,
+            info=None,
+            pickle_files=None
+    ):
         pass
 
     @abstractmethod
