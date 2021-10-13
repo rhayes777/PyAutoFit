@@ -152,6 +152,8 @@ class DirectoryPaths(AbstractPaths):
             return json.load(infile)
 
     def save_all(self, search_config_dict, info, pickle_files):
+        self.save_identifier()
+        self.save_parent_identifier()
         self._save_search(config_dict=search_config_dict)
         self._save_model_info(model=self.model)
         self._save_parameter_names_file(model=self.model)
@@ -173,6 +175,8 @@ class DirectoryPaths(AbstractPaths):
         that is then compared to searches during a grid search.
         """
         self._parent = parent
+
+    def save_parent_identifier(self):
         if self.parent is not None:
             with open(self._parent_identifier_path, "w+") as f:
                 f.write(

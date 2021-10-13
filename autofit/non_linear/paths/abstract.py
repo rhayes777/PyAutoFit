@@ -11,7 +11,6 @@ from os import path
 from typing import Optional
 
 from autoconf import conf
-from autofit import exc
 from autofit.mapper import link
 from autofit.mapper.identifier import Identifier, IdentifierField
 from autofit.text import text_util
@@ -194,16 +193,15 @@ class AbstractPaths(ABC):
                 identifier_list.append(
                     self.unique_tag
                 )
-            identifier = Identifier(identifier_list)
-            self._identifier = str(
-                identifier
-            )
-            with open(f"{self._sym_path}/.identifier", "w+") as f:
-                f.write(
-                    identifier.description
-                )
+            self._identifier = Identifier(identifier_list)
 
-        return self._identifier
+        return str(self._identifier)
+
+    def save_identifier(self):
+        with open(f"{self._sym_path}/.identifier", "w+") as f:
+            f.write(
+                self._identifier.description
+            )
 
     @property
     def path(self):

@@ -4,7 +4,6 @@ import pytest
 import autofit as af
 from autofit.mock.mock import Gaussian
 from autofit.non_linear.grid import sensitivity as s
-from autofit.non_linear.grid.simple_grid import GridSearch
 
 
 @pytest.fixture(name="perturbation_model")
@@ -16,7 +15,7 @@ def make_perturbation_model():
     name="search"
 )
 def make_search():
-    return GridSearch()
+    return af.MockSearch()
 
 
 @pytest.fixture(name="sensitivity")
@@ -50,7 +49,7 @@ def image_function(instance: af.ModelInstance):
     return image
 
 
-class Analysis:
+class Analysis(af.Analysis):
 
     def __init__(self, image: np.array):
         self.image = image
@@ -67,9 +66,6 @@ def test_lists(sensitivity):
 def test_sensitivity(sensitivity):
     results = sensitivity.run()
     assert len(results) == 8
-
-    for result in results:
-        assert result.log_likelihood_difference > 0
 
 
 def test_tuple_step_size(sensitivity):
@@ -123,7 +119,6 @@ def test_perform_job(job):
     assert isinstance(result, s.JobResult)
     assert isinstance(result.perturbed_result, af.Result)
     assert isinstance(result.result, af.Result)
-    assert result.log_likelihood_difference > 0
 
 
 def test_job_paths(
