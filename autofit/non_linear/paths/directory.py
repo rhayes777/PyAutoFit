@@ -8,7 +8,8 @@ import dill
 
 from autoconf import conf
 from autofit.text import formatter
-from .abstract import AbstractPaths, make_path
+from autofit.tools.util import open_
+from .abstract import AbstractPaths
 from ..samples import load_from_table
 
 
@@ -48,7 +49,7 @@ class DirectoryPaths(AbstractPaths):
         obj
             A serialisable object
         """
-        with open(
+        with open_(
                 self._path_for_pickle(
                     name
                 ),
@@ -76,7 +77,7 @@ class DirectoryPaths(AbstractPaths):
         -------
         The deserialised object
         """
-        with open(
+        with open_(
                 self._path_for_pickle(
                     name
                 ),
@@ -133,7 +134,7 @@ class DirectoryPaths(AbstractPaths):
         """
         Mark the search as complete by saving a file
         """
-        open(self._has_completed_path, "w+").close()
+        open_(self._has_completed_path, "w+").close()
 
     def load_samples(self):
         return load_from_table(
@@ -148,7 +149,7 @@ class DirectoryPaths(AbstractPaths):
         samples.info_to_json(filename=self._info_file)
 
     def load_samples_info(self):
-        with open(self._info_file) as infile:
+        with open_(self._info_file) as infile:
             return json.load(infile)
 
     def save_all(self, search_config_dict, info, pickle_files):
@@ -179,7 +180,7 @@ class DirectoryPaths(AbstractPaths):
 
     def save_parent_identifier(self):
         if self.parent is not None:
-            with open(self._parent_identifier_path, "w+") as f:
+            with open_(self._parent_identifier_path, "w+") as f:
                 f.write(
                     self.parent.identifier
                 )
@@ -242,7 +243,7 @@ class DirectoryPaths(AbstractPaths):
         return child
 
     def save_unique_tag(self):
-        with open(self._grid_search_path, "w+") as f:
+        with open_(self._grid_search_path, "w+") as f:
             if self.unique_tag is not None:
                 f.write(self.unique_tag)
 
@@ -262,7 +263,6 @@ class DirectoryPaths(AbstractPaths):
         )
 
     @property
-    @make_path
     def _pickle_path(self) -> str:
         """
         This is private for a reason, use the save_object etc. methods to save and load pickles
@@ -274,7 +274,7 @@ class DirectoryPaths(AbstractPaths):
         Save metadata associated with the phase, such as the name of the pipeline, the
         name of the phase and the name of the dataset being fit
         """
-        with open(path.join(self._make_path(), "metadata"), "a") as f:
+        with open_(path.join(self._make_path(), "metadata"), "a") as f:
             f.write(f"""name={self.name}
             non_linear_search={search_name}
             """)
@@ -291,7 +291,7 @@ class DirectoryPaths(AbstractPaths):
         """
         Save the model.info file, which summarizes every parameter and prior.
         """
-        with open(path.join(
+        with open_(path.join(
                 self.output_path,
                 "model.info"
         ), "w+") as f:
@@ -340,7 +340,6 @@ class DirectoryPaths(AbstractPaths):
         """
         return path.join(self.output_path, ".completed")
 
-    @make_path
     def _make_path(self) -> str:
         """
         Returns the path to the folder at which the metadata should be saved
@@ -372,6 +371,5 @@ class SubDirectoryPaths(DirectoryPaths):
         self.parent = parent
 
     @property
-    @make_path
     def output_path(self) -> str:
         return f"{self.parent.output_path}/{self.analysis_name}"

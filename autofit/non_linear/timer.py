@@ -1,4 +1,5 @@
 import datetime as dt
+import os
 from os import path
 import time
 
@@ -16,13 +17,20 @@ class Timer:
         """
 
         self.samples_path = samples_path
+        os.makedirs(
+            samples_path,
+            exist_ok=True
+        )
 
     def start(self):
         """
         Record the start time of a `NonLinearSearch` as universal date time, so that the run-time of the search can be
         recorded.
         """
-        start_time_path = path.join(self.samples_path, ".start_time")
+        start_time_path = path.join(
+            self.samples_path,
+            ".start_time"
+        )
         try:
             with open(start_time_path) as f:
                 float(f.read())

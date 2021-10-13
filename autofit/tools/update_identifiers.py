@@ -124,15 +124,21 @@ def update_directory_identifiers(
             f"Moving output from {source_directory} to {target_directory}"
         )
 
+        os.makedirs(
+            target_directory,
+            exist_ok=True
+        )
+
         for file in os.listdir(
                 source_directory
         ):
+            target_filename = f"{target_directory}/{file}"
             if not os.path.exists(
-                    f"{target_directory}/{file}"
+                    target_filename
             ):
                 shutil.move(
                     f"{source_directory}/{file}",
-                    target_directory
+                    target_filename
                 )
 
         paths.save_object("search", output.search)
@@ -142,9 +148,6 @@ def update_directory_identifiers(
         )
 
         paths.zip_remove()
-        shutil.rmtree(
-            target_directory
-        )
 
 
 def update_database_identifiers(

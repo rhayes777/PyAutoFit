@@ -1,6 +1,7 @@
 import copy
 import logging
 import multiprocessing as mp
+import os
 import time
 from abc import ABC, abstractmethod
 from functools import wraps
@@ -292,6 +293,10 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                 log_path = path.join(
                     self.paths.output_path,
                     "output.log"
+                )
+                os.makedirs(
+                    self.paths.output_path,
+                    exist_ok=True
                 )
                 logger_.handlers.append(
                     logging.FileHandler(log_path)

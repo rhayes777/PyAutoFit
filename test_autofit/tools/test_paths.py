@@ -18,7 +18,6 @@ class PatchPaths(af.DirectoryPaths):
         return path.join(directory, "sym_path")
 
     @property
-    @af.make_path
     def output_path(self) -> str:
         return path.join(directory, "phase_output_path")
 
