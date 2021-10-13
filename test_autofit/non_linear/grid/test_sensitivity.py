@@ -4,7 +4,6 @@ import pytest
 import autofit as af
 from autofit.mock.mock import Gaussian
 from autofit.non_linear.grid import sensitivity as s
-from autofit.non_linear.grid.simple_grid import GridSearch
 
 
 @pytest.fixture(name="perturbation_model")
@@ -16,7 +15,7 @@ def make_perturbation_model():
     name="search"
 )
 def make_search():
-    return GridSearch()
+    return af.MockSearch()
 
 
 @pytest.fixture(name="sensitivity")
@@ -50,7 +49,7 @@ def image_function(instance: af.ModelInstance):
     return image
 
 
-class Analysis:
+class Analysis(af.Analysis):
 
     def __init__(self, image: np.array):
         self.image = image
@@ -67,9 +66,6 @@ def test_lists(sensitivity):
 def test_sensitivity(sensitivity):
     results = sensitivity.run()
     assert len(results) == 8
-
-    for result in results:
-        assert result.log_likelihood_difference > 0
 
 
 def test_tuple_step_size(sensitivity):
@@ -96,22 +92,39 @@ def test_searches(sensitivity):
     assert len(list(sensitivity._searches)) == 8
 
 
-def test_job(perturbation_model):
+@pytest.fixture(
+    name="job"
+)
+def make_job(
+        perturbation_model,
+        search
+):
     instance = af.ModelInstance()
     instance.gaussian = Gaussian()
     instance.perturbation = Gaussian()
     image = image_function(instance)
     # noinspection PyTypeChecker
-    job = s.Job(
+    return s.Job(
         model=af.Collection(
             gaussian=af.PriorModel(Gaussian)
         ),
         perturbation_model=af.PriorModel(Gaussian),
         analysis=Analysis(image),
-        search=GridSearch(),
+        search=search,
     )
+
+
+def test_perform_job(job):
     result = job.perform()
     assert isinstance(result, s.JobResult)
     assert isinstance(result.perturbed_result, af.Result)
     assert isinstance(result.result, af.Result)
-    assert result.log_likelihood_difference > 0
+
+
+def test_job_paths(
+        job,
+        search
+):
+    output_path = search.paths.output_path
+    assert job.perturbed_search.paths.output_path == f"{output_path}/[perturbed]"
+    assert job.search.paths.output_path == f"{output_path}/[base]"
