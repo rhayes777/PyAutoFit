@@ -34,10 +34,6 @@ def test_directory(
         output_directory
     )
 
-    print(listdir(
-        output_directory / "name"
-    ))
-
     filename, = listdir(
         output_directory / "name"
     )
@@ -73,18 +69,14 @@ def test_zipped(
     assert listdir(
         output_directory / "name"
     ) == [
-        old_directory_paths.identifier,
-        f"{old_directory_paths.identifier}.zip"
+               old_directory_paths.identifier,
+               f"{old_directory_paths.identifier}.zip"
            ]
 
     conf.instance["general"]["output"]["identifier_version"] = 3
     update_directory_identifiers(
         output_directory
     )
-
-    print(listdir(
-        output_directory / "name"
-    ))
 
     filename, = listdir(
         output_directory / "name"
