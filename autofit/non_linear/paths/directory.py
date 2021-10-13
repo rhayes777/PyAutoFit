@@ -152,6 +152,7 @@ class DirectoryPaths(AbstractPaths):
             return json.load(infile)
 
     def save_all(self, search_config_dict, info, pickle_files):
+        self.save_unique_tag()
         self.save_identifier()
         self.save_parent_identifier()
         self._save_search(config_dict=search_config_dict)
@@ -225,9 +226,6 @@ class DirectoryPaths(AbstractPaths):
         -------
         A new paths object
         """
-        with open(self._grid_search_path, "w+") as f:
-            if self.unique_tag is not None:
-                f.write(self.unique_tag)
         child = type(self)(
             name=name or self.name,
             path_prefix=path_prefix or self.path_prefix,
@@ -242,6 +240,11 @@ class DirectoryPaths(AbstractPaths):
         child.search = self.search
         child._identifier = identifier
         return child
+
+    def save_unique_tag(self):
+        with open(self._grid_search_path, "w+") as f:
+            if self.unique_tag is not None:
+                f.write(self.unique_tag)
 
     def for_sub_analysis(
             self,
