@@ -1,6 +1,8 @@
 from os import listdir
 from pathlib import Path
 
+import pytest
+
 import autofit as af
 from autoconf.conf import output_path_for_test
 from autofit import Gaussian
@@ -14,26 +16,17 @@ output_directory = Path(
 
 
 @output_path_for_test(
-    output_directory
+    output_directory,
 )
-def test_directory():
-    conf.instance["general"]["output"]["identifier_version"] = 1
-    search = af.DynestyStatic(
-        name="name"
-    )
-    search.paths.model = af.PriorModel(
-        Gaussian
-    )
-    search.paths.save_all(
-        search_config_dict=search.config_dict_search,
-        info={},
-        pickle_files=[]
-    )
+def test_directory(
+        old_directory_paths
+):
+    old_directory_paths.save_all()
 
     assert listdir(
         output_directory / "name"
     ) == [
-               search.paths.identifier
+               old_directory_paths.identifier
            ]
 
     conf.instance["general"]["output"]["identifier_version"] = 3
@@ -41,16 +34,55 @@ def test_directory():
         output_directory
     )
 
-    print(listdir(
+    filename, = listdir(
         output_directory / "name"
-    ))
+    )
+
+    identifier, suffix = filename.split(".")
+    assert identifier != old_directory_paths.identifier
+    assert suffix == "zip"
+
+
+@pytest.fixture(
+    name="old_directory_paths"
+)
+def make_old_directory_paths():
+    conf.instance["general"]["output"]["identifier_version"] = 1
+    search = af.DynestyStatic(
+        name="name"
+    )
+    search.paths.model = af.PriorModel(
+        Gaussian
+    )
+    return search.paths
+
+
+@output_path_for_test(
+    output_directory,
+)
+def test_zipped(
+        old_directory_paths
+):
+    old_directory_paths.save_all()
+    old_directory_paths.zip_remove()
+
+    assert listdir(
+        output_directory / "name"
+    ) == [
+               f"{old_directory_paths.identifier}.zip"
+           ]
+
+    conf.instance["general"]["output"]["identifier_version"] = 3
+    update_directory_identifiers(
+        output_directory
+    )
 
     filename, = listdir(
         output_directory / "name"
     )
 
     identifier, suffix = filename.split(".")
-    assert identifier != search.paths.identifier
+    assert identifier != old_directory_paths.identifier
     assert suffix == "zip"
 
 

@@ -37,7 +37,7 @@ def make_output_directory(
 
 
 @pytest.fixture(
-    autouse=True,
+    # autouse=True,
     scope="session"
 )
 def remove_output(
