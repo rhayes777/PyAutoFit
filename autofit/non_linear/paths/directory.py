@@ -400,4 +400,4 @@ class SubDirectoryPaths(DirectoryPaths):
         The output path is customised to place output in a named directory in
         the analyses directory.
         """
-        return f"{self.parent.output_path}/analyses/{self.analysis_name}"
+        return f"{self.parent.output_path}/{self.analysis_name}"

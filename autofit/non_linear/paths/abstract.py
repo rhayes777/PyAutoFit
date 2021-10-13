@@ -69,7 +69,7 @@ class AbstractPaths(ABC):
         self.unique_tag = unique_tag
 
         self._non_linear_name = None
-        self._identifier = None
+        self.__identifier = None
 
         self.is_identifier_in_paths = is_identifier_in_paths
 
@@ -166,13 +166,13 @@ class AbstractPaths(ABC):
         return self._non_linear_name
 
     @property
-    def identifier(self):
+    def _identifier(self):
         if None in (self.model, self.search):
             logger.warning(
                 "Both model and search should be set"
             )
 
-        if self._identifier is None:
+        if self.__identifier is None:
             identifier_list = [
                 self.search,
                 self.model
@@ -182,8 +182,16 @@ class AbstractPaths(ABC):
                 identifier_list.append(
                     self.unique_tag
                 )
-            self._identifier = Identifier(identifier_list)
+            self.__identifier = Identifier(identifier_list)
 
+        return self.__identifier
+
+    @_identifier.setter
+    def _identifier(self, identifier):
+        self.__identifier = identifier
+
+    @property
+    def identifier(self):
         return str(self._identifier)
 
     def save_identifier(self):
@@ -301,12 +309,7 @@ class AbstractPaths(ABC):
 
     @property
     def _sym_path(self) -> str:
-        return path.join(
-            conf.instance.output_path,
-            self.path_prefix,
-            self.name,
-            self.identifier,
-        )
+        return self.output_path
 
     def __eq__(self, other):
         return isinstance(other, AbstractPaths) and all(
