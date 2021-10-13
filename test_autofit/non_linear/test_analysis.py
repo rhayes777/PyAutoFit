@@ -145,7 +145,7 @@ def test_child_paths(
         paths,
         analysis_name="analysis_0"
     )
-    assert sub_paths.output_path == f"{paths.output_path}/analysis_0"
+    assert sub_paths.output_path == f"{paths.output_path}/analyses/analysis_0"
 
 
 @pytest.fixture(
@@ -190,8 +190,8 @@ def test_visualise(
     )
     search_path = Path(multi_search.paths.output_path)
     assert search_path.exists()
-    assert (search_path / "analysis_0/image/image.png").exists()
-    assert (search_path / "analysis_1/image/image.png").exists()
+    assert (search_path / "analyses/analysis_0/image/image.png").exists()
+    assert (search_path / "analyses/analysis_1/image/image.png").exists()
 
 
 @with_config(
@@ -205,5 +205,5 @@ def test_output(
 ):
     search_path = Path(multi_search.paths.output_path)
     assert search_path.exists()
-    assert (search_path / "analysis_0").exists()
-    assert (search_path / "analysis_1").exists()
+    assert (search_path / "analyses/analysis_0").exists()
+    assert (search_path / "analyses/analysis_1").exists()
