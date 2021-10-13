@@ -293,6 +293,10 @@ class DirectoryPaths(AbstractPaths):
         Move extra files a user has input the full path + filename of from the location specified to the
         pickles folder of the Aggregator, so that they can be accessed via the aggregator.
         """
+        os.makedirs(
+            self._pickle_path,
+            exist_ok=True
+        )
         if pickle_files is not None:
             [shutil.copy(file, self._pickle_path) for file in pickle_files]
 
