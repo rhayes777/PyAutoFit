@@ -1,4 +1,5 @@
 import os
+import shutil
 from os import path
 
 import pytest
@@ -50,16 +51,13 @@ def test_zip_remove(paths):
 
 
 def test_restore(paths):
-    os.mkdir(paths.sym_path)
-    os.mkdir(paths.path)
+    paths.model = af.Model(af.Gaussian)
+    paths.save_all({}, {}, [])
 
     paths.zip_remove()
-
-    os.rmdir(paths.sym_path)
-
     paths.restore()
 
     assert path.exists(paths.output_path)
     assert not path.exists(paths._zip_path)
 
-    os.rmdir(paths.output_path)
+    shutil.rmtree(paths.output_path)
