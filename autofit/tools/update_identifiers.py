@@ -116,11 +116,16 @@ def update_directory_identifiers(
     )
     for output in aggregator:
         paths = output.search.paths
-        os.remove(
-            f"{paths.output_path}.zip"
-        )
+        try:
+            os.remove(
+                f"{paths.output_path}.zip"
+            )
+        except FileNotFoundError:
+            pass
+
         source_directory = output.directory
         paths._identifier = None
+        paths.save_identifier()
         target_directory = paths.output_path
 
         logger.info(

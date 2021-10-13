@@ -69,7 +69,6 @@ def test_zipped(
     assert listdir(
         output_directory / "name"
     ) == [
-               old_directory_paths.identifier,
                f"{old_directory_paths.identifier}.zip"
            ]
 
