@@ -68,12 +68,12 @@ We define our model, a 1D Gaussian by writing a Python class using the format be
 
         def __init__(
             self,
-            centre=0.0,     # <- PyAutoFit recognises these
-            intensity=0.1,  # <- constructor arguments are
-            sigma=0.01,     # <- the Gaussian's parameters.
+            centre=0.0,        # <- PyAutoFit recognises these
+            normalization=0.1, # <- constructor arguments are
+            sigma=0.01,        # <- the Gaussian's parameters.
         ):
             self.centre = centre
-            self.intensity = intensity
+            self.normalization = normalization
             self.sigma = sigma
 
         """
@@ -86,7 +86,7 @@ We define our model, a 1D Gaussian by writing a Python class using the format be
 
             transformed_xvalues = xvalues - self.centre
 
-            return (self.intensity / (self.sigma * (2.0 * np.pi) ** 0.5)) * \
+            return (self.normalization / (self.sigma * (2.0 * np.pi) ** 0.5)) * \
                     np.exp(-0.5 * (transformed_xvalues / self.sigma) ** 2.0)
 
 **PyAutoFit** recognises that this Gaussian may be treated as a model component whose parameters can be fitted for via
@@ -113,7 +113,7 @@ To fit this Gaussian to the ``data`` we create an Analysis object, which gives *
 
             print("Gaussian Instance:")
             print("Centre = ", instance.centre)
-            print("Intensity = ", instance.intensity)
+            print("normalization = ", instance.normalization)
             print("Sigma = ", instance.sigma)
 
             """

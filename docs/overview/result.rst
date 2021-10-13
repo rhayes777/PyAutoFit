@@ -151,7 +151,7 @@ classes used to compose it:
 
     print("Max Log Likelihood Gaussian Instance:")
     print("Centre = ", max_log_likelihood_instance.centre)
-    print("Intensity = ", max_log_likelihood_instance.intensity)
+    print("normalization = ", max_log_likelihood_instance.normalization)
     print("Sigma = ", max_log_likelihood_instance.sigma)
 
 
@@ -168,7 +168,7 @@ the maximum likelihood model:
     plt.plot(range(data.shape[0]), model_data)
     plt.title("Illustrative toy model fit to 1D Gaussian line profile data.")
     plt.xlabel("x values of line profile")
-    plt.ylabel("Line profile intensity")
+    plt.ylabel("Line profile normalization")
     plt.show()
     plt.close()
 

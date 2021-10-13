@@ -71,7 +71,8 @@ class DatabasePaths(AbstractPaths):
             self,
             name: Optional[str] = None,
             path_prefix: Optional[str] = None,
-            is_identifier_in_paths: Optional[bool] = None
+            is_identifier_in_paths: Optional[bool] = None,
+            identifier: Optional[str] = None
     ) -> "DatabasePaths":
         """
         Create a paths object which is the child of some parent
@@ -84,6 +85,7 @@ class DatabasePaths(AbstractPaths):
 
         Parameters
         ----------
+        identifier
         name
         path_prefix
         is_identifier_in_paths
@@ -97,7 +99,7 @@ class DatabasePaths(AbstractPaths):
         self.fit.is_grid_search = True
         if self.fit.instance is None:
             self.fit.instance = self.model.instance_from_prior_medians()
-        return type(self)(
+        child = type(self)(
             session=self.session,
             name=name or self.name,
             path_prefix=path_prefix or self.path_prefix,
@@ -108,6 +110,10 @@ class DatabasePaths(AbstractPaths):
             ),
             parent=self
         )
+        child.model = self.model
+        child.search = self.search
+        child._identifier = identifier
+        return child
 
     def zip_remove(self):
         """

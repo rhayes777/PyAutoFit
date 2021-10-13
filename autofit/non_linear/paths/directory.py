@@ -200,7 +200,8 @@ class DirectoryPaths(AbstractPaths):
             self,
             name: Optional[str] = None,
             path_prefix: Optional[str] = None,
-            is_identifier_in_paths: Optional[bool] = None
+            is_identifier_in_paths: Optional[bool] = None,
+            identifier: Optional[str] = None
     ) -> "AbstractPaths":
         """
         Create a paths object which is the child of some parent
@@ -214,6 +215,7 @@ class DirectoryPaths(AbstractPaths):
         is_identifier_in_paths
             If False then this path's identifier will not be
             added to its output path.
+        identifier
 
         Returns
         -------
@@ -222,7 +224,7 @@ class DirectoryPaths(AbstractPaths):
         with open(self._grid_search_path, "w+") as f:
             if self.unique_tag is not None:
                 f.write(self.unique_tag)
-        return type(self)(
+        child = type(self)(
             name=name or self.name,
             path_prefix=path_prefix or self.path_prefix,
             is_identifier_in_paths=(
@@ -231,6 +233,19 @@ class DirectoryPaths(AbstractPaths):
                 else self.is_identifier_in_paths
             ),
             parent=self
+        )
+        child.model = self.model
+        child.search = self.search
+        child._identifier = identifier
+        return child
+
+    def for_sub_analysis(
+            self,
+            analysis_name
+    ):
+        return SubDirectoryPaths(
+            parent=self,
+            analysis_name=analysis_name
         )
 
     @property
@@ -331,3 +346,34 @@ class DirectoryPaths(AbstractPaths):
                 self.identifier
             )
         return path_
+
+
+class SubDirectoryPaths(DirectoryPaths):
+    def __init__(
+            self,
+            parent: DirectoryPaths,
+            analysis_name: str
+    ):
+        """
+        Manages output paths for an analysis that is the child of another
+        analysis, for example a single analysis in a combined analysis.
+
+        Parameters
+        ----------
+        parent
+            Paths for the parent analysis
+        analysis_name
+            A name for this analysis
+        """
+        self.analysis_name = analysis_name
+        super().__init__()
+        self.parent = parent
+
+    @property
+    @make_path
+    def output_path(self) -> str:
+        """
+        The output path is customised to place output in a named directory in
+        the analyses directory.
+        """
+        return f"{self.parent.output_path}/analyses/{self.analysis_name}"

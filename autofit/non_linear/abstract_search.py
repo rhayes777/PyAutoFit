@@ -482,13 +482,17 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         else:
             self.logger.info(f"Already completed, skipping non-linear search.")
-            samples = self.paths.load_object("samples")
+            try:
+                samples = self.paths.load_object("samples")
+            except Exception:
+                samples = self.samples_via_results_from(model=model)
 
             if self.force_pickle_overwrite:
                 self.logger.info(
                     "Forcing pickle overwrite"
                 )
                 self.paths.save_object("samples", samples)
+                self.paths.save_object("results", samples.results)
                 analysis.save_results_for_aggregator(paths=self.paths, model=model, samples=samples)
 
         result = analysis.make_result(samples=samples, model=model, search=self)
@@ -653,6 +657,9 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         pass
 
     def samples_from(self, model):
+        raise NotImplementedError()
+
+    def samples_via_results_from(self, model):
         raise NotImplementedError()
 
     @check_cores

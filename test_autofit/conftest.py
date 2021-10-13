@@ -1,6 +1,7 @@
 import os
 import shutil
 from os import path
+from pathlib import Path
 
 import pytest
 from matplotlib import pyplot
@@ -14,7 +15,46 @@ from autoconf import conf
 from autofit import database as db
 from autofit.mock import mock
 
-directory = path.dirname(path.realpath(__file__))
+directory = Path(__file__).parent
+
+
+@pytest.fixture(
+    name="test_directory",
+    scope="session"
+)
+def make_test_directory():
+    return directory
+
+
+@pytest.fixture(
+    name="output_directory",
+    scope="session"
+)
+def make_output_directory(
+        test_directory
+):
+    return test_directory / "output"
+
+
+@pytest.fixture(
+    autouse=True,
+    scope="session"
+)
+def remove_output(
+        output_directory
+):
+    yield
+    for item in os.listdir(output_directory):
+        if item != "non_linear":
+            item_path = output_directory / item
+            if item_path.is_dir():
+                shutil.rmtree(
+                    item_path
+                )
+            else:
+                os.remove(
+                    item_path
+                )
 
 
 class PlotPatch:

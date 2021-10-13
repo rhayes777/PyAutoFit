@@ -1,17 +1,19 @@
-from abc import ABC
 import logging
+from abc import ABC
 
 from autoconf import conf
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.mapper.prior_model.collection import CollectionPriorModel
 from autofit.non_linear.analysis.multiprocessing import AnalysisPool
 from autofit.non_linear.paths.abstract import AbstractPaths
+from autofit.non_linear.paths.directory import SubDirectoryPaths
 from autofit.non_linear.result import Result
 from autofit.non_linear.samples import OptimizerSamples
 
 logger = logging.getLogger(
     __name__
 )
+
 
 class Analysis(ABC):
     """
@@ -153,11 +155,9 @@ class CombinedAnalysis(Analysis):
             An object describing the paths for saving data (e.g. hard-disk directories or entries in sqlite database).
         """
         for i, analysis in enumerate(self.analyses):
-            child_paths = paths.create_child(
-                name=f"{paths.name}_{i}"
+            child_paths = paths.for_sub_analysis(
+                analysis_name=f"analysis_{i}"
             )
-            print(child_paths.output_path)
-         #   stop
             func(child_paths, analysis)
 
     def save_attributes_for_aggregator(self, paths: AbstractPaths):
@@ -229,7 +229,7 @@ class CombinedAnalysis(Analysis):
             instance,
     ):
         """
-        Profile the log likliehood function of the maximum likelihood model instance using each analysis.
+        Profile the log likelihood function of the maximum likelihood model instance using each analysis.
 
         Profiling output is distinguished by using an integer suffix for each analysis path.
 
@@ -253,7 +253,7 @@ class CombinedAnalysis(Analysis):
         )
 
     def make_result(
-        self, samples, model, search
+            self, samples, model, search
     ):
         return [analysis.make_result(samples, model, search) for analysis in self.analyses]
 
