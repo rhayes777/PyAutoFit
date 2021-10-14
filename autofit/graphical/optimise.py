@@ -23,8 +23,7 @@ from autofit.graphical.factor_graphs import (
 )
 from autofit.graphical.factor_graphs.transform import (
     identity_transform,
-    InvCholeskyTransform,
-IdentityOperator
+    InvCholeskyTransform
 )
 from autofit.graphical.mean_field import (
     MeanField,
@@ -81,10 +80,13 @@ class OptFactor:
         if bounds:
             # TODO check that this is correct for composite
             # distributions e.g. NormalGammaMessage
-            self.bounds = [
+            bounds = [
                 b for k, s in self.param_shapes.items()
                 for bound in bounds[k]
                 for b in repeat(bound, np.prod(s, dtype=int))]
+            self.bounds = self.transform.transform_bounds(
+                bounds
+            )
         else:
             self.bounds = bounds
 
