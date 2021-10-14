@@ -8,7 +8,11 @@ from autoconf.conf import output_path_for_test
 from autofit import Gaussian
 from autofit import conf
 from autofit.database import Fit
-from autofit.tools.update_identifiers import update_directory_identifiers, update_database_identifiers
+from autofit.tools.update_identifiers import (
+    update_directory_identifiers,
+    update_database_identifiers,
+    update_identifiers_from_dict
+)
 
 output_directory = Path(
     __file__
@@ -55,6 +59,36 @@ def make_old_directory_paths():
         Gaussian
     )
     return search.paths
+
+
+@output_path_for_test(
+    output_directory
+)
+def test_update_identifiers_from_dict():
+    search = af.DynestyStatic(
+        name="name"
+    )
+    search.paths.model = af.PriorModel(
+        Gaussian
+    )
+    old_directory_paths = search.paths
+    old_directory_paths.save_all()
+    old_directory_paths.zip_remove()
+
+    update_identifiers_from_dict(
+        output_directory,
+        {
+            "intensity": "magnitude"
+        }
+    )
+
+    filename, = listdir(
+        output_directory / "name"
+    )
+
+    identifier, suffix = filename.split(".")
+    assert identifier != old_directory_paths.identifier
+    assert suffix == "zip"
 
 
 @output_path_for_test(

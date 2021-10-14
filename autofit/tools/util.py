@@ -4,11 +4,29 @@ import json
 import os
 import re
 import sys
+import zipfile
 from contextlib import contextmanager
 from pathlib import Path
 from typing import List, Type
 
 import numpy as np
+
+
+def zip_directory(
+        source_directory,
+        output=None
+):
+    output = output or f"{source_directory}.zip"
+    with zipfile.ZipFile(output, "w", zipfile.ZIP_DEFLATED) as f:
+        for root, dirs, files in os.walk(source_directory):
+
+            for file in files:
+                f.write(
+                    os.path.join(root, file),
+                    os.path.join(
+                        root[len(str(source_directory)):], file
+                    ),
+                )
 
 
 def open_(filename, *flags):
