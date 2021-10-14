@@ -73,6 +73,11 @@ def test_update_identifiers_from_dict():
         Gaussian
     )
     old_directory_paths = search.paths
+
+    initial_length = len(
+        old_directory_paths._identifier.hash_list
+    )
+
     old_directory_paths.save_all()
     old_directory_paths.zip_remove()
 
@@ -101,6 +106,8 @@ def test_update_identifiers_from_dict():
         lines = f.read().split("\n")
         assert "intensity" not in lines
         assert "magnitude" in lines
+
+    assert len(lines) == initial_length
 
 
 @output_path_for_test(

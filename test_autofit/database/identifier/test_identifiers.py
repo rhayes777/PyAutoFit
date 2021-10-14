@@ -37,6 +37,15 @@ def test_identifier_version():
     )
 
 
+def test_unique_tag_is_used():
+    identifier = af.DynestyStatic(
+        "name",
+        unique_tag="tag"
+    ).paths._identifier
+
+    assert "tag" in identifier.hash_list
+
+
 def test_class_path():
     identifier = Identifier(
         Class,
