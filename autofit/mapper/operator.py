@@ -426,9 +426,14 @@ class DiagonalMatrix(LinearOperator):
         self._ldim = len(self.scale.shape)
 
     @classmethod
-    def from_dense(cls, hess):
-        pass
-        # 1/sqrt(diag(invhess)). Also apply to bounds
+    def from_dense(cls, inverse_hessian):
+        return cls(
+            np.sqrt(
+                np.diagonal(
+                    inverse_hessian
+                )
+            )
+        )
 
     @_wrap_leftop
     def __mul__(self, x):

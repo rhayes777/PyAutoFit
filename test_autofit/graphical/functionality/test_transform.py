@@ -11,12 +11,15 @@ from autofit.messages.normal import NormalMessage
 def test_diagonal_from_dense():
     matrix = transform.DiagonalMatrix.from_dense(
         np.array([
-            [1, 2],
+            [4, 2],
             [3, 4]
         ])
     )
 
     assert len(matrix.scale) == 2
+    assert (matrix.scale == np.array([
+        2, 2
+    ])).all()
 
 
 def test_cholesky_transform():
