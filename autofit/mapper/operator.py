@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from functools import wraps
-from typing import Tuple
+from typing import Tuple, List
 
 import numpy as np
 from scipy._lib._util import _asarray_validated
@@ -127,6 +127,22 @@ class LinearOperator(ABC):
 
     def invquad(self, M: np.ndarray) -> np.ndarray:
         return (M / self).T / self
+
+    def transform_bounds(
+            self,
+            bounds: List[Tuple]
+    ) -> List[Tuple]:
+        lower, upper = zip(
+            *bounds
+        )
+        lower = self * lower
+        upper = self * upper
+        return list(
+            zip(
+                lower,
+                upper
+            )
+        )
 
     def __array_ufunc__(self, ufunc, method, *inputs, **kwargs):
         if ufunc in (np.multiply, np.matmul):

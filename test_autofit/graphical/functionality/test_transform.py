@@ -22,6 +22,31 @@ def test_diagonal_from_dense():
     ])).all()
 
 
+# @pytest.mark.parametrize(
+#     "bounds, result",
+#     [
+#         ((float("-inf"), float("inf")), (float("-inf"), float("inf"))),
+#         ((0, 1), (0, 2)),
+#         ((-10, -1), (-30, -2)),
+#         ((10, 15), (30, 30)),
+#     ]
+# )
+def test_transform_bounds(
+        # bounds,
+        # result
+):
+    matrix = transform.DiagonalMatrix(
+        np.array([
+            3, 2
+        ])
+    )
+    assert matrix.transform_bounds([
+        (1, 2), (1, 2)
+    ]) == [
+               (3, 6), (2, 4)
+           ]
+
+
 def test_cholesky_transform():
     d = 10
     A = stats.wishart(d, np.eye(d)).rvs()
