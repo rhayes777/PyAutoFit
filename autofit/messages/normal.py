@@ -40,6 +40,10 @@ class NormalMessage(AbstractMessage):
             log_norm=0.0,
             id_=None
     ):
+        if sigma < 0:
+            raise AssertionError(
+                "Sigma cannot be negative"
+            )
         super().__init__(
             mean, sigma,
             log_norm=log_norm,
