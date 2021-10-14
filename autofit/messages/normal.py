@@ -40,7 +40,7 @@ class NormalMessage(AbstractMessage):
             log_norm=0.0,
             id_=None
     ):
-        if sigma < 0:
+        if (np.array(sigma) < 0).any():
             raise AssertionError(
                 "Sigma cannot be negative"
             )
