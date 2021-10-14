@@ -8,7 +8,8 @@ import dill
 
 from autoconf import conf
 from autofit.text import formatter
-from .abstract import AbstractPaths, make_path
+from autofit.tools.util import open_
+from .abstract import AbstractPaths
 from ..samples import load_from_table
 
 
@@ -48,7 +49,7 @@ class DirectoryPaths(AbstractPaths):
         obj
             A serialisable object
         """
-        with open(
+        with open_(
                 self._path_for_pickle(
                     name
                 ),
@@ -76,7 +77,7 @@ class DirectoryPaths(AbstractPaths):
         -------
         The deserialised object
         """
-        with open(
+        with open_(
                 self._path_for_pickle(
                     name
                 ),
@@ -133,7 +134,7 @@ class DirectoryPaths(AbstractPaths):
         """
         Mark the search as complete by saving a file
         """
-        open(self._has_completed_path, "w+").close()
+        open_(self._has_completed_path, "w+").close()
 
     def load_samples(self):
         return load_from_table(
@@ -148,10 +149,22 @@ class DirectoryPaths(AbstractPaths):
         samples.info_to_json(filename=self._info_file)
 
     def load_samples_info(self):
-        with open(self._info_file) as infile:
+        with open_(self._info_file) as infile:
             return json.load(infile)
 
-    def save_all(self, search_config_dict, info, pickle_files):
+    def save_all(
+            self,
+            search_config_dict=None,
+            info=None,
+            pickle_files=None
+    ):
+        search_config_dict = search_config_dict or {}
+        info = info or {}
+        pickle_files = pickle_files or []
+
+        self.save_unique_tag()
+        self.save_identifier()
+        self.save_parent_identifier()
         self._save_search(config_dict=search_config_dict)
         self._save_model_info(model=self.model)
         self._save_parameter_names_file(model=self.model)
@@ -173,8 +186,10 @@ class DirectoryPaths(AbstractPaths):
         that is then compared to searches during a grid search.
         """
         self._parent = parent
+
+    def save_parent_identifier(self):
         if self.parent is not None:
-            with open(self._parent_identifier_path, "w+") as f:
+            with open_(self._parent_identifier_path, "w+") as f:
                 f.write(
                     self.parent.identifier
                 )
@@ -221,9 +236,6 @@ class DirectoryPaths(AbstractPaths):
         -------
         A new paths object
         """
-        with open(self._grid_search_path, "w+") as f:
-            if self.unique_tag is not None:
-                f.write(self.unique_tag)
         child = type(self)(
             name=name or self.name,
             path_prefix=path_prefix or self.path_prefix,
@@ -239,29 +251,39 @@ class DirectoryPaths(AbstractPaths):
         child._identifier = identifier
         return child
 
+    def save_unique_tag(self):
+        with open_(self._grid_search_path, "w+") as f:
+            if self.unique_tag is not None:
+                f.write(self.unique_tag)
+
     def for_sub_analysis(
             self,
-            analysis_name
-    ):
+            analysis_name: str
+    ) -> "SubDirectoryPaths":
+        """
+        Paths for an analysis which is a child of another analysis.
+
+        The analysis name forms a new directory on the end of the original
+        analysis output path.
+        """
         return SubDirectoryPaths(
             parent=self,
             analysis_name=analysis_name
         )
 
     @property
-    @make_path
     def _pickle_path(self) -> str:
         """
         This is private for a reason, use the save_object etc. methods to save and load pickles
         """
-        return path.join(self._make_path(), "pickles")
+        return path.join(self.output_path, "pickles")
 
     def _save_metadata(self, search_name):
         """
         Save metadata associated with the phase, such as the name of the pipeline, the
         name of the phase and the name of the dataset being fit
         """
-        with open(path.join(self._make_path(), "metadata"), "a") as f:
+        with open_(path.join(self.output_path, "metadata"), "a") as f:
             f.write(f"""name={self.name}
             non_linear_search={search_name}
             """)
@@ -271,6 +293,10 @@ class DirectoryPaths(AbstractPaths):
         Move extra files a user has input the full path + filename of from the location specified to the
         pickles folder of the Aggregator, so that they can be accessed via the aggregator.
         """
+        os.makedirs(
+            self._pickle_path,
+            exist_ok=True
+        )
         if pickle_files is not None:
             [shutil.copy(file, self._pickle_path) for file in pickle_files]
 
@@ -278,7 +304,7 @@ class DirectoryPaths(AbstractPaths):
         """
         Save the model.info file, which summarizes every parameter and prior.
         """
-        with open(path.join(
+        with open_(path.join(
                 self.output_path,
                 "model.info"
         ), "w+") as f:
@@ -327,7 +353,6 @@ class DirectoryPaths(AbstractPaths):
         """
         return path.join(self.output_path, ".completed")
 
-    @make_path
     def _make_path(self) -> str:
         """
         Returns the path to the folder at which the metadata should be saved
@@ -370,10 +395,9 @@ class SubDirectoryPaths(DirectoryPaths):
         self.parent = parent
 
     @property
-    @make_path
     def output_path(self) -> str:
         """
         The output path is customised to place output in a named directory in
         the analyses directory.
         """
-        return f"{self.parent.output_path}/analyses/{self.analysis_name}"
+        return f"{self.parent.output_path}/{self.analysis_name}"

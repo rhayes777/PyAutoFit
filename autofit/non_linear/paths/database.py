@@ -210,6 +210,7 @@ class DatabasePaths(AbstractPaths):
         return self._load_samples().info_json
 
     def save_all(self, info, *_, **kwargs):
+        self.save_identifier()
         self.fit.info = info
         self.fit.model = self.model
 

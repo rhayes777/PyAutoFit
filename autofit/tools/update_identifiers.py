@@ -116,23 +116,37 @@ def update_directory_identifiers(
     )
     for output in aggregator:
         paths = output.search.paths
+        try:
+            os.remove(
+                f"{paths.output_path}.zip"
+            )
+        except FileNotFoundError:
+            pass
+
         source_directory = output.directory
         paths._identifier = None
+        paths.save_identifier()
         target_directory = paths.output_path
 
         logger.info(
             f"Moving output from {source_directory} to {target_directory}"
         )
 
+        os.makedirs(
+            target_directory,
+            exist_ok=True
+        )
+
         for file in os.listdir(
                 source_directory
         ):
+            target_filename = f"{target_directory}/{file}"
             if not os.path.exists(
-                    f"{target_directory}/{file}"
+                    target_filename
             ):
                 shutil.move(
                     f"{source_directory}/{file}",
-                    target_directory
+                    target_filename
                 )
 
         paths.save_object("search", output.search)
@@ -142,9 +156,6 @@ def update_directory_identifiers(
         )
 
         paths.zip_remove()
-        shutil.rmtree(
-            target_directory
-        )
 
 
 def update_database_identifiers(

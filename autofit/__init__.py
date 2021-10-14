@@ -68,7 +68,6 @@ from .non_linear.optimize.pyswarms import PySwarmsGlobal
 from .non_linear.optimize.pyswarms import PySwarmsLocal
 from .non_linear.paths import DirectoryPaths
 from .non_linear.paths import DatabasePaths
-from .non_linear.paths import make_path
 from .non_linear.result import Result
 from .non_linear.result import ResultsCollection
 from .mock.mock import Gaussian

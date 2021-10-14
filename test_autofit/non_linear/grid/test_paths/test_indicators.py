@@ -53,10 +53,12 @@ def make_grid_search(
         mapper,
         parent_search
 ):
-    return _make_grid_search(
+    search = _make_grid_search(
         mapper,
         parent_search
     )
+    search.paths.save_all()
+    return search
 
 
 @pytest.fixture(
