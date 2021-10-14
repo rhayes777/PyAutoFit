@@ -142,6 +142,28 @@ def test_update_identifiers_from_dict():
 @output_path_for_test(
     output_directory,
 )
+def test_zipped_no_change(
+        old_directory_paths
+):
+    old_directory_paths.save_all()
+    old_directory_paths.zip_remove()
+
+    update_directory_identifiers(
+        output_directory
+    )
+
+    filename, = listdir(
+        output_directory / "name"
+    )
+
+    identifier, suffix = filename.split(".")
+    assert identifier == old_directory_paths.identifier
+    assert suffix == "zip"
+
+
+@output_path_for_test(
+    output_directory,
+)
 def test_zipped(
         old_directory_paths
 ):
