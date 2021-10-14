@@ -1,3 +1,5 @@
+from random import random
+
 import dill
 import numpy as np
 import pytest
@@ -51,13 +53,14 @@ def test_projected_model():
         [
             af.Sample(
                 -1.0, -1.0,
-                weight=0.1,
+                weight=random(),
                 kwargs={
-                    ("centre",): 0.5,
-                    ("intensity",): 0.5,
-                    ("sigma",): 0.5,
+                    ("centre",): random(),
+                    ("intensity",): random(),
+                    ("sigma",): random(),
                 }
             )
+            for _ in range(100)
         ]
     )
     result = af.Result(
