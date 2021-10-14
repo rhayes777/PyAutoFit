@@ -65,6 +65,35 @@ def make_old_directory_paths():
 @output_path_for_test(
     output_directory
 )
+def test_update_identifiers_from_dict_no_change():
+    search = af.DynestyStatic(
+        name="name"
+    )
+    search.paths.model = af.PriorModel(
+        Gaussian
+    )
+    old_directory_paths = search.paths
+
+    old_directory_paths.save_all()
+    old_directory_paths.zip_remove()
+
+    update_identifiers_from_dict(
+        output_directory,
+        {}
+    )
+
+    filename, = listdir(
+        output_directory / "name"
+    )
+
+    identifier, suffix = filename.split(".")
+    assert identifier == old_directory_paths.identifier
+    assert suffix == "zip"
+
+
+@output_path_for_test(
+    output_directory
+)
 def test_update_identifiers_from_dict():
     search = af.DynestyStatic(
         name="name"
@@ -108,6 +137,28 @@ def test_update_identifiers_from_dict():
         assert "magnitude" in lines
 
     assert len(lines) == initial_length
+
+
+@output_path_for_test(
+    output_directory,
+)
+def test_zipped_no_change(
+        old_directory_paths
+):
+    old_directory_paths.save_all()
+    old_directory_paths.zip_remove()
+
+    update_directory_identifiers(
+        output_directory
+    )
+
+    filename, = listdir(
+        output_directory / "name"
+    )
+
+    identifier, suffix = filename.split(".")
+    assert identifier == old_directory_paths.identifier
+    assert suffix == "zip"
 
 
 @output_path_for_test(
