@@ -68,6 +68,13 @@ def update_identifiers_from_dict(
     )
     for output in aggregator:
         directory = output.directory
+
+        def remove_source():
+            shutil.rmtree(
+                directory,
+                ignore_errors=True
+            )
+
         print(f"Processing {directory}")
         identifier_filename = f"{directory}/.identifier"
         with open(identifier_filename) as f:
@@ -83,6 +90,14 @@ def update_identifiers_from_dict(
         new_identifier = md5(".".join(
             hash_list
         ).encode("utf-8")).hexdigest()
+
+        if new_identifier == output.search.paths.identifier:
+            logger.warning(
+                f"Skipping {directory} as there is no change"
+            )
+            remove_source()
+            continue
+
         new_directory = Path(
             directory
         ).parent / new_identifier
@@ -129,10 +144,7 @@ def update_identifiers_from_dict(
         shutil.rmtree(
             new_directory
         )
-        shutil.rmtree(
-            directory,
-            ignore_errors=True
-        )
+        remove_source()
         try:
             os.remove(
                 f"{directory}.zip"
