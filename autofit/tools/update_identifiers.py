@@ -71,7 +71,7 @@ def update_identifiers_from_dict(
         print(f"Processing {directory}")
         identifier_filename = f"{directory}/.identifier"
         with open(identifier_filename) as f:
-            hash_list = f.read().split("\n")[:-1]
+            hash_list = f.read().split("\n")
 
         for i in range(len(hash_list)):
             string = hash_list[i]
