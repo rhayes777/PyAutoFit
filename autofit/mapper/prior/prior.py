@@ -74,6 +74,10 @@ class UniformPrior(WrappedInstance):
             id_=None,
             params=(0.0, 1.0)
     ):
+        if any(map(np.isnan, params)):
+            raise AssertionError(
+                "nan parameter passed to UniformPrior"
+            )
         lower_limit = float(lower_limit)
         upper_limit = float(upper_limit)
 

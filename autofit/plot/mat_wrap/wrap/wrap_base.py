@@ -1,8 +1,9 @@
-from autoconf import conf
 import matplotlib
 
-def set_backend():
+from autoconf import conf
 
+
+def set_backend():
     backend = conf.get_matplotlib_backend()
 
     if backend not in "default":
@@ -30,10 +31,10 @@ from autofit import exc
 
 class Units:
     def __init__(
-        self,
-        use_scaled: bool = None,
-        conversion_factor: float = None,
-        in_kpc: bool = None,
+            self,
+            use_scaled: bool = None,
+            conversion_factor: float = None,
+            in_kpc: bool = None,
     ):
         """
         This object controls the units of a plotted figure, and performs multiple tasks when making the plot:
@@ -197,7 +198,7 @@ class Figure(AbstractMatWrap):
             return 1.0
 
     def aspect_from(
-        self, shape_native: typing.Union[typing.Tuple[int, int]]
+            self, shape_native: typing.Union[typing.Tuple[int, int]]
     ) -> typing.Union[float, str]:
         """
         Returns the aspect ratio of the figure from the 2D shape of a data structure.
@@ -352,10 +353,10 @@ class Cmap(AbstractMatWrap):
 
 class Colorbar(AbstractMatWrap):
     def __init__(
-        self,
-        manual_tick_labels: typing.Optional[typing.List[float]] = None,
-        manual_tick_values: typing.Optional[typing.List[float]] = None,
-        **kwargs,
+            self,
+            manual_tick_labels: typing.Optional[typing.List[float]] = None,
+            manual_tick_values: typing.Optional[typing.List[float]] = None,
+            **kwargs,
     ):
         """
         Customizes the colorbar of the plotted figure.
@@ -387,7 +388,7 @@ class Colorbar(AbstractMatWrap):
         if self.manual_tick_values is None and self.manual_tick_labels is None:
             cb = plt.colorbar(**self.config_dict)
         elif (
-            self.manual_tick_values is not None and self.manual_tick_labels is not None
+                self.manual_tick_values is not None and self.manual_tick_labels is not None
         ):
             cb = plt.colorbar(ticks=self.manual_tick_values, **self.config_dict)
             cb.ax.set_yticklabels(labels=self.manual_tick_labels)
@@ -421,7 +422,7 @@ class Colorbar(AbstractMatWrap):
         if self.manual_tick_values is None and self.manual_tick_labels is None:
             plt.colorbar(mappable=cax, **self.config_dict)
         elif (
-            self.manual_tick_values is not None and self.manual_tick_labels is not None
+                self.manual_tick_values is not None and self.manual_tick_labels is not None
         ):
             cb = plt.colorbar(
                 mappable=cax, ticks=self.manual_tick_values, **self.config_dict
@@ -439,7 +440,6 @@ class ColorbarTickParams(AbstractMatWrap):
      """
 
     def set(self, cb):
-
         cb.ax.tick_params(**self.config_dict)
 
 
@@ -459,7 +459,7 @@ class TickParams(AbstractMatWrap):
 
 class AbstractTicks(AbstractMatWrap):
     def __init__(
-        self, manual_values: typing.Optional[typing.List[float]] = None, **kwargs
+            self, manual_values: typing.Optional[typing.List[float]] = None, **kwargs
     ):
         """
         The settings used to customize a figure's y and x ticks using the `YTicks` and `XTicks` objects.
@@ -496,7 +496,7 @@ class AbstractTicks(AbstractMatWrap):
             return np.linspace(min_value, max_value, 5)
 
     def tick_values_in_units_from(
-        self, array: np.ndarray, min_value: float, max_value: float, units: Units
+            self, array: np.ndarray, min_value: float, max_value: float, units: Units
     ) -> typing.Optional[np.ndarray]:
         """
         Calculate the labels used for the yticks or xticks from input values of the minimum and maximum coordinate
@@ -541,11 +541,11 @@ class AbstractTicks(AbstractMatWrap):
 
 class YTicks(AbstractTicks):
     def set(
-        self,
-        array: typing.Optional[np.ndarray],
-        min_value: float,
-        max_value: float,
-        units: Units,
+            self,
+            array: typing.Optional[np.ndarray],
+            min_value: float,
+            max_value: float,
+            units: Units,
     ):
         """
         Set the y ticks of a figure using the shape of an input `Array2D` object and input units.
@@ -571,11 +571,11 @@ class YTicks(AbstractTicks):
 
 class XTicks(AbstractTicks):
     def set(
-        self,
-        array: typing.Optional[np.ndarray],
-        min_value: float,
-        max_value: float,
-        units: Units,
+            self,
+            array: typing.Optional[np.ndarray],
+            min_value: float,
+            max_value: float,
+            units: Units,
     ):
         """
         Set the x ticks of a figure using the shape of an input `Array2D` object and input units.
@@ -777,11 +777,11 @@ class Legend(AbstractMatWrap):
 
 class Output:
     def __init__(
-        self,
-        path: str = None,
-        filename: str = None,
-        format: str = None,
-        bypass: bool = False,
+            self,
+            path: str = None,
+            filename: str = None,
+            format: str = None,
+            bypass: bool = False,
     ):
         """
         Sets how the figure or subplot is output, either by displaying it on the screen or writing it to hard-disk.
@@ -809,10 +809,10 @@ class Output:
         self.path = path
 
         if path is not None and path:
-            try:
-                os.makedirs(path)
-            except FileExistsError:
-                pass
+            os.makedirs(
+                path,
+                exist_ok=True
+            )
 
         self.filename = filename
         self._format = format
@@ -826,9 +826,9 @@ class Output:
             return self._format
 
     def to_figure(
-        self,
-        structure,
-        auto_filename=None,
+            self,
+            structure,
+            auto_filename=None,
     ):
         """Output the figure, by either displaying it on the user's screen or to the hard-disk as a .png or .fits file.
 
@@ -870,7 +870,6 @@ class Output:
 
 
 def remove_spaces_and_commas_from(colors):
-
     colors = [color.strip(",") for color in colors]
     colors = [color.strip(" ") for color in colors]
     colors = list(filter(None, colors))

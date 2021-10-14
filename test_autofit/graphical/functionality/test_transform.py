@@ -8,6 +8,57 @@ from autofit.mapper.variable import Variable, Plate
 from autofit.messages.normal import NormalMessage
 
 
+def test_diagonal_from_dense():
+    matrix = transform.DiagonalMatrix.from_dense(
+        np.array([
+            [4, 2],
+            [3, 4]
+        ])
+    )
+
+    assert len(matrix.scale) == 2
+    assert (matrix.scale == np.array([
+        2, 2
+    ])).all()
+
+
+@pytest.mark.parametrize(
+    "bounds, result",
+    [
+        ([
+             (1, 2), (1, 2)
+         ],
+         [
+             (3, 6), (2, 4)
+         ]),
+        ([
+             (np.inf, np.inf), (np.inf, np.inf)
+         ],
+         [
+             (np.inf, np.inf), (np.inf, np.inf)
+         ]),
+        ([
+             (-2, -1), (0, 2)
+         ],
+         [
+             (-6, -3), (0, 4)
+         ]),
+    ]
+)
+def test_transform_bounds(
+        bounds,
+        result
+):
+    matrix = transform.DiagonalMatrix(
+        np.array([
+            3, 2
+        ])
+    )
+    assert matrix.transform_bounds(
+        bounds
+    ) == result
+
+
 def test_cholesky_transform():
     d = 10
     A = stats.wishart(d, np.eye(d)).rvs()

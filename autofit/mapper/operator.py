@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from functools import wraps
-from typing import Tuple
+from typing import Tuple, List
 
 import numpy as np
 from scipy._lib._util import _asarray_validated
@@ -127,6 +127,39 @@ class LinearOperator(ABC):
 
     def invquad(self, M: np.ndarray) -> np.ndarray:
         return (M / self).T / self
+
+    def transform_bounds(
+            self,
+            bounds: List[Tuple]
+    ) -> List[Tuple]:
+        """
+        Convenience method for transforming the bounds of an
+        operation by this matrix.
+
+        Parameters
+        ----------
+        bounds
+            A list of tuples, each describing the lower and upper
+            bound for a given dimension.
+
+            There should be N bounds corresponding to N dimensions
+            for this NxN matrix.
+
+        Returns
+        -------
+        The bounds transformed according to this transformation.
+        """
+        lower, upper = zip(
+            *bounds
+        )
+        lower = self * lower
+        upper = self * upper
+        return list(
+            zip(
+                lower,
+                upper
+            )
+        )
 
     def __array_ufunc__(self, ufunc, method, *inputs, **kwargs):
         if ufunc in (np.multiply, np.matmul):
@@ -424,6 +457,35 @@ class DiagonalMatrix(LinearOperator):
             else np.ravel(inv_scale)
         )
         self._ldim = len(self.scale.shape)
+
+    @classmethod
+    def from_dense(
+            cls,
+            inverse_hessian: np.ndarray
+    ) -> "DiagonalMatrix":
+        """
+        Create a diagonal matrix from the inverse hessian.
+
+        The matrix transforms parameter space by some coefficient
+        in each dimension.
+
+        Parameters
+        ----------
+        inverse_hessian
+            The inverse hessian determined during an optimisation
+
+        Returns
+        -------
+        A DiagonalMatrix which whitens the parameter space according to
+        the hessian
+        """
+        return cls(
+            np.sqrt(
+                np.diagonal(
+                    inverse_hessian
+                )
+            )
+        )
 
     @_wrap_leftop
     def __mul__(self, x):
