@@ -130,7 +130,8 @@ def update_identifiers_from_dict(
             new_directory
         )
         shutil.rmtree(
-            directory
+            directory,
+            ignore_errors=True
         )
         try:
             os.remove(
