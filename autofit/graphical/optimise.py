@@ -21,10 +21,7 @@ from autofit.graphical.factor_graphs import (
     Factor,
     JacobianValue
 )
-from autofit.graphical.factor_graphs.transform import (
-    identity_transform,
-    InvCholeskyTransform
-)
+from autofit.graphical.factor_graphs import transform as t
 from autofit.graphical.mean_field import (
     MeanField,
     FactorApproximation,
@@ -62,7 +59,7 @@ class OptFactor:
 
         self.jac = jac
 
-        self.transform = identity_transform if transform is None else transform
+        self.transform = t.identity_transform if transform is None else transform
         self.param_bounds = bounds
         self.free_vars = tuple(self.param_shapes.keys())
         self.deterministic_variables = self.factor.deterministic_variables
@@ -291,7 +288,7 @@ class LaplaceFactorOptimiser(AbstractFactorOptimiser):
             initial_values=None,
             opt_kws=None,
             default_opt_kws=None,
-            transform_cls=InvCholeskyTransform
+            transform_cls=t.InvCholeskyTransform
     ):
 
         self.whiten_optimiser = whiten_optimiser
@@ -299,7 +296,7 @@ class LaplaceFactorOptimiser(AbstractFactorOptimiser):
         if initial_values:
             self.initial_values.update(initial_values)
 
-        self.transforms = defaultdict(lambda: identity_transform)
+        self.transforms = defaultdict(lambda: t.identity_transform)
         if transforms:
             self.transforms.update(transforms)
 

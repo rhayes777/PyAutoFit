@@ -3,6 +3,7 @@ import pytest
 
 import autofit as af
 import autofit.graphical as ep
+from autofit.mapper.operator import DiagonalMatrix
 from test_autofit.graphical.gaussian.model import Gaussian, make_data, Analysis
 
 
@@ -153,7 +154,9 @@ def test_gaussian():
         )
     )
 
-    laplace = ep.LaplaceFactorOptimiser()
+    laplace = ep.LaplaceFactorOptimiser(
+        transform_cls=DiagonalMatrix
+    )
     model = factor_model.optimise(laplace)
 
     assert model.centre.mean == pytest.approx(50, rel=0.1)
