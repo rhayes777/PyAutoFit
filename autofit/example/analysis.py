@@ -36,7 +36,7 @@ class Analysis(af.Analysis):
 
         try:
             model_data = sum(
-                [line.profile_from_xvalues(xvalues=xvalues) for line in instance]
+                line.profile_from_xvalues(xvalues=xvalues) for line in instance
             )
         except TypeError:
             model_data = instance.profile_from_xvalues(xvalues=xvalues)
@@ -59,7 +59,7 @@ class Analysis(af.Analysis):
 
         try:
             model_data = sum(
-                [line.profile_from_xvalues(xvalues=xvalues) for line in instance]
+                line.profile_from_xvalues(xvalues=xvalues) for line in instance
             )
         except TypeError:
             model_data = instance.profile_from_xvalues(xvalues=xvalues)
