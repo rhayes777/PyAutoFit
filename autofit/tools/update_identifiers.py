@@ -91,11 +91,20 @@ def update_identifiers_from_dict(
             hash_list
         ).encode("utf-8")).hexdigest()
 
-        if new_identifier == output.search.paths.identifier:
+
+        old_identifier = os.path.split(identifier_filename)[0]
+        old_identifier = os.path.split(old_identifier)[-1]
+
+     #   if new_identifier == output.search.paths.identifier:
+        if new_identifier == old_identifier:
             logger.warning(
                 f"Skipping {directory} as there is no change"
             )
-            remove_source()
+
+            zip_file = f"{os.path.split(identifier_filename)[0]}.zip"
+
+            if os.path.exists(zip_file):
+                remove_source()
             continue
 
         new_directory = Path(
