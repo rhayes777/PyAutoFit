@@ -129,7 +129,7 @@ def test_trivial():
     assert model.value.mean == pytest.approx(14, rel=0.1)
 
 
-def test_gaussian():
+def _test_gaussian():
     n_observations = 100
     x = np.arange(n_observations)
     y = make_data(Gaussian(centre=50.0, intensity=25.0, sigma=10.0), x)
@@ -152,10 +152,10 @@ def test_gaussian():
         )
     )
 
-    # optimiser = ep.LaplaceFactorOptimiser(
-    #     transform_cls=DiagonalMatrix
-    # )
-    optimiser = af.DynestyStatic()
+    optimiser = ep.LaplaceFactorOptimiser(
+        transform_cls=DiagonalMatrix
+    )
+    # optimiser = af.DynestyStatic()
     model = factor_model.optimise(optimiser)
 
     assert model.centre.mean == pytest.approx(50, rel=0.1)
