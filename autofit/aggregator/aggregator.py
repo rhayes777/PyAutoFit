@@ -243,7 +243,7 @@ class AbstractAggregator:
 class Aggregator(AbstractAggregator):
     def __init__(
             self,
-            directory: str,
+            directory: Union[str, os.PathLike],
             completed_only=False
     ):
         """

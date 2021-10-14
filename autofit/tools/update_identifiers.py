@@ -3,6 +3,7 @@ import os
 import shutil
 from hashlib import md5
 from pathlib import Path
+from typing import Union
 
 import yaml
 from sqlalchemy.orm import Session
@@ -10,6 +11,7 @@ from sqlalchemy.orm import Session
 from autofit.aggregator import Aggregator as ClassicAggregator
 from autofit.database.aggregator import Aggregator as DatabaseAggregator
 from autofit.non_linear.paths.database import DatabasePaths
+from autofit.tools.util import zip_directory
 
 logger = logging.getLogger(
     __name__
@@ -17,7 +19,7 @@ logger = logging.getLogger(
 
 
 def update_identifiers_from_file(
-        output_directory: str,
+        output_directory: Union[str, os.PathLike],
         map_filename: str
 ):
     """
@@ -37,6 +39,30 @@ def update_identifiers_from_file(
     with open(map_filename) as f:
         field_map = yaml.safe_load(f)
 
+    update_identifiers_from_dict(
+        output_directory,
+        field_map
+    )
+
+
+def update_identifiers_from_dict(
+        output_directory: Union[str, os.PathLike],
+        field_map: dict
+):
+    """
+    Update identifiers in a given directory by loading and modifying their
+    identifier files.
+
+    This is necessary when a change to source code means that pickles can no
+    longer be loaded. Searches must also be re-run to replace pickles.
+
+    Parameters
+    ----------
+    output_directory
+        A directory containing output results
+    field_map
+        A dictionary mapping old fields to new
+    """
     aggregator = ClassicAggregator(
         output_directory
     )
@@ -57,11 +83,9 @@ def update_identifiers_from_file(
         new_identifier = md5(".".join(
             hash_list
         ).encode("utf-8")).hexdigest()
-        new_directory = str(
-            Path(
-                directory
-            ).parent / new_identifier
-        )
+        new_directory = Path(
+            directory
+        ).parent / new_identifier
 
         print(
             f"Moving output from {directory} to {new_directory}"
@@ -81,20 +105,44 @@ def update_identifiers_from_file(
                 print(f"Skipping {file}")
                 continue
             if not os.path.exists(
-                    f"{new_directory}/{file}"
+                    new_directory / file
             ):
                 shutil.move(
                     f"{directory}/{file}",
                     new_directory
                 )
 
-        shutil.rmtree(
-            directory
+        with open(
+            new_directory / ".identifier",
+            "w+"
+        ) as f:
+            f.write(
+                "\n".join(
+                    hash_list
+                )
+            )
+
+        zip_directory(
+            new_directory
         )
+
+        shutil.rmtree(
+            new_directory
+        )
+        shutil.rmtree(
+            directory,
+            ignore_errors=True
+        )
+        try:
+            os.remove(
+                f"{directory}.zip"
+            )
+        except FileNotFoundError:
+            pass
 
 
 def update_directory_identifiers(
-        output_directory: str
+        output_directory: Union[str, os.PathLike]
 ):
     """
     Update identifiers in a given directory.

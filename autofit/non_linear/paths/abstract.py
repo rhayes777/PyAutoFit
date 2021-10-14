@@ -13,7 +13,7 @@ from autoconf import conf
 from autofit.mapper import link
 from autofit.mapper.identifier import Identifier, IdentifierField
 from autofit.text import text_util
-from autofit.tools.util import open_
+from autofit.tools.util import open_, zip_directory
 
 logger = logging.getLogger(
     __name__
@@ -263,16 +263,10 @@ class AbstractPaths(ABC):
     def _zip(self):
 
         try:
-            with zipfile.ZipFile(self._zip_path, "w", zipfile.ZIP_DEFLATED) as f:
-                for root, dirs, files in os.walk(self.output_path):
-
-                    for file in files:
-                        f.write(
-                            path.join(root, file),
-                            path.join(
-                                root[len(self.output_path):], file
-                            ),
-                        )
+            zip_directory(
+                self.output_path,
+                self._zip_path
+            )
 
             if self.remove_files:
                 if os.path.exists(
