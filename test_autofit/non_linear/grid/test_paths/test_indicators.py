@@ -9,7 +9,9 @@ from test_autofit.non_linear.grid.test_optimizer_grid_search import MockOptimize
     name="parent_search"
 )
 def make_parent_search():
-    return af.DynestyStatic()
+    return af.DynestyStatic(
+        "parent"
+    )
 
 
 @pytest.fixture(
