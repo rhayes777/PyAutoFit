@@ -1,3 +1,4 @@
+import zipfile
 from os import listdir
 from pathlib import Path
 
@@ -89,6 +90,17 @@ def test_update_identifiers_from_dict():
     identifier, suffix = filename.split(".")
     assert identifier != old_directory_paths.identifier
     assert suffix == "zip"
+
+    unzipped = output_directory / "unzipped"
+    with zipfile.ZipFile(output_directory / "name" / filename, "r") as f:
+        f.extractall(unzipped)
+
+    with open(
+            unzipped / ".identifier"
+    ) as f:
+        lines = f.read().split("\n")
+        assert "intensity" not in lines
+        assert "magnitude" in lines
 
 
 @output_path_for_test(

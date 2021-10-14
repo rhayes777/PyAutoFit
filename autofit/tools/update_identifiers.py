@@ -112,6 +112,16 @@ def update_identifiers_from_dict(
                     new_directory
                 )
 
+        with open(
+            new_directory / ".identifier",
+            "w+"
+        ) as f:
+            f.write(
+                "\n".join(
+                    hash_list
+                )
+            )
+
         zip_directory(
             new_directory
         )
