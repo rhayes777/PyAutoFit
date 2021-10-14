@@ -100,8 +100,6 @@ def _test_optimise_factor_model(
 
 
 def test_trivial():
-    # gaussian pass with dynesty but uniform fail
-
     prior = af.UniformPrior(
         lower_limit=10,
         upper_limit=20
@@ -121,8 +119,8 @@ def test_trivial():
         analysis=TrivialAnalysis()
     )
 
-    # optimiser = ep.LaplaceFactorOptimiser()
-    optimiser = af.DynestyStatic(maxcall=10)
+    optimiser = ep.LaplaceFactorOptimiser()
+    # optimiser = af.DynestyStatic()
     model = factor_model.optimise(
         optimiser
     )
@@ -139,12 +137,12 @@ def test_gaussian():
 
     prior_model = af.PriorModel(
         Gaussian,
-        centre=af.GaussianPrior(mean=50, sigma=10),
-        intensity=af.GaussianPrior(mean=25, sigma=10),
+        # centre=af.GaussianPrior(mean=50, sigma=10),
+        # intensity=af.GaussianPrior(mean=25, sigma=10),
         sigma=af.GaussianPrior(mean=10, sigma=10),
-        # centre=af.UniformPrior(lower_limit=30, upper_limit=70),
-        # intensity=af.UniformPrior(lower_limit=15, upper_limit=35),
-        # sigma=af.UniformPrior(lower_limit=0, upper_limit=20),
+        centre=af.UniformPrior(lower_limit=30, upper_limit=70),
+        intensity=af.UniformPrior(lower_limit=15, upper_limit=35),
+        # sigma=af.UniformPrior(lower_limit=5, upper_limit=15),
     )
 
     factor_model = ep.AnalysisFactor(

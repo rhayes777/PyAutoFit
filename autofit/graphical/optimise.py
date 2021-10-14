@@ -23,7 +23,8 @@ from autofit.graphical.factor_graphs import (
 )
 from autofit.graphical.factor_graphs.transform import (
     identity_transform,
-    InvCholeskyTransform
+    InvCholeskyTransform,
+IdentityOperator
 )
 from autofit.graphical.mean_field import (
     MeanField,

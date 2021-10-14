@@ -8,6 +8,17 @@ from autofit.mapper.variable import Variable, Plate
 from autofit.messages.normal import NormalMessage
 
 
+def test_diagonal_from_dense():
+    matrix = transform.DiagonalMatrix.from_dense(
+        np.array([
+            [1, 2],
+            [3, 4]
+        ])
+    )
+
+    assert len(matrix.scale) == 2
+
+
 def test_cholesky_transform():
     d = 10
     A = stats.wishart(d, np.eye(d)).rvs()
