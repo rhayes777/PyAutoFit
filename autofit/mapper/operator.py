@@ -132,6 +132,23 @@ class LinearOperator(ABC):
             self,
             bounds: List[Tuple]
     ) -> List[Tuple]:
+        """
+        Convenience method for transforming the bounds of an
+        operation by this matrix.
+
+        Parameters
+        ----------
+        bounds
+            A list of tuples, each describing the lower and upper
+            bound for a given dimension.
+
+            There should be N bounds corresponding to N dimensions
+            for this NxN matrix.
+
+        Returns
+        -------
+        The bounds transformed according to this transformation.
+        """
         lower, upper = zip(
             *bounds
         )
@@ -442,7 +459,26 @@ class DiagonalMatrix(LinearOperator):
         self._ldim = len(self.scale.shape)
 
     @classmethod
-    def from_dense(cls, inverse_hessian):
+    def from_dense(
+            cls,
+            inverse_hessian: np.ndarray
+    ) -> "DiagonalMatrix":
+        """
+        Create a diagonal matrix from the inverse hessian.
+
+        The matrix transforms parameter space by some coefficient
+        in each dimension.
+
+        Parameters
+        ----------
+        inverse_hessian
+            The inverse hessian determined during an optimisation
+
+        Returns
+        -------
+        A DiagonalMatrix which whitens the parameter space according to
+        the hessian
+        """
         return cls(
             np.sqrt(
                 np.diagonal(
