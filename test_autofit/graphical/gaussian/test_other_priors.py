@@ -129,7 +129,7 @@ def test_trivial():
     assert model.value.mean == pytest.approx(14, rel=0.1)
 
 
-def test_gaussian():
+def _test_gaussian():
     n_observations = 100
     x = np.arange(n_observations)
     y = make_data(Gaussian(centre=50.0, intensity=25.0, sigma=10.0), x)
