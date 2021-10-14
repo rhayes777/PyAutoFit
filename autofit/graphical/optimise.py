@@ -289,6 +289,7 @@ class LaplaceFactorOptimiser(AbstractFactorOptimiser):
             initial_values=None,
             opt_kws=None,
             default_opt_kws=None,
+            transform_cls=InvCholeskyTransform
     ):
 
         self.whiten_optimiser = whiten_optimiser
@@ -308,6 +309,8 @@ class LaplaceFactorOptimiser(AbstractFactorOptimiser):
         self.opt_kws = defaultdict(self.default_opt_kws.copy)
         if opt_kws:
             self.opt_kws.update(opt_kws)
+
+        self.transform_cls = transform_cls
 
     def optimise(
             self,
@@ -334,8 +337,9 @@ class LaplaceFactorOptimiser(AbstractFactorOptimiser):
             res.mode, opt.free_vars, axis=None)
         update_det_cov(res, jacobian)
 
-        self.transforms[factor] = InvCholeskyTransform.from_dense(
-            res.full_hess_inv)
+        self.transforms[factor] = self.transform_cls.from_dense(
+            res.full_hess_inv
+        )
 
         # Project Laplace's approximation
         new_model_dist = factor_approx.model_dist.project_mode(res)
