@@ -114,11 +114,12 @@ class MockSamples(PDFSamples):
 
 
 class MockSearch(NonLinearSearch):
-    def __init__(self, samples=None, result=None, name=""):
+    def __init__(self, samples=None, result=None, name="", prior_passer=None):
         super().__init__(name=name)
 
         self.samples = samples or MockSamples()
         self.result = result or MockResult(samples=samples)
+        self.prior_passer = prior_passer
 
     def _fit(self, model, analysis, log_likelihood_cap=None):
         class Fitness:
