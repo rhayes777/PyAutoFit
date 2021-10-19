@@ -352,3 +352,59 @@ def test__identifier_description():
     assert description[i] == "0.5"; i+=1
     assert description[i] == "sigma"; i+=1
     assert description[i] == "2.0"; i+=1
+
+
+def test__identifier_description_after_take_attributes():
+
+    model = af.CollectionPriorModel(
+        gaussian=af.PriorModel(
+            Gaussian,
+            centre=af.UniformPrior(lower_limit=0.0, upper_limit=1.0),
+            intensity = af.LogUniformPrior(lower_limit=0.001, upper_limit=0.01),
+            sigma=af.GaussianPrior(mean=0.5, sigma=2.0, lower_limit=-1.0, upper_limit=1.0),
+        )
+    )
+
+    instance = model.instance_from_prior_medians()
+
+    model.take_attributes(source=model)
+
+    identifier = Identifier([model])
+
+    print(identifier.description)
+
+    description = identifier.description.splitlines()
+
+    # THIS TEST FAILS DUE TO THE BUG DESCRIBED IN A GITHUB ISSUE.
+
+    i=0
+
+    assert description[i] == "CollectionPriorModel"; i+=1
+    assert description[i] == "item_number"; i+=1
+    assert description[i] == "0"; i+=1
+    assert description[i] == "gaussian"; i+=1
+    assert description[i] == "PriorModel"; i+=1
+    assert description[i] == "cls"; i+=1
+    assert description[i] == "autofit.mock.mock.Gaussian"; i+=1
+    assert description[i] == "centre"; i+=1
+    assert description[i] == "UniformPrior"; i+=1
+    assert description[i] == "lower_limit"; i+=1
+    assert description[i] == "0.0"; i+=1
+    assert description[i] == "upper_limit"; i+=1
+    assert description[i] == "1.0"; i+=1
+    assert description[i] == "intensity"; i+=1
+    assert description[i] == "LogUniformPrior"; i+=1
+    assert description[i] == "lower_limit"; i+=1
+    assert description[i] == "0.001"; i+=1
+    assert description[i] == "upper_limit"; i+=1
+    assert description[i] == "0.01"; i+=1
+    assert description[i] == "sigma"; i+=1
+    assert description[i] == "GaussianPrior"; i+=1
+    assert description[i] == "lower_limit"; i+=1
+    assert description[i] == "-1.0"; i+=1
+    assert description[i] == "upper_limit"; i+=1
+    assert description[i] == "1.0"; i+=1
+    assert description[i] == "mean"; i+=1
+    assert description[i] == "0.5"; i+=1
+    assert description[i] == "sigma"; i+=1
+    assert description[i] == "2.0"; i+=1
