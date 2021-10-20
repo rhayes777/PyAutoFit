@@ -606,12 +606,16 @@ class AbstractMessage(Prior, ABC):
             parameters: Tuple[np.ndarray, ...],
             log_norm: float,
             id_,
+            lower_limit,
+            upper_limit,
             *args
     ):
         return cls(
             *parameters,
             log_norm=log_norm,
-            id_=id_
+            id_=id_,
+            lower_limit=lower_limit,
+            upper_limit=upper_limit
         )
 
     def __reduce__(self):
@@ -621,7 +625,9 @@ class AbstractMessage(Prior, ABC):
             (
                 self.parameters,
                 self.log_norm,
-                self.id
+                self.id,
+                self.lower_limit,
+                self.upper_limit
             ),
         )
 

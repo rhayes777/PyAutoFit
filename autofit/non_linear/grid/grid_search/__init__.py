@@ -264,8 +264,13 @@ class GridSearch:
                 save_results()
 
         save_results()
+        self.save_metadata()
 
         return make_grid_search_result()
+
+    def save_metadata(self):
+        self.paths.save_parent_identifier()
+        self.paths.save_unique_tag()
 
     def make_jobs(self, model, analysis, grid_priors, info: Optional[Dict] = None):
         grid_priors = list(set(grid_priors))
