@@ -119,7 +119,9 @@ class MockSearch(NonLinearSearch):
 
         self.samples = samples or MockSamples()
         self.result = result or MockResult(samples=samples)
-        self.prior_passer = prior_passer
+
+        if prior_passer is not None:
+            self.prior_passer = prior_passer
 
     def _fit(self, model, analysis, log_likelihood_cap=None):
         class Fitness:
