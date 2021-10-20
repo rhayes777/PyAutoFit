@@ -1,6 +1,10 @@
+from pathlib import Path
+
 import pytest
 
 import autofit as af
+from autoconf.conf import output_path_for_test
+from autofit.database.aggregator.scrape import Scraper
 from autofit.mock.mock import MockAnalysis
 from test_autofit.non_linear.grid.test_optimizer_grid_search import MockOptimizer
 
@@ -9,9 +13,16 @@ from test_autofit.non_linear.grid.test_optimizer_grid_search import MockOptimize
     name="parent_search"
 )
 def make_parent_search():
-    return af.DynestyStatic(
+    search = af.MockSearch(
         "parent"
     )
+    search.fit(
+        model=af.Model(
+            af.Gaussian
+        ),
+        analysis=MockAnalysis()
+    )
+    return search
 
 
 @pytest.fixture(
@@ -126,6 +137,31 @@ class TestDirectory:
             grid_search
     ):
         assert grid_search.paths.is_grid_search
+
+
+output_directory = Path(
+    __file__
+).parent / "output"
+
+
+@output_path_for_test(
+    output_directory
+)
+def test_scrape(
+        grid_search,
+        parent_search,
+        session
+):
+    grid_search.save_metadata()
+    parent_search.paths.save_all()
+
+    Scraper(
+        directory=output_directory,
+        session=session
+    ).scrape()
+
+    aggregator = af.Aggregator(session)
+    assert len(aggregator) == 2
 
 
 class TestDatabase:

@@ -2,7 +2,7 @@ import logging
 import os
 import pickle
 from pathlib import Path
-from typing import Optional
+from typing import Optional, Union
 
 from sqlalchemy.orm import Session
 from sqlalchemy.orm.exc import NoResultFound
@@ -33,7 +33,7 @@ def _parent_identifier(
 class Scraper:
     def __init__(
             self,
-            directory: str,
+            directory: Union[Path, str],
             session: Session
     ):
         """
@@ -97,8 +97,10 @@ class Scraper:
 
             try:
                 instance = samples.max_log_likelihood_instance
+                max_log_likelihood = instance.log_likelihood
             except (AttributeError, NotImplementedError):
                 instance = None
+                max_log_likelihood = None
 
             identifier = _make_identifier(item)
 
@@ -124,7 +126,7 @@ class Scraper:
                     instance=instance,
                     is_complete=is_complete,
                     info=item.info,
-                    max_log_likelihood=samples.max_log_likelihood_sample.log_likelihood,
+                    max_log_likelihood=max_log_likelihood,
                     parent_id=parent_identifier
                 )
 
@@ -154,7 +156,7 @@ class Scraper:
             if ".is_grid_search" in filenames:
                 path = Path(root)
                 with open(
-                    path / ".is_grid_search"
+                        path / ".is_grid_search"
                 ) as f:
                     unique_tag = f.read()
 
