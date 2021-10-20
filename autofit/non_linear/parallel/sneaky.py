@@ -1,16 +1,16 @@
+import cProfile
 import logging
 import multiprocessing as mp
+import os
+from os import path
 from typing import Iterable
 
-from autoconf import conf
-from autofit.non_linear.paths.abstract import AbstractPaths
 from dynesty.dynesty import _function_wrapper
 from emcee.ensemble import _FunctionWrapper
 
-import os
-from os import path
+from autoconf import conf
+from autofit.non_linear.paths.abstract import AbstractPaths
 from .process import AbstractJob, Process, StopCommand
-import cProfile
 
 logger = logging.getLogger(
     __name__
@@ -206,7 +206,6 @@ class SneakyProcess(Process):
 
             pr.dump_stats(sneaky_path)
             pr.disable()
-
 
     def open_profiler(self):
 

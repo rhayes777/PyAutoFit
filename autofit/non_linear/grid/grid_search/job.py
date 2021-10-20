@@ -1,6 +1,7 @@
+from typing import Optional, Dict
+
 from autofit.non_linear.parallel import AbstractJob, AbstractJobResult
 
-from typing import Optional, Dict
 
 class JobResult(AbstractJobResult):
     def __init__(self, result, result_list_row, number):
