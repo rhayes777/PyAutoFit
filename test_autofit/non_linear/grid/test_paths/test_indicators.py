@@ -102,19 +102,6 @@ class TestMiscombination:
                 session
             )
 
-    def test_database_for_directory(
-            self,
-            grid_search,
-            database_parent_search
-    ):
-        grid_paths = grid_search.paths
-        parent_paths = database_parent_search.paths
-
-        with open(
-                grid_paths._parent_identifier_path
-        ) as f:
-            assert f.read() == parent_paths.identifier
-
 
 class TestDirectory:
     def test_parent_search(

@@ -84,6 +84,12 @@ class AbstractPaths(ABC):
         except NoSectionError as e:
             logger.exception(e)
 
+    def save_parent_identifier(self):
+        pass
+
+    def save_unique_tag(self):
+        pass
+
     @property
     def parent(self) -> "AbstractPaths":
         """
