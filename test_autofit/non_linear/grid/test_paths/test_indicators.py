@@ -1,6 +1,10 @@
+from pathlib import Path
+
 import pytest
 
 import autofit as af
+from autoconf.conf import output_path_for_test
+from autofit.database.aggregator.scrape import Scraper
 from autofit.mock.mock import MockAnalysis
 from test_autofit.non_linear.grid.test_optimizer_grid_search import MockOptimizer
 
@@ -8,10 +12,16 @@ from test_autofit.non_linear.grid.test_optimizer_grid_search import MockOptimize
 @pytest.fixture(
     name="parent_search"
 )
-def make_parent_search():
-    return af.DynestyStatic(
+def make_parent_search(model):
+    search = af.MockSearch(
         "parent"
     )
+    search.fit(
+        model=model,
+        analysis=MockAnalysis()
+    )
+    search.paths.save_all()
+    return search
 
 
 @pytest.fixture(
@@ -92,19 +102,6 @@ class TestMiscombination:
                 session
             )
 
-    def test_database_for_directory(
-            self,
-            grid_search,
-            database_parent_search
-    ):
-        grid_paths = grid_search.paths
-        parent_paths = database_parent_search.paths
-
-        with open(
-                grid_paths._parent_identifier_path
-        ) as f:
-            assert f.read() == parent_paths.identifier
-
 
 class TestDirectory:
     def test_parent_search(
@@ -126,6 +123,39 @@ class TestDirectory:
             grid_search
     ):
         assert grid_search.paths.is_grid_search
+
+
+output_directory = Path(
+    __file__
+).parent / "output"
+
+
+@output_path_for_test(
+    output_directory
+)
+def test_scrape(
+        grid_search,
+        parent_search,
+        model,
+        analysis,
+        session
+):
+    grid_search.fit(
+        model=model,
+        analysis=analysis,
+        parent=parent_search,
+        grid_priors=[model.centre]
+    )
+
+    Scraper(
+        directory=output_directory,
+        session=session
+    ).scrape()
+
+    aggregator = af.Aggregator(session)
+    assert list(aggregator.query(
+        aggregator.search.id == grid_search.paths.identifier
+    ))[0].parent.id == parent_search.paths.identifier
 
 
 class TestDatabase:

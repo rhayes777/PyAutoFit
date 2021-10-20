@@ -14,6 +14,7 @@ import autofit.non_linear.samples.stored
 from autoconf import conf
 from autofit import database as db
 from autofit.mock import mock
+from autofit.mock.mock import MockAnalysis
 
 directory = Path(__file__).parent
 
@@ -37,7 +38,7 @@ def make_output_directory(
 
 
 @pytest.fixture(
-    # autouse=True,
+    autouse=True,
     scope="session"
 )
 def remove_output(
@@ -102,9 +103,20 @@ def set_config_path():
     )
 
 
-@pytest.fixture
-def model():
-    return af.ModelMapper()
+@pytest.fixture(
+    name="model"
+)
+def make_model():
+    return af.Model(
+        af.Gaussian
+    )
+
+
+@pytest.fixture(
+    name="analysis"
+)
+def make_analysis():
+    return MockAnalysis()
 
 
 @pytest.fixture(name="samples")
