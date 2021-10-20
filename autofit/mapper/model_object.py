@@ -1,6 +1,6 @@
 import itertools
 
-from autofit.tools.util import get_class
+from autoconf.class_path import get_class
 from .identifier import Identifier
 
 
