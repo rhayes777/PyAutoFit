@@ -12,16 +12,15 @@ from test_autofit.non_linear.grid.test_optimizer_grid_search import MockOptimize
 @pytest.fixture(
     name="parent_search"
 )
-def make_parent_search():
+def make_parent_search(model):
     search = af.MockSearch(
         "parent"
     )
     search.fit(
-        model=af.Model(
-            af.Gaussian
-        ),
+        model=model,
         analysis=MockAnalysis()
     )
+    search.paths.save_all()
     return search
 
 
@@ -150,10 +149,16 @@ output_directory = Path(
 def test_scrape(
         grid_search,
         parent_search,
+        model,
+        analysis,
         session
 ):
-    grid_search.save_metadata()
-    parent_search.paths.save_all()
+    grid_search.fit(
+        model=model,
+        analysis=analysis,
+        parent=parent_search,
+        grid_priors=[model.centre]
+    )
 
     Scraper(
         directory=output_directory,
@@ -161,7 +166,15 @@ def test_scrape(
     ).scrape()
 
     aggregator = af.Aggregator(session)
-    assert len(aggregator) == 2
+    parents = [
+        child.parent
+        for child
+        in aggregator.grid_searches().children()
+    ]
+    assert not any(
+        parent is None
+        for parent in parents
+    )
 
 
 class TestDatabase:

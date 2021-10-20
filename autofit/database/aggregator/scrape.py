@@ -258,9 +258,15 @@ def _add_pickles(
     pickle_path
         The path in which the pickles are stored
     """
-    for filename in os.listdir(
+    try:
+        filenames = os.listdir(
             pickle_path
-    ):
+        )
+    except FileNotFoundError as e:
+        logger.exception(e)
+        filenames = []
+
+    for filename in filenames:
         with open(
                 pickle_path / filename,
                 "r+b"
