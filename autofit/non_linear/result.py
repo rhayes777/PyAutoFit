@@ -2,7 +2,7 @@ import numpy as np
 
 from autofit import exc
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
-from autofit.non_linear.samples.optimizer import OptimizerSamples
+from autofit.non_linear.samples import PDFSamples
 
 
 class Result:
@@ -10,7 +10,7 @@ class Result:
     @DynamicAttrs
     """
 
-    def __init__(self, samples: OptimizerSamples, model, search=None):
+    def __init__(self, samples: PDFSamples, model, search=None):
         """
         The result of an optimization.
 
