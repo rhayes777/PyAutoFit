@@ -166,15 +166,9 @@ def test_scrape(
     ).scrape()
 
     aggregator = af.Aggregator(session)
-    parents = [
-        child.parent
-        for child
-        in aggregator.grid_searches().children()
-    ]
-    assert not any(
-        parent is None
-        for parent in parents
-    )
+    assert list(aggregator.query(
+        aggregator.search.id == grid_search.paths.identifier
+    ))[0].parent.id == parent_search.paths.identifier
 
 
 class TestDatabase:
