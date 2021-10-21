@@ -70,21 +70,15 @@ def test_package_import(
         package
 ):
     import_ = Import(
-        "from autofit.tools import edenise",
+        ast.parse(
+            "from autofit.tools import edenise"
+        ).body[0],
         parent=package["tools"]
     )
-    assert isinstance(
-        package["tools"]["edenise"],
-        Package
-    )
-    assert import_.module_path == ["autofit", "tools"]
-    assert isinstance(
-        import_.module["edenise"],
-        Package
-    )
 
-    string = "from VIS_CTI_Autofit.VIS_CTI_Tools import VIS_CTI_Edenise"
-    assert import_.target_import_string == string
+    string = "\nfrom VIS_CTI_Autofit.VIS_CTI_Tools import VIS_CTI_Edenise\n"
+    target_import_string = unparse(import_.converted())
+    assert target_import_string == string
 
 
 @pytest.mark.parametrize(
