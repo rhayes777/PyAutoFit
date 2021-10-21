@@ -97,10 +97,8 @@ class Scraper:
 
             try:
                 instance = samples.max_log_likelihood_instance
-                max_log_likelihood = instance.log_likelihood
             except (AttributeError, NotImplementedError):
                 instance = None
-                max_log_likelihood = None
 
             identifier = _make_identifier(item)
 
@@ -126,7 +124,7 @@ class Scraper:
                     instance=instance,
                     is_complete=is_complete,
                     info=item.info,
-                    max_log_likelihood=max_log_likelihood,
+                    max_log_likelihood=samples.max_log_likelihood_sample.log_likelihood,
                     parent_id=parent_identifier
                 )
 

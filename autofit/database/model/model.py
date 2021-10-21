@@ -7,7 +7,7 @@ from sqlalchemy import Column, Integer, String, ForeignKey
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 
-from autofit.tools.util import get_class_path, get_class
+from autoconf.class_path import get_class, get_class_path
 
 Base = declarative_base()
 

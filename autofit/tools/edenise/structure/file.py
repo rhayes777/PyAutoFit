@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import List, cast
+from typing import List, cast, Optional
 
 from .import_ import Import, LineItem
 from .item import Item, DirectoryItem

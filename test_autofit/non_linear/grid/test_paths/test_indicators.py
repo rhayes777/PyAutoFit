@@ -156,6 +156,7 @@ def test_scrape(
     assert list(aggregator.query(
         aggregator.search.id == grid_search.paths.identifier
     ))[0].parent.id == parent_search.paths.identifier
+    assert len(aggregator.values("max_log_likelihood")) > 0
 
 
 class TestDatabase:

@@ -4,10 +4,10 @@ from hashlib import md5
 from typing import Optional
 
 from autoconf import conf
-from autofit.tools.util import get_class_path
-
 # floats are rounded to this increment so floating point errors
 # have no impact on identifier value
+from autoconf.class_path import get_class_path
+
 RESOLUTION = 1e-8
 
 

@@ -2,15 +2,15 @@ import copy
 import inspect
 import logging
 
+from autoconf.class_path import get_class_path
 from autoconf.exc import ConfigException
 from autofit.mapper.model import assert_not_frozen
 from autofit.mapper.model_object import ModelObject
-from autofit.mapper.prior.deferred import DeferredInstance
 from autofit.mapper.prior.abstract import Prior
+from autofit.mapper.prior.deferred import DeferredInstance
 from autofit.mapper.prior.tuple_prior import TuplePrior
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.mapper.prior_model.abstract import check_assertions
-from autofit.tools.util import get_class_path
 
 logger = logging.getLogger(__name__)
 

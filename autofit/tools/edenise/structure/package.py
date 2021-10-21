@@ -55,14 +55,19 @@ class Package(DirectoryItem):
         return self._eden_dependencies + [self.name]
 
     def generate_target(self, output_path: Path):
-        (output_path / self.target_path).mkdir(
-            parents=True,
-            exist_ok=True
+        self._generate_directory(
+            output_path
         )
         for child in self.children:
             child.generate_target(
                 output_path
             )
+
+    def _generate_directory(self, output_path):
+        (output_path / self.target_path).mkdir(
+            parents=True,
+            exist_ok=True
+        )
 
     @property
     def target_file_name(self):
