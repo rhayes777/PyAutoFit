@@ -3,7 +3,7 @@ from pathlib import Path
 from typing import List, Optional
 
 from .file import File
-from .item import DirectoryItem
+from .item import DirectoryItem, Member
 
 
 class Package(DirectoryItem):
@@ -41,6 +41,28 @@ class Package(DirectoryItem):
         self._eden_dependencies = eden_dependencies or list()
         self._should_rename_modules = should_rename_modules
         self._should_remove_type_annotations = should_remove_type_annotations
+
+    def _item_for_path(self, path):
+        item = self
+        for name in path[1:]:
+            item = item[name]
+        return item
+
+    def is_module(self, path):
+        return isinstance(
+            self._item_for_path(
+                path
+            ),
+            File
+        )
+
+    def is_member(self, path):
+        return isinstance(
+            self._item_for_path(
+                path
+            ),
+            Member
+        )
 
     @property
     def should_rename_modules(self):

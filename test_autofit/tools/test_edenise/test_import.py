@@ -1,6 +1,7 @@
 import ast
 
 import pytest
+from astunparse import unparse
 
 from autofit.tools.edenise import Package, Import
 
@@ -32,30 +33,37 @@ def test_non_project_import(package):
 
 
 def test_target_import_string(import_):
-    string = "from VIS_CTI_Autofit.VIS_CTI_Tools.VIS_CTI_Edenise import Line"
-    assert import_.target_import_string == string
+    string = "\nfrom VIS_CTI_Autofit.VIS_CTI_Tools.VIS_CTI_Edenise import Line\n"
+    target_import_string = unparse(import_.converted())
+    assert target_import_string == string
 
 
 def test_multi_import(
         package
 ):
     import_ = Import(
-        "from autofit.tools.edenise import Package, File, Import",
+        ast.parse(
+            "from autofit.tools.edenise import Package, File, Import"
+        ).body[0],
         parent=package
     )
-    string = "from VIS_CTI_Autofit.VIS_CTI_Tools.VIS_CTI_Edenise import Package, File, Import"
-    assert import_.target_import_string == string
+    string = "\nfrom VIS_CTI_Autofit.VIS_CTI_Tools.VIS_CTI_Edenise import Package, File, Import\n"
+    target_import_string = unparse(import_.converted())
+    assert target_import_string == string
 
 
 def test_import_as(
         package
 ):
     import_ = Import(
-        "from autofit.tools import edenise as e",
+        ast.parse(
+            "from autofit.tools import edenise as e"
+        ).body[0],
         parent=package
     )
-    string = "from VIS_CTI_Autofit.VIS_CTI_Tools import VIS_CTI_Edenise as e"
-    assert import_.target_import_string == string
+    string = "\nfrom VIS_CTI_Autofit.VIS_CTI_Tools import VIS_CTI_Edenise as e\n"
+    target_import_string = unparse(import_.converted())
+    assert target_import_string == string
 
 
 def test_package_import(

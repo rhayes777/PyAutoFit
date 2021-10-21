@@ -1,5 +1,6 @@
 import ast
 import re
+from copy import copy
 from pathlib import Path
 from typing import Optional
 
@@ -187,6 +188,34 @@ class Import(LineItem):
             for dependency in self.eden_dependencies
         )
 
+    def converted(self):
+        converted = copy(
+            self.ast_item
+        )
+        for name in converted.names:
+            if not (self.is_module(name.name) or self.is_member(name.name)):
+                name.name = self._edenise_string(
+                    name.name
+                )
+        return converted
+
+    def full_path(self, name):
+        return name.split(".")
+
+    def is_module(self, name):
+        return self.top_level.is_module(
+            self.full_path(
+                name
+            )
+        )
+
+    def is_member(self, name):
+        return self.top_level.is_member(
+            self.full_path(
+                name
+            )
+        )
+
     @property
     def _space_prefix(self) -> str:
         """
@@ -243,3 +272,16 @@ class ImportFrom(Import):
             )
             for dependency in self.eden_dependencies
         )
+
+    def converted(self):
+        converted = super().converted()
+        converted.module = ".".join(
+            map(
+                self._edenise_string,
+                converted.module.split(".")
+            )
+        )
+        return converted
+
+    def full_path(self, name):
+        return self.ast_item.module.split(".") + super().full_path(name)
