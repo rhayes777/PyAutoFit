@@ -74,7 +74,12 @@ class DynestyStatic(AbstractDynesty):
 
         self.logger.debug("Creating DynestyStatic Search")
 
-    def sampler_from(self, model, fitness_function, pool):
+    def sampler_from(
+            self,
+            model,
+            fitness_function,
+            pool=None
+    ):
         """Get the static Dynesty sampler which performs the non-linear search, passing it all associated input Dynesty
         variables."""
 

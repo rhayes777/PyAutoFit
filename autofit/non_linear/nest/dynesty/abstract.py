@@ -115,31 +115,39 @@ class AbstractDynesty(AbstractNest, ABC):
             model=model, analysis=analysis, log_likelihood_cap=log_likelihood_cap,
         )
 
-        pool = self.make_sneaky_pool(
-            fitness_function
-        )
-
         if self.paths.is_object("dynesty"):
 
             sampler = self.paths.load_object(
                 "dynesty"
             )
             sampler.loglikelihood = fitness_function
-            sampler.pool = pool
 
             sampler.rstate = np.random
 
             if self.number_of_cores == 1:
                 sampler.M = map
             else:
+                pool = self.make_sneaky_pool(
+                    fitness_function
+                )
+
                 sampler.M = pool.map
+                sampler.pool = pool
 
             self.logger.info("Existing Dynesty samples found, resuming non-linear search.")
 
         else:
+            if self.number_of_cores >= 1:
+                pool = self.make_sneaky_pool(
+                    fitness_function
+                )
+            else:
+                pool = None
 
             sampler = self.sampler_from(
-                model=model, fitness_function=fitness_function, pool=pool
+                model=model,
+                fitness_function=fitness_function,
+                pool=pool
             )
 
             self.logger.info("No Dynesty samples found, beginning new non-linear search. ")
@@ -201,7 +209,12 @@ class AbstractDynesty(AbstractNest, ABC):
             ):
                 finished = True
 
-    def sampler_from(self, model, fitness_function, pool):
+    def sampler_from(
+            self,
+            model,
+            fitness_function,
+            pool=None
+    ):
         return NotImplementedError()
 
     def samples_from(self, model):
