@@ -4,7 +4,7 @@ import pytest
 import autofit as af
 from autofit import conf
 from autofit.mapper.model_object import Identifier
-from autofit.mock.mock import Gaussian
+from autofit.mock.mock import Gaussian, MockSamples, MockSearch
 
 
 def set_version(version):
@@ -304,3 +304,166 @@ def test_instance():
             centre=0.5
         )
     ).identifier
+
+
+def test__identifier_description():
+
+    model = af.CollectionPriorModel(
+        gaussian=af.PriorModel(
+            Gaussian,
+            centre=af.UniformPrior(lower_limit=0.0, upper_limit=1.0),
+            intensity = af.LogUniformPrior(lower_limit=0.001, upper_limit=0.01),
+            sigma=af.GaussianPrior(mean=0.5, sigma=2.0, lower_limit=-1.0, upper_limit=1.0),
+        )
+    )
+
+    identifier = Identifier([model])
+
+    description = identifier.description.splitlines()
+
+    i=0
+
+    assert description[i] == "CollectionPriorModel"; i+=1
+    assert description[i] == "item_number"; i+=1
+    assert description[i] == "0"; i+=1
+    assert description[i] == "gaussian"; i+=1
+    assert description[i] == "PriorModel"; i+=1
+    assert description[i] == "cls"; i+=1
+    assert description[i] == "autofit.mock.mock.Gaussian"; i+=1
+    assert description[i] == "centre"; i+=1
+    assert description[i] == "UniformPrior"; i+=1
+    assert description[i] == "lower_limit"; i+=1
+    assert description[i] == "0.0"; i+=1
+    assert description[i] == "upper_limit"; i+=1
+    assert description[i] == "1.0"; i+=1
+    assert description[i] == "intensity"; i+=1
+    assert description[i] == "LogUniformPrior"; i+=1
+    assert description[i] == "lower_limit"; i+=1
+    assert description[i] == "0.001"; i+=1
+    assert description[i] == "upper_limit"; i+=1
+    assert description[i] == "0.01"; i+=1
+    assert description[i] == "sigma"; i+=1
+    assert description[i] == "GaussianPrior"; i+=1
+    assert description[i] == "lower_limit"; i+=1
+    assert description[i] == "-1.0"; i+=1
+    assert description[i] == "upper_limit"; i+=1
+    assert description[i] == "1.0"; i+=1
+    assert description[i] == "mean"; i+=1
+    assert description[i] == "0.5"; i+=1
+    assert description[i] == "sigma"; i+=1
+    assert description[i] == "2.0"; i+=1
+
+
+def test__identifier_description__after_model_and_instance():
+
+    model = af.CollectionPriorModel(
+        gaussian=af.PriorModel(
+            Gaussian,
+            centre=af.UniformPrior(lower_limit=0.0, upper_limit=1.0),
+            intensity = af.LogUniformPrior(lower_limit=0.001, upper_limit=0.01),
+            sigma=af.GaussianPrior(mean=0.5, sigma=2.0, lower_limit=-1.0, upper_limit=1.0),
+        )
+    )
+
+    max_log_likelihood_instance = model.instance_from_prior_medians()
+
+    samples = MockSamples(
+        max_log_likelihood_instance=max_log_likelihood_instance,
+        gaussian_tuples=[(1.0, 2.0), (3.0, 4.0), (5.0, 6.0)]
+    )
+    search = MockSearch(prior_passer=af.PriorPasser(sigma=1.0, use_errors=True, use_widths=False))
+
+    result = af.Result(samples=samples, model=model, search=search)
+
+    model.gaussian.centre = result.model.gaussian.centre
+    model.gaussian.intensity = result.instance.gaussian.intensity
+
+    identifier = Identifier([model])
+
+    description = identifier.description.splitlines()
+
+    # THIS TEST FAILS DUE TO THE BUG DESCRIBED IN A GITHUB ISSUE.
+
+    i=0
+
+    assert description[i] == "CollectionPriorModel"; i+=1
+    assert description[i] == "item_number"; i+=1
+    assert description[i] == "0"; i+=1
+    assert description[i] == "gaussian"; i+=1
+    assert description[i] == "PriorModel"; i+=1
+    assert description[i] == "cls"; i+=1
+    assert description[i] == "autofit.mock.mock.Gaussian"; i+=1
+    assert description[i] == "centre"; i+=1
+    assert description[i] == "GaussianPrior"; i+=1
+    assert description[i] == "lower_limit"; i+=1
+    assert description[i] == "0.0"; i+=1
+    assert description[i] == "upper_limit"; i+=1
+    assert description[i] == "1.0"; i+=1
+    assert description[i] == "mean"; i+=1
+    assert description[i] == "1.0"; i+=1
+    assert description[i] == "sigma"; i+=1
+    assert description[i] == "2.0"; i+=1
+    assert description[i] == "intensity"; i+=1
+    assert description[i] == "0.00316228"; i+=1
+    assert description[i] == "sigma"; i+=1
+    assert description[i] == "GaussianPrior"; i+=1
+    assert description[i] == "lower_limit"; i+=1
+    assert description[i] == "-1.0"; i+=1
+    assert description[i] == "upper_limit"; i+=1
+    assert description[i] == "1.0"; i+=1
+    assert description[i] == "mean"; i+=1
+    assert description[i] == "0.5"; i+=1
+    assert description[i] == "sigma"; i+=1
+    assert description[i] == "2.0"; i+=1
+
+
+def test__identifier_description__after_take_attributes():
+
+    model = af.CollectionPriorModel(
+        gaussian=af.PriorModel(
+            Gaussian,
+            centre=af.UniformPrior(lower_limit=0.0, upper_limit=1.0),
+            intensity = af.LogUniformPrior(lower_limit=0.001, upper_limit=0.01),
+            sigma=af.GaussianPrior(mean=0.5, sigma=2.0, lower_limit=-1.0, upper_limit=1.0),
+        )
+    )
+
+    model.take_attributes(source=model)
+
+    identifier = Identifier([model])
+
+    description = identifier.description.splitlines()
+
+    # THIS TEST FAILS DUE TO THE BUG DESCRIBED IN A GITHUB ISSUE.
+
+    i=0
+
+    assert description[i] == "CollectionPriorModel"; i+=1
+    assert description[i] == "item_number"; i+=1
+    assert description[i] == "0"; i+=1
+    assert description[i] == "gaussian"; i+=1
+    assert description[i] == "PriorModel"; i+=1
+    assert description[i] == "cls"; i+=1
+    assert description[i] == "autofit.mock.mock.Gaussian"; i+=1
+    assert description[i] == "centre"; i+=1
+    assert description[i] == "UniformPrior"; i+=1
+    assert description[i] == "lower_limit"; i+=1
+    assert description[i] == "0.0"; i+=1
+    assert description[i] == "upper_limit"; i+=1
+    assert description[i] == "1.0"; i+=1
+    assert description[i] == "intensity"; i+=1
+    assert description[i] == "LogUniformPrior"; i+=1
+    assert description[i] == "lower_limit"; i+=1
+    assert description[i] == "0.001"; i+=1
+    assert description[i] == "upper_limit"; i+=1
+    assert description[i] == "0.01"; i+=1
+    assert description[i] == "sigma"; i+=1
+    assert description[i] == "GaussianPrior"; i+=1
+    assert description[i] == "lower_limit"; i+=1
+    assert description[i] == "-1.0"; i+=1
+    assert description[i] == "upper_limit"; i+=1
+    assert description[i] == "1.0"; i+=1
+    assert description[i] == "mean"; i+=1
+    assert description[i] == "0.5"; i+=1
+    assert description[i] == "sigma"; i+=1
+    assert description[i] == "2.0"; i+=1
