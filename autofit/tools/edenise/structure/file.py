@@ -1,5 +1,9 @@
+import ast
+from copy import copy
 from pathlib import Path
-from typing import List, cast, Optional
+from typing import List, cast
+
+from astunparse import unparse
 
 from .import_ import Import, LineItem
 from .item import Item, DirectoryItem
@@ -126,3 +130,40 @@ class File(DirectoryItem):
             in self.imports
             if import_.is_in_project
         ]
+
+    def converted(self):
+        with open(self.path) as f:
+            parsed = ast.parse(f.read())
+
+        converted = ast.Module()
+
+        converted.body = list(map(
+            self.convert,
+            parsed.body
+        ))
+
+        return unparse(
+            converted
+        )
+
+    def convert(self, item):
+        item = copy(item)
+        # if isinstance(
+        #         item,
+        #         (
+        #                 ast.Import,
+        #                 ast.ImportFrom
+        #         )
+        # ):
+        #     item = copy(item)
+
+        if isinstance(
+            item,
+            ast.ImportFrom
+        ):
+            item.module = item.module.replace(
+                "autofit",
+                "AUTOFIT"
+            )
+
+        return item
