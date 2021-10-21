@@ -1,6 +1,8 @@
+import ast
+
 import pytest
 
-from autofit.tools.edenise import Package, Import, LineItem
+from autofit.tools.edenise import Package, Import
 
 
 @pytest.fixture(
@@ -8,42 +10,15 @@ from autofit.tools.edenise import Package, Import, LineItem
 )
 def make_import(package):
     return Import(
-        "from autofit.tools.edenise import Line",
+        ast.parse(
+            "from autofit.tools.edenise import Line"
+        ).body[0],
         parent=package
     )
-
-
-@pytest.fixture(
-    name="local_import"
-)
-def make_local_import(
-        package
-):
-    return LineItem(
-        "    from autofit.tools.edenise import Line",
-        parent=package
-    )
-
-
-def test_local_import_type(
-        local_import
-):
-    assert isinstance(
-        local_import,
-        Import
-    )
-
-
-def test_local_import_target(
-        local_import
-):
-    string = "    from VIS_CTI_Autofit.VIS_CTI_Tools.VIS_CTI_Edenise import Line"
-    assert local_import.target_import_string == string
 
 
 def test_project_import(import_, package):
     import_.parent = package["tools"]["edenise"]["converter"]
-    assert "autofit/tools/edenise" in str(import_.path)
     assert import_.is_in_project is True
 
 

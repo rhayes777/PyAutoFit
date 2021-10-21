@@ -34,8 +34,15 @@ class File(DirectoryItem):
 
     def generate_target(self, output_path):
         with open(output_path / self.target_path, "w+") as f:
-            for line in self.lines():
-                f.write(f"{line.target_string}\n")
+            module = ast.Module()
+            module.body = [
+                line.converted()
+                for line
+                in self.lines()
+            ]
+            f.write(
+                unparse(module)
+            )
 
     @property
     def target_name(self) -> str:
@@ -89,20 +96,28 @@ class File(DirectoryItem):
         true lines
         """
         with open(self.path) as f:
-            line_item = None
-            for line in f.read().split("\n"):
-                new_item = LineItem(
-                    line,
+            return [
+                LineItem(
+                    ast.parse(
+                        f.read()
+                    ).body,
                     self
                 )
-                if line_item is None:
-                    line_item = new_item
-                else:
-                    line_item += new_item
-
-                if line_item.is_complete:
-                    yield line_item
-                    line_item = None
+            ]
+            # line_item = None
+            # for line in f.read().split("\n"):
+            #     new_item = LineItem(
+            #         line,
+            #         self
+            #     )
+            #     if line_item is None:
+            #         line_item = new_item
+            #     else:
+            #         line_item += new_item
+            #
+            #     if line_item.is_complete:
+            #         yield line_item
+            #         line_item = None
 
     @property
     def imports(self) -> List[Import]:
@@ -158,8 +173,8 @@ class File(DirectoryItem):
         #     item = copy(item)
 
         if isinstance(
-            item,
-            ast.ImportFrom
+                item,
+                ast.ImportFrom
         ):
             item.module = item.module.replace(
                 "autofit",

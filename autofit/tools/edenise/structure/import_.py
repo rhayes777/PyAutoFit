@@ -1,6 +1,7 @@
+import ast
 import re
 from pathlib import Path
-from typing import Optional, List
+from typing import Optional
 
 from autofit.tools.edenise.structure.item import Item
 
@@ -8,7 +9,7 @@ from autofit.tools.edenise.structure.item import Item
 class LineItem(Item):
     def __init__(
             self,
-            string: str,
+            ast_item: ast.stmt,
             parent: Item
     ):
         """
@@ -20,90 +21,23 @@ class LineItem(Item):
 
         Parameters
         ----------
-        string
+        ast_item
             The string on the line
         parent
             The file containing the line
         """
-        self.string = string
+        self.ast_item = ast_item
         super().__init__(
             parent=parent
         )
 
-    def __new__(cls, string, parent):
-        if re.match(
-                r" *(import|from).*",
-                string
+    def __new__(cls, ast_item, parent):
+        if isinstance(
+                ast_item,
+                (ast.ImportFrom, ast.Import)
         ):
             return object.__new__(Import)
         return object.__new__(LineItem)
-
-    @property
-    def is_complete(self) -> bool:
-        """
-        Is this a complete line? If a doc string or parenthesis has been
-        opened then it is not complete.
-
-        Doc strings take precedence to mitigate issue with unbalanced
-        parentheses in doc strings.
-        """
-        if self.is_open_doc_string:
-            return False
-        if not self.is_doc_string and self.is_open:
-            return False
-        return True
-
-    @property
-    def lines(self) -> List[str]:
-        """
-        Lines in this 'line' split by newline.
-
-        Multiple lines occur when a doc string or parenthesis is opened.
-        """
-        return self.string.split("\n")
-
-    @property
-    def is_doc_string(self):
-        """
-        Does this line start with the opening of a doc string?
-        """
-        return '"""' in self.lines[0]
-
-    @property
-    def is_open_doc_string(self) -> bool:
-        """
-        Has a doc string been opened but not closed?
-        """
-        if self.is_doc_string:
-            return len(self.lines) == 1 or '"""' not in self.lines[-1]
-        return False
-
-    @property
-    def open_count(self) -> int:
-        """
-        How many opening parentheses have been encountered?
-        """
-        return len(re.findall(r"\(", self.string))
-
-    @property
-    def close_count(self):
-        """
-        How many closing parentheses have been encountered?
-        """
-        return len(re.findall(r"\)", self.string))
-
-    @property
-    def is_open(self):
-        """
-        Is there a parenthesis or quote imbalance?
-        """
-        return self.open_count > self.close_count
-
-    def __add__(self, other):
-        return LineItem(
-            self.string + "\n" + other.string,
-            self.parent
-        )
 
     @property
     def children(self):
@@ -165,7 +99,7 @@ class LineItem(Item):
 class Import(LineItem):
     def __init__(
             self,
-            string: str,
+            ast_item: ast.Import,
             parent: Optional[Item]
     ):
         """
@@ -176,23 +110,23 @@ class Import(LineItem):
         string
             The original line describing the import
         """
-        match = re.match(
-            r"from (\.+)([a-zA-Z0-9_.]*) import (.*)",
-            string
-        )
-        if match is not None:
-            level = parent
-            for _ in match[1]:
-                level = level.parent
-
-            import_path = level.import_path
-            if match[2] != "":
-                import_path = f"{import_path}.{match[2]}"
-
-            string = f"from {import_path} import {match[3]}"
+        # match = re.match(
+        #     r"from (\.+)([a-zA-Z0-9_.]*) import (.*)",
+        #     string
+        # )
+        # if match is not None:
+        #     level = parent
+        #     for _ in match[1]:
+        #         level = level.parent
+        #
+        #     import_path = level.import_path
+        #     if match[2] != "":
+        #         import_path = f"{import_path}.{match[2]}"
+        #
+        #     string = f"from {import_path} import {match[3]}"
 
         super().__init__(
-            string=string,
+            ast_item=ast_item,
             parent=parent,
         )
 
@@ -241,15 +175,12 @@ class Import(LineItem):
         """
         Is this object within the top level object?
         """
-        string = self.string.lstrip()
-        for dependency in self.eden_dependencies:
-            if (string.startswith(
-                    f"from {dependency}"
-            ) or string.startswith(
-                f"import {dependency}"
-            )):
-                return True
-        return False
+        return any(
+            self.ast_item.module.startswith(
+                dependency
+            )
+            for dependency in self.eden_dependencies
+        )
 
     @property
     def _space_prefix(self) -> str:
