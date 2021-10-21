@@ -33,18 +33,15 @@ class LineItem(Item):
 
     def __new__(cls, ast_item, parent):
         if isinstance(
-            ast_item,
-            str
-        ):
-            # TODO: this is a temporary hack to avoid changing all the tests upfront
-            ast_item = ast.parse(
-                ast_item
-            )
-        if isinstance(
                 ast_item,
-                (ast.ImportFrom, ast.Import)
+                ast.Import
         ):
             return object.__new__(Import)
+        if isinstance(
+                ast_item,
+                ast.ImportFrom
+        ):
+            return object.__new__(ImportFrom)
         return object.__new__(LineItem)
 
     @property
@@ -184,7 +181,7 @@ class Import(LineItem):
         Is this object within the top level object?
         """
         return any(
-            self.ast_item.module.startswith(
+            self.ast_item.names[0].name.startswith(
                 dependency
             )
             for dependency in self.eden_dependencies
@@ -232,3 +229,17 @@ class As:
     @property
     def target_import_string(self):
         return f"{self.item.target_import_string} as {self.alias}"
+
+
+class ImportFrom(Import):
+    @property
+    def is_in_project(self) -> bool:
+        """
+        Is this object within the top level object?
+        """
+        return any(
+            self.ast_item.module.startswith(
+                dependency
+            )
+            for dependency in self.eden_dependencies
+        )

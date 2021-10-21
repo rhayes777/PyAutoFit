@@ -24,7 +24,7 @@ def test_project_import(import_, package):
 
 def test_non_project_import(package):
     import_ = Import(
-        "import os",
+        ast.parse("import os").body[0],
         parent=package
     )
     import_.parent = package
