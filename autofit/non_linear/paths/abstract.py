@@ -87,7 +87,10 @@ class AbstractPaths(ABC):
     def save_parent_identifier(self):
         pass
 
-    def save_unique_tag(self):
+    def save_unique_tag(
+            self,
+            is_grid_search=False
+    ):
         pass
 
     @property
