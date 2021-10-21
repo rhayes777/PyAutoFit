@@ -33,6 +33,14 @@ class LineItem(Item):
 
     def __new__(cls, ast_item, parent):
         if isinstance(
+            ast_item,
+            str
+        ):
+            # TODO: this is a temporary hack to avoid changing all the tests upfront
+            ast_item = ast.parse(
+                ast_item
+            )
+        if isinstance(
                 ast_item,
                 (ast.ImportFrom, ast.Import)
         ):
