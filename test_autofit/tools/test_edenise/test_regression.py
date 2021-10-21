@@ -1,34 +1,30 @@
-from pathlib import Path
 from shutil import rmtree
 
 import pytest
 
 from autofit.tools.edenise import File
 
-directory = Path(
-    __file__
-).parent
-examples_directory = directory / "examples"
-output_directory = directory / "output"
-
 
 @pytest.fixture(
     autouse=True
 )
 def make_directories_and_clean(
-        package
+        package,
+        eden_output_directory
 ):
     package._generate_directory(
-        output_directory
+        eden_output_directory
     )
     yield
     rmtree(
-        output_directory
+        eden_output_directory
     )
 
 
 def test_new_line_bracket(
-        package
+        package,
+        examples_directory,
+        eden_output_directory
 ):
     module_path = examples_directory / "new_line_bracket.py"
     file = File(
@@ -38,9 +34,9 @@ def test_new_line_bracket(
     )
 
     package._generate_directory(
-        output_directory
+        eden_output_directory
     )
     file.generate_target(
-        output_directory
+        eden_output_directory
     )
-    assert output_directory / package.target_file_name / "VIS_CTI_NewLineBracket.py"
+    assert eden_output_directory / package.target_file_name / "VIS_CTI_NewLineBracket.py"
