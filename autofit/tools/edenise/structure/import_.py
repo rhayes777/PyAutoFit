@@ -2,7 +2,6 @@ import ast
 import re
 from copy import copy
 from pathlib import Path
-from typing import Optional
 
 from autofit.tools.edenise.structure.item import Item
 
@@ -120,27 +119,41 @@ class Import(LineItem):
             self.ast_item
         )
         for name in converted.names:
-            if not (self.is_module(name.name) or self.is_member(name.name)):
-                name.name = self._edenise_string(
-                    name.name
-                )
+            parts = name.name.split(".")
+            converted_path = []
+            unconverted_path = []
+            for i in range(len(parts)):
+                path_prefix = parts[:i + 1]
+                total_path = self.module_path + path_prefix
+                if not (self.is_module(total_path) or self.is_member(total_path)):
+                    converted_path = list(map(
+                        self._edenise_string,
+                        path_prefix
+                    ))
+                else:
+                    unconverted_path = parts[i:]
+
+            name.name = ".".join(
+                converted_path + unconverted_path
+            )
+
         return converted
+
+    @property
+    def module_path(self):
+        return []
 
     def full_path(self, name):
         return name.split(".")
 
-    def is_module(self, name):
+    def is_module(self, path):
         return self.top_level.is_module(
-            self.full_path(
-                name
-            )
+            path
         )
 
-    def is_member(self, name):
+    def is_member(self, path):
         return self.top_level.is_member(
-            self.full_path(
-                name
-            )
+            path
         )
 
 
@@ -178,6 +191,9 @@ class ImportFrom(Import):
         )
         return converted
 
+    def full_path(self, name):
+        return self.module_path + super().full_path(name)
+
     @property
     def module_path(self):
         path = []
@@ -204,6 +220,3 @@ class ImportFrom(Import):
                 "."
             )
         return path
-
-    def full_path(self, name):
-        return self.module_path + super().full_path(name)

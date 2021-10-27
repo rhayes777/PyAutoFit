@@ -18,6 +18,29 @@ def make_import(package):
     )
 
 
+@pytest.mark.parametrize(
+    "source, target",
+    [
+        ("import autofit.tools.edenise", "\nimport VIS_CTI_Autofit.VIS_CTI_Tools.VIS_CTI_Edenise\n"),
+        ("import autofit", "\nimport VIS_CTI_Autofit\n"),
+        ("import autofit.tools.edenise.Line", "\nimport VIS_CTI_Autofit.VIS_CTI_Tools.VIS_CTI_Edenise.Line\n"),
+    ]
+)
+def test_direct_import(
+        package,
+        source,
+        target
+):
+    import_ = Import(
+        ast.parse(
+            source
+        ).body[0],
+        parent=package
+    )
+    target_string = target
+    assert unparse(import_.converted()) == target_string
+
+
 def test_project_import(import_, package):
     import_.parent = package["tools"]["edenise"]["converter"]
     assert import_.is_in_project is True
