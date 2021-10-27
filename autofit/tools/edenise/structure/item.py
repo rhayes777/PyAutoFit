@@ -1,4 +1,3 @@
-import ast
 from abc import abstractmethod, ABC
 from pathlib import Path
 from typing import List, Optional
@@ -121,21 +120,6 @@ class Item(ABC):
         if self.parent is None:
             return Path(target_file_name)
         return self.parent.target_path / target_file_name
-
-    @property
-    def target_import_path(self) -> str:
-        """
-        The path by which this object will be imported after edenisation
-        """
-        if self.parent is None:
-            return self.target_name
-        return f"{self.parent.target_import_path}.{self.target_name}"
-
-    @property
-    def import_path(self) -> str:
-        if self.parent is None:
-            return self.name
-        return f"{self.parent.import_path}.{self.name}"
 
 
 class DirectoryItem(Item, ABC):

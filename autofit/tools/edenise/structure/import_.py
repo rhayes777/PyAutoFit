@@ -73,13 +73,6 @@ class LineItem(Item):
             return object.__new__(Function)
         return object.__new__(LineItem)
 
-    @property
-    def children(self):
-        """
-        Imports don't have any children
-        """
-        return []
-
 
 class Import(LineItem):
     @property
@@ -121,9 +114,6 @@ class Import(LineItem):
     def module_path(self):
         return []
 
-    def full_path(self, name):
-        return name.split(".")
-
     def is_module(self, path):
         return self.top_level.is_module(
             path
@@ -158,9 +148,6 @@ class ImportFrom(Import):
             )
         )
         return converted
-
-    def full_path(self, name):
-        return self.module_path + super().full_path(name)
 
     @property
     def module_path(self):
