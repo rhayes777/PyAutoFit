@@ -105,7 +105,7 @@ class LineItem(Item):
 class Import(LineItem):
     def __init__(
             self,
-            ast_item: ast.Import,
+            ast_item: ast.stmt,
             parent: Optional[Item]
     ):
         """
