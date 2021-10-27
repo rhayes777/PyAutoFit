@@ -1,5 +1,4 @@
 import ast
-from copy import copy
 from pathlib import Path
 from typing import List, cast
 
@@ -34,12 +33,20 @@ class File(DirectoryItem):
         self._ast_item = None
 
     @property
-    def alias_imports(self):
+    def aliased_imports(self):
         return [
             import_
             for import_
             in self.imports
             if import_.is_aliased
+        ]
+
+    @property
+    def aliases(self):
+        return [
+            import_.alias
+            for import_
+            in self.aliased_imports
         ]
 
     @property

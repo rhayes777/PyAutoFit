@@ -1,6 +1,6 @@
 import pytest
 
-from autofit.tools.edenise import File, Import
+from autofit.tools.edenise import File, Import, LineItem
 
 
 @pytest.fixture(
@@ -30,16 +30,42 @@ def test_not_alias_import():
     ).is_aliased is False
 
 
-def test_unpack_imports(
+@pytest.fixture(
+    name="file"
+)
+def make_file(
         package,
         examples_directory,
         eden_output_directory
 ):
-    file = File(
+    return File(
         examples_directory / "unpack_imports.py",
         parent=package,
         prefix=""
     )
 
-    alias_import, = file.alias_imports
+
+def test_alias_imports(
+        file
+):
+    alias_import, = file.aliased_imports
     assert alias_import.alias == "af"
+
+    assert file.aliases == ["af"]
+
+
+def test_uses_alias(
+        file
+):
+    item = LineItem.parse_fragment(
+        """model = af.Model(
+    af.Gaussian
+)
+        """,
+        parent=file
+    )
+
+    assert item.target_string == """
+model = Model(Gaussian)
+"""
+
