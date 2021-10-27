@@ -58,6 +58,18 @@ import os
 """
 
 
+def test_non_project_from_import(
+        package
+):
+    import_ = Import(
+        ast.parse("from hashlib import md5").body[0],
+        parent=package
+    )
+    assert import_.target_string == """
+from hashlib import md5
+"""
+
+
 def test_target_import_string(import_):
     string = "\nfrom VIS_CTI_Autofit.VIS_CTI_Tools.VIS_CTI_Edenise import Line\n"
     target_import_string = unparse(import_.converted())

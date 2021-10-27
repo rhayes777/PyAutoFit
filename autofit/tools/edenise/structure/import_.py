@@ -90,25 +90,30 @@ class Import(LineItem):
     def converted(self):
         converted = super().converted()
         for name in converted.names:
-            parts = name.name.split(".")
-            converted_path = []
-            unconverted_path = []
-            for i in range(len(parts)):
-                path_prefix = parts[:i + 1]
-                total_path = self.module_path + path_prefix
-                if not self.is_module(total_path) and not self.is_member(total_path):
-                    converted_path = list(map(
-                        self._edenise_string,
-                        path_prefix
-                    ))
-                else:
-                    unconverted_path = parts[i:]
-
             name.name = ".".join(
-                converted_path + unconverted_path
+                self.edenise_path(
+                    name.name.split("."),
+                    prefix=self.module_path
+                )
             )
 
         return converted
+
+    def edenise_path(self, path, prefix=None):
+        converted_path = []
+        unconverted_path = []
+        for i in range(len(path)):
+            path_prefix = path[:i + 1]
+            total_path = (prefix or []) + path_prefix
+            if not self.is_module(total_path) and not self.is_member(total_path):
+                converted_path = list(map(
+                    self._edenise_string,
+                    path_prefix
+                ))
+            else:
+                unconverted_path = path[i:]
+
+        return converted_path + unconverted_path
 
     @property
     def module_path(self):
@@ -142,8 +147,7 @@ class ImportFrom(Import):
         converted = super().converted()
         converted.level = 0
         converted.module = ".".join(
-            map(
-                self._edenise_string,
+            self.edenise_path(
                 self.module_path
             )
         )
