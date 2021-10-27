@@ -1,7 +1,6 @@
 import ast
 import re
 from copy import copy
-from pathlib import Path
 
 from autofit.tools.edenise.structure.item import Item
 
@@ -31,6 +30,20 @@ class LineItem(Item):
             parent=parent
         )
 
+    def converted(self):
+        return copy(
+            self.ast_item
+        )
+
+    @staticmethod
+    def parse_fragment(string):
+        return LineItem(
+            ast.parse(
+                string
+            ).body[0],
+            parent=None
+        )
+
     def __new__(cls, ast_item, parent):
         if isinstance(
                 ast_item,
@@ -42,6 +55,11 @@ class LineItem(Item):
                 ast.ImportFrom
         ):
             return object.__new__(ImportFrom)
+        if isinstance(
+                ast_item,
+                ast.FunctionDef
+        ):
+            return object.__new__(Function)
         return object.__new__(LineItem)
 
     @property
@@ -50,14 +68,6 @@ class LineItem(Item):
         Imports don't have any children
         """
         return []
-
-    @property
-    def path(self) -> Path:
-        return self.parent.path / self.string
-
-    @property
-    def name(self) -> str:
-        return self.string
 
     @property
     def is_function(self):
@@ -115,9 +125,7 @@ class Import(LineItem):
         )
 
     def converted(self):
-        converted = copy(
-            self.ast_item
-        )
+        converted = super().converted()
         for name in converted.names:
             parts = name.name.split(".")
             converted_path = []
@@ -220,3 +228,12 @@ class ImportFrom(Import):
                 "."
             )
         return path
+
+
+class Function(LineItem):
+    def converted(self):
+        converted = super().converted()
+        for arg in converted.args.args:
+            arg.annotation = None
+        converted.returns = None
+        return converted

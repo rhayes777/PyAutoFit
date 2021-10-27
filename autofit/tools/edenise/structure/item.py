@@ -1,3 +1,4 @@
+import ast
 from abc import abstractmethod, ABC
 from pathlib import Path
 from typing import List, Optional
@@ -73,25 +74,25 @@ class Item(ABC):
         return self.parent.top_level
 
     @property
-    @abstractmethod
     def path(self) -> Path:
         """
         The path to this package or file
         """
+        return self.parent.path
 
-    def __str__(self):
-        return str(self.path)
-
-    def __repr__(self):
-        return f"<{self.__class__.__name__} {self}>"
+    # def __str__(self):
+    #     return str(self.path)
+    #
+    # def __repr__(self):
+    #     return f"<{self.__class__.__name__} {self}>"
 
     @property
-    @abstractmethod
     def children(self) -> List["Item"]:
         """
         Packages, files or imports that are direct descendents
         of this item
         """
+        return []
 
     @property
     def name(self) -> str:

@@ -1,7 +1,9 @@
 import ast
-import pytest
 
-from autofit.tools.edenise import File
+import pytest
+from astunparse import unparse
+
+from autofit.tools.edenise import File, LineItem
 
 
 @pytest.fixture(
@@ -29,23 +31,43 @@ def make_file(
     )
 
 
+def test_function():
+    string = """
+def function():
+    pass
+        """
+    item = LineItem.parse_fragment(
+        string
+    )
+    assert unparse(
+        item.converted()
+    ) == """
+
+def function():
+    pass
+"""
+
+
+def test_strip_type_annotations():
+    string = """
+def function(argument: dict) -> Optional[Tuple[str, ...]]:
+    pass
+        """
+    item = LineItem.parse_fragment(
+        string
+    )
+    assert unparse(
+        item.converted()
+    ) == """
+
+def function(argument):
+    pass
+"""
+
+
 def test_converted(file):
     converted_string = file.converted()
     print(converted_string)
-
-
-class Import:
-    def __init__(self, ast_import):
-        self.ast_import = ast_import
-
-
-def test_import(
-        parsed
-):
-    import_ = Import(
-        parsed.body[0]
-    )
-    assert import_.target_string == ""
 
 
 def test_parse(
