@@ -53,6 +53,9 @@ def test_non_project_import(package):
     )
     import_.parent = package
     assert import_.is_in_project is False
+    assert import_.target_string == """
+import os
+"""
 
 
 def test_target_import_string(import_):

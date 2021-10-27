@@ -96,7 +96,7 @@ class Import(LineItem):
             for i in range(len(parts)):
                 path_prefix = parts[:i + 1]
                 total_path = self.module_path + path_prefix
-                if not (self.is_module(total_path) or self.is_member(total_path)):
+                if not self.is_module(total_path) and not self.is_member(total_path):
                     converted_path = list(map(
                         self._edenise_string,
                         path_prefix

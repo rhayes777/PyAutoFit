@@ -57,6 +57,8 @@ class Package(DirectoryItem):
         )
 
     def is_member(self, path):
+        if len(path) == 1:
+            return path[0] != self.path.stem
         return isinstance(
             self._item_for_path(
                 path
@@ -134,9 +136,6 @@ class Package(DirectoryItem):
         The path this object will have after edenisation
         """
         target_path = super().target_path
-        #       target_path = Path(str(target_path).replace("Auto", ""))
-        #       print(target_path)
-        #       stop
         if self.is_top_level:
             target_path = Path(
                 self.prefix
