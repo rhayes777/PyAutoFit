@@ -80,12 +80,6 @@ class Item(ABC):
         """
         return self.parent.path
 
-    # def __str__(self):
-    #     return str(self.path)
-    #
-    # def __repr__(self):
-    #     return f"<{self.__class__.__name__} {self}>"
-
     @property
     def children(self) -> List["Item"]:
         """
@@ -152,6 +146,12 @@ class DirectoryItem(Item, ABC):
     @abstractmethod
     def target_file_name(self):
         pass
+
+    def __str__(self):
+        return str(self.path)
+
+    def __repr__(self):
+        return f"<{self.__class__.__name__} {self}>"
 
 
 class Member(Item):
