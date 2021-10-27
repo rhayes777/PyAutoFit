@@ -3,7 +3,7 @@ import ast
 import pytest
 from astunparse import unparse
 
-from autofit.tools.edenise import Package, Import
+from autofit.tools.edenise import Import
 
 
 @pytest.fixture(
@@ -122,7 +122,10 @@ def test_module_path_import_name(
 ):
     package._should_rename_modules = False
     import_ = Import(
-        "from autofit.non_linear.samples import NestSamples, Sample",
+        ast.parse(
+            "from autofit.non_linear.samples import NestSamples, Sample"
+        ).body[0],
         parent=package
     )
-    assert import_.target_string == "from VIS_CTI_Autofit.VIS_CTI_NonLinear.VIS_CTI_Samples import NestSamples, Sample"
+    target_string = "\nfrom VIS_CTI_Autofit.VIS_CTI_NonLinear.VIS_CTI_Samples import NestSamples, Sample\n"
+    assert unparse(import_.converted()) == target_string
