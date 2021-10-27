@@ -97,12 +97,10 @@ class File(DirectoryItem):
         """
         with open(self.path) as f:
             return [
-                LineItem(
-                    ast.parse(
-                        f.read()
-                    ).body,
-                    self
-                )
+                LineItem(item, self)
+                for item in ast.parse(
+                    f.read()
+                ).body
             ]
             # line_item = None
             # for line in f.read().split("\n"):
