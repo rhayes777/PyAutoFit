@@ -103,79 +103,6 @@ class LineItem(Item):
 
 
 class Import(LineItem):
-    def __init__(
-            self,
-            ast_item: ast.stmt,
-            parent: Optional[Item]
-    ):
-        """
-        An import statement in a file
-
-        Parameters
-        ----------
-        string
-            The original line describing the import
-        """
-        # match = re.match(
-        #     r"from (\.+)([a-zA-Z0-9_.]*) import (.*)",
-        #     string
-        # )
-        # if match is not None:
-        #     level = parent
-        #     for _ in match[1]:
-        #         level = level.parent
-        #
-        #     import_path = level.import_path
-        #     if match[2] != "":
-        #         import_path = f"{import_path}.{match[2]}"
-        #
-        #     string = f"from {import_path} import {match[3]}"
-
-        super().__init__(
-            ast_item=ast_item,
-            parent=parent,
-        )
-
-    @property
-    def target_string(self) -> str:
-        return self.target_import_string
-
-    @property
-    def _parts(self):
-        return self.string.lstrip().split(" ")
-
-    @property
-    def items(self):
-        strings = self.string.split("import ")[-1].split(", ")
-
-        items = list()
-        module = self.module
-
-        for string in strings:
-            if " as" in string:
-                string, alias = string.split(" as ")
-                item = As(module[string], alias)
-            else:
-                item = module[string]
-
-            items.append(item)
-        return items
-
-    @property
-    def module_string(self):
-        return self._parts[1].replace(",", "")
-
-    @property
-    def module_path(self):
-        return self.module_string.split(".")
-
-    @property
-    def module(self):
-        item = self.top_level
-        for name in self.module_path[1:]:
-            item = item[name]
-        return item
-
     @property
     def is_in_project(self) -> bool:
         """
@@ -215,39 +142,6 @@ class Import(LineItem):
                 name
             )
         )
-
-    @property
-    def _space_prefix(self) -> str:
-        """
-        A string of spaces at the start of the import string
-        """
-        return re.findall(
-            f"( *).*",
-            self.string
-        )[0]
-
-    @property
-    def target_import_string(self) -> str:
-        """
-        The string that will describe this import after edenisation
-        """
-        if not self.is_in_project:
-            return self.string
-
-        item = self.top_level
-        module_string = item.target_file_name
-
-        for name in self.module_path[1:]:
-            item = item[name]
-            module_string = f"{module_string}.{item.target_name}"
-
-        item_string = ", ".join([
-            f"{item.target_import_string}"
-            for item
-            in self.items
-        ])
-
-        return f"{self._space_prefix}from {module_string} import {item_string}"
 
 
 class As:
