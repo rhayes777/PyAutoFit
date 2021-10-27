@@ -89,13 +89,14 @@ class Import(LineItem):
 
     def converted(self):
         converted = super().converted()
-        for name in converted.names:
-            name.name = ".".join(
-                self.edenise_path(
-                    name.name.split("."),
-                    prefix=self.module_path
+        if self.is_in_project:
+            for name in converted.names:
+                name.name = ".".join(
+                    self.edenise_path(
+                        name.name.split("."),
+                        prefix=self.module_path
+                    )
                 )
-            )
 
         return converted
 
@@ -136,6 +137,8 @@ class ImportFrom(Import):
         """
         Is this object within the top level object?
         """
+        if self.ast_item.level > 0:
+            return True
         return any(
             self.ast_item.module.startswith(
                 dependency
@@ -145,12 +148,13 @@ class ImportFrom(Import):
 
     def converted(self):
         converted = super().converted()
-        converted.level = 0
-        converted.module = ".".join(
-            self.edenise_path(
-                self.module_path
+        if self.is_in_project:
+            converted.level = 0
+            converted.module = ".".join(
+                self.edenise_path(
+                    self.module_path
+                )
             )
-        )
         return converted
 
     @property

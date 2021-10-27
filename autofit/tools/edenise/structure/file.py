@@ -102,20 +102,6 @@ class File(DirectoryItem):
                     f.read()
                 ).body
             ]
-            # line_item = None
-            # for line in f.read().split("\n"):
-            #     new_item = LineItem(
-            #         line,
-            #         self
-            #     )
-            #     if line_item is None:
-            #         line_item = new_item
-            #     else:
-            #         line_item += new_item
-            #
-            #     if line_item.is_complete:
-            #         yield line_item
-            #         line_item = None
 
     @property
     def imports(self) -> List[Import]:
