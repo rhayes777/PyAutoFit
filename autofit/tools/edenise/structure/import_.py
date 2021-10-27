@@ -2,6 +2,8 @@ import ast
 from copy import copy
 from typing import Optional
 
+from astunparse import unparse
+
 from autofit.tools.edenise.structure.item import Item
 
 
@@ -36,12 +38,21 @@ class LineItem(Item):
         )
 
     @staticmethod
-    def parse_fragment(string):
+    def parse_fragment(
+            string,
+            parent=None
+    ):
         return LineItem(
             ast.parse(
                 string
             ).body[0],
-            parent=None
+            parent=parent
+        )
+
+    @property
+    def target_string(self):
+        return unparse(
+            self.converted()
         )
 
     def __new__(cls, ast_item, parent):

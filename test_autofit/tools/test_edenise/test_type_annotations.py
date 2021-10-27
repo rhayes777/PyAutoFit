@@ -13,72 +13,64 @@ def set_flag(package):
 def test_dotted_annotation(
         package
 ):
-    assert LineItem(
-        "def my_func() -> np.ndarray:",
+    assert LineItem.parse_fragment(
+        "def my_func() -> np.ndarray:\n    pass",
         parent=package
-    ).target_string == "def my_func():"
+    ).target_string == """
+
+def my_func():
+    pass
+"""
 
 
 def test_ellipsis(
         package
 ):
-    assert LineItem(
-        "def my_func(t: Tuple[int, ...]) -> Tuple[int, ...]:",
+    assert LineItem.parse_fragment(
+        "def my_func(t: Tuple[int, ...]) -> Tuple[int, ...]:\n    pass",
         parent=package
-    ).target_string == "def my_func(t):"
+    ).target_string == """
 
-
-def test_complex_example(
-        package
-):
-    assert LineItem(
-        """def grid_2d_radial_projected_from(
-    self, centre: Tuple[float, float] = (0.0, 0.0), angle: float = 0.0
-) -> grid_2d_irregular.Grid2DIrregular:""",
-        parent=package
-    ).target_string == """def grid_2d_radial_projected_from(
-    self, centre= (0.0, 0.0), angle= 0.0
-):"""
+def my_func(t):
+    pass
+"""
 
 
 def test_lost_argument(
         package
 ):
-    assert LineItem(
-        "def convert_grid_2d(grid_2d: Union[np.ndarray, List], mask_2d):",
+    assert LineItem.parse_fragment(
+        "def convert_grid_2d(grid_2d: Union[np.ndarray, List], mask_2d):\n    pass",
         parent=package
-    ).target_string == "def convert_grid_2d(grid_2d, mask_2d):"
+    ).target_string == """
 
-
-def test_is_function(
-        package
-):
-    assert LineItem(
-        "def my_func():",
-        parent=package
-    ).is_function is True
+def convert_grid_2d(grid_2d, mask_2d):
+    pass
+"""
 
 
 def test_regression(
         package
 ):
-    assert LineItem(
+    assert LineItem.parse_fragment(
         """def path_instances_of_class(
         obj, cls: type, ignore_class: Optional[Union[type, Tuple[type]]] = None
-):""",
+):\n    pass""",
         parent=package
-    ).target_string == """def path_instances_of_class(
-        obj, cls, ignore_class= None
-):"""
+    ).target_string == """
+
+def path_instances_of_class(obj, cls, ignore_class=None):
+    pass
+"""
 
 
 class TestStripAnnotations:
     @pytest.mark.parametrize(
         "string",
         [
-            "def my_func() -> dict:",
-            "def my_func()->dict:",
-            "def my_func() -> dict :",
+            "def my_func() -> dict:\n    pass",
+            "def my_func()->dict:\n    pass",
+            "def my_func() -> dict :\n    pass",
         ]
     )
     def test_strip_return_type(
@@ -86,29 +78,33 @@ class TestStripAnnotations:
             package,
             string
     ):
-        assert LineItem(
+        assert LineItem.parse_fragment(
             string,
             parent=package
-        ).target_string == "def my_func():"
+        ).target_string == """
+
+def my_func():
+    pass
+"""
 
     def test_across_new_lines(
             self,
             package
     ):
-        line_item = LineItem(
+        line_item = LineItem.parse_fragment(
             """def my_func(
                 one: dict,
                 two: dict
             ):
+                pass
             """,
             parent=package
         )
-        assert line_item.is_function
-        assert line_item.target_string == """def my_func(
-                one,
-                two
-            ):
-            """
+        assert line_item.target_string == """
+
+def my_func(one, two):
+    pass
+"""
 
     @pytest.mark.parametrize(
         "annotation",
@@ -122,27 +118,33 @@ class TestStripAnnotations:
             package,
             annotation
     ):
-        assert LineItem(
-            f"def my_func(complex: {annotation}):",
+        assert LineItem.parse_fragment(
+            f"def my_func(complex: {annotation}):\n    pass",
             parent=package
-        ).target_string == "def my_func(complex):"
+        ).target_string == """
+
+def my_func(complex):
+    pass
+"""
 
     def test_dont_convert_dict(
             self,
             package
     ):
         string = "{'one': 1, 'two': 2}"
-        assert LineItem(
+        assert LineItem.parse_fragment(
             string,
             parent=package
-        ).target_string == string
+        ).target_string == """
+{'one': 1, 'two': 2}
+"""
 
     @pytest.mark.parametrize(
         "string",
         [
-            "def my_func() -> dict:",
-            "def my_func()->dict:",
-            "def my_func() -> dict :",
+            "def my_func() -> dict:\n    pass",
+            "def my_func()->dict:\n    pass",
+            "def my_func() -> dict :\n    pass",
         ]
     )
     def test_strip_return_type(
@@ -150,25 +152,37 @@ class TestStripAnnotations:
             package,
             string
     ):
-        assert LineItem(
+        assert LineItem.parse_fragment(
             string,
             parent=package
-        ).target_string == "def my_func():"
+        ).target_string == """
+
+def my_func():
+    pass
+"""
 
     def test_multiple_arguments(
             self,
             package
     ):
-        assert LineItem(
-            "def my_func(arg1: dict, arg2: dict):",
+        assert LineItem.parse_fragment(
+            "def my_func(arg1: dict, arg2: dict):\n    pass",
             parent=package
-        ).target_string == "def my_func(arg1, arg2):"
+        ).target_string == """
+
+def my_func(arg1, arg2):
+    pass
+"""
 
     def test_strip_argument_type(
             self,
             package
     ):
-        assert LineItem(
-            "def my_func(arg: dict):",
+        assert LineItem.parse_fragment(
+            "def my_func(arg: dict):\n    pass",
             parent=package
-        ).target_string == "def my_func(arg):"
+        ).target_string == """
+
+def my_func(arg):
+    pass
+"""
