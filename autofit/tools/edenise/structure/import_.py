@@ -75,6 +75,22 @@ class LineItem(Item):
 
 
 class Import(LineItem):
+    def __init__(
+            self,
+            ast_item: ast.stmt,
+            parent: Optional[Item] = None
+    ):
+        super().__init__(ast_item, parent)
+
+    @property
+    def is_aliased(self):
+        return self.alias is not None
+
+    @property
+    def alias(self):
+        for name in self.ast_item.names:
+            return name.asname
+
     @property
     def is_in_project(self) -> bool:
         """

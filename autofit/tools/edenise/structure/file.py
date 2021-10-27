@@ -31,18 +31,40 @@ class File(DirectoryItem):
             parent=parent
         )
         self._path = path
+        self._ast_item = None
+
+    @property
+    def alias_imports(self):
+        return [
+            import_
+            for import_
+            in self.imports
+            if import_.is_aliased
+        ]
+
+    @property
+    def ast_item(self):
+        if self._ast_item is None:
+            with open(self.path) as f:
+                self._ast_item = ast.parse(
+                    f.read()
+                )
+        return self._ast_item
 
     def generate_target(self, output_path):
         with open(output_path / self.target_path, "w+") as f:
-            module = ast.Module()
-            module.body = [
-                line.converted()
-                for line
-                in self.lines()
-            ]
             f.write(
-                unparse(module)
+                unparse(self.converted())
             )
+
+    def converted(self):
+        module = ast.Module()
+        module.body = [
+            line.converted()
+            for line
+            in self.lines()
+        ]
+        return module
 
     @property
     def target_name(self) -> str:
@@ -129,40 +151,3 @@ class File(DirectoryItem):
             in self.imports
             if import_.is_in_project
         ]
-
-    def converted(self):
-        with open(self.path) as f:
-            parsed = ast.parse(f.read())
-
-        converted = ast.Module()
-
-        converted.body = list(map(
-            self.convert,
-            parsed.body
-        ))
-
-        return unparse(
-            converted
-        )
-
-    def convert(self, item):
-        item = copy(item)
-        # if isinstance(
-        #         item,
-        #         (
-        #                 ast.Import,
-        #                 ast.ImportFrom
-        #         )
-        # ):
-        #     item = copy(item)
-
-        if isinstance(
-                item,
-                ast.ImportFrom
-        ):
-            item.module = item.module.replace(
-                "autofit",
-                "AUTOFIT"
-            )
-
-        return item
