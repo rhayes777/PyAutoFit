@@ -84,9 +84,9 @@ def test_package_import(
 @pytest.mark.parametrize(
     "string, result",
     [
-        ("from . import util", "from autofit.tools import util"),
-        ("from .. import conf", "from autofit import conf"),
-        ("from ..tools import util", "from autofit.tools import util")
+        ("from . import util", "\nfrom VIS_CTI_Autofit.VIS_CTI_Tools import util\n"),
+        ("from .. import conf", "\nfrom VIS_CTI_Autofit import conf\n"),
+        ("from ..tools import util", "\nfrom VIS_CTI_Autofit.VIS_CTI_Tools import util\n")
     ]
 )
 def test_relative_import(

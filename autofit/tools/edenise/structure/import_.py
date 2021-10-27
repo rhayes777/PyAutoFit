@@ -275,13 +275,41 @@ class ImportFrom(Import):
 
     def converted(self):
         converted = super().converted()
+        converted.level = 0
         converted.module = ".".join(
             map(
                 self._edenise_string,
-                converted.module.split(".")
+                self.module_path
             )
         )
         return converted
 
+    @property
+    def module_path(self):
+        path = []
+        level = self.ast_item.level
+
+        if level > 0:
+            item = self
+            for _ in range(level + 1):
+                item = item.parent
+            items = []
+            while item is not None:
+                items.append(item)
+                item = item.parent
+
+            path += [
+                item.name
+                for item
+                in reversed(items)
+            ]
+
+        module = self.ast_item.module
+        if module is not None:
+            path += self.ast_item.module.split(
+                "."
+            )
+        return path
+
     def full_path(self, name):
-        return self.ast_item.module.split(".") + super().full_path(name)
+        return self.module_path + super().full_path(name)
