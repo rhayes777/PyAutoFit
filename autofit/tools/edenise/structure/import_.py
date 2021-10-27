@@ -1,6 +1,6 @@
 import ast
-import re
 from copy import copy
+from typing import Optional
 
 from autofit.tools.edenise.structure.item import Item
 
@@ -9,7 +9,7 @@ class LineItem(Item):
     def __init__(
             self,
             ast_item: ast.stmt,
-            parent: Item
+            parent: Optional[Item] = None
     ):
         """
         A line in a file.
@@ -69,47 +69,6 @@ class LineItem(Item):
         """
         return []
 
-    @property
-    def is_function(self):
-        return re.match(r"def +\w+", self.string) is not None
-
-    @property
-    def target_string(self) -> str:
-        if self.is_function and self.should_remove_type_annotations:
-            result = list()
-            open_square_count = 0
-            open_bracket_count = 0
-
-            should_add = True
-            for i, character in enumerate(self.string):
-                def is_window(string):
-                    return self.string[i: i + len(string)] == string
-
-                if is_window(" -> ") or is_window(" ->") or is_window("-> ") or is_window("->"):
-                    should_add = False
-                if character == ":":
-                    should_add = open_bracket_count == 0
-                if character == "=":
-                    should_add = True
-                if character == "(":
-                    open_bracket_count += 1
-                if character == ")":
-                    open_bracket_count -= 1
-                    if open_bracket_count == 0:
-                        should_add = True
-                if character == "[":
-                    open_square_count += 1
-                if character == "]":
-                    open_square_count -= 1
-                if character in (",", "\n") and open_square_count == 0:
-                    should_add = True
-
-                if should_add:
-                    result.append(character)
-
-            return "".join(result)
-        return self.string
-
 
 class Import(LineItem):
     @property
@@ -163,16 +122,6 @@ class Import(LineItem):
         return self.top_level.is_member(
             path
         )
-
-
-class As:
-    def __init__(self, item, alias):
-        self.item = item
-        self.alias = alias
-
-    @property
-    def target_import_string(self):
-        return f"{self.item.target_import_string} as {self.alias}"
 
 
 class ImportFrom(Import):
