@@ -95,11 +95,14 @@ def test_relative_import(
         result
 ):
     import_ = Import(
-        string,
+        ast.parse(
+            string
+        ).body[0],
         parent=package["tools"]["namer"]
     )
 
-    assert import_.string == result
+    target_import_string = unparse(import_.converted())
+    assert target_import_string == result
 
 
 def test_module_import_name(
