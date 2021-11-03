@@ -27,25 +27,34 @@ get_class(Prior)
 """
 
 
+@pytest.mark.parametrize(
+    "source, target",
+    [
+        (
+                "from autoconf.class_path import get_class",
+                "from VIS_CTI_Autoconf.class_path import get_class"
+        ),
+        (
+                "from autoconf.tools import decorators",
+                "from VIS_CTI_Autoconf.VIS_CTI_Tools import decorators"
+        ),
+        (
+                "import autoconf.tools.decorators",
+                "import VIS_CTI_Autoconf.VIS_CTI_Tools.decorators"
+        ),
+        (
+                "import autoconf.tools",
+                "import VIS_CTI_Autoconf.VIS_CTI_Tools"
+        )
+    ]
+)
 def test_import(
-        file
+        file,
+        source,
+        target
 ):
     import_ = Import.parse_fragment(
-        "from autoconf.class_path import get_class",
+        source,
         parent=file
     )
-    assert import_.target_string == """
-from VIS_CTI_Autoconf.class_path import get_class
-"""
-
-
-def test_package(
-        file
-):
-    import_ = Import.parse_fragment(
-        "from autoconf.tools import decorators",
-        parent=file
-    )
-    assert import_.target_string == """
-from VIS_CTI_Autoconf.VIS_CTI_Tools import decorators
-"""
+    assert import_.target_string.strip(" \n") == target.strip(" \n")
