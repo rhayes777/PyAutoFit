@@ -81,11 +81,8 @@ class Import(LineItem):
         """
         Is this object within the top level object?
         """
-        return any(
-            self.ast_item.names[0].name.startswith(
-                dependency
-            )
-            for dependency in self.eden_dependencies
+        return self.top_level.is_in_project(
+            self.ast_item.names[0].name.split(".")
         )
 
     def converted(self):
@@ -140,11 +137,8 @@ class ImportFrom(Import):
         """
         if self.ast_item.level > 0:
             return True
-        return any(
-            self.ast_item.module.startswith(
-                dependency
-            )
-            for dependency in self.eden_dependencies
+        return self.top_level.is_in_project(
+            self.ast_item.module.split(".")
         )
 
     def converted(self):

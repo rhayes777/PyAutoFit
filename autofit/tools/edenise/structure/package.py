@@ -1,3 +1,4 @@
+import importlib
 import os
 from pathlib import Path
 from typing import List, Optional
@@ -38,15 +39,42 @@ class Package(DirectoryItem):
         self._path = path
 
         self.is_top_level = is_top_level
-        self._eden_dependencies = eden_dependencies or list()
+        self._eden_dependencies = [
+            Package(
+                Path(
+                    importlib.import_module(
+                        dependency
+                    ).__file__
+                ).parent,
+                prefix=prefix,
+                is_top_level=True,
+                should_rename_modules=should_rename_modules,
+                should_remove_type_annotations=should_remove_type_annotations,
+            )
+            for dependency in (
+                    eden_dependencies or []
+            )
+        ]
         self._should_rename_modules = should_rename_modules
         self._should_remove_type_annotations = should_remove_type_annotations
+
+    @property
+    def name(self):
+        return self.path.name
 
     def _item_for_path(self, path):
         item = self
         for name in path[1:]:
             item = item[name]
         return item
+
+    def is_in_project(self, path):
+        if path[0] == self.name:
+            return True
+        return any(
+            package.is_in_project(path)
+            for package in self.eden_dependencies
+        )
 
     def is_module(self, path):
         return isinstance(
@@ -76,7 +104,7 @@ class Package(DirectoryItem):
 
     @property
     def eden_dependencies(self):
-        return self._eden_dependencies + [self.name]
+        return self._eden_dependencies
 
     def generate_target(self, output_path: Path):
         self._generate_directory(

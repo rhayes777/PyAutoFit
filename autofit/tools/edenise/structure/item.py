@@ -66,7 +66,7 @@ class Item(ABC):
         self.prefix = parent.prefix
 
     @property
-    def top_level(self) -> "Item":
+    def top_level(self):
         """
         The top level package in the project
         """
