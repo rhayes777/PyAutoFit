@@ -1,6 +1,6 @@
 import pytest
 
-from autofit.tools.edenise import Import
+from autofit.tools.edenise import Import, File
 
 
 @pytest.fixture(
@@ -36,3 +36,43 @@ def test_string_in_file(
         import_string
 ):
     assert import_string in file.target_string
+
+
+def test_relative_aliased_import(
+        file
+):
+    string = "from VIS_CTI_Autofit.VIS_CTI_Database import VIS_CTI_Model as m"
+    assert Import.parse_fragment(
+        "from .. import model as m",
+        parent=file
+    ).target_string.strip(
+        " \n"
+    ) == string
+
+
+def test_aliased_import(
+        file
+):
+    string = "from VIS_CTI_Autofit.VIS_CTI_Database import VIS_CTI_Query as q"
+    assert Import.parse_fragment(
+        "from autofit.database import query as q",
+        parent=file
+    ).target_string.strip(
+        " \n"
+    ) == string
+    assert string in file.target_string
+
+
+def test_in_situ(
+        package,
+        examples_directory
+):
+    file = File(
+        examples_directory / "aliased_relative_import_in_situ.py",
+        parent=package["database"]["aggregator"],
+        prefix=""
+    )
+    assert file.target_string == """
+from VIS_CTI_Autofit.VIS_CTI_Database import VIS_CTI_Query
+from VIS_CTI_Autofit.VIS_CTI_Database import VIS_CTI_Model
+"""
