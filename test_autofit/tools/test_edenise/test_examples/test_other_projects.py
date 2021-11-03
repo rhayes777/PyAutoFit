@@ -21,9 +21,11 @@ def test_other_projects(
         file
 ):
     assert file.target_string == """
+from VIS_CTI_Autoconf import exc
 from VIS_CTI_Autoconf.class_path import get_class
 from VIS_CTI_Autofit.VIS_CTI_Mapper import Prior
 get_class(Prior)
+exc
 """
 
 
