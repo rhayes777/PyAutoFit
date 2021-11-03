@@ -1,4 +1,5 @@
 from abc import abstractmethod, ABC
+from functools import lru_cache
 from pathlib import Path
 from typing import List, Optional
 
@@ -26,6 +27,7 @@ class Item(ABC):
         else:
             self.prefix = self._parent.prefix
 
+    @lru_cache()
     def __getitem__(self, item):
         for child in self.children:
             if child.name == item:
