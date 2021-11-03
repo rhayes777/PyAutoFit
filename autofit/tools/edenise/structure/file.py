@@ -49,6 +49,42 @@ class File(DirectoryItem):
             in self.aliased_imports
         ]
 
+    def attributes_for_alias(
+            self,
+            alias: str
+    ):
+        return {
+            attribute.attr
+            for attribute
+            in self.attributes()
+            if attribute.value.id == alias
+        }
+
+    def attributes(self):
+        def get_attributes(
+                obj
+        ):
+            if isinstance(
+                    obj, ast.Attribute
+            ):
+                yield obj
+            items = []
+            if hasattr(obj, "__dict__"):
+                items = obj.__dict__.values()
+            if isinstance(obj, dict):
+                items = obj.values()
+            if isinstance(obj, list):
+                items = obj
+            for item in items:
+                for attribute in get_attributes(
+                        item
+                ):
+                    yield attribute
+
+        return get_attributes(
+            self.ast_item
+        )
+
     @property
     def ast_item(self):
         if self._ast_item is None:
@@ -60,9 +96,11 @@ class File(DirectoryItem):
 
     def generate_target(self, output_path):
         with open(output_path / self.target_path, "w+") as f:
-            f.write(
-                unparse(self.converted())
-            )
+            f.write(self.target_string)
+
+    @property
+    def target_string(self):
+        return unparse(self.converted())
 
     def converted(self):
         module = ast.Module()

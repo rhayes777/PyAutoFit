@@ -54,7 +54,34 @@ def test_alias_imports(
     assert file.aliases == ["af"]
 
 
-def test_uses_alias(
+def test_attributes(
+        file
+):
+    assert len(list(file.attributes())) == 3
+
+
+def test_attributes_for_alias(
+        file
+):
+    assert file.attributes_for_alias(
+        "af"
+    ) == {
+        "Model",
+        "Gaussian"
+    }
+
+
+def test_whole_file(
+        file
+):
+    assert file.target_string == """
+from VIS_CTI_Autofit import Model, Gaussian
+model = Model(Gaussian)
+print(model.prior_count)
+"""
+
+
+def test_replace_alias(
         file
 ):
     item = LineItem.parse_fragment(
