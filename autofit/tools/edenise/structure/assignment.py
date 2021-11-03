@@ -12,7 +12,9 @@ class Assignment(LineItem):
                 obj
         ):
             if isinstance(
-                obj, ast.Attribute
+                    obj, ast.Attribute
+            ) and hasattr(
+                obj.value, "id"
             ) and obj.value.id in aliases:
                 return ast.Name(
                     id=obj.attr,

@@ -58,7 +58,9 @@ class File(DirectoryItem):
             attribute.attr
             for attribute
             in self.attributes()
-            if attribute.value.id == alias
+            if hasattr(
+                attribute.value, "id"
+            ) and attribute.value.id == alias
         }
 
     def attributes(self):
