@@ -1,4 +1,5 @@
 import ast
+from copy import deepcopy
 from typing import Optional, Set
 
 from .item import Item
@@ -30,7 +31,7 @@ class Import(LineItem):
     def as_from_import(
             self,
             attribute_names: Set[str]
-    ) -> "ImportFrom":
+    ) -> "Import":
         """
         Convert an import as import to an explicit
         import of each attribute.
@@ -57,6 +58,14 @@ class Import(LineItem):
 
         Model(Gaussian)
         """
+        if len(attribute_names) == 0:
+            ast_item = deepcopy(self.ast_item)
+            ast_item.names[0].asname = None
+            return Import(
+                ast_item,
+                parent=self.parent
+            )
+
         # noinspection PyTypeChecker
         return ImportFrom(
             ast.ImportFrom(
