@@ -93,7 +93,6 @@ class LineItem(Item):
     def __new__(cls, ast_item, parent):
         from .import_ import Import, ImportFrom
         from .function import Function
-        from .assignment import Assignment
 
         if isinstance(
                 ast_item,
@@ -110,9 +109,4 @@ class LineItem(Item):
                 ast.FunctionDef
         ):
             return object.__new__(Function)
-        if isinstance(
-                ast_item,
-                ast.Assign
-        ):
-            return object.__new__(Assignment)
         return object.__new__(LineItem)
