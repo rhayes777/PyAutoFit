@@ -1,5 +1,5 @@
 import ast
-from typing import Optional
+from typing import Optional, Set
 
 from .item import Item
 from .line import LineItem
@@ -14,7 +14,12 @@ class Import(LineItem):
         super().__init__(ast_item, parent)
 
     @property
-    def is_aliased(self):
+    def is_aliased(self) -> bool:
+        """
+        True if the import is of the form
+
+        import something as alias
+        """
         return self.alias is not None
 
     @property
@@ -22,7 +27,36 @@ class Import(LineItem):
         for name in self.ast_item.names:
             return name.asname
 
-    def as_from_import(self, attribute_names):
+    def as_from_import(
+            self,
+            attribute_names: Set[str]
+    ) -> "ImportFrom":
+        """
+        Convert an import as import to an explicit
+        import of each attribute.
+
+        Parameters
+        ----------
+        attribute_names
+            A list of names of attributes accessed on
+            the alias
+
+        Returns
+        -------
+        An explicit import of each attribute
+
+        Examples
+        --------
+        import autofit as af
+
+        af.Model(af.Gaussian)
+
+        becomes
+
+        from autofit import Model, Gaussian
+
+        Model(Gaussian)
+        """
         # noinspection PyTypeChecker
         return ImportFrom(
             ast.ImportFrom(
