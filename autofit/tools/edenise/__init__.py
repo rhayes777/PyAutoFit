@@ -1,8 +1,6 @@
-import os
 import shutil
 from pathlib import Path
 
-from .converter import Converter, Line
 from .structure import Import, Item, File, Package, LineItem
 
 
