@@ -1,5 +1,3 @@
-import ast
-
 import pytest
 
 from autofit.tools.edenise import File, Import
@@ -69,19 +67,9 @@ def test_attributes_for_alias(
     assert file.attributes_for_alias(
         "af"
     ) == {
-        "Model",
-        "Gaussian"
-    }
-
-
-def test_scratch():
-    result = ast.parse(
-        """
-import autofit as af
-from autofit import Model, Gaussian
-"""
-    )
-    print(result)
+               "Model",
+               "Gaussian"
+           }
 
 
 def test_convert_import(file):
@@ -122,4 +110,3 @@ def test_replace_alias(
     assert item.target_string == """
 model = Model(Gaussian)
 """
-
