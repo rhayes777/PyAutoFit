@@ -86,7 +86,12 @@ class Package(DirectoryItem):
 
     def is_member(self, path):
         if len(path) == 1:
-            return path[0] != self.path.stem
+            name = path[0]
+            return not (name == self.name or name in [
+                dependency.name
+                for dependency
+                in self.eden_dependencies
+            ])
         return isinstance(
             self._item_for_path(
                 path

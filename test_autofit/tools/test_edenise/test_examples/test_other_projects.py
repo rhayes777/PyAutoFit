@@ -1,6 +1,6 @@
 import pytest
 
-from autofit.tools.edenise import File
+from autofit.tools.edenise import File, Import
 
 
 @pytest.fixture(
@@ -24,4 +24,16 @@ def test_other_projects(
 from VIS_CTI_Autoconf.class_path import get_class
 from VIS_CTI_Autofit.VIS_CTI_Mapper import Prior
 get_class(Prior)
+"""
+
+
+def test_import(
+        file
+):
+    import_ = Import.parse_fragment(
+        "from autoconf.class_path import get_class",
+        parent=file
+    )
+    assert import_.target_string == """
+from VIS_CTI_Autoconf.class_path import get_class
 """
