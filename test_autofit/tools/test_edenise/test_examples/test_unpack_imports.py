@@ -36,8 +36,7 @@ def test_not_alias_import():
 )
 def make_file(
         package,
-        examples_directory,
-        eden_output_directory
+        examples_directory
 ):
     return File(
         examples_directory / "unpack_imports.py",
@@ -46,12 +45,27 @@ def make_file(
     )
 
 
+def test_convert_if_numpy(
+        package,
+        examples_directory
+):
+    file = File(
+        examples_directory / "unpack_numpy.py",
+        parent=package,
+        prefix=""
+    )
+    assert file.target_string == """
+from numpy import isnan
+if isnan(1):
+    assert False
+"""
+
+
 def test_alias_imports(
         file
 ):
     alias_import, = file.aliased_imports
     assert alias_import.alias == "af"
-
     assert file.aliases == ["af"]
 
 
@@ -83,6 +97,20 @@ def test_convert_import(file):
         }
     ).target_string == """
 from VIS_CTI_Autofit import Gaussian, Model
+"""
+
+
+def test_convert_numpy_import(file):
+    import_from = Import.parse_fragment(
+        """import numpy as np""",
+        parent=file
+    )
+    assert import_from.as_from_import(
+        attribute_names={
+            "isnan"
+        }
+    ).target_string == """
+from numpy import isnan
 """
 
 

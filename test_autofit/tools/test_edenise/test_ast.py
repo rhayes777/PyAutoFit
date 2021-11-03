@@ -32,13 +32,16 @@ def make_file(
     )
 
 
-def test_function():
+def test_function(
+        file
+):
     string = """
 def function():
     pass
         """
     item = LineItem.parse_fragment(
-        string
+        string,
+        parent=file
     )
     assert unparse(
         item.converted()
@@ -49,13 +52,16 @@ def function():
 """
 
 
-def test_strip_type_annotations():
+def test_strip_type_annotations(
+        file
+):
     string = """
 def function(argument: dict) -> Optional[Tuple[str, ...]]:
     pass
         """
     item = LineItem.parse_fragment(
-        string
+        string,
+        parent=file
     )
     assert unparse(
         item.converted()

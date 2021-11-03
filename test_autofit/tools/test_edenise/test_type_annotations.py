@@ -11,11 +11,11 @@ def set_flag(package):
 
 
 def test_dotted_annotation(
-        package
+        file
 ):
     assert LineItem.parse_fragment(
         "def my_func() -> np.ndarray:\n    pass",
-        parent=package
+        parent=file
     ).target_string == """
 
 def my_func():
@@ -24,11 +24,11 @@ def my_func():
 
 
 def test_ellipsis(
-        package
+        file
 ):
     assert LineItem.parse_fragment(
         "def my_func(t: Tuple[int, ...]) -> Tuple[int, ...]:\n    pass",
-        parent=package
+        parent=file
     ).target_string == """
 
 def my_func(t):
@@ -37,11 +37,11 @@ def my_func(t):
 
 
 def test_lost_argument(
-        package
+        file
 ):
     assert LineItem.parse_fragment(
         "def convert_grid_2d(grid_2d: Union[np.ndarray, List], mask_2d):\n    pass",
-        parent=package
+        parent=file
     ).target_string == """
 
 def convert_grid_2d(grid_2d, mask_2d):
@@ -50,13 +50,13 @@ def convert_grid_2d(grid_2d, mask_2d):
 
 
 def test_regression(
-        package
+        file
 ):
     assert LineItem.parse_fragment(
         """def path_instances_of_class(
         obj, cls: type, ignore_class: Optional[Union[type, Tuple[type]]] = None
 ):\n    pass""",
-        parent=package
+        parent=file
     ).target_string == """
 
 def path_instances_of_class(obj, cls, ignore_class=None):
@@ -75,12 +75,12 @@ class TestStripAnnotations:
     )
     def test_strip_return_type(
             self,
-            package,
+            file,
             string
     ):
         assert LineItem.parse_fragment(
             string,
-            parent=package
+            parent=file
         ).target_string == """
 
 def my_func():
@@ -89,7 +89,7 @@ def my_func():
 
     def test_across_new_lines(
             self,
-            package
+            file
     ):
         line_item = LineItem.parse_fragment(
             """def my_func(
@@ -98,7 +98,7 @@ def my_func():
             ):
                 pass
             """,
-            parent=package
+            parent=file
         )
         assert line_item.target_string == """
 
@@ -115,12 +115,12 @@ def my_func(one, two):
     )
     def test_complex_type_annotation(
             self,
-            package,
+            file,
             annotation
     ):
         assert LineItem.parse_fragment(
             f"def my_func(complex: {annotation}):\n    pass",
-            parent=package
+            parent=file
         ).target_string == """
 
 def my_func(complex):
@@ -129,12 +129,12 @@ def my_func(complex):
 
     def test_dont_convert_dict(
             self,
-            package
+            file
     ):
         string = "{'one': 1, 'two': 2}"
         assert LineItem.parse_fragment(
             string,
-            parent=package
+            parent=file
         ).target_string == """
 {'one': 1, 'two': 2}
 """
@@ -149,12 +149,12 @@ def my_func(complex):
     )
     def test_strip_return_type(
             self,
-            package,
+            file,
             string
     ):
         assert LineItem.parse_fragment(
             string,
-            parent=package
+            parent=file
         ).target_string == """
 
 def my_func():
@@ -163,11 +163,11 @@ def my_func():
 
     def test_multiple_arguments(
             self,
-            package
+            file
     ):
         assert LineItem.parse_fragment(
             "def my_func(arg1: dict, arg2: dict):\n    pass",
-            parent=package
+            parent=file
         ).target_string == """
 
 def my_func(arg1, arg2):
@@ -176,11 +176,11 @@ def my_func(arg1, arg2):
 
     def test_strip_argument_type(
             self,
-            package
+            file
     ):
         assert LineItem.parse_fragment(
             "def my_func(arg: dict):\n    pass",
-            parent=package
+            parent=file
         ).target_string == """
 
 def my_func(arg):

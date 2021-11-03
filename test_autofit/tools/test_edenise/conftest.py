@@ -22,6 +22,17 @@ def make_package():
     )
 
 
+@pytest.fixture(
+    name="file"
+)
+def make_file(
+        package
+):
+    return package[
+        "__init__"
+    ]
+
+
 directory = Path(
     __file__
 ).parent
