@@ -22,7 +22,8 @@ class Import(LineItem):
         for name in self.ast_item.names:
             return name.asname
 
-    def as_import(self, attribute_names):
+    def as_from_import(self, attribute_names):
+        # noinspection PyTypeChecker
         return ImportFrom(
             ast.ImportFrom(
                 col_offset=self.ast_item.col_offset,
@@ -34,7 +35,7 @@ class Import(LineItem):
                         asname=None
                     )
                     for attribute_name
-                    in attribute_names
+                    in sorted(attribute_names)
                 ],
                 level=0
             ),

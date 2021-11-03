@@ -5,8 +5,8 @@ from typing import List, cast
 from astunparse import unparse
 
 from .import_ import Import
-from .line import LineItem
 from .item import Item, DirectoryItem
+from .line import LineItem
 
 
 class File(DirectoryItem):
@@ -105,11 +105,22 @@ class File(DirectoryItem):
 
     def converted(self):
         module = ast.Module()
-        module.body = [
-            line.converted()
-            for line
-            in self.lines()
-        ]
+        converted_lines = []
+
+        for line in self.lines():
+            if isinstance(
+                    line, Import
+            ) and line.is_aliased:
+                line = line.as_from_import(
+                    self.attributes_for_alias(
+                        line.alias
+                    )
+                )
+            converted_lines.append(
+                line.converted()
+            )
+
+        module.body = converted_lines
         return module
 
     @property

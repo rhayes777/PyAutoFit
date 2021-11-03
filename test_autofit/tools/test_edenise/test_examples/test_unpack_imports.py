@@ -89,7 +89,7 @@ def test_convert_import(file):
         """import autofit as af""",
         parent=file
     )
-    assert import_from.as_import(
+    assert import_from.as_from_import(
         attribute_names={
             "Model", "Gaussian"
         }
@@ -102,7 +102,7 @@ def test_whole_file(
         file
 ):
     assert file.target_string == """
-from VIS_CTI_Autofit import Model, Gaussian
+from VIS_CTI_Autofit import Gaussian, Model
 model = Model(Gaussian)
 print(model.prior_count)
 """
