@@ -50,19 +50,6 @@ def test_relative_aliased_import(
     ) == string
 
 
-def test_aliased_import(
-        file
-):
-    string = "from VIS_CTI_Autofit.VIS_CTI_Database import VIS_CTI_Query as q"
-    assert Import.parse_fragment(
-        "from autofit.database import query as q",
-        parent=file
-    ).target_string.strip(
-        " \n"
-    ) == string
-    assert string in file.target_string
-
-
 def test_in_situ(
         package,
         examples_directory
