@@ -37,3 +37,15 @@ def test_import(
     assert import_.target_string == """
 from VIS_CTI_Autoconf.class_path import get_class
 """
+
+
+def test_package(
+        file
+):
+    import_ = Import.parse_fragment(
+        "from autoconf.tools import decorators",
+        parent=file
+    )
+    assert import_.target_string == """
+from VIS_CTI_Autoconf.VIS_CTI_Tools import decorators
+"""
