@@ -1,6 +1,6 @@
 import pytest
 
-from autofit.tools.edenise.structure import LineItem
+from autofit.tools.edenise import LineItem
 
 
 @pytest.fixture(

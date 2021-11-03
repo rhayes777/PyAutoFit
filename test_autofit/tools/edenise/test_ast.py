@@ -4,7 +4,7 @@ import pytest
 from astunparse import unparse
 
 from autofit.tools.edenise import File
-from autofit.tools.edenise.structure import LineItem
+from autofit.tools.edenise import LineItem
 
 
 @pytest.fixture(

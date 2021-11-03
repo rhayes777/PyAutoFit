@@ -1,7 +1,11 @@
 import shutil
 from pathlib import Path
 
-from .structure import Import, Item, File, Package, LineItem
+from .file import File
+from .import_ import Import
+from .item import Item
+from .line import LineItem
+from .package import Package
 
 
 def edenise(
