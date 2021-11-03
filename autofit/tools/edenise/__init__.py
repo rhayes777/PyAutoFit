@@ -19,6 +19,10 @@ def edenise(
     target_directory = f"{root_directory}/../eden/{name}_eden"
 
     print(f"Creating {target_directory}...")
+    shutil.rmtree(
+        target_directory,
+        ignore_errors=True
+    )
     shutil.copytree(
         root_directory,
         target_directory,

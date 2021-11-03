@@ -1,5 +1,5 @@
 import ast
-from copy import deepcopy
+from copy import deepcopy, copy
 from typing import Optional, Set
 
 from .item import Item
@@ -66,12 +66,23 @@ class Import(LineItem):
                 parent=self.parent
             )
 
+        module = self.ast_item.names[0].name
+        level = 0
+
+        if isinstance(
+                self,
+                ImportFrom
+        ):
+            if self.ast_item.module is not None:
+                module = f"{self.ast_item.module}.{module}"
+            level = self.ast_item.level
+
         # noinspection PyTypeChecker
         return ImportFrom(
             ast.ImportFrom(
                 col_offset=self.ast_item.col_offset,
                 lineno=self.ast_item.lineno,
-                module=self.ast_item.names[0].name,
+                module=module,
                 names=[
                     ast.alias(
                         name=attribute_name,
@@ -80,7 +91,7 @@ class Import(LineItem):
                     for attribute_name
                     in sorted(attribute_names)
                 ],
-                level=0
+                level=level
             ),
             parent=self.parent
         )
@@ -95,7 +106,7 @@ class Import(LineItem):
         )
 
     def converted(self):
-        converted = super().converted()
+        converted = copy(self.ast_item)
         if self.is_in_project:
             for name in converted.names:
                 name.name = ".".join(
