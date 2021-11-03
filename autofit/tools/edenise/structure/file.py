@@ -4,7 +4,8 @@ from typing import List, cast
 
 from astunparse import unparse
 
-from .import_ import Import, LineItem
+from .import_ import Import
+from .line import LineItem
 from .item import Item, DirectoryItem
 
 

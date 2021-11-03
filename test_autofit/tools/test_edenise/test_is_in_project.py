@@ -1,4 +1,4 @@
-from autofit.tools.edenise import LineItem
+from autofit.tools.edenise.structure import LineItem
 import pytest
 
 

@@ -3,7 +3,8 @@ import ast
 import pytest
 from astunparse import unparse
 
-from autofit.tools.edenise import File, LineItem
+from autofit.tools.edenise import File
+from autofit.tools.edenise.structure import LineItem
 
 
 @pytest.fixture(

@@ -1,6 +1,9 @@
+import ast
+
 import pytest
 
-from autofit.tools.edenise import File, Import, LineItem
+from autofit.tools.edenise import File, Import
+from autofit.tools.edenise.structure import LineItem
 
 
 @pytest.fixture(
@@ -69,6 +72,16 @@ def test_attributes_for_alias(
         "Model",
         "Gaussian"
     }
+
+
+def test_scratch():
+    result = ast.parse(
+        """
+import autofit as af
+from autofit import Model, Gaussian
+"""
+    )
+    print(result)
 
 
 def test_whole_file(
