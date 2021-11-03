@@ -1,6 +1,6 @@
 import ast
 from copy import deepcopy, copy
-from typing import Optional, Set
+from typing import Optional, Set, List
 
 from .item import Item
 from .line import LineItem
@@ -118,7 +118,28 @@ class Import(LineItem):
 
         return converted
 
-    def edenise_path(self, path, prefix=None):
+    def edenise_path(
+            self,
+            path: List[str],
+            prefix=None
+    ) -> List[str]:
+        """
+        Convert an import path to eden style. Packages
+        which are in the project or a dependency project
+        are prefixed and capitalised.
+
+        Parameters
+        ----------
+        path
+            A list of strings defining the path to an import
+        prefix
+            An optional list of strings defining the first
+            part of the path
+
+        Returns
+        -------
+        A path with silly eden naming conventions applied
+        """
         converted_path = []
         unconverted_path = []
         for i in range(len(path)):
@@ -138,12 +159,18 @@ class Import(LineItem):
     def module_path(self):
         return []
 
-    def is_module(self, path):
+    def is_module(self, path) -> bool:
+        """
+        Does the path point to a module?
+        """
         return self.top_level.is_module(
             path
         )
 
     def is_member(self, path):
+        """
+        Does the path point to an object in a file?
+        """
         return self.top_level.is_member(
             path
         )

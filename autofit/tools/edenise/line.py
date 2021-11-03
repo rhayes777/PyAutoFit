@@ -32,7 +32,11 @@ class LineItem(Item):
             parent=parent
         )
 
-    def converted(self):
+    def converted(self) -> ast.stmt:
+        """
+        Convert this line, producing a new ast statement that conforms
+        to the arbitrary and sadistic Eden requirements.
+        """
         converted = copy(self.ast_item)
         aliases = self.parent.aliases
 
@@ -74,9 +78,12 @@ class LineItem(Item):
 
     @staticmethod
     def parse_fragment(
-            string,
+            string: str,
             parent=None
-    ):
+    ) -> "LineItem":
+        """
+        Parse from a string. Used for testing.
+        """
         return LineItem(
             ast.parse(
                 string
@@ -85,7 +92,12 @@ class LineItem(Item):
         )
 
     @property
-    def target_string(self):
+    def target_string(self) -> str:
+        """
+        The string made to please eden.
+
+        Used for testing.
+        """
         return unparse(
             self.converted()
         )

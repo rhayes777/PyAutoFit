@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import List, Optional
 
 from .file import File
-from .item import DirectoryItem, Member
+from .item import DirectoryItem, Member, Item
 
 
 class Package(DirectoryItem):
@@ -30,7 +30,12 @@ class Package(DirectoryItem):
         is_top_level
             Is this the top level package of the project?
         eden_dependencies
-            Other projects for which imports should be converted
+            Other projects for which imports should be converted. These
+            are converted into packages - the package they import must be
+            in the python path.
+
+            For example, if an import is autoconf is must be valid to write:
+            import autoconf
         """
         super().__init__(
             prefix,
@@ -59,16 +64,34 @@ class Package(DirectoryItem):
         self._should_remove_type_annotations = should_remove_type_annotations
 
     @property
-    def name(self):
+    def name(self) -> str:
+        """
+        The name of the package
+        """
         return self.path.name
 
-    def _item_for_path(self, path):
+    def _item_for_path(
+            self,
+            path: List[str]
+    ) -> Item:
+        """
+        Traverse the package, module and file structure
+        to identify an item. If the item is not a package
+        or file then 'Member' is returned by default.
+        """
         item = self
         for name in path[1:]:
             item = item[name]
         return item
 
-    def is_in_project(self, path):
+    def is_in_project(
+            self,
+            path: List[str]
+    ) -> bool:
+        """
+        Does the path start with the name of the project being
+        converted or a specified dependency?
+        """
         if path[0] == self.name:
             return True
         return any(
@@ -76,7 +99,10 @@ class Package(DirectoryItem):
             for package in self.eden_dependencies
         )
 
-    def is_module(self, path):
+    def is_module(self, path: List[str]) -> bool:
+        """
+        Does the path point to a module?
+        """
         return isinstance(
             self._item_for_path(
                 path
@@ -84,7 +110,10 @@ class Package(DirectoryItem):
             File
         )
 
-    def is_member(self, path):
+    def is_member(self, path: List[str]) -> bool:
+        """
+        Does the path point to an item in a file?
+        """
         if len(path) == 1:
             name = path[0]
             return not (name == self.name or name in [
@@ -108,10 +137,19 @@ class Package(DirectoryItem):
         return self._should_remove_type_annotations
 
     @property
-    def eden_dependencies(self):
+    def eden_dependencies(self) -> List["Package"]:
+        """
+        Packages on which this project depends. e.g. autoconf
+        """
         return self._eden_dependencies
 
-    def generate_target(self, output_path: Path):
+    def generate_target(
+            self,
+            output_path: Path
+    ):
+        """
+        Generate an edenised version of the project
+        """
         self._generate_directory(
             output_path
         )
