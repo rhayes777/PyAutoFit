@@ -1,8 +1,8 @@
 import ast
 from typing import Optional
 
-from .line import LineItem
 from .item import Item
+from .line import LineItem
 
 
 class Import(LineItem):
@@ -21,6 +21,25 @@ class Import(LineItem):
     def alias(self):
         for name in self.ast_item.names:
             return name.asname
+
+    def as_import(self, attribute_names):
+        return ImportFrom(
+            ast.ImportFrom(
+                col_offset=self.ast_item.col_offset,
+                lineno=self.ast_item.lineno,
+                module=self.ast_item.names[0].name,
+                names=[
+                    ast.alias(
+                        name=attribute_name,
+                        asname=None
+                    )
+                    for attribute_name
+                    in attribute_names
+                ],
+                level=0
+            ),
+            parent=self.parent
+        )
 
     @property
     def is_in_project(self) -> bool:
@@ -130,5 +149,3 @@ class ImportFrom(Import):
                 "."
             )
         return path
-
-

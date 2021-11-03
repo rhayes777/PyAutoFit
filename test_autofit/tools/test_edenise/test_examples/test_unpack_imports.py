@@ -84,6 +84,20 @@ from autofit import Model, Gaussian
     print(result)
 
 
+def test_convert_import(file):
+    import_from = Import.parse_fragment(
+        """import autofit as af""",
+        parent=file
+    )
+    assert import_from.as_import(
+        attribute_names={
+            "Model", "Gaussian"
+        }
+    ).target_string == """
+from VIS_CTI_Autofit import Gaussian, Model
+"""
+
+
 def test_whole_file(
         file
 ):
