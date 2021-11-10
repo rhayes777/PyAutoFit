@@ -59,3 +59,19 @@ def test_aggregate(
     assert len(
         grid_searches.children()
     ) > 0
+
+
+def test_aggregate_completed(
+        session
+):
+    session.commit()
+    aggregator = af.Aggregator(
+        session
+    )
+    aggregator = aggregator(
+        aggregator.search.is_complete
+    )
+    grid_searches = aggregator.grid_searches()
+    assert len(
+        grid_searches
+    ) == 1
