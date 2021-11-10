@@ -1,4 +1,10 @@
-from autoconf.exc import ConfigException, PriorException
+from autoconf.exc import PriorException
+
+
+class MessageException(PriorException):
+    """
+    Raised when some assertion about the parameterization of a message is not met
+    """
 
 
 class PathsException(Exception):
