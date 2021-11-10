@@ -20,6 +20,39 @@ class Sequential:
             yield job_.perform()
 
 
+class ResultBuilder:
+    def __init__(self, lists, grid_priors):
+        self.lists = lists
+        self.grid_priors = grid_priors
+        self._job_results = []
+
+    def __call__(self):
+        return GridSearchResult(
+            self.results,
+            self.lists,
+            self.grid_priors
+        )
+
+    @property
+    def results(self):
+        return [
+            Result(
+                samples=job_result.result.samples,
+                model=job_result.result.model,
+                search=job_result.result.search
+            )
+            for job_result
+            in sorted(
+                self._job_results
+            )
+        ]
+
+    def add(self, job_result):
+        self._job_results.append(
+            job_result
+        )
+
+
 class GridSearch:
 
     def __init__(
@@ -224,27 +257,17 @@ class GridSearch:
             + ["likelihood_merit"]
         ]
 
-        def make_grid_search_result():
-            return GridSearchResult(
-                [
-                    Result(
-                        samples=r.result.samples,
-                        model=r.result.model,
-                        search=r.result.search
-                    )
-                    for r
-                    in results
-                ],
-                lists,
-                grid_priors
-            )
+        result_builder = ResultBuilder(
+            lists=lists,
+            grid_priors=grid_priors
+        )
 
         self.save_metadata()
 
         def save_results():
             self.paths.save_object(
                 "result",
-                make_grid_search_result()
+                result_builder()
             )
 
         for i, job_result in enumerate(
@@ -258,8 +281,9 @@ class GridSearch:
                     self.number_of_cores
                 )
         ):
-            results.append(job_result)
-            results = sorted(results)
+            result_builder.add(
+                job_result
+            )
             results_list.append(job_result.result_list_row)
             self.write_results(results_list)
             if i % self._result_output_interval == 0:
@@ -268,7 +292,7 @@ class GridSearch:
         save_results()
         self.paths.completed()
 
-        return make_grid_search_result()
+        return result_builder()
 
     def save_metadata(self):
         self.paths.save_parent_identifier()

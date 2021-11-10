@@ -25,7 +25,7 @@ class MockSearch(NonLinearSearch):
 
     def __init__(
             self,
-            name="",
+            name="mock_search",
             unique_tag: Optional[str] = None,
             samples=None,
             fit_fast=True,
@@ -120,10 +120,6 @@ class MockSearch(NonLinearSearch):
 
     def samples_from(self, model):
         return MockSamples()
-
-    @property
-    def name(self):
-        return "mock_search"
 
 
 class MockAnalysis(Analysis):
