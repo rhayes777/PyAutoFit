@@ -3,6 +3,8 @@ from autoconf.conf import with_config
 from autofit import graphical as g
 from autofit.mock.mock import MockAnalysis
 
+MAX_STEPS = 3
+
 
 class MockResult(af.MockResult):
     def __init__(self, model):
@@ -54,7 +56,8 @@ def _run_optimisation(
         model_factor_2
     )
     collection.optimise(
-        MockSearch()
+        MockSearch(),
+        max_steps=MAX_STEPS
     )
 
 
@@ -71,8 +74,14 @@ def test_output(
         "factor_1",
         "factor_2"
     )
-    assert (output_directory / "factor_1").exists()
+
+    path = output_directory / "factor_1"
+
+    assert path.exists()
     assert (output_directory / "factor_2").exists()
+
+    for number in range(MAX_STEPS):
+        assert (path / f"optimization_{number}").exists()
 
 
 @with_config(

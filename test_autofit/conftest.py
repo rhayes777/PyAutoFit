@@ -37,25 +37,25 @@ def make_output_directory(
     return test_directory / "output"
 
 
-# @pytest.fixture(
-#     autouse=True,
-#     scope="session"
-# )
-# def remove_output(
-#         output_directory
-# ):
-#     yield
-#     for item in os.listdir(output_directory):
-#         if item != "non_linear":
-#             item_path = output_directory / item
-#             if item_path.is_dir():
-#                 shutil.rmtree(
-#                     item_path
-#                 )
-#             else:
-#                 os.remove(
-#                     item_path
-#                 )
+@pytest.fixture(
+    autouse=True,
+    scope="session"
+)
+def remove_output(
+        output_directory
+):
+    yield
+    for item in os.listdir(output_directory):
+        if item != "non_linear":
+            item_path = output_directory / item
+            if item_path.is_dir():
+                shutil.rmtree(
+                    item_path
+                )
+            else:
+                os.remove(
+                    item_path
+                )
 
 
 class PlotPatch:

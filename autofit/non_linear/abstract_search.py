@@ -4,6 +4,7 @@ import multiprocessing as mp
 import os
 import time
 from abc import ABC, abstractmethod
+from collections import Counter
 from functools import wraps
 from os import path
 from typing import Optional, Union
@@ -198,6 +199,8 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         self.number_of_cores = number_of_cores
 
+        self.optimisation_counter = Counter()
+
     __identifier_fields__ = tuple()
 
     def optimise(
@@ -250,7 +253,12 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         analysis = factor.analysis
 
-        self.paths.path_prefix = factor.name
+        name = factor.name
+        number = self.optimisation_counter[name]
+
+        self.optimisation_counter[name] += 1
+
+        self.paths.path_prefix = f"{name}/optimization_{number}"
 
         result = self.fit(
             model=model,
