@@ -36,18 +36,22 @@ class MockSearch(af.MockSearch):
     "remove_files",
     value=False
 )
-def test_output():
+def test_output(
+        output_directory
+):
     model_factor_1 = g.AnalysisFactor(
         af.Collection(
             one=af.UniformPrior()
         ),
-        MockAnalysis()
+        MockAnalysis(),
+        name="factor_1"
     )
     model_factor_2 = g.AnalysisFactor(
         af.Collection(
             one=af.UniformPrior()
         ),
-        MockAnalysis()
+        MockAnalysis(),
+        name="factor_2"
     )
 
     collection = g.FactorGraphModel(
@@ -57,3 +61,6 @@ def test_output():
     collection.optimise(
         MockSearch()
     )
+
+    assert (output_directory / "factor_1").exists()
+    assert (output_directory / "factor_2").exists()

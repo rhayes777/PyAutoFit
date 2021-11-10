@@ -250,6 +250,8 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         analysis = factor.analysis
 
+        self.paths.path_prefix = factor.name
+
         result = self.fit(
             model=model,
             analysis=analysis
