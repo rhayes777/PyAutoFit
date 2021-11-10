@@ -1,6 +1,6 @@
 import ast
 from pathlib import Path
-from typing import List, cast
+from typing import List, cast, Set, Generator
 
 from astunparse import unparse
 
@@ -34,7 +34,13 @@ class File(DirectoryItem):
         self._ast_item = None
 
     @property
-    def aliased_imports(self):
+    def aliased_imports(self) -> List[Import]:
+        """
+        A list of imports that are aliased.
+
+        e.g.
+        import autofit as af
+        """
         return [
             import_
             for import_
@@ -43,7 +49,14 @@ class File(DirectoryItem):
         ]
 
     @property
-    def aliases(self):
+    def aliases(self) -> List[str]:
+        """
+        A list of import aliases.
+
+        e.g.
+        import autofit as af
+        -> ["af"]
+        """
         return [
             import_.alias
             for import_
@@ -53,7 +66,17 @@ class File(DirectoryItem):
     def attributes_for_alias(
             self,
             alias: str
-    ):
+    ) -> Set[str]:
+        """
+        Attributes of an alias.
+
+        e.g.
+        import autofit as af
+
+        af.Gaussian(af.Model)
+
+        -> {"Gaussian", "Model"}
+        """
         return {
             attribute.attr
             for attribute
@@ -63,7 +86,10 @@ class File(DirectoryItem):
             ) and attribute.value.id == alias
         }
 
-    def attributes(self):
+    def attributes(self) -> Generator[ast.Attribute, None, None]:
+        """
+        All attributes in this file
+        """
         def get_attributes(
                 obj
         ):
@@ -89,7 +115,10 @@ class File(DirectoryItem):
         )
 
     @property
-    def ast_item(self):
+    def ast_item(self) -> ast.stmt:
+        """
+        This file parsed by ast
+        """
         if self._ast_item is None:
             with open(self.path) as f:
                 self._ast_item = ast.parse(
@@ -97,15 +126,32 @@ class File(DirectoryItem):
                 )
         return self._ast_item
 
-    def generate_target(self, output_path):
+    def generate_target(
+            self,
+            output_path: Path
+    ):
+        """
+        Generate this file converted to conform with Eden requirements
+
+        Parameters
+        ----------
+        output_path
+            The path in which the Eden converted project to generated
+        """
         with open(output_path / self.target_path, "w+") as f:
             f.write(self.target_string)
 
     @property
-    def target_string(self):
+    def target_string(self) -> str:
+        """
+        A string representing the Eden converted output
+        """
         return unparse(self.converted())
 
-    def converted(self):
+    def converted(self) -> ast.Module:
+        """
+        An ast Module representing this file converted to conform with Eden
+        """
         module = ast.Module()
         converted_lines = []
 
