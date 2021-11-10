@@ -163,6 +163,26 @@ def test_scrape(
     assert list(aggregator.grid_searches())[0].is_complete
 
 
+@output_path_for_test(
+    output_directory
+)
+def test_incomplete(
+        grid_search,
+        session
+):
+    grid_search.save_metadata()
+
+    Scraper(
+        directory=output_directory,
+        session=session
+    ).scrape()
+
+    session.commit()
+
+    aggregator = af.Aggregator(session)
+    assert len(aggregator) == 0
+
+
 class TestDatabase:
     def test_parent_search(
             self,

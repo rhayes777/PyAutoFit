@@ -153,6 +153,12 @@ class Scraper:
         for root, _, filenames in os.walk(self.directory):
             if ".is_grid_search" in filenames:
                 path = Path(root)
+
+                is_complete = (path / ".completed").exists()
+
+                if not is_complete:
+                    continue
+
                 with open(
                         path / ".is_grid_search"
                 ) as f:
@@ -165,7 +171,7 @@ class Scraper:
                     parent_id=_parent_identifier(
                         root
                     ),
-                    is_complete=(path / ".completed").exists()
+                    is_complete=is_complete
                 )
 
                 pickle_path = path / "pickles"
