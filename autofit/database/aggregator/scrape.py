@@ -116,6 +116,10 @@ class Scraper:
                     f"Fit already existed with identifier {identifier}"
                 )
             except NoResultFound:
+                try:
+                    log_likelihood = samples.max_log_likelihood_sample.log_likelihood
+                except AttributeError:
+                    log_likelihood = None
                 fit = m.Fit(
                     id=identifier,
                     name=item.search.name,
@@ -124,7 +128,7 @@ class Scraper:
                     instance=instance,
                     is_complete=is_complete,
                     info=item.info,
-                    max_log_likelihood=samples.max_log_likelihood_sample.log_likelihood,
+                    max_log_likelihood=log_likelihood,
                     parent_id=parent_identifier
                 )
 
@@ -153,6 +157,9 @@ class Scraper:
         for root, _, filenames in os.walk(self.directory):
             if ".is_grid_search" in filenames:
                 path = Path(root)
+
+                is_complete = (path / ".completed").exists()
+
                 with open(
                         path / ".is_grid_search"
                 ) as f:
@@ -165,7 +172,7 @@ class Scraper:
                     parent_id=_parent_identifier(
                         root
                     ),
-                    is_complete=(path / ".completed").exists()
+                    is_complete=is_complete
                 )
 
                 pickle_path = path / "pickles"
