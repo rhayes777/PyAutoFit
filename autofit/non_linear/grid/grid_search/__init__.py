@@ -7,9 +7,9 @@ from autofit import exc
 from autofit.mapper.prior import prior as p
 from autofit.non_linear.abstract_search import NonLinearSearch
 from autofit.non_linear.parallel import Process
-from autofit.non_linear.result import Result
 from .job import Job
 from .result import GridSearchResult
+from .result_builder import ResultBuilder
 
 
 class Sequential:
@@ -18,39 +18,6 @@ class Sequential:
     def run_jobs(jobs, *_, **kwargs):
         for job_ in jobs:
             yield job_.perform()
-
-
-class ResultBuilder:
-    def __init__(self, lists, grid_priors):
-        self.lists = lists
-        self.grid_priors = grid_priors
-        self._job_results = []
-
-    def __call__(self):
-        return GridSearchResult(
-            self.results,
-            self.lists,
-            self.grid_priors
-        )
-
-    @property
-    def results(self):
-        return [
-            Result(
-                samples=job_result.result.samples,
-                model=job_result.result.model,
-                search=job_result.result.search
-            )
-            for job_result
-            in sorted(
-                self._job_results
-            )
-        ]
-
-    def add(self, job_result):
-        self._job_results.append(
-            job_result
-        )
 
 
 class GridSearch:
@@ -257,7 +224,7 @@ class GridSearch:
             + ["likelihood_merit"]
         ]
 
-        result_builder = ResultBuilder(
+        builder = ResultBuilder(
             lists=lists,
             grid_priors=grid_priors
         )
@@ -267,7 +234,7 @@ class GridSearch:
         def save_results():
             self.paths.save_object(
                 "result",
-                result_builder()
+                builder()
             )
 
         for i, job_result in enumerate(
@@ -281,7 +248,7 @@ class GridSearch:
                     self.number_of_cores
                 )
         ):
-            result_builder.add(
+            builder.add(
                 job_result
             )
             results_list.append(job_result.result_list_row)
@@ -292,7 +259,7 @@ class GridSearch:
         save_results()
         self.paths.completed()
 
-        return result_builder()
+        return builder()
 
     def save_metadata(self):
         self.paths.save_parent_identifier()
@@ -341,7 +308,13 @@ class GridSearch:
             )
 
     def job_for_analysis_grid_priors_and_values(
-            self, model, analysis, grid_priors, values, index, info: Optional[Dict] = None
+            self,
+            model,
+            analysis,
+            grid_priors,
+            values,
+            index,
+            info: Optional[Dict] = None
     ):
         arguments = self.make_arguments(values=values, grid_priors=grid_priors)
         model = model.mapper_from_partial_prior_arguments(arguments=arguments)
