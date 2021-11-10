@@ -158,7 +158,18 @@ class Package(DirectoryItem):
                 output_path
             )
 
-    def _generate_directory(self, output_path):
+    def _generate_directory(
+            self,
+            output_path: Path
+    ):
+        """
+        Create the directory of the converted package in the target project
+
+        Parameters
+        ----------
+        output_path
+            The path in which the converted project is generated
+        """
         (output_path / self.target_path).mkdir(
             parents=True,
             exist_ok=True

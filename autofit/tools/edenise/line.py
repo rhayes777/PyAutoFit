@@ -103,6 +103,10 @@ class LineItem(Item):
         )
 
     def __new__(cls, ast_item, parent):
+        """
+        Factory pattern determines which class to instantiate based
+        on the type of the ast statement.
+        """
         from .import_ import Import, ImportFrom
         from .function import Function
 

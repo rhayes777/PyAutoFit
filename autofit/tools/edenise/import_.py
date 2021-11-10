@@ -105,7 +105,10 @@ class Import(LineItem):
             self.ast_item.names[0].name.split(".")
         )
 
-    def converted(self):
+    def converted(self) -> ast.stmt:
+        """
+        An ast item representing an import converted to comply with Eden
+        """
         converted = copy(self.ast_item)
         if self.is_in_project:
             for name in converted.names:
@@ -188,7 +191,10 @@ class ImportFrom(Import):
             self.ast_item.module.split(".")
         )
 
-    def converted(self):
+    def converted(self) -> ast.stmt:
+        """
+        An ast item representing an import from converted to comply with eden
+        """
         converted = super().converted()
         if self.is_in_project:
             converted.level = 0
@@ -200,7 +206,21 @@ class ImportFrom(Import):
         return converted
 
     @property
-    def module_path(self):
+    def module_path(self) -> List[str]:
+        """
+        A list of strings describing the import path in the from part of this
+        import statement.
+
+        This also accounts for level.
+
+        Examples
+        --------
+        from autofit.tools import ...
+        -> ["autofit", "tools"]
+
+        from .. import ...
+        -> ["autofit", "tools"]
+        """
         path = []
         level = self.ast_item.level
 
