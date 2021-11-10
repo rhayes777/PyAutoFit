@@ -265,6 +265,7 @@ class GridSearch:
 
         save_results()
         self.save_metadata()
+        self.paths.completed()
 
         return make_grid_search_result()
 
