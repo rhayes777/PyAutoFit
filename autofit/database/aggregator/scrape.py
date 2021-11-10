@@ -164,7 +164,8 @@ class Scraper:
                     is_grid_search=True,
                     parent_id=_parent_identifier(
                         root
-                    )
+                    ),
+                    is_complete=(path / ".completed").exists()
                 )
 
                 pickle_path = path / "pickles"
