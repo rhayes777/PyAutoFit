@@ -179,7 +179,12 @@ def test_incomplete(
 
     session.commit()
 
-    aggregator = af.Aggregator(session)
+    aggregator = af.Aggregator(
+        session
+    )
+    aggregator = aggregator(
+        aggregator.search.is_complete
+    )
     assert len(aggregator) == 0
 
 
