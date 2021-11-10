@@ -1,4 +1,5 @@
 import autofit as af
+from autoconf.conf import with_config
 from autofit import graphical as g
 from autofit.mock.mock import MockAnalysis
 
@@ -22,9 +23,19 @@ class MockSearch(af.MockSearch):
             pickle_files=None,
             log_likelihood_cap=None
     ):
+        super().fit(
+            model,
+            analysis,
+        )
         return MockResult(model)
 
 
+@with_config(
+    "general",
+    "output",
+    "remove_files",
+    value=False
+)
 def test_output():
     model_factor_1 = g.AnalysisFactor(
         af.Collection(
