@@ -78,3 +78,11 @@ def test_gaps(
     assert isinstance(first, t1)
     assert isinstance(second, t2)
     assert isinstance(third, t3)
+
+
+def test_log_likelihoods(
+        result_builder
+):
+    assert (result_builder().log_likelihoods_native == [
+        None, None, None
+    ]).all()

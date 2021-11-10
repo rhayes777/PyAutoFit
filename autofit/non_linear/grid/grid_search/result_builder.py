@@ -3,7 +3,8 @@ from .result import GridSearchResult
 
 
 class Placeholder:
-    pass
+    def __getattr__(self, item):
+        return None
 
 
 class ResultBuilder:
