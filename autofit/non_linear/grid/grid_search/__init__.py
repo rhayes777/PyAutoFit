@@ -239,6 +239,8 @@ class GridSearch:
                 grid_priors
             )
 
+        self.save_metadata()
+
         def save_results():
             self.paths.save_object(
                 "result",
@@ -264,7 +266,6 @@ class GridSearch:
                 save_results()
 
         save_results()
-        self.save_metadata()
         self.paths.completed()
 
         return make_grid_search_result()
