@@ -13,6 +13,12 @@ class Placeholder:
         """
         return None
 
+    def __getstate__(self):
+        return {}
+
+    def __setstate__(self, state):
+        pass
+
 
 class ResultBuilder:
     def __init__(
