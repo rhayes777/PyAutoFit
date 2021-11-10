@@ -237,7 +237,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                 AnalysisFactor
         ):
             raise NotImplementedError(
-                f"Optimizer {self.__class__.__name__} can only be applied to ModelFactors"
+                f"Optimizer {self.__class__.__name__} can only be applied to AnalysisFactors"
             )
 
         factor_approx = model_approx.factor_approximation(
