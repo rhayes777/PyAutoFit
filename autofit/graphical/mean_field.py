@@ -1,3 +1,4 @@
+import logging
 from functools import reduce
 from typing import (
     Dict, Tuple, Optional, List, Union, Iterable
@@ -5,6 +6,7 @@ from typing import (
 
 import numpy as np
 
+from autofit import exc
 from autofit.graphical.factor_graphs import (
     Factor, AbstractNode, FactorValue, JacobianValue
 )
@@ -19,6 +21,10 @@ from autofit.messages.fixed import FixedMessage
 
 VariableFactorDist = Dict[str, Dict[Factor, AbstractMessage]]
 Projection = Dict[str, AbstractMessage]
+
+logger = logging.getLogger(
+    __name__
+)
 
 
 class MeanField(
@@ -434,19 +440,23 @@ class FactorApproximation(AbstractNode):
     ) -> Tuple["FactorApproximation", Status]:
         success, messages = Status() if status is None else status
 
-        factor_dist = (model_dist / self.cavity_dist)
-        if delta < 1:
-            log_norm = factor_dist.log_norm
-            factor_dist = (
-                    factor_dist ** delta * self.factor_dist ** (1 - delta))
-            factor_dist.log_norm = (
-                    delta * log_norm + (1 - delta) * self.factor_dist.log_norm)
+        try:
+            factor_dist = model_dist / self.cavity_dist
+            if delta < 1:
+                log_norm = factor_dist.log_norm
+                factor_dist = (
+                        factor_dist ** delta * self.factor_dist ** (1 - delta))
+                factor_dist.log_norm = (
+                        delta * log_norm + (1 - delta) * self.factor_dist.log_norm)
 
-        if not factor_dist.is_valid:
-            success = False
-            messages += (
-                f"model projection for {self} is invalid",)
-            factor_dist = factor_dist.update_invalid(self.factor_dist)
+            if not factor_dist.is_valid:
+                success = False
+                messages += (
+                    f"model projection for {self} is invalid",)
+                factor_dist = factor_dist.update_invalid(self.factor_dist)
+        except exc.MessageException as e:
+            logger.exception(e)
+            factor_dist = self.factor_dist
 
         new_approx = FactorApproximation(
             self.factor,
