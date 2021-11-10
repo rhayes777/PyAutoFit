@@ -34,7 +34,9 @@ class Job(AbstractJob):
         arguments
             The grid search arguments
         """
-        super().__init__()
+        super().__init__(
+            number=index
+        )
         self.search_instance = search_instance
         self.analysis = analysis
         self.model = model

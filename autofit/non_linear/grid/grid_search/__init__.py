@@ -7,9 +7,9 @@ from autofit import exc
 from autofit.mapper.prior import prior as p
 from autofit.non_linear.abstract_search import NonLinearSearch
 from autofit.non_linear.parallel import Process
-from autofit.non_linear.result import Result
 from .job import Job
 from .result import GridSearchResult
+from .result_builder import ResultBuilder
 
 
 class Sequential:
@@ -224,25 +224,17 @@ class GridSearch:
             + ["likelihood_merit"]
         ]
 
-        def make_grid_search_result():
-            return GridSearchResult(
-                [
-                    Result(
-                        samples=r.result.samples,
-                        model=r.result.model,
-                        search=r.result.search
-                    )
-                    for r
-                    in results
-                ],
-                lists,
-                grid_priors
-            )
+        builder = ResultBuilder(
+            lists=lists,
+            grid_priors=grid_priors
+        )
+
+        self.save_metadata()
 
         def save_results():
             self.paths.save_object(
                 "result",
-                make_grid_search_result()
+                builder()
             )
 
         for i, job_result in enumerate(
@@ -256,18 +248,18 @@ class GridSearch:
                     self.number_of_cores
                 )
         ):
-            results.append(job_result)
-            results = sorted(results)
+            builder.add(
+                job_result
+            )
             results_list.append(job_result.result_list_row)
             self.write_results(results_list)
             if i % self._result_output_interval == 0:
                 save_results()
 
         save_results()
-        self.save_metadata()
         self.paths.completed()
 
-        return make_grid_search_result()
+        return builder()
 
     def save_metadata(self):
         self.paths.save_parent_identifier()
@@ -316,7 +308,13 @@ class GridSearch:
             )
 
     def job_for_analysis_grid_priors_and_values(
-            self, model, analysis, grid_priors, values, index, info: Optional[Dict] = None
+            self,
+            model,
+            analysis,
+            grid_priors,
+            values,
+            index,
+            info: Optional[Dict] = None
     ):
         arguments = self.make_arguments(values=values, grid_priors=grid_priors)
         model = model.mapper_from_partial_prior_arguments(arguments=arguments)
