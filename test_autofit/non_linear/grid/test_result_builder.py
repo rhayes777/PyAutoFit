@@ -55,14 +55,26 @@ def test_ordering(
            ] == ['0', '1', '2']
 
 
+@pytest.mark.parametrize(
+    "numbers, t1, t2, t3",
+    [
+        (tuple(), Placeholder, Placeholder, Placeholder,),
+        ((0,), Result, Placeholder, Placeholder,),
+        ((1,), Placeholder, Result, Placeholder,),
+        ((2,), Placeholder, Placeholder, Result,),
+        ((1, 2,), Placeholder, Result, Result,),
+    ]
+)
 def test_gaps(
         result_builder,
-        add_results
+        add_results,
+        numbers,
+        t1, t2, t3
 ):
-    add_results(1)
+    add_results(*numbers)
     result = result_builder()
 
     first, second, third = result.results
-    assert isinstance(first, Placeholder)
-    assert isinstance(second, Result)
-    assert isinstance(third, Placeholder)
+    assert isinstance(first, t1)
+    assert isinstance(second, t2)
+    assert isinstance(third, t3)
