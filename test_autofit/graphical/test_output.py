@@ -57,7 +57,8 @@ def _run_optimisation(
     )
     collection.optimise(
         MockSearch(),
-        max_steps=MAX_STEPS
+        max_steps=MAX_STEPS,
+        name="name"
     )
 
 
@@ -75,10 +76,10 @@ def test_output(
         "factor_2"
     )
 
-    path = output_directory / "factor_1"
+    path = output_directory / "name/factor_1"
 
     assert path.exists()
-    assert (output_directory / "factor_2").exists()
+    assert (output_directory / "name/factor_2").exists()
 
     for number in range(MAX_STEPS):
         assert (path / f"optimization_{number}").exists()
@@ -97,5 +98,5 @@ def test_default_output(
         None,
         None
     )
-    assert (output_directory / "AnalysisFactor0").exists()
-    assert (output_directory / "AnalysisFactor1").exists()
+    assert (output_directory / "name/AnalysisFactor0").exists()
+    assert (output_directory / "name/AnalysisFactor1").exists()

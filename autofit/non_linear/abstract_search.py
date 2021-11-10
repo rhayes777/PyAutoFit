@@ -207,6 +207,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             self,
             factor: Factor,
             model_approx: EPMeanField,
+            name: Optional[str] = None,
             status: Optional[Status] = None
     ) -> Tuple[EPMeanField, Status]:
         """
@@ -230,6 +231,8 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         Parameters
         ----------
+        name
+            An optional name for the overall MP Optimisation
         factor
             A factor comprising a model and an analysis
         model_approx
@@ -262,7 +265,11 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         analysis = factor.analysis
 
-        name = factor.name
+        if name is None:
+            name = factor.name
+        else:
+            name = f"{name}/{factor.name}"
+
         number = self.optimisation_counter[name]
 
         self.optimisation_counter[name] += 1
