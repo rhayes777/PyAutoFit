@@ -75,7 +75,7 @@ class UniformPrior(WrappedInstance):
             params=(0.0, 1.0)
     ):
         if any(map(np.isnan, params)):
-            raise AssertionError(
+            raise exc.MessageException(
                 "nan parameter passed to UniformPrior"
             )
         lower_limit = float(lower_limit)

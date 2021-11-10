@@ -4,6 +4,7 @@ import multiprocessing as mp
 import os
 import time
 from abc import ABC, abstractmethod
+from collections import Counter
 from functools import wraps
 from os import path
 from typing import Optional, Union
@@ -198,12 +199,15 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         self.number_of_cores = number_of_cores
 
+        self.optimisation_counter = Counter()
+
     __identifier_fields__ = tuple()
 
     def optimise(
             self,
             factor: Factor,
             model_approx: EPMeanField,
+            name: Optional[str] = None,
             status: Optional[Status] = None
     ) -> Tuple[EPMeanField, Status]:
         """
@@ -216,8 +220,19 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         4. A new mean field is constructed with the (posterior) 'linking' priors.
         5. Projection is performed to produce an updated EPMeanField object.
 
+        Output directories are generated according to the factor and the number
+        of the search. For example a factor called "factor" would output:
+
+        factor/optimization_0/<identifier>
+        factor/optimization_1/<identifier>
+        factor/optimization_2/<identifier>
+
+        For the first, second and third optimizations respectively.
+
         Parameters
         ----------
+        name
+            An optional name for the overall MP Optimisation
         factor
             A factor comprising a model and an analysis
         model_approx
@@ -237,7 +252,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                 AnalysisFactor
         ):
             raise NotImplementedError(
-                f"Optimizer {self.__class__.__name__} can only be applied to ModelFactors"
+                f"Optimizer {self.__class__.__name__} can only be applied to AnalysisFactors"
             )
 
         factor_approx = model_approx.factor_approximation(
@@ -249,6 +264,17 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         )
 
         analysis = factor.analysis
+
+        if name is None:
+            name = factor.name
+        else:
+            name = f"{name}/{factor.name}"
+
+        number = self.optimisation_counter[name]
+
+        self.optimisation_counter[name] += 1
+
+        self.paths.path_prefix = f"{name}/optimization_{number}"
 
         result = self.fit(
             model=model,

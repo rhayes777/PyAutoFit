@@ -583,7 +583,7 @@ class CellAggregator(AbstractAggregator):
                 self._fits.append(
                     sorted(
                         fit.children,
-                        key=lambda f: f.model.order_no
+                        key=lambda f: f.model.order_no if f.model is not None else 0
                     )[self.number]
                 )
         return self._fits

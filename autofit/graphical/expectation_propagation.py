@@ -239,6 +239,7 @@ class AbstractFactorOptimiser(ABC):
             self,
             factor: Factor,
             model_approx: EPMeanField,
+            name: str = None,
             status: Status = Status()
     ) -> Tuple[EPMeanField, Status]:
         pass
@@ -357,12 +358,17 @@ class EPOptimiser:
     def run(
             self,
             model_approx: EPMeanField,
+            name=None,
             max_steps=100,
     ) -> EPMeanField:
         for _ in range(max_steps):
             for factor, optimiser in self.factor_optimisers.items():
                 try:
-                    model_approx, status = optimiser.optimise(factor, model_approx)
+                    model_approx, status = optimiser.optimise(
+                        factor,
+                        model_approx,
+                        name=name
+                    )
                 except TypeError as e:
                     raise e
                 except (ValueError, ArithmeticError, RuntimeError) as e:
