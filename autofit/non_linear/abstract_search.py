@@ -219,6 +219,15 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         4. A new mean field is constructed with the (posterior) 'linking' priors.
         5. Projection is performed to produce an updated EPMeanField object.
 
+        Output directories are generated according to the factor and the number
+        of the search. For example a factor called "factor" would output:
+
+        factor/optimization_0/<identifier>
+        factor/optimization_1/<identifier>
+        factor/optimization_2/<identifier>
+
+        For the first, second and third optimizations respectively.
+
         Parameters
         ----------
         factor
