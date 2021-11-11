@@ -34,7 +34,7 @@ class EPOptimiser:
             factor_graph: FactorGraph,
             default_optimiser: Optional[AbstractFactorOptimiser] = None,
             factor_optimisers: Optional[Dict[Factor, AbstractFactorOptimiser]] = None,
-            callback: Optional[EPCallBack] = None,
+            ep_history: Optional[EPHistory] = None,
             factor_order: Optional[List[Factor]] = None
     ):
         factor_optimisers = factor_optimisers or {}
@@ -58,7 +58,7 @@ class EPOptimiser:
                 for factor in self.factors
             }
 
-        self.callback = callback or EPHistory()
+        self.ep_history = ep_history or EPHistory()
 
     def run(
             self,
@@ -68,22 +68,37 @@ class EPOptimiser:
     ) -> EPMeanField:
         for _ in range(max_steps):
             for factor, optimiser in self.factor_optimisers.items():
+                factor_logger = logging.getLogger(
+                    factor.name
+                )
+                factor_logger.info("Optimising...")
                 try:
                     model_approx, status = optimiser.optimise(
                         factor,
                         model_approx,
                         name=name
                     )
-                except TypeError as e:
-                    raise e
                 except (ValueError, ArithmeticError, RuntimeError) as e:
+                    logger.exception(e)
                     status = Status(
                         False,
                         (f"Factor: {factor} experienced error {e}",)
                     )
 
-                if self.callback(factor, model_approx, status):
+                factor_logger.info(status)
+
+                if self.ep_history(factor, model_approx, status):
+                    logger.info("Terminating optimisation")
                     break  # callback controls convergence
+
+                if status:
+                    factor_logger.info(
+                        f"Log Evidence = {model_approx.log_evidence}"
+                    )
+                    factor_logger.info(
+                        f"KL Divergence = {self.ep_history[factor].kl_divergence()}"
+                    )
+
             else:  # If no break do next iteration
                 continue
             break  # stop iterations
