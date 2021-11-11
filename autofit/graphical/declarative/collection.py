@@ -5,19 +5,6 @@ from .abstract import AbstractDeclarativeFactor
 
 
 class FactorGraphModel(AbstractDeclarativeFactor):
-    @property
-    def prior_model(self):
-        from autofit.mapper.prior_model.collection import CollectionPriorModel
-        return CollectionPriorModel({
-            factor.name: factor.prior_model
-            for factor
-            in self.model_factors
-        })
-
-    @property
-    def optimiser(self):
-        raise NotImplemented()
-
     def __init__(
             self,
             *model_factors: AbstractDeclarativeFactor,
@@ -37,7 +24,27 @@ class FactorGraphModel(AbstractDeclarativeFactor):
         self._name = name or namer(self.__class__.__name__)
 
     @property
-    def info(self):
+    def prior_model(self):
+        """
+        Construct a CollectionPriorModel comprising the prior models described
+        in each model factor
+        """
+        from autofit.mapper.prior_model.collection import CollectionPriorModel
+        return CollectionPriorModel({
+            factor.name: factor.prior_model
+            for factor
+            in self.model_factors
+        })
+
+    @property
+    def optimiser(self):
+        raise NotImplemented()
+
+    @property
+    def info(self) -> str:
+        """
+        Info describing this collection.
+        """
         factor_info = "\n\n".join(
             model_factor.info
             for model_factor

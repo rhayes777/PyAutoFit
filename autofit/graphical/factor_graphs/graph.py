@@ -52,7 +52,10 @@ class FactorGraph(AbstractNode):
         )
 
     @property
-    def info(self):
+    def info(self) -> str:
+        """
+        Describes the graph. Output in graph.info
+        """
         factor_info = "\n\n".join(
             factor.info
             for factor
