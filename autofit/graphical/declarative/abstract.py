@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Callable, cast, Set, List, Dict
+from typing import cast, Set, List, Dict
 
 import numpy as np
 
@@ -9,10 +9,10 @@ from autofit.graphical.expectation_propagation import EPOptimiser
 from autofit.graphical.factor_graphs.factor import Factor
 from autofit.graphical.factor_graphs.graph import FactorGraph
 from autofit.mapper.identifier import Identifier
-from autofit.messages.normal import NormalMessage
 from autofit.mapper.model import ModelInstance
 from autofit.mapper.prior.abstract import Prior
 from autofit.mapper.prior_model.collection import CollectionPriorModel
+from autofit.messages.normal import NormalMessage
 from autofit.non_linear.analysis import Analysis
 from autofit.non_linear.paths.abstract import AbstractPaths
 
@@ -100,10 +100,12 @@ class AbstractDeclarativeFactor(Analysis, ABC):
 
     def _make_ep_optimiser(
             self,
-            optimiser: AbstractFactorOptimiser
+            optimiser: AbstractFactorOptimiser,
+            name: str,
     ) -> EPOptimiser:
         return EPOptimiser(
             self.graph,
+            name=name,
             default_optimiser=optimiser,
             factor_optimisers={
                 factor: factor.optimiser
@@ -135,11 +137,11 @@ class AbstractDeclarativeFactor(Analysis, ABC):
         A collection of prior models
         """
         opt = self._make_ep_optimiser(
-            optimiser
+            optimiser,
+            name=name or str(Identifier(self))
         )
         updated_model = opt.run(
             self.mean_field_approximation(),
-            name=name or str(Identifier(self)),
             **kwargs
         )
 

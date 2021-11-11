@@ -1,11 +1,14 @@
 import logging
+import os
 from abc import ABC, abstractmethod
+from pathlib import Path
 from typing import (
     Dict, Tuple, Optional, List
 )
 
 import matplotlib.pyplot as plt
 
+from autofit import conf
 from autofit.graphical.factor_graphs import (
     Factor, FactorGraph
 )
@@ -35,6 +38,7 @@ class EPOptimiser:
     def __init__(
             self,
             factor_graph: FactorGraph,
+            name="ep_optimiser",
             default_optimiser: Optional[AbstractFactorOptimiser] = None,
             factor_optimisers: Optional[Dict[Factor, AbstractFactorOptimiser]] = None,
             ep_history: Optional[EPHistory] = None,
@@ -76,14 +80,50 @@ class EPOptimiser:
 
         self.ep_history = ep_history or EPHistory()
 
+        self.name = name
+
+    @property
+    def output_path(self):
+        path = Path(conf.instance.output_path) / self.name
+        os.makedirs(path, exist_ok=True)
+        return path
+
+    def _log_factor(self, factor):
+        factor_history = self.ep_history[factor]
+        log_evidence = factor_history.latest_successful.log_evidence
+        divergence = factor_history.kl_divergence()
+
+        factor_logger = logging.getLogger(
+            factor.name
+        )
+        factor_logger.info(
+            f"Log Evidence = {log_evidence}"
+        )
+        factor_logger.info(
+            f"KL Divergence = {divergence}"
+        )
+
+    def _visualise_factor(self, factor):
+        factor_history = self.ep_history[factor]
+        fig, (evidence_plot, kl_plot) = plt.subplots(2)
+        fig.suptitle('Evidence and KL Divergence')
+        evidence_plot.plot(
+            factor_history.evidences,
+            label=f"{factor.name} evidence"
+        )
+        kl_plot.plot(
+            factor_history.kl_divergences,
+            label=f"{factor.name} divergence"
+        )
+        evidence_plot.legend()
+        kl_plot.legend()
+
     def run(
             self,
             model_approx: EPMeanField,
-            name=None,
             max_steps=100,
     ) -> EPMeanField:
         for _ in range(max_steps):
-
             should_log = self.should_log()
             should_visualise = self.should_visualise()
             should_output = self.should_output()
@@ -97,7 +137,7 @@ class EPOptimiser:
                     model_approx, status = optimiser.optimise(
                         factor,
                         model_approx,
-                        name=name
+                        name=self.name
                     )
                 except (ValueError, ArithmeticError, RuntimeError) as e:
                     logger.exception(e)
@@ -113,33 +153,16 @@ class EPOptimiser:
                     break  # callback controls convergence
 
                 if status:
-                    factor_history = self.ep_history[factor]
-                    log_evidence = model_approx.log_evidence
-                    divergence = factor_history.kl_divergence()
                     if should_log:
-                        factor_logger.info(
-                            f"Log Evidence = {log_evidence}"
-                        )
-                        factor_logger.info(
-                            f"KL Divergence = {divergence}"
-                        )
+                        self._log_factor(factor)
                     if should_visualise:
-                        fig, (evidence_plot, kl_plot) = plt.subplots(2)
-                        fig.suptitle('Evidence and KL Divergence')
-                        evidence_plot.plot(
-                            factor_history.evidences,
-                            label=f"{factor.name} evidence"
-                        )
-                        kl_plot.plot(
-                            factor_history.kl_divergences,
-                            label=f"{factor.name} divergence"
-                        )
-                        evidence_plot.legend()
-                        kl_plot.legend()
+                        self._visualise_factor(factor)
 
             else:  # If no break do next iteration
                 if should_visualise:
-                    plt.show()
+                    plt.savefig(
+                        str(self.output_path / "graph.png")
+                    )
                 continue
             break  # stop iterations
 
