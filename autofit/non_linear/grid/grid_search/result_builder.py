@@ -1,23 +1,9 @@
 from typing import List, Union
 
 from autofit.database import Prior
-from autofit.non_linear.result import Result
+from autofit.non_linear.result import Result, Placeholder
 from .job import JobResult
 from .result import GridSearchResult
-
-
-class Placeholder:
-    def __getattr__(self, item):
-        """
-        Placeholders return None to represent the missing result's value
-        """
-        return None
-
-    def __getstate__(self):
-        return {}
-
-    def __setstate__(self, state):
-        pass
 
 
 class ResultBuilder:

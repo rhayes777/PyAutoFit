@@ -5,7 +5,7 @@ import numpy as np
 import pytest
 
 import autofit as af
-from autofit import exc
+from autofit import exc, Result
 from autofit.graphical import FactorApproximation
 from autofit.graphical.utils import Status
 from autofit.mock.mock import MockAnalysis
@@ -275,14 +275,17 @@ class TestGridNLOBehaviour:
         assert grid_search.paths.output_path != search.paths.output_path
 
 
-class MockResult:
+class MockResult(Result):
     def __init__(self, log_likelihood):
-        self.log_likelihood = log_likelihood
+        # noinspection PyTypeChecker
+        super().__init__(None, None)
+        self._log_likelihood = log_likelihood
         self.model = log_likelihood
 
-    def __gt__(self, other):
-        return self.log_likelihood > other.log_likelihood
-    
+    @property
+    def log_likelihood(self):
+        return self._log_likelihood
+
 
 @pytest.fixture(name="grid_search_result")
 def make_grid_search_result():
