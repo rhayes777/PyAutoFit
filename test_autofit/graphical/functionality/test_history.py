@@ -2,6 +2,7 @@ from copy import copy
 
 import pytest
 
+import autofit as af
 from autofit import graphical as g
 from autofit.graphical.expectation_propagation import FactorHistory
 
@@ -32,11 +33,15 @@ def test_truthy_status(
     assert not failure
 
 
+def identity(x):
+    return x
+
+
 @pytest.fixture(
     name="factor"
 )
 def make_factor():
-    return g.Factor(sum)
+    return g.Factor(identity)
 
 
 @pytest.fixture(
@@ -48,7 +53,13 @@ def make_approx(factor):
             factor
         ]),
         factor_mean_field={
-            factor: g.MeanField({})
+            factor: g.MeanField({
+                variable: af.GaussianPrior(
+                    mean=0,
+                    sigma=1
+                )
+                for variable in factor.variables
+            })
         }
     )
 
@@ -115,15 +126,33 @@ def test_failure(
     assert factor_history.previous_successful == approx
 
 
-def test_kl_divergence(
+@pytest.fixture(
+    name="trivial_history"
+)
+def make_trivial_history(
         factor_history,
         approx,
         success
 ):
-    factor_history(
+    trivial_history = copy(
+        factor_history
+    )
+    trivial_history(
         approx, success
     )
-    factor_history(
+    trivial_history(
         approx, success
     )
-    assert factor_history.kl_divergence() == 0
+    return trivial_history
+
+
+def test_kl_divergence(
+        trivial_history
+):
+    assert trivial_history.kl_divergence() == 0
+
+
+def test_evidence_divergence(
+        trivial_history
+):
+    assert trivial_history.evidence_divergence() == 0

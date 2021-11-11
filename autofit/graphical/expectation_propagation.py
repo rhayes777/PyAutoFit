@@ -294,13 +294,17 @@ class FactorHistory:
         except IndexError:
             return float("inf")
 
+    def evidence_divergence(self):
+        return self.latest_successful.log_evidence - self.previous_successful.log_evidence
+
 
 class EPHistory:
     def __init__(
             self,
             callbacks: Tuple[EPCallBack, ...] = (),
             kl_tol=1e-1,
-            evidence_tol=None):
+            evidence_tol=None
+    ):
         self._callbacks = callbacks
         self.history = {}
         self.statuses = {}
