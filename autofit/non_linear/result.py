@@ -57,11 +57,21 @@ class Result:
         )
 
     def __gt__(self, other):
+        """
+        Results are sorted by their associated log_likelihood.
+
+        Placeholders are always low.
+        """
         if isinstance(other, Placeholder):
             return True
         return self.log_likelihood > other.log_likelihood
 
     def __lt__(self, other):
+        """
+        Results are sorted by their associated log_likelihood.
+
+        Placeholders are always low.
+        """
         if isinstance(other, Placeholder):
             return False
         return self.log_likelihood < other.log_likelihood
