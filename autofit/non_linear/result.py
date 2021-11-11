@@ -5,6 +5,30 @@ from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.samples import PDFSamples
 
 
+class Placeholder:
+    def __getattr__(self, item):
+        """
+        Placeholders return None to represent the missing result's value
+        """
+        return None
+
+    def __getstate__(self):
+        return {}
+
+    def __setstate__(self, state):
+        pass
+
+    def __gt__(self, other):
+        return False
+
+    def __lt__(self, other):
+        return True
+
+    @property
+    def samples(self):
+        return self
+
+
 class Result:
     """
     @DynamicAttrs
@@ -39,6 +63,26 @@ class Result:
         self._instance = (
             samples.max_log_likelihood_instance if samples is not None else None
         )
+
+    def __gt__(self, other):
+        """
+        Results are sorted by their associated log_likelihood.
+
+        Placeholders are always low.
+        """
+        if isinstance(other, Placeholder):
+            return True
+        return self.log_likelihood > other.log_likelihood
+
+    def __lt__(self, other):
+        """
+        Results are sorted by their associated log_likelihood.
+
+        Placeholders are always low.
+        """
+        if isinstance(other, Placeholder):
+            return False
+        return self.log_likelihood < other.log_likelihood
 
     @property
     def log_likelihood(self):

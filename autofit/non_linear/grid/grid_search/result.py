@@ -5,7 +5,7 @@ import numpy as np
 from autofit import exc
 from autofit.mapper import model_mapper as mm
 from autofit.mapper.prior.abstract import Prior
-from autofit.non_linear.result import Result
+from autofit.non_linear.result import Result, Placeholder
 
 LimitLists = List[List[float]]
 
@@ -150,12 +150,9 @@ class GridSearchResult:
         -------
         best_result: Result
         """
-        best_result = None
+        best_result = Placeholder()
         for result in self.results:
-            if (
-                    best_result is None
-                    or result.log_likelihood > best_result.log_likelihood
-            ):
+            if result > best_result:
                 best_result = result
         return best_result
 

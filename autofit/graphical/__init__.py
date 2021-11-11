@@ -1,5 +1,6 @@
 from . import optimise as optimize
 from . import utils
+from .utils import Status
 from .declarative.collection import FactorGraphModel
 from .declarative.factor.analysis import AnalysisFactor
 from .declarative.factor.hierarchical import HierarchicalFactor
