@@ -13,7 +13,8 @@ def make_analysis_factor():
         prior_model=af.PriorModel(
             af.Gaussian
         ),
-        analysis=MockAnalysis()
+        analysis=MockAnalysis(),
+        name="AnalysisFactor0"
     )
 
 
@@ -41,7 +42,8 @@ def test_graph(
 ):
     graph = g.FactorGraphModel(
         analysis_factor,
-        analysis_factor
+        analysis_factor,
+        name="FactorGraphModel0"
     )
 
     assert graph.info == f"FactorGraphModel0\n\n{info}\n\n{info}"
