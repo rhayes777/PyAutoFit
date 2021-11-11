@@ -1,7 +1,6 @@
 import logging
 from abc import ABC, abstractmethod
-from collections import defaultdict
-from itertools import count
+from functools import wraps
 from typing import (
     Dict, Tuple, Optional, List,
     Callable
@@ -258,6 +257,17 @@ class AbstractFactorOptimiser(ABC):
 EPCallBack = Callable[[Factor, EPMeanField, Status], bool]
 
 
+def default_inf(func):
+    @wraps(func)
+    def wrapper(*args, **kwargs):
+        try:
+            return func(*args, **kwargs)
+        except IndexError:
+            return float("inf")
+
+    return wrapper
+
+
 class FactorHistory:
     def __init__(
             self,
@@ -286,14 +296,13 @@ class FactorHistory:
     def previous_successful(self):
         return self.successes[-2]
 
+    @default_inf
     def kl_divergence(self):
-        try:
-            return self.latest_successful.mean_field.kl(
-                self.previous_successful.mean_field
-            )
-        except IndexError:
-            return float("inf")
+        return self.latest_successful.mean_field.kl(
+            self.previous_successful.mean_field
+        )
 
+    @default_inf
     def evidence_divergence(self):
         return self.latest_successful.log_evidence - self.previous_successful.log_evidence
 
@@ -307,11 +316,16 @@ class EPHistory:
     ):
         self._callbacks = callbacks
         self.history = {}
-        self.statuses = {}
-        self.factor_count = defaultdict(count)
 
         self.kl_tol = kl_tol
         self.evidence_tol = evidence_tol
+
+    def __getitem__(self, factor: Factor):
+        try:
+            return self.history[factor]
+        except KeyError:
+            self.history[factor] = FactorHistory(factor)
+            return self.history[factor]
 
     def __call__(
             self,
@@ -319,55 +333,46 @@ class EPHistory:
             approx: EPMeanField,
             status: Status = Status()
     ) -> bool:
-        i = next(self.factor_count[factor])
-        self.history[i, factor] = approx
-        self.statuses[i, factor] = status
-
+        self[factor](approx, status)
         if status.success:
             if any([
                 callback(factor, approx, status)
                 for callback in self._callbacks
             ]):
                 return True
-            elif i:
-                last_approx = self.history[i - 1, factor]
-                return self._check_convergence(approx, last_approx)
+
+            return self.is_converged(factor)
 
         return False
 
-    def _kl_convergence(
+    def is_kl_converged(
             self,
-            approx: EPMeanField,
-            last_approx: EPMeanField,
+            factor: Factor
     ) -> bool:
-        return approx.mean_field.kl(last_approx.mean_field) < self.kl_tol
+        return self[factor].kl_divergence() < self.kl_tol
 
-    def _evidence_convergence(
+    def is_kl_evidence_converged(
             self,
-            approx: EPMeanField,
-            last_approx: EPMeanField,
+            factor: Factor
     ) -> bool:
-        last_evidence = last_approx.log_evidence
-        evidence = approx.log_evidence
-        if last_evidence > evidence:
-            # todo print warning?
-            return False
+        evidence_divergence = self[factor].evidence_divergence()
 
-        return evidence - last_evidence < self.evidence_tol
+        if evidence_divergence < 0:
+            logger.warning(
+                f"Evidence for factor {factor} has decreased"
+            )
 
-    def _check_convergence(
+        return abs(evidence_divergence) < self.evidence_tol
+
+    def is_converged(
             self,
-            approx: EPMeanField,
-            last_approx: EPMeanField,
+            factor: Factor
     ) -> bool:
-        stop = False
-        if self.kl_tol:
-            stop = stop or self._kl_convergence(approx, last_approx)
-
-        if self.evidence_tol:
-            stop = stop or self._evidence_convergence(approx, last_approx)
-
-        return stop
+        if self.kl_tol and self.is_kl_converged(factor):
+            return True
+        if self.evidence_tol and self.is_kl_evidence_converged(factor):
+            return True
+        return False
 
 
 class EPOptimiser:

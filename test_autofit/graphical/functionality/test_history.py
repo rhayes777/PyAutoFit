@@ -4,7 +4,7 @@ import pytest
 
 import autofit as af
 from autofit import graphical as g
-from autofit.graphical.expectation_propagation import FactorHistory
+from autofit.graphical.expectation_propagation import FactorHistory, EPHistory
 
 
 @pytest.fixture(
@@ -156,3 +156,32 @@ def test_evidence_divergence(
         trivial_history
 ):
     assert trivial_history.evidence_divergence() == 0
+
+
+def test_default_inf(
+        factor_history
+):
+    assert factor_history.kl_divergence() == float("inf")
+    assert factor_history.evidence_divergence() == float("inf")
+
+
+def test_ep_history(
+        factor,
+        approx,
+        success
+):
+    history = EPHistory(
+        evidence_tol=1e-1
+    )
+
+    history(factor, approx, success)
+
+    assert history.is_kl_converged(factor) is False
+    assert history.is_kl_evidence_converged(factor) is False
+    assert history.is_kl_converged(factor) is False
+
+    history(factor, approx, success)
+
+    assert history.is_kl_converged(factor)
+    assert history.is_kl_evidence_converged(factor)
+    assert history.is_kl_converged(factor)
