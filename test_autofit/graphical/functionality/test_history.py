@@ -56,7 +56,11 @@ def make_approx(factor):
 @pytest.fixture(
     name="factor_history"
 )
-def make_factor_history(factor):
+def make_factor_history(
+        factor,
+        approx,
+        success
+):
     return FactorHistory(
         factor
     )
@@ -109,3 +113,17 @@ def test_failure(
 
     assert factor_history.latest_successful == approx_2
     assert factor_history.previous_successful == approx
+
+
+def test_kl_divergence(
+        factor_history,
+        approx,
+        success
+):
+    factor_history(
+        approx, success
+    )
+    factor_history(
+        approx, success
+    )
+    assert factor_history.kl_divergence() == 0

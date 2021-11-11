@@ -1,3 +1,4 @@
+import logging
 from abc import ABC, abstractmethod
 from collections import defaultdict
 from itertools import count
@@ -5,8 +6,6 @@ from typing import (
     Dict, Tuple, Optional, List,
     Callable
 )
-
-import logging
 
 import numpy as np
 
@@ -17,7 +16,6 @@ from autofit.graphical.mean_field import MeanField, FactorApproximation
 from autofit.graphical.utils import Status
 from autofit.mapper.variable import Variable
 from autofit.messages.abstract import AbstractMessage
-
 
 logger = logging.getLogger(
     __name__
@@ -290,8 +288,8 @@ class FactorHistory:
 
     def kl_divergence(self):
         try:
-            self.latest.mean_field.kl(
-                self.previous.mean_field
+            return self.latest_successful.mean_field.kl(
+                self.previous_successful.mean_field
             )
         except IndexError:
             return float("inf")
