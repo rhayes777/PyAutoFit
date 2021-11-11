@@ -121,7 +121,11 @@ class FactorHistory:
         return self.latest_successful.log_evidence - self.previous_successful.log_evidence
 
     @property
-    def evidences(self):
+    def evidences(self) -> List[float]:
+        """
+        Evidences from successful optimisations with None as a placeholder
+        when optimisation failed.
+        """
         return [
             approx.log_evidence
             if status else None
@@ -130,7 +134,11 @@ class FactorHistory:
         ]
 
     @property
-    def kl_divergences(self):
+    def kl_divergences(self) -> List[float]:
+        """
+        Evidences from successful optimisations with None as a placeholder
+        when optimisation failed.
+        """
         divergences = []
         for i in range(1, len(self.history)):
             previous, previous_success = self.history[i - 1]
