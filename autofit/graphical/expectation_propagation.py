@@ -6,6 +6,8 @@ from typing import (
     Callable
 )
 
+import logging
+
 import numpy as np
 
 from autofit.graphical.factor_graphs import (
@@ -15,6 +17,11 @@ from autofit.graphical.mean_field import MeanField, FactorApproximation
 from autofit.graphical.utils import Status
 from autofit.mapper.variable import Variable
 from autofit.messages.abstract import AbstractMessage
+
+
+logger = logging.getLogger(
+    __name__
+)
 
 
 class EPMeanField(FactorGraph):
@@ -228,9 +235,14 @@ class EPMeanField(FactorGraph):
 
     def __repr__(self) -> str:
         clsname = type(self).__name__
+        try:
+            log_evidence = self.log_evidence
+        except Exception as e:
+            logger.exception(e)
+            log_evidence = float("nan")
         return (
             f"{clsname}({self.factor_graph}, "
-            f"log_evidence={self.log_evidence})")
+            f"log_evidence={log_evidence})")
 
 
 class AbstractFactorOptimiser(ABC):
@@ -246,6 +258,36 @@ class AbstractFactorOptimiser(ABC):
 
 
 EPCallBack = Callable[[Factor, EPMeanField, Status], bool]
+
+
+class FactorHistory:
+    def __init__(
+            self,
+            factor: Factor
+    ):
+        self.factor = factor
+        self.history = list()
+
+    def __call__(self, approx, status):
+        self.history.append((
+            approx, status
+        ))
+
+    @property
+    def latest_successful(self):
+        return self.history[0][0]
+
+    @property
+    def previous_successful(self):
+        return self.history[-1][0]
+
+    def kl_divergence(self):
+        try:
+            self.latest.mean_field.kl(
+                self.previous.mean_field
+            )
+        except IndexError:
+            return float("inf")
 
 
 class EPHistory:
@@ -273,11 +315,10 @@ class EPHistory:
         self.statuses[i, factor] = status
 
         if status.success:
-            stop = any([
+            if any([
                 callback(factor, approx, status)
                 for callback in self._callbacks
-            ])
-            if stop:
+            ]):
                 return True
             elif i:
                 last_approx = self.history[i - 1, factor]

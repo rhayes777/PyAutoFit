@@ -16,6 +16,9 @@ class Status(NamedTuple):
     success: bool = True
     messages: Tuple[str, ...] = ()
 
+    def __bool__(self):
+        return self.success
+
 
 class FlattenArrays(dict):
     """
