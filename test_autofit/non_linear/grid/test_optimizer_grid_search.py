@@ -280,6 +280,9 @@ class MockResult:
         self.log_likelihood = log_likelihood
         self.model = log_likelihood
 
+    def __gt__(self, other):
+        return self.log_likelihood > other.log_likelihood
+    
 
 @pytest.fixture(name="grid_search_result")
 def make_grid_search_result():
