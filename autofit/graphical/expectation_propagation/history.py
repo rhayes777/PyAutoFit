@@ -1,8 +1,10 @@
 import logging
 from functools import wraps
 from typing import (
-    Tuple, Callable
+    Tuple, Callable, List, Union
 )
+
+import numpy as np
 
 from autofit.graphical.factor_graphs import (
     Factor
@@ -18,6 +20,13 @@ EPCallBack = Callable[[Factor, EPMeanField, Status], bool]
 
 
 def default_inf(func):
+    """
+    Decorator that catches IndexError and returns inf.
+
+    This used to give infinite divergence when there is insufficient
+    history for a given factor.
+    """
+
     @wraps(func)
     def wrapper(*args, **kwargs):
         try:
@@ -33,37 +42,82 @@ class FactorHistory:
             self,
             factor: Factor
     ):
+        """
+        Tracks the history of a single factor
+
+        Parameters
+        ----------
+        factor
+            A factor in a graph undergoing optimisation
+        """
         self.factor = factor
         self.history = list()
 
-    def __call__(self, approx, status):
+    def __call__(
+            self,
+            approx: EPMeanField,
+            status: Status
+    ):
+        """
+        Add an optimisation result to the factor's history
+
+        Parameters
+        ----------
+        approx
+            The posterior mean field for an optimisation of the factor
+        status
+            Describes whether the optimisation was successful
+        """
         self.history.append((
             approx, status
         ))
 
     @property
-    def successes(self):
+    def successes(self) -> List[EPMeanField]:
+        """
+        A list of mean fields produced by successful optimisations
+        """
         return [
             approx for approx, success
             in self.history if success
         ]
 
     @property
-    def latest_successful(self):
+    def latest_successful(self) -> EPMeanField:
+        """
+        A mean field for the last successful optimisation
+        """
         return self.successes[-1]
 
     @property
-    def previous_successful(self):
+    def previous_successful(self) -> EPMeanField:
+        """
+        A mean field for the last-but-one successful optimisation
+        """
         return self.successes[-2]
 
     @default_inf
-    def kl_divergence(self):
+    def kl_divergence(self) -> Union[float, np.ndarray]:
+        """
+        The KL Divergence between the mean fields produced by the last
+        two successful optimisations.
+
+        If there are less than two successful optimisations then this is
+        infinite.
+        """
         return self.latest_successful.mean_field.kl(
             self.previous_successful.mean_field
         )
 
     @default_inf
-    def evidence_divergence(self):
+    def evidence_divergence(self) -> Union[float, np.ndarray]:
+        """
+        The difference in the evidences between produced by the last two
+        successful optimisations.
+
+        If there are less than two successful optimisations then this is
+        infinite.
+        """
         return self.latest_successful.log_evidence - self.previous_successful.log_evidence
 
 
