@@ -131,7 +131,7 @@ class EPOptimiser:
                             label=f"{factor.name} evidence"
                         )
                         kl_plot.plot(
-                            factor_history.divergences,
+                            factor_history.kl_divergences,
                             label=f"{factor.name} divergence"
                         )
                         evidence_plot.legend()
