@@ -86,3 +86,14 @@ def test_log_likelihoods(
     assert (result_builder().log_likelihoods_native == [
         None, None, None
     ]).all()
+
+
+def test_best_result(
+        result_builder,
+        add_results
+):
+    add_results(1)
+    assert isinstance(
+        result_builder().best_result,
+        Result
+    )
