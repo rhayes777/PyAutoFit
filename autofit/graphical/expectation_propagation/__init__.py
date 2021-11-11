@@ -57,9 +57,6 @@ class EPOptimiser:
         self.should_visualise = IntervalCounter(
             visualise_interval
         )
-        self.should_output = IntervalCounter(
-            output_interval
-        )
 
         if default_optimiser is None:
             self.factor_optimisers = factor_optimisers
@@ -79,8 +76,10 @@ class EPOptimiser:
             }
 
         self.ep_history = ep_history or EPHistory()
-
         self.name = name
+
+        with open(self.output_path / "graph.info", "w+") as f:
+            f.write(self.factor_graph.info)
 
     @property
     def output_path(self):
@@ -126,7 +125,6 @@ class EPOptimiser:
         for _ in range(max_steps):
             should_log = self.should_log()
             should_visualise = self.should_visualise()
-            should_output = self.should_output()
 
             for factor, optimiser in self.factor_optimisers.items():
                 factor_logger = logging.getLogger(
