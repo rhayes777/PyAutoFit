@@ -124,14 +124,21 @@ class EPOptimiser:
                             f"KL Divergence = {divergence}"
                         )
                     if should_visualise:
-                        plt.plot(
+                        fig, (evidence_plot, kl_plot) = plt.subplots(2)
+                        fig.suptitle('Evidence and KL Divergence')
+                        evidence_plot.plot(
                             factor_history.evidences,
                             label=f"{factor.name} evidence"
                         )
+                        kl_plot.plot(
+                            factor_history.divergences,
+                            label=f"{factor.name} divergence"
+                        )
+                        evidence_plot.legend()
+                        kl_plot.legend()
 
             else:  # If no break do next iteration
                 if should_visualise:
-                    plt.legend()
                     plt.show()
                 continue
             break  # stop iterations

@@ -129,6 +129,21 @@ class FactorHistory:
             in self.history
         ]
 
+    @property
+    def divergences(self):
+        divergences = []
+        for i in range(1, len(self.history)):
+            previous, previous_success = self.history[i - 1]
+            current, current_success = self.history[i]
+            if not (previous and current):
+                divergences.append(None)
+            divergences.append(
+                current.mean_field.kl(
+                    previous.mean_field
+                )
+            )
+        return divergences
+
 
 class EPHistory:
     def __init__(
