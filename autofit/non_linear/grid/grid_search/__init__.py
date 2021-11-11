@@ -215,7 +215,6 @@ class GridSearch:
         )
 
         grid_priors = list(set(grid_priors))
-        results = []
         lists = self.make_lists(grid_priors)
 
         results_list = [
