@@ -29,9 +29,6 @@ class AbstractFactorOptimiser(ABC):
 
 
 class EPOptimiser:
-    """
-    """
-
     def __init__(
             self,
             factor_graph: FactorGraph,
