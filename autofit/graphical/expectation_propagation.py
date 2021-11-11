@@ -274,12 +274,19 @@ class FactorHistory:
         ))
 
     @property
+    def successes(self):
+        return [
+            approx for approx, success
+            in self.history if success
+        ]
+
+    @property
     def latest_successful(self):
-        return self.history[0][0]
+        return self.successes[-1]
 
     @property
     def previous_successful(self):
-        return self.history[-1][0]
+        return self.successes[-2]
 
     def kl_divergence(self):
         try:
