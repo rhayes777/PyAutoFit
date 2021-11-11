@@ -101,11 +101,11 @@ class AbstractDeclarativeFactor(Analysis, ABC):
     def _make_ep_optimiser(
             self,
             optimiser: AbstractFactorOptimiser,
-            name: str,
+            name=None,
     ) -> EPOptimiser:
         return EPOptimiser(
             self.graph,
-            name=name,
+            name=name or str(Identifier(self)),
             default_optimiser=optimiser,
             factor_optimisers={
                 factor: factor.optimiser
@@ -138,7 +138,7 @@ class AbstractDeclarativeFactor(Analysis, ABC):
         """
         opt = self._make_ep_optimiser(
             optimiser,
-            name=name or str(Identifier(self))
+            name=name
         )
         updated_model = opt.run(
             self.mean_field_approximation(),

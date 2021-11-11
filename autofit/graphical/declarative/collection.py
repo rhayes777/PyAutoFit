@@ -37,6 +37,15 @@ class FactorGraphModel(AbstractDeclarativeFactor):
         self._name = name or namer(self.__class__.__name__)
 
     @property
+    def info(self):
+        factor_info = "\n\n".join(
+            model_factor.info
+            for model_factor
+            in self.model_factors
+        )
+        return f"{self.name}\n\n{factor_info}"
+
+    @property
     def name(self):
         return self._name
 
