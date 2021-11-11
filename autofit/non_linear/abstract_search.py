@@ -26,6 +26,7 @@ from autofit.non_linear.timer import Timer
 from .analysis import Analysis
 from .paths.null import NullPaths
 from ..graphical.expectation_propagation import AbstractFactorOptimiser
+from ..tools.util import IntervalCounter
 
 logger = logging.getLogger(
     __name__
@@ -746,18 +747,6 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
     def plot_results(self, samples):
         pass
-
-
-class IntervalCounter:
-    def __init__(self, interval):
-        self.count = 0
-        self.interval = interval
-
-    def __call__(self):
-        if self.interval == -1:
-            return False
-        self.count += 1
-        return self.count % self.interval == 0
 
 
 class PriorPasser:

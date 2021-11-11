@@ -120,6 +120,15 @@ class FactorHistory:
         """
         return self.latest_successful.log_evidence - self.previous_successful.log_evidence
 
+    @property
+    def evidences(self):
+        return [
+            approx.log_evidence
+            if status else None
+            for approx, status
+            in self.history
+        ]
+
 
 class EPHistory:
     def __init__(
