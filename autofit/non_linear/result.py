@@ -24,6 +24,10 @@ class Placeholder:
     def __lt__(self, other):
         return True
 
+    @property
+    def samples(self):
+        return self
+
 
 class Result:
     """

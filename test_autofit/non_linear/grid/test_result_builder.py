@@ -97,3 +97,7 @@ def test_best_result(
         result_builder().best_result,
         Result
     )
+
+
+def test_placeholder_samples():
+    assert Placeholder().samples.anything is None
