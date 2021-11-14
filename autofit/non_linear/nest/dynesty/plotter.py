@@ -1,5 +1,4 @@
 from dynesty import plotting as dyplot
-import matplotlib.pyplot as plt
 
 from autoconf import conf
 from autofit.plot import SamplesPlotter

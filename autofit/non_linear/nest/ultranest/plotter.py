@@ -1,6 +1,5 @@
-import matplotlib.pyplot as plt
-
 from autofit.plot import SamplesPlotter
+
 
 class UltraNestPlotter(SamplesPlotter):
 

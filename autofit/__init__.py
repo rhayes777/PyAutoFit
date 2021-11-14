@@ -62,10 +62,10 @@ from .non_linear.mcmc.zeus.zeus import Zeus
 from .non_linear.nest.dynesty import DynestyDynamic
 from .non_linear.nest.dynesty import DynestyStatic
 from .non_linear.nest.multinest.multinest import MultiNest
-from .non_linear.nest.ultranest import UltraNest
-from .non_linear.optimize.lbfgs import LBFGS
-from .non_linear.optimize.pyswarms import PySwarmsGlobal
-from .non_linear.optimize.pyswarms import PySwarmsLocal
+from .non_linear.nest.ultranest.ultranest import UltraNest
+from .non_linear.optimize.lbfgs.lbfgs import LBFGS
+from .non_linear.optimize.pyswarms.globe import PySwarmsGlobal
+from .non_linear.optimize.pyswarms.local import PySwarmsLocal
 from .non_linear.paths import DirectoryPaths
 from .non_linear.paths import DatabasePaths
 from .non_linear.result import Result

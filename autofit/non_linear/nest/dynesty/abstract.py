@@ -9,10 +9,9 @@ from autoconf import conf
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.abstract_search import PriorPasser
 from autofit.non_linear.nest.abstract_nest import AbstractNest
-from autofit.plot import DynestyPlotter
+from autofit.non_linear.nest.dynesty.plotter import DynestyPlotter
+from autofit.non_linear.nest.dynesty.samples import DynestySamples
 from autofit.plot.output import Output
-from .samples import DynestySamples
-
 
 def prior_transform(cube, model):
     phys_cube = model.vector_from_unit_vector(unit_vector=cube)
