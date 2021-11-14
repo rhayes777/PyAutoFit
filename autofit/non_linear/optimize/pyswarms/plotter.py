@@ -1,8 +1,8 @@
-from autofit.plot.samples_plotters import MCMCPlotter
 from pyswarms.utils import plotters
-
 import matplotlib.pyplot as plt
 import numpy as np
+
+from autofit.plot.samples_plotters import MCMCPlotter
 
 class PySwarmsPlotter(MCMCPlotter):
 

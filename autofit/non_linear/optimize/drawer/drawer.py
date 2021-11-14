@@ -1,27 +1,22 @@
 from os import path
-from typing import List, Optional
+from typing import Optional
 
-import numpy as np
 from sqlalchemy.orm import Session
 
 from autoconf import conf
-from autofit import exc
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.optimize.abstract_optimize import AbstractOptimizer
-from autofit.non_linear.samples import OptimizerSamples, Sample
 from autofit.non_linear.abstract_search import PriorPasser
 from autofit.non_linear.initializer import Initializer
-from autofit.plot import DrawerPlotter
-from autofit.plot.mat_wrap.wrap.wrap_base import Output
+from autofit.non_linear.optimize.drawer.samples import DrawerSamples
+from autofit.non_linear.optimize.drawer.plotter import DrawerPlotter
+from autofit.plot.output import Output
 
 
 class Drawer(AbstractOptimizer):
 
     __identifier_fields__ = (
-        "n_particles",
-        "cognitive",
-        "social",
-        "inertia",
+        "total_draws",
     )
 
     def __init__(
@@ -37,12 +32,29 @@ class Drawer(AbstractOptimizer):
             **kwargs
     ):
         """
-        A Drawer Particle Swarm Optimizer global non-linear search.
+        A Drawer non-linear search, which simply draws a fixed number of samples from the model uniformly from the
+        priors.
 
-        For a full description of Drawer, checkout its Github and readthedocs webpages:
+        Therefore, it does not seek to determine model parameters which maximize the likelihood or map out the
+        posterior of the overall parameter space.
 
-        https://github.com/ljvmiranda921/drawer
-        https://drawer.readthedocs.io/en/latest/index.html
+        Whilst this is not the typical use case of a non-linear search, it has certain niche applications, for example:
+
+        - Given a model one can determine how much variation there is in the log likelihood / log posterior values.
+        By visualizing this as a histogram one can therefore quantify the behaviour of that
+        model's `log_likelihood_function`.
+
+        - If the `log_likelihood_function` of a model is stochastic (e.g. different values of likelihood may be
+        computed for an identical model due to randomness in the likelihood evaluation) this search can quantify
+        the behaviour of that stochasticity.
+
+        - For advanced modeling tools, for example sensitivity mapping performed via the `Sensitivity` object,
+        the `Drawer` search may be sufficient to perform the overall modeling task, without the need of performing
+        an actual parameter space search.
+
+        The drawer search itself is performed by simply reusing the functionality of the `Initializer` object.
+        Whereas this is normally used to initialize a non-linear search, for the drawer it performed all log
+        likelihood evluations.
 
         Parameters
         ----------
@@ -91,7 +103,7 @@ class Drawer(AbstractOptimizer):
 
             The `Drawer` search can use either the log posterior values or log likelihood values.
             """
-            return -2.0 * self.log_posterior_from(parameter_list=parameter_list)
+            return self.log_posterior_from(parameter_list=parameter_list)
 
     def _fit(self, model: AbstractPriorModel, analysis, log_likelihood_cap=None):
         """
@@ -172,46 +184,3 @@ class Drawer(AbstractOptimizer):
             output=Output(path=path.join(self.paths.image_path, "search"), format="png")
         )
 
-
-class DrawerSamples(OptimizerSamples):
-
-    def __init__(
-            self,
-            model: AbstractPriorModel,
-            parameter_lists: List[List[float]],
-            log_posterior_list: List[float],
-            time: Optional[float] = None,
-    ):
-        """
-        Create an *OptimizerSamples* object from this non-linear search's output files on the hard-disk and model.
-
-        For Drawer, all quantities are extracted via pickled states of the particle and cost histories.
-
-        Parameters
-        ----------
-        model
-            The model which generates instances for different points in parameter space. This maps the points from unit
-            cube values to physical values via the priors.
-        """
-
-        self._log_posterior_list = log_posterior_list
-
-        log_prior_list = [
-            sum(model.log_prior_list_from_vector(vector=vector)) for vector in parameter_lists
-        ]
-        log_likelihood_list = [lp - prior for lp, prior in zip(self._log_posterior_list, log_prior_list)]
-        weight_list = len(log_likelihood_list) * [1.0]
-
-        sample_list = Sample.from_lists(
-            model=model,
-            parameter_lists=parameter_lists,
-            log_likelihood_list=log_likelihood_list,
-            log_prior_list=log_prior_list,
-            weight_list=weight_list
-        )
-
-        super().__init__(
-            model=model,
-            sample_list=sample_list,
-            time=time,
-        )
