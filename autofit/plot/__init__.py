@@ -25,3 +25,4 @@ from autofit.plot.ultranest_plotter import UltraNestPlotter
 from autofit.plot.emcee_plotter import EmceePlotter
 from autofit.plot.zeus_plotter import ZeusPlotter
 from autofit.plot.pyswarms_plotter import PySwarmsPlotter
+from autofit.plot.pyswarms_plotter import PySwarmsPlotter as DrawerPlotter
