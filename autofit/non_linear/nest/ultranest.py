@@ -12,7 +12,7 @@ from autofit.non_linear.samples import Sample
 from autofit.non_linear.samples.nest import NestSamples
 from autofit.non_linear.abstract_search import PriorPasser
 from autofit.plot import UltraNestPlotter
-from autofit.plot.mat_wrap.wrap.wrap_base import Output
+from autofit.plot.output import Output
 
 
 class UltraNest(abstract_nest.AbstractNest):

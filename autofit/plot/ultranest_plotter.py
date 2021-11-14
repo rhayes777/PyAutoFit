@@ -1,3 +1,5 @@
+import matplotlib.pyplot as plt
+
 from autofit.plot import SamplesPlotter
 
 class UltraNestPlotter(SamplesPlotter):
@@ -12,7 +14,7 @@ class UltraNestPlotter(SamplesPlotter):
         )
 
         self.output.to_figure(structure=None, auto_filename="cornerplot")
-        self.mat_plot_1d.figure.close()
+        self.close()
 
     def runplot(self, **kwargs):
 
@@ -27,7 +29,7 @@ class UltraNestPlotter(SamplesPlotter):
             pass
 
         self.output.to_figure(structure=None, auto_filename="runplot")
-        self.mat_plot_1d.figure.close()
+        self.close()
 
     def traceplot(self, **kwargs):
 
@@ -42,4 +44,4 @@ class UltraNestPlotter(SamplesPlotter):
             pass
 
         self.output.to_figure(structure=None, auto_filename="traceplot")
-        self.mat_plot_1d.figure.close()
+        self.close()

@@ -16,7 +16,7 @@ from autofit.non_linear.samples import Sample
 from autofit.non_linear.abstract_search import PriorPasser
 from autofit.non_linear.initializer import Initializer
 from autofit.plot import EmceePlotter
-from autofit.plot.mat_wrap.wrap.wrap_base import Output
+from autofit.plot.output import Output
 
 
 class Emcee(AbstractMCMC):

@@ -10,7 +10,7 @@ from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.abstract_search import PriorPasser
 from autofit.non_linear.nest.abstract_nest import AbstractNest
 from autofit.plot import DynestyPlotter
-from autofit.plot.mat_wrap.wrap.wrap_base import Output
+from autofit.plot.output import Output
 from .samples import DynestySamples
 
 

@@ -1,7 +1,9 @@
+from dynesty import plotting as dyplot
+import matplotlib.pyplot as plt
+
 from autoconf import conf
 from autofit.plot import SamplesPlotter
 
-from dynesty import plotting as dyplot
 
 
 class DynestyPlotter(SamplesPlotter):
@@ -18,7 +20,7 @@ class DynestyPlotter(SamplesPlotter):
         )
 
         self.output.to_figure(structure=None, auto_filename="boundplot")
-        self.mat_plot_1d.figure.close()
+        self.close()
 
     def cornerbound(self, **kwargs):
 
@@ -32,7 +34,7 @@ class DynestyPlotter(SamplesPlotter):
         )
 
         self.output.to_figure(structure=None, auto_filename="cornerbound")
-        self.mat_plot_1d.figure.close()
+        self.close()
 
     def cornerplot(self, **kwargs):
 
@@ -46,7 +48,7 @@ class DynestyPlotter(SamplesPlotter):
         )
 
         self.output.to_figure(structure=None, auto_filename="cornerplot")
-        self.mat_plot_1d.figure.close()
+        self.close()
 
     def cornerpoints(self, **kwargs):
 
@@ -64,7 +66,7 @@ class DynestyPlotter(SamplesPlotter):
         except ValueError:
             pass
 
-        self.mat_plot_1d.figure.close()
+        self.close()
 
     def runplot(self, **kwargs):
 
@@ -80,7 +82,7 @@ class DynestyPlotter(SamplesPlotter):
             pass
 
         self.output.to_figure(structure=None, auto_filename="runplot")
-        self.mat_plot_1d.figure.close()
+        self.close()
 
     def traceplot(self, **kwargs):
 
@@ -93,4 +95,4 @@ class DynestyPlotter(SamplesPlotter):
         )
 
         self.output.to_figure(structure=None, auto_filename="traceplot")
-        self.mat_plot_1d.figure.close()
+        self.close()
