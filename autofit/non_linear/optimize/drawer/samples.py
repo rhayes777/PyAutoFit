@@ -1,18 +1,7 @@
-from os import path
 from typing import List, Optional
 
-import numpy as np
-from sqlalchemy.orm import Session
-
-from autoconf import conf
-from autofit import exc
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
-from autofit.non_linear.optimize.abstract_optimize import AbstractOptimizer
 from autofit.non_linear.samples import OptimizerSamples, Sample
-from autofit.non_linear.abstract_search import PriorPasser
-from autofit.non_linear.initializer import Initializer
-from autofit.plot import DrawerPlotter
-from autofit.plot.mat_wrap.wrap.wrap_base import Output
 
 
 class DrawerSamples(OptimizerSamples):
