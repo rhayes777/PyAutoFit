@@ -57,11 +57,11 @@ from .non_linear.grid.grid_search import GridSearchResult
 from .non_linear.initializer import InitializerBall
 from .non_linear.initializer import InitializerPrior
 from .non_linear.mcmc.auto_correlations import AutoCorrelationsSettings
-from .non_linear.mcmc.emcee import Emcee
-from .non_linear.mcmc.zeus import Zeus
+from .non_linear.mcmc.emcee.emcee import Emcee
+from .non_linear.mcmc.zeus.zeus import Zeus
 from .non_linear.nest.dynesty import DynestyDynamic
 from .non_linear.nest.dynesty import DynestyStatic
-from .non_linear.nest.multi_nest import MultiNest
+from .non_linear.nest.multinest.multinest import MultiNest
 from .non_linear.nest.ultranest import UltraNest
 from .non_linear.optimize.lbfgs import LBFGS
 from .non_linear.optimize.pyswarms import PySwarmsGlobal
