@@ -8,6 +8,18 @@ from pathlib import Path
 import numpy as np
 
 
+class IntervalCounter:
+    def __init__(self, interval):
+        self.count = 0
+        self.interval = interval
+
+    def __call__(self):
+        if self.interval == -1:
+            return False
+        self.count += 1
+        return self.count % self.interval == 0
+
+
 def zip_directory(
         source_directory,
         output=None

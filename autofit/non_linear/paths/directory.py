@@ -194,10 +194,14 @@ class DirectoryPaths(AbstractPaths):
                 )
             self.parent.save_unique_tag()
 
-    def save_unique_tag(self):
-        with open_(self._grid_search_path, "w+") as f:
-            if self.unique_tag is not None:
-                f.write(self.unique_tag)
+    def save_unique_tag(
+            self,
+            is_grid_search=False
+    ):
+        if is_grid_search:
+            with open_(self._grid_search_path, "w+") as f:
+                if self.unique_tag is not None:
+                    f.write(self.unique_tag)
 
     @property
     def _parent_identifier_path(self) -> str:

@@ -70,7 +70,7 @@ class MassProfile:
     def surface_density_func(self, eta):
         raise NotImplementedError("surface_density_at_radius should be overridden")
 
-    def convergence_from(self, grid):
+    def convergence_2d_from(self, grid):
         pass
 
     def potential_2d_from(self, grid):

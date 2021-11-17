@@ -1,9 +1,6 @@
-from abc import ABC, abstractmethod
-from collections import defaultdict
-from itertools import count
+import logging
 from typing import (
-    Dict, Tuple, Optional, List,
-    Callable
+    Dict, Tuple, Optional, List
 )
 
 import numpy as np
@@ -16,12 +13,16 @@ from autofit.graphical.utils import Status
 from autofit.mapper.variable import Variable
 from autofit.messages.abstract import AbstractMessage
 
+logger = logging.getLogger(
+    __name__
+)
+
 
 class EPMeanField(FactorGraph):
     '''
     this class encode the EP mean-field approximation to a factor graph
 
-    
+
     Attributes
     ----------
     factor_graph: FactorGraph
@@ -228,153 +229,11 @@ class EPMeanField(FactorGraph):
 
     def __repr__(self) -> str:
         clsname = type(self).__name__
+        try:
+            log_evidence = self.log_evidence
+        except Exception as e:
+            logger.exception(e)
+            log_evidence = float("nan")
         return (
             f"{clsname}({self.factor_graph}, "
-            f"log_evidence={self.log_evidence})")
-
-
-class AbstractFactorOptimiser(ABC):
-    @abstractmethod
-    def optimise(
-            self,
-            factor: Factor,
-            model_approx: EPMeanField,
-            status: Status = Status()
-    ) -> Tuple[EPMeanField, Status]:
-        pass
-
-
-EPCallBack = Callable[[Factor, EPMeanField, Status], bool]
-
-
-class EPHistory:
-    def __init__(
-            self,
-            callbacks: Tuple[EPCallBack, ...] = (),
-            kl_tol=1e-1,
-            evidence_tol=None):
-        self._callbacks = callbacks
-        self.history = {}
-        self.statuses = {}
-        self.factor_count = defaultdict(count)
-
-        self.kl_tol = kl_tol
-        self.evidence_tol = evidence_tol
-
-    def __call__(
-            self,
-            factor: Factor,
-            approx: EPMeanField,
-            status: Status = Status()
-    ) -> bool:
-        i = next(self.factor_count[factor])
-        self.history[i, factor] = approx
-        self.statuses[i, factor] = status
-
-        if status.success:
-            stop = any([
-                callback(factor, approx, status)
-                for callback in self._callbacks
-            ])
-            if stop:
-                return True
-            elif i:
-                last_approx = self.history[i - 1, factor]
-                return self._check_convergence(approx, last_approx)
-
-        return False
-
-    def _kl_convergence(
-            self,
-            approx: EPMeanField,
-            last_approx: EPMeanField,
-    ) -> bool:
-        return approx.mean_field.kl(last_approx.mean_field) < self.kl_tol
-
-    def _evidence_convergence(
-            self,
-            approx: EPMeanField,
-            last_approx: EPMeanField,
-    ) -> bool:
-        last_evidence = last_approx.log_evidence
-        evidence = approx.log_evidence
-        if last_evidence > evidence:
-            # todo print warning?
-            return False
-
-        return evidence - last_evidence < self.evidence_tol
-
-    def _check_convergence(
-            self,
-            approx: EPMeanField,
-            last_approx: EPMeanField,
-    ) -> bool:
-        stop = False
-        if self.kl_tol:
-            stop = stop or self._kl_convergence(approx, last_approx)
-
-        if self.evidence_tol:
-            stop = stop or self._evidence_convergence(approx, last_approx)
-
-        return stop
-
-
-class EPOptimiser:
-    """
-    """
-
-    def __init__(
-            self,
-            factor_graph: FactorGraph,
-            default_optimiser: Optional[AbstractFactorOptimiser] = None,
-            factor_optimisers: Optional[Dict[Factor, AbstractFactorOptimiser]] = None,
-            callback: Optional[EPCallBack] = None,
-            factor_order: Optional[List[Factor]] = None
-    ):
-        factor_optimisers = factor_optimisers or {}
-        self.factor_graph = factor_graph
-        self.factors = factor_order or self.factor_graph.factors
-
-        if default_optimiser is None:
-            self.factor_optimisers = factor_optimisers
-            missing = set(self.factors) - self.factor_optimisers.keys()
-            if missing:
-                raise (ValueError(
-                    f"missing optimisers for {missing}, "
-                    "pass a default_optimiser or add missing optimsers"
-                ))
-        else:
-            self.factor_optimisers = {
-                factor: factor_optimisers.get(
-                    factor,
-                    default_optimiser
-                )
-                for factor in self.factors
-            }
-
-        self.callback = callback or EPHistory()
-
-    def run(
-            self,
-            model_approx: EPMeanField,
-            max_steps=100,
-    ) -> EPMeanField:
-        for _ in range(max_steps):
-            for factor, optimiser in self.factor_optimisers.items():
-                try:
-                    model_approx, status = optimiser.optimise(factor, model_approx)
-                except TypeError as e:
-                    raise e
-                except (ValueError, ArithmeticError, RuntimeError) as e:
-                    status = Status(
-                        False,
-                        (f"Factor: {factor} experienced error {e}",)
-                    )
-
-                if self.callback(factor, model_approx, status):
-                    break  # callback controls convergence
-            else:  # If no break do next iteration
-                continue
-            break  # stop iterations
-
-        return model_approx
+            f"log_evidence={log_evidence})")

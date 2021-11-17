@@ -16,6 +16,14 @@ class Status(NamedTuple):
     success: bool = True
     messages: Tuple[str, ...] = ()
 
+    def __bool__(self):
+        return self.success
+
+    def __str__(self):
+        if self.success:
+            return "Optimisation succeeded"
+        return f"Optimisation failed: {self.messages}"
+
 
 class FlattenArrays(dict):
     """

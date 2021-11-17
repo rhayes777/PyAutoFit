@@ -141,7 +141,7 @@ def test_importance_sampling(
     opt = mp.EPOptimiser(
         model_approx.factor_graph,
         default_optimiser=sampler,
-        callback=callback
+        ep_history=callback
     )
     new_approx = opt.run(model_approx, max_steps=5)
 

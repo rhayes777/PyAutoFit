@@ -8,6 +8,7 @@ from scipy.stats import norm
 from autoconf import cached_property
 from autofit.messages.abstract import AbstractMessage
 from .transform import phi_transform, log_transform, multinomial_logit_transform, log_10_transform
+from .. import exc
 
 
 def is_nan(value):
@@ -41,7 +42,7 @@ class NormalMessage(AbstractMessage):
             id_=None
     ):
         if (np.array(sigma) < 0).any():
-            raise AssertionError(
+            raise exc.MessageException(
                 "Sigma cannot be negative"
             )
         super().__init__(
@@ -145,7 +146,6 @@ class NormalMessage(AbstractMessage):
 
     def logpdf_gradient_hessian(self, x: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
         return self._normal_gradient_hessian(x)
-
 
     __name__ = "gaussian_prior"
 

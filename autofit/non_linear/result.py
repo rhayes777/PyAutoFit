@@ -2,7 +2,31 @@ import numpy as np
 
 from autofit import exc
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
-from autofit.non_linear.samples.optimizer import OptimizerSamples
+from autofit.non_linear.samples import PDFSamples
+
+
+class Placeholder:
+    def __getattr__(self, item):
+        """
+        Placeholders return None to represent the missing result's value
+        """
+        return None
+
+    def __getstate__(self):
+        return {}
+
+    def __setstate__(self, state):
+        pass
+
+    def __gt__(self, other):
+        return False
+
+    def __lt__(self, other):
+        return True
+
+    @property
+    def samples(self):
+        return self
 
 
 class Result:
@@ -10,9 +34,17 @@ class Result:
     @DynamicAttrs
     """
 
-    def __init__(self, samples: OptimizerSamples, model, search=None):
+    def __init__(self, samples: PDFSamples, model, search=None):
         """
-        The result of an optimization.
+        The result of a non-linear search, which includes:
+
+        - The samples of the non-linear search (E.g. MCMC chains, nested sampling samples) which are used to compute
+        the maximum likelihood model, posteriors and other properties.
+
+        - The model used to fit the data, which uses the samples to create specific instances of the model (e.g.
+        an instance of the maximum log likelihood model).
+
+        - The non-linear search used to perform the model fit.
 
         Parameters
         ----------
@@ -31,6 +63,26 @@ class Result:
         self._instance = (
             samples.max_log_likelihood_instance if samples is not None else None
         )
+
+    def __gt__(self, other):
+        """
+        Results are sorted by their associated log_likelihood.
+
+        Placeholders are always low.
+        """
+        if isinstance(other, Placeholder):
+            return True
+        return self.log_likelihood > other.log_likelihood
+
+    def __lt__(self, other):
+        """
+        Results are sorted by their associated log_likelihood.
+
+        Placeholders are always low.
+        """
+        if isinstance(other, Placeholder):
+            return False
+        return self.log_likelihood < other.log_likelihood
 
     @property
     def log_likelihood(self):
