@@ -60,7 +60,8 @@ def _run_optimisation(
         max_steps=MAX_STEPS,
         name="name",
         log_interval=1,
-        visualise_interval=1
+        visualise_interval=1,
+        output_interval=1,
     )
 
 

@@ -72,7 +72,8 @@ class EPOptimiser:
             ep_history: Optional[EPHistory] = None,
             factor_order: Optional[List[Factor]] = None,
             log_interval=10,
-            visualise_interval=10
+            visualise_interval=10,
+            output_interval=10,
     ):
         factor_optimisers = factor_optimisers or {}
         self.factor_graph = factor_graph
@@ -82,6 +83,9 @@ class EPOptimiser:
             log_interval
         )
         self.should_visualise = IntervalCounter(
+            visualise_interval
+        )
+        self.should_output = IntervalCounter(
             visualise_interval
         )
 
@@ -176,9 +180,10 @@ class EPOptimiser:
             else:  # If no break do next iteration
                 if should_visualise:
                     self.visualiser()
-                self._output_results(
-                    model_approx
-                )
+                if self.should_output():
+                    self._output_results(
+                        model_approx
+                    )
                 continue
             break  # stop iterations
 
