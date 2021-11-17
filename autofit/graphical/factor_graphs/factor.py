@@ -513,6 +513,10 @@ class Factor(AbstractFactor):
             map("{0[0]}={0[1]}".format, self._kwargs.items())))
         return f"Factor({self.name}, {args})"
 
+    @property
+    def info(self):
+        return repr(self)
+
 
 class DeterministicFactor(Factor):
     """

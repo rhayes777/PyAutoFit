@@ -185,3 +185,48 @@ def test_ep_history(
     assert history.is_kl_converged(factor)
     assert history.is_kl_evidence_converged(factor)
     assert history.is_kl_converged(factor)
+
+
+class MockEPMeanField:
+    def __init__(self, value):
+        self.value = value
+
+    @property
+    def log_evidence(self):
+        return self.value
+
+    @property
+    def mean_field(self):
+        return self
+
+    def kl(self, other):
+        return self.value - other.value
+
+
+# noinspection PyTypeChecker
+def test_evidences(
+        factor_history,
+        success,
+        failure
+):
+    factor_history(MockEPMeanField(1), success)
+    factor_history(MockEPMeanField(2), failure)
+    factor_history(MockEPMeanField(3), success)
+
+    assert factor_history.evidences == [
+        1, None, 3
+    ]
+
+
+# noinspection PyTypeChecker
+def test_kl_divergences(
+        factor_history,
+        success,
+        failure
+):
+    factor_history(MockEPMeanField(1), success)
+    factor_history(MockEPMeanField(2), failure)
+    factor_history(MockEPMeanField(3), success)
+    factor_history(MockEPMeanField(4), success)
+
+    assert factor_history.kl_divergences == [None, None, 1]

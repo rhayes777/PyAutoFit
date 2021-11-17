@@ -42,6 +42,15 @@ class AbstractModelFactor(Factor, AbstractDeclarativeFactor, ABC):
             name=name or namer(self.__class__.__name__)
         )
 
+    @property
+    def info(self) -> str:
+        """
+        Info describing this factor. Same as model info with the factor name.
+
+        Output as part of graph.info
+        """
+        return f"{self.name}\n\n{self.prior_model.info}"
+
     def optimise(self, optimiser, **kwargs) -> PriorModel:
         """
         Optimise this factor on its own returning a PriorModel

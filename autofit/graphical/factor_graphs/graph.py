@@ -51,6 +51,18 @@ class FactorGraph(AbstractNode):
             **_kwargs
         )
 
+    @property
+    def info(self) -> str:
+        """
+        Describes the graph. Output in graph.info
+        """
+        factor_info = "\n\n".join(
+            factor.info
+            for factor
+            in self._factors
+        )
+        return f"{self.name}\n\n{factor_info}"
+
     def broadcast_plates(
             self,
             plates: Collection[Plate],
@@ -258,7 +270,7 @@ class FactorGraph(AbstractNode):
             pos=None, ax=None, size=20, color='k', fill='w',
             factor_shape='s', variable_shape='o',
             factor_kws=None, variable_kws=None, edge_kws=None,
-            factors=None, draw_labels=False, label_kws=None, 
+            factors=None, draw_labels=False, label_kws=None,
             **kwargs
     ):
         try:
@@ -359,6 +371,7 @@ class FactorGraph(AbstractNode):
             rescale_to_artists(text.values(), ax=ax)
 
         return text
+
 
 def bipartite_layout(factors):
     n_factors = len(factors)

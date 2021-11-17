@@ -3,7 +3,6 @@ import pytest
 
 import autofit as af
 import autofit.graphical as ep
-from autofit.mapper.operator import DiagonalMatrix
 from test_autofit.graphical.gaussian.model import Gaussian, make_data, Analysis
 
 
