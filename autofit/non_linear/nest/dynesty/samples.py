@@ -37,9 +37,7 @@ class DynestySamples(NestSamples):
         self._number_live_points = number_live_points
 
         parameter_lists = self.results.samples.tolist()
-        log_prior_list = [
-            sum(model.log_prior_list_from_vector(vector=vector)) for vector in parameter_lists
-        ]
+        log_prior_list = model.log_prior_list_from(parameter_lists=parameter_lists)
         log_likelihood_list = list(self.results.logl)
 
         try:

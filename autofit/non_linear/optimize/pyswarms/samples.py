@@ -34,9 +34,7 @@ class PySwarmsSamples(OptimizerSamples):
         parameter_lists = [
             param.tolist() for parameters in self.points for param in parameters
         ]
-        log_prior_list = [
-            sum(model.log_prior_list_from_vector(vector=vector)) for vector in parameter_lists
-        ]
+        log_prior_list = model.log_prior_list_from(parameter_lists=parameter_lists)
         log_likelihood_list = [lp - prior for lp, prior in zip(self._log_posterior_list, log_prior_list)]
         weight_list = len(log_likelihood_list) * [1.0]
 

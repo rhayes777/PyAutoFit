@@ -244,7 +244,7 @@ class OptimizerSamples:
         """
         return self.model.instance_from_vector(vector=self.max_log_posterior_vector)
 
-    def gaussian_priors_at_sigma(self, sigma: float) -> [list]:
+    def gaussian_priors_at_sigma(self, sigma: float) -> [List]:
         """
         `GaussianPrior`s of every parameter used to link its inferred values and errors to priors used to sample the
         same (or similar) parameters in a subsequent search, where:

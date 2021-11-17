@@ -58,10 +58,10 @@ class Output:
         self.path = path
 
         if path is not None and path:
-            try:
-                os.makedirs(path)
-            except FileExistsError:
-                pass
+            os.makedirs(
+                path,
+                exist_ok=True
+            )
 
         self.filename = filename
         self._format = format
@@ -69,9 +69,7 @@ class Output:
 
     @property
     def format(self) -> str:
-        if self._format is None:
-            return "show"
-        return self._format
+        return self._format or "show"
 
     @property
     def format_list(self):
