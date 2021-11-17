@@ -27,6 +27,13 @@ class PriorFactor(Factor, Analysis):
         )
         self.prior = prior
 
+    def make_results_text(self, model_approx):
+        return str(
+            model_approx.mean_field[
+                self.prior
+            ].mean
+        )
+
     @property
     def prior_model(self) -> CollectionPriorModel:
         """

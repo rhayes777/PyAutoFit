@@ -176,7 +176,18 @@ class EPOptimiser:
             else:  # If no break do next iteration
                 if should_visualise:
                     self.visualiser()
+                self._output_results(
+                    model_approx
+                )
                 continue
             break  # stop iterations
 
         return model_approx
+
+    def _output_results(self, model_approx):
+        with open(self.output_path / "model.results", "w+") as f:
+            f.write(
+                self.factor_graph.make_results_text(
+                    model_approx
+                )
+            )
