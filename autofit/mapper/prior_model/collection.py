@@ -99,8 +99,10 @@ class CollectionPriorModel(AbstractPriorModel):
             if isinstance(arguments, list):
                 for argument in arguments:
                     self.append(argument)
-            if isinstance(arguments, dict):
+            elif isinstance(arguments, dict):
                 self.add_dict_items(arguments)
+            else:
+                self.append(arguments)
         else:
             self.__init__(arguments)
 
@@ -192,7 +194,7 @@ class CollectionPriorModel(AbstractPriorModel):
                     "item_number",
                     "id"
             ) or key.startswith(
-                    "_"
+                "_"
             ):
                 continue
 

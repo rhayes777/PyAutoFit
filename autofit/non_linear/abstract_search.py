@@ -25,6 +25,7 @@ from autofit.non_linear.result import Result
 from autofit.non_linear.timer import Timer
 from .analysis import Analysis
 from .paths.null import NullPaths
+from ..graphical.declarative.abstract import PriorFactor
 from ..graphical.expectation_propagation import AbstractFactorOptimiser
 from ..tools.util import IntervalCounter
 
@@ -249,10 +250,10 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         _ = status
         if not isinstance(
                 factor,
-                AnalysisFactor
+                (AnalysisFactor, PriorFactor)
         ):
             raise NotImplementedError(
-                f"Optimizer {self.__class__.__name__} can only be applied to AnalysisFactors"
+                f"Optimizer {self.__class__.__name__} can only be applied to AnalysisFactors and PriorFactors"
             )
 
         factor_approx = model_approx.factor_approximation(

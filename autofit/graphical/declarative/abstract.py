@@ -17,6 +17,28 @@ from autofit.non_linear.analysis import Analysis
 from autofit.non_linear.paths.abstract import AbstractPaths
 
 
+class PriorFactor(Factor, Analysis):
+    def __init__(self, prior):
+        super().__init__(
+            prior.factor,
+            x=prior
+        )
+        self.prior = prior
+
+    @property
+    def prior_model(self):
+        return CollectionPriorModel(
+            self.prior
+        )
+
+    @property
+    def analysis(self):
+        return self
+
+    def log_likelihood_function(self, instance):
+        pass
+
+
 class AbstractDeclarativeFactor(Analysis, ABC):
     @property
     @abstractmethod
@@ -56,14 +78,7 @@ class AbstractDeclarativeFactor(Analysis, ABC):
         A list of factors that act as priors on latent variables. One factor exists
         for each unique prior.
         """
-        return [
-            Factor(
-                prior.factor,
-                x=prior
-            )
-            for prior
-            in self.priors
-        ]
+        return list(map(PriorFactor, self.priors))
 
     @property
     def message_dict(self) -> Dict[Prior, NormalMessage]:
