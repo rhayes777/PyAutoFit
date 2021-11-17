@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import List, Optional
 
 import emcee
 import numpy as np
@@ -37,9 +37,7 @@ class EmceeSamples(MCMCSamples):
 
         parameter_lists = self.backend.get_chain(flat=True).tolist()
 
-        log_prior_list = [
-            sum(model.log_prior_list_from_vector(vector=vector)) for vector in parameter_lists
-        ]
+        log_prior_list = model.log_prior_list_from(parameter_lists=parameter_lists)
 
         log_posterior_list = self.backend.get_log_prob(flat=True).tolist()
 
@@ -68,7 +66,7 @@ class EmceeSamples(MCMCSamples):
         )
 
     @property
-    def samples_after_burn_in(self) -> [list]:
+    def samples_after_burn_in(self) -> [List]:
         """
         The emcee samples with the initial burn-in samples removed.
 

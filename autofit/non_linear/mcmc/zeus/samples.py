@@ -1,12 +1,16 @@
-from typing import Optional
-
+import logging
 import numpy as np
+from typing import List, Optional
 import zeus
 
 from autofit import MCMCSamples
 from autofit.mapper.model_mapper import ModelMapper
 from autofit.non_linear.mcmc.auto_correlations import AutoCorrelationsSettings, AutoCorrelations
 from autofit.non_linear.samples import Sample
+
+logger = logging.getLogger(
+    __name__
+)
 
 class ZeusSamples(MCMCSamples):
 
@@ -31,9 +35,7 @@ class ZeusSamples(MCMCSamples):
         self.zeus_sampler = zeus_sampler
 
         parameter_lists = self.zeus_sampler.get_chain(flat=True).tolist()
-        log_prior_list = [
-            sum(model.log_prior_list_from_vector(vector=vector)) for vector in parameter_lists
-        ]
+        log_prior_list = model.log_prior_list_from(parameter_lists=parameter_lists)
         log_posterior_list = self.zeus_sampler.get_log_prob(flat=True).tolist()
         log_likelihood_list = [log_posterior - log_prior for log_posterior, log_prior in
                                zip(log_posterior_list, log_prior_list)]
@@ -57,7 +59,7 @@ class ZeusSamples(MCMCSamples):
         )
 
     @property
-    def samples_after_burn_in(self) -> [list]:
+    def samples_after_burn_in(self) -> [List]:
         """The zeus samples with the initial burn-in samples removed.
 
         The burn-in period is estimated using the auto-correlation times of the parameters."""
@@ -83,6 +85,9 @@ class ZeusSamples(MCMCSamples):
                 samples=self.zeus_sampler.get_chain()[: -self.auto_correlation_settings.check_size, :, :],
             )
         except IndexError:
+            logger.debug(
+                "Unable to compute previous auto correlation times."
+            )
             previous_auto_correlation_times = None
 
         return AutoCorrelations(
