@@ -24,6 +24,6 @@ def test_sensitivity(
     ) / "results.csv"
     assert path.exists()
     with open(path) as f:
-        assert next(f) == 'index,centre,intensity,sigma,log_likelihood_difference\n'
-        assert next(f) == '0,0.25,0.25,0.25,0.0\n'
-        assert next(f) == '1,0.25,0.25,0.75,0.0\n'
+        assert next(f) == 'index,centre,intensity,sigma,log_likelihood_base,log_likelihood_perturbed,log_likelihood_difference\n'
+        assert next(f) == '0,0.25,0.25,0.25,2.0,2.0,0.0\n'
+        assert next(f) == '1,0.25,0.25,0.75,2.0,2.0,0.0\n'

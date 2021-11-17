@@ -113,7 +113,7 @@ def test_analysis_pool(
     "number",
     list(range(1, 10))
 )
-def test_two_cores(number):
+def _test_two_cores(number):
     analysis = Analysis()
     for _ in range(number - 1):
         analysis += Analysis()

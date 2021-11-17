@@ -37,6 +37,14 @@ class JobResult(AbstractJobResult):
     def log_likelihood_difference(self):
         return self.perturbed_result.log_likelihood - self.result.log_likelihood
 
+    @property
+    def log_likelihood_base(self):
+        return self.result.log_likelihood
+
+    @property
+    def log_likelihood_perturbed(self):
+        return self.perturbed_result.log_likelihood
+
 
 class Job(AbstractJob):
     _number = count()
@@ -210,6 +218,8 @@ class Sensitivity:
         headers = [
             "index",
             *self._headers,
+            "log_likelihood_base",
+            "log_likelihood_perturbed",
             "log_likelihood_difference"
         ]
         physical_values = list(self._physical_values)
@@ -232,7 +242,9 @@ class Sensitivity:
                     writer.writerow([
                         result_.number,
                         *values,
-                        result_.log_likelihood_difference
+                        result_.log_likelihood_base,
+                        result_.log_likelihood_perturbed,
+                        result_.log_likelihood_difference,
                     ])
 
         return SensitivityResult(results)
