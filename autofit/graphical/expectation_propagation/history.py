@@ -211,6 +211,9 @@ class EPHistory:
             self.history[factor] = FactorHistory(factor)
             return self.history[factor]
 
+    def items(self):
+        return self.history.items()
+
     def __call__(
             self,
             factor: Factor,

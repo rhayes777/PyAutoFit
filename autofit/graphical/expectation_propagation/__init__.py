@@ -34,6 +34,34 @@ class AbstractFactorOptimiser(ABC):
         pass
 
 
+class Visualise:
+    def __init__(
+            self,
+            ep_history,
+            output_path
+    ):
+        self.ep_history = ep_history
+        self.output_path = output_path
+
+    def __call__(self):
+        fig, (evidence_plot, kl_plot) = plt.subplots(2)
+        fig.suptitle('Evidence and KL Divergence')
+        for factor, factor_history in self.ep_history.items():
+            evidence_plot.plot(
+                factor_history.evidences,
+                label=f"{factor.name} evidence"
+            )
+            kl_plot.plot(
+                factor_history.kl_divergences,
+                label=f"{factor.name} divergence"
+            )
+            evidence_plot.legend()
+            kl_plot.legend()
+        plt.savefig(
+            str(self.output_path / "graph.png")
+        )
+
+
 class EPOptimiser:
     def __init__(
             self,
@@ -80,6 +108,11 @@ class EPOptimiser:
         with open(self.output_path / "graph.info", "w+") as f:
             f.write(self.factor_graph.info)
 
+        self.visualiser = Visualise(
+            self.ep_history,
+            self.output_path
+        )
+
     @property
     def output_path(self):
         path = Path(conf.instance.output_path) / self.name
@@ -103,19 +136,6 @@ class EPOptimiser:
             )
         except exc.HistoryException as e:
             factor_logger.exception(e)
-
-    def _visualise_factor(self, factor):
-        factor_history = self.ep_history[factor]
-        fig, (evidence_plot, kl_plot) = plt.subplots(2)
-        fig.suptitle('Evidence and KL Divergence')
-        evidence_plot.plot(
-            factor_history.evidences,
-            label=f"{factor.name} evidence"
-        )
-        kl_plot.plot(
-            factor_history.kl_divergences,
-            label=f"{factor.name} divergence"
-        )
 
     def run(
             self,
@@ -144,11 +164,8 @@ class EPOptimiser:
                         (f"Factor: {factor} experienced error {e}",)
                     )
 
-                if status:
-                    if should_log:
-                        self._log_factor(factor)
-                    if should_visualise:
-                        self._visualise_factor(factor)
+                if status and should_log:
+                    self._log_factor(factor)
 
                 factor_logger.debug(status)
 
@@ -158,10 +175,7 @@ class EPOptimiser:
 
             else:  # If no break do next iteration
                 if should_visualise:
-                    plt.legend()
-                    plt.savefig(
-                        str(self.output_path / "graph.png")
-                    )
+                    self.visualiser()
                 continue
             break  # stop iterations
 
