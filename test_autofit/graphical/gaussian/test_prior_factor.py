@@ -1,9 +1,8 @@
 import pytest
 
-from autofit import graphical as g
 import autofit as af
+from autofit import graphical as g
 from autofit.mock.mock import MockAnalysis
-from test_autofit.non_linear.grid.test_optimizer_grid_search import MockOptimizer
 
 
 @pytest.fixture(
@@ -26,8 +25,11 @@ def test_prior_factor(prior):
     assert prior_factor.prior_model.prior_count == 1
 
 
-def test_optimise(model):
-    optimizer = MockOptimizer()
+def test_optimise(model, prior):
+    # optimizer = MockOptimizer()
+    optimizer = af.DynestyStatic(
+        maxcall=10
+    )
     analysis = MockAnalysis()
     factor = g.AnalysisFactor(
         model,
@@ -40,3 +42,9 @@ def test_optimise(model):
     )
 
     assert status
+
+    optimized_mean = list(result.mean_field.values())[0].mean
+    assert optimized_mean == pytest.approx(
+        prior.mean,
+        rel=0.1
+    )

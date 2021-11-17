@@ -36,7 +36,7 @@ class PriorFactor(Factor, Analysis):
         return self
 
     def log_likelihood_function(self, instance):
-        pass
+        return self.prior.factor(instance[0])
 
 
 class AbstractDeclarativeFactor(Analysis, ABC):
