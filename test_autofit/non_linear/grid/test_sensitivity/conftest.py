@@ -25,7 +25,9 @@ class Analysis(af.Analysis):
         return np.mean(np.multiply(-0.5, np.square(np.subtract(self.image, image))))
 
 
-@pytest.fixture(name="perturbation_model")
+@pytest.fixture(
+    name="perturbation_model"
+)
 def make_perturbation_model():
     return af.PriorModel(Gaussian)
 
@@ -37,7 +39,9 @@ def make_search():
     return af.MockSearch()
 
 
-@pytest.fixture(name="sensitivity")
+@pytest.fixture(
+    name="sensitivity"
+)
 def make_sensitivity(
         perturbation_model,
         search

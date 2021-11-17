@@ -13,11 +13,12 @@ def run_sensitivity(
     return sensitivity.run()
 
 
-def test_sensitivity(results):
+def test_sensitivity(
+        results,
+        sensitivity
+):
     assert len(results) == 8
 
-
-def test_results_file(sensitivity):
     path = Path(
         sensitivity.search.paths.output_path
     ) / "results.csv"
