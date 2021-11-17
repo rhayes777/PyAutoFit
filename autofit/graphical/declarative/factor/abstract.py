@@ -70,7 +70,7 @@ class AbstractModelFactor(Factor, AbstractDeclarativeFactor, ABC):
             formatter.add(
                 path, prior.mean
             )
-        return formatter.text
+        return f"{self.name}\n\n{formatter.text}"
 
     def optimise(self, optimiser, **kwargs) -> PriorModel:
         """
