@@ -46,6 +46,13 @@ class Prior(Variable, ABC, ArithmeticMixin):
                 "The upper limit of a prior must be greater than its lower limit"
             )
 
+    @property
+    @abstractmethod
+    def factor(self):
+        """
+        A callable PDF used as a factor in factor graphs
+        """
+
     def assert_within_limits(self, value):
         if not (
                 self.lower_limit - epsilon <= value <= self.upper_limit + epsilon

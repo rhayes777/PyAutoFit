@@ -26,7 +26,6 @@ def test_prior_factor(prior):
 
 
 def test_optimise(model, prior):
-    # optimizer = MockOptimizer()
     optimizer = af.DynestyStatic(
         maxcall=10
     )

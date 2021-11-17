@@ -3,10 +3,10 @@ from typing import cast, Set, List, Dict
 
 import numpy as np
 
+from autofit.graphical.declarative.factor.prior import PriorFactor
 from autofit.graphical.expectation_propagation import AbstractFactorOptimiser
 from autofit.graphical.expectation_propagation import EPMeanField
 from autofit.graphical.expectation_propagation import EPOptimiser
-from autofit.graphical.factor_graphs.factor import Factor
 from autofit.graphical.factor_graphs.graph import FactorGraph
 from autofit.mapper.identifier import Identifier
 from autofit.mapper.model import ModelInstance
@@ -17,29 +17,9 @@ from autofit.non_linear.analysis import Analysis
 from autofit.non_linear.paths.abstract import AbstractPaths
 
 
-class PriorFactor(Factor, Analysis):
-    def __init__(self, prior):
-        super().__init__(
-            prior.factor,
-            x=prior
-        )
-        self.prior = prior
-
-    @property
-    def prior_model(self):
-        return CollectionPriorModel(
-            self.prior
-        )
-
-    @property
-    def analysis(self):
-        return self
-
-    def log_likelihood_function(self, instance):
-        return self.prior.factor(instance[0])
-
-
 class AbstractDeclarativeFactor(Analysis, ABC):
+    optimiser: AbstractFactorOptimiser
+
     @property
     @abstractmethod
     def name(self):
@@ -73,7 +53,7 @@ class AbstractDeclarativeFactor(Analysis, ABC):
         }
 
     @property
-    def prior_factors(self) -> List[Factor]:
+    def prior_factors(self) -> List[PriorFactor]:
         """
         A list of factors that act as priors on latent variables. One factor exists
         for each unique prior.
@@ -98,6 +78,7 @@ class AbstractDeclarativeFactor(Analysis, ABC):
         """
         The complete graph made by combining all factors and priors
         """
+        # noinspection PyTypeChecker
         return cast(
             FactorGraph,
             np.prod(
