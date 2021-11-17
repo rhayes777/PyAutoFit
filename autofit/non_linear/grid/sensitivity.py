@@ -46,7 +46,8 @@ class Job(AbstractJob):
             analysis: Analysis,
             model: AbstractPriorModel,
             perturbation_model: AbstractPriorModel,
-            search: NonLinearSearch
+            search: NonLinearSearch,
+            number: int,
     ):
         """
         Job to run non-linear searches comparing how well a model and a model with a perturbation
@@ -63,7 +64,9 @@ class Job(AbstractJob):
         search
             A non-linear search
         """
-        super().__init__()
+        super().__init__(
+            number=number
+        )
 
         self.analysis = analysis
         self.model = model
@@ -359,9 +362,11 @@ class Sensitivity:
         Each job fits a perturbed image with the original model
         and a model which includes a perturbation.
         """
-        for perturbation_instance, search in zip(
-                self._perturbation_instances,
-                self._searches
+        for number, (perturbation_instance, search) in enumerate(
+                zip(
+                    self._perturbation_instances,
+                    self._searches
+                )
         ):
             instance = copy(self.instance)
             instance.perturbation = perturbation_instance
@@ -374,5 +379,6 @@ class Sensitivity:
                 ),
                 model=self.model,
                 perturbation_model=self.perturbation_model,
-                search=search
+                search=search,
+                number=number
             )

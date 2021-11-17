@@ -81,4 +81,5 @@ def make_job(
         perturbation_model=af.PriorModel(Gaussian),
         analysis=Analysis(image),
         search=search,
+        number=1
     )
