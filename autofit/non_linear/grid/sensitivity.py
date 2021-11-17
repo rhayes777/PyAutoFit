@@ -253,7 +253,10 @@ class Sensitivity:
         )
 
     @property
-    def _physical_values(self):
+    def _physical_values(self) -> List[List[float]]:
+        """
+        Lists of physical values for each grid square
+        """
         return [
             [
                 prior.value_for(
@@ -271,9 +274,7 @@ class Sensitivity:
     @property
     def _headers(self) -> Generator[str, None, None]:
         """
-        One label for each perturbation, used to distinguish
-        fits for each perturbation by placing them in separate
-        directories.
+        A name for each of the perturbed priors
         """
         for path, _ in self.perturbation_model.prior_tuples:
             yield path
