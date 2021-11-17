@@ -63,6 +63,7 @@ from .non_linear.nest.dynesty import DynestyDynamic
 from .non_linear.nest.dynesty import DynestyStatic
 from .non_linear.nest.multinest.multinest import MultiNest
 from .non_linear.nest.ultranest.ultranest import UltraNest
+from .non_linear.optimize.drawer.drawer import Drawer
 from .non_linear.optimize.lbfgs.lbfgs import LBFGS
 from .non_linear.optimize.pyswarms.globe import PySwarmsGlobal
 from .non_linear.optimize.pyswarms.local import PySwarmsLocal
