@@ -14,7 +14,7 @@ class PySwarmsPlotter(MCMCPlotter):
         )
 
         self.output.to_figure(structure=None, auto_filename="contour")
-        self.mat_plot_1d.figure.close()
+        self.close()
 
     def cost_history(self, **kwargs):
 
@@ -24,7 +24,7 @@ class PySwarmsPlotter(MCMCPlotter):
         )
 
         self.output.to_figure(structure=None, auto_filename="cost_history")
-        self.mat_plot_1d.figure.close()
+        self.close()
 
     def trajectories(self, **kwargs):
 
@@ -39,7 +39,7 @@ class PySwarmsPlotter(MCMCPlotter):
             ax.set_xlabel(self.model.parameter_labels_latex[i])
 
         self.output.to_figure(structure=None, auto_filename="trajectories")
-        self.mat_plot_1d.figure.close()
+        self.close()
 
     def time_series(self, **kwargs):
 
@@ -54,4 +54,4 @@ class PySwarmsPlotter(MCMCPlotter):
         axes[-1].set_xlabel("step number")
 
         self.output.to_figure(structure=None, auto_filename="time_series")
-        self.mat_plot_1d.figure.close()
+        self.close()

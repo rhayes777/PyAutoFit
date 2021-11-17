@@ -91,7 +91,7 @@ class MCMCSamples(PDFSamples):
             return False
 
     @property
-    def samples_after_burn_in(self) -> [list]:
+    def samples_after_burn_in(self) -> [List]:
         """
         The emcee samples with the initial burn-in samples removed.
 

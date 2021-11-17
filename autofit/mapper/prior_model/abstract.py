@@ -1093,6 +1093,11 @@ class AbstractPriorModel(AbstractModel):
             for _, prior in prior_model[1].prior_tuples
         }
 
+    def log_prior_list_from(self, parameter_lists: List[List]) -> List:
+        return [
+            sum(self.log_prior_list_from_vector(vector=vector)) for vector in parameter_lists
+        ]
+
     @property
     def info(self) -> str:
         """
