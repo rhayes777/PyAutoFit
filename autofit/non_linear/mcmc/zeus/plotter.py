@@ -1,7 +1,6 @@
 from autofit.plot.samples_plotters import MCMCPlotter
 
 import zeus
-import matplotlib.pyplot as plt
 
 class ZeusPlotter(MCMCPlotter):
 

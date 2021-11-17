@@ -1,7 +1,7 @@
-from autofit.plot.samples_plotters import MCMCPlotter
-
 import numpy as np
 import corner
+
+from autofit.plot.samples_plotters import MCMCPlotter
 
 class EmceePlotter(MCMCPlotter):
 
@@ -15,7 +15,7 @@ class EmceePlotter(MCMCPlotter):
         )
 
         self.output.to_figure(structure=None, auto_filename="corner")
-        self.mat_plot_1d.figure.close()
+        self.close()
 
     def trajectories(self, **kwargs):
 

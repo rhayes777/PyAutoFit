@@ -4,14 +4,15 @@ from sqlalchemy.orm import Session
 
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.optimize.abstract_optimize import AbstractOptimizer
-from autofit.non_linear.samples import OptimizerSamples, Sample
 from autofit.non_linear.abstract_search import Analysis
 from autofit.non_linear.abstract_search import PriorPasser
 from autofit.non_linear.initializer import Initializer
+from autofit.non_linear.optimize.lbfgs.samples import LBFGSSamples
 
 import copy
 from scipy import optimize
 import numpy as np
+
 
 class LBFGS(AbstractOptimizer):
     __identifier_fields__ = ()
@@ -192,49 +193,4 @@ class LBFGS(AbstractOptimizer):
         )
 
 
-class LBFGSSamples(OptimizerSamples):
 
-    def __init__(
-            self,
-            model: AbstractPriorModel,
-            x0: np.ndarray,
-            log_posterior_list: np.ndarray,
-            total_iterations: int,
-            time: Optional[float] = None,
-    ):
-        """
-        Create an *OptimizerSamples* object from this non-linear search's output files on the hard-disk and model.
-
-        For LBFGS, all quantities are extracted via pickled states of the particle and cost histories.
-
-        Parameters
-        ----------
-        model
-            The model which generates instances for different points in parameter space. This maps the points from unit
-            cube values to physical values via the priors.
-        """
-
-        self.x0 = x0
-        self._log_posterior_list = log_posterior_list
-        self.total_iterations = total_iterations
-
-        parameter_lists = [list(self.x0)]
-        log_prior_list = [
-            sum(model.log_prior_list_from_vector(vector=vector)) for vector in parameter_lists
-        ]
-        log_likelihood_list = [lp - prior for lp, prior in zip(self._log_posterior_list, log_prior_list)]
-        weight_list = len(log_likelihood_list) * [1.0]
-
-        sample_list = Sample.from_lists(
-            model=model,
-            parameter_lists=parameter_lists,
-            log_likelihood_list=log_likelihood_list,
-            log_prior_list=log_prior_list,
-            weight_list=weight_list
-        )
-
-        super().__init__(
-            model=model,
-            sample_list=sample_list,
-            time=time,
-        )
