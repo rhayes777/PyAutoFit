@@ -289,7 +289,7 @@ class GridSearch:
         self.logger.debug(
             "Writing results"
         )
-        with open(path.join(self.paths.output_path, "results"), "w+") as f:
+        with open(path.join(self.paths.output_path, "results.csv"), "w+") as f:
             f.write(
                 "\n".join(
                     map(

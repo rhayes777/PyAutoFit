@@ -1,6 +1,8 @@
+import csv
 import logging
 from copy import copy
 from itertools import count
+from pathlib import Path
 from typing import List, Generator, Callable, Type, Union, Tuple
 
 from autofit.mapper.model import ModelInstance
@@ -201,13 +203,42 @@ class Sensitivity:
         a list of results.
         """
         self.logger.info("Running")
+
+        headers = [
+            "index",
+            *self._headers,
+            "log_likelihood_difference"
+        ]
+        physical_values = list(self._physical_values)
+
         results = list()
         for result in Process.run_jobs(
                 self._make_jobs(),
                 number_of_cores=self.number_of_cores
         ):
             results.append(result)
+            results = sorted(results)
+
+            with open(self.results_path, "w+") as f:
+                writer = csv.writer(f)
+                writer.writerow(headers)
+                for result_ in results:
+                    values = physical_values[
+                        result_.number
+                    ]
+                    writer.writerow([
+                        result_.number,
+                        *values,
+                        result_.log_likelihood_difference
+                    ])
+
         return SensitivityResult(results)
+
+    @property
+    def results_path(self):
+        return Path(
+            self.search.paths.output_path
+        ) / "results.csv"
 
     @property
     def _lists(self) -> List[List[float]]:
@@ -220,6 +251,32 @@ class Sensitivity:
             self.perturbation_model.prior_count,
             step_size=self.step_size
         )
+
+    @property
+    def _physical_values(self):
+        return [
+            [
+                prior.value_for(
+                    unit_value
+                )
+                for prior, unit_value
+                in zip(
+                self.perturbation_model.priors_ordered_by_id,
+                unit_values
+            )
+            ]
+            for unit_values in self._lists
+        ]
+
+    @property
+    def _headers(self) -> Generator[str, None, None]:
+        """
+        One label for each perturbation, used to distinguish
+        fits for each perturbation by placing them in separate
+        directories.
+        """
+        for path, _ in self.perturbation_model.prior_tuples:
+            yield path
 
     @property
     def _labels(self) -> Generator[str, None, None]:
