@@ -63,6 +63,19 @@ class FactorGraph(AbstractNode):
         )
         return f"{self.name}\n\n{factor_info}"
 
+    def make_results_text(self, model_approx) -> str:
+        """
+        Generate text describing the graph w.r.t. a given model approximation
+        """
+        results_text = "\n\n".join(
+            factor.make_results_text(
+                model_approx
+            )
+            for factor
+            in self._factors
+        )
+        return f"{self.name}\n\n{results_text}"
+
     def broadcast_plates(
             self,
             plates: Collection[Plate],

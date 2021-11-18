@@ -517,6 +517,9 @@ class Factor(AbstractFactor):
     def info(self):
         return repr(self)
 
+    def make_results_text(self, model_approx):
+        raise NotImplemented()
+
 
 class DeterministicFactor(Factor):
     """
