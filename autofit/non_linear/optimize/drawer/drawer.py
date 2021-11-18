@@ -128,6 +128,7 @@ class Drawer(AbstractOptimizer):
             total_points=self.config_dict_search["total_draws"],
             model=model,
             fitness_function=fitness_function,
+            use_prior_medians=True
         )
 
         self.paths.save_object(

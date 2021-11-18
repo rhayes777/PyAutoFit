@@ -59,7 +59,8 @@ class Initializer:
             self,
             total_points: int,
             model: AbstractPriorModel,
-            fitness_function
+            fitness_function,
+            use_prior_medians:bool=False
     ):
         """
         Generate the initial points of the non-linear search, by randomly drawing unit values from a uniform
@@ -87,10 +88,18 @@ class Initializer:
 
         while point_index < total_points:
 
-            unit_parameter_list = model.random_unit_vector_within_limits(
-                lower_limit=self.lower_limit, upper_limit=self.upper_limit
-            )
-            parameter_list = model.vector_from_unit_vector(unit_vector=unit_parameter_list)
+            if not use_prior_medians:
+
+                unit_parameter_list = model.random_unit_vector_within_limits(
+                    lower_limit=self.lower_limit, upper_limit=self.upper_limit
+                )
+
+                parameter_list = model.vector_from_unit_vector(unit_vector=unit_parameter_list)
+
+            else:
+
+                unit_parameter_list = [0.5]*model.prior_count
+                parameter_list = model.vector_from_unit_vector(unit_vector=unit_parameter_list)
 
             try:
                 figure_of_merit = fitness_function.figure_of_merit_from(
