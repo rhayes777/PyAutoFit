@@ -3,10 +3,10 @@ from typing import cast, Set, List, Dict
 
 import numpy as np
 
+from autofit.graphical.declarative.factor.prior import PriorFactor
 from autofit.graphical.expectation_propagation import AbstractFactorOptimiser
 from autofit.graphical.expectation_propagation import EPMeanField
 from autofit.graphical.expectation_propagation import EPOptimiser
-from autofit.graphical.factor_graphs.factor import Factor
 from autofit.graphical.factor_graphs.graph import FactorGraph
 from autofit.mapper.identifier import Identifier
 from autofit.mapper.model import ModelInstance
@@ -18,6 +18,8 @@ from autofit.non_linear.paths.abstract import AbstractPaths
 
 
 class AbstractDeclarativeFactor(Analysis, ABC):
+    optimiser: AbstractFactorOptimiser
+
     @property
     @abstractmethod
     def name(self):
@@ -51,19 +53,12 @@ class AbstractDeclarativeFactor(Analysis, ABC):
         }
 
     @property
-    def prior_factors(self) -> List[Factor]:
+    def prior_factors(self) -> List[PriorFactor]:
         """
         A list of factors that act as priors on latent variables. One factor exists
         for each unique prior.
         """
-        return [
-            Factor(
-                prior.factor,
-                x=prior
-            )
-            for prior
-            in self.priors
-        ]
+        return list(map(PriorFactor, self.priors))
 
     @property
     def message_dict(self) -> Dict[Prior, NormalMessage]:
@@ -83,6 +78,7 @@ class AbstractDeclarativeFactor(Analysis, ABC):
         """
         The complete graph made by combining all factors and priors
         """
+        # noinspection PyTypeChecker
         return cast(
             FactorGraph,
             np.prod(
@@ -107,6 +103,8 @@ class AbstractDeclarativeFactor(Analysis, ABC):
             self,
             optimiser: AbstractFactorOptimiser,
             name=None,
+            log_interval=10,
+            visualise_interval=10
     ) -> EPOptimiser:
         return EPOptimiser(
             self.graph,
@@ -116,13 +114,17 @@ class AbstractDeclarativeFactor(Analysis, ABC):
                 factor: factor.optimiser
                 for factor in self.model_factors
                 if factor.optimiser is not None
-            }
+            },
+            log_interval=log_interval,
+            visualise_interval=visualise_interval
         )
 
     def optimise(
             self,
             optimiser: AbstractFactorOptimiser,
             name=None,
+            log_interval=10,
+            visualise_interval=10,
             **kwargs
     ) -> CollectionPriorModel:
         """
@@ -131,6 +133,8 @@ class AbstractDeclarativeFactor(Analysis, ABC):
 
         Parameters
         ----------
+        visualise_interval
+        log_interval
         name
             A name for the optimisation. Defaults to identifier derived from this
             instance.
@@ -143,7 +147,9 @@ class AbstractDeclarativeFactor(Analysis, ABC):
         """
         opt = self._make_ep_optimiser(
             optimiser,
-            name=name
+            name=name,
+            log_interval=log_interval,
+            visualise_interval=visualise_interval,
         )
         updated_model = opt.run(
             self.mean_field_approximation(),

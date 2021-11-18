@@ -8,7 +8,7 @@ from typing import (
 
 import matplotlib.pyplot as plt
 
-from autofit import conf
+from autofit import conf, exc
 from autofit.graphical.factor_graphs import (
     Factor, FactorGraph
 )
@@ -87,19 +87,22 @@ class EPOptimiser:
         return path
 
     def _log_factor(self, factor):
-        factor_history = self.ep_history[factor]
-        log_evidence = factor_history.latest_successful.log_evidence
-        divergence = factor_history.kl_divergence()
-
         factor_logger = logging.getLogger(
             factor.name
         )
-        factor_logger.info(
-            f"Log Evidence = {log_evidence}"
-        )
-        factor_logger.info(
-            f"KL Divergence = {divergence}"
-        )
+        try:
+            factor_history = self.ep_history[factor]
+            log_evidence = factor_history.latest_successful.log_evidence
+            divergence = factor_history.kl_divergence()
+
+            factor_logger.info(
+                f"Log Evidence = {log_evidence}"
+            )
+            factor_logger.info(
+                f"KL Divergence = {divergence}"
+            )
+        except exc.HistoryException as e:
+            factor_logger.exception(e)
 
     def _visualise_factor(self, factor):
         factor_history = self.ep_history[factor]
@@ -113,8 +116,6 @@ class EPOptimiser:
             factor_history.kl_divergences,
             label=f"{factor.name} divergence"
         )
-        evidence_plot.legend()
-        kl_plot.legend()
 
     def run(
             self,
@@ -143,20 +144,21 @@ class EPOptimiser:
                         (f"Factor: {factor} experienced error {e}",)
                     )
 
-                factor_logger.debug(status)
-
-                if self.ep_history(factor, model_approx, status):
-                    logger.info("Terminating optimisation")
-                    break  # callback controls convergence
-
                 if status:
                     if should_log:
                         self._log_factor(factor)
                     if should_visualise:
                         self._visualise_factor(factor)
 
+                factor_logger.debug(status)
+
+                if self.ep_history(factor, model_approx, status):
+                    logger.info("Terminating optimisation")
+                    break  # callback controls convergence
+
             else:  # If no break do next iteration
                 if should_visualise:
+                    plt.legend()
                     plt.savefig(
                         str(self.output_path / "graph.png")
                     )

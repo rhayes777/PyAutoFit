@@ -83,10 +83,12 @@ class CollectionPriorModel(AbstractPriorModel):
         """
         A prior model used to represent a list of prior models for convenience.
 
+        Arguments are flexibly converted into a collection.
+
         Parameters
         ----------
-        arguments: list
-            A list classes, prior_models or instances
+        arguments
+            Classes, prior models, instances or priors
         """
         super().__init__()
         self.item_number = 0
@@ -99,8 +101,10 @@ class CollectionPriorModel(AbstractPriorModel):
             if isinstance(arguments, list):
                 for argument in arguments:
                     self.append(argument)
-            if isinstance(arguments, dict):
+            elif isinstance(arguments, dict):
                 self.add_dict_items(arguments)
+            else:
+                self.append(arguments)
         else:
             self.__init__(arguments)
 
@@ -192,7 +196,7 @@ class CollectionPriorModel(AbstractPriorModel):
                     "item_number",
                     "id"
             ) or key.startswith(
-                    "_"
+                "_"
             ):
                 continue
 

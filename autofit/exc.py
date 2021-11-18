@@ -42,3 +42,7 @@ class AggregatorException(Exception):
 
 class GridSearchException(Exception):
     pass
+
+
+class HistoryException(Exception):
+    pass

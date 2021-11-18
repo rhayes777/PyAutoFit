@@ -161,6 +161,10 @@ class TransformedWrapperInstance(Prior):
             self._instance.id = self.id
         return self._instance
 
+    @property
+    def factor(self):
+        return self.instance().factor
+
     def from_mode(
             self,
             mode: np.ndarray,

@@ -58,7 +58,9 @@ def _run_optimisation(
     collection.optimise(
         MockSearch(),
         max_steps=MAX_STEPS,
-        name="name"
+        name="name",
+        log_interval=1,
+        visualise_interval=1
     )
 
 
