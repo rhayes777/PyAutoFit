@@ -52,7 +52,14 @@ class FactorGraph(AbstractNode):
         )
 
     def _factors_with_type(self, factor_type):
-        return
+        return [
+            factor for factor
+            in self._factors
+            if isinstance(
+                factor,
+                factor_type
+            )
+        ]
 
     @property
     def info(self) -> str:

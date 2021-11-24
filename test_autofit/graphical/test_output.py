@@ -3,6 +3,7 @@ import pytest
 import autofit as af
 from autoconf.conf import with_config
 from autofit import graphical as g
+from autofit.graphical import AnalysisFactor
 from autofit.mock.mock import MockAnalysis
 from autofit.tools.namer import namer
 
@@ -76,6 +77,30 @@ def _run_optimisation(
         visualise_interval=1,
         output_interval=1,
     )
+
+
+@pytest.fixture(
+    name="factor_graph"
+)
+def make_factor_graph(
+        factor_graph_model
+):
+    return factor_graph_model.graph
+
+
+def test_factors_with_type(
+        factor_graph
+):
+    factor_type = AnalysisFactor
+    factors = factor_graph._factors_with_type(
+        factor_type
+    )
+    assert len(factors) == 2
+    for factor in factors:
+        assert isinstance(
+            factor,
+            AnalysisFactor
+        )
 
 
 def test_graph_info(
