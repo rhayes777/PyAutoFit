@@ -72,7 +72,7 @@ class EPOptimiser:
             ep_history: Optional[EPHistory] = None,
             factor_order: Optional[List[Factor]] = None,
             log_interval=10,
-            visualise_interval=10,
+            visualise_interval=100,
             output_interval=10,
     ):
         factor_optimisers = factor_optimisers or {}
