@@ -103,8 +103,6 @@ class AbstractDeclarativeFactor(Analysis, ABC):
             self,
             optimiser: AbstractFactorOptimiser,
             name=None,
-            log_interval=10,
-            visualise_interval=10
     ) -> EPOptimiser:
         return EPOptimiser(
             self.graph,
@@ -115,16 +113,12 @@ class AbstractDeclarativeFactor(Analysis, ABC):
                 for factor in self.model_factors
                 if factor.optimiser is not None
             },
-            log_interval=log_interval,
-            visualise_interval=visualise_interval
         )
 
     def optimise(
             self,
             optimiser: AbstractFactorOptimiser,
             name=None,
-            log_interval=10,
-            visualise_interval=10,
             **kwargs
     ) -> CollectionPriorModel:
         """
@@ -133,8 +127,6 @@ class AbstractDeclarativeFactor(Analysis, ABC):
 
         Parameters
         ----------
-        visualise_interval
-        log_interval
         name
             A name for the optimisation. Defaults to identifier derived from this
             instance.
@@ -147,9 +139,7 @@ class AbstractDeclarativeFactor(Analysis, ABC):
         """
         opt = self._make_ep_optimiser(
             optimiser,
-            name=name,
-            log_interval=log_interval,
-            visualise_interval=visualise_interval,
+            name=name
         )
         updated_model = opt.run(
             self.mean_field_approximation(),

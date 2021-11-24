@@ -2,6 +2,8 @@ from autofit.graphical.factor_graphs.factor import Factor
 from autofit.mapper.prior.abstract import Prior
 from autofit.mapper.prior_model.collection import CollectionPriorModel
 from autofit.non_linear.analysis import Analysis
+from autofit.text.formatter import TextFormatter
+from autofit.tools.namer import namer
 
 
 class PriorFactor(Factor, Analysis):
@@ -21,9 +23,33 @@ class PriorFactor(Factor, Analysis):
         # TODO: Consider analytical solution rather than implementing optimisation
         super().__init__(
             prior.factor,
-            x=prior
+            x=prior,
+            name=namer(self.__class__.__name__)
         )
         self.prior = prior
+
+    def make_results_text(self, model_approx):
+        """
+        Create a string describing the posterior values after this factor
+        during or after an EPOptimisation.
+
+        Parameters
+        ----------
+        model_approx: EPMeanField
+
+        Returns
+        -------
+        A string containing the name of this factor and the current value of
+        its single variable.
+        """
+        formatter = TextFormatter()
+        formatter.add(
+            (self.name,),
+            model_approx.mean_field[
+                self.prior
+            ].mean
+        )
+        return formatter.text
 
     @property
     def prior_model(self) -> CollectionPriorModel:

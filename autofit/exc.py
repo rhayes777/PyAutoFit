@@ -45,4 +45,6 @@ class GridSearchException(Exception):
 
 
 class HistoryException(Exception):
-    pass
+    """
+    Thrown when insufficient factor history is present for a given operation
+    """
