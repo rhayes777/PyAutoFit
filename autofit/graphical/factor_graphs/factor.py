@@ -518,7 +518,11 @@ class Factor(AbstractFactor):
         return repr(self)
 
     def make_results_text(self, model_approx):
-        raise NotImplemented()
+        string = "\n".join(
+            f"{variable} = {model_approx.mean_field[variable].mean}"
+            for variable in self.variables
+        )
+        return f"{self.name}\n\n{string}"
 
 
 class DeterministicFactor(Factor):
