@@ -79,3 +79,7 @@ class PriorFactor(Factor, Analysis):
         evaluating the prior's PDF for the given value.
         """
         return self.prior.factor(instance[0])
+
+    @property
+    def variable(self):
+        return list(self.variables)[0]

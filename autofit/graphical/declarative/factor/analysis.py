@@ -83,6 +83,16 @@ class AnalysisFactor(AbstractModelFactor):
             name=name
         )
 
+    def name_for_variable(
+            self,
+            variable
+    ):
+        return ".".join(
+            self.prior_model.path_for_prior(
+                variable
+            )
+        )
+
     def visualize(
             self,
             paths: AbstractPaths,

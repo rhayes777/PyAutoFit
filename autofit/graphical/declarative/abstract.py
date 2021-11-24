@@ -29,6 +29,23 @@ class DeclarativeFactorGraph(FactorGraph):
             PriorFactor
         )
 
+    def _info_for_prior_factor(
+            self,
+            prior_factor
+    ):
+        related_factors = [
+            factor for factor
+            in self.related_factors(
+                prior_factor.variable
+            )
+            if factor != prior_factor
+        ]
+        related_factor_names = ", ".join(
+            f"{factor.name}.{factor.name_for_variable(prior_factor.variable)}"
+            for factor in related_factors
+        )
+        return f"{prior_factor.name} ({related_factor_names})"
+
     @property
     def info(self) -> str:
         """

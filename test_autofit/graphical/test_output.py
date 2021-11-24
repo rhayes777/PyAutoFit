@@ -146,11 +146,28 @@ def test_factors_grouped_by_type(
 # normalization  (PriorFactor5)                                                        GaussianPrior, mean = 3.0, sigma = 5.0
 # sigma  (PriorFactor6)                                                                    GaussianPrior, mean = 10.0, sigma = 10.0
 
-
-def test_related_factors(
+@pytest.fixture(
+    name="prior_factor"
+)
+def make_prior_factor(
         factor_graph
 ):
-    prior_factor = factor_graph.prior_factors[0]
+    return factor_graph.prior_factors[0]
+
+
+def test_info_for_prior_factor(
+        factor_graph,
+        prior_factor
+):
+    assert factor_graph._info_for_prior_factor(
+        prior_factor
+    ) == "PriorFactor0 (AnalysisFactor0.one)"
+
+
+def test_related_factors(
+        factor_graph,
+        prior_factor
+):
     assert len(factor_graph.related_factors(
         list(prior_factor.variables)[0]
     )) == 2
