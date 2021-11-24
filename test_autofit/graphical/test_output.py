@@ -3,7 +3,7 @@ import pytest
 import autofit as af
 from autoconf.conf import with_config
 from autofit import graphical as g
-from autofit.graphical import AnalysisFactor
+from autofit.graphical import AnalysisFactor, PriorFactor
 from autofit.mock.mock import MockAnalysis
 from autofit.tools.namer import namer
 
@@ -103,11 +103,22 @@ def test_factors_with_type(
         )
 
 
+def test_factors_grouped_by_type(
+        factor_graph
+):
+    factors_by_type = factor_graph.factors_by_type()
+
+    assert len(factors_by_type) == 2
+    assert len(factors_by_type[AnalysisFactor]) == 2
+    assert len(factors_by_type[PriorFactor]) == 2
+
+
 def test_graph_info(
         factor_graph_model
 ):
     graph = factor_graph_model.graph
-    assert graph.info == """(AnalysisFactor0*AnalysisFactor1*PriorFactor0*PriorFactor1)
+    print(graph.info)
+    assert graph.info == """AnalysisFactors
 
 AnalysisFactor0
 
@@ -117,9 +128,13 @@ AnalysisFactor1
 
 one                                                                                       UniformPrior, lower_limit = 0.0, upper_limit = 1.0
 
+PriorFactors
+
 Factor(PriorFactor0, x=UniformPrior, lower_limit = 0.0, upper_limit = 1.0)
 
-Factor(PriorFactor1, x=UniformPrior, lower_limit = 0.0, upper_limit = 1.0)"""
+Factor(PriorFactor1, x=UniformPrior, lower_limit = 0.0, upper_limit = 1.0)
+
+"""
 
 
 @with_config(
