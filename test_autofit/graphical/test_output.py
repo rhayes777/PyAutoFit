@@ -161,7 +161,7 @@ def test_info_for_prior_factor(
 ):
     assert factor_graph._info_for_prior_factor(
         prior_factor
-    ) == "PriorFactor0 (AnalysisFactor0.one)"
+    ) == "PriorFactor0 (AnalysisFactor0.one)                                                        UniformPrior, lower_limit = 0.0, upper_limit = 1.0"
 
 
 def test_related_factors(
@@ -179,9 +179,9 @@ def test_graph_info(
     print(factor_graph.info)
     assert factor_graph.info == """PriorFactors
 
-PriorFactor0 (AnalysisFactor0.one)
+PriorFactor0 (AnalysisFactor0.one)                                                        UniformPrior, lower_limit = 0.0, upper_limit = 1.0
 
-PriorFactor1 (AnalysisFactor1.one)
+PriorFactor1 (AnalysisFactor1.one)                                                        UniformPrior, lower_limit = 0.0, upper_limit = 1.0
 
 AnalysisFactors
 

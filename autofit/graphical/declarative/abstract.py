@@ -13,6 +13,7 @@ from autofit.mapper.prior_model.collection import CollectionPriorModel
 from autofit.messages.normal import NormalMessage
 from autofit.non_linear.analysis import Analysis
 from autofit.non_linear.paths.abstract import AbstractPaths
+from autofit.text.formatter import TextFormatter
 
 
 class DeclarativeFactorGraph(FactorGraph):
@@ -40,11 +41,17 @@ class DeclarativeFactorGraph(FactorGraph):
             )
             if factor != prior_factor
         ]
+        formatter = TextFormatter()
+
         related_factor_names = ", ".join(
             f"{factor.name}.{factor.name_for_variable(prior_factor.variable)}"
             for factor in related_factors
         )
-        return f"{prior_factor.name} ({related_factor_names})"
+        formatter.add(
+            (f"{prior_factor.name} ({related_factor_names})",),
+            prior_factor.variable
+        )
+        return formatter.text
 
     @property
     def info(self) -> str:
