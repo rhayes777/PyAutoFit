@@ -179,9 +179,9 @@ def test_graph_info(
     print(factor_graph.info)
     assert factor_graph.info == """PriorFactors
 
-Factor(PriorFactor0, x=UniformPrior, lower_limit = 0.0, upper_limit = 1.0)
+PriorFactor0 (AnalysisFactor0.one)
 
-Factor(PriorFactor1, x=UniformPrior, lower_limit = 0.0, upper_limit = 1.0)
+PriorFactor1 (AnalysisFactor1.one)
 
 AnalysisFactors
 

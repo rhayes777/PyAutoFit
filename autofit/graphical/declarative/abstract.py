@@ -57,9 +57,10 @@ class DeclarativeFactorGraph(FactorGraph):
             in self.analysis_factors
         )
         prior_factor_info = "\n\n".join(
-            factor.info
-            for factor
-            in self.prior_factors
+            map(
+                self._info_for_prior_factor,
+                self.prior_factors
+            )
         )
         return f"PriorFactors\n\n{prior_factor_info}\n\nAnalysisFactors\n\n{analysis_factor_info}"
 
