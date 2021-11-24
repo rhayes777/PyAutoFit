@@ -118,7 +118,13 @@ def test_graph_info(
 ):
     graph = factor_graph_model.graph
     print(graph.info)
-    assert graph.info == """AnalysisFactors
+    assert graph.info == """PriorFactors
+
+Factor(PriorFactor0, x=UniformPrior, lower_limit = 0.0, upper_limit = 1.0)
+
+Factor(PriorFactor1, x=UniformPrior, lower_limit = 0.0, upper_limit = 1.0)
+
+AnalysisFactors
 
 AnalysisFactor0
 
@@ -126,15 +132,7 @@ one                                                                             
 
 AnalysisFactor1
 
-one                                                                                       UniformPrior, lower_limit = 0.0, upper_limit = 1.0
-
-PriorFactors
-
-Factor(PriorFactor0, x=UniformPrior, lower_limit = 0.0, upper_limit = 1.0)
-
-Factor(PriorFactor1, x=UniformPrior, lower_limit = 0.0, upper_limit = 1.0)
-
-"""
+one                                                                                       UniformPrior, lower_limit = 0.0, upper_limit = 1.0"""
 
 
 @with_config(

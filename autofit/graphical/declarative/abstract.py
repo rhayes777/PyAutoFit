@@ -1,7 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import cast, Set, List, Dict
-
-import numpy as np
+from typing import Set, List, Dict
 
 from autofit.graphical.declarative.factor.prior import PriorFactor
 from autofit.graphical.expectation_propagation import AbstractFactorOptimiser
@@ -15,6 +13,38 @@ from autofit.mapper.prior_model.collection import CollectionPriorModel
 from autofit.messages.normal import NormalMessage
 from autofit.non_linear.analysis import Analysis
 from autofit.non_linear.paths.abstract import AbstractPaths
+
+
+class DeclarativeFactorGraph(FactorGraph):
+    @property
+    def analysis_factors(self):
+        from .factor.analysis import AnalysisFactor
+        return self._factors_with_type(
+            AnalysisFactor
+        )
+
+    @property
+    def prior_factors(self):
+        return self._factors_with_type(
+            PriorFactor
+        )
+
+    @property
+    def info(self) -> str:
+        """
+        Describes the graph. Output in graph.info
+        """
+        analysis_factor_info = "\n\n".join(
+            factor.info
+            for factor
+            in self.analysis_factors
+        )
+        prior_factor_info = "\n\n".join(
+            factor.info
+            for factor
+            in self.prior_factors
+        )
+        return f"PriorFactors\n\n{prior_factor_info}\n\nAnalysisFactors\n\n{analysis_factor_info}"
 
 
 class AbstractDeclarativeFactor(Analysis, ABC):
@@ -74,20 +104,17 @@ class AbstractDeclarativeFactor(Analysis, ABC):
         }
 
     @property
-    def graph(self) -> FactorGraph:
+    def graph(self) -> DeclarativeFactorGraph:
         """
         The complete graph made by combining all factors and priors
         """
         # noinspection PyTypeChecker
-        return cast(
-            FactorGraph,
-            np.prod(
-                [
-                    model
-                    for model
-                    in self.model_factors
-                ] + self.prior_factors
-            )
+        return DeclarativeFactorGraph(
+            [
+                model
+                for model
+                in self.model_factors
+            ] + self.prior_factors
         )
 
     def mean_field_approximation(self) -> EPMeanField:
