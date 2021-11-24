@@ -71,23 +71,10 @@ class EPOptimiser:
             factor_optimisers: Optional[Dict[Factor, AbstractFactorOptimiser]] = None,
             ep_history: Optional[EPHistory] = None,
             factor_order: Optional[List[Factor]] = None,
-            log_interval=10,
-            visualise_interval=100,
-            output_interval=10,
     ):
         factor_optimisers = factor_optimisers or {}
         self.factor_graph = factor_graph
         self.factors = factor_order or self.factor_graph.factors
-
-        self.should_log = IntervalCounter(
-            log_interval
-        )
-        self.should_visualise = IntervalCounter(
-            visualise_interval
-        )
-        self.should_output = IntervalCounter(
-            output_interval
-        )
 
         if default_optimiser is None:
             self.factor_optimisers = factor_optimisers
@@ -145,11 +132,15 @@ class EPOptimiser:
             self,
             model_approx: EPMeanField,
             max_steps=100,
+            log_interval=10,
+            visualise_interval=100,
+            output_interval=10,
     ) -> EPMeanField:
-        for _ in range(max_steps):
-            should_log = self.should_log()
-            should_visualise = self.should_visualise()
+        should_log = IntervalCounter(log_interval)
+        should_visualise = IntervalCounter(visualise_interval)
+        should_output = IntervalCounter(output_interval)
 
+        for _ in range(max_steps):
             for factor, optimiser in self.factor_optimisers.items():
                 factor_logger = logging.getLogger(
                     factor.name
@@ -168,7 +159,7 @@ class EPOptimiser:
                         (f"Factor: {factor} experienced error {e}",)
                     )
 
-                if status and should_log:
+                if status and should_log():
                     self._log_factor(factor)
 
                 factor_logger.debug(status)
@@ -178,9 +169,9 @@ class EPOptimiser:
                     break  # callback controls convergence
 
             else:  # If no break do next iteration
-                if should_visualise:
+                if should_visualise():
                     self.visualiser()
-                if self.should_output():
+                if should_output():
                     self._output_results(
                         model_approx
                     )
