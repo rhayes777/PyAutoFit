@@ -37,9 +37,22 @@ class AbstractFactorOptimiser(ABC):
 class Visualise:
     def __init__(
             self,
-            ep_history,
-            output_path
+            ep_history: EPHistory,
+            output_path: Path
     ):
+        """
+        Handles visualisation of expectation propagation optimisation.
+
+        This includes plotting key metrics such as Evidence and KL Divergence
+        which are expected to converge.
+
+        Parameters
+        ----------
+        ep_history
+            A history describing previous optimisations by factor
+        output_path
+            The path that plots are written to
+        """
         self.ep_history = ep_history
         self.output_path = output_path
 
