@@ -353,7 +353,7 @@ class PriorModel(AbstractPriorModel):
             )
         for prior_tuple in self.direct_prior_tuples:
             setattr(new_model, prior_tuple.name, model_arguments[prior_tuple.name])
-        for instance_tuple in self.instance_tuples:
+        for instance_tuple in self.direct_instance_tuples:
             setattr(new_model, instance_tuple.name, instance_tuple.instance)
 
         for name, prior_model in self.direct_prior_model_tuples:
