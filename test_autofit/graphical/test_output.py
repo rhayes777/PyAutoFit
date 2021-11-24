@@ -1,9 +1,19 @@
+import pytest
+
 import autofit as af
 from autoconf.conf import with_config
 from autofit import graphical as g
 from autofit.mock.mock import MockAnalysis
+from autofit.tools.namer import namer
 
 MAX_STEPS = 3
+
+
+@pytest.fixture(
+    autouse=True
+)
+def reset_namer():
+    namer.reset()
 
 
 class MockResult(af.MockResult):
@@ -32,30 +42,33 @@ class MockSearch(af.MockSearch):
         return MockResult(model)
 
 
-def _run_optimisation(
-        factor_1,
-        factor_2
-):
+@pytest.fixture(
+    name="factor_graph_model"
+)
+def make_factor_graph_model():
     model_factor_1 = g.AnalysisFactor(
         af.Collection(
             one=af.UniformPrior()
         ),
-        MockAnalysis(),
-        name=factor_1
+        MockAnalysis()
     )
     model_factor_2 = g.AnalysisFactor(
         af.Collection(
             one=af.UniformPrior()
         ),
-        MockAnalysis(),
-        name=factor_2
+        MockAnalysis()
     )
 
-    collection = g.FactorGraphModel(
+    return g.FactorGraphModel(
         model_factor_1,
         model_factor_2
     )
-    collection.optimise(
+
+
+def _run_optimisation(
+        factor_graph_model
+):
+    factor_graph_model.optimise(
         MockSearch(),
         max_steps=MAX_STEPS,
         name="name",
@@ -65,6 +78,25 @@ def _run_optimisation(
     )
 
 
+def test_graph_info(
+        factor_graph_model
+):
+    graph = factor_graph_model.graph
+    assert graph.info == """(AnalysisFactor0*AnalysisFactor1*PriorFactor0*PriorFactor1)
+
+AnalysisFactor0
+
+one                                                                                       UniformPrior, lower_limit = 0.0, upper_limit = 1.0
+
+AnalysisFactor1
+
+one                                                                                       UniformPrior, lower_limit = 0.0, upper_limit = 1.0
+
+Factor(PriorFactor0, x=UniformPrior, lower_limit = 0.0, upper_limit = 1.0)
+
+Factor(PriorFactor1, x=UniformPrior, lower_limit = 0.0, upper_limit = 1.0)"""
+
+
 @with_config(
     "general",
     "output",
@@ -72,12 +104,12 @@ def _run_optimisation(
     value=False
 )
 def test_output(
-        output_directory
+        output_directory,
+        factor_graph_model
 ):
-    _run_optimisation(
-        "factor_1",
-        "factor_2"
-    )
+    factor_graph_model.model_factors[0]._name = "factor_1"
+    factor_graph_model.model_factors[1]._name = "factor_2"
+    _run_optimisation(factor_graph_model)
 
     path = output_directory / "name/factor_1"
 
@@ -95,11 +127,9 @@ def test_output(
     value=False
 )
 def test_default_output(
-        output_directory
+        output_directory,
+        factor_graph_model
 ):
-    _run_optimisation(
-        None,
-        None
-    )
+    _run_optimisation(factor_graph_model)
     assert (output_directory / "name/AnalysisFactor0").exists()
     assert (output_directory / "name/AnalysisFactor1").exists()

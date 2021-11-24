@@ -51,6 +51,9 @@ class FactorGraph(AbstractNode):
             **_kwargs
         )
 
+    def _factors_with_type(self, factor_type):
+        return
+
     @property
     def info(self) -> str:
         """
