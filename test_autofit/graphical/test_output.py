@@ -113,12 +113,54 @@ def test_factors_grouped_by_type(
     assert len(factors_by_type[PriorFactor]) == 2
 
 
-def test_graph_info(
-        factor_graph_model
+# Factors:
+#
+# centre                                                                           **PriorFactor0 --> [AnalysisFactor0, AnalysisFactor1, AnalysisFactor2]**
+# normalization                                                               PriorFactor1 --> AnalysisFactor0
+# sigma                                                                           PriorFactor2 --> AnalysisFactor0
+# normalization                                                               PriorFactor3 --> AnalysisFactor1
+# sigma                                                                           PriorFactor4 --> AnalysisFactor1
+# normalization                                                               PriorFactor5 --> AnalysisFactor2
+# sigma                                                                          PriorFactor6 --> AnalysisFactor2
+#
+# AnalysisFactors:
+#
+# AnalysisFactor0
+#
+# gaussian
+# centre (PriorFactor0)                                                                       GaussianPrior, mean = 50.0, sigma = 30.0
+# normalization (PriorFactor1)                                                           GaussianPrior, mean = 3.0, sigma = 5.0
+# sigma (PriorFactor2)                                                                        GaussianPrior, mean = 10.0, sigma = 10.0
+#
+# AnalysisFactor1
+#
+# gaussian
+# centre (PriorFactor0)                                                                        GaussianPrior, mean = 50.0, sigma = 30.0
+# normalization (PriorFactor3)                                                           GaussianPrior, mean = 3.0, sigma = 5.0
+# sigma (PriorFactor4)                                                                       GaussianPrior, mean = 10.0, sigma = 10.0
+#
+# AnalysisFactor2
+#
+# gaussian
+# centre (PriorFactor0)                                                                     GaussianPrior, mean = 50.0, sigma = 30.0
+# normalization  (PriorFactor5)                                                        GaussianPrior, mean = 3.0, sigma = 5.0
+# sigma  (PriorFactor6)                                                                    GaussianPrior, mean = 10.0, sigma = 10.0
+
+
+def test_related_factors(
+        factor_graph
 ):
-    graph = factor_graph_model.graph
-    print(graph.info)
-    assert graph.info == """PriorFactors
+    prior_factor = factor_graph.prior_factors[0]
+    factor_graph.related_factors(
+        list(prior_factor.variables)[0]
+    )
+
+
+def test_graph_info(
+        factor_graph
+):
+    print(factor_graph.info)
+    assert factor_graph.info == """PriorFactors
 
 Factor(PriorFactor0, x=UniformPrior, lower_limit = 0.0, upper_limit = 1.0)
 

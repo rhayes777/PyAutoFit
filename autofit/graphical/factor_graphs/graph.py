@@ -51,6 +51,29 @@ class FactorGraph(AbstractNode):
             **_kwargs
         )
 
+    def related_factors(
+            self,
+            variable: Variable
+    ) -> List[Factor]:
+        """
+        A list of factors which contain the variable.
+
+        Parameters
+        ----------
+        variable
+            A variable in the graph which will be related to one
+            or more factors
+
+        Returns
+        -------
+        The factors associated with the variable
+        """
+        return [
+            factor for factor
+            in self._factors
+            if variable in factor.variables
+        ]
+
     def _factors_with_type(
             self,
             factor_type: Type[Factor]
