@@ -52,7 +52,23 @@ class AbstractModelFactor(Factor, AbstractDeclarativeFactor, ABC):
         """
         return f"{self.name}\n\n{self.prior_model.info}"
 
-    def make_results_text(self, model_approx):
+    def make_results_text(
+            self,
+            model_approx
+    ) -> str:
+        """
+        Create a string describing the posterior values after this factor
+        during or after an EPOptimisation.
+
+        Parameters
+        ----------
+        model_approx: EPMeanField
+
+        Returns
+        -------
+        A string containing the name of this factor with the names and
+        values of each associated variable in the mean field.
+        """
         arguments = {
             prior: model_approx.mean_field[
                 prior

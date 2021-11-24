@@ -1,22 +1,10 @@
 from pathlib import Path
 
-import pytest
-
-
-@pytest.fixture(
-    autouse=True,
-    name="results"
-)
-def run_sensitivity(
-        sensitivity
-):
-    return sensitivity.run()
-
 
 def test_sensitivity(
-        results,
         sensitivity
 ):
+    results = sensitivity.run()
     assert len(results) == 8
 
     path = Path(
@@ -24,6 +12,7 @@ def test_sensitivity(
     ) / "results.csv"
     assert path.exists()
     with open(path) as f:
-        assert next(f) == 'index,centre,intensity,sigma,log_likelihood_base,log_likelihood_perturbed,log_likelihood_difference\n'
+        assert next(
+            f) == 'index,centre,intensity,sigma,log_likelihood_base,log_likelihood_perturbed,log_likelihood_difference\n'
         assert next(f) == '0,0.25,0.25,0.25,2.0,2.0,0.0\n'
         assert next(f) == '1,0.25,0.25,0.75,2.0,2.0,0.0\n'

@@ -29,6 +29,19 @@ class PriorFactor(Factor, Analysis):
         self.prior = prior
 
     def make_results_text(self, model_approx):
+        """
+        Create a string describing the posterior values after this factor
+        during or after an EPOptimisation.
+
+        Parameters
+        ----------
+        model_approx: EPMeanField
+
+        Returns
+        -------
+        A string containing the name of this factor and the current value of
+        its single variable.
+        """
         formatter = TextFormatter()
         formatter.add(
             (self.name,),

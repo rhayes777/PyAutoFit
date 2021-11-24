@@ -518,7 +518,24 @@ class Factor(AbstractFactor):
         return repr(self)
 
     def make_results_text(self, model_approx):
-        raise NotImplemented()
+        """
+        Create a string describing the posterior values after this factor
+        during or after an EPOptimisation.
+
+        Parameters
+        ----------
+        model_approx: EPMeanField
+
+        Returns
+        -------
+        A string containing the name of this factor with the names and
+        values of each associated variable in the mean field.
+        """
+        string = "\n".join(
+            f"{variable} = {model_approx.mean_field[variable].mean}"
+            for variable in self.variables
+        )
+        return f"{self.name}\n\n{string}"
 
 
 class DeterministicFactor(Factor):
