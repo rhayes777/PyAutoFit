@@ -1,3 +1,4 @@
+import multiprocessing
 import os
 import shutil
 from os import path
@@ -15,6 +16,8 @@ from autoconf import conf
 from autofit import database as db
 from autofit.mock import mock
 from autofit.mock.mock import MockAnalysis
+
+multiprocessing.set_start_method('forkserver')
 
 directory = Path(__file__).parent
 
