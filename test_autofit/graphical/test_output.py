@@ -151,9 +151,9 @@ def test_related_factors(
         factor_graph
 ):
     prior_factor = factor_graph.prior_factors[0]
-    factor_graph.related_factors(
+    assert len(factor_graph.related_factors(
         list(prior_factor.variables)[0]
-    )
+    )) == 2
 
 
 def test_graph_info(
