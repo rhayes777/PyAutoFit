@@ -45,18 +45,19 @@ class FactorGraphModel(AbstractDeclarativeFactor):
         """
         Info describing this collection.
         """
-        factor_info = "\n\n".join(
-            model_factor.info
-            for model_factor
-            in self.model_factors
-        )
-        return f"{self.name}\n\n{factor_info}"
+        return self.graph.info
 
     @property
     def name(self):
         return self._name
 
-    def add(self, model_factor: AbstractDeclarativeFactor):
+    def add(
+            self,
+            model_factor: AbstractDeclarativeFactor
+    ):
+        """
+        Add another factor to this collection.
+        """
         self._model_factors.append(
             model_factor
         )

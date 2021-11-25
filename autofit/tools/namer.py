@@ -18,5 +18,8 @@ class Namer:
         self.counter[name] += 1
         return f"{name}{number}"
 
+    def reset(self):
+        self.counter.clear()
+
 
 namer = Namer()

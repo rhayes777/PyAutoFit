@@ -2,7 +2,7 @@ from collections import Counter, defaultdict
 from functools import reduce
 from itertools import count
 from typing import (
-    Tuple, Dict, Collection, List
+    Tuple, Dict, Collection, List, Type
 )
 
 import numpy as np
@@ -51,17 +51,72 @@ class FactorGraph(AbstractNode):
             **_kwargs
         )
 
+    def related_factors(
+            self,
+            variable: Variable,
+            excluded_factor=None
+    ) -> List[Factor]:
+        """
+        A list of factors which contain the variable.
+
+        Parameters
+        ----------
+        excluded_factor
+            A factor that should be excluded from the list
+        variable
+            A variable in the graph which will be related to one
+            or more factors
+
+        Returns
+        -------
+        The factors associated with the variable
+        """
+        return [
+            factor for factor
+            in self._factors
+            if variable in factor.variables
+               and (excluded_factor is None or factor != excluded_factor)
+        ]
+
+    def _factors_with_type(
+            self,
+            factor_type: Type[Factor]
+    ) -> List[Factor]:
+        """
+        Find all factors with a given type
+        """
+        return [
+            factor for factor
+            in self._factors
+            if isinstance(
+                factor,
+                factor_type
+            )
+        ]
+
+    def factors_by_type(self) -> Dict[Type[Factor], List[Factor]]:
+        """
+        A dictionary mapping types of factor to all factors of that type
+        """
+        factors_by_type = defaultdict(list)
+        for factor in self._factors:
+            factors_by_type[type(factor)].append(factor)
+        return factors_by_type
+
     @property
     def info(self) -> str:
         """
         Describes the graph. Output in graph.info
         """
-        factor_info = "\n\n".join(
-            factor.info
-            for factor
-            in self._factors
-        )
-        return f"{self.name}\n\n{factor_info}"
+        string = ""
+        for factor_type, factors in self.factors_by_type().items():
+            factor_info = "\n\n".join(
+                factor.info
+                for factor
+                in factors
+            )
+            string = f"{string}{factor_type.__name__}s\n\n{factor_info}\n\n"
+        return string
 
     def make_results_text(self, model_approx) -> str:
         """

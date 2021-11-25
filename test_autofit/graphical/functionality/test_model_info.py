@@ -34,16 +34,3 @@ def test_analysis_factor(
         info
 ):
     assert analysis_factor.info == info
-
-
-def test_graph(
-        analysis_factor,
-        info
-):
-    graph = g.FactorGraphModel(
-        analysis_factor,
-        analysis_factor,
-        name="FactorGraphModel0"
-    )
-
-    assert graph.info == f"FactorGraphModel0\n\n{info}\n\n{info}"
