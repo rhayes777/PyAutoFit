@@ -69,7 +69,10 @@ def make_factor_graph_model():
     )
 
 
-def test_non_trivial_model():
+@pytest.fixture(
+    name="non_trivial_model"
+)
+def make_non_trivial_model():
     one = af.Model(af.Gaussian)
     two = af.Model(af.Gaussian)
 
@@ -84,10 +87,45 @@ def test_non_trivial_model():
         MockAnalysis()
     )
 
-    info = g.FactorGraphModel(
+    return g.FactorGraphModel(
         model_factor_1,
         model_factor_2
-    ).graph.info
+    )
+
+
+def test_non_trivial_results(
+        non_trivial_model
+):
+    results_text = non_trivial_model.graph.make_results_text(
+        non_trivial_model.mean_field_approximation()
+    )
+    assert results_text == """PriorFactors
+
+PriorFactor0 (AnalysisFactor0.intensity)                                                  0.5
+PriorFactor1 (AnalysisFactor0.sigma)                                                      0.5
+PriorFactor2 (AnalysisFactor0.centre, AnalysisFactor1.centre)                             0.5
+PriorFactor3 (AnalysisFactor1.intensity)                                                  0.5
+PriorFactor4 (AnalysisFactor1.sigma)                                                      0.5
+
+AnalysisFactors
+
+AnalysisFactor0
+
+centre (AnalysisFactor1.centre, PriorFactor2)                                             0.5
+intensity (PriorFactor0)                                                                  0.5
+sigma (PriorFactor1)                                                                      0.5
+
+AnalysisFactor1
+
+centre (AnalysisFactor0.centre, PriorFactor2)                                             0.5
+intensity (PriorFactor3)                                                                  0.5
+sigma (PriorFactor4)                                                                      0.5"""
+
+
+def test_non_trivial_info(
+        non_trivial_model
+):
+    info = non_trivial_model.graph.info
 
     assert info == """PriorFactors
 
@@ -224,11 +262,12 @@ def test_info_for_analysis_factor(
         declarative_graph_output,
         analysis_factor
 ):
-    assert declarative_graph_output.info_for_analysis_factor(
+    info = declarative_graph_output.info_for_analysis_factor(
         analysis_factor
-    ) == """AnalysisFactor0
+    )
+    assert info == """AnalysisFactor0
 
-one (PriorFactor1)                                                                        UniformPrior, lower_limit = 0.0, upper_limit = 1.0"""
+one (PriorFactor0)                                                                        UniformPrior, lower_limit = 0.0, upper_limit = 1.0"""
 
 
 def test_related_factors(
@@ -243,20 +282,21 @@ def test_related_factors(
 def test_graph_info(
         factor_graph
 ):
-    assert factor_graph.info == """PriorFactors
+    info = factor_graph.info
+    assert info == """PriorFactors
 
-PriorFactor0 (AnalysisFactor0.one)                                                        UniformPrior, lower_limit = 0.0, upper_limit = 1.0
-PriorFactor1 (AnalysisFactor1.one)                                                        UniformPrior, lower_limit = 0.0, upper_limit = 1.0
+PriorFactor0 (AnalysisFactor1.one)                                                        UniformPrior, lower_limit = 0.0, upper_limit = 1.0
+PriorFactor1 (AnalysisFactor0.one)                                                        UniformPrior, lower_limit = 0.0, upper_limit = 1.0
 
 AnalysisFactors
 
 AnalysisFactor0
 
-one (PriorFactor0)                                                                        UniformPrior, lower_limit = 0.0, upper_limit = 1.0
+one (PriorFactor1)                                                                        UniformPrior, lower_limit = 0.0, upper_limit = 1.0
 
 AnalysisFactor1
 
-one (PriorFactor1)                                                                        UniformPrior, lower_limit = 0.0, upper_limit = 1.0"""
+one (PriorFactor0)                                                                        UniformPrior, lower_limit = 0.0, upper_limit = 1.0"""
 
 
 @with_config(
