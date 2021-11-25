@@ -51,7 +51,13 @@ class FactorGraphModel(AbstractDeclarativeFactor):
     def name(self):
         return self._name
 
-    def add(self, model_factor: AbstractDeclarativeFactor):
+    def add(
+            self,
+            model_factor: AbstractDeclarativeFactor
+    ):
+        """
+        Add another factor to this collection.
+        """
         self._model_factors.append(
             model_factor
         )
