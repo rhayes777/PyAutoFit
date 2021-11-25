@@ -66,10 +66,11 @@ def test_info_for_hierarchical_factor(
     ).info_for_hierarchical_factor(
         graph.hierarchical_factors[0]
     )
+    print(info)
     assert info == """HierarchicalFactor0
 
-mean (HierarchicalFactor1, PriorFactor3)                                                  GaussianPrior, mean = 100, sigma = 10
-sigma (HierarchicalFactor1, PriorFactor2)                                                 GaussianPrior, mean = 10, sigma = 5"""
+mean (HierarchicalFactor1, PriorFactor1)                                                  GaussianPrior, mean = 100, sigma = 10
+sigma (HierarchicalFactor1, PriorFactor0)                                                 GaussianPrior, mean = 10, sigma = 5"""
 
 
 def test_graph_info(
