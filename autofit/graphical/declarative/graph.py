@@ -1,7 +1,6 @@
 from abc import ABC, abstractmethod
 from typing import List, cast, Optional
 
-
 from autofit.graphical.declarative.factor.prior import PriorFactor
 from autofit.graphical.expectation_propagation.ep_mean_field import EPMeanField
 from autofit.graphical.factor_graphs.factor import Factor
@@ -45,7 +44,10 @@ class DeclarativeGraphFormatter(ABC):
                 self.graph.hierarchical_factors
             )
         )
-        return f"PriorFactors\n\n{prior_factor_info}\n\nAnalysisFactors\n\n{analysis_factor_info}"
+        string = f"""PriorFactors\n\n{prior_factor_info}\n\nAnalysisFactors\n\n{analysis_factor_info}"""
+        if len(self.graph.hierarchical_factors) > 0:
+            string = f"{string}\n\nHierarchicalFactors\n\n{hierarchical_factor_info}"
+        return string
 
     def _related_factor_names(
             self,
@@ -130,9 +132,24 @@ class DeclarativeGraphFormatter(ABC):
             self,
             hierarchical_factor
     ):
-        return self.info_for_analysis_factor(
+        distribution_model_info = self.info_for_analysis_factor(
             hierarchical_factor
         )
+
+        related_factor_names = self._related_factor_names(
+            variable=hierarchical_factor.sample_prior,
+            excluded_factor=hierarchical_factor
+        )
+
+        formatter = TextFormatter()
+        formatter.add(
+            (f"{hierarchical_factor.name} ({related_factor_names})",),
+            self.variable_formatter(
+                hierarchical_factor.sample_prior
+            )
+        )
+
+        return f"{distribution_model_info}\n{formatter.text}"
 
 
 class GraphInfoFormatter(DeclarativeGraphFormatter):

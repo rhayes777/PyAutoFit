@@ -66,11 +66,11 @@ def test_info_for_hierarchical_factor(
     ).info_for_hierarchical_factor(
         graph.hierarchical_factors[0]
     )
-    print(info)
     assert info == """HierarchicalFactor0
 
 mean (HierarchicalFactor1, PriorFactor1)                                                  GaussianPrior, mean = 100, sigma = 10
-sigma (HierarchicalFactor1, PriorFactor0)                                                 GaussianPrior, mean = 10, sigma = 5"""
+sigma (HierarchicalFactor1, PriorFactor0)                                                 GaussianPrior, mean = 10, sigma = 5
+HierarchicalFactor0 (AnalysisFactor0.centre, PriorFactor7)                                UniformPrior, lower_limit = 0.0, upper_limit = 1.0"""
 
 
 def test_graph_info(
@@ -101,4 +101,18 @@ AnalysisFactor1
 
 centre (HierarchicalFactor1, PriorFactor4)                                                UniformPrior, lower_limit = 0.0, upper_limit = 1.0
 intensity (PriorFactor3)                                                                  UniformPrior, lower_limit = 0.0, upper_limit = 1.0
-sigma (PriorFactor2)                                                                      UniformPrior, lower_limit = 0.0, upper_limit = 1.0"""
+sigma (PriorFactor2)                                                                      UniformPrior, lower_limit = 0.0, upper_limit = 1.0
+
+HierarchicalFactors
+
+HierarchicalFactor0
+
+mean (HierarchicalFactor1, PriorFactor1)                                                  GaussianPrior, mean = 100, sigma = 10
+sigma (HierarchicalFactor1, PriorFactor0)                                                 GaussianPrior, mean = 10, sigma = 5
+HierarchicalFactor0 (AnalysisFactor0.centre, PriorFactor7)                                UniformPrior, lower_limit = 0.0, upper_limit = 1.0
+
+HierarchicalFactor1
+
+mean (HierarchicalFactor0, PriorFactor1)                                                  GaussianPrior, mean = 100, sigma = 10
+sigma (HierarchicalFactor0, PriorFactor0)                                                 GaussianPrior, mean = 10, sigma = 5
+HierarchicalFactor1 (AnalysisFactor1.centre, PriorFactor4)                                UniformPrior, lower_limit = 0.0, upper_limit = 1.0"""
