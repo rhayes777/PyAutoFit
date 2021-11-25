@@ -66,6 +66,49 @@ def make_factor_graph_model():
     )
 
 
+def test_non_trivial_model():
+    one = af.Model(af.Gaussian)
+    two = af.Model(af.Gaussian)
+
+    one.centre = two.centre
+
+    model_factor_1 = g.AnalysisFactor(
+        one,
+        MockAnalysis()
+    )
+    model_factor_2 = g.AnalysisFactor(
+        two,
+        MockAnalysis()
+    )
+
+    info = g.FactorGraphModel(
+        model_factor_1,
+        model_factor_2
+    ).graph.info
+
+    assert info == """PriorFactors
+
+PriorFactor0 (AnalysisFactor0.intensity)                                                  UniformPrior, lower_limit = 0.0, upper_limit = 1.0
+PriorFactor1 (AnalysisFactor0.sigma)                                                      UniformPrior, lower_limit = 0.0, upper_limit = 1.0
+PriorFactor2 (AnalysisFactor0.centre, AnalysisFactor1.centre)                             UniformPrior, lower_limit = 0.0, upper_limit = 1.0
+PriorFactor3 (AnalysisFactor1.intensity)                                                  UniformPrior, lower_limit = 0.0, upper_limit = 1.0
+PriorFactor4 (AnalysisFactor1.sigma)                                                      UniformPrior, lower_limit = 0.0, upper_limit = 1.0
+
+AnalysisFactors
+
+AnalysisFactor0
+
+centre (AnalysisFactor1.centre, PriorFactor2)                                             UniformPrior, lower_limit = 0.0, upper_limit = 1.0
+intensity (PriorFactor0)                                                                  UniformPrior, lower_limit = 0.0, upper_limit = 1.0
+sigma (PriorFactor1)                                                                      UniformPrior, lower_limit = 0.0, upper_limit = 1.0
+
+AnalysisFactor1
+
+centre (AnalysisFactor0.centre, PriorFactor2)                                             UniformPrior, lower_limit = 0.0, upper_limit = 1.0
+intensity (PriorFactor3)                                                                  UniformPrior, lower_limit = 0.0, upper_limit = 1.0
+sigma (PriorFactor4)                                                                      UniformPrior, lower_limit = 0.0, upper_limit = 1.0"""
+
+
 def _run_optimisation(
         factor_graph_model
 ):
@@ -196,7 +239,6 @@ def test_related_factors(
 def test_graph_info(
         factor_graph
 ):
-    print(factor_graph.info)
     assert factor_graph.info == """PriorFactors
 
 PriorFactor0 (AnalysisFactor0.one)                                                        UniformPrior, lower_limit = 0.0, upper_limit = 1.0
