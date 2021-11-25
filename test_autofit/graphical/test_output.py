@@ -188,6 +188,29 @@ def make_declarative_graph_output(
     )
 
 
+def test_make_results_text(
+        factor_graph,
+        factor_graph_model
+):
+    results_text = factor_graph.make_results_text(
+        factor_graph_model.mean_field_approximation()
+    )
+    assert results_text == """PriorFactors
+
+PriorFactor0 (AnalysisFactor0.one)                                                        0.5
+PriorFactor1 (AnalysisFactor1.one)                                                        0.5
+
+AnalysisFactors
+
+AnalysisFactor0
+
+one (PriorFactor0)                                                                        0.5
+
+AnalysisFactor1
+
+one (PriorFactor1)                                                                        0.5"""
+
+
 def test_info_for_prior_factor(
         declarative_graph_output,
         prior_factor

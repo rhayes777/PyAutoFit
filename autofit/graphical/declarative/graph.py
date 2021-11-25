@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from typing import List, cast, Optional
 
 from autofit.graphical.declarative.factor.prior import PriorFactor
+from autofit.graphical.expectation_propagation.ep_mean_field import EPMeanField
 from autofit.graphical.factor_graphs.factor import Factor
 from autofit.graphical.factor_graphs.graph import FactorGraph
 from autofit.mapper.prior.abstract import Prior
@@ -131,15 +132,19 @@ class ResultsFormatter(DeclarativeGraphFormatter):
     def __init__(
             self,
             graph: "DeclarativeFactorGraph",
+            model_approx: EPMeanField
 
     ):
+        self.model_approx = model_approx
         super().__init__(graph)
 
     def variable_formatter(
             self,
             variable: Variable
     ):
-        pass
+        return self.model_approx.mean_field[
+            variable
+        ].mean
 
 
 class DeclarativeFactorGraph(FactorGraph):
@@ -174,3 +179,15 @@ class DeclarativeFactorGraph(FactorGraph):
         Describes the graph. Output in graph.info
         """
         return GraphInfoFormatter(self).info
+
+    def make_results_text(
+            self,
+            model_approx: EPMeanField
+    ) -> str:
+        """
+        Generate text describing the graph w.r.t. a given model approximation
+        """
+        return ResultsFormatter(
+            self,
+            model_approx
+        ).info
