@@ -18,7 +18,10 @@ class DeclarativeGraphOutput:
         self.variable_formatter = variable_formatter
 
     @property
-    def info(self):
+    def info(self) -> str:
+        """
+        Describes the graph. Output in graph.info
+        """
         prior_factor_info = "\n".join(
             map(
                 self.info_for_prior_factor,
