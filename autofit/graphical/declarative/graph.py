@@ -121,10 +121,17 @@ class DeclarativeGraphFormatter(ABC):
 
 
 class GraphInfoFormatter(DeclarativeGraphFormatter):
+    """
+    Formats a string that is output to graph.info
+    """
+
     def variable_formatter(
             self,
             variable: Variable
     ):
+        """
+        Returns a string description of the variable
+        """
         return str(variable)
 
 
@@ -133,8 +140,17 @@ class ResultsFormatter(DeclarativeGraphFormatter):
             self,
             graph: "DeclarativeFactorGraph",
             model_approx: EPMeanField
-
     ):
+        """
+        Formats a string that is output to graph.results
+
+        Parameters
+        ----------
+        graph
+            A factor graph comprising AnalysisFactors
+        model_approx
+            An approximation of the model at the point of output
+        """
         self.model_approx = model_approx
         super().__init__(graph)
 
@@ -142,6 +158,10 @@ class ResultsFormatter(DeclarativeGraphFormatter):
             self,
             variable: Variable
     ):
+        """
+        Returns the mean value for the message corresponding to the
+        variable
+        """
         return self.model_approx.mean_field[
             variable
         ].mean
