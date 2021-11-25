@@ -4,6 +4,7 @@ import autofit as af
 from autoconf.conf import with_config
 from autofit import graphical as g
 from autofit.graphical import AnalysisFactor, PriorFactor
+from autofit.graphical.declarative.graph import DeclarativeGraphOutput
 from autofit.mock.mock import MockAnalysis
 from autofit.tools.namer import namer
 
@@ -176,20 +177,31 @@ def make_analysis_factor(
     return factor_graph.analysis_factors[0]
 
 
+@pytest.fixture(
+    name="declarative_graph_output"
+)
+def make_declarative_graph_output(
+        factor_graph
+):
+    return DeclarativeGraphOutput(
+        factor_graph
+    )
+
+
 def test_info_for_prior_factor(
-        factor_graph,
+        declarative_graph_output,
         prior_factor
 ):
-    assert factor_graph._info_for_prior_factor(
+    assert declarative_graph_output.info_for_prior_factor(
         prior_factor
     ) == "PriorFactor0 (AnalysisFactor0.one)                                                        UniformPrior, lower_limit = 0.0, upper_limit = 1.0"
 
 
 def test_info_for_analysis_factor(
-        factor_graph,
+        declarative_graph_output,
         analysis_factor
 ):
-    assert factor_graph._info_for_analysis_factor(
+    assert declarative_graph_output.info_for_analysis_factor(
         analysis_factor
     ) == """AnalysisFactor0
 
