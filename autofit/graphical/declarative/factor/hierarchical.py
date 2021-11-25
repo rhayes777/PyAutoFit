@@ -19,7 +19,7 @@ class HierarchicalFactor(AbstractModelFactor):
         Parameters
         ----------
         prior_model
-            A prior model which parameterises a distribution from which it
+            A prior model which parameterizes a distribution from which it
             is assumed the variable is drawn
         argument_prior
             A prior representing a variable which was drawn from the distribution
@@ -73,7 +73,7 @@ class HierarchicalFactor(AbstractModelFactor):
     def priors(self) -> Set[Prior]:
         """
         The set of priors associated with this factor. This is the priors used
-        to parameterise the distribution, plus an additional prior for the
+        to parameterize the distribution, plus an additional prior for the
         variable drawn from the distribution.
         """
         priors = super().priors
