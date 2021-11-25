@@ -66,11 +66,10 @@ def test_info_for_hierarchical_factor(
     ).info_for_hierarchical_factor(
         graph.hierarchical_factors[0]
     )
-    print(info)
     assert info == """HierarchicalFactor0
 
-mean (HierarchicalFactor1, PriorFactor6)                                                  GaussianPrior, mean = 100, sigma = 10
-sigma (HierarchicalFactor1, PriorFactor7)                                                 GaussianPrior, mean = 10, sigma = 5"""
+mean (HierarchicalFactor1, PriorFactor3)                                                  GaussianPrior, mean = 100, sigma = 10
+sigma (HierarchicalFactor1, PriorFactor2)                                                 GaussianPrior, mean = 10, sigma = 5"""
 
 
 def test_graph_info(
@@ -80,23 +79,25 @@ def test_graph_info(
     print(info)
     assert info == """PriorFactors
 
-PriorFactor0 (AnalysisFactor0.centre, HierarchicalFactor0)                                UniformPrior, lower_limit = 0.0, upper_limit = 1.0
-PriorFactor1 (AnalysisFactor0.intensity)                                                  UniformPrior, lower_limit = 0.0, upper_limit = 1.0
-PriorFactor2 (AnalysisFactor0.sigma)                                                      UniformPrior, lower_limit = 0.0, upper_limit = 1.0
-PriorFactor3 (AnalysisFactor1.centre, HierarchicalFactor1)                                UniformPrior, lower_limit = 0.0, upper_limit = 1.0
-PriorFactor4 (AnalysisFactor1.intensity)                                                  UniformPrior, lower_limit = 0.0, upper_limit = 1.0
-PriorFactor5 (AnalysisFactor1.sigma)                                                      UniformPrior, lower_limit = 0.0, upper_limit = 1.0
+PriorFactor0 (HierarchicalFactor0, HierarchicalFactor1)                                   GaussianPrior, mean = 10, sigma = 5
+PriorFactor1 (HierarchicalFactor0, HierarchicalFactor1)                                   GaussianPrior, mean = 100, sigma = 10
+PriorFactor2 (AnalysisFactor1.sigma)                                                      UniformPrior, lower_limit = 0.0, upper_limit = 1.0
+PriorFactor3 (AnalysisFactor1.intensity)                                                  UniformPrior, lower_limit = 0.0, upper_limit = 1.0
+PriorFactor4 (AnalysisFactor1.centre, HierarchicalFactor1)                                UniformPrior, lower_limit = 0.0, upper_limit = 1.0
+PriorFactor5 (AnalysisFactor0.sigma)                                                      UniformPrior, lower_limit = 0.0, upper_limit = 1.0
+PriorFactor6 (AnalysisFactor0.intensity)                                                  UniformPrior, lower_limit = 0.0, upper_limit = 1.0
+PriorFactor7 (AnalysisFactor0.centre, HierarchicalFactor0)                                UniformPrior, lower_limit = 0.0, upper_limit = 1.0
 
 AnalysisFactors
 
 AnalysisFactor0
 
-centre (HierarchicalFactor0, PriorFactor0)                                                UniformPrior, lower_limit = 0.0, upper_limit = 1.0
-intensity (PriorFactor1)                                                                  UniformPrior, lower_limit = 0.0, upper_limit = 1.0
-sigma (PriorFactor2)                                                                      UniformPrior, lower_limit = 0.0, upper_limit = 1.0
+centre (HierarchicalFactor0, PriorFactor7)                                                UniformPrior, lower_limit = 0.0, upper_limit = 1.0
+intensity (PriorFactor6)                                                                  UniformPrior, lower_limit = 0.0, upper_limit = 1.0
+sigma (PriorFactor5)                                                                      UniformPrior, lower_limit = 0.0, upper_limit = 1.0
 
 AnalysisFactor1
 
-centre (HierarchicalFactor1, PriorFactor3)                                                UniformPrior, lower_limit = 0.0, upper_limit = 1.0
-intensity (PriorFactor4)                                                                  UniformPrior, lower_limit = 0.0, upper_limit = 1.0
-sigma (PriorFactor5)                                                                      UniformPrior, lower_limit = 0.0, upper_limit = 1.0"""
+centre (HierarchicalFactor1, PriorFactor4)                                                UniformPrior, lower_limit = 0.0, upper_limit = 1.0
+intensity (PriorFactor3)                                                                  UniformPrior, lower_limit = 0.0, upper_limit = 1.0
+sigma (PriorFactor2)                                                                      UniformPrior, lower_limit = 0.0, upper_limit = 1.0"""

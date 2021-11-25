@@ -9,53 +9,52 @@ def test_non_trivial_results(
     )
     assert results_text == """PriorFactors
 
-PriorFactor0 (AnalysisFactor0.intensity)                                                  0.5
-PriorFactor1 (AnalysisFactor0.sigma)                                                      0.5
+PriorFactor0 (AnalysisFactor1.sigma)                                                      0.5
+PriorFactor1 (AnalysisFactor1.intensity)                                                  0.5
 PriorFactor2 (AnalysisFactor0.centre, AnalysisFactor1.centre)                             0.5
-PriorFactor3 (AnalysisFactor1.intensity)                                                  0.5
-PriorFactor4 (AnalysisFactor1.sigma)                                                      0.5
+PriorFactor3 (AnalysisFactor0.sigma)                                                      0.5
+PriorFactor4 (AnalysisFactor0.intensity)                                                  0.5
 
 AnalysisFactors
 
 AnalysisFactor0
 
 centre (AnalysisFactor1.centre, PriorFactor2)                                             0.5
-intensity (PriorFactor0)                                                                  0.5
-sigma (PriorFactor1)                                                                      0.5
+intensity (PriorFactor4)                                                                  0.5
+sigma (PriorFactor3)                                                                      0.5
 
 AnalysisFactor1
 
 centre (AnalysisFactor0.centre, PriorFactor2)                                             0.5
-intensity (PriorFactor3)                                                                  0.5
-sigma (PriorFactor4)                                                                      0.5"""
+intensity (PriorFactor1)                                                                  0.5
+sigma (PriorFactor0)                                                                      0.5"""
 
 
 def test_non_trivial_info(
         non_trivial_model
 ):
     info = non_trivial_model.graph.info
-
     assert info == """PriorFactors
 
-PriorFactor0 (AnalysisFactor0.intensity)                                                  UniformPrior, lower_limit = 0.0, upper_limit = 1.0
-PriorFactor1 (AnalysisFactor0.sigma)                                                      UniformPrior, lower_limit = 0.0, upper_limit = 1.0
+PriorFactor0 (AnalysisFactor1.sigma)                                                      UniformPrior, lower_limit = 0.0, upper_limit = 1.0
+PriorFactor1 (AnalysisFactor1.intensity)                                                  UniformPrior, lower_limit = 0.0, upper_limit = 1.0
 PriorFactor2 (AnalysisFactor0.centre, AnalysisFactor1.centre)                             UniformPrior, lower_limit = 0.0, upper_limit = 1.0
-PriorFactor3 (AnalysisFactor1.intensity)                                                  UniformPrior, lower_limit = 0.0, upper_limit = 1.0
-PriorFactor4 (AnalysisFactor1.sigma)                                                      UniformPrior, lower_limit = 0.0, upper_limit = 1.0
+PriorFactor3 (AnalysisFactor0.sigma)                                                      UniformPrior, lower_limit = 0.0, upper_limit = 1.0
+PriorFactor4 (AnalysisFactor0.intensity)                                                  UniformPrior, lower_limit = 0.0, upper_limit = 1.0
 
 AnalysisFactors
 
 AnalysisFactor0
 
 centre (AnalysisFactor1.centre, PriorFactor2)                                             UniformPrior, lower_limit = 0.0, upper_limit = 1.0
-intensity (PriorFactor0)                                                                  UniformPrior, lower_limit = 0.0, upper_limit = 1.0
-sigma (PriorFactor1)                                                                      UniformPrior, lower_limit = 0.0, upper_limit = 1.0
+intensity (PriorFactor4)                                                                  UniformPrior, lower_limit = 0.0, upper_limit = 1.0
+sigma (PriorFactor3)                                                                      UniformPrior, lower_limit = 0.0, upper_limit = 1.0
 
 AnalysisFactor1
 
 centre (AnalysisFactor0.centre, PriorFactor2)                                             UniformPrior, lower_limit = 0.0, upper_limit = 1.0
-intensity (PriorFactor3)                                                                  UniformPrior, lower_limit = 0.0, upper_limit = 1.0
-sigma (PriorFactor4)                                                                      UniformPrior, lower_limit = 0.0, upper_limit = 1.0"""
+intensity (PriorFactor1)                                                                  UniformPrior, lower_limit = 0.0, upper_limit = 1.0
+sigma (PriorFactor0)                                                                      UniformPrior, lower_limit = 0.0, upper_limit = 1.0"""
 
 
 def test_factors_grouped_by_type(
@@ -77,18 +76,18 @@ def test_make_results_text(
     )
     assert results_text == """PriorFactors
 
-PriorFactor0 (AnalysisFactor0.one)                                                        0.5
-PriorFactor1 (AnalysisFactor1.one)                                                        0.5
+PriorFactor0 (AnalysisFactor1.one)                                                        0.5
+PriorFactor1 (AnalysisFactor0.one)                                                        0.5
 
 AnalysisFactors
 
 AnalysisFactor0
 
-one (PriorFactor0)                                                                        0.5
+one (PriorFactor1)                                                                        0.5
 
 AnalysisFactor1
 
-one (PriorFactor1)                                                                        0.5"""
+one (PriorFactor0)                                                                        0.5"""
 
 
 def test_info_for_prior_factor(
@@ -109,7 +108,7 @@ def test_info_for_analysis_factor(
     )
     assert info == """AnalysisFactor0
 
-one (PriorFactor0)                                                                        UniformPrior, lower_limit = 0.0, upper_limit = 1.0"""
+one (PriorFactor1)                                                                        UniformPrior, lower_limit = 0.0, upper_limit = 1.0"""
 
 
 def test_related_factors(
@@ -127,15 +126,15 @@ def test_graph_info(
     info = factor_graph.info
     assert info == """PriorFactors
 
-PriorFactor0 (AnalysisFactor0.one)                                                        UniformPrior, lower_limit = 0.0, upper_limit = 1.0
-PriorFactor1 (AnalysisFactor1.one)                                                        UniformPrior, lower_limit = 0.0, upper_limit = 1.0
+PriorFactor0 (AnalysisFactor1.one)                                                        UniformPrior, lower_limit = 0.0, upper_limit = 1.0
+PriorFactor1 (AnalysisFactor0.one)                                                        UniformPrior, lower_limit = 0.0, upper_limit = 1.0
 
 AnalysisFactors
 
 AnalysisFactor0
 
-one (PriorFactor0)                                                                        UniformPrior, lower_limit = 0.0, upper_limit = 1.0
+one (PriorFactor1)                                                                        UniformPrior, lower_limit = 0.0, upper_limit = 1.0
 
 AnalysisFactor1
 
-one (PriorFactor1)                                                                        UniformPrior, lower_limit = 0.0, upper_limit = 1.0"""
+one (PriorFactor0)                                                                        UniformPrior, lower_limit = 0.0, upper_limit = 1.0"""

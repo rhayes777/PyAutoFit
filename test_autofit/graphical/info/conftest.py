@@ -1,3 +1,5 @@
+import itertools
+
 import pytest
 
 import autofit as af
@@ -15,6 +17,7 @@ def reset_namer():
     namer.reset()
     yield
     namer.reset()
+    af.ModelObject._ids = itertools.count()
 
 
 @pytest.fixture(

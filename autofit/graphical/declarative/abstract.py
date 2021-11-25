@@ -56,7 +56,7 @@ class AbstractDeclarativeFactor(Analysis, ABC):
         A list of factors that act as priors on latent variables. One factor exists
         for each unique prior.
         """
-        return list(map(PriorFactor, self.priors))
+        return list(map(PriorFactor, sorted(self.priors)))
 
     @property
     def message_dict(self) -> Dict[Prior, NormalMessage]:
