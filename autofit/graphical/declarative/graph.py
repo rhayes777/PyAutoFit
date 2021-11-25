@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from typing import List, cast, Optional
 
+
 from autofit.graphical.declarative.factor.prior import PriorFactor
 from autofit.graphical.expectation_propagation.ep_mean_field import EPMeanField
 from autofit.graphical.factor_graphs.factor import Factor
@@ -36,6 +37,12 @@ class DeclarativeGraphFormatter(ABC):
             map(
                 self.info_for_analysis_factor,
                 self.graph.analysis_factors
+            )
+        )
+        hierarchical_factor_info = "\n\n".join(
+            map(
+                self.info_for_hierarchical_factor,
+                self.graph.hierarchical_factors
             )
         )
         return f"PriorFactors\n\n{prior_factor_info}\n\nAnalysisFactors\n\n{analysis_factor_info}"
@@ -119,6 +126,14 @@ class DeclarativeGraphFormatter(ABC):
 
         return f"{analysis_factor.name}\n\n{formatter.text}"
 
+    def info_for_hierarchical_factor(
+            self,
+            hierarchical_factor
+    ):
+        return self.info_for_analysis_factor(
+            hierarchical_factor
+        )
+
 
 class GraphInfoFormatter(DeclarativeGraphFormatter):
     """
@@ -190,6 +205,19 @@ class DeclarativeFactorGraph(FactorGraph):
             List[PriorFactor],
             self._factors_with_type(
                 PriorFactor
+            )
+        )
+
+    @property
+    def hierarchical_factors(self):
+        """
+        Prior factors associated with this graph.
+        """
+        from autofit.graphical.declarative.factor.hierarchical import HierarchicalFactor
+        return cast(
+            List[HierarchicalFactor],
+            self._factors_with_type(
+                HierarchicalFactor
             )
         )
 

@@ -8,8 +8,8 @@ from .abstract import AbstractModelFactor
 class HierarchicalFactor(AbstractModelFactor):
     def __init__(
             self,
-            prior_model: AbstractPriorModel,
-            argument_prior: Prior,
+            distribution_model: AbstractPriorModel,
+            sample_prior: Prior,
             optimiser=None,
             name: Optional[str] = None
     ):
@@ -18,17 +18,17 @@ class HierarchicalFactor(AbstractModelFactor):
 
         Parameters
         ----------
-        prior_model
+        distribution_model
             A prior model which parameterizes a distribution from which it
             is assumed the variable is drawn
-        argument_prior
+        sample_prior
             A prior representing a variable which was drawn from the distribution
         optimiser
             An optional optimiser for optimisation of this factor
         name
             An optional name to distinguish this factor
         """
-        self.argument_prior = argument_prior
+        self.sample_prior = sample_prior
 
         def _factor(
                 **kwargs
@@ -39,11 +39,11 @@ class HierarchicalFactor(AbstractModelFactor):
             arguments = dict()
             for name_, array in kwargs.items():
                 prior_id = int(name_.split("_")[1])
-                prior = prior_model.prior_with_id(
+                prior = distribution_model.prior_with_id(
                     prior_id
                 )
                 arguments[prior] = array
-            result = prior_model.instance_for_arguments(
+            result = distribution_model.instance_for_arguments(
                 arguments
             )(argument)
             return result
@@ -51,15 +51,15 @@ class HierarchicalFactor(AbstractModelFactor):
         prior_variable_dict = {
             prior.name: prior
             for prior
-            in prior_model.priors
+            in distribution_model.priors
         }
 
         prior_variable_dict[
             "argument"
-        ] = argument_prior
+        ] = sample_prior
 
         super().__init__(
-            prior_model=prior_model,
+            prior_model=distribution_model,
             factor=_factor,
             optimiser=optimiser,
             prior_variable_dict=prior_variable_dict,
@@ -78,6 +78,6 @@ class HierarchicalFactor(AbstractModelFactor):
         """
         priors = super().priors
         priors.add(
-            self.argument_prior
+            self.sample_prior
         )
         return priors

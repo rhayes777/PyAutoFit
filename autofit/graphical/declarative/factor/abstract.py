@@ -40,7 +40,9 @@ class AbstractModelFactor(Factor, AbstractDeclarativeFactor, ABC):
         super().__init__(
             factor,
             **prior_variable_dict,
-            name=name or namer(self.__class__.__name__)
+            name=name or namer(
+                self.__class__.__name__
+            )
         )
 
     @property
