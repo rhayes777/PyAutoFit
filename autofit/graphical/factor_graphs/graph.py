@@ -75,7 +75,7 @@ class FactorGraph(AbstractNode):
             factor for factor
             in self._factors
             if variable in factor.variables
-            and (excluded_factor is None or factor != excluded_factor)
+               and (excluded_factor is None or factor != excluded_factor)
         ]
 
     def _factors_with_type(

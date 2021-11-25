@@ -15,6 +15,8 @@ MAX_STEPS = 3
 )
 def reset_namer():
     namer.reset()
+    yield
+    namer.reset()
 
 
 class MockResult(af.MockResult):
@@ -191,7 +193,7 @@ def test_info_for_analysis_factor(
         analysis_factor
     ) == """AnalysisFactor0
 
-one (PriorFactor0)                                                                        UniformPrior, lower_limit = 0.0, upper_limit = 1.0"""
+one (PriorFactor1)                                                                        UniformPrior, lower_limit = 0.0, upper_limit = 1.0"""
 
 
 def test_related_factors(

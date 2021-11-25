@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Set, List, Dict
+from typing import Set, List, Dict, cast
 
 from autofit.graphical.declarative.factor.prior import PriorFactor
 from autofit.graphical.expectation_propagation import AbstractFactorOptimiser
@@ -20,14 +20,20 @@ class DeclarativeFactorGraph(FactorGraph):
     @property
     def analysis_factors(self):
         from .factor.analysis import AnalysisFactor
-        return self._factors_with_type(
-            AnalysisFactor
+        return cast(
+            List[AnalysisFactor],
+            self._factors_with_type(
+                AnalysisFactor
+            )
         )
 
     @property
-    def prior_factors(self):
-        return self._factors_with_type(
-            PriorFactor
+    def prior_factors(self) -> List[PriorFactor]:
+        return cast(
+            List[PriorFactor],
+            self._factors_with_type(
+                PriorFactor
+            )
         )
 
     def _related_factor_names(
