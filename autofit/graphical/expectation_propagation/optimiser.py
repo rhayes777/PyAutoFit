@@ -62,6 +62,9 @@ class Visualise:
         self.output_path = output_path
 
     def __call__(self):
+        """
+        Save a plot of Evidence and KL Divergence for the ep_history
+        """
         fig, (evidence_plot, kl_plot) = plt.subplots(2)
         fig.suptitle('Evidence and KL Divergence')
         for factor, factor_history in self.ep_history.items():
