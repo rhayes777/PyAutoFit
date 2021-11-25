@@ -1,14 +1,19 @@
-from typing import List, cast
+from typing import List, cast, Optional
 
 from autofit.graphical.declarative.factor.prior import PriorFactor
+from autofit.graphical.factor_graphs.factor import Factor
 from autofit.graphical.factor_graphs.graph import FactorGraph
 from autofit.mapper.prior.abstract import Prior
+from autofit.mapper.variable import Variable
 from autofit.text.formatter import TextFormatter
 
 
 class DeclarativeFactorGraph(FactorGraph):
     @property
     def analysis_factors(self):
+        """
+        Analysis factors associated with this graph.
+        """
         from .factor.analysis import AnalysisFactor
         return cast(
             List[AnalysisFactor],
@@ -19,6 +24,9 @@ class DeclarativeFactorGraph(FactorGraph):
 
     @property
     def prior_factors(self) -> List[PriorFactor]:
+        """
+        Prior factors associated with this graph.
+        """
         return cast(
             List[PriorFactor],
             self._factors_with_type(
@@ -28,9 +36,23 @@ class DeclarativeFactorGraph(FactorGraph):
 
     def _related_factor_names(
             self,
-            variable,
-            excluded_factor=None
-    ):
+            variable: Variable,
+            excluded_factor: Optional[Factor] = None
+    ) -> str:
+        """
+
+        Parameters
+        ----------
+        variable
+            A variable in the graph
+        excluded_factor
+            A factor which should not be included. e.g. the factor
+            for which the variable is being checked.
+
+        Returns
+        -------
+        A string describing the other factor's relationship to the variable.
+        """
         related_factors = self.related_factors(
             variable,
             excluded_factor=excluded_factor
@@ -44,7 +66,10 @@ class DeclarativeFactorGraph(FactorGraph):
     def _info_for_prior_factor(
             self,
             prior_factor: PriorFactor
-    ):
+    ) -> str:
+        """
+        A string describing a given PriorFactor in the context of this graph.
+        """
         related_factor_names = self._related_factor_names(
             variable=prior_factor.variable,
             excluded_factor=prior_factor
@@ -60,7 +85,10 @@ class DeclarativeFactorGraph(FactorGraph):
     def _info_for_analysis_factor(
             self,
             analysis_factor
-    ):
+    ) -> str:
+        """
+        A string describing a given AnalysisFactor in the context of this graph.
+        """
         model = analysis_factor.prior_model
         formatter = TextFormatter()
 
