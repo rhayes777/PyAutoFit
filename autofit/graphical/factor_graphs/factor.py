@@ -537,6 +537,9 @@ class Factor(AbstractFactor):
         )
         return f"{self.name}\n\n{string}"
 
+    def name_for_variable(self, variable):
+        return self.name
+
 
 class DeterministicFactor(Factor):
     """

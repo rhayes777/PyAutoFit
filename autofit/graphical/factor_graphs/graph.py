@@ -53,13 +53,16 @@ class FactorGraph(AbstractNode):
 
     def related_factors(
             self,
-            variable: Variable
+            variable: Variable,
+            excluded_factor=None
     ) -> List[Factor]:
         """
         A list of factors which contain the variable.
 
         Parameters
         ----------
+        excluded_factor
+            A factor that should be excluded from the list
         variable
             A variable in the graph which will be related to one
             or more factors
@@ -72,6 +75,7 @@ class FactorGraph(AbstractNode):
             factor for factor
             in self._factors
             if variable in factor.variables
+            and factor != excluded_factor
         ]
 
     def _factors_with_type(

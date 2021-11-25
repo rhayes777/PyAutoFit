@@ -155,6 +155,15 @@ def make_prior_factor(
     return factor_graph.prior_factors[0]
 
 
+@pytest.fixture(
+    name="analysis_factor"
+)
+def make_analysis_factor(
+        factor_graph
+):
+    return factor_graph.analysis_factors[0]
+
+
 def test_info_for_prior_factor(
         factor_graph,
         prior_factor
@@ -162,6 +171,17 @@ def test_info_for_prior_factor(
     assert factor_graph._info_for_prior_factor(
         prior_factor
     ) == "PriorFactor0 (AnalysisFactor0.one)                                                        UniformPrior, lower_limit = 0.0, upper_limit = 1.0"
+
+
+def test_info_for_analysis_factor(
+        factor_graph,
+        analysis_factor
+):
+    assert factor_graph._info_for_analysis_factor(
+        analysis_factor
+    ) == """AnalysisFactor0
+
+one (PriorFactor0)                                                                        UniformPrior, lower_limit = 0.0, upper_limit = 1.0"""
 
 
 def test_related_factors(
@@ -180,18 +200,17 @@ def test_graph_info(
     assert factor_graph.info == """PriorFactors
 
 PriorFactor0 (AnalysisFactor0.one)                                                        UniformPrior, lower_limit = 0.0, upper_limit = 1.0
-
 PriorFactor1 (AnalysisFactor1.one)                                                        UniformPrior, lower_limit = 0.0, upper_limit = 1.0
 
 AnalysisFactors
 
 AnalysisFactor0
 
-one                                                                                       UniformPrior, lower_limit = 0.0, upper_limit = 1.0
+one (PriorFactor0)                                                                        UniformPrior, lower_limit = 0.0, upper_limit = 1.0
 
 AnalysisFactor1
 
-one                                                                                       UniformPrior, lower_limit = 0.0, upper_limit = 1.0"""
+one (PriorFactor1)                                                                        UniformPrior, lower_limit = 0.0, upper_limit = 1.0"""
 
 
 @with_config(
