@@ -156,39 +156,6 @@ def test_factors_grouped_by_type(
     assert len(factors_by_type[PriorFactor]) == 2
 
 
-# Factors:
-#
-# centre                                                                           **PriorFactor0 --> [AnalysisFactor0, AnalysisFactor1, AnalysisFactor2]**
-# normalization                                                               PriorFactor1 --> AnalysisFactor0
-# sigma                                                                           PriorFactor2 --> AnalysisFactor0
-# normalization                                                               PriorFactor3 --> AnalysisFactor1
-# sigma                                                                           PriorFactor4 --> AnalysisFactor1
-# normalization                                                               PriorFactor5 --> AnalysisFactor2
-# sigma                                                                          PriorFactor6 --> AnalysisFactor2
-#
-# AnalysisFactors:
-#
-# AnalysisFactor0
-#
-# gaussian
-# centre (PriorFactor0)                                                                       GaussianPrior, mean = 50.0, sigma = 30.0
-# normalization (PriorFactor1)                                                           GaussianPrior, mean = 3.0, sigma = 5.0
-# sigma (PriorFactor2)                                                                        GaussianPrior, mean = 10.0, sigma = 10.0
-#
-# AnalysisFactor1
-#
-# gaussian
-# centre (PriorFactor0)                                                                        GaussianPrior, mean = 50.0, sigma = 30.0
-# normalization (PriorFactor3)                                                           GaussianPrior, mean = 3.0, sigma = 5.0
-# sigma (PriorFactor4)                                                                       GaussianPrior, mean = 10.0, sigma = 10.0
-#
-# AnalysisFactor2
-#
-# gaussian
-# centre (PriorFactor0)                                                                     GaussianPrior, mean = 50.0, sigma = 30.0
-# normalization  (PriorFactor5)                                                        GaussianPrior, mean = 3.0, sigma = 5.0
-# sigma  (PriorFactor6)                                                                    GaussianPrior, mean = 10.0, sigma = 10.0
-
 @pytest.fixture(
     name="prior_factor"
 )
