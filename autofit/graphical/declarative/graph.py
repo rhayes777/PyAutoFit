@@ -1,3 +1,4 @@
+from abc import ABC, abstractmethod
 from typing import List, cast, Optional
 
 from autofit.graphical.declarative.factor.prior import PriorFactor
@@ -8,14 +9,16 @@ from autofit.mapper.variable import Variable
 from autofit.text.formatter import TextFormatter
 
 
-class DeclarativeGraphOutput:
+class DeclarativeGraphFormatter(ABC):
     def __init__(
             self,
-            graph: "DeclarativeFactorGraph",
-            variable_formatter=str
+            graph: "DeclarativeFactorGraph"
     ):
         self.graph = graph
-        self.variable_formatter = variable_formatter
+
+    @abstractmethod
+    def variable_formatter(self, variable):
+        pass
 
     @property
     def info(self) -> str:
@@ -80,7 +83,9 @@ class DeclarativeGraphOutput:
         formatter = TextFormatter()
         formatter.add(
             (f"{prior_factor.name} ({related_factor_names})",),
-            prior_factor.variable
+            self.variable_formatter(
+                prior_factor.variable
+            )
         )
         return formatter.text
 
@@ -104,9 +109,37 @@ class DeclarativeGraphOutput:
                 excluded_factor=analysis_factor
             )
             path = path[:-1] + (f"{name} ({related_factor_names})",)
-            formatter.add(path, prior)
+            formatter.add(
+                path,
+                self.variable_formatter(
+                    prior
+                )
+            )
 
         return f"{analysis_factor.name}\n\n{formatter.text}"
+
+
+class GraphInfoFormatter(DeclarativeGraphFormatter):
+    def variable_formatter(
+            self,
+            variable: Variable
+    ):
+        return str(variable)
+
+
+class ResultsFormatter(DeclarativeGraphFormatter):
+    def __init__(
+            self,
+            graph: "DeclarativeFactorGraph",
+
+    ):
+        super().__init__(graph)
+
+    def variable_formatter(
+            self,
+            variable: Variable
+    ):
+        pass
 
 
 class DeclarativeFactorGraph(FactorGraph):
@@ -140,4 +173,4 @@ class DeclarativeFactorGraph(FactorGraph):
         """
         Describes the graph. Output in graph.info
         """
-        return DeclarativeGraphOutput(self).info
+        return GraphInfoFormatter(self).info

@@ -4,7 +4,7 @@ import autofit as af
 from autoconf.conf import with_config
 from autofit import graphical as g
 from autofit.graphical import AnalysisFactor, PriorFactor
-from autofit.graphical.declarative.graph import DeclarativeGraphOutput
+from autofit.graphical.declarative.graph import GraphInfoFormatter
 from autofit.mock.mock import MockAnalysis
 from autofit.tools.namer import namer
 
@@ -183,7 +183,7 @@ def make_analysis_factor(
 def make_declarative_graph_output(
         factor_graph
 ):
-    return DeclarativeGraphOutput(
+    return GraphInfoFormatter(
         factor_graph
     )
 
