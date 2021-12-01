@@ -68,15 +68,31 @@ class DeclarativeGraphFormatter(ABC):
         -------
         A string describing the other factor's relationship to the variable.
         """
+        from autofit.graphical.declarative.factor.hierarchical import _HierarchicalFactor
+
         related_factors = self.graph.related_factors(
             variable,
             excluded_factor=excluded_factor
         )
 
-        return ", ".join(
-            factor.name_for_variable(variable)
-            for factor in related_factors
-        )
+        names = set()
+
+        for factor in related_factors:
+            if isinstance(
+                    factor,
+                    _HierarchicalFactor
+            ):
+                names.add(
+                    factor.distribution_model.name
+                )
+            else:
+                names.add(
+                    factor.name_for_variable(
+                        variable
+                    )
+                )
+
+        return ", ".join(sorted(names))
 
     def info_for_prior_factor(
             self,

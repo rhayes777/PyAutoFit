@@ -110,8 +110,8 @@ def test_graph_info(
     info = graph.info
     assert info == """PriorFactors
 
-PriorFactor0 (HierarchicalFactor0, HierarchicalFactor0)                                   GaussianPrior, mean = 10, sigma = 5
-PriorFactor1 (HierarchicalFactor0, HierarchicalFactor0)                                   GaussianPrior, mean = 100, sigma = 10
+PriorFactor0 (HierarchicalFactor0)                                                        GaussianPrior, mean = 10, sigma = 5
+PriorFactor1 (HierarchicalFactor0)                                                        GaussianPrior, mean = 100, sigma = 10
 PriorFactor2 (AnalysisFactor1.sigma)                                                      UniformPrior, lower_limit = 0.0, upper_limit = 1.0
 PriorFactor3 (AnalysisFactor1.intensity)                                                  UniformPrior, lower_limit = 0.0, upper_limit = 1.0
 PriorFactor4 (AnalysisFactor1.centre, HierarchicalFactor0)                                UniformPrior, lower_limit = 0.0, upper_limit = 1.0
