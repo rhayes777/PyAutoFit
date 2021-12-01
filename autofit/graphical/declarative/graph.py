@@ -230,11 +230,11 @@ class DeclarativeFactorGraph(FactorGraph):
         """
         Prior factors associated with this graph.
         """
-        from autofit.graphical.declarative.factor.hierarchical import HierarchicalFactor
+        from autofit.graphical.declarative.factor.hierarchical import _HierarchicalFactor
         return cast(
-            List[HierarchicalFactor],
+            List[_HierarchicalFactor],
             self._factors_with_type(
-                HierarchicalFactor
+                _HierarchicalFactor
             )
         )
 

@@ -3,7 +3,7 @@ from . import utils
 from .declarative.abstract import PriorFactor
 from .declarative.collection import FactorGraphModel
 from .declarative.factor.analysis import AnalysisFactor
-from .declarative.factor.hierarchical import HierarchicalFactor
+from .declarative.factor.hierarchical import _HierarchicalFactor, HierarchicalFactor
 from .expectation_propagation import EPMeanField, EPOptimiser
 from .factor_graphs import (
     Factor,

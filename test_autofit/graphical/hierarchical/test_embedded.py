@@ -41,10 +41,25 @@ def test_embedded_priors(
     )
 
 
+def test_hierarchical_factor_api():
+    hierarchical_factor = g.HierarchicalFactor(
+        af.GaussianPrior,
+        mean=af.GaussianPrior(
+            mean=100,
+            sigma=10
+        ),
+        sigma=af.GaussianPrior(
+            mean=10,
+            sigma=5
+        )
+    )
+    assert len(hierarchical_factor.priors) == 2
+
+
 def test_hierarchical_factor(
         centre_model
 ):
-    factor = g.HierarchicalFactor(
+    factor = g._HierarchicalFactor(
         centre_model,
         af.GaussianPrior(100, 10)
     )
@@ -152,7 +167,7 @@ def test_full_fit(centre_model, data, centres):
             )
         )
         graph.add(
-            g.HierarchicalFactor(
+            g._HierarchicalFactor(
                 centre_model,
                 centre_argument
             )

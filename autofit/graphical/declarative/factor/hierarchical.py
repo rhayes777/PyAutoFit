@@ -1,11 +1,25 @@
-from typing import Set, Optional
+from typing import Set, Optional, Type
 
 from autofit.mapper.prior.abstract import Prior
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
+from autofit.mapper.prior_model.prior_model import PriorModel
+from autofit.messages.abstract import AbstractMessage
 from .abstract import AbstractModelFactor
 
 
-class HierarchicalFactor(AbstractModelFactor):
+class HierarchicalFactor(PriorModel):
+    def __init__(
+            self,
+            distribution: Type[AbstractMessage],
+            **kwargs
+    ):
+        super().__init__(
+            distribution,
+            **kwargs
+        )
+
+
+class _HierarchicalFactor(AbstractModelFactor):
     def __init__(
             self,
             distribution_model: AbstractPriorModel,

@@ -31,11 +31,11 @@ def make_factor_graph_model():
         )
     )
 
-    hierarchical_factor_1 = g.HierarchicalFactor(
+    hierarchical_factor_1 = g._HierarchicalFactor(
         distribution_model=distribution_model,
         sample_prior=model_factor_1.centre
     )
-    hierarchical_factor_2 = g.HierarchicalFactor(
+    hierarchical_factor_2 = g._HierarchicalFactor(
         distribution_model=distribution_model,
         sample_prior=model_factor_2.centre
     )
