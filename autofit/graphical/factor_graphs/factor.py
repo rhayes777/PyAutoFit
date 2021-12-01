@@ -28,6 +28,12 @@ class AbstractFactor(AbstractNode, ABC):
         self._name = name or f"factor_{self.id}"
         self._deterministic_variables = set()
 
+    def __lt__(self, other):
+        return self.name < other.name
+
+    def __gt__(self, other):
+        return self.name > other.name
+
     @property
     def deterministic_variables(self) -> Set[Variable]:
         return self._deterministic_variables
@@ -536,6 +542,9 @@ class Factor(AbstractFactor):
             for variable in self.variables
         )
         return f"{self.name}\n\n{string}"
+
+    def name_for_variable(self, variable):
+        return self.name
 
 
 class DeterministicFactor(Factor):

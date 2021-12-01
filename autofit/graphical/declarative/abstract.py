@@ -1,13 +1,11 @@
 from abc import ABC, abstractmethod
-from typing import cast, Set, List, Dict
-
-import numpy as np
+from typing import Set, List, Dict
 
 from autofit.graphical.declarative.factor.prior import PriorFactor
+from autofit.graphical.declarative.graph import DeclarativeFactorGraph
 from autofit.graphical.expectation_propagation import AbstractFactorOptimiser
 from autofit.graphical.expectation_propagation import EPMeanField
 from autofit.graphical.expectation_propagation import EPOptimiser
-from autofit.graphical.factor_graphs.graph import FactorGraph
 from autofit.mapper.identifier import Identifier
 from autofit.mapper.model import ModelInstance
 from autofit.mapper.prior.abstract import Prior
@@ -58,14 +56,12 @@ class AbstractDeclarativeFactor(Analysis, ABC):
         A list of factors that act as priors on latent variables. One factor exists
         for each unique prior.
         """
-        return list(map(PriorFactor, self.priors))
+        return list(map(PriorFactor, sorted(self.priors)))
 
     @property
     def message_dict(self) -> Dict[Prior, NormalMessage]:
         """
         Dictionary mapping priors to messages.
-
-        TODO: should support more than just GaussianPriors/NormalMessages
         """
         return {
             prior: prior
@@ -74,20 +70,17 @@ class AbstractDeclarativeFactor(Analysis, ABC):
         }
 
     @property
-    def graph(self) -> FactorGraph:
+    def graph(self) -> DeclarativeFactorGraph:
         """
         The complete graph made by combining all factors and priors
         """
         # noinspection PyTypeChecker
-        return cast(
-            FactorGraph,
-            np.prod(
-                [
-                    model
-                    for model
-                    in self.model_factors
-                ] + self.prior_factors
-            )
+        return DeclarativeFactorGraph(
+            [
+                model
+                for model
+                in self.model_factors
+            ] + self.prior_factors
         )
 
     def mean_field_approximation(self) -> EPMeanField:

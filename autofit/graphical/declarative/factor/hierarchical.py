@@ -1,34 +1,131 @@
-from typing import Set, Optional
+from typing import Set, Optional, Type, List
 
 from autofit.mapper.prior.abstract import Prior
-from autofit.mapper.prior_model.abstract import AbstractPriorModel
+from autofit.mapper.prior_model.prior_model import PriorModel
+from autofit.messages.abstract import AbstractMessage
+from autofit.tools.namer import namer
 from .abstract import AbstractModelFactor
 
 
-class HierarchicalFactor(AbstractModelFactor):
+class HierarchicalFactor(PriorModel):
     def __init__(
             self,
-            prior_model: AbstractPriorModel,
-            argument_prior: Prior,
+            distribution: Type[AbstractMessage],
             optimiser=None,
-            name: Optional[str] = None
+            name: Optional[str] = None,
+            **kwargs,
+    ):
+        """
+        Associates variables in the graph with a distribution. That is,
+        the optimisation prefers instances of the variables which better
+        match the distribution. Both the distribution and variables sampled
+        from it are optimised during a factor optimisation. This allows
+        expectations from other factors to influence the optimisation of
+        the distribution and vice-versa.
+
+        Each HierarchicalFactor actually generates multiple factors - one
+        for each associated variables - as this avoids optimisation of a
+        high dimensionality factor.
+
+        Question: would it make sense to experiment with a hierarchical
+        factor that optimises all variables samples from a distribution
+        simultaneously?
+
+        Parameters
+        ----------
+        distribution
+            A distribution from which variables are drawn
+        optimiser
+            An optional optimiser for this factor
+        name
+            An optional name for this factor
+        kwargs
+            Constants or Priors passed to the distribution to parameterize
+            it. For example, a GaussianPrior requires mean and sigma arguments
+
+        Examples
+        --------
+        factor = g.HierarchicalFactor(
+            af.GaussianPrior,
+            mean=af.GaussianPrior(
+                mean=100,
+                sigma=10
+            ),
+            sigma=af.GaussianPrior(
+                mean=10,
+                sigma=5
+            )
+        )
+        factor.add_sampled_variable(
+            prior
+        )
+        """
+        super().__init__(
+            distribution,
+            **kwargs
+        )
+        self._name = name or namer(
+            self.__class__.__name__
+        )
+        self._factors = list()
+        self.optimiser = optimiser
+
+    @property
+    def name(self):
+        return self._name
+
+    @property
+    def prior_model(self):
+        return self
+
+    def add_drawn_variable(
+            self,
+            prior: Prior
+    ):
+        """
+        Add a variable which is drawn from the distribution. This
+        is likely the attribute of a FactorModel in the graph.
+
+        Parameters
+        ----------
+        prior
+            A variable which is sampled from the distribution.
+        """
+        self._factors.append(
+            _HierarchicalFactor(
+                self,
+                prior
+            )
+        )
+
+    @property
+    def factors(self) -> List["_HierarchicalFactor"]:
+        """
+        One factor is generated for each variable sampled from the
+        distribution.
+        """
+        return self._factors
+
+
+class _HierarchicalFactor(AbstractModelFactor):
+    def __init__(
+            self,
+            distribution_model: HierarchicalFactor,
+            sample_prior: Prior,
     ):
         """
         A factor that links a variable to a parameterised distribution.
 
         Parameters
         ----------
-        prior_model
-            A prior model which parameterises a distribution from which it
+        distribution_model
+            A prior model which parameterizes a distribution from which it
             is assumed the variable is drawn
-        argument_prior
+        sample_prior
             A prior representing a variable which was drawn from the distribution
-        optimiser
-            An optional optimiser for optimisation of this factor
-        name
-            An optional name to distinguish this factor
         """
-        self.argument_prior = argument_prior
+        self.distribution_model = distribution_model
+        self.sample_prior = sample_prior
 
         def _factor(
                 **kwargs
@@ -39,11 +136,11 @@ class HierarchicalFactor(AbstractModelFactor):
             arguments = dict()
             for name_, array in kwargs.items():
                 prior_id = int(name_.split("_")[1])
-                prior = prior_model.prior_with_id(
+                prior = distribution_model.prior_with_id(
                     prior_id
                 )
                 arguments[prior] = array
-            result = prior_model.instance_for_arguments(
+            result = distribution_model.instance_for_arguments(
                 arguments
             )(argument)
             return result
@@ -51,20 +148,24 @@ class HierarchicalFactor(AbstractModelFactor):
         prior_variable_dict = {
             prior.name: prior
             for prior
-            in prior_model.priors
+            in distribution_model.priors
         }
 
         prior_variable_dict[
             "argument"
-        ] = argument_prior
+        ] = sample_prior
 
         super().__init__(
-            prior_model=prior_model,
+            prior_model=distribution_model,
             factor=_factor,
-            optimiser=optimiser,
+            optimiser=distribution_model.optimiser,
             prior_variable_dict=prior_variable_dict,
-            name=name
+            name=distribution_model.name
         )
+
+    @property
+    def variable(self):
+        return self.sample_prior
 
     def log_likelihood_function(self, instance):
         return instance
@@ -73,11 +174,11 @@ class HierarchicalFactor(AbstractModelFactor):
     def priors(self) -> Set[Prior]:
         """
         The set of priors associated with this factor. This is the priors used
-        to parameterise the distribution, plus an additional prior for the
+        to parameterize the distribution, plus an additional prior for the
         variable drawn from the distribution.
         """
         priors = super().priors
         priors.add(
-            self.argument_prior
+            self.sample_prior
         )
         return priors
