@@ -57,7 +57,7 @@ def make_graph(
     return hierarchical_model.graph
 
 
-def test_info_for_hierarchical_factor(
+def _test_info_for_hierarchical_factor(
         hierarchical_model,
         graph
 ):
@@ -74,7 +74,7 @@ sigma (GaussianPrior, PriorFactor1)                                             
 GaussianPrior (AnalysisFactor0.centre, PriorFactor0)                                      UniformPrior, lower_limit = 0.0, upper_limit = 1.0"""
 
 
-def test_graph_info(
+def _test_graph_info(
         graph
 ):
     info = graph.info
