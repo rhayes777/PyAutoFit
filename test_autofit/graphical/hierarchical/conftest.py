@@ -23,7 +23,7 @@ def make_hierarchical_factor(prior):
         ),
         sigma=af.GaussianPrior(
             mean=10,
-            sigma=5
+            sigma=1
         )
     )
     factor.add_drawn_variable(
