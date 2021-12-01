@@ -18,11 +18,28 @@ def test_collection_prior_model(
     assert af.Collection(prior).prior_count == 1
 
 
-def test_prior_factor(prior):
-    prior_factor = g.PriorFactor(
+@pytest.fixture(
+    name="prior_factor"
+)
+def make_prior_factor(prior):
+    return g.PriorFactor(
         prior
     )
+
+
+def test_prior_factor(
+        prior_factor
+):
     assert prior_factor.prior_model.prior_count == 1
+
+
+def test_log_likelihood_function(
+        prior_factor
+):
+    instance = prior_factor.prior_model.instance_from_prior_medians()
+    assert prior_factor.log_likelihood_function(
+        instance
+    ) == -0.9189385332046727
 
 
 def test_optimise(model, prior):
