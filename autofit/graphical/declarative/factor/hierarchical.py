@@ -1,7 +1,6 @@
 from typing import Set, Optional, Type
 
 from autofit.mapper.prior.abstract import Prior
-from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.mapper.prior_model.prior_model import PriorModel
 from autofit.messages.abstract import AbstractMessage
 from .abstract import AbstractModelFactor
@@ -11,13 +10,17 @@ class HierarchicalFactor(PriorModel):
     def __init__(
             self,
             distribution: Type[AbstractMessage],
-            **kwargs
+            optimiser=None,
+            name: Optional[str] = None,
+            **kwargs,
     ):
         super().__init__(
             distribution,
+            name=name,
             **kwargs
         )
         self.sampled_variables = list()
+        self.optimiser = optimiser
 
     def add_sampled_variable(
             self,
@@ -27,14 +30,23 @@ class HierarchicalFactor(PriorModel):
             prior
         )
 
+    @property
+    def factors(self):
+        return [
+            _HierarchicalFactor(
+                self,
+                prior
+            )
+            for prior
+            in self.sampled_variables
+        ]
+
 
 class _HierarchicalFactor(AbstractModelFactor):
     def __init__(
             self,
-            distribution_model: AbstractPriorModel,
+            distribution_model: HierarchicalFactor,
             sample_prior: Prior,
-            optimiser=None,
-            name: Optional[str] = None
     ):
         """
         A factor that links a variable to a parameterised distribution.
@@ -46,10 +58,6 @@ class _HierarchicalFactor(AbstractModelFactor):
             is assumed the variable is drawn
         sample_prior
             A prior representing a variable which was drawn from the distribution
-        optimiser
-            An optional optimiser for optimisation of this factor
-        name
-            An optional name to distinguish this factor
         """
         self.sample_prior = sample_prior
 
@@ -84,9 +92,9 @@ class _HierarchicalFactor(AbstractModelFactor):
         super().__init__(
             prior_model=distribution_model,
             factor=_factor,
-            optimiser=optimiser,
+            optimiser=distribution_model.optimiser,
             prior_variable_dict=prior_variable_dict,
-            name=name
+            name=distribution_model.name
         )
 
     def log_likelihood_function(self, instance):
