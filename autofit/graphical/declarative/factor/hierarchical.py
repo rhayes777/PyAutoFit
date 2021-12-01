@@ -3,6 +3,7 @@ from typing import Set, Optional, Type, List
 from autofit.mapper.prior.abstract import Prior
 from autofit.mapper.prior_model.prior_model import PriorModel
 from autofit.messages.abstract import AbstractMessage
+from autofit.tools.namer import namer
 from .abstract import AbstractModelFactor
 
 
@@ -61,11 +62,21 @@ class HierarchicalFactor(PriorModel):
         """
         super().__init__(
             distribution,
-            name=name,
             **kwargs
+        )
+        self._name = name or namer(
+            self.__class__.__name__
         )
         self._factors = list()
         self.optimiser = optimiser
+
+    @property
+    def name(self):
+        return self._name
+
+    @property
+    def prior_model(self):
+        return self
 
     def add_sampled_variable(
             self,
@@ -113,6 +124,7 @@ class _HierarchicalFactor(AbstractModelFactor):
         sample_prior
             A prior representing a variable which was drawn from the distribution
         """
+        self.distribution_model = distribution_model
         self.sample_prior = sample_prior
 
         def _factor(
@@ -150,6 +162,10 @@ class _HierarchicalFactor(AbstractModelFactor):
             prior_variable_dict=prior_variable_dict,
             name=distribution_model.name
         )
+
+    @property
+    def variable(self):
+        return self.sample_prior
 
     def log_likelihood_function(self, instance):
         return instance

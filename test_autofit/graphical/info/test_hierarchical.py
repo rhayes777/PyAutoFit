@@ -7,19 +7,33 @@ from autofit.mock.mock import MockAnalysis
 
 
 @pytest.fixture(
-    name="hierarchical_model"
+    name="model_factor_1"
 )
-def make_factor_graph_model():
-    model_factor_1 = g.AnalysisFactor(
-        af.Model(af.Gaussian),
-        MockAnalysis()
-    )
-    model_factor_2 = g.AnalysisFactor(
+def make_model_factor_1():
+    return g.AnalysisFactor(
         af.Model(af.Gaussian),
         MockAnalysis()
     )
 
-    distribution_model = g.HierarchicalFactor(
+
+@pytest.fixture(
+    name="model_factor_2"
+)
+def make_model_factor_2():
+    return g.AnalysisFactor(
+        af.Model(af.Gaussian),
+        MockAnalysis()
+    )
+
+
+@pytest.fixture(
+    name="hierarchical_factor"
+)
+def make_hierarchical_factor(
+        model_factor_1,
+        model_factor_2,
+):
+    hierarchical_factor = g.HierarchicalFactor(
         af.GaussianPrior,
         mean=af.GaussianPrior(
             mean=100,
@@ -31,21 +45,35 @@ def make_factor_graph_model():
         )
     )
 
-    hierarchical_factor_1 = g._HierarchicalFactor(
-        distribution_model=distribution_model,
-        sample_prior=model_factor_1.centre
+    hierarchical_factor.add_sampled_variable(
+        model_factor_1.centre
     )
-    hierarchical_factor_2 = g._HierarchicalFactor(
-        distribution_model=distribution_model,
-        sample_prior=model_factor_2.centre
+    hierarchical_factor.add_sampled_variable(
+        model_factor_2.centre
     )
+    return hierarchical_factor
 
+
+@pytest.fixture(
+    name="hierarchical_model"
+)
+def make_factor_graph_model(
+        model_factor_1,
+        model_factor_2,
+        hierarchical_factor,
+):
     return g.FactorGraphModel(
         model_factor_1,
         model_factor_2,
-        hierarchical_factor_1,
-        hierarchical_factor_2
+        hierarchical_factor
     )
+
+
+def test_hierarchical_factors(
+        graph,
+        hierarchical_factor
+):
+    assert graph.hierarchical_factors == [hierarchical_factor]
 
 
 @pytest.fixture(
@@ -57,8 +85,7 @@ def make_graph(
     return hierarchical_model.graph
 
 
-def _test_info_for_hierarchical_factor(
-        hierarchical_model,
+def test_info_for_hierarchical_factor(
         graph
 ):
     info = GraphInfoFormatter(
@@ -67,11 +94,15 @@ def _test_info_for_hierarchical_factor(
         graph.hierarchical_factors[0]
     )
     print(info)
-    assert info == """GaussianPrior
+    assert info == """HierarchicalFactor0
 
-mean (GaussianPrior, PriorFactor2)                                                        GaussianPrior, mean = 100, sigma = 10
-sigma (GaussianPrior, PriorFactor1)                                                       GaussianPrior, mean = 10, sigma = 5
-GaussianPrior (AnalysisFactor0.centre, PriorFactor0)                                      UniformPrior, lower_limit = 0.0, upper_limit = 1.0"""
+mean                                                                                      GaussianPrior, mean = 100, sigma = 10
+sigma                                                                                     GaussianPrior, mean = 10, sigma = 5
+
+Drawn Variables
+
+AnalysisFactor0.centre, PriorFactor7                                                      UniformPrior, lower_limit = 0.0, upper_limit = 1.0
+AnalysisFactor1.centre, PriorFactor4                                                      UniformPrior, lower_limit = 0.0, upper_limit = 1.0"""
 
 
 def _test_graph_info(
