@@ -71,12 +71,12 @@ class FactorGraph(AbstractNode):
         -------
         The factors associated with the variable
         """
-        return [
+        return sorted({
             factor for factor
             in self._factors
             if variable in factor.variables
                and (excluded_factor is None or factor != excluded_factor)
-        ]
+        })
 
     def _factors_with_type(
             self,

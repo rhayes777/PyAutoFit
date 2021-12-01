@@ -1,3 +1,5 @@
+from typing import Union
+
 from autofit.graphical.declarative.factor.hierarchical import HierarchicalFactor
 from autofit.mapper.model import ModelInstance
 from autofit.tools.namer import namer
@@ -7,7 +9,10 @@ from .abstract import AbstractDeclarativeFactor
 class FactorGraphModel(AbstractDeclarativeFactor):
     def __init__(
             self,
-            *model_factors: AbstractDeclarativeFactor,
+            *model_factors: Union[
+                AbstractDeclarativeFactor,
+                HierarchicalFactor
+            ],
             name=None
     ):
         """
