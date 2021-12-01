@@ -17,6 +17,15 @@ class HierarchicalFactor(PriorModel):
             distribution,
             **kwargs
         )
+        self.sampled_variables = list()
+
+    def add_sampled_variable(
+            self,
+            prior: Prior
+    ):
+        self.sampled_variables.append(
+            prior
+        )
 
 
 class _HierarchicalFactor(AbstractModelFactor):
