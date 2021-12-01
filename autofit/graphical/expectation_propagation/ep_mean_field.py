@@ -106,7 +106,8 @@ class EPMeanField(FactorGraph):
 
         return cls(
             factor_graph,
-            factor_mean_field)
+            factor_mean_field
+        )
 
     from_kws = from_approx_dists
 

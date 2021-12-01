@@ -19,7 +19,7 @@ def make_factor_graph_model():
         MockAnalysis()
     )
 
-    distribution_model = af.Model(
+    distribution_model = g.HierarchicalFactor(
         af.GaussianPrior,
         mean=af.GaussianPrior(
             mean=100,
@@ -31,11 +31,11 @@ def make_factor_graph_model():
         )
     )
 
-    hierarchical_factor_1 = g.HierarchicalFactor(
+    hierarchical_factor_1 = g._HierarchicalFactor(
         distribution_model=distribution_model,
         sample_prior=model_factor_1.centre
     )
-    hierarchical_factor_2 = g.HierarchicalFactor(
+    hierarchical_factor_2 = g._HierarchicalFactor(
         distribution_model=distribution_model,
         sample_prior=model_factor_2.centre
     )
@@ -57,7 +57,7 @@ def make_graph(
     return hierarchical_model.graph
 
 
-def test_info_for_hierarchical_factor(
+def _test_info_for_hierarchical_factor(
         hierarchical_model,
         graph
 ):
@@ -66,53 +66,54 @@ def test_info_for_hierarchical_factor(
     ).info_for_hierarchical_factor(
         graph.hierarchical_factors[0]
     )
-    assert info == """HierarchicalFactor0
+    print(info)
+    assert info == """GaussianPrior
 
-mean (HierarchicalFactor1, PriorFactor1)                                                  GaussianPrior, mean = 100, sigma = 10
-sigma (HierarchicalFactor1, PriorFactor0)                                                 GaussianPrior, mean = 10, sigma = 5
-HierarchicalFactor0 (AnalysisFactor0.centre, PriorFactor7)                                UniformPrior, lower_limit = 0.0, upper_limit = 1.0"""
+mean (GaussianPrior, PriorFactor2)                                                        GaussianPrior, mean = 100, sigma = 10
+sigma (GaussianPrior, PriorFactor1)                                                       GaussianPrior, mean = 10, sigma = 5
+GaussianPrior (AnalysisFactor0.centre, PriorFactor0)                                      UniformPrior, lower_limit = 0.0, upper_limit = 1.0"""
 
 
-def test_graph_info(
+def _test_graph_info(
         graph
 ):
     info = graph.info
     print(info)
     assert info == """PriorFactors
 
-PriorFactor0 (HierarchicalFactor0, HierarchicalFactor1)                                   GaussianPrior, mean = 10, sigma = 5
-PriorFactor1 (HierarchicalFactor0, HierarchicalFactor1)                                   GaussianPrior, mean = 100, sigma = 10
+PriorFactor0 (GaussianPrior, GaussianPrior)                                               GaussianPrior, mean = 10, sigma = 5
+PriorFactor1 (GaussianPrior, GaussianPrior)                                               GaussianPrior, mean = 100, sigma = 10
 PriorFactor2 (AnalysisFactor1.sigma)                                                      UniformPrior, lower_limit = 0.0, upper_limit = 1.0
 PriorFactor3 (AnalysisFactor1.intensity)                                                  UniformPrior, lower_limit = 0.0, upper_limit = 1.0
-PriorFactor4 (AnalysisFactor1.centre, HierarchicalFactor1)                                UniformPrior, lower_limit = 0.0, upper_limit = 1.0
+PriorFactor4 (AnalysisFactor1.centre, GaussianPrior)                                      UniformPrior, lower_limit = 0.0, upper_limit = 1.0
 PriorFactor5 (AnalysisFactor0.sigma)                                                      UniformPrior, lower_limit = 0.0, upper_limit = 1.0
 PriorFactor6 (AnalysisFactor0.intensity)                                                  UniformPrior, lower_limit = 0.0, upper_limit = 1.0
-PriorFactor7 (AnalysisFactor0.centre, HierarchicalFactor0)                                UniformPrior, lower_limit = 0.0, upper_limit = 1.0
+PriorFactor7 (AnalysisFactor0.centre, GaussianPrior)                                      UniformPrior, lower_limit = 0.0, upper_limit = 1.0
 
 AnalysisFactors
 
 AnalysisFactor0
 
-centre (HierarchicalFactor0, PriorFactor7)                                                UniformPrior, lower_limit = 0.0, upper_limit = 1.0
+centre (GaussianPrior, PriorFactor7)                                                      UniformPrior, lower_limit = 0.0, upper_limit = 1.0
 intensity (PriorFactor6)                                                                  UniformPrior, lower_limit = 0.0, upper_limit = 1.0
 sigma (PriorFactor5)                                                                      UniformPrior, lower_limit = 0.0, upper_limit = 1.0
 
 AnalysisFactor1
 
-centre (HierarchicalFactor1, PriorFactor4)                                                UniformPrior, lower_limit = 0.0, upper_limit = 1.0
+centre (GaussianPrior, PriorFactor4)                                                      UniformPrior, lower_limit = 0.0, upper_limit = 1.0
 intensity (PriorFactor3)                                                                  UniformPrior, lower_limit = 0.0, upper_limit = 1.0
 sigma (PriorFactor2)                                                                      UniformPrior, lower_limit = 0.0, upper_limit = 1.0
 
 HierarchicalFactors
 
-HierarchicalFactor0
+GaussianPrior
 
-mean (HierarchicalFactor1, PriorFactor1)                                                  GaussianPrior, mean = 100, sigma = 10
-sigma (HierarchicalFactor1, PriorFactor0)                                                 GaussianPrior, mean = 10, sigma = 5
-HierarchicalFactor0 (AnalysisFactor0.centre, PriorFactor7)                                UniformPrior, lower_limit = 0.0, upper_limit = 1.0
+mean (GaussianPrior, PriorFactor1)                                                        GaussianPrior, mean = 100, sigma = 10
+sigma (GaussianPrior, PriorFactor0)                                                       GaussianPrior, mean = 10, sigma = 5
+GaussianPrior (AnalysisFactor0.centre, PriorFactor7)                                      UniformPrior, lower_limit = 0.0, upper_limit = 1.0
 
-HierarchicalFactor1
+GaussianPrior
 
-mean (HierarchicalFactor0, PriorFactor1)                                                  GaussianPrior, mean = 100, sigma = 10
-sigma (HierarchicalFactor0, PriorFactor0)                                                 GaussianPrior, mean = 10, sigma = 5
-HierarchicalFactor1 (AnalysisFactor1.centre, PriorFactor4)                                UniformPrior, lower_limit = 0.0, upper_limit = 1.0"""
+mean (GaussianPrior, PriorFactor1)                                                        GaussianPrior, mean = 100, sigma = 10
+sigma (GaussianPrior, PriorFactor0)                                                       GaussianPrior, mean = 10, sigma = 5
+GaussianPrior (AnalysisFactor1.centre, PriorFactor4)                                      UniformPrior, lower_limit = 0.0, upper_limit = 1.0"""

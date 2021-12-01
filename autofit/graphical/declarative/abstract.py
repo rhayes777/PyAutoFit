@@ -62,8 +62,6 @@ class AbstractDeclarativeFactor(Analysis, ABC):
     def message_dict(self) -> Dict[Prior, NormalMessage]:
         """
         Dictionary mapping priors to messages.
-
-        TODO: should support more than just GaussianPriors/NormalMessages
         """
         return {
             prior: prior

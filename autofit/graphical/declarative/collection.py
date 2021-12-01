@@ -1,5 +1,5 @@
+from autofit.graphical.declarative.factor.hierarchical import HierarchicalFactor
 from autofit.mapper.model import ModelInstance
-
 from autofit.tools.namer import namer
 from .abstract import AbstractDeclarativeFactor
 
@@ -92,4 +92,17 @@ class FactorGraphModel(AbstractDeclarativeFactor):
 
     @property
     def model_factors(self):
-        return self._model_factors
+        model_factors = list()
+        for model_factor in self._model_factors:
+            if isinstance(
+                    model_factor,
+                    HierarchicalFactor
+            ):
+                model_factors.extend(
+                    model_factor.factors
+                )
+            else:
+                model_factors.append(
+                    model_factor
+                )
+        return model_factors
