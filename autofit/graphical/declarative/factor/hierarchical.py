@@ -1,4 +1,4 @@
-from typing import Set, Optional, Type
+from typing import Set, Optional, Type, List
 
 from autofit.mapper.prior.abstract import Prior
 from autofit.mapper.prior_model.prior_model import PriorModel
@@ -14,6 +14,51 @@ class HierarchicalFactor(PriorModel):
             name: Optional[str] = None,
             **kwargs,
     ):
+        """
+        Associates variables in the graph with a distribution. That is,
+        the optimisation prefers instances of the variables which better
+        match the distribution. Both the distribution and variables sampled
+        from it are optimised during a factor optimisation. This allows
+        expectations from other factors to influence the optimisation of
+        the distribution and vice-versa.
+
+        Each HierarchicalFactor actually generates multiple factors - one
+        for each associated variables - as this avoids optimisation of a
+        high dimensionality factor.
+
+        Question: would it make sense to experiment with a hierarchical
+        factor that optimises all variables samples from a distribution
+        simultaneously?
+
+        Parameters
+        ----------
+        distribution
+            A distribution from which variables are drawn
+        optimiser
+            An optional optimiser for this factor
+        name
+            An optional name for this factor
+        kwargs
+            Constants or Priors passed to the distribution to parameterize
+            it. For example, a GaussianPrior requires mean and sigma arguments
+
+        Examples
+        --------
+        factor = g.HierarchicalFactor(
+            af.GaussianPrior,
+            mean=af.GaussianPrior(
+                mean=100,
+                sigma=10
+            ),
+            sigma=af.GaussianPrior(
+                mean=10,
+                sigma=5
+            )
+        )
+        factor.add_sampled_variable(
+            prior
+        )
+        """
         super().__init__(
             distribution,
             name=name,
@@ -26,6 +71,15 @@ class HierarchicalFactor(PriorModel):
             self,
             prior: Prior
     ):
+        """
+        Add a variable which is sampled from the distribution. This
+        is likely the attribute of a FactorModel in the graph.
+
+        Parameters
+        ----------
+        prior
+            A variable which is sampled from the distribution.
+        """
         self._factors.append(
             _HierarchicalFactor(
                 self,
@@ -34,7 +88,11 @@ class HierarchicalFactor(PriorModel):
         )
 
     @property
-    def factors(self):
+    def factors(self) -> List["_HierarchicalFactor"]:
+        """
+        One factor is generated for each variable sampled from the
+        distribution.
+        """
         return self._factors
 
 
