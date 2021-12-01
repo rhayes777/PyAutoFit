@@ -19,7 +19,7 @@ should_plot = False
     name="centre_model"
 )
 def make_centre_model():
-    return af.PriorModel(
+    return g.HierarchicalFactor(
         af.GaussianPrior,
         mean=af.GaussianPrior(
             mean=100,

@@ -43,6 +43,14 @@ def test_factors(
 ):
     assert len(hierarchical_factor.factors) == 1
 
+    hierarchical_factor.add_sampled_variable(
+        af.UniformPrior(
+            lower_limit=0.0,
+            upper_limit=1.0
+        )
+    )
+    assert len(hierarchical_factor.factors) == 2
+
 
 def test_factor(
         hierarchical_factor,
@@ -51,3 +59,20 @@ def test_factor(
     factor = hierarchical_factor.factors[0]
     assert factor.prior_model is hierarchical_factor
     assert factor.sample_prior is prior
+
+
+def test_graph(
+        hierarchical_factor
+):
+    graph = g.FactorGraphModel(
+        hierarchical_factor
+    )
+    assert len(graph.model_factors) == 1
+
+    hierarchical_factor.add_sampled_variable(
+        af.UniformPrior(
+            lower_limit=0.0,
+            upper_limit=1.0
+        )
+    )
+    assert len(graph.model_factors) == 2
