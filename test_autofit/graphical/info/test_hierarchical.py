@@ -69,9 +69,9 @@ def test_info_for_hierarchical_factor(
     print(info)
     assert info == """GaussianPrior
 
-mean (GaussianPrior, PriorFactor1)                                                        GaussianPrior, mean = 100, sigma = 10
-sigma (GaussianPrior, PriorFactor0)                                                       GaussianPrior, mean = 10, sigma = 5
-GaussianPrior (AnalysisFactor0.centre, PriorFactor7)                                      UniformPrior, lower_limit = 0.0, upper_limit = 1.0"""
+mean (GaussianPrior, PriorFactor2)                                                        GaussianPrior, mean = 100, sigma = 10
+sigma (GaussianPrior, PriorFactor1)                                                       GaussianPrior, mean = 10, sigma = 5
+GaussianPrior (AnalysisFactor0.centre, PriorFactor0)                                      UniformPrior, lower_limit = 0.0, upper_limit = 1.0"""
 
 
 def test_graph_info(
