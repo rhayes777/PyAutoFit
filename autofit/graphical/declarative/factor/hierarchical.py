@@ -78,7 +78,7 @@ class HierarchicalFactor(PriorModel):
     def prior_model(self):
         return self
 
-    def add_sampled_variable(
+    def add_drawn_variable(
             self,
             prior: Prior
     ):

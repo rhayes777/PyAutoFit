@@ -45,10 +45,10 @@ def make_hierarchical_factor(
         )
     )
 
-    hierarchical_factor.add_sampled_variable(
+    hierarchical_factor.add_drawn_variable(
         model_factor_1.centre
     )
-    hierarchical_factor.add_sampled_variable(
+    hierarchical_factor.add_drawn_variable(
         model_factor_2.centre
     )
     return hierarchical_factor

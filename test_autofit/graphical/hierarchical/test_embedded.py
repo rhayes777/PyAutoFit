@@ -44,7 +44,7 @@ def test_embedded_priors(
 def test_hierarchical_factor(
         centre_model
 ):
-    centre_model.add_sampled_variable(
+    centre_model.add_drawn_variable(
         af.GaussianPrior(100, 10)
     )
     factor = centre_model.factors[0]
@@ -150,7 +150,7 @@ def test_full_fit(centre_model, data, centres):
                 )
             )
         )
-        centre_model.add_sampled_variable(
+        centre_model.add_drawn_variable(
             prior_model.centre
         )
 

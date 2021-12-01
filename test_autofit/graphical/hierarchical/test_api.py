@@ -26,7 +26,7 @@ def make_hierarchical_factor(prior):
             sigma=5
         )
     )
-    factor.add_sampled_variable(
+    factor.add_drawn_variable(
         prior
     )
     return factor
@@ -43,7 +43,7 @@ def test_factors(
 ):
     assert len(hierarchical_factor.factors) == 1
 
-    hierarchical_factor.add_sampled_variable(
+    hierarchical_factor.add_drawn_variable(
         af.UniformPrior(
             lower_limit=0.0,
             upper_limit=1.0
@@ -69,7 +69,7 @@ def test_graph(
     )
     assert len(graph.model_factors) == 1
 
-    hierarchical_factor.add_sampled_variable(
+    hierarchical_factor.add_drawn_variable(
         af.UniformPrior(
             lower_limit=0.0,
             upper_limit=1.0
