@@ -14,7 +14,7 @@ def make_factor(
 
 def test_optimise(factor):
     optimizer = af.DynestyStatic(
-        maxcall=10
+        maxcall=100
     )
 
     _, status = optimizer.optimise(
