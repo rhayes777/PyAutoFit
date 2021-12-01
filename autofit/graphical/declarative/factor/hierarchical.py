@@ -1,6 +1,7 @@
 from typing import Set, Optional, Type, List
 
 from autofit.mapper.prior.abstract import Prior
+from autofit.mapper.prior_model.collection import CollectionPriorModel
 from autofit.mapper.prior_model.prior_model import PriorModel
 from autofit.messages.abstract import AbstractMessage
 from autofit.tools.namer import namer
@@ -111,7 +112,7 @@ class _HierarchicalFactor(AbstractModelFactor):
     def __init__(
             self,
             distribution_model: HierarchicalFactor,
-            sample_prior: Prior,
+            drawn_prior: Prior,
     ):
         """
         A factor that links a variable to a parameterised distribution.
@@ -121,11 +122,11 @@ class _HierarchicalFactor(AbstractModelFactor):
         distribution_model
             A prior model which parameterizes a distribution from which it
             is assumed the variable is drawn
-        sample_prior
+        drawn_prior
             A prior representing a variable which was drawn from the distribution
         """
         self.distribution_model = distribution_model
-        self.sample_prior = sample_prior
+        self.drawn_prior = drawn_prior
 
         def _factor(
                 **kwargs
@@ -153,10 +154,13 @@ class _HierarchicalFactor(AbstractModelFactor):
 
         prior_variable_dict[
             "argument"
-        ] = sample_prior
+        ] = drawn_prior
 
         super().__init__(
-            prior_model=distribution_model,
+            prior_model=CollectionPriorModel(
+                distribution_model=distribution_model,
+                drawn_prior=drawn_prior
+            ),
             factor=_factor,
             optimiser=distribution_model.optimiser,
             prior_variable_dict=prior_variable_dict,
@@ -165,10 +169,12 @@ class _HierarchicalFactor(AbstractModelFactor):
 
     @property
     def variable(self):
-        return self.sample_prior
+        return self.drawn_prior
 
     def log_likelihood_function(self, instance):
-        return instance
+        return instance.distribution_model(
+            instance.drawn_prior
+        )
 
     @property
     def priors(self) -> Set[Prior]:
@@ -179,6 +185,10 @@ class _HierarchicalFactor(AbstractModelFactor):
         """
         priors = super().priors
         priors.add(
-            self.sample_prior
+            self.drawn_prior
         )
         return priors
+
+    @property
+    def analysis(self):
+        return self

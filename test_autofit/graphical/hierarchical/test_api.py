@@ -27,8 +27,8 @@ def test_factor(
         prior
 ):
     factor = hierarchical_factor.factors[0]
-    assert factor.prior_model is hierarchical_factor
-    assert factor.sample_prior is prior
+    assert factor.distribution_model is hierarchical_factor
+    assert factor.drawn_prior is prior
 
 
 def test_graph(
