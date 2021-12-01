@@ -19,27 +19,23 @@ class HierarchicalFactor(PriorModel):
             name=name,
             **kwargs
         )
-        self.sampled_variables = list()
+        self._factors = list()
         self.optimiser = optimiser
 
     def add_sampled_variable(
             self,
             prior: Prior
     ):
-        self.sampled_variables.append(
-            prior
-        )
-
-    @property
-    def factors(self):
-        return [
+        self._factors.append(
             _HierarchicalFactor(
                 self,
                 prior
             )
-            for prior
-            in self.sampled_variables
-        ]
+        )
+
+    @property
+    def factors(self):
+        return self._factors
 
 
 class _HierarchicalFactor(AbstractModelFactor):

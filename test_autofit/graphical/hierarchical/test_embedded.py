@@ -44,10 +44,10 @@ def test_embedded_priors(
 def test_hierarchical_factor(
         centre_model
 ):
-    factor = g._HierarchicalFactor(
-        centre_model,
+    centre_model.add_sampled_variable(
         af.GaussianPrior(100, 10)
     )
+    factor = centre_model.factors[0]
 
     assert len(factor.priors) == 3
 
@@ -132,13 +132,12 @@ def test_model_factor(
 def test_full_fit(centre_model, data, centres):
     graph = g.FactorGraphModel()
     for i, y in enumerate(data):
-        centre_argument = af.GaussianPrior(
-            mean=100,
-            sigma=20
-        )
         prior_model = af.PriorModel(
             Gaussian,
-            centre=centre_argument,
+            centre=af.GaussianPrior(
+                mean=100,
+                sigma=20
+            ),
             intensity=20,
             sigma=5
         )
@@ -151,12 +150,11 @@ def test_full_fit(centre_model, data, centres):
                 )
             )
         )
-        graph.add(
-            g._HierarchicalFactor(
-                centre_model,
-                centre_argument
-            )
+        centre_model.add_sampled_variable(
+            prior_model.centre
         )
+
+    graph.add(centre_model)
 
     laplace = g.LaplaceFactorOptimiser()
 
