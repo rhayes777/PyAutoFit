@@ -83,7 +83,7 @@ class HierarchicalFactor(PriorModel):
             prior: Prior
     ):
         """
-        Add a variable which is sampled from the distribution. This
+        Add a variable which is drawn from the distribution. This
         is likely the attribute of a FactorModel in the graph.
 
         Parameters

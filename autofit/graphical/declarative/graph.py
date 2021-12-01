@@ -55,6 +55,10 @@ class DeclarativeGraphFormatter(ABC):
             excluded_factor: Optional[Factor] = None
     ) -> str:
         """
+        Create a comma separated string describing factor names associated with
+        the variable.
+
+        Hierarchical factors are grouped.
 
         Parameters
         ----------
