@@ -55,6 +55,10 @@ class DeclarativeGraphFormatter(ABC):
             excluded_factor: Optional[Factor] = None
     ) -> str:
         """
+        Create a comma separated string describing factor names associated with
+        the variable.
+
+        Hierarchical factors are grouped.
 
         Parameters
         ----------
@@ -68,15 +72,31 @@ class DeclarativeGraphFormatter(ABC):
         -------
         A string describing the other factor's relationship to the variable.
         """
+        from autofit.graphical.declarative.factor.hierarchical import _HierarchicalFactor
+
         related_factors = self.graph.related_factors(
             variable,
             excluded_factor=excluded_factor
         )
 
-        return ", ".join(
-            factor.name_for_variable(variable)
-            for factor in related_factors
-        )
+        names = set()
+
+        for factor in related_factors:
+            if isinstance(
+                    factor,
+                    _HierarchicalFactor
+            ):
+                names.add(
+                    factor.distribution_model.name
+                )
+            else:
+                names.add(
+                    factor.name_for_variable(
+                        variable
+                    )
+                )
+
+        return ", ".join(sorted(names))
 
     def info_for_prior_factor(
             self,
@@ -118,7 +138,9 @@ class DeclarativeGraphFormatter(ABC):
                 prior,
                 excluded_factor=analysis_factor
             )
-            path = path[:-1] + (f"{name} ({related_factor_names})",)
+            if len(related_factor_names) > 0:
+                name = f"{name} ({related_factor_names})"
+            path = path[:-1] + (name,)
             formatter.add(
                 path,
                 self.variable_formatter(
@@ -136,20 +158,21 @@ class DeclarativeGraphFormatter(ABC):
             hierarchical_factor
         )
 
-        related_factor_names = self._related_factor_names(
-            variable=hierarchical_factor.sample_prior,
-            excluded_factor=hierarchical_factor
-        )
-
         formatter = TextFormatter()
-        formatter.add(
-            (f"{hierarchical_factor.name} ({related_factor_names})",),
-            self.variable_formatter(
-                hierarchical_factor.sample_prior
-            )
-        )
 
-        return f"{distribution_model_info}\n{formatter.text}"
+        for factor in hierarchical_factor.factors:
+            related_factor_names = self._related_factor_names(
+                variable=factor.variable,
+                excluded_factor=factor
+            )
+            formatter.add(
+                (related_factor_names,),
+                self.variable_formatter(
+                    factor.variable
+                )
+            )
+
+        return f"{distribution_model_info}\n\nDrawn Variables\n\n{formatter.text}"
 
 
 class GraphInfoFormatter(DeclarativeGraphFormatter):
@@ -231,12 +254,20 @@ class DeclarativeFactorGraph(FactorGraph):
         Prior factors associated with this graph.
         """
         from autofit.graphical.declarative.factor.hierarchical import _HierarchicalFactor
-        return cast(
-            List[_HierarchicalFactor],
-            self._factors_with_type(
+
+        hierarchical_factor_set = set()
+
+        for factor in self._factors_with_type(
                 _HierarchicalFactor
+        ):
+            hierarchical_factor_set.add(
+                cast(
+                    _HierarchicalFactor,
+                    factor
+                ).distribution_model
             )
-        )
+
+        return sorted(hierarchical_factor_set)
 
     @property
     def info(self) -> str:
