@@ -27,4 +27,6 @@ def test_optimise(factor):
 def test_instance(factor):
     prior_model = factor.prior_model
     assert len(prior_model.priors) == 3
-    _ = factor.prior_model.instance_from_prior_medians()
+    assert factor.log_likelihood_function(
+        prior_model.instance_from_prior_medians()
+    ) == -3.2215236261987186

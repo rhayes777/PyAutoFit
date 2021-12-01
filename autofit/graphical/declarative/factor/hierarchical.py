@@ -174,7 +174,7 @@ class _HierarchicalFactor(AbstractModelFactor):
     def log_likelihood_function(self, instance):
         return instance.distribution_model(
             instance.drawn_prior
-        )
+        )[0]
 
     @property
     def priors(self) -> Set[Prior]:
