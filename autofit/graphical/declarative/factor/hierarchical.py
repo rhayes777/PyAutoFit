@@ -1,9 +1,11 @@
 from typing import Set, Optional, Type, List
 
+from autofit.mapper.model import ModelInstance
 from autofit.mapper.prior.abstract import Prior
 from autofit.mapper.prior_model.collection import CollectionPriorModel
 from autofit.mapper.prior_model.prior_model import PriorModel
 from autofit.messages.abstract import AbstractMessage
+from autofit.non_linear.paths.abstract import AbstractPaths
 from autofit.tools.namer import namer
 from .abstract import AbstractModelFactor
 
@@ -192,3 +194,11 @@ class _HierarchicalFactor(AbstractModelFactor):
     @property
     def analysis(self):
         return self
+
+    def visualize(
+            self,
+            paths: AbstractPaths,
+            instance: ModelInstance,
+            during_analysis: bool
+    ):
+        pass
