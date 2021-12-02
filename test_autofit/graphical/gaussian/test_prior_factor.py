@@ -39,7 +39,7 @@ def test_log_likelihood_function(
     instance = prior_factor.prior_model.instance_from_prior_medians()
     assert prior_factor.log_likelihood_function(
         instance
-    ) == -pytest.approx(0.9189385332046727, 1.0e-8)
+    ) == pytest.approx(-0.9189385332046727, 1.0e-8)
 
 
 def test_optimise(model, prior):
