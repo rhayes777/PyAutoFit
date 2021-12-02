@@ -270,6 +270,11 @@ class AbstractPriorModel(AbstractModel):
                 f"No configuration was found for some attributes ({', '.join(names)})"
             )
 
+        if self.prior_count != len(unit_vector):
+            raise AssertionError(
+                f"prior_count ({self.prior_count}) != len(unit_vector) {len(unit_vector)}"
+            )
+
         arguments = dict(
             map(
                 lambda prior_tuple, unit: (

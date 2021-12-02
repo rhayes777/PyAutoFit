@@ -169,7 +169,7 @@ class CollectionPriorModel(AbstractPriorModel):
         for key, value in self.__dict__.items():
             if isinstance(value, AbstractPriorModel):
                 value = value.instance_for_arguments(arguments)
-            if isinstance(value, Prior):
+            elif isinstance(value, Prior):
                 value = arguments[value]
             setattr(result, key, value)
         return result

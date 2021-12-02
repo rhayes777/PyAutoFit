@@ -15,7 +15,7 @@ from sqlalchemy.orm import Session
 
 from autoconf import conf
 from autofit import exc
-from autofit.graphical import EPMeanField, MeanField, Factor, AnalysisFactor
+from autofit.graphical import EPMeanField, MeanField, Factor, AnalysisFactor, _HierarchicalFactor
 from autofit.graphical.utils import Status
 from autofit.non_linear.initializer import Initializer
 from autofit.non_linear.parallel import SneakyPool
@@ -250,7 +250,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         _ = status
         if not isinstance(
                 factor,
-                (AnalysisFactor, PriorFactor)
+                (AnalysisFactor, PriorFactor, _HierarchicalFactor)
         ):
             raise NotImplementedError(
                 f"Optimizer {self.__class__.__name__} can only be applied to AnalysisFactors and PriorFactors"
