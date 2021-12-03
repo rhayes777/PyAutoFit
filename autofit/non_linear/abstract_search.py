@@ -7,8 +7,7 @@ from abc import ABC, abstractmethod
 from collections import Counter
 from functools import wraps
 from os import path
-from typing import Optional, Union
-from typing import Tuple, List
+from typing import Optional, Union, Tuple, List
 
 import numpy as np
 from sqlalchemy.orm import Session

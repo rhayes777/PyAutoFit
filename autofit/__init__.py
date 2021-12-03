@@ -71,6 +71,7 @@ from .non_linear.paths import DirectoryPaths
 from .non_linear.paths import DatabasePaths
 from .non_linear.result import Result
 from .non_linear.result import ResultsCollection
+from .non_linear.settings import SettingsSearch
 from .mock.mock import Gaussian
 from .text import formatter
 from .text import samples_text
