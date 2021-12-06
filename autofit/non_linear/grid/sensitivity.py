@@ -54,6 +54,7 @@ class Job(AbstractJob):
             analysis: Analysis,
             model: AbstractPriorModel,
             perturbation_model: AbstractPriorModel,
+            perturbation_instance:ModelInstance,
             search: NonLinearSearch,
             number: int,
     ):
@@ -80,6 +81,7 @@ class Job(AbstractJob):
         self.model = model
 
         self.perturbation_model = perturbation_model
+        self.perturbation_instance = perturbation_instance
 
         self.search = search.copy_with_paths(
             search.paths.for_sub_analysis(
@@ -108,6 +110,8 @@ class Job(AbstractJob):
 
         perturbed_model = copy(self.model)
         perturbed_model.perturbation = self.perturbation_model
+
+        perturbed_model.perturbation = self.perturbation_instance
 
         perturbed_result = self.perturbed_search.fit(
             model=perturbed_model,
@@ -162,20 +166,20 @@ class Sensitivity:
 
         Parameters
         ----------
-        simulation_instance
-            An instance of a model to which perturbations are applied prior to
-            images being generated
         base_model
             A model that fits the instance well
-        search
-            A NonLinear search class which is copied and used to evaluate fitness
-        analysis_class
-            A class which can compare an image to an instance and evaluate fitness
         perturbation_model
             A model which provides a perturbations to be applied to the instance
             before creating images
+        simulation_instance
+            An instance of a model to which perturbations are applied prior to
+            images being generated
         simulate_function
             A function that can convert an instance into an image
+        analysis_class
+            A class which can compare an image to an instance and evaluate fitness
+        search
+            A NonLinear search class which is copied and used to evaluate fitness
         number_of_cores
             How many cores does this computer have? Minimum 2.
         """
@@ -382,6 +386,7 @@ class Sensitivity:
         ):
             instance = copy(self.instance)
             instance.perturbation = perturbation_instance
+
             dataset = self.simulate_function(
                 instance
             )
@@ -391,6 +396,7 @@ class Sensitivity:
                 ),
                 model=self.model,
                 perturbation_model=self.perturbation_model,
+                perturbation_instance=perturbation_instance,
                 search=search,
                 number=number
             )
