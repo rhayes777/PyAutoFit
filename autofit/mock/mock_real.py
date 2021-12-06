@@ -76,8 +76,8 @@ class MassProfile:
     def potential_2d_from(self, grid):
         pass
 
-    def deflections_2d_from(self, grid):
-        raise NotImplementedError("deflections_2d_from should be overridden")
+    def deflections_yx_2d_from(self, grid):
+        raise NotImplementedError("deflections_yx_2d_from should be overridden")
 
 
 # noinspection PyAbstractClass
