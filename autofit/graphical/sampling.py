@@ -92,7 +92,6 @@ class AbstractSampler(AbstractFactorOptimiser):
             self,
             factor: Factor,
             model_approx: EPMeanField,
-            name: Optional[str] = None,
             status: Status = Status(),
     ) -> Tuple[EPMeanField, Status]:
         delta = self.deltas[factor]

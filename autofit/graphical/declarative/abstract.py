@@ -6,7 +6,6 @@ from autofit.graphical.declarative.graph import DeclarativeFactorGraph
 from autofit.graphical.expectation_propagation import AbstractFactorOptimiser
 from autofit.graphical.expectation_propagation import EPMeanField
 from autofit.graphical.expectation_propagation import EPOptimiser
-from autofit.mapper.identifier import Identifier
 from autofit.mapper.model import ModelInstance
 from autofit.mapper.prior.abstract import Prior
 from autofit.mapper.prior_model.collection import CollectionPriorModel
@@ -95,11 +94,9 @@ class AbstractDeclarativeFactor(Analysis, ABC):
     def _make_ep_optimiser(
             self,
             optimiser: AbstractFactorOptimiser,
-            name=None,
     ) -> EPOptimiser:
         return EPOptimiser(
             self.graph,
-            name=name or str(Identifier(self)),
             default_optimiser=optimiser,
             factor_optimisers={
                 factor: factor.optimiser
@@ -131,8 +128,7 @@ class AbstractDeclarativeFactor(Analysis, ABC):
         A collection of prior models
         """
         opt = self._make_ep_optimiser(
-            optimiser,
-            name=name
+            optimiser
         )
         updated_model = opt.run(
             self.mean_field_approximation(),

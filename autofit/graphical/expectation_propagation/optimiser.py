@@ -33,7 +33,6 @@ class AbstractFactorOptimiser(ABC):
             self,
             factor: Factor,
             model_approx: EPMeanField,
-            name: str = None,
             status: Status = Status()
     ) -> Tuple[EPMeanField, Status]:
         pass
@@ -87,7 +86,6 @@ class EPOptimiser:
     def __init__(
             self,
             factor_graph: FactorGraph,
-            name: Optional[str] = None,
             default_optimiser: Optional[AbstractFactorOptimiser] = None,
             factor_optimisers: Optional[Dict[Factor, AbstractFactorOptimiser]] = None,
             ep_history: Optional[EPHistory] = None,
@@ -105,8 +103,6 @@ class EPOptimiser:
         ----------
         factor_graph
             A graph describing the relationships between multiple factors
-        name
-            A name that is used to distinguish this optimisation from others.
         default_optimiser
             An optimiser that is used if no specific optimiser is provided for a factor
         factor_optimisers
@@ -140,7 +136,6 @@ class EPOptimiser:
             }
 
         self.ep_history = ep_history or EPHistory()
-        self.name = name or str(Identifier(name))
 
         with open(self.output_path / "graph.info", "w+") as f:
             f.write(self.factor_graph.info)
@@ -164,7 +159,7 @@ class EPOptimiser:
             self.default_optimiser.paths.is_identifier_in_paths = False
             path = Path(self.default_optimiser.paths.output_path)
         else:
-            path = Path(conf.instance.output_path) / self.name
+            path = Path(conf.instance.output_path) / str(Identifier(self.factor_graph))
         os.makedirs(path, exist_ok=True)
         return path
 
@@ -236,7 +231,6 @@ class EPOptimiser:
                     model_approx, status = optimiser.optimise(
                         factor,
                         model_approx,
-                        name=self.name
                     )
                 except (ValueError, ArithmeticError, RuntimeError) as e:
                     logger.exception(e)
