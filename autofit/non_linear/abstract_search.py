@@ -276,6 +276,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             parent=self.paths,
             analysis_name=f"{name}/optimization_{number}"
         )
+        print(self.paths.output_path)
 
         result = self.fit(
             model=model,
