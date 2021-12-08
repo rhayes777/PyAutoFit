@@ -266,15 +266,14 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         analysis = factor.analysis
 
-        name = f"{name}/{factor.name}"
+        number = self.optimisation_counter[factor.name]
 
-        number = self.optimisation_counter[name]
-
-        self.optimisation_counter[name] += 1
+        self.optimisation_counter[factor.name] += 1
 
         self.paths = SubDirectoryPaths(
             parent=self.paths,
-            analysis_name=f"{name}/optimization_{number}"
+            analysis_name=f"{factor.name}/optimization_{number}",
+            is_flat=True,
         )
         print(self.paths.output_path)
 

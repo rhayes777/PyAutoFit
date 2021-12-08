@@ -35,3 +35,20 @@ def test_database(session):
     assert subdirectory_path.output_path == str(Path(
         paths.output_path
     ) / "name")
+
+
+def test_is_flat():
+    paths = af.DirectoryPaths()
+    subdirectory_path = SubDirectoryPaths(
+        parent=paths,
+        analysis_name="name",
+        is_flat=True
+    )
+    assert subdirectory_path.parent is paths
+
+    subdirectory_path = SubDirectoryPaths(
+        parent=subdirectory_path,
+        analysis_name="name",
+        is_flat=True,
+    )
+    assert subdirectory_path.parent is paths

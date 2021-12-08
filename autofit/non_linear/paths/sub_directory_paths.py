@@ -1,4 +1,5 @@
 from abc import ABC
+from typing import cast
 
 from autofit.non_linear.paths.abstract import AbstractPaths
 from autofit.non_linear.paths.database import DatabasePaths
@@ -13,6 +14,7 @@ class SubDirectoryPaths(ABC):
             cls,
             parent,
             analysis_name,
+            is_flat=False,
     ):
         if isinstance(
                 parent,
@@ -38,10 +40,17 @@ class SubDirectoryPathsDirectory(
             self,
             analysis_name,
             parent,
+            is_flat=False,
     ):
         self.analysis_name = analysis_name
         super().__init__()
-        self.parent = parent
+        if is_flat and isinstance(
+                parent,
+                SubDirectoryPaths
+        ):
+            self.parent = parent.parent
+        else:
+            self.parent = parent
 
     @property
     def output_path(self) -> str:
@@ -60,12 +69,22 @@ class SubDirectoryPathsDatabase(
             self,
             analysis_name,
             parent: DatabasePaths,
+            is_flat=False,
     ):
         self.analysis_name = analysis_name
         super().__init__(
             parent.session
         )
-        self.parent = parent
+        if is_flat and isinstance(
+                parent,
+                SubDirectoryPaths
+        ):
+            self.parent = cast(
+                DatabasePaths,
+                parent.parent
+            )
+        else:
+            self.parent = parent
 
     @property
     def output_path(self) -> str:
