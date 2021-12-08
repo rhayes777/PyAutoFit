@@ -692,9 +692,10 @@ class AbstractPriorModel(AbstractModel):
                     for key, value in instance.items()
                 }
             )
-        elif isinstance(instance, np.ndarray):
-            return instance
-        elif isinstance(instance, types.FunctionType):
+        elif isinstance(
+                instance,
+                (np.ndarray, types.FunctionType)
+        ):
             return instance
         else:
             from .prior_model import PriorModel
