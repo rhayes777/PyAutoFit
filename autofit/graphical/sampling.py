@@ -5,15 +5,9 @@ from typing import NamedTuple, Tuple, Dict, Optional, List
 
 import numpy as np
 
-from autofit.graphical.expectation_propagation import \
-    (
-    EPMeanField, AbstractFactorOptimiser
-)
+from autofit.graphical.expectation_propagation import EPMeanField, AbstractFactorOptimiser
 from autofit.graphical.factor_graphs import Factor
-from autofit.graphical.mean_field import \
-    (
-    MeanField, FactorApproximation, Status
-)
+from autofit.graphical.mean_field import MeanField, FactorApproximation, Status
 from autofit.graphical.utils import add_arrays
 from autofit.messages.abstract import AbstractMessage, map_dists
 

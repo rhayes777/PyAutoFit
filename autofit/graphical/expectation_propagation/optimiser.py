@@ -120,6 +120,7 @@ class EPOptimiser:
         factor_optimisers = factor_optimisers or {}
         self.factor_graph = factor_graph
         self.factors = factor_order or self.factor_graph.factors
+        self.default_optimiser = default_optimiser
 
         if default_optimiser is None:
             self.factor_optimisers = factor_optimisers
@@ -156,7 +157,14 @@ class EPOptimiser:
 
         If the path does not exist it is created.
         """
-        path = Path(conf.instance.output_path) / self.name
+        if hasattr(
+                self.default_optimiser,
+                "paths"
+        ):
+            self.default_optimiser.paths.is_identifier_in_paths = False
+            path = Path(self.default_optimiser.paths.output_path)
+        else:
+            path = Path(conf.instance.output_path) / self.name
         os.makedirs(path, exist_ok=True)
         return path
 
