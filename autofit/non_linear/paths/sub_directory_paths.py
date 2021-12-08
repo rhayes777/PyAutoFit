@@ -16,6 +16,9 @@ class SubDirectoryPaths(ABC):
             analysis_name=None,
             is_flat=False,
     ):
+        """
+        Determine which kind of sub-directory paths to generate
+        """
         if isinstance(
                 parent,
                 DatabasePaths
@@ -38,10 +41,24 @@ class SubDirectoryPathsDirectory(
 ):
     def __init__(
             self,
-            parent,
-            analysis_name,
+            parent: DirectoryPaths,
+            analysis_name: str,
             is_flat=False,
     ):
+        """
+        Paths for a child directory for a search which generates multiple searches
+        such as in sensitivity mapping or graphical modelling
+
+        Parameters
+        ----------
+        parent
+            A paths object for the original search
+        analysis_name
+            The name of the analysis (used to generate a directory name)
+        is_flat
+            If true then any children generated retain the top level parent
+            rather than recursively taking a sub-directory parent.
+        """
         self.analysis_name = analysis_name
         super().__init__()
         if is_flat and isinstance(
@@ -68,9 +85,24 @@ class SubDirectoryPathsDatabase(
     def __init__(
             self,
             parent: DatabasePaths,
-            analysis_name,
+            analysis_name: str,
             is_flat=False,
     ):
+        """
+        Paths for a child directory for a search which generates multiple searches
+        such as in sensitivity mapping or graphical modelling. Uses database to save
+        most output data.
+
+        Parameters
+        ----------
+        parent
+            A paths object for the original search
+        analysis_name
+            The name of the analysis (used to generate a directory name)
+        is_flat
+            If true then any children generated retain the top level parent
+            rather than recursively taking a sub-directory parent.
+        """
         self.analysis_name = analysis_name
         super().__init__(
             parent.session
