@@ -3,7 +3,7 @@ import logging
 from copy import copy
 from itertools import count
 from pathlib import Path
-from typing import List, Generator, Callable, Optional, Type, Union, Tuple
+from typing import List, Generator, Callable, ClassVar, Optional, Type, Union, Tuple
 
 from autofit.mapper.model import ModelInstance
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
@@ -13,20 +13,6 @@ from autofit.non_linear.grid.grid_search import make_lists
 from autofit.non_linear.parallel import AbstractJob, Process, AbstractJobResult
 from autofit.non_linear.result import Result
 
-
-def default_base_model_func(job):
-    
-    return job.search.fit(
-            model=job.model,
-            analysis=job.analysis
-        )
-
-
-def default_perturbation_model_func(job, perturbed_model):
-    return job.perturbed_search.fit(
-            model=perturbed_model,
-            analysis=job.analysis
-        )
 
 
 class JobResult(AbstractJobResult):
@@ -64,14 +50,15 @@ class JobResult(AbstractJobResult):
 class Job(AbstractJob):
     _number = count()
 
+    use_instance = False
+
     def __init__(
             self,
             analysis: Analysis,
             model: AbstractPriorModel,
             perturbation_model: AbstractPriorModel,
+            base_instance:ModelInstance,
             perturbation_instance:ModelInstance,
-            base_model_func: Callable,
-            perturbation_model_func: Callable,
             search: NonLinearSearch,
             number: int,
     ):
@@ -98,10 +85,8 @@ class Job(AbstractJob):
         self.model = model
 
         self.perturbation_model = perturbation_model
+        self.base_instance = base_instance
         self.perturbation_instance = perturbation_instance
-
-        self.base_model_func = base_model_func or default_base_model_func
-        self.perturbation_model_func = perturbation_model_func or default_perturbation_model_func
 
         self.search = search.copy_with_paths(
             search.paths.for_sub_analysis(
@@ -123,17 +108,33 @@ class Job(AbstractJob):
         -------
         An object comprising the results of the two fits
         """
-        result = self.base_model_func(job=self)
+        result = self.base_model_func()
 
         perturbed_model = copy(self.model)
         perturbed_model.perturbation = self.perturbation_model
-        perturbed_model.perturbation = self.perturbation_instance
 
-        perturbed_result = self.perturbation_model_func(job=self, perturbed_model=perturbed_model)
+        # TODO : This is what I added so that the Drawer runs use the correct subhalo model.
+
+        if self.use_instance:
+            perturbed_model.perturbation = self.perturbation_instance
+
+        perturbed_result = self.perturbation_model_func(perturbed_model=perturbed_model)
         return JobResult(
             number=self.number,
             result=result,
             perturbed_result=perturbed_result
+        )
+
+    def base_model_func(self):
+        return self.search.fit(
+            model=self.model,
+            analysis=self.analysis
+        )
+
+    def perturbation_model_func(self, perturbed_model):
+        return self.perturbed_search.fit(
+            model=perturbed_model,
+            analysis=self.analysis
         )
 
 
@@ -162,10 +163,9 @@ class Sensitivity:
             simulate_function: Callable,
             analysis_class: Type[Analysis],
             search: NonLinearSearch,
+            job_cls : ClassVar=Job,
             number_of_steps: Union[Tuple[int], int] = 4,
             number_of_cores: int = 2,
-            base_model_func: Optional[Callable] = None,
-            perturbation_model_func: Optional[Callable] = None,
     ):
         """
         Perform sensitivity mapping to evaluate whether a perturbation
@@ -210,13 +210,13 @@ class Sensitivity:
         self.search = search
         self.analysis_class = analysis_class
 
-        self.number_of_steps = number_of_steps
         self.perturbation_model = perturbation_model
         self.simulate_function = simulate_function
-        self.number_of_cores = number_of_cores or 2
 
-        self.base_model_func = base_model_func
-        self.perturbation_model_func = perturbation_model_func
+        self.job_cls = job_cls
+
+        self.number_of_steps = number_of_steps
+        self.number_of_cores = number_of_cores or 2
 
     @property
     def step_size(self):
@@ -408,15 +408,14 @@ class Sensitivity:
             dataset = self.simulate_function(
                 instance
             )
-            yield Job(
+            yield self.job_cls(
                 analysis=self.analysis_class(
                     dataset
                 ),
                 model=self.model,
                 perturbation_model=self.perturbation_model,
+                base_instance=self.instance,
                 perturbation_instance=perturbation_instance,
-                base_model_func=self.base_model_func,
-                perturbation_model_func=self.perturbation_model_func,
                 search=search,
                 number=number
             )
