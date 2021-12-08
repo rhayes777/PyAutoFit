@@ -52,3 +52,9 @@ def test_direct_instances_only():
 
     new_model = model.gaussian_prior_model_for_arguments({})
     assert not hasattr(new_model, "constant")
+
+
+def test_function_from_instance():
+    assert af.PriorModel.from_instance(
+        test_function_from_instance
+    ) is test_function_from_instance
