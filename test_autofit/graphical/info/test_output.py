@@ -35,7 +35,9 @@ def _run_optimisation(
         factor_graph_model,
         search=None
 ):
-    search = search or MockSearch()
+    search = search or MockSearch(
+        name="name"
+    )
     factor_graph_model.optimise(
         search,
         max_steps=MAX_STEPS,
