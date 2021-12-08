@@ -263,13 +263,14 @@ class DirectoryPaths(AbstractPaths):
     def for_sub_analysis(
             self,
             analysis_name: str
-    ) -> "SubDirectoryPaths":
+    ):
         """
         Paths for an analysis which is a child of another analysis.
 
         The analysis name forms a new directory on the end of the original
         analysis output path.
         """
+        from .sub_directory_paths import SubDirectoryPaths
         return SubDirectoryPaths(
             parent=self,
             analysis_name=analysis_name
@@ -375,4 +376,3 @@ class DirectoryPaths(AbstractPaths):
                 self.identifier
             )
         return path_
-

@@ -38,8 +38,8 @@ class SubDirectoryPathsDirectory(
 ):
     def __init__(
             self,
-            analysis_name,
             parent,
+            analysis_name,
             is_flat=False,
     ):
         self.analysis_name = analysis_name
@@ -67,8 +67,8 @@ class SubDirectoryPathsDatabase(
 ):
     def __init__(
             self,
-            analysis_name,
             parent: DatabasePaths,
+            analysis_name,
             is_flat=False,
     ):
         self.analysis_name = analysis_name
