@@ -166,13 +166,13 @@ class Process(multiprocessing.Process):
 
         logger.debug("Starting processes")
 
-        count = 0
+        process_count = 0
 
-        while count < total:
+        while process_count < total:
             for process in processes:
                 while not process.queue.empty():
                     result = process.queue.get()
-                    count += 1
+                    process_count += 1
                     yield result
 
         job_queue.close()

@@ -7,7 +7,7 @@ import autofit as af
 from autoconf.conf import with_config
 from autofit.non_linear.analysis.multiprocessing import AnalysisPool
 from autofit.non_linear.paths.abstract import AbstractPaths
-from autofit.non_linear.paths.directory import SubDirectoryPaths
+from autofit.non_linear.paths.sub_directory_paths import SubDirectoryPaths
 
 
 class Analysis(af.Analysis):

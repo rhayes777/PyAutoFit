@@ -609,7 +609,7 @@ class AbstractPriorModel(AbstractModel):
             A list of physical values
         """
         return self.instance_from_unit_vector(
-            unit_vector=[0.5] * len(self.prior_tuples)
+            unit_vector=[0.5] * self.prior_count
         )
 
     def log_prior_list_from_vector(

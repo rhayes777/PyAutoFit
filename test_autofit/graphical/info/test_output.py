@@ -1,4 +1,5 @@
 import autofit as af
+from autofit import graphical as g
 from autoconf.conf import with_config
 
 MAX_STEPS = 3
@@ -21,20 +22,24 @@ class MockSearch(af.MockSearch):
             analysis,
             info=None,
             pickle_files=None,
-            log_likelihood_cap=None
+            log_likelihood_cap=None,
     ):
         super().fit(
             model,
-            analysis,
+            analysis
         )
         return MockResult(model)
 
 
 def _run_optimisation(
-        factor_graph_model
+        factor_graph_model,
+        search=None
 ):
+    search = search or MockSearch(
+        name="name"
+    )
     factor_graph_model.optimise(
-        MockSearch(),
+        search,
         max_steps=MAX_STEPS,
         name="name",
         log_interval=1,
@@ -79,3 +84,32 @@ def test_default_output(
     _run_optimisation(factor_graph_model)
     assert (output_directory / "name/AnalysisFactor0").exists()
     assert (output_directory / "name/AnalysisFactor1").exists()
+
+
+@with_config(
+    "general",
+    "output",
+    "remove_files",
+    value=False
+)
+def test_path_prefix(
+        output_directory,
+        factor_graph_model
+):
+    search = MockSearch(
+        path_prefix="path_prefix",
+        name="name"
+    )
+    optimiser = g.EPOptimiser(
+        factor_graph=factor_graph_model.graph,
+        default_optimiser=search
+    )
+
+    assert optimiser.output_path == output_directory / "path_prefix/name"
+
+    _run_optimisation(
+        factor_graph_model,
+        search
+    )
+    assert (output_directory / "path_prefix/name/AnalysisFactor0").exists()
+    assert (output_directory / "path_prefix/name/AnalysisFactor1").exists()

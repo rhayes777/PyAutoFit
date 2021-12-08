@@ -20,6 +20,7 @@ from autofit.non_linear.initializer import Initializer
 from autofit.non_linear.parallel import SneakyPool
 from autofit.non_linear.paths.abstract import AbstractPaths
 from autofit.non_linear.paths.directory import DirectoryPaths
+from autofit.non_linear.paths.sub_directory_paths import SubDirectoryPaths
 from autofit.non_linear.result import Result
 from autofit.non_linear.timer import Timer
 from .analysis import Analysis
@@ -207,7 +208,6 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             self,
             factor: Factor,
             model_approx: EPMeanField,
-            name: Optional[str] = None,
             status: Optional[Status] = None
     ) -> Tuple[EPMeanField, Status]:
         """
@@ -231,8 +231,6 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         Parameters
         ----------
-        name
-            An optional name for the overall MP Optimisation
         factor
             A factor comprising a model and an analysis
         model_approx
@@ -265,16 +263,15 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         analysis = factor.analysis
 
-        if name is None:
-            name = factor.name
-        else:
-            name = f"{name}/{factor.name}"
+        number = self.optimisation_counter[factor.name]
 
-        number = self.optimisation_counter[name]
+        self.optimisation_counter[factor.name] += 1
 
-        self.optimisation_counter[name] += 1
-
-        self.paths.path_prefix = f"{name}/optimization_{number}"
+        self.paths = SubDirectoryPaths(
+            parent=self.paths,
+            analysis_name=f"{factor.name}/optimization_{number}",
+            is_flat=True,
+        )
 
         result = self.fit(
             model=model,
