@@ -272,7 +272,6 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             analysis_name=f"{factor.name}/optimization_{number}",
             is_flat=True,
         )
-        print(self.paths.output_path)
 
         result = self.fit(
             model=model,
