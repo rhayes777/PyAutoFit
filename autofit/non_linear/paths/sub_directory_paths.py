@@ -12,8 +12,8 @@ class SubDirectoryPaths(ABC):
 
     def __new__(
             cls,
-            parent,
-            analysis_name,
+            parent=None,
+            analysis_name=None,
             is_flat=False,
     ):
         if isinstance(

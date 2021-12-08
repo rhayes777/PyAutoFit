@@ -1,5 +1,6 @@
 import csv
 import logging
+import os
 from copy import copy
 from itertools import count
 from pathlib import Path
@@ -232,6 +233,10 @@ class Sensitivity:
             results.append(result)
             results = sorted(results)
 
+            os.makedirs(
+                self.search.paths.output_path,
+                exist_ok=True
+            )
             with open(self.results_path, "w+") as f:
                 writer = csv.writer(f)
                 writer.writerow(headers)
