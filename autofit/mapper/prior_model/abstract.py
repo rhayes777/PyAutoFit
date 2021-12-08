@@ -2,6 +2,7 @@ import copy
 import inspect
 import json
 import logging
+import types
 from collections import defaultdict
 from functools import wraps
 from numbers import Number
@@ -691,7 +692,10 @@ class AbstractPriorModel(AbstractModel):
                     for key, value in instance.items()
                 }
             )
-        elif isinstance(instance, np.ndarray):
+        elif isinstance(
+                instance,
+                (np.ndarray, types.FunctionType)
+        ):
             return instance
         else:
             from .prior_model import PriorModel
