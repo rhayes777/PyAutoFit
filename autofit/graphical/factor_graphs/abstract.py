@@ -64,13 +64,14 @@ from autofit.graphical.factor_graphs.numerical import (
 
 
 class AbstractNode(ABC):
-    _deterministic_variables: Set[Variable] = frozenset()
+    _deterministic_variables: Tuple[Variable, ...] = ()
+    _plates: Tuple[Plate, ...] = ()
     _factor: callable = None
     _id = count()
-    _plates = None
 
     def __init__(
             self,
+            plates: Tuple[Variable, ...] = (),
             **kwargs: Variable
     ):
         """
@@ -83,6 +84,7 @@ class AbstractNode(ABC):
         kwargs
             Key word arguments passed to the value
         """
+        self._plates = plates
         self._kwargs = kwargs
         self._variable_name_kw = {
             v.name: kw for kw, v in kwargs.items()}
@@ -111,7 +113,23 @@ class AbstractNode(ABC):
     @property
     @abstractmethod
     def deterministic_variables(self):
-        return self._deterministic_variables
+        ...
+
+    @property
+    def plates(self):
+        return self._plates
+
+    @cached_property
+    def sorted_plates(self) -> Tuple[Plate]:
+        """
+        A tuple of the set of all plates in this graph, ordered by id
+        """
+        return tuple(sorted(set(
+            cast(Plate, plate)
+            for variable
+            in self.all_variables
+            for plate in variable.plates
+        )))
 
     def __getitem__(self, item):
         try:
@@ -159,6 +177,41 @@ class AbstractNode(ABC):
         A dictionary of variables associated with this node
         """
         return self.variables | self.deterministic_variables
+
+    
+    def broadcast_plates(
+            self,
+            plates: Tuple[Plate],
+            value: np.ndarray
+    ) -> np.ndarray:
+        """
+        Extract the indices of a collection of plates then match
+        the shape of the data to that shape.
+
+        Parameters
+        ----------
+        plates
+            Plates representing the dimensions of some factor
+        value
+            A value to broadcast
+
+        Returns
+        -------
+        The value reshaped to match the plates
+        """
+        shift = np.ndim(value) - len(plates)
+        if shift > 1 or shift < 0:
+            raise ValueError("dimensions of value incompatible with passed plates")
+        reduce_axes = tuple(
+            i + shift for i, p in enumerate(plates) if p and p not in self.plates)
+        source_axes = [i + shift for i, p in enumerate(plates) if p in self.plates]
+        destination_axes = [
+            self.plates.index(plates[i - shift]) + shift for i in source_axes]
+        return np.moveaxis(
+            np.sum(value, axis=reduce_axes),
+            source_axes, 
+            destination_axes
+        )
 
     def _broadcast(
             self,
@@ -229,27 +282,27 @@ class AbstractNode(ABC):
             np.r_[plate_order, plate_order + ndim])
         return np.reshape(movedvalue, newshape)
 
-    @cached_property
-    def plates(self) -> Tuple[Plate]:
-        """
-        A tuple of the set of all plates in this graph
+    # @cached_property
+    # def plates(self) -> Tuple[Plate]:
+    #     """
+    #     A tuple of the set of all plates in this graph
 
-        split into two properties to allow manual ordering 
-        of plate order
-        """
-        return self._plates or self.sorted_plates
+    #     split into two properties to allow manual ordering 
+    #     of plate order
+    #     """
+    #     return self._plates or self.sorted_plates
 
-    @cached_property
-    def sorted_plates(self) -> Tuple[Plate]:
-        """
-        A tuple of the set of all plates in this graph, ordered by id
-        """
-        return tuple(sorted(set(
-            cast(Plate, plate)
-            for variable
-            in self.all_variables
-            for plate in variable.plates
-        )))
+    # @cached_property
+    # def sorted_plates(self) -> Tuple[Plate]:
+    #     """
+    #     A tuple of the set of all plates in this graph, ordered by id
+    #     """
+    #     return tuple(sorted(set(
+    #         cast(Plate, plate)
+    #         for variable
+    #         in self.all_variables
+    #         for plate in variable.plates
+    #     )))
 
     @property
     def ndim(self) -> int:

@@ -15,7 +15,7 @@ from autofit.graphical.utils import (
 )
 from autofit.mapper.prior.abstract import Prior
 from autofit.mapper.prior_model.collection import CollectionPriorModel
-from autofit.mapper.variable import Variable
+from autofit.mapper.variable import Variable, Plate
 from autofit.messages.abstract import AbstractMessage
 from autofit.messages.fixed import FixedMessage
 
@@ -61,6 +61,7 @@ class MeanField(
     def __init__(
             self,
             dists: Dict[Variable, AbstractMessage],
+            plates: Optional[Tuple[Plate, ...]] = None, 
             log_norm: np.ndarray = 0.):
         dict.__init__(self, dists)
         Factor.__init__(
@@ -69,8 +70,10 @@ class MeanField(
 
         if isinstance(dists, MeanField):
             self.log_norm = dists.log_norm
+            self._plates = dists.plates
         else:
             self.log_norm = log_norm
+            self._plates = self.sorted_plates if plates is None else plates
 
     @classmethod
     def from_priors(

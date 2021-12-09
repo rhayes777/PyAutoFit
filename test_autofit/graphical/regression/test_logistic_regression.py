@@ -34,8 +34,7 @@ def likelihood_jacobian(z, y, _variables=None):
     name="likelihood_factor_jac"
 )
 def make_likelihood_factor_jac(z_, y_, obs, dims):
-    factor = mp.FactorJacobian(likelihood_jacobian, z=z_, y=y_)
-    factor._plates = (obs, dims)
+    factor = mp.FactorJacobian(likelihood_jacobian, z=z_, y=y_, plates = (obs, dims))
     return factor
 
 

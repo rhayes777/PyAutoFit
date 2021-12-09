@@ -15,16 +15,17 @@ from autofit.graphical.factor_graphs.abstract import \
     AbstractNode, FactorValue
 )
 from autofit.graphical.utils import aggregate, Axis
-from autofit.mapper.variable import Variable
+from autofit.mapper.variable import Variable, Plate
 
 
 class AbstractFactor(AbstractNode, ABC):
     def __init__(
             self,
             name="",
+            plates: Tuple[Plate, ...] = (),
             **kwargs: Variable,
     ):
-        super().__init__(**kwargs)
+        super().__init__(plates=plates, **kwargs)
         self._name = name or f"factor_{self.id}"
         self._deterministic_variables = set()
 
@@ -35,7 +36,7 @@ class AbstractFactor(AbstractNode, ABC):
         return self.name > other.name
 
     @property
-    def deterministic_variables(self) -> Set[Variable]:
+    def deterministic_variables(self) -> Tuple[Variable]:
         return self._deterministic_variables
 
     @property
@@ -273,12 +274,14 @@ class Factor(AbstractFactor):
         """
         Calculates the expected function shape based on the variables
         """
-        var_shapes = {
-            k: np.shape(x) for k, x in kwargs.items()}
+        var_shapes = {k: np.shape(x) for k, x in kwargs.items()}
         return self._var_shape(**var_shapes)
 
     @lru_cache()
-    def _var_shape(self, **kwargs: Tuple[int, ...]) -> Tuple[int, ...]:
+    def _plate_sizes(
+        self, **kwargs: Tuple[int, ...]
+    ) -> Tuple[int, Dict[Union[None, str], Tuple[int, ...]]]:
+        
         """This is called by _function_shape
         
         caches result so that does not have to be recalculated each call
@@ -308,32 +311,45 @@ class Factor(AbstractFactor):
             raise ValueError("dimensions of passed inputs do not match")
 
         """
-        Updating shape of output array to match input arrays
-
-        singleton dimensions are always assumed to match as in
-        standard array broadcasting
-
-        e.g. (1, 2, 3) == (3, 2, 1)
+        Calculate plate sizes, and so exact shape of output based on output
         """
-        shape = np.ones(self.ndim + shift, dtype=int)
-        for v, vs in var_shapes.items():
-            ind = self._variable_plates[v] + shift
-            vshape = vs[shift:]
-            if shift:
-                ind = np.r_[0, ind]
-                vshape = (vs[0],) + vshape
+        def set_plate_size(plate_sizes, p, psize):
+            
+            ps = plate_sizes.setdefault(p, psize)
+            if ps == psize:
+                return True
 
-            if shape.size:
-                if not (
-                        np.equal(shape[ind], 1) |
-                        np.equal(shape[ind], vshape) |
-                        np.equal(vshape, 1)).all():
+            # Allow broadcasting of singleton dimensions 
+            elif ps == 1:
+                plate_sizes[p] = psize
+                return True 
+            elif psize == 1:
+                return True 
+            else:
+                return False
+
+
+        plate_sizes = {}
+        for v, s in var_shapes.items():
+            for p, psize in zip(v.plates, s[shift:]):
+                if not set_plate_size(plate_sizes, p, psize):
                     raise AssertionError(
-                        "Shapes do not match"
+                        f"Shapes do not match for '{v}' and '{p}'"
                     )
-                shape[ind] = np.maximum(shape[ind], vshape)
+            if shift and not set_plate_size(plate_sizes, None, s[0]):
+                raise AssertionError(
+                        f"Shapes do not match for broadcasting")
 
-        return shift, tuple(shape)
+        return shift, plate_sizes
+
+    @lru_cache()
+    def _var_shape(self, **kwargs: Tuple[int, ...]) -> Tuple[int, Tuple[int, ...]]:
+        shift, plate_sizes = self._plate_sizes(**kwargs)
+
+        start_plate = (None,) if shift else ()
+        plate_shape = tuple(plate_sizes[p] for p in start_plate + self.plates)
+
+        return shift, plate_shape
 
     def _call_factor(
             self,
@@ -459,8 +475,8 @@ class Factor(AbstractFactor):
         greater than the dimensions of the variable then it's assumed
         that that dimension corresponds to multiple samples of that variable
         """
-        return self._broadcast(
-            self._variable_plates[variable],
+        return self.broadcast_plates(
+            variable.plates,
             value
         )
 
@@ -602,6 +618,8 @@ class DeterministicFactor(Factor):
             factor,
             *args,
             name=name or factor.__name__,
+            # deterministic factors make no contribution to log density
+            plates=(), 
             **kwargs
         )
         self._deterministic_variables = {
@@ -630,27 +648,26 @@ class DeterministicFactor(Factor):
         """
         kwargs = self.resolve_variable_dict(variable_dict)
         res = self._call_factor(**kwargs)
-        shift, shape = self._function_shape(**kwargs)
-        plate_dim = dict(zip(self.plates, shape[shift:]))
+        shift, plate_sizes = self._plate_sizes(**{
+            k: np.shape(x) for k, x in kwargs.items()
+        })
 
+        start_plate = (None,) if shift else ()
         det_shapes = {
-            v: shape[:shift] + tuple(
-                plate_dim[p] for p in v.plates)
+            v: tuple(plate_sizes[p] for p in start_plate + v.plates)
             for v in self.deterministic_variables
         }
 
         if not (isinstance(res, tuple) or self.n_deterministic > 1):
             res = res,
 
-        log_val = (
-            0. if (shape == () or axis is None) else
-            aggregate(np.zeros(tuple(1 for _ in shape)), axis))
+        log_val = 0.
+        # log_val = (
+        #     0. if (shape == () or axis is None) else
+        #     aggregate(np.zeros(tuple(1 for _ in shape)), axis))
         det_vals = {
-            k: np.reshape(val, det_shapes[k])
-            if det_shapes[k]
-            else val
-            for k, val
-            in zip(self._deterministic_variables, res)
+            k: np.reshape(val, det_shapes[k]) if det_shapes[k] else val
+            for k, val in zip(self._deterministic_variables, res)
         }
         return FactorValue(log_val, det_vals)
 

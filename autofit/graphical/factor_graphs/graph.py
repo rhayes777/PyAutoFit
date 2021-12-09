@@ -8,7 +8,7 @@ from typing import (
 import numpy as np
 
 from autoconf import cached_property
-from autofit.graphical.factor_graphs.abstract import FactorValue, AbstractNode
+from autofit.graphical.factor_graphs.abstract import FactorValue, AbstractNode, Value
 from autofit.graphical.factor_graphs.factor import Factor
 from autofit.graphical.utils import (
     add_arrays, aggregate, Axis, rescale_to_artists
@@ -130,28 +130,6 @@ class FactorGraph(AbstractNode):
             in self._factors
         )
         return f"{self.name}\n\n{results_text}"
-
-    def broadcast_plates(
-            self,
-            plates: Collection[Plate],
-            value: np.ndarray
-    ) -> np.ndarray:
-        """
-        Extract the indices of a collection of plates then match
-        the shape of the data to that shape.
-
-        Parameters
-        ----------
-        plates
-            Plates representing the dimensions of some factor
-        value
-            A value to broadcast
-
-        Returns
-        -------
-        The value reshaped to match the plates
-        """
-        return self._broadcast(self._match_plates(plates), value)
 
     @property
     def name(self):

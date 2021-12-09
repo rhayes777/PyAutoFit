@@ -6,7 +6,7 @@ import numpy as np
 from autofit.graphical.factor_graphs.abstract import FactorValue, JacobianValue
 from autofit.graphical.factor_graphs.factor import AbstractFactor, Factor, DeterministicFactor
 from autofit.graphical.utils import aggregate, Axis
-from autofit.mapper.variable import Variable
+from autofit.mapper.variable import Variable, Plate
 
 
 class FactorJacobian(Factor):
@@ -52,16 +52,17 @@ class FactorJacobian(Factor):
             *,
             name="",
             vectorised=False,
-            is_scalar=False,
+            plates: Tuple[Plate, ...] = (),
             **kwargs: Variable
     ):
         self.vectorised = vectorised
-        self.is_scalar = is_scalar
+        self.is_scalar = bool(plates)
         self._set_factor(factor_jacobian)
 
         AbstractFactor.__init__(
             self,
             **kwargs,
+            plates=plates, 
             name=name or factor_jacobian.__name__
         )
 
@@ -282,14 +283,13 @@ class DeterministicFactorJacobian(FactorJacobian):
             factor_jacobian: Callable,
             variable: Variable,
             vectorised=False,
-            is_scalar=False,
             **kwargs: Variable
     ):
 
         super().__init__(
             factor_jacobian,
             vectorised=vectorised,
-            is_scalar=is_scalar,
+            plates=(),
             **kwargs
         )
         self._deterministic_variables = variable,
@@ -327,26 +327,27 @@ class DeterministicFactorJacobian(FactorJacobian):
         kwargs = self.resolve_variable_dict(variable_dict)
         vals, *jacs = self._call_factor(
             kwargs, variables=variable_names)
-        shift, shape = self._function_shape(**kwargs)
-        plate_dim = dict(zip(self.plates, shape[shift:]))
-
-        det_shapes = {
-            v: shape[:shift] + tuple(
-                plate_dim[p] for p in v.plates)
-            for v in self.deterministic_variables
-        }
+            
         var_shapes = {
             self._kwargs[v]: np.shape(x) for v, x in kwargs.items()}
+        shift, plate_sizes = self._plate_sizes(**{
+            k: np.shape(x) for k, x in kwargs.items()
+        })
+        start_plate = (None,) if shift else ()
+        det_shapes = {
+            v: tuple(plate_sizes[p] for p in start_plate + v.plates)
+            for v in self.deterministic_variables
+        }
 
         if not (isinstance(vals, tuple) or self.n_deterministic > 1):
             vals = vals,
 
-        log_val = (
-            0. if (shape == () or axis is None) else
-            aggregate(np.zeros(tuple(1 for _ in shape)), axis))
+        log_val = 0.
+        # log_val = (
+        #     0. if (shape == () or axis is None) else
+        #     aggregate(np.zeros(tuple(1 for _ in shape)), axis))
         det_vals = {
-            k: np.reshape(val, det_shapes[k])
-            if det_shapes[k] else val
+            k: np.reshape(val, det_shapes[k]) if det_shapes[k] else val
             for k, val in zip(self._deterministic_variables, vals)
         }
         fval = FactorValue(log_val, det_vals)

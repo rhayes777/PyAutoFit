@@ -164,7 +164,9 @@ class TestFactorGraph:
             return (
                     np.moveaxis(x[:, :, None], 0, 2) + y[:, :, None] + z[None])
 
-        factor = mp.Factor(sumxyz, x=x_, y=y_, z=z_)
+        factor = mp.Factor(
+            sumxyz, x=x_, y=y_, z=z_, plates=(p1, p2, p3)
+        )
 
         x = np.arange(n3 * n1).reshape(n3, n1) * 0.1
         y = np.arange(n1 * n2).reshape(n1, n2) * 0.2
@@ -240,7 +242,7 @@ class TestFactorGraph:
         a = autofit.mapper.variable.Variable('a', obs, dims)
         b = autofit.mapper.variable.Variable('b', dims)
 
-        subtract = mp.Factor(sub, a=a, b=b)
+        subtract = mp.Factor(sub, a=a, b=b, plates=(obs, dims))
 
         x = np.array(
             [[1, 2, 3],

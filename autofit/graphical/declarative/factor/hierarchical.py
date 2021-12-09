@@ -1,9 +1,10 @@
-from typing import Set, Optional, Type, List
+from typing import Set, Optional, Type, List, Tuple
 
 from autofit.mapper.model import ModelInstance
 from autofit.mapper.prior.abstract import Prior
 from autofit.mapper.prior_model.collection import CollectionPriorModel
 from autofit.mapper.prior_model.prior_model import PriorModel
+from autofit.mapper.variable import Plate
 from autofit.messages.abstract import AbstractMessage
 from autofit.non_linear.paths.abstract import AbstractPaths
 from autofit.tools.namer import namer
@@ -11,6 +12,7 @@ from .abstract import AbstractModelFactor
 
 
 class HierarchicalFactor(PriorModel):
+    _plates: Tuple[Plate, ...] = ()
     def __init__(
             self,
             distribution: Type[AbstractMessage],
@@ -80,6 +82,10 @@ class HierarchicalFactor(PriorModel):
     @property
     def prior_model(self):
         return self
+        
+    @property
+    def plates(self):
+        return self._plates
 
     def add_drawn_variable(
             self,

@@ -135,7 +135,7 @@ def make_y_(obs, dims):
 def make_linear_factor(
         x_, a_, b_, z_
 ):
-    return mp.Factor(linear, x=x_, a=a_, b=b_) == z_
+    return mp.Factor(linear, x=x_, a=a_, b=b_, plates=z_.plates) == z_
 
 @pytest.fixture(
     name="linear_factor_jac"
@@ -143,24 +143,24 @@ def make_linear_factor(
 def make_linear_factor_jac(
         x_, a_, b_, z_
 ):
-    return mp.FactorJacobian(linear_jacobian, x=x_, a=a_, b=b_) == z_
+    return mp.FactorJacobian(linear_jacobian, x=x_, a=a_, b=b_, plates=z_.plates) == z_
 
 @pytest.fixture(
     name="prior_a"
 )
 def make_prior_a(prior, a_):
-    return mp.Factor(prior, x=a_)
+    return mp.Factor(prior, x=a_, plates=a_.plates)
 
 
 @pytest.fixture(
     name="prior_b"
 )
 def make_prior_b(prior, b_):
-    return mp.Factor(prior, x=b_)
+    return mp.Factor(prior, x=b_, plates=b_.plates)
 
 
 @pytest.fixture(
     name="likelihood_factor"
 )
 def make_likelihood_factor(likelihood, z_, y_):
-    return mp.Factor(likelihood, z=z_, y=y_)
+    return mp.Factor(likelihood, z=z_, y=y_, plates=z_.plates)
