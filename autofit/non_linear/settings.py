@@ -55,5 +55,14 @@ class SettingsSearch:
         }
 
     @property
+    def search_dict_x1_core(self):
+        return {
+            "path_prefix": self.path_prefix,
+            "unique_tag": self.unique_tag,
+            "number_of_cores": 1,
+            "session": self.session,
+        }
+
+    @property
     def fit_dict(self):
         return {"info": self.info, "pickle_files": self.pickle_files}
