@@ -303,14 +303,14 @@ class Redshift:
 class Galaxy:
     def __init__(
             self,
-            light_profiles: list = None,
-            mass_profiles: list = None,
+            light_profile_list: list = None,
+            mass_profile_list: list = None,
             redshift=None,
             **kwargs
     ):
         self.redshift = redshift
-        self.light_profiles = light_profiles
-        self.mass_profiles = mass_profiles
+        self.light_profile_list = light_profile_list
+        self.mass_profile_list = mass_profile_list
         self.kwargs = kwargs
 
 

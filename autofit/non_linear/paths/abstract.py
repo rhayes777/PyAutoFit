@@ -93,6 +93,12 @@ class AbstractPaths(ABC):
     ):
         pass
 
+    def __str__(self):
+        return self.output_path
+
+    def __repr__(self):
+        return f"<{self.__class__.__name__} {self}>"
+
     @property
     def parent(self) -> "AbstractPaths":
         """

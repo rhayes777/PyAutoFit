@@ -315,7 +315,6 @@ class LaplaceFactorOptimiser(AbstractFactorOptimiser):
             self,
             factor: Factor,
             model_approx: EPMeanField,
-            name: Optional[str] = None,
             status: Optional[Status] = Status(),
     ) -> Tuple[EPMeanField, Status]:
 

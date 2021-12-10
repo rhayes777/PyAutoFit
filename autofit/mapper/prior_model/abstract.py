@@ -2,6 +2,7 @@ import copy
 import inspect
 import json
 import logging
+import types
 from collections import defaultdict
 from functools import wraps
 from numbers import Number
@@ -609,7 +610,7 @@ class AbstractPriorModel(AbstractModel):
             A list of physical values
         """
         return self.instance_from_unit_vector(
-            unit_vector=[0.5] * len(self.prior_tuples)
+            unit_vector=[0.5] * self.prior_count
         )
 
     def log_prior_list_from_vector(
@@ -691,7 +692,10 @@ class AbstractPriorModel(AbstractModel):
                     for key, value in instance.items()
                 }
             )
-        elif isinstance(instance, np.ndarray):
+        elif isinstance(
+                instance,
+                (np.ndarray, types.FunctionType)
+        ):
             return instance
         else:
             from .prior_model import PriorModel

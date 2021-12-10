@@ -41,7 +41,7 @@ class TestAsModel:
         assert model.prior_count == 2
         assert model.simple.prior_count == 2
 
-    def test_galaxy_list(self):
+    def test_galaxies(self):
         galaxies = af.ModelInstance()
         galaxies.one = mock.MockComponents()
         instance = af.ModelInstance()
