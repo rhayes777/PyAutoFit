@@ -1,5 +1,7 @@
 from itertools import chain, count
-from typing import Optional
+from typing import Optional, Tuple 
+
+import numpy as np
 
 from autofit.mapper.model_object import ModelObject
 
@@ -86,3 +88,55 @@ class Variable(ModelObject):
         How many dimensions does this variable have?
         """
         return len(self.plates)
+
+
+def broadcast_plates(
+        value: np.ndarray, 
+        in_plates: Tuple[Plate, ...], 
+        out_plates: Tuple[Plate, ...], 
+        reducer: np.ufunc = np.sum
+    ) -> np.ndarray:
+    """
+    Extract the indices of a collection of plates then match
+    the shape of the data to that shape.
+
+    Parameters
+    ----------
+    value
+        A value to broadcast
+    in_plates
+        Plates representing the dimensions of the values
+    out_plates
+        Plates representing the output dimensions
+    reducer
+        function to reduce excess plates over, default np.sum
+        must take axis as keyword argument
+
+
+    Returns
+    -------
+    The value reshaped to match the plates
+    """
+    n_in = len(in_plates)
+    n_out = len(out_plates)
+    shift = np.ndim(value) - n_in
+    if shift > 1 or shift < 0:
+        raise ValueError("dimensions of value incompatible with passed plates")
+    
+    in_axes = list(range(shift, n_in + shift))
+    out_axes = []
+    k = n_out + shift
+    
+    for plate in in_plates:
+        try:
+            out_axes.append(out_plates.index(plate) + shift)
+        except ValueError:
+            out_axes.append(k)
+            k += 1
+            
+    moved_value = np.moveaxis(
+        np.expand_dims(value, tuple(range(n_in + shift, k))),
+        in_axes,
+        out_axes,
+    )
+    return reducer(moved_value, axis=tuple(range(n_out + shift, k)))

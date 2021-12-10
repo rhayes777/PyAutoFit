@@ -15,7 +15,7 @@ from autofit.graphical.factor_graphs.abstract import \
     AbstractNode, FactorValue
 )
 from autofit.graphical.utils import aggregate, Axis
-from autofit.mapper.variable import Variable, Plate
+from autofit.mapper.variable import Variable, Plate, broadcast_plates
 
 
 class AbstractFactor(AbstractNode, ABC):
@@ -475,10 +475,7 @@ class Factor(AbstractFactor):
         greater than the dimensions of the variable then it's assumed
         that that dimension corresponds to multiple samples of that variable
         """
-        return self.broadcast_plates(
-            variable.plates,
-            value
-        )
+        return broadcast_plates(value, variable.plates, self.plates)
 
     def collapse(
             self,

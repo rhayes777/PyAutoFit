@@ -10,6 +10,7 @@ from autofit.graphical.factor_graphs import Factor
 from autofit.graphical.mean_field import MeanField, FactorApproximation, Status
 from autofit.graphical.utils import add_arrays
 from autofit.messages.abstract import AbstractMessage, map_dists
+from autofit.mapper.variable import broadcast_plates
 
 
 class SamplingResult(NamedTuple):
@@ -145,8 +146,7 @@ class ImportanceSampler(AbstractSampler):
             for v in factor.variables
         }
         fval = factor(samples)
-        log_factor = fval + np.zeros(
-            (n_samples,) + tuple(1 for _ in range(factor.ndim)))
+        log_factor = broadcast_plates(fval, factor.plates, factor.sorted_plates)
 
         sample = self._weight_samples(
             factor, samples, fval.deterministic_values,
@@ -176,16 +176,20 @@ class ImportanceSampler(AbstractSampler):
     ) -> SamplingResult:
 
         log_measure = 0.
-        for res in chain(map_dists(cavity_dist, samples),
+        for v, value in chain(map_dists(cavity_dist, samples),
                          map_dists(deterministic_dist, det_vars)):
             # for res in map_dists(cavity_dist, {**det_vars, **samples}):
             log_measure = add_arrays(
-                log_measure, factor.broadcast_variable(*res))
+                log_measure, 
+                broadcast_plates(value, v.plates, factor.sorted_plates)
+                )
 
         log_propose = 0.
-        for res in map_dists(proposal_dist, samples):
+        for v, value in map_dists(proposal_dist, samples):
             log_propose = add_arrays(
-                log_propose, factor.broadcast_variable(*res))
+                log_propose, 
+                broadcast_plates(value, v.plates, factor.sorted_plates)
+            )
 
         log_weight_list = log_factor + log_measure - log_propose
 
@@ -266,10 +270,11 @@ def project_factor_approx_sample(
         sample: SamplingResult) -> Dict[str, AbstractMessage]:
     # Calculate log_norm
     log_weight_list = sample.log_weight_list
+    plates = factor_approx.factor.sorted_plates
     # Need to collapse the weight_list to match the shapes of the different
     # variables
     variable_log_weight_list = {
-        v: factor_approx.factor.collapse(v, log_weight_list, agg_func=np.sum)
+        v: broadcast_plates(log_weight_list, plates, v.plates)
         for v in factor_approx.cavity_dist}
 
     log_weight_list = log_weight_list.sum(
