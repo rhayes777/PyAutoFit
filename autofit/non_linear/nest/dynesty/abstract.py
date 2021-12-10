@@ -151,6 +151,9 @@ class AbstractDynesty(AbstractNest, ABC):
 
             self.logger.info("No Dynesty samples found, beginning new non-linear search. ")
 
+        if not hasattr(sampler, "pool"):
+            sampler.pool = None
+
         finished = False
 
         while not finished:
