@@ -116,8 +116,8 @@ class Job(AbstractJob):
 
         # TODO : This is what I added so that the Drawer runs use the correct subhalo model.
 
-        if self.use_instance:
-            perturbed_model.perturbation = self.perturbation_instance
+        # if self.use_instance:
+        #     perturbed_model.perturbation = self.perturbation_instance
 
         perturbed_result = self.perturbation_model_func(perturbed_model=perturbed_model)
         return JobResult(
