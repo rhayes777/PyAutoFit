@@ -27,6 +27,9 @@ class Timer:
         Record the start time of a `NonLinearSearch` as universal date time, so that the run-time of the search can be
         recorded.
         """
+        if self.start_time is None:
+            return
+
         start_time_path = path.join(
             self.samples_path,
             ".start_time"
@@ -43,10 +46,11 @@ class Timer:
         """
         Update the timer of the `NonLinearSearch` so it reflections how long the `NonLinearSearch` ahs been running.
         """
-        if self.start_time is None:
-            return
 
-        execution_time = str(dt.timedelta(seconds=time.time() - float(self.start_time)))
+        try:
+            execution_time = str(dt.timedelta(seconds=time.time() - float(self.start_time)))
+        except TypeError:
+            return
 
         with open(
                 path.join(self.samples_path, ".time"), "w+"
