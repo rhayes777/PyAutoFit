@@ -43,6 +43,9 @@ class Timer:
         """
         Update the timer of the `NonLinearSearch` so it reflections how long the `NonLinearSearch` ahs been running.
         """
+        if self.start_time is None:
+            return
+
         execution_time = str(dt.timedelta(seconds=time.time() - float(self.start_time)))
 
         with open(
