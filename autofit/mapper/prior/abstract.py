@@ -12,17 +12,19 @@ epsilon = 1e-14
 
 
 def assert_within_limits(
-        func
+        func,
 ):
     def wrapper(
             self,
             *args,
+            ignore_prior_limits=False,
             **kwargs,
     ):
         value = func(
             self, *args, **kwargs
         )
-        self.assert_within_limits(value)
+        if not ignore_prior_limits:
+            self.assert_within_limits(value)
         return value
 
     return wrapper
