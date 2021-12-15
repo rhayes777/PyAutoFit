@@ -192,3 +192,17 @@ class AbstractDeclarativeFactor(Analysis, ABC):
             for model_factor
             in self.model_factors
         ])
+
+
+class GlobalPriorModel(CollectionPriorModel):
+    def __init__(self, factor: AbstractFactorOptimiser):
+        super().__init__([
+            model_factor.prior_model
+            for model_factor
+            in self.model_factors
+        ])
+        self.factor = factor
+
+    @property
+    def info(self) -> str:
+        return self.factor.graph.info

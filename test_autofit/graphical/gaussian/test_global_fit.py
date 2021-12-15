@@ -26,6 +26,13 @@ def make_model_factor_2():
     return g.AnalysisFactor(model_2, Analysis(0.0))
 
 
+def test_info(
+        model_factor
+):
+    assert model_factor.global_prior_model.info == """0
+    one                                                                                   UniformPrior, lower_limit = 0.0, upper_limit = 1.0"""
+
+
 class TestGlobalLikelihood:
     @pytest.mark.parametrize("unit_value, likelihood", [(0.5, 0.0), (0.0, -0.25)])
     def test_single_factor(self, model_factor, unit_value, likelihood):
