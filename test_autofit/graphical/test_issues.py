@@ -29,10 +29,3 @@ def test_prior_factor(prior):
             PriorLimitException
     ):
         prior.factor(-1.0)
-
-
-def test_ignore_prior_limits(prior):
-    prior.value_for(
-        0.0,
-        ignore_prior_limits=True
-    )
