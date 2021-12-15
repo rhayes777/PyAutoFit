@@ -198,7 +198,7 @@ class PDFSamples(OptimizerSamples):
             The sigma within which the PDF is used to estimate errors (e.g. sigma = 1.0 uses 0.6826 of the PDF).
         """
         return self.model.instance_from_vector(
-            vector=self.vector_at_sigma(sigma=sigma), assert_priors_in_limits=False
+            vector=self.vector_at_sigma(sigma=sigma),
         )
 
     def instance_at_upper_sigma(self, sigma: float) -> ModelInstance:
@@ -215,7 +215,6 @@ class PDFSamples(OptimizerSamples):
         """
         return self.model.instance_from_vector(
             vector=self.vector_at_upper_sigma(sigma=sigma),
-            assert_priors_in_limits=False,
         )
 
     def instance_at_lower_sigma(self, sigma: float) -> ModelInstance:
@@ -232,7 +231,6 @@ class PDFSamples(OptimizerSamples):
         """
         return self.model.instance_from_vector(
             vector=self.vector_at_lower_sigma(sigma=sigma),
-            assert_priors_in_limits=False,
         )
 
     def error_vector_at_sigma(self, sigma: float) -> [(float, float)]:
@@ -324,7 +322,6 @@ class PDFSamples(OptimizerSamples):
         """
         return self.model.instance_from_vector(
             vector=self.error_magnitude_vector_at_sigma(sigma=sigma),
-            assert_priors_in_limits=False,
         )
 
     def error_instance_at_upper_sigma(self, sigma: float) -> ModelInstance:
@@ -341,7 +338,6 @@ class PDFSamples(OptimizerSamples):
         """
         return self.model.instance_from_vector(
             vector=self.error_vector_at_upper_sigma(sigma=sigma),
-            assert_priors_in_limits=False,
         )
 
     def error_instance_at_lower_sigma(self, sigma: float) -> ModelInstance:
@@ -358,7 +354,6 @@ class PDFSamples(OptimizerSamples):
         """
         return self.model.instance_from_vector(
             vector=self.error_vector_at_lower_sigma(sigma=sigma),
-            assert_priors_in_limits=False,
         )
 
     def gaussian_priors_at_sigma(self, sigma: float) -> [List]:
@@ -474,6 +469,7 @@ class PDFSamples(OptimizerSamples):
             non-linear search.
         """
         return np.cov(m=self.parameter_lists, rowvar=False, aweights=self.weight_list)
+
 
 def quantile(x, q, weights=None):
     """
