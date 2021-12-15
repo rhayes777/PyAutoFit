@@ -178,7 +178,6 @@ class AbstractNode(ABC):
         """
         return self.variables | self.deterministic_variables
 
-    
     def broadcast_plates(
             self,
             plates: Tuple[Plate],
@@ -209,7 +208,7 @@ class AbstractNode(ABC):
             self.plates.index(plates[i - shift]) + shift for i in source_axes]
         return np.moveaxis(
             np.sum(value, axis=reduce_axes),
-            source_axes, 
+            source_axes,
             destination_axes
         )
 
