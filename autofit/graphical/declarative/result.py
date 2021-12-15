@@ -1,6 +1,5 @@
-from autofit.graphical import EPMeanField
-from autofit.graphical.declarative.abstract import AbstractDeclarativeFactor
 from autofit.graphical.expectation_propagation import EPHistory
+from autofit.graphical.expectation_propagation.ep_mean_field import EPMeanField
 from autofit.mapper.prior_model.collection import CollectionPriorModel
 
 
@@ -8,7 +7,7 @@ class EPResult:
     def __init__(
             self,
             ep_history: EPHistory,
-            declarative_factor: AbstractDeclarativeFactor,
+            declarative_factor,
             updated_ep_mean_field: EPMeanField,
     ):
         """
@@ -20,7 +19,7 @@ class EPResult:
         ----------
         ep_history
             A history of the optimisation
-        declarative_factor
+        declarative_factor: AbstractDeclarativeFactor
             A declarative representation of the factor being optimised
         updated_ep_mean_field
             An updated mean field; effectively the result of the optimisation
