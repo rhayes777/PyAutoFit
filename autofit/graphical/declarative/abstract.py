@@ -195,6 +195,15 @@ class GlobalPriorModel(CollectionPriorModel):
             self,
             factor: AbstractDeclarativeFactor
     ):
+        """
+        A global model comprising all factors which can be used to compare
+        results between global optimisation and expectation propagation.
+
+        Parameters
+        ----------
+        factor
+            A factor comprising one or more factors, usually a graph
+        """
         super().__init__([
             model_factor.prior_model
             for model_factor
@@ -204,4 +213,7 @@ class GlobalPriorModel(CollectionPriorModel):
 
     @property
     def info(self) -> str:
+        """
+        A string describing the collection of factors in the graphical style
+        """
         return self.factor.graph.info
