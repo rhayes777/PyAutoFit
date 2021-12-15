@@ -1,14 +1,14 @@
 import os
 
+import numpy as np
 import pytest
 
 import autofit as af
 import autofit.non_linear.samples.nest
 import autofit.non_linear.samples.pdf
+from autoconf.conf import with_config
 from autofit.mock.mock import MockClassx2, MockClassx4
 from autofit.non_linear.samples import Sample
-
-import numpy as np
 
 pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
 
@@ -22,12 +22,12 @@ class MockSamples(autofit.non_linear.samples.pdf.PDFSamples):
             unconverged_sample_size=10,
             **kwargs,
     ):
-
         super().__init__(
             model=model,
             sample_list=sample_list,
-            unconverged_sample_size=unconverged_sample_size,  **kwargs
+            unconverged_sample_size=unconverged_sample_size, **kwargs
         )
+
 
 @pytest.fixture(name="samples")
 def make_samples():
@@ -293,6 +293,12 @@ class TestPDFSamples:
         assert median_pdf_vector[0] == pytest.approx(0.9, 1.0e-4)
         assert median_pdf_vector[1] == pytest.approx(1.9, 1.0e-4)
 
+    @with_config(
+        "general",
+        "model",
+        "ignore_prior_limits",
+        value=True,
+    )
     def test__converged__vector_and_instance_at_upper_and_lower_sigma(self):
         parameters = [
             [0.1, 0.4],
@@ -534,9 +540,7 @@ class TestPDFSamples:
 
         assert offset_values == pytest.approx([0.0, 1.0, 1.0, 1.025], 1.0e-4)
 
-
     def test__vector_drawn_randomly_from_pdf(self):
-
         parameters = [
             [0.0, 1.0, 2.0, 3.0],
             [0.0, 1.0, 2.0, 3.0],
@@ -572,7 +576,6 @@ class TestPDFSamples:
         assert instance.mock_class_1.four == 24.0
 
     def test__covariance_matrix(self):
-
         log_likelihood_list = list(range(3))
 
         weight_list = 3 * [0.1]
@@ -628,7 +631,9 @@ class TestPDFSamples:
                 weight_list=weight_list,
             ))
 
-        assert samples.covariance_matrix() == pytest.approx(np.array([[0.90909, -0.90909], [-0.90909, 0.90909]]), 1.0e-4)
+        assert samples.covariance_matrix() == pytest.approx(np.array([[0.90909, -0.90909], [-0.90909, 0.90909]]),
+                                                            1.0e-4)
+
 
 class MockNestSamples(af.NestSamples):
 
@@ -663,7 +668,6 @@ class MockNestSamples(af.NestSamples):
         self._total_samples = total_samples
         self._log_evidence = log_evidence
         self._number_live_points = number_live_points
-
 
     @property
     def total_samples(self):

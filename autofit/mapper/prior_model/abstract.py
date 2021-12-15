@@ -5,7 +5,6 @@ import logging
 import types
 from collections import defaultdict
 from functools import wraps
-from numbers import Number
 from random import random
 from typing import Tuple, Optional, Dict, List
 
@@ -289,7 +288,6 @@ class AbstractPriorModel(AbstractModel):
 
         return self.instance_for_arguments(
             arguments,
-            assert_priors_in_limits=assert_priors_in_limits
         )
 
     @property
@@ -403,7 +401,6 @@ class AbstractPriorModel(AbstractModel):
     def instance_from_vector(
             self,
             vector,
-            assert_priors_in_limits=True
     ):
         """
         Returns a ModelInstance, which has an attribute and class instance corresponding
@@ -414,8 +411,6 @@ class AbstractPriorModel(AbstractModel):
         ----------
         vector: [float]
             A vector of physical parameter values that is mapped to an instance.
-        assert_priors_in_limits
-            If `True` it is checked that the physical values of priors are within set limits
         Returns
         -------
         model_instance : autofit.mapper.model.ModelInstance
@@ -429,9 +424,11 @@ class AbstractPriorModel(AbstractModel):
             )
         )
 
+        for prior, value in arguments.items():
+            prior.assert_within_limits(value)
+
         return self.instance_for_arguments(
             arguments,
-            assert_priors_in_limits=assert_priors_in_limits
         )
 
     def has_instance(self, cls) -> bool:
@@ -815,36 +812,31 @@ class AbstractPriorModel(AbstractModel):
                 d.update(prior_model[1].prior_class_dict)
         return d
 
-    def _instance_for_arguments(self, arguments):
+    def _instance_for_arguments(
+            self,
+            arguments: Dict[Prior, float],
+    ):
         raise NotImplementedError()
 
     def instance_for_arguments(
             self,
             arguments,
-            assert_priors_in_limits=True
     ):
         """
         Returns an instance of the model for a set of arguments
+
         Parameters
         ----------
-        assert_priors_in_limits
-            If true it is asserted that the physical values that replace priors are
-            within their limits.
-            If ignore_prior_limits is true in configuration then prior limits are
-            ignored regardless.
         arguments: {Prior: float}
             Dictionary mapping_matrix priors to attribute analysis_path and value pairs
+
         Returns
         -------
             An instance of the class
         """
         logger.debug(f"Creating an instance for arguments")
-        if assert_priors_in_limits and not conf.instance["general"]["model"]["ignore_prior_limits"]:
-            for prior, value in arguments.items():
-                if isinstance(value, Number):
-                    prior.assert_within_limits(value)
         return self._instance_for_arguments(
-            arguments
+            arguments,
         )
 
     def path_for_name(
