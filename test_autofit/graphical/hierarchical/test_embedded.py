@@ -158,7 +158,10 @@ def test_full_fit(centre_model, data, centres):
 
     optimiser = g.LaplaceFactorOptimiser()
 
-    collection = graph.optimise(optimiser, max_steps=10)
+    collection = graph.optimise(
+        optimiser,
+        max_steps=10
+    ).model
 
     for gaussian, centre in zip(
             collection.with_prefix(

@@ -105,4 +105,4 @@ class AbstractModelFactor(Factor, AbstractDeclarativeFactor, ABC):
         """
         return super().optimise(
             optimiser, **kwargs
-        )[0]
+        ).model[0]

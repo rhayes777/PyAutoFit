@@ -3,6 +3,7 @@ from typing import Set, List, Dict
 
 from autofit.graphical.declarative.factor.prior import PriorFactor
 from autofit.graphical.declarative.graph import DeclarativeFactorGraph
+from autofit.graphical.declarative.result import EPResult
 from autofit.graphical.expectation_propagation import AbstractFactorOptimiser
 from autofit.graphical.expectation_propagation import EPMeanField
 from autofit.graphical.expectation_propagation import EPOptimiser
@@ -110,7 +111,7 @@ class AbstractDeclarativeFactor(Analysis, ABC):
             optimiser: AbstractFactorOptimiser,
             name=None,
             **kwargs
-    ) -> CollectionPriorModel:
+    ) -> EPResult:
         """
         Use an EP Optimiser to optimise the graph associated with this collection
         of factors and create a Collection to represent the results.
@@ -130,26 +131,15 @@ class AbstractDeclarativeFactor(Analysis, ABC):
         opt = self._make_ep_optimiser(
             optimiser
         )
-        updated_model = opt.run(
+        updated_ep_mean_field = opt.run(
             self.mean_field_approximation(),
             **kwargs
         )
 
-        collection = CollectionPriorModel({
-            factor.name: factor.prior_model
-            for factor
-            in self.model_factors
-        })
-        arguments = {
-            prior: updated_model.mean_field[
-                prior
-            ]
-            for prior
-            in collection.priors
-        }
-
-        return collection.gaussian_prior_model_for_arguments(
-            arguments
+        return EPResult(
+            ep_history=opt.ep_history,
+            declarative_factor=self,
+            updated_ep_mean_field=updated_ep_mean_field,
         )
 
     def visualize(
