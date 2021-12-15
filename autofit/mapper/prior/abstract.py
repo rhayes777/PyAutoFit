@@ -8,8 +8,20 @@ from autofit.mapper.prior.arithmetic import ArithmeticMixin
 from autofit.mapper.prior.deferred import DeferredArgument
 from autofit.mapper.variable import Variable
 
-
 epsilon = 1e-14
+
+
+def assert_within_limits(
+        func
+):
+    def wrapper(self, *args, **kwargs):
+        value = func(
+            self, *args, **kwargs
+        )
+        self.assert_within_limits(value)
+        return value
+
+    return wrapper
 
 
 class Prior(Variable, ABC, ArithmeticMixin):

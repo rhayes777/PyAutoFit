@@ -5,7 +5,7 @@ from autofit import exc
 from autofit.messages.normal import NormalMessage, UniformNormalMessage
 from autofit.messages.transform import log_10_transform
 from autofit.messages.transform_wrapper import TransformedWrapperInstance
-from .abstract import epsilon
+from .abstract import epsilon, assert_within_limits
 
 
 class Limits:
@@ -105,6 +105,7 @@ class UniformPrior(WrappedInstance):
         """The line of text describing this prior for the model_mapper.info file"""
         return f"UniformPrior, lower_limit = {self.lower_limit}, upper_limit = {self.upper_limit}"
 
+    @assert_within_limits
     def value_for(self, unit):
         """
 

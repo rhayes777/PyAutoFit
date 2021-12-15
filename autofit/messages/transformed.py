@@ -5,6 +5,7 @@ import numpy as np
 from autoconf import cached_property
 from .abstract import AbstractMessage
 from .transform import AbstractDensityTransform
+from ..mapper.prior.abstract import assert_within_limits
 
 
 class TransformedMessage(AbstractMessage):
@@ -56,6 +57,7 @@ class TransformedMessage(AbstractMessage):
             sufficient_statistics
         )
 
+    @assert_within_limits
     def value_for(self, unit):
         return self._transform.inv_transform(
             self.instance.value_for(

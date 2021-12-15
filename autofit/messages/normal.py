@@ -9,6 +9,7 @@ from autoconf import cached_property
 from autofit.messages.abstract import AbstractMessage
 from .transform import phi_transform, log_transform, multinomial_logit_transform, log_10_transform
 from .. import exc
+from ..mapper.prior.abstract import assert_within_limits
 
 
 def is_nan(value):
@@ -151,6 +152,7 @@ class NormalMessage(AbstractMessage):
 
     __default_fields__ = ("log_norm", "id_")
 
+    @assert_within_limits
     def value_for(self, unit):
         """
 

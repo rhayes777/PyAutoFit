@@ -2,7 +2,7 @@ from typing import Union, Type, Optional, Tuple
 
 import numpy as np
 
-from autofit.mapper.prior.abstract import Prior
+from autofit.mapper.prior.abstract import Prior, assert_within_limits
 from autofit.messages.transform import AbstractDensityTransform, LinearShiftTransform
 from .abstract import AbstractMessage
 
@@ -16,6 +16,7 @@ class TransformedWrapperInstance(Prior):
     computed from it are transformed to give the effect of a different distribution.
     """
 
+    @assert_within_limits
     def value_for(self, unit: float) -> float:
         return self.instance().value_for(unit)
 
