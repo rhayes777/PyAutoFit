@@ -66,6 +66,8 @@ class Prior(Variable, ABC, ArithmeticMixin):
         """
 
     def assert_within_limits(self, value):
+        if conf.instance["general"]["model"]["ignore_prior_limits"]:
+            return
         if not (
                 self.lower_limit - epsilon <= value <= self.upper_limit + epsilon
         ):
