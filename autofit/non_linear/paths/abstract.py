@@ -29,7 +29,8 @@ class AbstractPaths(ABC):
             path_prefix: Optional[str] = None,
             is_identifier_in_paths=True,
             parent: Optional["AbstractPaths"] = None,
-            unique_tag: Optional[str] = None
+            unique_tag: Optional[str] = None,
+            identifier: str = None,
     ):
         """
         Manages the path structure for `NonLinearSearch` output, for analyses both not using and using the search
@@ -69,7 +70,7 @@ class AbstractPaths(ABC):
         self.unique_tag = unique_tag
 
         self._non_linear_name = None
-        self.__identifier = None
+        self.__identifier = identifier or None
 
         self.is_identifier_in_paths = is_identifier_in_paths
 
@@ -182,12 +183,12 @@ class AbstractPaths(ABC):
 
     @property
     def _identifier(self):
-        if None in (self.model, self.search):
-            logger.debug(
-                "Generating identifier without both model and search having been set."
-            )
-
         if self.__identifier is None:
+            if None in (self.model, self.search):
+                logger.debug(
+                    "Generating identifier without both model and search having been set."
+                )
+
             identifier_list = [
                 self.search,
                 self.model
