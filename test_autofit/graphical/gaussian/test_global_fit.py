@@ -1,7 +1,20 @@
+import itertools
+
 import pytest
 
 import autofit as af
 import autofit.graphical as g
+from autofit.tools.namer import namer
+
+
+@pytest.fixture(
+    autouse=True
+)
+def reset_namer():
+    namer.reset()
+    yield
+    namer.reset()
+    af.ModelObject._ids = itertools.count()
 
 
 class Analysis(af.Analysis):
