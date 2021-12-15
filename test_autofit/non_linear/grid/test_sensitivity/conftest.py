@@ -71,6 +71,7 @@ def make_job(
 ):
     instance = af.ModelInstance()
     instance.gaussian = Gaussian()
+    base_instance = instance
     instance.perturbation = Gaussian()
     image = image_function(instance)
     # noinspection PyTypeChecker
@@ -79,6 +80,8 @@ def make_job(
             gaussian=af.PriorModel(Gaussian)
         ),
         perturbation_model=af.PriorModel(Gaussian),
+        base_instance=base_instance,
+        perturbation_instance=instance,
         analysis=Analysis(image),
         search=search,
         number=1
