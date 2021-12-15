@@ -29,8 +29,15 @@ def make_model_factor_2():
 def test_info(
         model_factor
 ):
-    assert model_factor.global_prior_model.info == """0
-    one                                                                                   UniformPrior, lower_limit = 0.0, upper_limit = 1.0"""
+    assert model_factor.global_prior_model.info == """PriorFactors
+
+PriorFactor0 (AnalysisFactor0.one)                                                        UniformPrior, lower_limit = 0.0, upper_limit = 1.0
+
+AnalysisFactors
+
+AnalysisFactor0
+
+one (PriorFactor0)                                                                        UniformPrior, lower_limit = 0.0, upper_limit = 1.0"""
 
 
 class TestGlobalLikelihood:

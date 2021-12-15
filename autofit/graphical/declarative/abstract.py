@@ -187,19 +187,15 @@ class AbstractDeclarativeFactor(Analysis, ABC):
         """
         A collection of prior models, with one model for each factor.
         """
-        return CollectionPriorModel([
-            model_factor.prior_model
-            for model_factor
-            in self.model_factors
-        ])
+        return GlobalPriorModel(self)
 
 
 class GlobalPriorModel(CollectionPriorModel):
-    def __init__(self, factor: AbstractFactorOptimiser):
+    def __init__(self, factor: AbstractDeclarativeFactor):
         super().__init__([
             model_factor.prior_model
             for model_factor
-            in self.model_factors
+            in factor.model_factors
         ])
         self.factor = factor
 
