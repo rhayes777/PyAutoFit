@@ -115,6 +115,8 @@ class EPOptimiser:
         factor_order
             The factors in the graph but placed in the order in which they should
             be optimised
+        paths
+            Optionally define how data should be output
         """
         self.paths = paths or DirectoryPaths(
             identifier=str(Identifier(factor_graph))

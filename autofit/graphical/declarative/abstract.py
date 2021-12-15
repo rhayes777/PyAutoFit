@@ -120,6 +120,8 @@ class AbstractDeclarativeFactor(Analysis, ABC):
         Parameters
         ----------
         paths
+            Optionally define how data should be output. This paths
+            object is copied to every optimiser.
         optimiser
             An optimiser that acts on graphs
 
