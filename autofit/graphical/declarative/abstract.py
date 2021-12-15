@@ -191,7 +191,10 @@ class AbstractDeclarativeFactor(Analysis, ABC):
 
 
 class GlobalPriorModel(CollectionPriorModel):
-    def __init__(self, factor: AbstractDeclarativeFactor):
+    def __init__(
+            self,
+            factor: AbstractDeclarativeFactor
+    ):
         super().__init__([
             model_factor.prior_model
             for model_factor

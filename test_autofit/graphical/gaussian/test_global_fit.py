@@ -53,6 +53,22 @@ AnalysisFactor0
 one (PriorFactor0)                                                                        UniformPrior, lower_limit = 0.0, upper_limit = 1.0"""
 
 
+def test_results(
+        model_factor
+):
+    assert model_factor.graph.make_results_text(
+        model_factor.global_prior_model
+    ) == """PriorFactors
+
+PriorFactor0 (AnalysisFactor0.one)                                                        0.5
+
+AnalysisFactors
+
+AnalysisFactor0
+
+one (PriorFactor0)                                                                        0.5"""
+
+
 class TestGlobalLikelihood:
     @pytest.mark.parametrize("unit_value, likelihood", [(0.5, 0.0), (0.0, -0.25)])
     def test_single_factor(self, model_factor, unit_value, likelihood):
