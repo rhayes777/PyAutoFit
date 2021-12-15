@@ -199,3 +199,19 @@ class GaussianPrior(NormalMessage):
         "mean",
         "sigma"
     )
+
+    @assert_within_limits
+    def value_for(self, unit):
+        """
+
+        Parameters
+        ----------
+        unit: Float
+            A unit hypercube value between 0 and 1
+
+        Returns
+        -------
+        value: Float
+            A value for the attribute biased to the gaussian distribution
+        """
+        return super().value_for(unit)
