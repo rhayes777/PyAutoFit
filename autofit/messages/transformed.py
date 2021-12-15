@@ -5,7 +5,6 @@ import numpy as np
 from autoconf import cached_property
 from .abstract import AbstractMessage
 from .transform import AbstractDensityTransform
-from ..mapper.prior.abstract import assert_within_limits
 
 
 class TransformedMessage(AbstractMessage):
@@ -57,7 +56,6 @@ class TransformedMessage(AbstractMessage):
             sufficient_statistics
         )
 
-    @assert_within_limits
     def value_for(self, unit):
         return self._transform.inv_transform(
             self.instance.value_for(
@@ -134,9 +132,9 @@ class TransformedMessage(AbstractMessage):
 
     @classmethod
     def _factor(
-        cls,
-        self, 
-        x: np.ndarray,    
+            cls,
+            self,
+            x: np.ndarray,
     ) -> np.ndarray:
         x, log_det = cls._transform.transform_det(x)
         eta = self._broadcast_natural_parameters(x)
@@ -146,9 +144,9 @@ class TransformedMessage(AbstractMessage):
 
     @classmethod
     def _factor_gradient(
-        cls,
-        self, 
-        x: np.ndarray,    
+            cls,
+            self,
+            x: np.ndarray,
     ) -> np.ndarray:
         x, logd, logd_grad, jac = cls._transform.transform_det_jac(x)
         logl, grad = cls._Message._logpdf_gradient(self, x)
@@ -169,7 +167,6 @@ class TransformedMessage(AbstractMessage):
         x, jac = cls._transform.transform_jac(x)
         logl, grad = cls._Message._logpdf_gradient(self, x)
         return logl, grad * jac
-
 
     def sample(self, n_samples=None) -> np.ndarray:
         return self._sample(n_samples)

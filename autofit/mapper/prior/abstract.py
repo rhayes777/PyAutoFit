@@ -14,7 +14,11 @@ epsilon = 1e-14
 def assert_within_limits(
         func
 ):
-    def wrapper(self, *args, **kwargs):
+    def wrapper(
+            self,
+            *args,
+            **kwargs,
+    ):
         value = func(
             self, *args, **kwargs
         )
