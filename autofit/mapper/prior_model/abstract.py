@@ -100,6 +100,32 @@ class TuplePathModifier:
 Path = Tuple[str, ...]
 
 
+class MeanField:
+    def __init__(
+            self,
+            prior_model: "AbstractPriorModel"
+    ):
+        """
+        Implements same interface as graphical code
+
+        Parameters
+        ----------
+        prior_model
+        """
+        self.prior_model = prior_model
+
+    def __getitem__(self, item):
+        """
+        Retrieve a prior by a prior with the same id
+        """
+        for prior in self.prior_model.priors:
+            if prior == item:
+                return prior
+        raise KeyError(
+            f"Could not find {item} in model"
+        )
+
+
 class AbstractPriorModel(AbstractModel):
     """
     Abstract model that maps a set of priors to a particular class. Must be
@@ -111,6 +137,15 @@ class AbstractPriorModel(AbstractModel):
     def __init__(self):
         super().__init__()
         self._assertions = list()
+
+    @property
+    def mean_field(self) -> MeanField:
+        """
+        Implements the same interface as the graphical code
+        """
+        return MeanField(
+            self
+        )
 
     @classmethod
     def from_json(cls, file: str):

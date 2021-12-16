@@ -187,8 +187,33 @@ class AbstractDeclarativeFactor(Analysis, ABC):
         """
         A collection of prior models, with one model for each factor.
         """
-        return CollectionPriorModel([
+        return GlobalPriorModel(self)
+
+
+class GlobalPriorModel(CollectionPriorModel):
+    def __init__(
+            self,
+            factor: AbstractDeclarativeFactor
+    ):
+        """
+        A global model comprising all factors which can be used to compare
+        results between global optimisation and expectation propagation.
+
+        Parameters
+        ----------
+        factor
+            A factor comprising one or more factors, usually a graph
+        """
+        super().__init__([
             model_factor.prior_model
             for model_factor
-            in self.model_factors
+            in factor.model_factors
         ])
+        self.factor = factor
+
+    @property
+    def info(self) -> str:
+        """
+        A string describing the collection of factors in the graphical style
+        """
+        return self.factor.graph.info

@@ -1,7 +1,20 @@
+import itertools
+
 import pytest
 
 import autofit as af
 import autofit.graphical as g
+from autofit.tools.namer import namer
+
+
+@pytest.fixture(
+    autouse=True
+)
+def reset_namer():
+    namer.reset()
+    yield
+    namer.reset()
+    af.ModelObject._ids = itertools.count()
 
 
 class Analysis(af.Analysis):
@@ -24,6 +37,36 @@ def make_model_factor_2():
     model_2 = af.Collection(one=af.UniformPrior())
 
     return g.AnalysisFactor(model_2, Analysis(0.0))
+
+
+def test_info(
+        model_factor
+):
+    assert model_factor.global_prior_model.info == """PriorFactors
+
+PriorFactor0 (AnalysisFactor0.one)                                                        UniformPrior, lower_limit = 0.0, upper_limit = 1.0
+
+AnalysisFactors
+
+AnalysisFactor0
+
+one (PriorFactor0)                                                                        UniformPrior, lower_limit = 0.0, upper_limit = 1.0"""
+
+
+def test_results(
+        model_factor
+):
+    assert model_factor.graph.make_results_text(
+        model_factor.global_prior_model
+    ) == """PriorFactors
+
+PriorFactor0 (AnalysisFactor0.one)                                                        0.5
+
+AnalysisFactors
+
+AnalysisFactor0
+
+one (PriorFactor0)                                                                        0.5"""
 
 
 class TestGlobalLikelihood:
