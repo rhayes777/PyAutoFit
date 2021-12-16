@@ -8,14 +8,16 @@ from typing import (
 
 import matplotlib.pyplot as plt
 
-from autofit import conf, exc
+from autofit import exc
 from autofit.graphical.factor_graphs import (
     Factor, FactorGraph
 )
 from autofit.graphical.utils import Status
+from autofit.non_linear.paths import DirectoryPaths
 from .ep_mean_field import EPMeanField
 from .history import EPHistory
 from ...mapper.identifier import Identifier
+from ...non_linear.paths.abstract import AbstractPaths
 from ...tools.util import IntervalCounter
 
 logger = logging.getLogger(
@@ -90,6 +92,7 @@ class EPOptimiser:
             factor_optimisers: Optional[Dict[Factor, AbstractFactorOptimiser]] = None,
             ep_history: Optional[EPHistory] = None,
             factor_order: Optional[List[Factor]] = None,
+            paths: AbstractPaths = None
     ):
         """
         Optimise a factor graph.
@@ -112,7 +115,13 @@ class EPOptimiser:
         factor_order
             The factors in the graph but placed in the order in which they should
             be optimised
+        paths
+            Optionally define how data should be output
         """
+        self.paths = paths or DirectoryPaths(
+            identifier=str(Identifier(factor_graph))
+        )
+
         factor_optimisers = factor_optimisers or {}
         self.factor_graph = factor_graph
         self.factors = factor_order or self.factor_graph.factors
@@ -135,6 +144,9 @@ class EPOptimiser:
                 for factor in self.factors
             }
 
+        for optimiser in self.factor_optimisers.values():
+            optimiser.paths = self.paths
+
         self.ep_history = ep_history or EPHistory()
 
         with open(self.output_path / "graph.info", "w+") as f:
@@ -152,14 +164,7 @@ class EPOptimiser:
 
         If the path does not exist it is created.
         """
-        if hasattr(
-                self.default_optimiser,
-                "paths"
-        ):
-            self.default_optimiser.paths.is_identifier_in_paths = False
-            path = Path(self.default_optimiser.paths.output_path)
-        else:
-            path = Path(conf.instance.output_path) / str(Identifier(self.factor_graph))
+        path = Path(self.paths.output_path)
         os.makedirs(path, exist_ok=True)
         return path
 

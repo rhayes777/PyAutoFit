@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Set, List, Dict
+from typing import Set, List, Dict, Optional
 
 from autofit.graphical.declarative.factor.prior import PriorFactor
 from autofit.graphical.declarative.graph import DeclarativeFactorGraph
@@ -94,6 +94,7 @@ class AbstractDeclarativeFactor(Analysis, ABC):
     def _make_ep_optimiser(
             self,
             optimiser: AbstractFactorOptimiser,
+            paths: Optional[AbstractPaths] = None,
     ) -> EPOptimiser:
         return EPOptimiser(
             self.graph,
@@ -103,12 +104,13 @@ class AbstractDeclarativeFactor(Analysis, ABC):
                 for factor in self.model_factors
                 if factor.optimiser is not None
             },
+            paths=paths
         )
 
     def optimise(
             self,
             optimiser: AbstractFactorOptimiser,
-            name=None,
+            paths: Optional[AbstractPaths] = None,
             **kwargs
     ) -> CollectionPriorModel:
         """
@@ -117,9 +119,9 @@ class AbstractDeclarativeFactor(Analysis, ABC):
 
         Parameters
         ----------
-        name
-            A name for the optimisation. Defaults to identifier derived from this
-            instance.
+        paths
+            Optionally define how data should be output. This paths
+            object is copied to every optimiser.
         optimiser
             An optimiser that acts on graphs
 
@@ -128,7 +130,8 @@ class AbstractDeclarativeFactor(Analysis, ABC):
         A collection of prior models
         """
         opt = self._make_ep_optimiser(
-            optimiser
+            optimiser,
+            paths=paths,
         )
         updated_model = opt.run(
             self.mean_field_approximation(),
