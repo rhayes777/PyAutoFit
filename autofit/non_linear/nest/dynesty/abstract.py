@@ -13,8 +13,20 @@ from autofit.non_linear.nest.dynesty.plotter import DynestyPlotter
 from autofit.non_linear.nest.dynesty.samples import DynestySamples
 from autofit.plot.output import Output
 
+from autofit import exc
+
 def prior_transform(cube, model):
-    phys_cube = model.vector_from_unit_vector(unit_vector=cube)
+
+    try:
+        phys_cube = model.vector_from_unit_vector(unit_vector=cube)
+    except exc.PriorLimitException:
+        ignore_prior_limits = conf.instance["general"]["model"]["ignore_prior_limits"]
+        conf.instance["general"]["model"]["ignore_prior_limits"] = True
+        phys_cube = model.vector_from_unit_vector(
+            unit_vector=cube
+        )
+        conf.instance["general"]["model"]["ignore_prior_limits"] = ignore_prior_limits
+        return phys_cube
 
     for i in range(len(phys_cube)):
         cube[i] = phys_cube[i]
@@ -85,7 +97,8 @@ class AbstractDynesty(AbstractNest, ABC):
     class Fitness(AbstractNest.Fitness):
         @property
         def resample_figure_of_merit(self):
-            """If a sample raises a FitException, this value is returned to signify that the point requires resampling or
+            """
+            If a sample raises a FitException, this value is returned to signify that the point requires resampling or
              should be given a likelihood so low that it is discard.
 
              -np.inf is an invalid sample value for Dynesty, so we instead use a large negative number."""

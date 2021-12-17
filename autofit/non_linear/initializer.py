@@ -94,7 +94,10 @@ class Initializer:
                     lower_limit=self.lower_limit, upper_limit=self.upper_limit
                 )
 
-                parameter_list = model.vector_from_unit_vector(unit_vector=unit_parameter_list)
+                try:
+                    parameter_list = model.vector_from_unit_vector(unit_vector=unit_parameter_list)
+                except exc.PriorLimitException:
+                    continue
 
             else:
 
