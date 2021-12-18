@@ -123,16 +123,18 @@ class TestRegression:
     def test__superscripts_of_parameters(self):
         mm = af.ModelMapper()
         mm.one = mock.MockClassRelativeWidth
-        mm.two = mock.MockClassRelativeWidth
+        mm.two = mock.MockClassx2
 
-        assert mm.superscripts == ['one', 'one', 'one', 'two', 'two', 'two']
+        assert mm.superscripts == ['one', 'one', 'one', 'two', 'two']
 
-    def test__subscript_config_overwrite_of_parameters(self):
+    def test__superscript_config_overwrite_of_parameters(self):
+
         mm = af.ModelMapper()
         mm.one = mock.MockClassRelativeWidth
-        mm.two = mock.MockClassRelativeWidth
+        mm.two = mock.MockClassx2
+        mm.three = mock.MockClassx3
 
-        assert mm.superscripts_config_overwrite == ['o', 't', 't', 'o', 't', 't']
+        assert mm.superscripts_config_overwrite == ['r', 'r', 'r', None, None, None, None, None]
 
     def test_name_for_prior(self):
         ls = af.CollectionPriorModel(

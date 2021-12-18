@@ -1384,23 +1384,29 @@ class AbstractPriorModel(AbstractModel):
         This is used for displaying model results as text and for visualization with.
         """
 
-        subscripts = []
+        superscripts = []
 
         for prior_name, prior in self.prior_tuples_ordered_by_id:
             cls = self.prior_class_dict[prior]
             try:
-                subscript = conf.instance[
+                superscript = conf.instance[
                     "notation"
                 ][
                     "label"
                 ][
-                    "subscript"
-                ].family(cls)
-            except KeyError:
-                subscript = prior_name[0]
-            subscripts.append(subscript)
+                    "superscript"
+                ][
+                    cls.__name__
+                ]
 
-        return subscripts
+                if not superscript:
+                    superscript = None
+
+            except KeyError:
+                superscript = None
+            superscripts.append(superscript)
+
+        return superscripts
 
 
 def transfer_classes(instance, mapper, model_classes=None):
