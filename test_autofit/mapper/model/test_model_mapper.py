@@ -110,11 +110,27 @@ class TestRegression:
             "two_label",
         ]
 
+    def test__superscripts(self):
+        mm = af.ModelMapper()
+        mm.one = mock.MockClassRelativeWidth
+        mm.two = mock.MockClassx2NoSuperScript
+
+        assert mm.superscripts == ['r', 'r', 'r', 'two', 'two']
+
+    def test__superscript_overwrite_via_config(self):
+
+        mm = af.ModelMapper()
+        mm.one = mock.MockClassRelativeWidth
+        mm.two = mock.MockClassx2NoSuperScript
+        mm.three = mock.MockClassx3
+
+        assert mm.superscripts_overwrite_via_config == ['r', 'r', 'r', None, None, None, None, None]
+
     def test__parameter_labels_with_superscripts_latex(self):
 
         mm = af.ModelMapper()
         mm.one = mock.MockClassRelativeWidth
-        mm.two = mock.MockClassx2
+        mm.two = mock.MockClassx2NoSuperScript
 
         assert mm.parameter_labels_with_superscripts_latex == [
             r"$one_label^{\rm r}$",
@@ -123,22 +139,6 @@ class TestRegression:
             r"$one_label^{\rm two}$",
             r"$two_label^{\rm two}$",
         ]
-
-    def test__superscripts(self):
-        mm = af.ModelMapper()
-        mm.one = mock.MockClassRelativeWidth
-        mm.two = mock.MockClassx2
-
-        assert mm.superscripts == ['r', 'r', 'r', 'two', 'two']
-
-    def test__superscript_overwrite_via_config(self):
-
-        mm = af.ModelMapper()
-        mm.one = mock.MockClassRelativeWidth
-        mm.two = mock.MockClassx2
-        mm.three = mock.MockClassx3
-
-        assert mm.superscripts_overwrite_via_config == ['r', 'r', 'r', None, None, None, None, None]
 
     def test_name_for_prior(self):
         ls = af.CollectionPriorModel(

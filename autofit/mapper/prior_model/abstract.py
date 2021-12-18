@@ -1336,7 +1336,7 @@ class AbstractPriorModel(AbstractModel):
 
         return [
             f"${label}^{{\\rm {superscript}}}$"
-            for label, superscript in 
+            for label, superscript in
             zip(self.parameter_labels, self.superscripts)
         ]
 
@@ -1417,9 +1417,6 @@ class AbstractPriorModel(AbstractModel):
                 ][
                     cls.__name__
                 ]
-
-                if not superscript:
-                    superscript = None
 
             except KeyError:
                 superscript = None
