@@ -124,7 +124,7 @@ class TestRegression:
         mm.two = mock.MockClassx2NoSuperScript
         mm.three = mock.MockClassx3
 
-        assert mm.superscripts_overwrite_via_config == ['r', 'r', 'r', None, None, None, None, None]
+        assert mm.superscripts_overwrite_via_config == ['r', 'r', 'r', "", "", "", "", ""]
 
     def test__parameter_labels_with_superscripts_latex(self):
 

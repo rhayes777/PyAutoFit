@@ -1378,7 +1378,7 @@ class AbstractPriorModel(AbstractModel):
 
         return [
             superscript
-            if superscript_overwrite is None
+            if not superscript_overwrite
             else superscript_overwrite
             for superscript, superscript_overwrite
             in zip(superscripts, self.superscripts_overwrite_via_config)
@@ -1419,7 +1419,8 @@ class AbstractPriorModel(AbstractModel):
                 ]
 
             except KeyError:
-                superscript = None
+                superscript = ""
+
             superscripts.append(superscript)
 
         return superscripts
