@@ -120,6 +120,13 @@ class TestRegression:
             "$three_label$",
         ]
 
+    def test__superscripts_of_parameters(self):
+        mm = af.ModelMapper()
+        mm.one = mock.MockClassRelativeWidth
+        mm.two = mock.MockClassRelativeWidth
+
+        assert mm.superscripts == ['one', 'one', 'one', 'two', 'two', 'two']
+
     def test__subscripts_of_parameters(self):
         mm = af.ModelMapper()
         mm.one = mock.MockClassRelativeWidth

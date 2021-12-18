@@ -1336,13 +1336,48 @@ class AbstractPriorModel(AbstractModel):
         return [f"${label}$" for label in self.parameter_labels]
 
     @property
+    def superscripts(self) -> [str]:
+        """
+        Returns a list of the model component superscripts for every parameter in a model.
+
+        The class superscript labels are defined as the name of every model component in the `ModelMapper`. For
+        the example of a 1D Gaussian, if the model component name is `gaussian` three superscripts
+        with this string (corresponding to the parameters `centre`, `normalization` and `sigma`) will
+        be returned.
+
+        This is used for displaying model results as text and for visualization.
+        """
+        # TODO : For RIch - this is a repeat of code in `model_component_and_parameter_names`
+        # TODO : Is there a sensible property name we can move this too or does it already exist?
+
+        prior_paths = self.unique_prior_paths
+
+        tuple_filter = TuplePathModifier(
+            self
+        )
+
+        prior_paths = list(map(
+            tuple_filter,
+            prior_paths
+        ))
+
+        return [
+            path[0]
+            for path
+            in prior_paths
+        ]
+
+
+    @property
     def subscripts(self) -> [str]:
         """
         Returns a list of the model component subscripts of every parameter in a model.
 
-        This is used for displaying model results as text and for visualization with *corner.py*.
+        The class subscript labels are defined for every model component in the config file `notation/label.ini`.
+        For the example of a 1D Gaussian, the config file `label.ini` reads `Gaussian=g`, therefore every subscript
+        will be
 
-        The class subscript labels are defined for every model component in the config file notation/label.ini.
+        This is used for displaying model results as text and for visualization with *corner.py*.
         """
 
         subscripts = []
