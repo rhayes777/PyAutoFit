@@ -1367,17 +1367,21 @@ class AbstractPriorModel(AbstractModel):
             in prior_paths
         ]
 
-
     @property
-    def subscripts(self) -> [str]:
+    def superscripts_config_overwrite(self) -> [str]:
         """
-        Returns a list of the model component subscripts of every parameter in a model.
+        Returns a list of the model component superscripts of every parameter in a model, which unlike the
+        `superscripts` above are loaded .from a config file
 
-        The class subscript labels are defined for every model component in the config file `notation/label.ini`.
-        For the example of a 1D Gaussian, the config file `label.ini` reads `Gaussian=g`, therefore every subscript
-        will be
+        The class superscript labels can be defined for a model component in the config file `notation/label.ini`.
+        For the example of a 1D Gaussian, the config file `label.ini` reads `Gaussian=g`, therefore every superscript
+        for parameters of the `Gaussian` class will be given the superscript `g`.
 
-        This is used for displaying model results as text and for visualization with *corner.py*.
+        By default, the model component names are used as superscripts (which are loaded via
+        the method `superscripts`). These are overwritten by the config values only when they are present
+        in the config. This allows a user to customize the superscripts used to annocate visuals.
+
+        This is used for displaying model results as text and for visualization with.
         """
 
         subscripts = []
