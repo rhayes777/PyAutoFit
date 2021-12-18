@@ -1323,17 +1323,22 @@ class AbstractPriorModel(AbstractModel):
         return parameter_labels
 
     @property
-    def parameter_labels_latex(self) -> [str]:
+    def parameter_labels_with_superscripts_latex(self) -> [str]:
         """
-        Returns a list of the label of every parameter in a model.
+        Returns a list of the latex parameter label and superscript of every parameter in a model.
 
-        This is used for displaying model results as text and for visualization with *corner.py*.
+        The parameter labels are defined for every parameter of every model component in the config file `label.ini`.
+        This file can also be used to overwrite superscripts, that are assigned based on the model component name.
 
-        The parameter labels are defined for every parameter of every model component in the config files label.ini and
-        label_format.ini.
+        This is used for displaying model results as text and for visualization, for example labelling parameters on a
+        cornerplot.
         """
 
-        return [f"${label}$" for label in self.parameter_labels]
+        return [
+            f"${label}^{{\\rm {superscript}}}$"
+            for label, superscript in 
+            zip(self.parameter_labels, self.superscripts)
+        ]
 
     @property
     def superscripts(self) -> [str]:
@@ -1344,6 +1349,10 @@ class AbstractPriorModel(AbstractModel):
         the example of a 1D Gaussian, if the model component name is `gaussian` three superscripts
         with this string (corresponding to the parameters `centre`, `normalization` and `sigma`) will
         be returned.
+
+        These superscripts may be overwritten by those returned from the `superscripts_config_overwrite` property,
+        which optionally loads the superscripts from a `.json` config file. This allows high levels of customization
+        in what superscripts are used.
 
         This is used for displaying model results as text and for visualization.
         """
@@ -1361,25 +1370,35 @@ class AbstractPriorModel(AbstractModel):
             prior_paths
         ))
 
-        return [
+        superscripts = [
             path[0]
             for path
             in prior_paths
         ]
 
+        return [
+            superscript
+            if superscript_overwrite is None
+            else superscript_overwrite
+            for superscript, superscript_overwrite
+            in zip(superscripts, self.superscripts_overwrite_via_config)
+        ]
+
     @property
-    def superscripts_config_overwrite(self) -> [str]:
+    def superscripts_overwrite_via_config(self) -> [str]:
         """
-        Returns a list of the model component superscripts of every parameter in a model, which unlike the
-        `superscripts` above are loaded .from a config file
+        Returns a list of the model component superscripts for every parameter in a model, which can be used to
+        overwrite the default superscripts used in the function above.
 
-        The class superscript labels can be defined for a model component in the config file `notation/label.ini`.
-        For the example of a 1D Gaussian, the config file `label.ini` reads `Gaussian=g`, therefore every superscript
-        for parameters of the `Gaussian` class will be given the superscript `g`.
+        The class superscript labels are defined for a model component in the config file `notation/label.ini`. By
+        default, the model component names are used as superscripts (which are loaded via the method `superscripts`).
+        These are overwritten by the superscripts loaded via a  config in this function. If no value is present in the
+        config the model component names are used.
 
-        By default, the model component names are used as superscripts (which are loaded via
-        the method `superscripts`). These are overwritten by the config values only when they are present
-        in the config. This allows a user to customize the superscripts used to annocate visuals.
+        For the example of a 1D Gaussian, when instatiated as a model component it is typically given the
+        name `gaussian`. Thus, the string `gaussian` will be used as the supersript of every one its parameter labels
+        (`centre`, `normalization` and `sigma`). However, if the config file `label.ini` reads `Gaussian=g`, every
+        superscript for these parameters will instead be given the superscript `g`.
 
         This is used for displaying model results as text and for visualization with.
         """

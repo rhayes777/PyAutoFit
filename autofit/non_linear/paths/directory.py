@@ -327,7 +327,7 @@ class DirectoryPaths(AbstractPaths):
 
         parameter_names = model.model_component_and_parameter_names
         parameter_labels = model.parameter_labels
-        subscripts = model.superscripts_config_overwrite
+        subscripts = model.superscripts_overwrite_via_config
         parameter_labels_with_subscript = [f"{label}_{subscript}" for label, subscript in
                                            zip(parameter_labels, subscripts)]
 
