@@ -117,6 +117,10 @@ class TestRegression:
 
         assert mm.superscripts == ['r', 'r', 'r', 'two', 'two']
 
+        model = af.Collection(group=mm)
+
+        assert model.superscripts == ['r', 'r', 'r', "two", "two"]
+
     def test__superscript_overwrite_via_config(self):
 
         mm = af.ModelMapper()

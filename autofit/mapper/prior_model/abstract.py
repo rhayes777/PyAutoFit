@@ -1345,10 +1345,13 @@ class AbstractPriorModel(AbstractModel):
         """
         Returns a list of the model component superscripts for every parameter in a model.
 
+
         The class superscript labels are defined as the name of every model component in the `ModelMapper`. For
         the example of a 1D Gaussian, if the model component name is `gaussian` three superscripts
         with this string (corresponding to the parameters `centre`, `normalization` and `sigma`) will
         be returned.
+
+        For a `Collection`, the name of the inner model components are used.
 
         These superscripts may be overwritten by those returned from the `superscripts_config_overwrite` property,
         which optionally loads the superscripts from a `.json` config file. This allows high levels of customization
@@ -1371,7 +1374,7 @@ class AbstractPriorModel(AbstractModel):
         ))
 
         superscripts = [
-            path[0]
+            path[-2]
             for path
             in prior_paths
         ]
