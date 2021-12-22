@@ -1378,13 +1378,13 @@ class AbstractPriorModel(AbstractModel):
             self
         )
 
-        prior_paths = list(map(
+        prior_paths = map(
             tuple_filter,
             prior_paths
-        ))
+        )
 
         superscripts = [
-            path[-2]
+            path[-2] if len(path) > 1 else path[0]
             for path
             in prior_paths
         ]
