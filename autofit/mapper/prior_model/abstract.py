@@ -359,12 +359,21 @@ class AbstractPriorModel(AbstractModel):
             prior for _, prior in self.prior_tuples_ordered_by_id
         ]
 
-    def vector_from_unit_vector(self, unit_vector):
+    def vector_from_unit_vector(
+            self,
+            unit_vector,
+            ignore_prior_limits=False
+    ):
         """
         Parameters
         ----------
         unit_vector: [float]
             A unit hypercube vector
+        ignore_prior_limits
+            Set to True to prevent an exception being raised if
+            the physical value of a prior is outside the allowable
+            limits
+
         Returns
         -------
         values: [float]
@@ -372,7 +381,10 @@ class AbstractPriorModel(AbstractModel):
         """
         return list(
             map(
-                lambda prior_tuple, unit: prior_tuple.prior.value_for(unit),
+                lambda prior_tuple, unit: prior_tuple.prior.value_for(
+                    unit,
+                    ignore_prior_limits=ignore_prior_limits
+                ),
                 self.prior_tuples_ordered_by_id,
                 unit_vector,
             )
