@@ -1273,7 +1273,7 @@ class AbstractPriorModel(AbstractModel):
         ]
 
     @property
-    def model_component_and_parameter_names(self) -> [str]:
+    def model_component_and_parameter_names(self) -> List[str]:
         """The param_names vector is a list each parameter's analysis_path, and is used
         for *corner.py* visualization.
         The parameter names are determined from the class instance names of the
@@ -1296,7 +1296,7 @@ class AbstractPriorModel(AbstractModel):
         ]
 
     @property
-    def parameter_names(self) -> [str]:
+    def parameter_names(self) -> List[str]:
         """The param_names vector is a list each parameter's analysis_path, and is used
         for *corner.py* visualization.
         The parameter names are determined from the class instance names of the
@@ -1304,7 +1304,7 @@ class AbstractPriorModel(AbstractModel):
         return [parameter_name[-1] for parameter_name in self.unique_prior_paths]
 
     @property
-    def parameter_labels(self) -> [str]:
+    def parameter_labels(self) -> List[str]:
         """
         Returns a list of the label of every parameter in a model.
 
@@ -1323,7 +1323,7 @@ class AbstractPriorModel(AbstractModel):
         return parameter_labels
 
     @property
-    def parameter_labels_with_superscripts_latex(self) -> [str]:
+    def parameter_labels_with_superscripts_latex(self) -> List[str]:
         """
         Returns a list of the latex parameter label and superscript of every parameter in a model.
 
@@ -1341,7 +1341,7 @@ class AbstractPriorModel(AbstractModel):
         ]
 
     @property
-    def superscripts(self) -> [str]:
+    def superscripts(self) -> List[str]:
         """
         Returns a list of the model component superscripts for every parameter in a model.
 
@@ -1388,7 +1388,7 @@ class AbstractPriorModel(AbstractModel):
         ]
 
     @property
-    def superscripts_overwrite_via_config(self) -> [str]:
+    def superscripts_overwrite_via_config(self) -> List[str]:
         """
         Returns a list of the model component superscripts for every parameter in a model, which can be used to
         overwrite the default superscripts used in the function above.
