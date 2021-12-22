@@ -29,3 +29,10 @@ def test_prior_factor(prior):
             PriorLimitException
     ):
         prior.factor(-1.0)
+
+
+def test_optional(prior):
+    prior.value_for(
+        0.0,
+        assert_within_limits=False
+    )

@@ -14,15 +14,18 @@ epsilon = 1e-14
 def assert_within_limits(
         func,
 ):
+    # noinspection PyShadowingNames
     def wrapper(
             self,
             *args,
+            assert_within_limits=True,
             **kwargs,
     ):
         value = func(
             self, *args, **kwargs
         )
-        self.assert_within_limits(value)
+        if assert_within_limits:
+            self.assert_within_limits(value)
         return value
 
     return wrapper
