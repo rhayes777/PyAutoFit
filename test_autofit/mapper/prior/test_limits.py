@@ -68,16 +68,29 @@ def test_vector_ignore_limits(model):
     "prior",
     [
         af.LogUniformPrior(),
-        af.UniformPrior()
+        af.UniformPrior(),
+        af.GaussianPrior(
+            mean=0,
+            sigma=1,
+            lower_limit=0.0,
+            upper_limit=1.0,
+        )
     ]
 )
-def test_uniform_priors(prior):
+@pytest.mark.parametrize(
+    "value",
+    [-1.0, 2.0]
+)
+def test_all_priors(
+        prior,
+        value
+):
     with pytest.raises(
             PriorLimitException
     ):
-        prior.value_for(-1.0)
+        prior.value_for(value)
 
     prior.value_for(
-        -1.0,
+        value,
         ignore_prior_limits=True
     )
