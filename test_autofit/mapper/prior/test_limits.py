@@ -62,3 +62,17 @@ def test_vector_ignore_limits(model):
         [0, 0, 0],
         ignore_prior_limits=True
     )
+
+
+def test_log_uniform():
+    prior = af.LogUniformPrior()
+
+    with pytest.raises(
+            PriorLimitException
+    ):
+        prior.value_for(-1.0)
+
+    prior.value_for(
+        -1.0,
+        ignore_prior_limits=True
+    )

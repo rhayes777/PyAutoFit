@@ -185,6 +185,10 @@ class LogUniformPrior(WrappedInstance):
             The physical value of this prior's corresponding parameter in a `NonLinearSearch` sample."""
         return 1.0 / value
 
+    @assert_within_limits
+    def value_for(self, unit: float) -> float:
+        return super().value_for(unit)
+
     def __str__(self):
         """The line of text describing this prior for the model_mapper.info file"""
         return f"LogUniformPrior, lower_limit = {self.lower_limit}, upper_limit = {self.upper_limit}"
