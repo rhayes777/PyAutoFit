@@ -144,7 +144,7 @@ def test_uniform_odd_result():
 @pytest.mark.parametrize(
     "unit",
     [
-        0.0, 0.5, 0.9
+        0.00001, 0.5, 0.9
     ]
 )
 def test_log10(
