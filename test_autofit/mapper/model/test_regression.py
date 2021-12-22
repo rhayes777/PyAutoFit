@@ -62,15 +62,24 @@ def test_function_from_instance():
 
 
 def test_as_model_tuples():
-    instance = WithTuple(
-        tup=(0.1, 0.9)
+    model = af.Model(WithTuple)
+    assert isinstance(
+        model.tup.tup_0,
+        af.UniformPrior
+    )
+    assert isinstance(
+        model.tup.tup_1,
+        af.UniformPrior
     )
 
+    instance = model.instance_from_prior_medians()
+    assert instance.tup == (0.5, 0.5)
+
     model = af.AbstractPriorModel.from_instance(
-        instance,
+        instance
     )
-    assert model.tup_0 == 0.1
-    assert model.tup_1 == 0.9
+    assert model.tup == (0.5, 0.5)
+    assert model.info == """tup                                                                                       (0.5, 0.5)"""
 
 
 def test_set_centre():
