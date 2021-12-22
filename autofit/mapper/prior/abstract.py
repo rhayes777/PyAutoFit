@@ -18,13 +18,13 @@ def assert_within_limits(
     def wrapper(
             self,
             *args,
-            assert_within_limits=True,
+            ignore_prior_limits=False,
             **kwargs,
     ):
         value = func(
             self, *args, **kwargs
         )
-        if assert_within_limits:
+        if not ignore_prior_limits:
             self.assert_within_limits(value)
         return value
 

@@ -34,5 +34,31 @@ def test_prior_factor(prior):
 def test_optional(prior):
     prior.value_for(
         0.0,
-        assert_within_limits=False
+        ignore_prior_limits=True
+    )
+
+
+@pytest.fixture(
+    name="model"
+)
+def make_model(prior):
+    return af.Model(
+        af.Gaussian,
+        centre=prior
+    )
+
+
+def test_vector_from_unit_vector(model):
+    with pytest.raises(
+            PriorLimitException
+    ):
+        model.vector_from_unit_vector([
+            0, 0, 0
+        ])
+
+
+def test_vector_ignore_limits(model):
+    model.vector_from_unit_vector(
+        [0, 0, 0],
+        ignore_prior_limits=True
     )
