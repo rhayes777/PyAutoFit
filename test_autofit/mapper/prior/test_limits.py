@@ -64,9 +64,14 @@ def test_vector_ignore_limits(model):
     )
 
 
-def test_log_uniform():
-    prior = af.LogUniformPrior()
-
+@pytest.mark.parametrize(
+    "prior",
+    [
+        af.LogUniformPrior(),
+        af.UniformPrior()
+    ]
+)
+def test_uniform_priors(prior):
     with pytest.raises(
             PriorLimitException
     ):
