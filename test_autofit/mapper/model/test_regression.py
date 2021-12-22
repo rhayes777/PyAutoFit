@@ -85,3 +85,28 @@ def test_set_centre():
 
     instance = model.instance_from_prior_medians()
     assert instance.tup[0] == 10.0
+
+
+def test_passing_priors():
+    model = af.Model(
+        WithTuple
+    )
+
+    new_model = model.mapper_from_gaussian_tuples([
+        (1, 1),
+        (1, 1),
+    ])
+    assert isinstance(new_model.tup_0, af.GaussianPrior)
+    assert isinstance(new_model.tup_1, af.GaussianPrior)
+
+
+def test_passing_fixed():
+    model = af.Model(
+        WithTuple
+    )
+    model.tup_0 = 0.1
+    model.tup_1 = 2.0
+
+    new_model = model.mapper_from_gaussian_tuples([])
+    assert new_model.tup_0 == 0.1
+    assert new_model.tup_1 == 2.0
