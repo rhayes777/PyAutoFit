@@ -13,20 +13,12 @@ from autofit.non_linear.nest.dynesty.plotter import DynestyPlotter
 from autofit.non_linear.nest.dynesty.samples import DynestySamples
 from autofit.plot.output import Output
 
-from autofit import exc
 
 def prior_transform(cube, model):
-
-    try:
-        phys_cube = model.vector_from_unit_vector(unit_vector=cube)
-    except exc.PriorLimitException:
-        ignore_prior_limits = conf.instance["general"]["model"]["ignore_prior_limits"]
-        conf.instance["general"]["model"]["ignore_prior_limits"] = True
-        phys_cube = model.vector_from_unit_vector(
-            unit_vector=cube
-        )
-        conf.instance["general"]["model"]["ignore_prior_limits"] = ignore_prior_limits
-        return phys_cube
+    phys_cube = model.vector_from_unit_vector(
+        unit_vector=cube,
+        ignore_prior_limits=True
+    )
 
     for i in range(len(phys_cube)):
         cube[i] = phys_cube[i]

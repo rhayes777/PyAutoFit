@@ -110,10 +110,12 @@ def make_factor_model_collection(
 
 
 def test_custom_optimiser(make_model_factor):
+    other_optimiser = ep.LaplaceFactorOptimiser()
+
     factor_1 = make_model_factor(
         centre=40,
         sigma=10,
-        optimiser="optimiser"
+        optimiser=other_optimiser
     )
     factor_2 = make_model_factor(
         centre=60,
@@ -130,8 +132,8 @@ def test_custom_optimiser(make_model_factor):
     )
 
     factor_optimisers = ep_optimiser.factor_optimisers
-    assert factor_optimisers[factor_1] == "optimiser"
-    assert factor_optimisers[factor_2] == default_optimiser
+    assert factor_optimisers[factor_1] is other_optimiser
+    assert factor_optimisers[factor_2] is default_optimiser
 
 
 def test_factor_model_attributes(
