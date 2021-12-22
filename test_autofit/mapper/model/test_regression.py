@@ -3,6 +3,7 @@ import pytest
 import autofit as af
 from autoconf.exc import ConfigException
 from autofit.mapper.model_object import Identifier
+from autofit.mock.mock import WithTuple
 
 
 class SomeWeirdClass:
@@ -58,3 +59,24 @@ def test_function_from_instance():
     assert af.PriorModel.from_instance(
         test_function_from_instance
     ) is test_function_from_instance
+
+
+def test_as_model_tuples():
+    model = af.Model(WithTuple)
+    assert isinstance(
+        model.tup.tup_0,
+        af.UniformPrior
+    )
+    assert isinstance(
+        model.tup.tup_1,
+        af.UniformPrior
+    )
+
+    instance = model.instance_from_prior_medians()
+    assert instance.tup == (0.5, 0.5)
+
+    model = af.AbstractPriorModel.from_instance(
+        instance
+    )
+    assert model.tup == (0.5, 0.5)
+    assert model.info == """tup                                                                                       (0.5, 0.5)"""
