@@ -100,7 +100,7 @@ class TestRegression:
     def test__parameter_labels(self):
         mm = af.ModelMapper()
         mm.one = mock.MockClassRelativeWidth
-        mm.two = mock.MockClassRelativeWidth
+        mm.two = mock.MockClassx2
 
         assert mm.parameter_labels == [
             "one_label",
@@ -108,24 +108,41 @@ class TestRegression:
             "three_label",
             "one_label",
             "two_label",
-            "three_label",
         ]
 
-        assert mm.parameter_labels_latex == [
-            "$one_label$",
-            "$two_label$",
-            "$three_label$",
-            "$one_label$",
-            "$two_label$",
-            "$three_label$",
-        ]
-
-    def test__subscripts_of_parameters(self):
+    def test__superscripts(self):
         mm = af.ModelMapper()
         mm.one = mock.MockClassRelativeWidth
-        mm.two = mock.MockClassRelativeWidth
+        mm.two = mock.MockClassx2NoSuperScript
 
-        assert mm.subscripts == ['o', 't', 't', 'o', 't', 't']
+        assert mm.superscripts == ['r', 'r', 'r', 'two', 'two']
+
+        model = af.Collection(group=mm)
+
+        assert model.superscripts == ['r', 'r', 'r', "two", "two"]
+
+    def test__superscript_overwrite_via_config(self):
+
+        mm = af.ModelMapper()
+        mm.one = mock.MockClassRelativeWidth
+        mm.two = mock.MockClassx2NoSuperScript
+        mm.three = mock.MockClassx3
+
+        assert mm.superscripts_overwrite_via_config == ['r', 'r', 'r', "", "", "", "", ""]
+
+    def test__parameter_labels_with_superscripts_latex(self):
+
+        mm = af.ModelMapper()
+        mm.one = mock.MockClassRelativeWidth
+        mm.two = mock.MockClassx2NoSuperScript
+
+        assert mm.parameter_labels_with_superscripts_latex == [
+            r"$one_label^{\rm r}$",
+            r"$two_label^{\rm r}$",
+            r"$three_label^{\rm r}$",
+            r"$one_label^{\rm two}$",
+            r"$two_label^{\rm two}$",
+        ]
 
     def test_name_for_prior(self):
         ls = af.CollectionPriorModel(

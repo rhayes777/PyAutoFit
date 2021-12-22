@@ -50,22 +50,22 @@ def test__parameter_result_latex():
     assert str0 == r"param0 = 2.00^{+0.20}_{-0.10} & "
 
     str0 = frm.parameter_result_latex_from(
-        parameter_name="param0", value=3.00, subscript="a", errors=(0.1, 0.2)
+        parameter_name="param0", value=3.00, superscript="a", errors=(0.1, 0.2)
     )
 
-    assert str0 == r"param0_{\mathrm{a}} = 3.00^{+0.20}_{-0.10} & "
+    assert str0 == r"param0^{\rm{a}} = 3.00^{+0.20}_{-0.10} & "
 
     str0 = frm.parameter_result_latex_from(
-        parameter_name="param0", value=3.00, subscript="a", name_to_label=True
+        parameter_name="param0", value=3.00, superscript="a", name_to_label=True
     )
 
-    assert str0 == r"p0_{\mathrm{a}} = 3.00 & "
+    assert str0 == r"p0^{\rm{a}} = 3.00 & "
 
     str0 = frm.parameter_result_latex_from(
-        parameter_name="param0", value=3.00, subscript="a", unit="kg"
+        parameter_name="param0", value=3.00, superscript="a", unit="kg"
     )
 
-    assert str0 == r"param0_{\mathrm{a}} = 3.00 kg & "
+    assert str0 == r"param0^{\rm{a}} = 3.00 kg & "
 
 
 def test__output_list_of_strings_to_file():

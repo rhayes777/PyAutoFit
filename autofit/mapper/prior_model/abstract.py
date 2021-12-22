@@ -1285,7 +1285,7 @@ class AbstractPriorModel(AbstractModel):
         ]
 
     @property
-    def model_component_and_parameter_names(self) -> [str]:
+    def model_component_and_parameter_names(self) -> List[str]:
         """The param_names vector is a list each parameter's analysis_path, and is used
         for *corner.py* visualization.
         The parameter names are determined from the class instance names of the
@@ -1308,7 +1308,7 @@ class AbstractPriorModel(AbstractModel):
         ]
 
     @property
-    def parameter_names(self) -> [str]:
+    def parameter_names(self) -> List[str]:
         """The param_names vector is a list each parameter's analysis_path, and is used
         for *corner.py* visualization.
         The parameter names are determined from the class instance names of the
@@ -1316,7 +1316,7 @@ class AbstractPriorModel(AbstractModel):
         return [parameter_name[-1] for parameter_name in self.unique_prior_paths]
 
     @property
-    def parameter_labels(self) -> [str]:
+    def parameter_labels(self) -> List[str]:
         """
         Returns a list of the label of every parameter in a model.
 
@@ -1335,45 +1335,108 @@ class AbstractPriorModel(AbstractModel):
         return parameter_labels
 
     @property
-    def parameter_labels_latex(self) -> [str]:
+    def parameter_labels_with_superscripts_latex(self) -> List[str]:
         """
-        Returns a list of the label of every parameter in a model.
+        Returns a list of the latex parameter label and superscript of every parameter in a model.
 
-        This is used for displaying model results as text and for visualization with *corner.py*.
+        The parameter labels are defined for every parameter of every model component in the config file `label.ini`.
+        This file can also be used to overwrite superscripts, that are assigned based on the model component name.
 
-        The parameter labels are defined for every parameter of every model component in the config files label.ini and
-        label_format.ini.
+        This is used for displaying model results as text and for visualization, for example labelling parameters on a
+        cornerplot.
         """
 
-        return [f"${label}$" for label in self.parameter_labels]
+        return [
+            f"${label}^{{\\rm {superscript}}}$"
+            for label, superscript in
+            zip(self.parameter_labels, self.superscripts)
+        ]
 
     @property
-    def subscripts(self) -> [str]:
+    def superscripts(self) -> List[str]:
         """
-        Returns a list of the model component subscripts of every parameter in a model.
+        Returns a list of the model component superscripts for every parameter in a model.
 
-        This is used for displaying model results as text and for visualization with *corner.py*.
 
-        The class subscript labels are defined for every model component in the config file notation/label.ini.
+        The class superscript labels are defined as the name of every model component in the `ModelMapper`. For
+        the example of a 1D Gaussian, if the model component name is `gaussian` three superscripts
+        with this string (corresponding to the parameters `centre`, `normalization` and `sigma`) will
+        be returned.
+
+        For a `Collection`, the name of the inner model components are used.
+
+        These superscripts may be overwritten by those returned from the `superscripts_config_overwrite` property,
+        which optionally loads the superscripts from a `.json` config file. This allows high levels of customization
+        in what superscripts are used.
+
+        This is used for displaying model results as text and for visualization.
         """
 
-        subscripts = []
+        prior_paths = self.unique_prior_paths
+
+        tuple_filter = TuplePathModifier(
+            self
+        )
+
+        prior_paths = list(map(
+            tuple_filter,
+            prior_paths
+        ))
+
+        superscripts = [
+            path[-2]
+            for path
+            in prior_paths
+        ]
+
+        return [
+            superscript
+            if not superscript_overwrite
+            else superscript_overwrite
+            for superscript, superscript_overwrite
+            in zip(superscripts, self.superscripts_overwrite_via_config)
+        ]
+
+    @property
+    def superscripts_overwrite_via_config(self) -> List[str]:
+        """
+        Returns a list of the model component superscripts for every parameter in a model, which can be used to
+        overwrite the default superscripts used in the function above.
+
+        The class superscript labels are defined for a model component in the config file `notation/label.ini`. By
+        default, the model component names are used as superscripts (which are loaded via the method `superscripts`).
+        These are overwritten by the superscripts loaded via a  config in this function. If no value is present in the
+        config the model component names are used.
+
+        For the example of a 1D Gaussian, when instatiated as a model component it is typically given the
+        name `gaussian`. Thus, the string `gaussian` will be used as the supersript of every one its parameter labels
+        (`centre`, `normalization` and `sigma`). However, if the config file `label.ini` reads `Gaussian=g`, every
+        superscript for these parameters will instead be given the superscript `g`.
+
+        This is used for displaying model results as text and for visualization with.
+        """
+
+        superscripts = []
 
         for prior_name, prior in self.prior_tuples_ordered_by_id:
             cls = self.prior_class_dict[prior]
             try:
-                subscript = conf.instance[
+                superscript = conf.instance[
                     "notation"
                 ][
                     "label"
                 ][
-                    "subscript"
-                ].family(cls)
-            except KeyError:
-                subscript = prior_name[0]
-            subscripts.append(subscript)
+                    "superscript"
+                ][
+                    cls.__name__
+                ]
 
-        return subscripts
+            except KeyError:
+                superscript = ""
+
+            superscripts.append(superscript)
+
+        return superscripts
 
 
 def transfer_classes(instance, mapper, model_classes=None):

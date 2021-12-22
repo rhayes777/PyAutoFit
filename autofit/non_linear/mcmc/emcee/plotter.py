@@ -10,7 +10,7 @@ class EmceePlotter(MCMCPlotter):
         corner.corner(
             data=np.asarray(self.samples.parameter_lists),
             weight_list=self.samples.weight_list,
-            labels=self.model.parameter_labels_latex,
+            labels=self.model.parameter_labels_with_superscripts_latex,
             **kwargs
         )
 

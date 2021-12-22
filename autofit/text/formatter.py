@@ -153,7 +153,7 @@ def parameter_result_latex_from(
         parameter_name,
         value,
         errors=None,
-        subscript=None,
+        superscript=None,
         unit=None,
         format_string=None,
         name_to_label=False,
@@ -170,17 +170,17 @@ def parameter_result_latex_from(
     else:
         unit = ""
 
-    if subscript is None:
-        subscript = ""
+    if superscript is None:
+        superscript = ""
     else:
-        subscript = f"_{{\mathrm{{{subscript}}}}}"
+        superscript = f"^{{\\rm{{{superscript}}}}}"
 
     if errors is None:
-        return f"{str0}{subscript} = {value}{unit} & "
+        return f"{str0}{superscript} = {value}{unit} & "
     else:
         lower_value_at_sigma = format_str.format(errors[0])
         upper_value_at_sigma = format_str.format(errors[1])
-        return f"{str0}{subscript} = {value}^{{+{upper_value_at_sigma}}}_{{-{lower_value_at_sigma}}}{unit} & "
+        return f"{str0}{superscript} = {value}^{{+{upper_value_at_sigma}}}_{{-{lower_value_at_sigma}}}{unit} & "
 
 
 def output_list_of_strings_to_file(file, list_of_strings):

@@ -68,6 +68,34 @@
       }
     }
   },
+  "MockClassx2NoSuperScript": {
+    "one": {
+      "type": "Uniform",
+      "lower_limit": 0.0,
+      "upper_limit": 1.0,
+      "width_modifier": {
+        "type": "Absolute",
+        "value": 1.0
+      },
+      "gaussian_limits": {
+        "lower": 0.0,
+        "upper": 1.0
+      }
+    },
+    "two": {
+      "type": "Uniform",
+      "lower_limit": 0.0,
+      "upper_limit": 2.0,
+      "width_modifier": {
+        "type": "Absolute",
+        "value": 2.0
+      },
+      "gaussian_limits": {
+        "lower": 0.0,
+        "upper": 2.0
+      }
+    }
+  },
   "MockClassx2Tuple": {
     "one_tuple_0": {
       "type": "Uniform",

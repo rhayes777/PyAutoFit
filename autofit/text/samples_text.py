@@ -68,7 +68,7 @@ def latex(samples, median_pdf_model=True, sigma=3.0, name_to_label=True) -> str:
             parameter_name=samples.model.parameter_names[i],
             value=values[i],
             errors=errors_at_sigma[i],
-            subscript=samples.model.subscripts[i],
+            superscript=samples.model.superscripts_overwrite_via_config[i],
             name_to_label=name_to_label,
         )
 

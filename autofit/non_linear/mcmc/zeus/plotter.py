@@ -10,7 +10,7 @@ class ZeusPlotter(MCMCPlotter):
             zeus.cornerplot(
                 samples=self.samples.zeus_sampler.get_chain(flat=True),
                 weight_list=self.samples.weight_list,
-                labels=self.model.parameter_labels_latex,
+                labels=self.model.parameter_labels_with_superscripts_latex,
                 **kwargs
             )
         except TypeError:
