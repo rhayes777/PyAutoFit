@@ -276,3 +276,16 @@ def test_limits(
     )
     assert target_gaussian.centre.lower_limit == -1
     assert target_gaussian.centre.upper_limit == 1
+
+
+def test_tuples():
+    centre = (0.0, 1.0)
+    source = af.Model(
+        m.Gaussian,
+        centre=centre
+    )
+    target = af.Model(
+        m.Gaussian
+    )
+    target.take_attributes(source)
+    assert target.centre == centre

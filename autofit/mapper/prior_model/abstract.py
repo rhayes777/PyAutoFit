@@ -746,15 +746,26 @@ class AbstractPriorModel(AbstractModel):
 
             try:
                 result = PriorModel(
-                    instance.__class__,
-                    **{
-                        key: AbstractPriorModel.from_instance(
-                            value, model_classes=model_classes
-                        )
-                        for key, value in instance.__dict__.items()
-                        if key != "cls"
-                    },
+                    instance.__class__
                 )
+                for key, value in instance.__dict__.items():
+                    if key == "cls":
+                        continue
+                    if isinstance(value, tuple):
+                        for i, entry in enumerate(value):
+                            setattr(
+                                result,
+                                f"{key}_{i}",
+                                entry
+                            )
+                    else:
+                        setattr(
+                            result,
+                            key,
+                            AbstractPriorModel.from_instance(
+                                value, model_classes=model_classes
+                            )
+                        )
             except AttributeError:
                 return instance
         if any([isinstance(instance, cls) for cls in model_classes]):
