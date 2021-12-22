@@ -80,3 +80,17 @@ def test_as_model_tuples():
     )
     assert model.tup == (0.5, 0.5)
     assert model.info == """tup                                                                                       (0.5, 0.5)"""
+
+
+def test_set_centre():
+    model = af.Model(WithTuple)
+    model.tup_0 = 10.0
+
+    instance = model.instance_from_prior_medians()
+    assert instance.tup[0] == 10.0
+
+    model = af.Model(WithTuple)
+    model.tup.tup_0 = 10.0
+
+    instance = model.instance_from_prior_medians()
+    assert instance.tup[0] == 10.0
