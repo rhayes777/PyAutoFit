@@ -44,5 +44,5 @@ def test__summary(samples):
 def test__latex(samples):
     latex_results_at_sigma = samples_text.latex(samples=samples, sigma=3.0)
 
-    assert r"one_label_{\mathrm{o}} = 1.00^{+0.20}_{-0.00} & " in latex_results_at_sigma
-    assert r"two_label_{\mathrm{t}} = 2.00^{+0.20}_{-0.00}" in latex_results_at_sigma
+    assert r"one_label^{\rm{o}} = 1.00^{+0.20}_{-0.00} & " in latex_results_at_sigma
+    assert r"two_label^{\rm{o}} = 2.00^{+0.20}_{-0.00}" in latex_results_at_sigma

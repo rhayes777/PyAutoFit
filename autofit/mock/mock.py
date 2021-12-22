@@ -171,6 +171,12 @@ class MockClassx2:
         self.two = two
 
 
+class MockClassx2NoSuperScript:
+    def __init__(self, one=1, two=2):
+        self.one = one
+        self.two = two
+
+
 class MockClassx4:
     def __init__(self, one=1, two=2, three=3, four=4):
         self.one = one
