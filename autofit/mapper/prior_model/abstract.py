@@ -1359,8 +1359,6 @@ class AbstractPriorModel(AbstractModel):
 
         This is used for displaying model results as text and for visualization.
         """
-        # TODO : For RIch - this is a repeat of code in `model_component_and_parameter_names`
-        # TODO : Is there a sensible property name we can move this too or does it already exist?
 
         prior_paths = self.unique_prior_paths
 
