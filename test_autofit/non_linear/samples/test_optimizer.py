@@ -2,26 +2,10 @@ import os
 import pytest
 
 import autofit as af
-from autofit.mock.mock import MockClassx4
+from autofit.mock.mock import MockClassx4, MockSamples
 from autofit.non_linear.samples import Sample
 
 pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
-
-
-class MockSamples(af.PDFSamples):
-
-    def __init__(
-            self,
-            model,
-            sample_list=None,
-            unconverged_sample_size=10,
-            **kwargs,
-    ):
-        super().__init__(
-            model=model,
-            sample_list=sample_list,
-            unconverged_sample_size=unconverged_sample_size, **kwargs
-        )
 
 
 @pytest.fixture(name="samples")
@@ -44,7 +28,7 @@ def make_samples():
             log_likelihood_list=[1.0, 2.0, 3.0, 10.0, 5.0],
             log_prior_list=[0.0, 0.0, 0.0, 0.0, 0.0],
             weight_list=[1.0, 1.0, 1.0, 1.0, 1.0],
-        )
+        ),
     )
 
 
@@ -60,6 +44,7 @@ def test__table__headers(samples):
         "weight",
     ]
 
+
 def test__table__rows(samples):
     rows = list(samples._rows)
     assert rows == [
@@ -70,12 +55,14 @@ def test__table__rows(samples):
         [0.0, 1.0, 2.0, 3.0, 5.0, 0.0, 5.0, 1.0],
     ]
 
+
 def test__table__write_table(samples):
     filename = "samples.csv"
     samples.write_table(filename=filename)
 
     assert os.path.exists(filename)
     os.remove(filename)
+
 
 def test__max_log_likelihood_vector_and_instance(samples):
     assert samples.max_log_likelihood_vector == [21.0, 22.0, 23.0, 24.0]
@@ -86,6 +73,7 @@ def test__max_log_likelihood_vector_and_instance(samples):
     assert instance.mock_class_1.two == 22.0
     assert instance.mock_class_1.three == 23.0
     assert instance.mock_class_1.four == 24.0
+
 
 def test__log_prior_list_and_max_log_posterior_vector_and_instance():
     model = af.ModelMapper(mock_class_1=MockClassx4)
@@ -106,7 +94,7 @@ def test__log_prior_list_and_max_log_posterior_vector_and_instance():
             log_likelihood_list=[1.0, 2.0, 3.0, 0.0, 5.0],
             log_prior_list=[1.0, 2.0, 3.0, 10.0, 6.0],
             weight_list=[1.0, 1.0, 1.0, 1.0, 1.0],
-        )
+        ),
     )
 
     assert samples.log_posterior_list == [2.0, 4.0, 6.0, 10.0, 11.0]
@@ -119,6 +107,7 @@ def test__log_prior_list_and_max_log_posterior_vector_and_instance():
     assert instance.mock_class_1.two == 22.0
     assert instance.mock_class_1.three == 23.0
     assert instance.mock_class_1.four == 24.0
+
 
 def test__gaussian_priors():
     parameters = [
@@ -138,8 +127,8 @@ def test__gaussian_priors():
             log_likelihood_list=[10.0, 0.0, 0.0, 0.0, 0.0],
             log_prior_list=[0.0, 0.0, 0.0, 0.0, 0.0],
             weight_list=[1.0, 1.0, 1.0, 1.0, 1.0],
-
-        ))
+        ),
+    )
 
     gaussian_priors = samples.gaussian_priors_at_sigma(sigma=1.0)
 
@@ -152,6 +141,7 @@ def test__gaussian_priors():
     assert gaussian_priors[1][1] == pytest.approx(0.12, 1.0e-4)
     assert gaussian_priors[2][1] == pytest.approx(0.12, 1.0e-4)
     assert gaussian_priors[3][1] == pytest.approx(0.32, 1.0e-4)
+
 
 def test__instance_from_sample_index():
     model = af.ModelMapper(mock_class=MockClassx4)
@@ -172,8 +162,8 @@ def test__instance_from_sample_index():
             log_likelihood_list=[0.0, 0.0, 0.0, 0.0, 0.0],
             log_prior_list=[0.0, 0.0, 0.0, 0.0, 0.0],
             weight_list=[1.0, 1.0, 1.0, 1.0, 1.0],
-
-        ))
+        ),
+    )
 
     instance = samples.instance_from_sample_index(sample_index=0)
 
@@ -188,5 +178,3 @@ def test__instance_from_sample_index():
     assert instance.mock_class.two == 6.0
     assert instance.mock_class.three == 7.0
     assert instance.mock_class.four == 8.0
-
-

@@ -6,7 +6,7 @@ from autofit.non_linear.analysis import Analysis
 from autofit.mapper.model import ModelInstance
 from autofit.mapper.model_mapper import ModelMapper
 from autofit.non_linear.abstract_search import NonLinearSearch
-from autofit.non_linear.samples import PDFSamples, Sample
+from autofit.non_linear.samples import PDFSamples, Sample, NestSamples
 from autoconf import conf
 
 
@@ -56,6 +56,7 @@ class MockResult:
     def last(self):
         return self
 
+
 class MockSamples(PDFSamples):
     def __init__(
             self,
@@ -89,28 +90,83 @@ class MockSamples(PDFSamples):
         )
 
         self._max_log_likelihood_instance = max_log_likelihood_instance
-        self.gaussian_tuples = gaussian_tuples
+        self._gaussian_tuples = gaussian_tuples
 
     @property
     def log_likelihood_list(self):
 
         if self._log_likelihood_list is None:
-            return [1.0, 2.0, 3.0]
+            return super().log_likelihood_list
 
         return self._log_likelihood_list
 
     @property
     def max_log_likelihood_instance(self):
+
+        if self._max_log_likelihood_instance is None:
+            return super().max_log_likelihood_instance
+
         return self._max_log_likelihood_instance
 
     def gaussian_priors_at_sigma(self, sigma=None):
-        return self.gaussian_tuples
 
-    def write_table(self, filename: str):
-        pass
+        if self._gaussian_tuples is None:
+            return super().gaussian_priors_at_sigma(sigma=sigma)
 
-    def info_to_json(self, filename):
-        pass
+        return self._gaussian_tuples
+
+    # def write_table(self, filename: str):
+    #     pass
+    #
+    # def info_to_json(self, filename):
+    #     pass
+
+
+class MockNestSamples(NestSamples):
+
+    def __init__(
+            self,
+            model,
+            sample_list=None,
+            total_samples=10,
+            log_evidence=0.0,
+            number_live_points=5,
+    ):
+
+        self.model = model
+
+        if sample_list is None:
+
+            sample_list = [
+                Sample(
+                    log_likelihood=log_likelihood,
+                    log_prior=0.0,
+                    weight=0.0
+                )
+                for log_likelihood
+                in self.log_likelihood_list
+            ]
+
+        super().__init__(
+            model=model,
+            sample_list=sample_list
+        )
+
+        self._total_samples = total_samples
+        self._log_evidence = log_evidence
+        self._number_live_points = number_live_points
+
+    @property
+    def total_samples(self):
+        return self._total_samples
+
+    @property
+    def log_evidence(self):
+        return self._log_evidence
+
+    @property
+    def number_live_points(self):
+        return self._number_live_points
 
 
 class MockSearch(NonLinearSearch):

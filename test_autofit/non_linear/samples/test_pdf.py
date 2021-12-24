@@ -4,19 +4,9 @@ import pytest
 from autoconf.conf import with_config
 
 import autofit as af
-from autofit.mock.mock import MockClassx2, MockClassx4
+from autofit.mock.mock import MockClassx2, MockClassx4, MockSamples
 
 pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
-
-
-class MockSamples(af.PDFSamples):
-    def __init__(self, model, sample_list=None, unconverged_sample_size=10, **kwargs):
-        super().__init__(
-            model=model,
-            sample_list=sample_list,
-            unconverged_sample_size=unconverged_sample_size,
-            **kwargs,
-        )
 
 
 @pytest.fixture(name="samples")
