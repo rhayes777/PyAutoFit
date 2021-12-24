@@ -1,6 +1,6 @@
 import math
-
 import numpy as np
+from typing import Optional
 
 from autofit.non_linear.analysis import Analysis
 from autofit.mapper.model import ModelInstance
@@ -73,17 +73,7 @@ class MockSamples(PDFSamples):
 
         self.model = model
 
-        if sample_list is None:
-
-            sample_list = [
-                Sample(
-                    log_likelihood=log_likelihood,
-                    log_prior=0.0,
-                    weight=0.0
-                )
-                for log_likelihood
-                in self.log_likelihood_list
-            ]
+        sample_list = sample_list or self.default_sample_list
 
         super().__init__(
             model=model, sample_list=sample_list, unconverged_sample_size=unconverged_sample_size, **kwargs
@@ -91,6 +81,24 @@ class MockSamples(PDFSamples):
 
         self._max_log_likelihood_instance = max_log_likelihood_instance
         self._gaussian_tuples = gaussian_tuples
+
+    @property
+    def default_sample_list(self):
+
+        if self._log_likelihood_list is not None:
+            log_likelihood_list = self._log_likelihood_list
+        else:
+            log_likelihood_list = range(5)
+
+        return [
+            Sample(
+                log_likelihood=log_likelihood,
+                log_prior=0.0,
+                weight=0.0
+            )
+            for log_likelihood
+            in log_likelihood_list
+        ]
 
     @property
     def log_likelihood_list(self):
@@ -104,7 +112,11 @@ class MockSamples(PDFSamples):
     def max_log_likelihood_instance(self):
 
         if self._max_log_likelihood_instance is None:
-            return super().max_log_likelihood_instance
+
+            try:
+                return super().max_log_likelihood_instance
+            except KeyError:
+                pass
 
         return self._max_log_likelihood_instance
 
@@ -115,13 +127,6 @@ class MockSamples(PDFSamples):
 
         return self._gaussian_tuples
 
-    # def write_table(self, filename: str):
-    #     pass
-    #
-    # def info_to_json(self, filename):
-    #     pass
-
-
 class MockNestSamples(NestSamples):
 
     def __init__(
@@ -131,6 +136,7 @@ class MockNestSamples(NestSamples):
             total_samples=10,
             log_evidence=0.0,
             number_live_points=5,
+            time: Optional[float] = None,
     ):
 
         self.model = model
@@ -149,7 +155,8 @@ class MockNestSamples(NestSamples):
 
         super().__init__(
             model=model,
-            sample_list=sample_list
+            sample_list=sample_list,
+            time=time
         )
 
         self._total_samples = total_samples

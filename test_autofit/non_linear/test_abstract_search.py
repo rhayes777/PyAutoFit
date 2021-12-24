@@ -7,7 +7,9 @@ import pytest
 
 import autofit as af
 from autoconf import conf
-from autofit.mock import mock
+
+from autofit.mock.mock import MockClassx4, MockClassx2Tuple
+from autofit.mock.mock import MockSearch, MockSamples
 
 pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
 
@@ -19,18 +21,18 @@ def make_mapper():
 
 @pytest.fixture(name="mock_list")
 def make_mock_list():
-    return [af.PriorModel(mock.MockClassx4), af.PriorModel(mock.MockClassx4)]
+    return [af.PriorModel(MockClassx4), af.PriorModel(MockClassx4)]
 
 
 @pytest.fixture(name="result")
 def make_result():
     mapper = af.ModelMapper()
-    mapper.component = mock.MockClassx2Tuple
+    mapper.component = MockClassx2Tuple
     # noinspection PyTypeChecker
     return af.Result(
-        samples=mock.MockSamples(gaussian_tuples=[(0, 0), (1, 0)]),
+        samples=MockSamples(gaussian_tuples=[(0, 0), (1, 0)]),
         model=mapper,
-        search=mock.MockSearch(),
+        search=MockSearch(),
     )
 
 
@@ -59,13 +61,13 @@ class TestResult:
     def test_raises(self, result):
         with pytest.raises(af.exc.PriorException):
             result.model.mapper_from_gaussian_tuples(
-                result.samples.gaussian_tuples, a=2.0, r=1.0
+                result.samples._gaussian_tuples, a=2.0, r=1.0
             )
 
 
 class TestLabels:
     def test_param_names(self):
-        model = af.PriorModel(mock.MockClassx4)
+        model = af.PriorModel(MockClassx4)
         assert [
                    "one",
                    "two",

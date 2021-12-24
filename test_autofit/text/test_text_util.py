@@ -1,11 +1,9 @@
 from os import path
-
 import pytest
 
 import autofit as af
-import autofit.non_linear.samples.nest
-from autofit.mock.mock import MockSamples, MockClassx2
-from autofit.non_linear.samples import Sample
+
+from autofit.mock.mock import MockSamples, MockNestSamples, MockClassx2
 from autofit.text import text_util
 
 text_path = path.join("{}".format(path.dirname(path.realpath(__file__))), "files", "samples")
@@ -24,7 +22,7 @@ def make_samples(model):
 
     return MockSamples(
         model=model,
-        sample_list=Sample.from_lists(
+        sample_list=af.Sample.from_lists(
             parameter_lists=parameters,
             log_likelihood_list=log_likelihood_list,
             log_prior_list=[0.0, 0.0],
@@ -32,40 +30,6 @@ def make_samples(model):
             model=model
         )
     )
-
-
-class MockNestSamples(autofit.non_linear.samples.nest.NestSamples):
-    def __init__(
-            self,
-            model,
-            sample_list=None,
-            total_samples=10,
-            log_evidence=0.0,
-            number_live_points=5,
-            time=2
-    ):
-
-        self.model = model
-
-        self._total_samples = total_samples
-        self._log_evidence = log_evidence
-        self._number_live_points = number_live_points
-
-        super().__init__(
-            model=model, sample_list=sample_list, time=time
-        )
-
-    @property
-    def total_samples(self):
-        return self._total_samples
-
-    @property
-    def log_evidence(self):
-        return self._log_evidence
-
-    @property
-    def number_live_points(self):
-        return self._number_live_points
 
 
 def test__results_to_file(samples):
@@ -81,7 +45,7 @@ def test__results_to_file(samples):
 
     assert (
             line
-            == "Maximum Log Likelihood                                                                    3.00000000\n"
+            == "Maximum Log Likelihood                                                                    1.00000000\n"
     )
 
     line = results.readline()
@@ -101,7 +65,7 @@ def test__search_summary_to_file(model):
 
     samples = MockSamples(
         model=model,
-        sample_list=Sample.from_lists(
+        sample_list=af.Sample.from_lists(
             parameter_lists=parameters,
             log_likelihood_list=log_likelihood_list,
             log_prior_list=[0.0, 0.0],
@@ -120,7 +84,7 @@ def test__search_summary_to_file(model):
 
     samples = MockNestSamples(
         model=model,
-        sample_list=Sample.from_lists(
+        sample_list=af.Sample.from_lists(
             parameter_lists=parameters,
             log_likelihood_list=log_likelihood_list + [2.0],
             log_prior_list=[1.0, 1.0],
