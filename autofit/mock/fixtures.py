@@ -3,6 +3,13 @@ import autofit as af
 from autofit.mock.mock import MockClassx4, MockSamples
 
 
+def make_model_gaussian_x1():
+
+    return af.Model(
+        af.Gaussian
+    )
+
+
 def make_samples_x5():
 
     model = af.ModelMapper(mock_class_1=MockClassx4)
