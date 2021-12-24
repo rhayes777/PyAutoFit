@@ -210,14 +210,14 @@ The ``lens`` behaves exactly like the model-components we are used to previously
 individual parameters to customize the model, where below we:
 
  1) Align the light profile centre and mass profile centre.
- 2) Customize the prior on the light profile ``axis_ratio``.
- 3) Fix the ``axis_ratio`` of the mass profile to 0.8.
+ 2) Customize the prior on the light profile ``one``.
+ 3) Fix the ``one`` of the mass profile to 0.8.
 
 .. code-block:: bash
 
     lens.light_profile_list[0].centre = lens.mass_profile_list[0].centre
-    lens.light_profile_list[0].axis_ratio = af.UniformPrior(lower_limit=0.7, upper_limit=0.9)
-    lens.mass_profile_list[0].axis_ratio = 0.8
+    lens.light_profile_list[0].one = af.UniformPrior(lower_limit=0.7, upper_limit=0.9)
+    lens.mass_profile_list[0].one = 0.8
 
 We can now create a model of our source galaxy using the same API.
 

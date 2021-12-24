@@ -3,9 +3,14 @@ import copy
 import pytest
 
 import autofit as af
-from autofit.mock.mock_model import MockClassx2, MockComplexClass, MockComponents, MockListClass
-from autofit.mock.mock_real import EllProfile, EllMassProfile, EllIsothermalCored
-
+from autofit.mock.mock_model import (
+    MockClassx2,
+    MockComplexClass,
+    MockComponents,
+    MockListClass,
+    MockChildTuplex2,
+    MockChildTuplex3
+)
 
 @pytest.fixture(name="instance_prior_model")
 def make_instance_prior_model():
@@ -144,68 +149,68 @@ class TestFromInstance:
 
 class TestSum:
     def test_add_prior_models(self):
-        profile_1 = af.PriorModel(EllProfile)
-        profile_2 = af.PriorModel(EllProfile)
+        mock_cls_0 = af.PriorModel(MockChildTuplex2)
+        mock_cls_1 = af.PriorModel(MockChildTuplex2)
 
-        profile_1.axis_ratio = 1.0
-        profile_2.angle = 0.0
+        mock_cls_0.one = 1.0
+        mock_cls_1.two = 0.0
 
-        result = profile_1 + profile_2
+        result = mock_cls_0 + mock_cls_1
 
         assert isinstance(result, af.PriorModel)
-        assert result.cls == EllProfile
-        assert isinstance(result.axis_ratio, af.Prior)
-        assert isinstance(result.angle, af.Prior)
+        assert result.cls == MockChildTuplex2
+        assert isinstance(result.one, af.Prior)
+        assert isinstance(result.two, af.Prior)
 
     def test_fail_for_mismatch(self):
-        profile_1 = af.PriorModel(EllProfile)
-        profile_2 = af.PriorModel(EllMassProfile)
+        mock_cls_0 = af.PriorModel(MockChildTuplex2)
+        mock_cls_1 = af.PriorModel(MockChildTuplex3)
 
         with pytest.raises(TypeError):
-            profile_1 + profile_2
+            mock_cls_0 + mock_cls_1
 
     def test_add_children(self):
-        galaxy_1 = af.PriorModel(
+        mock_components_1 = af.PriorModel(
             MockComponents,
-            components_0=af.CollectionPriorModel(light_1=EllProfile),
+            components_0=af.CollectionPriorModel(mock_cls_0=MockChildTuplex2),
             components_1=af.CollectionPriorModel(
-                mass_1=EllMassProfile
+                mock_cls_2=MockChildTuplex3
             ),
         )
-        galaxy_2 = af.PriorModel(
+        mock_components_2 = af.PriorModel(
             MockComponents,
-            components_0=af.CollectionPriorModel(light_2=EllProfile),
+            components_0=af.CollectionPriorModel(mock_cls_1=MockChildTuplex2),
             components_1=af.CollectionPriorModel(
-                mass_2=EllMassProfile
+                mock_cls_3=MockChildTuplex3
             ),
         )
 
-        result = galaxy_1 + galaxy_2
+        result = mock_components_1 + mock_components_2
 
-        assert result.components_0.light_1 == galaxy_1.components_0.light_1
-        assert result.components_0.light_2 == galaxy_2.components_0.light_2
+        assert result.components_0.mock_cls_0 == mock_components_1.components_0.mock_cls_0
+        assert result.components_0.mock_cls_1 == mock_components_2.components_0.mock_cls_1
 
-        assert result.components_1.mass_1 == galaxy_1.components_1.mass_1
-        assert result.components_1.mass_2 == galaxy_2.components_1.mass_2
+        assert result.components_1.mock_cls_2 == mock_components_1.components_1.mock_cls_2
+        assert result.components_1.mock_cls_3 == mock_components_2.components_1.mock_cls_3
 
     def test_prior_model_override(self):
-        galaxy_1 = af.PriorModel(
+        mock_components_1 = af.PriorModel(
             MockComponents,
-            components_0=af.CollectionPriorModel(light=EllProfile()),
-            components_1=af.CollectionPriorModel(mass=EllMassProfile),
+            components_0=af.CollectionPriorModel(light=MockChildTuplex2()),
+            components_1=af.CollectionPriorModel(mass=MockChildTuplex3),
         )
-        galaxy_2 = af.PriorModel(
+        mock_components_2 = af.PriorModel(
             MockComponents,
-            components_0=af.CollectionPriorModel(light=EllProfile),
+            components_0=af.CollectionPriorModel(light=MockChildTuplex2),
             components_1=af.CollectionPriorModel(
-                mass=EllMassProfile()
+                mass=MockChildTuplex3()
             ),
         )
 
-        result = galaxy_1 + galaxy_2
+        result = mock_components_1 + mock_components_2
 
-        assert result.components_1.mass == galaxy_1.components_1.mass
-        assert result.components_0.light == galaxy_2.components_0.light
+        assert result.components_1.mass == mock_components_1.components_1.mass
+        assert result.components_0.light == mock_components_2.components_0.light
 
 
 class TestFloatAnnotation:
@@ -293,15 +298,15 @@ class TestPriorModelArguments:
     def test_arbitrary_keyword_arguments(self):
         prior_model = af.PriorModel(
             MockComponents,
-            light=EllIsothermalCored,
-            mass=EllMassProfile,
+            mock_cls_0=MockChildTuplex2,
+            mock_cls_1=MockChildTuplex3,
         )
-        assert prior_model.prior_count == 11
+        assert prior_model.prior_count == 10
         instance = prior_model.instance_from_unit_vector(
             [0.5] * prior_model.prior_count
         )
-        assert isinstance(instance.light, EllIsothermalCored)
-        assert isinstance(instance.mass, EllMassProfile)
+        assert isinstance(instance.mock_cls_0, MockChildTuplex2)
+        assert isinstance(instance.mock_cls_1, MockChildTuplex3)
 
 
 class TestCase:

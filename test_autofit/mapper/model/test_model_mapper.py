@@ -11,7 +11,7 @@ from autofit.mock.mock_model import (
     MockWithFloat,
     MockWithTuple
 )
-from autofit.mock.mock_real import EllProfile, EllSersic, EllIsothermalCored, EllSersicCore, EllExponential, SphProfile
+from autofit.mock.mock_model import MockChildTuplex2, MockChildTuplex3, MockChildTuple
 
 
 @pytest.fixture(name="initial_model")
@@ -39,21 +39,21 @@ class ExtendedMockClass(MockClassx2):
 class TestRegression:
     def test_set_tuple_instance(self):
         mm = af.ModelMapper()
-        mm.sersic = EllSersic
+        mm.mock_cls = MockChildTuplex2
 
-        assert mm.prior_count == 7
+        assert mm.prior_count == 4
 
-        mm.sersic.centre_0 = 0.0
-        mm.sersic.centre_1 = 0.0
+        mm.mock_cls.tup_0 = 0.0
+        mm.mock_cls.tup_1 = 0.0
 
-        assert mm.prior_count == 5
+        assert mm.prior_count == 2
 
     def test_get_tuple_instances(self):
         mm = af.ModelMapper()
-        mm.sersic = EllSersic
+        mm.mock_cls = MockChildTuplex2
 
-        assert isinstance(mm.sersic.centre_0, af.Prior)
-        assert isinstance(mm.sersic.centre_1, af.Prior)
+        assert isinstance(mm.mock_cls.tup_0, af.Prior)
+        assert isinstance(mm.mock_cls.tup_1, af.Prior)
 
     def test_tuple_parameter(self, mapper):
         mapper.with_float = MockWithFloat
@@ -201,23 +201,7 @@ class TestModelingMapper:
         assert 3 == len(mapper.prior_tuples_ordered_by_id)
 
 
-class TestRealClasses:
-    def test_combination(self):
-        mapper = af.ModelMapper(
-            source_light_profile=EllSersic,
-            lens_mass_profile=EllIsothermalCored,
-            lens_light_profile=EllSersicCore,
-        )
-
-        model_map = mapper.instance_from_unit_vector(
-            [1 for _ in range(len(mapper.prior_tuples_ordered_by_id))]
-        )
-
-        assert isinstance(model_map.source_light_profile, EllSersic)
-        assert isinstance(
-            model_map.lens_mass_profile, EllIsothermalCored
-        )
-        assert isinstance(model_map.lens_light_profile, EllSersicCore)
+class TestInstances:
 
     def test_attribute(self):
         mm = af.ModelMapper()
@@ -226,193 +210,189 @@ class TestRealClasses:
         assert 1 == len(mm.prior_model_tuples)
         assert isinstance(mm.cls_1, af.PriorModel)
 
-
-class TestConfigFunctions:
-    def test_model_from_unit_vector(self):
-        mapper = af.ModelMapper(geometry_profile=MockClassx2Tuple)
+    def test__instance_from_unit_vector(self):
+        mapper = af.ModelMapper(mock_cls=MockClassx2Tuple)
 
         model_map = mapper.instance_from_unit_vector([1.0, 1.0])
 
-        assert model_map.geometry_profile.one_tuple == (1.0, 2.0)
+        assert model_map.mock_cls.one_tuple == (1.0, 2.0)
 
-    def test_model_from_vector(self):
-        mapper = af.ModelMapper(geometry_profile=MockClassx2Tuple)
+    def test__instance_from_vector(self):
+        mapper = af.ModelMapper(mock_cls=MockClassx2Tuple)
 
         model_map = mapper.instance_from_vector([1.0, 0.5])
 
-        assert model_map.geometry_profile.one_tuple == (1.0, 0.5)
+        assert model_map.mock_cls.one_tuple == (1.0, 0.5)
 
     def test_inheritance(self):
-        mapper = af.ModelMapper(geometry_profile=EllProfile)
+        mapper = af.ModelMapper(mock_cls=MockChildTuplex2)
 
         model_map = mapper.instance_from_unit_vector([1.0, 1.0, 1.0, 1.0])
 
-        assert model_map.geometry_profile.centre == (1.0, 1.0)
+        assert model_map.mock_cls.tup == (1.0, 1.0)
 
-    def test_true_config(self):
+    def test__multiple_classes(self):
+
         mapper = af.ModelMapper(
-            sersic_light_profile=EllSersic,
-            elliptical_profile_1=EllProfile,
-            elliptical_profile_2=EllProfile,
-            spherical_profile=SphProfile,
-            exponential_light_profile=EllExponential,
+            mock_child_cls_0=MockChildTuplex3,
+            mock_child_cls_1=MockChildTuplex2,
+            mock_child_cls_2=MockChildTuplex2,
+            mock_child_tuple=MockChildTuple,
+            mock_child_cls_3=MockChildTuplex3,
         )
 
         model_map = mapper.instance_from_unit_vector(
             [0.5 for _ in range(len(mapper.prior_tuples_ordered_by_id))]
         )
 
-        assert isinstance(model_map.elliptical_profile_1, EllProfile)
-        assert isinstance(model_map.elliptical_profile_2, EllProfile)
-        assert isinstance(model_map.spherical_profile, SphProfile)
+        assert isinstance(model_map.mock_child_cls_1, MockChildTuplex2)
+        assert isinstance(model_map.mock_child_cls_2, MockChildTuplex2)
+        assert isinstance(model_map.mock_child_tuple, MockChildTuple)
 
-        assert isinstance(model_map.sersic_light_profile, EllSersic)
+        assert isinstance(model_map.mock_child_cls_0, MockChildTuplex3)
         assert isinstance(
-            model_map.exponential_light_profile, EllExponential
+            model_map.mock_child_cls_3, MockChildTuplex3
         )
 
-
-class TestModelInstancesRealClasses:
-    def test__in_order_of_class_constructor__one_profile(self):
-        mapper = af.ModelMapper(profile_1=EllProfile)
+    def test__in_order_of_class_constructor(self):
+        mapper = af.ModelMapper(mock_cls_0=MockChildTuplex2)
 
         model_map = mapper.instance_from_unit_vector([0.25, 0.5, 0.75, 1.0])
 
-        assert model_map.profile_1.centre == (0.25, 0.5)
-        assert model_map.profile_1.axis_ratio == 1.5
-        assert model_map.profile_1.angle == 2.0
+        assert model_map.mock_cls_0.tup == (0.25, 0.5)
+        assert model_map.mock_cls_0.one == 1.5
+        assert model_map.mock_cls_0.two == 2.0
 
-    def test__in_order_of_class_constructor___multiple_profiles(self):
         mapper = af.ModelMapper(
-            profile_1=EllProfile,
-            profile_2=SphProfile,
-            profile_3=EllProfile,
+            mock_cls_0=MockChildTuplex2,
+            mock_cls_1=MockChildTuple,
+            mock_cls_2=MockChildTuplex2,
         )
 
         model_map = mapper.instance_from_unit_vector(
             [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
         )
 
-        assert model_map.profile_1.centre == (0.1, 0.2)
-        assert model_map.profile_1.axis_ratio == 0.6
-        assert model_map.profile_1.angle == 0.8
+        assert model_map.mock_cls_0.tup == (0.1, 0.2)
+        assert model_map.mock_cls_0.one == 0.6
+        assert model_map.mock_cls_0.two == 0.8
 
-        assert model_map.profile_2.centre == (0.5, 0.6)
+        assert model_map.mock_cls_1.tup == (0.5, 0.6)
 
-        assert model_map.profile_3.centre == (0.7, 0.8)
-        assert model_map.profile_3.axis_ratio == 1.8
-        assert model_map.profile_3.angle == 2.0
+        assert model_map.mock_cls_2.tup == (0.7, 0.8)
+        assert model_map.mock_cls_2.one == 1.8
+        assert model_map.mock_cls_2.two == 2.0
 
     def test__check_order_for_different_unit_values(self):
+
         mapper = af.ModelMapper(
-            profile_1=EllProfile,
-            profile_2=SphProfile,
-            profile_3=EllProfile,
+            mock_cls_0=MockChildTuplex2,
+            mock_cls_1=MockChildTuple,
+            mock_cls_2=MockChildTuplex2,
         )
 
-        mapper.profile_1.centre.centre_0 = af.UniformPrior(0.0, 1.0)
-        mapper.profile_1.centre.centre_1 = af.UniformPrior(0.0, 1.0)
-        mapper.profile_1.axis_ratio = af.UniformPrior(0.0, 1.0)
-        mapper.profile_1.angle = af.UniformPrior(0.0, 1.0)
+        mapper.mock_cls_0.tup.tup_0 = af.UniformPrior(0.0, 1.0)
+        mapper.mock_cls_0.tup.tup_1 = af.UniformPrior(0.0, 1.0)
+        mapper.mock_cls_0.one = af.UniformPrior(0.0, 1.0)
+        mapper.mock_cls_0.two = af.UniformPrior(0.0, 1.0)
 
-        mapper.profile_2.centre.centre_0 = af.UniformPrior(0.0, 1.0)
-        mapper.profile_2.centre.centre_1 = af.UniformPrior(0.0, 1.0)
+        mapper.mock_cls_1.tup.tup_0 = af.UniformPrior(0.0, 1.0)
+        mapper.mock_cls_1.tup.tup_1 = af.UniformPrior(0.0, 1.0)
 
-        mapper.profile_3.centre.centre_0 = af.UniformPrior(0.0, 1.0)
-        mapper.profile_3.centre.centre_1 = af.UniformPrior(0.0, 1.0)
-        mapper.profile_3.axis_ratio = af.UniformPrior(0.0, 1.0)
-        mapper.profile_3.angle = af.UniformPrior(0.0, 1.0)
+        mapper.mock_cls_2.tup.tup_0 = af.UniformPrior(0.0, 1.0)
+        mapper.mock_cls_2.tup.tup_1 = af.UniformPrior(0.0, 1.0)
+        mapper.mock_cls_2.one = af.UniformPrior(0.0, 1.0)
+        mapper.mock_cls_2.two = af.UniformPrior(0.0, 1.0)
 
         model_map = mapper.instance_from_unit_vector(
             [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
         )
 
-        assert model_map.profile_1.centre == (0.1, 0.2)
-        assert model_map.profile_1.axis_ratio == 0.3
-        assert model_map.profile_1.angle == 0.4
+        assert model_map.mock_cls_0.tup == (0.1, 0.2)
+        assert model_map.mock_cls_0.one == 0.3
+        assert model_map.mock_cls_0.two == 0.4
 
-        assert model_map.profile_2.centre == (0.5, 0.6)
+        assert model_map.mock_cls_1.tup == (0.5, 0.6)
 
-        assert model_map.profile_3.centre == (0.7, 0.8)
-        assert model_map.profile_3.axis_ratio == 0.9
-        assert model_map.profile_3.angle == 1.0
+        assert model_map.mock_cls_2.tup == (0.7, 0.8)
+        assert model_map.mock_cls_2.one == 0.9
+        assert model_map.mock_cls_2.two == 1.0
 
     def test__check_order_for_different_unit_values_and_set_priors_equal_to_one_another(
             self
     ):
         mapper = af.ModelMapper(
-            profile_1=EllProfile,
-            profile_2=SphProfile,
-            profile_3=EllProfile,
+            mock_cls_0=MockChildTuplex2,
+            mock_cls_1=MockChildTuple,
+            mock_cls_2=MockChildTuplex2,
         )
 
-        mapper.profile_1.centre.centre_0 = af.UniformPrior(0.0, 1.0)
-        mapper.profile_1.centre.centre_1 = af.UniformPrior(0.0, 1.0)
-        mapper.profile_1.axis_ratio = af.UniformPrior(0.0, 1.0)
-        mapper.profile_1.angle = af.UniformPrior(0.0, 1.0)
+        mapper.mock_cls_0.tup.tup_0 = af.UniformPrior(0.0, 1.0)
+        mapper.mock_cls_0.tup.tup_1 = af.UniformPrior(0.0, 1.0)
+        mapper.mock_cls_0.one = af.UniformPrior(0.0, 1.0)
+        mapper.mock_cls_0.two = af.UniformPrior(0.0, 1.0)
 
-        mapper.profile_2.centre.centre_0 = af.UniformPrior(0.0, 1.0)
-        mapper.profile_2.centre.centre_1 = af.UniformPrior(0.0, 1.0)
+        mapper.mock_cls_1.tup.tup_0 = af.UniformPrior(0.0, 1.0)
+        mapper.mock_cls_1.tup.tup_1 = af.UniformPrior(0.0, 1.0)
 
-        mapper.profile_3.centre.centre_0 = af.UniformPrior(0.0, 1.0)
-        mapper.profile_3.centre.centre_1 = af.UniformPrior(0.0, 1.0)
-        mapper.profile_3.axis_ratio = af.UniformPrior(0.0, 1.0)
-        mapper.profile_3.angle = af.UniformPrior(0.0, 1.0)
+        mapper.mock_cls_2.tup.tup_0 = af.UniformPrior(0.0, 1.0)
+        mapper.mock_cls_2.tup.tup_1 = af.UniformPrior(0.0, 1.0)
+        mapper.mock_cls_2.one = af.UniformPrior(0.0, 1.0)
+        mapper.mock_cls_2.two = af.UniformPrior(0.0, 1.0)
 
-        mapper.profile_1.axis_ratio = mapper.profile_1.angle
-        mapper.profile_3.centre.centre_1 = mapper.profile_2.centre.centre_1
+        mapper.mock_cls_0.one = mapper.mock_cls_0.two
+        mapper.mock_cls_2.tup.tup_1 = mapper.mock_cls_1.tup.tup_1
 
         model_map = mapper.instance_from_unit_vector(
             [0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
         )
 
-        assert model_map.profile_1.centre == (0.2, 0.3)
-        assert model_map.profile_1.axis_ratio == 0.4
-        assert model_map.profile_1.angle == 0.4
+        assert model_map.mock_cls_0.tup == (0.2, 0.3)
+        assert model_map.mock_cls_0.one == 0.4
+        assert model_map.mock_cls_0.two == 0.4
 
-        assert model_map.profile_2.centre == (0.5, 0.6)
+        assert model_map.mock_cls_1.tup == (0.5, 0.6)
 
-        assert model_map.profile_3.centre == (0.7, 0.6)
-        assert model_map.profile_3.axis_ratio == 0.8
-        assert model_map.profile_3.angle == 0.9
+        assert model_map.mock_cls_2.tup == (0.7, 0.6)
+        assert model_map.mock_cls_2.one == 0.8
+        assert model_map.mock_cls_2.two == 0.9
 
-    def test__check_order_for_physical_values(self):
+    def test__instance_from_vector__check_order(self):
         mapper = af.ModelMapper(
-            profile_1=EllProfile,
-            profile_2=SphProfile,
-            profile_3=EllProfile,
+            mock_cls_0=MockChildTuplex2,
+            mock_cls_1=MockChildTuple,
+            mock_cls_2=MockChildTuplex2,
         )
 
         model_map = mapper.instance_from_vector(
             [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
         )
 
-        assert model_map.profile_1.centre == (0.1, 0.2)
-        assert model_map.profile_1.axis_ratio == 0.3
-        assert model_map.profile_1.angle == 0.4
+        assert model_map.mock_cls_0.tup == (0.1, 0.2)
+        assert model_map.mock_cls_0.one == 0.3
+        assert model_map.mock_cls_0.two == 0.4
 
-        assert model_map.profile_2.centre == (0.5, 0.6)
+        assert model_map.mock_cls_1.tup == (0.5, 0.6)
 
-        assert model_map.profile_3.centre == (0.7, 0.8)
-        assert model_map.profile_3.axis_ratio == 0.9
-        assert model_map.profile_3.angle == 1.0
+        assert model_map.mock_cls_2.tup == (0.7, 0.8)
+        assert model_map.mock_cls_2.one == 0.9
+        assert model_map.mock_cls_2.two == 1.0
 
-    def test__from_prior_medians__one_model(self):
-        mapper = af.ModelMapper(profile_1=EllProfile)
+    def test__instance_from_prior_medians(self):
+        mapper = af.ModelMapper(mock_cls_0=MockChildTuplex2)
 
         model_map = mapper.instance_from_prior_medians()
 
         model_2 = mapper.instance_from_unit_vector([0.5, 0.5, 0.5, 0.5])
 
-        assert model_map.profile_1.centre == model_2.profile_1.centre == (0.5, 0.5)
-        assert model_map.profile_1.axis_ratio == model_2.profile_1.axis_ratio == 1.0
-        assert model_map.profile_1.angle == model_2.profile_1.angle == 1.0
+        assert model_map.mock_cls_0.tup == model_2.mock_cls_0.tup == (0.5, 0.5)
+        assert model_map.mock_cls_0.one == model_2.mock_cls_0.one == 1.0
+        assert model_map.mock_cls_0.two == model_2.mock_cls_0.two == 1.0
 
-    def test__from_prior_medians__multiple_models(self):
         mapper = af.ModelMapper(
-            profile_1=EllProfile,
-            profile_2=SphProfile,
-            profile_3=EllProfile,
+            mock_cls_0=MockChildTuplex2,
+            mock_cls_1=MockChildTuple,
+            mock_cls_2=MockChildTuplex2,
         )
 
         model_map = mapper.instance_from_prior_medians()
@@ -421,28 +401,28 @@ class TestModelInstancesRealClasses:
             [0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5]
         )
 
-        assert model_map.profile_1.centre == model_2.profile_1.centre == (0.5, 0.5)
-        assert model_map.profile_1.axis_ratio == model_2.profile_1.axis_ratio == 1.0
-        assert model_map.profile_1.angle == model_2.profile_1.angle == 1.0
+        assert model_map.mock_cls_0.tup == model_2.mock_cls_0.tup == (0.5, 0.5)
+        assert model_map.mock_cls_0.one == model_2.mock_cls_0.one == 1.0
+        assert model_map.mock_cls_0.two == model_2.mock_cls_0.two == 1.0
 
-        assert model_map.profile_2.centre == model_2.profile_2.centre == (0.5, 0.5)
+        assert model_map.mock_cls_1.tup == model_2.mock_cls_1.tup == (0.5, 0.5)
 
-        assert model_map.profile_3.centre == model_2.profile_3.centre == (0.5, 0.5)
-        assert model_map.profile_3.axis_ratio == model_2.profile_3.axis_ratio == 1.0
-        assert model_map.profile_3.angle == model_2.profile_3.angle == 1.0
+        assert model_map.mock_cls_2.tup == model_2.mock_cls_2.tup == (0.5, 0.5)
+        assert model_map.mock_cls_2.one == model_2.mock_cls_2.one == 1.0
+        assert model_map.mock_cls_2.two == model_2.mock_cls_2.two == 1.0
 
     def test__from_prior_medians__one_model__set_one_parameter_to_another(self):
-        mapper = af.ModelMapper(profile_1=EllProfile)
+        mapper = af.ModelMapper(mock_cls_0=MockChildTuplex2)
 
-        mapper.profile_1.axis_ratio = mapper.profile_1.angle
+        mapper.mock_cls_0.one = mapper.mock_cls_0.two
 
         model_map = mapper.instance_from_prior_medians()
 
         model_2 = mapper.instance_from_unit_vector([0.5, 0.5, 0.5])
 
-        assert model_map.profile_1.centre == model_2.profile_1.centre == (0.5, 0.5)
-        assert model_map.profile_1.axis_ratio == model_2.profile_1.axis_ratio == 1.0
-        assert model_map.profile_1.angle == model_2.profile_1.angle == 1.0
+        assert model_map.mock_cls_0.tup == model_2.mock_cls_0.tup == (0.5, 0.5)
+        assert model_map.mock_cls_0.one == model_2.mock_cls_0.one == 1.0
+        assert model_map.mock_cls_0.two == model_2.mock_cls_0.two == 1.0
 
     def test_log_prior_list_from_vector(self):
         mapper = af.ModelMapper()
@@ -700,13 +680,13 @@ def make_mock_with_instance():
 
 
 class Testinstance:
-    def test_instance_prior_count(self, mock_with_instance):
+    def test__instance_prior_count(self, mock_with_instance):
         mapper = af.ModelMapper()
         mapper.mock_class = mock_with_instance
 
         assert len(mapper.unique_prior_tuples) == 1
 
-    def test_retrieve_instances(self, mock_with_instance):
+    def test__retrieve_instances(self, mock_with_instance):
         assert len(mock_with_instance.instance_tuples) == 1
 
     def test_instance_prior_reconstruction(self, mock_with_instance):
@@ -718,7 +698,7 @@ class Testinstance:
         assert instance.mock_class.one == 3
         assert instance.mock_class.two == 0.5
 
-    def test_instance_in_config(self):
+    def test__instance_in_config(self):
         mapper = af.ModelMapper()
 
         mock_with_instance = af.PriorModel(MockClassx2instance, one=3)
@@ -730,14 +710,14 @@ class Testinstance:
         assert instance.mock_class.one == 3
         assert instance.mock_class.two == 0.5
 
-    def test_set_float(self):
+    def test__set_float(self):
         prior_model = af.PriorModel(MockClassx2)
         prior_model.one = 3
         prior_model.two = 4.0
         assert prior_model.one == 3
         assert prior_model.two == 4.0
 
-    def test_list_prior_model_instances(self, mapper):
+    def test__list_prior_model_instances(self, mapper):
         prior_model = af.PriorModel(MockClassx2)
         prior_model.one = 3.0
         prior_model.two = 4.0
@@ -746,17 +726,15 @@ class Testinstance:
         assert isinstance(mapper.mock_list, af.CollectionPriorModel)
         assert len(mapper.instance_tuples) == 2
 
-    def test_set_for_tuple_prior(self):
-        prior_model = af.PriorModel(EllSersic)
-        prior_model.centre_0 = 1.0
-        prior_model.centre_1 = 2.0
-        prior_model.axis_ratio = 1.0
-        prior_model.angle = 1.0
-        prior_model.intensity = 1.0
-        prior_model.effective_radius = 1.0
-        prior_model.sersic_index = 1.0
+    def test__set_for_tuple_prior(self):
+        prior_model = af.PriorModel(MockChildTuplex3)
+        prior_model.tup_0 = 1.0
+        prior_model.tup_1 = 2.0
+        prior_model.one = 1.0
+        prior_model.two = 1.0
+        prior_model.three = 1.0
         instance = prior_model.instance_for_arguments({})
-        assert instance.centre == (1.0, 2.0)
+        assert instance.tup == (1.0, 2.0)
 
 
 @pytest.fixture(name="mock_config")

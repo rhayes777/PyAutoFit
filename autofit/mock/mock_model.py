@@ -30,7 +30,7 @@ class MockClassx3(MockClassx4):
 
 class MockClassx2Tuple:
     def __init__(self, one_tuple=(0.0, 0.0)):
-        """Abstract GeometryProfile, describing an object with y, x cartesian
+        """Abstract MockParent, describing an object with y, x cartesian
         coordinates """
         self.one_tuple = one_tuple
 
@@ -108,3 +108,64 @@ class MockComponents:
         self.group_0 = components_0
         self.group_1 = components_1
         self.kwargs = kwargs
+
+
+class MockParent:
+    def __init__(self, tup=(0.0, 0.0)):
+
+        self.tup = tup
+
+    def __eq__(self, other):
+        return self.__dict__ == other.__dict__
+
+
+class MockChildTuple(MockParent):
+    def __init__(self, tup=(0.0, 0.0)):
+        """ Generic circular profiles class to contain functions shared by light and
+        mass profiles.
+
+        Parameters
+        ----------
+        tup
+            The (y,x) coordinates of the origin of the profile.
+        """
+        super().__init__(tup)
+
+
+class MockChildTuplex2(MockChildTuple):
+    def __init__(self, tup=(0.0, 0.0), one=1.0, two=0.0):
+        """ Generic elliptical profiles class to contain functions shared by light
+        and mass profiles.
+
+        Parameters
+        ----------
+        tup
+            The (y,x) coordinates of the origin of the profiles
+        one
+            Ratio of profiles ellipse's minor and major axes (b/a)
+        two : float
+            Rotational two of profiles ellipse counter-clockwise from positive x-axis
+        """
+        super().__init__(tup)
+        self.one = one
+        self.two = two
+
+
+class MockChildTuplex3(MockChildTuple):
+    def __init__(self, tup=(0.0, 0.0), one=1.0, two=0.0, three=0.0):
+        """ Generic elliptical profiles class to contain functions shared by light
+        and mass profiles.
+
+        Parameters
+        ----------
+        tup
+            The (y,x) coordinates of the origin of the profiles
+        one
+            Ratio of profiles ellipse's minor and major axes (b/a)
+        two : float
+            Rotational two of profiles ellipse counter-clockwise from positive x-axis
+        """
+        super().__init__(tup)
+        self.one = one
+        self.two = two
+        self.three = three

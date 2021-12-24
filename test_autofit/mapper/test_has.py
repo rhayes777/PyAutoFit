@@ -24,7 +24,7 @@ def test_inheritance():
 
 def test_embedded():
     collection = af.Collection(
-        galaxy=af.Model(
+        model=af.Model(
             af.Gaussian,
             centre=GaussianChild
         )

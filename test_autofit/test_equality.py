@@ -3,8 +3,7 @@ from copy import deepcopy
 import pytest
 
 import autofit as af
-from autofit.mock.mock_model import MockClassx2Tuple
-from autofit.mock.mock_real import GalaxyModel
+from autofit.mock.mock_model import MockClassx2Tuple, MockComponents, MockChildTuplex3, MockChildTuplex2
 
 
 @pytest.fixture(name="prior_model")
@@ -31,6 +30,7 @@ class TestCase:
         assert list_prior_model != list_prior_model_copy
 
     def test_model_mapper(self, prior_model):
+
         model_mapper = af.ModelMapper()
         model_mapper.prior_model = prior_model
         model_mapper_copy = deepcopy(model_mapper)
@@ -42,15 +42,22 @@ class TestCase:
         assert model_mapper != model_mapper_copy
 
     def test_non_trivial_equality(self):
-        model_mapper = af.ModelMapper()
-        model_mapper.galaxy = GalaxyModel(
-            light_profile=MockClassx2Tuple, mass_profile=MockClassx2Tuple
+
+        mock_components = af.PriorModel(
+            MockComponents,
+            components_0=af.CollectionPriorModel(mock_cls_0=MockChildTuplex2),
+            components_1=af.CollectionPriorModel(
+                mock_cls_2=MockChildTuplex3
+            ),
         )
+
+        model_mapper = af.ModelMapper()
+        model_mapper.mock_components = mock_components
         model_mapper_copy = deepcopy(model_mapper)
 
         assert model_mapper == model_mapper_copy
 
-        model_mapper.galaxy.light_profile.centre_0 = af.UniformPrior()
+        model_mapper.mock_components.components_0.tup_0 = af.UniformPrior()
 
         assert model_mapper != model_mapper_copy
 
