@@ -6,7 +6,6 @@ import pytest
 
 import autofit as af
 from autofit import graphical as g
-from autofit.mock.mock import Gaussian
 from test_autofit.graphical.gaussian.model import Analysis
 
 x = np.arange(200)
@@ -80,7 +79,7 @@ def generate_data(
 ):
     data = []
     for centre in centres:
-        gaussian = Gaussian(
+        gaussian = af.Gaussian(
             centre=centre,
             intensity=20,
             sigma=5,
@@ -111,7 +110,7 @@ def test_model_factor(
         sigma=20
     )
     prior_model = af.PriorModel(
-        Gaussian,
+        af.Gaussian,
         centre=centre_argument,
         intensity=20,
         sigma=5
@@ -133,7 +132,7 @@ def test_full_fit(centre_model, data, centres):
     graph = g.FactorGraphModel()
     for i, y in enumerate(data):
         prior_model = af.PriorModel(
-            Gaussian,
+            af.Gaussian,
             centre=af.GaussianPrior(
                 mean=100,
                 sigma=20

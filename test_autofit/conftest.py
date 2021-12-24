@@ -10,14 +10,9 @@ from matplotlib import pyplot
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-import autofit as af
-import autofit.non_linear.samples.sample
-import autofit.non_linear.samples.stored
 from autoconf import conf
 from autofit import database as db
-from autofit.mock import mock
 from autofit.mock import fixtures
-from autofit.mock.mock import MockAnalysis
 
 if sys.platform == 'darwin':
     multiprocessing.set_start_method('forkserver')

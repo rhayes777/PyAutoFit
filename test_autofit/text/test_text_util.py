@@ -3,7 +3,9 @@ import pytest
 
 import autofit as af
 
-from autofit.mock.mock import MockSamples, MockNestSamples, MockClassx2
+from autofit.mock.mock_model import MockClassx2
+from autofit.mock.mock import MockSamples, MockNestSamples
+
 from autofit.text import text_util
 
 text_path = path.join("{}".format(path.dirname(path.realpath(__file__))), "files", "samples")

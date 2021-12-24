@@ -1,9 +1,7 @@
 from uuid import uuid4
-
 import numpy as np
 
 import autofit as af
-from autofit.mock.mock import Gaussian
 
 
 def test_float_inequality(session):
@@ -18,7 +16,7 @@ def test_float_inequality(session):
             af.db.Fit(
                 id=str(uuid4()),
                 instance={
-                    "gaussian": Gaussian(
+                    "gaussian": af.Gaussian(
                         sigma=sigma
                     )
                 }

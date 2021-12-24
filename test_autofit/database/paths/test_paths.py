@@ -5,8 +5,9 @@ from pathlib import Path
 import pytest
 
 from autoconf.conf import output_path_for_test
+
+import autofit as af
 from autofit import database as m
-from autofit.mock.mock import Gaussian
 
 
 @pytest.fixture(
@@ -79,7 +80,7 @@ def test_completion(
 
 
 def test_object(paths):
-    gaussian = Gaussian(
+    gaussian = af.Gaussian(
         intensity=2.1
     )
 

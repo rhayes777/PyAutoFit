@@ -127,6 +127,7 @@ class MockSamples(PDFSamples):
 
         return self._gaussian_tuples
 
+
 class MockNestSamples(NestSamples):
 
     def __init__(
@@ -221,135 +222,10 @@ class MockSearch(NonLinearSearch):
     def samples_from(self, model):
         return self.samples
 
-### Mock Classes ###
-
-class ListClass:
-    def __init__(self, ls: list):
-        self.ls = ls
-
-
-class MockClassx2:
-    def __init__(self, one=1, two=2):
-        self.one = one
-        self.two = two
-
-
-class MockClassx2NoSuperScript:
-    def __init__(self, one=1, two=2):
-        self.one = one
-        self.two = two
-
-
-class MockClassx4:
-    def __init__(self, one=1, two=2, three=3, four=4):
-        self.one = one
-        self.two = two
-        self.three = three
-        self.four = four
-
-
-class MockClassx3(MockClassx4):
-    def __init__(self, one=1, two=2, three=3):
-        super().__init__(one, two, three)
-
-
-class MockClassx2Tuple:
-    def __init__(self, one_tuple=(0.0, 0.0)):
-        """Abstract GeometryProfile, describing an object with y, x cartesian
-        coordinates """
-        self.one_tuple = one_tuple
-
-    def __eq__(self, other):
-        return self.__dict__ == other.__dict__
-
-
-class MockClassx3TupleFloat:
-    def __init__(self, one_tuple=(0.0, 0.0), two=0.1):
-        self.one_tuple = one_tuple
-        self.two = two
-
-
-class MockClassRelativeWidth:
-    def __init__(self, one, two, three):
-        self.one = one
-        self.two = two
-        self.three = three
-
-
-class MockClassInf:
-    def __init__(self, one, two):
-        self.one = one
-        self.two = two
-
-
-class ComplexClass:
-    def __init__(self, simple: MockClassx2):
-        self.simple = simple
-
-
-class DeferredClass:
-    def __init__(self, one, two):
-        self.one = one
-        self.two = two
-
-
-class WithFloat:
-    def __init__(self, value):
-        self.value = value
-
-
-class WithTuple:
-    def __init__(self, tup=(0.0, 0.0)):
-        self.tup = tup
-
-
-### Real Classes ###
-
-class MockComponents:
-    def __init__(
-            self,
-            components_0: list = None,
-            components_1: list = None,
-            parameter=None,
-            **kwargs
-    ):
-        self.parameter = parameter
-        self.group_0 = components_0
-        self.group_1 = components_1
-        self.kwargs = kwargs
-
-
-class HyperGalaxy:
-    pass
-
-
-class MedianPDFInstance:
-    def __init__(self, name):
-        self.name = name
-
-
-class MockSearchOutput:
-    def __init__(self, directory, pipeline, search, dataset):
-        self.directory = directory
-        self.pipeline = pipeline
-        self.search = search
-        self.dataset = dataset
-
-    @property
-    def median_pdf_instance(self):
-        return MedianPDFInstance(
-            self.search
-        )
-
-    @property
-    def output(self):
-        return self
-
 
 class Profile:
     def __init__(self, centre=0.0, intensity=0.01):
         """Represents an Abstract 1D profile.
-
         Parameters
         ----------
         centre
@@ -370,7 +246,6 @@ class Gaussian(Profile):
     ):
         """Represents a 1D Gaussian profile, which may be treated as a model-component of PyAutoFit the
         parameters of which are fitted for by a non-linear search.
-
         Parameters
         ----------
         centre
@@ -393,9 +268,7 @@ class Gaussian(Profile):
     def __call__(self, xvalues):
         """
         Calculate the intensity of the profile on a line of Cartesian x coordinates.
-
         The input xvalues are translated to a coordinate system centred on the Gaussian, using its centre.
-
         Parameters
         ----------
         xvalues : np.ndarray

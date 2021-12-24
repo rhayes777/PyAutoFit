@@ -1,7 +1,8 @@
 import pytest
 
+import autofit as af
+
 from autofit import database as db
-from autofit.mock import mock as m
 
 
 @pytest.fixture(
@@ -10,7 +11,7 @@ from autofit.mock import mock as m
 def make_gaussian_1():
     return db.Fit(
         id="gaussian_1",
-        instance=m.Gaussian(
+        instance=af.Gaussian(
             centre=1
         ),
         info={"info": 1},
@@ -25,7 +26,7 @@ def make_gaussian_1():
 def make_gaussian_2():
     return db.Fit(
         id="gaussian_2",
-        instance=m.Gaussian(
+        instance=af.Gaussian(
             centre=2
         ),
         info={"info": 2},

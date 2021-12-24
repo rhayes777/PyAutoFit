@@ -1,7 +1,9 @@
 import pytest
 
 import autofit as af
-from autofit.mock.mock import MockClassx4, MockNestSamples
+
+from autofit.mock.mock_model import MockClassx4
+from autofit.mock.mock import MockNestSamples
 
 pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
 

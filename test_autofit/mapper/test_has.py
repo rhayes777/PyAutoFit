@@ -1,8 +1,8 @@
 import autofit as af
-from autofit.mock import mock as m
 
+from autofit.mock.mock_model import MockClassx2
 
-class GaussianChild(m.Gaussian):
+class GaussianChild(af.Gaussian):
     pass
 
 
@@ -15,17 +15,17 @@ def test_inheritance():
     )
 
     assert collection.has_instance(
-        m.Gaussian
+        af.Gaussian
     )
     assert collection.has_model(
-        m.Gaussian
+        af.Gaussian
     )
 
 
 def test_embedded():
     collection = af.Collection(
         galaxy=af.Model(
-            m.Gaussian,
+            af.Gaussian,
             centre=GaussianChild
         )
     )
@@ -37,7 +37,7 @@ def test_embedded():
 def test_no_free_parameters():
     collection = af.CollectionPriorModel(
         gaussian=af.Model(
-            m.Gaussian,
+            af.Gaussian,
             centre=1.0,
             intensity=1.0,
             sigma=1.0,
@@ -45,88 +45,88 @@ def test_no_free_parameters():
     )
     assert collection.prior_count == 0
     assert collection.has_model(
-        m.Gaussian
+        af.Gaussian
     ) is False
 
 
 def test_instance():
     collection = af.CollectionPriorModel(
-        gaussian=m.Gaussian()
+        gaussian=af.Gaussian()
     )
 
     assert collection.has_instance(
-        m.Gaussian
+        af.Gaussian
     ) is True
     assert collection.has_model(
-        m.Gaussian
+        af.Gaussian
     ) is False
 
 
 def test_model():
     collection = af.CollectionPriorModel(
         gaussian=af.PriorModel(
-            m.Gaussian
+            af.Gaussian
         )
     )
 
     assert collection.has_model(
-        m.Gaussian
+        af.Gaussian
     ) is True
     assert collection.has_instance(
-        m.Gaussian
+        af.Gaussian
     ) is False
 
 
 def test_both():
     collection = af.CollectionPriorModel(
         gaussian=af.PriorModel(
-            m.Gaussian
+            af.Gaussian
         ),
-        gaussian_2=m.Gaussian()
+        gaussian_2=af.Gaussian()
     )
 
     assert collection.has_model(
-        m.Gaussian
+        af.Gaussian
     ) is True
     assert collection.has_instance(
-        m.Gaussian
+        af.Gaussian
     ) is True
 
 
 def test_embedded():
     collection = af.CollectionPriorModel(
         gaussian=af.PriorModel(
-            m.Gaussian,
-            centre=m.Gaussian()
+            af.Gaussian,
+            centre=af.Gaussian()
         ),
     )
 
     assert collection.has_model(
-        m.Gaussian
+        af.Gaussian
     ) is True
     assert collection.has_instance(
-        m.Gaussian
+        af.Gaussian
     ) is True
 
 
 def test_is_only_model():
     collection = af.CollectionPriorModel(
         gaussian=af.PriorModel(
-            m.Gaussian
+            af.Gaussian
         ),
         gaussian_2=af.PriorModel(
-            m.Gaussian
+            af.Gaussian
         )
     )
 
     assert collection.is_only_model(
-        m.Gaussian
+        af.Gaussian
     ) is True
 
     collection.other = af.PriorModel(
-        m.MockClassx2
+        MockClassx2
     )
 
     assert collection.is_only_model(
-        m.Gaussian
+        af.Gaussian
     ) is False

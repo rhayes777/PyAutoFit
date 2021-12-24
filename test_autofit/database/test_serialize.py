@@ -3,7 +3,6 @@ import pytest
 import autofit as af
 from autofit import database as db
 from autofit.non_linear.samples import OptimizerSamples
-from autofit.mock import mock as m
 
 
 @pytest.fixture(
@@ -11,7 +10,7 @@ from autofit.mock import mock as m
 )
 def make_model():
     return af.PriorModel(
-        m.Gaussian
+        af.Gaussian
     )
 
 
@@ -45,7 +44,7 @@ def make_serialized_collection(collection):
 class TestInstance:
     def test_serialize(self):
         serialized_instance = db.Object.from_object(
-            m.Gaussian()
+            af.Gaussian()
         )
         assert len(
             serialized_instance.children
@@ -65,13 +64,13 @@ class TestModel:
         assert isinstance(
             serialized_model, db.PriorModel
         )
-        assert serialized_model.cls is m.Gaussian
+        assert serialized_model.cls is af.Gaussian
 
     def test_deserialize(
             self,
             serialized_model
     ):
-        assert serialized_model().cls is m.Gaussian
+        assert serialized_model().cls is af.Gaussian
 
 
 class TestPriors:
@@ -160,7 +159,7 @@ def test_none():
 
 def test_commit(session):
     model = af.PriorModel(
-        m.Gaussian
+        af.Gaussian
     )
     serialized = db.Object.from_object(model)
     session.add(serialized)

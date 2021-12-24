@@ -8,7 +8,7 @@ import pytest
 import autofit as af
 from autoconf import conf
 
-from autofit.mock.mock import MockClassx4, MockClassx2Tuple
+from autofit.mock.mock_model import MockClassx4, MockClassx2Tuple
 from autofit.mock.mock import MockSearch, MockSamples
 
 pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")

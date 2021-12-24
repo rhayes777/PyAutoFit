@@ -1,7 +1,7 @@
 import pytest
 
 import autofit as af
-from autofit.mock.mock import MockAnalysis, Gaussian
+from autofit.mock.mock import MockAnalysis
 from test_autofit.non_linear.grid.test_optimizer_grid_search import MockOptimizer
 
 
@@ -46,7 +46,7 @@ def test_save_all_samples(
         n_samples
 ):
     analysis = MockAnalysis()
-    model = af.Model(Gaussian)
+    model = af.Model(af.Gaussian)
 
     optimizer = MockOptimizer(
         session=session,
@@ -68,7 +68,7 @@ def test_save_all_samples(
 
 def test_unique_tag(session):
     analysis = MockAnalysis()
-    model = af.Model(Gaussian)
+    model = af.Model(af.Gaussian)
 
     unique_tag = "unique"
 

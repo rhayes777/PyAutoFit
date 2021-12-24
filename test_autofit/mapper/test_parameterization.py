@@ -1,9 +1,11 @@
 import pytest
 
 import autofit as af
-from autofit.mock import mock
-from autofit.mock import mock_real
+
 from autofit.text import formatter as frm
+
+from autofit.mock.mock_model import MockClassx2
+from autofit.mock.mock_real import EllSersicCore
 
 
 def test_parameterization():
@@ -85,7 +87,7 @@ class TestGenerateModelInfo:
 
     def test_basic(self):
         mm = af.ModelMapper()
-        mm.mock_class = mock.MockClassx2
+        mm.mock_class = MockClassx2
         model_info = mm.info
 
         assert (
@@ -97,7 +99,7 @@ class TestGenerateModelInfo:
 
     def test_with_instance(self):
         mm = af.ModelMapper()
-        mm.mock_class = mock.MockClassx2
+        mm.mock_class = MockClassx2
 
         mm.mock_class.two = 1.0
 
@@ -121,7 +123,7 @@ class TestGenerateModelInfo:
 
     # noinspection PyUnresolvedReferences
     def test_tuple_instance_model_info(self, mapper):
-        mapper.profile = mock_real.EllSersicCore
+        mapper.profile = EllSersicCore
         info = mapper.info
 
         mapper.profile.centre_0 = 1.0

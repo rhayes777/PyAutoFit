@@ -1,14 +1,14 @@
 import pytest
 
 import autofit as af
-from autofit.mock import mock
+from autofit.mock.mock_model import MockClassx2Tuple
 
 
 @pytest.fixture(name="mapper")
 def make_mapper():
     return af.Collection(
         component=af.Model(
-            mock.MockClassx2Tuple
+            MockClassx2Tuple
         )
     )
 

@@ -4,8 +4,7 @@ import pytest
 import json
 
 import autofit as af
-from autofit.mock.mock import Gaussian, WithTuple
-
+from autofit.mock.mock_model import MockWithTuple
 
 @pytest.fixture(
     name="model_dict"
@@ -50,7 +49,7 @@ def make_collection_dict(
 )
 def make_model():
     return af.Model(
-        Gaussian,
+        af.Gaussian,
         centre=af.UniformPrior(
             upper_limit=2.0
         )
@@ -72,7 +71,7 @@ class TestTuple:
         )
 
     def test_model_with_tuple(self):
-        tuple_model = af.Model(WithTuple)
+        tuple_model = af.Model(MockWithTuple)
         tuple_model.instance_from_prior_medians()
         model_dict = tuple_model.dict()
 
@@ -91,7 +90,7 @@ class TestFromDict:
         model = af.Model.from_dict(
             model_dict
         )
-        assert model.cls == Gaussian
+        assert model.cls == af.Gaussian
         assert model.prior_count == 3
         assert model.centre.upper_limit == 2.0
 
@@ -104,7 +103,7 @@ class TestFromDict:
         )
         assert isinstance(
             instance,
-            Gaussian
+            af.Gaussian
         )
         assert instance.centre == 0.0
         assert instance.intensity == 0.1
@@ -137,7 +136,7 @@ class TestToDict:
             instance_dict
     ):
         model = af.Model(
-            Gaussian,
+            af.Gaussian,
             centre=0.0,
             intensity=0.1,
             sigma=0.01
@@ -160,7 +159,7 @@ class TestToDict:
             instance_dict
     ):
         collection = af.Collection(
-            gaussian=Gaussian()
+            gaussian=af.Gaussian()
         )
         assert collection.dict() == {
             "gaussian": instance_dict,
@@ -188,7 +187,7 @@ class TestFromJson:
 
         model = af.Model.from_json(file=model_file)
 
-        assert model.cls == Gaussian
+        assert model.cls == af.Gaussian
         assert model.prior_count == 3
         assert model.centre.upper_limit == 2.0
 
