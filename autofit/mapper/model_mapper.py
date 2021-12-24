@@ -35,7 +35,7 @@ class ModelMapper(CollectionPriorModel):
 
     This allows us to replace the default priors:
 
-    mapper.sersic.intensity = GaussianPrior(mean=2., sigma=5.)
+    mapper.sersic.normalization = GaussianPrior(mean=2., sigma=5.)
 
     Or maybe we want to tie two priors together:
 

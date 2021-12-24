@@ -113,7 +113,7 @@ def test_update_identifiers_from_dict():
     update_identifiers_from_dict(
         output_directory,
         {
-            "intensity": "magnitude"
+            "normalization": "magnitude"
         }
     )
 
@@ -133,7 +133,7 @@ def test_update_identifiers_from_dict():
             unzipped / ".identifier"
     ) as f:
         lines = f.read().split("\n")
-        assert "intensity" not in lines
+        assert "normalization" not in lines
         assert "magnitude" in lines
 
     assert len(lines) == initial_length

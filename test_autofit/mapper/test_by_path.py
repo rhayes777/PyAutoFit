@@ -22,32 +22,32 @@ class TestInstanceFromPathArguments:
     ):
         instance = model.instance_from_path_arguments({
             ("gaussian", "centre"): 0.1,
-            ("gaussian", "intensity"): 0.2,
+            ("gaussian", "normalization"): 0.2,
             ("gaussian", "sigma"): 0.3
         })
         assert instance.gaussian.centre == 0.1
-        assert instance.gaussian.intensity == 0.2
+        assert instance.gaussian.normalization == 0.2
         assert instance.gaussian.sigma == 0.3
 
     def test_prior_linking(
             self,
             model
     ):
-        model.gaussian.centre = model.gaussian.intensity
+        model.gaussian.centre = model.gaussian.normalization
         instance = model.instance_from_path_arguments({
             ("gaussian", "centre",): 0.1,
             ("gaussian", "sigma",): 0.3
         })
         assert instance.gaussian.centre == 0.1
-        assert instance.gaussian.intensity == 0.1
+        assert instance.gaussian.normalization == 0.1
         assert instance.gaussian.sigma == 0.3
 
         instance = model.instance_from_path_arguments({
-            ("gaussian", "intensity",): 0.2,
+            ("gaussian", "normalization",): 0.2,
             ("gaussian", "sigma",): 0.3
         })
         assert instance.gaussian.centre == 0.2
-        assert instance.gaussian.intensity == 0.2
+        assert instance.gaussian.normalization == 0.2
         assert instance.gaussian.sigma == 0.3
 
 
@@ -66,25 +66,25 @@ class TestInstanceFromPriorNames:
     def test(self, model):
         instance = model.instance_from_prior_name_arguments({
             "gaussian_centre": 0.1,
-            "gaussian_intensity": 0.2,
+            "gaussian_normalization": 0.2,
             "gaussian_sigma": 0.3
         })
         assert instance.gaussian.centre == 0.1
-        assert instance.gaussian.intensity == 0.2
+        assert instance.gaussian.normalization == 0.2
         assert instance.gaussian.sigma == 0.3
 
     def test_underscored_names(self, underscore_model):
         instance = underscore_model.instance_from_prior_name_arguments({
             "gaussian_component_centre": 0.1,
-            "gaussian_component_intensity": 0.2,
+            "gaussian_component_normalization": 0.2,
             "gaussian_component_sigma": 0.3
         })
         assert instance.gaussian_component.centre == 0.1
-        assert instance.gaussian_component.intensity == 0.2
+        assert instance.gaussian_component.normalization == 0.2
         assert instance.gaussian_component.sigma == 0.3
 
     def test_prior_linking(self, underscore_model):
-        underscore_model.gaussian_component.intensity = (
+        underscore_model.gaussian_component.normalization = (
             underscore_model.gaussian_component.centre
         )
         instance = underscore_model.instance_from_prior_name_arguments({
@@ -92,15 +92,15 @@ class TestInstanceFromPriorNames:
             "gaussian_component_sigma": 0.3
         })
         assert instance.gaussian_component.centre == 0.1
-        assert instance.gaussian_component.intensity == 0.1
+        assert instance.gaussian_component.normalization == 0.1
         assert instance.gaussian_component.sigma == 0.3
 
         instance = underscore_model.instance_from_prior_name_arguments({
-            "gaussian_component_intensity": 0.2,
+            "gaussian_component_normalization": 0.2,
             "gaussian_component_sigma": 0.3
         })
         assert instance.gaussian_component.centre == 0.2
-        assert instance.gaussian_component.intensity == 0.2
+        assert instance.gaussian_component.normalization == 0.2
         assert instance.gaussian_component.sigma == 0.3
 
     def test_path_for_name(self, underscore_model):
@@ -117,7 +117,7 @@ def test_component_names():
         af.Gaussian
     )
     assert model.model_component_and_parameter_names == [
-        'centre', 'intensity', 'sigma'
+        'centre', 'normalization', 'sigma'
     ]
 
 
@@ -149,14 +149,14 @@ class TestAllPaths:
 
         assert model.all_paths_prior_tuples == [
             ((("centre",),), model.centre),
-            ((("intensity",),), model.intensity),
+            ((("normalization",),), model.normalization),
             ((("sigma",),), model.sigma),
         ]
 
     def test_linked(self, linked_model):
         assert linked_model.all_paths_prior_tuples == [
             ((("centre",), ("sigma",)), linked_model.centre),
-            ((("intensity",),), linked_model.intensity)
+            ((("normalization",),), linked_model.normalization)
         ]
 
     def test_names_independent(self):
@@ -166,14 +166,14 @@ class TestAllPaths:
 
         assert model.all_name_prior_tuples == [
             (("centre",), model.centre),
-            (("intensity",), model.intensity),
+            (("normalization",), model.normalization),
             (("sigma",), model.sigma),
         ]
 
     def test_names_linked(self, linked_model):
         assert linked_model.all_name_prior_tuples == [
             (("centre", "sigma"), linked_model.centre),
-            (("intensity",), linked_model.intensity)
+            (("normalization",), linked_model.normalization)
         ]
 
 
@@ -190,7 +190,7 @@ def make_samples(model):
                 weight=1.0,
                 kwargs={
                     ("gaussian", "centre"): 0.1,
-                    ("gaussian", "intensity"): 0.2,
+                    ("gaussian", "normalization"): 0.2,
                     ("gaussian", "sigma"): 0.3,
                 }
             )
@@ -202,7 +202,7 @@ def make_samples(model):
     "path, value",
     [
         (("gaussian", "centre"), [0.1]),
-        (("gaussian", "intensity"), [0.2]),
+        (("gaussian", "normalization"), [0.2]),
         (("gaussian", "sigma"), [0.3]),
     ]
 )
@@ -260,7 +260,7 @@ class TestFromResult:
         instance = result.max_log_likelihood_instance
 
         assert instance.gaussian.centre == 0.1
-        assert instance.gaussian.intensity == 0.2
+        assert instance.gaussian.normalization == 0.2
         assert instance.gaussian.sigma == 0.3
 
     def test_model(
@@ -270,7 +270,7 @@ class TestFromResult:
         model = result.model
 
         assert model.gaussian.centre.mean == 0.1
-        assert model.gaussian.intensity.mean == 0.2
+        assert model.gaussian.normalization.mean == 0.2
         assert model.gaussian.sigma.mean == 0.3
 
     def test_modified_instance(
@@ -280,7 +280,7 @@ class TestFromResult:
         instance = modified_result.max_log_likelihood_instance
 
         assert instance.gaussian.centre == 0.1
-        assert instance.gaussian.intensity == 0.2
+        assert instance.gaussian.normalization == 0.2
         assert instance.gaussian.sigma == 0.3
 
     def test_modified_model(
@@ -290,5 +290,5 @@ class TestFromResult:
         model = modified_result.model
 
         assert model.gaussian.centre.mean == 0.1
-        assert model.gaussian.intensity.mean == 0.2
+        assert model.gaussian.normalization.mean == 0.2
         assert model.gaussian.sigma.mean == 0.3

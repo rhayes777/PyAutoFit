@@ -393,7 +393,7 @@ def test_higher_dimensions(
                             {
                                 "centre": 1.0,
                                 "sigma": 1.0,
-                                "intensity": 1.0
+                                "normalization": 1.0
                             }
                         )
                     ]

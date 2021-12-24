@@ -81,7 +81,7 @@ def test_completion(
 
 def test_object(paths):
     gaussian = af.Gaussian(
-        intensity=2.1
+        normalization=2.1
     )
 
     assert paths.is_object(

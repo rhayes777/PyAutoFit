@@ -39,7 +39,7 @@ def test_direct_instances_only():
     child = af.Model(
         af.Gaussian,
         centre=0.0,
-        intensity=0.1,
+        normalization=0.1,
         sigma=0.01,
     )
     child.constant = 1.0
@@ -47,7 +47,7 @@ def test_direct_instances_only():
     model = af.Model(
         af.Gaussian,
         centre=child,
-        intensity=0.1,
+        normalization=0.1,
         sigma=0.01,
     )
 

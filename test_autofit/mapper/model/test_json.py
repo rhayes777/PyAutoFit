@@ -12,9 +12,9 @@ from autofit.mock.mock_model import MockWithTuple
 def make_model_dict():
     return {
         "type": "model",
-        "class_path": "autofit.mock.mock.Gaussian",
+        "class_path": "autofit.example.model.Gaussian",
         "centre": {'lower_limit': 0.0, 'type': 'Uniform', 'upper_limit': 2.0},
-        "intensity": {'lower_limit': 0.0, 'type': 'Uniform', 'upper_limit': 1.0},
+        "normalization": {'lower_limit': 0.0, 'type': 'Uniform', 'upper_limit': 1.0},
         "sigma": {'lower_limit': 0.0, 'type': 'Uniform', 'upper_limit': 1.0},
     }
 
@@ -25,9 +25,9 @@ def make_model_dict():
 def make_instance_dict():
     return {
         "type": "instance",
-        "class_path": "autofit.mock.mock.Gaussian",
+        "class_path": "autofit.example.model.Gaussian",
         "centre": 0.0,
-        "intensity": 0.1,
+        "normalization": 0.1,
         "sigma": 0.01
     }
 
@@ -106,7 +106,7 @@ class TestFromDict:
             af.Gaussian
         )
         assert instance.centre == 0.0
-        assert instance.intensity == 0.1
+        assert instance.normalization == 0.1
         assert instance.sigma == 0.01
 
     def test_collection_from_dict(
@@ -138,7 +138,7 @@ class TestToDict:
         model = af.Model(
             af.Gaussian,
             centre=0.0,
-            intensity=0.1,
+            normalization=0.1,
             sigma=0.01
         )
 

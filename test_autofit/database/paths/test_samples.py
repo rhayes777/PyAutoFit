@@ -35,7 +35,7 @@ def make_sample():
         weight=0.5,
         kwargs=dict(
             centre=1.0,
-            intensity=2.0,
+            normalization=2.0,
             sigma=3.0
         )
     )

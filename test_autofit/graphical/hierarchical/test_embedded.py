@@ -81,7 +81,7 @@ def generate_data(
     for centre in centres:
         gaussian = af.Gaussian(
             centre=centre,
-            intensity=20,
+            normalization=20,
             sigma=5,
         )
 
@@ -112,7 +112,7 @@ def test_model_factor(
     prior_model = af.PriorModel(
         af.Gaussian,
         centre=centre_argument,
-        intensity=20,
+        normalization=20,
         sigma=5
     )
     factor = g.AnalysisFactor(
@@ -137,7 +137,7 @@ def test_full_fit(centre_model, data, centres):
                 mean=100,
                 sigma=20
             ),
-            intensity=20,
+            normalization=20,
             sigma=5
         )
         graph.add(

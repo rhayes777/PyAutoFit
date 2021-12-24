@@ -113,10 +113,10 @@ def test_graph_info(
 PriorFactor0 (HierarchicalFactor0)                                                        GaussianPrior, mean = 10, sigma = 5
 PriorFactor1 (HierarchicalFactor0)                                                        GaussianPrior, mean = 100, sigma = 10
 PriorFactor2 (AnalysisFactor1.sigma)                                                      UniformPrior, lower_limit = 0.0, upper_limit = 1.0
-PriorFactor3 (AnalysisFactor1.intensity)                                                  UniformPrior, lower_limit = 0.0, upper_limit = 1.0
+PriorFactor3 (AnalysisFactor1.normalization)                                              UniformPrior, lower_limit = 0.0, upper_limit = 1.0
 PriorFactor4 (AnalysisFactor1.centre, HierarchicalFactor0)                                UniformPrior, lower_limit = 0.0, upper_limit = 1.0
 PriorFactor5 (AnalysisFactor0.sigma)                                                      UniformPrior, lower_limit = 0.0, upper_limit = 1.0
-PriorFactor6 (AnalysisFactor0.intensity)                                                  UniformPrior, lower_limit = 0.0, upper_limit = 1.0
+PriorFactor6 (AnalysisFactor0.normalization)                                              UniformPrior, lower_limit = 0.0, upper_limit = 1.0
 PriorFactor7 (AnalysisFactor0.centre, HierarchicalFactor0)                                UniformPrior, lower_limit = 0.0, upper_limit = 1.0
 
 AnalysisFactors
@@ -124,13 +124,13 @@ AnalysisFactors
 AnalysisFactor0
 
 centre (HierarchicalFactor0, PriorFactor7)                                                UniformPrior, lower_limit = 0.0, upper_limit = 1.0
-intensity (PriorFactor6)                                                                  UniformPrior, lower_limit = 0.0, upper_limit = 1.0
+normalization (PriorFactor6)                                                              UniformPrior, lower_limit = 0.0, upper_limit = 1.0
 sigma (PriorFactor5)                                                                      UniformPrior, lower_limit = 0.0, upper_limit = 1.0
 
 AnalysisFactor1
 
 centre (HierarchicalFactor0, PriorFactor4)                                                UniformPrior, lower_limit = 0.0, upper_limit = 1.0
-intensity (PriorFactor3)                                                                  UniformPrior, lower_limit = 0.0, upper_limit = 1.0
+normalization (PriorFactor3)                                                              UniformPrior, lower_limit = 0.0, upper_limit = 1.0
 sigma (PriorFactor2)                                                                      UniformPrior, lower_limit = 0.0, upper_limit = 1.0
 
 HierarchicalFactors

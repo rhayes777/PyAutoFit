@@ -46,7 +46,7 @@ def test_assertions(
         target_gaussian
 ):
     target_gaussian.add_assertion(
-        target_gaussian.centre <= target_gaussian.intensity
+        target_gaussian.centre <= target_gaussian.normalization
     )
 
     with pytest.raises(AssertionError):
@@ -60,7 +60,7 @@ def test_assertions_collection(
         target_gaussian
 ):
     target_gaussian.add_assertion(
-        target_gaussian.centre <= target_gaussian.intensity
+        target_gaussian.centre <= target_gaussian.normalization
     )
 
     target_collection = af.Collection(

@@ -56,7 +56,7 @@ def test_projected_model():
                 weight=random(),
                 kwargs={
                     ("centre",): random(),
-                    ("intensity",): random(),
+                    ("normalization",): random(),
                     ("sigma",): random(),
                 }
             )
