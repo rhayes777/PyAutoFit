@@ -48,7 +48,8 @@ def summary(
 
 
 def latex(samples, median_pdf_model=True, sigma=3.0, name_to_label=True) -> str:
-    """ Create a string summarizing the results of the `NonLinearSearch` at an input sigma value.
+    """
+    Create a string summarizing the results of the `NonLinearSearch` at an input sigma value.
 
     This function is used for creating the model.results files of a non-linear search.
 

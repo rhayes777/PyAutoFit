@@ -153,11 +153,12 @@ def parameter_result_latex_from(
         parameter_name,
         value,
         errors=None,
-        superscript=None,
+        superscript="",
         unit=None,
         format_string=None,
         name_to_label=False,
 ):
+
     format_str = format_string or format_string_for_parameter_name(parameter_name)
     value = format_str.format(value)
 
@@ -170,7 +171,7 @@ def parameter_result_latex_from(
     else:
         unit = ""
 
-    if superscript is None:
+    if not superscript:
         superscript = ""
     else:
         superscript = f"^{{\\rm{{{superscript}}}}}"
