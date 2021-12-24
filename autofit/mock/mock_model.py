@@ -78,6 +78,24 @@ class MockWithTuple:
         self.tup = tup
 
 
+class MockOverload:
+
+    def __init__(self, one=1.0):
+
+        self.one = one
+
+    def with_two(self, two):
+        self.two = two
+
+    @property
+    def two(self):
+        return self.one * 2
+
+    @two.setter
+    def two(self, two):
+        self.one = two / 2
+
+
 class MockComponents:
     def __init__(
             self,

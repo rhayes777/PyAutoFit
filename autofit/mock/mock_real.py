@@ -8,21 +8,6 @@ from autofit.mapper.prior_model.prior_model import PriorModel
 from autofit.mapper.prior_model.util import PriorModelNameValue
 
 
-class Circle:
-    def __init__(self, radius):
-        self.radius = radius
-
-    def with_circumference(self, circumference):
-        self.circumference = circumference
-
-    @property
-    def circumference(self):
-        return self.radius * 2 * math.pi
-
-    @circumference.setter
-    def circumference(self, circumference):
-        self.radius = circumference / (2 * math.pi)
-
 
 class GeometryProfile:
     def __init__(self, centre=(0.0, 0.0)):
