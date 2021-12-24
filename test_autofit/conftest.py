@@ -16,6 +16,7 @@ import autofit.non_linear.samples.stored
 from autoconf import conf
 from autofit import database as db
 from autofit.mock import mock
+from autofit.mock import fixtures
 from autofit.mock.mock import MockAnalysis
 
 if sys.platform == 'darwin':
@@ -122,6 +123,11 @@ def make_model():
 )
 def make_analysis():
     return MockAnalysis()
+
+
+@pytest.fixture(name="samples_x5")
+def make_samples_x5():
+    return fixtures.make_samples_x5()
 
 
 @pytest.fixture(name="samples")
