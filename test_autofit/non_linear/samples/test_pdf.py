@@ -11,7 +11,7 @@ pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
 
 
 def test__from_csv_table(samples_x5):
-    filename = "samples_x5.csv"
+    filename = "samples.csv"
     samples_x5.write_table(filename=filename)
 
     samples_x5 = af.PDFSamples.from_table(filename=filename, model=samples_x5.model)

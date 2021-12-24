@@ -2,7 +2,10 @@ import numpy as np
 import pytest
 
 import autofit as af
+
 from autofit.non_linear.grid import sensitivity as s
+
+from autofit.mock.mock import MockSearch
 
 x = np.array(range(10))
 
@@ -35,7 +38,7 @@ def make_perturbation_model():
     name="search"
 )
 def make_search():
-    return af.MockSearch()
+    return MockSearch()
 
 
 @pytest.fixture(

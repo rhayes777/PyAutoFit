@@ -90,7 +90,7 @@ test_path = path.join(
 class TestMovePickleFiles:
     def test__move_pickle_files(self):
 
-        search = af.MockSearch()
+        search = MockSearch()
         search.paths = af.DirectoryPaths(
             name="pickles",
             path_prefix=path.join("non_linear", "abstract_search")

@@ -33,7 +33,7 @@ def test__table__rows(samples_x5):
 
 
 def test__table__write_table(samples_x5):
-    filename = "samples_x5.csv"
+    filename = "samples.csv"
     samples_x5.write_table(filename=filename)
 
     assert os.path.exists(filename)

@@ -48,8 +48,6 @@ from .mapper.prior_model.collection import CollectionPriorModel as Collection
 from .mapper.prior_model.prior_model import PriorModel
 from .mapper.prior_model.prior_model import PriorModel as Model
 from .mapper.prior_model.util import PriorModelNameValue
-from .mock.mock_search import MockResult
-from .mock.mock_search import MockSearch
 from .non_linear.abstract_search import NonLinearSearch
 from .non_linear.abstract_search import PriorPasser
 from .non_linear.analysis.analysis import Analysis

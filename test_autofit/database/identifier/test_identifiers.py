@@ -4,7 +4,7 @@ import pytest
 import autofit as af
 from autofit import conf
 from autofit.mapper.model_object import Identifier
-from autofit.mock.mock import MockSamples, MockSearch
+from autofit.mock.mock import MockSamples, MockSearch, MockAnalysis
 
 
 def set_version(version):
@@ -222,20 +222,20 @@ def test_identifier_fields():
 
 
 def test_unique_tag():
-    search = af.MockSearch()
+    search = MockSearch()
 
     search.fit(
         model=af.Collection(),
-        analysis=af.mock.mock.MockAnalysis()
+        analysis=MockAnalysis()
     )
 
     identifier = search.paths.identifier
 
-    search = af.MockSearch(unique_tag="dataset")
+    search = MockSearch(unique_tag="dataset")
 
     search.fit(
         model=af.Collection(),
-        analysis=af.mock.mock.MockAnalysis(),
+        analysis=MockAnalysis(),
     )
 
     assert search.paths.identifier != identifier

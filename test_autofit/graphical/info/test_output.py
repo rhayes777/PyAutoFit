@@ -2,10 +2,12 @@ import autofit as af
 from autoconf.conf import with_config
 from autofit import graphical as g, DirectoryPaths
 
+from autofit.mock import mock as m
+
 MAX_STEPS = 3
 
 
-class MockResult(af.MockResult):
+class MockResult(m.MockResult):
     def __init__(self, model):
         super().__init__()
         self.model = model
@@ -15,7 +17,7 @@ class MockResult(af.MockResult):
         return self.model
 
 
-class MockSearch(af.MockSearch):
+class MockSearch(m.MockSearch):
     def fit(
             self,
             model,

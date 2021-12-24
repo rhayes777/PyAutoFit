@@ -8,7 +8,7 @@ import autofit as af
 from autofit import exc, Result
 from autofit.graphical import FactorApproximation
 from autofit.graphical.utils import Status
-from autofit.mock.mock import MockAnalysis
+from autofit.mock.mock import MockAnalysis, MockSearch
 
 
 def test_unpickle_result():
@@ -48,7 +48,7 @@ class TestGridSearchablePriors:
         assert mappers[-1].component.one_tuple.one_tuple_1.upper_limit == 2.0
 
     def test_non_grid_searched_dimensions(self, mapper):
-        search = af.MockSearch()
+        search = MockSearch()
         search.paths = af.DirectoryPaths(name="")
         grid_search = af.SearchGridSearch(
             number_of_steps=10,
@@ -156,7 +156,11 @@ def make_grid_search_05():
     return search
 
 
-class MockOptimizer(af.MockSearch):
+class MockOptimizer(MockSearch):
+
+    def __init__(self, **kwargs):
+        super().__init__(fit_fast=False, **kwargs)
+
     @property
     def samples_cls(self):
         return MockOptimizer
@@ -170,8 +174,7 @@ class MockOptimizer(af.MockSearch):
 
     init_args = list()
 
-    def __init__(self, **kwargs):
-        super().__init__(fit_fast=False, **kwargs)
+
 
 
 @pytest.fixture(autouse=True)
