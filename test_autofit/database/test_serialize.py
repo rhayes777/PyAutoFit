@@ -2,7 +2,7 @@ import pytest
 
 import autofit as af
 from autofit import database as db
-from autofit.non_linear.samples import OptimizerSamples
+from autofit.non_linear.samples import Samples
 
 
 @pytest.fixture(
@@ -119,7 +119,7 @@ class TestCollection:
 class TestClasses:
     def test_samples(self):
         db.Object.from_object(
-            OptimizerSamples(
+            Samples(
                 af.ModelMapper(),
                 None
             )

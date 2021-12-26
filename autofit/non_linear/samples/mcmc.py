@@ -6,7 +6,7 @@ import numpy as np
 from autofit.mapper.model_mapper import ModelMapper
 from autofit.non_linear.mcmc.auto_correlations import AutoCorrelationsSettings
 from autofit.non_linear.samples.pdf import PDFSamples
-from .optimizer import OptimizerSamples
+from .samples import Samples
 from .sample import Sample, load_from_table
 
 
@@ -55,7 +55,7 @@ class MCMCSamples(PDFSamples):
 
         sample_list = load_from_table(filename=filename)
 
-        return OptimizerSamples(
+        return Samples(
             model=model,
             sample_list=sample_list
         )

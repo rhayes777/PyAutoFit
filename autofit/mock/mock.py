@@ -46,17 +46,6 @@ class MockAnalysis(Analysis):
         pass
 
 
-class MockAnalysis2(Analysis):
-    def log_likelihood_function(self, instance):
-        return 1.0
-
-    def visualize(self, paths, instance, during_analysis):
-        pass
-
-    def __init__(self, data):
-        self.data = data
-
-
 class MockResult(Result):
     def __init__(
             self,
@@ -147,7 +136,7 @@ class MockSamples(PDFSamples):
 
             try:
                 return super().max_log_likelihood_instance
-            except KeyError:
+            except (KeyError, AttributeError):
                 pass
 
         return self._max_log_likelihood_instance
@@ -223,6 +212,7 @@ class MockSearch(NonLinearSearch):
             fit_fast=True,
             sample_multiplier=1,
             save_for_aggregator=False,
+            return_sensitivity_results=False,
             **kwargs
     ):
 
@@ -238,6 +228,7 @@ class MockSearch(NonLinearSearch):
         self.sample_multiplier = sample_multiplier
 
         self.save_for_aggregator = save_for_aggregator
+        self.return_sensitivity_results = return_sensitivity_results
 
     @property
     def config_type(self):
@@ -313,6 +304,11 @@ class MockSearch(NonLinearSearch):
         )
 
     def perform_update(self, model, analysis, during_analysis):
+
+        if self.samples is not None and not self.return_sensitivity_results:
+            self.paths.save_object("samples", self.samples)
+            return self.samples
+
         return MockSamples(
             sample_list=samples_with_log_likelihood_list([1.0, 2.0]),
             gaussian_tuples=[
@@ -320,4 +316,3 @@ class MockSearch(NonLinearSearch):
                 for prior in sorted(model.priors, key=lambda prior: prior.id)
             ]
         )
-

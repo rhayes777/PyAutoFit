@@ -2,10 +2,10 @@ import numpy as np
 from typing import Optional
 
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
-from autofit.non_linear.samples import OptimizerSamples, Sample
+from autofit.non_linear.samples import Samples, Sample
 
 
-class PySwarmsSamples(OptimizerSamples):
+class PySwarmsSamples(Samples):
 
     def __init__(
             self,
@@ -16,7 +16,7 @@ class PySwarmsSamples(OptimizerSamples):
             time: Optional[float] = None,
     ):
         """
-        Create an *OptimizerSamples* object from this non-linear search's output files on the hard-disk and model.
+        Create an *Samples* object from this non-linear search's output files on the hard-disk and model.
 
         For PySwarms, all quantities are extracted via pickled states of the particle and cost histories.
 

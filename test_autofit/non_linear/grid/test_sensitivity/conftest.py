@@ -38,7 +38,7 @@ def make_perturbation_model():
     name="search"
 )
 def make_search():
-    return MockSearch()
+    return MockSearch(return_sensitivity_results=True)
 
 
 @pytest.fixture(

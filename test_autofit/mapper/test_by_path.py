@@ -181,7 +181,7 @@ class TestAllPaths:
     name="samples"
 )
 def make_samples(model):
-    return af.OptimizerSamples(
+    return af.Samples(
         model,
         [
             af.Sample(

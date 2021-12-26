@@ -4,7 +4,7 @@ from . import exc
 from .database.aggregator.aggregator import GridSearchAggregator
 from .non_linear.samples import MCMCSamples
 from .non_linear.samples import NestSamples
-from .non_linear.samples import OptimizerSamples
+from .non_linear.samples import Samples
 from .non_linear.samples import PDFSamples
 from .non_linear.samples import Sample
 from .non_linear.samples import load_from_table
