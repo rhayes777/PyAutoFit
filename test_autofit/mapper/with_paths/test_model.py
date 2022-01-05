@@ -142,9 +142,19 @@ class TestPathsToTree:
                }
 
 
+@pytest.mark.parametrize(
+    'path, index',
+    [
+        (("gaussian_1", "centre"), 0),
+        (("gaussian_2", "centre"), 3),
+        (("gaussian_2", "intensity"), 4),
+    ]
+)
 def test_indices(
         model,
+        path,
+        index
 ):
     assert model.index(
-        ("gaussian_1", "centre")
-    ) == 0
+        path
+    ) == index
