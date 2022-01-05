@@ -176,7 +176,16 @@ class Sample:
             item
             for item
             in self.kwargs
-            if item in paths
+            if any(
+                all(
+                    first == second
+                    for first, second
+                    in zip(
+                        item, path
+                    )
+                )
+                for path in paths
+            )
         }
         return with_paths
 

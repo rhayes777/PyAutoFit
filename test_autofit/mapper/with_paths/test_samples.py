@@ -30,3 +30,15 @@ def test_trivial(sample):
     assert with_paths.kwargs == {
         ("gaussian_1", "centre",)
     }
+
+
+def test_subpath(sample):
+    with_paths = sample.with_paths([
+        ("gaussian_1",)
+    ])
+
+    assert with_paths.kwargs == {
+        ("gaussian_1", "centre",),
+        ("gaussian_1", "intensity",),
+        ("gaussian_1", "sigma",),
+    }
