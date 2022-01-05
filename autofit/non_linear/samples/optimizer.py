@@ -286,7 +286,23 @@ class OptimizerSamples:
     def with_paths(
             self,
             paths: List[Tuple[str]]
-    ):
+    ) -> "OptimizerSamples":
+        """
+        Create a copy of this object with only attributes specified
+        by a list of paths.
+
+        Parameters
+        ----------
+        paths
+            A list of paths to attributes. Only kwargs and model components
+            specified by these paths are retained.
+
+            All children of a given path are retained.
+
+        Returns
+        -------
+        A set of samples with a reduced set of attributes
+        """
         with_paths = copy(self)
         with_paths.model = self.model.with_paths(
             paths

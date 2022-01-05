@@ -1,6 +1,6 @@
 import csv
 from copy import copy
-from typing import List
+from typing import List, Tuple
 
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 
@@ -170,7 +170,23 @@ class Sample:
                 self.parameter_lists_for_model(model)
             )
 
-    def with_paths(self, paths):
+    def with_paths(
+            self,
+            paths: List[Tuple[str, ...]]
+    ) -> "Sample":
+        """
+        Create a copy of this object retaining only the kwargs for which
+        there is a matching path in paths.
+
+        Parameters
+        ----------
+        paths
+            A list of paths for which attributes should be retained.
+
+        Returns
+        -------
+        A reduced sample
+        """
         with_paths = copy(self)
         with_paths.kwargs = {
             item
