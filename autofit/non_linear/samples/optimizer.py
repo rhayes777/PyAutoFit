@@ -282,3 +282,63 @@ class OptimizerSamples:
             self.max_log_posterior_sample
         })
         return samples
+
+    def with_paths(
+            self,
+            paths: List[Tuple[str]]
+    ) -> "OptimizerSamples":
+        """
+        Create a copy of this object with only attributes specified
+        by a list of paths.
+
+        Parameters
+        ----------
+        paths
+            A list of paths to attributes. Only kwargs and model components
+            specified by these paths are retained.
+
+            All children of a given path are retained.
+
+        Returns
+        -------
+        A set of samples with a reduced set of attributes
+        """
+        with_paths = copy(self)
+        with_paths.model = self.model.with_paths(
+            paths
+        )
+        with_paths.sample_list = [
+            sample.with_paths(paths)
+            for sample in self.sample_list
+        ]
+        return with_paths
+
+    def without_paths(
+            self,
+            paths: List[Tuple[str]]
+    ) -> "OptimizerSamples":
+        """
+        Create a copy of this object with only attributes not specified
+        by a list of paths.
+
+        Parameters
+        ----------
+        paths
+            A list of paths to attributes. kwargs and model components
+            specified by these paths are removed.
+
+            All children of a given path are removed.
+
+        Returns
+        -------
+        A set of samples with a reduced set of attributes
+        """
+        with_paths = copy(self)
+        with_paths.model = self.model.without_paths(
+            paths
+        )
+        with_paths.sample_list = [
+            sample.without_paths(paths)
+            for sample in self.sample_list
+        ]
+        return with_paths
