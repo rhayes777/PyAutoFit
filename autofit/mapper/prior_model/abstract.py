@@ -273,14 +273,14 @@ class AbstractPriorModel(AbstractModel):
             tree: dict
     ) -> "AbstractModel":
         """
-        Recursively generate a copy of this model retaining only objects
+        Recursively generate a copy of this model removing objects
         specified by the tree.
     
         Parameters
         ----------
         tree
             A tree formed of dictionaries describing which components of the
-            model should be retained.
+            model should be removed.
     
         Returns
         -------
@@ -319,13 +319,13 @@ class AbstractPriorModel(AbstractModel):
     ) -> "AbstractModel":
         """
         Recursively generate a copy of this model retaining only objects
-        specified by the list of paths.
+        not specified by the list of paths.
 
         Parameters
         ----------
         paths
-            A list of tuples of strings each of which points to a retained attribute.
-            All children of a given path are retained.
+            A list of tuples of strings each of which points to removed attribute.
+            All children of a given path are removed.
 
         Returns
         -------
