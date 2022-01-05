@@ -43,6 +43,9 @@ class TestWithoutAttributes:
             without,
             attribute
         )
+        assert hasattr(
+            without, "cls"
+        )
 
     @pytest.mark.parametrize(
         "attribute",
@@ -74,4 +77,8 @@ def test_with_paths(
         with_paths,
         "gaussian_2"
     )
-    assert with_paths.gaussian_1 is gaussian_1
+
+    assert hasattr(
+        with_paths.gaussian_1,
+        "centre"
+    )

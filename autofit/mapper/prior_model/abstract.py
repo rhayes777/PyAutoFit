@@ -141,7 +141,7 @@ class AbstractPriorModel(AbstractModel):
     def without_attributes(self):
         without_attributes = copy.copy(self)
         for key in self.__dict__:
-            if not key.startswith("_") or key in ("cls", "id"):
+            if not (key.startswith("_") or key in ("cls", "id")):
                 delattr(
                     without_attributes,
                     key
@@ -152,9 +152,9 @@ class AbstractPriorModel(AbstractModel):
             self,
             paths: List[Tuple[str]]
     ) -> "AbstractPriorModel":
-        with_paths = copy.copy(self)
-        for (name, *_), _ in self.dir:
-            delattr(with_paths, name)
+        if len(paths) == 0:
+            return self
+        with_paths = self.without_attributes()
         for path in paths:
             first, *remainder = path
             new_value = getattr(
