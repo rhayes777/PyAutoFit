@@ -12,12 +12,12 @@ def make_sample():
         log_prior=0,
         weight=0,
         kwargs={
-            ("gaussian_1", "centre",),
-            ("gaussian_1", "intensity",),
-            ("gaussian_1", "sigma",),
-            ("gaussian_2", "centre",),
-            ("gaussian_2", "intensity",),
-            ("gaussian_2", "sigma",),
+            ("gaussian_1", "centre",): 1,
+            ("gaussian_1", "intensity",): 2,
+            ("gaussian_1", "sigma",): 3,
+            ("gaussian_2", "centre",): 4,
+            ("gaussian_2", "intensity",): 5,
+            ("gaussian_2", "sigma",): 6,
         }
     )
 
@@ -32,7 +32,7 @@ class TestWith:
         ])
 
         assert with_paths.kwargs == {
-            ("gaussian_1", "centre",)
+            ("gaussian_1", "centre",): 1
         }
 
     def test_subpath(
@@ -44,9 +44,9 @@ class TestWith:
         ])
 
         assert with_paths.kwargs == {
-            ("gaussian_1", "centre",),
-            ("gaussian_1", "intensity",),
-            ("gaussian_1", "sigma",),
+            ("gaussian_1", "centre",): 1,
+            ("gaussian_1", "intensity",): 2,
+            ("gaussian_1", "sigma",): 3,
         }
 
     def test_samples(
@@ -64,9 +64,9 @@ class TestWith:
         ])
 
         assert with_paths.sample_list[0].kwargs == {
-            ("gaussian_1", "centre",),
-            ("gaussian_1", "intensity",),
-            ("gaussian_1", "sigma",),
+            ("gaussian_1", "centre",): 1,
+            ("gaussian_1", "intensity",): 2,
+            ("gaussian_1", "sigma",): 3,
         }
 
         model = with_paths.model
@@ -90,11 +90,11 @@ class TestWithout:
         ])
 
         assert without_paths.kwargs == {
-            ("gaussian_1", "intensity",),
-            ("gaussian_1", "sigma",),
-            ("gaussian_2", "centre",),
-            ("gaussian_2", "intensity",),
-            ("gaussian_2", "sigma",),
+            ("gaussian_1", "intensity",): 2,
+            ("gaussian_1", "sigma",): 3,
+            ("gaussian_2", "centre",): 4,
+            ("gaussian_2", "intensity",): 5,
+            ("gaussian_2", "sigma",): 6,
         }
 
     def test_subpath(
@@ -106,9 +106,9 @@ class TestWithout:
         ])
 
         assert without_paths.kwargs == {
-            ("gaussian_2", "centre",),
-            ("gaussian_2", "intensity",),
-            ("gaussian_2", "sigma",),
+            ("gaussian_2", "centre",): 4,
+            ("gaussian_2", "intensity",): 5,
+            ("gaussian_2", "sigma",): 6,
         }
 
     def test_samples(
@@ -126,9 +126,9 @@ class TestWithout:
         ])
 
         assert without_paths.sample_list[0].kwargs == {
-            ("gaussian_2", "centre",),
-            ("gaussian_2", "intensity",),
-            ("gaussian_2", "sigma",),
+            ("gaussian_2", "centre",): 4,
+            ("gaussian_2", "intensity",): 5,
+            ("gaussian_2", "sigma",): 6,
         }
 
         model = without_paths.model
