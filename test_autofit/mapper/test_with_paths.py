@@ -1,6 +1,7 @@
 import pytest
 
 import autofit as af
+from autofit.mapper.prior_model.abstract import paths_to_tree
 
 
 @pytest.fixture(
@@ -66,10 +67,7 @@ class TestWithoutAttributes:
         )
 
 
-def test_with_paths(
-        gaussian_1,
-        model
-):
+def test_with_paths(model):
     with_paths = model.with_paths([
         ("gaussian_1",)
     ])
@@ -77,8 +75,32 @@ def test_with_paths(
         with_paths,
         "gaussian_2"
     )
-
     assert hasattr(
         with_paths.gaussian_1,
         "centre"
     )
+
+
+def test_attributes(model):
+    with_paths = model.with_paths([
+        ("gaussian_1", "centre"),
+        ("gaussian_2", "intensity"),
+    ])
+
+    gaussian_1 = with_paths.gaussian_1
+    assert hasattr(gaussian_1, "centre")
+    assert not hasattr(gaussian_1, "intensity")
+
+    gaussian_2 = with_paths.gaussian_2
+    assert not hasattr(gaussian_2, "centre")
+    assert hasattr(gaussian_2, "intensity")
+
+
+def test_paths_to_tree():
+    assert paths_to_tree([
+        ("one", "two")
+    ]) == {
+               "one": {
+                   "two": {}
+               }
+           }

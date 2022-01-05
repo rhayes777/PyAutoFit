@@ -126,6 +126,22 @@ class MeanField:
         )
 
 
+def paths_to_tree(paths, tree=None):
+    tree = tree or dict()
+    for path in paths:
+        if len(path) == 0:
+            return tree
+        first, *rest = path
+        child = dict()
+        if first not in tree:
+            tree[first] = child
+        tree[first] = paths_to_tree(
+            [rest],
+            tree=child
+        )
+    return tree
+
+
 class AbstractPriorModel(AbstractModel):
     """
     Abstract model that maps a set of priors to a particular class. Must be
