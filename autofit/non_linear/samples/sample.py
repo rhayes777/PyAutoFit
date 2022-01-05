@@ -1,5 +1,6 @@
 import csv
-from typing import List
+from copy import copy
+from typing import List, Tuple
 
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 
@@ -168,6 +169,76 @@ class Sample:
             return model.instance_from_vector(
                 self.parameter_lists_for_model(model)
             )
+
+    def with_paths(
+            self,
+            paths: List[Tuple[str, ...]]
+    ) -> "Sample":
+        """
+        Create a copy of this object retaining only the kwargs for which
+        there is a matching path in paths.
+
+        Parameters
+        ----------
+        paths
+            A list of paths for which attributes should be retained.
+
+        Returns
+        -------
+        A reduced sample
+        """
+        with_paths = copy(self)
+        with_paths.kwargs = {
+            key: value
+            for key, value
+            in self.kwargs.items()
+            if any(
+                all(
+                    first == second
+                    for first, second
+                    in zip(
+                        key, path
+                    )
+                )
+                for path in paths
+            )
+        }
+        return with_paths
+
+    def without_paths(
+            self,
+            paths: List[Tuple[str, ...]]
+    ) -> "Sample":
+        """
+        Create a copy of this object retaining only the kwargs for which
+        there is no matching path in paths.
+
+        Parameters
+        ----------
+        paths
+            A list of paths for which attributes should be removed.
+
+        Returns
+        -------
+        A reduced sample
+        """
+        without_paths = copy(self)
+        without_paths.kwargs = {
+            key: value
+            for key, value
+            in self.kwargs.items()
+            if not any(
+                all(
+                    first == second
+                    for first, second
+                    in zip(
+                        key, path
+                    )
+                )
+                for path in paths
+            )
+        }
+        return without_paths
 
 
 def load_from_table(filename: str) -> List[Sample]:
