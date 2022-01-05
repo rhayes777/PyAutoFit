@@ -205,6 +205,25 @@ class Sample:
         }
         return with_paths
 
+    def without_paths(self, paths):
+        without_paths = copy(self)
+        without_paths.kwargs = {
+            item
+            for item
+            in self.kwargs
+            if not any(
+                all(
+                    first == second
+                    for first, second
+                    in zip(
+                        item, path
+                    )
+                )
+                for path in paths
+            )
+        }
+        return without_paths
+
 
 def load_from_table(filename: str) -> List[Sample]:
     """

@@ -22,53 +22,121 @@ def make_sample():
     )
 
 
-def test_trivial(sample):
-    with_paths = sample.with_paths([
-        ("gaussian_1", "centre",)
-    ])
+class TestWith:
+    def test_trivial(
+            self,
+            sample
+    ):
+        with_paths = sample.with_paths([
+            ("gaussian_1", "centre",)
+        ])
 
-    assert with_paths.kwargs == {
-        ("gaussian_1", "centre",)
-    }
+        assert with_paths.kwargs == {
+            ("gaussian_1", "centre",)
+        }
+
+    def test_subpath(
+            self,
+            sample
+    ):
+        with_paths = sample.with_paths([
+            ("gaussian_1",)
+        ])
+
+        assert with_paths.kwargs == {
+            ("gaussian_1", "centre",),
+            ("gaussian_1", "intensity",),
+            ("gaussian_1", "sigma",),
+        }
+
+    def test_samples(
+            self,
+            sample,
+            model
+    ):
+        samples = af.OptimizerSamples(
+            model=model,
+            sample_list=[sample],
+        )
+
+        with_paths = samples.with_paths([
+            ("gaussian_1",)
+        ])
+
+        assert with_paths.sample_list[0].kwargs == {
+            ("gaussian_1", "centre",),
+            ("gaussian_1", "intensity",),
+            ("gaussian_1", "sigma",),
+        }
+
+        model = with_paths.model
+        assert hasattr(
+            model,
+            "gaussian_1"
+        )
+        assert not hasattr(
+            model,
+            "gaussian_2"
+        )
 
 
-def test_subpath(sample):
-    with_paths = sample.with_paths([
-        ("gaussian_1",)
-    ])
+class TestWithout:
+    def test_trivial(
+            self,
+            sample
+    ):
+        without_paths = sample.without_paths([
+            ("gaussian_1", "centre",)
+        ])
 
-    assert with_paths.kwargs == {
-        ("gaussian_1", "centre",),
-        ("gaussian_1", "intensity",),
-        ("gaussian_1", "sigma",),
-    }
+        assert without_paths.kwargs == {
+            ("gaussian_1", "intensity",),
+            ("gaussian_1", "sigma",),
+            ("gaussian_2", "centre",),
+            ("gaussian_2", "intensity",),
+            ("gaussian_2", "sigma",),
+        }
 
+    def test_subpath(
+            self,
+            sample
+    ):
+        without_paths = sample.without_paths([
+            ("gaussian_1",)
+        ])
 
-def test_samples(
-        sample,
-        model
-):
-    samples = af.OptimizerSamples(
-        model=model,
-        sample_list=[sample],
-    )
+        assert without_paths.kwargs == {
+            ("gaussian_2", "centre",),
+            ("gaussian_2", "intensity",),
+            ("gaussian_2", "sigma",),
+        }
 
-    with_paths = samples.with_paths([
-        ("gaussian_1",)
-    ])
+    def test_samples(
+            self,
+            sample,
+            model
+    ):
+        samples = af.OptimizerSamples(
+            model=model,
+            sample_list=[sample],
+        )
 
-    assert with_paths.sample_list[0].kwargs == {
-        ("gaussian_1", "centre",),
-        ("gaussian_1", "intensity",),
-        ("gaussian_1", "sigma",),
-    }
+        without_paths = samples.without_paths([
+            ("gaussian_1",)
+        ])
 
-    model = with_paths.model
-    assert hasattr(
-        model,
-        "gaussian_1"
-    )
-    assert not hasattr(
-        model,
-        "gaussian_2"
-    )
+        assert without_paths.sample_list[0].kwargs == {
+            ("gaussian_2", "centre",),
+            ("gaussian_2", "intensity",),
+            ("gaussian_2", "sigma",),
+        }
+
+        model = without_paths.model
+        assert not hasattr(
+            model,
+            "gaussian_1"
+        )
+        assert hasattr(
+            model,
+            "gaussian_2"
+        )
