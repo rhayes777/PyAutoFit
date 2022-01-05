@@ -286,7 +286,7 @@ class Samples:
     def with_paths(
             self,
             paths: List[Tuple[str]]
-    ) -> "OptimizerSamples":
+    ) -> "Samples":
         """
         Create a copy of this object with only attributes specified
         by a list of paths.
@@ -313,10 +313,18 @@ class Samples:
         ]
         return with_paths
 
+    def __copy__(self):
+        cls = self.__class__
+        result = cls.__new__(cls)
+        result.__dict__.update(self.__dict__)
+        result._names = None
+        result._paths = None
+        return result
+
     def without_paths(
             self,
             paths: List[Tuple[str]]
-    ) -> "OptimizerSamples":
+    ) -> "Samples":
         """
         Create a copy of this object with only attributes not specified
         by a list of paths.
