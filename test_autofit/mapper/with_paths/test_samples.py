@@ -1,21 +1,32 @@
+import pytest
+
 import autofit as af
 
 
-def test_sample():
-    sample = af.Sample(
+@pytest.fixture(
+    name="sample"
+)
+def make_sample():
+    return af.Sample(
         log_likelihood=0,
         log_prior=0,
         weight=0,
         kwargs={
-            ("centre",),
-            ("intensity",),
-            ("sigma",),
+            ("gaussian_1", "centre",),
+            ("gaussian_1", "intensity",),
+            ("gaussian_1", "sigma",),
+            ("gaussian_2", "centre",),
+            ("gaussian_2", "intensity",),
+            ("gaussian_2", "sigma",),
         }
     )
+
+
+def test_trivial(sample):
     with_paths = sample.with_paths([
-        ("centre",)
+        ("gaussian_1", "centre",)
     ])
 
     assert with_paths.kwargs == {
-        ("centre",)
+        ("gaussian_1", "centre",)
     }
