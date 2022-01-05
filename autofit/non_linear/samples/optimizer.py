@@ -282,3 +282,17 @@ class OptimizerSamples:
             self.max_log_posterior_sample
         })
         return samples
+
+    def with_paths(
+            self,
+            paths: List[Tuple[str]]
+    ):
+        with_paths = copy(self)
+        with_paths.model = self.model.with_paths(
+            paths
+        )
+        with_paths.sample_list = [
+            sample.with_paths(paths)
+            for sample in self.sample_list
+        ]
+        return with_paths

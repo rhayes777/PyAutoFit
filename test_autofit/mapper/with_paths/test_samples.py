@@ -42,3 +42,33 @@ def test_subpath(sample):
         ("gaussian_1", "intensity",),
         ("gaussian_1", "sigma",),
     }
+
+
+def test_samples(
+        sample,
+        model
+):
+    samples = af.OptimizerSamples(
+        model=model,
+        sample_list=[sample],
+    )
+
+    with_paths = samples.with_paths([
+        ("gaussian_1",)
+    ])
+
+    assert with_paths.sample_list[0].kwargs == {
+        ("gaussian_1", "centre",),
+        ("gaussian_1", "intensity",),
+        ("gaussian_1", "sigma",),
+    }
+
+    model = with_paths.model
+    assert hasattr(
+        model,
+        "gaussian_1"
+    )
+    assert not hasattr(
+        model,
+        "gaussian_2"
+    )
