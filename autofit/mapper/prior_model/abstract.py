@@ -138,6 +138,38 @@ class AbstractPriorModel(AbstractModel):
         super().__init__()
         self._assertions = list()
 
+    def without_attributes(self):
+        without_attributes = copy.copy(self)
+        for key in self.__dict__:
+            if not key.startswith("_") or key in ("cls", "id"):
+                delattr(
+                    without_attributes,
+                    key
+                )
+        return without_attributes
+
+    def with_paths(
+            self,
+            paths: List[Tuple[str]]
+    ) -> "AbstractPriorModel":
+        with_paths = copy.copy(self)
+        for (name, *_), _ in self.dir:
+            delattr(with_paths, name)
+        for path in paths:
+            first, *remainder = path
+            new_value = getattr(
+                self,
+                first
+            ).with_paths(
+                remainder
+            )
+            setattr(
+                with_paths,
+                first,
+                new_value
+            )
+        return with_paths
+
     @property
     def mean_field(self) -> MeanField:
         """
