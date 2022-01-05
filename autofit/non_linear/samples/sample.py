@@ -1,4 +1,5 @@
 import csv
+from copy import copy
 from typing import List
 
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
@@ -168,6 +169,16 @@ class Sample:
             return model.instance_from_vector(
                 self.parameter_lists_for_model(model)
             )
+
+    def with_paths(self, paths):
+        with_paths = copy(self)
+        with_paths.kwargs = {
+            item
+            for item
+            in self.kwargs
+            if item in paths
+        }
+        return with_paths
 
 
 def load_from_table(filename: str) -> List[Sample]:
