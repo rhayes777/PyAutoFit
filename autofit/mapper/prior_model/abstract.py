@@ -148,12 +148,12 @@ def paths_to_tree(
     Examples
     --------
     paths_to_tree([
-            ("one", "two", "three"),
-            ("one", "two", "four"),
+        ("one", "two", "three"),
+        ("one", "two", "four"),
     ])
 
     gives
-    
+
     {
         "one": {
             "two": {
