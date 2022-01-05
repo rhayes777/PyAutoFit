@@ -44,6 +44,24 @@ class TestWithoutAttributes:
             attribute
         )
 
+    @pytest.mark.parametrize(
+        "attribute",
+        [
+            "gaussian_1",
+            "gaussian_2"
+        ]
+    )
+    def test_collection(
+            self,
+            model,
+            attribute
+    ):
+        without = model.without_attributes()
+        assert not hasattr(
+            without,
+            attribute
+        )
+
 
 def test_with_paths(
         gaussian_1,
