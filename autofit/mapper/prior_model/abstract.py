@@ -164,27 +164,41 @@ class AbstractPriorModel(AbstractModel):
                 )
         return without_attributes
 
+    def _with_paths(
+            self,
+            tree: dict
+    ) -> "AbstractPriorModel":
+        if len(tree) == 0:
+            return self
+
+        with_paths = self.without_attributes()
+        for name, subtree in tree.items():
+            # noinspection PyProtectedMember
+            new_value = getattr(
+                self,
+                name
+            )
+            if isinstance(
+                    new_value,
+                    AbstractPriorModel
+            ):
+                new_value = new_value._with_paths(
+                    subtree
+                )
+            setattr(
+                with_paths,
+                name,
+                new_value
+            )
+        return with_paths
+
     def with_paths(
             self,
             paths: List[Tuple[str]]
     ) -> "AbstractPriorModel":
-        if len(paths) == 0:
-            return self
-        with_paths = self.without_attributes()
-        for path in paths:
-            first, *remainder = path
-            new_value = getattr(
-                self,
-                first
-            ).with_paths(
-                remainder
-            )
-            setattr(
-                with_paths,
-                first,
-                new_value
-            )
-        return with_paths
+        return self._with_paths(
+            paths_to_tree(paths)
+        )
 
     @property
     def mean_field(self) -> MeanField:
