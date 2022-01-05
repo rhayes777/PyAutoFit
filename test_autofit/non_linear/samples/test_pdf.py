@@ -10,7 +10,29 @@ from autofit.mock.mock import MockSamples
 pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
 
 
-def test__from_csv_table(samples_x5):
+def test__from_csv_table():
+
+    model = af.ModelMapper(mock_class_1=MockClassx4)
+
+    parameters = [
+        [0.0, 1.0, 2.0, 3.0],
+        [0.0, 1.0, 2.0, 3.0],
+        [0.0, 1.0, 2.0, 3.0],
+        [21.0, 22.0, 23.0, 24.0],
+        [0.0, 1.0, 2.0, 3.0],
+    ]
+
+    samples_x5 = af.Samples(
+        model=model,
+        sample_list=af.Sample.from_lists(
+            model=model,
+            parameter_lists=parameters,
+            log_likelihood_list=[1.0, 2.0, 3.0, 10.0, 5.0],
+            log_prior_list=[0.0, 0.0, 0.0, 0.0, 0.0],
+            weight_list=[1.0, 1.0, 1.0, 1.0, 1.0],
+        ),
+    )
+
     filename = "samples.csv"
     samples_x5.write_table(filename=filename)
 
