@@ -78,18 +78,15 @@ class Gaussian:
             self,
             y
     ):
-        print(y)
-        print(f"centre = {self.centre}")
-        print(f"sigma = {self.sigma}")
-        print(f"normalization = {self.normalization}")
+
         a = self.normalization / (
                 y * self.sigma * math.sqrt(2 * math.pi)
         )
-        print(f"a = {a}")
+
         b = 2 * math.log(
             a
         )
-        print(f"b = {b}")
+        
         return self.centre + self.sigma * math.sqrt(
             b
         )
