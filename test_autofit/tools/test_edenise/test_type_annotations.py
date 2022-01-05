@@ -33,11 +33,11 @@ def test_complex_example(
 ):
     assert LineItem(
         """def grid_2d_radial_projected_from(
-    self, centre: Tuple[float, float] = (0.0, 0.0), angle: float = 0.0
+    self, centre: Tuple[float, float] = (0.0, 0.0), two: float = 0.0
 ) -> grid_2d_irregular.Grid2DIrregular:""",
         parent=package
     ).target_string == """def grid_2d_radial_projected_from(
-    self, centre= (0.0, 0.0), angle= 0.0
+    self, centre= (0.0, 0.0), two= 0.0
 ):"""
 
 

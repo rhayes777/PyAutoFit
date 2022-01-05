@@ -76,7 +76,7 @@ class Analysis(af.Analysis):
         plt.plot(range(self.data.shape[0]), model_data, color="r")
         plt.title("Dynesty model fit to 1D Gaussian + Exponential dataset.")
         plt.xlabel("x values of profile")
-        plt.ylabel("Profile intensity")
+        plt.ylabel("Profile normalization")
 
         os.makedirs(paths.image_path, exist_ok=True)
         plt.savefig(path.join(paths.image_path, "model_fit.png"))

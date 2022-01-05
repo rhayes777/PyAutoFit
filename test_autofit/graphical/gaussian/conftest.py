@@ -16,7 +16,7 @@ def make_x():
     name="y"
 )
 def make_y(x):
-    return make_data(Gaussian(centre=50.0, intensity=25.0, sigma=10.0), x)
+    return make_data(Gaussian(centre=50.0, normalization=25.0, sigma=10.0), x)
 
 
 @pytest.fixture(
@@ -26,6 +26,6 @@ def make_prior_model():
     return af.PriorModel(
         Gaussian,
         centre=af.GaussianPrior(mean=50, sigma=20),
-        intensity=af.GaussianPrior(mean=25, sigma=10),
+        normalization=af.GaussianPrior(mean=25, sigma=10),
         sigma=af.GaussianPrior(mean=10, sigma=10),
     )

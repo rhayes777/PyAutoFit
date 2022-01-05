@@ -6,7 +6,7 @@ from sqlalchemy import Column, Integer, ForeignKey, String, Boolean, inspect, Fl
 from sqlalchemy.orm import relationship, backref
 
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
-from autofit.non_linear.samples import OptimizerSamples
+from autofit.non_linear.samples import Samples
 from .model import Base, Object
 
 
@@ -320,7 +320,7 @@ class Fit(Base):
 
     @property
     @try_none
-    def samples(self) -> OptimizerSamples:
+    def samples(self) -> Samples:
         return self._samples()
 
     @samples.setter

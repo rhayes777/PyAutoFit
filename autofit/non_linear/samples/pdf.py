@@ -6,10 +6,10 @@ import numpy as np
 from autofit.mapper.model import ModelInstance
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.samples.sample import Sample, load_from_table
-from .optimizer import OptimizerSamples
+from .samples import Samples
 
 
-class PDFSamples(OptimizerSamples):
+class PDFSamples(Samples):
     def __init__(
             self,
             model: AbstractPriorModel,

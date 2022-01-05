@@ -1,9 +1,10 @@
 import pytest
 
 import autofit as af
-from autofit.mock import mock
-from autofit.mock import mock_real
+
 from autofit.text import formatter as frm
+
+from autofit.mock.mock_model import MockClassx2, MockChildTuplex2
 
 
 def test_parameterization():
@@ -85,7 +86,7 @@ class TestGenerateModelInfo:
 
     def test_basic(self):
         mm = af.ModelMapper()
-        mm.mock_class = mock.MockClassx2
+        mm.mock_class = MockClassx2
         model_info = mm.info
 
         assert (
@@ -97,7 +98,7 @@ class TestGenerateModelInfo:
 
     def test_with_instance(self):
         mm = af.ModelMapper()
-        mm.mock_class = mock.MockClassx2
+        mm.mock_class = MockClassx2
 
         mm.mock_class.two = 1.0
 
@@ -121,12 +122,12 @@ class TestGenerateModelInfo:
 
     # noinspection PyUnresolvedReferences
     def test_tuple_instance_model_info(self, mapper):
-        mapper.profile = mock_real.EllSersicCore
+        mapper.mock_cls = MockChildTuplex2
         info = mapper.info
 
-        mapper.profile.centre_0 = 1.0
+        mapper.mock_cls.tup_0 = 1.0
 
-        assert len(mapper.profile.centre.instance_tuples) == 1
-        assert len(mapper.profile.instance_tuples) == 1
+        assert len(mapper.mock_cls.tup.instance_tuples) == 1
+        assert len(mapper.mock_cls.instance_tuples) == 1
 
         assert len(info.split("\n")) == len(mapper.info.split("\n"))

@@ -1,3 +1,4 @@
+import math
 import numpy as np
 
 """
@@ -49,4 +50,46 @@ class Gaussian:
         return np.multiply(
             np.divide(self.normalization, self.sigma * np.sqrt(2.0 * np.pi)),
             np.exp(-0.5 * np.square(np.divide(transformed_xvalues, self.sigma))),
+        )
+
+    def __eq__(self, other):
+        return all([
+            self.centre == other.centre,
+            self.normalization == other.normalization,
+            self.sigma == other.sigma
+        ])
+
+    def __call__(self, xvalues):
+        """
+        Calculate the normalization of the profile on a line of Cartesian x coordinates.
+        The input xvalues are translated to a coordinate system centred on the Gaussian, using its centre.
+        Parameters
+        ----------
+        xvalues : np.ndarray
+            The x coordinates in the original reference frame of the grid.
+        """
+        transformed_xvalues = np.subtract(xvalues, self.centre)
+        return np.multiply(
+            np.divide(self.normalization, self.sigma * np.sqrt(2.0 * np.pi)),
+            np.exp(-0.5 * np.square(np.divide(transformed_xvalues, self.sigma))),
+        )
+
+    def inverse(
+            self,
+            y
+    ):
+        print(y)
+        print(f"centre = {self.centre}")
+        print(f"sigma = {self.sigma}")
+        print(f"normalization = {self.normalization}")
+        a = self.normalization / (
+                y * self.sigma * math.sqrt(2 * math.pi)
+        )
+        print(f"a = {a}")
+        b = 2 * math.log(
+            a
+        )
+        print(f"b = {b}")
+        return self.centre + self.sigma * math.sqrt(
+            b
         )

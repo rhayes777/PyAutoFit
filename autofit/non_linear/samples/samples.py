@@ -10,7 +10,7 @@ from autofit.mapper.prior_model.abstract import AbstractPriorModel, Path
 from autofit.non_linear.samples.sample import Sample
 
 
-class OptimizerSamples:
+class Samples:
     def __init__(
             self,
             model: AbstractPriorModel,
@@ -271,7 +271,7 @@ class OptimizerSamples:
         """
         return self.model.instance_from_vector(vector=self.parameter_lists[sample_index])
 
-    def minimise(self) -> "OptimizerSamples":
+    def minimise(self) -> "Samples":
         """
         A copy of this object with only important samples retained
         """

@@ -4,7 +4,8 @@ import numpy as np
 import pytest
 
 import autofit as af
-from autofit.mock import mock
+
+from autofit.mock.mock_model import MockClassx4
 
 pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
 
@@ -104,7 +105,7 @@ class TestDynestyConfig:
 
         dynesty = af.DynestyStatic(nlive=3)
         dynesty.paths = paths
-        model = af.ModelMapper(mock_class=mock.MockClassx4)
+        model = af.ModelMapper(mock_class=MockClassx4)
         model.mock_class.two = af.LogUniformPrior(lower_limit=1e-8, upper_limit=10.0)
         dynesty.model = model
 

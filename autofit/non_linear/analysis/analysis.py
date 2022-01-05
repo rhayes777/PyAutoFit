@@ -7,7 +7,7 @@ from autofit.mapper.prior_model.collection import CollectionPriorModel
 from autofit.non_linear.analysis.multiprocessing import AnalysisPool
 from autofit.non_linear.paths.abstract import AbstractPaths
 from autofit.non_linear.result import Result
-from autofit.non_linear.samples import OptimizerSamples
+from autofit.non_linear.samples import Samples
 
 logger = logging.getLogger(
     __name__
@@ -31,7 +31,7 @@ class Analysis(ABC):
         pass
 
     def save_results_for_aggregator(self, paths: AbstractPaths, model: CollectionPriorModel,
-                                    samples: OptimizerSamples):
+                                    samples: Samples):
         pass
 
     def modify_before_fit(self, paths: AbstractPaths, model: AbstractPriorModel):
@@ -174,7 +174,7 @@ class CombinedAnalysis(Analysis):
             self,
             paths: AbstractPaths,
             model: CollectionPriorModel,
-            samples: OptimizerSamples
+            samples: Samples
     ):
         def func(child_paths, analysis):
             analysis.save_results_for_aggregator(

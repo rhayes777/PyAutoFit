@@ -3,7 +3,7 @@ from os import path
 import pytest
 
 import autofit as af
-from autofit.mock.mock import MockClassx2
+from autofit.mock.mock_model import MockClassx2
 from autofit.non_linear.samples import Sample
 from autofit import StoredSamples
 from autofit.text import samples_text

@@ -48,7 +48,7 @@ def test_projected_model():
         af.Gaussian,
         centre=af.UniformPrior()
     )
-    samples = af.OptimizerSamples(
+    samples = af.Samples(
         model,
         [
             af.Sample(
@@ -56,7 +56,7 @@ def test_projected_model():
                 weight=random(),
                 kwargs={
                     ("centre",): random(),
-                    ("intensity",): random(),
+                    ("normalization",): random(),
                     ("sigma",): random(),
                 }
             )

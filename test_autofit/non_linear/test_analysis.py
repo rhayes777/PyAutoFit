@@ -9,6 +9,7 @@ from autofit.non_linear.analysis.multiprocessing import AnalysisPool
 from autofit.non_linear.paths.abstract import AbstractPaths
 from autofit.non_linear.paths.sub_directory_paths import SubDirectoryPaths
 
+from autofit.mock.mock import MockSearch
 
 class Analysis(af.Analysis):
     def __init__(self):
@@ -136,7 +137,7 @@ def test_still_flat():
     name="search"
 )
 def make_search():
-    return af.MockSearch(
+    return MockSearch(
         "search_name"
     )
 

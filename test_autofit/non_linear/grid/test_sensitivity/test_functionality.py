@@ -15,14 +15,14 @@ def test_tuple_step_size(sensitivity):
 def test_labels(sensitivity):
     labels = list(sensitivity._labels)
     assert labels == [
-        "centre_0.25_intensity_0.25_sigma_0.25",
-        "centre_0.25_intensity_0.25_sigma_0.75",
-        "centre_0.25_intensity_0.75_sigma_0.25",
-        "centre_0.25_intensity_0.75_sigma_0.75",
-        "centre_0.75_intensity_0.25_sigma_0.25",
-        "centre_0.75_intensity_0.25_sigma_0.75",
-        "centre_0.75_intensity_0.75_sigma_0.25",
-        "centre_0.75_intensity_0.75_sigma_0.75",
+        "centre_0.25_normalization_0.25_sigma_0.25",
+        "centre_0.25_normalization_0.25_sigma_0.75",
+        "centre_0.25_normalization_0.75_sigma_0.25",
+        "centre_0.25_normalization_0.75_sigma_0.75",
+        "centre_0.75_normalization_0.25_sigma_0.25",
+        "centre_0.75_normalization_0.25_sigma_0.75",
+        "centre_0.75_normalization_0.75_sigma_0.25",
+        "centre_0.75_normalization_0.75_sigma_0.75",
     ]
 
 

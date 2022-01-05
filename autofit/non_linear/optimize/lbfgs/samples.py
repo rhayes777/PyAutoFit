@@ -1,12 +1,12 @@
 from typing import Optional
 
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
-from autofit.non_linear.samples import OptimizerSamples, Sample
+from autofit.non_linear.samples import Samples, Sample
 
 import numpy as np
 
 
-class LBFGSSamples(OptimizerSamples):
+class LBFGSSamples(Samples):
 
     def __init__(
             self,
@@ -17,7 +17,7 @@ class LBFGSSamples(OptimizerSamples):
             time: Optional[float] = None,
     ):
         """
-        Create an *OptimizerSamples* object from this non-linear search's output files on the hard-disk and model.
+        Create an *Samples* object from this non-linear search's output files on the hard-disk and model.
 
         For LBFGS, all quantities are extracted via pickled states of the particle and cost histories.
 

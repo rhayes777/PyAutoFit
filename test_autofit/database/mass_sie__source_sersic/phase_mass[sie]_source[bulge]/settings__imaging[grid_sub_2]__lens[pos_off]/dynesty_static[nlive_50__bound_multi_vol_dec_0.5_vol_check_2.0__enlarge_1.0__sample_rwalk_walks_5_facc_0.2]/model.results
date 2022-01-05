@@ -21,7 +21,7 @@ galaxies
             elliptical_comps
                 elliptical_comps_0                                                        0.127
                 elliptical_comps_1                                                        0.043
-            intensity                                                                     0.195
+            normalization                                                                     0.195
             effective_radius                                                              0.129
             sersic_index                                                                  0.500
 
@@ -46,7 +46,7 @@ galaxies
             elliptical_comps
                 elliptical_comps_0                                                        0.1216 (0.0925, 0.1480)
                 elliptical_comps_1                                                        0.0462 (0.0180, 0.0714)
-            intensity                                                                     0.1929 (0.1870, 0.1999)
+            normalization                                                                     0.1929 (0.1870, 0.1999)
             effective_radius                                                              0.1300 (0.1256, 0.1333)
             sersic_index                                                                  0.5014 (0.5000, 0.5100)
 
@@ -71,7 +71,7 @@ galaxies
             elliptical_comps
                 elliptical_comps_0                                                        0.1216 (0.1167, 0.1258)
                 elliptical_comps_1                                                        0.0462 (0.0417, 0.0505)
-            intensity                                                                     0.1929 (0.1918, 0.1939)
+            normalization                                                                     0.1929 (0.1918, 0.1939)
             effective_radius                                                              0.1300 (0.1293, 0.1306)
             sersic_index                                                                  0.5014 (0.5009, 0.5022)
 

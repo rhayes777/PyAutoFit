@@ -1,7 +1,6 @@
 import pytest
 
 import autofit as af
-from autofit.mock import mock as m
 
 
 @pytest.fixture(
@@ -9,7 +8,7 @@ from autofit.mock import mock as m
 )
 def make_target_gaussian():
     return af.PriorModel(
-        m.Gaussian
+        af.Gaussian
     )
 
 
@@ -25,7 +24,7 @@ def make_prior():
 )
 def make_source_gaussian(prior):
     return af.PriorModel(
-        m.Gaussian,
+        af.Gaussian,
         centre=prior
     )
 
@@ -47,7 +46,7 @@ def test_assertions(
         target_gaussian
 ):
     target_gaussian.add_assertion(
-        target_gaussian.centre <= target_gaussian.intensity
+        target_gaussian.centre <= target_gaussian.normalization
     )
 
     with pytest.raises(AssertionError):
@@ -61,7 +60,7 @@ def test_assertions_collection(
         target_gaussian
 ):
     target_gaussian.add_assertion(
-        target_gaussian.centre <= target_gaussian.intensity
+        target_gaussian.centre <= target_gaussian.normalization
     )
 
     target_collection = af.Collection(
@@ -127,7 +126,7 @@ def test_tuple_in_instance(
         prior
 ):
     # noinspection PyTypeChecker
-    source_gaussian = m.Gaussian(
+    source_gaussian = af.Gaussian(
         centre=(prior, 1.0)
     )
     target_gaussian.take_attributes(
@@ -160,7 +159,7 @@ def test_tuple_in_instance_in_collection(
         prior
 ):
     # noinspection PyTypeChecker
-    source_gaussian = m.Gaussian(
+    source_gaussian = af.Gaussian(
         centre=(prior, 1.0)
     )
 
@@ -281,11 +280,11 @@ def test_limits(
 def test_tuples():
     centre = (0.0, 1.0)
     source = af.Model(
-        m.Gaussian,
+        af.Gaussian,
         centre=centre
     )
     target = af.Model(
-        m.Gaussian
+        af.Gaussian
     )
     target.take_attributes(source)
     assert target.centre == centre

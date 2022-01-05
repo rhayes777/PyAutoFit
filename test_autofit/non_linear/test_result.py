@@ -1,17 +1,18 @@
 import pytest
 import autofit as af
-from autofit.mock import mock
-from autofit.mock.mock_search import MockSamples
+
+from autofit.mock.mock_model import MockClassx2Tuple
+from autofit.mock.mock import MockSamples, MockSearch
 
 @pytest.fixture(name="result")
 def make_result():
     mapper = af.ModelMapper()
-    mapper.component = mock.MockClassx2Tuple
+    mapper.component = MockClassx2Tuple
     # noinspection PyTypeChecker
     return af.Result(
         samples=MockSamples(gaussian_tuples=[(0, 0), (1, 0)]),
         model=mapper,
-        search=mock.MockSearch(),
+        search=MockSearch(),
     )
 
 
@@ -40,7 +41,7 @@ class TestResult:
     def test_raises(self, result):
         with pytest.raises(af.exc.PriorException):
             result.model.mapper_from_gaussian_tuples(
-                result.samples.gaussian_tuples, a=2.0, r=1.0
+                result.samples._gaussian_tuples, a=2.0, r=1.0
             )
 
 

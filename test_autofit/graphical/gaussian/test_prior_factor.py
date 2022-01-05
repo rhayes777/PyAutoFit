@@ -8,8 +8,8 @@ from autofit.mock.mock import MockAnalysis
 @pytest.fixture(
     name="prior"
 )
-def make_prior(model):
-    return model.priors[0]
+def make_prior(model_gaussian_x1):
+    return model_gaussian_x1.priors[0]
 
 
 def test_collection_prior_model(
@@ -42,13 +42,13 @@ def test_log_likelihood_function(
     ) == pytest.approx(-0.9189385332046727, 1.0e-8)
 
 
-def test_optimise(model, prior):
+def test_optimise(model_gaussian_x1, prior):
     optimizer = af.DynestyStatic(
         maxcall=10
     )
     analysis = MockAnalysis()
     factor = g.AnalysisFactor(
-        model,
+        model_gaussian_x1,
         analysis
     )
     prior_factor = factor.prior_factors[0]

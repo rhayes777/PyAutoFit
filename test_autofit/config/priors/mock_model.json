@@ -1,45 +1,4 @@
 {
-  "Gaussian": {
-    "centre": {
-      "type": "Uniform",
-      "lower_limit": 0.0,
-      "upper_limit": 1.0,
-      "width_modifier": {
-        "type": "Absolute",
-        "value": 1.0
-      },
-      "gaussian_limits": {
-        "lower": 0.0,
-        "upper": 1.0
-      }
-    },
-    "intensity": {
-      "type": "Uniform",
-      "lower_limit": 0.0,
-      "upper_limit": 1.0,
-      "width_modifier": {
-        "type": "Absolute",
-        "value": 1.0
-      },
-      "gaussian_limits": {
-        "lower": 0.0,
-        "upper": 1.0
-      }
-    },
-    "sigma": {
-      "type": "Uniform",
-      "lower_limit": 0.0,
-      "upper_limit": 1.0,
-      "width_modifier": {
-        "type": "Absolute",
-        "value": 1.0
-      },
-      "gaussian_limits": {
-        "lower": 0.0,
-        "upper": 1.0
-      }
-    }
-  },
   "MockClassx2": {
     "one": {
       "type": "Uniform",
@@ -343,7 +302,7 @@
       }
     }
   },
-  "DeferredClass": {
+  "MockDeferredClass": {
     "one": {
       "type": "Uniform",
       "lower_limit": 0.0,
@@ -353,7 +312,7 @@
       "type": "Deferred"
     }
   },
-  "WithFloat": {
+  "MockWithFloat": {
     "value": {
       "type": "Uniform",
       "lower_limit": 0.0,
@@ -368,7 +327,7 @@
       }
     }
   },
-  "WithTuple": {
+  "MockWithTuple": {
     "tup_0": {
       "type": "Uniform",
       "lower_limit": 0.0,
@@ -395,5 +354,166 @@
         "upper": 1.0
       }
     }
-  }
+  },
+  "MockOverload": {
+        "one": {
+            "type": "Uniform",
+            "lower_limit": 0.0,
+            "upper_limit": 2.0
+        },
+        "two": {
+            "type": "Uniform",
+            "lower_limit": 0.0,
+            "upper_limit": 2.0
+        }
+    },
+    "MockChildTuple": {
+        "tup_0": {
+            "type": "Uniform",
+            "lower_limit": 0.0,
+            "upper_limit": 1.0,
+            "width_modifier": {
+                "type": "Absolute",
+                "value": 0.2
+            },
+            "gaussian_limits": {
+                "lower": 0.0,
+                "upper": 1.0
+            }
+        },
+        "tup_1": {
+            "type": "Uniform",
+            "lower_limit": 0.0,
+            "upper_limit": 1.0,
+            "width_modifier": {
+                "type": "Absolute",
+                "value": 0.2
+            },
+            "gaussian_limits": {
+                "lower": 0.0,
+                "upper": 1.0
+            }
+        }
+    },
+    "MockChildTuplex2": {
+        "tup_0": {
+            "type": "Uniform",
+            "lower_limit": 0.0,
+            "upper_limit": 1.0,
+            "width_modifier": {
+                "type": "Absolute",
+                "value": 0.2
+            },
+            "gaussian_limits": {
+                "lower": 0.0,
+                "upper": 1.0
+            }
+        },
+        "tup_1": {
+            "type": "Uniform",
+            "lower_limit": 0.0,
+            "upper_limit": 1.0,
+            "width_modifier": {
+                "type": "Absolute",
+                "value": 0.2
+            },
+            "gaussian_limits": {
+                "lower": 0.0,
+                "upper": 1.0
+            }
+        },
+        "one": {
+            "type": "Uniform",
+            "lower_limit": 0.0,
+            "upper_limit": 2.0,
+            "width_modifier": {
+                "type": "Absolute",
+                "value": 0.2
+            },
+            "gaussian_limits": {
+                "lower": 0.0,
+                "upper": 1.0
+            }
+        },
+        "two": {
+            "type": "Uniform",
+            "lower_limit": 0.0,
+            "upper_limit": 2.0,
+            "width_modifier": {
+                "type": "Absolute",
+                "value": 0.2
+            },
+            "gaussian_limits": {
+                "lower": 0.0,
+                "upper": 1.0
+            }
+        }
+    },
+    "MockChildTuplex3": {
+        "tup_0": {
+            "type": "Uniform",
+            "lower_limit": 0.0,
+            "upper_limit": 1.0,
+            "width_modifier": {
+                "type": "Absolute",
+                "value": 0.2
+            },
+            "gaussian_limits": {
+                "lower": 0.0,
+                "upper": 1.0
+            }
+        },
+        "tup_1": {
+            "type": "Uniform",
+            "lower_limit": 0.0,
+            "upper_limit": 1.0,
+            "width_modifier": {
+                "type": "Absolute",
+                "value": 0.2
+            },
+            "gaussian_limits": {
+                "lower": 0.0,
+                "upper": 1.0
+            }
+        },
+        "one": {
+            "type": "Uniform",
+            "lower_limit": 0.0,
+            "upper_limit": 2.0,
+            "width_modifier": {
+                "type": "Absolute",
+                "value": 0.2
+            },
+            "gaussian_limits": {
+                "lower": 0.0,
+                "upper": 1.0
+            }
+        },
+        "two": {
+            "type": "Uniform",
+            "lower_limit": 0.0,
+            "upper_limit": 2.0,
+            "width_modifier": {
+                "type": "Absolute",
+                "value": 0.2
+            },
+            "gaussian_limits": {
+                "lower": 0.0,
+                "upper": 1.0
+            }
+        },
+        "three": {
+            "type": "Uniform",
+            "lower_limit": 0.0,
+            "upper_limit": 2.0,
+            "width_modifier": {
+                "type": "Absolute",
+                "value": 0.2
+            },
+            "gaussian_limits": {
+                "lower": 0.0,
+                "upper": 1.0
+            }
+        }
+    }
 }

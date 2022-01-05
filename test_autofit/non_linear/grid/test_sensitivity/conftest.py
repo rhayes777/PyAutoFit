@@ -2,8 +2,10 @@ import numpy as np
 import pytest
 
 import autofit as af
-from autofit.mock.mock import Gaussian
+
 from autofit.non_linear.grid import sensitivity as s
+
+from autofit.mock.mock import MockSearch
 
 x = np.array(range(10))
 
@@ -29,14 +31,14 @@ class Analysis(af.Analysis):
     name="perturbation_model"
 )
 def make_perturbation_model():
-    return af.PriorModel(Gaussian)
+    return af.PriorModel(af.Gaussian)
 
 
 @pytest.fixture(
     name="search"
 )
 def make_search():
-    return af.MockSearch()
+    return MockSearch(return_sensitivity_results=True)
 
 
 @pytest.fixture(
@@ -48,11 +50,11 @@ def make_sensitivity(
 ):
     # noinspection PyTypeChecker
     instance = af.ModelInstance()
-    instance.gaussian = Gaussian()
+    instance.gaussian = af.Gaussian()
     return s.Sensitivity(
         simulation_instance=instance,
         base_model=af.Collection(
-            gaussian=af.PriorModel(Gaussian)
+            gaussian=af.PriorModel(af.Gaussian)
         ),
         perturbation_model=perturbation_model,
         simulate_function=image_function,
@@ -70,16 +72,16 @@ def make_job(
         search
 ):
     instance = af.ModelInstance()
-    instance.gaussian = Gaussian()
+    instance.gaussian = af.Gaussian()
     base_instance = instance
-    instance.perturbation = Gaussian()
+    instance.perturbation = af.Gaussian()
     image = image_function(instance)
     # noinspection PyTypeChecker
     return s.Job(
         model=af.Collection(
-            gaussian=af.PriorModel(Gaussian)
+            gaussian=af.PriorModel(af.Gaussian)
         ),
-        perturbation_model=af.PriorModel(Gaussian),
+        perturbation_model=af.PriorModel(af.Gaussian),
         base_instance=base_instance,
         perturbation_instance=instance,
         analysis=Analysis(image),

@@ -13,10 +13,10 @@ def make_sample():
         weight=0,
         kwargs={
             ("gaussian_1", "centre",): 1,
-            ("gaussian_1", "intensity",): 2,
+            ("gaussian_1", "normalization",): 2,
             ("gaussian_1", "sigma",): 3,
             ("gaussian_2", "centre",): 4,
-            ("gaussian_2", "intensity",): 5,
+            ("gaussian_2", "normalization",): 5,
             ("gaussian_2", "sigma",): 6,
         }
     )
@@ -45,7 +45,7 @@ class TestWith:
 
         assert with_paths.kwargs == {
             ("gaussian_1", "centre",): 1,
-            ("gaussian_1", "intensity",): 2,
+            ("gaussian_1", "normalization",): 2,
             ("gaussian_1", "sigma",): 3,
         }
 
@@ -54,7 +54,7 @@ class TestWith:
             sample,
             model
     ):
-        samples = af.OptimizerSamples(
+        samples = af.Samples(
             model=model,
             sample_list=[sample],
         )
@@ -65,7 +65,7 @@ class TestWith:
 
         assert with_paths.sample_list[0].kwargs == {
             ("gaussian_1", "centre",): 1,
-            ("gaussian_1", "intensity",): 2,
+            ("gaussian_1", "normalization",): 2,
             ("gaussian_1", "sigma",): 3,
         }
 
@@ -90,10 +90,10 @@ class TestWithout:
         ])
 
         assert without_paths.kwargs == {
-            ("gaussian_1", "intensity",): 2,
+            ("gaussian_1", "normalization",): 2,
             ("gaussian_1", "sigma",): 3,
             ("gaussian_2", "centre",): 4,
-            ("gaussian_2", "intensity",): 5,
+            ("gaussian_2", "normalization",): 5,
             ("gaussian_2", "sigma",): 6,
         }
 
@@ -107,7 +107,7 @@ class TestWithout:
 
         assert without_paths.kwargs == {
             ("gaussian_2", "centre",): 4,
-            ("gaussian_2", "intensity",): 5,
+            ("gaussian_2", "normalization",): 5,
             ("gaussian_2", "sigma",): 6,
         }
 
@@ -116,7 +116,7 @@ class TestWithout:
             sample,
             model
     ):
-        samples = af.OptimizerSamples(
+        samples = af.Samples(
             model=model,
             sample_list=[sample],
         )
@@ -127,7 +127,7 @@ class TestWithout:
 
         assert without_paths.sample_list[0].kwargs == {
             ("gaussian_2", "centre",): 4,
-            ("gaussian_2", "intensity",): 5,
+            ("gaussian_2", "normalization",): 5,
             ("gaussian_2", "sigma",): 6,
         }
 

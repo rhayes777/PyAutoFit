@@ -8,7 +8,7 @@ class TestWithoutAttributes:
         "attribute",
         [
             "centre",
-            "intensity",
+            "normalization",
             "sigma",
         ]
     )
@@ -62,16 +62,16 @@ class TestWith:
     def test_path(self, model):
         with_paths = model.with_paths([
             ("gaussian_1", "centre"),
-            ("gaussian_2", "intensity"),
+            ("gaussian_2", "normalization"),
         ])
 
         gaussian_1 = with_paths.gaussian_1
         assert hasattr(gaussian_1, "centre")
-        assert not hasattr(gaussian_1, "intensity")
+        assert not hasattr(gaussian_1, "normalization")
 
         gaussian_2 = with_paths.gaussian_2
         assert not hasattr(gaussian_2, "centre")
-        assert hasattr(gaussian_2, "intensity")
+        assert hasattr(gaussian_2, "normalization")
 
 
 class TestWithout:
@@ -91,16 +91,16 @@ class TestWithout:
     def test_path(self, model):
         with_paths = model.without_paths([
             ("gaussian_1", "centre"),
-            ("gaussian_2", "intensity"),
+            ("gaussian_2", "normalization"),
         ])
 
         gaussian_1 = with_paths.gaussian_1
         assert not hasattr(gaussian_1, "centre")
-        assert hasattr(gaussian_1, "intensity")
+        assert hasattr(gaussian_1, "normalization")
 
         gaussian_2 = with_paths.gaussian_2
         assert hasattr(gaussian_2, "centre")
-        assert not hasattr(gaussian_2, "intensity")
+        assert not hasattr(gaussian_2, "normalization")
 
 
 class TestPathsToTree:
@@ -147,7 +147,7 @@ class TestPathsToTree:
     [
         (("gaussian_1", "centre"), 0),
         (("gaussian_2", "centre"), 3),
-        (("gaussian_2", "intensity"), 4),
+        (("gaussian_2", "normalization"), 4),
     ]
 )
 def test_indices(

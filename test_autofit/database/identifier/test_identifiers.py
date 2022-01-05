@@ -4,7 +4,7 @@ import pytest
 import autofit as af
 from autofit import conf
 from autofit.mapper.model_object import Identifier
-from autofit.mock.mock import Gaussian, MockSamples, MockSearch
+from autofit.mock.mock import MockSamples, MockSearch, MockAnalysis
 
 
 def set_version(version):
@@ -26,13 +26,13 @@ def set_high_version():
 
 def test_identifier_version():
     set_version(1)
-    identifier = Identifier(Gaussian())
+    identifier = Identifier(af.Gaussian())
 
     set_version(2)
-    assert identifier != Identifier(Gaussian())
+    assert identifier != Identifier(af.Gaussian())
 
     assert identifier == Identifier(
-        Gaussian(),
+        af.Gaussian(),
         version=1
     )
 
@@ -168,14 +168,14 @@ def test_missing_field():
 def test_change_class():
     gaussian_0 = af.Model(
         af.Gaussian,
-        intensity=af.UniformPrior(
+        normalization=af.UniformPrior(
             lower_limit=1e-6,
             upper_limit=1e6
         )
     )
     gaussian_1 = af.Model(
         af.Gaussian,
-        intensity=af.LogUniformPrior(
+        normalization=af.LogUniformPrior(
             lower_limit=1e-6,
             upper_limit=1e6
         )
@@ -222,20 +222,20 @@ def test_identifier_fields():
 
 
 def test_unique_tag():
-    search = af.MockSearch()
+    search = MockSearch()
 
     search.fit(
         model=af.Collection(),
-        analysis=af.mock.mock.MockAnalysis()
+        analysis=MockAnalysis()
     )
 
     identifier = search.paths.identifier
 
-    search = af.MockSearch(unique_tag="dataset")
+    search = MockSearch(unique_tag="dataset")
 
     search.fit(
         model=af.Collection(),
-        analysis=af.mock.mock.MockAnalysis(),
+        analysis=MockAnalysis(),
     )
 
     assert search.paths.identifier != identifier
@@ -254,15 +254,15 @@ def test_prior():
 
 def test_model():
     identifier = af.PriorModel(
-        Gaussian,
+        af.Gaussian,
         centre=af.UniformPrior()
     ).identifier
     assert identifier == af.PriorModel(
-        Gaussian,
+        af.Gaussian,
         centre=af.UniformPrior()
     ).identifier
     assert identifier != af.PriorModel(
-        Gaussian,
+        af.Gaussian,
         centre=af.UniformPrior(
             upper_limit=0.5
         )
@@ -272,19 +272,19 @@ def test_model():
 def test_collection():
     identifier = af.CollectionPriorModel(
         gaussian=af.PriorModel(
-            Gaussian,
+            af.Gaussian,
             centre=af.UniformPrior()
         )
     ).identifier
     assert identifier == af.CollectionPriorModel(
         gaussian=af.PriorModel(
-            Gaussian,
+            af.Gaussian,
             centre=af.UniformPrior()
         )
     ).identifier
     assert identifier != af.CollectionPriorModel(
         gaussian=af.PriorModel(
-            Gaussian,
+            af.Gaussian,
             centre=af.UniformPrior(
                 upper_limit=0.5
             )
@@ -294,13 +294,13 @@ def test_collection():
 
 def test_instance():
     identifier = af.CollectionPriorModel(
-        gaussian=Gaussian()
+        gaussian=af.Gaussian()
     ).identifier
     assert identifier == af.CollectionPriorModel(
-        gaussian=Gaussian()
+        gaussian=af.Gaussian()
     ).identifier
     assert identifier != af.CollectionPriorModel(
-        gaussian=Gaussian(
+        gaussian=af.Gaussian(
             centre=0.5
         )
     ).identifier
@@ -310,9 +310,9 @@ def test__identifier_description():
 
     model = af.CollectionPriorModel(
         gaussian=af.PriorModel(
-            Gaussian,
+            af.Gaussian,
             centre=af.UniformPrior(lower_limit=0.0, upper_limit=1.0),
-            intensity = af.LogUniformPrior(lower_limit=0.001, upper_limit=0.01),
+            normalization = af.LogUniformPrior(lower_limit=0.001, upper_limit=0.01),
             sigma=af.GaussianPrior(mean=0.5, sigma=2.0, lower_limit=-1.0, upper_limit=1.0),
         )
     )
@@ -329,14 +329,14 @@ def test__identifier_description():
     assert description[i] == "gaussian"; i+=1
     assert description[i] == "PriorModel"; i+=1
     assert description[i] == "cls"; i+=1
-    assert description[i] == "autofit.mock.mock.Gaussian"; i+=1
+    assert description[i] == "autofit.example.model.Gaussian"; i+=1
     assert description[i] == "centre"; i+=1
     assert description[i] == "UniformPrior"; i+=1
     assert description[i] == "lower_limit"; i+=1
     assert description[i] == "0.0"; i+=1
     assert description[i] == "upper_limit"; i+=1
     assert description[i] == "1.0"; i+=1
-    assert description[i] == "intensity"; i+=1
+    assert description[i] == "normalization"; i+=1
     assert description[i] == "LogUniformPrior"; i+=1
     assert description[i] == "lower_limit"; i+=1
     assert description[i] == "0.001"; i+=1
@@ -358,9 +358,9 @@ def test__identifier_description__after_model_and_instance():
 
     model = af.CollectionPriorModel(
         gaussian=af.PriorModel(
-            Gaussian,
+            af.Gaussian,
             centre=af.UniformPrior(lower_limit=0.0, upper_limit=1.0),
-            intensity = af.LogUniformPrior(lower_limit=0.001, upper_limit=0.01),
+            normalization = af.LogUniformPrior(lower_limit=0.001, upper_limit=0.01),
             sigma=af.GaussianPrior(mean=0.5, sigma=2.0, lower_limit=-1.0, upper_limit=1.0),
         )
     )
@@ -376,7 +376,7 @@ def test__identifier_description__after_model_and_instance():
     result = af.Result(samples=samples, model=model, search=search)
 
     model.gaussian.centre = result.model.gaussian.centre
-    model.gaussian.intensity = result.instance.gaussian.intensity
+    model.gaussian.normalization = result.instance.gaussian.normalization
 
     identifier = Identifier([model])
 
@@ -392,7 +392,7 @@ def test__identifier_description__after_model_and_instance():
     assert description[i] == "gaussian"; i+=1
     assert description[i] == "PriorModel"; i+=1
     assert description[i] == "cls"; i+=1
-    assert description[i] == "autofit.mock.mock.Gaussian"; i+=1
+    assert description[i] == "autofit.example.model.Gaussian"; i+=1
     assert description[i] == "centre"; i+=1
     assert description[i] == "GaussianPrior"; i+=1
     assert description[i] == "lower_limit"; i+=1
@@ -403,7 +403,7 @@ def test__identifier_description__after_model_and_instance():
     assert description[i] == "1.0"; i+=1
     assert description[i] == "sigma"; i+=1
     assert description[i] == "2.0"; i+=1
-    assert description[i] == "intensity"; i+=1
+    assert description[i] == "normalization"; i+=1
     assert description[i] == "0.00316228"; i+=1
     assert description[i] == "sigma"; i+=1
     assert description[i] == "GaussianPrior"; i+=1
@@ -421,9 +421,9 @@ def test__identifier_description__after_take_attributes():
 
     model = af.CollectionPriorModel(
         gaussian=af.PriorModel(
-            Gaussian,
+            af.Gaussian,
             centre=af.UniformPrior(lower_limit=0.0, upper_limit=1.0),
-            intensity = af.LogUniformPrior(lower_limit=0.001, upper_limit=0.01),
+            normalization = af.LogUniformPrior(lower_limit=0.001, upper_limit=0.01),
             sigma=af.GaussianPrior(mean=0.5, sigma=2.0, lower_limit=-1.0, upper_limit=1.0),
         )
     )
@@ -444,14 +444,14 @@ def test__identifier_description__after_take_attributes():
     assert description[i] == "gaussian"; i+=1
     assert description[i] == "PriorModel"; i+=1
     assert description[i] == "cls"; i+=1
-    assert description[i] == "autofit.mock.mock.Gaussian"; i+=1
+    assert description[i] == "autofit.example.model.Gaussian"; i+=1
     assert description[i] == "centre"; i+=1
     assert description[i] == "UniformPrior"; i+=1
     assert description[i] == "lower_limit"; i+=1
     assert description[i] == "0.0"; i+=1
     assert description[i] == "upper_limit"; i+=1
     assert description[i] == "1.0"; i+=1
-    assert description[i] == "intensity"; i+=1
+    assert description[i] == "normalization"; i+=1
     assert description[i] == "LogUniformPrior"; i+=1
     assert description[i] == "lower_limit"; i+=1
     assert description[i] == "0.001"; i+=1
