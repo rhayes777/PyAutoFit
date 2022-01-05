@@ -126,6 +126,58 @@ class MeanField:
         )
 
 
+def paths_to_tree(
+        paths: List[Tuple[str, ...]],
+        tree: Optional[dict] = None
+) -> dict:
+    """
+    Recursively convert a list of paths to a tree structure where common paths
+    are matched.
+
+    Parameters
+    ----------
+    paths
+        A list of paths to attributes in the model.
+    tree
+        A tree already embedded in a parent tree.
+
+    Returns
+    -------
+    A tree with depth max(map(len, paths))
+
+    Examples
+    --------
+    paths_to_tree([
+        ("one", "two", "three"),
+        ("one", "two", "four"),
+    ])
+
+    gives
+
+    {
+        "one": {
+            "two": {
+                "three": {},
+                "four": {}
+            }
+        }
+    }
+    """
+    tree = tree or dict()
+    for path in paths:
+        if len(path) == 0:
+            return tree
+        first, *rest = path
+        if first not in tree:
+            child = dict()
+            tree[first] = child
+        tree[first] = paths_to_tree(
+            [rest],
+            tree=tree[first]
+        )
+    return tree
+
+
 class AbstractPriorModel(AbstractModel):
     """
     Abstract model that maps a set of priors to a particular class. Must be
@@ -137,6 +189,84 @@ class AbstractPriorModel(AbstractModel):
     def __init__(self):
         super().__init__()
         self._assertions = list()
+
+    def without_attributes(self) -> "AbstractModel":
+        """
+        Returns a copy of this object with all priors, prior models and
+        constants removed.
+        """
+        without_attributes = copy.copy(self)
+        for key in self.__dict__:
+            if not (key.startswith("_") or key in ("cls", "id")):
+                delattr(
+                    without_attributes,
+                    key
+                )
+        return without_attributes
+
+    def _with_paths(
+            self,
+            tree: dict
+    ) -> "AbstractModel":
+        """
+        Recursively generate a copy of this model retaining only objects
+        specified by the tree.
+
+        Parameters
+        ----------
+        tree
+            A tree formed of dictionaries describing which components of the
+            model should be retained.
+
+        Returns
+        -------
+        A copy of this model with a subset of attributes
+        """
+        if len(tree) == 0:
+            return self
+
+        with_paths = self.without_attributes()
+        for name, subtree in tree.items():
+            # noinspection PyProtectedMember
+            new_value = getattr(
+                self,
+                name
+            )
+            if isinstance(
+                    new_value,
+                    AbstractPriorModel
+            ):
+                new_value = new_value._with_paths(
+                    subtree
+                )
+            setattr(
+                with_paths,
+                name,
+                new_value
+            )
+        return with_paths
+
+    def with_paths(
+            self,
+            paths: List[Tuple[str]]
+    ) -> "AbstractModel":
+        """
+        Recursively generate a copy of this model retaining only objects
+        specified by the list of paths.
+
+        Parameters
+        ----------
+        paths
+            A list of tuples of strings each of which points to a retained attribute.
+            All children of a given path are retained.
+
+        Returns
+        -------
+        A copy of this model with a subset of attributes
+        """
+        return self._with_paths(
+            paths_to_tree(paths)
+        )
 
     @property
     def mean_field(self) -> MeanField:
