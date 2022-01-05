@@ -45,33 +45,62 @@ class TestWithoutAttributes:
         )
 
 
-def test_with_paths(model):
-    with_paths = model.with_paths([
-        ("gaussian_1",)
-    ])
-    assert not hasattr(
-        with_paths,
-        "gaussian_2"
-    )
-    assert hasattr(
-        with_paths.gaussian_1,
-        "centre"
-    )
+class TestWith:
+    def test_subpath(self, model):
+        with_paths = model.with_paths([
+            ("gaussian_1",)
+        ])
+        assert not hasattr(
+            with_paths,
+            "gaussian_2"
+        )
+        assert hasattr(
+            with_paths.gaussian_1,
+            "centre"
+        )
+
+    def test_path(self, model):
+        with_paths = model.with_paths([
+            ("gaussian_1", "centre"),
+            ("gaussian_2", "intensity"),
+        ])
+
+        gaussian_1 = with_paths.gaussian_1
+        assert hasattr(gaussian_1, "centre")
+        assert not hasattr(gaussian_1, "intensity")
+
+        gaussian_2 = with_paths.gaussian_2
+        assert not hasattr(gaussian_2, "centre")
+        assert hasattr(gaussian_2, "intensity")
 
 
-def test_attributes(model):
-    with_paths = model.with_paths([
-        ("gaussian_1", "centre"),
-        ("gaussian_2", "intensity"),
-    ])
+class TestWithout:
+    def test_subpath(self, model):
+        with_paths = model.without_paths([
+            ("gaussian_1",)
+        ])
+        assert not hasattr(
+            with_paths,
+            "gaussian_1"
+        )
+        assert hasattr(
+            with_paths.gaussian_2,
+            "centre"
+        )
 
-    gaussian_1 = with_paths.gaussian_1
-    assert hasattr(gaussian_1, "centre")
-    assert not hasattr(gaussian_1, "intensity")
+    def test_path(self, model):
+        with_paths = model.without_paths([
+            ("gaussian_1", "centre"),
+            ("gaussian_2", "intensity"),
+        ])
 
-    gaussian_2 = with_paths.gaussian_2
-    assert not hasattr(gaussian_2, "centre")
-    assert hasattr(gaussian_2, "intensity")
+        gaussian_1 = with_paths.gaussian_1
+        assert not hasattr(gaussian_1, "centre")
+        assert hasattr(gaussian_1, "intensity")
+
+        gaussian_2 = with_paths.gaussian_2
+        assert hasattr(gaussian_2, "centre")
+        assert not hasattr(gaussian_2, "intensity")
 
 
 class TestPathsToTree:
@@ -111,3 +140,21 @@ class TestPathsToTree:
                        }
                    }
                }
+
+
+@pytest.mark.parametrize(
+    'path, index',
+    [
+        (("gaussian_1", "centre"), 0),
+        (("gaussian_2", "centre"), 3),
+        (("gaussian_2", "intensity"), 4),
+    ]
+)
+def test_indices(
+        model,
+        path,
+        index
+):
+    assert model.index(
+        path
+    ) == index

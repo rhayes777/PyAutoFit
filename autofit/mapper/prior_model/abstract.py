@@ -268,6 +268,82 @@ class AbstractPriorModel(AbstractModel):
             paths_to_tree(paths)
         )
 
+    def _without_paths(
+            self,
+            tree: dict
+    ) -> "AbstractModel":
+        """
+        Recursively generate a copy of this model removing objects
+        specified by the tree.
+    
+        Parameters
+        ----------
+        tree
+            A tree formed of dictionaries describing which components of the
+            model should be removed.
+    
+        Returns
+        -------
+        A copy of this model with a subset of attributes
+        """
+        without_paths = copy.deepcopy(self)
+        for name, subtree in tree.items():
+            # noinspection PyProtectedMember
+            if len(subtree) == 0:
+                delattr(
+                    without_paths,
+                    name
+                )
+            else:
+                new_value = getattr(
+                    without_paths,
+                    name
+                )
+                if isinstance(
+                        new_value,
+                        AbstractPriorModel
+                ):
+                    new_value = new_value._without_paths(
+                        subtree
+                    )
+                setattr(
+                    without_paths,
+                    name,
+                    new_value
+                )
+        return without_paths
+
+    def without_paths(
+            self,
+            paths: List[Tuple[str]]
+    ) -> "AbstractModel":
+        """
+        Recursively generate a copy of this model retaining only objects
+        not specified by the list of paths.
+
+        Parameters
+        ----------
+        paths
+            A list of tuples of strings each of which points to removed attribute.
+            All children of a given path are removed.
+
+        Returns
+        -------
+        A copy of this model with a subset of attributes
+        """
+        return self._without_paths(
+            paths_to_tree(paths)
+        )
+
+    def index(
+            self,
+            path: Tuple[str, ...]
+    ) -> int:
+        """
+        Retrieve the index of a given path in the model
+        """
+        return self.paths.index(path)
+
     @property
     def mean_field(self) -> MeanField:
         """
