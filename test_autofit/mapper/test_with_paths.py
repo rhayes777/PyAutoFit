@@ -96,24 +96,40 @@ def test_attributes(model):
     assert hasattr(gaussian_2, "intensity")
 
 
-def test_paths_to_tree():
-    assert paths_to_tree([
-        ("one", "two")
-    ]) == {
-               "one": {
-                   "two": {}
+class TestPathsToTree:
+    def test_trivial(self):
+        assert paths_to_tree([
+            ("one", "two")
+        ]) == {
+                   "one": {
+                       "two": {}
+                   }
                }
-           }
-    assert paths_to_tree([
-        ("one", "two"),
-        ("one", "three"),
-        ("two", "three"),
-    ]) == {
-               "one": {
-                   "two": {},
-                   "three": {},
-               },
-               "two": {
-                   "three": {}
+
+    def test_multiple(self):
+        assert paths_to_tree([
+            ("one", "two"),
+            ("one", "three"),
+            ("two", "three"),
+        ]) == {
+                   "one": {
+                       "two": {},
+                       "three": {},
+                   },
+                   "two": {
+                       "three": {}
+                   }
                }
-           }
+
+    def test_second_tier(self):
+        assert paths_to_tree([
+            ("one", "two", "three"),
+            ("one", "two", "four"),
+        ]) == {
+                   "one": {
+                       "two": {
+                           "three": {},
+                           "four": {}
+                       }
+                   }
+               }
