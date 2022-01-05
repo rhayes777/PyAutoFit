@@ -104,3 +104,16 @@ def test_paths_to_tree():
                    "two": {}
                }
            }
+    assert paths_to_tree([
+        ("one", "two"),
+        ("one", "three"),
+        ("two", "three"),
+    ]) == {
+               "one": {
+                   "two": {},
+                   "three": {},
+               },
+               "two": {
+                   "three": {}
+               }
+           }

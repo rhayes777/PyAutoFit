@@ -132,12 +132,12 @@ def paths_to_tree(paths, tree=None):
         if len(path) == 0:
             return tree
         first, *rest = path
-        child = dict()
         if first not in tree:
+            child = dict()
             tree[first] = child
         tree[first] = paths_to_tree(
             [rest],
-            tree=child
+            tree=tree[first]
         )
     return tree
 
