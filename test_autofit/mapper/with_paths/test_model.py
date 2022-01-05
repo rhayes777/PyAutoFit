@@ -140,3 +140,11 @@ class TestPathsToTree:
                        }
                    }
                }
+
+
+def test_indices(
+        model,
+):
+    assert model.index(
+        ("gaussian_1", "centre")
+    ) == 0

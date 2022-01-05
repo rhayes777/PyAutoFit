@@ -335,6 +335,15 @@ class AbstractPriorModel(AbstractModel):
             paths_to_tree(paths)
         )
 
+    def index(
+            self,
+            path: Tuple[str, ...]
+    ) -> int:
+        """
+        Retrieve the index of a given path in the model
+        """
+        return self.paths.index(path)
+
     @property
     def mean_field(self) -> MeanField:
         """
