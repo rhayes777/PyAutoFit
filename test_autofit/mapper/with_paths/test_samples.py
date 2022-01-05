@@ -22,6 +22,19 @@ def make_sample():
     )
 
 
+@pytest.fixture(
+    name="samples"
+)
+def make_samples(
+        model,
+        sample
+):
+    return af.Samples(
+        model=model,
+        sample_list=[sample],
+    )
+
+
 class TestWith:
     def test_trivial(
             self,
@@ -51,14 +64,8 @@ class TestWith:
 
     def test_samples(
             self,
-            sample,
-            model
+            samples
     ):
-        samples = af.Samples(
-            model=model,
-            sample_list=[sample],
-        )
-
         with_paths = samples.with_paths([
             ("gaussian_1",)
         ])
@@ -113,14 +120,8 @@ class TestWithout:
 
     def test_samples(
             self,
-            sample,
-            model
+            samples,
     ):
-        samples = af.Samples(
-            model=model,
-            sample_list=[sample],
-        )
-
         without_paths = samples.without_paths([
             ("gaussian_1",)
         ])
@@ -140,3 +141,15 @@ class TestWithout:
             model,
             "gaussian_2"
         )
+
+
+def test_samples_lazy_attributes(
+        samples
+):
+    paths = samples.paths
+    names = samples.names
+
+    without_paths = samples.without_paths([])
+
+    assert without_paths.paths is not paths
+    assert without_paths.names is not names
