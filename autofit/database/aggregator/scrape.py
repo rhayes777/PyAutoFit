@@ -273,10 +273,13 @@ def _add_pickles(
         filenames = []
 
     for filename in filenames:
-        with open(
-                pickle_path / filename,
-                "r+b"
-        ) as f:
-            fit[
-                filename.split(".")[0]
-            ] = pickle.load(f)
+        try:
+            with open(
+                    pickle_path / filename,
+                    "r+b"
+            ) as f:
+                fit[
+                    filename.split(".")[0]
+                ] = pickle.load(f)
+        except pickle.UnpicklingError:
+            raise pickle.UnpicklingError(f"Failed to unpickle: {pickle_path} {filename}")
