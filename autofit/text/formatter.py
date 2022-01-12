@@ -157,6 +157,7 @@ def parameter_result_latex_from(
         unit=None,
         format_string=None,
         name_to_label=False,
+        include_quickmath=False,
 ):
 
     format_str = format_string or format_string_for_parameter_name(parameter_name)
@@ -177,12 +178,19 @@ def parameter_result_latex_from(
         superscript = f"^{{\\rm{{{superscript}}}}}"
 
     if errors is None:
-        return f"{str0}{superscript} = {value}{unit} & "
+
+        parameter_result_latex = f"{str0}{superscript} = {value}{unit}"
+
     else:
+
         lower_value_at_sigma = format_str.format(errors[0])
         upper_value_at_sigma = format_str.format(errors[1])
-        return f"{str0}{superscript} = {value}^{{+{upper_value_at_sigma}}}_{{-{lower_value_at_sigma}}}{unit} & "
 
+        parameter_result_latex = f"{str0}{superscript} = {value}^{{+{upper_value_at_sigma}}}_{{-{lower_value_at_sigma}}}{unit}"
+
+    if not include_quickmath:
+        return f"{parameter_result_latex} & "
+    return f"${parameter_result_latex}$ & "
 
 def output_list_of_strings_to_file(file, list_of_strings):
     with open_(file, "w") as f:
