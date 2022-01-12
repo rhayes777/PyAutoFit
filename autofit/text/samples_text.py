@@ -47,7 +47,7 @@ def summary(
     return f"\n\nSummary ({sigma} sigma limits):\n\n{sigma_formatter.text}"
 
 
-def latex(samples, median_pdf_model=True, sigma=3.0, name_to_label=True, include_quickmath=False, prefix="") -> str:
+def latex(samples, median_pdf_model=True, sigma=3.0, name_to_label=True, include_name=True, include_quickmath=False, prefix="") -> str:
     """
     Create a string summarizing the results of the `NonLinearSearch` at an input sigma value.
 
@@ -71,6 +71,7 @@ def latex(samples, median_pdf_model=True, sigma=3.0, name_to_label=True, include
             errors=errors_at_sigma[i],
             superscript=samples.model.superscripts[i],
             name_to_label=name_to_label,
+            include_name=include_name,
             include_quickmath=include_quickmath
         )
 

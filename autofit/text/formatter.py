@@ -157,13 +157,14 @@ def parameter_result_latex_from(
         unit=None,
         format_string=None,
         name_to_label=False,
+        include_name=True,
         include_quickmath=False,
 ):
 
     format_str = format_string or format_string_for_parameter_name(parameter_name)
     value = format_str.format(value)
 
-    str0 = convert_name_to_label(
+    name = convert_name_to_label(
         parameter_name=parameter_name, name_to_label=name_to_label
     )
 
@@ -179,14 +180,20 @@ def parameter_result_latex_from(
 
     if errors is None:
 
-        parameter_result_latex = f"{str0}{superscript} = {value}{unit}"
+        if include_name:
+            parameter_result_latex = f"{name}{superscript} = {value}{unit}"
+        else:
+            parameter_result_latex = f"{value}{unit}"
 
     else:
 
         lower_value_at_sigma = format_str.format(errors[0])
         upper_value_at_sigma = format_str.format(errors[1])
 
-        parameter_result_latex = f"{str0}{superscript} = {value}^{{+{upper_value_at_sigma}}}_{{-{lower_value_at_sigma}}}{unit}"
+        if include_name:
+            parameter_result_latex = f"{name}{superscript} = {value}^{{+{upper_value_at_sigma}}}_{{-{lower_value_at_sigma}}}{unit}"
+        else:
+            parameter_result_latex = f"{value}^{{+{upper_value_at_sigma}}}_{{-{lower_value_at_sigma}}}{unit}"
 
     if not include_quickmath:
         return f"{parameter_result_latex} & "
