@@ -14,7 +14,7 @@ class DynestyPlotter(SamplesPlotter):
 
         dyplot.boundplot(
             results=self.samples.results,
-            labels=self.model.parameter_labels_latex,
+            labels=self.model.parameter_labels_with_superscripts_latex,
             **kwargs
         )
 
@@ -28,7 +28,7 @@ class DynestyPlotter(SamplesPlotter):
 
         dyplot.cornerbound(
             results=self.samples.results,
-            labels=self.model.parameter_labels_latex,
+            labels=self.model.parameter_labels_with_superscripts_latex,
             **kwargs
         )
 
@@ -42,7 +42,7 @@ class DynestyPlotter(SamplesPlotter):
 
         dyplot.cornerplot(
             results=self.samples.results,
-            labels=self.model.parameter_labels_latex,
+            labels=self.model.parameter_labels_with_superscripts_latex,
             **kwargs
         )
 
@@ -57,7 +57,7 @@ class DynestyPlotter(SamplesPlotter):
         try:
             dyplot.cornerpoints(
                 results=self.samples.results,
-                labels=self.model.parameter_labels_latex,
+                labels=self.model.parameter_labels_with_superscripts_latex,
                 **kwargs
             )
 

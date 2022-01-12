@@ -3,7 +3,7 @@ from os import path
 import pytest
 
 import autofit as af
-from autofit.mock.mock import MockClassx2
+from autofit.mock.mock_model import MockClassx2
 from autofit.non_linear.samples import Sample
 from autofit import StoredSamples
 from autofit.text import samples_text
@@ -44,5 +44,10 @@ def test__summary(samples):
 def test__latex(samples):
     latex_results_at_sigma = samples_text.latex(samples=samples, sigma=3.0)
 
-    assert r"one_label_{\mathrm{o}} = 1.00^{+0.20}_{-0.00} & " in latex_results_at_sigma
-    assert r"two_label_{\mathrm{t}} = 2.00^{+0.20}_{-0.00}" in latex_results_at_sigma
+    assert r"one_label^{\rm{o}} = 1.00^{+0.20}_{-0.00} & " in latex_results_at_sigma
+    assert r"two_label^{\rm{o}} = 2.00^{+0.20}_{-0.00}" in latex_results_at_sigma
+
+    latex_results_at_sigma = samples_text.latex(samples=samples, sigma=3.0, include_quickmath=True)
+
+    assert r"$one_label^{\rm{o}} = 1.00^{+0.20}_{-0.00}$ & " in latex_results_at_sigma
+    assert r"$two_label^{\rm{o}} = 2.00^{+0.20}_{-0.00}$" in latex_results_at_sigma

@@ -1,7 +1,6 @@
 import pytest
 
 import autofit as af
-from autofit.mock.mock import Gaussian
 
 
 @pytest.fixture(
@@ -12,7 +11,7 @@ def make_paths(session):
         session
     )
     paths.model = af.Model(
-        Gaussian
+        af.Gaussian
     )
     assert paths.is_complete is False
     return paths

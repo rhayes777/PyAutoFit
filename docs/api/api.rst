@@ -114,7 +114,7 @@ Samples
 .. autosummary::
    :toctree: generated/
 
-   OptimizerSamples
+   Samples
    PDFSamples
    MCMCSamples
    NestSamples

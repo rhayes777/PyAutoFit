@@ -1,7 +1,10 @@
+import csv
 import logging
+import os
 from copy import copy
 from itertools import count
-from typing import List, Generator, Callable, Type, Union, Tuple
+from pathlib import Path
+from typing import List, Generator, Callable, ClassVar, Optional, Type, Union, Tuple
 
 from autofit.mapper.model import ModelInstance
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
@@ -10,6 +13,7 @@ from autofit.non_linear.analysis import Analysis
 from autofit.non_linear.grid.grid_search import make_lists
 from autofit.non_linear.parallel import AbstractJob, Process, AbstractJobResult
 from autofit.non_linear.result import Result
+
 
 
 class JobResult(AbstractJobResult):
@@ -35,16 +39,29 @@ class JobResult(AbstractJobResult):
     def log_likelihood_difference(self):
         return self.perturbed_result.log_likelihood - self.result.log_likelihood
 
+    @property
+    def log_likelihood_base(self):
+        return self.result.log_likelihood
+
+    @property
+    def log_likelihood_perturbed(self):
+        return self.perturbed_result.log_likelihood
+
 
 class Job(AbstractJob):
     _number = count()
+
+    use_instance = False
 
     def __init__(
             self,
             analysis: Analysis,
             model: AbstractPriorModel,
             perturbation_model: AbstractPriorModel,
-            search: NonLinearSearch
+            base_instance:ModelInstance,
+            perturbation_instance:ModelInstance,
+            search: NonLinearSearch,
+            number: int,
     ):
         """
         Job to run non-linear searches comparing how well a model and a model with a perturbation
@@ -61,12 +78,16 @@ class Job(AbstractJob):
         search
             A non-linear search
         """
-        super().__init__()
+        super().__init__(
+            number=number
+        )
 
         self.analysis = analysis
         self.model = model
 
         self.perturbation_model = perturbation_model
+        self.base_instance = base_instance
+        self.perturbation_instance = perturbation_instance
 
         self.search = search.copy_with_paths(
             search.paths.for_sub_analysis(
@@ -88,22 +109,33 @@ class Job(AbstractJob):
         -------
         An object comprising the results of the two fits
         """
-        result = self.search.fit(
-            model=self.model,
-            analysis=self.analysis
-        )
+        result = self.base_model_func()
 
         perturbed_model = copy(self.model)
         perturbed_model.perturbation = self.perturbation_model
 
-        perturbed_result = self.perturbed_search.fit(
-            model=perturbed_model,
-            analysis=self.analysis
-        )
+        # TODO : This is what I added so that the Drawer runs use the correct subhalo model.
+
+        # if self.use_instance:
+        #     perturbed_model.perturbation = self.perturbation_instance
+
+        perturbed_result = self.perturbation_model_func(perturbed_model=perturbed_model)
         return JobResult(
             number=self.number,
             result=result,
             perturbed_result=perturbed_result
+        )
+
+    def base_model_func(self):
+        return self.search.fit(
+            model=self.model,
+            analysis=self.analysis
+        )
+
+    def perturbation_model_func(self, perturbed_model):
+        return self.perturbed_search.fit(
+            model=perturbed_model,
+            analysis=self.analysis
         )
 
 
@@ -132,8 +164,9 @@ class Sensitivity:
             simulate_function: Callable,
             analysis_class: Type[Analysis],
             search: NonLinearSearch,
+            job_cls : ClassVar=Job,
             number_of_steps: Union[Tuple[int], int] = 4,
-            number_of_cores: int = 2
+            number_of_cores: int = 2,
     ):
         """
         Perform sensitivity mapping to evaluate whether a perturbation
@@ -149,20 +182,20 @@ class Sensitivity:
 
         Parameters
         ----------
-        simulation_instance
-            An instance of a model to which perturbations are applied prior to
-            images being generated
         base_model
             A model that fits the instance well
-        search
-            A NonLinear search class which is copied and used to evaluate fitness
-        analysis_class
-            A class which can compare an image to an instance and evaluate fitness
         perturbation_model
             A model which provides a perturbations to be applied to the instance
             before creating images
+        simulation_instance
+            An instance of a model to which perturbations are applied prior to
+            images being generated
         simulate_function
             A function that can convert an instance into an image
+        analysis_class
+            A class which can compare an image to an instance and evaluate fitness
+        search
+            A NonLinear search class which is copied and used to evaluate fitness
         number_of_cores
             How many cores does this computer have? Minimum 2.
         """
@@ -178,9 +211,12 @@ class Sensitivity:
         self.search = search
         self.analysis_class = analysis_class
 
-        self.number_of_steps = number_of_steps
         self.perturbation_model = perturbation_model
         self.simulate_function = simulate_function
+
+        self.job_cls = job_cls
+
+        self.number_of_steps = number_of_steps
         self.number_of_cores = number_of_cores or 2
 
     @property
@@ -201,13 +237,50 @@ class Sensitivity:
         a list of results.
         """
         self.logger.info("Running")
+
+        headers = [
+            "index",
+            *self._headers,
+            "log_likelihood_base",
+            "log_likelihood_perturbed",
+            "log_likelihood_difference"
+        ]
+        physical_values = list(self._physical_values)
+
         results = list()
         for result in Process.run_jobs(
                 self._make_jobs(),
                 number_of_cores=self.number_of_cores
         ):
             results.append(result)
+            results = sorted(results)
+
+            os.makedirs(
+                self.search.paths.output_path,
+                exist_ok=True
+            )
+            with open(self.results_path, "w+") as f:
+                writer = csv.writer(f)
+                writer.writerow(headers)
+                for result_ in results:
+                    values = physical_values[
+                        result_.number
+                    ]
+                    writer.writerow([
+                        result_.number,
+                        *values,
+                        result_.log_likelihood_base,
+                        result_.log_likelihood_perturbed,
+                        result_.log_likelihood_difference,
+                    ])
+
         return SensitivityResult(results)
+
+    @property
+    def results_path(self):
+        return Path(
+            self.search.paths.output_path
+        ) / "results.csv"
 
     @property
     def _lists(self) -> List[List[float]]:
@@ -220,6 +293,33 @@ class Sensitivity:
             self.perturbation_model.prior_count,
             step_size=self.step_size
         )
+
+    @property
+    def _physical_values(self) -> List[List[float]]:
+        """
+        Lists of physical values for each grid square
+        """
+        return [
+            [
+                prior.value_for(
+                    unit_value
+                )
+                for prior, unit_value
+                in zip(
+                self.perturbation_model.priors_ordered_by_id,
+                unit_values
+            )
+            ]
+            for unit_values in self._lists
+        ]
+
+    @property
+    def _headers(self) -> Generator[str, None, None]:
+        """
+        A name for each of the perturbed priors
+        """
+        for path, _ in self.perturbation_model.prior_tuples:
+            yield path
 
     @property
     def _labels(self) -> Generator[str, None, None]:
@@ -301,20 +401,26 @@ class Sensitivity:
         Each job fits a perturbed image with the original model
         and a model which includes a perturbation.
         """
-        for perturbation_instance, search in zip(
-                self._perturbation_instances,
-                self._searches
+        for number, (perturbation_instance, search) in enumerate(
+                zip(
+                    self._perturbation_instances,
+                    self._searches
+                )
         ):
             instance = copy(self.instance)
             instance.perturbation = perturbation_instance
+
             dataset = self.simulate_function(
                 instance
             )
-            yield Job(
+            yield self.job_cls(
                 analysis=self.analysis_class(
                     dataset
                 ),
                 model=self.model,
                 perturbation_model=self.perturbation_model,
-                search=search
+                base_instance=self.instance,
+                perturbation_instance=perturbation_instance,
+                search=search,
+                number=number
             )

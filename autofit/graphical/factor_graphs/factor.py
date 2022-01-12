@@ -28,6 +28,12 @@ class AbstractFactor(AbstractNode, ABC):
         self._name = name or f"factor_{self.id}"
         self._deterministic_variables = set()
 
+    def __lt__(self, other):
+        return self.name < other.name
+
+    def __gt__(self, other):
+        return self.name > other.name
+
     @property
     def deterministic_variables(self) -> Set[Variable]:
         return self._deterministic_variables
@@ -516,6 +522,29 @@ class Factor(AbstractFactor):
     @property
     def info(self):
         return repr(self)
+
+    def make_results_text(self, model_approx):
+        """
+        Create a string describing the posterior values after this factor
+        during or after an EPOptimisation.
+
+        Parameters
+        ----------
+        model_approx: EPMeanField
+
+        Returns
+        -------
+        A string containing the name of this factor with the names and
+        values of each associated variable in the mean field.
+        """
+        string = "\n".join(
+            f"{variable} = {model_approx.mean_field[variable].mean}"
+            for variable in self.variables
+        )
+        return f"{self.name}\n\n{string}"
+
+    def name_for_variable(self, variable):
+        return self.name
 
 
 class DeterministicFactor(Factor):

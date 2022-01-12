@@ -33,7 +33,7 @@ class MCMCPlotter(SamplesPlotter):
                 ax.plot(samples[:, walker_index, i], log_posterior_list[:, walker_index], alpha=0.3)
 
             ax.set_ylabel("Log Likelihood")
-            ax.set_xlabel(self.model.parameter_labels_latex[i])
+            ax.set_xlabel(self.model.parameter_labels_with_superscripts_latex[i])
 
         self.output.to_figure(structure=None, auto_filename="tracjectories")
         self.close()
@@ -59,7 +59,7 @@ class MCMCPlotter(SamplesPlotter):
         for i in range(self.samples.model.prior_count):
             ax = axes[i]
             ax.plot(samples[:, :, i], alpha=0.3)
-            ax.set_ylabel(self.model.parameter_labels_latex[i])
+            ax.set_ylabel(self.model.parameter_labels_with_superscripts_latex[i])
 
         axes[-1].set_xlabel("step number")
 

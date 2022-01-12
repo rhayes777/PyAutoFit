@@ -11,6 +11,7 @@ from autofit.graphical.factor_graphs import (
 )
 from autofit.graphical.utils import Status
 from .ep_mean_field import EPMeanField
+from ... import exc
 
 logger = logging.getLogger(
     __name__
@@ -21,7 +22,7 @@ EPCallBack = Callable[[Factor, EPMeanField, Status], bool]
 
 def default_inf(func):
     """
-    Decorator that catches IndexError and returns inf.
+    Decorator that catches HistoryException and returns inf.
 
     This used to give infinite divergence when there is insufficient
     history for a given factor.
@@ -31,7 +32,7 @@ def default_inf(func):
     def wrapper(*args, **kwargs):
         try:
             return func(*args, **kwargs)
-        except IndexError:
+        except exc.HistoryException:
             return float("inf")
 
     return wrapper
@@ -87,14 +88,24 @@ class FactorHistory:
         """
         A mean field for the last successful optimisation
         """
-        return self.successes[-1]
+        try:
+            return self.successes[-1]
+        except IndexError:
+            raise exc.HistoryException(
+                f"There have been no successful optimisations for factor {self.factor}"
+            )
 
     @property
     def previous_successful(self) -> EPMeanField:
         """
         A mean field for the last-but-one successful optimisation
         """
-        return self.successes[-2]
+        try:
+            return self.successes[-2]
+        except IndexError:
+            raise exc.HistoryException(
+                f"There have been one or no successful optimisations for factor {self.factor}"
+            )
 
     @default_inf
     def kl_divergence(self) -> Union[float, np.ndarray]:
@@ -199,6 +210,9 @@ class EPHistory:
         except KeyError:
             self.history[factor] = FactorHistory(factor)
             return self.history[factor]
+
+    def items(self):
+        return self.history.items()
 
     def __call__(
             self,

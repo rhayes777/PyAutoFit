@@ -3,25 +3,30 @@ import copy
 import pytest
 
 import autofit as af
-from autofit.mock import mock
-from autofit.mock import mock_real
-
+from autofit.mock.mock_model import (
+    MockClassx2,
+    MockComplexClass,
+    MockComponents,
+    MockListClass,
+    MockChildTuplex2,
+    MockChildTuplex3
+)
 
 @pytest.fixture(name="instance_prior_model")
 def make_instance_prior_model():
-    instance = mock.MockClassx2(1.0, 2.0)
+    instance = MockClassx2(1.0, 2.0)
     return af.AbstractPriorModel.from_instance(instance)
 
 
 @pytest.fixture(name="list_prior_model")
 def make_list_prior_model():
-    instance = [mock.MockClassx2(1.0, 2.0)]
+    instance = [MockClassx2(1.0, 2.0)]
     return af.AbstractPriorModel.from_instance(instance)
 
 
 @pytest.fixture(name="complex_prior_model")
 def make_complex_prior_model():
-    instance = mock.ComplexClass(mock.MockClassx2(1.0, 2.0))
+    instance = MockComplexClass(MockClassx2(1.0, 2.0))
     return af.AbstractPriorModel.from_instance(instance)
 
 
@@ -41,38 +46,38 @@ class TestAsModel:
         assert model.prior_count == 2
         assert model.simple.prior_count == 2
 
-    def test_galaxy_list(self):
+    def test_galaxies(self):
         galaxies = af.ModelInstance()
-        galaxies.one = mock.MockComponents()
+        galaxies.one = MockComponents()
         instance = af.ModelInstance()
         instance.galaxies = galaxies
-        model = instance.as_model(model_classes=(mock.MockComponents,))
+        model = instance.as_model(model_classes=(MockComponents,))
         assert model.prior_count == 1
 
 
 class TestFromInstance:
     def test_model_mapper(self):
         instance = af.ModelInstance()
-        instance.simple = mock.MockClassx2(1.0, 2.0)
+        instance.simple = MockClassx2(1.0, 2.0)
 
         result = af.AbstractPriorModel.from_instance(instance)
 
         assert isinstance(result, af.ModelMapper)
 
     def test_with_model_classes(self):
-        instance = mock.ComplexClass(mock.MockClassx2(1.0, 2.0))
+        instance = MockComplexClass(MockClassx2(1.0, 2.0))
         model = af.AbstractPriorModel.from_instance(
-            instance, model_classes=(mock.MockClassx2,)
+            instance, model_classes=(MockClassx2,)
         )
         assert model.prior_count == 2
 
     def test_list_with_model_classes(self):
         instance = [
-            mock.MockClassx2(1.0, 2.0),
-            mock.ComplexClass(mock.MockClassx2(1.0, 2.0)),
+            MockClassx2(1.0, 2.0),
+            MockComplexClass(MockClassx2(1.0, 2.0)),
         ]
         model = af.AbstractPriorModel.from_instance(
-            instance, model_classes=(mock.ComplexClass,)
+            instance, model_classes=(MockComplexClass,)
         )
 
         assert model.prior_count == 2
@@ -81,11 +86,11 @@ class TestFromInstance:
 
     def test_dict_with_model_classes(self):
         instance = {
-            "one": mock.MockClassx2(1.0, 2.0),
-            "two": mock.ComplexClass(mock.MockClassx2(1.0, 2.0)),
+            "one": MockClassx2(1.0, 2.0),
+            "two": MockComplexClass(MockClassx2(1.0, 2.0)),
         }
         model = af.AbstractPriorModel.from_instance(
-            instance, model_classes=(mock.ComplexClass,)
+            instance, model_classes=(MockComplexClass,)
         )
 
         assert model.prior_count == 2
@@ -99,26 +104,26 @@ class TestFromInstance:
         assert isinstance(model.two.simple.two, af.Prior)
 
     def test_instance(self, instance_prior_model):
-        assert instance_prior_model.cls == mock.MockClassx2
+        assert instance_prior_model.cls == MockClassx2
         assert instance_prior_model.prior_count == 0
         assert instance_prior_model.one == 1.0
         assert instance_prior_model.two == 2.0
 
         new_instance = instance_prior_model.instance_for_arguments({})
-        assert isinstance(new_instance, mock.MockClassx2)
+        assert isinstance(new_instance, MockClassx2)
         assert new_instance.one == 1.0
         assert new_instance.two == 2.0
 
     def test_complex(self, complex_prior_model):
-        assert complex_prior_model.cls == mock.ComplexClass
+        assert complex_prior_model.cls == MockComplexClass
         assert complex_prior_model.prior_count == 0
         assert isinstance(complex_prior_model.simple, af.PriorModel)
-        assert complex_prior_model.simple.cls == mock.MockClassx2
+        assert complex_prior_model.simple.cls == MockClassx2
         assert complex_prior_model.simple.one == 1.0
 
         new_instance = complex_prior_model.instance_for_arguments({})
-        assert isinstance(new_instance, mock.ComplexClass)
-        assert isinstance(new_instance.simple, mock.MockClassx2)
+        assert isinstance(new_instance, MockComplexClass)
+        assert isinstance(new_instance.simple, MockClassx2)
         assert new_instance.simple.one == 1.0
 
     def test_list(self, list_prior_model):
@@ -127,14 +132,14 @@ class TestFromInstance:
         assert list_prior_model[0].one == 1.0
 
     def test_dict(self):
-        instance = {"simple": mock.MockClassx2(1.0, 2.0)}
+        instance = {"simple": MockClassx2(1.0, 2.0)}
         prior_model = af.AbstractPriorModel.from_instance(instance)
         assert isinstance(prior_model, af.CollectionPriorModel)
         assert isinstance(prior_model.simple, af.PriorModel)
         assert prior_model.simple.one == 1.0
 
         new_instance = prior_model.instance_for_arguments({})
-        assert isinstance(new_instance.simple, mock.MockClassx2)
+        assert isinstance(new_instance.simple, MockClassx2)
 
         prior_model = af.AbstractPriorModel.from_instance(new_instance)
         assert isinstance(prior_model, af.CollectionPriorModel)
@@ -144,76 +149,76 @@ class TestFromInstance:
 
 class TestSum:
     def test_add_prior_models(self):
-        profile_1 = af.PriorModel(mock_real.EllProfile)
-        profile_2 = af.PriorModel(mock_real.EllProfile)
+        mock_cls_0 = af.PriorModel(MockChildTuplex2)
+        mock_cls_1 = af.PriorModel(MockChildTuplex2)
 
-        profile_1.axis_ratio = 1.0
-        profile_2.angle = 0.0
+        mock_cls_0.one = 1.0
+        mock_cls_1.two = 0.0
 
-        result = profile_1 + profile_2
+        result = mock_cls_0 + mock_cls_1
 
         assert isinstance(result, af.PriorModel)
-        assert result.cls == mock_real.EllProfile
-        assert isinstance(result.axis_ratio, af.Prior)
-        assert isinstance(result.angle, af.Prior)
+        assert result.cls == MockChildTuplex2
+        assert isinstance(result.one, af.Prior)
+        assert isinstance(result.two, af.Prior)
 
     def test_fail_for_mismatch(self):
-        profile_1 = af.PriorModel(mock_real.EllProfile)
-        profile_2 = af.PriorModel(mock_real.EllMassProfile)
+        mock_cls_0 = af.PriorModel(MockChildTuplex2)
+        mock_cls_1 = af.PriorModel(MockChildTuplex3)
 
         with pytest.raises(TypeError):
-            profile_1 + profile_2
+            mock_cls_0 + mock_cls_1
 
     def test_add_children(self):
-        galaxy_1 = af.PriorModel(
-            mock.MockComponents,
-            components_0=af.CollectionPriorModel(light_1=mock_real.EllProfile),
+        mock_components_1 = af.PriorModel(
+            MockComponents,
+            components_0=af.CollectionPriorModel(mock_cls_0=MockChildTuplex2),
             components_1=af.CollectionPriorModel(
-                mass_1=mock_real.EllMassProfile
+                mock_cls_2=MockChildTuplex3
             ),
         )
-        galaxy_2 = af.PriorModel(
-            mock.MockComponents,
-            components_0=af.CollectionPriorModel(light_2=mock_real.EllProfile),
+        mock_components_2 = af.PriorModel(
+            MockComponents,
+            components_0=af.CollectionPriorModel(mock_cls_1=MockChildTuplex2),
             components_1=af.CollectionPriorModel(
-                mass_2=mock_real.EllMassProfile
+                mock_cls_3=MockChildTuplex3
             ),
         )
 
-        result = galaxy_1 + galaxy_2
+        result = mock_components_1 + mock_components_2
 
-        assert result.components_0.light_1 == galaxy_1.components_0.light_1
-        assert result.components_0.light_2 == galaxy_2.components_0.light_2
+        assert result.components_0.mock_cls_0 == mock_components_1.components_0.mock_cls_0
+        assert result.components_0.mock_cls_1 == mock_components_2.components_0.mock_cls_1
 
-        assert result.components_1.mass_1 == galaxy_1.components_1.mass_1
-        assert result.components_1.mass_2 == galaxy_2.components_1.mass_2
+        assert result.components_1.mock_cls_2 == mock_components_1.components_1.mock_cls_2
+        assert result.components_1.mock_cls_3 == mock_components_2.components_1.mock_cls_3
 
     def test_prior_model_override(self):
-        galaxy_1 = af.PriorModel(
-            mock.MockComponents,
-            components_0=af.CollectionPriorModel(light=mock_real.EllProfile()),
-            components_1=af.CollectionPriorModel(mass=mock_real.EllMassProfile),
+        mock_components_1 = af.PriorModel(
+            MockComponents,
+            components_0=af.CollectionPriorModel(light=MockChildTuplex2()),
+            components_1=af.CollectionPriorModel(mass=MockChildTuplex3),
         )
-        galaxy_2 = af.PriorModel(
-            mock.MockComponents,
-            components_0=af.CollectionPriorModel(light=mock_real.EllProfile),
+        mock_components_2 = af.PriorModel(
+            MockComponents,
+            components_0=af.CollectionPriorModel(light=MockChildTuplex2),
             components_1=af.CollectionPriorModel(
-                mass=mock_real.EllMassProfile()
+                mass=MockChildTuplex3()
             ),
         )
 
-        result = galaxy_1 + galaxy_2
+        result = mock_components_1 + mock_components_2
 
-        assert result.components_1.mass == galaxy_1.components_1.mass
-        assert result.components_0.light == galaxy_2.components_0.light
+        assert result.components_1.mass == mock_components_1.components_1.mass
+        assert result.components_0.light == mock_components_2.components_0.light
 
 
 class TestFloatAnnotation:
     # noinspection PyUnresolvedReferences
     def test_prior_linking(self):
         mapper = af.ModelMapper()
-        mapper.a = mock.MockClassx2
-        mapper.b = mock.MockClassx2
+        mapper.a = MockClassx2
+        mapper.b = MockClassx2
 
         assert mapper.prior_count == 4
 
@@ -234,9 +239,9 @@ class TestFloatAnnotation:
 class TestHashing:
     def test_is_hashable(self):
         assert hash(af.AbstractPriorModel()) is not None
-        assert hash(af.PriorModel(mock.MockClassx2)) is not None
+        assert hash(af.PriorModel(MockClassx2)) is not None
         assert (
-            hash(af.AnnotationPriorModel(mock.MockClassx2, mock.MockClassx2, "one"))
+            hash(af.AnnotationPriorModel(MockClassx2, MockClassx2, "one"))
             is not None
         )
 
@@ -262,28 +267,28 @@ class TestStringArguments:
 
 class TestPriorModelArguments:
     def test_list_arguments(self):
-        prior_model = af.PriorModel(mock.ListClass)
+        prior_model = af.PriorModel(MockListClass)
 
         assert prior_model.prior_count == 0
 
-        prior_model = af.PriorModel(mock.ListClass, ls=[mock.MockClassx2])
+        prior_model = af.PriorModel(MockListClass, ls=[MockClassx2])
 
         assert prior_model.prior_count == 2
 
         prior_model = af.PriorModel(
-            mock.ListClass, ls=[mock.MockClassx2, mock.MockClassx2]
+            MockListClass, ls=[MockClassx2, MockClassx2]
         )
 
         assert prior_model.prior_count == 4
 
     def test_float_argument(self):
         prior = af.UniformPrior(0.5, 2.0)
-        prior_model = af.PriorModel(mock.MockComponents, parameter=prior)
+        prior_model = af.PriorModel(MockComponents, parameter=prior)
 
         assert prior_model.prior_count == 1
         assert prior_model.priors[0] is prior
 
-        prior_model = af.PriorModel(mock.MockComponents, parameter=4.0)
+        prior_model = af.PriorModel(MockComponents, parameter=4.0)
         assert prior_model.prior_count == 0
         assert prior_model.parameter == 4.0
 
@@ -292,21 +297,21 @@ class TestPriorModelArguments:
 
     def test_arbitrary_keyword_arguments(self):
         prior_model = af.PriorModel(
-            mock.MockComponents,
-            light=mock_real.EllIsothermalCored,
-            mass=mock_real.EllMassProfile,
+            MockComponents,
+            mock_cls_0=MockChildTuplex2,
+            mock_cls_1=MockChildTuplex3,
         )
-        assert prior_model.prior_count == 11
+        assert prior_model.prior_count == 10
         instance = prior_model.instance_from_unit_vector(
             [0.5] * prior_model.prior_count
         )
-        assert isinstance(instance.light, mock_real.EllIsothermalCored)
-        assert isinstance(instance.mass, mock_real.EllMassProfile)
+        assert isinstance(instance.mock_cls_0, MockChildTuplex2)
+        assert isinstance(instance.mock_cls_1, MockChildTuplex3)
 
 
 class TestCase:
     def test_complex_class(self):
-        prior_model = af.PriorModel(mock.ComplexClass)
+        prior_model = af.PriorModel(MockComplexClass)
 
         assert hasattr(prior_model, "simple")
         assert prior_model.simple.prior_count == 2
@@ -314,7 +319,7 @@ class TestCase:
 
     def test_create_instance(self):
         mapper = af.ModelMapper()
-        mapper.complex = mock.ComplexClass
+        mapper.complex = MockComplexClass
 
         instance = mapper.instance_from_unit_vector([1.0, 0.0])
 
@@ -324,7 +329,7 @@ class TestCase:
     def test_instantiate_with_list_arguments(self):
         mapper = af.ModelMapper()
         mapper.list_object = af.PriorModel(
-            mock.ListClass, ls=[mock.MockClassx2, mock.MockClassx2]
+            MockListClass, ls=[MockClassx2, MockClassx2]
         )
 
         assert len(mapper.list_object.ls) == 2
@@ -343,7 +348,7 @@ class TestCase:
     def test_mix_instances_and_models(self):
         mapper = af.ModelMapper()
         mapper.list_object = af.PriorModel(
-            mock.ListClass, ls=[mock.MockClassx2, mock.MockClassx2(1, 2)]
+            MockListClass, ls=[MockClassx2, MockClassx2(1, 2)]
         )
 
         assert mapper.prior_count == 2
@@ -360,7 +365,7 @@ class TestCase:
 class TestCollectionPriorModel:
     def test_keyword_arguments(self):
         prior_model = af.CollectionPriorModel(
-            one=mock.MockClassx2, two=mock.MockClassx2(1, 2)
+            one=MockClassx2, two=MockClassx2(1, 2)
         )
 
         assert len(prior_model.direct_prior_model_tuples) == 1
@@ -378,7 +383,7 @@ class TestCollectionPriorModel:
 
     def test_mix_instances_in_grouped_list_prior_model(self):
         prior_model = af.CollectionPriorModel(
-            [mock.MockClassx2, mock.MockClassx2(1, 2)]
+            [MockClassx2, MockClassx2(1, 2)]
         )
 
         assert len(prior_model.direct_prior_model_tuples) == 1
@@ -399,7 +404,7 @@ class TestCollectionPriorModel:
         assert len(prior_model.prior_class_dict) == 2
 
     def test_list_in_grouped_list_prior_model(self):
-        prior_model = af.CollectionPriorModel([[mock.MockClassx2]])
+        prior_model = af.CollectionPriorModel([[MockClassx2]])
 
         assert len(prior_model.direct_prior_model_tuples) == 1
         assert prior_model.prior_count == 2
@@ -408,7 +413,7 @@ class TestCollectionPriorModel:
         assert isinstance(simple_model.simple, af.PriorModel)
 
     def test_override_with_instance(self, simple_model):
-        simple_instance = mock.MockClassx2(1, 2)
+        simple_instance = MockClassx2(1, 2)
 
         simple_model.simple = simple_instance
 
@@ -422,7 +427,7 @@ class TestCollectionPriorModel:
 
 @pytest.fixture(name="simple_model")
 def make_simple_model():
-    return af.CollectionPriorModel({"simple": mock.MockClassx2})
+    return af.CollectionPriorModel({"simple": MockClassx2})
 
 
 class TestCopy:
@@ -435,9 +440,9 @@ class TestCopy:
         assert copy.deepcopy(model).prior_count == model.prior_count
 
     def test_circular(self):
-        one = af.PriorModel(mock.MockClassx2)
+        one = af.PriorModel(MockClassx2)
 
-        one.one = af.PriorModel(mock.MockClassx2)
+        one.one = af.PriorModel(MockClassx2)
         one.one.one = one
 
         # noinspection PyUnresolvedReferences

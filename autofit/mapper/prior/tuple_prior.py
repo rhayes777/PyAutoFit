@@ -83,8 +83,18 @@ class TuplePrior(ModelObject):
             A new tuple prior with gaussian priors
         """
         tuple_prior = TuplePrior()
-        for prior_tuple in self.prior_tuples:
-            setattr(tuple_prior, prior_tuple.name, arguments[prior_tuple.prior])
+        for name, prior in self.prior_tuples:
+            setattr(
+                tuple_prior,
+                name,
+                arguments[prior]
+            )
+        for name, value in self.instance_tuples:
+            setattr(
+                tuple_prior,
+                name,
+                value
+            )
         return tuple_prior
 
     def __getitem__(self, item):

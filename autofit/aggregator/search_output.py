@@ -1,10 +1,37 @@
+import logging
 import os
-from os import path
 import pickle
+from os import path
 
 import dill
 
 from autofit.non_linear import abstract_search
+
+original_create_file_handle = dill._dill._create_filehandle
+
+
+def _create_file_handle(*args, **kwargs):
+    """
+    Handle FileNotFoundError when attempting to deserialize pickles
+    using dill and return None instead.
+    """
+    try:
+        return original_create_file_handle(
+            *args, **kwargs
+        )
+    except pickle.UnpicklingError as e:
+        if not isinstance(
+                e.args[0],
+                FileNotFoundError
+        ):
+            raise e
+        logging.warning(
+            f"Could not create a handler for {e.args[0].filename} as it does not exist"
+        )
+        return None
+
+
+dill._dill._create_filehandle = _create_file_handle
 
 
 class SearchOutput:
@@ -89,8 +116,8 @@ class SearchOutput:
             try:
                 with open(os.path.join(self.pickle_path, "search.pickle"), "r+b") as f:
                     self.__search = pickle.loads(f.read())
-            except FileNotFoundError:
-                pass
+            except FileNotFoundError as e:
+                logging.exception(e)
         return self.__search
 
     @property

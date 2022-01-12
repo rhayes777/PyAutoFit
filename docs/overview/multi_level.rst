@@ -127,8 +127,8 @@ from Earth):
         def __init__(
             self,
             redshift: float,
-            light_profiles: Optional[List] = None,
-            mass_profiles: Optional[List] = None,
+            light_profile_list: Optional[List] = None,
+            mass_profile_list: Optional[List] = None,
         ):
             """
             A galaxy, which contains light and mass profiles at a specified redshift.
@@ -137,15 +137,15 @@ from Earth):
             ----------
             redshift
                 The redshift of the galaxy.
-            light_profiles
+            light_profile_list
                 A list of the galaxy's light profiles.
-            mass_profiles
+            mass_profile_list
                 A list of the galaxy's mass profiles.
             """
 
             self.redshift = redshift
-            self.light_profiles = light_profiles
-            self.mass_profiles = mass_profiles
+            self.light_profile_list = light_profile_list
+            self.mass_profile_list = mass_profile_list
 
         def image_from_grid(self, grid: np.ndarray) -> np.ndarray:
             """Returns the image of all light profiles."""
@@ -163,7 +163,7 @@ which in the image above contains a light and mass profile:
     light = LightProfile(centre=(0.0, 0.0), normalization=10.0, radius=2.0)
     mass = MassProfile(centre=(0.0, 0.0), mass=0.5)
 
-    lens = Galaxy(redshift=0.5, light_profiles=[light], mass_profiles=[mass])
+    lens = Galaxy(redshift=0.5, light_profile_list=[light], mass_profile_list=[mass])
 
 The code creates instances of the ``LightProfile`` and ``MassProfile`` classes and uses them to create an
 instance of the ``Galaxy`` class. This uses a **hierarchy of Python classes**.
@@ -183,8 +183,8 @@ Lets first create a model of the lens galaxy:
     lens = af.Model(
         cls=Galaxy,
         redshift=0.5,
-        light_profiles=[light],
-        mass_profiles=[mass]
+        light_profile_list=[light],
+        mass_profile_list=[mass]
     )
 
 Lets consider what the code above is doing:
@@ -193,7 +193,7 @@ Lets consider what the code above is doing:
 
 2) **PyAutoFit** next inspects whether the key word argument inputs to the ``Model`` match any of the ``__init__`` constructor arguments of the ``Galaxy`` class. This determine if these inputs are to be composed as **model sub-components** of the overall ``Galaxy`` model.
 
-3) **PyAutoFit** matches the ``light_profiles`` and  ``mass_profiles`` inputs, noting they are passed as separate lists containing ``Model``'s of the ``LightProfile`` and ``MassProfile`` classes. They are both created as sub-components of the overall ``Galaxy`` model.
+3) **PyAutoFit** matches the ``light_profile_list`` and  ``mass_profile_list`` inputs, noting they are passed as separate lists containing ``Model``'s of the ``LightProfile`` and ``MassProfile`` classes. They are both created as sub-components of the overall ``Galaxy`` model.
 
 4) It also matches the ``redshift`` input, making it a fixed value of 0.5 for the model and not treating it as a free parameter.
 
@@ -203,21 +203,21 @@ the ``LightProfile`` and 3 for the ``MassProfile``).
 .. code-block:: bash
 
     print(lens.prior_count)
-    print(lens.light_profiles[0].prior_count)
-    print(lens.mass_profiles[0].prior_count)
+    print(lens.light_profile_list[0].prior_count)
+    print(lens.mass_profile_list[0].prior_count)
 
 The ``lens`` behaves exactly like the model-components we are used to previously. For example, we can unpack its
 individual parameters to customize the model, where below we:
 
  1) Align the light profile centre and mass profile centre.
- 2) Customize the prior on the light profile ``axis_ratio``.
- 3) Fix the ``axis_ratio`` of the mass profile to 0.8.
+ 2) Customize the prior on the light profile ``one``.
+ 3) Fix the ``one`` of the mass profile to 0.8.
 
 .. code-block:: bash
 
-    lens.light_profiles[0].centre = lens.mass_profiles[0].centre
-    lens.light_profiles[0].axis_ratio = af.UniformPrior(lower_limit=0.7, upper_limit=0.9)
-    lens.mass_profiles[0].axis_ratio = 0.8
+    lens.light_profile_list[0].centre = lens.mass_profile_list[0].centre
+    lens.light_profile_list[0].one = af.UniformPrior(lower_limit=0.7, upper_limit=0.9)
+    lens.mass_profile_list[0].one = 0.8
 
 We can now create a model of our source galaxy using the same API.
 
@@ -226,7 +226,7 @@ We can now create a model of our source galaxy using the same API.
     source = af.Model(
         astro.Galaxy,
         redshift=1.0,
-        light_profiles=[af.Model(astro.lp.LightProfile)]
+        light_profile_list=[af.Model(astro.lp.LightProfile)]
     )
 
 We can now create our overall strong lens model, using a ``Collection`` in the same way we have seen previously. 
@@ -248,9 +248,9 @@ An example instance is show below:
 
     print("Strong Lens Model Instance:")
     print("Lens Galaxy = ", instance.galaxies.lens)
-    print("Lens Galaxy Light = ", instance.galaxies.lens.light_profiles)
-    print("Lens Galaxy Light Centre = ", instance.galaxies.lens.light_profiles[0].centre)
-    print("Lens Galaxy Mass Centre = ", instance.galaxies.lens.mass_profiles[0].centre)
+    print("Lens Galaxy Light = ", instance.galaxies.lens.light_profile_list)
+    print("Lens Galaxy Light Centre = ", instance.galaxies.lens.light_profile_list[0].centre)
+    print("Lens Galaxy Mass Centre = ", instance.galaxies.lens.mass_profile_list[0].centre)
     print("Source Galaxy = ", instance.galaxies.source)
 
 This model can therefore be used in a **PyAutoFit** ``Analysis`` class and ``log_likelihood_function``.
@@ -286,21 +286,21 @@ example:
     lens_0 = af.Model(
         Galaxy,
         redshift=0.5,
-        light_profiles=[af.Model(LightProfile)],
-        mass_profiles=[af.Model(MassProfile)]
+        light_profile_list=[af.Model(LightProfile)],
+        mass_profile_list=[af.Model(MassProfile)]
     )
 
     lens_1 = af.Model(
         Galaxy,
         redshift=0.5,
-        light_profiles=[af.Model(LightProfile)],
-        mass_profiles=[af.Model(MassProfile)]
+        light_profile_list=[af.Model(LightProfile)],
+        mass_profile_list=[af.Model(MassProfile)]
     )
 
     source_0 = af.Model(
         astro.Galaxy,
         redshift=1.0,
-        light_profiles=[af.Model(LightProfile)]
+        light_profile_list=[af.Model(LightProfile)]
     )
 
     # ... repeat for desired model complexity ...

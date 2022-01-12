@@ -43,9 +43,11 @@ class GridSearch:
         result_output_interval
             The interval between saving a GridSearchResult object via paths
         """
-        self.logger = logging.getLogger(
-            f"GridSearch ({search.name})"
-        )
+        self.number_of_steps = number_of_steps
+        self.search = search
+        self.prior_passer = search.prior_passer
+
+        self._logger = None
 
         self.logger.info(
             "Creating grid search"
@@ -57,13 +59,26 @@ class GridSearch:
             f"Using {number_of_cores} core(s)"
         )
 
-        self.number_of_steps = number_of_steps
-        self.search = search
-        self.prior_passer = search.prior_passer
-
         self._result_output_interval = result_output_interval
 
     __exclude_identifier_fields__ = ("number_of_cores",)
+
+    def __getstate__(self):
+        """
+        Remove the logger for pickling
+        """
+        state = self.__dict__.copy()
+        if "_logger" in state:
+            del state["_logger"]
+        return state
+
+    @property
+    def logger(self):
+        if not hasattr(self, "_logger") or self._logger is None:
+            self._logger = logging.getLogger(
+                f"GridSearch ({self.search.name})"
+            )
+        return self._logger
 
     @property
     def paths(self):
@@ -289,7 +304,7 @@ class GridSearch:
         self.logger.debug(
             "Writing results"
         )
-        with open(path.join(self.paths.output_path, "results"), "w+") as f:
+        with open(path.join(self.paths.output_path, "results.csv"), "w+") as f:
             f.write(
                 "\n".join(
                     map(

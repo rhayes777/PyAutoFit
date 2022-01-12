@@ -18,5 +18,6 @@ This work uses the following software packages:
 - `PySwarms` https://github.com/ljvmiranda921/pyswarms [@pyswarms]
 - `Python` https://www.python.org/ [@python]
 - `Scipy` https://github.com/scipy/scipy [@scipy]
+- `SQLite` https://www.sqlite.org/index.html [@sqlite]
 - `UltraNest` https://github.com/JohannesBuchner/UltraNest [@ultranest]
 - `Zeus` https://github.com/minaskar/zeus [@zeus1] [@zeus2]

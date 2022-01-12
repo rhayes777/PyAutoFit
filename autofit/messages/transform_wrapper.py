@@ -114,6 +114,11 @@ class TransformedWrapperInstance(Prior):
         return instance - other
 
     def __eq__(self, other):
+        if not isinstance(
+                other,
+                TransformedWrapperInstance
+        ):
+            return False
         return other.instance() == self.instance()
 
     def __getattr__(self, item):
@@ -160,6 +165,10 @@ class TransformedWrapperInstance(Prior):
             )
             self._instance.id = self.id
         return self._instance
+
+    @property
+    def factor(self):
+        return self.instance().factor
 
     def from_mode(
             self,

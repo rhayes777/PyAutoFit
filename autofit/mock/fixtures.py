@@ -1,16 +1,18 @@
-from os import path
-
-import pytest
-
 import autofit as af
-from autofit.mock.mock import MockClassx4
-from autofit.non_linear.samples import OptimizerSamples, Sample
 
-pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
+from autofit.mock.mock_model import MockClassx4
+from autofit.mock.mock import MockSamples
 
 
-@pytest.fixture(name="samples")
-def make_samples():
+def make_model_gaussian_x1():
+
+    return af.Model(
+        af.Gaussian
+    )
+
+
+def make_samples_x5():
+
     model = af.ModelMapper(mock_class_1=MockClassx4)
 
     parameters = [
@@ -21,14 +23,13 @@ def make_samples():
         [0.0, 1.0, 2.0, 3.0],
     ]
 
-    return OptimizerSamples(
+    return MockSamples(
         model=model,
-        samples=Sample.from_lists(
+        sample_list=af.Sample.from_lists(
             model=model,
             parameter_lists=parameters,
             log_likelihood_list=[1.0, 2.0, 3.0, 10.0, 5.0],
             log_prior_list=[0.0, 0.0, 0.0, 0.0, 0.0],
             weight_list=[1.0, 1.0, 1.0, 1.0, 1.0],
-        )
+        ),
     )
-

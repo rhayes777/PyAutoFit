@@ -263,13 +263,14 @@ class DirectoryPaths(AbstractPaths):
     def for_sub_analysis(
             self,
             analysis_name: str
-    ) -> "SubDirectoryPaths":
+    ):
         """
         Paths for an analysis which is a child of another analysis.
 
         The analysis name forms a new directory on the end of the original
         analysis output path.
         """
+        from .sub_directory_paths import SubDirectoryPaths
         return SubDirectoryPaths(
             parent=self,
             analysis_name=analysis_name
@@ -326,7 +327,7 @@ class DirectoryPaths(AbstractPaths):
 
         parameter_names = model.model_component_and_parameter_names
         parameter_labels = model.parameter_labels
-        subscripts = model.subscripts
+        subscripts = model.superscripts_overwrite_via_config
         parameter_labels_with_subscript = [f"{label}_{subscript}" for label, subscript in
                                            zip(parameter_labels, subscripts)]
 
@@ -375,33 +376,3 @@ class DirectoryPaths(AbstractPaths):
                 self.identifier
             )
         return path_
-
-
-class SubDirectoryPaths(DirectoryPaths):
-    def __init__(
-            self,
-            parent: DirectoryPaths,
-            analysis_name: str
-    ):
-        """
-        Manages output paths for an analysis that is the child of another
-        analysis, for example a single analysis in a combined analysis.
-
-        Parameters
-        ----------
-        parent
-            Paths for the parent analysis
-        analysis_name
-            A name for this analysis
-        """
-        self.analysis_name = analysis_name
-        super().__init__()
-        self.parent = parent
-
-    @property
-    def output_path(self) -> str:
-        """
-        The output path is customised to place output in a named directory in
-        the analyses directory.
-        """
-        return f"{self.parent.output_path}/{self.analysis_name}"

@@ -1,5 +1,7 @@
-from autofit.mapper.model import ModelInstance
+from typing import Union
 
+from autofit.graphical.declarative.factor.hierarchical import HierarchicalFactor
+from autofit.mapper.model import ModelInstance
 from autofit.tools.namer import namer
 from .abstract import AbstractDeclarativeFactor
 
@@ -7,7 +9,10 @@ from .abstract import AbstractDeclarativeFactor
 class FactorGraphModel(AbstractDeclarativeFactor):
     def __init__(
             self,
-            *model_factors: AbstractDeclarativeFactor,
+            *model_factors: Union[
+                AbstractDeclarativeFactor,
+                HierarchicalFactor
+            ],
             name=None
     ):
         """
@@ -45,18 +50,19 @@ class FactorGraphModel(AbstractDeclarativeFactor):
         """
         Info describing this collection.
         """
-        factor_info = "\n\n".join(
-            model_factor.info
-            for model_factor
-            in self.model_factors
-        )
-        return f"{self.name}\n\n{factor_info}"
+        return self.graph.info
 
     @property
     def name(self):
         return self._name
 
-    def add(self, model_factor: AbstractDeclarativeFactor):
+    def add(
+            self,
+            model_factor: AbstractDeclarativeFactor
+    ):
+        """
+        Add another factor to this collection.
+        """
         self._model_factors.append(
             model_factor
         )
@@ -91,4 +97,17 @@ class FactorGraphModel(AbstractDeclarativeFactor):
 
     @property
     def model_factors(self):
-        return self._model_factors
+        model_factors = list()
+        for model_factor in self._model_factors:
+            if isinstance(
+                    model_factor,
+                    HierarchicalFactor
+            ):
+                model_factors.extend(
+                    model_factor.factors
+                )
+            else:
+                model_factors.append(
+                    model_factor
+                )
+        return model_factors

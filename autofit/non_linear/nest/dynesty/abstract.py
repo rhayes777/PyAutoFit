@@ -13,8 +13,12 @@ from autofit.non_linear.nest.dynesty.plotter import DynestyPlotter
 from autofit.non_linear.nest.dynesty.samples import DynestySamples
 from autofit.plot.output import Output
 
+
 def prior_transform(cube, model):
-    phys_cube = model.vector_from_unit_vector(unit_vector=cube)
+    phys_cube = model.vector_from_unit_vector(
+        unit_vector=cube,
+        ignore_prior_limits=True
+    )
 
     for i in range(len(phys_cube)):
         cube[i] = phys_cube[i]
@@ -85,7 +89,8 @@ class AbstractDynesty(AbstractNest, ABC):
     class Fitness(AbstractNest.Fitness):
         @property
         def resample_figure_of_merit(self):
-            """If a sample raises a FitException, this value is returned to signify that the point requires resampling or
+            """
+            If a sample raises a FitException, this value is returned to signify that the point requires resampling or
              should be given a likelihood so low that it is discard.
 
              -np.inf is an invalid sample value for Dynesty, so we instead use a large negative number."""
@@ -150,6 +155,9 @@ class AbstractDynesty(AbstractNest, ABC):
             )
 
             self.logger.info("No Dynesty samples found, beginning new non-linear search. ")
+
+        if not hasattr(sampler, "pool"):
+            sampler.pool = None
 
         finished = False
 

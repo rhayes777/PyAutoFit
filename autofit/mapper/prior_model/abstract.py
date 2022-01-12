@@ -2,9 +2,9 @@ import copy
 import inspect
 import json
 import logging
+import types
 from collections import defaultdict
 from functools import wraps
-from numbers import Number
 from random import random
 from typing import Tuple, Optional, Dict, List
 
@@ -100,6 +100,84 @@ class TuplePathModifier:
 Path = Tuple[str, ...]
 
 
+class MeanField:
+    def __init__(
+            self,
+            prior_model: "AbstractPriorModel"
+    ):
+        """
+        Implements same interface as graphical code
+
+        Parameters
+        ----------
+        prior_model
+        """
+        self.prior_model = prior_model
+
+    def __getitem__(self, item):
+        """
+        Retrieve a prior by a prior with the same id
+        """
+        for prior in self.prior_model.priors:
+            if prior == item:
+                return prior
+        raise KeyError(
+            f"Could not find {item} in model"
+        )
+
+
+def paths_to_tree(
+        paths: List[Tuple[str, ...]],
+        tree: Optional[dict] = None
+) -> dict:
+    """
+    Recursively convert a list of paths to a tree structure where common paths
+    are matched.
+
+    Parameters
+    ----------
+    paths
+        A list of paths to attributes in the model.
+    tree
+        A tree already embedded in a parent tree.
+
+    Returns
+    -------
+    A tree with depth max(map(len, paths))
+
+    Examples
+    --------
+    paths_to_tree([
+        ("one", "two", "three"),
+        ("one", "two", "four"),
+    ])
+
+    gives
+
+    {
+        "one": {
+            "two": {
+                "three": {},
+                "four": {}
+            }
+        }
+    }
+    """
+    tree = tree or dict()
+    for path in paths:
+        if len(path) == 0:
+            return tree
+        first, *rest = path
+        if first not in tree:
+            child = dict()
+            tree[first] = child
+        tree[first] = paths_to_tree(
+            [rest],
+            tree=tree[first]
+        )
+    return tree
+
+
 class AbstractPriorModel(AbstractModel):
     """
     Abstract model that maps a set of priors to a particular class. Must be
@@ -111,6 +189,169 @@ class AbstractPriorModel(AbstractModel):
     def __init__(self):
         super().__init__()
         self._assertions = list()
+
+    def without_attributes(self) -> "AbstractModel":
+        """
+        Returns a copy of this object with all priors, prior models and
+        constants removed.
+        """
+        without_attributes = copy.copy(self)
+        for key in self.__dict__:
+            if not (key.startswith("_") or key in ("cls", "id")):
+                delattr(
+                    without_attributes,
+                    key
+                )
+        return without_attributes
+
+    def _with_paths(
+            self,
+            tree: dict
+    ) -> "AbstractModel":
+        """
+        Recursively generate a copy of this model retaining only objects
+        specified by the tree.
+
+        Parameters
+        ----------
+        tree
+            A tree formed of dictionaries describing which components of the
+            model should be retained.
+
+        Returns
+        -------
+        A copy of this model with a subset of attributes
+        """
+        if len(tree) == 0:
+            return self
+
+        with_paths = self.without_attributes()
+        for name, subtree in tree.items():
+            # noinspection PyProtectedMember
+            new_value = getattr(
+                self,
+                name
+            )
+            if isinstance(
+                    new_value,
+                    AbstractPriorModel
+            ):
+                new_value = new_value._with_paths(
+                    subtree
+                )
+            setattr(
+                with_paths,
+                name,
+                new_value
+            )
+        return with_paths
+
+    def with_paths(
+            self,
+            paths: List[Tuple[str]]
+    ) -> "AbstractModel":
+        """
+        Recursively generate a copy of this model retaining only objects
+        specified by the list of paths.
+
+        Parameters
+        ----------
+        paths
+            A list of tuples of strings each of which points to a retained attribute.
+            All children of a given path are retained.
+
+        Returns
+        -------
+        A copy of this model with a subset of attributes
+        """
+        return self._with_paths(
+            paths_to_tree(paths)
+        )
+
+    def _without_paths(
+            self,
+            tree: dict
+    ) -> "AbstractModel":
+        """
+        Recursively generate a copy of this model removing objects
+        specified by the tree.
+    
+        Parameters
+        ----------
+        tree
+            A tree formed of dictionaries describing which components of the
+            model should be removed.
+    
+        Returns
+        -------
+        A copy of this model with a subset of attributes
+        """
+        without_paths = copy.deepcopy(self)
+        for name, subtree in tree.items():
+            # noinspection PyProtectedMember
+            if len(subtree) == 0:
+                delattr(
+                    without_paths,
+                    name
+                )
+            else:
+                new_value = getattr(
+                    without_paths,
+                    name
+                )
+                if isinstance(
+                        new_value,
+                        AbstractPriorModel
+                ):
+                    new_value = new_value._without_paths(
+                        subtree
+                    )
+                setattr(
+                    without_paths,
+                    name,
+                    new_value
+                )
+        return without_paths
+
+    def without_paths(
+            self,
+            paths: List[Tuple[str]]
+    ) -> "AbstractModel":
+        """
+        Recursively generate a copy of this model retaining only objects
+        not specified by the list of paths.
+
+        Parameters
+        ----------
+        paths
+            A list of tuples of strings each of which points to removed attribute.
+            All children of a given path are removed.
+
+        Returns
+        -------
+        A copy of this model with a subset of attributes
+        """
+        return self._without_paths(
+            paths_to_tree(paths)
+        )
+
+    def index(
+            self,
+            path: Tuple[str, ...]
+    ) -> int:
+        """
+        Retrieve the index of a given path in the model
+        """
+        return self.paths.index(path)
+
+    @property
+    def mean_field(self) -> MeanField:
+        """
+        Implements the same interface as the graphical code
+        """
+        return MeanField(
+            self
+        )
 
     @classmethod
     def from_json(cls, file: str):
@@ -270,6 +511,11 @@ class AbstractPriorModel(AbstractModel):
                 f"No configuration was found for some attributes ({', '.join(names)})"
             )
 
+        if self.prior_count != len(unit_vector):
+            raise AssertionError(
+                f"prior_count ({self.prior_count}) != len(unit_vector) {len(unit_vector)}"
+            )
+
         arguments = dict(
             map(
                 lambda prior_tuple, unit: (
@@ -283,7 +529,6 @@ class AbstractPriorModel(AbstractModel):
 
         return self.instance_for_arguments(
             arguments,
-            assert_priors_in_limits=assert_priors_in_limits
         )
 
     @property
@@ -320,12 +565,21 @@ class AbstractPriorModel(AbstractModel):
             prior for _, prior in self.prior_tuples_ordered_by_id
         ]
 
-    def vector_from_unit_vector(self, unit_vector):
+    def vector_from_unit_vector(
+            self,
+            unit_vector,
+            ignore_prior_limits=False
+    ):
         """
         Parameters
         ----------
         unit_vector: [float]
             A unit hypercube vector
+        ignore_prior_limits
+            Set to True to prevent an exception being raised if
+            the physical value of a prior is outside the allowable
+            limits
+
         Returns
         -------
         values: [float]
@@ -333,7 +587,10 @@ class AbstractPriorModel(AbstractModel):
         """
         return list(
             map(
-                lambda prior_tuple, unit: prior_tuple.prior.value_for(unit),
+                lambda prior_tuple, unit: prior_tuple.prior.value_for(
+                    unit,
+                    ignore_prior_limits=ignore_prior_limits
+                ),
                 self.prior_tuples_ordered_by_id,
                 unit_vector,
             )
@@ -397,7 +654,6 @@ class AbstractPriorModel(AbstractModel):
     def instance_from_vector(
             self,
             vector,
-            assert_priors_in_limits=True
     ):
         """
         Returns a ModelInstance, which has an attribute and class instance corresponding
@@ -408,8 +664,6 @@ class AbstractPriorModel(AbstractModel):
         ----------
         vector: [float]
             A vector of physical parameter values that is mapped to an instance.
-        assert_priors_in_limits
-            If `True` it is checked that the physical values of priors are within set limits
         Returns
         -------
         model_instance : autofit.mapper.model.ModelInstance
@@ -423,9 +677,11 @@ class AbstractPriorModel(AbstractModel):
             )
         )
 
+        for prior, value in arguments.items():
+            prior.assert_within_limits(value)
+
         return self.instance_for_arguments(
             arguments,
-            assert_priors_in_limits=assert_priors_in_limits
         )
 
     def has_instance(self, cls) -> bool:
@@ -604,7 +860,7 @@ class AbstractPriorModel(AbstractModel):
             A list of physical values
         """
         return self.instance_from_unit_vector(
-            unit_vector=[0.5] * len(self.prior_tuples)
+            unit_vector=[0.5] * self.prior_count
         )
 
     def log_prior_list_from_vector(
@@ -686,7 +942,10 @@ class AbstractPriorModel(AbstractModel):
                     for key, value in instance.items()
                 }
             )
-        elif isinstance(instance, np.ndarray):
+        elif isinstance(
+                instance,
+                (np.ndarray, types.FunctionType)
+        ):
             return instance
         else:
             from .prior_model import PriorModel
@@ -806,36 +1065,31 @@ class AbstractPriorModel(AbstractModel):
                 d.update(prior_model[1].prior_class_dict)
         return d
 
-    def _instance_for_arguments(self, arguments):
+    def _instance_for_arguments(
+            self,
+            arguments: Dict[Prior, float],
+    ):
         raise NotImplementedError()
 
     def instance_for_arguments(
             self,
             arguments,
-            assert_priors_in_limits=True
     ):
         """
         Returns an instance of the model for a set of arguments
+
         Parameters
         ----------
-        assert_priors_in_limits
-            If true it is asserted that the physical values that replace priors are
-            within their limits.
-            If ignore_prior_limits is true in configuration then prior limits are
-            ignored regardless.
         arguments: {Prior: float}
             Dictionary mapping_matrix priors to attribute analysis_path and value pairs
+
         Returns
         -------
             An instance of the class
         """
         logger.debug(f"Creating an instance for arguments")
-        if assert_priors_in_limits and not conf.instance["general"]["model"]["ignore_prior_limits"]:
-            for prior, value in arguments.items():
-                if isinstance(value, Number):
-                    prior.assert_within_limits(value)
         return self._instance_for_arguments(
-            arguments
+            arguments,
         )
 
     def path_for_name(
@@ -1237,7 +1491,7 @@ class AbstractPriorModel(AbstractModel):
         ]
 
     @property
-    def model_component_and_parameter_names(self) -> [str]:
+    def model_component_and_parameter_names(self) -> List[str]:
         """The param_names vector is a list each parameter's analysis_path, and is used
         for *corner.py* visualization.
         The parameter names are determined from the class instance names of the
@@ -1260,7 +1514,7 @@ class AbstractPriorModel(AbstractModel):
         ]
 
     @property
-    def parameter_names(self) -> [str]:
+    def parameter_names(self) -> List[str]:
         """The param_names vector is a list each parameter's analysis_path, and is used
         for *corner.py* visualization.
         The parameter names are determined from the class instance names of the
@@ -1268,7 +1522,7 @@ class AbstractPriorModel(AbstractModel):
         return [parameter_name[-1] for parameter_name in self.unique_prior_paths]
 
     @property
-    def parameter_labels(self) -> [str]:
+    def parameter_labels(self) -> List[str]:
         """
         Returns a list of the label of every parameter in a model.
 
@@ -1287,45 +1541,108 @@ class AbstractPriorModel(AbstractModel):
         return parameter_labels
 
     @property
-    def parameter_labels_latex(self) -> [str]:
+    def parameter_labels_with_superscripts_latex(self) -> List[str]:
         """
-        Returns a list of the label of every parameter in a model.
+        Returns a list of the latex parameter label and superscript of every parameter in a model.
 
-        This is used for displaying model results as text and for visualization with *corner.py*.
+        The parameter labels are defined for every parameter of every model component in the config file `label.ini`.
+        This file can also be used to overwrite superscripts, that are assigned based on the model component name.
 
-        The parameter labels are defined for every parameter of every model component in the config files label.ini and
-        label_format.ini.
+        This is used for displaying model results as text and for visualization, for example labelling parameters on a
+        cornerplot.
         """
 
-        return [f"${label}$" for label in self.parameter_labels]
+        return [
+            f"${label}^{{\\rm {superscript}}}$"
+            for label, superscript in
+            zip(self.parameter_labels, self.superscripts)
+        ]
 
     @property
-    def subscripts(self) -> [str]:
+    def superscripts(self) -> List[str]:
         """
-        Returns a list of the model component subscripts of every parameter in a model.
+        Returns a list of the model component superscripts for every parameter in a model.
 
-        This is used for displaying model results as text and for visualization with *corner.py*.
 
-        The class subscript labels are defined for every model component in the config file notation/label.ini.
+        The class superscript labels are defined as the name of every model component in the `ModelMapper`. For
+        the example of a 1D Gaussian, if the model component name is `gaussian` three superscripts
+        with this string (corresponding to the parameters `centre`, `normalization` and `sigma`) will
+        be returned.
+
+        For a `Collection`, the name of the inner model components are used.
+
+        These superscripts may be overwritten by those returned from the `superscripts_config_overwrite` property,
+        which optionally loads the superscripts from a `.json` config file. This allows high levels of customization
+        in what superscripts are used.
+
+        This is used for displaying model results as text and for visualization.
         """
 
-        subscripts = []
+        prior_paths = self.unique_prior_paths
+
+        tuple_filter = TuplePathModifier(
+            self
+        )
+
+        prior_paths = map(
+            tuple_filter,
+            prior_paths
+        )
+
+        superscripts = [
+            path[-2] if len(path) > 1 else path[0]
+            for path
+            in prior_paths
+        ]
+
+        return [
+            superscript
+            if not superscript_overwrite
+            else superscript_overwrite
+            for superscript, superscript_overwrite
+            in zip(superscripts, self.superscripts_overwrite_via_config)
+        ]
+
+    @property
+    def superscripts_overwrite_via_config(self) -> List[str]:
+        """
+        Returns a list of the model component superscripts for every parameter in a model, which can be used to
+        overwrite the default superscripts used in the function above.
+
+        The class superscript labels are defined for a model component in the config file `notation/label.ini`. By
+        default, the model component names are used as superscripts (which are loaded via the method `superscripts`).
+        These are overwritten by the superscripts loaded via a  config in this function. If no value is present in the
+        config the model component names are used.
+
+        For the example of a 1D Gaussian, when instatiated as a model component it is typically given the
+        name `gaussian`. Thus, the string `gaussian` will be used as the supersript of every one its parameter labels
+        (`centre`, `normalization` and `sigma`). However, if the config file `label.ini` reads `Gaussian=g`, every
+        superscript for these parameters will instead be given the superscript `g`.
+
+        This is used for displaying model results as text and for visualization with.
+        """
+
+        superscripts = []
 
         for prior_name, prior in self.prior_tuples_ordered_by_id:
             cls = self.prior_class_dict[prior]
             try:
-                subscript = conf.instance[
+                superscript = conf.instance[
                     "notation"
                 ][
                     "label"
                 ][
-                    "subscript"
-                ].family(cls)
-            except KeyError:
-                subscript = prior_name[0]
-            subscripts.append(subscript)
+                    "superscript"
+                ][
+                    cls.__name__
+                ]
 
-        return subscripts
+            except KeyError:
+                superscript = ""
+
+            superscripts.append(superscript)
+
+        return superscripts
 
 
 def transfer_classes(instance, mapper, model_classes=None):

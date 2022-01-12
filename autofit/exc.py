@@ -42,3 +42,9 @@ class AggregatorException(Exception):
 
 class GridSearchException(Exception):
     pass
+
+
+class HistoryException(Exception):
+    """
+    Thrown when insufficient factor history is present for a given operation
+    """

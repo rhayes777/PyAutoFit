@@ -10,8 +10,8 @@ from test_autofit.graphical.gaussian.model import Gaussian, make_data, Analysis
     name="make_model_factor"
 )
 def make_make_model_factor(
-        intensity,
-        intensity_prior,
+        normalization,
+        normalization_prior,
         x
 ):
     def make_factor_model(
@@ -24,12 +24,12 @@ def make_make_model_factor(
 
         First we'll make the actual data to be fit.
 
-        Note that the intensity value is shared.
+        Note that the normalization value is shared.
         """
         y = make_data(
             Gaussian(
                 centre=centre,
-                intensity=intensity,
+                normalization=normalization,
                 sigma=sigma
             ),
             x
@@ -38,12 +38,12 @@ def make_make_model_factor(
         """
         Next we need a prior model.
     
-        Note that the intensity prior is shared.
+        Note that the normalization prior is shared.
         """
         prior_model = af.PriorModel(
             Gaussian,
             centre=af.GaussianPrior(mean=50, sigma=20),
-            intensity=intensity_prior,
+            normalization=normalization_prior,
             sigma=af.GaussianPrior(mean=10, sigma=10),
         )
 
@@ -68,16 +68,16 @@ def make_make_model_factor(
 
 
 @pytest.fixture(
-    name="intensity"
+    name="normalization"
 )
-def make_intensity():
+def make_normalization():
     return 25.0
 
 
 @pytest.fixture(
-    name="intensity_prior"
+    name="normalization_prior"
 )
-def make_intensity_prior():
+def make_normalization_prior():
     return af.GaussianPrior(mean=25, sigma=10)
 
 
@@ -90,7 +90,7 @@ def make_factor_model_collection(
     """
     Here's a good example in which we have two Gaussians fit with a shared variable
 
-    We have a shared intensity value and a shared intensity prior
+    We have a shared normalization value and a shared normalization prior
 
     Multiplying together multiple LikelihoodModels gives us a factor model.
 
@@ -110,10 +110,12 @@ def make_factor_model_collection(
 
 
 def test_custom_optimiser(make_model_factor):
+    other_optimiser = ep.LaplaceFactorOptimiser()
+
     factor_1 = make_model_factor(
         centre=40,
         sigma=10,
-        optimiser="optimiser"
+        optimiser=other_optimiser
     )
     factor_2 = make_model_factor(
         centre=60,
@@ -130,8 +132,8 @@ def test_custom_optimiser(make_model_factor):
     )
 
     factor_optimisers = ep_optimiser.factor_optimisers
-    assert factor_optimisers[factor_1] == "optimiser"
-    assert factor_optimisers[factor_2] == default_optimiser
+    assert factor_optimisers[factor_1] is other_optimiser
+    assert factor_optimisers[factor_2] is default_optimiser
 
 
 def test_factor_model_attributes(
@@ -159,19 +161,19 @@ def _test_optimise_factor_model(
     """
     And what we get back is actually a PriorModelCollection
     """
-    assert 25.0 == pytest.approx(collection[0].intensity.mean, rel=0.1)
-    assert collection[0].intensity is collection[1].intensity
+    assert 25.0 == pytest.approx(collection[0].normalization.mean, rel=0.1)
+    assert collection[0].normalization is collection[1].normalization
 
 
 def test_gaussian():
     n_observations = 100
     x = np.arange(n_observations)
-    y = make_data(Gaussian(centre=50.0, intensity=25.0, sigma=10.0), x)
+    y = make_data(Gaussian(centre=50.0, normalization=25.0, sigma=10.0), x)
 
     prior_model = af.PriorModel(
         Gaussian,
         centre=af.GaussianPrior(mean=50, sigma=20),
-        intensity=af.GaussianPrior(mean=25, sigma=10),
+        normalization=af.GaussianPrior(mean=25, sigma=10),
         sigma=af.GaussianPrior(mean=10, sigma=10),
     )
 
@@ -187,7 +189,7 @@ def test_gaussian():
     model = factor_model.optimise(laplace)
 
     assert model.centre.mean == pytest.approx(50, rel=0.1)
-    assert model.intensity.mean == pytest.approx(25, rel=0.1)
+    assert model.normalization.mean == pytest.approx(25, rel=0.1)
     assert model.sigma.mean == pytest.approx(10, rel=0.1)
 
 

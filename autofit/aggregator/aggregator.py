@@ -271,8 +271,15 @@ class Aggregator(AbstractAggregator):
         for root, _, filenames in os.walk(directory):
             for filename in filenames:
                 if filename.endswith(".zip"):
-                    with zipfile.ZipFile(path.join(root, filename), "r") as f:
-                        f.extractall(path.join(root, filename[:-4]))
+                    try:
+                        with zipfile.ZipFile(path.join(root, filename), "r") as f:
+                            f.extractall(path.join(root, filename[:-4]))
+                    except zipfile.BadZipFile:
+                        raise zipfile.BadZipFile(
+                            f"File is not a zip file: \n "
+                            f"{root} \n"
+                            f"{filename}"
+                        )
 
         for root, _, filenames in os.walk(directory):
             if "metadata" in filenames:

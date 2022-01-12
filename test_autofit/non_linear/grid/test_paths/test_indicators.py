@@ -5,7 +5,9 @@ import pytest
 import autofit as af
 from autoconf.conf import output_path_for_test
 from autofit.database.aggregator.scrape import Scraper
-from autofit.mock.mock import MockAnalysis
+
+from autofit.mock.mock import MockAnalysis, MockSearch
+
 from test_autofit.non_linear.grid.test_optimizer_grid_search import MockOptimizer
 
 output_directory = Path(
@@ -19,11 +21,11 @@ output_directory = Path(
 @output_path_for_test(
     output_directory
 )
-def make_parent_search(model):
-    search = af.MockSearch(
-        "parent"
+def make_parent_search(model_gaussian_x1):
+    search = MockSearch(
+        name="parent"
     )
-    search.paths.model = model
+    search.paths.model = model_gaussian_x1
     return search
 
 
@@ -134,18 +136,17 @@ class TestDirectory:
 def test_scrape(
         grid_search,
         parent_search,
-        model,
-        analysis,
+        model_gaussian_x1,
         session
 ):
     grid_search.fit(
-        model=model,
-        analysis=analysis,
+        model=model_gaussian_x1,
+        analysis=MockAnalysis(),
         parent=parent_search,
-        grid_priors=[model.centre]
+        grid_priors=[model_gaussian_x1.centre]
     )
     parent_search.fit(
-        model=model,
+        model=model_gaussian_x1,
         analysis=MockAnalysis()
     )
     parent_search.paths.save_all()

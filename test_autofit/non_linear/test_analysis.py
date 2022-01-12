@@ -7,8 +7,9 @@ import autofit as af
 from autoconf.conf import with_config
 from autofit.non_linear.analysis.multiprocessing import AnalysisPool
 from autofit.non_linear.paths.abstract import AbstractPaths
-from autofit.non_linear.paths.directory import SubDirectoryPaths
+from autofit.non_linear.paths.sub_directory_paths import SubDirectoryPaths
 
+from autofit.mock.mock import MockSearch
 
 class Analysis(af.Analysis):
     def __init__(self):
@@ -113,7 +114,7 @@ def test_analysis_pool(
     "number",
     list(range(1, 10))
 )
-def test_two_cores(number):
+def _test_two_cores(number):
     analysis = Analysis()
     for _ in range(number - 1):
         analysis += Analysis()
@@ -136,7 +137,7 @@ def test_still_flat():
     name="search"
 )
 def make_search():
-    return af.MockSearch(
+    return MockSearch(
         "search_name"
     )
 

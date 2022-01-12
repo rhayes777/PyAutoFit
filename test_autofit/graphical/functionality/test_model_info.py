@@ -25,7 +25,7 @@ def make_info():
     return """AnalysisFactor0
 
 centre                                                                                    UniformPrior, lower_limit = 0.0, upper_limit = 1.0
-intensity                                                                                 UniformPrior, lower_limit = 0.0, upper_limit = 1.0
+normalization                                                                             UniformPrior, lower_limit = 0.0, upper_limit = 1.0
 sigma                                                                                     UniformPrior, lower_limit = 0.0, upper_limit = 1.0"""
 
 
@@ -34,16 +34,3 @@ def test_analysis_factor(
         info
 ):
     assert analysis_factor.info == info
-
-
-def test_graph(
-        analysis_factor,
-        info
-):
-    graph = g.FactorGraphModel(
-        analysis_factor,
-        analysis_factor,
-        name="FactorGraphModel0"
-    )
-
-    assert graph.info == f"FactorGraphModel0\n\n{info}\n\n{info}"

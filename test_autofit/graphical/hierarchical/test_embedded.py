@@ -6,7 +6,6 @@ import pytest
 
 import autofit as af
 from autofit import graphical as g
-from autofit.mock.mock import Gaussian
 from test_autofit.graphical.gaussian.model import Analysis
 
 x = np.arange(200)
@@ -19,7 +18,7 @@ should_plot = False
     name="centre_model"
 )
 def make_centre_model():
-    return af.PriorModel(
+    return g.HierarchicalFactor(
         af.GaussianPrior,
         mean=af.GaussianPrior(
             mean=100,
@@ -44,17 +43,17 @@ def test_embedded_priors(
 def test_hierarchical_factor(
         centre_model
 ):
-    factor = g.HierarchicalFactor(
-        centre_model,
+    centre_model.add_drawn_variable(
         af.GaussianPrior(100, 10)
     )
+    factor = centre_model.factors[0]
 
     assert len(factor.priors) == 3
 
     laplace = g.LaplaceFactorOptimiser()
 
     gaussian = factor.optimise(laplace, max_steps=10)
-    assert gaussian.instance_from_prior_medians().mean == pytest.approx(100, abs=1)
+    assert gaussian.instance_from_prior_medians().drawn_prior.mean() == pytest.approx(100, abs=1)
 
 
 @pytest.fixture(
@@ -80,9 +79,9 @@ def generate_data(
 ):
     data = []
     for centre in centres:
-        gaussian = Gaussian(
+        gaussian = af.Gaussian(
             centre=centre,
-            intensity=20,
+            normalization=20,
             sigma=5,
         )
 
@@ -111,9 +110,9 @@ def test_model_factor(
         sigma=20
     )
     prior_model = af.PriorModel(
-        Gaussian,
+        af.Gaussian,
         centre=centre_argument,
-        intensity=20,
+        normalization=20,
         sigma=5
     )
     factor = g.AnalysisFactor(
@@ -132,14 +131,13 @@ def test_model_factor(
 def test_full_fit(centre_model, data, centres):
     graph = g.FactorGraphModel()
     for i, y in enumerate(data):
-        centre_argument = af.GaussianPrior(
-            mean=100,
-            sigma=20
-        )
         prior_model = af.PriorModel(
-            Gaussian,
-            centre=centre_argument,
-            intensity=20,
+            af.Gaussian,
+            centre=af.GaussianPrior(
+                mean=100,
+                sigma=20
+            ),
+            normalization=20,
             sigma=5
         )
         graph.add(
@@ -151,16 +149,18 @@ def test_full_fit(centre_model, data, centres):
                 )
             )
         )
-        graph.add(
-            g.HierarchicalFactor(
-                centre_model,
-                centre_argument
-            )
+        centre_model.add_drawn_variable(
+            prior_model.centre
         )
 
-    laplace = g.LaplaceFactorOptimiser()
+    graph.add(centre_model)
 
-    collection = graph.optimise(laplace, max_steps=10)
+    optimiser = g.LaplaceFactorOptimiser()
+
+    collection = graph.optimise(
+        optimiser,
+        max_steps=10
+    ).model
 
     for gaussian, centre in zip(
             collection.with_prefix(

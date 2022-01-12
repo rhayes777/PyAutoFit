@@ -44,11 +44,12 @@ def summary(
 
         sigma_formatter.add(prior_path, value_result)
 
-    return "\n\nSummary ({} sigma limits):\n\n{}".format(sigma, sigma_formatter.text)
+    return f"\n\nSummary ({sigma} sigma limits):\n\n{sigma_formatter.text}"
 
 
-def latex(samples, median_pdf_model=True, sigma=3.0, name_to_label=True) -> str:
-    """ Create a string summarizing the results of the `NonLinearSearch` at an input sigma value.
+def latex(samples, median_pdf_model=True, sigma=3.0, name_to_label=True, include_name=True, include_quickmath=False, prefix="") -> str:
+    """
+    Create a string summarizing the results of the `NonLinearSearch` at an input sigma value.
 
     This function is used for creating the model.results files of a non-linear search.
 
@@ -68,12 +69,14 @@ def latex(samples, median_pdf_model=True, sigma=3.0, name_to_label=True) -> str:
             parameter_name=samples.model.parameter_names[i],
             value=values[i],
             errors=errors_at_sigma[i],
-            subscript=samples.model.subscripts[i],
+            superscript=samples.model.superscripts[i],
             name_to_label=name_to_label,
+            include_name=include_name,
+            include_quickmath=include_quickmath
         )
 
         table.append(f"{label_value}")
 
     table = "".join(table)[:-3]
 
-    return "{}".format(table)
+    return f"{prefix}{table}"

@@ -4,7 +4,7 @@ from . import exc
 from .database.aggregator.aggregator import GridSearchAggregator
 from .non_linear.samples import MCMCSamples
 from .non_linear.samples import NestSamples
-from .non_linear.samples import OptimizerSamples
+from .non_linear.samples import Samples
 from .non_linear.samples import PDFSamples
 from .non_linear.samples import Sample
 from .non_linear.samples import load_from_table
@@ -48,8 +48,6 @@ from .mapper.prior_model.collection import CollectionPriorModel as Collection
 from .mapper.prior_model.prior_model import PriorModel
 from .mapper.prior_model.prior_model import PriorModel as Model
 from .mapper.prior_model.util import PriorModelNameValue
-from .mock.mock_search import MockResult
-from .mock.mock_search import MockSearch
 from .non_linear.abstract_search import NonLinearSearch
 from .non_linear.abstract_search import PriorPasser
 from .non_linear.analysis.analysis import Analysis
@@ -63,6 +61,7 @@ from .non_linear.nest.dynesty import DynestyDynamic
 from .non_linear.nest.dynesty import DynestyStatic
 from .non_linear.nest.multinest.multinest import MultiNest
 from .non_linear.nest.ultranest.ultranest import UltraNest
+from .non_linear.optimize.drawer.drawer import Drawer
 from .non_linear.optimize.lbfgs.lbfgs import LBFGS
 from .non_linear.optimize.pyswarms.globe import PySwarmsGlobal
 from .non_linear.optimize.pyswarms.local import PySwarmsLocal
@@ -70,7 +69,8 @@ from .non_linear.paths import DirectoryPaths
 from .non_linear.paths import DatabasePaths
 from .non_linear.result import Result
 from .non_linear.result import ResultsCollection
-from .mock.mock import Gaussian
+from .non_linear.settings import SettingsSearch
+from .example.model import Gaussian
 from .text import formatter
 from .text import samples_text
 from .tools import util

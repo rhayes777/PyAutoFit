@@ -1,17 +1,17 @@
-from autofit.database import query as q
-from autofit.mock import mock
 
+import autofit as af
+from autofit.database import query as q
 
 def test_simple(aggregator):
     assert aggregator.model.centre.query == q.Q("centre").query
 
 
 def test_and(aggregator):
-    construction = ((aggregator.model.centre == mock.Gaussian) & (aggregator.model.centre.x == 0))
+    construction = ((aggregator.model.centre == af.Gaussian) & (aggregator.model.centre.x == 0))
     assert construction.query == q.Q(
         "centre",
         q.And(
-            q.T(mock.Gaussian),
+            q.T(af.Gaussian),
             q.Q(
                 "x",
                 q.V(
@@ -23,11 +23,11 @@ def test_and(aggregator):
 
 
 def test_or(aggregator):
-    construction = ((aggregator.model.centre == mock.Gaussian) | (aggregator.model.centre.x == 0))
+    construction = ((aggregator.model.centre == af.Gaussian) | (aggregator.model.centre.x == 0))
     assert construction.query == q.Q(
         "centre",
         q.Or(
-            q.T(mock.Gaussian),
+            q.T(af.Gaussian),
             q.Q(
                 "x",
                 q.V(
@@ -51,7 +51,7 @@ def test_third_level(aggregator):
 
 
 def test_with_type(aggregator):
-    assert (aggregator.model.centre == mock.Gaussian).query == q.Q("centre", q.T(mock.Gaussian)).query
+    assert (aggregator.model.centre == af.Gaussian).query == q.Q("centre", q.T(af.Gaussian)).query
 
 
 def test_with_string(aggregator):

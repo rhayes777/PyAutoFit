@@ -1,5 +1,7 @@
+import multiprocessing
 import os
 import shutil
+import sys
 from os import path
 from pathlib import Path
 
@@ -8,13 +10,12 @@ from matplotlib import pyplot
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 
-import autofit as af
-import autofit.non_linear.samples.sample
-import autofit.non_linear.samples.stored
 from autoconf import conf
 from autofit import database as db
-from autofit.mock import mock
-from autofit.mock.mock import MockAnalysis
+from autofit.mock import fixtures
+
+if sys.platform == 'darwin':
+    multiprocessing.set_start_method('forkserver')
 
 directory = Path(__file__).parent
 
@@ -104,59 +105,12 @@ def set_config_path():
 
 
 @pytest.fixture(
-    name="model"
+    name="model_gaussian_x1"
 )
-def make_model():
-    return af.Model(
-        af.Gaussian
-    )
+def make_model_gaussian_x1():
+    return fixtures.make_model_gaussian_x1()
 
+@pytest.fixture(name="samples_x5")
+def make_samples_x5():
+    return fixtures.make_samples_x5()
 
-@pytest.fixture(
-    name="analysis"
-)
-def make_analysis():
-    return MockAnalysis()
-
-
-@pytest.fixture(name="samples")
-def make_samples():
-    sample_0 = autofit.non_linear.samples.sample.Sample(log_likelihood=1.0, log_prior=2.0, weight=0.25)
-    sample_1 = autofit.non_linear.samples.sample.Sample(log_likelihood=3.0, log_prior=5.0, weight=0.75)
-
-    return autofit.non_linear.samples.stored.StoredSamples(
-        model=af.Mapper(),
-        samples=[sample_0, sample_1],
-    )
-
-
-@pytest.fixture(name="result")
-def make_result():
-    model = af.Mapper()
-    model.one = af.PriorModel(mock.MockComponents, component=mock.MockClassx2)
-    return af.Result(model=model, samples=mock.MockSamples(), search=mock.MockSearch())
-
-
-@pytest.fixture(name="collection")
-def make_collection():
-    collection = af.ResultsCollection()
-    model = af.ModelMapper()
-    model.one = af.PriorModel(mock.MockComponents, component=mock.MockClassx2)
-    instance = af.ModelInstance()
-    instance.one = mock.MockComponents(component=mock.MockClassx2())
-
-    result = af.MockResult(model=model, instance=instance)
-
-    model = af.ModelMapper()
-    instance = af.ModelInstance()
-
-    model.hyper_galaxy = mock.HyperGalaxy
-    instance.hyper_galaxy = mock.HyperGalaxy()
-
-    hyper_result = af.MockResult(model=model, instance=instance)
-
-    result.hyper_result = hyper_result
-
-    collection.add("search name", result)
-
-    return collection
