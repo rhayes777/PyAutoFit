@@ -44,7 +44,7 @@ def summary(
 
         sigma_formatter.add(prior_path, value_result)
 
-    return "\n\nSummary ({} sigma limits):\n\n{}".format(sigma, sigma_formatter.text)
+    return f"\n\nSummary ({sigma} sigma limits):\n\n{sigma_formatter.text}"
 
 
 def latex(samples, median_pdf_model=True, sigma=3.0, name_to_label=True, include_quickmath=False, prefix="") -> str:
@@ -78,4 +78,4 @@ def latex(samples, median_pdf_model=True, sigma=3.0, name_to_label=True, include
 
     table = "".join(table)[:-3]
 
-    return f"{prefix}"+"{}".format(table)
+    return f"{prefix}{table}"

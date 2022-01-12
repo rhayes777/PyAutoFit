@@ -281,9 +281,9 @@ def _add_pickles(
                 fit[
                     filename.split(".")[0]
                 ] = pickle.load(f)
-        except pickle.UnpicklingError:
+        except pickle.UnpicklingError as e:
 
             if filename == "dynesty.pickle":
                 continue
 
-            raise pickle.UnpicklingError(f"Failed to unpickle: {pickle_path} {filename}")
+            raise pickle.UnpicklingError(f"Failed to unpickle: {pickle_path} {filename}") from e
