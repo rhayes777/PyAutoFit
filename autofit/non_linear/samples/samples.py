@@ -34,6 +34,38 @@ class Samples:
         self._paths = None
         self._names = None
 
+    def __add__(
+            self,
+            other: "Samples"
+    ) -> "Samples":
+        """
+        Samples can be added together, which combines their `sample_list` meaning that inferred parameters are
+        computed via their joint PDF.
+
+        Parameters
+        ----------
+        other
+            Another Samples class
+
+        Returns
+        -------
+        A class that combined the samples of the two Samples objects.
+        """
+
+        # TODO : Check model and raise exception if different.
+
+        if isinstance(
+                other,
+                Samples
+        ):
+
+            return Samples(
+                model=self.model,
+                sample_list=self.sample_list + other.sample_list,
+                time=self.time
+            )
+
+
     def values_for_path(
             self,
             path: Tuple[str]

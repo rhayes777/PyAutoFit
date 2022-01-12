@@ -176,3 +176,21 @@ def test__instance_from_sample_index():
     assert instance.mock_class.two == 6.0
     assert instance.mock_class.three == 7.0
     assert instance.mock_class.four == 8.0
+
+
+def test__addition_of_samples(samples_x5):
+
+    samples = samples_x5 + samples_x5
+
+    assert samples.sample_list[0].log_likelihood == 1.0
+    assert samples.sample_list[1].log_likelihood == 2.0
+    assert samples.sample_list[2].log_likelihood == 3.0
+    assert samples.sample_list[3].log_likelihood == 10.0
+    assert samples.sample_list[4].log_likelihood == 5.0
+    assert samples.sample_list[5].log_likelihood == 1.0
+    assert samples.sample_list[6].log_likelihood == 2.0
+    assert samples.sample_list[7].log_likelihood == 3.0
+    assert samples.sample_list[8].log_likelihood == 10.0
+    assert samples.sample_list[9].log_likelihood == 5.0
+
+    print(samples_x5.sample_list[0].log_likelihood)
