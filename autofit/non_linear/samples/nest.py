@@ -37,6 +37,10 @@ class NestSamples(PDFSamples):
         )
 
     @property
+    def add_hack(self):
+        return NestSamples
+
+    @property
     def number_live_points(self):
         raise NotImplementedError
 

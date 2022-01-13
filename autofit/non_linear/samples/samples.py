@@ -71,7 +71,7 @@ class Samples:
                 Samples
         ):
 
-            return Samples(
+            return self.add_hack(
                 model=self.model,
                 sample_list=self.sample_list + other.sample_list,
                 time=self.time

@@ -63,6 +63,10 @@ class DynestySamples(NestSamples):
         )
 
     @property
+    def add_hack(self):
+        return NestSamples
+
+    @property
     def number_live_points(self):
         return self._number_live_points
 
