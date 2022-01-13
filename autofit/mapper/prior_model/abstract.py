@@ -234,7 +234,10 @@ class AbstractPriorModel(AbstractModel):
             )
             if isinstance(
                     new_value,
-                    AbstractPriorModel
+                    (
+                            AbstractPriorModel,
+                            TuplePrior,
+                    )
             ):
                 new_value = new_value._with_paths(
                     subtree
@@ -248,7 +251,7 @@ class AbstractPriorModel(AbstractModel):
 
     def with_paths(
             self,
-            paths: List[Tuple[str]]
+            paths: List[Tuple[str, ...]]
     ) -> "AbstractModel":
         """
         Recursively generate a copy of this model retaining only objects
@@ -301,7 +304,10 @@ class AbstractPriorModel(AbstractModel):
                 )
                 if isinstance(
                         new_value,
-                        AbstractPriorModel
+                        (
+                                AbstractPriorModel,
+                                TuplePrior,
+                        )
                 ):
                     new_value = new_value._without_paths(
                         subtree
@@ -315,7 +321,7 @@ class AbstractPriorModel(AbstractModel):
 
     def without_paths(
             self,
-            paths: List[Tuple[str]]
+            paths: List[Tuple[str, ...]]
     ) -> "AbstractModel":
         """
         Recursively generate a copy of this model retaining only objects

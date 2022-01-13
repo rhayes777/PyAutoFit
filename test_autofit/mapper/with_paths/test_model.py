@@ -1,6 +1,8 @@
 import pytest
 
+import autofit as af
 from autofit.mapper.prior_model.abstract import paths_to_tree
+from autofit.mock.mock_model import MockWithTuple
 
 
 class TestWithoutAttributes:
@@ -158,3 +160,25 @@ def test_indices(
     assert model.index(
         path
     ) == index
+
+
+class TestTuples:
+    def test_with(self):
+        model = af.Model(MockWithTuple)
+
+        with_paths = model.with_paths([
+            ("tup", "0")
+        ])
+
+        assert hasattr(with_paths, "tup_0")
+        assert not hasattr(with_paths, "tup_1")
+
+    def test_without(self):
+        model = af.Model(MockWithTuple)
+
+        with_paths = model.without_paths([
+            ("tup", "0")
+        ])
+
+        assert not hasattr(with_paths, "tup_0")
+        assert hasattr(with_paths, "tup_1")

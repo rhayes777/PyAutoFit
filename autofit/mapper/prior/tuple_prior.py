@@ -1,3 +1,5 @@
+import copy
+
 from autofit.mapper.model_object import ModelObject
 from autofit.mapper.prior_model.attribute_pair import (
     cast_collection,
@@ -97,5 +99,30 @@ class TuplePrior(ModelObject):
             )
         return tuple_prior
 
+    @property
+    def tuples(self):
+        return sorted(
+            self.prior_tuples + self.instance_tuples,
+            key=lambda t: t[0]
+        )
+
+    def _with_paths(self, tree):
+        new = TuplePrior()
+        for key in tree:
+            name, value = self.tuples[int(key)]
+            setattr(new, name, value)
+        return new
+
+    def _without_paths(self, tree):
+        new = copy.deepcopy(self)
+        for key in tree:
+            name, value = self.tuples[int(key)]
+            delattr(new, name)
+        return new
+
     def __getitem__(self, item):
-        return self.prior_tuples[item][1]
+        tuples = sorted(
+            self.prior_tuples + self.instance_tuples,
+            key=lambda t: t[0]
+        )
+        return tuples[item][1]
