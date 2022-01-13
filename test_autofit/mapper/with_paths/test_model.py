@@ -214,3 +214,19 @@ class TestTuples:
         ])
 
         assert not hasattr(with_paths, "tup")
+
+    def test_with_explicit(self, tuple_model):
+        with_paths = tuple_model.with_paths([
+            ("tup", "tup_0")
+        ])
+
+        assert hasattr(with_paths, "tup_0")
+        assert not hasattr(with_paths, "tup_1")
+
+    def test_without_explicit(self, tuple_model):
+        with_paths = tuple_model.without_paths([
+            ("tup", "tup_0")
+        ])
+
+        assert not hasattr(with_paths, "tup_0")
+        assert hasattr(with_paths, "tup_1")

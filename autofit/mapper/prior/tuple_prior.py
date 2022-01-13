@@ -128,8 +128,8 @@ class TuplePrior(ModelObject):
         """
         new = TuplePrior()
         for key in tree:
-            name, value = self.tuples[int(key)]
-            setattr(new, name, value)
+            key, value = self._get_key_value(key)
+            setattr(new, key, value)
         return new
 
     def _without_paths(
@@ -144,9 +144,17 @@ class TuplePrior(ModelObject):
         """
         new = copy.deepcopy(self)
         for key in tree:
-            name, value = self.tuples[int(key)]
-            delattr(new, name)
+            key, value = self._get_key_value(key)
+            delattr(new, key)
         return new
 
+    def _get_key_value(self, key):
+        try:
+            return self.tuples[int(key)]
+        except ValueError:
+            return key, getattr(
+                self, key
+            )
+
     def __getitem__(self, item):
-        return self.tuples[item][1]
+        return self._get_key_value(item)[1]
