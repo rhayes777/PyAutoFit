@@ -9,6 +9,11 @@ from autofit.mapper.prior_model.attribute_pair import (
 )
 from .abstract import Prior
 
+NameValue = Tuple[
+    str,
+    Union[Prior, float]
+]
+
 
 class TuplePrior(ModelObject):
     """
@@ -101,10 +106,7 @@ class TuplePrior(ModelObject):
         return tuple_prior
 
     @property
-    def tuples(self) -> List[Tuple[
-        str,
-        Union[Prior, float]
-    ]]:
+    def tuples(self) -> List[NameValue]:
         """
         The names and instances of all priors and constants ordered
         by their name.
@@ -148,7 +150,14 @@ class TuplePrior(ModelObject):
             delattr(new, key)
         return new
 
-    def _get_key_value(self, key):
+    def _get_key_value(
+            self,
+            key: Union[str, int]
+    ) -> NameValue:
+        """
+        Retrieve a key and value by an attribute name or index which may
+        be expressed as a string or integer.
+        """
         try:
             return self.tuples[int(key)]
         except ValueError:
