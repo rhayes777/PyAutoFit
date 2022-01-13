@@ -26,6 +26,7 @@ from autofit.mapper.prior_model.recursion import DynamicRecursionCache
 from autofit.mapper.prior_model.util import PriorModelNameValue
 from autofit.text import formatter as frm
 from autofit.text.formatter import TextFormatter
+from autofit.tools.util import split_paths
 
 logger = logging.getLogger(
     __name__
@@ -249,6 +250,7 @@ class AbstractPriorModel(AbstractModel):
             )
         return with_paths
 
+    @split_paths
     def with_paths(
             self,
             paths: List[Tuple[str, ...]]
@@ -319,6 +321,7 @@ class AbstractPriorModel(AbstractModel):
                 )
         return without_paths
 
+    @split_paths
     def without_paths(
             self,
             paths: List[Tuple[str, ...]]

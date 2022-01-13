@@ -3,9 +3,25 @@ import os
 import sys
 import zipfile
 from contextlib import contextmanager
+from functools import wraps
 from pathlib import Path
 
 import numpy as np
+
+
+def split_paths(func):
+    @wraps(func)
+    def wrapper(self, paths):
+        paths = [
+            path.split(".")
+            if isinstance(
+                path, str
+            ) else path
+            for path in paths
+        ]
+        return func(self, paths)
+
+    return wrapper
 
 
 class IntervalCounter:

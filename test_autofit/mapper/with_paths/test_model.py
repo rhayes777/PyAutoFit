@@ -76,6 +76,21 @@ class TestWith:
         assert hasattr(gaussian_2, "normalization")
 
 
+def test_string_paths(model):
+    with_paths = model.with_paths([
+        "gaussian_1.centre",
+        "gaussian_2.normalization",
+    ])
+
+    gaussian_1 = with_paths.gaussian_1
+    assert hasattr(gaussian_1, "centre")
+    assert not hasattr(gaussian_1, "normalization")
+
+    gaussian_2 = with_paths.gaussian_2
+    assert not hasattr(gaussian_2, "centre")
+    assert hasattr(gaussian_2, "normalization")
+
+
 class TestWithout:
     def test_subpath(self, model):
         with_paths = model.without_paths([
