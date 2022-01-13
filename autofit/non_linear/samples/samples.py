@@ -1,7 +1,7 @@
 import csv
 import json
 from copy import copy
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Union
 
 import numpy as np
 
@@ -285,7 +285,7 @@ class Samples:
 
     def with_paths(
             self,
-            paths: List[Tuple[str]]
+            paths: Union[List[Tuple[str, ...]], List[str]]
     ) -> "Samples":
         """
         Create a copy of this object with only attributes specified
@@ -323,7 +323,7 @@ class Samples:
 
     def without_paths(
             self,
-            paths: List[Tuple[str, ...]]
+            paths: Union[List[Tuple[str, ...]], List[str]]
     ) -> "Samples":
         """
         Create a copy of this object with only attributes not specified
