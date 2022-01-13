@@ -2,7 +2,7 @@ import os
 import pytest
 
 import autofit as af
-from autofit.mock.mock_model import MockClassx4
+from autofit.mock.mock_model import MockClassx2, MockClassx4
 from autofit.mock.mock import MockSamples
 
 pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
@@ -193,4 +193,28 @@ def test__addition_of_samples(samples_x5):
     assert samples.sample_list[8].log_likelihood == 10.0
     assert samples.sample_list[9].log_likelihood == 5.0
 
-    print(samples_x5.sample_list[0].log_likelihood)
+def test__addition_of_samples__raises_error_if_model_mismatch(samples_x5):
+
+    model = af.ModelMapper(mock_class_1=MockClassx2)
+
+    parameters = [
+        [0.0, 1.0],
+        [0.0, 1.0],
+        [0.0, 1.0],
+        [21.0, 22.0],
+        [0.0, 1.0],
+    ]
+
+    samples_different_model = MockSamples(
+        model=model,
+        sample_list=af.Sample.from_lists(
+            model=model,
+            parameter_lists=parameters,
+            log_likelihood_list=[1.0, 2.0],
+            log_prior_list=[0.0, 0.0],
+            weight_list=[1.0, 1.0],
+        ),
+    )
+
+    with pytest.raises(af.exc.SamplesException):
+        samples_x5 + samples_different_model

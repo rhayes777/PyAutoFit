@@ -9,6 +9,8 @@ from autofit.mapper.model import ModelInstance
 from autofit.mapper.prior_model.abstract import AbstractPriorModel, Path
 from autofit.non_linear.samples.sample import Sample
 
+from autofit import exc
+
 
 class Samples:
     def __init__(
@@ -52,7 +54,17 @@ class Samples:
         A class that combined the samples of the two Samples objects.
         """
 
-        # TODO : Check model and raise exception if different.
+        def raise_exc():
+            raise exc.SamplesException(
+                "Cannot add together two Samples objects which have different models."
+            )
+
+        if self.model.prior_count != other.model.prior_count:
+            raise_exc()
+
+        for path_self, path_other in zip(self.model.paths, other.model.paths):
+            if path_self != path_other:
+                raise_exc()
 
         if isinstance(
                 other,
