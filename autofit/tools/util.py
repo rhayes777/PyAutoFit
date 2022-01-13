@@ -10,6 +10,11 @@ import numpy as np
 
 
 def split_paths(func):
+    """
+    Split string paths if they are passed.
+
+    e.g. "lens.mass.centre" -> ["lens", "mass", "centre"]
+    """
     @wraps(func)
     def wrapper(self, paths):
         paths = [
