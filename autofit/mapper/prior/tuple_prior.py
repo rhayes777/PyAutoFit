@@ -1,4 +1,5 @@
 import copy
+from typing import List, Tuple, Union, Dict
 
 from autofit.mapper.model_object import ModelObject
 from autofit.mapper.prior_model.attribute_pair import (
@@ -100,20 +101,47 @@ class TuplePrior(ModelObject):
         return tuple_prior
 
     @property
-    def tuples(self):
+    def tuples(self) -> List[Tuple[
+        str,
+        Union[Prior, float]
+    ]]:
+        """
+        The names and instances of all priors and constants ordered
+        by their name.
+
+        This means they are in the order they should be in the tuple.
+        """
         return sorted(
             self.prior_tuples + self.instance_tuples,
             key=lambda t: t[0]
         )
 
-    def _with_paths(self, tree):
+    def _with_paths(
+            self,
+            tree: Dict[str, dict]
+    ) -> "TuplePrior":
+        """
+        An instance of this tuple prior with only tuples with positions
+        indicated in the tree dictionary.
+
+        Note applying this twice will give unexpected results.
+        """
         new = TuplePrior()
         for key in tree:
             name, value = self.tuples[int(key)]
             setattr(new, name, value)
         return new
 
-    def _without_paths(self, tree):
+    def _without_paths(
+            self,
+            tree: Dict[str, dict]
+    ) -> "TuplePrior":
+        """
+        An instance of this tuple prior without tuples with positions
+        indicated in the tree dictionary.
+
+        Note applying this twice will give unexpected results.
+        """
         new = copy.deepcopy(self)
         for key in tree:
             name, value = self.tuples[int(key)]
@@ -121,8 +149,4 @@ class TuplePrior(ModelObject):
         return new
 
     def __getitem__(self, item):
-        tuples = sorted(
-            self.prior_tuples + self.instance_tuples,
-            key=lambda t: t[0]
-        )
-        return tuples[item][1]
+        return self.tuples[item][1]
