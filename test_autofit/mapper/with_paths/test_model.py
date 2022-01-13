@@ -1,6 +1,8 @@
 import pytest
 
+import autofit as af
 from autofit.mapper.prior_model.abstract import paths_to_tree
+from autofit.mock.mock_model import MockWithTuple
 
 
 class TestWithoutAttributes:
@@ -72,6 +74,21 @@ class TestWith:
         gaussian_2 = with_paths.gaussian_2
         assert not hasattr(gaussian_2, "centre")
         assert hasattr(gaussian_2, "normalization")
+
+
+def test_string_paths(model):
+    with_paths = model.with_paths([
+        "gaussian_1.centre",
+        "gaussian_2.normalization",
+    ])
+
+    gaussian_1 = with_paths.gaussian_1
+    assert hasattr(gaussian_1, "centre")
+    assert not hasattr(gaussian_1, "normalization")
+
+    gaussian_2 = with_paths.gaussian_2
+    assert not hasattr(gaussian_2, "centre")
+    assert hasattr(gaussian_2, "normalization")
 
 
 class TestWithout:
@@ -158,3 +175,58 @@ def test_indices(
     assert model.index(
         path
     ) == index
+
+
+@pytest.fixture(
+    name="tuple_model"
+)
+def make_tuple_model():
+    return af.Model(MockWithTuple)
+
+
+class TestTuples:
+    def test_with_specific(self, tuple_model):
+        with_paths = tuple_model.with_paths([
+            ("tup", "0")
+        ])
+
+        assert hasattr(with_paths, "tup_0")
+        assert not hasattr(with_paths, "tup_1")
+
+    def test_without_specific(self, tuple_model):
+        with_paths = tuple_model.without_paths([
+            ("tup", "0")
+        ])
+
+        assert not hasattr(with_paths, "tup_0")
+        assert hasattr(with_paths, "tup_1")
+
+    def test_with(self, tuple_model):
+        with_paths = tuple_model.with_paths([
+            ("tup",)
+        ])
+
+        assert hasattr(with_paths, "tup")
+
+    def test_without(self, tuple_model):
+        with_paths = tuple_model.without_paths([
+            ("tup",)
+        ])
+
+        assert not hasattr(with_paths, "tup")
+
+    def test_with_explicit(self, tuple_model):
+        with_paths = tuple_model.with_paths([
+            ("tup", "tup_0")
+        ])
+
+        assert hasattr(with_paths, "tup_0")
+        assert not hasattr(with_paths, "tup_1")
+
+    def test_without_explicit(self, tuple_model):
+        with_paths = tuple_model.without_paths([
+            ("tup", "tup_0")
+        ])
+
+        assert not hasattr(with_paths, "tup_0")
+        assert hasattr(with_paths, "tup_1")
