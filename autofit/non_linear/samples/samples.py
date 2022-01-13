@@ -323,7 +323,7 @@ class Samples:
 
     def without_paths(
             self,
-            paths: List[Tuple[str]]
+            paths: List[Tuple[str, ...]]
     ) -> "Samples":
         """
         Create a copy of this object with only attributes not specified

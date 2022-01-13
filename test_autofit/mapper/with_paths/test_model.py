@@ -162,40 +162,39 @@ def test_indices(
     ) == index
 
 
-class TestTuples:
-    def test_with_specific(self):
-        model = af.Model(MockWithTuple)
+@pytest.fixture(
+    name="tuple_model"
+)
+def make_tuple_model():
+    return af.Model(MockWithTuple)
 
-        with_paths = model.with_paths([
+
+class TestTuples:
+    def test_with_specific(self, tuple_model):
+        with_paths = tuple_model.with_paths([
             ("tup", "0")
         ])
 
         assert hasattr(with_paths, "tup_0")
         assert not hasattr(with_paths, "tup_1")
 
-    def test_without_specific(self):
-        model = af.Model(MockWithTuple)
-
-        with_paths = model.without_paths([
+    def test_without_specific(self, tuple_model):
+        with_paths = tuple_model.without_paths([
             ("tup", "0")
         ])
 
         assert not hasattr(with_paths, "tup_0")
         assert hasattr(with_paths, "tup_1")
 
-    def test_with(self):
-        model = af.Model(MockWithTuple)
-
-        with_paths = model.with_paths([
+    def test_with(self, tuple_model):
+        with_paths = tuple_model.with_paths([
             ("tup",)
         ])
 
         assert hasattr(with_paths, "tup")
 
-    def test_without(self):
-        model = af.Model(MockWithTuple)
-
-        with_paths = model.without_paths([
+    def test_without(self, tuple_model):
+        with_paths = tuple_model.without_paths([
             ("tup",)
         ])
 
