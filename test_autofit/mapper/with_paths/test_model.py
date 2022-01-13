@@ -163,7 +163,7 @@ def test_indices(
 
 
 class TestTuples:
-    def test_with(self):
+    def test_with_specific(self):
         model = af.Model(MockWithTuple)
 
         with_paths = model.with_paths([
@@ -173,7 +173,7 @@ class TestTuples:
         assert hasattr(with_paths, "tup_0")
         assert not hasattr(with_paths, "tup_1")
 
-    def test_without(self):
+    def test_without_specific(self):
         model = af.Model(MockWithTuple)
 
         with_paths = model.without_paths([
@@ -182,3 +182,21 @@ class TestTuples:
 
         assert not hasattr(with_paths, "tup_0")
         assert hasattr(with_paths, "tup_1")
+
+    def test_with(self):
+        model = af.Model(MockWithTuple)
+
+        with_paths = model.with_paths([
+            ("tup",)
+        ])
+
+        assert hasattr(with_paths, "tup")
+
+    def test_without(self):
+        model = af.Model(MockWithTuple)
+
+        with_paths = model.without_paths([
+            ("tup",)
+        ])
+
+        assert not hasattr(with_paths, "tup")
