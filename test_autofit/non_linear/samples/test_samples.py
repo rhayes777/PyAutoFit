@@ -182,16 +182,21 @@ def test__addition_of_samples(samples_x5):
 
     samples = samples_x5 + samples_x5
 
+    assert len(samples.sample_list) == 10
     assert samples.sample_list[0].log_likelihood == 1.0
-    assert samples.sample_list[1].log_likelihood == 2.0
-    assert samples.sample_list[2].log_likelihood == 3.0
-    assert samples.sample_list[3].log_likelihood == 10.0
     assert samples.sample_list[4].log_likelihood == 5.0
     assert samples.sample_list[5].log_likelihood == 1.0
-    assert samples.sample_list[6].log_likelihood == 2.0
-    assert samples.sample_list[7].log_likelihood == 3.0
-    assert samples.sample_list[8].log_likelihood == 10.0
     assert samples.sample_list[9].log_likelihood == 5.0
+
+    samples = sum([samples_x5, samples_x5, samples_x5])
+
+    assert len(samples.sample_list) == 15
+    assert samples.sample_list[0].log_likelihood == 1.0
+    assert samples.sample_list[4].log_likelihood == 5.0
+    assert samples.sample_list[5].log_likelihood == 1.0
+    assert samples.sample_list[9].log_likelihood == 5.0
+    assert samples.sample_list[10].log_likelihood == 1.0
+    assert samples.sample_list[14].log_likelihood == 5.0
 
 def test__addition_of_samples__raises_error_if_model_mismatch(samples_x5):
 

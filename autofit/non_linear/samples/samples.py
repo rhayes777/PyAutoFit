@@ -77,6 +77,25 @@ class Samples:
                 time=self.time
             )
 
+    def __radd__(self, other):
+        """
+        Samples can be added together, which combines their `sample_list` meaning that inferred parameters are
+        computed via their joint PDF.
+
+        Overwriting `__radd__` enables the sum function to be used on a list of sampels, e.g.:
+
+        `samples = sum([samples_x5, samples_x5, samples_x5])`
+
+        Parameters
+        ----------
+        other
+            The integer of the iterator.
+
+        Returns
+        -------
+        A class that combines the samples of a list of Samples objects.
+        """
+        return self
 
     def values_for_path(
             self,
