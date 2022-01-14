@@ -132,7 +132,8 @@ def numerical_func_jacobian_hessian(
         for v in det_vars0:
             fhess0[v] = 0.
 
-    for v, hess in fhess0.items():
+    for v in variables:
+        hess = fhess0[v]
         x0 = p0[v]
         if x0.shape:
             inds = tuple(a.ravel() for a in np.indices(x0.shape))

@@ -43,6 +43,16 @@ class VariableTransform:
         return {
             k: M.ldiv(values[k]) for k, M in self.transforms.items()}
 
+    def __add__(self, other: 'VariableTransform') -> 'VariableTransform':
+        return VariableTransform({
+            k: M + other.transforms[k] for k, M in self.transforms.items()
+        })
+
+    def inv(self) -> 'VariableTransform':
+        return VariableTransform({
+            k: M.inv() for k, M in self.transforms.items()
+        })
+
     rdiv = __rtruediv__
     rmul = __rmul__
     lmul = __mul__

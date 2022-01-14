@@ -1,5 +1,7 @@
 from itertools import chain, count
-from typing import Optional, Tuple 
+from typing import Optional, Tuple, Dict
+import operator
+from abc import ABC, abstractmethod
 
 import numpy as np
 
@@ -120,7 +122,7 @@ def broadcast_plates(
     n_in = len(in_plates)
     n_out = len(out_plates)
     shift = np.ndim(value) - n_in
-    if shift > 1 or shift < 0:
+    if not (0 <= shift <= 1):
         raise ValueError("dimensions of value incompatible with passed plates")
     
     in_axes = list(range(shift, n_in + shift))
@@ -140,3 +142,4 @@ def broadcast_plates(
         out_axes,
     )
     return reducer(moved_value, axis=tuple(range(n_out + shift, k)))
+
