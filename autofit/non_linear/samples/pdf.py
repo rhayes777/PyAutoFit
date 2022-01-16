@@ -25,6 +25,15 @@ class PDFSamples(Samples):
         ----------
         model
             Maps input vectors of unit parameter values to physical values and model instances via priors.
+        sample_list
+            The list of `Samples` which contains the paramoeters, likelihood, weights, etc. of every sample taken
+            by the non-linear search.
+        unconverged_sample_size
+            If the samples are for a search that is yet to convergence, a reduced set of samples are used to provide
+            a rough estimate of the parameters. The number of samples is set by this parameter.
+        time
+            The time taken to perform the model-fit, which is passed around `Samples` objects for outputting
+            information on the overall fit.
         """
 
         super().__init__(

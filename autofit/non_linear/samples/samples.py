@@ -28,6 +28,12 @@ class Samples:
         ----------
         model
             Maps input vectors of unit parameter values to physical values and model instances via priors.
+        sample_list
+            The list of `Samples` which contains the paramoeters, likelihood, weights, etc. of every sample taken
+            by the non-linear search.
+        time
+            The time taken to perform the model-fit, which is passed around `Samples` objects for outputting
+            information on the overall fit.
         """
         self.model = model
         self.sample_list = sample_list
@@ -47,35 +53,20 @@ class Samples:
         Parameters
         ----------
         other
-            Another Samples class
+            The Samples to be added to this Samples instance.
 
         Returns
         -------
         A class that combined the samples of the two Samples objects.
         """
 
-        def raise_exc():
-            raise exc.SamplesException(
-                "Cannot add together two Samples objects which have different models."
-            )
+        self._check_addition(other=other)
 
-        if self.model.prior_count != other.model.prior_count:
-            raise_exc()
-
-        for path_self, path_other in zip(self.model.paths, other.model.paths):
-            if path_self != path_other:
-                raise_exc()
-
-        if isinstance(
-                other,
-                Samples
-        ):
-
-            return self.add_hack(
-                model=self.model,
-                sample_list=self.sample_list + other.sample_list,
-                time=self.time
-            )
+        return self.__class__(
+            model=self.model,
+            sample_list=self.sample_list + other.sample_list,
+            time=self.time
+        )
 
     def __radd__(self, other):
         """
@@ -89,13 +80,52 @@ class Samples:
         Parameters
         ----------
         other
-            The integer of the iterator.
+            The Samples to be added to this Samples instance.
 
         Returns
         -------
         A class that combines the samples of a list of Samples objects.
         """
         return self
+
+    def _check_addition(self, other: "Samples"):
+        """
+        When adding samples together, perform the following checks to make sure it is valid to add the two objects
+        together:
+
+        - That both objects being added are `Samples` objects.
+        - That both models have the same prior count, else the dimensionality does not allow for valid addition.
+        - That both `Samples` objects use an identical model, such that we are adding together the same parameters.
+
+        Parameters
+        ----------
+        other
+            The Samples to be added to this Samples instance.
+        """
+        def raise_exc():
+            raise exc.SamplesException(
+                "Cannot add together two Samples objects which have different models."
+            )
+
+        if not isinstance(
+                self,
+                Samples
+        ):
+
+            raise_exc()
+
+        if not isinstance(
+                other,
+                Samples
+        ):
+            raise_exc()
+
+        if self.model.prior_count != other.model.prior_count:
+            raise_exc()
+
+        for path_self, path_other in zip(self.model.paths, other.model.paths):
+            if path_self != path_other:
+                raise_exc()
 
     def values_for_path(
             self,

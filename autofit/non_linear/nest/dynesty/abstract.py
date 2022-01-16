@@ -241,7 +241,7 @@ class AbstractDynesty(AbstractNest, ABC):
         )
         results = sampler.results
 
-        return DynestySamples(
+        return DynestySamples.from_results(
             model=model,
             results=results,
             number_live_points=self.total_live_points,
@@ -265,7 +265,7 @@ class AbstractDynesty(AbstractNest, ABC):
             "results"
         )
 
-        return DynestySamples(
+        return DynestySamples.from_results(
             model=model,
             results=results,
             number_live_points=self.total_live_points,
