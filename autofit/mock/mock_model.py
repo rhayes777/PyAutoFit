@@ -8,6 +8,16 @@ class MockClassx2:
         self.one = one
         self.two = two
 
+class MockClassx2FormatExp:
+    """
+    This mock classes's second parameter `two_exp` has a format label `two={:.2e}` in `notational/label_format.ini` and
+     is used to test latex generation.
+    """
+    def __init__(self, one=1, two_exp=2):
+        self.one = one
+        self.two_exp = two_exp
+
+
 
 class MockClassx2NoSuperScript:
     def __init__(self, one=1, two=2):
