@@ -110,8 +110,18 @@ class DynestySamples(NestSamples):
 
         Parameters
         ----------
+        results
+            The `dynesty` results in their native internal format from which the samples are computed.
         model
             Maps input vectors of unit parameter values to physical values and model instances via priors.
+        number_live_points
+            The number of live points used by the `dynesty` search.
+        unconverged_sample_size
+            If the samples are for a search that is yet to convergence, a reduced set of samples are used to provide
+            a rough estimate of the parameters. The number of samples is set by this parameter.
+        time
+            The time taken to perform the model-fit, which is passed around `Samples` objects for outputting
+            information on the overall fit.
         """
         parameter_lists = results.samples.tolist()
         log_prior_list = model.log_prior_list_from(parameter_lists=parameter_lists)
