@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import List, Optional
 
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.samples import Sample
@@ -10,39 +10,91 @@ class UltraNestSamples(NestSamples):
     def __init__(
             self,
             model: AbstractPriorModel,
-            results,
+            sample_list: List[Sample],
             number_live_points: int,
             unconverged_sample_size: int = 100,
             time: Optional[float] = None,
+            results: Optional = None,
     ):
         """
-        The *Output* classes in **PyAutoFit** provide an interface between the results of a `NonLinearSearch` (e.g.
+        The `Samples` classes in **PyAutoFit** provide an interface between the results of a `NonLinearSearch` (e.g.
         as files on your hard-disk) and Python.
 
         For example, the output class can be used to load an instance of the best-fit model, get an instance of any
         individual sample by the `NonLinearSearch` and return information on the likelihoods, errors, etc.
 
-        The Bayesian log evidence estimated by the nested sampling algorithm.
+        This class stores the samples of a model-fit using `UltraNest`. In order to use the in-built `UltraNest`
+        visualization tools the results are optionally stored in their native format internal to `UltraNest` using
+        the `results` attribute.
 
         Parameters
         ----------
-        model : af.ModelMapper
+        model
             Maps input vectors of unit parameter values to physical values and model instances via priors.
-        number_live_points : int
-            The number of live points used by the nested sampler.
-        log_evidence
-            The log of the Bayesian evidence estimated by the nested sampling algorithm.
+        sample_list
+            The list of `Samples` which contains the paramoeters, likelihood, weights, etc. of every sample taken
+            by the non-linear search.
+        number_live_points
+            The number of live points used by the `UltraNest` search.
+        unconverged_sample_size
+            If the samples are for a search that is yet to convergence, a reduced set of samples are used to provide
+            a rough estimate of the parameters. The number of samples is set by this parameter.
+        time
+            The time taken to perform the model-fit, which is passed around `Samples` objects for outputting
+            information on the overall fit.
+        results
+            The `UltraNest` results in their native internal format for interfacing the UltraNest visualization library.
         """
 
         self.results = results
         self._number_live_points = number_live_points
 
-        parameters = self.results["weighted_samples"]["points"]
-        log_likelihood_list = self.results["weighted_samples"]["logl"]
+        super().__init__(
+            model=model,
+            sample_list=sample_list,
+            unconverged_sample_size=unconverged_sample_size,
+            time=time,
+        )
+
+    @classmethod
+    def from_results(
+            cls,
+            results,
+            model: AbstractPriorModel,
+            number_live_points: int,
+            unconverged_sample_size: int = 100,
+            time: Optional[float] = None,
+    ):
+        """
+        The `Samples` classes in **PyAutoFit** provide an interface between the results of a `NonLinearSearch` (e.g.
+        as files on your hard-disk) and Python.
+
+        To create a `Samples` object after an `UltraNest` model-fit the results must be converted from the
+        native format used by `UltraNest` to lists of values, the format used by the **PyAutoFit** `Samples` objects.
+        This classmethod performs this conversion before creating a DyenstySamples` object.
+
+        Parameters
+        ----------
+        results
+            The `UltraNest` results in their native internal format from which the samples are computed.
+        model
+            Maps input vectors of unit parameter values to physical values and model instances via priors.
+        number_live_points
+            The number of live points used by the `UltraNest` search.
+        unconverged_sample_size
+            If the samples are for a search that is yet to convergence, a reduced set of samples are used to provide
+            a rough estimate of the parameters. The number of samples is set by this parameter.
+        time
+            The time taken to perform the model-fit, which is passed around `Samples` objects for outputting
+            information on the overall fit.
+        """
+        
+        parameters = results["weighted_samples"]["points"]
+        log_likelihood_list = results["weighted_samples"]["logl"]
         log_prior_list = [
             sum(model.log_prior_list_from_vector(vector=vector)) for vector in parameters
         ]
-        weight_list = self.results["weighted_samples"]["weights"]
+        weight_list = results["weighted_samples"]["weights"]
 
         sample_list = Sample.from_lists(
             model=model,
@@ -52,11 +104,13 @@ class UltraNestSamples(NestSamples):
             weight_list=weight_list
         )
 
-        super().__init__(
+        return UltraNestSamples(
             model=model,
             sample_list=sample_list,
+            number_live_points=number_live_points,
             unconverged_sample_size=unconverged_sample_size,
             time=time,
+            results=results,
         )
 
     @property
