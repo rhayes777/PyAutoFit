@@ -1,8 +1,6 @@
 from functools import reduce
 from operator import mul
-from typing import (
-    Iterable, Tuple, TypeVar, Dict, NamedTuple, Optional, Union
-)
+from typing import Iterable, Tuple, TypeVar, Dict, NamedTuple, Optional, Union
 
 import numpy as np
 from scipy import special
@@ -44,45 +42,41 @@ class FlattenArrays(dict):
         super().__init__()
 
         self.update(dict_)
-        self.splits = np.cumsum([
-            np.prod(s) for s in self.values()], dtype=int)
+        self.splits = np.cumsum([np.prod(s) for s in self.values()], dtype=int)
         self.inds = [
-            slice(i0, i1) for i0, i1 in
+            slice(i0, i1)
+            for i0, i1 in
             # np.arange(i0, i1, dtype=int) for i0, i1 in
-            zip(np.r_[0, self.splits[:-1]], self.splits)]
-        self.sizes = {
-            k: np.prod(s, dtype=int) for k, s in self.items()}
+            zip(np.r_[0, self.splits[:-1]], self.splits)
+        ]
+        self.sizes = {k: np.prod(s, dtype=int) for k, s in self.items()}
 
     @classmethod
-    def from_arrays(cls, **arrays: Dict[str, np.ndarray]) -> "FlattenArrays":
-        return cls(**{k: np.shape(arr) for k, arr in arrays.items()})
+    def from_arrays(cls, arrays: Dict[str, np.ndarray]) -> "FlattenArrays":
+        return cls({k: np.shape(arr) for k, arr in arrays.items()})
 
     def flatten(self, arrays_dict: Dict[Variable, np.ndarray]) -> np.ndarray:
-        assert all(np.shape(arrays_dict[k]) == shape
-                   for k, shape in self.items())
-        return np.concatenate([
-            np.ravel(arrays_dict[k]) for k in self.keys()])
+        assert all(np.shape(arrays_dict[k]) == shape for k, shape in self.items())
+        return np.concatenate([np.ravel(arrays_dict[k]) for k in self.keys()])
 
     def unflatten(self, arr: np.ndarray, ndim=None) -> Dict[str, np.ndarray]:
         arr = np.asanyarray(arr)
         if ndim is None:
             ndim = arr.ndim
-        arrays = [
-            arr[(ind,) * ndim] for ind in self.inds]
+        arrays = [arr[(ind,) * ndim] for ind in self.inds]
         arr_shapes = [arr.shape[ndim:] for arr in arrays]
         return {
             k: arr.reshape(shape * ndim + arr_shape)
-            if shape or arr_shape else arr.item()
-            for (k, shape), arr_shape, arr in
-            zip(self.items(), arr_shapes, arrays)}
+            if shape or arr_shape
+            else arr.item()
+            for (k, shape), arr_shape, arr in zip(self.items(), arr_shapes, arrays)
+        }
 
     def flatten2d(self, values: Dict[Variable, np.ndarray]) -> np.ndarray:
-        assert all(np.shape(values[k]) == shape * 2
-                   for k, shape in self.items())
-        return block_diag(*(
-            np.reshape(values[k], (n, n))
-            for k, n in self.sizes.items()
-        ))
+        assert all(np.shape(values[k]) == shape * 2 for k, shape in self.items())
+        return block_diag(
+            *(np.reshape(values[k], (n, n)) for k, n in self.sizes.items())
+        )
 
     unflatten2d = unflatten
 
@@ -128,7 +122,7 @@ Axis = Optional[Union[bool, int, Tuple[int, ...]]]
 def aggregate(array: np.ndarray, axis: Axis = False, **kwargs) -> np.ndarray:
     """
     aggregates the values of array
-    
+
     if axis is False then aggregate returns the unmodified array
 
     otherwise aggrate returns np.sum(array, axis=axis, **kwargs)
@@ -153,7 +147,7 @@ def diag(array: np.ndarray, *ds: Tuple[int, ...]) -> np.ndarray:
     return out
 
 
-_M = TypeVar('_M')
+_M = TypeVar("_M")
 
 
 def prod(iterable: Iterable[_M], *arg: Tuple[_M]) -> _M:
@@ -182,8 +176,7 @@ def r2_score(y_true, y_pred, axis=None):
     return 1 - mse / var
 
 
-def propagate_uncertainty(
-        cov: np.ndarray, jac: np.ndarray) -> np.ndarray:
+def propagate_uncertainty(cov: np.ndarray, jac: np.ndarray) -> np.ndarray:
     """Propagates the uncertainty of a covariance matrix given the
     passed Jacobian
 
@@ -205,8 +198,7 @@ def propagate_uncertainty(
     cov2d = cov.reshape((var_size, var_size))
     jac2d = jac.reshape((det_size, var_size))
 
-    det_cov2d = np.linalg.multi_dot((
-        jac2d, cov2d, jac2d.T))
+    det_cov2d = np.linalg.multi_dot((jac2d, cov2d, jac2d.T))
     det_cov = det_cov2d.reshape(det_shape + det_shape)
     return det_cov
 
@@ -261,23 +253,16 @@ def invpsilog(c: np.ndarray) -> np.ndarray:
 
 def rescale_to_artists(artists, ax=None):
     import matplotlib.pyplot as plt
+
     ax = ax or plt.gca()
     while True:
         r = ax.figure.canvas.get_renderer()
         extents = [
-            t.get_window_extent(
-                renderer=r
-            ).transformed(
-                ax.transData.inverted()
-            )
+            t.get_window_extent(renderer=r).transformed(ax.transData.inverted())
             for t in artists
         ]
-        min_extent = np.min(
-            [e.min for e in extents], axis=0
-        )
-        max_extent = np.max(
-            [e.max for e in extents], axis=0
-        )
+        min_extent = np.min([e.min for e in extents], axis=0)
+        max_extent = np.max([e.max for e in extents], axis=0)
         min_lim, max_lim = zip(ax.get_xlim(), ax.get_ylim())
 
         # Sometimes the window doesn't always rescale first time around
