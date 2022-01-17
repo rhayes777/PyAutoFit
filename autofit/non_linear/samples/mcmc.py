@@ -19,7 +19,38 @@ class MCMCSamples(PDFSamples):
             auto_correlation_settings: AutoCorrelationsSettings,
             unconverged_sample_size: int = 100,
             time: Optional[float] = None,
+            results_internal: Optional = None,
     ):
+        """
+        The `Samples` classes in **PyAutoFit** provide an interface between the results_internal of
+        a `NonLinearSearch` (e.g. as files on your hard-disk) and Python.
+
+        For example, the output class can be used to load an instance of the best-fit model, get an instance of any
+        individual sample by the `NonLinearSearch` and return information on the likelihoods, errors, etc.
+
+        This class stores the samples of a MCMC model-fit (e.g. `emcee`, `zeus`). To use a library's in-built
+        visualization tools results_internal are optionally stored in their native internal format using
+        the `results_internal` attribute.
+
+        Attributes
+        ----------
+        results_internal
+            The MCMC results in their native internal format from which the samples are computed.
+        model
+            Maps input vectors of unit parameter values to physical values and model instances via priors.
+        auto_correlations_settings
+            Customizes and performs auto correlation calculations performed during and after the search.
+        unconverged_sample_size
+            If the samples are for a search that is yet to convergence, a reduced set of samples are used to provide
+            a rough estimate of the parameters. The number of samples is set by this parameter.
+        time
+            The time taken to perform the model-fit, which is passed around `Samples` objects for outputting
+            information on the overall fit.
+        results_internal
+            The MCMC library's results in their native internal format for interfacing its visualization library.
+        """
+
+        self.results_internal = results_internal
 
         self.auto_correlation_settings = auto_correlation_settings
 

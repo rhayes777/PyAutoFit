@@ -12,48 +12,6 @@ from autofit import exc
 
 class EmceeSamples(MCMCSamples):
 
-    def __init__(
-            self,
-            model: AbstractPriorModel,
-            sample_list: List[Sample],
-            auto_correlation_settings: AutoCorrelationsSettings,
-            unconverged_sample_size: int = 100,
-            time: Optional[float] = None,
-            results_internal: Optional[emcee.backends.HDFBackend] = None,
-    ):
-        """
-        Create a `Samples` object from this non-linear search's output files on the hard-disk and model.
-
-        For Emcee, all quantities are extracted via the hdf5 backend of results.
-
-        Attributes
-        ----------
-        results_internal
-            The MCMC results in their native internal format from which the samples are computed.
-        model
-            Maps input vectors of unit parameter values to physical values and model instances via priors.
-        auto_correlations_settings
-            Customizes and performs auto correlation calculations performed during and after the search.
-        unconverged_sample_size
-            If the samples are for a search that is yet to convergence, a reduced set of samples are used to provide
-            a rough estimate of the parameters. The number of samples is set by this parameter.
-        time
-            The time taken to perform the model-fit, which is passed around `Samples` objects for outputting
-            information on the overall fit.
-        results_internal
-            The MCMC library's results in their native internal format for interfacing its visualization library.
-        """
-
-        self.results_internal = results_internal
-
-        super().__init__(
-            model=model,
-            sample_list=sample_list,
-            auto_correlation_settings=auto_correlation_settings,
-            unconverged_sample_size=unconverged_sample_size,
-            time=time,
-        )
-
     def __add__(
             self,
             other: "EmceeSamples"

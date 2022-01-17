@@ -18,8 +18,8 @@ class NestSamples(PDFSamples):
             results_internal: Optional = None,
     ):
         """
-        The `Samples` classes in **PyAutoFit** provide an interface between the results_internal of a `NonLinearSearch` (e.g.
-        as files on your hard-disk) and Python.
+        The `Samples` classes in **PyAutoFit** provide an interface between the results_internal of
+        a `NonLinearSearch` (e.g. as files on your hard-disk) and Python.
 
         For example, the output class can be used to load an instance of the best-fit model, get an instance of any
         individual sample by the `NonLinearSearch` and return information on the likelihoods, errors, etc.
