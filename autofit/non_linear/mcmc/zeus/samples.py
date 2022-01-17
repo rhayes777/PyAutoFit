@@ -121,9 +121,11 @@ class ZeusSamples(MCMCSamples):
 
     @property
     def samples_after_burn_in(self) -> [List]:
-        """The zeus samples with the initial burn-in samples removed.
+        """
+        The zeus samples with the initial burn-in samples removed.
 
-        The burn-in period is estimated using the auto-correlation times of the parameters."""
+        The burn-in period is estimated using the auto-correlation times of the parameters.
+        """
 
         discard = int(3.0 * np.max(self.auto_correlations.times))
         thin = int(np.max(self.auto_correlations.times) / 2.0)

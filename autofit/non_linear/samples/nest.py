@@ -25,8 +25,8 @@ class NestSamples(PDFSamples):
         individual sample by the `NonLinearSearch` and return information on the likelihoods, errors, etc.
 
         This class stores the samples of nested sampler model-fit (e.g. `dynesty`, `UltraNest`). To use a library's
-        in-built visualization tools results_internal are optionally stored in their native internal format using
-        the `results_internal` attribute.
+        in-built visualization tools results are optionally stored in their native internal format using the
+        `results_internal` attribute.
 
         Parameters
         ----------

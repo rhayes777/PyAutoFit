@@ -221,9 +221,9 @@ class AbstractPySwarms(AbstractOptimizer):
 
     def samples_from(self, model):
 
-        return PySwarmsSamples(
+        return PySwarmsSamples.from_results_internal(
+            results_internal=self.paths.load_object("points"),
             model=model,
-            points=self.paths.load_object("points"),
             log_posterior_list=self.paths.load_object("log_posterior_list"),
             total_iterations=self.paths.load_object("total_iterations"),
             time=self.timer.time
