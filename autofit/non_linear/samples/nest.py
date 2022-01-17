@@ -36,7 +36,7 @@ class NestSamples(PDFSamples):
             The list of `Samples` which contains the paramoeters, likelihood, weights, etc. of every sample taken
             by the non-linear search.
         number_live_points
-            The number of live points used by the `dynesty` search.
+            The number of live points used by the nested sampler.
         unconverged_sample_size
             If the samples are for a search that is yet to convergence, a reduced set of samples are used to provide
             a rough estimate of the parameters. The number of samples is set by this parameter.
@@ -44,7 +44,7 @@ class NestSamples(PDFSamples):
             The time taken to perform the model-fit, which is passed around `Samples` objects for outputting
             information on the overall fit.
         results_internal
-            The `dynesty` results_internal in their native internal format for interfacing the Dynesty visualization library.
+            The nested sampler's results in their native internal format for interfacing its visualization library.
         """
 
         self.results_internal = results_internal

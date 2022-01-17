@@ -54,12 +54,13 @@ class DynestySamples(NestSamples):
             time: Optional[float] = None,
     ):
         """
-        The `Samples` classes in **PyAutoFit** provide an interface between the results_internal of a `NonLinearSearch` (e.g.
+        The `Samples` classes in **PyAutoFit** provide an interface between the results of a `NonLinearSearch` (e.g.
         as files on your hard-disk) and Python.
 
         To create a `Samples` object after a `dynesty` model-fit the results must be converted from the
         native format used by `dynesty` to lists of values, the format used by the **PyAutoFit** `Samples` objects.
-        This classmethod performs this conversion before creating a DyenstySamples` object.
+
+        This classmethod performs this conversion before creating a `DynestySamples` object.
 
         Parameters
         ----------
