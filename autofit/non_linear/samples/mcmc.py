@@ -50,8 +50,6 @@ class MCMCSamples(PDFSamples):
             The MCMC library's results in their native internal format for interfacing its visualization library.
         """
 
-        self.results_internal = results_internal
-
         self.auto_correlation_settings = auto_correlation_settings
 
         super().__init__(
@@ -59,6 +57,7 @@ class MCMCSamples(PDFSamples):
             sample_list=sample_list,
             unconverged_sample_size=unconverged_sample_size,
             time=time,
+            results_internal=results_internal
         )
 
     @property

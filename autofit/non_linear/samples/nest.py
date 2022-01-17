@@ -47,7 +47,6 @@ class NestSamples(PDFSamples):
             The nested sampler's results in their native internal format for interfacing its visualization library.
         """
 
-        self.results_internal = results_internal
         self._number_live_points = number_live_points
 
         super().__init__(
@@ -55,6 +54,7 @@ class NestSamples(PDFSamples):
             sample_list=sample_list,
             unconverged_sample_size=unconverged_sample_size,
             time=time,
+            results_internal=results_internal
         )
 
     @property

@@ -17,12 +17,22 @@ class Samples:
             self,
             model: AbstractPriorModel,
             sample_list: List[Sample],
+            total_iterations: Optional[int] = None,
             time: Optional[float] = None,
+            results_internal: Optional = None,
     ):
         """
-        The `Samples` of a non-linear search, specifically the samples of an search which only provides
-        information on the global maximum likelihood solutions, but does not map-out the posterior and thus does
-        not provide information on parameter errors.
+        The `Samples` classes in **PyAutoFit** provide an interface between the results_internal of
+        a `NonLinearSearch` (e.g. as files on your hard-disk) and Python.
+
+        For example, the output class can be used to load an instance of the best-fit model, get an instance of any
+        individual sample by the `NonLinearSearch` and return information on the likelihoods, errors, etc.
+
+        This class stores samples of searches which provide maximum likelihood estimates of the  model-fit (e.g.
+        PySwarms, LBFGS).
+
+        To use a library's in-built visualization tools results are optionally stored in their native internal format
+        using the `results_internal` attribute.
 
         Parameters
         ----------
@@ -31,13 +41,21 @@ class Samples:
         sample_list
             The list of `Samples` which contains the paramoeters, likelihood, weights, etc. of every sample taken
             by the non-linear search.
+        total_iterations
+            The total number of iterations, which often cannot be estimated from the sample list (which contains
+            only accepted samples).
         time
             The time taken to perform the model-fit, which is passed around `Samples` objects for outputting
             information on the overall fit.
+        results_internal
+            The nested sampler's results in their native internal format for interfacing its visualization library.
         """
         self.model = model
         self.sample_list = sample_list
+
+        self.total_iterations = total_iterations
         self.time = time
+        self.results_internal = results_internal
 
         self._paths = None
         self._names = None

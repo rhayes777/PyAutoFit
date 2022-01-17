@@ -16,10 +16,20 @@ class PDFSamples(Samples):
             sample_list: List[Sample],
             unconverged_sample_size: int = 100,
             time: Optional[float] = None,
+            results_internal: Optional = None,
     ):
         """
-        The `Samples` of a non-linear search, specifically the samples of a `NonLinearSearch` which maps out the
-        posterior of parameter space and thus does provide information on parameter errors.
+        The `Samples` classes in **PyAutoFit** provide an interface between the results_internal of
+        a `NonLinearSearch` (e.g. as files on your hard-disk) and Python.
+
+        For example, the output class can be used to load an instance of the best-fit model, get an instance of any
+        individual sample by the `NonLinearSearch` and return information on the likelihoods, errors, etc.
+
+        This class stores samples of searches which provide the probability distribution function (PDF) of the
+        model fit (e.g. nested samplers, MCMC).
+
+        To use a library's in-built visualization tools results are optionally stored in their native internal format
+        using the `results_internal` attribute.
 
         Parameters
         ----------
@@ -34,12 +44,15 @@ class PDFSamples(Samples):
         time
             The time taken to perform the model-fit, which is passed around `Samples` objects for outputting
             information on the overall fit.
+        results_internal
+            The nested sampler's results in their native internal format for interfacing its visualization library.
         """
 
         super().__init__(
             model=model,
             sample_list=sample_list,
             time=time,
+            results_internal=results_internal
         )
 
         self._unconverged_sample_size = int(unconverged_sample_size)
