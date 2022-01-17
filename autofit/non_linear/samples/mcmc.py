@@ -3,7 +3,7 @@ from typing import List, Optional
 
 import numpy as np
 
-from autofit.mapper.model_mapper import ModelMapper
+from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.mcmc.auto_correlations import AutoCorrelationsSettings
 from autofit.non_linear.samples.pdf import PDFSamples
 from .samples import Samples
@@ -14,7 +14,7 @@ class MCMCSamples(PDFSamples):
 
     def __init__(
             self,
-            model: ModelMapper,
+            model: AbstractPriorModel,
             sample_list: List[Sample],
             auto_correlation_settings: AutoCorrelationsSettings,
             unconverged_sample_size: int = 100,
@@ -43,7 +43,7 @@ class MCMCSamples(PDFSamples):
         raise NotImplementedError
 
     @classmethod
-    def from_table(self, filename: str, model: ModelMapper, number_live_points: int = None):
+    def from_table(self, filename: str, model: AbstractPriorModel, number_live_points: int = None):
         """
         Write a table of parameters, posteriors, priors and likelihoods
 
