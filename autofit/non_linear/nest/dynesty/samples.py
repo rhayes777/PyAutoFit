@@ -68,6 +68,9 @@ class DynestySamples(NestSamples):
         Samples can be added together, which combines their `sample_list` meaning that inferred parameters are
         computed via their joint PDF.
 
+        For dynesty samples, the in-built dynesty function `merge_runs` can be used to combine results in their native
+        format and therefore retain visualization support.
+
         Parameters
         ----------
         other
@@ -82,7 +85,7 @@ class DynestySamples(NestSamples):
 
         results = dyfunc.merge_runs(res_list=[self.results, other.results])
 
-        return self.__class__(
+        return DynestySamples(
             model=self.model,
             sample_list=self.sample_list + other.sample_list,
             number_live_points=self._number_live_points,

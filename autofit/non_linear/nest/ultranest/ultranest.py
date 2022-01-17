@@ -159,8 +159,6 @@ class UltraNest(abstract_nest.AbstractNest):
 
         import ultranest
 
-        pool = self.make_pool()
-
         fitness_function = self.fitness_function_from_model_and_analysis(
             model=model, analysis=analysis, log_likelihood_cap=log_likelihood_cap,
         )
@@ -224,7 +222,8 @@ class UltraNest(abstract_nest.AbstractNest):
                 finished = True
 
     def samples_from(self, model: AbstractPriorModel):
-        """Create a `Samples` object from this non-linear search's output files on the hard-disk and model.
+        """
+        Create a `Samples` object from this non-linear search's output files on the hard-disk and model.
 
         For MulitNest, this requires us to load:
 
@@ -253,9 +252,9 @@ class UltraNest(abstract_nest.AbstractNest):
             )
             results = samples.results
 
-        return UltraNestSamples(
-            model=model,
+        return UltraNestSamples.from_results(
             results=results,
+            model=model,
             number_live_points=self.config_dict_run["min_num_live_points"],
             unconverged_sample_size=1,
             time=self.timer.time,

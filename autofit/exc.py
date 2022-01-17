@@ -51,3 +51,7 @@ class HistoryException(Exception):
 
 class SamplesException(Exception):
     pass
+
+
+class SamplesWarning(Warning):
+    pass
