@@ -15,18 +15,18 @@ class NestSamples(PDFSamples):
             number_live_points: Optional[int] = None,
             unconverged_sample_size: int = 100,
             time: Optional[float] = None,
-            results: Optional = None,
+            results_internal: Optional = None,
     ):
         """
-        The `Samples` classes in **PyAutoFit** provide an interface between the results of a `NonLinearSearch` (e.g.
+        The `Samples` classes in **PyAutoFit** provide an interface between the results_internal of a `NonLinearSearch` (e.g.
         as files on your hard-disk) and Python.
 
         For example, the output class can be used to load an instance of the best-fit model, get an instance of any
         individual sample by the `NonLinearSearch` and return information on the likelihoods, errors, etc.
 
         This class stores the samples of nested sampler model-fit (e.g. `dynesty`, `UltraNest`). To use a library's
-        in-built visualization tools results are optionally stored in their native internal format using
-        the `results` attribute.
+        in-built visualization tools results_internal are optionally stored in their native internal format using
+        the `results_internal` attribute.
 
         Parameters
         ----------
@@ -43,11 +43,11 @@ class NestSamples(PDFSamples):
         time
             The time taken to perform the model-fit, which is passed around `Samples` objects for outputting
             information on the overall fit.
-        results
-            The `dynesty` results in their native internal format for interfacing the Dynesty visualization library.
+        results_internal
+            The `dynesty` results_internal in their native internal format for interfacing the Dynesty visualization library.
         """
 
-        self.results = results
+        self.results_internal = results_internal
         self._number_live_points = number_live_points
 
         super().__init__(

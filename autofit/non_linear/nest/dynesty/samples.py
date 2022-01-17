@@ -18,7 +18,7 @@ class DynestySamples(NestSamples):
         Samples can be added together, which combines their `sample_list` meaning that inferred parameters are
         computed via their joint PDF.
 
-        For dynesty samples, the in-built dynesty function `merge_runs` can be used to combine results in their native
+        For dynesty samples, the in-built dynesty function `merge_runs` can be used to combine results_internal in their native
         format and therefore retain visualization support.
 
         Parameters
@@ -33,7 +33,7 @@ class DynestySamples(NestSamples):
 
         self._check_addition(other=other)
 
-        results = dyfunc.merge_runs(res_list=[self.results, other.results])
+        results_internal = dyfunc.merge_runs(res_list=[self.results_internal, other.results_internal])
 
         return DynestySamples(
             model=self.model,
@@ -41,20 +41,20 @@ class DynestySamples(NestSamples):
             number_live_points=self._number_live_points,
             unconverged_sample_size=self.unconverged_sample_size,
             time=self.time,
-            results=results
+            results_internal=results_internal
         )
 
     @classmethod
-    def from_results(
+    def from_results_internal(
             cls,
-            results: Results,
+            results_internal: Results,
             model: AbstractPriorModel,
             number_live_points: int,
             unconverged_sample_size: int = 100,
             time: Optional[float] = None,
     ):
         """
-        The `Samples` classes in **PyAutoFit** provide an interface between the results of a `NonLinearSearch` (e.g.
+        The `Samples` classes in **PyAutoFit** provide an interface between the results_internal of a `NonLinearSearch` (e.g.
         as files on your hard-disk) and Python.
 
         To create a `Samples` object after a `dynesty` model-fit the results must be converted from the
@@ -63,7 +63,7 @@ class DynestySamples(NestSamples):
 
         Parameters
         ----------
-        results
+        results_internal
             The `dynesty` results in their native internal format from which the samples are computed.
         model
             Maps input vectors of unit parameter values to physical values and model instances via priors.
@@ -76,16 +76,16 @@ class DynestySamples(NestSamples):
             The time taken to perform the model-fit, which is passed around `Samples` objects for outputting
             information on the overall fit.
         """
-        parameter_lists = results.samples.tolist()
+        parameter_lists = results_internal.samples.tolist()
         log_prior_list = model.log_prior_list_from(parameter_lists=parameter_lists)
-        log_likelihood_list = list(results.logl)
+        log_likelihood_list = list(results_internal.logl)
 
         try:
             weight_list = list(
-                np.exp(np.asarray(results.logwt) - results.logz[-1])
+                np.exp(np.asarray(results_internal.logwt) - results_internal.logz[-1])
             )
         except:
-            weight_list = results["weights"]
+            weight_list = results_internal["weights"]
 
         sample_list = Sample.from_lists(
             model=model,
@@ -101,7 +101,7 @@ class DynestySamples(NestSamples):
             number_live_points=number_live_points,
             unconverged_sample_size=unconverged_sample_size,
             time=time,
-            results=results,
+            results_internal=results_internal,
         )
 
     @property
@@ -110,8 +110,8 @@ class DynestySamples(NestSamples):
 
     @property
     def total_samples(self):
-        return int(np.sum(self.results.ncall))
+        return int(np.sum(self.results_internal.ncall))
 
     @property
     def log_evidence(self):
-        return np.max(self.results.logz)
+        return np.max(self.results_internal.logz)

@@ -13,7 +13,7 @@ class DynestyPlotter(SamplesPlotter):
             return None
 
         dyplot.boundplot(
-            results=self.samples.results,
+            results=self.samples.results_internal,
             labels=self.model.parameter_labels_with_superscripts_latex,
             **kwargs
         )
@@ -27,7 +27,7 @@ class DynestyPlotter(SamplesPlotter):
             return None
 
         dyplot.cornerbound(
-            results=self.samples.results,
+            results=self.samples.results_internal,
             labels=self.model.parameter_labels_with_superscripts_latex,
             **kwargs
         )
@@ -41,7 +41,7 @@ class DynestyPlotter(SamplesPlotter):
             return None
 
         dyplot.cornerplot(
-            results=self.samples.results,
+            results=self.samples.results_internal,
             labels=self.model.parameter_labels_with_superscripts_latex,
             **kwargs
         )
@@ -56,7 +56,7 @@ class DynestyPlotter(SamplesPlotter):
 
         try:
             dyplot.cornerpoints(
-                results=self.samples.results,
+                results=self.samples.results_internal,
                 labels=self.model.parameter_labels_with_superscripts_latex,
                 **kwargs
             )
@@ -74,7 +74,7 @@ class DynestyPlotter(SamplesPlotter):
 
         try:
             dyplot.runplot(
-                results=self.samples.results,
+                results=self.samples.results_internal,
                 **kwargs
             )
         except ValueError:
@@ -89,7 +89,7 @@ class DynestyPlotter(SamplesPlotter):
             return None
 
         dyplot.traceplot(
-            results=self.samples.results,
+            results=self.samples.results_internal,
             **kwargs
         )
 

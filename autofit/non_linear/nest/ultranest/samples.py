@@ -17,8 +17,8 @@ class UltraNestSamples(NestSamples):
         Samples can be added together, which combines their `sample_list` meaning that inferred parameters are
         computed via their joint PDF.
 
-        For UltraNest samples there are no tools for combining results in their native format, therefore these results
-        are set to None and support for visualization is disabled.
+        For UltraNest samples there are no tools for combining results in their native format, therefore these
+        `results_internal` are set to None and support for visualization is disabled.
 
         Parameters
         ----------
@@ -44,20 +44,20 @@ class UltraNestSamples(NestSamples):
             number_live_points=self._number_live_points,
             unconverged_sample_size=self.unconverged_sample_size,
             time=self.time,
-            results=None
+            results_internal=None
         )
 
     @classmethod
-    def from_results(
+    def from_results_internal(
             cls,
-            results,
+            results_internal,
             model: AbstractPriorModel,
             number_live_points: int,
             unconverged_sample_size: int = 100,
             time: Optional[float] = None,
     ):
         """
-        The `Samples` classes in **PyAutoFit** provide an interface between the results of a `NonLinearSearch` (e.g.
+        The `Samples` classes in **PyAutoFit** provide an interface between the resultsof a `NonLinearSearch` (e.g.
         as files on your hard-disk) and Python.
 
         To create a `Samples` object after an `UltraNest` model-fit the results must be converted from the
@@ -66,7 +66,7 @@ class UltraNestSamples(NestSamples):
 
         Parameters
         ----------
-        results
+        results_internal
             The `UltraNest` results in their native internal format from which the samples are computed.
         model
             Maps input vectors of unit parameter values to physical values and model instances via priors.
@@ -80,12 +80,12 @@ class UltraNestSamples(NestSamples):
             information on the overall fit.
         """
         
-        parameters = results["weighted_samples"]["points"]
-        log_likelihood_list = results["weighted_samples"]["logl"]
+        parameters = results_internal["weighted_samples"]["points"]
+        log_likelihood_list = results_internal["weighted_samples"]["logl"]
         log_prior_list = [
             sum(model.log_prior_list_from_vector(vector=vector)) for vector in parameters
         ]
-        weight_list = results["weighted_samples"]["weights"]
+        weight_list = results_internal["weighted_samples"]["weights"]
 
         sample_list = Sample.from_lists(
             model=model,
@@ -101,7 +101,7 @@ class UltraNestSamples(NestSamples):
             number_live_points=number_live_points,
             unconverged_sample_size=unconverged_sample_size,
             time=time,
-            results=results,
+            results_internal=results_internal,
         )
 
     @property
@@ -110,8 +110,8 @@ class UltraNestSamples(NestSamples):
 
     @property
     def total_samples(self):
-        return self.results["ncall"]
+        return self.results_internal["ncall"]
 
     @property
     def log_evidence(self):
-        return self.results["logz"]
+        return self.results_internal["logz"]

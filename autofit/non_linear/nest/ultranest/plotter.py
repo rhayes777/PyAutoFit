@@ -8,7 +8,7 @@ class UltraNestPlotter(SamplesPlotter):
         from ultranest import plot
 
         plot.cornerplot(
-            results=self.samples.results,
+            results=self.samples.results_internal,
             **kwargs
         )
 
@@ -21,7 +21,7 @@ class UltraNestPlotter(SamplesPlotter):
 
         try:
             plot.runplot(
-                results=self.samples.results,
+                results=self.samples.results_internal,
                 **kwargs
             )
         except KeyError:
@@ -36,7 +36,7 @@ class UltraNestPlotter(SamplesPlotter):
 
         try:
             plot.traceplot(
-                results=self.samples.results,
+                results=self.samples.results_internal,
                 **kwargs
             )
         except KeyError:

@@ -241,7 +241,7 @@ class UltraNest(abstract_nest.AbstractNest):
 
         try:
 
-            results = self.paths.load_object(
+            results_internal = self.paths.load_object(
                 "results"
             )
 
@@ -250,10 +250,10 @@ class UltraNest(abstract_nest.AbstractNest):
             samples = self.paths.load_object(
                 "samples"
             )
-            results = samples.results
+            results_internal = samples.results
 
-        return UltraNestSamples.from_results(
-            results=results,
+        return UltraNestSamples.from_results_internal(
+            results_internal=results_internal,
             model=model,
             number_live_points=self.config_dict_run["min_num_live_points"],
             unconverged_sample_size=1,
