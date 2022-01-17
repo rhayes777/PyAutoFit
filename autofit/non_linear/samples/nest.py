@@ -12,7 +12,7 @@ class NestSamples(PDFSamples):
             self,
             model: AbstractPriorModel,
             sample_list: List[Sample],
-            number_live_points: int,
+            number_live_points: Optional[int] = None,
             unconverged_sample_size: int = 100,
             time: Optional[float] = None,
             results: Optional = None,

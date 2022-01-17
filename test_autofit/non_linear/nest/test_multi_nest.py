@@ -276,4 +276,4 @@ class TestMulitNest:
         assert samples.weight_list == [0.02, 0.02, 0.01, 0.05, 0.1, 0.1, 0.1, 0.1, 0.2, 0.3]
         assert samples.total_samples == 12345
         assert samples.log_evidence == 0.02
-        assert samples.number_live_points == 50
+        assert samples.number_live_points == None
