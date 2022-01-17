@@ -1,9 +1,9 @@
+from copy import copy
 import csv
 import json
-from copy import copy
-from typing import List, Optional, Tuple, Union
-
 import numpy as np
+from typing import List, Optional, Tuple, Union
+import warnings
 
 from autofit.mapper.model import ModelInstance
 from autofit.mapper.prior_model.abstract import AbstractPriorModel, Path
@@ -79,6 +79,13 @@ class Samples:
         """
 
         self._check_addition(other=other)
+
+        if self.results_internal is not None:
+            warnings.warn(
+                f"Addition of {self.__class__.__name__} cannot retain results in native format. "
+                "Visualization of summed samples diabled.",
+                exc.SamplesWarning
+            )
 
         return self.__class__(
             model=self.model,

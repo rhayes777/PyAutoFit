@@ -1,14 +1,16 @@
 import math
-from typing import List, Optional
-
 import numpy as np
+from typing import List, Optional
+import warnings
 
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.mcmc.auto_correlations import AutoCorrelationsSettings
 from autofit.non_linear.samples.pdf import PDFSamples
-from .samples import Samples
-from .sample import Sample, load_from_table
+from autofit.non_linear.samples.samples import Samples
+from autofit.non_linear.samples.samples import Sample
+from autofit.non_linear.samples.sample import load_from_table
 
+from autofit import exc
 
 class MCMCSamples(PDFSamples):
 
@@ -58,6 +60,44 @@ class MCMCSamples(PDFSamples):
             unconverged_sample_size=unconverged_sample_size,
             time=time,
             results_internal=results_internal
+        )
+
+    def __add__(
+            self,
+            other: "MCMCSamples"
+    ) -> "MCMCSamples":
+        """
+        Samples can be added together, which combines their `sample_list` meaning that inferred parameters are
+        computed via their joint PDF.
+
+        For Zeus samples there are no tools for combining results in their native format, therefore these
+        `results_internal` are set to None and support for visualization is disabled.
+
+        Parameters
+        ----------
+        other
+            Another Samples class
+
+        Returns
+        -------
+        A class that combined the samples of the two Samples objects.
+        """
+
+        self._check_addition(other=other)
+
+        warnings.warn(
+            f"Addition of {self.__class__.__name__} cannot retain results in native format. "
+            "Visualization of summed samples diabled.",
+            exc.SamplesWarning
+        )
+
+        return self.__class__(
+            model=self.model,
+            sample_list=self.sample_list + other.sample_list,
+            auto_correlation_settings=self.auto_correlation_settings,
+            unconverged_sample_size=self.unconverged_sample_size,
+            time=self.time,
+            results_internal=None
         )
 
     @property

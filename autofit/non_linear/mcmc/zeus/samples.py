@@ -1,7 +1,6 @@
 import logging
 import numpy as np
 from typing import List, Optional
-import warnings
 import zeus
 
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
@@ -9,51 +8,11 @@ from autofit.non_linear.samples.mcmc import MCMCSamples
 from autofit.non_linear.mcmc.auto_correlations import AutoCorrelationsSettings, AutoCorrelations
 from autofit.non_linear.samples import Sample
 
-from autofit import exc
-
 logger = logging.getLogger(
     __name__
 )
 
 class ZeusSamples(MCMCSamples):
-
-    def __add__(
-            self,
-            other: "ZeusSamples"
-    ) -> "ZeusSamples":
-        """
-        Samples can be added together, which combines their `sample_list` meaning that inferred parameters are
-        computed via their joint PDF.
-
-        For Zeus samples there are no tools for combining results in their native format, therefore these
-        `results_internal` are set to None and support for visualization is disabled.
-
-        Parameters
-        ----------
-        other
-            Another Samples class
-
-        Returns
-        -------
-        A class that combined the samples of the two Samples objects.
-        """
-
-        self._check_addition(other=other)
-
-        warnings.warn(
-            "Addition of ZeusSamples cannot retain results in native format. "
-            "Visualization of summed samples diabled.",
-            exc.SamplesWarning
-        )
-
-        return ZeusSamples(
-            model=self.model,
-            sample_list=self.sample_list + other.sample_list,
-            auto_correlation_settings=self.auto_correlation_settings,
-            unconverged_sample_size=self.unconverged_sample_size,
-            time=self.time,
-            results_internal=None
-        )
 
     @classmethod
     def from_results_internal(
