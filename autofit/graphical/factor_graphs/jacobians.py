@@ -4,24 +4,28 @@ from typing import Tuple, Dict, Callable, Optional, Union
 import numpy as np
 
 from autofit.graphical.factor_graphs.abstract import FactorValue, JacobianValue
-from autofit.graphical.factor_graphs.factor import AbstractFactor, Factor, DeterministicFactor
+from autofit.graphical.factor_graphs.factor import (
+    AbstractFactor,
+    Factor,
+    DeterministicFactor,
+)
 from autofit.graphical.utils import aggregate, Axis
 from autofit.mapper.variable import Variable, Plate
 
 
 class FactorJacobian(Factor):
     """
-    A node in a graph representing a factor with analytic evaluation 
+    A node in a graph representing a factor with analytic evaluation
     of its Jacobian
 
     Parameters
     ----------
     factor_jacobian
-        the function being wrapped, which can also return its jacobian by 
-        using the keyword argument `_variables` which indicates which, 
-        if any, variables the function must return the Jacobians for, 
-        so for example, for a function with variables 'x' and 'y', the 
-        call signatures would look like so, 
+        the function being wrapped, which can also return its jacobian by
+        using the keyword argument `_variables` which indicates which,
+        if any, variables the function must return the Jacobians for,
+        so for example, for a function with variables 'x' and 'y', the
+        call signatures would look like so,
 
         z, (dz_dx, dz_dy) = factor_jacoban(x=x, y=y, _variables=('x', 'y'))
         z, (dz_dy, dz_dx) = factor_jacoban(x=x, y=y, _variables=('y', 'x'))
@@ -34,9 +38,9 @@ class FactorJacobian(Factor):
         of the function passed
 
     vectorised: optional, bool
-        if true the factor will call it the function directly over multiple 
+        if true the factor will call it the function directly over multiple
         inputs. If false the factor will call the function iteratively over
-        each argument. 
+        each argument.
 
     is_scalar: optional, bool
         if true the factor returns a scalar value. Note if multiple arguments
@@ -47,23 +51,20 @@ class FactorJacobian(Factor):
     """
 
     def __init__(
-            self,
-            factor_jacobian: Callable,
-            *,
-            name="",
-            vectorised=False,
-            plates: Tuple[Plate, ...] = (),
-            **kwargs: Variable
+        self,
+        factor_jacobian: Callable,
+        *,
+        name="",
+        vectorised=False,
+        plates: Tuple[Plate, ...] = (),
+        **kwargs: Variable,
     ):
         self.vectorised = vectorised
         self.is_scalar = bool(plates)
         self._set_factor(factor_jacobian)
 
         AbstractFactor.__init__(
-            self,
-            **kwargs,
-            plates=plates, 
-            name=name or factor_jacobian.__name__
+            self, **kwargs, plates=plates, name=name or factor_jacobian.__name__
         )
 
     def __hash__(self) -> int:
@@ -71,9 +72,9 @@ class FactorJacobian(Factor):
         return hash(self._factor)
 
     def _call_factor(
-            self,
-            values: Dict[str, np.ndarray],
-            variables: Optional[Tuple[str, ...]] = None,
+        self,
+        values: Dict[str, np.ndarray],
+        variables: Optional[Tuple[str, ...]] = None,
     ) -> Union[np.ndarray, Tuple[np.ndarray, Tuple[np.ndarray, ...]]]:
         """
         Call the underlying function
@@ -104,25 +105,24 @@ class FactorJacobian(Factor):
         """
         kwargs_dims = {k: np.ndim(a) for k, a in values.items()}
         # Check dimensions of inputs directly match plates
-        direct_call = (
-            all(dim == kwargs_dims[k] for k, dim in self._kwargs_dims.items()))
+        direct_call = all(dim == kwargs_dims[k] for k, dim in self._kwargs_dims.items())
         if direct_call:
             return self._factor(**values, _variables=variables)
         else:
             return self._multicall_factor(values, variables)
 
     def _multicall_factor(
-            self,
-            values: Dict[str, np.ndarray],
-            variables: Optional[Tuple[str, ...]] = None,
+        self,
+        values: Dict[str, np.ndarray],
+        variables: Optional[Tuple[str, ...]] = None,
     ) -> Union[np.ndarray, Tuple[np.ndarray, Tuple[np.ndarray, ...]]]:
-        """call the factor multiple times and aggregates 
+        """call the factor multiple times and aggregates
         the results together
         """
         # Check dimensions of inputs match plates + 1
         vectorised = all(
-            dim + 1 == np.ndim(values[k])
-            for k, dim in self._kwargs_dims.items())
+            dim + 1 == np.ndim(values[k]) for k, dim in self._kwargs_dims.items()
+        )
 
         if not vectorised:
             kwargs_dims = {k: np.ndim(a) for k, a in values.items()}
@@ -130,7 +130,8 @@ class FactorJacobian(Factor):
                 "input dimensions do not match required dims"
                 f"input: **kwargs={kwargs_dims}"
                 f"required: "
-                f"**kwargs={self._kwargs_dims}")
+                f"**kwargs={self._kwargs_dims}"
+            )
 
         kw_lens = {k: len(a) for k, a in values.items()}
 
@@ -138,19 +139,20 @@ class FactorJacobian(Factor):
         sizes = set(kw_lens.values())
         dim0 = max(sizes)
         if sizes.difference({1, dim0}):
-            raise ValueError(
-                f"size mismatch first dimensions passed: {sizes}")
+            raise ValueError(f"size mismatch first dimensions passed: {sizes}")
 
         iter_kws = {
             k: iter(a) if kw_lens[k] == dim0 else iter(repeat(a[0]))
-            for k, a in values.items()}
+            for k, a in values.items()
+        }
 
         # TODO this loop can also be parallelised for increased performance
         fjacs = [
-            self._factor(**{
-                k: next(a) for k, a in iter_kws.items()},
-                         _variables=variables)
-            for _ in range(dim0)]
+            self._factor(
+                **{k: next(a) for k, a in iter_kws.items()}, _variables=variables
+            )
+            for _ in range(dim0)
+        ]
 
         if variables is None:
             res = np.array([fjac for fjac in fjacs])
@@ -158,16 +160,14 @@ class FactorJacobian(Factor):
         else:
             res = np.array([fjac[0] for fjac in fjacs])
             njac = len(fjacs[0][1])
-            jacs = tuple(
-                np.array([fjac[1][i] for fjac in fjacs])
-                for i in range(njac))
+            jacs = tuple(np.array([fjac[1][i] for fjac in fjacs]) for i in range(njac))
 
             return res, jacs
 
     def __call__(
-            self,
-            variable_dict: Dict[Variable, np.ndarray],
-            axis: Axis = False,
+        self,
+        variable_dict: Dict[Variable, np.ndarray],
+        axis: Axis = False,
     ) -> FactorValue:
         values = self.resolve_variable_dict(variable_dict)
         val = self._call_factor(values, variables=None)
@@ -175,25 +175,25 @@ class FactorJacobian(Factor):
         return FactorValue(val, {})
 
     def func_jacobian(
-            self,
-            variable_dict: Dict[Variable, np.ndarray],
-            variables: Optional[Tuple[Variable, ...]] = None,
-            axis: Axis = False,
-            **kwargs
+        self,
+        variable_dict: Dict[Variable, np.ndarray],
+        variables: Optional[Tuple[Variable, ...]] = None,
+        axis: Axis = False,
+        **kwargs,
     ) -> Tuple[FactorValue, JacobianValue]:
         """
         Call the underlying factor
 
         Parameters
         ----------
-        variable_dict : 
+        variable_dict :
             the values to call the function with
         variables : tuple of Variables
             the variables to calculate gradients and Jacobians for
             if variables = None then differentiates wrt all variables
         axis : None or False or int or tuple of ints, optional
             the axes to reduce the result over.
-            if axis = None the sum over all dimensions 
+            if axis = None the sum over all dimensions
             if axis = False then does not reduce result
 
         Returns
@@ -204,20 +204,18 @@ class FactorJacobian(Factor):
         if variables is None:
             variables = self.variables
 
-        variable_names = tuple(
-            self._variable_name_kw[v.name]
-            for v in variables)
+        variable_names = tuple(self._variable_name_kw[v.name] for v in variables)
         kwargs = self.resolve_variable_dict(variable_dict)
-        val, jacs = self._call_factor(
-            kwargs, variables=variable_names)
+        val, jacs = self._call_factor(kwargs, variables=variable_names)
         grad_axis = tuple(range(np.ndim(val))) if axis is None else axis
 
-        fval = FactorValue(
-            aggregate(self._reshape_factor(val, kwargs), axis))
-        fjac = {
-            v: FactorValue(aggregate(jac, grad_axis))
-            for v, jac in zip(variables, jacs)
-        }
+        fval = FactorValue(aggregate(self._reshape_factor(val, kwargs), axis))
+        fjac = JacobianValue(
+            {
+                v: FactorValue(aggregate(jac, grad_axis))
+                for v, jac in zip(variables, jacs)
+            }
+        )
         return fval, fjac
 
     def __eq__(self, other: Union["Factor", Variable]):
@@ -228,25 +226,24 @@ class FactorJacobian(Factor):
         if isinstance(other, Factor):
             if isinstance(other, type(self)):
                 return (
-                        (self._factor == other._factor)
-                        and (frozenset(self._kwargs.items())
-                             == frozenset(other._kwargs.items()))
-                        and (frozenset(self.variables)
-                             == frozenset(other.variables))
-                        and (frozenset(self.deterministic_variables)
-                             == frozenset(self.deterministic_variables)))
+                    (self._factor == other._factor)
+                    and (
+                        frozenset(self._kwargs.items())
+                        == frozenset(other._kwargs.items())
+                    )
+                    and (frozenset(self.variables) == frozenset(other.variables))
+                    and (
+                        frozenset(self.deterministic_variables)
+                        == frozenset(self.deterministic_variables)
+                    )
+                )
             else:
                 return False
 
-        return DeterministicFactorJacobian(
-            self._factor,
-            other,
-            **self._kwargs
-        )
+        return DeterministicFactorJacobian(self._factor, other, **self._kwargs)
 
     def __repr__(self) -> str:
-        args = ", ".join(chain(
-            map("{0[0]}={0[1]}".format, self._kwargs.items())))
+        args = ", ".join(chain(map("{0[0]}={0[1]}".format, self._kwargs.items())))
         return f"FactorJacobian({self.name}, {args})"
 
 
@@ -260,7 +257,7 @@ class DeterministicFactorJacobian(FactorJacobian):
     factor
         The original factor to which the deterministic factor is associated
     variable
-        The deterministic variable that is returned by the factor, so 
+        The deterministic variable that is returned by the factor, so
         to represent the case f(g(x)), we would define,
 
         ```
@@ -273,37 +270,32 @@ class DeterministicFactorJacobian(FactorJacobian):
         ```
         >>> g_ = DeterministicFactor(g, y, x=x)
         ```
-        
+
     kwargs
         Variables for the original factor
     """
 
     def __init__(
-            self,
-            factor_jacobian: Callable,
-            variable: Variable,
-            vectorised=False,
-            **kwargs: Variable
+        self,
+        factor_jacobian: Callable,
+        variable: Variable,
+        vectorised=False,
+        **kwargs: Variable,
     ):
 
-        super().__init__(
-            factor_jacobian,
-            vectorised=vectorised,
-            plates=(),
-            **kwargs
-        )
-        self._deterministic_variables = variable,
+        super().__init__(factor_jacobian, vectorised=vectorised, plates=(), **kwargs)
+        self._deterministic_variables = (variable,)
 
     @property
     def deterministic_variables(self):
         return set(self._deterministic_variables)
 
     def func_jacobian(
-            self,
-            variable_dict: Dict[Variable, np.ndarray],
-            variables: Optional[Tuple[Variable, ...]] = None,
-            axis: Axis = False,
-            **kwargs,
+        self,
+        variable_dict: Dict[Variable, np.ndarray],
+        variables: Optional[Tuple[Variable, ...]] = None,
+        axis: Axis = False,
+        **kwargs,
     ) -> Tuple[FactorValue, JacobianValue]:
         """
         Call this factor with a set of arguments
@@ -322,17 +314,14 @@ class DeterministicFactorJacobian(FactorJacobian):
         if variables is None:
             variables = self.variables
 
-        variable_names = tuple(
-            self._variable_name_kw[v.name] for v in variables)
+        variable_names = tuple(self._variable_name_kw[v.name] for v in variables)
         kwargs = self.resolve_variable_dict(variable_dict)
-        vals, *jacs = self._call_factor(
-            kwargs, variables=variable_names)
-            
-        var_shapes = {
-            self._kwargs[v]: np.shape(x) for v, x in kwargs.items()}
-        shift, plate_sizes = self._plate_sizes(**{
-            k: np.shape(x) for k, x in kwargs.items()
-        })
+        vals, *jacs = self._call_factor(kwargs, variables=variable_names)
+
+        var_shapes = {self._kwargs[v]: np.shape(x) for v, x in kwargs.items()}
+        shift, plate_sizes = self._plate_sizes(
+            **{k: np.shape(x) for k, x in kwargs.items()}
+        )
         start_plate = (None,) if shift else ()
         det_shapes = {
             v: tuple(plate_sizes[p] for p in start_plate + v.plates)
@@ -340,9 +329,9 @@ class DeterministicFactorJacobian(FactorJacobian):
         }
 
         if not (isinstance(vals, tuple) or self.n_deterministic > 1):
-            vals = vals,
+            vals = (vals,)
 
-        log_val = 0.
+        log_val = 0.0
         # log_val = (
         #     0. if (shape == () or axis is None) else
         #     aggregate(np.zeros(tuple(1 for _ in shape)), axis))
@@ -356,23 +345,26 @@ class DeterministicFactorJacobian(FactorJacobian):
         for k, _jacs in zip(self._deterministic_variables, jacs):
             for v, jac in zip(variables, _jacs):
                 vjacs.setdefault(v, {})[k] = np.reshape(
-                    jac, det_shapes[k] + var_shapes[v][shift:])
-        fjac = {
-            v: FactorValue(
-                np.zeros(np.shape(log_val) + var_shapes[v]),
-                vjacs[v])
-            for v in variables
-        }
+                    jac, det_shapes[k] + var_shapes[v][shift:]
+                )
+        fjac = JacobianValue(
+            {
+                v: FactorValue(np.zeros(np.shape(log_val) + var_shapes[v]), vjacs[v])
+                for v in variables
+            }
+        )
         return fval, fjac
 
     def __call__(
-            self,
-            variable_dict: Dict[Variable, np.ndarray],
-            axis: Axis = False,
+        self,
+        variable_dict: Dict[Variable, np.ndarray],
+        axis: Axis = False,
     ) -> FactorValue:
         return self.func_jacobian(variable_dict, (), axis=axis)[0]
 
     def __repr__(self) -> str:
         factor_str = super().__repr__()
-        var_str = ", ".join(sorted(variable.name for variable in self._deterministic_variables))
+        var_str = ", ".join(
+            sorted(variable.name for variable in self._deterministic_variables)
+        )
         return f"({factor_str} == ({var_str}))"

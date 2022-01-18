@@ -1,18 +1,18 @@
 import logging
 from functools import reduce
-from typing import (
-    Dict, Tuple, Optional, List, Union, Iterable
-)
+from typing import Dict, Tuple, Optional, List, Union, Iterable
 
 import numpy as np
 
 from autofit import exc
 from autofit.graphical.factor_graphs import (
-    Factor, AbstractNode, FactorValue, JacobianValue
+    Factor,
+    AbstractNode,
+    FactorValue,
+    JacobianValue,
+    HessianValue,
 )
-from autofit.graphical.utils import (
-    prod, add_arrays, OptResult, Status, aggregate, Axis
-)
+from autofit.graphical.utils import prod, add_arrays, OptResult, Status, aggregate, Axis
 from autofit.mapper.prior.abstract import Prior
 from autofit.mapper.prior_model.collection import CollectionPriorModel
 from autofit.mapper.variable import Variable, Plate
@@ -22,23 +22,17 @@ from autofit.messages.fixed import FixedMessage
 VariableFactorDist = Dict[str, Dict[Factor, AbstractMessage]]
 Projection = Dict[str, AbstractMessage]
 
-logger = logging.getLogger(
-    __name__
-)
+logger = logging.getLogger(__name__)
 
 
-class MeanField(
-    CollectionPriorModel,
-    Dict[Variable, AbstractMessage],
-    Factor
-):
-    """For a factor with multiple variables, this class represents the 
-    the mean field approximation to that factor, 
+class MeanField(CollectionPriorModel, Dict[Variable, AbstractMessage], Factor):
+    """For a factor with multiple variables, this class represents the
+    the mean field approximation to that factor,
 
     f(x₁, x₂, x₃) = q(x₁, x₂, x₃) = q₁(x₁) q₂(x₂) q₃(x₃)
 
-    Internally these variables approximations are stored in a 
-    dictionary with the variables as keys and the message or 
+    Internally these variables approximations are stored in a
+    dictionary with the variables as keys and the message or
     variable distribution as values
 
 
@@ -50,22 +44,22 @@ class MeanField(
     logpdf({x₁: x1, x₂: x2, x₃: x3})
         returns the q(x₁, x₂, x₃), axis defines the axes over which
         to reduce the return, if the meanfield is duplicated over multiple
-        plates. 
+        plates.
 
     logpdf_gradient({x₁: x1, x₂: x2, x₃: x3})
-        returns the q(x₁, x₂, x₃) and the gradients for each input. 
+        returns the q(x₁, x₂, x₃) and the gradients for each input.
         to save memory the gradients are always the shape of the input
         values (i.e. this does not calculate the Jacobian)
     """
 
     def __init__(
-            self,
-            dists: Dict[Variable, AbstractMessage],
-            plates: Optional[Tuple[Plate, ...]] = None, 
-            log_norm: np.ndarray = 0.):
+        self,
+        dists: Dict[Variable, AbstractMessage],
+        plates: Optional[Tuple[Plate, ...]] = None,
+        log_norm: np.ndarray = 0.0,
+    ):
         dict.__init__(self, dists)
-        Factor.__init__(
-            self, self._logpdf, **{v.name: v for v in dists})
+        Factor.__init__(self, self._logpdf, **{v.name: v for v in dists})
         CollectionPriorModel.__init__(self)
 
         if isinstance(dists, MeanField):
@@ -76,10 +70,7 @@ class MeanField(
             self._plates = self.sorted_plates if plates is None else plates
 
     @classmethod
-    def from_priors(
-            cls,
-            priors: Iterable[Prior]
-    ) -> "MeanField":
+    def from_priors(cls, priors: Iterable[Prior]) -> "MeanField":
         """
         Create a MeanField from a list of priors.
 
@@ -95,10 +86,7 @@ class MeanField(
         -------
         A mean field
         """
-        return MeanField({
-            prior: prior
-            for prior in priors
-        })
+        return MeanField({prior: prior for prior in priors})
 
     pop = dict.pop
     values = dict.values
@@ -107,8 +95,7 @@ class MeanField(
 
     def _logpdf(self, **kwargs: np.ndarray) -> np.ndarray:
         var_names = self.name_variable_dict
-        return self.logpdf(
-            {var_names[k]: value for k, value in kwargs.items()})
+        return self.logpdf({var_names[k]: value for k, value in kwargs.items()})
 
     @property
     def mean(self):
@@ -130,11 +117,11 @@ class MeanField(
         return {v: dist for v, dist in self.items()}
 
     def logpdf(
-            self,
-            values: Dict[Variable, np.ndarray],
-            axis: Axis = False,
+        self,
+        values: Dict[Variable, np.ndarray],
+        axis: Axis = False,
     ) -> np.ndarray:
-        """Calculates the logpdf of the passed values for messages 
+        """Calculates the logpdf of the passed values for messages
 
         the result is broadcast to the appropriate shape given the variable
         plates
@@ -143,60 +130,54 @@ class MeanField(
             add_arrays,
             (
                 aggregate(
-                    self._broadcast(
-                        self._variable_plates[v],
-                        m.logpdf(values[v])
-                    ),
-                    axis=axis
+                    self._broadcast(self._variable_plates[v], m.logpdf(values[v])),
+                    axis=axis,
                 )
                 for v, m in self.items()
-            )
+            ),
         )
 
     def __call__(
-            self,
-            values: Dict[Variable, np.ndarray],
-            axis: Axis = False,
+        self,
+        values: Dict[Variable, np.ndarray],
+        axis: Axis = False,
     ) -> FactorValue:
         return FactorValue(self.logpdf(values, axis=axis), {})
 
     def logpdf_gradient(
-            self,
-            values: Dict[Variable, np.ndarray],
-            axis: Axis = False,
-            **kwargs
+        self, values: Dict[Variable, np.ndarray], axis: Axis = False, **kwargs
     ):
         logl = 0
         gradl = {}
         for v, m in self.items():
             lv, gradl[v] = m.logpdf_gradient(values[v])
-            lv = aggregate(
-                self._broadcast(self._variable_plates[v], lv),
-                axis=axis)
+            lv = aggregate(self._broadcast(self._variable_plates[v], lv), axis=axis)
             logl = add_arrays(logl, lv)
 
         return logl, gradl
 
     def logpdf_gradient_hessian(
-            self,
-            values: Dict[Variable, np.ndarray],
-            axis: Optional[Union[bool, int, Tuple[int, ...]]] = False,
-            **kwargs):
-        logl = 0.
-        gradl = {}
-        hessl = {}
+        self,
+        values: Dict[Variable, np.ndarray],
+        axis: Optional[Union[bool, int, Tuple[int, ...]]] = False,
+        **kwargs,
+    ):
+        logl = 0.0
+        gradl = JacobianValue({})
+        hessl = HessianValue({})
         for v, m in self.items():
             lv, gradl[v], hessl[v] = m.logpdf_gradient_hessian(values[v])
-            lv = aggregate(
-                self._broadcast(self._variable_plates[v], lv),
-                axis=axis)
+            lv = aggregate(self._broadcast(self._variable_plates[v], lv), axis=axis)
             logl = add_arrays(logl, lv)
 
         return logl, gradl, hessl
 
     def __repr__(self):
-        reprdict = "{\n" + "\n".join(
-            "  {}: {}".format(k, v) for k, v in self.items()) + "\n  }"
+        reprdict = (
+            "{\n"
+            + "\n".join("  {}: {}".format(k, v) for k, v in self.items())
+            + "\n  }"
+        )
         classname = type(self).__name__
         return f"{classname}({reprdict}, log_norm={self.log_norm})"
 
@@ -204,30 +185,27 @@ class MeanField(
     def is_valid(self):
         return all(d.is_valid for d in self.values())
 
-    def prod(self, *approxs: 'MeanField') -> 'MeanField':
+    def prod(self, *approxs: "MeanField") -> "MeanField":
         dists = (
-            (k, prod((m.get(k, 1.) for m in approxs), m))
-            for k, m in self.items())
-        return MeanField({
-            k: m for k, m in dists if isinstance(m, Prior)})
+            (k, prod((m.get(k, 1.0) for m in approxs), m)) for k, m in self.items()
+        )
+        return MeanField({k: m for k, m in dists if isinstance(m, Prior)})
 
     __mul__ = prod
 
-    def __truediv__(self, other: 'MeanField') -> 'MeanField':
-        return type(self)({
-            k: m / other.get(k, 1.) for k, m in self.items()},
-            self.log_norm - other.log_norm)
-
-    def __pow__(self, other: float) -> 'MeanField':
-        return type(self)({
-            k: m ** other for k, m in self.items()},
-            self.log_norm * other)
-
-    def log_normalisation(self, other: 'MeanField') -> float:
-        return sum(
-            np.sum(dist.log_normalisation(other[v]))
-            for v, dist in self.items()
+    def __truediv__(self, other: "MeanField") -> "MeanField":
+        return type(self)(
+            {k: m / other.get(k, 1.0) for k, m in self.items()},
+            self.log_norm - other.log_norm,
         )
+
+    def __pow__(self, other: float) -> "MeanField":
+        return type(self)(
+            {k: m ** other for k, m in self.items()}, self.log_norm * other
+        )
+
+    def log_normalisation(self, other: "MeanField") -> float:
+        return sum(np.sum(dist.log_normalisation(other[v])) for v, dist in self.items())
 
     def update_invalid(self, other: "MeanField") -> "MeanField":
         mean_field = {}
@@ -238,34 +216,31 @@ class MeanField(
         return type(self)(mean_field, self.log_norm)
 
     def project_mode(self, res: OptResult):
-        projection = type(self)({
-            v: dist.from_mode(
-                res.mode[v],
-                res.hess_inv.get(v),
-                id_=dist.id
-            )
-            for v, dist in self.items()
-        })
+        projection = type(self)(
+            {
+                v: dist.from_mode(res.mode[v], res.hess_inv.get(v), id_=dist.id)
+                for v, dist in self.items()
+            }
+        )
 
-        projection.log_norm = (
-                res.log_norm - projection(res.mode, axis=None).log_value)
+        projection.log_norm = res.log_norm - projection(res.mode, axis=None).log_value
         return projection
 
     def _project_mode(
-            self,
-            mode: Dict[Variable, np.ndarray],
-            covar: Dict[Variable, np.ndarray],
-            fun: Optional[float] = None):
+        self,
+        mode: Dict[Variable, np.ndarray],
+        covar: Dict[Variable, np.ndarray],
+        fun: Optional[float] = None,
+    ):
         """
-        Projects the mode and covariance 
+        Projects the mode and covariance
         """
-        projection = MeanField({
-            v: dist.from_mode(
-                mode[v],
-                covar.get(v),
-                id_=dist.id_
-            )
-            for v, dist in self.items()})
+        projection = MeanField(
+            {
+                v: dist.from_mode(mode[v], covar.get(v), id_=dist.id_)
+                for v, dist in self.items()
+            }
+        )
         if fun is not None:
             projection.log_norm = fun - projection(mode).log_value
 
@@ -274,18 +249,14 @@ class MeanField(
     def sample(self, n_samples=None):
         return {v: dist.sample(n_samples) for v, dist in self.items()}
 
-    def kl(self, mean_field: 'MeanField') -> np.ndarray:
-        return sum(
-            np.sum(dist.kl(mean_field[k]))
-            for k, dist in self.items()
-        )
+    def kl(self, mean_field: "MeanField") -> np.ndarray:
+        return sum(np.sum(dist.kl(mean_field[k])) for k, dist in self.items())
 
     __hash__ = Factor.__hash__
 
     @classmethod
     def from_dist(
-            cls,
-            dist: Union[Dict[Variable, AbstractMessage], "MeanField"]
+        cls, dist: Union[Dict[Variable, AbstractMessage], "MeanField"]
     ) -> "MeanField":
         return dist if isinstance(dist, cls) else MeanField(dist)
 
@@ -298,12 +269,12 @@ class FactorApproximation(AbstractNode):
 
     m(x) = ∏ₐ fₐ(xₐ)
 
-    we can define an approximating distribution as the product of 
+    we can define an approximating distribution as the product of
     factor distributions,
 
     q(x) = ∏ₐ qₐ(xₐ)
 
-    the 'cavity distribution' q⁻ᵃ for a factor can be viewed as a 
+    the 'cavity distribution' q⁻ᵃ for a factor can be viewed as a
     prior distribution for the factor,
 
     q⁻ᵃ(xₐ) = ∏_{ᵦ ≠ a} qᵦ(xᵦ)
@@ -340,11 +311,11 @@ class FactorApproximation(AbstractNode):
     """
 
     def __init__(
-            self,
-            factor: Factor,
-            cavity_dist: MeanField,
-            factor_dist: MeanField,
-            model_dist: MeanField
+        self,
+        factor: Factor,
+        cavity_dist: MeanField,
+        factor_dist: MeanField,
+        model_dist: MeanField,
     ):
         # Have to seperate FactorApproximation into two classes
         # in order to be able to redefine __new__
@@ -352,6 +323,12 @@ class FactorApproximation(AbstractNode):
         self.cavity_dist = MeanField.from_dist(cavity_dist)
         self.factor_dist = MeanField.from_dist(factor_dist)
         self.model_dist = MeanField.from_dist(model_dist)
+
+        self.fixed_kws = {
+            k: dist.mean
+            for k, dist in self.factor_dist.items()
+            if isinstance(dist, FixedMessage)
+        }
 
         super().__init__(**factor._kwargs)
 
@@ -376,48 +353,50 @@ class FactorApproximation(AbstractNode):
         """
         the `MeanField` approximation of the deterministic variables
         """
-        return MeanField({
-            v: self.cavity_dist[v] for v in self.deterministic_variables})
+        return MeanField({v: self.cavity_dist[v] for v in self.deterministic_variables})
 
     def __call__(
-            self,
-            values: Dict[Variable, np.ndarray],
-            axis: Axis = False,
+        self,
+        values: Dict[Variable, np.ndarray],
+        axis: Axis = False,
     ) -> FactorValue:
-        fval = self.factor(values, axis=axis)
+        variable_dict = {**self.fixed_kws, **values}
+        fval = self.factor(variable_dict, axis=axis)
         log_meanfield = self.cavity_dist(
-            {**values, **fval.deterministic_values}, axis=axis)
+            {**variable_dict, **fval.deterministic_values}, axis=axis
+        )
         return add_arrays(fval, log_meanfield)
 
     def func_jacobian(
-            self,
-            variable_dict: Dict[Variable, np.ndarray],
-            variables: Optional[List[Variable]] = None,
-            axis: Axis = None,
-            _calc_deterministic: bool = True,
-            **kwargs,
+        self,
+        values: Dict[Variable, np.ndarray],
+        variables: Optional[List[Variable]] = None,
+        axis: Axis = None,
+        _calc_deterministic: bool = True,
+        **kwargs,
     ) -> Tuple[FactorValue, JacobianValue]:
 
         if axis is not None:
             raise NotImplementedError(
                 "FactorApproximation.func_jacobian has not implemeted "
-                f"axis={axis}, try axis=None")
+                f"axis={axis}, try axis=None"
+            )
 
         if variables is None:
             fixed_variables = set(
-                v for v, m in self.model_dist.items()
-                if isinstance(m, FixedMessage))
+                v for v, m in self.model_dist.items() if isinstance(m, FixedMessage)
+            )
             variables = self.factor.variables - fixed_variables
 
+        variable_dict = {**self.fixed_kws, **values}
         fval, fjac = self.factor.func_jacobian(
-            variable_dict, variables, axis=axis,
-            _calc_deterministic=_calc_deterministic)
+            variable_dict, variables, axis=axis, _calc_deterministic=_calc_deterministic
+        )
 
         values = {**variable_dict, **fval.deterministic_values}
         var_sizes = {v: np.size(x) for v, x in values.items()}
         var_shapes = {v: np.shape(x) for v, x in values.items()}
-        log_cavity, grad_cavity = self.cavity_dist.logpdf_gradient(
-            values, axis=axis)
+        log_cavity, grad_cavity = self.cavity_dist.logpdf_gradient(values, axis=axis)
 
         logl = fval + log_cavity
 
@@ -425,7 +404,7 @@ class FactorApproximation(AbstractNode):
             fjac[v] += grad_cavity[v]
 
         # Update gradients using jacobians of deterministic variables
-        # TODO: Should add logic to account for pullbacks for 
+        # TODO: Should add logic to account for pullbacks for
         #       AD frameworks e.g. Zygote.jl
         for var, grad in fjac.items():
             for det, jac in grad.deterministic_values.items():
@@ -436,10 +415,10 @@ class FactorApproximation(AbstractNode):
         return logl, fjac
 
     def project_mean_field(
-            self,
-            model_dist: MeanField,
-            delta: float = 1.,
-            status: Optional[Status] = None,
+        self,
+        model_dist: MeanField,
+        delta: float = 1.0,
+        status: Optional[Status] = None,
     ) -> Tuple["FactorApproximation", Status]:
         success, messages = Status() if status is None else status
 
@@ -447,15 +426,14 @@ class FactorApproximation(AbstractNode):
             factor_dist = model_dist / self.cavity_dist
             if delta < 1:
                 log_norm = factor_dist.log_norm
-                factor_dist = (
-                        factor_dist ** delta * self.factor_dist ** (1 - delta))
+                factor_dist = factor_dist ** delta * self.factor_dist ** (1 - delta)
                 factor_dist.log_norm = (
-                        delta * log_norm + (1 - delta) * self.factor_dist.log_norm)
+                    delta * log_norm + (1 - delta) * self.factor_dist.log_norm
+                )
 
             if not factor_dist.is_valid:
                 success = False
-                messages += (
-                    f"model projection for {self} is invalid",)
+                messages += (f"model projection for {self} is invalid",)
                 factor_dist = factor_dist.update_invalid(self.factor_dist)
         except exc.MessageException as e:
             logger.exception(e)

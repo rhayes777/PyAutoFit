@@ -1,21 +1,17 @@
 from abc import ABC, abstractmethod
 from itertools import count
-from typing import \
-    (
-    List, Tuple, Dict, cast, Set, Optional, Union, Collection
-)
+from typing import List, Tuple, Dict, cast, Set, Optional, Union, Collection, Protocol
 
 import numpy as np
 
 from autoconf import cached_property
-from autofit.graphical.utils import FlattenArrays
-from autofit.mapper.variable import Variable, Plate
+from autofit.graphical.utils import FlattenArrays, Axis
+from autofit.mapper.variable import Variable, Plate, VariableData
 
 Value = Dict[Variable, np.ndarray]
 
 
 class FactorValue(np.ndarray):
-
     def __new__(cls, input_array, deterministic_values=None):
         obj = np.asarray(input_array).view(cls)
 
@@ -29,8 +25,7 @@ class FactorValue(np.ndarray):
     def __array_finalize__(self, obj):
         if obj is None:
             return
-        self.deterministic_values = getattr(
-            obj, 'deterministic_values', None)
+        self.deterministic_values = getattr(obj, "deterministic_values", None)
 
     @property
     def log_value(self) -> np.ndarray:
@@ -55,11 +50,24 @@ class FactorValue(np.ndarray):
         return self.deterministic_values.items()
 
 
-JacobianValue = Dict[Variable, FactorValue]
-HessianValue = Dict[Variable, np.ndarray]
+HessianValue = JacobianValue = VariableData
+
+
+class FactorInterface(Protocol):
+    def __call__(self, values: Value, axis: Axis = None) -> FactorValue:
+        pass
+
+
+class FactorJacobianInterface(Protocol):
+    def __call__(
+        self, values: Value, axis: Axis = None
+    ) -> Tuple[FactorValue, JacobianValue]:
+        pass
+
 
 from autofit.graphical.factor_graphs.numerical import (
-    numerical_func_jacobian, numerical_func_jacobian_hessian
+    numerical_func_jacobian,
+    numerical_func_jacobian_hessian,
 )
 
 
@@ -69,11 +77,7 @@ class AbstractNode(ABC):
     _factor: callable = None
     _id = count()
 
-    def __init__(
-            self,
-            plates: Tuple[Variable, ...] = (),
-            **kwargs: Variable
-    ):
+    def __init__(self, plates: Tuple[Variable, ...] = (), **kwargs: Variable):
         """
         A node in a factor graph
 
@@ -86,17 +90,17 @@ class AbstractNode(ABC):
         """
         self._plates = plates
         self._kwargs = kwargs
-        self._variable_name_kw = {
-            v.name: kw for kw, v in kwargs.items()}
+        self._variable_name_kw = {v.name: kw for kw, v in kwargs.items()}
         self.id = next(self._id)
 
     def resolve_variable_dict(
-            self, variable_dict: Dict[Variable, np.ndarray]
+        self, variable_dict: Dict[Variable, np.ndarray]
     ) -> Dict[str, np.ndarray]:
         return {
             self._variable_name_kw[v.name]: x
             for v, x in variable_dict.items()
-            if v.name in self._variable_name_kw}
+            if v.name in self._variable_name_kw
+        }
 
     @property
     @abstractmethod
@@ -105,10 +109,7 @@ class AbstractNode(ABC):
 
     @property
     def name_variable_dict(self) -> Dict[str, Variable]:
-        return {
-            variable.name: variable
-            for variable in self.variables
-        }
+        return {variable.name: variable for variable in self.variables}
 
     @property
     @abstractmethod
@@ -124,25 +125,24 @@ class AbstractNode(ABC):
         """
         A tuple of the set of all plates in this graph, ordered by id
         """
-        return tuple(sorted(set(
-            cast(Plate, plate)
-            for variable
-            in self.all_variables
-            for plate in variable.plates
-        )))
+        return tuple(
+            sorted(
+                set(
+                    cast(Plate, plate)
+                    for variable in self.all_variables
+                    for plate in variable.plates
+                )
+            )
+        )
 
     def __getitem__(self, item):
         try:
-            return self._kwargs[
-                item
-            ]
-        except KeyError:
+            return self._kwargs[item]
+        except KeyError as e:
             for variable in self.variables | self._deterministic_variables:
                 if variable.name == item:
                     return variable
-            raise AttributeError(
-                f"No attribute {item}"
-            )
+            raise AttributeError(f"No attribute {item}") from e
 
     @property
     @abstractmethod
@@ -165,24 +165,16 @@ class AbstractNode(ABC):
         """
         The names of the variables passed as keyword arguments
         """
-        return [
-            arg.name
-            for arg
-            in self._kwargs.values()
-        ]
+        return [arg.name for arg in self._kwargs.values()]
 
-    @cached_property
+    @property
     def all_variables(self) -> Set[Variable]:
         """
         A dictionary of variables associated with this node
         """
         return self.variables | self.deterministic_variables
 
-    def broadcast_plates(
-            self,
-            plates: Tuple[Plate],
-            value: np.ndarray
-    ) -> np.ndarray:
+    def broadcast_plates(self, plates: Tuple[Plate], value: np.ndarray) -> np.ndarray:
         """
         Extract the indices of a collection of plates then match
         the shape of the data to that shape.
@@ -202,21 +194,17 @@ class AbstractNode(ABC):
         if shift > 1 or shift < 0:
             raise ValueError("dimensions of value incompatible with passed plates")
         reduce_axes = tuple(
-            i + shift for i, p in enumerate(plates) if p and p not in self.plates)
+            i + shift for i, p in enumerate(plates) if p and p not in self.plates
+        )
         source_axes = [i + shift for i, p in enumerate(plates) if p in self.plates]
         destination_axes = [
-            self.plates.index(plates[i - shift]) + shift for i in source_axes]
+            self.plates.index(plates[i - shift]) + shift for i in source_axes
+        ]
         return np.moveaxis(
-            np.sum(value, axis=reduce_axes),
-            source_axes,
-            destination_axes
+            np.sum(value, axis=reduce_axes), source_axes, destination_axes
         )
 
-    def _broadcast(
-            self,
-            plate_inds: np.ndarray,
-            value: np.ndarray
-    ) -> np.ndarray:
+    def _broadcast(self, plate_inds: np.ndarray, value: np.ndarray) -> np.ndarray:
         """
         Ensure the shape of the data matches the shape of the plates
 
@@ -241,16 +229,11 @@ class AbstractNode(ABC):
 
         # reorder axes of value to match ordering of newshape
         movedvalue = np.moveaxis(
-            value,
-            np.arange(plate_inds.size) + shift,
-            np.argsort(plate_inds) + shift)
+            value, np.arange(plate_inds.size) + shift, np.argsort(plate_inds) + shift
+        )
         return np.reshape(movedvalue, newshape)
 
-    def _broadcast2d(
-            self,
-            plate_inds: np.ndarray,
-            value: np.ndarray
-    ) -> np.ndarray:
+    def _broadcast2d(self, plate_inds: np.ndarray, value: np.ndarray) -> np.ndarray:
         """
         Ensure the shape of the data matches the shape of the plates
 
@@ -278,7 +261,8 @@ class AbstractNode(ABC):
         movedvalue = np.moveaxis(
             value,
             np.arange(plate_inds.size * 2),
-            np.r_[plate_order, plate_order + ndim])
+            np.r_[plate_order, plate_order + ndim],
+        )
         return np.reshape(movedvalue, newshape)
 
     # @cached_property
@@ -286,7 +270,7 @@ class AbstractNode(ABC):
     #     """
     #     A tuple of the set of all plates in this graph
 
-    #     split into two properties to allow manual ordering 
+    #     split into two properties to allow manual ordering
     #     of plate order
     #     """
     #     return self._plates or self.sorted_plates
@@ -312,10 +296,7 @@ class AbstractNode(ABC):
         """
         return len(self.plates)
 
-    def _match_plates(
-            self,
-            plates: Collection[Plate]
-    ) -> np.ndarray:
+    def _match_plates(self, plates: Collection[Plate]) -> np.ndarray:
         """
         Find indices plates from some factor in the collection of
         plates associated with this node.
@@ -336,10 +317,13 @@ class AbstractNode(ABC):
         pass
 
     def __hash__(self):
-        return hash((
-            self._factor,
-            frozenset(self.name_variable_dict.items()),
-            frozenset(self._deterministic_variables),))
+        return hash(
+            (
+                self._factor,
+                frozenset(self.name_variable_dict.items()),
+                frozenset(self._deterministic_variables),
+            )
+        )
 
     _numerical_func_jacobian = numerical_func_jacobian
     _numerical_func_jacobian_hessian = numerical_func_jacobian_hessian
@@ -347,37 +331,35 @@ class AbstractNode(ABC):
     func_jacobian_hessian = numerical_func_jacobian_hessian
 
     def jacobian(
-            self,
-            values: Dict[Variable, np.array],
-            variables: Optional[Tuple[Variable, ...]] = None,
-            axis: Optional[Union[bool, int, Tuple[int, ...]]] = False,
-            _eps: float = 1e-6,
-            _calc_deterministic: bool = True) -> JacobianValue:
+        self,
+        values: Dict[Variable, np.array],
+        variables: Optional[Tuple[Variable, ...]] = None,
+        axis: Optional[Union[bool, int, Tuple[int, ...]]] = False,
+        _eps: float = 1e-6,
+        _calc_deterministic: bool = True,
+    ) -> JacobianValue:
         return self.func_jacobian(
-            values, variables, axis,
-            _eps=_eps, _calc_deterministic=_calc_deterministic)[1]
+            values, variables, axis, _eps=_eps, _calc_deterministic=_calc_deterministic
+        )[1]
 
     def hessian(
-            self,
-            values: Dict[Variable, np.array],
-            variables: Optional[Tuple[Variable, ...]] = None,
-            axis: Optional[Union[bool, int, Tuple[int, ...]]] = False,
-            _eps: float = 1e-6,
-            _calc_deterministic: bool = True) -> HessianValue:
+        self,
+        values: Dict[Variable, np.array],
+        variables: Optional[Tuple[Variable, ...]] = None,
+        axis: Optional[Union[bool, int, Tuple[int, ...]]] = False,
+        _eps: float = 1e-6,
+        _calc_deterministic: bool = True,
+    ) -> HessianValue:
         return self.func_jacobian_hessian(
-            values, variables, axis,
-            _eps=_eps, _calc_deterministic=_calc_deterministic)[2]
+            values, variables, axis, _eps=_eps, _calc_deterministic=_calc_deterministic
+        )[2]
 
-    def flatten(self, param_shapes: FlattenArrays) -> 'FlattenedNode':
+    def flatten(self, param_shapes: FlattenArrays) -> "FlattenedNode":
         return FlattenedNode(self, param_shapes)
 
 
 class FlattenedNode:
-    def __init__(
-            self,
-            node: 'AbstractNode',
-            param_shapes: FlattenArrays
-    ):
+    def __init__(self, node: "AbstractNode", param_shapes: FlattenArrays):
         self.node = node
         self.param_shapes = param_shapes
 

@@ -1,12 +1,25 @@
-from typing import NamedTuple
+"""
+This module provides a wrapper over the scipy.optimize.linesearch module
+
+To work with the Factor and FactorJacobian interface defined in 
+autofit.graphical
+
+Note that this interface assumes that we're performing a maximisation. 
+In scipy the interface is defined for minimisations.
+"""
+from typing import NamedTuple, Optional, Protocol
 import warnings
 
 import numpy as np
 from scipy.optimize import linesearch
 from scipy.optimize.optimize import _LineSearchError
 
-from autofit.graphical.factor_graphs.abstract import FactorValue
-from autofit.mapper.variable_operator import VariableData, AbstractVariableOperator
+from autofit.graphical.factor_graphs.abstract import (
+    FactorValue,
+    FactorInterface,
+    FactorJacobianInterface,
+)
+from autofit.mapper.variable_operator import VariableData
 
 
 class LineSearchResult(NamedTuple):
@@ -18,40 +31,66 @@ class LineSearchResult(NamedTuple):
     g_count: int
 
 
-def prepare_factor(factor, factor_jacobian, xk, pk, gk=None, args=()):
+def prepare_factor(
+    factor: FactorInterface,
+    factor_jacobian: FactorJacobianInterface,
+    xk: VariableData,
+    pk: VariableData,
+    gk: Optional[VariableData] = None,
+    args=(),
+):
+    fk = None
     if gk is None:
-        fk, gk = factor_jacobian(xk, *args)
+        fk, gk = factor_jacobian(xk, *args, axis=None)
 
     pk = VariableData(pk)
-    fval = [None]
+    fval = [fk]
     gval = [gk]
     gc = [0]
     fc = [0]
 
     def phi(s):
         fc[0] += 1
-        return -factor(xk + s * pk, *args)
+        fval[0] = f = factor(xk + s * pk, *args, axis=None)
+        # we are performing a maximisation, so need negative value
+        return -f
 
     def derphi(s):
-        _, gval[0] = factor_jacobian(xk + s * pk, *args)
+        fval[0], gval[0] = factor_jacobian(xk + s * pk, *args, axis=None)
         gc[0] += 1
-        return VariableData.dot(pk, gval[0]).neg().sum()
+        # we are performing a maximisation, so need negative gradient
+        return -VariableData.dot(pk, gval[0])
 
-    derphi0 = VariableData.dot(pk, gk).neg().sum()
+    derphi0 = -VariableData.dot(pk, gk)
 
     vals = fval, gval, gc, fc
 
     return phi, derphi, derphi0, vals
 
 
+class LineSearchFunc(Protocol):
+    def __call__(
+        self,
+        factor: FactorInterface,
+        factor_jacobian: FactorJacobianInterface,
+        xk: VariableData,
+        pk: VariableData,
+        gk: Optional[VariableData] = None,
+        old_fval: Optional[FactorValue] = None,
+        old_old_fval: Optional[FactorValue] = None,
+        **kwargs
+    ) -> LineSearchResult:
+        pass
+
+
 def line_search_wolfe1(
-    factor,
-    factor_jacobian,
-    xk,
-    pk,
-    gk=None,
-    old_fval=None,
-    old_old_fval=None,
+    factor: FactorInterface,
+    factor_jacobian: FactorJacobianInterface,
+    xk: VariableData,
+    pk: VariableData,
+    gk: Optional[VariableData] = None,
+    old_fval: Optional[FactorValue] = None,
+    old_old_fval: Optional[FactorValue] = None,
     args=(),
     c1=1e-4,
     c2=0.9,
@@ -87,16 +126,16 @@ def line_search_wolfe1(
     gval : array
         Gradient of `f` at the final point
     """
-    phi, derphi, derphi0, (_, gval, gc, fc) = prepare_factor(
+    phi, derphi, derphi0, (fval, gval, gc, fc) = prepare_factor(
         factor, factor_jacobian, xk, pk, gk=gk, args=args
     )
     gc[0] += g_count
     fc[0] += f_count
-    stp, fval, old_fval = linesearch.scalar_search_wolfe1(
+    stp, _, old_fval = linesearch.scalar_search_wolfe1(
         phi,
         derphi,
-        old_fval,
-        old_old_fval,
+        old_fval and -old_fval,  # we are performing a maximisation
+        old_old_fval and -old_old_fval,
         derphi0,
         c1=c1,
         c2=c2,
@@ -105,17 +144,17 @@ def line_search_wolfe1(
         xtol=xtol,
     )
 
-    return LineSearchResult(stp, fval, gval[0], old_fval, fc[0], gc[0])
+    return LineSearchResult(stp, fval[0], gval[0], old_fval, fc[0], gc[0])
 
 
 def line_search_wolfe2(
-    factor,
-    factor_jacobian,
-    xk,
-    pk,
-    gk=None,
-    old_fval=None,
-    old_old_fval=None,
+    factor: FactorInterface,
+    factor_jacobian: FactorJacobianInterface,
+    xk: VariableData,
+    pk: VariableData,
+    gk: Optional[VariableData] = None,
+    old_fval: Optional[FactorValue] = None,
+    old_old_fval: Optional[FactorValue] = None,
     args=(),
     c1=1e-4,
     c2=0.9,
@@ -157,11 +196,11 @@ def line_search_wolfe2(
     gc[0] += g_count
     fc[0] += f_count
 
-    alpha_star, phi_star, old_fval, derphi_star = linesearch.scalar_search_wolfe2(
+    alpha_star, _, old_fval, _ = linesearch.scalar_search_wolfe2(
         phi,
         derphi,
-        old_fval,
-        old_old_fval,
+        old_fval and -old_fval,  # we are actually performing maximisation
+        old_old_fval and -old_old_fval,
         derphi0,
         c1=c1,
         c2=c2,
@@ -174,7 +213,14 @@ def line_search_wolfe2(
 
 
 def line_search(
-    factor, factor_jacobian, xk, pk, gk=None, old_fval=None, old_old_fval=None, **kwargs
+    factor: FactorInterface,
+    factor_jacobian: FactorJacobianInterface,
+    xk: VariableData,
+    pk: VariableData,
+    gk: Optional[VariableData] = None,
+    old_fval: Optional[FactorValue] = None,
+    old_old_fval: Optional[FactorValue] = None,
+    **kwargs
 ):
 
     extra_condition = kwargs.pop("extra_condition", None)
