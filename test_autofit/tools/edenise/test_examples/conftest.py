@@ -2,8 +2,6 @@ from shutil import rmtree
 
 import pytest
 
-from autofit.tools.edenise import File
-
 
 @pytest.fixture(
     autouse=True
