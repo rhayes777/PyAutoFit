@@ -3,6 +3,7 @@ from functools import reduce
 from typing import Dict, Tuple, Optional, List, Union, Iterable
 
 import numpy as np
+from autoconf import cached_property
 
 from autofit import exc
 from autofit.graphical.factor_graphs import (
@@ -12,10 +13,19 @@ from autofit.graphical.factor_graphs import (
     JacobianValue,
     HessianValue,
 )
-from autofit.graphical.utils import prod, add_arrays, OptResult, Status, aggregate, Axis
+from autofit.graphical.utils import (
+    prod,
+    FlattenArrays,
+    add_arrays,
+    OptResult,
+    Status,
+    aggregate,
+    Axis,
+)
 from autofit.mapper.prior.abstract import Prior
 from autofit.mapper.prior_model.collection import CollectionPriorModel
-from autofit.mapper.variable import Variable, Plate
+from autofit.mapper.variable import Variable, Plate, VariableData
+from autofit.mapper.variable_operator import VariableFullOperator
 from autofit.messages.abstract import AbstractMessage
 from autofit.messages.fixed import FixedMessage
 
@@ -69,6 +79,12 @@ class MeanField(CollectionPriorModel, Dict[Variable, AbstractMessage], Factor):
             self.log_norm = log_norm
             self._plates = self.sorted_plates if plates is None else plates
 
+    @cached_property
+    def fixed_values(self):
+        return {
+            k: dist.mean for k, dist in self.items() if isinstance(dist, FixedMessage)
+        }
+
     @classmethod
     def from_priors(cls, priors: Iterable[Prior]) -> "MeanField":
         """
@@ -99,15 +115,22 @@ class MeanField(CollectionPriorModel, Dict[Variable, AbstractMessage], Factor):
 
     @property
     def mean(self):
-        return {v: dist.mean for v, dist in self.items()}
+        return VariableData({v: dist.mean for v, dist in self.items()})
 
     @property
     def variance(self):
-        return {v: dist.variance for v, dist in self.items()}
+        return VariableData({v: dist.variance for v, dist in self.items()})
 
     @property
     def scale(self):
-        return {v: dist.scale for v, dist in self.items()}
+        return VariableData({v: dist.scale for v, dist in self.items()})
+
+    def precision(self, variables=None):
+        variables = variables or self.all_variables
+        param_shapes = FlattenArrays({v: self[v].shape for v in variables})
+        variances = self.variance.subset(variables)
+        precision = np.diag(param_shapes.flatten(variances) ** -1)
+        return VariableFullOperator.from_dense(precision, param_shapes)
 
     @property
     def arguments(self) -> Dict[Variable, Prior]:
@@ -324,11 +347,7 @@ class FactorApproximation(AbstractNode):
         self.factor_dist = MeanField.from_dist(factor_dist)
         self.model_dist = MeanField.from_dist(model_dist)
 
-        self.fixed_kws = {
-            k: dist.mean
-            for k, dist in self.factor_dist.items()
-            if isinstance(dist, FixedMessage)
-        }
+        self.fixed_values = self.factor_dist.fixed_values
 
         super().__init__(**factor._kwargs)
 
@@ -343,6 +362,10 @@ class FactorApproximation(AbstractNode):
     @property
     def all_variables(self):
         return self.factor.all_variables
+
+    @property
+    def mean_field(self):
+        return self.model_dist
 
     @property
     def name(self):
@@ -360,7 +383,7 @@ class FactorApproximation(AbstractNode):
         values: Dict[Variable, np.ndarray],
         axis: Axis = False,
     ) -> FactorValue:
-        variable_dict = {**self.fixed_kws, **values}
+        variable_dict = {**self.fixed_values, **values}
         fval = self.factor(variable_dict, axis=axis)
         log_meanfield = self.cavity_dist(
             {**variable_dict, **fval.deterministic_values}, axis=axis
@@ -388,7 +411,7 @@ class FactorApproximation(AbstractNode):
             )
             variables = self.factor.variables - fixed_variables
 
-        variable_dict = {**self.fixed_kws, **values}
+        variable_dict = {**self.fixed_values, **values}
         fval, fjac = self.factor.func_jacobian(
             variable_dict, variables, axis=axis, _calc_deterministic=_calc_deterministic
         )

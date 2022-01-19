@@ -1,6 +1,8 @@
 from abc import ABC, abstractmethod
 from itertools import count
-from typing import List, Tuple, Dict, cast, Set, Optional, Union, Collection, Protocol
+from typing import List, Tuple, Dict, cast, Set, Optional, Union, Collection
+
+Protocol = ABC  # for python 3.7 compat
 
 import numpy as np
 
@@ -106,6 +108,10 @@ class AbstractNode(ABC):
     @abstractmethod
     def variables(self):
         pass
+
+    @property
+    def free_variables(self):
+        return self.variables - getattr(self, "fixed_values", {}).keys()
 
     @property
     def name_variable_dict(self) -> Dict[str, Variable]:

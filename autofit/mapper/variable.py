@@ -314,6 +314,16 @@ class AbstractVariableOperator(ABC):
     def invquad(self, M: VariableData) -> VariableData:
         return (M / self).T / self
 
+    @abstractmethod
+    def update(self, *args: Tuple[VariableData, VariableData]):
+        pass
+
+    def lowrankupdate(self, *values: VariableData):
+        return self.update(*((value, value) for value in values()))
+
+    def lowrankdowndate(self, *values: VariableData):
+        return self.update(*((value, VariableData.neg(value)) for value in values()))
+
 
 class InverseVariableOperator(AbstractVariableOperator):
     def __init__(self, op):
@@ -343,3 +353,14 @@ class InverseVariableOperator(AbstractVariableOperator):
     @cached_property
     def log_det(self):
         return -self.operator.log_det
+
+    def update(self, *args: Tuple[VariableData, VariableData]):
+        # apply Sherman-Morrison formulat
+        A = self.operator
+        for (u, v) in args:
+            A1u = A * u
+            A1v = v * A
+            vTA1u = -A1u.dot(v)
+            A = A.update(A1u, A1v * vTA1u)
+
+        return type(self)(A)

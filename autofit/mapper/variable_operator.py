@@ -1,5 +1,5 @@
 from functools import wraps
-from typing import Dict
+from typing import Dict, Tuple
 import operator
 
 import numpy as np
@@ -96,6 +96,14 @@ class VariableOperator(AbstractVariableOperator):
 
     def to_dense(self):
         return VariableData({v: op.to_dense() for v, op in self.operators.items()})
+
+    def update(self, *args: Tuple[VariableData, VariableData]):
+        operators = self.operators.copy()
+        for (u, v) in args:
+            for k in operators.keys() & u.keys() & v.keys():
+                operators[k] = operators[k].update(u[k], v[k])
+
+        return type(self)(operators)
 
 
 def _variablefull_binary_op(op):
@@ -206,6 +214,13 @@ class IdentityVariableOperator(AbstractVariableOperator):
     @property
     def log_det(self):
         return 0.0
+
+    def update(self, *args):
+        (u, v), *next_args = args
+        param_shapes = FlattenArrays.from_arrays(u)
+        uv = param_shapes.flatten(u)[:, None] * param_shapes.flatten(v)[None, :]
+        out = VariableFullOperator.from_dense(uv, param_shapes)
+        return out.update(*next_args)
 
 
 identity_operator = IdentityOperator()

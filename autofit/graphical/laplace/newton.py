@@ -1,4 +1,4 @@
-from typing import Optional, Callable, Dict, Tuple, Any
+from typing import Optional, Dict, Tuple, Any
 
 import numpy as np
 
@@ -152,6 +152,13 @@ def ngev_condition(state, old_state, maxgev=10000, **kwargs):
         )
 
 
+stop_conditions = (
+    xtol_condition,
+    ftol_condition,
+    grad_condition,
+)
+
+
 def optimise_quasi_newton(
     state: OptimisationState,
     old_state: Optional[OptimisationState] = None,
@@ -160,11 +167,7 @@ def optimise_quasi_newton(
     search_direction=newton_direction,
     calc_line_search=line_search,
     quasi_newton_update=bfgs_update,
-    stop_conditions=(
-        xtol_condition,
-        ftol_condition,
-        grad_condition,
-    ),
+    stop_conditions=stop_conditions,
     search_direction_kws: Optional[Dict[str, Any]] = None,
     line_search_kws: Optional[Dict[str, Any]] = None,
     quasi_newton_kws: Optional[Dict[str, Any]] = None,
