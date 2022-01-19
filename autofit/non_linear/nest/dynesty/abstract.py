@@ -239,11 +239,10 @@ class AbstractDynesty(AbstractNest, ABC):
         sampler = self.paths.load_object(
             "dynesty"
         )
-        results = sampler.results
 
-        return DynestySamples(
+        return DynestySamples.from_results_internal(
             model=model,
-            results=results,
+            results_internal=sampler.results,
             number_live_points=self.total_live_points,
             unconverged_sample_size=1,
             time=self.timer.time,
@@ -261,13 +260,13 @@ class AbstractDynesty(AbstractNest, ABC):
             The model which generates instances for different points in parameter space. This maps the points from unit
             cube values to physical values via the priors.
         """
-        results = self.paths.load_object(
+        results_internal = self.paths.load_object(
             "results"
         )
 
-        return DynestySamples(
+        return DynestySamples.from_results_internal(
             model=model,
-            results=results,
+            results_internal=results_internal,
             number_live_points=self.total_live_points,
             unconverged_sample_size=1,
             time=self.timer.time,

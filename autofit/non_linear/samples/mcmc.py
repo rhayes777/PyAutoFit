@@ -1,25 +1,56 @@
 import math
-from typing import List, Optional
-
 import numpy as np
+from typing import List, Optional
+import warnings
 
-from autofit.mapper.model_mapper import ModelMapper
+from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.mcmc.auto_correlations import AutoCorrelationsSettings
 from autofit.non_linear.samples.pdf import PDFSamples
-from .samples import Samples
-from .sample import Sample, load_from_table
+from autofit.non_linear.samples.samples import Samples
+from autofit.non_linear.samples.samples import Sample
+from autofit.non_linear.samples.sample import load_from_table
 
+from autofit import exc
 
 class MCMCSamples(PDFSamples):
 
     def __init__(
             self,
-            model: ModelMapper,
+            model: AbstractPriorModel,
             sample_list: List[Sample],
             auto_correlation_settings: AutoCorrelationsSettings,
             unconverged_sample_size: int = 100,
             time: Optional[float] = None,
+            results_internal: Optional = None,
     ):
+        """
+        The `Samples` classes in **PyAutoFit** provide an interface between the results_internal of
+        a `NonLinearSearch` (e.g. as files on your hard-disk) and Python.
+
+        For example, the output class can be used to load an instance of the best-fit model, get an instance of any
+        individual sample by the `NonLinearSearch` and return information on the likelihoods, errors, etc.
+
+        This class stores the samples of a MCMC model-fit (e.g. `emcee`, `zeus`). To use a library's in-built
+        visualization tools results_internal are optionally stored in their native internal format using
+        the `results_internal` attribute.
+
+        Attributes
+        ----------
+        results_internal
+            The MCMC results in their native internal format from which the samples are computed.
+        model
+            Maps input vectors of unit parameter values to physical values and model instances via priors.
+        auto_correlations_settings
+            Customizes and performs auto correlation calculations performed during and after the search.
+        unconverged_sample_size
+            If the samples are for a search that is yet to convergence, a reduced set of samples are used to provide
+            a rough estimate of the parameters. The number of samples is set by this parameter.
+        time
+            The time taken to perform the model-fit, which is passed around `Samples` objects for outputting
+            information on the overall fit.
+        results_internal
+            The MCMC library's results in their native internal format for interfacing its visualization library.
+        """
 
         self.auto_correlation_settings = auto_correlation_settings
 
@@ -28,6 +59,45 @@ class MCMCSamples(PDFSamples):
             sample_list=sample_list,
             unconverged_sample_size=unconverged_sample_size,
             time=time,
+            results_internal=results_internal
+        )
+
+    def __add__(
+            self,
+            other: "MCMCSamples"
+    ) -> "MCMCSamples":
+        """
+        Samples can be added together, which combines their `sample_list` meaning that inferred parameters are
+        computed via their joint PDF.
+
+        For Zeus samples there are no tools for combining results in their native format, therefore these
+        `results_internal` are set to None and support for visualization is disabled.
+
+        Parameters
+        ----------
+        other
+            Another Samples class
+
+        Returns
+        -------
+        A class that combined the samples of the two Samples objects.
+        """
+
+        self._check_addition(other=other)
+
+        warnings.warn(
+            f"Addition of {self.__class__.__name__} cannot retain results in native format. "
+            "Visualization of summed samples diabled.",
+            exc.SamplesWarning
+        )
+
+        return self.__class__(
+            model=self.model,
+            sample_list=self.sample_list + other.sample_list,
+            auto_correlation_settings=self.auto_correlation_settings,
+            unconverged_sample_size=self.unconverged_sample_size,
+            time=self.time,
+            results_internal=None
         )
 
     @property
@@ -43,7 +113,7 @@ class MCMCSamples(PDFSamples):
         raise NotImplementedError
 
     @classmethod
-    def from_table(self, filename: str, model: ModelMapper, number_live_points: int = None):
+    def from_table(self, filename: str, model: AbstractPriorModel, number_live_points: int = None):
         """
         Write a table of parameters, posteriors, priors and likelihoods
 

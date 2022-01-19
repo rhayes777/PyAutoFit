@@ -1,13 +1,15 @@
+from copy import copy
 import csv
 import json
-from copy import copy
-from typing import List, Optional, Tuple, Union
-
 import numpy as np
+from typing import List, Optional, Tuple, Union
+import warnings
 
 from autofit.mapper.model import ModelInstance
 from autofit.mapper.prior_model.abstract import AbstractPriorModel, Path
 from autofit.non_linear.samples.sample import Sample
+
+from autofit import exc
 
 
 class Samples:
@@ -15,24 +17,140 @@ class Samples:
             self,
             model: AbstractPriorModel,
             sample_list: List[Sample],
+            total_iterations: Optional[int] = None,
             time: Optional[float] = None,
+            results_internal: Optional = None,
     ):
         """
-        The `Samples` of a non-linear search, specifically the samples of an search which only provides
-        information on the global maximum likelihood solutions, but does not map-out the posterior and thus does
-        not provide information on parameter errors.
+        The `Samples` classes in **PyAutoFit** provide an interface between the results_internal of
+        a `NonLinearSearch` (e.g. as files on your hard-disk) and Python.
+
+        For example, the output class can be used to load an instance of the best-fit model, get an instance of any
+        individual sample by the `NonLinearSearch` and return information on the likelihoods, errors, etc.
+
+        This class stores samples of searches which provide maximum likelihood estimates of the  model-fit (e.g.
+        PySwarms, LBFGS).
+
+        To use a library's in-built visualization tools results are optionally stored in their native internal format
+        using the `results_internal` attribute.
 
         Parameters
         ----------
         model
             Maps input vectors of unit parameter values to physical values and model instances via priors.
+        sample_list
+            The list of `Samples` which contains the paramoeters, likelihood, weights, etc. of every sample taken
+            by the non-linear search.
+        total_iterations
+            The total number of iterations, which often cannot be estimated from the sample list (which contains
+            only accepted samples).
+        time
+            The time taken to perform the model-fit, which is passed around `Samples` objects for outputting
+            information on the overall fit.
+        results_internal
+            The nested sampler's results in their native internal format for interfacing its visualization library.
         """
         self.model = model
         self.sample_list = sample_list
+
+        self.total_iterations = total_iterations
         self.time = time
+        self.results_internal = results_internal
 
         self._paths = None
         self._names = None
+
+    def __add__(
+            self,
+            other: "Samples"
+    ) -> "Samples":
+        """
+        Samples can be added together, which combines their `sample_list` meaning that inferred parameters are
+        computed via their joint PDF.
+
+        Parameters
+        ----------
+        other
+            The Samples to be added to this Samples instance.
+
+        Returns
+        -------
+        A class that combined the samples of the two Samples objects.
+        """
+
+        self._check_addition(other=other)
+
+        if self.results_internal is not None:
+            warnings.warn(
+                f"Addition of {self.__class__.__name__} cannot retain results in native format. "
+                "Visualization of summed samples diabled.",
+                exc.SamplesWarning
+            )
+
+        return self.__class__(
+            model=self.model,
+            sample_list=self.sample_list + other.sample_list,
+            time=self.time
+        )
+
+    def __radd__(self, other):
+        """
+        Samples can be added together, which combines their `sample_list` meaning that inferred parameters are
+        computed via their joint PDF.
+
+        Overwriting `__radd__` enables the sum function to be used on a list of sampels, e.g.:
+
+        `samples = sum([samples_x5, samples_x5, samples_x5])`
+
+        Parameters
+        ----------
+        other
+            The Samples to be added to this Samples instance.
+
+        Returns
+        -------
+        A class that combines the samples of a list of Samples objects.
+        """
+        return self
+
+    def _check_addition(self, other: "Samples"):
+        """
+        When adding samples together, perform the following checks to make sure it is valid to add the two objects
+        together:
+
+        - That both objects being added are `Samples` objects.
+        - That both models have the same prior count, else the dimensionality does not allow for valid addition.
+        - That both `Samples` objects use an identical model, such that we are adding together the same parameters.
+
+        Parameters
+        ----------
+        other
+            The Samples to be added to this Samples instance.
+        """
+        def raise_exc():
+            raise exc.SamplesException(
+                "Cannot add together two Samples objects which have different models."
+            )
+
+        if not isinstance(
+                self,
+                Samples
+        ):
+
+            raise_exc()
+
+        if not isinstance(
+                other,
+                Samples
+        ):
+            raise_exc()
+
+        if self.model.prior_count != other.model.prior_count:
+            raise_exc()
+
+        for path_self, path_other in zip(self.model.paths, other.model.paths):
+            if path_self != path_other:
+                raise_exc()
 
     def values_for_path(
             self,

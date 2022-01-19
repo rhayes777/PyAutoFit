@@ -15,6 +15,7 @@ import numpy as np
 
 
 class LBFGS(AbstractOptimizer):
+
     __identifier_fields__ = ()
 
     def __init__(
@@ -184,9 +185,9 @@ class LBFGS(AbstractOptimizer):
             model: AbstractPriorModel
     ):
 
-        return LBFGSSamples(
+        return LBFGSSamples.from_results_internal(
             model=model,
-            x0=self.paths.load_object("x0"),
+            results_internal=self.paths.load_object("x0"),
             log_posterior_list=np.array([self.paths.load_object("log_posterior")]),
             total_iterations=self.paths.load_object("total_iterations"),
             time=self.timer.time
