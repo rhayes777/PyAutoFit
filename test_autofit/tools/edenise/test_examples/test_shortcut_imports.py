@@ -20,7 +20,6 @@ def make_file(
 def test_aliased_relative_import(
         file
 ):
-    print(file.target_string)
     assert file.target_string == (
         """
 from VIS_CTI_Autofit.VIS_CTI_Mapper.VIS_CTI_PriorModel.prior_model import PriorModel
