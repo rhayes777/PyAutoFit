@@ -82,7 +82,7 @@ class EmceeSamples(MCMCSamples):
         return self.results_internal
 
     @property
-    def samples_after_burn_in(self) -> [List]:
+    def samples_after_burn_in(self) -> np.ndarray:
         """
         The emcee samples with the initial burn-in samples removed.
 

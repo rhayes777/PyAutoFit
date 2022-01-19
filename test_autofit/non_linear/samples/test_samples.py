@@ -34,7 +34,7 @@ def test__table__rows(samples_x5):
 
 def test__table__write_table():
 
-    model = af.ModelMapper(mock_class_1=MockClassx4)
+    model = af.Collection(mock_class_1=MockClassx4)
 
     parameters = [
         [0.0, 1.0, 2.0, 3.0],
@@ -74,7 +74,7 @@ def test__max_log_likelihood_vector_and_instance(samples_x5):
 
 
 def test__log_prior_list_and_max_log_posterior_vector_and_instance():
-    model = af.ModelMapper(mock_class_1=MockClassx4)
+    model = af.Collection(mock_class_1=MockClassx4)
 
     parameters = [
         [0.0, 1.0, 2.0, 3.0],
@@ -116,7 +116,7 @@ def test__gaussian_priors():
         [1.12, 2.12, 3.12, 4.32],
     ]
 
-    model = af.ModelMapper(mock_class=MockClassx4)
+    model = af.Collection(mock_class=MockClassx4)
     samples_x5 = MockSamples(
         model=model,
         sample_list=af.Sample.from_lists(
@@ -142,7 +142,7 @@ def test__gaussian_priors():
 
 
 def test__instance_from_sample_index():
-    model = af.ModelMapper(mock_class=MockClassx4)
+    model = af.Collection(mock_class=MockClassx4)
 
     parameters = [
         [1.0, 2.0, 3.0, 4.0],
@@ -188,6 +188,8 @@ def test__addition_of_samples(samples_x5):
     assert samples.sample_list[5].log_likelihood == 1.0
     assert samples.sample_list[9].log_likelihood == 5.0
 
+def test__sum_of_samples(samples_x5):
+
     samples = sum([samples_x5, samples_x5, samples_x5])
 
     assert len(samples.sample_list) == 15
@@ -200,7 +202,7 @@ def test__addition_of_samples(samples_x5):
 
 def test__addition_of_samples__raises_error_if_model_mismatch(samples_x5):
 
-    model = af.ModelMapper(mock_class_1=MockClassx2)
+    model = af.Collection(mock_class_1=MockClassx2)
 
     parameters = [
         [0.0, 1.0],

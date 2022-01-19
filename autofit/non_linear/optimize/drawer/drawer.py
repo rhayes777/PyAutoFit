@@ -161,7 +161,9 @@ class Drawer(AbstractOptimizer):
         parameter_lists = self.paths.load_object("parameter_lists")
 
         log_prior_list = [
-            sum(model.log_prior_list_from_vector(vector=vector)) for vector in parameter_lists
+            sum(model.log_prior_list_from_vector(vector=vector))
+            for vector
+            in parameter_lists
         ]
         log_likelihood_list = [
             lp - prior for lp, prior

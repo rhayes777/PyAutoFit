@@ -44,7 +44,11 @@ class LBFGSSamples(Samples):
         """
         parameter_lists = [list(results_internal)]
         log_prior_list = model.log_prior_list_from(parameter_lists=parameter_lists)
-        log_likelihood_list = [lp - prior for lp, prior in zip(log_posterior_list, log_prior_list)]
+        log_likelihood_list = [
+            lp - prior
+            for lp, prior
+            in zip(log_posterior_list, log_prior_list)
+        ]
         weight_list = len(log_likelihood_list) * [1.0]
 
         sample_list = Sample.from_lists(

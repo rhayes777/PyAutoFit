@@ -200,13 +200,14 @@ def parameter_result_latex_from(
 
         psplit = parameter_result.split("e")
 
-        parameter_result_latex = \
-            f"" \
-            f"{psplit[0]}" \
-            f"{psplit[1][3:]}" \
-            f"{psplit[2][3:]}" \
-            f"{psplit[3][-1]}" \
+        parameter_result_latex = (
+            f"" 
+            f"{psplit[0]}" 
+            f"{psplit[1][3:]}"
+            f"{psplit[2][3:]}" 
+            f"{psplit[3][-1]}" 
             f" \\times 10^{{{int(psplit[1][1:3])}}}"
+        )
 
     if not include_quickmath:
         return f"{parameter_result_latex} & "
