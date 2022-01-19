@@ -20,3 +20,33 @@ def make_package():
         eden_dependencies=["autoconf"],
         should_rename_modules=True
     )
+
+
+@pytest.fixture(
+    name="file"
+)
+def make_file(
+        package
+):
+    return package[
+        "__init__"
+    ]
+
+
+directory = Path(
+    __file__
+).parent
+
+
+@pytest.fixture(
+    name="examples_directory"
+)
+def make_examples_directory():
+    return directory / "examples"
+
+
+@pytest.fixture(
+    name="eden_output_directory"
+)
+def make_eden_output_directory():
+    return directory / "output"
