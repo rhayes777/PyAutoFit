@@ -11,25 +11,44 @@ from .line import LineItem
 
 
 class Unparser(Unparser_):
+    """
+    Override certain methods to retain format of multi-line docstrings
+    """
+
+    @staticmethod
+    def _is_docstring(string):
+        """
+        If there are escaped new lines we assume it's a doc string.
+
+        This could also apply to other strings in the code but I would
+        expect it to simply reformat code and not have any impact on
+        functionality.
+        """
+        return "\\n" in string
+
+    @staticmethod
+    def _reformat(string):
+        """
+        Unescape newlines and replace single quotes with triple
+        """
+        return string.replace(
+            "\'", '"""'
+        ).replace(
+            "\\n", "\n"
+        )
+
     def _Str(self, tree):
         rep = repr(tree.s)
-        if "\\n" in rep:
-            rep = rep.replace(
-                "\'", '"""'
-            ).replace(
-                "\\n", "\n"
-            )
+        if Unparser._is_docstring(rep):
+            rep = Unparser._reformat(rep)
         self.write(rep)
 
     def _write_constant(self, value):
         rep = repr(value)
-        if "\\n" in rep:
-            rep = rep.replace(
-                "\'", '"""'
-            ).replace(
-                "\\n", "\n"
+        if Unparser._is_docstring(rep):
+            self.write(
+                Unparser._reformat(rep)
             )
-            self.write(rep)
         else:
             super()._write_constant(value)
 
