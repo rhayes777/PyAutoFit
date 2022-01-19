@@ -11,7 +11,7 @@ priors:
         The default priors used on every model component in PyAutoFit (e.g. light proiles, mass profiles, etc.), for
         example if they use a UniformPrior or GausssianPrior and the range of values sampled.
     limit:
-        The limits between which a parameter may be sampled. For example, the axis_ratio of light and mass profiles has
+        The limits between which a parameter may be sampled. For example, the axis-ratio of light and mass profiles has
         limits 0.0 -> 1.0 to prevent unphysical models.
     width:
         The width of the GaussianPrior used for each parameter if its priors are initialized via linking from a previous

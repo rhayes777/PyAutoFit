@@ -10,23 +10,23 @@ def test_non_trivial_results(
     assert results_text == """PriorFactors
 
 PriorFactor0 (AnalysisFactor1.sigma)                                                      0.5
-PriorFactor1 (AnalysisFactor1.intensity)                                                  0.5
+PriorFactor1 (AnalysisFactor1.normalization)                                              0.5
 PriorFactor2 (AnalysisFactor0.centre, AnalysisFactor1.centre)                             0.5
 PriorFactor3 (AnalysisFactor0.sigma)                                                      0.5
-PriorFactor4 (AnalysisFactor0.intensity)                                                  0.5
+PriorFactor4 (AnalysisFactor0.normalization)                                              0.5
 
 AnalysisFactors
 
 AnalysisFactor0
 
 centre (AnalysisFactor1.centre, PriorFactor2)                                             0.5
-intensity (PriorFactor4)                                                                  0.5
+normalization (PriorFactor4)                                                              0.5
 sigma (PriorFactor3)                                                                      0.5
 
 AnalysisFactor1
 
 centre (AnalysisFactor0.centre, PriorFactor2)                                             0.5
-intensity (PriorFactor1)                                                                  0.5
+normalization (PriorFactor1)                                                              0.5
 sigma (PriorFactor0)                                                                      0.5"""
 
 
@@ -37,23 +37,23 @@ def test_non_trivial_info(
     assert info == """PriorFactors
 
 PriorFactor0 (AnalysisFactor1.sigma)                                                      UniformPrior, lower_limit = 0.0, upper_limit = 1.0
-PriorFactor1 (AnalysisFactor1.intensity)                                                  UniformPrior, lower_limit = 0.0, upper_limit = 1.0
+PriorFactor1 (AnalysisFactor1.normalization)                                              UniformPrior, lower_limit = 0.0, upper_limit = 1.0
 PriorFactor2 (AnalysisFactor0.centre, AnalysisFactor1.centre)                             UniformPrior, lower_limit = 0.0, upper_limit = 1.0
 PriorFactor3 (AnalysisFactor0.sigma)                                                      UniformPrior, lower_limit = 0.0, upper_limit = 1.0
-PriorFactor4 (AnalysisFactor0.intensity)                                                  UniformPrior, lower_limit = 0.0, upper_limit = 1.0
+PriorFactor4 (AnalysisFactor0.normalization)                                              UniformPrior, lower_limit = 0.0, upper_limit = 1.0
 
 AnalysisFactors
 
 AnalysisFactor0
 
 centre (AnalysisFactor1.centre, PriorFactor2)                                             UniformPrior, lower_limit = 0.0, upper_limit = 1.0
-intensity (PriorFactor4)                                                                  UniformPrior, lower_limit = 0.0, upper_limit = 1.0
+normalization (PriorFactor4)                                                              UniformPrior, lower_limit = 0.0, upper_limit = 1.0
 sigma (PriorFactor3)                                                                      UniformPrior, lower_limit = 0.0, upper_limit = 1.0
 
 AnalysisFactor1
 
 centre (AnalysisFactor0.centre, PriorFactor2)                                             UniformPrior, lower_limit = 0.0, upper_limit = 1.0
-intensity (PriorFactor1)                                                                  UniformPrior, lower_limit = 0.0, upper_limit = 1.0
+normalization (PriorFactor1)                                                              UniformPrior, lower_limit = 0.0, upper_limit = 1.0
 sigma (PriorFactor0)                                                                      UniformPrior, lower_limit = 0.0, upper_limit = 1.0"""
 
 

@@ -2,7 +2,6 @@ import pytest
 
 import autofit as af
 from autofit import database as db
-from autofit.mock.mock import Gaussian
 
 
 def _make_children(
@@ -11,11 +10,11 @@ def _make_children(
     return [
         db.Fit(
             id=f"child_{grid_id}_{i}",
-            instance=Gaussian(
+            instance=af.Gaussian(
                 centre=i
             ),
             model=af.Model(
-                Gaussian,
+                af.Gaussian,
                 centre=float(-i)
             ),
             max_log_likelihood=grid_id + i
@@ -40,7 +39,7 @@ def make_grid_fit(children):
         unique_tag="grid_fit_1",
         is_grid_search=True,
         children=children,
-        instance=Gaussian(
+        instance=af.Gaussian(
             centre=1
         )
     )
@@ -55,7 +54,7 @@ def make_grid_fit_2():
         unique_tag="grid_fit_2",
         is_grid_search=True,
         children=_make_children(2),
-        instance=Gaussian(
+        instance=af.Gaussian(
             centre=2
         )
     )
@@ -97,11 +96,11 @@ def test_cell_aggregator(
 
 def test_model_order_no():
     model_1 = af.Model(
-        Gaussian,
+        af.Gaussian,
         centre=1.0
     )
     model_2 = af.Model(
-        Gaussian,
+        af.Gaussian,
         centre=2.0
     )
 
@@ -110,11 +109,11 @@ def test_model_order_no():
 
 def test_negative():
     model_1 = af.Model(
-        Gaussian,
+        af.Gaussian,
         centre=-3.0
     )
     model_2 = af.Model(
-        Gaussian,
+        af.Gaussian,
         centre=2.0
     )
     assert model_1.order_no < model_2.order_no
@@ -122,19 +121,19 @@ def test_negative():
 
 def test_model_order_no_complicated():
     model_1 = af.Model(
-        Gaussian,
+        af.Gaussian,
         centre=1.0,
-        intensity=af.UniformPrior(0.0, 1.0)
+        normalization=af.UniformPrior(0.0, 1.0)
     )
     model_2 = af.Model(
-        Gaussian,
+        af.Gaussian,
         centre=2.0,
-        intensity=af.UniformPrior(0.0, 0.5)
+        normalization=af.UniformPrior(0.0, 0.5)
     )
     model_3 = af.Model(
-        Gaussian,
+        af.Gaussian,
         centre=2.0,
-        intensity=af.UniformPrior(0.0, 1.0)
+        normalization=af.UniformPrior(0.0, 1.0)
     )
 
     assert model_1.order_no < model_2.order_no < model_3.order_no

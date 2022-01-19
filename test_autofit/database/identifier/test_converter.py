@@ -57,7 +57,7 @@ def make_old_directory_paths():
         name="name"
     )
     search.paths.model = af.PriorModel(
-        Gaussian
+        af.Gaussian
     )
     return search.paths
 
@@ -70,7 +70,7 @@ def test_update_identifiers_from_dict_no_change():
         name="name"
     )
     search.paths.model = af.PriorModel(
-        Gaussian
+        af.Gaussian
     )
     old_directory_paths = search.paths
 
@@ -99,7 +99,7 @@ def test_update_identifiers_from_dict():
         name="name"
     )
     search.paths.model = af.PriorModel(
-        Gaussian
+        af.Gaussian
     )
     old_directory_paths = search.paths
 
@@ -113,7 +113,7 @@ def test_update_identifiers_from_dict():
     update_identifiers_from_dict(
         output_directory,
         {
-            "intensity": "magnitude"
+            "normalization": "magnitude"
         }
     )
 
@@ -133,7 +133,7 @@ def test_update_identifiers_from_dict():
             unzipped / ".identifier"
     ) as f:
         lines = f.read().split("\n")
-        assert "intensity" not in lines
+        assert "normalization" not in lines
         assert "magnitude" in lines
 
     assert len(lines) == initial_length
@@ -197,7 +197,7 @@ def test_database(session):
         session=session
     )
     search.paths.model = af.PriorModel(
-        Gaussian
+        af.Gaussian
     )
     search.paths.save_all(
         search_config_dict=search.config_dict_search,

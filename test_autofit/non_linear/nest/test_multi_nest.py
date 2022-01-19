@@ -2,12 +2,13 @@ import os
 import shutil
 from functools import wraps
 from os import path
-
 import pytest
 
-import autofit as af
 from autoconf import conf
-from autofit.mock import mock
+
+import autofit as af
+
+from autofit.mock.mock_model import MockClassx4
 from autofit.non_linear.nest.multinest import samples as samp
 
 directory = path.dirname(path.realpath(__file__))
@@ -164,7 +165,7 @@ class TestMulitNest:
         assert multinest.config_dict_search["n_live_points"] == 50
         assert multinest.config_dict_search["sampling_efficiency"] == 0.6
 
-        model = af.ModelMapper(mock_class_1=mock.MockClassx4)
+        model = af.ModelMapper(mock_class_1=MockClassx4)
 
         fitness = af.MultiNest.Fitness(
             analysis=None,
@@ -248,7 +249,7 @@ class TestMulitNest:
         create_resume(file_path=multinest.paths.samples_path)
         create_summary_4_parameters(file_path=multinest.paths.samples_path)
 
-        model = af.ModelMapper(mock_class=mock.MockClassx4)
+        model = af.ModelMapper(mock_class=MockClassx4)
         model.mock_class.two = af.LogUniformPrior(lower_limit=1e-8, upper_limit=10.0)
 
         samples = multinest.samples_from(model=model)
@@ -275,4 +276,4 @@ class TestMulitNest:
         assert samples.weight_list == [0.02, 0.02, 0.01, 0.05, 0.1, 0.1, 0.1, 0.1, 0.2, 0.3]
         assert samples.total_samples == 12345
         assert samples.log_evidence == 0.02
-        assert samples.number_live_points == 50
+        assert samples.number_live_points == None

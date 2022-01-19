@@ -1,7 +1,6 @@
 import pytest
 
 import autofit as af
-from autofit.mock.mock import Gaussian
 
 
 @pytest.fixture(
@@ -9,7 +8,7 @@ from autofit.mock.mock import Gaussian
 )
 def make_frozen_model():
     model = af.PriorModel(
-        Gaussian
+        af.Gaussian
     )
 
     model.freeze()
@@ -22,7 +21,7 @@ def make_frozen_model():
 def make_frozen_collection():
     model = af.CollectionPriorModel(
         gaussian=af.PriorModel(
-            Gaussian
+            af.Gaussian
         )
     )
 
@@ -54,7 +53,7 @@ class TestFrozenCollection:
                 AssertionError
         ):
             frozen_collection.append(
-                Gaussian()
+                af.Gaussian()
             )
 
     def test_set_item(

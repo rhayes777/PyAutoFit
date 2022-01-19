@@ -10,7 +10,7 @@ class EmceePlotter(MCMCPlotter):
         corner.corner(
             data=np.asarray(self.samples.parameter_lists),
             weight_list=self.samples.weight_list,
-            labels=self.model.parameter_labels_latex,
+            labels=self.model.parameter_labels_with_superscripts_latex,
             **kwargs
         )
 
@@ -20,8 +20,8 @@ class EmceePlotter(MCMCPlotter):
     def trajectories(self, **kwargs):
 
         self._plot_trajectories(
-            samples=self.samples.backend.get_chain(),
-            log_posterior_list=self.samples.backend.get_log_prob(),
+            samples=self.samples.results_internal.get_chain(),
+            log_posterior_list=self.samples.results_internal.get_log_prob(),
             **kwargs
         )
 
@@ -29,13 +29,13 @@ class EmceePlotter(MCMCPlotter):
     def likelihood_series(self, **kwargs):
 
         self._plot_likelihood_series(
-            log_posterior_list = self.samples.backend.get_log_prob(),
+            log_posterior_list = self.samples.results_internal.get_log_prob(),
             **kwargs
         )
 
     def time_series(self, **kwargs):
 
         self._plot_time_series(
-            samples=self.samples.backend.get_chain(),
+            samples=self.samples.results_internal.get_chain(),
         )
 

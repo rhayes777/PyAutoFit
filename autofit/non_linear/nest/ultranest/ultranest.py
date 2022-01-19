@@ -6,9 +6,9 @@ from sqlalchemy.orm import Session
 
 from autoconf import conf
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
+from autofit.non_linear.abstract_search import PriorPasser
 from autofit.non_linear.nest import abstract_nest
 from autofit.non_linear.nest.abstract_nest import AbstractNest
-from autofit.non_linear.abstract_search import PriorPasser
 from autofit.non_linear.nest.ultranest.samples import UltraNestSamples
 from autofit.plot import UltraNestPlotter
 from autofit.plot.output import Output
@@ -159,14 +159,15 @@ class UltraNest(abstract_nest.AbstractNest):
 
         import ultranest
 
-        pool = self.make_pool()
-
         fitness_function = self.fitness_function_from_model_and_analysis(
             model=model, analysis=analysis, log_likelihood_cap=log_likelihood_cap,
         )
 
         def prior_transform(cube):
-            return model.vector_from_unit_vector(unit_vector=cube)
+            return model.vector_from_unit_vector(
+                unit_vector=cube,
+                ignore_prior_limits=True
+            )
 
         sampler = ultranest.ReactiveNestedSampler(
             param_names=model.parameter_names,
@@ -221,7 +222,8 @@ class UltraNest(abstract_nest.AbstractNest):
                 finished = True
 
     def samples_from(self, model: AbstractPriorModel):
-        """Create a `Samples` object from this non-linear search's output files on the hard-disk and model.
+        """
+        Create a `Samples` object from this non-linear search's output files on the hard-disk and model.
 
         For MulitNest, this requires us to load:
 
@@ -239,7 +241,7 @@ class UltraNest(abstract_nest.AbstractNest):
 
         try:
 
-            results = self.paths.load_object(
+            results_internal = self.paths.load_object(
                 "results"
             )
 
@@ -248,11 +250,11 @@ class UltraNest(abstract_nest.AbstractNest):
             samples = self.paths.load_object(
                 "samples"
             )
-            results = samples.results
+            results_internal = samples.results
 
-        return UltraNestSamples(
+        return UltraNestSamples.from_results_internal(
+            results_internal=results_internal,
             model=model,
-            results=results,
             number_live_points=self.config_dict_run["min_num_live_points"],
             unconverged_sample_size=1,
             time=self.timer.time,
@@ -279,4 +281,3 @@ class UltraNest(abstract_nest.AbstractNest):
 
         if should_plot("traceplot"):
             plotter.traceplot()
-

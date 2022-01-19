@@ -237,6 +237,7 @@ class AbstractMessage(Prior, ABC):
                 f"match message shape {self.shape}")
 
     def factor(self, x):
+        self.assert_within_limits(x)
         return self.logpdf(x)
 
     def logpdf(self, x: np.ndarray) -> np.ndarray:

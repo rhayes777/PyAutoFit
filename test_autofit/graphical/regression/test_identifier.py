@@ -118,7 +118,8 @@ def make_model():
 def test_model_identifier(
         model
 ):
-    assert str(model) == "626c1beb5b1fb99781f30950595f36de"
+
+    assert str(model) == "8f342d3d4f2a60639700c295378b8b9f"
 
 
 def test_model_identifier_fields(
@@ -127,14 +128,14 @@ def test_model_identifier_fields(
     assert model.hash_list == [
         'PriorModel',
         'cls',
-        'autofit.mock.mock.Gaussian',
+        'autofit.example.model.Gaussian',
         'centre',
         'UniformPrior',
         'lower_limit',
         '0.0',
         'upper_limit',
         '1.0',
-        'intensity',
+        'normalization',
         'UniformPrior',
         'lower_limit',
         '0.0',

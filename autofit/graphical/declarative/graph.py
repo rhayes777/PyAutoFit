@@ -1,11 +1,12 @@
 from abc import ABC, abstractmethod
-from typing import List, cast, Optional
+from typing import List, cast, Optional, Union
 
 from autofit.graphical.declarative.factor.prior import PriorFactor
 from autofit.graphical.expectation_propagation.ep_mean_field import EPMeanField
 from autofit.graphical.factor_graphs.factor import Factor
 from autofit.graphical.factor_graphs.graph import FactorGraph
 from autofit.mapper.prior.abstract import Prior
+from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.mapper.variable import Variable
 from autofit.text.formatter import TextFormatter
 
@@ -278,7 +279,7 @@ class DeclarativeFactorGraph(FactorGraph):
 
     def make_results_text(
             self,
-            model_approx: EPMeanField
+            model_approx: Union[EPMeanField, AbstractPriorModel]
     ) -> str:
         """
         Generate text describing the graph w.r.t. a given model approximation

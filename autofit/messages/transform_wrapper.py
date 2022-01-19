@@ -114,6 +114,11 @@ class TransformedWrapperInstance(Prior):
         return instance - other
 
     def __eq__(self, other):
+        if not isinstance(
+                other,
+                TransformedWrapperInstance
+        ):
+            return False
         return other.instance() == self.instance()
 
     def __getattr__(self, item):

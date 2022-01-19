@@ -2,8 +2,7 @@ import pytest
 
 import autofit as af
 from autofit import database as m
-from autofit.mock import mock
-from autofit.non_linear.samples import Sample
+from autofit.mock.mock import MockSamples
 
 
 @pytest.fixture(
@@ -14,9 +13,9 @@ def save_samples(
         paths,
         sample
 ):
-    samples = mock.MockSamples(
+    samples =MockSamples(
         model=af.Model(
-            mock.Gaussian
+            af.Gaussian
         ),
 
     )
@@ -30,13 +29,13 @@ def save_samples(
     name="sample"
 )
 def make_sample():
-    return Sample(
+    return af.Sample(
         log_likelihood=1.0,
         log_prior=1.0,
         weight=0.5,
         kwargs=dict(
             centre=1.0,
-            intensity=2.0,
+            normalization=2.0,
             sigma=3.0
         )
     )
@@ -59,7 +58,7 @@ def test_load_samples(
 ):
     samples = paths._load_samples()
 
-    assert samples.model.cls is mock.Gaussian
+    assert samples.model.cls is af.Gaussian
 
     sample, = samples.sample_list
     assert sample.weight == 0.5

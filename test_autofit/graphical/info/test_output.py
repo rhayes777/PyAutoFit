@@ -1,11 +1,13 @@
 import autofit as af
-from autofit import graphical as g
 from autoconf.conf import with_config
+from autofit import graphical as g, DirectoryPaths
+
+from autofit.mock import mock as m
 
 MAX_STEPS = 3
 
 
-class MockResult(af.MockResult):
+class MockResult(m.MockResult):
     def __init__(self, model):
         super().__init__()
         self.model = model
@@ -15,7 +17,7 @@ class MockResult(af.MockResult):
         return self.model
 
 
-class MockSearch(af.MockSearch):
+class MockSearch(m.MockSearch):
     def fit(
             self,
             model,
@@ -33,18 +35,19 @@ class MockSearch(af.MockSearch):
 
 def _run_optimisation(
         factor_graph_model,
-        search=None
+        paths=None
 ):
-    search = search or MockSearch(
-        name="name"
-    )
+    search = MockSearch()
     factor_graph_model.optimise(
         search,
         max_steps=MAX_STEPS,
-        name="name",
         log_interval=1,
         visualise_interval=1,
         output_interval=1,
+        paths=paths or DirectoryPaths(
+            name="name",
+            is_identifier_in_paths=False,
+        )
     )
 
 
@@ -96,20 +99,22 @@ def test_path_prefix(
         output_directory,
         factor_graph_model
 ):
-    search = MockSearch(
+    paths = DirectoryPaths(
         path_prefix="path_prefix",
-        name="name"
+        name="name",
+        is_identifier_in_paths=False,
     )
     optimiser = g.EPOptimiser(
         factor_graph=factor_graph_model.graph,
-        default_optimiser=search
+        paths=paths,
+        default_optimiser=MockSearch()
     )
 
     assert optimiser.output_path == output_directory / "path_prefix/name"
 
     _run_optimisation(
         factor_graph_model,
-        search
+        paths=paths
     )
     assert (output_directory / "path_prefix/name/AnalysisFactor0").exists()
     assert (output_directory / "path_prefix/name/AnalysisFactor1").exists()

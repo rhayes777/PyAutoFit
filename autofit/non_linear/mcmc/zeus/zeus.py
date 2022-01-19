@@ -255,9 +255,9 @@ class Zeus(AbstractMCMC):
             etc.
         """
 
-        return ZeusSamples(
+        return ZeusSamples.from_results_internal(
+            results_internal=self.zeus_pickled,
             model=model,
-            zeus_sampler=self.zeus_pickled,
             auto_correlation_settings=self.auto_correlations_settings,
             time=self.timer.time
         )

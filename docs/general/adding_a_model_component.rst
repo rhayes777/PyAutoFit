@@ -29,7 +29,7 @@ line ``y = mx + c`` or equivalently ``y = (gradient * x) + intercept``.
             self.gradient = gradient
             self.intercept = intercept
 
-        def profile_from_xvalues(self, xvalues):
+        def profile_1d_via_xvalues_from(self, xvalues):
 
             return (self.gradient * xvalues) + self.intercept
 
@@ -249,7 +249,7 @@ These configuration files include the following additional settings for our mode
 ``label_ini`` -> [label]: 
    This is a short-hand label for each parameter of each model-component used by certain **PyAutoFit** output files.
 
-``label_ini`` -> [subscript]:
+``label_ini`` -> [superscript]:
    A subscript for the model-component used by certain **PyAutoFit** output files.
 
 ``label_format.ini`` -> [format]
@@ -270,7 +270,7 @@ For our ``LinearFit`` update the ``label.ini`` config as follows:
 
 .. code-block:: bash
 
-    [subscript]
+    [superscript]
     Gaussian=g
     Exponential=e
     LinearFit=lin

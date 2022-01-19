@@ -10,8 +10,8 @@ from test_autofit.graphical.gaussian.model import Gaussian, make_data, Analysis
     name="make_model_factor"
 )
 def make_make_model_factor(
-        intensity,
-        intensity_prior,
+        normalization,
+        normalization_prior,
         x
 ):
     def make_factor_model(
@@ -22,7 +22,7 @@ def make_make_model_factor(
         y = make_data(
             Gaussian(
                 centre=centre,
-                intensity=intensity,
+                normalization=normalization,
                 sigma=sigma
             ),
             x
@@ -31,7 +31,7 @@ def make_make_model_factor(
         prior_model = af.PriorModel(
             Gaussian,
             centre=af.UniformPrior(lower_limit=10, upper_limit=100),
-            intensity=intensity_prior,
+            normalization=normalization_prior,
             sigma=af.UniformPrior(lower_limit=0, upper_limit=20),
         )
 
@@ -48,16 +48,16 @@ def make_make_model_factor(
 
 
 @pytest.fixture(
-    name="intensity"
+    name="normalization"
 )
-def make_intensity():
+def make_normalization():
     return 25.0
 
 
 @pytest.fixture(
-    name="intensity_prior"
+    name="normalization_prior"
 )
-def make_intensity_prior():
+def make_normalization_prior():
     return af.UniformPrior(lower_limit=15, upper_limit=35)
 
 
@@ -95,8 +95,8 @@ def _test_optimise_factor_model(
 
     collection = factor_model.optimise(laplace)
 
-    assert 25.0 == pytest.approx(collection[0].intensity.mean, rel=0.1)
-    assert collection[0].intensity is collection[1].intensity
+    assert 25.0 == pytest.approx(collection[0].normalization.mean, rel=0.1)
+    assert collection[0].normalization is collection[1].normalization
 
 
 def test_trivial():
@@ -131,15 +131,15 @@ def test_trivial():
 def _test_gaussian():
     n_observations = 100
     x = np.arange(n_observations)
-    y = make_data(Gaussian(centre=50.0, intensity=25.0, sigma=10.0), x)
+    y = make_data(Gaussian(centre=50.0, normalization=25.0, sigma=10.0), x)
 
     prior_model = af.PriorModel(
         Gaussian,
         # centre=af.GaussianPrior(mean=50, sigma=10),
-        # intensity=af.GaussianPrior(mean=25, sigma=10),
+        # normalization=af.GaussianPrior(mean=25, sigma=10),
         sigma=af.GaussianPrior(mean=10, sigma=10),
         centre=af.UniformPrior(lower_limit=30, upper_limit=70),
-        intensity=af.UniformPrior(lower_limit=15, upper_limit=35),
+        normalization=af.UniformPrior(lower_limit=15, upper_limit=35),
         # sigma=af.UniformPrior(lower_limit=5, upper_limit=15),
     )
 
@@ -158,5 +158,5 @@ def _test_gaussian():
     model = factor_model.optimise(optimiser)
 
     assert model.centre.mean == pytest.approx(50, rel=0.1)
-    assert model.intensity.mean == pytest.approx(25, rel=0.1)
+    assert model.normalization.mean == pytest.approx(25, rel=0.1)
     assert model.sigma.mean == pytest.approx(10, rel=0.1)

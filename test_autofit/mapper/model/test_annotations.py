@@ -1,11 +1,10 @@
 from typing import Optional
 
 import autofit as af
-from autofit.mock.mock import Gaussian
 
 
 class OptionalClass:
-    def __init__(self, optional: Optional[Gaussian]):
+    def __init__(self, optional: Optional[af.Gaussian]):
         self.optional = optional
 
 

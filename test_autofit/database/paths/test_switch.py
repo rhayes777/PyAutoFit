@@ -1,10 +1,6 @@
-import os
-
 import pytest
 
 import autofit as af
-from autofit import database as m
-from autofit.mock import mock
 
 
 class Analysis(af.Analysis):
@@ -27,7 +23,7 @@ def make_search(session):
 )
 def make_model():
     return af.Model(
-        mock.Gaussian
+        af.Gaussian
     )
 
 

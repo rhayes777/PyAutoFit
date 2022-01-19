@@ -56,7 +56,7 @@ def test_default(
     model = factor_model.optimise(laplace)
 
     assert model.centre.mean == pytest.approx(50, rel=0.1)
-    assert model.intensity.mean == pytest.approx(25, rel=0.1)
+    assert model.normalization.mean == pytest.approx(25, rel=0.1)
     assert model.sigma.mean == pytest.approx(10, rel=0.1)
 
 

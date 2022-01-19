@@ -22,7 +22,7 @@ def test_and_commutativity():
 def test_single_argument():
     assert isinstance(
         q.And(q.Q("a")),
-        q.Q
+        q.NamedQuery
     )
 
 

@@ -48,3 +48,10 @@ class HistoryException(Exception):
     """
     Thrown when insufficient factor history is present for a given operation
     """
+
+class SamplesException(Exception):
+    pass
+
+
+class SamplesWarning(Warning):
+    pass

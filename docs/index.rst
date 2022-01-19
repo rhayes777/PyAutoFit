@@ -2,7 +2,8 @@ Probabilistic Programming
 =========================
 
 Probabilistic programming languages provide a framework that allows users to easily specify a probabilistic
-model and perform inference automatically. **PyAutoFit** is a Python-based probabilistic programming language which:
+model and perform inference automatically. PyAutoFit is a Python based probabilistic programming language for the
+fully Bayesian analysis of extremely large datasets which:
 
 - Makes it simple to compose and fit multi-level models using a range of Bayesian inference libraries, such as `emcee <https://github.com/dfm/emcee>`_ and `dynesty <https://github.com/joshspeagle/dynesty>`_.
 
@@ -60,7 +61,7 @@ how a *model* representing a 1D Gaussian is written:
         This method will be used to fit the model to ``data`` and compute a likelihood.
         """
 
-        def profile_from_xvalues(self, xvalues):
+        def profile_1d_via_xvalues_from(self, xvalues):
 
             transformed_xvalues = xvalues - self.centre
 
@@ -93,12 +94,12 @@ likelihood function:
 
             """
             We fit the ``data`` with the Gaussian instance, using its
-            "profile_from_xvalues" function to create the model data.
+            "profile_1d_via_xvalues_from" function to create the model data.
             """
 
             xvalues = np.arange(self.data.shape[0])
 
-            model_data = instance.profile_from_xvalues(xvalues=xvalues)
+            model_data = instance.profile_1d_via_xvalues_from(xvalues=xvalues)
             residual_map = self.data - model_data
             chi_squared_map = (residual_map / self.noise_map) ** 2.0
             log_likelihood = -0.5 * sum(chi_squared_map)

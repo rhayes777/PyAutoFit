@@ -1,3 +1,6 @@
+import copy
+from typing import List, Tuple, Union, Dict
+
 from autofit.mapper.model_object import ModelObject
 from autofit.mapper.prior_model.attribute_pair import (
     cast_collection,
@@ -5,6 +8,11 @@ from autofit.mapper.prior_model.attribute_pair import (
     InstanceNameValue,
 )
 from .abstract import Prior
+
+NameValue = Tuple[
+    str,
+    Union[Prior, float]
+]
 
 
 class TuplePrior(ModelObject):
@@ -83,9 +91,79 @@ class TuplePrior(ModelObject):
             A new tuple prior with gaussian priors
         """
         tuple_prior = TuplePrior()
-        for prior_tuple in self.prior_tuples:
-            setattr(tuple_prior, prior_tuple.name, arguments[prior_tuple.prior])
+        for name, prior in self.prior_tuples:
+            setattr(
+                tuple_prior,
+                name,
+                arguments[prior]
+            )
+        for name, value in self.instance_tuples:
+            setattr(
+                tuple_prior,
+                name,
+                value
+            )
         return tuple_prior
 
+    @property
+    def tuples(self) -> List[NameValue]:
+        """
+        The names and instances of all priors and constants ordered
+        by their name.
+
+        This means they are in the order they should be in the tuple.
+        """
+        return sorted(
+            self.prior_tuples + self.instance_tuples,
+            key=lambda t: t[0]
+        )
+
+    def _with_paths(
+            self,
+            tree: Dict[str, dict]
+    ) -> "TuplePrior":
+        """
+        An instance of this tuple prior with only tuples with positions
+        indicated in the tree dictionary.
+
+        Note applying this twice will give unexpected results.
+        """
+        new = TuplePrior()
+        for key in tree:
+            key, value = self._get_key_value(key)
+            setattr(new, key, value)
+        return new
+
+    def _without_paths(
+            self,
+            tree: Dict[str, dict]
+    ) -> "TuplePrior":
+        """
+        An instance of this tuple prior without tuples with positions
+        indicated in the tree dictionary.
+
+        Note applying this twice will give unexpected results.
+        """
+        new = copy.deepcopy(self)
+        for key in tree:
+            key, value = self._get_key_value(key)
+            delattr(new, key)
+        return new
+
+    def _get_key_value(
+            self,
+            key: Union[str, int]
+    ) -> NameValue:
+        """
+        Retrieve a key and value by an attribute name or index which may
+        be expressed as a string or integer.
+        """
+        try:
+            return self.tuples[int(key)]
+        except ValueError:
+            return key, getattr(
+                self, key
+            )
+
     def __getitem__(self, item):
-        return self.prior_tuples[item][1]
+        return self._get_key_value(item)[1]

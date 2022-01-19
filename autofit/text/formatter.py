@@ -153,15 +153,17 @@ def parameter_result_latex_from(
         parameter_name,
         value,
         errors=None,
-        subscript=None,
+        superscript="",
         unit=None,
         format_string=None,
         name_to_label=False,
+        include_name=True,
+        include_quickmath=False,
 ):
     format_str = format_string or format_string_for_parameter_name(parameter_name)
     value = format_str.format(value)
 
-    str0 = convert_name_to_label(
+    name = convert_name_to_label(
         parameter_name=parameter_name, name_to_label=name_to_label
     )
 
@@ -170,17 +172,46 @@ def parameter_result_latex_from(
     else:
         unit = ""
 
-    if subscript is None:
-        subscript = ""
+    if not superscript:
+        superscript = ""
     else:
-        subscript = f"_{{\mathrm{{{subscript}}}}}"
+        superscript = f"^{{\\rm{{{superscript}}}}}"
 
     if errors is None:
-        return f"{str0}{subscript} = {value}{unit} & "
+
+        if include_name:
+            parameter_result_latex = f"{name}{superscript} = {value}{unit}"
+        else:
+            parameter_result_latex = f"{value}{unit}"
+
     else:
+
         lower_value_at_sigma = format_str.format(errors[0])
         upper_value_at_sigma = format_str.format(errors[1])
-        return f"{str0}{subscript} = {value}^{{+{upper_value_at_sigma}}}_{{-{lower_value_at_sigma}}}{unit} & "
+
+        parameter_result = f"{value}^{{+{upper_value_at_sigma}}}_{{-{lower_value_at_sigma}}}{unit}"
+
+        if include_name:
+            parameter_result_latex = f"{name}{superscript} = {value}^{{+{upper_value_at_sigma}}}_{{-{lower_value_at_sigma}}}{unit}"
+        else:
+            parameter_result_latex = parameter_result
+
+    if "e" in format_str:
+
+        psplit = parameter_result.split("e")
+
+        parameter_result_latex = (
+            f"" 
+            f"{psplit[0]}" 
+            f"{psplit[1][3:]}"
+            f"{psplit[2][3:]}" 
+            f"{psplit[3][-1]}" 
+            f" \\times 10^{{{int(psplit[1][1:3])}}}"
+        )
+
+    if not include_quickmath:
+        return f"{parameter_result_latex} & "
+    return f"${parameter_result_latex}$ & "
 
 
 def output_list_of_strings_to_file(file, list_of_strings):

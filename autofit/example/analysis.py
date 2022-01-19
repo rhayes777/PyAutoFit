@@ -36,10 +36,10 @@ class Analysis(af.Analysis):
 
         try:
             model_data = sum(
-                line.profile_from_xvalues(xvalues=xvalues) for line in instance
+                line.profile_1d_via_xvalues_from(xvalues=xvalues) for line in instance
             )
         except TypeError:
-            model_data = instance.profile_from_xvalues(xvalues=xvalues)
+            model_data = instance.profile_1d_via_xvalues_from(xvalues=xvalues)
 
         residual_map = self.data - model_data
         chi_squared_map = (residual_map / self.noise_map) ** 2.0
@@ -59,10 +59,10 @@ class Analysis(af.Analysis):
 
         try:
             model_data = sum(
-                line.profile_from_xvalues(xvalues=xvalues) for line in instance
+                line.profile_1d_via_xvalues_from(xvalues=xvalues) for line in instance
             )
         except TypeError:
-            model_data = instance.profile_from_xvalues(xvalues=xvalues)
+            model_data = instance.profile_1d_via_xvalues_from(xvalues=xvalues)
 
         plt.errorbar(
             x=xvalues,
@@ -76,7 +76,7 @@ class Analysis(af.Analysis):
         plt.plot(range(self.data.shape[0]), model_data, color="r")
         plt.title("Dynesty model fit to 1D Gaussian + Exponential dataset.")
         plt.xlabel("x values of profile")
-        plt.ylabel("Profile intensity")
+        plt.ylabel("Profile normalization")
 
         os.makedirs(paths.image_path, exist_ok=True)
         plt.savefig(path.join(paths.image_path, "model_fit.png"))

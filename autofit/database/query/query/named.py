@@ -176,7 +176,7 @@ class NamedQuery(AbstractQuery):
         Used to extend the query.
 
         Supports the syntax:
-        galaxies.lens.intensity
+        galaxies.lens.normalization
 
         Child queries are recursively searched until one with a None child is found.
         A new query is constructed to replace this None, extending the linked list
@@ -278,7 +278,7 @@ class NamedQuery(AbstractQuery):
         child query.
 
         This supports the syntax:
-        aggregator.galaxies.centre.intensity >= 1
+        aggregator.galaxies.centre.normalization >= 1
 
         The final query added on the end is the comparison query ">= 1"
 

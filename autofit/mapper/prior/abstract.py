@@ -8,8 +8,27 @@ from autofit.mapper.prior.arithmetic import ArithmeticMixin
 from autofit.mapper.prior.deferred import DeferredArgument
 from autofit.mapper.variable import Variable
 
-
 epsilon = 1e-14
+
+
+def assert_within_limits(
+        func,
+):
+    # noinspection PyShadowingNames
+    def wrapper(
+            self,
+            *args,
+            ignore_prior_limits=False,
+            **kwargs,
+    ):
+        value = func(
+            self, *args, **kwargs
+        )
+        if not ignore_prior_limits:
+            self.assert_within_limits(value)
+        return value
+
+    return wrapper
 
 
 class Prior(Variable, ABC, ArithmeticMixin):
@@ -54,6 +73,8 @@ class Prior(Variable, ABC, ArithmeticMixin):
         """
 
     def assert_within_limits(self, value):
+        if conf.instance["general"]["model"]["ignore_prior_limits"]:
+            return
         if not (
                 self.lower_limit - epsilon <= value <= self.upper_limit + epsilon
         ):

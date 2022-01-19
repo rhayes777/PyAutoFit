@@ -108,7 +108,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         self.path_prefix_no_unique_tag = path_prefix
 
         self._logger = None
-        self._paths = None
+        # self._paths = None
 
         logger.info(
             f"Creating search"

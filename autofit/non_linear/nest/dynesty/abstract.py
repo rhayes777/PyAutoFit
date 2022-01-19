@@ -13,8 +13,12 @@ from autofit.non_linear.nest.dynesty.plotter import DynestyPlotter
 from autofit.non_linear.nest.dynesty.samples import DynestySamples
 from autofit.plot.output import Output
 
+
 def prior_transform(cube, model):
-    phys_cube = model.vector_from_unit_vector(unit_vector=cube)
+    phys_cube = model.vector_from_unit_vector(
+        unit_vector=cube,
+        ignore_prior_limits=True
+    )
 
     for i in range(len(phys_cube)):
         cube[i] = phys_cube[i]
@@ -85,7 +89,8 @@ class AbstractDynesty(AbstractNest, ABC):
     class Fitness(AbstractNest.Fitness):
         @property
         def resample_figure_of_merit(self):
-            """If a sample raises a FitException, this value is returned to signify that the point requires resampling or
+            """
+            If a sample raises a FitException, this value is returned to signify that the point requires resampling or
              should be given a likelihood so low that it is discard.
 
              -np.inf is an invalid sample value for Dynesty, so we instead use a large negative number."""
@@ -234,11 +239,10 @@ class AbstractDynesty(AbstractNest, ABC):
         sampler = self.paths.load_object(
             "dynesty"
         )
-        results = sampler.results
 
-        return DynestySamples(
+        return DynestySamples.from_results_internal(
             model=model,
-            results=results,
+            results_internal=sampler.results,
             number_live_points=self.total_live_points,
             unconverged_sample_size=1,
             time=self.timer.time,
@@ -256,13 +260,13 @@ class AbstractDynesty(AbstractNest, ABC):
             The model which generates instances for different points in parameter space. This maps the points from unit
             cube values to physical values via the priors.
         """
-        results = self.paths.load_object(
+        results_internal = self.paths.load_object(
             "results"
         )
 
-        return DynestySamples(
+        return DynestySamples.from_results_internal(
             model=model,
-            results=results,
+            results_internal=results_internal,
             number_live_points=self.total_live_points,
             unconverged_sample_size=1,
             time=self.timer.time,

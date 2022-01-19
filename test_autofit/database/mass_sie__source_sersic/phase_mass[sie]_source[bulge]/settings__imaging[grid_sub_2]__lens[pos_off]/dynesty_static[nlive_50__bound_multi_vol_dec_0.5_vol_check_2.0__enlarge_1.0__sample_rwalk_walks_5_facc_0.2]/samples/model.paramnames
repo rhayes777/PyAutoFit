@@ -7,6 +7,6 @@ galaxies_source_bulge_centre_0                                        y_c
 galaxies_source_bulge_centre_1                                        x_c
 galaxies_source_bulge_elliptical_comps_0                              \xi_e
 galaxies_source_bulge_elliptical_comps_1                              \xi_e
-galaxies_source_bulge_intensity                                       I_i
+galaxies_source_bulge_normalization                                       I_i
 galaxies_source_bulge_effective_radius                                R_e
 galaxies_source_bulge_sersic_index                                    n_s
