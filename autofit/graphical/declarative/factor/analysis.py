@@ -83,7 +83,14 @@ class AnalysisFactor(AbstractModelFactor):
             name=name
         )
 
+    def __getstate__(self):
+        return self.__dict__
+
+    def __setstate__(self, state):
+        self.__dict__.update(state)
+
     def __getattr__(self, item):
+        print(item)
         return getattr(self.prior_model, item)
 
     def name_for_variable(
