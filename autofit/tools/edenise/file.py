@@ -21,6 +21,18 @@ class Unparser(Unparser_):
             )
         self.write(rep)
 
+    def _write_constant(self, value):
+        rep = repr(value)
+        if "\\n" in rep:
+            rep = rep.replace(
+                "\'", '"""'
+            ).replace(
+                "\\n", "\n"
+            )
+            self.write(rep)
+        else:
+            super()._write_constant(value)
+
 
 class File(DirectoryItem):
     def __init__(
