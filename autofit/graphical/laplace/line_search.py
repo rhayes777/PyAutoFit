@@ -7,99 +7,148 @@ autofit.graphical
 Note that this interface assumes that we're performing a maximisation. 
 In scipy the interface is defined for minimisations.
 """
-from typing import NamedTuple, Optional, Protocol
+from typing import Optional, Dict, Tuple
 import warnings
 
 import numpy as np
 from scipy.optimize import linesearch
 from scipy.optimize.optimize import _LineSearchError
 
+from autoconf import cached_property
+
 from autofit.graphical.factor_graphs.abstract import (
     FactorValue,
     FactorInterface,
     FactorJacobianInterface,
 )
-from autofit.mapper.variable_operator import VariableData
+from autofit.mapper.variable_operator import VariableData, AbstractVariableOperator
 
 
-class LineSearchResult(NamedTuple):
-    alpha: float
-    fval: FactorValue
-    gval: VariableData
-    old_fval: FactorValue
-    f_count: int
-    g_count: int
-
-
-def prepare_factor(
-    factor: FactorInterface,
-    factor_jacobian: FactorJacobianInterface,
-    xk: VariableData,
-    pk: VariableData,
-    gk: Optional[VariableData] = None,
-    args=(),
-):
-    fk = None
-    if gk is None:
-        fk, gk = factor_jacobian(xk, *args, axis=None)
-
-    pk = VariableData(pk)
-    fval = [fk]
-    gval = [gk]
-    gc = [0]
-    fc = [0]
-
-    def phi(s):
-        fc[0] += 1
-        fval[0] = f = factor(xk + s * pk, *args, axis=None)
-        # we are performing a maximisation, so need negative value
-        return -f
-
-    def derphi(s):
-        fval[0], gval[0] = factor_jacobian(xk + s * pk, *args, axis=None)
-        gc[0] += 1
-        # we are performing a maximisation, so need negative gradient
-        return -VariableData.dot(pk, gval[0])
-
-    derphi0 = -VariableData.dot(pk, gk)
-
-    vals = fval, gval, gc, fc
-
-    return phi, derphi, derphi0, vals
-
-
-class LineSearchFunc(Protocol):
-    def __call__(
+class OptimisationState:
+    def __init__(
         self,
         factor: FactorInterface,
         factor_jacobian: FactorJacobianInterface,
-        xk: VariableData,
-        pk: VariableData,
-        gk: Optional[VariableData] = None,
-        old_fval: Optional[FactorValue] = None,
-        old_old_fval: Optional[FactorValue] = None,
-        **kwargs
-    ) -> LineSearchResult:
-        pass
+        variables: VariableData,
+        hessian: Optional[AbstractVariableOperator] = None,
+        det_hessian: Optional[AbstractVariableOperator] = None,
+        value: Optional[FactorValue] = None,
+        gradient: Optional[VariableData] = None,
+        search_direction: Optional[VariableData] = None,
+        f_count: int = 0,
+        g_count: int = 0,
+        args=(),
+        next_states: Optional[Dict[float, "OptimisationState"]] = None,
+    ):
+        self.factor = factor
+        self.factor_jacobian = factor_jacobian
+
+        self._variables = variables
+        self.hessian = hessian
+        self.det_hessian = det_hessian
+        self.f_count = np.asanyarray(f_count)
+        self.g_count = np.asanyarray(g_count)
+        self.args = args
+
+        self.next_states = next_states or {}
+
+        if value is not None:
+            self.value = value
+        if gradient is not None:
+            self.gradient = gradient
+        if search_direction is not None:
+            self.search_direction = search_direction
+
+    @property
+    def variables(self):
+        return self._variables
+
+    @variables.setter
+    def variables(self, variable):
+        # This forces recalculation of the value and gradient as needed
+        del self.value
+        del self.gradient
+        self._variables = variable
+
+    @cached_property
+    def value(self):
+        self.f_count += 1
+        return self.factor(self.variables, *self.args, axis=None)
+
+    @cached_property
+    def gradient(self):
+        self.g_count += 1
+        self.value, grad = self.factor_jacobian(self.variables, *self.args, axis=None)
+        return grad
+
+    def to_dict(self):
+        # don't return value, gradient or search direction as may change
+        return {
+            "factor": self.factor,
+            "factor_jacobian": self.factor_jacobian,
+            "variables": self.variables,
+            "hessian": self.hessian,
+            "det_hessian": self.det_hessian,
+            "f_count": self.f_count,
+            "g_count": self.g_count,
+            "args": self.args,
+        }
+
+    def update(self, **kwargs):
+        return type(self)(**{**self.to_dict(), **kwargs})
+
+    def __repr__(self):
+        vals = self.to_dict()
+        if vals.keys():
+            m = max(map(len, list(vals.keys()))) + 1
+            attrs = "\n".join(
+                [k.rjust(m) + " = " + repr(v) + "," for k, v in vals.items()]
+            )
+            return self.__class__.__name__ + f"(\n{attrs}\n)"
+        else:
+            return self.__class__.__name__ + "()"
+
+    def _next_state(self, stepsize):
+        next_step = VariableData.add(
+            self.variables, VariableData.mul(self.search_direction, stepsize)
+        )
+        return self.update(variables=next_step)
+
+    def step(self, stepsize):
+        # if stepsize is None return last state
+        if not stepsize:
+            return self
+
+        # memoize stepsizes
+        next_state = self.next_states.get(stepsize)
+        if not next_state:
+            next_state = self.next_states[stepsize] = self._next_state(stepsize)
+
+        return next_state
+
+    def phi(self, s):
+        next_state = self.step(s)
+        return -next_state.value
+
+    def derphi(self, s):
+        next_state = self.step(s)
+        return self.calc_derphi(next_state.gradient)
+
+    def calc_derphi(self, gradient):
+        return -VariableData.dot(self.search_direction, gradient)
 
 
 def line_search_wolfe1(
-    factor: FactorInterface,
-    factor_jacobian: FactorJacobianInterface,
-    xk: VariableData,
-    pk: VariableData,
-    gk: Optional[VariableData] = None,
-    old_fval: Optional[FactorValue] = None,
-    old_old_fval: Optional[FactorValue] = None,
-    args=(),
+    state: OptimisationState,
+    old_state: Optional[OptimisationState] = None,
     c1=1e-4,
     c2=0.9,
     amax=50,
     amin=1e-8,
     xtol=1e-14,
-    f_count=0,
-    g_count=0,
-):
+    extra_condition=None,
+    **kwargs,
+) -> Tuple[Optional[float], OptimisationState]:
     """
     As `scalar_search_wolfe1` but do a line search to direction `pk`
     Parameters
@@ -126,16 +175,13 @@ def line_search_wolfe1(
     gval : array
         Gradient of `f` at the final point
     """
-    phi, derphi, derphi0, (fval, gval, gc, fc) = prepare_factor(
-        factor, factor_jacobian, xk, pk, gk=gk, args=args
-    )
-    gc[0] += g_count
-    fc[0] += f_count
-    stp, _, old_fval = linesearch.scalar_search_wolfe1(
-        phi,
-        derphi,
-        old_fval and -old_fval,  # we are performing a maximisation
-        old_old_fval and -old_old_fval,
+    derphi0 = state.derphi(0)
+    old_fval = state.value
+    stepsize, _, _ = linesearch.scalar_search_wolfe1(
+        state.phi,
+        state.derphi,
+        -old_fval,  # we are actually performing maximisation
+        old_state and -old_state.value,
         derphi0,
         c1=c1,
         c2=c2,
@@ -143,27 +189,25 @@ def line_search_wolfe1(
         amin=amin,
         xtol=xtol,
     )
+    next_state = state.step(stepsize)
 
-    return LineSearchResult(stp, fval[0], gval[0], old_fval, fc[0], gc[0])
+    if stepsize is not None and extra_condition is not None:
+        if not extra_condition(stepsize, next_state):
+            stepsize = None
+
+    return stepsize, next_state
 
 
 def line_search_wolfe2(
-    factor: FactorInterface,
-    factor_jacobian: FactorJacobianInterface,
-    xk: VariableData,
-    pk: VariableData,
-    gk: Optional[VariableData] = None,
-    old_fval: Optional[FactorValue] = None,
-    old_old_fval: Optional[FactorValue] = None,
-    args=(),
+    state: OptimisationState,
+    old_state: Optional[OptimisationState] = None,
     c1=1e-4,
     c2=0.9,
     amax=None,
     extra_condition=None,
     maxiter=10,
-    f_count=0,
-    g_count=0,
-):
+    **kwargs,
+) -> Tuple[Optional[float], OptimisationState]:
     """
     As `scalar_search_wolfe1` but do a line search to direction `pk`
     Parameters
@@ -190,76 +234,41 @@ def line_search_wolfe2(
     gval : array
         Gradient of `f` at the final point
     """
-    phi, derphi, derphi0, (fval, gval, gc, fc) = prepare_factor(
-        factor, factor_jacobian, xk, pk, gk=gk, args=args
-    )
-    gc[0] += g_count
-    fc[0] += f_count
-
-    alpha_star, _, old_fval, _ = linesearch.scalar_search_wolfe2(
-        phi,
-        derphi,
-        old_fval and -old_fval,  # we are actually performing maximisation
-        old_old_fval and -old_old_fval,
+    derphi0 = state.derphi(0)
+    old_fval = state.value
+    stepsize, _, _, _ = linesearch.scalar_search_wolfe2(
+        state.phi,
+        state.derphi,
+        -old_fval,  # we are actually performing maximisation
+        old_state and -old_state.value,
         derphi0,
         c1=c1,
         c2=c2,
         amax=amax,
-        extra_condition=extra_condition,
         maxiter=maxiter,
     )
 
-    return LineSearchResult(alpha_star, fval[0], gval[0], old_fval, fc[0], gc[0])
+    next_state = state.step(stepsize, extra_condition)
+    if stepsize is not None and extra_condition is not None:
+        if not extra_condition(stepsize, next_state):
+            stepsize = None
+
+    return stepsize, next_state
 
 
 def line_search(
-    factor: FactorInterface,
-    factor_jacobian: FactorJacobianInterface,
-    xk: VariableData,
-    pk: VariableData,
-    gk: Optional[VariableData] = None,
-    old_fval: Optional[FactorValue] = None,
-    old_old_fval: Optional[FactorValue] = None,
-    **kwargs
-):
+    state: OptimisationState, old_state: Optional[FactorValue] = None, **kwargs
+) -> Tuple[Optional[float], OptimisationState]:
 
-    extra_condition = kwargs.pop("extra_condition", None)
+    stepsize, next_state = line_search_wolfe1(state, old_state, **kwargs)
 
-    ret = line_search_wolfe1(
-        factor, factor_jacobian, xk, pk, gk, old_fval, old_old_fval, **kwargs
-    )
-
-    kwargs["f_count"] = ret.f_count
-    kwargs["g_count"] = ret.g_count
-
-    if ret[0] is not None and extra_condition is not None:
-        xp1 = xk + ret[0] * pk
-        if not extra_condition(ret[0], xp1, ret[3], ret[5]):
-            # Reject step if extra_condition fails
-            ret = (None,)
-
-    if ret[0] is None:
+    if stepsize is None:
         # line search failed: try different one.
         with warnings.catch_warnings():
             warnings.simplefilter("ignore", linesearch.LineSearchWarning)
-            kwargs2 = {}
-            for key in ("c1", "c2", "amax"):
-                if key in kwargs:
-                    kwargs2[key] = kwargs[key]
+            stepsize, next_state = line_search_wolfe2(state, old_state, **kwargs)
 
-            ret = line_search_wolfe2(
-                factor,
-                factor_jacobian,
-                xk,
-                pk,
-                gk,
-                old_fval,
-                old_old_fval,
-                extra_condition=extra_condition,
-                **kwargs2
-            )
-
-    if ret[0] is None:
+    if stepsize is None:
         raise _LineSearchError()
 
-    return ret
+    return stepsize, next_state

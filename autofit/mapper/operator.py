@@ -310,7 +310,10 @@ class MatrixOperator(LinearOperator):
         return self._M.copy()
 
     def diagonal(self):
-        return self.M.diagonal().reshape(self.rshape)
+        return self.to_dense().diagonal().reshape(self.rshape)
+
+    def to_diagonal(self):
+        return DiagonalMatrix(self.diagonal())
 
     def __add__(self, other: "MatrixOperator") -> "MatrixOperator":
         return type(self).from_dense(
@@ -610,7 +613,7 @@ class DiagonalMatrix(LinearOperator):
         A DiagonalMatrix which whitens the parameter space according to
         the hessian
         """
-        return MatrixOperator(M).diagonal()
+        return MatrixOperator(M).to_diagonal()
 
     @_wrap_leftop
     def __mul__(self, x):

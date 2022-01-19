@@ -1,262 +1,205 @@
-from typing import Optional, Callable, Dict, NamedTuple, Any, Generator
+from typing import Optional, Callable, Dict, Tuple, Any
 
 import numpy as np
 
-from autofit.graphical.factor_graphs.abstract import (
-    FactorValue,
-    FactorInterface,
-    FactorJacobianInterface,
-)
-from autofit.mapper.variable_operator import VariableData, AbstractVariableOperator
+from autofit.graphical.factor_graphs.abstract import FactorValue
+from autofit.mapper.variable_operator import VariableData
 
-from autofit.graphical.laplace.line_search import line_search, LineSearchFunc
-
-Factor = Callable[[VariableData], FactorValue]
+from autofit.graphical.laplace.line_search import line_search, OptimisationState
 
 
 ## get ascent direction
 
 
-def gradient_ascent(
-    xk: VariableData,
-    gk: VariableData,
-    Bk: Optional[AbstractVariableOperator] = None,
-) -> VariableData:
-    return VariableData(gk)
+def gradient_ascent(state: OptimisationState) -> VariableData:
+    return state.gradient
 
 
-def newton_direction(
-    xk: VariableData, gk: VariableData, Bk: AbstractVariableOperator
-) -> VariableData:
-    return Bk.ldiv(gk)
+def newton_direction(state: OptimisationState) -> VariableData:
+    return state.hessian.ldiv(state.gradient)
 
 
-## Quasi-newton approximation
+## Quasi-newton approximations
 
 
 def sr1_update(
-    fk: FactorValue,
-    fk1: FactorValue,
-    xk: VariableData,
-    xk1: VariableData,
-    gk: VariableData,
-    gk1: VariableData,
-    Bk: AbstractVariableOperator,
-    mintol=1e-8,
-):
-    dk = VariableData.sub(xk, xk1)
-    yk = VariableData.sub(gk, gk1)
+    state1: OptimisationState, state: OptimisationState, mintol=1e-8, **kwargs
+) -> OptimisationState:
+    yk = VariableData.sub(state1.gradient, state.gradient)
+    dk = VariableData.sub(state1.variables, state.variables)
+    Bk = state.hessian
     zk = yk - Bk * dk
     zkdk = zk.dot(dk)
-    tol = mintol * (xk.norm() ** 2).sum() ** 0.5 * (zk.norm() ** 2).sum() ** 0.5
+
+    tol = mintol * (dk.norm() ** 2).sum() ** 0.5 * (zk.norm() ** 2).sum() ** 0.5
     if zkdk > tol:
         vk = zk / np.sqrt(zkdk)
-        Bknew = Bk.lowrankupdate(vk)
+        Bk1 = Bk.lowrankupdate(vk)
     elif zkdk < -tol:
         vk = zk / np.sqrt(-zkdk)
-        Bknew = Bk.lowrankdowndate(vk)
+        Bk1 = Bk.lowrankdowndate(vk)
     else:
-        Bknew = Bk
+        Bk1 = Bk
 
-    return Bknew
+    state1.hessian = Bk1
+    return state1
 
 
 def bfgs_update(
-    fk: FactorValue,
-    fk1: FactorValue,
-    xk: VariableData,
-    xk1: VariableData,
-    gk: VariableData,
-    gk1: VariableData,
-    Bk: AbstractVariableOperator,
-):
-    dk = VariableData.sub(xk, xk1)
-    yk = VariableData.sub(gk, gk1)
-    ykTdk = -yk.dot(dk)
+    state1: OptimisationState,
+    state: OptimisationState,
+    **kwargs,
+) -> OptimisationState:
+    yk = VariableData.sub(state1.gradient, state.gradient)
+    dk = VariableData.sub(state1.variables, state.variables)
+    Bk = state.hessian
 
+    ykTdk = -yk.dot(dk)
     Bdk = Bk.dot(dk)
     dkTBdk = VariableData.dot(Bdk, dk)
 
-    Bknew = Bk.update(
+    state1.hessian = Bk.update(
         (yk, VariableData(yk).div(ykTdk)), (Bdk, VariableData(Bdk).div(dkTBdk))
     )
-    return Bknew
+    return state1
 
 
 def quasi_deterministic_update(
-    fk: FactorValue,
-    fk1: FactorValue,
-    xk: VariableData,
-    xk1: VariableData,
-    gk: VariableData,
-    gk1: VariableData,
-    Bxk: AbstractVariableOperator,
-    Bzk: AbstractVariableOperator,
-):
-    dk = VariableData.sub(xk, xk1)
-    zk = VariableData.sub(fk.deterministic_values, fk1.deterministic_values)
+    state1: OptimisationState,
+    state: OptimisationState,
+    **kwargs,
+) -> OptimisationState:
+    dk = VariableData.sub(state1.variables, state.variables)
+    zk = VariableData.sub(
+        state1.value.deterministic_values, state.value.deterministic_values
+    )
+    Bxk, Bzk = state.hessian, state.det_hessian
     zkTzk2 = zk.dot(zk) ** 2
     alpha = (zk.dot(Bzk.dot(zk)) - dk.dot(Bxk.dot(dk))) / zkTzk2
-    return Bzk.update((zk, alpha * zk))
+    state1.det_hessian = Bzk.update((zk, alpha * zk))
+    return state1
 
 
 ## Newton step
 
 
-class NextStep(NamedTuple):
-    fval: FactorValue
-    xval: VariableData
-    gval: VariableData
-    f_count: int
-    g_count: int
-
-
-class NextQuasiStep(NamedTuple):
-    fval: FactorValue
-    xval: VariableData
-    gval: VariableData
-    B: AbstractVariableOperator
-    det_B: Optional[AbstractVariableOperator]
-    f_count: int
-    g_count: int
-
-
 def take_step(
-    factor: FactorInterface,
-    factor_jacobian: FactorJacobianInterface,
-    xk: VariableData,
-    gk: Optional[VariableData] = None,
-    bk: Optional[AbstractVariableOperator] = None,
-    fk: Optional[FactorValue] = None,
-    fk_m1: Optional[FactorValue] = None,
+    state: OptimisationState,
+    old_state: Optional[OptimisationState] = None,
     *,
-    args: tuple = (),
     search_direction=newton_direction,
-    calc_line_search: LineSearchFunc = line_search,
+    calc_line_search=line_search,
     search_direction_kws: Optional[Dict[str, Any]] = None,
     line_search_kws: Optional[Dict[str, Any]] = None,
-    f_count=0,
-    g_count=0,
-):
-    ls_kws = line_search_kws or {}
-    if gk is None:
-        _, gk = factor_jacobian(xk, *args)
-        g_count += 1
-
-    pk = search_direction(xk, gk, bk, **(search_direction_kws or {}))
-    ls = calc_line_search(
-        factor,
-        factor_jacobian,
-        xk,
-        pk,
-        gk,
-        fk,
-        fk_m1,
-        args=args,
-        f_count=f_count,
-        g_count=g_count,
-        **ls_kws,
-    )
-    x_next = xk + VariableData.mul(pk, ls.alpha)
-    return NextStep(ls.fval, x_next, ls.gval, ls.f_count, ls.g_count)
+) -> Tuple[Optional[float], OptimisationState]:
+    state.search_direction = search_direction(state, **(search_direction_kws or {}))
+    return calc_line_search(state, old_state, **(line_search_kws or {}))
 
 
 def take_quasi_newton_step(
-    factor: FactorInterface,
-    factor_jacobian: FactorJacobianInterface,
-    xk: VariableData,
-    gk: Optional[VariableData] = None,
-    Bk: Optional[AbstractVariableOperator] = None,
-    fk: Optional[FactorValue] = None,
-    fk_m1: Optional[FactorValue] = None,
-    det_Bk: Optional[AbstractVariableOperator] = None,
+    state: OptimisationState,
+    old_state: Optional[OptimisationState] = None,
     *,
-    args: tuple = (),
     search_direction=newton_direction,
-    calc_line_search: LineSearchFunc = line_search,
+    calc_line_search=line_search,
     quasi_newton_update=bfgs_update,
     search_direction_kws: Optional[Dict[str, Any]] = None,
     line_search_kws: Optional[Dict[str, Any]] = None,
     quasi_newton_kws: Optional[Dict[str, Any]] = None,
-    f_count=0,
-    g_count=0,
-) -> NextQuasiStep:
-    next_step = take_step(
-        factor,
-        factor_jacobian,
-        xk,
-        gk,
-        Bk,
-        fk,
-        fk_m1,
-        args=args,
-        search_direction=search_direction,
-        calc_line_search=calc_line_search,
-        line_search_kws=line_search_kws,
-        search_direction_kws=search_direction_kws,
-        f_count=f_count,
-        g_count=g_count,
-    )
-    Bk_next = quasi_newton_update(
-        next_step.fval, fk, next_step.xval, xk, next_step.gval, gk, Bk
-    )
-    if det_Bk:
-        det_Bk = quasi_deterministic_update(
-            next_step.fval,
-            fk,
-            next_step.xval,
-            xk,
-            next_step.gval,
-            gk,
-            Bk_next,
-            det_Bk,
-            **(quasi_newton_kws or {}),
+) -> Tuple[Optional[float], OptimisationState]:
+    state.search_direction = search_direction(state, **(search_direction_kws or {}))
+    stepsize, state1 = calc_line_search(state, old_state, **(line_search_kws or {}))
+    state1 = quasi_newton_update(state1, state, **(quasi_newton_kws or {}))
+    if state.det_hessian:
+        state1 = quasi_deterministic_update(state1, state, **(quasi_newton_kws or {}))
+
+    return stepsize, state1
+
+
+def xtol_condition(state, old_state, xtol=1e-6, ord=None, **kwargs):
+    dx = VariableData.sub(state.variables, old_state.variables).vecnorm(ord=ord)
+    if dx < xtol:
+        return True, f"Minimum parameter change tolerance achieved, {dx} < {xtol}"
+
+
+def grad_condition(state, old_state, gtol=1e-5, ord=None, **kwargs):
+    dg = VariableData.vecnorm(state.gradient, ord=ord)
+    if dg < gtol:
+        return True, f"Gradient tolerance achieved, {dg} < {gtol}"
+
+
+def ftol_condition(state, old_state, ftol=1e-6, monotone=True, **kwargs):
+    df = state.value - old_state.value
+    if 0 < df < ftol:
+        return True, f"Minimum function change tolerance achieved, {df} < {ftol}"
+    elif monotone and df < 0:
+        return False, f"factor failed to increase on next step, {df}"
+
+
+def nfev_condition(state, old_state, maxfev=10000, **kwargs):
+    if state.f_count > maxfev:
+        return (
+            True,
+            f"Maximum number of function evaluations (maxfev={maxfev}) has been exceeded.",
         )
 
-    return NextQuasiStep(**next_step._asdict(), B=Bk_next, det_B=det_Bk)
+
+def ngev_condition(state, old_state, maxgev=10000, **kwargs):
+    if state.g_count > maxgev:
+        return (
+            True,
+            f"Maximum number of gradient evaluations (maxgev={maxgev}) has been exceeded.",
+        )
 
 
-def iter_quasi_newton(
-    factor: FactorInterface,
-    factor_jacobian: FactorJacobianInterface,
-    xk: VariableData,
-    gk: Optional[VariableData] = None,
-    Bk: Optional[AbstractVariableOperator] = None,
-    fk: Optional[FactorValue] = None,
-    fk_m1: Optional[FactorValue] = None,
-    det_Bk: Optional[AbstractVariableOperator] = None,
+def optimise_quasi_newton(
+    state: OptimisationState,
+    old_state: Optional[OptimisationState] = None,
     *,
-    args: tuple = (),
+    max_iter=100,
     search_direction=newton_direction,
-    calc_line_search: LineSearchFunc = line_search,
+    calc_line_search=line_search,
     quasi_newton_update=bfgs_update,
+    stop_conditions=(
+        xtol_condition,
+        ftol_condition,
+        grad_condition,
+    ),
     search_direction_kws: Optional[Dict[str, Any]] = None,
     line_search_kws: Optional[Dict[str, Any]] = None,
     quasi_newton_kws: Optional[Dict[str, Any]] = None,
-    f_count: int = 0,
-    g_count: int = 0,
-) -> Generator[NextQuasiStep, None, None]:
-    while True:
-        result = take_quasi_newton_step(
-            factor,
-            factor_jacobian,
-            xk,
-            gk,
-            Bk,
-            fk,
-            fk_m1,
-            det_Bk,
-            args=args,
+    stop_kws: Optional[Dict[str, Any]] = None,
+) -> Tuple[bool, OptimisationState, str]:
+
+    success = False
+    message = "max iterations reached"
+    for i in range(max_iter):
+        stepsize, state1 = take_quasi_newton_step(
+            state,
+            old_state,
             search_direction=search_direction,
             calc_line_search=calc_line_search,
             quasi_newton_update=quasi_newton_update,
-            line_search_kws=line_search_kws,
             search_direction_kws=search_direction_kws,
+            line_search_kws=line_search_kws,
             quasi_newton_kws=quasi_newton_kws,
-            f_count=f_count,
-            g_count=g_count,
         )
-        yield result
-        fk_m1 = fk
-        fk, xk, gk, Bk, det_Bk = result[:5]
-        f_count, g_count = result.f_count, result.g_count
+        state, old_state = state1, state
+
+        if stepsize is None:
+            message = f"abnormal termination of line search, iter={i}"
+            break
+        elif not np.isfinite(state.value):
+            message = f"function is no longer finite, iter={i}"
+            break
+        else:
+            for stop_condition in stop_conditions:
+                stop = stop_condition(state, old_state, **(stop_kws or {}))
+                if stop:
+                    success, message = stop
+                    break
+            else:
+                continue
+            break
+
+    return success, state, message

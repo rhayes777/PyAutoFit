@@ -188,6 +188,11 @@ class VariableData(Dict[Variable, np.ndarray]):
     abs = _unary_op(operator.abs)
     var_norm = _unary_op(np.linalg.norm)
     var_det = _unary_op(np.linalg.det)
+    var_max = _unary_op(np.max)
+    var_min = _unary_op(np.min)
+    var_sum = _unary_op(np.sum)
+    var_prod = _unary_op(np.prod)
+    var_isfinite = _unary_op(np.isfinite)
 
     __add__ = _binary_op(operator.add)
     __radd__ = _binary_op(operator.add)
@@ -225,21 +230,48 @@ class VariableData(Dict[Variable, np.ndarray]):
     def reduce(self, func):
         return reduce(func, self.values())
 
+    def mapreduce(self, func, op):
+        return VariableData.map(self, func).reduce(op)
+
     def subset(self, variables):
         cls = _get_variable_data_class(self)
         return cls((v, self[v]) for v in variables)
 
     def sum(self) -> float:
-        return VariableData.reduce(self, operator.add)
+        return sum(VariableData.var_sum(self).values())
 
     def prod(self) -> float:
-        return VariableData.reduce(self, operator.mul)
+        return VariableData.reduce(VariableData.var_prod(self).values(), operator.mul)
+
+    def det(self) -> float:
+        return VariableData.var_det(self).reduce(operator.mul)
+
+    def log_det(self) -> float:
+        return VariableData.mapreduce(self, np.linalg.logdet, operator.add)
+
+    def max(self) -> float:
+        return max(VariableData.var_max(self).values())
+
+    def min(self) -> float:
+        return min(VariableData.var_min(self).values())
 
     def dot(self, other) -> float:
         return VariableData.var_dot(self, other).sum()
 
     def norm(self) -> float:
         return sqrt(VariableData.dot(self, self))
+
+    def vecnorm(self, ord: Optional[float] = None) -> float:
+        if ord:
+            absval = VariableData.abs(self)
+            if ord == np.Inf:
+                return absval.max()
+            elif ord == -np.Inf:
+                return absval.min()
+            else:
+                return (absval ** ord).sum() ** (1.0 / ord)
+        else:
+            return VariableData.norm(self)
 
     def __repr__(self):
         name = type(self).__name__

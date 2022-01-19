@@ -9,54 +9,23 @@ from autofit.messages.normal import NormalMessage
 
 
 def test_diagonal_from_dense():
-    matrix = transform.DiagonalMatrix.from_dense(
-        np.array([
-            [4, 2],
-            [3, 4]
-        ])
-    )
+    matrix = transform.DiagonalMatrix.from_dense(np.array([[4, 2], [3, 4]]))
 
     assert len(matrix.scale) == 2
-    assert (matrix.scale == np.array([
-        2, 2
-    ])).all()
+    assert (matrix.scale == np.array([4, 4])).all()
 
 
 @pytest.mark.parametrize(
     "bounds, result",
     [
-        ([
-             (1, 2), (1, 2)
-         ],
-         [
-             (3, 6), (2, 4)
-         ]),
-        ([
-             (np.inf, np.inf), (np.inf, np.inf)
-         ],
-         [
-             (np.inf, np.inf), (np.inf, np.inf)
-         ]),
-        ([
-             (-2, -1), (0, 2)
-         ],
-         [
-             (-6, -3), (0, 4)
-         ]),
-    ]
+        ([(1, 2), (1, 2)], [(3, 6), (2, 4)]),
+        ([(np.inf, np.inf), (np.inf, np.inf)], [(np.inf, np.inf), (np.inf, np.inf)]),
+        ([(-2, -1), (0, 2)], [(-6, -3), (0, 4)]),
+    ],
 )
-def test_transform_bounds(
-        bounds,
-        result
-):
-    matrix = transform.DiagonalMatrix(
-        np.array([
-            3, 2
-        ])
-    )
-    assert matrix.transform_bounds(
-        bounds
-    ) == result
+def test_transform_bounds(bounds, result):
+    matrix = transform.DiagonalMatrix(np.array([3, 2]))
+    assert matrix.transform_bounds(bounds) == result
 
 
 def test_cholesky_transform():
@@ -129,7 +98,7 @@ def test_simple_transform_cholesky():
         x = x - b
         return 0.5 * np.linalg.multi_dot((x, A, x))
 
-    x = Variable('x', Plate())
+    x = Variable("x", Plate())
     x0 = np.random.randn(d)
 
     factor = Factor(likelihood, x=x, is_scalar=True)
@@ -205,7 +174,7 @@ def test_simple_transform_diagonal():
     A = np.diag(scale ** -1)
     b = np.random.randn(d)
 
-    x = Variable('x', Plate())
+    x = Variable("x", Plate())
     x0 = np.random.randn(d)
     param_shapes = utils.FlattenArrays({x: (d,)})
 
@@ -252,17 +221,18 @@ def test_complex_transform():
     b = np.random.rand(d)
 
     p1, p2, p3 = (Plate() for i in range(3))
-    x1 = Variable('x1', p1)
-    x2 = Variable('x2', p2, p3)
+    x1 = Variable("x1", p1)
+    x2 = Variable("x2", p2, p3)
 
-    mean_field = MeanField({
-        x1: NormalMessage(np.zeros(n1), 100 * np.ones(n1)),
-        x2: NormalMessage(np.zeros((n2, n3)), 100 * np.ones((n2, n3))),
-    })
+    mean_field = MeanField(
+        {
+            x1: NormalMessage(np.zeros(n1), 100 * np.ones(n1)),
+            x2: NormalMessage(np.zeros((n2, n3)), 100 * np.ones((n2, n3))),
+        }
+    )
 
     values = mean_field.sample()
-    param_shapes = utils.FlattenArrays(
-        {v: x.shape for v, x in values.items()})
+    param_shapes = utils.FlattenArrays({v: x.shape for v, x in values.items()})
 
     def likelihood(x1, x2):
         x = np.r_[x1, x2.ravel()] - b
@@ -292,8 +262,7 @@ def test_complex_transform():
         for v, X in param_shapes.unflatten(linalg.inv(A)).items()
     }
     cho_factors = {
-        v: transform.InvCholeskyTransform.from_dense(cov)
-        for v, cov in var_cov.items()
+        v: transform.InvCholeskyTransform.from_dense(cov) for v, cov in var_cov.items()
     }
     whiten = transform.VariableTransform(cho_factors)
     trans_factor = transform.TransformedNode(factor, whiten)
@@ -313,9 +282,10 @@ def test_complex_transform():
     res = optimize.minimize(
         trans_factor.flatten(param_shapes).func_jacobian,
         param_shapes.flatten(transformed),
-        method='BFGS', jac=True
+        method="BFGS",
+        jac=True,
     )
-    assert res.hess_inv.diagonal() == pytest.approx(1., rel=1e-1)
+    assert res.hess_inv.diagonal() == pytest.approx(1.0, rel=1e-1)
 
     # test VariableTransform with CholeskyTransform
     diag_factors = {
@@ -340,6 +310,7 @@ def test_complex_transform():
     res = optimize.minimize(
         trans_factor.flatten(param_shapes).func_jacobian,
         param_shapes.flatten(transformed),
-        method='BFGS', jac=True
+        method="BFGS",
+        jac=True,
     )
-    assert res.hess_inv.diagonal() == pytest.approx(1., rel=1e-1)
+    assert res.hess_inv.diagonal() == pytest.approx(1.0, rel=1e-1)
