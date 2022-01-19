@@ -23,7 +23,7 @@ def test_doc_string(file):
 This
 is
 a
-doc
+doc's
 string
 \"\"\"
 """

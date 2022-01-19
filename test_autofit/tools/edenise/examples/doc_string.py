@@ -2,6 +2,6 @@
 This
 is
 a
-doc
+doc's
 string
 """

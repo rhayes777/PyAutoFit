@@ -31,11 +31,10 @@ class Unparser(Unparser_):
         """
         Unescape newlines and replace single quotes with triple
         """
-        return string.replace(
-            "\'", '\"\"\"\n'
-        ).replace(
+        string = string[1:-1].replace(
             "\\n", "\n"
         )
+        return f"\"\"\"{string}\"\"\""
 
     def _Str(self, tree):
         rep = repr(tree.s)
