@@ -55,8 +55,8 @@ def test_convert_if_numpy(
         prefix=""
     )
     assert file.target_string == """
-from numpy import isnan
-if isnan(1):
+import numpy as np
+if np.isnan(1):
     assert False
 """
 

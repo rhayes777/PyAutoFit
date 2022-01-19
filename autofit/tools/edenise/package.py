@@ -70,6 +70,13 @@ class Package(DirectoryItem):
         """
         return self.path.name
 
+    def is_name_of_eden_dependency(self, name):
+        return name == self.name or name in [
+            dependency.name
+            for dependency
+            in self.eden_dependencies
+        ]
+
     def _item_for_path(
             self,
             path: List[str]

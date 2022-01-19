@@ -61,6 +61,7 @@ class File(DirectoryItem):
             import_.alias
             for import_
             in self.aliased_imports
+            if import_.is_in_project
         ]
 
     def attributes_for_alias(
@@ -90,6 +91,7 @@ class File(DirectoryItem):
         """
         All attributes in this file
         """
+
         def get_attributes(
                 obj
         ):
@@ -158,7 +160,7 @@ class File(DirectoryItem):
         for line in self.lines():
             if isinstance(
                     line, Import
-            ) and line.is_aliased:
+            ) and line.is_in_project and line.is_aliased:
                 line = line.as_from_import(
                     self.attributes_for_alias(
                         line.alias
