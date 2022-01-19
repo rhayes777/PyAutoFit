@@ -2,11 +2,24 @@ import ast
 from pathlib import Path
 from typing import List, cast, Set, Generator
 
-from astunparse import unparse
+from astunparse import Unparser as Unparser_
+from six.moves import cStringIO
 
 from .import_ import Import
 from .item import Item, DirectoryItem
 from .line import LineItem
+
+
+class Unparser(Unparser_):
+    def _Str(self, tree):
+        rep = repr(tree.s)
+        if "\\n" in rep:
+            rep = rep.replace(
+                "\'", '"""'
+            ).replace(
+                "\\n", "\n"
+            )
+        self.write(rep)
 
 
 class File(DirectoryItem):
@@ -141,14 +154,16 @@ class File(DirectoryItem):
             The path in which the Eden converted project to generated
         """
         with open(output_path / self.target_path, "w+") as f:
-            f.write(self.target_string)
+            f.write(self.target_string.replace("\\n", "\n"))
 
     @property
     def target_string(self) -> str:
         """
         A string representing the Eden converted output
         """
-        return unparse(self.converted())
+        v = cStringIO()
+        Unparser(self.converted(), file=v)
+        return v.getvalue()
 
     def converted(self) -> ast.Module:
         """

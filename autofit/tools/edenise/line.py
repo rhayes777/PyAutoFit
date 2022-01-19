@@ -125,4 +125,15 @@ class LineItem(Item):
                 ast.FunctionDef
         ):
             return object.__new__(Function)
+        # if isinstance(
+        #         ast_item,
+        #         ast.Expr
+        # ):
+        #     return object.__new__(DocString)
         return object.__new__(LineItem)
+
+
+class DocString(LineItem):
+    def converted(self) -> ast.stmt:
+        result = super().converted()
+        return result
