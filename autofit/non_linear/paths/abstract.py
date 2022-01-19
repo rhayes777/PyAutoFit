@@ -312,8 +312,14 @@ class AbstractPaths(ABC):
                 self.output_path,
                 ignore_errors=True
             )
-            with zipfile.ZipFile(self._zip_path, "r") as f:
-                f.extractall(self.output_path)
+
+            try:
+                with zipfile.ZipFile(self._zip_path, "r") as f:
+                    f.extractall(self.output_path)
+            except zipfile.BadZipFile as e:
+                raise zipfile.BadZipFile(
+                    f"Unable to restore the zip file at the path {self._zip_path}"
+                ) from e
 
             os.remove(self._zip_path)
 

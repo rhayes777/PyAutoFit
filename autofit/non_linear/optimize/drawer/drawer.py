@@ -8,8 +8,8 @@ from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.optimize.abstract_optimize import AbstractOptimizer
 from autofit.non_linear.abstract_search import PriorPasser
 from autofit.non_linear.initializer import Initializer
-from autofit.non_linear.optimize.drawer.samples import DrawerSamples
 from autofit.non_linear.optimize.drawer.plotter import DrawerPlotter
+from autofit.non_linear.samples import Samples, Sample
 from autofit.plot.output import Output
 
 
@@ -160,10 +160,29 @@ class Drawer(AbstractOptimizer):
 
         parameter_lists = self.paths.load_object("parameter_lists")
 
-        return DrawerSamples(
+        log_prior_list = [
+            sum(model.log_prior_list_from_vector(vector=vector))
+            for vector
+            in parameter_lists
+        ]
+        log_likelihood_list = [
+            lp - prior for lp, prior
+            in zip(self.paths.load_object("log_posterior_list"), log_prior_list)
+        ]
+
+        weight_list = len(log_likelihood_list) * [1.0]
+
+        sample_list = Sample.from_lists(
             model=model,
             parameter_lists=parameter_lists,
-            log_posterior_list=self.paths.load_object("log_posterior_list"),
+            log_likelihood_list=log_likelihood_list,
+            log_prior_list=log_prior_list,
+            weight_list=weight_list
+        )
+
+        return Samples(
+            model=model,
+            sample_list=sample_list,
             time=self.timer.time
         )
 

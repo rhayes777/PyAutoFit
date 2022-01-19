@@ -1,39 +1,100 @@
 from typing import List, Optional
+import warnings
 
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.samples.pdf import PDFSamples
-from .sample import Sample
-from .stored import StoredSamples
+from autofit.non_linear.samples.samples import Sample
+from autofit.non_linear.samples.stored import StoredSamples
 
+from autofit import exc
 
 class NestSamples(PDFSamples):
+
     def __init__(
             self,
             model: AbstractPriorModel,
             sample_list: List[Sample],
+            number_live_points: Optional[int] = None,
             unconverged_sample_size: int = 100,
             time: Optional[float] = None,
+            results_internal: Optional = None,
     ):
         """
-        The Output classes in PyAutoFit provide an interface between the results of a `NonLinearSearch`
-        (e.g.as files on your hard-disk) and Python.
+        The `Samples` classes in **PyAutoFit** provide an interface between the results_internal of
+        a `NonLinearSearch` (e.g. as files on your hard-disk) and Python.
 
         For example, the output class can be used to load an instance of the best-fit model, get an instance of any
         individual sample by the `NonLinearSearch` and return information on the likelihoods, errors, etc.
 
-        The Bayesian log evidence estimated by the nested sampling algorithm.
+        This class stores the samples of nested sampler model-fit (e.g. `dynesty`, `UltraNest`). To use a library's
+        in-built visualization tools results are optionally stored in their native internal format using the
+        `results_internal` attribute.
 
         Parameters
         ----------
         model
             Maps input vectors of unit parameter values to physical values and model instances via priors.
+        sample_list
+            The list of `Samples` which contains the paramoeters, likelihood, weights, etc. of every sample taken
+            by the non-linear search.
+        number_live_points
+            The number of live points used by the nested sampler.
+        unconverged_sample_size
+            If the samples are for a search that is yet to convergence, a reduced set of samples are used to provide
+            a rough estimate of the parameters. The number of samples is set by this parameter.
+        time
+            The time taken to perform the model-fit, which is passed around `Samples` objects for outputting
+            information on the overall fit.
+        results_internal
+            The nested sampler's results in their native internal format for interfacing its visualization library.
         """
+
+        self._number_live_points = number_live_points
 
         super().__init__(
             model=model,
             sample_list=sample_list,
             unconverged_sample_size=unconverged_sample_size,
             time=time,
+            results_internal=results_internal
+        )
+
+    def __add__(
+            self,
+            other: "NestSamples"
+    ) -> "NestSamples":
+        """
+        Samples can be added together, which combines their `sample_list` meaning that inferred parameters are
+        computed via their joint PDF.
+
+        For UltraNest samples there are no tools for combining results in their native format, therefore these
+        `results_internal` are set to None and support for visualization is disabled.
+
+        Parameters
+        ----------
+        other
+            Another Samples class
+
+        Returns
+        -------
+        A class that combined the samples of the two Samples objects.
+        """
+
+        self._check_addition(other=other)
+
+        warnings.warn(
+            f"Addition of {self.__class__.__name__} cannot retain results in native format. "
+            "Visualization of summed samples diabled.",
+            exc.SamplesWarning
+        )
+
+        return self.__class__(
+            model=self.model,
+            sample_list=self.sample_list + other.sample_list,
+            number_live_points=self._number_live_points,
+            unconverged_sample_size=self.unconverged_sample_size,
+            time=self.time,
+            results_internal=None
         )
 
     @property

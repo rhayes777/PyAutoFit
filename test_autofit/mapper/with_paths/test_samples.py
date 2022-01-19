@@ -1,6 +1,7 @@
 import pytest
 
 import autofit as af
+from autofit.mock.mock_model import MockWithTuple
 
 
 @pytest.fixture(
@@ -153,3 +154,34 @@ def test_samples_lazy_attributes(
 
     assert without_paths.paths is not paths
     assert without_paths.names is not names
+
+
+def test_tuples(samples):
+    model = af.Collection(
+        lens=af.Model(
+            MockWithTuple
+        )
+    )
+    samples = af.Samples(
+        model=model,
+        sample_list=[
+            af.Sample(
+                log_likelihood=0,
+                log_prior=0,
+                weight=0,
+                kwargs={
+                    path: i
+                    for i, path
+                    in enumerate(
+                        model.paths
+                    )
+                }
+            )
+        ]
+    )
+    samples = samples.without_paths(
+        [
+            ("lens", "tup",),
+        ]
+    )
+    assert len(samples.parameter_lists) == 1

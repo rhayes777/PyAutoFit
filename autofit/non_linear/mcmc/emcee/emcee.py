@@ -62,9 +62,9 @@ class Emcee(AbstractMCMC):
             Controls how priors are passed from the results of this `NonLinearSearch` to a subsequent non-linear search.
         initializer
             Generates the initialize samples of non-linear parameter space (see autofit.non_linear.initializer).
-        auto_correlations_settings : AutoCorrelationsSettings
+        auto_correlations_settings
             Customizes and performs auto correlation calculations performed during and after the search.
-        number_of_cores : int
+        number_of_cores
             The number of cores Emcee sampling is performed using a Python multiprocessing Pool instance. If 1, a
             pool instance is not created and the job runs in serial.
         session
@@ -235,9 +235,9 @@ class Emcee(AbstractMCMC):
 
     def samples_from(self, model):
 
-        return EmceeSamples(
+        return EmceeSamples.from_results_internal(
             model=model,
-            backend=self.backend,
+            results_internal=self.backend,
             auto_correlation_settings=self.auto_correlations_settings,
             time=self.timer.time
         )

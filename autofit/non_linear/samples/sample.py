@@ -3,6 +3,7 @@ from copy import copy
 from typing import List, Tuple
 
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
+from autofit.tools.util import split_paths
 
 
 class Sample:
@@ -170,6 +171,7 @@ class Sample:
                 self.parameter_lists_for_model(model)
             )
 
+    @split_paths
     def with_paths(
             self,
             paths: List[Tuple[str, ...]]
@@ -205,6 +207,7 @@ class Sample:
         }
         return with_paths
 
+    @split_paths
     def without_paths(
             self,
             paths: List[Tuple[str, ...]]
