@@ -77,6 +77,22 @@ class Package(DirectoryItem):
             in self.eden_dependencies
         ]
 
+    def item_for_path(
+            self,
+            path: List[str]
+    ) -> Item:
+        """
+        Try to find an item for each path in this package and
+        all packages on which is depends.
+
+        If no item is found return 'Member' by default.
+        """
+        for dependency in self.eden_dependencies:
+            item = dependency._item_for_path(path)
+            if not isinstance(item, Member):
+                return item
+        return self._item_for_path(path)
+
     def _item_for_path(
             self,
             path: List[str]
@@ -111,7 +127,7 @@ class Package(DirectoryItem):
         Does the path point to a module?
         """
         return isinstance(
-            self._item_for_path(
+            self.item_for_path(
                 path
             ),
             File
@@ -129,7 +145,7 @@ class Package(DirectoryItem):
                 in self.eden_dependencies
             ])
         return isinstance(
-            self._item_for_path(
+            self.item_for_path(
                 path
             ),
             Member
