@@ -32,7 +32,7 @@ class Unparser(Unparser_):
         Unescape newlines and replace single quotes with triple
         """
         return string.replace(
-            "\'", '"""'
+            "\'", '\"\"\"\n'
         ).replace(
             "\\n", "\n"
         )
