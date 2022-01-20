@@ -7,7 +7,7 @@ from scipy import special
 from scipy.linalg import block_diag
 from scipy.optimize import OptimizeResult
 
-from autofit.mapper.variable import Variable
+from autofit.mapper.variable import Variable, VariableData
 
 
 class Status(NamedTuple):
@@ -65,15 +65,18 @@ class FlattenArrays(dict):
             ndim = arr.ndim
         arrays = [arr[(ind,) * ndim] for ind in self.inds]
         arr_shapes = [arr.shape[ndim:] for arr in arrays]
-        return {
-            k: arr.reshape(shape * ndim + arr_shape)
-            if shape or arr_shape
-            else arr.item()
-            for (k, shape), arr_shape, arr in zip(self.items(), arr_shapes, arrays)
-        }
+        return VariableData(
+            {
+                k: arr.reshape(shape * ndim + arr_shape)
+                if shape or arr_shape
+                else arr.item()
+                for (k, shape), arr_shape, arr in zip(self.items(), arr_shapes, arrays)
+            }
+        )
 
     def flatten2d(self, values: Dict[Variable, np.ndarray]) -> np.ndarray:
         assert all(np.shape(values[k]) == shape * 2 for k, shape in self.items())
+
         return block_diag(
             *(np.reshape(values[k], (n, n)) for k, n in self.sizes.items())
         )

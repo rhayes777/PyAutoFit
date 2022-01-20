@@ -3,13 +3,15 @@ from typing import Optional, Dict, Tuple, Any
 from autofit.graphical.expectation_propagation import (
     EPMeanField,
     AbstractFactorOptimiser,
+    # MeanField,
 )
+from autofit.graphical.mean_field import MeanField
 from autofit.graphical.factor_graphs import AbstractNode
 from autofit.graphical.laplace import newton
 
 
 def make_posdef_hessian(mean_field, variables):
-    return mean_field.precision(variables)
+    return MeanField.precision(mean_field, variables)
 
 
 class LaplaceOptimiser:
@@ -45,6 +47,20 @@ class LaplaceOptimiser:
         self.quasi_newton_kws = quasi_newton_kws or {}
         self.stop_kws = stop_kws or {}
 
+    @property
+    def default_kws(self):
+        return dict(
+            max_iter=self.max_iter,
+            search_direction=self.search_direction,
+            calc_line_search=self.calc_line_search,
+            quasi_newton_update=self.quasi_newton_update,
+            stop_conditions=self.stop_conditions,
+            search_direction_kws=self.search_direction_kws,
+            line_search_kws=self.line_search_kws,
+            quasi_newton_kws=self.quasi_newton_kws,
+            stop_kws=self.stop_kws,
+        )
+
     def prepare_state(self, factor_approx, mean_field=None) -> newton.OptimisationState:
         mean_field = mean_field or factor_approx.model_dist
 
@@ -60,7 +76,7 @@ class LaplaceOptimiser:
         state = newton.OptimisationState(
             factor_approx,
             factor_approx.func_jacobian,
-            mean_field.mean,
+            MeanField.mean.fget(mean_field),
             hessian,
             det_hessian,
         )
@@ -70,27 +86,18 @@ class LaplaceOptimiser:
     def optimise_state(
         self, state, old_state=None, **kwargs
     ) -> Tuple[bool, newton.OptimisationState, str]:
-        kwargs.update(
-            max_iter=self.max_iter,
-            search_direction=self.search_direction,
-            calc_line_search=self.calc_line_search,
-            quasi_newton_update=self.quasi_newton_update,
-            stop_conditions=self.stop_conditions,
-            search_direction_kws=self.search_direction_kws,
-            line_search_kws=self.line_search_kws,
-            quasi_newton_kws=self.quasi_newton_kws,
-            stop_kws=self.stop_kws,
-        )
-        return newton.optimise_quasi_newton(state, old_state, **kwargs)
+        kws = {**self.default_kws, **kwargs}
+        return newton.optimise_quasi_newton(state, old_state, **kws)
 
     def optimise_approx(
         self, factor_approx, mean_field=None, **kwargs
     ) -> Tuple[bool, newton.OptimisationState, str]:
         state = self.prepare_state(factor_approx, mean_field)
 
-        return self.optimise_state(state, **kwargs)
+        success, next_state, message = self.optimise_state(state, **kwargs)
+        return success, next_state, state, message
 
-    def optimise(self, factor_approx, mean_field=None, **kwargs) -> MeanField:
+    def optimise(self, factor_approx, mean_field=None, **kwargs) -> "MeanField":
         # TODO implement...
         pass
 

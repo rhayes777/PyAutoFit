@@ -108,6 +108,7 @@ class MeanField(CollectionPriorModel, Dict[Variable, AbstractMessage], Factor):
     values = dict.values
     items = dict.items
     __getitem__ = dict.__getitem__
+    __len__ = dict.__len__
 
     def _logpdf(self, **kwargs: np.ndarray) -> np.ndarray:
         var_names = self.name_variable_dict
@@ -128,7 +129,7 @@ class MeanField(CollectionPriorModel, Dict[Variable, AbstractMessage], Factor):
     def precision(self, variables=None):
         variables = variables or self.all_variables
         param_shapes = FlattenArrays({v: self[v].shape for v in variables})
-        variances = self.variance.subset(variables)
+        variances = MeanField.variance.fget(self).subset(variables)
         precision = np.diag(param_shapes.flatten(variances) ** -1)
         return VariableFullOperator.from_dense(precision, param_shapes)
 

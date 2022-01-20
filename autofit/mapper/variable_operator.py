@@ -45,6 +45,8 @@ def _variable_binary_op(op):
                     for v in self.operators.keys() & other.operators.keys()
                 }
             )
+        elif isinstance(other, AbstractVariableOperator):
+            return op(self.to_full(), other.to_full())
         else:
             return type(self)({k: op(val, other) for k, val in self.operators.items()})
 
@@ -94,8 +96,15 @@ class VariableOperator(AbstractVariableOperator):
     def diagonal(self):
         return VariableData({v: op.diagonal() for v, op in self.operators.items()})
 
-    def to_dense(self):
-        return VariableData({v: op.to_dense() for v, op in self.operators.items()})
+    def to_diagonal(self) -> "VariableOperator":
+        return type(self)({v: DiagonalMatrix(d) for v, d in self.diagonal().items()})
+
+    def to_full(self) -> "VariableFullOperator":
+        param_shapes = FlattenArrays({v: op.lshape for v, op in self.operators.items()})
+        M = param_shapes.flatten2d(
+            {v: op.to_dense() for v, op in self.operators.items()}
+        )
+        return VariableFullOperator(MatrixOperator(M), param_shapes)
 
     def update(self, *args: Tuple[VariableData, VariableData]):
         operators = self.operators.copy()
@@ -116,6 +125,8 @@ def _variablefull_binary_op(op):
 
         if isinstance(other, VariableFullOperator):
             other = other.operator
+        elif isinstance(other, AbstractVariableOperator):
+            other = other.to_full().operator
 
         op_new = op(self.operator, other)
         return type(self)(op_new, self.param_shapes)
@@ -138,7 +149,14 @@ class VariableFullOperator(AbstractVariableOperator):
     def from_dense(
         cls, M: np.ndarray, param_shapes: FlattenArrays
     ) -> "VariableFullOperator":
-        return cls(QROperator.from_dense(M), param_shapes)
+        return cls(MatrixOperator.from_dense(M), param_shapes)
+
+    @classmethod
+    def from_blocks(cls, Ms: VariableData) -> "VariableFullOperator":
+        param_shapes = FlattenArrays(
+            {v: np.shape(M)[: np.ndim(M) // 2] for v, M in Ms.items()}
+        )
+        return cls.from_dense(param_shapes.flatten2d(Ms), param_shapes)
 
     def to_block(self, cls=None) -> VariableOperator:
         blocks = self.param_shapes.unflatten2d(self.operator.to_dense())
@@ -146,7 +164,14 @@ class VariableFullOperator(AbstractVariableOperator):
         return VariableOperator({k: cls.from_dense(M) for k, M in blocks.items()})
 
     def diagonal(self) -> VariableData:
-        return self.to_block(MatrixOperator).diagonal()
+        return self.param_shapes.unflatten(self.operator.diagonal())
+
+    def to_diagonal(self):
+        diagonal = DiagonalMatrix(self.operator.diagonal())
+        return type(self)(diagonal, self.param_shapes)
+
+    def to_full(self):
+        return self
 
     @classmethod
     def from_optresult(cls, opt_result) -> "VariableFullOperator":

@@ -29,7 +29,7 @@ class OptimisationState:
         self,
         factor: FactorInterface,
         factor_jacobian: FactorJacobianInterface,
-        variables: VariableData,
+        parameters: VariableData,
         hessian: Optional[AbstractVariableOperator] = None,
         det_hessian: Optional[AbstractVariableOperator] = None,
         value: Optional[FactorValue] = None,
@@ -43,7 +43,7 @@ class OptimisationState:
         self.factor = factor
         self.factor_jacobian = factor_jacobian
 
-        self._variables = variables
+        self._parameters = parameters
         self.hessian = hessian
         self.det_hessian = det_hessian
         self.f_count = np.asanyarray(f_count)
@@ -60,25 +60,25 @@ class OptimisationState:
             self.search_direction = search_direction
 
     @property
-    def variables(self):
-        return self._variables
+    def parameters(self):
+        return self._parameters
 
-    @variables.setter
-    def variables(self, variable):
+    @parameters.setter
+    def parameters(self, parameters):
         # This forces recalculation of the value and gradient as needed
         del self.value
         del self.gradient
-        self._variables = variable
+        self._parameters = parameters
 
     @cached_property
     def value(self):
         self.f_count += 1
-        return self.factor(self.variables, *self.args, axis=None)
+        return self.factor(self.parameters, *self.args, axis=None)
 
     @cached_property
     def gradient(self):
         self.g_count += 1
-        self.value, grad = self.factor_jacobian(self.variables, *self.args, axis=None)
+        self.value, grad = self.factor_jacobian(self.parameters, *self.args, axis=None)
         return grad
 
     def to_dict(self):
@@ -86,7 +86,7 @@ class OptimisationState:
         return {
             "factor": self.factor,
             "factor_jacobian": self.factor_jacobian,
-            "variables": self.variables,
+            "parameters": self.parameters,
             "hessian": self.hessian,
             "det_hessian": self.det_hessian,
             "f_count": self.f_count,
@@ -110,9 +110,9 @@ class OptimisationState:
 
     def _next_state(self, stepsize):
         next_step = VariableData.add(
-            self.variables, VariableData.mul(self.search_direction, stepsize)
+            self.parameters, VariableData.mul(self.search_direction, stepsize)
         )
-        return self.update(variables=next_step)
+        return self.update(parameters=next_step)
 
     def step(self, stepsize):
         # if stepsize is None return last state
@@ -248,7 +248,7 @@ def line_search_wolfe2(
         maxiter=maxiter,
     )
 
-    next_state = state.step(stepsize, extra_condition)
+    next_state = state.step(stepsize)
     if stepsize is not None and extra_condition is not None:
         if not extra_condition(stepsize, next_state):
             stepsize = None

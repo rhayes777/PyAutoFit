@@ -26,7 +26,7 @@ def sr1_update(
     state1: OptimisationState, state: OptimisationState, mintol=1e-8, **kwargs
 ) -> OptimisationState:
     yk = VariableData.sub(state1.gradient, state.gradient)
-    dk = VariableData.sub(state1.variables, state.variables)
+    dk = VariableData.sub(state1.parameters, state.parameters)
     Bk = state.hessian
     zk = yk - Bk * dk
     zkdk = zk.dot(dk)
@@ -51,7 +51,7 @@ def bfgs_update(
     **kwargs,
 ) -> OptimisationState:
     yk = VariableData.sub(state1.gradient, state.gradient)
-    dk = VariableData.sub(state1.variables, state.variables)
+    dk = VariableData.sub(state1.parameters, state.parameters)
     Bk = state.hessian
 
     ykTdk = -yk.dot(dk)
@@ -69,7 +69,7 @@ def quasi_deterministic_update(
     state: OptimisationState,
     **kwargs,
 ) -> OptimisationState:
-    dk = VariableData.sub(state1.variables, state.variables)
+    dk = VariableData.sub(state1.parameters, state.parameters)
     zk = VariableData.sub(
         state1.value.deterministic_values, state.value.deterministic_values
     )
@@ -117,7 +117,7 @@ def take_quasi_newton_step(
 
 
 def xtol_condition(state, old_state, xtol=1e-6, ord=None, **kwargs):
-    dx = VariableData.sub(state.variables, old_state.variables).vecnorm(ord=ord)
+    dx = VariableData.sub(state.parameters, old_state.parameters).vecnorm(ord=ord)
     if dx < xtol:
         return True, f"Minimum parameter change tolerance achieved, {dx} < {xtol}"
 
