@@ -1,5 +1,6 @@
 import logging
 from functools import reduce
+from collections import ChainMap
 from typing import Dict, Tuple, Optional, List, Union, Iterable
 
 import numpy as np
@@ -240,17 +241,9 @@ class MeanField(CollectionPriorModel, Dict[Variable, AbstractMessage], Factor):
         return type(self)(mean_field, self.log_norm)
 
     def project_mode(self, res: OptResult):
-        projection = type(self)(
-            {
-                v: dist.from_mode(res.mode[v], res.hess_inv.get(v), id_=dist.id)
-                for v, dist in self.items()
-            }
-        )
+        return self.from_mode_covariance(res.mode, res.hess_inv)
 
-        projection.log_norm = res.log_norm - projection(res.mode, axis=None).log_value
-        return projection
-
-    def _project_mode(
+    def from_mode_covariance(
         self,
         mode: Dict[Variable, np.ndarray],
         covar: Dict[Variable, np.ndarray],
@@ -259,14 +252,15 @@ class MeanField(CollectionPriorModel, Dict[Variable, AbstractMessage], Factor):
         """
         Projects the mode and covariance
         """
+        mode = ChainMap(mode, self.fixed_values)
         projection = MeanField(
             {
-                v: dist.from_mode(mode[v], covar.get(v), id_=dist.id_)
-                for v, dist in self.items()
+                v: self[v].from_mode(mode[v], covar.get(v), id_=self[v].id)
+                for v in self.free_variables
             }
         )
         if fun is not None:
-            projection.log_norm = fun - projection(mode).log_value
+            projection.log_norm = fun - projection(mode, axis=None).log_value
 
         return projection
 

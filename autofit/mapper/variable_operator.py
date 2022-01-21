@@ -99,6 +99,12 @@ class VariableOperator(AbstractVariableOperator):
     def to_diagonal(self) -> "VariableOperator":
         return type(self)({v: DiagonalMatrix(d) for v, d in self.diagonal().items()})
 
+    def blocks(self) -> VariableData:
+        return VariableData({v: op.to_dense() for v, op in self.operators.items()})
+
+    def to_block(self) -> "VariableOperator":
+        return self
+
     def to_full(self) -> "VariableFullOperator":
         param_shapes = FlattenArrays({v: op.lshape for v, op in self.operators.items()})
         M = param_shapes.flatten2d(
@@ -158,8 +164,11 @@ class VariableFullOperator(AbstractVariableOperator):
         )
         return cls.from_dense(param_shapes.flatten2d(Ms), param_shapes)
 
+    def blocks(self) -> VariableData:
+        return self.param_shapes.unflatten2d(self.operator.to_dense())
+
     def to_block(self, cls=None) -> VariableOperator:
-        blocks = self.param_shapes.unflatten2d(self.operator.to_dense())
+        blocks = self.blocks()
         cls = cls or type(self.operator)
         return VariableOperator({k: cls.from_dense(M) for k, M in blocks.items()})
 

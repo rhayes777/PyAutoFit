@@ -278,6 +278,9 @@ class VariableData(Dict[Variable, np.ndarray]):
         data_repr = dict.__repr__(self)
         return f"{name}({data_repr})"
 
+    def merge(self, other):
+        return VariableData({**self, **other})
+
 
 class AbstractVariableOperator(ABC):
     """Implements the functionality of a linear operator acting
@@ -323,6 +326,9 @@ class AbstractVariableOperator(ABC):
 
     def lowrankdowndate(self, *values: VariableData):
         return self.update(*((value, VariableData.neg(value)) for value in values()))
+
+    def blocks(self):
+        return self.to_block().blocks()
 
 
 class InverseVariableOperator(AbstractVariableOperator):

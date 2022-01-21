@@ -1,20 +1,20 @@
-from typing import Optional, Dict, Tuple, Any
+from typing import Optional, Dict, Tuple, Any, Union
 
-from autofit.graphical.expectation_propagation import (
-    EPMeanField,
-    AbstractFactorOptimiser,
-    # MeanField,
-)
-from autofit.graphical.mean_field import MeanField
-from autofit.graphical.factor_graphs import AbstractNode
+from autofit.mapper.variable_operator import VariableData
+from autofit.graphical.factor_graphs import Factor
+from autofit.graphical.mean_field import MeanField, FactorApproximation, Status
+from autofit.graphical.expectation_propagation.ep_mean_field import EPMeanField
+from autofit.graphical.expectation_propagation.optimiser import AbstractFactorOptimiser
 from autofit.graphical.laplace import newton
+
+FactorApprox = Union[EPMeanField, FactorApproximation, Factor]
 
 
 def make_posdef_hessian(mean_field, variables):
     return MeanField.precision(mean_field, variables)
 
 
-class LaplaceOptimiser:
+class LaplaceOptimiser(AbstractFactorOptimiser):
     def __init__(
         self,
         make_hessian=make_posdef_hessian,
@@ -30,7 +30,10 @@ class LaplaceOptimiser:
         line_search_kws: Optional[Dict[str, Any]] = None,
         quasi_newton_kws: Optional[Dict[str, Any]] = None,
         stop_kws: Optional[Dict[str, Any]] = None,
+        deltas: Optional[Dict[str, int]] = None,
     ):
+        super().__init__(deltas=deltas)
+
         self.make_hessian = make_hessian
         self.make_det_hessian = make_det_hessian or make_hessian
         self.search_direction = search_direction
@@ -61,7 +64,12 @@ class LaplaceOptimiser:
             stop_kws=self.stop_kws,
         )
 
-    def prepare_state(self, factor_approx, mean_field=None) -> newton.OptimisationState:
+    def prepare_state(
+        self,
+        factor_approx: FactorApprox,
+        mean_field: MeanField = None,
+        params: VariableData = None,
+    ) -> newton.OptimisationState:
         mean_field = mean_field or factor_approx.model_dist
 
         free_variables = factor_approx.free_variables
@@ -76,7 +84,7 @@ class LaplaceOptimiser:
         state = newton.OptimisationState(
             factor_approx,
             factor_approx.func_jacobian,
-            MeanField.mean.fget(mean_field),
+            params or MeanField.mean.fget(mean_field),
             hessian,
             det_hessian,
         )
@@ -84,23 +92,55 @@ class LaplaceOptimiser:
         return state
 
     def optimise_state(
-        self, state, old_state=None, **kwargs
+        self,
+        state: newton.OptimisationState,
+        old_state: Optional[newton.OptimisationState] = None,
+        **kwargs
     ) -> Tuple[bool, newton.OptimisationState, str]:
         kws = {**self.default_kws, **kwargs}
         return newton.optimise_quasi_newton(state, old_state, **kws)
 
     def optimise_approx(
-        self, factor_approx, mean_field=None, **kwargs
+        self,
+        factor_approx: FactorApprox,
+        mean_field: MeanField = None,
+        params: VariableData = None,
+        **kwargs
     ) -> Tuple[bool, newton.OptimisationState, str]:
-        state = self.prepare_state(factor_approx, mean_field)
+        state = self.prepare_state(factor_approx, mean_field, params)
 
         success, next_state, message = self.optimise_state(state, **kwargs)
         return success, next_state, state, message
 
-    def optimise(self, factor_approx, mean_field=None, **kwargs) -> "MeanField":
-        # TODO implement...
-        pass
+    def optimise_approx(
+        self,
+        factor_approx: FactorApprox,
+        mean_field: MeanField = None,
+        params: VariableData = None,
+        **kwargs
+    ) -> Tuple[MeanField, Status]:
 
+        mean_field = mean_field or factor_approx.model_dist
+        state = self.prepare_state(factor_approx, mean_field, params)
+        success, next_state, message = self.optimise_state(state, **kwargs)
+        projection = mean_field.from_mode_covariance(
+            next_state.all_parameters(),
+            next_state.inv_hessian_blocks(),
+            next_state.value,
+        )
+        status = Status(success=success, messages=(message,))
+        return projection, status
 
-# class LaplaceOptimiser(AbstractFactorOptimiser):
-#     def
+    def optimise(
+        self,
+        factor: Factor,
+        model_approx: EPMeanField,
+        status: Optional[Status] = Status(),
+        **kwargs
+    ) -> Tuple[EPMeanField, Status]:
+
+        factor_approx = model_approx.factor_approximation(factor)
+        new_model_dist, status = self.optimise_approx(factor_approx, **kwargs)
+        return self.update_model_approx(
+            new_model_dist, factor_approx, model_approx, status
+        )

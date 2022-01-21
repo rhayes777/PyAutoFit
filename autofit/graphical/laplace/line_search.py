@@ -109,20 +109,19 @@ class OptimisationState:
             return self.__class__.__name__ + "()"
 
     def _next_state(self, stepsize):
-        next_step = VariableData.add(
+        next_params = VariableData.add(
             self.parameters, VariableData.mul(self.search_direction, stepsize)
         )
-        return self.update(parameters=next_step)
+        # memoize stepsizes
+        self.next_states[stepsize] = next_state = self.update(parameters=next_params)
+        return next_state
 
     def step(self, stepsize):
-        # if stepsize is None return last state
         if not stepsize:
             return self
 
         # memoize stepsizes
-        next_state = self.next_states.get(stepsize)
-        if not next_state:
-            next_state = self.next_states[stepsize] = self._next_state(stepsize)
+        next_state = self.next_states.get(stepsize) or self._next_state(stepsize)
 
         return next_state
 
@@ -136,6 +135,23 @@ class OptimisationState:
 
     def calc_derphi(self, gradient):
         return -VariableData.dot(self.search_direction, gradient)
+
+    def all_parameters(self):
+        return self.parameters.merge(self.value.deterministic_values)
+
+    def hessian_blocks(self):
+        blocks = self.hessian.blocks()
+        if self.det_hessian:
+            blocks.update(self.det_hessian.blocks())
+
+        return blocks
+
+    def inv_hessian_blocks(self):
+        blocks = self.hessian.inv().blocks()
+        if self.det_hessian:
+            blocks.update(self.det_hessian.inv().blocks())
+
+        return blocks
 
 
 def line_search_wolfe1(

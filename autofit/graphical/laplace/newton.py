@@ -1,4 +1,4 @@
-from typing import Optional, Dict, Tuple, Any
+from typing import Optional, Dict, Tuple, Any, Callable
 
 import numpy as np
 
@@ -107,11 +107,20 @@ def take_quasi_newton_step(
     line_search_kws: Optional[Dict[str, Any]] = None,
     quasi_newton_kws: Optional[Dict[str, Any]] = None,
 ) -> Tuple[Optional[float], OptimisationState]:
+    """ """
     state.search_direction = search_direction(state, **(search_direction_kws or {}))
+    if state.search_direction.vecnorm(np.Inf) == 0:
+        # if gradient is zero then at maximum already
+        return 0.0, state
+
     stepsize, state1 = calc_line_search(state, old_state, **(line_search_kws or {}))
-    state1 = quasi_newton_update(state1, state, **(quasi_newton_kws or {}))
-    if state.det_hessian:
-        state1 = quasi_deterministic_update(state1, state, **(quasi_newton_kws or {}))
+    if stepsize:
+        # Only update estimate if a step has been taken
+        state1 = quasi_newton_update(state1, state, **(quasi_newton_kws or {}))
+        if state.det_hessian:
+            state1 = quasi_deterministic_update(
+                state1, state, **(quasi_newton_kws or {})
+            )
 
     return stepsize, state1
 
@@ -158,6 +167,8 @@ stop_conditions = (
     grad_condition,
 )
 
+_OPT_CALLBACK = Callable[[OptimisationState, OptimisationState], None]
+
 
 def optimise_quasi_newton(
     state: OptimisationState,
@@ -172,6 +183,7 @@ def optimise_quasi_newton(
     line_search_kws: Optional[Dict[str, Any]] = None,
     quasi_newton_kws: Optional[Dict[str, Any]] = None,
     stop_kws: Optional[Dict[str, Any]] = None,
+    callback: Optional[_OPT_CALLBACK] = None,
 ) -> Tuple[bool, OptimisationState, str]:
 
     success = False
@@ -189,11 +201,14 @@ def optimise_quasi_newton(
         )
         state, old_state = state1, state
 
+        if callback:
+            callback(state, old_state)
+
         if stepsize is None:
-            message = f"abnormal termination of line search, iter={i}"
+            message = "abnormal termination of line search"
             break
         elif not np.isfinite(state.value):
-            message = f"function is no longer finite, iter={i}"
+            message = "function is no longer finite"
             break
         else:
             for stop_condition in stop_conditions:
@@ -205,4 +220,5 @@ def optimise_quasi_newton(
                 continue
             break
 
+    message += f", iter={i+1}"
     return success, state, message
