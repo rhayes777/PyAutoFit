@@ -298,7 +298,9 @@ class LaplaceFactorOptimiser(AbstractFactorOptimiser):
         self.transforms[factor] = self.transform_cls.from_dense(res.full_hess_inv)
 
         # Project Laplace's approximation
-        new_model_dist = factor_approx.model_dist.project_mode(res)
+        new_model_dist = factor_approx.model_dist.from_mode_covariance(
+            res.mode, res.hess_inv, res.log_norm
+        )
         return self.update_model_approx(
             new_model_dist, factor_approx, model_approx, status
         )
@@ -360,7 +362,9 @@ def laplace_factor_approx(
     factor_approx = model_approx.factor_approximation(factor)
     res = find_factor_mode(factor_approx, return_cov=True, status=status, **opt_kws)
 
-    model_dist = factor_approx.model_dist.project_mode(res)
+    model_dist = factor_approx.model_dist.from_mode_covariance(
+        res.mode, res.hess_inv, res.log_norm
+    )
     projection, status = factor_approx.project(
         model_dist, delta=delta, status=res.status
     )

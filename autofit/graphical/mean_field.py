@@ -241,7 +241,7 @@ class MeanField(CollectionPriorModel, Dict[Variable, AbstractMessage], Factor):
         return type(self)(mean_field, self.log_norm)
 
     def project_mode(self, res: OptResult):
-        return self.from_mode_covariance(res.mode, res.hess_inv)
+        return self.from_mode_covariance(res.mode, res.hess_inv, res.log_norm)
 
     def from_mode_covariance(
         self,
@@ -256,7 +256,7 @@ class MeanField(CollectionPriorModel, Dict[Variable, AbstractMessage], Factor):
         projection = MeanField(
             {
                 v: self[v].from_mode(mode[v], covar.get(v), id_=self[v].id)
-                for v in self.free_variables
+                for v in self.keys() & mode.keys()
             }
         )
         if fun is not None:
@@ -265,7 +265,7 @@ class MeanField(CollectionPriorModel, Dict[Variable, AbstractMessage], Factor):
         return projection
 
     def sample(self, n_samples=None):
-        return {v: dist.sample(n_samples) for v, dist in self.items()}
+        return VariableData({v: dist.sample(n_samples) for v, dist in self.items()})
 
     def kl(self, mean_field: "MeanField") -> np.ndarray:
         return sum(np.sum(dist.kl(mean_field[k])) for k, dist in self.items())
