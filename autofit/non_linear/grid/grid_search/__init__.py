@@ -238,6 +238,12 @@ class GridSearch:
             + ["likelihood_merit"]
         ]
 
+        if results_list[0][1] == "galaxies_subhalo_mass_centre_1":
+
+            raise exc.GridSearchException(
+                "The grid search parameters have been swapped due to a currently unknown bug."
+            )
+
         builder = ResultBuilder(
             lists=lists,
             grid_priors=grid_priors
