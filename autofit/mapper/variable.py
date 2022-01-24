@@ -371,6 +371,10 @@ class InverseVariableOperator(AbstractVariableOperator):
 
         return type(self)(A)
 
+    def diagonalupdate(self, d: VariableData):
+        A = self.operator.diagonalupdate(d ** -1)
+        return type(self)(A)
+
     def to_full(self) -> "VariableFullOperator":
         full_op = self.operator.to_full()
         M = np.linalg.inv(full_op.operator.to_dense())

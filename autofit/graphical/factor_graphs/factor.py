@@ -441,7 +441,7 @@ class Factor(AbstractFactor):
                     List[float]
                 ]
             ],
-            axis: Axis = False,
+            axis: Axis = None,
     ) -> FactorValue:
         """
         Call the underlying factor
@@ -626,7 +626,7 @@ class DeterministicFactor(Factor):
     def __call__(
             self,
             variable_dict: Dict[Variable, np.ndarray],
-            axis: Axis = False,
+            axis: Axis = None,
             # **kwargs: np.ndarray
     ) -> FactorValue:
         """

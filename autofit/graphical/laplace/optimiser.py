@@ -75,6 +75,7 @@ class LaplaceOptimiser(AbstractFactorOptimiser):
         free_variables = factor_approx.free_variables
         det_variables = factor_approx.deterministic_variables
 
+        parameters = (params or MeanField.mean.fget(mean_field)).subset(free_variables)
         hessian = self.make_hessian(mean_field, free_variables, **self.hessian_kws)
         if det_variables:
             det_hessian = self.make_hessian(mean_field, det_variables)
@@ -84,7 +85,7 @@ class LaplaceOptimiser(AbstractFactorOptimiser):
         state = newton.OptimisationState(
             factor_approx,
             factor_approx.func_jacobian,
-            params or MeanField.mean.fget(mean_field),
+            parameters,
             hessian,
             det_hessian,
         )
@@ -99,18 +100,6 @@ class LaplaceOptimiser(AbstractFactorOptimiser):
     ) -> Tuple[bool, newton.OptimisationState, str]:
         kws = {**self.default_kws, **kwargs}
         return newton.optimise_quasi_newton(state, old_state, **kws)
-
-    def optimise_approx(
-        self,
-        factor_approx: FactorApprox,
-        mean_field: MeanField = None,
-        params: VariableData = None,
-        **kwargs
-    ) -> Tuple[bool, newton.OptimisationState, str]:
-        state = self.prepare_state(factor_approx, mean_field, params)
-
-        success, next_state, message = self.optimise_state(state, **kwargs)
-        return success, next_state, state, message
 
     def optimise_approx(
         self,

@@ -111,6 +111,10 @@ class MeanField(CollectionPriorModel, Dict[Variable, AbstractMessage], Factor):
     __getitem__ = dict.__getitem__
     __len__ = dict.__len__
 
+    def subset(self, variables):
+        cls = type(self) if isinstance(self, MeanField) else MeanField
+        return cls((v, self[v]) for v in variables)
+
     def _logpdf(self, **kwargs: np.ndarray) -> np.ndarray:
         var_names = self.name_variable_dict
         return self.logpdf({var_names[k]: value for k, value in kwargs.items()})
@@ -144,7 +148,7 @@ class MeanField(CollectionPriorModel, Dict[Variable, AbstractMessage], Factor):
     def logpdf(
         self,
         values: Dict[Variable, np.ndarray],
-        axis: Axis = False,
+        axis: Axis = None,
     ) -> np.ndarray:
         """Calculates the logpdf of the passed values for messages
 
@@ -165,7 +169,7 @@ class MeanField(CollectionPriorModel, Dict[Variable, AbstractMessage], Factor):
     def __call__(
         self,
         values: Dict[Variable, np.ndarray],
-        axis: Axis = False,
+        axis: Axis = None,
     ) -> FactorValue:
         return FactorValue(self.logpdf(values, axis=axis), {})
 
@@ -376,7 +380,7 @@ class FactorApproximation(AbstractNode):
     def __call__(
         self,
         values: Dict[Variable, np.ndarray],
-        axis: Axis = False,
+        axis: Axis = None,
     ) -> FactorValue:
         variable_dict = {**self.fixed_values, **values}
         fval = self.factor(variable_dict, axis=axis)

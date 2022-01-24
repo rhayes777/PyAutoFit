@@ -105,12 +105,15 @@ class VariableOperator(AbstractVariableOperator):
     def to_block(self) -> "VariableOperator":
         return self
 
+    @cached_property
+    def param_shapes(self):
+        return FlattenArrays({v: op.lshape for v, op in self.operators.items()})
+
     def to_full(self) -> "VariableFullOperator":
-        param_shapes = FlattenArrays({v: op.lshape for v, op in self.operators.items()})
-        M = param_shapes.flatten2d(
+        M = self.param_shapes.flatten2d(
             {v: op.to_dense() for v, op in self.operators.items()}
         )
-        return VariableFullOperator(MatrixOperator(M), param_shapes)
+        return VariableFullOperator(MatrixOperator(M), self.param_shapes)
 
     def update(self, *args: Tuple[VariableData, VariableData]):
         operators = self.operators.copy()
@@ -119,6 +122,14 @@ class VariableOperator(AbstractVariableOperator):
                 operators[k] = operators[k].update(u[k], v[k])
 
         return type(self)(operators)
+
+    def diagonalupdate(self, d: VariableData):
+        return type(self)(
+            {
+                k: self.operators[k].diagonalupdate(d[k])
+                for k in self.operators.keys() & d.keys()
+            }
+        )
 
 
 def _variablefull_binary_op(op):
@@ -225,6 +236,10 @@ class VariableFullOperator(AbstractVariableOperator):
     def lowrankdowndate(self, values: VariableData) -> "VariableFullOperator":
         v = self.param_shapes.flatten(values)
         return type(self)(self.operator.lowrankdowndate(v), self.param_shapes)
+
+    def diagonalupdate(self, values: VariableData) -> "VariableFullOperator":
+        v = self.param_shapes.flatten(values)
+        return type(self)(self.operator.diagonalupdate(v), self.param_shapes)
 
 
 class IdentityVariableOperator(AbstractVariableOperator):

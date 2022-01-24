@@ -53,6 +53,7 @@ def numerical_func_jacobian(
     if variables is None:
         variables = factor.variables
 
+    values = {**getattr(factor, "fixed_values", {}), **values}
     # copy the input array
     p0 = {v: np.array(x, dtype=float) for v, x in values.items()}
     f0 = factor(p0, axis=axis)
@@ -116,6 +117,7 @@ def numerical_func_jacobian_hessian(
     _calc_deterministic: bool = True,
 ) -> Tuple[FactorValue, JacobianValue, HessianValue]:
 
+    values = {**getattr(factor, "fixed_values", {}), **values}
     if variables is None:
         variables = factor.variables
 

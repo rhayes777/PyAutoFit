@@ -122,7 +122,7 @@ def add_arrays(*arrays: np.ndarray) -> np.ndarray:
 Axis = Optional[Union[bool, int, Tuple[int, ...]]]
 
 
-def aggregate(array: np.ndarray, axis: Axis = False, **kwargs) -> np.ndarray:
+def aggregate(array: np.ndarray, axis: Axis = None, **kwargs) -> np.ndarray:
     """
     aggregates the values of array
 

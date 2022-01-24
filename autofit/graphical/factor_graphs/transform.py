@@ -12,46 +12,36 @@ from autofit.mapper.operator import (
     DiagonalMatrix,
 )
 from autoconf import cached_property
-from .abstract import \
-    (
-    AbstractNode, Value, FactorValue, JacobianValue, HessianValue
-)
+from .abstract import AbstractNode, Value, FactorValue, JacobianValue, HessianValue
 from ..utils import Axis
 from ...mapper.variable import Variable
 
 
 class VariableTransform:
-    """
-    """
+    """ """
 
     def __init__(self, transforms):
         self.transforms = transforms
 
     def __mul__(self, values: Value) -> Value:
-        return {
-            k: M * values[k] for k, M in self.transforms.items()}
+        return {k: M * values[k] for k, M in self.transforms.items()}
 
     def __rtruediv__(self, values: Value) -> Value:
-        return {
-            k: values[k] / M for k, M in self.transforms.items()}
+        return {k: values[k] / M for k, M in self.transforms.items()}
 
     def __rmul__(self, values: Value) -> Value:
-        return {
-            k: values[k] * M for k, M in self.transforms.items()}
+        return {k: values[k] * M for k, M in self.transforms.items()}
 
     def ldiv(self, values: Value) -> Value:
-        return {
-            k: M.ldiv(values[k]) for k, M in self.transforms.items()}
+        return {k: M.ldiv(values[k]) for k, M in self.transforms.items()}
 
-    def __add__(self, other: 'VariableTransform') -> 'VariableTransform':
-        return VariableTransform({
-            k: M + other.transforms[k] for k, M in self.transforms.items()
-        })
+    def __add__(self, other: "VariableTransform") -> "VariableTransform":
+        return VariableTransform(
+            {k: M + other.transforms[k] for k, M in self.transforms.items()}
+        )
 
-    def inv(self) -> 'VariableTransform':
-        return VariableTransform({
-            k: M.inv() for k, M in self.transforms.items()
-        })
+    def inv(self) -> "VariableTransform":
+        return VariableTransform({k: M.inv() for k, M in self.transforms.items()})
 
     rdiv = __rtruediv__
     rmul = __rmul__
@@ -59,14 +49,10 @@ class VariableTransform:
     __matmul__ = __mul__
 
     def quad(self, values):
-        return {
-                   v: H.T if np.ndim(H) else H
-                   for v, H in (values * self).items()} * self
+        return {v: H.T if np.ndim(H) else H for v, H in (values * self).items()} * self
 
     def invquad(self, values):
-        return {
-                   v: H.T if np.ndim(H) else H
-                   for v, H in (values / self).items()} / self
+        return {v: H.T if np.ndim(H) else H for v, H in (values / self).items()} / self
 
     @cached_property
     def log_det(self):
@@ -74,23 +60,22 @@ class VariableTransform:
 
     @classmethod
     def from_scales(cls, scales):
-        return cls({
-            v: DiagonalMatrix(scale) for v, scale in scales.items()
-        })
+        return cls({v: DiagonalMatrix(scale) for v, scale in scales.items()})
 
     @classmethod
     def from_covariances(cls, covs):
-        return cls({
-            v: InvCholeskyTransform(cho_factor(cov))
-            for v, cov in covs.items()
-        })
+        return cls(
+            {v: InvCholeskyTransform(cho_factor(cov)) for v, cov in covs.items()}
+        )
 
     @classmethod
     def from_inv_covariances(cls, inv_covs):
-        return cls({
-            v: CholeskyOperator(cho_factor(inv_cov))
-            for v, inv_cov in inv_covs.items()
-        })
+        return cls(
+            {
+                v: CholeskyOperator(cho_factor(inv_cov))
+                for v, inv_cov in inv_covs.items()
+            }
+        )
 
 
 class FullCholeskyTransform(VariableTransform):
@@ -108,9 +93,7 @@ class FullCholeskyTransform(VariableTransform):
             # implicit hess_inv into dense matrix
             cov = cov.todense()
 
-        return cls(
-            InvCholeskyTransform.from_dense(cov),
-            param_shapes)
+        return cls(InvCholeskyTransform.from_dense(cov), param_shapes)
 
     def __mul__(self, values: Value) -> Value:
         M, x = self.cholesky, self.param_shapes.flatten(values)
@@ -159,7 +142,7 @@ class IdentityVariableTransform(VariableTransform):
 
     @property
     def log_det(self):
-        return 0.
+        return 0.0
 
 
 identity_transform = IdentityOperator()
@@ -167,11 +150,7 @@ identity_variable_transform = IdentityVariableTransform()
 
 
 class TransformedNode(AbstractNode):
-    def __init__(
-            self,
-            node: AbstractNode,
-            transform: VariableTransform
-    ):
+    def __init__(self, node: AbstractNode, transform: VariableTransform):
         self.node = node
         self.transform = transform
 
@@ -192,44 +171,46 @@ class TransformedNode(AbstractNode):
         return f"FactorApproximation({self.node.name})"
 
     def __call__(
-            self,
-            values: Dict[Variable, np.ndarray],
-            axis: Axis = False,
+        self,
+        values: Dict[Variable, np.ndarray],
+        axis: Axis = False,
     ) -> FactorValue:
         return self.node(self.transform.ldiv(values), axis=axis)
 
     def func_jacobian(
-            self,
-            values: Dict[Variable, np.ndarray],
-            variables: Optional[List[Variable]] = None,
-            axis: Axis = None,
-            _calc_deterministic: bool = True,
-            **kwargs,
+        self,
+        values: Dict[Variable, np.ndarray],
+        variables: Optional[List[Variable]] = None,
+        axis: Axis = None,
+        _calc_deterministic: bool = True,
+        **kwargs,
     ) -> Tuple[FactorValue, JacobianValue]:
         fval, jval = self.node.func_jacobian(
             self.transform.ldiv(values),
             variables=variables,
             axis=axis,
-            _calc_deterministic=_calc_deterministic)
+            _calc_deterministic=_calc_deterministic,
+        )
 
         # TODO this doesn't deal with deterministic jacobians
         grad = jval / self.transform
         return fval, grad
 
     def func_jacobian_hessian(
-            self,
-            values: Dict[Variable, np.ndarray],
-            variables: Optional[List[Variable]] = None,
-            axis: Axis = None,
-            _calc_deterministic: bool = True,
-            **kwargs,
+        self,
+        values: Dict[Variable, np.ndarray],
+        variables: Optional[List[Variable]] = None,
+        axis: Axis = None,
+        _calc_deterministic: bool = True,
+        **kwargs,
     ) -> Tuple[FactorValue, JacobianValue, HessianValue]:
         M = self.transform
         fval, jval, hval = self.node.func_jacobian_hessian(
             M.ldiv(values),
             variables=variables,
             axis=axis,
-            _calc_deterministic=_calc_deterministic)
+            _calc_deterministic=_calc_deterministic,
+        )
 
         grad = jval / M
         # hess = {v: H.T for v, H in (hval / M).items()} / M

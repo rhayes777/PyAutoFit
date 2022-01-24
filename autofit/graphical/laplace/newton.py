@@ -28,10 +28,10 @@ def sr1_update(
     yk = VariableData.sub(state1.gradient, state.gradient)
     dk = VariableData.sub(state1.parameters, state.parameters)
     Bk = state.hessian
-    zk = yk - Bk * dk
-    zkdk = zk.dot(dk)
+    zk = yk + Bk * dk
+    zkdk = -zk.dot(dk)
 
-    tol = mintol * (dk.norm() ** 2).sum() ** 0.5 * (zk.norm() ** 2).sum() ** 0.5
+    tol = mintol * dk.norm() * zk.norm()
     if zkdk > tol:
         vk = zk / np.sqrt(zkdk)
         Bk1 = Bk.lowrankupdate(vk)
@@ -42,6 +42,49 @@ def sr1_update(
         Bk1 = Bk
 
     state1.hessian = Bk1
+    return state1
+
+
+def diag_sr1_update(
+    state1: OptimisationState, state: OptimisationState, **kwargs
+) -> OptimisationState:
+    yk = VariableData.sub(state1.gradient, state.gradient)
+    dk = VariableData.sub(state1.parameters, state.parameters)
+    Bk = state.hessian
+    zk = yk + Bk * dk
+    dzk = dk * zk
+    alpha = -zk.dot(dk) / dzk.dot(dzk)
+    state1.hessian = Bk.diagonalupdate(alpha * (zk ** 2))
+    return state1
+
+
+def bfgs1_update(
+    state1: OptimisationState,
+    state: OptimisationState,
+    **kwargs,
+) -> OptimisationState:
+    """
+    y_k = g_{k+1} - g{k}
+    d_k = x_{k+1} - x{k}
+    B_{k+1} = B_{k}
+    + \frac
+        {y_{k}y_{k}^T}
+        {y_{k}^T d_{k}}}
+    - \frac
+        {B_{k} d_{k} (B_{k} d_{k})^T}
+        {d_{k}^T B_{k} d_{k}}}}
+    """
+    yk = VariableData.sub(state.gradient, state1.gradient)
+    dk = VariableData.sub(state1.parameters, state.parameters)
+    Bk = state.hessian
+
+    ykTdk = yk.dot(dk)
+    Bdk = Bk.dot(dk)
+    dkTBdk = -VariableData.dot(Bdk, dk)
+
+    state1.hessian = Bk.update(
+        (yk, VariableData(yk).div(ykTdk)), (Bdk, VariableData(Bdk).div(dkTBdk))
+    )
     return state1
 
 
@@ -73,10 +116,33 @@ def quasi_deterministic_update(
     zk = VariableData.sub(
         state1.value.deterministic_values, state.value.deterministic_values
     )
-    Bxk, Bzk = state.hessian, state.det_hessian
+    Bxk, Bzk = state1.hessian, state.det_hessian
     zkTzk2 = zk.dot(zk) ** 2
-    alpha = (zk.dot(Bzk.dot(zk)) - dk.dot(Bxk.dot(dk))) / zkTzk2
-    state1.det_hessian = Bzk.update((zk, alpha * zk))
+    alpha = (dk.dot(Bxk.dot(dk)) - zk.dot(Bzk.dot(zk))) / zkTzk2
+    if alpha >= 0:
+        Bzk1 = Bzk.lowrankupdate(np.sqrt(alpha) * (zk))
+    else:
+        Bzk1 = Bzk.lowrankdowndate(np.sqrt(-alpha) * (zk))
+
+    state1.det_hessian = Bzk1
+    return state1
+
+
+def diag_quasi_deterministic_update(
+    state1: OptimisationState,
+    state: OptimisationState,
+    **kwargs,
+) -> OptimisationState:
+    dk = VariableData.sub(state1.parameters, state.parameters)
+    zk = VariableData.sub(
+        state1.value.deterministic_values, state.value.deterministic_values
+    )
+    Bxk, Bzk = state1.hessian, state.det_hessian
+    zk2 = zk ** 2
+    zk4 = (zk2 ** 2).sum()
+    alpha = (dk.dot(Bxk.dot(dk)) - zk.dot(Bzk.dot(zk))) / zk4
+    state1.det_hessian = Bzk.diagonalupdate(alpha * zk2)
+
     return state1
 
 

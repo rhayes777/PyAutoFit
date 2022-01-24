@@ -343,11 +343,17 @@ class MatrixOperator(LinearOperator):
 
         return type(self).from_dense(M, self.shape, self.ldim)
 
-    def lowrankupdate(self, u):
-        return self.update((u, u))
+    def lowrankupdate(self, *args):
+        return self.update(*((u, u) for u in args))
 
-    def lowrankdowndate(self, u):
-        return self.update((u, -u))
+    def lowrankdowndate(self, *args):
+        return self.update(*((u, -u) for u in args))
+
+    def diagonalupdate(self, d):
+        M = self._M.copy()
+        # set diagonal
+        M.flat[:: self.lsize + 1] += d.ravel()
+        return type(self).from_dense(M, self.shape, self.ldim)
 
 
 def _mul_triangular(
@@ -481,12 +487,6 @@ class QROperator(MatrixOperator):
             Q, R = qr_update(Q, R, np.ravel(u), np.ravel(v))
         return QROperator(Q, R, self.shape, self.ldim)
 
-    def lowrankupdate(self, *args):
-        return self.update(*((u, u) for u in args))
-
-    def lowrankdowndate(self, *args):
-        return self.update(*((u, -u) for u in args))
-
 
 class CholeskyOperator(MatrixOperator):
     """This performs the whitening transforms for the passed
@@ -568,7 +568,7 @@ class InvCholeskyTransform(CholeskyOperator):
         return solve_triangular(self.U, np.triul(self.L), lower=False)
 
 
-class DiagonalMatrix(LinearOperator):
+class DiagonalMatrix(MatrixOperator):
     """
     Represents the DiagonalMatrix with diagonal `scale`
 
@@ -667,6 +667,9 @@ class DiagonalMatrix(LinearOperator):
             scale += u * v
 
         return type(self)(scale)
+
+    def diagonalupdate(self, d):
+        return type(self)(self.scale + d)
 
 
 class VecOuterProduct(LinearOperator):
