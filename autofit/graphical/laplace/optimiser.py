@@ -20,10 +20,11 @@ class LaplaceOptimiser(AbstractFactorOptimiser):
         make_hessian=make_posdef_hessian,
         search_direction=newton.newton_direction,
         calc_line_search=newton.line_search,
-        quasi_newton_update=newton.bfgs_update,
+        quasi_newton_update=newton.full_diag_update,
         stop_conditions=newton.stop_conditions,
         make_det_hessian=None,
-        max_iter=100,
+        max_iter: int = 100,
+        n_refine: int = 1,
         hessian_kws: Optional[Dict[str, Any]] = None,
         det_hessian_kws: Optional[Dict[str, Any]] = None,
         search_direction_kws: Optional[Dict[str, Any]] = None,
@@ -42,6 +43,7 @@ class LaplaceOptimiser(AbstractFactorOptimiser):
         self.stop_conditions = stop_conditions
 
         self.max_iter = max_iter
+        self.n_refine = n_refine
 
         self.hessian_kws = hessian_kws or {}
         self.det_hessian_kws = det_hessian_kws or hessian_kws or {}
@@ -112,13 +114,26 @@ class LaplaceOptimiser(AbstractFactorOptimiser):
         mean_field = mean_field or factor_approx.model_dist
         state = self.prepare_state(factor_approx, mean_field, params)
         success, next_state, message = self.optimise_state(state, **kwargs)
+        if not success:
+            next_state = self.refine(state, mean_field.sample)
+
         projection = mean_field.from_mode_covariance(
             next_state.all_parameters(),
-            next_state.inv_hessian_blocks(),
+            next_state.inv_hessian_blocks(),  # Refactor for diagonal matrices?
             next_state.value,
         )
         status = Status(success=success, messages=(message,))
         return projection, status
+
+    def refine(self, state, new_param):
+        next_state = state
+        for i in range(self.n_refine):
+            new_state = state.update(parameters=new_param())
+            next_state = self.quasi_newton_update(
+                next_state, new_state, **self.quasi_newton_kws
+            )
+
+        return next_state
 
     def optimise(
         self,

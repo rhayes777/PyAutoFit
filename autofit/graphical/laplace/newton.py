@@ -146,6 +146,30 @@ def diag_quasi_deterministic_update(
     return state1
 
 
+class QuasiNewtonUpdate:
+    def __init__(self, quasi_newton_update, det_quasi_newton_update):
+        self.quasi_newton_update = quasi_newton_update
+        self.det_quasi_newton_update = det_quasi_newton_update
+
+    def __call__(
+        self,
+        state1: OptimisationState,
+        state: OptimisationState,
+        **kwargs,
+    ) -> OptimisationState:
+
+        # Only update estimate if a step has been taken
+        state1 = self.quasi_newton_update(state1, state, **kwargs)
+        if state.det_hessian:
+            state1 = self.det_quasi_newton_update(state1, state, **kwargs)
+
+        return state1
+
+
+full_bfgs_update = QuasiNewtonUpdate(bfgs_update, quasi_deterministic_update)
+full_sr1_update = QuasiNewtonUpdate(sr1_update, quasi_deterministic_update)
+full_diag_update = QuasiNewtonUpdate(diag_sr1_update, diag_quasi_deterministic_update)
+
 ## Newton step
 
 
@@ -168,7 +192,7 @@ def take_quasi_newton_step(
     *,
     search_direction=newton_direction,
     calc_line_search=line_search,
-    quasi_newton_update=bfgs_update,
+    quasi_newton_update=full_bfgs_update,
     search_direction_kws: Optional[Dict[str, Any]] = None,
     line_search_kws: Optional[Dict[str, Any]] = None,
     quasi_newton_kws: Optional[Dict[str, Any]] = None,
@@ -183,15 +207,14 @@ def take_quasi_newton_step(
     if stepsize:
         # Only update estimate if a step has been taken
         state1 = quasi_newton_update(state1, state, **(quasi_newton_kws or {}))
-        if state.det_hessian:
-            state1 = quasi_deterministic_update(
-                state1, state, **(quasi_newton_kws or {})
-            )
 
     return stepsize, state1
 
 
 def xtol_condition(state, old_state, xtol=1e-6, ord=None, **kwargs):
+    if not old_state:
+        return
+
     dx = VariableData.sub(state.parameters, old_state.parameters).vecnorm(ord=ord)
     if dx < xtol:
         return True, f"Minimum parameter change tolerance achieved, {dx} < {xtol}"
@@ -204,6 +227,9 @@ def grad_condition(state, old_state, gtol=1e-5, ord=None, **kwargs):
 
 
 def ftol_condition(state, old_state, ftol=1e-6, monotone=True, **kwargs):
+    if not old_state:
+        return
+
     df = state.value - old_state.value
     if 0 < df < ftol:
         return True, f"Minimum function change tolerance achieved, {df} < {ftol}"
@@ -236,6 +262,20 @@ stop_conditions = (
 _OPT_CALLBACK = Callable[[OptimisationState, OptimisationState], None]
 
 
+def check_stop_conditions(
+    stepsize, state, old_state, stop_conditions, **stop_kws
+) -> Optional[Tuple[bool, str]]:
+    if stepsize is None:
+        return False, "abnormal termination of line search"
+    elif not np.isfinite(state.value):
+        return False, "function is no longer finite"
+    else:
+        for stop_condition in stop_conditions:
+            stop = stop_condition(state, old_state, **(stop_kws or {}))
+            if stop:
+                return stop
+
+
 def optimise_quasi_newton(
     state: OptimisationState,
     old_state: Optional[OptimisationState] = None,
@@ -252,9 +292,17 @@ def optimise_quasi_newton(
     callback: Optional[_OPT_CALLBACK] = None,
 ) -> Tuple[bool, OptimisationState, str]:
 
-    success = False
+    success = True
     message = "max iterations reached"
+    stepsize = 0.0
     for i in range(max_iter):
+        stop = check_stop_conditions(
+            stepsize, state, old_state, stop_conditions, **(stop_kws or {})
+        )
+        if stop:
+            success, message = stop
+            break
+
         stepsize, state1 = take_quasi_newton_step(
             state,
             old_state,
@@ -265,26 +313,15 @@ def optimise_quasi_newton(
             line_search_kws=line_search_kws,
             quasi_newton_kws=quasi_newton_kws,
         )
-        state, old_state = state1, state
+        if stepsize is None:
+            success = False
+            message = "Line search failed"
+            break
 
+        state, old_state = state1, state
+        i += 1
         if callback:
             callback(state, old_state)
 
-        if stepsize is None:
-            message = "abnormal termination of line search"
-            break
-        elif not np.isfinite(state.value):
-            message = "function is no longer finite"
-            break
-        else:
-            for stop_condition in stop_conditions:
-                stop = stop_condition(state, old_state, **(stop_kws or {}))
-                if stop:
-                    success, message = stop
-                    break
-            else:
-                continue
-            break
-
-    message += f", iter={i+1}"
-    return success, state, message
+    message += f", iter={i}"
+    return success and i > 0, state, message

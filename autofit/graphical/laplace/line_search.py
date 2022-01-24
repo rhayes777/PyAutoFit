@@ -153,6 +153,12 @@ class OptimisationState:
 
         return blocks
 
+    def hessian_diagonal(self):
+        diagonal = self.hessian.diagonal()
+        if self.det_hessian:
+            diagonal.update(self.det_hessian.diagonal())
+        return diagonal
+
 
 def line_search_wolfe1(
     state: OptimisationState,
@@ -284,7 +290,7 @@ def line_search(
             warnings.simplefilter("ignore", linesearch.LineSearchWarning)
             stepsize, next_state = line_search_wolfe2(state, old_state, **kwargs)
 
-    if stepsize is None:
-        raise _LineSearchError()
+    # if stepsize is None:
+    #     raise _LineSearchError()
 
     return stepsize, next_state

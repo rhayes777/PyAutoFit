@@ -208,7 +208,6 @@ class FactorGraph(AbstractNode):
         log_value = 0.0
         det_values = {}
         variables = variable_dict.copy()
-        variables.update(self.fixed_values)
 
         missing = set(v.name for v in self.variables).difference(
             v.name for v in variables
