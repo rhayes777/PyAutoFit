@@ -7,31 +7,23 @@ from autofit import graphical as mp
 from autofit.mapper.variable import Variable
 
 
-@pytest.fixture(
-    name="q_cavity"
-)
+@pytest.fixture(name="q_cavity")
 def make_q_cavity():
     return autofit.messages.normal.NormalMessage(-0.5, 0.5)
 
 
-def test_integration(
-        q_cavity,
-        probit_factor
-):
+def test_integration(q_cavity, probit_factor):
     x = np.linspace(-3, 3, 2 ** 10)
 
-    probit = np.exp(
-        probit_factor(
-            {Variable('x'): x}
-        ).log_value
-    )
+    probit = np.exp(probit_factor({Variable("x"): x}, axis=False).log_value)
     q = q_cavity.pdf(x)
     tilted_distribution = probit * q
 
     assert tilted_distribution.shape == (2 ** 10,)
 
     ni_0, ni_1, ni_2 = (
-        integrate.trapz(x ** i * tilted_distribution, x) for i in range(3))
+        integrate.trapz(x ** i * tilted_distribution, x) for i in range(3)
+    )
 
     q_numerical = autofit.messages.normal.NormalMessage.from_sufficient_statistics(
         [ni_1 / ni_0, ni_2 / ni_0]
@@ -41,13 +33,10 @@ def test_integration(
     assert q_numerical.sigma == pytest.approx(0.462, rel=0.01)
 
 
-def test_importance_sampling(
-        q_cavity,
-        probit_factor
-):
+def test_importance_sampling(q_cavity, probit_factor):
     x_samples = q_cavity.sample(200)
 
-    log_weight_list = probit_factor({Variable('x'): x_samples}).log_value
+    log_weight_list = probit_factor({Variable("x"): x_samples}, axis=False).log_value
 
     q_importance_sampling = q_cavity.project(x_samples, log_weight_list)
 
@@ -64,14 +53,14 @@ def test_laplace_method(probit_factor, q_cavity, x):
         factor=probit_factor,
         cavity_dist={x: q_cavity},
         factor_dist={},
-        model_dist=mp.MeanField({x: q_cavity}))
+        model_dist=mp.MeanField({x: q_cavity}),
+    )
 
     opt_probit = mp.OptFactor.from_approx(probit_approx)
-    result = opt_probit.maximise({x: 0.})
+    result = opt_probit.maximise({x: 0.0})
 
     q_probit_laplace = autofit.messages.normal.NormalMessage.from_mode(
-        result.mode[x],
-        covariance=result.hess_inv[x]
+        result.mode[x], covariance=result.hess_inv[x]
     )
 
     assert q_probit_laplace.mean == pytest.approx(-0.258, rel=0.01)
