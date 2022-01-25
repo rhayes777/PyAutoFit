@@ -1,8 +1,9 @@
-from functools import cached_property
 import logging
 from typing import Dict, Tuple, Optional, List
 
 import numpy as np
+
+from autoconf import cached_property
 
 from autofit.graphical.factor_graphs import Factor, FactorGraph
 from autofit.graphical.mean_field import MeanField, FactorApproximation
