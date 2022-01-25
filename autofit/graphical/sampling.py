@@ -5,7 +5,10 @@ from typing import NamedTuple, Tuple, Dict, Optional, List
 
 import numpy as np
 
-from autofit.graphical.expectation_propagation import EPMeanField, AbstractFactorOptimiser
+from autofit.graphical.expectation_propagation import (
+    EPMeanField,
+    AbstractFactorOptimiser,
+)
 from autofit.graphical.factor_graphs import Factor
 from autofit.graphical.mean_field import MeanField, FactorApproximation, Status
 from autofit.graphical.utils import add_arrays
@@ -22,7 +25,7 @@ class SamplingResult(NamedTuple):
     log_propose: np.ndarray
     n_samples: int
 
-    def __add__(self, other: 'SamplingResult') -> 'SamplingResult':
+    def __add__(self, other: "SamplingResult") -> "SamplingResult":
         return merge_sampling_results(self, other)
 
     @property
@@ -47,7 +50,8 @@ def merge_sampling_results(*results: SamplingResult) -> SamplingResult:
 
     det_variables = {
         v: np.concatenate([r.det_variables[v] for r in results])
-        for v in results[0].det_variables}
+        for v in results[0].det_variables
+    }
     log_weight_list = np.concatenate([r.log_weight_list for r in results])
     log_factor = np.concatenate([r.log_factor for r in results])
     log_measure = np.concatenate([r.log_measure for r in results])
@@ -55,8 +59,14 @@ def merge_sampling_results(*results: SamplingResult) -> SamplingResult:
 
     n_samples = sum(r.n_samples for r in results)
     return SamplingResult(
-        samples, det_variables, log_weight_list, log_factor,
-        log_measure, log_propose, n_samples)
+        samples,
+        det_variables,
+        log_weight_list,
+        log_factor,
+        log_measure,
+        log_propose,
+        n_samples,
+    )
 
 
 def effective_sample_size(weight_list: np.ndarray, axis=None) -> np.ndarray:
@@ -69,13 +79,13 @@ class SamplingHistory(NamedTuple):
     messages: tuple = ()
 
     def __add__(self, other):
-        return SamplingHistory(*(
-            getattr(self, f) + getattr(other, f)
-            for f in self._fields))
+        return SamplingHistory(
+            *(getattr(self, f) + getattr(other, f) for f in self._fields)
+        )
 
 
 class AbstractSampler(AbstractFactorOptimiser):
-    def __init__(self, delta=1., deltas=None, sample_kws=None):
+    def __init__(self, delta=1.0, deltas=None, sample_kws=None):
         self.deltas = defaultdict(lambda: delta)
         if deltas:
             self.deltas.update(deltas)
@@ -85,15 +95,18 @@ class AbstractSampler(AbstractFactorOptimiser):
             self.sample_kws.update(sample_kws)
 
     @abstractmethod
-    def __call__(self, factor_approx: "FactorApproximation",
-                 last_samples: Optional[SamplingResult] = None) -> SamplingResult:
+    def __call__(
+        self,
+        factor_approx: "FactorApproximation",
+        last_samples: Optional[SamplingResult] = None,
+    ) -> SamplingResult:
         pass
 
     def optimise(
-            self,
-            factor: Factor,
-            model_approx: EPMeanField,
-            status: Status = Status(),
+        self,
+        factor: Factor,
+        model_approx: EPMeanField,
+        status: Status = Status(),
     ) -> Tuple[EPMeanField, Status]:
         delta = self.deltas[factor]
         sample_kws = self.sample_kws[factor]
@@ -107,30 +120,32 @@ class AbstractSampler(AbstractFactorOptimiser):
 
 class ImportanceSampler(AbstractSampler):
     def __init__(
-            self,
-            n_samples: int = 200,
-            n_resample: int = 100,
-            min_n_eff: int = 100,
-            max_samples: int = 1000,
-            force_sample: bool = True,
-            delta: float = 1.,
-            deltas=None,
-            sample_kws=None,
+        self,
+        n_samples: int = 200,
+        n_resample: int = 100,
+        min_n_eff: int = 100,
+        max_samples: int = 1000,
+        force_sample: bool = True,
+        delta: float = 1.0,
+        deltas=None,
+        sample_kws=None,
     ):
 
         self.params = dict(
-            n_samples=n_samples, n_resample=n_resample,
-            min_n_eff=min_n_eff, max_samples=max_samples,
-            force_sample=force_sample)
+            n_samples=n_samples,
+            n_resample=n_resample,
+            min_n_eff=min_n_eff,
+            max_samples=max_samples,
+            force_sample=force_sample,
+        )
         self._history = defaultdict(SamplingHistory)
 
-        super().__init__(
-            delta=delta, deltas=deltas, sample_kws=sample_kws)
+        super().__init__(delta=delta, deltas=deltas, sample_kws=sample_kws)
 
     def sample(self, factor_approx: "FactorApproximation", **kwargs) -> SamplingResult:
-        # Update default params 
+        # Update default params
         params = {**self.params, **kwargs}
-        n_samples = params['n_samples']
+        n_samples = params["n_samples"]
         messages = ()
 
         factor = factor_approx.factor
@@ -139,19 +154,22 @@ class ImportanceSampler(AbstractSampler):
         proposal_dist = factor_approx.model_dist
 
         samples = {
-            v: proposal_dist.get(
-                v,
-                cavity_dist.get(v)
-            ).sample(n_samples=n_samples)
+            v: proposal_dist.get(v, cavity_dist.get(v)).sample(n_samples=n_samples)
             for v in factor.variables
         }
-        fval = factor(samples)
+        fval = factor(samples, axis=False)
         log_factor = broadcast_plates(fval, factor.plates, factor.sorted_plates)
 
         sample = self._weight_samples(
-            factor, samples, fval.deterministic_values,
-            log_factor, cavity_dist,
-            deterministic_dist, proposal_dist, n_samples=n_samples)
+            factor,
+            samples,
+            fval.deterministic_values,
+            log_factor,
+            cavity_dist,
+            deterministic_dist,
+            proposal_dist,
+            n_samples=n_samples,
+        )
 
         self._history[factor] += SamplingHistory(n_samples, [sample], messages)
 
@@ -165,30 +183,29 @@ class ImportanceSampler(AbstractSampler):
 
     @staticmethod
     def _weight_samples(
-            factor: "Factor",
-            samples: Dict[str, np.ndarray],
-            det_vars: Dict[str, np.ndarray],
-            log_factor: np.ndarray,
-            cavity_dist: Dict[str, AbstractMessage],
-            deterministic_dist: Dict[str, AbstractMessage],
-            proposal_dist: Dict[str, AbstractMessage],
-            n_samples: int
+        factor: "Factor",
+        samples: Dict[str, np.ndarray],
+        det_vars: Dict[str, np.ndarray],
+        log_factor: np.ndarray,
+        cavity_dist: Dict[str, AbstractMessage],
+        deterministic_dist: Dict[str, AbstractMessage],
+        proposal_dist: Dict[str, AbstractMessage],
+        n_samples: int,
     ) -> SamplingResult:
 
-        log_measure = 0.
-        for v, value in chain(map_dists(cavity_dist, samples),
-                         map_dists(deterministic_dist, det_vars)):
+        log_measure = 0.0
+        for v, value in chain(
+            map_dists(cavity_dist, samples), map_dists(deterministic_dist, det_vars)
+        ):
             # for res in map_dists(cavity_dist, {**det_vars, **samples}):
             log_measure = add_arrays(
-                log_measure, 
-                broadcast_plates(value, v.plates, factor.sorted_plates)
-                )
+                log_measure, broadcast_plates(value, v.plates, factor.sorted_plates)
+            )
 
-        log_propose = 0.
+        log_propose = 0.0
         for v, value in map_dists(proposal_dist, samples):
             log_propose = add_arrays(
-                log_propose, 
-                broadcast_plates(value, v.plates, factor.sorted_plates)
+                log_propose, broadcast_plates(value, v.plates, factor.sorted_plates)
             )
 
         log_weight_list = log_factor + log_measure - log_propose
@@ -202,13 +219,11 @@ class ImportanceSampler(AbstractSampler):
             log_factor=log_factor,
             log_measure=log_measure,
             log_propose=log_propose,
-            n_samples=n_samples
+            n_samples=n_samples,
         )
 
     def reweight_sample(
-            self,
-            factor_approx: "FactorApproximation",
-            sampling_result: SamplingResult
+        self, factor_approx: "FactorApproximation", sampling_result: SamplingResult
     ) -> SamplingResult:
         return self._weight_samples(
             factor=factor_approx.factor,
@@ -218,25 +233,23 @@ class ImportanceSampler(AbstractSampler):
             cavity_dist=factor_approx.cavity_dist,
             deterministic_dist=factor_approx.deterministic_dist,
             proposal_dist=factor_approx.model_dist,
-            n_samples=sampling_result.n_samples)
+            n_samples=sampling_result.n_samples,
+        )
 
     def stop_criterion(self, sample: SamplingResult, **kwargs) -> bool:
         params = {**self.params, **kwargs}
         ess = effective_sample_size(sample.weight_list, 0).mean()
         n = len(sample.weight_list)
 
-        return ess > params['min_n_eff'] or n > params['max_samples']
+        return ess > params["min_n_eff"] or n > params["max_samples"]
 
     def __call__(
-            self,
-            factor_approx: "FactorApproximation",
-            **kwargs
+        self, factor_approx: "FactorApproximation", **kwargs
     ) -> SamplingResult:
-        """
-        """
+        """ """
         params = {**self.params, **kwargs}
         samples = None
-        if params['force_sample']:
+        if params["force_sample"]:
             last_samples = None
         else:
             last_samples = self.last_samples(factor_approx.factor)
@@ -266,8 +279,8 @@ class ImportanceSampler(AbstractSampler):
 
 
 def project_factor_approx_sample(
-        factor_approx: FactorApproximation,
-        sample: SamplingResult) -> Dict[str, AbstractMessage]:
+    factor_approx: FactorApproximation, sample: SamplingResult
+) -> Dict[str, AbstractMessage]:
     # Calculate log_norm
     log_weight_list = sample.log_weight_list
     plates = factor_approx.factor.sorted_plates
@@ -275,31 +288,33 @@ def project_factor_approx_sample(
     # variables
     variable_log_weight_list = {
         v: broadcast_plates(log_weight_list, plates, v.plates)
-        for v in factor_approx.cavity_dist}
+        for v in factor_approx.cavity_dist
+    }
 
-    log_weight_list = log_weight_list.sum(
-        tuple(range(1, log_weight_list.ndim)))
+    log_weight_list = log_weight_list.sum(tuple(range(1, log_weight_list.ndim)))
     # subtract max log_weight for numerical stability
     log_w_max = np.max(log_weight_list)
     w = np.exp(log_weight_list - log_w_max)
     log_norm = np.log(w.mean(0)) + log_w_max
 
-    model_dist = MeanField({
-        v: factor_approx.factor_dist[v].project(x, variable_log_weight_list.get(v))
-        for v, x in chain(sample.samples.items(), sample.det_variables.items())},
-        log_norm=log_norm)
+    model_dist = MeanField(
+        {
+            v: factor_approx.factor_dist[v].project(x, variable_log_weight_list.get(v))
+            for v, x in chain(sample.samples.items(), sample.det_variables.items())
+        },
+        log_norm=log_norm,
+    )
     return model_dist
 
 
 def project_model(
-        model_approx: EPMeanField,
-        factor: Factor,
-        sampler: AbstractSampler,
-        delta: float = 0.5,
-        **kwargs
+    model_approx: EPMeanField,
+    factor: Factor,
+    sampler: AbstractSampler,
+    delta: float = 0.5,
+    **kwargs,
 ) -> Tuple[EPMeanField, Status]:
-    """
-    """
+    """ """
     factor_approx = model_approx.factor_approximation(factor)
     sample = sampler(factor_approx, **kwargs)
     model_dist = project_factor_approx_sample(factor_approx, sample)
