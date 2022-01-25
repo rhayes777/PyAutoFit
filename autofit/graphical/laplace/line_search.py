@@ -21,7 +21,11 @@ from autofit.graphical.factor_graphs.abstract import (
     FactorInterface,
     FactorJacobianInterface,
 )
-from autofit.mapper.variable_operator import VariableData, AbstractVariableOperator
+from autofit.mapper.variable_operator import (
+    VariableData,
+    AbstractVariableOperator,
+    MergedVariableOperator,
+)
 
 
 class OptimisationState:
@@ -117,9 +121,11 @@ class OptimisationState:
         return next_state
 
     def step(self, stepsize):
+
         if not stepsize:
             return self
 
+        stepsize = float(stepsize)
         # memoize stepsizes
         next_state = self.next_states.get(stepsize) or self._next_state(stepsize)
 
@@ -158,6 +164,11 @@ class OptimisationState:
         if self.det_hessian:
             diagonal.update(self.det_hessian.diagonal())
         return diagonal
+
+    @property
+    def full_hessian(self):
+        if self.det_hessian:
+            return MergedVariableOperator(self.hessian, self.det_hessian)
 
 
 def line_search_wolfe1(

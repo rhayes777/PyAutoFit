@@ -177,11 +177,12 @@ class EPOptimiser:
         factor_logger = logging.getLogger(factor.name)
         try:
             factor_history = self.ep_history[factor]
-            log_evidence = factor_history.latest_successful.log_evidence
-            divergence = factor_history.kl_divergence()
+            if factor_history.history:
+                log_evidence = factor_history.latest_successful.log_evidence
+                divergence = factor_history.kl_divergence()
 
-            factor_logger.info(f"Log Evidence = {log_evidence}")
-            factor_logger.info(f"KL Divergence = {divergence}")
+                factor_logger.info(f"Log Evidence = {log_evidence}")
+                factor_logger.info(f"KL Divergence = {divergence}")
         except exc.HistoryException as e:
             factor_logger.exception(e)
 

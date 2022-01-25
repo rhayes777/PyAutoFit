@@ -69,6 +69,7 @@ class LinearOperator(ABC):
     """
 
     _ldim = 1
+    is_diagonal = False
 
     @abstractmethod
     def __mul__(self, x: np.ndarray) -> np.ndarray:
@@ -219,8 +220,14 @@ class InverseOperator(LinearOperator):
     def inv(self):
         return self.operator
 
+    @property
+    def is_diagonal(self):
+        return self.operator.is_diagonal
+
 
 class IdentityOperator(LinearOperator):
+    is_diagonal = True
+
     def __init__(self):
         pass
 
@@ -576,6 +583,8 @@ class DiagonalMatrix(MatrixOperator):
 
     """
 
+    is_diagonal = True
+
     def __init__(self, scale, inv_scale=None):
         self.scale = np.asanyarray(scale)
         self._fscale = np.ravel(self.scale)
@@ -588,7 +597,7 @@ class DiagonalMatrix(MatrixOperator):
 
     @cached_property
     def _finv_scale(self):
-        return 1 / self._finv_scale
+        return 1 / self._fscale
 
     @classmethod
     def from_dense(cls, M: np.ndarray, shape=None, ldim=None) -> "DiagonalMatrix":

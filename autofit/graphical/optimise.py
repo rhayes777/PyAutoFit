@@ -158,7 +158,7 @@ class OptFactor:
     def _parse_result(
         self, result: OptimizeResult, status: Status = Status()
     ) -> OptResult:
-        success, messages = status
+        success, messages, flag = status
         success = result.success
         try:
             message = result.message.decode()
@@ -190,7 +190,7 @@ class OptFactor:
             self.sign * result.fun,  # minimized negative logpdf of factor approximation
             full_hess_inv,  # full inverse hessian of optimisation
             result,
-            Status(success, messages),
+            Status(success, messages, flag),
         )
 
     def _minimise(self, arrays_dict, **kwargs):

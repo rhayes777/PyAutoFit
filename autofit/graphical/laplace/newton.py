@@ -6,7 +6,7 @@ from autofit.graphical.factor_graphs.abstract import FactorValue
 from autofit.mapper.variable_operator import VariableData
 
 from autofit.graphical.laplace.line_search import line_search, OptimisationState
-
+from autofit.graphical.utils import Status, StatusFlag
 
 ## get ascent direction
 
@@ -290,7 +290,7 @@ def optimise_quasi_newton(
     quasi_newton_kws: Optional[Dict[str, Any]] = None,
     stop_kws: Optional[Dict[str, Any]] = None,
     callback: Optional[_OPT_CALLBACK] = None,
-) -> Tuple[bool, OptimisationState, str]:
+) -> Tuple[OptimisationState, Status]:
 
     success = True
     message = "max iterations reached"
@@ -324,4 +324,5 @@ def optimise_quasi_newton(
             callback(state, old_state)
 
     message += f", iter={i}"
-    return success and i > 0, state, message
+    status = Status(success, messages=(message,), flag=StatusFlag.get_flag(success, i))
+    return state, status

@@ -1,5 +1,5 @@
 from itertools import chain, count
-from typing import Optional, Tuple, Dict
+from typing import Optional, Tuple, Dict, Set
 import operator
 from abc import ABC, abstractmethod
 from functools import wraps, reduce
@@ -303,6 +303,11 @@ class AbstractVariableOperator(ABC):
     def ldiv(self, x: VariableData) -> VariableData:
         pass
 
+    @property
+    @abstractmethod
+    def variables(self) -> VariableData:
+        pass
+
     def dot(self, x):
         return self * x
 
@@ -355,6 +360,14 @@ class InverseVariableOperator(AbstractVariableOperator):
 
     def inv(self) -> AbstractVariableOperator:
         return self.operator
+
+    @property
+    def variables(self) -> Set[Variable]:
+        return self.operator.variables
+
+    @property
+    def is_diagonal(self):
+        return self.operator.is_diagonal
 
     @cached_property
     def log_det(self):

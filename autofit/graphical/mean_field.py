@@ -26,6 +26,7 @@ from autofit.graphical.utils import (
 from autofit.mapper.prior.abstract import Prior
 from autofit.mapper.prior_model.collection import CollectionPriorModel
 from autofit.mapper.variable import Variable, Plate, VariableData
+from autofit.mapper.variable import AbstractVariableOperator
 from autofit.mapper.variable_operator import VariableFullOperator
 from autofit.messages.abstract import AbstractMessage
 from autofit.messages.fixed import FixedMessage
@@ -133,10 +134,8 @@ class MeanField(CollectionPriorModel, Dict[Variable, AbstractMessage], Factor):
 
     def precision(self, variables=None):
         variables = variables or self.all_variables
-        param_shapes = FlattenArrays({v: self[v].shape for v in variables})
         variances = MeanField.variance.fget(self).subset(variables)
-        precision = np.diag(param_shapes.flatten(variances) ** -1)
-        return VariableFullOperator.from_dense(precision, param_shapes)
+        return VariableFullOperator.from_diagonal(variances ** -1)
 
     @property
     def arguments(self) -> Dict[Variable, Prior]:
@@ -247,6 +246,11 @@ class MeanField(CollectionPriorModel, Dict[Variable, AbstractMessage], Factor):
     def project_mode(self, res: OptResult):
         return self.from_mode_covariance(res.mode, res.hess_inv, res.log_norm)
 
+    def from_opt_state(self, state):
+        return self.from_mode_covariance(
+            state.all_parameters(), state.full_hessian.inv(), state.value
+        )
+
     def from_mode_covariance(
         self,
         mode: Dict[Variable, np.ndarray],
@@ -257,6 +261,9 @@ class MeanField(CollectionPriorModel, Dict[Variable, AbstractMessage], Factor):
         Projects the mode and covariance
         """
         mode = ChainMap(mode, self.fixed_values)
+        if isinstance(covar, AbstractVariableOperator):
+            covar = covar.to_block().operators
+
         projection = MeanField(
             {
                 v: self[v].from_mode(mode[v], covar.get(v), id_=self[v].id)
@@ -442,7 +449,7 @@ class FactorApproximation(AbstractNode):
         delta: float = 1.0,
         status: Optional[Status] = None,
     ) -> Tuple["FactorApproximation", Status]:
-        success, messages = Status() if status is None else status
+        success, messages, flag = Status() if status is None else status
 
         try:
             factor_dist = model_dist / self.cavity_dist

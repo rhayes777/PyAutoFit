@@ -2,7 +2,8 @@ from typing import Optional, Dict, Tuple, Any, Union
 
 from autofit.mapper.variable_operator import VariableData
 from autofit.graphical.factor_graphs import Factor
-from autofit.graphical.mean_field import MeanField, FactorApproximation, Status
+from autofit.graphical.mean_field import MeanField, FactorApproximation
+from autofit.graphical.utils import Status, StatusFlag
 from autofit.graphical.expectation_propagation.ep_mean_field import EPMeanField
 from autofit.graphical.expectation_propagation.optimiser import AbstractFactorOptimiser
 from autofit.graphical.laplace import newton
@@ -113,8 +114,8 @@ class LaplaceOptimiser(AbstractFactorOptimiser):
 
         mean_field = mean_field or factor_approx.model_dist
         state = self.prepare_state(factor_approx, mean_field, params)
-        success, next_state, message = self.optimise_state(state, **kwargs)
-        if not success:
+        next_state, status = self.optimise_state(state, **kwargs)
+        if status.flag != StatusFlag.SUCCESS:
             next_state = self.refine(state, mean_field.sample)
 
         projection = mean_field.from_mode_covariance(
@@ -122,7 +123,6 @@ class LaplaceOptimiser(AbstractFactorOptimiser):
             next_state.inv_hessian_blocks(),  # Refactor for diagonal matrices?
             next_state.value,
         )
-        status = Status(success=success, messages=(message,))
         return projection, status
 
     def refine(self, state, new_param):

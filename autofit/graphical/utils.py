@@ -1,6 +1,7 @@
 from functools import reduce
 from operator import mul
 from typing import Iterable, Tuple, TypeVar, Dict, NamedTuple, Optional, Union
+from enum import Enum
 
 import numpy as np
 from scipy import special
@@ -10,9 +11,26 @@ from scipy.optimize import OptimizeResult
 from autofit.mapper.variable import Variable, VariableData
 
 
+class StatusFlag(Enum):
+    FAILURE = 0
+    SUCCESS = 1
+    NO_CHANGE = 2
+
+    @classmethod
+    def get_flag(cls, success, n_iter):
+        if success:
+            if n_iter > 0:
+                return cls.SUCCESS
+            else:
+                return cls.NO_CHANGE
+
+        return cls.FAILURE
+
+
 class Status(NamedTuple):
     success: bool = True
     messages: Tuple[str, ...] = ()
+    flag: StatusFlag = StatusFlag.SUCCESS
 
     def __bool__(self):
         return self.success

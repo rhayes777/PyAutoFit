@@ -1,8 +1,9 @@
 from functools import wraps
-from typing import Dict, Tuple
+from typing import Dict, Tuple, Set, Sequence
 import operator
 
 import numpy as np
+from scipy.linalg import block_diag
 
 from autoconf import cached_property
 
@@ -26,6 +27,99 @@ from autofit.graphical.utils import FlattenArrays
 
 def ldiv(op, val):
     return op.ldiv(val)
+
+
+def _merged_operator_vdata(op):
+    @wraps(op)
+    def __op__(self, *args):
+        out = VariableData()
+        for op in self.operators:
+            variables = op.variables
+            subsets = (VariableData.subset(arg, variables) for arg in args)
+            out.update(op(*subsets))
+
+        return out
+
+
+class MergedVariableOperator(AbstractVariableOperator):
+    def __init__(self, *operators: Tuple[AbstractVariableOperator]):
+        self.operators = operators
+
+    __mul__ = _merged_operator_vdata(operator.mul)
+    __rmul__ = _merged_operator_vdata(operator.mul)
+    __rtruediv__ = _merged_operator_vdata(operator.truediv)
+    ldiv = _merged_operator_vdata(ldiv)
+
+    rdiv = __rtruediv__
+    rmul = __rmul__
+    lmul = __mul__
+    __matmul__ = __mul__
+
+    @property
+    def variables(self):
+        variables = self.operators[0].variables
+        for op in self.operators[1:]:
+            variables = variables | op.variables
+
+        return variables
+
+    @property
+    def is_diagonal(self):
+        return all(op.is_diagonal for op in self.operators.values())
+
+    def to_block(self):
+        blocks = {}
+        for op in self.operators:
+            blocks.update(op.to_block().operators)
+
+        return VariableOperator(blocks)
+
+    def to_full(self):
+        full_ops = [op.to_full() for op in self.operators]
+        full = block_diag(*(op.operator.to_dense() for op in full_ops))
+        param_shapes = FlattenArrays(
+            (v, s) for op in full_ops for v, s in op.param_shapes.items()
+        )
+        return VariableFullOperator(full_ops[0].operator.from_dense(full), param_shapes)
+
+    def inv(self):
+        return type(self)(*(op.inv() for op in self.operators))
+
+    @cached_property
+    def log_det(self):
+        return sum(M.log_det for M in self.operators.values())
+
+    def diagonal(self):
+        diag = VariableData()
+        for op in self.operators:
+            diag.update(op.diagonal())
+
+        return diag
+
+    def update(self, *args):
+        operators = list(self.operators)
+        for u, v in args:
+            operators = [op.update(u, v) for op in operators]
+
+        return MergedVariableOperator(operators)
+
+    def lowrankupdate(self, *values: VariableData) -> "VariableFullOperator":
+        operators = list(self.operators)
+        for u in values:
+            operators = [op.lowrankupdate(u) for op in operators]
+
+        return MergedVariableOperator(operators)
+
+    def lowrankdowndate(self, values: VariableData) -> "VariableFullOperator":
+        operators = list(self.operators)
+        for u in values:
+            operators = [op.lowrankdowndate(u) for op in operators]
+
+        return MergedVariableOperator(operators)
+
+    def diagonalupdate(self, values: VariableData) -> "VariableFullOperator":
+        operators = [op.diagonalupdate(values) for op in self.operators]
+        return MergedVariableOperator(operators)
 
 
 def _variable_binary_op(op):
@@ -71,6 +165,17 @@ class VariableOperator(AbstractVariableOperator):
     lmul = __mul__
     __matmul__ = __mul__
 
+    @property
+    def is_diagonal(self):
+        return all(op.is_diagonal for op in self.operators.values())
+
+    @property
+    def variables(self) -> Set[Variable]:
+        return self.operators.keys()
+
+    def inv(self):
+        return type(self)({v: op.inv() for v, op in self.operators.items()})
+
     @cached_property
     def log_det(self):
         return sum(M.log_det for M in self.operators.values())
@@ -92,6 +197,11 @@ class VariableOperator(AbstractVariableOperator):
     @classmethod
     def from_dense(cls, pos_defs):
         return cls({v: MatrixOperator(M) for v, M in pos_defs.items()})
+
+    @classmethod
+    def from_diagonal(cls, diag: VariableData) -> "VariableFullOperator":
+        operators = {v: DiagonalMatrix(d) for v, d in diag.items()}
+        return cls(operators)
 
     def diagonal(self):
         return VariableData({v: op.diagonal() for v, op in self.operators.items()})
@@ -156,6 +266,14 @@ class VariableFullOperator(AbstractVariableOperator):
         self.operator = op
         self.param_shapes = param_shapes
 
+    @property
+    def is_diagonal(self):
+        return self.operator.is_diagonal
+
+    @property
+    def variables(self) -> Set[Variable]:
+        return self.param_shapes.keys()
+
     @classmethod
     def from_posdef(
         cls, M: np.ndarray, param_shapes: FlattenArrays
@@ -167,6 +285,12 @@ class VariableFullOperator(AbstractVariableOperator):
         cls, M: np.ndarray, param_shapes: FlattenArrays
     ) -> "VariableFullOperator":
         return cls(MatrixOperator.from_dense(M), param_shapes)
+
+    @classmethod
+    def from_diagonal(cls, diag: VariableData) -> "VariableFullOperator":
+        param_shapes = FlattenArrays.from_arrays(diag)
+        operator = DiagonalMatrix(param_shapes.flatten(diag))
+        return cls(operator, param_shapes)
 
     @classmethod
     def from_blocks(cls, Ms: VariableData) -> "VariableFullOperator":
@@ -243,11 +367,15 @@ class VariableFullOperator(AbstractVariableOperator):
 
 
 class IdentityVariableOperator(AbstractVariableOperator):
-    def __init__(self):
-        pass
+    def __init__(self, variables=()):
+        self._variables = set(variables)
 
     def _identity(self, values: VariableData) -> VariableData:
         return values
+
+    @property
+    def variables(self):
+        return self._variables
 
     __mul__ = _identity
     __rtruediv__ = _identity
