@@ -130,11 +130,16 @@ class GridSearchResult:
     def __getstate__(self):
         return self.__dict__
 
-    def __getattr__(self, item: str) -> object:
-        """
-        We default to getting attributes from the best result. This allows promises to reference best results.
-        """
-        return getattr(self.best_result, item)
+#     def __getattr__(self, item: str) -> object:
+#         """
+#         We default to getting attributes from the best result. This allows promises to reference best results.
+#         """
+# #        return getattr(self.best_result, item)
+#
+#         try:
+#             return getattr(self.best_result, item)
+#         except AttributeError:
+#             return getattr(self, item)
 
     @property
     def shape(self):
