@@ -1,15 +1,16 @@
 import os
 from pathlib import Path
+from types import LambdaType
 
 import pytest
 
 import autofit as af
 from autoconf.conf import with_config
+from autofit.mock.mock import MockSearch
 from autofit.non_linear.analysis.multiprocessing import AnalysisPool
 from autofit.non_linear.paths.abstract import AbstractPaths
 from autofit.non_linear.paths.sub_directory_paths import SubDirectoryPaths
 
-from autofit.mock.mock import MockSearch
 
 class Analysis(af.Analysis):
     def __init__(self):
@@ -112,9 +113,9 @@ def test_analysis_pool(
 )
 @pytest.mark.parametrize(
     "number",
-    list(range(1, 10))
+    list(range(1, 3))
 )
-def _test_two_cores(number):
+def test_two_cores(number):
     analysis = Analysis()
     for _ in range(number - 1):
         analysis += Analysis()
@@ -131,6 +132,14 @@ def test_still_flat():
     analysis = Analysis() + (Analysis() + Analysis())
 
     assert len(analysis) == 3
+
+
+def test_sum_analyses():
+    combined = sum(
+        Analysis()
+        for _ in range(5)
+    )
+    assert len(combined) == 5
 
 
 @pytest.fixture(
@@ -198,3 +207,23 @@ def test_visualise(
     assert search_path.exists()
     assert (search_path / "analyses/analysis_0/image/image.png").exists()
     assert (search_path / "analyses/analysis_1/image/image.png").exists()
+
+
+def test_set_number_of_cores(
+        multi_analysis
+):
+    multi_analysis.n_cores = 1
+    assert isinstance(
+        multi_analysis._log_likelihood_function,
+        LambdaType
+    )
+    multi_analysis.n_cores = 2
+    assert isinstance(
+        multi_analysis._log_likelihood_function,
+        AnalysisPool
+    )
+    multi_analysis.n_cores = 1
+    assert isinstance(
+        multi_analysis._log_likelihood_function,
+        LambdaType
+    )
