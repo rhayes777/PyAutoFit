@@ -113,9 +113,9 @@ def test_analysis_pool(
 )
 @pytest.mark.parametrize(
     "number",
-    list(range(1, 10))
+    list(range(1, 3))
 )
-def _test_two_cores(number):
+def test_two_cores(number):
     analysis = Analysis()
     for _ in range(number - 1):
         analysis += Analysis()
@@ -132,6 +132,14 @@ def test_still_flat():
     analysis = Analysis() + (Analysis() + Analysis())
 
     assert len(analysis) == 3
+
+
+def test_sum_analyses():
+    combined = sum(
+        Analysis()
+        for _ in range(5)
+    )
+    assert len(combined) == 5
 
 
 @pytest.fixture(

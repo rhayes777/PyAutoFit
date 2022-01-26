@@ -99,6 +99,14 @@ class Analysis(ABC):
             self, other
         )
 
+    def __radd__(self, other):
+        """
+        Allows analysis to be used in sum
+        """
+        if other == 0:
+            return self
+        return self + other
+
 
 class CombinedAnalysis(Analysis):
     def __init__(self, *analyses: Analysis):
