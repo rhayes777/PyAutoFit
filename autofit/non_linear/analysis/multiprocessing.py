@@ -37,6 +37,7 @@ class AnalysisProcess(Process):
         self.logger = logging.getLogger(
             self.name
         )
+        self.logger.info("Created")
 
     def _run(self):
         """

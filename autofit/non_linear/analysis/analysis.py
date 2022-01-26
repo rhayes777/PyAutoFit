@@ -118,8 +118,9 @@ class CombinedAnalysis(Analysis):
         analyses
         """
         self.analyses = analyses
-
-        n_cores = conf.instance[
+        self._n_cores = None
+        self._log_likelihood_function = None
+        self.n_cores = conf.instance[
             "general"
         ][
             "analysis"
@@ -127,18 +128,29 @@ class CombinedAnalysis(Analysis):
             "n_cores"
         ]
 
-        if n_cores > 1:
-            self.log_likelihood_function = AnalysisPool(
-                analyses,
-                n_cores
+    @property
+    def n_cores(self):
+        return self._n_cores
+
+    @n_cores.setter
+    def n_cores(self, n_cores):
+        self._n_cores = n_cores
+        if self.n_cores > 1:
+            analysis_pool = AnalysisPool(
+                self.analyses,
+                self.n_cores
             )
+            self._log_likelihood_function = analysis_pool
         else:
-            self.log_likelihood_function = lambda instance: sum(
+            self._log_likelihood_function = lambda instance: sum(
                 analysis.log_likelihood_function(
                     instance
                 )
-                for analysis in analyses
+                for analysis in self.analyses
             )
+
+    def log_likelihood_function(self, instance):
+        return self._log_likelihood_function(instance)
 
     def _for_each_analysis(self, func, paths):
         """
@@ -286,22 +298,3 @@ class CombinedAnalysis(Analysis):
             *self.analyses,
             other
         )
-
-    def log_likelihood_function(
-            self,
-            instance
-    ) -> float:
-        """
-        The implementation of this function is decided in the constructor
-        based on the number of cores available
-
-        Parameters
-        ----------
-        instance
-            An instance of a model
-
-        Returns
-        -------
-        The likelihood that model corresponds to the data encapsulated
-        by the child analyses
-        """
