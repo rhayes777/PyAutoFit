@@ -74,6 +74,7 @@ class LineItem(Item):
             return obj
 
         strip_ids(converted)
+
         return converted
 
     @staticmethod
