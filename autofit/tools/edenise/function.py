@@ -20,10 +20,21 @@ class Function(LineItem):
         for arg in converted.args.args:
             arg.annotation = None
         converted.returns = None
-        converted.body = [
-            item.converted()
-            for item in self.lines()
-        ]
+
+        body = list()
+        for line in self.lines():
+            if isinstance(
+                    line, Import
+            ) and line.is_in_project and line.is_aliased:
+                line = line.as_from_import(
+                    self.parent.attributes_for_alias(
+                        line.alias
+                    )
+                )
+            body.append(
+                line.converted()
+            )
+        converted.body = body
         return converted
 
     @property
