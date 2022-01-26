@@ -18,8 +18,10 @@ from autofit.mapper.operator import (
 from autofit.mapper.variable import (
     Variable,
     VariableData,
-    AbstractVariableOperator,
+    VariableLinearOperator,
     InverseVariableOperator,
+    rtruediv,
+    rmul,
 )
 
 from autofit.graphical.utils import FlattenArrays
@@ -41,8 +43,8 @@ def _merged_operator_vdata(op):
         return out
 
 
-class MergedVariableOperator(AbstractVariableOperator):
-    def __init__(self, *operators: Tuple[AbstractVariableOperator]):
+class MergedVariableOperator(VariableLinearOperator):
+    def __init__(self, *operators: Tuple[VariableLinearOperator]):
         self.operators = operators
 
     __mul__ = _merged_operator_vdata(operator.mul)
@@ -139,7 +141,7 @@ def _variable_binary_op(op):
                     for v in self.operators.keys() & other.operators.keys()
                 }
             )
-        elif isinstance(other, AbstractVariableOperator):
+        elif isinstance(other, VariableLinearOperator):
             return op(self.to_full(), other.to_full())
         else:
             return type(self)({k: op(val, other) for k, val in self.operators.items()})
@@ -147,7 +149,7 @@ def _variable_binary_op(op):
     return __op__
 
 
-class VariableOperator(AbstractVariableOperator):
+class VariableOperator(VariableLinearOperator):
     """ """
 
     def __init__(self, operators: Dict[Variable, LinearOperator]):
@@ -156,8 +158,9 @@ class VariableOperator(AbstractVariableOperator):
     __add__ = _variable_binary_op(operator.add)
     __sub__ = _variable_binary_op(operator.sub)
     __mul__ = _variable_binary_op(operator.mul)
-    __rmul__ = _variable_binary_op(operator.mul)
-    __rtruediv__ = _variable_binary_op(operator.truediv)
+    __rmul__ = _variable_binary_op(rmul)
+    __truediv__ = _variable_binary_op(operator.truediv)
+    __rtruediv__ = _variable_binary_op(rtruediv)
     ldiv = _variable_binary_op(ldiv)
 
     rdiv = __rtruediv__
@@ -245,14 +248,13 @@ class VariableOperator(AbstractVariableOperator):
 def _variablefull_binary_op(op):
     @wraps(op)
     def __op__(self: "VariableFullOperator", other):
-        if isinstance(other, (dict, VariableData)):
+        if isinstance(other, dict):
             return self.param_shapes.unflatten(
                 op(self.operator, self.param_shapes.flatten(other))
             )
-
         if isinstance(other, VariableFullOperator):
             other = other.operator
-        elif isinstance(other, AbstractVariableOperator):
+        elif isinstance(other, VariableLinearOperator):
             other = other.to_full().operator
 
         op_new = op(self.operator, other)
@@ -261,7 +263,20 @@ def _variablefull_binary_op(op):
     return __op__
 
 
-class VariableFullOperator(AbstractVariableOperator):
+class VariableFullOperator(VariableLinearOperator):
+
+    __add__ = _variablefull_binary_op(operator.add)
+    __sub__ = _variablefull_binary_op(operator.sub)
+    __mul__ = _variablefull_binary_op(operator.mul)
+    __rmul__ = _variablefull_binary_op(rmul)
+    __truediv__ = _variablefull_binary_op(operator.truediv)
+    __rtruediv__ = _variablefull_binary_op(rtruediv)
+    ldiv = _variablefull_binary_op(ldiv)
+    rdiv = __rtruediv__
+    rmul = __rmul__
+    mul = __mul__
+    __matmul__ = __mul__
+
     def __init__(self, op: LinearOperator, param_shapes: FlattenArrays):
         self.operator = op
         self.param_shapes = param_shapes
@@ -329,17 +344,6 @@ class VariableFullOperator(AbstractVariableOperator):
 
         return cls.from_dense(cov, param_shapes)
 
-    __add__ = _variablefull_binary_op(operator.add)
-    __sub__ = _variablefull_binary_op(operator.sub)
-    __mul__ = _variablefull_binary_op(operator.mul)
-    __rmul__ = _variablefull_binary_op(operator.mul)
-    __rtruediv__ = _variablefull_binary_op(operator.truediv)
-    ldiv = _variablefull_binary_op(ldiv)
-    rdiv = __rtruediv__
-    rmul = __rmul__
-    mul = __mul__
-    __matmul__ = __mul__
-
     @cached_property
     def log_det(self):
         return self.operator.log_det
@@ -366,7 +370,7 @@ class VariableFullOperator(AbstractVariableOperator):
         return type(self)(self.operator.diagonalupdate(v), self.param_shapes)
 
 
-class IdentityVariableOperator(AbstractVariableOperator):
+class IdentityVariableOperator(VariableLinearOperator):
     def __init__(self, variables=()):
         self._variables = set(variables)
 

@@ -57,6 +57,7 @@ class LaplaceOptimiser(AbstractFactorOptimiser):
     def default_kws(self):
         return dict(
             max_iter=self.max_iter,
+            n_refine=self.n_refine,
             search_direction=self.search_direction,
             calc_line_search=self.calc_line_search,
             quasi_newton_update=self.quasi_newton_update,
@@ -116,18 +117,16 @@ class LaplaceOptimiser(AbstractFactorOptimiser):
         state = self.prepare_state(factor_approx, mean_field, params)
         next_state, status = self.optimise_state(state, **kwargs)
         if status.flag != StatusFlag.SUCCESS:
-            next_state = self.refine(state, mean_field.sample)
+            next_state = self.refine(
+                state, mean_field.sample, n_refine=kwargs.get("n_refine")
+            )
 
-        projection = mean_field.from_mode_covariance(
-            next_state.all_parameters(),
-            next_state.inv_hessian_blocks(),  # Refactor for diagonal matrices?
-            next_state.value,
-        )
+        projection = mean_field.from_opt_state(next_state)
         return projection, status
 
-    def refine(self, state, new_param):
+    def refine(self, state, new_param, n_refine=None):
         next_state = state
-        for i in range(self.n_refine):
+        for i in range(n_refine or self.n_refine):
             new_state = state.update(parameters=new_param())
             next_state = self.quasi_newton_update(
                 next_state, new_state, **self.quasi_newton_kws

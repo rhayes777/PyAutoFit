@@ -26,7 +26,7 @@ from autofit.graphical.utils import (
 from autofit.mapper.prior.abstract import Prior
 from autofit.mapper.prior_model.collection import CollectionPriorModel
 from autofit.mapper.variable import Variable, Plate, VariableData
-from autofit.mapper.variable import AbstractVariableOperator
+from autofit.mapper.variable import VariableLinearOperator
 from autofit.mapper.variable_operator import VariableFullOperator
 from autofit.messages.abstract import AbstractMessage
 from autofit.messages.fixed import FixedMessage
@@ -248,7 +248,7 @@ class MeanField(CollectionPriorModel, Dict[Variable, AbstractMessage], Factor):
 
     def from_opt_state(self, state):
         return self.from_mode_covariance(
-            state.all_parameters(), state.full_hessian.inv(), state.value
+            state.all_parameters, state.full_hessian.inv(), state.value
         )
 
     def from_mode_covariance(
@@ -261,7 +261,7 @@ class MeanField(CollectionPriorModel, Dict[Variable, AbstractMessage], Factor):
         Projects the mode and covariance
         """
         mode = ChainMap(mode, self.fixed_values)
-        if isinstance(covar, AbstractVariableOperator):
+        if isinstance(covar, VariableLinearOperator):
             covar = covar.to_block().operators
 
         projection = MeanField(

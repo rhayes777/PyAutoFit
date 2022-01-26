@@ -344,7 +344,7 @@ class MatrixOperator(LinearOperator):
         )
 
     def update(self, *args):
-        M = self._M.copy()
+        M = self.to_dense().reshape(self.lsize, self.rsize)
         for (u, v) in args:
             M += u.ravel()[:, None] * v.ravel()[None, :]
 
@@ -600,24 +600,8 @@ class DiagonalMatrix(MatrixOperator):
         return 1 / self._fscale
 
     @classmethod
-    def from_dense(cls, M: np.ndarray, shape=None, ldim=None) -> "DiagonalMatrix":
-        """
-        Create a diagonal matrix from the inverse hessian.
-
-        The matrix transforms parameter space by some coefficient
-        in each dimension.
-
-        Parameters
-        ----------
-        inverse_hessian
-            The inverse hessian determined during an optimisation
-
-        Returns
-        -------
-        A DiagonalMatrix which whitens the parameter space according to
-        the hessian
-        """
-        return MatrixOperator(M, shape, ldim).to_diagonal()
+    def from_dense(cls, M: np.ndarray, shape=None, ldim=None) -> "MatrixOperator":
+        return MatrixOperator(M, shape, ldim)
 
     @_wrap_leftop
     def __mul__(self, x):
@@ -669,13 +653,6 @@ class DiagonalMatrix(MatrixOperator):
             return MatrixOperator(
                 self.to_dense() - other.to_dense(), self.shape, self.ldim
             )
-
-    def update(self, *args):
-        scale = self.scale.copy()
-        for u, v in args:
-            scale += u * v
-
-        return type(self)(scale)
 
     def diagonalupdate(self, d):
         return type(self)(self.scale + d)

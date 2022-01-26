@@ -23,7 +23,7 @@ from autofit.graphical.factor_graphs.abstract import (
 )
 from autofit.mapper.variable_operator import (
     VariableData,
-    AbstractVariableOperator,
+    VariableLinearOperator,
     MergedVariableOperator,
 )
 
@@ -34,8 +34,8 @@ class OptimisationState:
         factor: FactorInterface,
         factor_jacobian: FactorJacobianInterface,
         parameters: VariableData,
-        hessian: Optional[AbstractVariableOperator] = None,
-        det_hessian: Optional[AbstractVariableOperator] = None,
+        hessian: Optional[VariableLinearOperator] = None,
+        det_hessian: Optional[VariableLinearOperator] = None,
         value: Optional[FactorValue] = None,
         gradient: Optional[VariableData] = None,
         search_direction: Optional[VariableData] = None,
@@ -98,6 +98,9 @@ class OptimisationState:
             "args": self.args,
         }
 
+    def copy(self):
+        return type(self)(**self.to_dict())
+
     def update(self, **kwargs):
         return type(self)(**{**self.to_dict(), **kwargs})
 
@@ -142,8 +145,16 @@ class OptimisationState:
     def calc_derphi(self, gradient):
         return -VariableData.dot(self.search_direction, gradient)
 
+    @property
     def all_parameters(self):
         return self.parameters.merge(self.value.deterministic_values)
+
+    @property
+    def full_hessian(self):
+        if self.det_hessian:
+            return MergedVariableOperator(self.hessian, self.det_hessian)
+
+        return self.hessian
 
     def hessian_blocks(self):
         blocks = self.hessian.blocks()
@@ -164,11 +175,6 @@ class OptimisationState:
         if self.det_hessian:
             diagonal.update(self.det_hessian.diagonal())
         return diagonal
-
-    @property
-    def full_hessian(self):
-        if self.det_hessian:
-            return MergedVariableOperator(self.hessian, self.det_hessian)
 
 
 def line_search_wolfe1(

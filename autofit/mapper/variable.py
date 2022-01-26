@@ -161,7 +161,7 @@ def _binary_op(op, ravel=False):
                         for k in self.keys() & other.keys()
                     }
                 )
-            elif isinstance(other, AbstractVariableOperator):
+            elif isinstance(other, VariableLinearOperator):
                 return op(dict(self), other)
             else:
                 return cls({k: op(val, other) for k, val in self.items()})
@@ -175,7 +175,7 @@ def _binary_op(op, ravel=False):
                 return cls(
                     {k: op(self[k], other[k]) for k in self.keys() & other.keys()}
                 )
-            elif isinstance(other, AbstractVariableOperator):
+            elif isinstance(other, VariableLinearOperator):
                 return op(dict(self), other)
             else:
                 return cls({k: op(val, other) for k, val in self.items()})
@@ -183,25 +183,48 @@ def _binary_op(op, ravel=False):
     return __op__
 
 
+def rmul(x, y):
+    return y * x
+
+
+def rtruediv(x, y):
+    return y / x
+
+
 class VariableData(Dict[Variable, np.ndarray]):
-    neg = _unary_op(operator.neg)
-    abs = _unary_op(operator.abs)
     var_norm = _unary_op(np.linalg.norm)
     var_det = _unary_op(np.linalg.det)
     var_max = _unary_op(np.max)
     var_min = _unary_op(np.min)
     var_sum = _unary_op(np.sum)
+    var_all = _unary_op(np.all)
+    var_any = _unary_op(np.any)
     var_prod = _unary_op(np.prod)
     var_isfinite = _unary_op(np.isfinite)
+
+    __abs__ = _unary_op(operator.abs)
+    __pos__ = _unary_op(operator.pos)
+    __neg__ = _unary_op(operator.neg)
+    __lt__ = _binary_op(operator.lt)
+    __le__ = _binary_op(operator.le)
+    __eq__ = _binary_op(operator.eq)
+    __ne__ = _binary_op(operator.ne)
+    __gt__ = _binary_op(operator.gt)
+    __ge__ = _binary_op(operator.ge)
+    __and__ = _binary_op(operator.and_)
+    __and__ = _binary_op(operator.or_)
 
     __add__ = _binary_op(operator.add)
     __radd__ = _binary_op(operator.add)
     __sub__ = _binary_op(operator.sub)
     __mul__ = _binary_op(operator.mul)
-    __rmul__ = _binary_op(operator.mul)
+    __rmul__ = _binary_op(rmul)
     __truediv__ = _binary_op(operator.truediv)
+    __rtruediv__ = _binary_op(rtruediv)
     __pow__ = _binary_op(operator.pow)
 
+    abs = __abs__
+    neg = __neg__
     sub = __sub__
     add = __add__
     mul = __mul__
@@ -243,6 +266,12 @@ class VariableData(Dict[Variable, np.ndarray]):
     def prod(self) -> float:
         return VariableData.reduce(VariableData.var_prod(self).values(), operator.mul)
 
+    def all(self) -> bool:
+        return all(VariableData.var_all(self).values())
+
+    def any(self) -> bool:
+        return any(VariableData.var_all(self).values())
+
     def det(self) -> float:
         return VariableData.var_det(self).reduce(operator.mul)
 
@@ -282,7 +311,7 @@ class VariableData(Dict[Variable, np.ndarray]):
         return VariableData({**self, **other})
 
 
-class AbstractVariableOperator(ABC):
+class VariableLinearOperator(ABC):
     """Implements the functionality of a linear operator acting
     on a dictionary of values indexed by `Variable` objects
     """
@@ -336,7 +365,7 @@ class AbstractVariableOperator(ABC):
         return self.to_block().blocks()
 
 
-class InverseVariableOperator(AbstractVariableOperator):
+class InverseVariableOperator(VariableLinearOperator):
     def __init__(self, op):
         self.operator = op
 
@@ -358,7 +387,7 @@ class InverseVariableOperator(AbstractVariableOperator):
     def invquad(self, M: VariableData) -> VariableData:
         return self.operator.quad(M)
 
-    def inv(self) -> AbstractVariableOperator:
+    def inv(self) -> VariableLinearOperator:
         return self.operator
 
     @property

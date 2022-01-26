@@ -290,6 +290,7 @@ def optimise_quasi_newton(
     quasi_newton_kws: Optional[Dict[str, Any]] = None,
     stop_kws: Optional[Dict[str, Any]] = None,
     callback: Optional[_OPT_CALLBACK] = None,
+    **kwargs,
 ) -> Tuple[OptimisationState, Status]:
 
     success = True
