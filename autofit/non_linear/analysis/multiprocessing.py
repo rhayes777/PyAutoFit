@@ -49,9 +49,6 @@ class AnalysisProcess(Process):
             if instance is StopCommand:
                 return
             for analysis in self.analyses:
-                if instance is StopCommand:
-                    return
-
                 try:
                     self.queue.put(
                         analysis.log_likelihood_function(
