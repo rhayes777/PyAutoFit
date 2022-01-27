@@ -5,6 +5,7 @@ from typing import List, cast, Set, Generator
 from astunparse import Unparser as Unparser_
 from six.moves import cStringIO
 
+from .function import Function
 from .import_ import Import
 from .item import Item, DirectoryItem
 from .line import LineItem
@@ -282,11 +283,31 @@ class File(DirectoryItem):
         """
         Imports in the file
         """
-        return cast(
+        imports = cast(
             List[Import],
             list(filter(
                 lambda item: isinstance(
                     item, Import
+                ),
+                self.lines()
+            ))
+        )
+        for function in self.functions:
+            imports.extend(
+                function.imports
+            )
+        return imports
+
+    @property
+    def functions(self) -> List[Function]:
+        """
+        Imports in the file
+        """
+        return cast(
+            List[Function],
+            list(filter(
+                lambda item: isinstance(
+                    item, Function
                 ),
                 self.lines()
             ))
