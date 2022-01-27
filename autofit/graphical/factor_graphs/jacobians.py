@@ -1,7 +1,9 @@
 from itertools import repeat, chain
 from typing import Tuple, Dict, Callable, Optional, Union
+from inspect import getfullargspec
 
 import numpy as np
+from sklearn.linear_model import PassiveAggressiveClassifier
 
 from autofit.graphical.factor_graphs.abstract import FactorValue, JacobianValue
 from autofit.graphical.factor_graphs.factor import (
@@ -9,8 +11,128 @@ from autofit.graphical.factor_graphs.factor import (
     Factor,
     DeterministicFactor,
 )
-from autofit.graphical.utils import aggregate, Axis
-from autofit.mapper.variable import Variable, Plate
+from autofit.graphical.utils import aggregate, Axis, nested_filter, nested_update
+from autofit.mapper.variable import (
+    Variable,
+    Plate,
+    VariableLinearOperator,
+    VariableData,
+)
+from autofit.mapper.variable_operator import VariableOperator
+
+
+class AbstractJacobian(VariableLinearOperator):
+    pass
+
+
+class JacobianVectorProduct(AbstractJacobian, VariableOperator):
+    pass
+
+
+def _is_variable(v, *args):
+    return isinstance(v, Variable)
+
+
+def extract_variables(factor_out, factor_value):
+    VariableData(nested_filter(_is_variable, factor_out, factor_value))
+
+
+class VectorJacobianProduct(AbstractJacobian):
+    def __init__(self, factor_out, vjp: Callable, *variables: Variable):
+        self.factor_out = factor_out
+        self.vjp = vjp
+        self._variables = variables
+
+    @property
+    def variables(self):
+        return self._variables
+
+    @property
+    def out_variables(self):
+        return set(v[0] for v in nested_filter(_is_variable, self.factor_out))
+
+    def _get_cotangent(self, value):
+        if isinstance(value, FactorValue):
+            value = {FactorValue: value, **value.deterministic_values}
+
+        if isinstance(value, dict):
+            return nested_update(self.factor_out, value)
+
+        return value
+
+    def __mul__(self, value: Union[VariableData, FactorValue]) -> VariableData:
+        v = self._get_cotangent(value)
+        grads = self.vjp(v)
+        return VariableData(zip(self.variables, grads))
+
+    def _not_implemented(self, *args):
+        raise NotImplementedError()
+
+    __rtruediv__ = _not_implemented
+    ldiv = _not_implemented
+    __rmul__ = _not_implemented
+    update = _not_implemented
+
+    def __str__(self) -> str:
+        out_var = str(
+            nested_update(self.factor_out, {v: v.name for v in self.out_variables})
+        ).replace("'", "")
+
+        in_var = ", ".join(v.name for v in self.variables)
+        cls_name = type(self).__name__
+        return f"{cls_name}({out_var} → ∂({in_var})ᵀ {out_var})"
+
+    __repr__ = __str__
+
+    def _full_repr(self) -> str:
+        out_var = str(self.factor_out)
+        in_var = str(self.variables)
+        cls_name = type(self).__name__
+        return f"{cls_name}({out_var} → ∂({in_var})ᵀ {out_var})"
+
+
+class FactorVJP(Factor):
+    def __init__(self, factor, *args: Variable, name="", factor_out=None):
+        self._set_factor(factor)
+
+        self.args = args
+        self.arg_names = [arg for arg in getfullargspec(factor).args]
+        self.factor_out = factor_out or self._factor_value_variable
+        self.composite = False
+        if factor_out:
+            det_variables = set(
+                nested_filter(lambda v: isinstance(v, Variable), factor_out)
+            )
+            det_variables.discard(FactorValue)
+
+            self._deterministic_variables = det_variables
+
+        AbstractFactor.__init__(
+            self, **dict(zip(self.arg_names, self.args)), name=name or factor.__name__
+        )
+
+    def _factor_value(self, raw_fval):
+        det_values = VariableData(
+            nested_filter(_is_variable, self.factor_out, raw_fval)
+        )
+        fval = det_values.pop(FactorValue, 0.0)
+        return FactorValue(fval, det_values)
+
+    def __call__(self, values: VariableData):
+        raw_fval = self._factor(*(values[v] for v in self.args))
+        return self._factor_value(raw_fval)
+
+    def func_jacobian(self, values: VariableData):
+        import jax
+
+        raw_fval, fvjp = jax.vjp(self._factor, *(values[v] for v in self.args))
+
+        fval = self._factor_value(raw_fval)
+        fvjp_op = VectorJacobianProduct(self.factor_out, fvjp, *self.args)
+        return fval, fvjp_op
+
+
+#################################################################
 
 
 class FactorJacobian(Factor):
@@ -167,7 +289,7 @@ class FactorJacobian(Factor):
     def __call__(
         self,
         variable_dict: Dict[Variable, np.ndarray],
-        axis: Axis = False,
+        axis: Axis = None,
     ) -> FactorValue:
         values = self.resolve_variable_dict(variable_dict)
         val = self._call_factor(values, variables=None)
@@ -178,7 +300,7 @@ class FactorJacobian(Factor):
         self,
         variable_dict: Dict[Variable, np.ndarray],
         variables: Optional[Tuple[Variable, ...]] = None,
-        axis: Axis = False,
+        axis: Axis = None,
         **kwargs,
     ) -> Tuple[FactorValue, JacobianValue]:
         """
@@ -294,7 +416,7 @@ class DeterministicFactorJacobian(FactorJacobian):
         self,
         variable_dict: Dict[Variable, np.ndarray],
         variables: Optional[Tuple[Variable, ...]] = None,
-        axis: Axis = False,
+        axis: Axis = None,
         **kwargs,
     ) -> Tuple[FactorValue, JacobianValue]:
         """
@@ -358,7 +480,7 @@ class DeterministicFactorJacobian(FactorJacobian):
     def __call__(
         self,
         variable_dict: Dict[Variable, np.ndarray],
-        axis: Axis = False,
+        axis: Axis = None,
     ) -> FactorValue:
         return self.func_jacobian(variable_dict, (), axis=axis)[0]
 

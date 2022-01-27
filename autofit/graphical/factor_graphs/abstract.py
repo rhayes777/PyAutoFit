@@ -13,7 +13,17 @@ from autofit.mapper.variable import Variable, Plate, VariableData
 Value = Dict[Variable, np.ndarray]
 
 
-class FactorValue(np.ndarray):
+# This allows us to treat the class FactorValue as a variable
+# that allows us to keep track of the FactorValue vs deterministic
+# values when calculating gradients and jacobians
+class VariableValueClass(type, Variable):
+    def __new__(cls, clsname, bases, attrs):
+        newcls = super().__new__(cls, clsname, bases, attrs)
+        Variable.__init__(newcls, clsname)
+        return newcls
+
+
+class FactorValue(np.ndarray, metaclass=VariableValueClass):
     def __new__(cls, input_array, deterministic_values=None):
         obj = np.asarray(input_array).view(cls)
 

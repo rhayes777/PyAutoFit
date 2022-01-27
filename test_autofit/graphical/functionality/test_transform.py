@@ -9,7 +9,9 @@ from autofit.messages.normal import NormalMessage
 
 
 def test_diagonal_from_dense():
-    matrix = transform.DiagonalMatrix.from_dense(np.array([[4, 2], [3, 4]]))
+    matrix = transform.DiagonalMatrix.from_dense(
+        np.array([[4, 2], [3, 4]])
+    ).to_diagonal()
 
     assert len(matrix.scale) == 2
     assert (matrix.scale == np.array([4, 4])).all()

@@ -321,7 +321,7 @@ class VariableLinearOperator(ABC):
         pass
 
     @abstractmethod
-    def __rtruediv__(self, x: np.ndarray) -> VariableData:
+    def __rtruediv__(self, x: VariableData) -> VariableData:
         pass
 
     @abstractmethod

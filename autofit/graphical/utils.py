@@ -2,6 +2,9 @@ from functools import reduce
 from operator import mul
 from typing import Iterable, Tuple, TypeVar, Dict, NamedTuple, Optional, Union
 from enum import Enum
+import collections
+import six
+
 
 import numpy as np
 from scipy import special
@@ -9,6 +12,51 @@ from scipy.linalg import block_diag
 from scipy.optimize import OptimizeResult
 
 from autofit.mapper.variable import Variable, VariableData
+
+
+def is_iterable(arg):
+    return isinstance(arg, collections.Iterable) and not isinstance(
+        arg, six.string_types
+    )
+
+
+def nested_filter(func, *args):
+    out, *rest = args
+    if isinstance(out, dict):
+        for k in out:
+            yield from nested_filter(func, *(out[k] for out in args))
+    elif is_iterable(out):
+        for elems in zip(*args):
+            yield from nested_filter(func, *elems)
+    else:
+        if func(*args):
+            yield args
+
+
+def nested_update(out, to_replace: dict):
+    """
+    Given a potentially nested set of list, tuples and dictionaries, recursively loop through the structure and
+    replace any values that appear in the dict to_replace
+
+    Example
+    -------
+    >>> nested_update([1, (2, 3), [3, 2, {1, 2}]], {2: 'a'})
+    [1, ('a', 3), [3, 'a', {1, 'a'}]]
+    """
+    if isinstance(out, dict):
+        return type(out)(
+            {
+                nested_update(k, to_replace): nested_update(v, to_replace)
+                for k, v in out.items()
+            }
+        )
+    elif is_iterable(out):
+        return type(out)(nested_update(elem, to_replace) for elem in out)
+    else:
+        try:
+            return to_replace.get(out, out)
+        except TypeError:
+            return out
 
 
 class StatusFlag(Enum):
