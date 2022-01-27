@@ -35,7 +35,7 @@ def _is_variable(v, *args):
 
 class AbstractJacobian(VariableLinearOperator):
     def __call__(self, values):
-        return self * values
+        return self.__rmul__(values)
 
     def __str__(self) -> str:
         out_var = str(
@@ -88,23 +88,23 @@ class VectorJacobianProduct(AbstractJacobian):
     def out_variables(self):
         return set(v[0] for v in nested_filter(_is_variable, self.factor_out))
 
-    def _get_cotangent(self, value):
-        if isinstance(value, FactorValue):
-            value = value.to_dict()
+    def _get_cotangent(self, values):
+        if isinstance(values, FactorValue):
+            values = values.to_dict()
 
-        if isinstance(value, dict):
+        if isinstance(values, dict):
             if self.fill_zero:
                 for v in self.out_variables:
-                    value.setdefault(v, 0.0)
-            return nested_update(self.factor_out, value)
+                    values.setdefault(v, 0.0)
+            return nested_update(self.factor_out, values)
 
-        if isinstance(value, int):
-            value = float(value)
+        if isinstance(values, int):
+            values = float(values)
 
-        return value
+        return values
 
-    def __mul__(self, value: Union[VariableData, FactorValue]) -> VariableData:
-        v = self._get_cotangent(value)
+    def __rmul__(self, values: Union[VariableData, FactorValue]) -> VariableData:
+        v = self._get_cotangent(values)
         grads = self.vjp(v)
         return VariableData(zip(self.variables, grads))
 
@@ -113,7 +113,7 @@ class VectorJacobianProduct(AbstractJacobian):
 
     __rtruediv__ = _not_implemented
     ldiv = _not_implemented
-    __rmul__ = _not_implemented
+    __mul__ = _not_implemented
     update = _not_implemented
 
 
@@ -174,10 +174,11 @@ class FactorJVP(FactorVJP):
         fval = self(values, axis=axis)
         raw_jac = self._jacobian(*(values[v] for v in self.args))
 
-        jac = {v1: {} for v1 in self.args}
+        jac = {}
         for v0, vjac in nested_filter(_is_variable, self.factor_out, raw_jac):
+            jac[v0] = {}
             for v1, j in zip(self.args, vjac):
-                jac[v1][v0] = j
+                jac[v0][v1] = j
 
         jvp = JacobianVectorProduct.from_dense(jac, values=fval.to_dict().merge(values))
 
