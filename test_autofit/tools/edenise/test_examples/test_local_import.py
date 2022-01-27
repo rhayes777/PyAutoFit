@@ -18,7 +18,6 @@ def make_function_file(
 
 
 def test_function(function_file):
-    print(function_file.target_string)
     assert function_file.target_string == '''
 
 def func():
@@ -42,7 +41,6 @@ def make_class_file(
 
 
 def test_class(class_file):
-    print(class_file.target_string)
     assert class_file.target_string == '''
 
 class MyClass():
