@@ -82,6 +82,66 @@ class Variable(ModelObject):
         return len(self.plates)
 
 
+# This allows us to treat the class FactorValue as a variable
+# that allows us to keep track of the FactorValue vs deterministic
+# values when calculating gradients and jacobians
+class VariableMetaClass(type, Variable):
+    def __new__(cls, clsname, bases, attrs):
+        newcls = super().__new__(cls, clsname, bases, attrs)
+        Variable.__init__(newcls, clsname)
+        return newcls
+
+
+class FactorValue(np.ndarray, metaclass=VariableMetaClass):
+    def __new__(cls, input_array, deterministic_values=None):
+        obj = np.asarray(input_array).view(cls)
+
+        if deterministic_values is None:
+            obj.deterministic_values = {}
+        else:
+            obj.deterministic_values = deterministic_values
+
+        return obj
+
+    def __array_finalize__(self, obj):
+        if obj is None:
+            return
+        self.deterministic_values = getattr(obj, "deterministic_values", None)
+
+    @property
+    def log_value(self) -> np.ndarray:
+        if self.shape:
+            return self.base
+        else:
+            return self.item()
+
+    def __getitem__(self, index) -> np.ndarray:
+        if index is type(self):
+            return self
+        elif isinstance(index, Variable):
+            return self.deterministic_values[index]
+        else:
+            return super().__getitem__(index)
+
+    def keys(self):
+        return self.deterministic_values.keys()
+
+    def values(self):
+        return self.deterministic_values.values()
+
+    def items(self):
+        return self.deterministic_values.items()
+
+    deterministic_variables = property(keys)
+
+    def __repr__(self):
+        r = np.ndarray.__repr__(self)
+        return r[:-1] + ", " + repr(self.deterministic_values) + ")"
+
+    def to_dict(self):
+        return VariableData({FactorValue: self, **self.deterministic_values})
+
+
 def broadcast_plates(
     value: np.ndarray,
     in_plates: Tuple[Plate, ...],
@@ -154,6 +214,9 @@ def _binary_op(op, ravel=False):
         @wraps(op)
         def __op__(self, other):
             cls = _get_variable_data_class(self)
+            if isinstance(other, FactorValue):
+                other = other.to_dict()
+
             if isinstance(other, dict):
                 return cls(
                     {
@@ -171,6 +234,9 @@ def _binary_op(op, ravel=False):
         @wraps(op)
         def __op__(self, other):
             cls = _get_variable_data_class(self)
+            if isinstance(other, FactorValue):
+                other = other.to_dict()
+
             if isinstance(other, dict):
                 return cls(
                     {k: op(self[k], other[k]) for k in self.keys() & other.keys()}

@@ -8,6 +8,7 @@ import numpy as np
 from autoconf import cached_property
 from autofit.graphical.factor_graphs.abstract import FactorValue, AbstractNode, Value
 from autofit.graphical.factor_graphs.factor import Factor
+from autofit.graphical.factor_graphs.jacobians import VectorJacobianProduct
 from autofit.graphical.utils import add_arrays, aggregate, Axis, rescale_to_artists
 from autofit.mapper.variable import Variable, Plate
 
@@ -234,6 +235,60 @@ class FactorGraph(AbstractNode):
                 variables.update(ret.deterministic_values)
 
         return FactorValue(log_value, det_values)
+
+    def func_jacobian(
+        self,
+        variable_dict: Dict[Variable, np.ndarray],
+        axis: Axis = None,
+    ) -> FactorValue:
+
+        # generate set of factors to call, these are indexed by the
+        # missing deterministic variables that need to be calculated
+        log_value = 0.0
+        det_values = {}
+        factor_jacs = {}
+        variables = variable_dict.copy()
+
+        missing = set(v.name for v in self.variables).difference(
+            v.name for v in variables
+        )
+        if missing:
+            n_miss = len(missing)
+            missing_str = ", ".join(missing)
+            raise ValueError(
+                f"{self} missing {n_miss} arguments: {missing_str}"
+                f"factor graph call signature: {self.call_signature}"
+            )
+
+        for calls in self._call_sequence:
+            # TODO parallelise this part?
+            for factor in calls:
+                ret, factor_jacs[factor] = factor.func_jacobian(variables)
+                log_value += ret
+
+                det_values.update(ret.deterministic_values)
+                variables.update(ret.deterministic_values)
+
+        jac_out = (FactorValue,) + tuple(det_values)
+        jac_variables = tuple(variables)
+
+        def graph_vjp(args):
+            grads = defaultdict(float)
+            grads.update(zip(jac_out, args))
+            for calls in self._call_sequence[::-1]:
+                for factor in calls:
+                    factor_grad = factor_jacs[factor] * grads
+                    for v, v_grad in factor_grad.items():
+                        grads[v] += v_grad
+
+            return tuple(grads[v] for v in jac_variables)
+
+        fval = FactorValue(log_value, det_values)
+        graph_vjp = VectorJacobianProduct(
+            jac_out, graph_vjp, *jac_variables, fill_zero=True
+        )
+
+        return fval, graph_vjp
 
     def __mul__(self, other: AbstractNode) -> "FactorGraph":
         """

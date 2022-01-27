@@ -5,6 +5,10 @@ from inspect import getfullargspec
 import numpy as np
 from sklearn.linear_model import PassiveAggressiveClassifier
 
+import jax
+
+from autoconf import cached_property
+
 from autofit.graphical.factor_graphs.abstract import FactorValue, JacobianValue
 from autofit.graphical.factor_graphs.factor import (
     AbstractFactor,
@@ -18,60 +22,20 @@ from autofit.mapper.variable import (
     VariableLinearOperator,
     VariableData,
 )
-from autofit.mapper.variable_operator import VariableOperator
-
-
-class AbstractJacobian(VariableLinearOperator):
-    pass
-
-
-class JacobianVectorProduct(AbstractJacobian, VariableOperator):
-    pass
+from autofit.mapper.variable_operator import (
+    RectVariableOperator,
+    LinearOperator,
+    VariableOperator,
+)
 
 
 def _is_variable(v, *args):
     return isinstance(v, Variable)
 
 
-def extract_variables(factor_out, factor_value):
-    VariableData(nested_filter(_is_variable, factor_out, factor_value))
-
-
-class VectorJacobianProduct(AbstractJacobian):
-    def __init__(self, factor_out, vjp: Callable, *variables: Variable):
-        self.factor_out = factor_out
-        self.vjp = vjp
-        self._variables = variables
-
-    @property
-    def variables(self):
-        return self._variables
-
-    @property
-    def out_variables(self):
-        return set(v[0] for v in nested_filter(_is_variable, self.factor_out))
-
-    def _get_cotangent(self, value):
-        if isinstance(value, FactorValue):
-            value = {FactorValue: value, **value.deterministic_values}
-
-        if isinstance(value, dict):
-            return nested_update(self.factor_out, value)
-
-        return value
-
-    def __mul__(self, value: Union[VariableData, FactorValue]) -> VariableData:
-        v = self._get_cotangent(value)
-        grads = self.vjp(v)
-        return VariableData(zip(self.variables, grads))
-
-    def _not_implemented(self, *args):
-        raise NotImplementedError()
-
-    __rtruediv__ = _not_implemented
-    ldiv = _not_implemented
-    __rmul__ = _not_implemented
-    update = _not_implemented
+class AbstractJacobian(VariableLinearOperator):
+    def __call__(self, values):
+        return self * values
 
     def __str__(self) -> str:
         out_var = str(
@@ -91,25 +55,80 @@ class VectorJacobianProduct(AbstractJacobian):
         return f"{cls_name}({out_var} → ∂({in_var})ᵀ {out_var})"
 
 
+class JacobianVectorProduct(AbstractJacobian, RectVariableOperator):
+    __init__ = RectVariableOperator.__init__
+
+    @property
+    def variables(self):
+        return self.left_variables
+
+    @property
+    def out_variables(self):
+        return self.right_variables
+
+    @property
+    def factor_out(self):
+        return tuple(self.out_variables)
+
+
+class VectorJacobianProduct(AbstractJacobian):
+    def __init__(
+        self, factor_out, vjp: Callable, *variables: Variable, fill_zero=False
+    ):
+        self.factor_out = factor_out
+        self.vjp = vjp
+        self._variables = variables
+        self.fill_zero = fill_zero
+
+    @property
+    def variables(self):
+        return self._variables
+
+    @cached_property
+    def out_variables(self):
+        return set(v[0] for v in nested_filter(_is_variable, self.factor_out))
+
+    def _get_cotangent(self, value):
+        if isinstance(value, FactorValue):
+            value = {FactorValue: value, **value.deterministic_values}
+
+        if isinstance(value, dict):
+            if self.fill_zero:
+                for v in self.out_variables:
+                    value.setdefault(v, 0.0)
+            return nested_update(self.factor_out, value)
+
+        return (value,)
+
+    def __mul__(self, value: Union[VariableData, FactorValue]) -> VariableData:
+        v = self._get_cotangent(value)
+        grads = self.vjp(v)
+        return VariableData(zip(self.variables, grads))
+
+    def _not_implemented(self, *args):
+        raise NotImplementedError()
+
+    __rtruediv__ = _not_implemented
+    ldiv = _not_implemented
+    __rmul__ = _not_implemented
+    update = _not_implemented
+
+
 class FactorVJP(Factor):
-    def __init__(self, factor, *args: Variable, name="", factor_out=None):
+    def __init__(self, factor, *args: Variable, name="", factor_out=FactorValue):
         self._set_factor(factor)
 
         self.args = args
         self.arg_names = [arg for arg in getfullargspec(factor).args]
-        self.factor_out = factor_out or self._factor_value_variable
-        self.composite = False
-        if factor_out:
-            det_variables = set(
-                nested_filter(lambda v: isinstance(v, Variable), factor_out)
-            )
-            det_variables.discard(FactorValue)
-
-            self._deterministic_variables = det_variables
+        self.factor_out = factor_out
 
         AbstractFactor.__init__(
             self, **dict(zip(self.arg_names, self.args)), name=name or factor.__name__
         )
+
+        det_variables = set(v[0] for v in nested_filter(_is_variable, factor_out))
+        det_variables.discard(FactorValue)
+        self._deterministic_variables = det_variables
 
     def _factor_value(self, raw_fval):
         det_values = VariableData(
@@ -118,18 +137,42 @@ class FactorVJP(Factor):
         fval = det_values.pop(FactorValue, 0.0)
         return FactorValue(fval, det_values)
 
-    def __call__(self, values: VariableData):
+    def __call__(self, values: VariableData, axis=None):
         raw_fval = self._factor(*(values[v] for v in self.args))
         return self._factor_value(raw_fval)
 
-    def func_jacobian(self, values: VariableData):
-        import jax
-
+    def func_jacobian(self, values: VariableData, axis=None):
         raw_fval, fvjp = jax.vjp(self._factor, *(values[v] for v in self.args))
 
         fval = self._factor_value(raw_fval)
         fvjp_op = VectorJacobianProduct(self.factor_out, fvjp, *self.args)
         return fval, fvjp_op
+
+
+class FactorJVP(FactorVJP):
+    def __init__(
+        self,
+        factor,
+        *args: Variable,
+        name="",
+        factor_out=FactorValue,
+        func_jacobian=None,
+    ):
+        FactorVJP.__init__(self, factor, *args, name=name, factor_out=factor_out)
+        self._jacobian = func_jacobian or jax.jacfwd(factor, list(range(len(args))))
+
+    def func_jacobian(self, values: VariableData, axis=None):
+        fval = self(values, axis=axis)
+        raw_jac = self._jacobian(*(values[v] for v in self.args))
+
+        jac = {v1: {} for v1 in self.args}
+        for v0, vjac in nested_filter(_is_variable, self.factor_out, raw_jac):
+            for v1, j in zip(self.args, vjac):
+                jac[v1][v0] = j
+
+        jvp = JacobianVectorProduct.from_dense(jac, values=fval.to_dict().merge(values))
+
+        return fval, jvp
 
 
 #################################################################

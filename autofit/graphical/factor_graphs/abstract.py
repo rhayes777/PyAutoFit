@@ -8,58 +8,9 @@ import numpy as np
 
 from autoconf import cached_property
 from autofit.graphical.utils import FlattenArrays, Axis
-from autofit.mapper.variable import Variable, Plate, VariableData
+from autofit.mapper.variable import Variable, Plate, FactorValue, VariableData
 
 Value = Dict[Variable, np.ndarray]
-
-
-# This allows us to treat the class FactorValue as a variable
-# that allows us to keep track of the FactorValue vs deterministic
-# values when calculating gradients and jacobians
-class VariableValueClass(type, Variable):
-    def __new__(cls, clsname, bases, attrs):
-        newcls = super().__new__(cls, clsname, bases, attrs)
-        Variable.__init__(newcls, clsname)
-        return newcls
-
-
-class FactorValue(np.ndarray, metaclass=VariableValueClass):
-    def __new__(cls, input_array, deterministic_values=None):
-        obj = np.asarray(input_array).view(cls)
-
-        if deterministic_values is None:
-            obj.deterministic_values = {}
-        else:
-            obj.deterministic_values = deterministic_values
-
-        return obj
-
-    def __array_finalize__(self, obj):
-        if obj is None:
-            return
-        self.deterministic_values = getattr(obj, "deterministic_values", None)
-
-    @property
-    def log_value(self) -> np.ndarray:
-        if self.shape:
-            return self.base
-        else:
-            return self.item()
-
-    def __getitem__(self, index) -> np.ndarray:
-        if isinstance(index, Variable):
-            return self.deterministic_values[index]
-        else:
-            return super().__getitem__(index)
-
-    def keys(self):
-        return self.deterministic_values.keys()
-
-    def values(self):
-        return self.deterministic_values.values()
-
-    def items(self):
-        return self.deterministic_values.items()
 
 
 HessianValue = JacobianValue = VariableData

@@ -264,7 +264,8 @@ def _wrap_leftop(method):
     @wraps(method)
     def leftmethod(self, x: np.ndarray) -> np.ndarray:
         x = np.asanyarray(x)
-        return method(self, x.reshape(self.rsize, -1)).reshape(x.shape)
+        outshape = self.lshape + x.shape[self.rdim :]
+        return method(self, x.reshape(self.rsize, -1)).reshape(outshape)
 
     return leftmethod
 
@@ -273,7 +274,8 @@ def _wrap_rightop(method):
     @wraps(method)
     def rightmethod(self, x: np.ndarray) -> np.ndarray:
         x = np.asanyarray(x)
-        return method(self, x.reshape(-1, self.lsize)).reshape(x.shape)
+        outshape = x.shape[: -self.ldim] + self.rshape
+        return method(self, x.reshape(-1, self.lsize)).reshape(outshape)
 
     return rightmethod
 
@@ -281,9 +283,9 @@ def _wrap_rightop(method):
 class MatrixOperator(LinearOperator):
     def __init__(self, M: np.ndarray, shape=None, ldim=None):
         self._shape = shape or np.shape(M)
-        self._ldim = ldim or len(self.shape) // 2
+        self._ldim = len(self.shape) // 2 if ldim is None else ldim
         self._M = np.asanyarray(M).reshape(self.shape)
-        self._M2D = self._M.reshape(self.rsize, self.lsize)
+        self._M2D = self._M.reshape(self.lsize, self.rsize)
 
     @classmethod
     def from_dense(

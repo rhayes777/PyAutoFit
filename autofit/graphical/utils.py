@@ -33,25 +33,39 @@ def nested_filter(func, *args):
             yield args
 
 
-def nested_update(out, to_replace: dict):
+def nested_update(out, to_replace: dict, replace_keys=False):
     """
     Given a potentially nested set of list, tuples and dictionaries, recursively loop through the structure and
     replace any values that appear in the dict to_replace
+    can set to replace dictionary keys optionally,
 
     Example
     -------
     >>> nested_update([1, (2, 3), [3, 2, {1, 2}]], {2: 'a'})
     [1, ('a', 3), [3, 'a', {1, 'a'}]]
+
+    >>> nested_update([{2: 2}], {2: 'a'})
+    [{2: 'a'}]
+
+    >>> nested_update([{2: 2}], {2: 'a'}, True)
+    [{'a': 'a'}]
     """
     if isinstance(out, dict):
-        return type(out)(
-            {
-                nested_update(k, to_replace): nested_update(v, to_replace)
-                for k, v in out.items()
-            }
-        )
+        if replace_keys:
+            return type(out)(
+                {
+                    nested_update(k, to_replace, replace_keys): nested_update(
+                        v, to_replace, replace_keys
+                    )
+                    for k, v in out.items()
+                }
+            )
+        else:
+            return type(out)(
+                {k: nested_update(v, to_replace, replace_keys) for k, v in out.items()}
+            )
     elif is_iterable(out):
-        return type(out)(nested_update(elem, to_replace) for elem in out)
+        return type(out)(nested_update(elem, to_replace, replace_keys) for elem in out)
     else:
         try:
             return to_replace.get(out, out)

@@ -1,6 +1,7 @@
 from functools import wraps
-from typing import Dict, Tuple, Set, Sequence
+from typing import Dict, Tuple, Set, Optional
 import operator
+from collections import ChainMap
 
 import numpy as np
 from scipy.linalg import block_diag
@@ -25,6 +26,7 @@ from autofit.mapper.variable import (
 )
 
 from autofit.graphical.utils import FlattenArrays
+from autofit.graphical.factor_graphs.abstract import FactorValue
 
 
 def ldiv(op, val):
@@ -127,6 +129,9 @@ class MergedVariableOperator(VariableLinearOperator):
 def _variable_binary_op(op):
     @wraps(op)
     def __op__(self, other):
+        if isinstance(other, FactorValue):
+            other = other.to_dict()
+
         if isinstance(other, (dict, VariableData)):
             return VariableData(
                 {
@@ -248,6 +253,9 @@ class VariableOperator(VariableLinearOperator):
 def _variablefull_binary_op(op):
     @wraps(op)
     def __op__(self: "VariableFullOperator", other):
+        if isinstance(other, FactorValue):
+            other = other.to_dict()
+
         if isinstance(other, dict):
             return self.param_shapes.unflatten(
                 op(self.operator, self.param_shapes.flatten(other))
@@ -406,3 +414,188 @@ class IdentityVariableOperator(VariableLinearOperator):
 
 identity_operator = IdentityOperator()
 identity_variable_operator = IdentityVariableOperator()
+
+
+def _rect_variable_binary_op(op, left=True):
+    if left:
+        op_ = op
+    else:
+
+        def op_(x, y):
+            return op(y, x)
+
+    @wraps(op)
+    def __op__(self, other):
+        if isinstance(other, FactorValue):
+            other = other.to_dict()
+
+        if isinstance(other, (dict, VariableData)):
+            operators = self.operators if left else self.T.operators
+            return VariableData(
+                {
+                    kl: sum(op_(right_op, other).values())
+                    for kl, right_op in operators.items()
+                }
+            )
+        elif isinstance(other, RectVariableOperator):
+            lops, rops = self.operators, other.operators
+            return type(self)(
+                {
+                    vl: {
+                        vr: op_(lops[vl][vr], rops[vl][vr])
+                        for vr in lops[vl].keys() & rops[vl]
+                    }
+                    for vl in lops.keys() & rops.keys()
+                }
+            )
+        elif isinstance(other, VariableLinearOperator):
+            raise NotImplementedError()
+        else:
+            return type(self)(
+                {
+                    k: {vl: op_(vop, other) for vl, vop in val.items()}
+                    for k, val in self.operators.items()
+                }
+            )
+
+    return __op__
+
+
+class RectVariableOperator(VariableLinearOperator):
+    """ """
+
+    def __init__(self, operators: Dict[Variable, Dict[Variable, LinearOperator]]):
+        self.operators = {k: VariableOperator(ops) for k, ops in operators.items()}
+        self.left_variables = operators.keys()
+
+    @cached_property
+    def right_variables(self):
+        return ChainMap(*(vop.operators for vop in self.operators.values())).keys()
+
+    @property
+    def transposed_operators(self):
+        transposed_operators = {v: {} for v in self.right_variables}
+        for lv, rops in self.operators.items():
+            for rv, op in rops.operators.items():
+                transposed_operators[rv][lv] = op
+
+        return transposed_operators
+
+    @property
+    def T(self):
+        return type(self)(self.transposed_operators)
+
+    __add__ = _rect_variable_binary_op(operator.add)
+    __sub__ = _rect_variable_binary_op(operator.sub)
+    __mul__ = _rect_variable_binary_op(operator.mul)
+    __rmul__ = _rect_variable_binary_op(operator.mul, left=False)
+    __truediv__ = _rect_variable_binary_op(operator.truediv)
+    __rtruediv__ = _rect_variable_binary_op(operator.truediv, left=False)
+    ldiv = _rect_variable_binary_op(ldiv)
+
+    rdiv = __rtruediv__
+    rmul = __rmul__
+    lmul = __mul__
+    __matmul__ = __mul__
+
+    @property
+    def is_diagonal(self):
+        return False
+
+    @property
+    def variables(self) -> Set[Variable]:
+        return self.left_variables.union(self.right_variables)
+
+    def inv(self):
+        raise NotImplementedError()
+
+    @cached_property
+    def log_det(self):
+        raise NotImplementedError()
+
+    @classmethod
+    def from_scales(cls, scales):
+        raise NotImplementedError()
+
+    @classmethod
+    def from_covariances(cls, covs):
+        raise NotImplementedError()
+
+    @classmethod
+    def from_pos_definite(cls, pos_defs):
+        raise NotImplementedError()
+
+    @classmethod
+    def from_dense(
+        cls,
+        data: Dict[Variable, Dict[Variable, np.ndarray]],
+        *,
+        var_shapes: Optional[Dict[Variable, Tuple[int, ...]]] = None,
+        values: Optional[VariableData] = None
+    ) -> "RectVariableOperator":
+        if values:
+            var_shapes = {v: val.shape for v, val in values.items()}
+        if var_shapes:
+            return cls(
+                {
+                    vl: {
+                        vr: MatrixOperator.from_dense(
+                            M, var_shapes[vl] + var_shapes[vr], len(var_shapes[vl])
+                        )
+                        for vr, M in val.items()
+                    }
+                    for vl, val in data.items()
+                }
+            )
+        else:
+            return cls(
+                {
+                    vl: {vr: MatrixOperator.from_dense(M) for vr, M in val.items()}
+                    for vl, val in data.items()
+                }
+            )
+
+    @classmethod
+    def from_diagonal(cls, diag: VariableData) -> "VariableFullOperator":
+        raise NotImplementedError()
+
+    def diagonal(self):
+        raise NotImplementedError()
+
+    def to_diagonal(self) -> "VariableOperator":
+        raise NotImplementedError()
+
+    def blocks(self) -> VariableData:
+        return {
+            vl: {vl: op.to_dense() for vr, op in rops.items()}
+            for vl, rops in self.operators.items()
+        }
+
+    def to_block(self) -> "VariableOperator":
+        return self
+
+    @cached_property
+    def lparam_shapes(self):
+        return FlattenArrays({v: op.lshape for v, op in self.operators.items()})
+
+    def to_full(self) -> "VariableFullOperator":
+        M = self.param_shapes.flatten2d(
+            {v: op.to_dense() for v, op in self.operators.items()}
+        )
+        return VariableFullOperator(MatrixOperator(M), self.param_shapes)
+
+    def update(self, *args: Tuple[VariableData, VariableData]):
+        operators = self.operators.copy()
+        for (u, v) in args:
+            for k in operators.keys() & u.keys() & v.keys():
+                operators[k] = operators[k].update(u[k], v[k])
+
+        return type(self)(operators)
+
+    def diagonalupdate(self, d: VariableData):
+        return type(self)(
+            {
+                k: self.operators[k].diagonalupdate(d[k])
+                for k in self.operators.keys() & d.keys()
+            }
+        )
