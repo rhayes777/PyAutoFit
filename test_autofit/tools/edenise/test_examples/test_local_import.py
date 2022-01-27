@@ -23,4 +23,5 @@ def test(file):
 
 def func():
     from VIS_CTI_Autofit.VIS_CTI_NonLinear.VIS_CTI_Grid.VIS_CTI_GridSearch import GridSearch
+    from VIS_CTI_Autoconf.VIS_CTI_Tools.decorators import CachedProperty
 '''
