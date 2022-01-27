@@ -42,6 +42,12 @@ class Plate:
         return self.id > other.id
 
 
+def variables(*vals):
+    for val in vals:
+        for v in val.split(","):
+            yield Variable(v.strip())
+
+
 class Variable(ModelObject):
     # __slots__ = ("name", "plates")
 

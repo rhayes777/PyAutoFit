@@ -90,7 +90,7 @@ class VectorJacobianProduct(AbstractJacobian):
 
     def _get_cotangent(self, value):
         if isinstance(value, FactorValue):
-            value = {FactorValue: value, **value.deterministic_values}
+            value = value.to_dict()
 
         if isinstance(value, dict):
             if self.fill_zero:
@@ -98,7 +98,10 @@ class VectorJacobianProduct(AbstractJacobian):
                     value.setdefault(v, 0.0)
             return nested_update(self.factor_out, value)
 
-        return (value,)
+        if isinstance(value, int):
+            value = float(value)
+
+        return value
 
     def __mul__(self, value: Union[VariableData, FactorValue]) -> VariableData:
         v = self._get_cotangent(value)
@@ -115,8 +118,12 @@ class VectorJacobianProduct(AbstractJacobian):
 
 
 class FactorVJP(Factor):
-    def __init__(self, factor, *args: Variable, name="", factor_out=FactorValue):
+    def __init__(
+        self, factor, *args: Variable, name="", factor_out=FactorValue, factor_vjp=None
+    ):
         self._set_factor(factor)
+        if factor_vjp:
+            self._factor_vjp = factor_vjp
 
         self.args = args
         self.arg_names = [arg for arg in getfullargspec(factor).args]
@@ -141,9 +148,11 @@ class FactorVJP(Factor):
         raw_fval = self._factor(*(values[v] for v in self.args))
         return self._factor_value(raw_fval)
 
-    def func_jacobian(self, values: VariableData, axis=None):
-        raw_fval, fvjp = jax.vjp(self._factor, *(values[v] for v in self.args))
+    def _factor_vjp(self, *args):
+        return jax.vjp(self._factor, *args)
 
+    def func_jacobian(self, values: VariableData, axis=None):
+        raw_fval, fvjp = self._factor_vjp(*(values[v] for v in self.args))
         fval = self._factor_value(raw_fval)
         fvjp_op = VectorJacobianProduct(self.factor_out, fvjp, *self.args)
         return fval, fvjp_op
