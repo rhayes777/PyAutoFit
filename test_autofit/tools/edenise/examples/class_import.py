@@ -8,4 +8,5 @@ class MyClass:
         If it is already stored in its `slim` representation  the `Grid1D` is returned as it is. If not, it is
         mapped from  `native` to `slim` and returned as a new `Grid1D`.
         """
+        from .non_linear.grid.grid_search import GridSearch as SearchGridSearch
         from autoconf.tools.decorators import CachedProperty
