@@ -13,9 +13,8 @@ from .factor_graphs import (
     FactorValue,
     VariableTransform,
     FullCholeskyTransform,
-    identity_transform
+    identity_transform,
 )
 from .mean_field import FactorApproximation, MeanField
 from .optimise import OptFactor, LaplaceFactorOptimiser, lstsq_laplace_factor_approx
-from .sampling import ImportanceSampler, project_factor_approx_sample
 from .utils import Status
