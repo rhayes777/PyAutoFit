@@ -264,7 +264,7 @@ def _wrap_leftop(method):
     @wraps(method)
     def leftmethod(self, x: np.ndarray) -> np.ndarray:
         x = np.asanyarray(x)
-        outshape = self.lshape + x.shape[self.rdim :]
+        outshape = self.lshape + x.shape[self.rdim :] if self.ndim else x.shape
         return method(self, x.reshape(self.rsize, -1)).reshape(outshape)
 
     return leftmethod
@@ -274,7 +274,7 @@ def _wrap_rightop(method):
     @wraps(method)
     def rightmethod(self, x: np.ndarray) -> np.ndarray:
         x = np.asanyarray(x)
-        outshape = x.shape[: -self.ldim] + self.rshape
+        outshape = x.shape[: -self.ldim] + self.rshape if self.ndim else x.shape
         return method(self, x.reshape(-1, self.lsize)).reshape(outshape)
 
     return rightmethod
