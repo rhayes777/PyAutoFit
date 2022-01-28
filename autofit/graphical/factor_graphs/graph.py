@@ -273,19 +273,23 @@ class FactorGraph(AbstractNode):
         jac_variables = tuple(variables)
 
         def graph_vjp(args):
-            grads = defaultdict(float)
+            args = args if isinstance(args, tuple) else (args,)
+            grads = {}
             grads.update(zip(jac_out, args))
             for calls in self._call_sequence[::-1]:
                 for factor in calls:
-                    factor_grad = factor_jacs[factor] * grads
+                    factor_grad = factor_jacs[factor](grads)
                     for v, v_grad in factor_grad.items():
-                        grads[v] += v_grad
+                        grads[v] = grads.get(v, 0) + v_grad
 
             return tuple(grads[v] for v in jac_variables)
 
         fval = FactorValue(log_value, det_values)
         graph_vjp = VectorJacobianProduct(
-            jac_out, graph_vjp, *jac_variables, fill_zero=True
+            jac_out,
+            graph_vjp,
+            *jac_variables,
+            out_shapes=fval.to_dict().shapes,
         )
 
         return fval, graph_vjp

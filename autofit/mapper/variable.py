@@ -145,7 +145,7 @@ class FactorValue(np.ndarray, metaclass=VariableMetaClass):
         return r[:-1] + ", " + repr(self.deterministic_values) + ")"
 
     def to_dict(self):
-        return VariableData({FactorValue: self, **self.deterministic_values})
+        return VariableData({FactorValue: self.base, **self.deterministic_values})
 
 
 def broadcast_plates(

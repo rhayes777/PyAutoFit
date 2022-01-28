@@ -50,6 +50,11 @@ def nested_update(out, to_replace: dict, replace_keys=False):
     >>> nested_update([{2: 2}], {2: 'a'}, True)
     [{'a': 'a'}]
     """
+    try:
+        return to_replace[out]
+    except KeyError:
+        pass
+
     if isinstance(out, dict):
         if replace_keys:
             return type(out)(
@@ -66,11 +71,8 @@ def nested_update(out, to_replace: dict, replace_keys=False):
             )
     elif is_iterable(out):
         return type(out)(nested_update(elem, to_replace, replace_keys) for elem in out)
-    else:
-        try:
-            return to_replace.get(out, out)
-        except TypeError:
-            return out
+
+    return out
 
 
 class StatusFlag(Enum):

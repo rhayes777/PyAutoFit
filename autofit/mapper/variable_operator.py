@@ -453,7 +453,7 @@ def _rect_variable_binary_op(op, left=True):
         else:
             return type(self)(
                 {
-                    k: {vl: op_(vop, other) for vl, vop in val.items()}
+                    k: {vl: op_(vop, other) for vl, vop in val.operators.items()}
                     for k, val in self.operators.items()
                 }
             )
@@ -534,7 +534,7 @@ class RectVariableOperator(VariableLinearOperator):
         values: Optional[VariableData] = None
     ) -> "RectVariableOperator":
         if values:
-            var_shapes = {v: val.shape for v, val in values.items()}
+            var_shapes = {v: np.shape(val) for v, val in values.items()}
         if var_shapes:
             return cls(
                 {
@@ -567,9 +567,19 @@ class RectVariableOperator(VariableLinearOperator):
 
     def blocks(self) -> VariableData:
         return {
-            vl: {vl: op.to_dense() for vr, op in rops.items()}
+            vl: {vl: op for vr, op in rops.operators.items()}
             for vl, rops in self.operators.items()
         }
+
+    def to_dense(self) -> Dict[Variable, VariableData]:
+        return VariableData(
+            {
+                v0: VariableData(
+                    {v1: op.to_dense() for v1, op in rops.operators.items()}
+                )
+                for v0, rops in self.operators.items()
+            }
+        )
 
     def to_block(self) -> "VariableOperator":
         return self
