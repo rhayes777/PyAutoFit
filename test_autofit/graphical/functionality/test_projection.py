@@ -1,6 +1,6 @@
 import numpy as np
 import pytest
-from scipy import integrate
+from scipy import integrate, stats
 
 import autofit.messages.normal
 from autofit import graphical as mp
@@ -15,8 +15,8 @@ def make_q_cavity():
 def test_integration(q_cavity, probit_factor):
     x = np.linspace(-3, 3, 2 ** 10)
 
-    probit = np.exp(probit_factor({Variable("x"): x}, axis=False).log_value)
-    q = q_cavity.pdf(x)
+    probit = stats.norm(loc=0.0, scale=1.0).cdf(x)
+    q = stats.norm(loc=q_cavity.mean, scale=q_cavity.sigma).pdf(x)
     tilted_distribution = probit * q
 
     assert tilted_distribution.shape == (2 ** 10,)
@@ -31,21 +31,6 @@ def test_integration(q_cavity, probit_factor):
 
     assert q_numerical.mean == pytest.approx(-0.253, rel=0.01)
     assert q_numerical.sigma == pytest.approx(0.462, rel=0.01)
-
-
-def test_importance_sampling(q_cavity, probit_factor):
-    x_samples = q_cavity.sample(200)
-
-    log_weight_list = probit_factor({Variable("x"): x_samples}, axis=False).log_value
-
-    q_importance_sampling = q_cavity.project(x_samples, log_weight_list)
-
-    assert q_importance_sampling.mean == pytest.approx(-0.284, rel=0.5)
-    assert q_importance_sampling.sigma == pytest.approx(0.478, rel=0.5)
-
-    mean = np.exp(log_weight_list).mean()
-
-    assert mean == pytest.approx(0.318, rel=0.1)
 
 
 def test_laplace_method(probit_factor, q_cavity, x):

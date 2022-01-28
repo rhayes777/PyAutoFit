@@ -302,7 +302,7 @@ class FactorJac(Factor):
         fval = det_values.pop(FactorValue, 0.0)
         return FactorValue(fval, det_values)
 
-    def __call__(self, values: VariableData, axis=None):
+    def __call__(self, values: VariableData):
         """Calls the factor with the values specified by the dictionary of
         values passed, returns a FactorValue with the value returned by the
         factor, and any deterministic factors"""
@@ -313,7 +313,7 @@ class FactorJac(Factor):
         return jax.vjp(self._factor, *args)
 
     def _vjp_func_jacobian(
-        self, values: VariableData, axis=None
+        self, values: VariableData
     ) -> Tuple[FactorValue, VectorJacobianProduct]:
         """Calls the factor and returns the factor value with deterministic
         values, and a `VectorJacobianProduct` operator that allows the
@@ -332,21 +332,21 @@ class FactorJac(Factor):
         return fval, fvjp_op
 
     def _jvp_func_jacobian(
-        self, values: VariableData, axis=None, **kwargs
+        self, values: VariableData, **kwargs
     ) -> Tuple[FactorValue, JacobianVectorProduct]:
         args = (values[k] for k in self.args)
-        raw_fval, raw_jac = self._factor_jacobian(*args, axis=axis, **kwargs)
+        raw_fval, raw_jac = self._factor_jacobian(*args, **kwargs)
         fval = self._factor_value(raw_fval)
         jvp = self._jac_out_to_jvp(raw_jac, values=fval.to_dict().merge(values))
         return fval, jvp
 
     func_jacobian = _jvp_func_jacobian
 
-    def _factor_jacobian(self, *args, axis=None, **kwargs) -> Tuple[Any, Any]:
+    def _factor_jacobian(self, *args, **kwargs) -> Tuple[Any, Any]:
         return self._factor(*args, **kwargs), self._jacobian(*args, **kwargs)
 
     def _numerical_factor_jacobian(
-        self, *args, eps: Optional[float] = None, axis=None
+        self, *args, eps: Optional[float] = None
     ) -> Tuple[Any, Any]:
         """Calculates the dense numerical jacobian matrix with respect to
         the input arguments, broadly speaking, the following should return the
@@ -566,18 +566,15 @@ class FactorJacobian(Factor):
     def __call__(
         self,
         variable_dict: Dict[Variable, np.ndarray],
-        axis: Axis = None,
     ) -> FactorValue:
         values = self.resolve_variable_dict(variable_dict)
         val = self._call_factor(values, variables=None)
-        val = aggregate(val, axis)
         return FactorValue(val, {})
 
     def func_jacobian(
         self,
         variable_dict: Dict[Variable, np.ndarray],
         variables: Optional[Tuple[Variable, ...]] = None,
-        axis: Axis = None,
         **kwargs,
     ) -> Tuple[FactorValue, JacobianValue]:
         """
@@ -606,15 +603,9 @@ class FactorJacobian(Factor):
         variable_names = tuple(self._variable_name_kw[v.name] for v in variables)
         kwargs = self.resolve_variable_dict(variable_dict)
         val, jacs = self._call_factor(kwargs, variables=variable_names)
-        grad_axis = tuple(range(np.ndim(val))) if axis is None else axis
 
-        fval = FactorValue(aggregate(self._reshape_factor(val, kwargs), axis))
-        fjac = JacobianValue(
-            {
-                v: FactorValue(aggregate(jac, grad_axis))
-                for v, jac in zip(variables, jacs)
-            }
-        )
+        fval = FactorValue(val)
+        fjac = JacobianValue({v: FactorValue(jac) for v, jac in zip(variables, jacs)})
         return fval, fjac
 
     def __eq__(self, other: Union["Factor", Variable]):
@@ -693,7 +684,6 @@ class DeterministicFactorJacobian(FactorJacobian):
         self,
         variable_dict: Dict[Variable, np.ndarray],
         variables: Optional[Tuple[Variable, ...]] = None,
-        axis: Axis = None,
         **kwargs,
     ) -> Tuple[FactorValue, JacobianValue]:
         """
@@ -757,9 +747,8 @@ class DeterministicFactorJacobian(FactorJacobian):
     def __call__(
         self,
         variable_dict: Dict[Variable, np.ndarray],
-        axis: Axis = None,
     ) -> FactorValue:
-        return self.func_jacobian(variable_dict, (), axis=axis)[0]
+        return self.func_jacobian(variable_dict, ())[0]
 
     def __repr__(self) -> str:
         factor_str = super().__repr__()

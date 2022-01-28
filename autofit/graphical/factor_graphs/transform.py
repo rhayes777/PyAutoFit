@@ -173,22 +173,19 @@ class TransformedNode(AbstractNode):
     def __call__(
         self,
         values: Dict[Variable, np.ndarray],
-        axis: Axis = False,
     ) -> FactorValue:
-        return self.node(self.transform.ldiv(values), axis=axis)
+        return self.node(self.transform.ldiv(values))
 
     def func_jacobian(
         self,
         values: Dict[Variable, np.ndarray],
         variables: Optional[List[Variable]] = None,
-        axis: Axis = None,
         _calc_deterministic: bool = True,
         **kwargs,
     ) -> Tuple[FactorValue, JacobianValue]:
         fval, jval = self.node.func_jacobian(
             self.transform.ldiv(values),
             variables=variables,
-            axis=axis,
             _calc_deterministic=_calc_deterministic,
         )
 
@@ -200,7 +197,6 @@ class TransformedNode(AbstractNode):
         self,
         values: Dict[Variable, np.ndarray],
         variables: Optional[List[Variable]] = None,
-        axis: Axis = None,
         _calc_deterministic: bool = True,
         **kwargs,
     ) -> Tuple[FactorValue, JacobianValue, HessianValue]:
@@ -208,7 +204,6 @@ class TransformedNode(AbstractNode):
         fval, jval, hval = self.node.func_jacobian_hessian(
             M.ldiv(values),
             variables=variables,
-            axis=axis,
             _calc_deterministic=_calc_deterministic,
         )
 

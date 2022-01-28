@@ -16,7 +16,6 @@ def numerical_func_jacobian(
     factor: "AbstractNode",
     values: Dict[Variable, np.array],
     variables: Optional[Tuple[Variable, ...]] = None,
-    axis: Axis = False,
     _eps: float = 1e-6,
     _calc_deterministic: bool = True,
 ) -> Tuple[FactorValue, JacobianValue]:
@@ -56,7 +55,7 @@ def numerical_func_jacobian(
     values = {**getattr(factor, "fixed_values", {}), **values}
     # copy the input array
     p0 = {v: np.array(x, dtype=float) for v, x in values.items()}
-    f0 = factor(p0, axis=axis)
+    f0 = factor(p0)
     log_f0 = f0.log_value
     det_vars0 = f0.deterministic_values
 
@@ -83,7 +82,7 @@ def numerical_func_jacobian(
             for ind in zip(*inds):
                 x0[ind] += _eps
                 p0[v] = x0
-                f = factor(p0, axis=axis)
+                f = factor(p0)
                 x0[ind] -= _eps
 
                 # print(ind)
@@ -96,7 +95,7 @@ def numerical_func_jacobian(
                         ) / _eps
         else:
             p0[v] += _eps
-            f = factor(p0, axis=axis)
+            f = factor(p0)
             p0[v] -= _eps
 
             grad.itemset((f - f0) / _eps)
@@ -112,7 +111,6 @@ def numerical_func_jacobian_hessian(
     factor: "AbstractNode",
     values: Dict[Variable, np.array],
     variables: Optional[Tuple[Variable, ...]] = None,
-    axis: Optional[Union[bool, int, Tuple[int, ...]]] = False,
     _eps: float = 1e-6,
     _calc_deterministic: bool = True,
 ) -> Tuple[FactorValue, JacobianValue, HessianValue]:
@@ -121,10 +119,8 @@ def numerical_func_jacobian_hessian(
     if variables is None:
         variables = factor.variables
 
-    # agg = partial(aggregate, axis=axis)
-
     p0 = {v: np.array(x, dtype=float) for v, x in values.items()}
-    f0, fjac0 = factor.func_jacobian(p0, variables, axis=axis)
+    f0, fjac0 = factor.func_jacobian(p0, variables)
     # grad_f0, jac_det_vars0 = jac_f0
 
     log_f0 = f0.log_value
@@ -149,9 +145,7 @@ def numerical_func_jacobian_hessian(
             for ind in zip(*inds):
                 x0[ind] += _eps
                 p0[v] = x0
-                fjac1 = factor.jacobian(
-                    p0, (v,), axis=axis, _eps=_eps, _calc_deterministic=False
-                )
+                fjac1 = factor.jacobian(p0, (v,), _eps=_eps, _calc_deterministic=False)
                 x0[ind] -= _eps
                 hess[i0 + ind] = (fjac1[v] - fjac0[v]) / _eps
 
@@ -182,9 +176,7 @@ def numerical_func_jacobian_hessian(
 
         else:
             p0[v] += _eps
-            fjac1 = factor.jacobian(
-                p0, (v,), axis=axis, _eps=_eps, _calc_deterministic=False
-            )
+            fjac1 = factor.jacobian(p0, (v,), _eps=_eps, _calc_deterministic=False)
             p0[v] -= _eps
             fhess0[v] = hess = (fjac1[v] - fjac0[v]) / _eps
 

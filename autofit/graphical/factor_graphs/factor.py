@@ -2,28 +2,22 @@ from abc import ABC
 from functools import lru_cache
 from inspect import getfullargspec
 from itertools import chain, repeat
-from typing import \
-    (
-    Tuple, Dict, Union, Set, Callable, List
-)
+from typing import Tuple, Dict, Union, Set, Callable, List
 
 import numpy as np
 
 from autoconf import cached_property
-from autofit.graphical.factor_graphs.abstract import \
-    (
-    AbstractNode, FactorValue
-)
+from autofit.graphical.factor_graphs.abstract import AbstractNode, FactorValue
 from autofit.graphical.utils import aggregate, Axis
 from autofit.mapper.variable import Variable, Plate, broadcast_plates
 
 
 class AbstractFactor(AbstractNode, ABC):
     def __init__(
-            self,
-            name="",
-            plates: Tuple[Plate, ...] = (),
-            **kwargs: Variable,
+        self,
+        name="",
+        plates: Tuple[Plate, ...] = (),
+        **kwargs: Variable,
     ):
         super().__init__(plates=plates, **kwargs)
         self._name = name or f"factor_{self.id}"
@@ -48,6 +42,7 @@ class AbstractFactor(AbstractNode, ABC):
         When two factors are multiplied together this creates a graph
         """
         from autofit.graphical.factor_graphs.graph import FactorGraph
+
         return FactorGraph([self]) * other
 
     @property
@@ -62,11 +57,7 @@ class AbstractFactor(AbstractNode, ABC):
         """
         The number of plates for each keyword argument variable
         """
-        return {
-            key: len(value)
-            for key, value
-            in self._kwargs.items()
-        }
+        return {key: len(value) for key, value in self._kwargs.items()}
 
     @cached_property
     def _variable_plates(self) -> Dict[str, np.ndarray]:
@@ -75,11 +66,8 @@ class AbstractFactor(AbstractNode, ABC):
         within this node
         """
         return {
-            variable: self._match_plates(
-                variable.plates
-            )
-            for variable
-            in self.all_variables
+            variable: self._match_plates(variable.plates)
+            for variable in self.all_variables
         }
 
     @property
@@ -92,10 +80,7 @@ class AbstractFactor(AbstractNode, ABC):
     def __hash__(self):
         return hash((type(self), self.id))
 
-    def _resolve_args(
-            self,
-            **kwargs: np.ndarray
-    ) -> dict:
+    def _resolve_args(self, **kwargs: np.ndarray) -> dict:
         """
         Transforms in the input arguments to match the arguments
         specified for the factor.
@@ -114,13 +99,13 @@ class AbstractFactor(AbstractNode, ABC):
 
 class Factor(AbstractFactor):
     """
-    A node in a graph representing a factor with analytic evaluation 
+    A node in a graph representing a factor with analytic evaluation
     of its Jacobian
 
     Parameters
     ----------
     factor
-        the function being wrapped, must accept calls through keyword 
+        the function being wrapped, must accept calls through keyword
         argument
 
     name: optional, str
@@ -135,27 +120,27 @@ class Factor(AbstractFactor):
     is_scalar: optional, bool
         if true the factor returns a scalar value. Note if multiple arguments
         are passed then a vector will still be returned
-        
+
     kwargs: Variables
         Variables for each keyword argument for the function
 
     Methods
     -------
-    __call__({x: x0}, axis=axis)
+    __call__({x: x0})
         calls the factor, the passed input must be a dictionary with
         where the keys are the Variable objects that the function takes
         as input. The Variable keys only have to match the _names_
-        of the variables of the function.  
+        of the variables of the function.
 
         `axis` controls the shape of the output if the variables and factor have
         plates associated with them, when axis=False then no reduction is performed,
-        otherwise it is equivalent to calling np.sum(log_val, axis=axis) on the
+        otherwise it is equivalent to calling np.sum(log_val) on the
         returned value
-        
-        returns a FactorValue object which behaves like an np.ndarray
-        
 
-    func_jacobian({x: x0}, variables=(x,), axis=axis)
+        returns a FactorValue object which behaves like an np.ndarray
+
+
+    func_jacobian({x: x0}, variables=(x,))
         calls the factor and returns it value and the jacobian of its value
         with respect to the `variables` passed. if variables is None then
         it returns the jacobian with respect to all variables.
@@ -164,12 +149,12 @@ class Factor(AbstractFactor):
     """
 
     def __init__(
-            self,
-            factor: Callable,
-            name="",
-            vectorised=False,
-            is_scalar=False,
-            **kwargs: Variable
+        self,
+        factor: Callable,
+        name="",
+        vectorised=False,
+        is_scalar=False,
+        **kwargs: Variable,
     ):
         """
         A node in a graph representing a factor
@@ -192,64 +177,57 @@ class Factor(AbstractFactor):
             **kwargs,
             **{
                 arg: Variable(arg)
-                for arg
-                in args
+                for arg in args
                 if arg not in kwargs and arg != "self" and not arg.startswith("_")
-            }
+            },
         }
 
-        super().__init__(
-            **kwargs,
-            name=name or factor.__name__
-        )
+        super().__init__(**kwargs, name=name or factor.__name__)
 
     def _set_factor(self, factor):
         self._factor = factor
-        self._has_exact_projection = getattr(
-            factor, 'has_exact_projection', None)
-        self._calc_exact_projection = getattr(
-            factor, 'calc_exact_projection', None)
-        self._calc_exact_update = getattr(
-            factor, 'calc_exact_update', None)
+        self._has_exact_projection = getattr(factor, "has_exact_projection", None)
+        self._calc_exact_projection = getattr(factor, "calc_exact_projection", None)
+        self._calc_exact_update = getattr(factor, "calc_exact_update", None)
 
     def has_exact_projection(self, mean_field) -> bool:
         if self._has_exact_projection:
-            return self._has_exact_projection(
-                **self.resolve_variable_dict(mean_field))
+            return self._has_exact_projection(**self.resolve_variable_dict(mean_field))
         else:
             return False
 
-    def calc_exact_projection(self, mean_field) -> 'MeanField':
+    def calc_exact_projection(self, mean_field) -> "MeanField":
         if self._calc_exact_projection:
             from autofit.graphical.mean_field import MeanField
+
             projection = self._calc_exact_projection(
-                **self.resolve_variable_dict(mean_field))
-            return MeanField({
-                self._kwargs[v]: dist for v, dist in projection.items()
-            })
+                **self.resolve_variable_dict(mean_field)
+            )
+            return MeanField({self._kwargs[v]: dist for v, dist in projection.items()})
         else:
             return NotImplementedError
 
-    def calc_exact_update(self, mean_field) -> 'MeanField':
+    def calc_exact_update(self, mean_field) -> "MeanField":
         if self._calc_exact_update:
             from autofit.graphical.mean_field import MeanField
+
             projection = self._calc_exact_update(
-                **self.resolve_variable_dict(mean_field))
-            return MeanField({
-                self._kwargs[v]: dist for v, dist in projection.items()
-            })
+                **self.resolve_variable_dict(mean_field)
+            )
+            return MeanField({self._kwargs[v]: dist for v, dist in projection.items()})
         else:
             return NotImplementedError
 
-    def safe_exact_update(self, mean_field) -> Tuple[bool, 'MeanField']:
+    def safe_exact_update(self, mean_field) -> Tuple[bool, "MeanField"]:
         if self._has_exact_projection:
             from autofit.graphical.mean_field import MeanField
+
             _mean_field = self.resolve_variable_dict(mean_field)
             if self._has_exact_projection(**_mean_field):
                 projection = self._calc_exact_update(**_mean_field)
-                return True, MeanField({
-                    self._kwargs[v]: dist for v, dist in projection.items()
-                })
+                return True, MeanField(
+                    {self._kwargs[v]: dist for v, dist in projection.items()}
+                )
 
         return False, mean_field
 
@@ -257,20 +235,15 @@ class Factor(AbstractFactor):
         # TODO: might this break factor repetition somewhere?
         return hash(self._factor)
 
-    def _reshape_factor(
-            self, factor_val, values
-    ):
+    def _reshape_factor(self, factor_val, values):
         shift, shape = self._function_shape(**values)
         if self.is_scalar:
             if shift:
-                return np.sum(
-                    factor_val, axis=np.arange(1, np.ndim(factor_val)))
+                return np.sum(factor_val, axis=np.arange(1, np.ndim(factor_val)))
             return np.sum(factor_val)
         return np.reshape(factor_val, shape)
 
-    def _function_shape(
-            self,
-            **kwargs: np.ndarray) -> Tuple[int, ...]:
+    def _function_shape(self, **kwargs: np.ndarray) -> Tuple[int, ...]:
         """
         Calculates the expected function shape based on the variables
         """
@@ -281,20 +254,17 @@ class Factor(AbstractFactor):
     def _plate_sizes(
         self, **kwargs: Tuple[int, ...]
     ) -> Tuple[int, Dict[Union[None, str], Tuple[int, ...]]]:
-        
+
         """This is called by _function_shape
-        
+
         caches result so that does not have to be recalculated each call
-        
+
         lru_cache caches f(x=1, y=2) to f(y=2, x=1), but in this case
         it should be find as the order of kwargs is set by self._kwargs
         which should be stable
         """
         var_shapes = {self._kwargs[k]: v for k, v in kwargs.items()}
-        var_dims_diffs = {
-            v: len(s) - v.ndim
-            for v, s in var_shapes.items()
-        }
+        var_dims_diffs = {v: len(s) - v.ndim for v, s in var_shapes.items()}
         """
         If all the passed variables have an extra dimension then 
         we assume we're evaluating multiple instances of the function at the 
@@ -313,32 +283,29 @@ class Factor(AbstractFactor):
         """
         Calculate plate sizes, and so exact shape of output based on output
         """
+
         def set_plate_size(plate_sizes, p, psize):
-            
+
             ps = plate_sizes.setdefault(p, psize)
             if ps == psize:
                 return True
 
-            # Allow broadcasting of singleton dimensions 
+            # Allow broadcasting of singleton dimensions
             elif ps == 1:
                 plate_sizes[p] = psize
-                return True 
+                return True
             elif psize == 1:
-                return True 
+                return True
             else:
                 return False
-
 
         plate_sizes = {}
         for v, s in var_shapes.items():
             for p, psize in zip(v.plates, s[shift:]):
                 if not set_plate_size(plate_sizes, p, psize):
-                    raise AssertionError(
-                        f"Shapes do not match for '{v}' and '{p}'"
-                    )
+                    raise AssertionError(f"Shapes do not match for '{v}' and '{p}'")
             if shift and not set_plate_size(plate_sizes, None, s[0]):
-                raise AssertionError(
-                        f"Shapes do not match for broadcasting")
+                raise AssertionError(f"Shapes do not match for broadcasting")
 
         return shift, plate_sizes
 
@@ -351,10 +318,7 @@ class Factor(AbstractFactor):
 
         return shift, plate_shape
 
-    def _call_factor(
-            self,
-            **kwargs: np.ndarray
-    ) -> np.ndarray:
+    def _call_factor(self, **kwargs: np.ndarray) -> np.ndarray:
         """
         Call the underlying function
 
@@ -388,22 +352,22 @@ class Factor(AbstractFactor):
         """
         kwargs_dims = {k: np.ndim(a) for k, a in kwargs.items()}
         # Check dimensions of inputs directly match plates
-        direct_call = (
-            all(dim == kwargs_dims[k] for k, dim in self._kwargs_dims.items()))
+        direct_call = all(dim == kwargs_dims[k] for k, dim in self._kwargs_dims.items())
         if direct_call:
             return self._factor(**kwargs)
 
         # Check dimensions of inputs match plates + 1
-        vectorised = (
-            all(dim + 1 == kwargs_dims[k]
-                for k, dim in self._kwargs_dims.items()))
+        vectorised = all(
+            dim + 1 == kwargs_dims[k] for k, dim in self._kwargs_dims.items()
+        )
 
         if not vectorised:
             raise ValueError(
                 "input dimensions do not match required dims"
                 f"input: **kwargs={kwargs_dims}"
                 f"required: "
-                f"**kwargs={self._kwargs_dims}")
+                f"**kwargs={self._kwargs_dims}"
+            )
 
         kw_lens = {k: len(a) for k, a in kwargs.items()}
 
@@ -411,37 +375,26 @@ class Factor(AbstractFactor):
         sizes = set(kw_lens.values())
         dim0 = max(sizes)
         if sizes.difference({1, dim0}):
-            raise ValueError(
-                f"size mismatch first dimensions passed: {sizes}")
+            raise ValueError(f"size mismatch first dimensions passed: {sizes}")
 
         iter_kws = {
             k: iter(a) if kw_lens[k] == dim0 else iter(repeat(a[0]))
-            for k, a in kwargs.items()}
+            for k, a in kwargs.items()
+        }
 
         # iterator to generate keyword arguments
         def gen_kwargs():
             for _ in range(dim0):
-                yield {
-                    k: next(a) for k, a in iter_kws.items()}
+                yield {k: next(a) for k, a in iter_kws.items()}
 
         # TODO this loop can also be parallelised for increased performance
-        res = np.array([
-            self._factor(**kws)
-            for kws in gen_kwargs()])
+        res = np.array([self._factor(**kws) for kws in gen_kwargs()])
 
         return res
 
     def __call__(
-            self,
-            variable_dict: Dict[
-                Variable,
-                Union[
-                    np.ndarray,
-                    float,
-                    List[float]
-                ]
-            ],
-            axis: Axis = None,
+        self,
+        variable_dict: Dict[Variable, Union[np.ndarray, float, List[float]]],
     ) -> FactorValue:
         """
         Call the underlying factor
@@ -459,14 +412,10 @@ class Factor(AbstractFactor):
         """
         kwargs = self.resolve_variable_dict(variable_dict)
         val = self._call_factor(**kwargs)
-        val = aggregate(self._reshape_factor(val, kwargs), axis)
+        val = aggregate(self._reshape_factor(val, kwargs))
         return FactorValue(val, {})
 
-    def broadcast_variable(
-            self,
-            variable: str,
-            value: np.ndarray
-    ) -> np.ndarray:
+    def broadcast_variable(self, variable: str, value: np.ndarray) -> np.ndarray:
         """
         broadcasts the value of a variable to match the specific shape
         of the factor
@@ -477,12 +426,7 @@ class Factor(AbstractFactor):
         """
         return broadcast_plates(value, variable.plates, self.plates)
 
-    def collapse(
-            self,
-            variable: str,
-            value: np.ndarray,
-            agg_func=np.sum
-    ) -> np.ndarray:
+    def collapse(self, variable: str, value: np.ndarray, agg_func=np.sum) -> np.ndarray:
         """
         broadcasts `value` to match the specific shape of the factor,
         where `value` has the shape of the factor
@@ -495,8 +439,7 @@ class Factor(AbstractFactor):
         shift = ndim - self.ndim
         assert shift in {0, 1}
         inds = self._variable_plates[variable] + shift
-        dropaxes = tuple(np.setdiff1d(
-            np.arange(shift, ndim), inds))
+        dropaxes = tuple(np.setdiff1d(np.arange(shift, ndim), inds))
 
         # to ensured axes of returned array is in the correct order
         moved = np.moveaxis(value, inds, np.sort(inds))
@@ -510,26 +453,24 @@ class Factor(AbstractFactor):
         if isinstance(other, Factor):
             if isinstance(other, type(self)):
                 return (
-                        (self._factor == other._factor)
-                        and (frozenset(self._kwargs.items())
-                             == frozenset(other._kwargs.items()))
-                        and (frozenset(self.variables)
-                             == frozenset(other.variables))
-                        and (frozenset(self.deterministic_variables)
-                             == frozenset(self.deterministic_variables)))
+                    (self._factor == other._factor)
+                    and (
+                        frozenset(self._kwargs.items())
+                        == frozenset(other._kwargs.items())
+                    )
+                    and (frozenset(self.variables) == frozenset(other.variables))
+                    and (
+                        frozenset(self.deterministic_variables)
+                        == frozenset(self.deterministic_variables)
+                    )
+                )
             else:
                 return False
 
-        return DeterministicFactor(
-            self._factor,
-            other,
-            name=self.name,
-            **self._kwargs
-        )
+        return DeterministicFactor(self._factor, other, name=self.name, **self._kwargs)
 
     def __repr__(self) -> str:
-        args = ", ".join(chain(
-            map("{0[0]}={0[1]}".format, self._kwargs.items())))
+        args = ", ".join(chain(map("{0[0]}={0[1]}".format, self._kwargs.items())))
         return f"Factor({self.name}, {args})"
 
     @property
@@ -570,7 +511,7 @@ class DeterministicFactor(Factor):
     factor
         The original factor to which the deterministic factor is associated
     variable
-        The deterministic variable that is returned by the factor, so 
+        The deterministic variable that is returned by the factor, so
         to represent the case f(g(x)), we would define,
 
         ```
@@ -583,18 +524,18 @@ class DeterministicFactor(Factor):
         ```
         >>> g_ = DeterministicFactor(g, y, x=x)
         ```
-        
+
     kwargs
         Variables for the original factor
     """
 
     def __init__(
-            self,
-            factor: Callable,
-            variable: Variable,
-            *args: Variable,
-            name: str = '',
-            **kwargs: Variable
+        self,
+        factor: Callable,
+        variable: Variable,
+        *args: Variable,
+        name: str = "",
+        **kwargs: Variable,
     ):
         """
         A deterministic factor is used to convert a function f(g(x)) to f(y)g(x) (integrating over y wit
@@ -616,18 +557,15 @@ class DeterministicFactor(Factor):
             *args,
             name=name or factor.__name__,
             # deterministic factors make no contribution to log density
-            plates=(), 
-            **kwargs
+            plates=(),
+            **kwargs,
         )
-        self._deterministic_variables = {
-            variable
-        }
+        self._deterministic_variables = {variable}
 
     def __call__(
-            self,
-            variable_dict: Dict[Variable, np.ndarray],
-            axis: Axis = None,
-            # **kwargs: np.ndarray
+        self,
+        variable_dict: Dict[Variable, np.ndarray],
+        # **kwargs: np.ndarray
     ) -> FactorValue:
         """
         Call this factor with a set of arguments
@@ -645,9 +583,9 @@ class DeterministicFactor(Factor):
         """
         kwargs = self.resolve_variable_dict(variable_dict)
         res = self._call_factor(**kwargs)
-        shift, plate_sizes = self._plate_sizes(**{
-            k: np.shape(x) for k, x in kwargs.items()
-        })
+        shift, plate_sizes = self._plate_sizes(
+            **{k: np.shape(x) for k, x in kwargs.items()}
+        )
 
         start_plate = (None,) if shift else ()
         det_shapes = {
@@ -656,9 +594,9 @@ class DeterministicFactor(Factor):
         }
 
         if not (isinstance(res, tuple) or self.n_deterministic > 1):
-            res = res,
+            res = (res,)
 
-        log_val = 0.
+        log_val = 0.0
         # log_val = (
         #     0. if (shape == () or axis is None) else
         #     aggregate(np.zeros(tuple(1 for _ in shape)), axis))
@@ -670,5 +608,7 @@ class DeterministicFactor(Factor):
 
     def __repr__(self) -> str:
         factor_str = super().__repr__()
-        var_str = ", ".join(sorted(variable.name for variable in self._deterministic_variables))
+        var_str = ", ".join(
+            sorted(variable.name for variable in self._deterministic_variables)
+        )
         return f"({factor_str} == ({var_str}))"

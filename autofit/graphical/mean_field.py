@@ -147,7 +147,6 @@ class MeanField(CollectionPriorModel, Dict[Variable, AbstractMessage], Factor):
     def logpdf(
         self,
         values: Dict[Variable, np.ndarray],
-        axis: Axis = None,
     ) -> np.ndarray:
         """Calculates the logpdf of the passed values for messages
 
@@ -159,7 +158,6 @@ class MeanField(CollectionPriorModel, Dict[Variable, AbstractMessage], Factor):
             (
                 aggregate(
                     self._broadcast(self._variable_plates[v], m.logpdf(values[v])),
-                    axis=axis,
                 )
                 for v, m in self.items()
             ),
@@ -168,18 +166,15 @@ class MeanField(CollectionPriorModel, Dict[Variable, AbstractMessage], Factor):
     def __call__(
         self,
         values: Dict[Variable, np.ndarray],
-        axis: Axis = None,
     ) -> FactorValue:
-        return FactorValue(self.logpdf(values, axis=axis), {})
+        return FactorValue(self.logpdf(values), {})
 
-    def logpdf_gradient(
-        self, values: Dict[Variable, np.ndarray], axis: Axis = False, **kwargs
-    ):
+    def logpdf_gradient(self, values: Dict[Variable, np.ndarray], **kwargs):
         logl = 0
         gradl = {}
         for v, m in self.items():
             lv, gradl[v] = m.logpdf_gradient(values[v])
-            lv = aggregate(self._broadcast(self._variable_plates[v], lv), axis=axis)
+            lv = aggregate(self._broadcast(self._variable_plates[v], lv))
             logl = add_arrays(logl, lv)
 
         return logl, gradl
@@ -187,7 +182,6 @@ class MeanField(CollectionPriorModel, Dict[Variable, AbstractMessage], Factor):
     def logpdf_gradient_hessian(
         self,
         values: Dict[Variable, np.ndarray],
-        axis: Optional[Union[bool, int, Tuple[int, ...]]] = False,
         **kwargs,
     ):
         logl = 0.0
@@ -195,7 +189,7 @@ class MeanField(CollectionPriorModel, Dict[Variable, AbstractMessage], Factor):
         hessl = HessianValue({})
         for v, m in self.items():
             lv, gradl[v], hessl[v] = m.logpdf_gradient_hessian(values[v])
-            lv = aggregate(self._broadcast(self._variable_plates[v], lv), axis=axis)
+            lv = aggregate(self._broadcast(self._variable_plates[v], lv))
             logl = add_arrays(logl, lv)
 
         return logl, gradl, hessl
@@ -271,7 +265,7 @@ class MeanField(CollectionPriorModel, Dict[Variable, AbstractMessage], Factor):
             }
         )
         if fun is not None:
-            projection.log_norm = fun - projection(mode, axis=None).log_value
+            projection.log_norm = fun - projection(mode).log_value
 
         return projection
 
@@ -325,10 +319,10 @@ class FactorApproximation(AbstractNode):
 
     Methods
     -------
-    __call__(values={xₐ: x₀}, axis=axis)
+    __call__(values={xₐ: x₀})
         returns q⁺ᵃ(x₀)
 
-    func_jacobian(values={xₐ: x₀}, variables=(xₐ,), axis=axis)
+    func_jacobian(values={xₐ: x₀}, variables=(xₐ,))
         returns q⁺ᵃ(x₀), {xₐ: dq⁺ᵃ(x₀)/dxₐ}
 
     project_mean_field(mean_field, delta=1., status=Status())
@@ -387,29 +381,19 @@ class FactorApproximation(AbstractNode):
     def __call__(
         self,
         values: Dict[Variable, np.ndarray],
-        axis: Axis = None,
     ) -> FactorValue:
         variable_dict = {**self.fixed_values, **values}
-        fval = self.factor(variable_dict, axis=axis)
-        log_meanfield = self.cavity_dist(
-            {**variable_dict, **fval.deterministic_values}, axis=axis
-        )
+        fval = self.factor(variable_dict)
+        log_meanfield = self.cavity_dist({**variable_dict, **fval.deterministic_values})
         return add_arrays(fval, log_meanfield)
 
     def func_jacobian(
         self,
         values: Dict[Variable, np.ndarray],
         variables: Optional[List[Variable]] = None,
-        axis: Axis = None,
         _calc_deterministic: bool = True,
         **kwargs,
     ) -> Tuple[FactorValue, JacobianValue]:
-
-        if axis is not None:
-            raise NotImplementedError(
-                "FactorApproximation.func_jacobian has not implemeted "
-                f"axis={axis}, try axis=None"
-            )
 
         if variables is None:
             fixed_variables = set(
@@ -419,13 +403,13 @@ class FactorApproximation(AbstractNode):
 
         variable_dict = {**self.fixed_values, **values}
         fval, fjac = self.factor.func_jacobian(
-            variable_dict, variables, axis=axis, _calc_deterministic=_calc_deterministic
+            variable_dict, variables, _calc_deterministic=_calc_deterministic
         )
 
         values = {**variable_dict, **fval.deterministic_values}
         var_sizes = {v: np.size(x) for v, x in values.items()}
         var_shapes = {v: np.shape(x) for v, x in values.items()}
-        log_cavity, grad_cavity = self.cavity_dist.logpdf_gradient(values, axis=axis)
+        log_cavity, grad_cavity = self.cavity_dist.logpdf_gradient(values)
 
         logl = fval + log_cavity
 

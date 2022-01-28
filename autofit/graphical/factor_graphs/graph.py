@@ -183,7 +183,6 @@ class FactorGraph(AbstractNode):
     def __call__(
         self,
         variable_dict: Dict[Variable, np.ndarray],
-        axis: Axis = None,
     ) -> FactorValue:
         """
         Call each function in the graph in the correct order, adding the logarithmic results.
@@ -224,13 +223,8 @@ class FactorGraph(AbstractNode):
         for calls in self._call_sequence:
             # TODO parallelise this part?
             for factor in calls:
-                ret = factor(variables, axis=axis)
-                if axis is None:
-                    log_value += ret
-                else:
-                    ret_value = self.broadcast_plates(factor.plates, ret.log_value)
-                    log_value = add_arrays(log_value, aggregate(ret_value, axis))
-
+                ret = factor(variables)
+                log_value += np.sum(ret)
                 det_values.update(ret.deterministic_values)
                 variables.update(ret.deterministic_values)
 
@@ -239,7 +233,6 @@ class FactorGraph(AbstractNode):
     def func_jacobian(
         self,
         variable_dict: Dict[Variable, np.ndarray],
-        axis: Axis = None,
     ) -> FactorValue:
 
         # generate set of factors to call, these are indexed by the

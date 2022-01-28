@@ -71,7 +71,7 @@ def test_factor_jacobian():
     likelihood_factor = likelihood.as_factor(z_)
 
     values = {z_: likelihood.sample()}
-    fval, jval = likelihood_factor.func_jacobian(values, axis=None)
+    fval, jval = likelihood_factor.func_jacobian(values)
     ngrad = approx_fprime(
         values[z_].ravel(), lambda x: likelihood.logpdf(x.reshape(*shape)).sum(), 1e-8
     ).reshape(*shape)
@@ -96,52 +96,11 @@ class TestFactorGraph:
         assert phi(values).log_value == -13.418938533204672
         assert compound(values).log_value == -13.42565388169379
 
-    def test_multivariate_message(self):
-        p1, p2, p3 = Plate(), Plate(), Plate()
-        x_ = Variable("x", p3, p1)
-        y_ = Variable("y", p1, p2)
-        z_ = Variable("z", p2, p3)
-
-        n1, n2, n3 = shape = (2, 3, 4)
-
-        def sumxyz(x, y, z):
-            return np.moveaxis(x[:, :, None], 0, 2) + y[:, :, None] + z[None]
-
-        factor = mp.Factor(sumxyz, x=x_, y=y_, z=z_, plates=(p1, p2, p3))
-
-        x = np.arange(n3 * n1).reshape(n3, n1) * 0.1
-        y = np.arange(n1 * n2).reshape(n1, n2) * 0.2
-        z = np.arange(n2 * n3).reshape(n2, n3) * 0.3
-        sumxyz(x, y, z)
-
-        variables = {x_: x, y_: y, z_: z}
-        factor(variables)
-
-        model_dist = mp.MeanField(
-            {
-                x_: NormalMessage(x, 1 * np.ones_like(x)),
-                y_: NormalMessage(y, 1 * np.ones_like(y)),
-                z_: NormalMessage(z, 1 * np.ones_like(z)),
-            }
-        )
-
-        assert model_dist(variables, axis=False).log_value.shape == shape
-
     def test_vectorisation(self, sigmoid, vectorised_sigmoid):
         variables = {Variable("x"): np.full(1000, 5.0)}
         assert np.allclose(
             sigmoid(variables).log_value, vectorised_sigmoid(variables).log_value
         )
-
-    def test_broadcast(self, compound):
-        length = 2 ** 10
-        array = np.linspace(-5, 5, length)
-        variables = {Variable("x"): array}
-        result = compound(variables, axis=False)
-        log_value = result.log_value
-
-        assert isinstance(result.log_value, np.ndarray)
-        assert log_value.shape == (length,)
 
     def test_deterministic_variable_name(self, flat_compound):
         print(flat_compound)
@@ -155,25 +114,6 @@ class TestFactorGraph:
 
         assert value.log_value == -13.467525884778414
         assert value.deterministic_values == {y: 5}
-
-    def test_plates(self):
-        obs = autofit.mapper.variable.Plate(name="obs")
-        dims = autofit.mapper.variable.Plate(name="dims")
-
-        def sub(a, b):
-            return a - b
-
-        a = autofit.mapper.variable.Variable("a", obs, dims)
-        b = autofit.mapper.variable.Variable("b", dims)
-
-        subtract = mp.Factor(sub, a=a, b=b, plates=(obs, dims))
-
-        x = np.array([[1, 2, 3], [4, 5, 6]])
-        y = np.array([1, 2, 1])
-
-        value = subtract({a: x, b: y}, axis=False).log_value
-
-        assert (value == x - y).all()
 
     @pytest.mark.parametrize("coefficient", [1, 2, 3, 4, 5])
     def test_jacobian(self, x, coefficient):

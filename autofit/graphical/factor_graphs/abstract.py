@@ -17,14 +17,12 @@ HessianValue = JacobianValue = VariableData
 
 
 class FactorInterface(Protocol):
-    def __call__(self, values: Value, axis: Axis = None) -> FactorValue:
+    def __call__(self, values: Value) -> FactorValue:
         pass
 
 
 class FactorJacobianInterface(Protocol):
-    def __call__(
-        self, values: Value, axis: Axis = None
-    ) -> Tuple[FactorValue, JacobianValue]:
+    def __call__(self, values: Value) -> Tuple[FactorValue, JacobianValue]:
         pass
 
 
@@ -301,24 +299,22 @@ class AbstractNode(ABC):
         self,
         values: Dict[Variable, np.array],
         variables: Optional[Tuple[Variable, ...]] = None,
-        axis: Optional[Union[bool, int, Tuple[int, ...]]] = False,
         _eps: float = 1e-6,
         _calc_deterministic: bool = True,
     ) -> JacobianValue:
         return self.func_jacobian(
-            values, variables, axis, _eps=_eps, _calc_deterministic=_calc_deterministic
+            values, variables, _eps=_eps, _calc_deterministic=_calc_deterministic
         )[1]
 
     def hessian(
         self,
         values: Dict[Variable, np.array],
         variables: Optional[Tuple[Variable, ...]] = None,
-        axis: Optional[Union[bool, int, Tuple[int, ...]]] = False,
         _eps: float = 1e-6,
         _calc_deterministic: bool = True,
     ) -> HessianValue:
         return self.func_jacobian_hessian(
-            values, variables, axis, _eps=_eps, _calc_deterministic=_calc_deterministic
+            values, variables, _eps=_eps, _calc_deterministic=_calc_deterministic
         )[2]
 
     def flatten(self, param_shapes: FlattenArrays) -> "FlattenedNode":
@@ -336,19 +332,19 @@ class FlattenedNode:
     def unflatten(self, x0: np.ndarray) -> Value:
         return self.param_shapes.unflatten(x0)
 
-    def __call__(self, x: np.ndarray, axis=None) -> np.ndarray:
+    def __call__(self, x: np.ndarray) -> np.ndarray:
         values = self.unflatten(x)
-        return self.node(values, axis=axis)
+        return self.node(values)
 
-    def func_jacobian(self, x: np.ndarray, axis=None):
+    def func_jacobian(self, x: np.ndarray):
         values = self.unflatten(x)
-        fval, jval = self.node.func_jacobian(values, axis=axis)
+        fval, jval = self.node.func_jacobian(values)
         grad = self.flatten(jval)
         return fval, grad
 
-    def func_jacobian_hessian(self, x: np.ndarray, axis=None):
+    def func_jacobian_hessian(self, x: np.ndarray):
         values = self.unflatten(x)
-        fval, jval, hval = self.node.func_jacobian_hessian(values, axis=axis)
+        fval, jval, hval = self.node.func_jacobian_hessian(values)
         grad = self.flatten(jval)
         hess = self.param_shapes.flatten2d(hval)
         return fval, grad, hess

@@ -125,12 +125,12 @@ class OptFactor:
 
     def __call__(self, x0):
         values = self.unflatten(self.transform.ldiv(x0))
-        return self.sign * np.sum(self.factor(values, axis=None))
+        return self.sign * np.sum(self.factor(values))
 
     def func_jacobian(self, x0):
         values = self.unflatten(self.transform.ldiv(x0))
         fval, jval = self.factor.func_jacobian(
-            values, self.free_vars, axis=None, _calc_deterministic=True
+            values, self.free_vars, _calc_deterministic=True
         )
 
         grad = self.flatten(jval) / self.transform
@@ -292,7 +292,7 @@ class LaplaceFactorOptimiser(AbstractFactorOptimiser):
         # https://en.wikipedia.org/wiki/Broyden%27s_method
         value = factor_approx.factor(res.mode)
         res.mode.update(value.deterministic_values)
-        jacobian = factor_approx.factor.jacobian(res.mode, opt.free_vars, axis=None)
+        jacobian = factor_approx.factor.jacobian(res.mode, opt.free_vars)
         update_det_cov(res, jacobian)
 
         self.transforms[factor] = self.transform_cls.from_dense(res.full_hess_inv)

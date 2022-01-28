@@ -77,12 +77,12 @@ class OptimisationState:
     @cached_property
     def value(self):
         self.f_count += 1
-        return self.factor(self.parameters, *self.args, axis=None)
+        return self.factor(self.parameters, *self.args)
 
     @cached_property
     def gradient(self):
         self.g_count += 1
-        self.value, grad = self.factor_jacobian(self.parameters, *self.args, axis=None)
+        self.value, grad = self.factor_jacobian(self.parameters, *self.args)
         return grad
 
     def to_dict(self):
