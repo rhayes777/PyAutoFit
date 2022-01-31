@@ -7,7 +7,7 @@ from sqlalchemy.orm import Session
 
 from autofit.database import query as q
 from .scrape import Scraper
-from .. import model as m
+from autofit.database import model as m
 from ..query.query import AbstractQuery, Attribute
 from ..query.query.attribute import BestFitQuery
 
