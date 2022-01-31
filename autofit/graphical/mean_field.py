@@ -17,7 +17,6 @@ from autofit.graphical.utils import (
     aggregate,
 )
 from autofit.mapper.prior.abstract import Prior
-from autofit.mapper.prior_model.collection import CollectionPriorModel
 from autofit.mapper.variable import (
     Variable,
     Plate,
@@ -28,6 +27,7 @@ from autofit.mapper.variable import (
 from autofit.mapper.variable_operator import VariableFullOperator
 from autofit.messages.abstract import AbstractMessage
 from autofit.messages.fixed import FixedMessage
+from autofit.mapper.prior_model.collection import CollectionPriorModel
 
 VariableFactorDist = Dict[str, Dict[Factor, AbstractMessage]]
 Projection = Dict[str, AbstractMessage]

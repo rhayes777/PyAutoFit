@@ -1,3 +1,5 @@
+from .abstract import AbstractMessage
+from .fixed import FixedMessage
 from .normal import (
     NormalMessage,
     UniformNormalMessage,
