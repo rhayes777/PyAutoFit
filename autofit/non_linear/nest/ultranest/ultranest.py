@@ -2,8 +2,6 @@ import copy
 from os import path
 from typing import Optional
 
-from sqlalchemy.orm import Session
-
 from autoconf import conf
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.abstract_search import PriorPasser
@@ -34,7 +32,7 @@ class UltraNest(abstract_nest.AbstractNest):
             prior_passer: PriorPasser = None,
             iterations_per_update: int = None,
             number_of_cores: int = None,
-            session: Optional[Session] = None,
+            session: Optional["Session"] = None,
             **kwargs
     ):
         """

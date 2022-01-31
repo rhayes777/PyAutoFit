@@ -1,4 +1,3 @@
-from sqlalchemy.orm import Session
 from typing import Optional
 
 from autofit.non_linear.abstract_search import PriorPasser
@@ -23,7 +22,7 @@ class PySwarmsGlobal(AbstractPySwarms):
             initializer: Optional[Initializer] = None,
             iterations_per_update: int = None,
             number_of_cores: int = None,
-            session: Optional[Session] = None,
+            session: Optional["Session"] = None,
             **kwargs
     ):
         """

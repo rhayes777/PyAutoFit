@@ -4,9 +4,6 @@ import pickle
 from pathlib import Path
 from typing import Optional, Union
 
-from sqlalchemy.orm import Session
-from sqlalchemy.orm.exc import NoResultFound
-
 from .. import model as m
 from ...mapper.model_object import Identifier
 
@@ -34,7 +31,7 @@ class Scraper:
     def __init__(
             self,
             directory: Union[Path, str],
-            session: Session
+            session: "Session"
     ):
         """
         Facilitates scraping of data output into a directory
@@ -107,6 +104,8 @@ class Scraper:
                 f"{item.search.unique_tag} "
                 f"{item.search.name} "
                 f"{identifier} ")
+
+            from sqlalchemy.orm.exc import NoResultFound
 
             try:
                 fit = self._retrieve_model_fit(

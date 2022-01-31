@@ -3,62 +3,80 @@ import inspect
 from typing import List, Tuple, Any, Iterable, Union, ItemsView, Type
 
 import numpy as np
-from sqlalchemy import Column, Integer, String, ForeignKey
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import relationship
 
 from autoconf.class_path import get_class, get_class_path
 
-Base = declarative_base()
+class BasePlaceholder:
+    pass
+
+try:
+    from sqlalchemy.ext.declarative import declarative_base
+    Base = declarative_base()
+except ModuleNotFoundError:
+    Base = BasePlaceholder
 
 _schema_version = 1
 
 
 class Object(Base):
-    __tablename__ = "object"
 
-    type = Column(
-        String
-    )
+    try:
 
-    id = Column(
-        Integer,
-        primary_key=True,
-    )
+        from sqlalchemy.orm import relationship
+        from sqlalchemy import Column, Integer, String, ForeignKey
 
-    parent_id = Column(
-        Integer,
-        ForeignKey(
-            "object.id"
+        __tablename__ = "object"
+
+        type = Column(
+            String
         )
-    )
-    parent = relationship(
-        "Object",
-        uselist=False,
-        remote_side=[id]
-    )
 
-    samples_for_id = Column(
-        String,
-        ForeignKey(
-            "fit.id"
+        id = Column(
+            Integer,
+            primary_key=True,
         )
-    )
-    samples_for = relationship(
-        "Fit",
-        uselist=False,
-        foreign_keys=[samples_for_id]
-    )
 
-    children: List["Object"] = relationship(
-        "Object",
-        uselist=True,
-    )
+        parent_id = Column(
+            Integer,
+            ForeignKey(
+                "object.id"
+            )
+        )
+        parent = relationship(
+            "Object",
+            uselist=False,
+            remote_side=[id]
+        )
+
+        samples_for_id = Column(
+            String,
+            ForeignKey(
+                "fit.id"
+            )
+        )
+        samples_for = relationship(
+            "Fit",
+            uselist=False,
+            foreign_keys=[samples_for_id]
+        )
+
+        children: List["Object"] = relationship(
+            "Object",
+            uselist=True,
+        )
+
+        name = Column(String)
+
+        class_path = Column(
+            String
+        )
+
+    except ModuleNotFoundError:
+
+        pass
 
     def __len__(self):
         return len(self.children)
-
-    name = Column(String)
 
     __mapper_args__ = {
         'polymorphic_identity': 'object',
@@ -226,10 +244,6 @@ class Object(Base):
             self.children.append(
                 child
             )
-
-    class_path = Column(
-        String
-    )
 
     @property
     def cls(self) -> Type[object]:

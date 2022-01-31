@@ -1,8 +1,5 @@
 import os
 
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, Session
-
 from autoconf import conf
 from .aggregator import *
 from .migration.steps import migrator
@@ -11,7 +8,7 @@ from .model import *
 
 def open_database(
         filename="database.sqlite"
-) -> Session:
+) -> "Session":
     """
     Open a database file in the output directory or connect to an
     existing database.
@@ -80,6 +77,9 @@ def open_database(
         string = filename
         kwargs = dict()
         exists = True
+
+    from sqlalchemy import create_engine
+    from sqlalchemy.orm import sessionmaker
 
     engine = create_engine(
         string,

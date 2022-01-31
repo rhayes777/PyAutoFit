@@ -1,18 +1,24 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, Float
-
 from .model import Object
 
 
 class NoneInstance(Object):
-    __tablename__ = "none"
+    try:
 
-    id = Column(
-        Integer,
-        ForeignKey(
-            "object.id"
-        ),
-        primary_key=True,
-    )
+        from sqlalchemy import Column, Integer, ForeignKey
+
+        __tablename__ = "none"
+
+        id = Column(
+            Integer,
+            ForeignKey(
+                "object.id"
+            ),
+            primary_key=True,
+        )
+
+    except ModuleNotFoundError:
+
+        pass
 
     __mapper_args__ = {
         'polymorphic_identity': 'none'
@@ -27,15 +33,23 @@ class Collection(Object):
     A tuple or list
     """
 
-    __tablename__ = "collection"
+    try:
 
-    id = Column(
-        Integer,
-        ForeignKey(
-            "object.id"
-        ),
-        primary_key=True
-    )
+        from sqlalchemy import Column, Integer, ForeignKey
+
+        __tablename__ = "collection"
+
+        id = Column(
+            Integer,
+            ForeignKey(
+                "object.id"
+            ),
+            primary_key=True
+        )
+
+    except ModuleNotFoundError:
+
+        pass
 
     __mapper_args__ = {
         'polymorphic_identity': 'collection'
@@ -72,15 +86,23 @@ class Instance(Object):
     An instance, such as a class instance
     """
 
-    __tablename__ = "instance"
+    try:
 
-    id = Column(
-        Integer,
-        ForeignKey(
-            "object.id"
-        ),
-        primary_key=True,
-    )
+        from sqlalchemy import Column, Integer, ForeignKey
+
+        __tablename__ = "instance"
+
+        id = Column(
+            Integer,
+            ForeignKey(
+                "object.id"
+            ),
+            primary_key=True,
+        )
+
+    except ModuleNotFoundError:
+
+        pass
 
     __mapper_args__ = {
         'polymorphic_identity': 'instance'
@@ -115,21 +137,29 @@ class Value(Object):
     A float
     """
 
-    __tablename__ = "value"
+    try:
 
-    __mapper_args__ = {
-        'polymorphic_identity': 'value'
-    }
+        from sqlalchemy import Column, Integer, ForeignKey, Float
 
-    id = Column(
-        Integer,
-        ForeignKey(
-            "object.id"
-        ),
-        primary_key=True,
-    )
+        __tablename__ = "value"
 
-    value = Column(Float)
+        __mapper_args__ = {
+            'polymorphic_identity': 'value'
+        }
+
+        id = Column(
+            Integer,
+            ForeignKey(
+                "object.id"
+            ),
+            primary_key=True,
+        )
+
+        value = Column(Float)
+
+    except ModuleNotFoundError:
+
+        pass
 
     @classmethod
     def _from_object(
@@ -149,21 +179,29 @@ class StringValue(Object):
     A string
     """
 
-    __tablename__ = "string_value"
+    try:
 
-    __mapper_args__ = {
-        'polymorphic_identity': 'string_value'
-    }
+        from sqlalchemy import Column, Integer, String, ForeignKey
 
-    id = Column(
-        Integer,
-        ForeignKey(
-            "object.id"
-        ),
-        primary_key=True,
-    )
+        __tablename__ = "string_value"
 
-    value = Column(String)
+        __mapper_args__ = {
+            'polymorphic_identity': 'string_value'
+        }
+
+        id = Column(
+            Integer,
+            ForeignKey(
+                "object.id"
+            ),
+            primary_key=True,
+        )
+
+        value = Column(String)
+
+    except ModuleNotFoundError:
+
+        pass
 
     @classmethod
     def _from_object(

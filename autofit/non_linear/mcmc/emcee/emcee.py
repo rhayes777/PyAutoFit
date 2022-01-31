@@ -4,7 +4,6 @@ from typing import Optional
 
 import emcee
 import numpy as np
-from sqlalchemy.orm import Session
 
 from autoconf import conf
 from autofit import exc
@@ -34,7 +33,7 @@ class Emcee(AbstractMCMC):
             auto_correlations_settings=AutoCorrelationsSettings(),
             iterations_per_update: int = None,
             number_of_cores: int = None,
-            session: Optional[Session] = None,
+            session: Optional["Session"] = None,
             **kwargs
     ):
         """

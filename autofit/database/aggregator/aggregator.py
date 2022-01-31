@@ -2,12 +2,9 @@ import logging
 from abc import ABC, abstractmethod
 from typing import Optional, List, Union, cast
 
-from sqlalchemy import desc
-from sqlalchemy.orm import Session
-
 from autofit.database import query as q
+from autofit.database.model import Fit
 from .scrape import Scraper
-from autofit.database import model as m
 from ..query.query import AbstractQuery, Attribute
 from ..query.query.attribute import BestFitQuery
 
@@ -83,6 +80,8 @@ class FitQuery(Query):
         --------
         aggregator.fit.name == 'example name'
         """
+        from autofit.database import model as m
+
         if name not in m.fit_attributes:
             raise AttributeError(
                 f"Fit has no attribute {name}"
@@ -106,7 +105,7 @@ class Reverse:
 class AbstractAggregator(ABC):
     @property
     @abstractmethod
-    def fits(self) -> List[m.Fit]:
+    def fits(self) -> List[Fit]:
         pass
 
     def values(self, name: str) -> list:
@@ -148,7 +147,7 @@ class AbstractAggregator(ABC):
 class Aggregator(AbstractAggregator):
     def __init__(
             self,
-            session: Session,
+            session: "Session",
             filename: Optional[str] = None,
             predicate: AbstractQuery = NullPredicate(),
             offset=0,
@@ -226,7 +225,7 @@ class Aggregator(AbstractAggregator):
         return q.AnonymousInfo()
 
     @property
-    def fits(self) -> List[m.Fit]:
+    def fits(self) -> List[Fit]:
         """
         Lazily query the database for a list of Fit objects that
         match the aggregator's predicate.
@@ -355,7 +354,7 @@ class Aggregator(AbstractAggregator):
     def _fits_for_query(
             self,
             query: str
-    ) -> List[m.Fit]:
+    ) -> List[Fit]:
         """
         Execute a raw SQL query and return a Fit object
         for each Fit id returned by the query
@@ -370,6 +369,8 @@ class Aggregator(AbstractAggregator):
         A list of fit objects, one for each id returned by the
         query
         """
+        from autofit.database import model as m
+
         logger.debug(
             f"Executing query: {query}"
         )
@@ -401,6 +402,7 @@ class Aggregator(AbstractAggregator):
                     order_by,
                     Reverse
             ):
+                from sqlalchemy import desc
                 attribute = desc(attribute)
             query = query.order_by(
                 attribute
@@ -572,7 +574,7 @@ class CellAggregator(AbstractAggregator):
         self._fits = None
 
     @property
-    def fits(self) -> List[m.Fit]:
+    def fits(self) -> List[Fit]:
         """
         Retrieve one fit for each grid search matching the number of
         the cell.

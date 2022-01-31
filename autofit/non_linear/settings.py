@@ -1,4 +1,3 @@
-from sqlalchemy.orm import Session
 from typing import Optional, List
 
 class SettingsSearch:
@@ -7,7 +6,7 @@ class SettingsSearch:
         path_prefix: str,
         unique_tag: Optional[str] = None,
         number_of_cores: Optional[int] = 1,
-        session: Optional[Session] = None,
+        session: Optional["Session"] = None,
         info: Optional[dict] = None,
         pickle_files: Optional[List[str]] = None,
     ):

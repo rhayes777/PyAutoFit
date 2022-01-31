@@ -3,9 +3,6 @@ from abc import ABC, abstractmethod
 from hashlib import md5
 from typing import Union, Generator, Iterable, Optional
 
-from sqlalchemy.exc import OperationalError
-from sqlalchemy.orm import Session
-
 from .session_wrapper import SessionWrapper
 
 logger = logging.getLogger(
@@ -194,7 +191,7 @@ class Migrator:
             self._steps
         )
 
-    def migrate(self, session: Session):
+    def migrate(self, session: "Session"):
         """
         Migrate the database that session points to to the current
         revision.
@@ -229,6 +226,9 @@ class Migrator:
         logger.info(
             f"Performing migration from {revision_id} to {latest_revision_id} in {len(steps)} steps"
         )
+
+        from sqlalchemy.exc import OperationalError
+
         for step in steps:
             for string in step.strings:
                 try:

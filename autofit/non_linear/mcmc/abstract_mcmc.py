@@ -1,5 +1,4 @@
 from typing import Optional
-from sqlalchemy.orm import Session
 
 from autoconf import conf
 from autofit.non_linear.abstract_search import NonLinearSearch
@@ -20,7 +19,7 @@ class AbstractMCMC(NonLinearSearch):
             auto_correlations_settings = AutoCorrelationsSettings(),
             iterations_per_update: Optional[int] = None,
             number_of_cores: Optional[int] = None,
-            session: Optional[Session] = None,
+            session: Optional["Session"] = None,
             **kwargs
     ):
 

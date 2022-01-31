@@ -1,8 +1,6 @@
 import shutil
 from typing import Optional
 
-from sqlalchemy.orm.exc import NoResultFound
-
 from .abstract import AbstractPaths
 from ...database.model import Fit
 
@@ -150,6 +148,9 @@ class DatabasePaths(AbstractPaths):
 
     @property
     def fit(self) -> Fit:
+
+        from sqlalchemy.orm.exc import NoResultFound
+
         if self._fit is None:
             try:
                 self._fit = self.session.query(

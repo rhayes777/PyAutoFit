@@ -1,7 +1,6 @@
 from typing import Optional
 
 import numpy as np
-from sqlalchemy.orm import Session
 
 from autoconf import conf
 from autofit import exc
@@ -19,7 +18,7 @@ class AbstractNest(NonLinearSearch):
             unique_tag: Optional[str] = None,
             prior_passer: Optional[PriorPasser] = None,
             iterations_per_update: Optional[int] = None,
-            session: Optional[Session] = None,
+            session: Optional["Session"] = None,
             **kwargs
     ):
         """

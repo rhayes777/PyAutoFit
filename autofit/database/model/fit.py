@@ -2,9 +2,6 @@ import pickle
 from functools import wraps
 from typing import List
 
-from sqlalchemy import Column, Integer, ForeignKey, String, Boolean, inspect, Float
-from sqlalchemy.orm import relationship, backref
-
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.samples import Samples
 from .model import Base, Object
@@ -15,32 +12,41 @@ class Pickle(Base):
     A pickled python object that was found in the pickles directory
     """
 
-    __tablename__ = "pickle"
+    try:
+
+        from sqlalchemy.orm import relationship
+        from sqlalchemy import Column, Integer, ForeignKey, String
+
+        __tablename__ = "pickle"
+
+        id = Column(
+            Integer,
+            primary_key=True
+        )
+
+        name = Column(
+            String
+        )
+        string = Column(
+            String
+        )
+        fit_id = Column(
+            String,
+            ForeignKey(
+                "fit.id"
+            )
+        )
+        fit = relationship(
+            "Fit",
+            uselist=False
+        )
+
+    except ModuleNotFoundError:
+
+        pass
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-
-    id = Column(
-        Integer,
-        primary_key=True
-    )
-
-    name = Column(
-        String
-    )
-    string = Column(
-        String
-    )
-    fit_id = Column(
-        String,
-        ForeignKey(
-            "fit.id"
-        )
-    )
-    fit = relationship(
-        "Fit",
-        uselist=False
-    )
 
     @property
     def value(self):
@@ -67,26 +73,36 @@ class Pickle(Base):
 
 
 class Info(Base):
-    __tablename__ = "info"
 
-    id = Column(
-        Integer,
-        primary_key=True
-    )
+    try:
 
-    key = Column(String)
-    value = Column(String)
+        from sqlalchemy.orm import relationship
+        from sqlalchemy import Column, Integer, ForeignKey, String
 
-    fit_id = Column(
-        String,
-        ForeignKey(
-            "fit.id"
+        __tablename__ = "info"
+
+        id = Column(
+            Integer,
+            primary_key=True
         )
-    )
-    fit = relationship(
-        "Fit",
-        uselist=False
-    )
+
+        key = Column(String)
+        value = Column(String)
+
+        fit_id = Column(
+            String,
+            ForeignKey(
+                "fit.id"
+            )
+        )
+        fit = relationship(
+            "Fit",
+            uselist=False
+        )
+
+    except ModuleNotFoundError:
+
+        pass
 
 
 def try_none(func):
@@ -101,27 +117,48 @@ def try_none(func):
 
 
 class NamedInstance(Base):
-    __tablename__ = "named_instance"
 
-    id = Column(
-        Integer,
-        primary_key=True
-    )
-    name = Column(String)
+    try:
 
-    instance_id = Column(
-        Integer,
-        ForeignKey(
-            "object.id"
+        from sqlalchemy.orm import relationship
+        from sqlalchemy import Column, Integer, ForeignKey, String
+
+        __tablename__ = "named_instance"
+
+        id = Column(
+            Integer,
+            primary_key=True
         )
-    )
+        name = Column(String)
 
-    __instance = relationship(
-        "Object",
-        uselist=False,
-        backref="named_instance",
-        foreign_keys=[instance_id]
-    )
+        instance_id = Column(
+            Integer,
+            ForeignKey(
+                "object.id"
+            )
+        )
+
+        __instance = relationship(
+            "Object",
+            uselist=False,
+            backref="named_instance",
+            foreign_keys=[instance_id]
+        )
+
+        fit_id = Column(
+            String,
+            ForeignKey(
+                "fit.id"
+            )
+        )
+        fit = relationship(
+            "Fit",
+            uselist=False
+        )
+
+    except ModuleNotFoundError:
+
+        pass
 
     @property
     @try_none
@@ -136,17 +173,6 @@ class NamedInstance(Base):
         self.__instance = Object.from_object(
             instance
         )
-
-    fit_id = Column(
-        String,
-        ForeignKey(
-            "fit.id"
-        )
-    )
-    fit = relationship(
-        "Fit",
-        uselist=False
-    )
 
 
 # noinspection PyProtectedMember
@@ -206,19 +232,106 @@ class NamedInstancesWrapper:
 
 
 class Fit(Base):
-    __tablename__ = "fit"
 
-    id = Column(
-        String,
-        primary_key=True,
-    )
-    is_complete = Column(
-        Boolean
-    )
+    try:
 
-    _named_instances: List[NamedInstance] = relationship(
-        "NamedInstance"
-    )
+        from sqlalchemy.orm import relationship, backref
+        from sqlalchemy import Column, Integer, ForeignKey, String, Boolean, Float
+
+        __tablename__ = "fit"
+
+        id = Column(
+            String,
+            primary_key=True,
+        )
+        is_complete = Column(
+            Boolean
+        )
+
+        _named_instances: List[NamedInstance] = relationship(
+            "NamedInstance"
+        )
+
+        max_log_likelihood = Column(
+            Float
+        )
+
+        parent_id = Column(
+            String,
+            ForeignKey(
+                "fit.id"
+            )
+        )
+
+        children: List["Fit"] = relationship(
+            "Fit",
+            backref=backref(
+                'parent',
+                remote_side=[id]
+            )
+        )
+
+        is_grid_search = Column(
+            Boolean
+        )
+
+        unique_tag = Column(
+            String
+        )
+        name = Column(
+            String
+        )
+        path_prefix = Column(
+            String
+        )
+
+        _samples = relationship(
+            Object,
+            uselist=False,
+            foreign_keys=[
+                Object.samples_for_id
+            ]
+        )
+
+        model_id = Column(
+            Integer,
+            ForeignKey(
+                "object.id"
+            )
+        )
+        __model = relationship(
+            "Object",
+            uselist=False,
+            backref="fit_model",
+            foreign_keys=[model_id]
+        )
+
+        instance_id = Column(
+            Integer,
+            ForeignKey(
+                "object.id"
+            )
+        )
+
+        __instance = relationship(
+            "Object",
+            uselist=False,
+            backref="fit_instance",
+            foreign_keys=[instance_id]
+        )
+
+        _info: List[Info] = relationship(
+            "Info"
+        )
+
+        pickles: List[Pickle] = relationship(
+            "Pickle",
+            lazy="joined"
+        )
+
+    except ModuleNotFoundError:
+
+        pass
 
     @property
     @try_none
@@ -240,10 +353,6 @@ class Fit(Base):
             self
         )
 
-    _info: List[Info] = relationship(
-        "Info"
-    )
-
     def __init__(
             self,
             **kwargs
@@ -251,25 +360,6 @@ class Fit(Base):
         super().__init__(
             **kwargs
         )
-
-    max_log_likelihood = Column(
-        Float
-    )
-
-    parent_id = Column(
-        String,
-        ForeignKey(
-            "fit.id"
-        )
-    )
-
-    children: List["Fit"] = relationship(
-        "Fit",
-        backref=backref(
-            'parent',
-            remote_side=[id]
-        )
-    )
 
     @property
     def best_fit(self) -> "Fit":
@@ -295,28 +385,6 @@ class Fit(Base):
                 max_log_likelihood = fit.max_log_likelihood
 
         return best_fit
-
-    is_grid_search = Column(
-        Boolean
-    )
-
-    unique_tag = Column(
-        String
-    )
-    name = Column(
-        String
-    )
-    path_prefix = Column(
-        String
-    )
-
-    _samples = relationship(
-        Object,
-        uselist=False,
-        foreign_keys=[
-            Object.samples_for_id
-        ]
-    )
 
     @property
     @try_none
@@ -362,11 +430,6 @@ class Fit(Base):
         self.__model = Object.from_object(
             model
         )
-
-    pickles: List[Pickle] = relationship(
-        "Pickle",
-        lazy="joined"
-    )
 
     def __getitem__(self, item: str):
         """
@@ -449,33 +512,6 @@ class Fit(Base):
         except AttributeError:
             return None
 
-    model_id = Column(
-        Integer,
-        ForeignKey(
-            "object.id"
-        )
-    )
-    __model = relationship(
-        "Object",
-        uselist=False,
-        backref="fit_model",
-        foreign_keys=[model_id]
-    )
-
-    instance_id = Column(
-        Integer,
-        ForeignKey(
-            "object.id"
-        )
-    )
-
-    __instance = relationship(
-        "Object",
-        uselist=False,
-        backref="fit_instance",
-        foreign_keys=[instance_id]
-    )
-
     @classmethod
     def all(cls, session):
         return session.query(
@@ -489,4 +525,10 @@ class Fit(Base):
         return f"<{self.__class__.__name__} {self}>"
 
 
-fit_attributes = inspect(Fit).columns
+try:
+    from sqlalchemy import inspect
+    fit_attributes = inspect(Fit).columns
+except ModuleNotFoundError:
+    pass
+
+

@@ -2,7 +2,6 @@ from os import path
 from typing import Optional
 
 import numpy as np
-from sqlalchemy.orm import Session
 
 from autoconf import conf
 from autofit import exc
@@ -25,7 +24,7 @@ class AbstractPySwarms(AbstractOptimizer):
             initializer: Optional[Initializer] = None,
             iterations_per_update: int = None,
             number_of_cores: int = None,
-            session: Optional[Session] = None,
+            session: Optional["Session"] = None,
             **kwargs
     ):
         """

@@ -1,8 +1,6 @@
 from os import path
 from typing import Optional
 
-from sqlalchemy.orm import Session
-
 from autoconf import conf
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.optimize.abstract_optimize import AbstractOptimizer
@@ -27,7 +25,7 @@ class Drawer(AbstractOptimizer):
             prior_passer: Optional[PriorPasser] = None,
             initializer: Optional[Initializer] = None,
             iterations_per_update: int = None,
-            session: Optional[Session] = None,
+            session: Optional["Session"] = None,
             **kwargs
     ):
         """

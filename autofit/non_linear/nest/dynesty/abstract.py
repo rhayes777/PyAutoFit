@@ -3,7 +3,6 @@ from os import path
 from typing import Optional
 
 import numpy as np
-from sqlalchemy.orm import Session
 
 from autoconf import conf
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
@@ -36,7 +35,7 @@ class AbstractDynesty(AbstractNest, ABC):
             prior_passer: PriorPasser = None,
             iterations_per_update: int = None,
             number_of_cores: int = None,
-            session: Optional[Session] = None,
+            session: Optional["Session"] = None,
             **kwargs
     ):
         """

@@ -1,7 +1,5 @@
 from typing import Union
 
-from sqlalchemy import Column, Integer, ForeignKey
-
 from autofit.mapper.prior import abstract
 from autofit.mapper.prior_model import prior_model
 from autofit.mapper.prior_model import collection
@@ -14,15 +12,23 @@ class CollectionPriorModel(Object):
     A collection
     """
 
-    __tablename__ = "collection_prior_model"
+    try:
 
-    id = Column(
-        Integer,
-        ForeignKey(
-            "object.id"
-        ),
-        primary_key=True,
-    )
+        from sqlalchemy import Column, Integer, ForeignKey
+
+        __tablename__ = "collection_prior_model"
+
+        id = Column(
+            Integer,
+            ForeignKey(
+                "object.id"
+            ),
+            primary_key=True,
+        )
+
+    except ModuleNotFoundError:
+
+        pass
 
     __mapper_args__ = {
         'polymorphic_identity': 'collection_prior_model'
@@ -57,15 +63,23 @@ class PriorModel(Object):
     A prior model
     """
 
-    __tablename__ = "prior_model"
+    try:
 
-    id = Column(
-        Integer,
-        ForeignKey(
-            "object.id"
-        ),
-        primary_key=True,
-    )
+        from sqlalchemy import Column, Integer, ForeignKey
+
+        __tablename__ = "prior_model"
+
+        id = Column(
+            Integer,
+            ForeignKey(
+                "object.id"
+            ),
+            primary_key=True,
+        )
+
+    except ModuleNotFoundError:
+
+        pass
 
     __mapper_args__ = {
         'polymorphic_identity': 'prior_model'
@@ -93,15 +107,23 @@ class Prior(Object):
     A prior
     """
 
-    __tablename__ = "prior"
+    try:
 
-    id = Column(
-        Integer,
-        ForeignKey(
-            "object.id"
-        ),
-        primary_key=True,
-    )
+        from sqlalchemy import Column, Integer, ForeignKey
+
+        __tablename__ = "prior"
+
+        id = Column(
+            Integer,
+            ForeignKey(
+                "object.id"
+            ),
+            primary_key=True,
+        )
+
+    except ModuleNotFoundError:
+
+        pass
 
     __mapper_args__ = {
         'polymorphic_identity': 'prior'

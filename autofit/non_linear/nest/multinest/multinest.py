@@ -1,8 +1,6 @@
 from os import path
 from typing import Optional
 
-from sqlalchemy.orm import Session
-
 from autoconf import conf
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear import abstract_search
@@ -28,7 +26,7 @@ class MultiNest(abstract_nest.AbstractNest):
             path_prefix: Optional[str] = None,
             unique_tag: Optional[str] = None,
             prior_passer: Optional[PriorPasser] = None,
-            session: Optional[Session] = None,
+            session: Optional["Session"] = None,
             **kwargs
     ):
         """
