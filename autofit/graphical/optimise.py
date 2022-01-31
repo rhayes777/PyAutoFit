@@ -9,7 +9,8 @@ from autofit.graphical.expectation_propagation import (
     EPMeanField,
     AbstractFactorOptimiser,
 )
-from autofit.graphical.factor_graphs import Variable, Factor, JacobianValue
+from autofit.mapper.variable import Variable, VariableData
+from autofit.graphical.factor_graphs.factor import Factor
 from autofit.graphical.factor_graphs import transform as t
 from autofit.graphical.mean_field import MeanField, FactorApproximation, Status
 from autofit.graphical.utils import propagate_uncertainty, FlattenArrays, OptResult
@@ -225,7 +226,7 @@ class OptFactor:
     maximize = maximise
 
 
-def update_det_cov(res: OptResult, jacobian: JacobianValue):
+def update_det_cov(res: OptResult, jacobian: VariableData):
     """Calculates the inv hessian of the deterministic variables
 
     Note that this modifies res.

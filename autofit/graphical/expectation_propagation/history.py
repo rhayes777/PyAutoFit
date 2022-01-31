@@ -1,21 +1,15 @@
 import logging
 from functools import wraps
-from typing import (
-    Tuple, Callable, List, Union, Optional
-)
+from typing import Tuple, Callable, List, Union, Optional
 
 import numpy as np
 
-from autofit.graphical.factor_graphs import (
-    Factor
-)
+from autofit.graphical.factor_graphs.factor import Factor
 from autofit.graphical.utils import Status
 from .ep_mean_field import EPMeanField
 from ... import exc
 
-logger = logging.getLogger(
-    __name__
-)
+logger = logging.getLogger(__name__)
 
 EPCallBack = Callable[[Factor, EPMeanField, Status], bool]
 
@@ -39,10 +33,7 @@ def default_inf(func):
 
 
 class FactorHistory:
-    def __init__(
-            self,
-            factor: Factor
-    ):
+    def __init__(self, factor: Factor):
         """
         Tracks the history of a single factor
 
@@ -54,11 +45,7 @@ class FactorHistory:
         self.factor = factor
         self.history = list()
 
-    def __call__(
-            self,
-            approx: EPMeanField,
-            status: Status
-    ):
+    def __call__(self, approx: EPMeanField, status: Status):
         """
         Add an optimisation result to the factor's history
 
@@ -69,19 +56,14 @@ class FactorHistory:
         status
             Describes whether the optimisation was successful
         """
-        self.history.append((
-            approx, status
-        ))
+        self.history.append((approx, status))
 
     @property
     def successes(self) -> List[EPMeanField]:
         """
         A list of mean fields produced by successful optimisations
         """
-        return [
-            approx for approx, success
-            in self.history if success
-        ]
+        return [approx for approx, success in self.history if success]
 
     @property
     def latest_successful(self) -> EPMeanField:
@@ -116,9 +98,7 @@ class FactorHistory:
         If there are less than two successful optimisations then this is
         infinite.
         """
-        return self.latest_successful.mean_field.kl(
-            self.previous_successful.mean_field
-        )
+        return self.latest_successful.mean_field.kl(self.previous_successful.mean_field)
 
     @default_inf
     def evidence_divergence(self) -> Union[float, np.ndarray]:
@@ -129,7 +109,9 @@ class FactorHistory:
         If there are less than two successful optimisations then this is
         infinite.
         """
-        return self.latest_successful.log_evidence - self.previous_successful.log_evidence
+        return (
+            self.latest_successful.log_evidence - self.previous_successful.log_evidence
+        )
 
     @property
     def evidences(self) -> List[float]:
@@ -138,10 +120,7 @@ class FactorHistory:
         when optimisation failed.
         """
         return [
-            approx.log_evidence
-            if status else None
-            for approx, status
-            in self.history
+            approx.log_evidence if status else None for approx, status in self.history
         ]
 
     @property
@@ -155,11 +134,7 @@ class FactorHistory:
             previous, previous_success = self.history[i - 1]
             current, current_success = self.history[i]
             if previous_success and current_success:
-                divergences.append(
-                    current.mean_field.kl(
-                        previous.mean_field
-                    )
-                )
+                divergences.append(current.mean_field.kl(previous.mean_field))
             else:
                 divergences.append(None)
         return divergences
@@ -167,10 +142,10 @@ class FactorHistory:
 
 class EPHistory:
     def __init__(
-            self,
-            callbacks: Tuple[EPCallBack, ...] = (),
-            kl_tol: Optional[float] = 1e-1,
-            evidence_tol: Optional[float] = None
+        self,
+        callbacks: Tuple[EPCallBack, ...] = (),
+        kl_tol: Optional[float] = 1e-1,
+        evidence_tol: Optional[float] = None,
     ):
         """
         Track the history an an EP Optimization.
@@ -215,10 +190,7 @@ class EPHistory:
         return self.history.items()
 
     def __call__(
-            self,
-            factor: Factor,
-            approx: EPMeanField,
-            status: Status = Status()
+        self, factor: Factor, approx: EPMeanField, status: Status = Status()
     ) -> bool:
         """
         Add history for a given factor and determine whether optimisation
@@ -241,20 +213,14 @@ class EPHistory:
         """
         self[factor](approx, status)
         if status.success:
-            if any([
-                callback(factor, approx, status)
-                for callback in self._callbacks
-            ]):
+            if any([callback(factor, approx, status) for callback in self._callbacks]):
                 return True
 
             return self.is_converged(factor)
 
         return False
 
-    def is_kl_converged(
-            self,
-            factor: Factor
-    ) -> bool:
+    def is_kl_converged(self, factor: Factor) -> bool:
         """
         True if the KL Divergence between the mean fields produced by
         two consecutive, successful optimisations is below the specified
@@ -262,10 +228,7 @@ class EPHistory:
         """
         return self[factor].kl_divergence() < self.kl_tol
 
-    def is_kl_evidence_converged(
-            self,
-            factor: Factor
-    ) -> bool:
+    def is_kl_evidence_converged(self, factor: Factor) -> bool:
         """
         True if the difference in evidence between produced by two consecutive,
         successful optimisations is below the specified tolerance.
@@ -273,16 +236,11 @@ class EPHistory:
         evidence_divergence = self[factor].evidence_divergence()
 
         if evidence_divergence < 0:
-            logger.warning(
-                f"Evidence for factor {factor} has decreased"
-            )
+            logger.warning(f"Evidence for factor {factor} has decreased")
 
         return abs(evidence_divergence) < self.evidence_tol
 
-    def is_converged(
-            self,
-            factor: Factor
-    ) -> bool:
+    def is_converged(self, factor: Factor) -> bool:
         """
         True if either convergence condition is met.
         """

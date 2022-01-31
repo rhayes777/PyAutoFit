@@ -19,7 +19,7 @@ from autoconf import cached_property
 from autofit.graphical.factor_graphs.abstract import (
     FactorValue,
     FactorInterface,
-    FactorJacobianInterface,
+    FactorGradientInterface,
 )
 from autofit.mapper.variable_operator import (
     VariableData,
@@ -32,7 +32,7 @@ class OptimisationState:
     def __init__(
         self,
         factor: FactorInterface,
-        factor_jacobian: FactorJacobianInterface,
+        factor_gradient: FactorGradientInterface,
         parameters: VariableData,
         hessian: Optional[VariableLinearOperator] = None,
         det_hessian: Optional[VariableLinearOperator] = None,
@@ -45,7 +45,7 @@ class OptimisationState:
         next_states: Optional[Dict[float, "OptimisationState"]] = None,
     ):
         self.factor = factor
-        self.factor_jacobian = factor_jacobian
+        self.factor_gradient = factor_gradient
 
         self._parameters = parameters
         self.hessian = hessian
@@ -82,14 +82,14 @@ class OptimisationState:
     @cached_property
     def gradient(self):
         self.g_count += 1
-        self.value, grad = self.factor_jacobian(self.parameters, *self.args)
+        self.value, grad = self.factor_gradient(self.parameters, *self.args)
         return grad
 
     def to_dict(self):
         # don't return value, gradient or search direction as may change
         return {
             "factor": self.factor,
-            "factor_jacobian": self.factor_jacobian,
+            "factor_gradient": self.factor_gradient,
             "parameters": self.parameters,
             "hessian": self.hessian,
             "det_hessian": self.det_hessian,

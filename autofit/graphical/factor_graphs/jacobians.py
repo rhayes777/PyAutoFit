@@ -14,7 +14,6 @@ except ImportError:
 
 from autoconf import cached_property
 
-from autofit.graphical.factor_graphs.abstract import FactorValue, JacobianValue
 from autofit.graphical.factor_graphs.factor import (
     AbstractFactor,
     Factor,
@@ -26,6 +25,7 @@ from autofit.mapper.variable import (
     Plate,
     VariableLinearOperator,
     VariableData,
+    FactorValue,
 )
 from autofit.mapper.variable_operator import (
     RectVariableOperator,
@@ -94,10 +94,14 @@ class AbstractJacobian(VariableLinearOperator):
         return f"{cls_name}({out_var} → ∂({in_var})ᵀ {out_var})"
 
     def grad(self, values=None):
-        v = VariableData({FactorValue: 1.0})
+        grad = VariableData({FactorValue: 1.0})
         if values:
-            v.update(values)
-        return self(v)
+            grad.update(values)
+
+        for v, g in self(grad).items():
+            grad[v] = grad.get(v, 0) + g
+
+        return grad
 
 
 class JacobianVectorProduct(AbstractJacobian, RectVariableOperator):
@@ -576,7 +580,7 @@ class FactorJacobian(Factor):
         variable_dict: Dict[Variable, np.ndarray],
         variables: Optional[Tuple[Variable, ...]] = None,
         **kwargs,
-    ) -> Tuple[FactorValue, JacobianValue]:
+    ) -> Tuple[FactorValue, VariableData]:
         """
         Call the underlying factor
 
@@ -605,7 +609,7 @@ class FactorJacobian(Factor):
         val, jacs = self._call_factor(kwargs, variables=variable_names)
 
         fval = FactorValue(val)
-        fjac = JacobianValue({v: FactorValue(jac) for v, jac in zip(variables, jacs)})
+        fjac = VariableData({v: FactorValue(jac) for v, jac in zip(variables, jacs)})
         return fval, fjac
 
     def __eq__(self, other: Union["Factor", Variable]):
@@ -685,7 +689,7 @@ class DeterministicFactorJacobian(FactorJacobian):
         variable_dict: Dict[Variable, np.ndarray],
         variables: Optional[Tuple[Variable, ...]] = None,
         **kwargs,
-    ) -> Tuple[FactorValue, JacobianValue]:
+    ) -> Tuple[FactorValue, VariableData]:
         """
         Call this factor with a set of arguments
 
@@ -736,7 +740,7 @@ class DeterministicFactorJacobian(FactorJacobian):
                 vjacs.setdefault(v, {})[k] = np.reshape(
                     jac, det_shapes[k] + var_shapes[v][shift:]
                 )
-        fjac = JacobianValue(
+        fjac = VariableData(
             {
                 v: FactorValue(np.zeros(np.shape(log_val) + var_shapes[v]), vjacs[v])
                 for v in variables

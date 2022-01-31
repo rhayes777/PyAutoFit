@@ -1,7 +1,7 @@
 from typing import Optional, Dict, Tuple, Any, Union
 
 from autofit.mapper.variable_operator import VariableData
-from autofit.graphical.factor_graphs import Factor
+from autofit.graphical.factor_graphs.factor import Factor
 from autofit.graphical.mean_field import MeanField, FactorApproximation
 from autofit.graphical.utils import Status, StatusFlag
 from autofit.graphical.expectation_propagation.ep_mean_field import EPMeanField
@@ -88,7 +88,7 @@ class LaplaceOptimiser(AbstractFactorOptimiser):
 
         state = newton.OptimisationState(
             factor_approx,
-            factor_approx.func_jacobian,
+            factor_approx.func_gradient,
             parameters,
             hessian,
             det_hessian,

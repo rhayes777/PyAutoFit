@@ -12,9 +12,9 @@ from autofit.mapper.operator import (
     DiagonalMatrix,
 )
 from autoconf import cached_property
-from .abstract import AbstractNode, Value, FactorValue, JacobianValue, HessianValue
-from ..utils import Axis
-from ...mapper.variable import Variable
+from autofit.graphical.factor_graphs.abstract import AbstractNode, Value, FactorValue
+from autofit.graphical.utils import Axis
+from autofit.mapper.variable import Variable, VariableData
 
 
 class VariableTransform:
@@ -182,7 +182,7 @@ class TransformedNode(AbstractNode):
         variables: Optional[List[Variable]] = None,
         _calc_deterministic: bool = True,
         **kwargs,
-    ) -> Tuple[FactorValue, JacobianValue]:
+    ) -> Tuple[FactorValue, VariableData]:
         fval, jval = self.node.func_jacobian(
             self.transform.ldiv(values),
             variables=variables,
@@ -199,7 +199,7 @@ class TransformedNode(AbstractNode):
         variables: Optional[List[Variable]] = None,
         _calc_deterministic: bool = True,
         **kwargs,
-    ) -> Tuple[FactorValue, JacobianValue, HessianValue]:
+    ) -> Tuple[FactorValue, VariableData, VariableData]:
         M = self.transform
         fval, jval, hval = self.node.func_jacobian_hessian(
             M.ldiv(values),

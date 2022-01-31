@@ -7,26 +7,24 @@ import numpy as np
 from autoconf import cached_property
 
 from autofit import exc
-from autofit.graphical.factor_graphs import (
-    Factor,
-    AbstractNode,
-    FactorValue,
-    JacobianValue,
-    HessianValue,
-)
+from autofit.graphical.factor_graphs.factor import Factor, AbstractNode
+from autofit.graphical.factor_graphs.jacobians import AbstractJacobian
 from autofit.graphical.utils import (
     prod,
-    FlattenArrays,
     add_arrays,
     OptResult,
     Status,
     aggregate,
-    Axis,
 )
 from autofit.mapper.prior.abstract import Prior
 from autofit.mapper.prior_model.collection import CollectionPriorModel
-from autofit.mapper.variable import Variable, Plate, VariableData
-from autofit.mapper.variable import VariableLinearOperator
+from autofit.mapper.variable import (
+    Variable,
+    Plate,
+    VariableData,
+    FactorValue,
+    VariableLinearOperator,
+)
 from autofit.mapper.variable_operator import VariableFullOperator
 from autofit.messages.abstract import AbstractMessage
 from autofit.messages.fixed import FixedMessage
@@ -388,44 +386,25 @@ class FactorApproximation(AbstractNode):
         return add_arrays(fval, log_meanfield)
 
     def func_jacobian(
+        self, values: Dict[Variable, np.ndarray]
+    ) -> Tuple[FactorValue, AbstractJacobian]:
+        raise NotImplementedError()
+
+    def func_gradient(
         self,
         values: Dict[Variable, np.ndarray],
-        variables: Optional[List[Variable]] = None,
-        _calc_deterministic: bool = True,
-        **kwargs,
-    ) -> Tuple[FactorValue, JacobianValue]:
-
-        if variables is None:
-            fixed_variables = set(
-                v for v, m in self.model_dist.items() if isinstance(m, FixedMessage)
-            )
-            variables = self.factor.variables - fixed_variables
+    ) -> Tuple[FactorValue, VariableData]:
 
         variable_dict = {**self.fixed_values, **values}
-        fval, fjac = self.factor.func_jacobian(
-            variable_dict, variables, _calc_deterministic=_calc_deterministic
-        )
+        fval, fjac = self.factor.func_jacobian(variable_dict)
+        variable_dict.update(fval.deterministic_values)
 
-        values = {**variable_dict, **fval.deterministic_values}
-        var_sizes = {v: np.size(x) for v, x in values.items()}
-        var_shapes = {v: np.shape(x) for v, x in values.items()}
-        log_cavity, grad_cavity = self.cavity_dist.logpdf_gradient(values)
+        log_cavity, grad_cavity = self.cavity_dist.logpdf_gradient(variable_dict)
 
-        logl = fval + log_cavity
+        logl = np.sum(fval) + np.sum(log_cavity)
+        grad = fjac.grad(grad_cavity)
 
-        for v in fjac:
-            fjac[v] += grad_cavity[v]
-
-        # Update gradients using jacobians of deterministic variables
-        # TODO: Should add logic to account for pullbacks for
-        #       AD frameworks e.g. Zygote.jl
-        for var, grad in fjac.items():
-            for det, jac in grad.deterministic_values.items():
-                det_grad = grad_cavity[det].ravel()
-                g = jac.reshape(var_sizes[det], var_sizes[var])
-                fjac[var] += det_grad.dot(g).reshape(var_shapes[var])
-
-        return logl, fjac
+        return logl, grad
 
     def project_mean_field(
         self,

@@ -1,6 +1,8 @@
 from abc import ABC, abstractmethod
 from itertools import count
-from typing import List, Tuple, Dict, cast, Set, Optional, Union, Collection
+from typing import List, Tuple, Dict, cast, Set, Optional, Union, Collection, Any
+
+# from autofit.graphical.factor_graphs.factor import Factor
 
 Protocol = ABC  # for python 3.7 compat
 
@@ -13,7 +15,8 @@ from autofit.mapper.variable import Variable, Plate, FactorValue, VariableData
 Value = Dict[Variable, np.ndarray]
 
 
-HessianValue = JacobianValue = VariableData
+GradientValue = VariableData
+HessianValue = Any
 
 
 class FactorInterface(Protocol):
@@ -21,8 +24,8 @@ class FactorInterface(Protocol):
         pass
 
 
-class FactorJacobianInterface(Protocol):
-    def __call__(self, values: Value) -> Tuple[FactorValue, JacobianValue]:
+class FactorGradientInterface(Protocol):
+    def __call__(self, values: Value) -> Tuple[FactorValue, GradientValue]:
         pass
 
 
@@ -301,7 +304,7 @@ class AbstractNode(ABC):
         variables: Optional[Tuple[Variable, ...]] = None,
         _eps: float = 1e-6,
         _calc_deterministic: bool = True,
-    ) -> JacobianValue:
+    ) -> "AbstractJacobian":
         return self.func_jacobian(
             values, variables, _eps=_eps, _calc_deterministic=_calc_deterministic
         )[1]
@@ -312,10 +315,14 @@ class AbstractNode(ABC):
         variables: Optional[Tuple[Variable, ...]] = None,
         _eps: float = 1e-6,
         _calc_deterministic: bool = True,
-    ) -> HessianValue:
+    ) -> "AbstractHessian":
         return self.func_jacobian_hessian(
             values, variables, _eps=_eps, _calc_deterministic=_calc_deterministic
         )[2]
+
+    def func_gradient(self, values: VariableData) -> Tuple[FactorValue, GradientValue]:
+        fval, fjac = self.func_jacobian(values)
+        return fval, fjac.grad()
 
     def flatten(self, param_shapes: FlattenArrays) -> "FlattenedNode":
         return FlattenedNode(self, param_shapes)

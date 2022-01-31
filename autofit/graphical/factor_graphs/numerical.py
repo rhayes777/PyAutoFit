@@ -3,13 +3,10 @@ from functools import partial
 
 import numpy as np
 
-from autofit.mapper.variable import Variable, VariableData
+from autofit.mapper.variable import Variable, VariableData, FactorValue
 from autofit.graphical.utils import aggregate, Axis
-from autofit.graphical.factor_graphs.abstract import (
-    FactorValue,
-    JacobianValue,
-    HessianValue,
-)
+
+HessianValue = JacobianValue = VariableData
 
 
 def numerical_func_jacobian(

@@ -8,14 +8,15 @@ from typing import Dict, Tuple, Optional, List
 import matplotlib.pyplot as plt
 
 from autofit import exc
-from autofit.graphical.factor_graphs import Factor, FactorGraph
+from autofit.graphical.factor_graphs.factor import Factor
+from autofit.graphical.factor_graphs.graph import FactorGraph
 from autofit.graphical.utils import Status
 from autofit.non_linear.paths import DirectoryPaths
-from .ep_mean_field import EPMeanField
-from .history import EPHistory
-from ...mapper.identifier import Identifier
-from ...non_linear.paths.abstract import AbstractPaths
-from ...tools.util import IntervalCounter
+from autofit.graphical.expectation_propagation.ep_mean_field import EPMeanField
+from autofit.graphical.expectation_propagation.history import EPHistory
+from autofit.mapper.identifier import Identifier
+from autofit.non_linear.paths.abstract import AbstractPaths
+from autofit.tools.util import IntervalCounter
 from autofit.graphical.mean_field import MeanField, FactorApproximation, Status
 
 logger = logging.getLogger(__name__)

@@ -5,7 +5,8 @@ import numpy as np
 
 from autoconf import cached_property
 
-from autofit.graphical.factor_graphs import Factor, FactorGraph
+from autofit.graphical.factor_graphs.factor import Factor
+from autofit.graphical.factor_graphs.graph import FactorGraph
 from autofit.graphical.mean_field import MeanField, FactorApproximation
 from autofit.graphical.utils import Status
 from autofit.mapper.variable import Variable
