@@ -73,9 +73,10 @@ def check_model_approx(model_approx, a_, b_, z_, x_, y_):
 
     cov_a = cov[:2, :]
     cov_b = cov[2, :]
+
+    # Analytic results
     mean_a = cov_a.dot(X.T.dot(y))
     mean_b = cov_b.dot(X.T.dot(y))
-
     a_std = cov_a.diagonal()[:, None] ** 0.5
     b_std = cov_b[[-1]] ** 0.5
 
