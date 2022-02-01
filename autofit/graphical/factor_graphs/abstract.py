@@ -247,6 +247,10 @@ class AbstractNode(ABC):
         return tuple(self._kwargs)
 
     @property
+    def n_args(self):
+        return len(self.args)
+
+    @property
     def name_variable_dict(self) -> Dict[str, Variable]:
         return {variable.name: variable for variable in self.variables}
 

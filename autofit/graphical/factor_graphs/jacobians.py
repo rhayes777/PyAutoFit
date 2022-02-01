@@ -109,9 +109,8 @@ class FactorJac(Factor):
         eps=1e-8,
     ):
         self.eps = eps
-        self.args = args
-        self.n_args = len(args)
-        self.arg_names = arg_names or [arg for arg in getfullargspec(factor).args]
+        self._args = args
+        self._arg_names = arg_names or [arg for arg in getfullargspec(factor).args]
         self.factor_out = factor_out
 
         kwargs = dict(zip(self.arg_names, self.args))
@@ -131,6 +130,14 @@ class FactorJac(Factor):
             numerical_jacobian=numerical_jacobian,
             jacfwd=jacfwd,
         )
+
+    @property
+    def args(self):
+        return self._args
+
+    @property
+    def arg_names(self):
+        return self._arg_names
 
     def _set_jacobians(
         self,

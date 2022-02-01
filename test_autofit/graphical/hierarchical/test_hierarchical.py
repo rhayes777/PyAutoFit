@@ -7,35 +7,36 @@ from autofit.mapper.variable import Variable
 from autofit.messages.normal import NormalMessage
 
 
-def normal_loglike(x, centre, precision, _variables=None):
+def normal_loglike(x, centre, precision):
+    diff = np.asanyarray(x) - centre
+    se = np.square(diff)
+    return np.sum(-precision * se - np.log(2 * np.pi) + np.log(precision)) / 2
+
+
+def normal_loglike_jacobian(x, centre, precision):
     diff = np.asanyarray(x) - centre
     se = np.square(diff)
     loglike = np.sum(-precision * se - np.log(2 * np.pi) + np.log(precision)) / 2
-    if _variables is not None:
-        grad = ()
-        for v in _variables:
-            if v == "x":
-                grad += (-precision * diff,)
-            elif v == "centre":
-                grad += (np.sum(precision * diff),)
-            elif v == "precision":
-                grad += (np.sum(1 / precision - se) / 2,)
+    jac_x = -precision * diff
+    jac_c = np.sum(precision * diff)
+    jac_p = np.sum(1 / precision - se) / 2
 
-        return loglike, grad
-    return loglike
+    return loglike, (jac_x, jac_c, jac_p)
 
 
-def normal_loglike_t(x, centre, precision, _variables=None):
+def normal_loglike_t(x, centre, precision):
     # Make log transform of precision so that optimisation is unbounded
     _precision = np.exp(precision)
-    val = normal_loglike(x, centre, _precision, _variables=_variables)
-    if _variables is not None:
-        loglike, grad = val
-        grad = tuple(
-            g * _precision if v == "precision" else g for v, g in zip(_variables, grad)
-        )
-        return loglike, grad
-    return val
+    return normal_loglike(x, centre, _precision)
+
+
+def normal_loglike_t_jacobian(x, centre, precision):
+    # Make log transform of precision so that optimisation is unbounded
+    _precision = np.exp(precision)
+    val, jac = normal_loglike_jacobian(x, centre, _precision)
+    jac_x, jac_c, jac_p = jac
+    jac_p *= _precision
+    return val, (jac_x, jac_c, jac_p)
 
 
 n = 10
@@ -69,7 +70,13 @@ def make_model_approx(centres, widths):
         NormalMessage(c, w).as_factor(x) for c, w, x in zip(centres, widths, centres_)
     ]
     normal_likelihoods = [
-        g.FactorJacobian(normal_loglike_t, x=centre, centre=mu_, precision=logt_)
+        g.FactorJac(
+            normal_loglike_t,
+            centre,
+            mu_,
+            logt_,
+            factor_jacobian=normal_loglike_t_jacobian,
+        )
         for centre in centres_
     ]
 
