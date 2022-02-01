@@ -3,7 +3,7 @@ import pytest
 from scipy import integrate, stats
 
 import autofit.messages.normal
-from autofit import graphical as mp
+from autofit import graphical as graph
 from autofit.mapper.variable import Variable
 
 
@@ -34,14 +34,14 @@ def test_integration(q_cavity, probit_factor):
 
 
 def test_laplace_method(probit_factor, q_cavity, x):
-    probit_approx = mp.FactorApproximation(
+    probit_approx = graph.FactorApproximation(
         factor=probit_factor,
         cavity_dist={x: q_cavity},
         factor_dist={},
-        model_dist=mp.MeanField({x: q_cavity}),
+        model_dist=graph.MeanField({x: q_cavity}),
     )
 
-    opt_probit = mp.OptFactor.from_approx(probit_approx)
+    opt_probit = graph.OptFactor.from_approx(probit_approx)
     result = opt_probit.maximise({x: 0.0})
 
     q_probit_laplace = autofit.messages.normal.NormalMessage.from_mode(

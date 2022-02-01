@@ -3,7 +3,7 @@ import pytest
 from scipy import stats
 
 import autofit.mapper.variable
-from autofit import graphical as mp
+from autofit import graphical as graph
 
 
 @pytest.fixture(name="norm")
@@ -29,46 +29,8 @@ def make_prior(prior_norm):
     return prior
 
 
-# def linear(x, a, b):
-#     return np.matmul(x, a) + np.expand_dims(b, -2)
-
-
 def linear(x, a, b):
     return x.dot(a) + b
-    # return np.matmul(x, a) + np.expand_dims(b, -2)
-
-
-# def linear_jacobian(x, a, b, _variables=("x", "a", "b")):
-#     z = np.matmul(x, a) + np.expand_dims(b, -2)
-
-#     if _variables is None:
-#         return z
-#     else:
-#         (n, m) = z.shape
-#         d = np.shape(x)[1]
-#         inds = None
-#         jacs = ()
-#         for v in _variables:
-#             if v == "x":
-#                 if inds is None:
-#                     i, j, k = inds = np.indices((n, m, d))
-
-#                 jac_x = np.zeros((n, m, n, d))
-#                 jac_x[i, j, i, k] = a[k, j]
-#                 jacs += (jac_x,)
-
-#             if v == "a":
-#                 if inds is None:
-#                     i, j, k = inds = np.indices((n, m, d))
-
-#                 jac_a = np.zeros((n, m, d, m))
-#                 jac_a[i, j, k, j] = x[i, k]
-#                 jacs += (jac_a,)
-
-#             if v == "b":
-#                 jacs += (np.repeat(np.eye(m)[None, ...], n, axis=0),)
-
-#         return z, jacs
 
 
 def linear_jacobian(x, a, b):
@@ -130,24 +92,26 @@ def make_y_(obs, dims):
 
 @pytest.fixture(name="linear_factor")
 def make_linear_factor(x_, a_, b_, z_):
-    return mp.Factor(linear, x=x_, a=a_, b=b_, plates=z_.plates) == z_
+    return graph.FactorJac(linear, x_, a_, b_, factor_out=z_)
 
 
 @pytest.fixture(name="linear_factor_jac")
 def make_linear_factor_jac(x_, a_, b_, z_):
-    return mp.FactorJacobian(linear_jacobian, x=x_, a=a_, b=b_, plates=z_.plates) == z_
+    return graph.FactorJac(
+        linear, x_, a_, b_, func_jacobian=linear_jacobian, factor_out=z_
+    )
 
 
 @pytest.fixture(name="prior_a")
 def make_prior_a(prior, a_):
-    return mp.Factor(prior, x=a_, plates=a_.plates)
+    return graph.FactorJac(prior, a_, plates=a_.plates)
 
 
 @pytest.fixture(name="prior_b")
 def make_prior_b(prior, b_):
-    return mp.Factor(prior, x=b_, plates=b_.plates)
+    return graph.FactorJac(prior, b_, plates=b_.plates)
 
 
 @pytest.fixture(name="likelihood_factor")
 def make_likelihood_factor(likelihood, z_, y_):
-    return mp.Factor(likelihood, z=z_, y=y_, plates=z_.plates)
+    return graph.FactorJac(likelihood, z_, y_, plates=z_.plates)

@@ -42,12 +42,6 @@ class Plate:
         return self.id > other.id
 
 
-def variables(*vals):
-    for val in vals:
-        for v in val.split(","):
-            yield Variable(v.strip())
-
-
 class Variable(ModelObject):
     # __slots__ = ("name", "plates")
 
@@ -86,6 +80,18 @@ class Variable(ModelObject):
         How many dimensions does this variable have?
         """
         return len(self.plates)
+
+
+def variables(*vals):
+    """Helper function for making multiple variable objects
+
+    Example
+    -------
+    x_, a_, b_, y_, z_ = variables("x, a, b", "y, z")
+    """
+    for val in vals:
+        for v in val.split(","):
+            yield Variable(v.strip())
 
 
 # This allows us to treat the class FactorValue as a variable

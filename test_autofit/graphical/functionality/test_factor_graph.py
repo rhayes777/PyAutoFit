@@ -5,7 +5,7 @@ from scipy.optimize import approx_fprime
 import autofit.mapper.variable
 from autofit.messages.normal import NormalMessage
 from autofit.mapper.variable import Variable, Plate
-from autofit import graphical as mp
+from autofit import graphical as graph
 
 
 def log_sigmoid(x):
@@ -32,17 +32,17 @@ def make_y():
 
 @pytest.fixture(name="sigmoid")
 def make_sigmoid(x):
-    return mp.Factor(log_sigmoid, x=x)
+    return graph.Factor(log_sigmoid, x=x)
 
 
 @pytest.fixture(name="vectorised_sigmoid")
 def make_vectorised_sigmoid(x):
-    return mp.Factor(log_sigmoid, vectorised=True, x=x)
+    return graph.Factor(log_sigmoid, vectorised=True, x=x)
 
 
 @pytest.fixture(name="phi")
 def make_phi(x):
-    return mp.Factor(log_phi, x=x)
+    return graph.Factor(log_phi, x=x)
 
 
 @pytest.fixture(name="compound")
@@ -52,13 +52,13 @@ def make_compound(sigmoid, phi):
 
 @pytest.fixture(name="plus")
 def make_plus(x):
-    return mp.Factor(plus_two, x=x)
+    return graph.Factor(plus_two, x=x)
 
 
 @pytest.fixture(name="flat_compound")
 def make_flat_compound(plus, y, sigmoid):
     g = plus == y
-    phi = mp.Factor(log_phi, x=y)
+    phi = graph.Factor(log_phi, x=y)
     return phi * g * sigmoid
 
 
@@ -117,7 +117,7 @@ class TestFactorGraph:
 
     @pytest.mark.parametrize("coefficient", [1, 2, 3, 4, 5])
     def test_jacobian(self, x, coefficient):
-        factor = mp.Factor(lambda p: coefficient * p, p=x)
+        factor = graph.Factor(lambda p: coefficient * p, p=x)
 
         assert (
             factor.jacobian(

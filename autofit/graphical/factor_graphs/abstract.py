@@ -10,7 +10,13 @@ import numpy as np
 
 from autoconf import cached_property
 from autofit.graphical.utils import FlattenArrays, Axis
-from autofit.mapper.variable import Variable, Plate, FactorValue, VariableData
+from autofit.mapper.variable import (
+    Variable,
+    Plate,
+    FactorValue,
+    VariableData,
+    variables,
+)
 
 Value = Dict[Variable, np.ndarray]
 

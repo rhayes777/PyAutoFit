@@ -227,6 +227,7 @@ class FactorJac(Factor):
         *args: Variable,
         name="",
         factor_out=FactorValue,
+        plates: Tuple[Plate, ...] = (),
         vjp=False,
         factor_vjp=None,
         factor_jacobian=None,
@@ -243,7 +244,7 @@ class FactorJac(Factor):
 
         kwargs = dict(zip(self.arg_names, self.args))
         name = name or factor.__name__
-        AbstractFactor.__init__(self, **kwargs, name=name)
+        AbstractFactor.__init__(self, **kwargs, name=name, plates=plates)
 
         det_variables = set(v[0] for v in nested_filter(_is_variable, factor_out))
         det_variables.discard(FactorValue)

@@ -30,6 +30,32 @@ from autofit.mapper.variable_operator import (
 from autofit.graphical.utils import FlattenArrays
 
 
+class FlattenedState:
+    def __init__(self, state, param_shapes):
+        self.state = (state,)
+        self.param_shapes = param_shapes
+
+    @classmethod
+    def from_state(cls, state):
+        param_shapes = FlattenArrays.from_arrays(state.parameters)
+        return cls(state, param_shapes)
+
+    def make_state(self, x):
+        return self.state.update(parameters=self.param_shapes.flatten(x))
+
+    def __call__(self, x):
+        new_state = self.make_state(x)
+        return new_state.value
+
+    def func_gradient(self, x):
+        new_state = self.make_state(x)
+        return new_state.value_gradient
+
+    @property
+    def parameters(self):
+        return self.param_shapes.flatten(self.state.parameters)
+
+
 class OptimisationState:
     def __init__(
         self,
@@ -83,10 +109,16 @@ class OptimisationState:
 
     @cached_property
     def gradient(self):
-        self.g_count += 1
-        self.value, grad = self.factor_gradient(self.parameters, *self.args)
-        return grad
+        return self.value_gradient[1]
         # return VariableData((v, grad[v]) for v in self.parameters)
+
+    @cached_property
+    def value_gradient(self):
+        self.g_count += 1
+        self.value, self.gradient = val = self.factor_gradient(
+            self.parameters, *self.args
+        )
+        return val
 
     def to_dict(self):
         # don't return value, gradient or search direction as may change
@@ -179,27 +211,7 @@ class OptimisationState:
             diagonal.update(self.det_hessian.diagonal())
         return diagonal
 
-
-class FlattenedState:
-    def __init__(self, state, param_shapes):
-        self.state = (state,)
-        self.param_shapes = param_shapes
-
-    @classmethod
-    def from_state(cls, state):
-        param_shapes = FlattenArrays.from_arrays(state.parameters)
-        return cls(state, param_shapes)
-
-    def make_state(self, x):
-        return self.state.update(parameters=self.param_shapes.flatten(x))
-
-    def __call__(self, x):
-        new_state = self.make_state(x)
-        return new_state.value
-
-    def func_gradient(self, x):
-        new_state = self.make_state(x)
-        gradient, value = new_state.gradient, new_state.value
+    flatten = FlattenedState.from_state
 
 
 def line_search_wolfe1(

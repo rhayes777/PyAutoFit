@@ -4,13 +4,12 @@ import pytest
 from autofit import graphical as graph
 from autofit.graphical import (
     EPMeanField,
-    optimise,
     LaplaceFactorOptimiser,
+    FactorJac,
     EPOptimiser,
     utils,
 )
-from autofit.messages.fixed import FixedMessage
-from autofit.messages.normal import NormalMessage
+from autofit.messages import FixedMessage, NormalMessage
 
 
 @pytest.fixture(name="likelihood")
@@ -107,44 +106,16 @@ def test_jacobian(
 
     values = {x_: x, a_: a, b_: b}
 
+    g0 = {z_: np.random.rand(n, m)}
     fval0, fjac0 = linear_factor.func_jacobian(values)
     fval1, fjac1 = linear_factor_jac.func_jacobian(values)
 
-    assert np.allclose(fval0, fval1)
-    det0, det1 = fval0.deterministic_values, fval1.deterministic_values
-    for d in det0:
-        assert np.allclose(det0[d], det1[d]), f"d={d}"
+    fgrad0 = fjac0.grad(g0)
+    fgrad1 = fjac1.grad(g0)
 
-    for v in values:
-        assert np.allclose(fjac0[v], fjac1[v]), f"v={v}"
-
-    for v in values:
-        for d in linear_factor.deterministic_variables:
-            assert np.allclose(fjac0[v][d], fjac1[v][d]), f"d={d}, v={v}"
-
-    # testing selective jacobian return
-    fval0, fjac0 = linear_factor.func_jacobian(values, variables=(a_,))
-    fval1, fjac1 = linear_factor_jac.func_jacobian(values, variables=(a_,))
-
-    # a gradient should only be returned
-    assert len(fjac0.keys() - (a_,)) == 0
-    assert len(fjac1.keys() - (a_,)) == 0
-
-    # (z, a) jacobian should only be returned
-    assert len(fjac0[a_].keys() - (z_,)) == 0
-    assert len(fjac1[a_].keys() - (z_,)) == 0
-
-    assert np.allclose(fval0, fval1)
-    det0, det1 = fval0.deterministic_values, fval1.deterministic_values
-    for d in det0:
-        assert np.allclose(det0[d], det1[d]), f"d={d}"
-
-    for v in fjac0.keys():
-        assert np.allclose(fjac0[v], fjac1[v]), f"v={v}"
-
-    for v in fjac0.keys():
-        for d in linear_factor.deterministic_variables:
-            assert np.allclose(fjac0[v][d], fjac1[v][d]), f"d={d}, v={v}"
+    assert fval0 == fval1
+    assert (fgrad0 - fgrad1).norm() < 1e-6
+    assert (fval0.deterministic_values - fval1.deterministic_values).norm() == 0
 
 
 def test_laplace_old(model_approx, a_, b_):

@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from autofit import graphical as mp
+from autofit import graphical as graph
 from autofit.messages import abstract
 from autofit.messages.fixed import FixedMessage
 from autofit.messages.normal import NormalMessage
@@ -30,7 +30,7 @@ def likelihood_jacobian(z, y, _variables=None):
 
 @pytest.fixture(name="likelihood_factor_jac")
 def make_likelihood_factor_jac(z_, y_, obs, dims):
-    factor = mp.FactorJacobian(likelihood_jacobian, z=z_, y=y_, plates=(obs, dims))
+    factor = graph.FactorJacobian(likelihood_jacobian, z=z_, y=y_, plates=(obs, dims))
     return factor
 
 
@@ -61,7 +61,7 @@ def make_model_approx(
 
     y = np.random.binomial(1, p)
 
-    return mp.EPMeanField.from_approx_dists(
+    return graph.EPMeanField.from_approx_dists(
         model,
         {
             a_: NormalMessage.from_mode(np.zeros((n_features, n_dims)), 10),
@@ -76,7 +76,7 @@ def make_model_approx(
 def test_jacobians(model_approx):
     for factor in model_approx.factor_graph.factors:
         factor_approx = model_approx.factor_approximation(factor)
-        opt = mp.optimise.OptFactor.from_approx(factor_approx)
+        opt = graph.optimise.OptFactor.from_approx(factor_approx)
         assert opt.numerically_verify_jacobian(10, rtol=1e-2, atol=1e-2), factor
 
 
@@ -85,8 +85,8 @@ def test_laplace(
     y_,
     z_,
 ):
-    laplace = mp.LaplaceFactorOptimiser(default_opt_kws={"jac": True})
-    opt = mp.EPOptimiser(model_approx.factor_graph, default_optimiser=laplace)
+    laplace = graph.LaplaceFactorOptimiser(default_opt_kws={"jac": True})
+    opt = graph.EPOptimiser(model_approx.factor_graph, default_optimiser=laplace)
     new_approx = opt.run(model_approx)
 
     y = new_approx.mean_field[y_].mean

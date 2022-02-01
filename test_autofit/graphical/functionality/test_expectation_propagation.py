@@ -3,14 +3,14 @@ import pytest
 from scipy import stats
 
 import autofit.messages.normal
-from autofit import graphical as mp
+from autofit import graphical as graph
 from autofit.messages import abstract
 from autofit.messages.normal import NormalMessage
 
 
 @pytest.fixture(name="normal_factor")
 def make_normal_factor(x):
-    return mp.Factor(stats.norm(loc=-0.5, scale=0.5).logpdf, x=x)
+    return graph.Factor(stats.norm(loc=-0.5, scale=0.5).logpdf, x=x)
 
 
 @pytest.fixture(name="model")
@@ -25,7 +25,7 @@ def make_message():
 
 @pytest.fixture(name="model_approx")
 def make_model_approx(model, x, message):
-    return mp.EPMeanField.from_kws(model, {x: message})
+    return graph.EPMeanField.from_kws(model, {x: message})
 
 
 @pytest.fixture(name="probit_approx")
@@ -34,14 +34,14 @@ def make_probit_approx(probit_factor, model_approx):
 
 
 def test_approximations(probit_approx, model_approx, x, message):
-    opt_probit = mp.OptFactor.from_approx(probit_approx)
+    opt_probit = graph.OptFactor.from_approx(probit_approx)
     result = opt_probit.maximise({x: 0.0})
 
     probit_model = autofit.messages.normal.NormalMessage.from_mode(
         result.mode[x], covariance=result.hess_inv[x], id_=message.id
     )
 
-    probit_model_dist = mp.MeanField({x: probit_model})
+    probit_model_dist = graph.MeanField({x: probit_model})
 
     # get updated factor approximation
     probit_project, status = probit_approx.project(probit_model_dist, delta=1.0)
