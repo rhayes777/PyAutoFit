@@ -13,6 +13,7 @@ from .factor_graphs import (
     Factor,
     FactorValue,
     FactorJac,
+    FactorGraph,
 )
 from .mean_field import FactorApproximation, MeanField
 from .laplace import LaplaceOptimiser, OptimisationState

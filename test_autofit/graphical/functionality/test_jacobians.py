@@ -1,5 +1,7 @@
 from itertools import combinations
 
+import pytest
+
 import numpy as np
 
 try:
@@ -74,7 +76,7 @@ def test_jacobian_equiv():
     values = {x_: x, a_: a, b_: b, c_: c}
     outputs = [factor.func_jacobian(values) for factor in factors]
 
-    tol = 1e-4
+    tol = pytest.approx(0, abs=1e-4)
     pairs = combinations(outputs, 2)
     g0 = FactorValue(1.0, {z_: np.ones((5, 1))})
     for (val1, jac1), (val2, jac2) in pairs:
@@ -82,17 +84,17 @@ def test_jacobian_equiv():
 
         # test with different ways of calculating gradients
         grad1, grad2 = jac1.grad(g0), jac2.grad(g0)
-        assert (grad1 - grad2).norm() < tol
+        assert (grad1 - grad2).norm() == tol
         grad1 = g0.to_dict() * jac1
-        assert (grad1 - grad2).norm() < tol
+        assert (grad1 - grad2).norm() == tol
         grad2 = g0.to_dict() * jac2
-        assert (grad1 - grad2).norm() < tol
+        assert (grad1 - grad2).norm() == tol
 
         grad1, grad2 = jac1.grad(val1), jac2.grad(val2)
-        assert (grad1 - grad2).norm() < tol
+        assert (grad1 - grad2).norm() == tol
 
         # test getting gradient with no args
-        assert (jac1.grad() - jac2.grad()).norm() < tol
+        assert (jac1.grad() - jac2.grad()).norm() == tol
 
 
 def test_jac_model():
@@ -143,16 +145,11 @@ def test_jac_model():
     combined_val = like_val + linear_val
 
     # Manually back propagate
-    combined_grads = {}
-    for v, g in like_jac.grad(combined_grads).items():
-        combined_grads[v] = g + combined_grads.get(v, 0)
-
-    for v, g in linear_jac.grad(combined_grads).items():
-        combined_grads[v] = g + combined_grads.get(v, 0)
+    combined_grads = linear_jac.grad(like_jac.grad())
 
     vals = (fval, model_val, combined_val)
     grads = (grad, model_grad, combined_grads)
     pairs = combinations(zip(vals, grads), 2)
     for (val1, grad1), (val2, grad2) in pairs:
         assert val1 == val2
-        assert (grad1 - grad2).norm() == 0
+        assert (grad1 - grad2).norm() == pytest.approx(0, 1e-6)

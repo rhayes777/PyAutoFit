@@ -72,10 +72,11 @@ def test_factor_jacobian():
 
     values = {z_: likelihood.sample()}
     fval, jval = likelihood_factor.func_jacobian(values)
+    grad = jval.grad()
     ngrad = approx_fprime(
         values[z_].ravel(), lambda x: likelihood.logpdf(x.reshape(*shape)).sum(), 1e-8
     ).reshape(*shape)
-    assert np.allclose(ngrad, jval[z_])
+    assert np.allclose(ngrad, grad[z_])
 
 
 class TestFactorGraph:

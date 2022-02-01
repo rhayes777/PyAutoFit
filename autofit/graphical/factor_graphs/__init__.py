@@ -5,7 +5,7 @@ from .abstract import (
     FactorValue,
     AbstractNode,
     Variable,
-    variables, 
+    variables,
     VariableData,
     Plate,
 )

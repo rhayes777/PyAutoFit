@@ -432,21 +432,15 @@ class AbstractMessage(Prior, ABC):
             )
         return mean, variance
 
-    def __call__(
+    def factor_jacobian(
         self, x: np.ndarray, _variables: Optional[Tuple[str]] = ("x",)
     ) -> Union[np.ndarray, Tuple[np.ndarray, Tuple[np.ndarray, ...]]]:
-        if _variables is None:
-            return self.logpdf(x)
-        else:
-            if "x" in _variables:
-                loglike, g = self.logpdf_gradient(x)
-                g = np.expand_dims(g, list(range(loglike.ndim)))
-                return loglike, (g,)
-            else:
-                return self.logpdf(x), ()
+        loglike, g = self.logpdf_gradient(x)
+        g = np.expand_dims(g, list(range(loglike.ndim)))
+        return loglike.sum(), (g,)
 
     def as_factor(self, variable: "Variable", name: Optional[str] = None):
-        from autofit.graphical.jacobian import FactorJacobian
+        from autofit.graphical.factor_graphs.jacobians import FactorJac
 
         if name is None:
             shape = self.shape
@@ -454,8 +448,13 @@ class AbstractMessage(Prior, ABC):
             family = clsname[:-7] if clsname.endswith("Message") else clsname
             name = f"{family}Likelihood" + (str(shape) if shape else "")
 
-        return FactorJacobian(
-            self, x=variable, name=name, plates=variable.plates, vectorised=True
+        return FactorJac(
+            self.logpdf,
+            variable,
+            name=name,
+            factor_jacobian=self.factor_jacobian,
+            plates=variable.plates,
+            arg_names=["x"],
         )
 
     @classmethod

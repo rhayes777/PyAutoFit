@@ -226,6 +226,7 @@ class FactorJac(Factor):
         factor,
         *args: Variable,
         name="",
+        arg_names=None,
         factor_out=FactorValue,
         plates: Tuple[Plate, ...] = (),
         vjp=False,
@@ -239,7 +240,7 @@ class FactorJac(Factor):
         self.eps = eps
         self.args = args
         self.n_args = len(args)
-        self.arg_names = [arg for arg in getfullargspec(factor).args]
+        self.arg_names = arg_names or [arg for arg in getfullargspec(factor).args]
         self.factor_out = factor_out
 
         kwargs = dict(zip(self.arg_names, self.args))

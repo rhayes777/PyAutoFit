@@ -34,14 +34,8 @@ def make_probit_approx(probit_factor, model_approx):
 
 
 def test_approximations(probit_approx, model_approx, x, message):
-    opt_probit = graph.OptFactor.from_approx(probit_approx)
-    result = opt_probit.maximise({x: 0.0})
-
-    probit_model = autofit.messages.normal.NormalMessage.from_mode(
-        result.mode[x], covariance=result.hess_inv[x], id_=message.id
-    )
-
-    probit_model_dist = graph.MeanField({x: probit_model})
+    opt = graph.LaplaceOptimiser()
+    probit_model_dist, status = opt.optimise_approx(probit_approx)
 
     # get updated factor approximation
     probit_project, status = probit_approx.project(probit_model_dist, delta=1.0)
