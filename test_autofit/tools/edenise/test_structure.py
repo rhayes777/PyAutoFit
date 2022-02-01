@@ -63,7 +63,7 @@ def test_file(package):
     assert len(file.project_imports) == 1
 
 
-def test_generate_target_directories(
+def _test_generate_target_directories(
         output_path
 ):
     assert output_path.exists()

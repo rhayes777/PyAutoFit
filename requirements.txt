@@ -5,6 +5,7 @@ dynesty==1.0.1
 typing-inspect>=0.4.0
 emcee>=3.0.2
 gprof2dot==2021.2.21
+matplotlib
 numpydoc>=1.0.0
 pyprojroot==0.2.0
 pyswarms==1.1.0

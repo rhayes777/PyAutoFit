@@ -151,16 +151,17 @@ class AbstractPySwarms(AbstractOptimizer):
 
         ## TODO : Use actual limits
 
-        vector_lower = model.vector_from_unit_vector(unit_vector=[1e-6] * model.prior_count)
-        vector_upper = model.vector_from_unit_vector(unit_vector=[0.9999999] * model.prior_count)
+        vector_lower = model.vector_from_unit_vector(
+            unit_vector=[1e-6] * model.prior_count,
+            ignore_prior_limits=True
+        )
+        vector_upper = model.vector_from_unit_vector(
+            unit_vector=[0.9999999] * model.prior_count,
+            ignore_prior_limits=True
+        )
 
-        lower_bounds = []
-        upper_bounds = []
-
-        for lower in vector_lower:
-            lower_bounds.append(lower)
-        for upper in vector_upper:
-            upper_bounds.append(upper)
+        lower_bounds = [lower for lower in vector_lower]
+        upper_bounds = [upper for upper in vector_upper]
 
         bounds = (np.asarray(lower_bounds), np.asarray(upper_bounds))
 

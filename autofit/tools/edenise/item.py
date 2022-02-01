@@ -74,6 +74,25 @@ class Item(ABC):
             return self
         return self.parent.top_level
 
+    def first_ancestor_with_type(self, item_type):
+        """
+        The first ancestor with a given type.
+
+        e.g. the file containing a line or import
+        """
+        if self.parent is None:
+            raise AttributeError(
+                f"No ancestor found with type {item_type}"
+            )
+        if isinstance(
+                self.parent,
+                item_type
+        ):
+            return self.parent
+        return self.first_ancestor_with_type(
+            item_type
+        )
+
     @property
     def path(self) -> Path:
         """

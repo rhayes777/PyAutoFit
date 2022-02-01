@@ -258,6 +258,11 @@ class EPOptimiser:
                 continue
             break  # stop iterations
 
+        self.visualiser()
+        self._output_results(
+            model_approx
+        )
+
         return model_approx
 
     def _output_results(self, model_approx: EPMeanField):

@@ -1,6 +1,6 @@
 import ast
 from copy import copy
-from typing import Optional
+from typing import Optional, List
 
 from astunparse import unparse
 
@@ -28,9 +28,26 @@ class LineItem(Item):
             The file containing the line
         """
         self.ast_item = ast_item
+
         super().__init__(
             parent=parent
         )
+
+    @property
+    def children(self) -> List["LineItem"]:
+        if hasattr(
+                self.ast_item,
+                "body"
+        ):
+            return [
+                LineItem(
+                    item,
+                    parent=self.parent
+                )
+                for item
+                in self.ast_item.body
+            ]
+        return []
 
     def converted(self) -> ast.stmt:
         """
@@ -74,6 +91,14 @@ class LineItem(Item):
             return obj
 
         strip_ids(converted)
+
+        if len(self.children) > 0:
+            converted.body = [
+                child.converted()
+                for child
+                in self.children
+            ]
+
         return converted
 
     @staticmethod
