@@ -1,4 +1,6 @@
 from typing import Optional, Dict, Tuple, Any, Callable
+import warnings
+import logging
 
 import numpy as np
 
@@ -18,6 +20,10 @@ def gradient_ascent(state: OptimisationState) -> VariableData:
 def newton_direction(state: OptimisationState) -> VariableData:
     return state.hessian.ldiv(state.gradient)
 
+
+logger = logging.getLogger(__name__)
+
+_log_projection_warnings = logger.debug
 
 ## Quasi-newton approximations
 
@@ -294,6 +300,7 @@ def optimise_quasi_newton(
 ) -> Tuple[OptimisationState, Status]:
 
     success = True
+    messages = ()
     message = "max iterations reached"
     stepsize = 0.0
     for i in range(max_iter):
@@ -304,16 +311,23 @@ def optimise_quasi_newton(
             success, message = stop
             break
 
-        stepsize, state1 = take_quasi_newton_step(
-            state,
-            old_state,
-            search_direction=search_direction,
-            calc_line_search=calc_line_search,
-            quasi_newton_update=quasi_newton_update,
-            search_direction_kws=search_direction_kws,
-            line_search_kws=line_search_kws,
-            quasi_newton_kws=quasi_newton_kws,
-        )
+        with warnings.catch_warnings(record=True) as caught_warnings:
+            stepsize, state1 = take_quasi_newton_step(
+                state,
+                old_state,
+                search_direction=search_direction,
+                calc_line_search=calc_line_search,
+                quasi_newton_update=quasi_newton_update,
+                search_direction_kws=search_direction_kws,
+                line_search_kws=line_search_kws,
+                quasi_newton_kws=quasi_newton_kws,
+            )
+
+        for warn in caught_warnings:
+            warn_message = "%s:%d: %s" % (warn.filename, warn.lineno, warn.message)
+            messages += ("optimise_quasi_newton warning: " + warn_message,)
+            _log_projection_warnings(warn_message)
+
         if stepsize is None:
             success = False
             message = "Line search failed"
@@ -325,5 +339,6 @@ def optimise_quasi_newton(
             callback(state, old_state)
 
     message += f", iter={i}"
-    status = Status(success, messages=(message,), flag=StatusFlag.get_flag(success, i))
+    messages += (message,)
+    status = Status(success, messages=messages, flag=StatusFlag.get_flag(success, i))
     return state, status

@@ -387,7 +387,7 @@ class FactorApproximation(AbstractNode):
         variable_dict = {**self.fixed_values, **values}
         fval = self.factor(variable_dict)
         log_meanfield = self.cavity_dist({**variable_dict, **fval.deterministic_values})
-        return add_arrays(fval, log_meanfield)
+        return np.sum(fval) + np.sum(log_meanfield)
 
     def func_jacobian(
         self, values: Dict[Variable, np.ndarray]

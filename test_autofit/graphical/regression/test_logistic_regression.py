@@ -79,7 +79,7 @@ def test_laplace(
     model_approx = graph.EPMeanField.from_approx_dists(model, start_approx)
     laplace = graph.LaplaceOptimiser()
     opt = graph.EPOptimiser(model_approx.factor_graph, default_optimiser=laplace)
-    new_approx = opt.run(model_approx)
+    new_approx = opt.run(model_approx, max_steps=10)
 
     y = new_approx.mean_field[y_].mean
     z_pred = new_approx(new_approx.mean_field.mean)[z_]
@@ -90,4 +90,4 @@ def test_laplace(
     )
 
     accuracy = (tpr + tnr) / (tpr + fpr + fnr + tnr)
-    assert 0.95 > accuracy > 0.7
+    assert 0.95 > accuracy > 0.75

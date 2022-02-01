@@ -432,7 +432,8 @@ class AbstractMessage(Prior, ABC):
             )
         return mean, variance
 
-    __call__ = logpdf
+    def __call__(self, x):
+        return np.sum(self.logpdf(x))
 
     def factor_jacobian(
         self, x: np.ndarray, _variables: Optional[Tuple[str]] = ("x",)
