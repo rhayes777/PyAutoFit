@@ -2,6 +2,7 @@ import logging
 from functools import reduce
 from collections import ChainMap
 from typing import Dict, Tuple, Optional, List, Union, Iterable
+import warnings
 
 import numpy as np
 from autoconf import cached_property
@@ -10,6 +11,7 @@ from autofit import exc
 from autofit.graphical.factor_graphs.factor import Factor, AbstractNode
 from autofit.graphical.factor_graphs.jacobians import AbstractJacobian
 from autofit.graphical.utils import (
+    StatusFlag,
     prod,
     add_arrays,
     OptResult,
@@ -415,18 +417,26 @@ class FactorApproximation(AbstractNode):
         success, messages, flag = Status() if status is None else status
 
         try:
-            factor_dist = model_dist / self.cavity_dist
-            if delta < 1:
-                log_norm = factor_dist.log_norm
-                factor_dist = factor_dist ** delta * self.factor_dist ** (1 - delta)
-                factor_dist.log_norm = (
-                    delta * log_norm + (1 - delta) * self.factor_dist.log_norm
-                )
+            with warnings.catch_warnings(record=True) as caught_warnings:
+                factor_dist = model_dist / self.cavity_dist
+                if delta < 1:
+                    log_norm = factor_dist.log_norm
+                    factor_dist = factor_dist ** delta * self.factor_dist ** (1 - delta)
+                    factor_dist.log_norm = (
+                        delta * log_norm + (1 - delta) * self.factor_dist.log_norm
+                    )
+
+            for warn in caught_warnings:
+                message = "%s:%d: %s" % (warn.filename, warn.lineno, warn.message)
+                messages += ("project_mean_field warning: " + message,)
+                logger.warning(message)
 
             if not factor_dist.is_valid:
                 success = False
                 messages += (f"model projection for {self} is invalid",)
                 factor_dist = factor_dist.update_invalid(self.factor_dist)
+                flag = StatusFlag.BAD_PROJECTION
+
         except exc.MessageException as e:
             logger.exception(e)
             factor_dist = self.factor_dist
@@ -437,7 +447,7 @@ class FactorApproximation(AbstractNode):
             factor_dist=factor_dist,
             model_dist=model_dist,
         )
-        return new_approx, Status(success, messages)
+        return new_approx, Status(success, messages, flag)
 
     project = project_mean_field
 

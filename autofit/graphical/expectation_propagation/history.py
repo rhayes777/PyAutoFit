@@ -1,5 +1,6 @@
 import logging
 from functools import wraps
+from itertools import repeat
 from typing import Tuple, Callable, List, Union, Optional
 
 import numpy as np
@@ -249,3 +250,13 @@ class EPHistory:
         if self.evidence_tol and self.is_kl_evidence_converged(factor):
             return True
         return False
+
+    def full_history(self, factor_order=None):
+        factor_order = factor_order or self.history.keys()
+        return [
+            (f, approx, stat)
+            for iteration in zip(
+                *(zip(repeat(f), self.history[f].history) for f in factor_order)
+            )
+            for f, (approx, stat) in iteration
+        ]

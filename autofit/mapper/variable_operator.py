@@ -289,6 +289,9 @@ class VariableFullOperator(VariableLinearOperator):
         self.operator = op
         self.param_shapes = param_shapes
 
+    def inv(self):
+        return type(self)(self.operator.inv(), self.param_shapes)
+
     @property
     def is_diagonal(self):
         return self.operator.is_diagonal

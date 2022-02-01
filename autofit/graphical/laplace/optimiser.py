@@ -25,7 +25,7 @@ class LaplaceOptimiser(AbstractFactorOptimiser):
         stop_conditions=newton.stop_conditions,
         make_det_hessian=None,
         max_iter: int = 100,
-        n_refine: int = 1,
+        n_refine: int = 3,
         hessian_kws: Optional[Dict[str, Any]] = None,
         det_hessian_kws: Optional[Dict[str, Any]] = None,
         search_direction_kws: Optional[Dict[str, Any]] = None,
@@ -116,15 +116,16 @@ class LaplaceOptimiser(AbstractFactorOptimiser):
         mean_field = mean_field or factor_approx.model_dist
         state = self.prepare_state(factor_approx, mean_field, params)
         next_state, status = self.optimise_state(state, **kwargs)
-        if status.flag != StatusFlag.SUCCESS:
-            next_state = self.refine(
-                state, mean_field.sample, n_refine=kwargs.get("n_refine")
-            )
+        # if status.flag != StatusFlag.SUCCESS:
+        next_state = max(state, next_state, key=lambda x: x.value)
+        next_state = self.refine_state(
+            next_state, mean_field.sample, n_refine=kwargs.get("n_refine")
+        )
 
         projection = mean_field.from_opt_state(next_state)
         return projection, status
 
-    def refine(self, state, new_param, n_refine=None):
+    def refine_state(self, state, new_param, n_refine=None):
         next_state = state
         for i in range(n_refine or self.n_refine):
             new_state = state.update(parameters=new_param())
@@ -133,6 +134,29 @@ class LaplaceOptimiser(AbstractFactorOptimiser):
             )
 
         return next_state
+
+    def refine_approx(
+        self,
+        factor_approx: FactorApprox,
+        mean_field: MeanField = None,
+        params: VariableData = None,
+        n_refine=None,
+    ) -> Tuple[MeanField, Status]:
+        mean_field = mean_field or factor_approx.model_dist
+        state = self.prepare_state(factor_approx, mean_field, params)
+        next_state = self.refine_state(state, mean_field.sample, n_refine=n_refine)
+        return mean_field.from_opt_state(next_state)
+
+    def refine(
+        self,
+        factor: Factor,
+        model_approx: EPMeanField,
+        status: Optional[Status] = Status(),
+        n_refine=None,
+    ) -> Tuple[EPMeanField, Status]:
+        factor_approx = model_approx.factor_approximation(factor)
+        new_model_dist = self.refine_approx(factor_approx, n_refine=n_refine)
+        return self.update_model_approx(new_model_dist, factor_approx, model_approx)
 
     def optimise(
         self,

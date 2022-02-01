@@ -78,6 +78,7 @@ class StatusFlag(Enum):
     FAILURE = 0
     SUCCESS = 1
     NO_CHANGE = 2
+    BAD_PROJECTION = 3
 
     @classmethod
     def get_flag(cls, success, n_iter):

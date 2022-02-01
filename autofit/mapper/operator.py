@@ -141,6 +141,9 @@ class LinearOperator(ABC):
     def invquad(self, M: np.ndarray) -> np.ndarray:
         return (M / self).T / self
 
+    def to_operator(self):
+        return self
+
     def transform_bounds(self, bounds: List[Tuple]) -> List[Tuple]:
         """
         Convenience method for transforming the bounds of an
@@ -215,7 +218,15 @@ class InverseOperator(LinearOperator):
         return self.operator.quad(M)
 
     def to_dense(self):
-        return np.linalg.inv(self.operator.to_dense())
+        M = self.operator.to_dense()
+        M2 = np.reshape(M, (self.lsize, self.rsize))
+        return np.linalg.inv(M2).reshape(self.operator.shape)
+
+    def to_operator(self):
+        return self.from_dense(self.to_dense(), self.shape, self.ldim)
+
+    def diagonal(self):
+        return self.to_operator().diagonal()
 
     def inv(self):
         return self.operator
@@ -600,6 +611,11 @@ class DiagonalMatrix(MatrixOperator):
     @cached_property
     def _finv_scale(self):
         return 1 / self._fscale
+
+    def inv(self):
+        return DiagonalMatrix(
+            np.reshape(self._finv_scale, self.scale.shape), self.scale
+        )
 
     @classmethod
     def from_dense(cls, M: np.ndarray, shape=None, ldim=None) -> "MatrixOperator":

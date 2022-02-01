@@ -27,6 +27,8 @@ from autofit.mapper.variable_operator import (
     MergedVariableOperator,
 )
 
+from autofit.graphical.utils import FlattenArrays
+
 
 class OptimisationState:
     def __init__(
@@ -84,6 +86,7 @@ class OptimisationState:
         self.g_count += 1
         self.value, grad = self.factor_gradient(self.parameters, *self.args)
         return grad
+        # return VariableData((v, grad[v]) for v in self.parameters)
 
     def to_dict(self):
         # don't return value, gradient or search direction as may change
@@ -175,6 +178,28 @@ class OptimisationState:
         if self.det_hessian:
             diagonal.update(self.det_hessian.diagonal())
         return diagonal
+
+
+class FlattenedState:
+    def __init__(self, state, param_shapes):
+        self.state = (state,)
+        self.param_shapes = param_shapes
+
+    @classmethod
+    def from_state(cls, state):
+        param_shapes = FlattenArrays.from_arrays(state.parameters)
+        return cls(state, param_shapes)
+
+    def make_state(self, x):
+        return self.state.update(parameters=self.param_shapes.flatten(x))
+
+    def __call__(self, x):
+        new_state = self.make_state(x)
+        return new_state.value
+
+    def func_gradient(self, x):
+        new_state = self.make_state(x)
+        gradient, value = new_state.gradient, new_state.value
 
 
 def line_search_wolfe1(

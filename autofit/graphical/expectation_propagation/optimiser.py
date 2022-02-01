@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 from autofit import exc
 from autofit.graphical.factor_graphs.factor import Factor
 from autofit.graphical.factor_graphs.graph import FactorGraph
-from autofit.graphical.utils import Status
+from autofit.graphical.utils import Status, StatusFlag
 from autofit.non_linear.paths import DirectoryPaths
 from autofit.graphical.expectation_propagation.ep_mean_field import EPMeanField
 from autofit.graphical.expectation_propagation.history import EPHistory
@@ -235,7 +235,11 @@ class EPOptimiser:
                     )
                 except (ValueError, ArithmeticError, RuntimeError) as e:
                     logger.exception(e)
-                    status = Status(False, (f"Factor: {factor} experienced error {e}",))
+                    status = Status(
+                        False,
+                        (f"Factor: {factor} experienced error {e}",),
+                        StatusFlag.FAILURE,
+                    )
 
                 if status and should_log():
                     self._log_factor(factor)

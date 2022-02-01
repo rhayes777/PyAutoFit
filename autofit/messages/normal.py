@@ -116,7 +116,7 @@ class NormalMessage(AbstractMessage):
             variance = covariance.diagonal()
         else:
             mode, variance = cls._get_mean_variance(mode, covariance)
-        return cls(mode, variance ** 0.5, id_=id_)
+        return cls(mode, np.abs(variance) ** 0.5, id_=id_)
 
     def _normal_gradient_hessian(
         self, x: np.ndarray
