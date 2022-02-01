@@ -36,6 +36,8 @@ Projection = Dict[str, AbstractMessage]
 
 logger = logging.getLogger(__name__)
 
+_log_projection_warnings = logger.debug
+
 
 class MeanField(CollectionPriorModel, Dict[Variable, AbstractMessage], Factor):
     """For a factor with multiple variables, this class represents the
@@ -429,7 +431,7 @@ class FactorApproximation(AbstractNode):
             for warn in caught_warnings:
                 message = "%s:%d: %s" % (warn.filename, warn.lineno, warn.message)
                 messages += ("project_mean_field warning: " + message,)
-                logger.warning(message)
+                _log_projection_warnings(message)
 
             if not factor_dist.is_valid:
                 success = False

@@ -7,30 +7,35 @@ from autofit.messages.fixed import FixedMessage
 from autofit.messages.normal import NormalMessage
 
 
-def likelihood_jacobian(z, y, _variables=None):
+def likelihood(z, y):
     expz = np.exp(-z)
     logp = -np.log1p(expz)
     log1p = -np.log1p(1 / expz)
     loglike = y * logp + (1 - y) * log1p
-    if _variables is None:
-        return loglike
-    else:
-        jacs = ()
-        for v in _variables:
-            if v == "z":
-                jacs += (
-                    np.expand_dims(y - 1 / (1 + expz), tuple(range(np.ndim(loglike)))),
-                )
+    return loglike.sum()
 
-            elif v == "y":
-                jacs += (np.expand_dims(logp - log1p, tuple(range(np.ndim(loglike)))),)
 
-        return loglike, jacs
+def likelihood_jacobian(z, y):
+    expz = np.exp(-z)
+    logp = -np.log1p(expz)
+    log1p = -np.log1p(1 / expz)
+    loglike = y * logp + (1 - y) * log1p
+
+    jac_z = y - 1 / (1 + expz)
+    jac_y = logp - log1p
+
+    return loglike.sum(), (jac_z, jac_y)
+
+
+@pytest.fixture(name="likelihood_factor")
+def make_likelihood_factor(z_, y_, obs, dims):
+    factor = graph.FactorJac(likelihood, z_, y_)
+    return factor
 
 
 @pytest.fixture(name="likelihood_factor_jac")
 def make_likelihood_factor_jac(z_, y_, obs, dims):
-    factor = graph.FactorJacobian(likelihood_jacobian, z=z_, y=y_, plates=(obs, dims))
+    factor = graph.FactorJac(likelihood, z_, y_, factor_jacobian=likelihood_jacobian)
     return factor
 
 
@@ -73,19 +78,12 @@ def make_model_approx(
     )
 
 
-def test_jacobians(model_approx):
-    for factor in model_approx.factor_graph.factors:
-        factor_approx = model_approx.factor_approximation(factor)
-        opt = graph.optimise.OptFactor.from_approx(factor_approx)
-        assert opt.numerically_verify_jacobian(10, rtol=1e-2, atol=1e-2), factor
-
-
 def test_laplace(
     model_approx,
     y_,
     z_,
 ):
-    laplace = graph.LaplaceFactorOptimiser(default_opt_kws={"jac": True})
+    laplace = graph.LaplaceOptimiser()
     opt = graph.EPOptimiser(model_approx.factor_graph, default_optimiser=laplace)
     new_approx = opt.run(model_approx)
 

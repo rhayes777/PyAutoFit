@@ -4,7 +4,7 @@ import pytest
 from autofit import graphical as graph
 from autofit.graphical import (
     EPMeanField,
-    LaplaceFactorOptimiser,
+    LaplaceOptimiser,
     FactorJac,
     EPOptimiser,
     utils,
@@ -15,7 +15,7 @@ from autofit.messages import FixedMessage, NormalMessage
 @pytest.fixture(name="likelihood")
 def make_likelihood(norm):
     def likelihood(z, y):
-        return norm.logpdf(z - y)
+        return norm.logpdf(z - y).sum()
 
     return likelihood
 
@@ -62,6 +62,29 @@ def make_model_approx(
     )
 
 
+def check_model_approx(model_approx, a_, b_, z_, x_, y_):
+    mean_field = model_approx.mean_field
+    x = model_approx.mean_field[x_].mean
+    y = model_approx.mean_field[y_].mean
+
+    X = np.c_[x, np.ones(len(x))]
+    XTX = X.T.dot(X) + np.eye(3) / 10.0
+    cov = np.linalg.inv(XTX)
+
+    cov_a = cov[:2, :]
+    cov_b = cov[2, :]
+    mean_a = cov_a.dot(X.T.dot(y))
+    mean_b = cov_b.dot(X.T.dot(y))
+
+    a_std = cov_a.diagonal()[:, None] ** 0.5
+    b_std = cov_b[[-1]] ** 0.5
+
+    assert mean_field[a_].mean == pytest.approx(mean_a, rel=1e-2)
+    assert mean_field[b_].mean == pytest.approx(mean_b, rel=1e-2)
+    assert mean_field[a_].sigma == pytest.approx(a_std, rel=0.2)
+    assert mean_field[b_].sigma == pytest.approx(b_std, rel=0.2)
+
+
 @pytest.fixture(name="model_jac_approx")
 def make_model_jac_approx(
     model, a_, b_, z_, x_, y_, likelihood_factor, linear_factor_jac, prior_a, prior_b
@@ -75,8 +98,8 @@ def make_model_jac_approx(
     x = 5 * np.random.randn(n_obs, n_features)
     y = x.dot(a) + b + np.random.randn(n_obs, n_dims)
 
-    like = NormalMessage(y, np.ones_like(y)).as_factor(z_)
-    model = like * linear_factor_jac * prior_a * prior_b
+    # like = NormalMessage(y, np.ones_like(y)).as_factor(z_)
+    model = likelihood_factor * linear_factor_jac * prior_a * prior_b
 
     model_jac_approx = EPMeanField.from_approx_dists(
         model,
@@ -118,48 +141,31 @@ def test_jacobian(
     assert (fval0.deterministic_values - fval1.deterministic_values).norm() == 0
 
 
-def test_laplace_old(model_approx, a_, b_):
-    opt = optimise.LaplaceOptimiser(n_iter=3)
-    model_approx, status = opt.run(model_approx)
-    # assert status.success
-
-    q_a = model_approx.mean_field[a_]
-    q_b = model_approx.mean_field[b_]
-
-    assert q_a.mean[0] == pytest.approx(-1.2, rel=1)
-    assert q_a.sigma[0][0] == pytest.approx(0.04, rel=1)
-
-    assert q_b.mean[0] == pytest.approx(-0.5, rel=1)
-    assert q_b.sigma[0] == pytest.approx(0.2, rel=1)
-
-
 def test_laplace(
     model_approx,
     a_,
     b_,
+    x_,
     y_,
     z_,
 ):
-    laplace = LaplaceFactorOptimiser()
+    laplace = LaplaceOptimiser()
     opt = EPOptimiser(model_approx.factor_graph, default_optimiser=laplace)
     model_approx = opt.run(model_approx)
 
-    y = model_approx.mean_field[y_].mean
-    y_pred = model_approx.mean_field[z_].mean
-
-    assert utils.r2_score(y, y_pred) > 0.95
+    check_model_approx(model_approx, a_, b_, z_, x_, y_)
 
 
 def test_laplace_jac(
     model_jac_approx,
+    a_,
+    b_,
+    x_,
+    y_,
+    z_,
 ):
-    laplace = LaplaceFactorOptimiser(default_opt_kws={"jac": True})
+    laplace = LaplaceOptimiser()
     opt = EPOptimiser(model_jac_approx.factor_graph, default_optimiser=laplace)
-    approx = opt.run(model_jac_approx)
+    model_approx = opt.run(model_jac_approx)
 
-    like = approx.factors[0]
-    y = like._factor.mean
-    (z_,) = like.variables
-    y_pred = approx.mean_field[z_].mean
-
-    assert utils.r2_score(y, y_pred) > 0.95
+    check_model_approx(model_approx, a_, b_, z_, x_, y_)

@@ -24,7 +24,7 @@ def make_prior_norm():
 @pytest.fixture(name="prior")
 def make_prior(prior_norm):
     def prior(x):
-        return prior_norm.logpdf(x)
+        return prior_norm.logpdf(x).sum()
 
     return prior
 
@@ -98,20 +98,20 @@ def make_linear_factor(x_, a_, b_, z_):
 @pytest.fixture(name="linear_factor_jac")
 def make_linear_factor_jac(x_, a_, b_, z_):
     return graph.FactorJac(
-        linear, x_, a_, b_, func_jacobian=linear_jacobian, factor_out=z_
+        linear, x_, a_, b_, factor_jacobian=linear_jacobian, factor_out=z_
     )
 
 
 @pytest.fixture(name="prior_a")
 def make_prior_a(prior, a_):
-    return graph.FactorJac(prior, a_, plates=a_.plates)
+    return graph.FactorJac(prior, a_)
 
 
 @pytest.fixture(name="prior_b")
 def make_prior_b(prior, b_):
-    return graph.FactorJac(prior, b_, plates=b_.plates)
+    return graph.FactorJac(prior, b_)
 
 
 @pytest.fixture(name="likelihood_factor")
 def make_likelihood_factor(likelihood, z_, y_):
-    return graph.FactorJac(likelihood, z_, y_, plates=z_.plates)
+    return graph.FactorJac(likelihood, z_, y_)
