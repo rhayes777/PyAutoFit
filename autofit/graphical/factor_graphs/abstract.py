@@ -1,6 +1,17 @@
 from abc import ABC, abstractmethod
 from itertools import count
-from typing import List, Tuple, Dict, cast, Set, Optional, Union, Collection, Any
+from typing import (
+    List,
+    Tuple,
+    Dict,
+    cast,
+    Set,
+    Optional,
+    Union,
+    Collection,
+    Any,
+    Callable,
+)
 
 # from autofit.graphical.factor_graphs.factor import Factor
 
@@ -9,13 +20,20 @@ Protocol = ABC  # for python 3.7 compat
 import numpy as np
 
 from autoconf import cached_property
-from autofit.graphical.utils import FlattenArrays, Axis
+from autofit.graphical.utils import (
+    FlattenArrays,
+    Axis,
+    nested_filter,
+    nested_update,
+    is_variable,
+)
 from autofit.mapper.variable import (
     Variable,
     Plate,
     FactorValue,
     VariableData,
     variables,
+    VariableLinearOperator,
 )
 
 Value = Dict[Variable, np.ndarray]
@@ -36,9 +54,146 @@ class FactorGradientInterface(Protocol):
 
 
 from autofit.graphical.factor_graphs.numerical import (
-    numerical_func_jacobian,
+    # numerical_func_jacobian,
     numerical_func_jacobian_hessian,
 )
+
+from autofit.mapper.variable_operator import (
+    RectVariableOperator,
+    LinearOperator,
+    VariableOperator,
+)
+
+
+class AbstractJacobian(VariableLinearOperator):
+    """
+    Examples
+    --------
+    def linear(x, a, b):
+        z = x.dot(a) + b
+        return (z**2).sum(), z
+
+    def full(x, a, b):
+        z2, z = linear(x, a, b)
+        return z2 + z.sum()
+
+    x_, a_, b_, y_, z_ = variables("x, a, b, y, z")
+    x = np.arange(10.).reshape(5, 2)
+    a = np.arange(2.).reshape(2, 1)
+    b = np.ones(1)
+    y = np.arange(0., 10., 2).reshape(5, 1)
+    # values = {x_: x, y_: y, a_: a, b_: b}
+
+    linear_factor_jvp = FactorJVP(
+        linear, x_, a_, b_, factor_out=(FactorValue, z_))
+
+    linear_factor_vjp = FactorVJP(
+        linear, x_, a_, b_, factor_out=(FactorValue, z_))
+
+    values = {x_: x, a_: a, b_: b}
+
+    jvp_val, jvp_jac = linear_factor_jvp.func_jacobian(values)
+    vjp_val, vjp_jac = linear_factor_vjp.func_jacobian(values)
+
+
+    assert np.allclose(vjp_val, jvp_val)
+    assert (vjp_jac(vjp_val) - jvp_jac(vjp_val)).norm() == 0
+    """
+
+    def __call__(self, values):
+        return self.__rmul__(values)
+
+    def __str__(self) -> str:
+        out_var = str(
+            nested_update(self.factor_out, {v: v.name for v in self.out_variables})
+        ).replace("'", "")
+
+        in_var = ", ".join(v.name for v in self.variables)
+        cls_name = type(self).__name__
+        return f"{cls_name}({out_var} → ∂({in_var})ᵀ {out_var})"
+
+    __repr__ = __str__
+
+    def _full_repr(self) -> str:
+        out_var = str(self.factor_out)
+        in_var = str(self.variables)
+        cls_name = type(self).__name__
+        return f"{cls_name}({out_var} → ∂({in_var})ᵀ {out_var})"
+
+    def grad(self, values=None):
+        grad = VariableData({FactorValue: 1.0})
+        if values:
+            grad.update(values)
+
+        for v, g in self(grad).items():
+            grad[v] = grad.get(v, 0) + g
+
+        return grad
+
+
+class JacobianVectorProduct(AbstractJacobian, RectVariableOperator):
+    __init__ = RectVariableOperator.__init__
+
+    @property
+    def variables(self):
+        return self.left_variables
+
+    @property
+    def out_variables(self):
+        return self.right_variables
+
+    @property
+    def factor_out(self):
+        return tuple(self.out_variables)
+
+
+class VectorJacobianProduct(AbstractJacobian):
+    def __init__(
+        self, factor_out, vjp: Callable, *variables: Variable, out_shapes=None
+    ):
+        self.factor_out = factor_out
+        self.vjp = vjp
+        self._variables = variables
+        self.out_shapes = out_shapes
+
+    @property
+    def variables(self):
+        return self._variables
+
+    @cached_property
+    def out_variables(self):
+        return set(v[0] for v in nested_filter(is_variable, self.factor_out))
+
+    def _get_cotangent(self, values):
+        if isinstance(values, FactorValue):
+            values = values.to_dict()
+
+        if isinstance(values, dict):
+            if self.out_shapes:
+                for v in self.out_shapes.keys() - values.keys():
+                    values[v] = np.zeros(self.out_shapes[v])
+            out = nested_update(self.factor_out, values)
+            return out
+
+        if isinstance(values, int):
+            values = float(values)
+
+        return values
+
+    def __call__(self, values: Union[VariableData, FactorValue]) -> VariableData:
+        v = self._get_cotangent(values)
+        grads = self.vjp(v)
+        return VariableData(zip(self.variables, grads))
+
+    __rmul__ = __call__
+
+    def _not_implemented(self, *args):
+        raise NotImplementedError()
+
+    __rtruediv__ = _not_implemented
+    ldiv = _not_implemented
+    __mul__ = _not_implemented
+    update = _not_implemented
 
 
 class AbstractNode(ABC):
@@ -46,6 +201,8 @@ class AbstractNode(ABC):
     _plates: Tuple[Plate, ...] = ()
     _factor: callable = None
     _id = count()
+    factor_out = FactorValue
+    eps = 1e-6
 
     def __init__(self, plates: Tuple[Variable, ...] = (), **kwargs: Variable):
         """
@@ -80,6 +237,14 @@ class AbstractNode(ABC):
     @property
     def free_variables(self):
         return self.variables - getattr(self, "fixed_values", {}).keys()
+
+    @property
+    def args(self):
+        return tuple(self._kwargs.values())
+
+    @property
+    def arg_names(self):
+        return tuple(self._kwargs)
 
     @property
     def name_variable_dict(self) -> Dict[str, Variable]:
@@ -239,28 +404,6 @@ class AbstractNode(ABC):
         )
         return np.reshape(movedvalue, newshape)
 
-    # @cached_property
-    # def plates(self) -> Tuple[Plate]:
-    #     """
-    #     A tuple of the set of all plates in this graph
-
-    #     split into two properties to allow manual ordering
-    #     of plate order
-    #     """
-    #     return self._plates or self.sorted_plates
-
-    # @cached_property
-    # def sorted_plates(self) -> Tuple[Plate]:
-    #     """
-    #     A tuple of the set of all plates in this graph, ordered by id
-    #     """
-    #     return tuple(sorted(set(
-    #         cast(Plate, plate)
-    #         for variable
-    #         in self.all_variables
-    #         for plate in variable.plates
-    #     )))
-
     @property
     def ndim(self) -> int:
         """
@@ -299,10 +442,84 @@ class AbstractNode(ABC):
             )
         )
 
-    _numerical_func_jacobian = numerical_func_jacobian
-    _numerical_func_jacobian_hessian = numerical_func_jacobian_hessian
+    def _factor_value(self, raw_fval):
+        """Converts the raw output of the factor into a `FactorValue`
+        where the values of the deterministic values are stored in a dict
+        attribute `FactorValue.deterministic_values`
+        """
+        det_values = VariableData(nested_filter(is_variable, self.factor_out, raw_fval))
+        fval = det_values.pop(FactorValue, 0.0)
+        return FactorValue(fval, det_values)
+
+    def _unpack_jacobian_out(self, raw_jac: Any) -> Dict[Variable, VariableData]:
+        jac = {}
+        for v0, vjac in nested_filter(is_variable, self.factor_out, raw_jac):
+            jac[v0] = VariableData()
+            for v1, j in zip(self.args, vjac):
+                jac[v0][v1] = j
+
+        return jac
+
+    def _jac_out_to_jvp(
+        self, raw_jac: Any, values: VariableData
+    ) -> JacobianVectorProduct:
+        jac = self._unpack_jacobian_out(raw_jac)
+        return JacobianVectorProduct.from_dense(jac, values=values)
+
+    def _call_args(self, *args):
+        return self._factor(**dict(zip(self.arg_names, args)))
+
+    def _numerical_factor_jacobian(
+        self, *args, eps: Optional[float] = None
+    ) -> Tuple[Any, Any]:
+        """Calculates the dense numerical jacobian matrix with respect to
+        the input arguments, broadly speaking, the following should return the
+        same values (within numerical precision of the finite differences)
+
+        factor._numerical_factor_jacobian(*args)
+
+        factor._factor(*args), jax.jacobian(factor._factor, range(len(args)))(*args)
+        """
+        eps = eps or self.eps
+        args = tuple(np.array(value) for value in args)
+
+        raw_fval0 = self._call_args(*args)
+        fval0 = self._factor_value(raw_fval0).to_dict()
+
+        jac = {
+            v0: tuple(
+                np.empty_like(val, shape=np.shape(val) + np.shape(value))
+                for value in args
+            )
+            for v0, val in fval0.items()
+        }
+        for i, val in enumerate(args):
+            with np.nditer(val, op_flags=["readwrite"], flags=["multi_index"]) as it:
+                for x_i in it:
+                    val[it.multi_index] += eps
+                    fval1 = self._factor_value(self._call_args(*args)).to_dict()
+                    jac_v1_i = (fval1 - fval0) / eps
+                    x_i -= eps
+                    indexes = (Ellipsis,) + it.multi_index
+                    for v0, jac_v0v_i in jac_v1_i.items():
+                        jac[v0][i][indexes] = jac_v0v_i
+
+        # This replicates the output of normal
+        # jax.jacobian(self.factor, len(self.args))(*args)
+        jac_out = nested_update(self.factor_out, jac)
+
+        return raw_fval0, jac_out
+
+    def numerical_func_jacobian(
+        self, values: VariableData, **kwargs
+    ) -> Tuple[FactorValue, JacobianVectorProduct]:
+        args = (values[k] for k in self.args)
+        raw_fval, raw_jac = self._numerical_factor_jacobian(*args, **kwargs)
+        fval = self._factor_value(raw_fval)
+        jvp = self._jac_out_to_jvp(raw_jac, values=fval.to_dict().merge(values))
+        return fval, jvp
+
     func_jacobian = numerical_func_jacobian
-    func_jacobian_hessian = numerical_func_jacobian_hessian
 
     def jacobian(
         self,

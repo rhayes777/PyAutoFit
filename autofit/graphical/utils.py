@@ -13,6 +13,10 @@ from scipy.optimize import OptimizeResult
 from autofit.mapper.variable import Variable, VariableData
 
 
+def is_variable(v, *args):
+    return isinstance(v, Variable)
+
+
 def is_iterable(arg):
     return isinstance(arg, collections.Iterable) and not isinstance(
         arg, six.string_types
@@ -20,7 +24,7 @@ def is_iterable(arg):
 
 
 def nested_filter(func, *args):
-    out, *rest = args
+    out, *_ = args
     if isinstance(out, dict):
         for k in out:
             yield from nested_filter(func, *(out[k] for out in args))
