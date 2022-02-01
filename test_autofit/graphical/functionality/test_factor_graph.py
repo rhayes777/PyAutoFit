@@ -120,10 +120,4 @@ class TestFactorGraph:
     def test_jacobian(self, x, coefficient):
         factor = graph.Factor(lambda p: coefficient * p, p=x)
 
-        assert (
-            factor.jacobian(
-                {x: 2},
-                [x],
-            )[x]
-            == pytest.approx(coefficient)
-        )
+        assert factor.jacobian({x: 2}).grad()[x] == pytest.approx(coefficient)

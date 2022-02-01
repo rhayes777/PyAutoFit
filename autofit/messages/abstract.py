@@ -432,6 +432,8 @@ class AbstractMessage(Prior, ABC):
             )
         return mean, variance
 
+    __call__ = logpdf
+
     def factor_jacobian(
         self, x: np.ndarray, _variables: Optional[Tuple[str]] = ("x",)
     ) -> Union[np.ndarray, Tuple[np.ndarray, Tuple[np.ndarray, ...]]]:

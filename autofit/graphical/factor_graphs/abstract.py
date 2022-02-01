@@ -485,7 +485,7 @@ class AbstractNode(ABC):
         factor._factor(*args), jax.jacobian(factor._factor, range(len(args)))(*args)
         """
         eps = eps or self.eps
-        args = tuple(np.array(value) for value in args)
+        args = tuple(np.array(value, dtype=np.float64) for value in args)
 
         raw_fval0 = self._call_args(*args)
         fval0 = self._factor_value(raw_fval0).to_dict()
@@ -526,15 +526,9 @@ class AbstractNode(ABC):
     func_jacobian = numerical_func_jacobian
 
     def jacobian(
-        self,
-        values: Dict[Variable, np.array],
-        variables: Optional[Tuple[Variable, ...]] = None,
-        _eps: float = 1e-6,
-        _calc_deterministic: bool = True,
+        self, values: Dict[Variable, np.array], eps=1e-6
     ) -> "AbstractJacobian":
-        return self.func_jacobian(
-            values, variables, _eps=_eps, _calc_deterministic=_calc_deterministic
-        )[1]
+        return self.func_jacobian(values, eps=eps)[1]
 
     def hessian(
         self,
