@@ -73,10 +73,10 @@ class FactorHistory:
         """
         try:
             return self.successes[-1]
-        except IndexError:
+        except IndexError as e:
             raise exc.HistoryException(
                 f"There have been no successful optimisations for factor {self.factor}"
-            )
+            ) from e
 
     @property
     def previous_successful(self) -> EPMeanField:
@@ -90,16 +90,47 @@ class FactorHistory:
                 f"There have been one or no successful optimisations for factor {self.factor}"
             )
 
+    @property
+    def updates(self) -> List[EPMeanField]:
+        """
+        A list of mean fields produced by successful optimisations
+        """
+        return [approx for approx, status in self.history if status.updated]
+
+    @property
+    def latest_update(self) -> EPMeanField:
+        """
+        Last updated mean field
+        """
+        try:
+            return self.updates[-1]
+        except IndexError as e:
+            raise exc.HistoryException(
+                f"There have been no successful optimisations for factor {self.factor}"
+            ) from e
+
+    @property
+    def previous_update(self) -> EPMeanField:
+        """
+        Last-but-one updated mean field
+        """
+        try:
+            return self.updates[-2]
+        except IndexError:
+            raise exc.HistoryException(
+                f"There have been one or no successful optimisations for factor {self.factor}"
+            )
+
     @default_inf
     def kl_divergence(self) -> Union[float, np.ndarray]:
         """
         The KL Divergence between the mean fields produced by the last
-        two successful optimisations.
+        two updates.
 
         If there are less than two successful optimisations then this is
         infinite.
         """
-        return self.latest_successful.mean_field.kl(self.previous_successful.mean_field)
+        return self.latest_update.mean_field.kl(self.previous_update.mean_field)
 
     @default_inf
     def evidence_divergence(self) -> Union[float, np.ndarray]:

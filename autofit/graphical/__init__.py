@@ -18,3 +18,5 @@ from .factor_graphs import (
 from .mean_field import FactorApproximation, MeanField
 from .laplace import LaplaceOptimiser, OptimisationState
 from .utils import Status
+
+from .. import messages

@@ -317,6 +317,14 @@ class VariableData(Dict[Variable, np.ndarray]):
     def shapes(self):
         return {k: np.shape(val) for k, val in self.items()}
 
+    @property
+    def sizes(self):
+        return {k: np.size(val) for k, val in self.items()}
+
+    @property
+    def size(self):
+        return sum(np.size(val) for val in self.values())
+
     def ravel(self):
         cls = _get_variable_data_class(self)
         return cls({k: np.ravel(val) for k, val in self.items()})

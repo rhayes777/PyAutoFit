@@ -26,7 +26,7 @@ from autofit.mapper.variable import (
     FactorValue,
     VariableLinearOperator,
 )
-from autofit.mapper.variable_operator import VariableFullOperator
+from autofit.mapper.variable_operator import MatrixOperator, VariableFullOperator
 from autofit.messages.abstract import AbstractMessage
 from autofit.messages.fixed import FixedMessage
 from autofit.mapper.prior_model.collection import CollectionPriorModel
@@ -239,6 +239,9 @@ class MeanField(CollectionPriorModel, Dict[Variable, AbstractMessage], Factor):
 
         return type(self)(mean_field, self.log_norm)
 
+    def check_valid(self):
+        return VariableData((v, m.check_valid()) for v, m in self.items())
+
     def project_mode(self, res: OptResult):
         return self.from_mode_covariance(res.mode, res.hess_inv, res.log_norm)
 
@@ -258,7 +261,7 @@ class MeanField(CollectionPriorModel, Dict[Variable, AbstractMessage], Factor):
         """
         mode = ChainMap(mode, self.fixed_values)
         if isinstance(covar, VariableLinearOperator):
-            covar = covar.to_block().operators
+            covar = covar.to_block(MatrixOperator).operators
 
         projection = MeanField(
             {
@@ -416,8 +419,9 @@ class FactorApproximation(AbstractNode):
         delta: float = 1.0,
         status: Optional[Status] = None,
     ) -> Tuple["FactorApproximation", Status]:
-        success, messages, flag = Status() if status is None else status
+        success, messages, _, flag = Status() if status is None else status
 
+        updated = False
         try:
             with warnings.catch_warnings(record=True) as caught_warnings:
                 factor_dist = model_dist / self.cavity_dist
@@ -437,7 +441,14 @@ class FactorApproximation(AbstractNode):
                 success = False
                 messages += (f"model projection for {self} is invalid",)
                 factor_dist = factor_dist.update_invalid(self.factor_dist)
+                # May want to check another way
+                # e.g. factor_dist.check_valid().sum() / factor_dist.check_valid().size
+                if factor_dist.check_valid().any():
+                    updated = True
+
                 flag = StatusFlag.BAD_PROJECTION
+            else:
+                updated = True
 
         except exc.MessageException as e:
             logger.exception(e)
@@ -449,7 +460,9 @@ class FactorApproximation(AbstractNode):
             factor_dist=factor_dist,
             model_dist=model_dist,
         )
-        return new_approx, Status(success, messages, flag)
+        return new_approx, Status(
+            success=success, messages=messages, flag=flag, updated=updated
+        )
 
     project = project_mean_field
 

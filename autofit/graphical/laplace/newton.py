@@ -22,7 +22,7 @@ def newton_direction(state: OptimisationState) -> VariableData:
 
 
 logger = logging.getLogger(__name__)
-
+logging.captureWarnings(False)
 _log_projection_warnings = logger.debug
 
 ## Quasi-newton approximations
@@ -60,6 +60,7 @@ def diag_sr1_update(
     zk = yk + Bk * dk
     dzk = dk * zk
     alpha = -zk.dot(dk) / dzk.dot(dzk)
+    # alpha = -(zk * dk).var_sum() / (dzk ** 2).var_sum()
     state1.hessian = Bk.diagonalupdate(alpha * (zk ** 2))
     return state1
 
@@ -300,6 +301,7 @@ def optimise_quasi_newton(
 ) -> Tuple[OptimisationState, Status]:
 
     success = True
+    updated = False
     messages = ()
     message = "max iterations reached"
     stepsize = 0.0
@@ -312,6 +314,8 @@ def optimise_quasi_newton(
             break
 
         with warnings.catch_warnings(record=True) as caught_warnings:
+            warnings.simplefilter("always")
+
             stepsize, state1 = take_quasi_newton_step(
                 state,
                 old_state,
@@ -322,17 +326,17 @@ def optimise_quasi_newton(
                 line_search_kws=line_search_kws,
                 quasi_newton_kws=quasi_newton_kws,
             )
-
-        for warn in caught_warnings:
-            warn_message = "%s:%d: %s" % (warn.filename, warn.lineno, warn.message)
-            messages += ("optimise_quasi_newton warning: " + warn_message,)
-            _log_projection_warnings(warn_message)
+            for warn in caught_warnings:
+                warn_message = "%s:%d: %s" % (warn.filename, warn.lineno, warn.message)
+                messages += ("optimise_quasi_newton warning: " + warn_message,)
+                _log_projection_warnings(warn_message)
 
         if stepsize is None:
             success = False
             message = "Line search failed"
             break
-
+        
+        updated = True
         state, old_state = state1, state
         i += 1
         if callback:
@@ -340,5 +344,10 @@ def optimise_quasi_newton(
 
     message += f", iter={i}"
     messages += (message,)
-    status = Status(success, messages=messages, flag=StatusFlag.get_flag(success, i))
+    status = Status(
+        success,
+        messages=messages,
+        updated=updated,
+        flag=StatusFlag.get_flag(success, i),
+    )
     return state, status

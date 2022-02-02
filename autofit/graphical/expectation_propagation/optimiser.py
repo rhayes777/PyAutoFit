@@ -4,6 +4,7 @@ from abc import ABC, abstractmethod
 from pathlib import Path
 from collections import defaultdict
 from typing import Dict, Tuple, Optional, List
+import warnings
 
 import matplotlib.pyplot as plt
 
@@ -179,7 +180,7 @@ class EPOptimiser:
         try:
             factor_history = self.ep_history[factor]
             if factor_history.history:
-                log_evidence = factor_history.latest_successful.log_evidence
+                log_evidence = factor_history.latest_update.log_evidence
                 divergence = factor_history.kl_divergence()
 
                 factor_logger.info(f"Log Evidence = {log_evidence}")
@@ -229,10 +230,25 @@ class EPOptimiser:
                 factor_logger = logging.getLogger(factor.name)
                 factor_logger.debug("Optimising...")
                 try:
-                    model_approx, status = optimiser.optimise(
-                        factor,
-                        model_approx,
-                    )
+                    with warnings.catch_warnings(record=True) as caught_warnings:
+                        model_approx, status = optimiser.optimise(
+                            factor,
+                            model_approx,
+                        )
+                        messages = status.messages
+                        for warn in caught_warnings:
+                            warn_message = "%s:%d: %s" % (
+                                warn.filename,
+                                warn.lineno,
+                                warn.message,
+                            )
+                            messages += (
+                                "optimise_quasi_newton warning: " + warn_message,
+                            )
+                            factor_logger.debug(warn_message)
+
+                        status = Status(status.success, messages, status.flag)
+
                 except (ValueError, ArithmeticError, RuntimeError) as e:
                     logger.exception(e)
                     status = Status(
@@ -259,9 +275,7 @@ class EPOptimiser:
             break  # stop iterations
 
         self.visualiser()
-        self._output_results(
-            model_approx
-        )
+        self._output_results(model_approx)
 
         return model_approx
 

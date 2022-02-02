@@ -191,7 +191,7 @@ class OptFactor:
             self.sign * result.fun,  # minimized negative logpdf of factor approximation
             full_hess_inv,  # full inverse hessian of optimisation
             result,
-            Status(success, messages, flag),
+            Status(success=success, messages=messages, flag=flag),
         )
 
     def _minimise(self, arrays_dict, **kwargs):

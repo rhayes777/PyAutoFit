@@ -180,6 +180,9 @@ class FactorGraph(AbstractNode):
 
         return call_sequence
 
+    def _call_args(self, *args):
+        return self(dict(zip(self.args, args)))
+
     def __call__(
         self,
         variable_dict: Dict[Variable, np.ndarray],

@@ -90,6 +90,9 @@ class LinearOperator(ABC):
     def inv(self):
         return InverseOperator(self)
 
+    def from_dense(self, M, shape=None, ldim=None):
+        return self.operator.from_dense(M, shape, ldim)
+
     @property
     @abstractmethod
     def shape(self) -> Tuple[int, ...]:

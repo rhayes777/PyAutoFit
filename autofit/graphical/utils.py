@@ -98,6 +98,7 @@ class StatusFlag(Enum):
 class Status(NamedTuple):
     success: bool = True
     messages: Tuple[str, ...] = ()
+    updated: bool = True
     flag: StatusFlag = StatusFlag.SUCCESS
 
     def __bool__(self):

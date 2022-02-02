@@ -32,7 +32,7 @@ from autofit.graphical.utils import FlattenArrays
 
 class FlattenedState:
     def __init__(self, state, param_shapes):
-        self.state = (state,)
+        self.state = state
         self.param_shapes = param_shapes
 
     @classmethod
@@ -41,7 +41,7 @@ class FlattenedState:
         return cls(state, param_shapes)
 
     def make_state(self, x):
-        return self.state.update(parameters=self.param_shapes.flatten(x))
+        return self.state.update(parameters=self.param_shapes.unflatten(x))
 
     def __call__(self, x):
         new_state = self.make_state(x)
@@ -49,7 +49,15 @@ class FlattenedState:
 
     def func_gradient(self, x):
         new_state = self.make_state(x)
-        return new_state.value_gradient
+        val, grad = new_state.value_gradient
+        return val, self.param_shapes.flatten(grad)
+
+    def _func(self, x):
+        return -self(x)
+
+    def _func_gradient(self, x):
+        v, g = self.func_gradient(x)
+        return -v, -g  
 
     @property
     def parameters(self):
@@ -211,7 +219,8 @@ class OptimisationState:
             diagonal.update(self.det_hessian.diagonal())
         return diagonal
 
-    flatten = FlattenedState.from_state
+    def flatten(self):
+        return FlattenedState.from_state(self)
 
 
 def line_search_wolfe1(
