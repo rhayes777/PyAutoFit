@@ -112,6 +112,9 @@ class FactorJac(Factor):
         self._args = args
         if not arg_names:
             arg_names = [arg for arg in getfullargspec(factor).args]
+            if arg_names[0] == "self":
+                arg_names = arg_names[1:]
+
             # Make sure arg_names matches length of args
             for v in args[len(arg_names) :]:
                 arg_name = v.name

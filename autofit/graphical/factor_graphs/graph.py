@@ -234,8 +234,7 @@ class FactorGraph(AbstractNode):
         return FactorValue(log_value, det_values)
 
     def func_jacobian(
-        self,
-        variable_dict: Dict[Variable, np.ndarray],
+        self, variable_dict: Dict[Variable, np.ndarray], **kwargs
     ) -> FactorValue:
 
         # generate set of factors to call, these are indexed by the
@@ -259,7 +258,7 @@ class FactorGraph(AbstractNode):
         for calls in self._call_sequence:
             # TODO parallelise this part?
             for factor in calls:
-                ret, factor_jacs[factor] = factor.func_jacobian(variables)
+                ret, factor_jacs[factor] = factor.func_jacobian(variables, **kwargs)
                 log_value += ret
 
                 det_values.update(ret.deterministic_values)
