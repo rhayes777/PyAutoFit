@@ -1,5 +1,5 @@
 import inspect
-from collections import Iterable
+from collections.abc import Iterable
 from hashlib import md5
 from typing import Optional
 
