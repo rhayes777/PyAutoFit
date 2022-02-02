@@ -82,15 +82,17 @@ class Visualise:
         """
         fig, (evidence_plot, kl_plot) = plt.subplots(2)
         fig.suptitle("Evidence and KL Divergence")
-        for factor, factor_history in self.ep_history.items():
-            evidence_plot.plot(
-                factor_history.evidences, label=f"{factor.name} evidence"
-            )
-            kl_plot.plot(
-                factor_history.kl_divergences, label=f"{factor.name} divergence"
-            )
-            evidence_plot.legend()
-            kl_plot.legend()
+        evidence_plot.plot(self.ep_history.evidences(), label="evidence")
+        kl_plot.semilogy(self.ep_history.kl_divergences(), label="KL divergence")
+        # for factor, factor_history in self.ep_history.items():
+        #     evidence_plot.plot(
+        #         factor_history.evidences, label=f"{factor.name} evidence"
+        #     )
+        #     kl_plot.plot(
+        #         factor_history.kl_divergences, label=f"{factor.name} divergence"
+        #     )
+        evidence_plot.legend()
+        kl_plot.legend()
         plt.savefig(str(self.output_path / "graph.png"))
 
 

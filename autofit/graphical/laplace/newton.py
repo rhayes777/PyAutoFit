@@ -52,6 +52,48 @@ def sr1_update(
 
 
 def diag_sr1_update(
+    state1: OptimisationState, state: OptimisationState, tol=1e-8, **kwargs
+) -> OptimisationState:
+    yk = VariableData.sub(state1.gradient, state.gradient)
+    dk = VariableData.sub(state1.parameters, state.parameters)
+    Bk = state.hessian
+    zk = yk + Bk * dk
+    dzk = dk * zk
+    # alpha = -zk.dot(dk) / dzk.dot(dzk)
+
+    d = dzk.dot(dzk)
+    if d > tol * dk.norm() ** 2 * zk.norm() ** 2:
+        alpha = -zk.dot(dk) / d
+        Bk = Bk.diagonalupdate(alpha * (zk ** 2))
+
+    state1.hessian = Bk
+    return state1
+
+
+def diag_sr1_update_(
+    state1: OptimisationState, state: OptimisationState, tol=1e-8, **kwargs
+) -> OptimisationState:
+    yk = VariableData.sub(state1.gradient, state.gradient)
+    dk = VariableData.sub(state1.parameters, state.parameters)
+    Bk = state.hessian
+    zk = yk + Bk * dk
+    dzk = dk * zk
+    # alpha = -zk.dot(dk) / dzk.dot(dzk)
+    alpha = -(zk * dk).var_sum()
+    tols = tol * dk.var_norm() ** 2 * zk.var_norm() ** 2
+    for v, d in (dzk ** 2).var_sum().items():
+        if d > tols[v]:
+            alpha[v] /= d
+        else:
+            alpha[v] = 0.0
+
+    Bk = Bk.diagonalupdate(alpha * (zk ** 2))
+
+    state1.hessian = Bk
+    return state1
+
+
+def diag_sr1_bfgs_update(
     state1: OptimisationState, state: OptimisationState, **kwargs
 ) -> OptimisationState:
     yk = VariableData.sub(state1.gradient, state.gradient)
@@ -59,10 +101,6 @@ def diag_sr1_update(
     Bk = state.hessian
     zk = yk + Bk * dk
     dzk = dk * zk
-    alpha = -zk.dot(dk) / dzk.dot(dzk)
-    # alpha = -(zk * dk).var_sum() / (dzk ** 2).var_sum()
-    state1.hessian = Bk.diagonalupdate(alpha * (zk ** 2))
-    return state1
 
 
 def bfgs1_update(
@@ -335,7 +373,7 @@ def optimise_quasi_newton(
             success = False
             message = "Line search failed"
             break
-        
+
         updated = True
         state, old_state = state1, state
         i += 1

@@ -131,6 +131,10 @@ class MeanField(CollectionPriorModel, Dict[Variable, AbstractMessage], Factor):
         return VariableData({v: dist.variance for v, dist in self.items()})
 
     @property
+    def std(self):
+        return VariableData({v: dist.std for v, dist in self.items()})
+
+    @property
     def scale(self):
         return VariableData({v: dist.scale for v, dist in self.items()})
 

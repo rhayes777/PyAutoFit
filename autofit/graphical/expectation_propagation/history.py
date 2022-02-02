@@ -152,7 +152,8 @@ class FactorHistory:
         when optimisation failed.
         """
         return [
-            approx.log_evidence if status else None for approx, status in self.history
+            approx.log_evidence if status.updated else None
+            for approx, status in self.history
         ]
 
     @property
@@ -165,7 +166,7 @@ class FactorHistory:
         for i in range(1, len(self.history)):
             previous, previous_success = self.history[i - 1]
             current, current_success = self.history[i]
-            if previous_success and current_success:
+            if previous_success.updated and current_success.updated:
                 divergences.append(current.mean_field.kl(previous.mean_field))
             else:
                 divergences.append(None)
@@ -291,3 +292,25 @@ class EPHistory:
             )
             for f, (approx, stat) in iteration
         ]
+
+    def mean_field_history(self, factor_order=None):
+        return [
+            approx.mean_field for _, approx, status in self.full_history(factor_order)
+        ]
+
+    def variable_history(self, factor_order=None):
+        history = {}
+        for mf in self.mean_field_history(factor_order):
+            for v, m in mf.items():
+                history.setdefault(v, []).append(m)
+
+        return history
+
+    def evidences(self, factor_order=None):
+        history = self.full_history(factor_order)
+        return [approx.log_evidence for _, approx, status in history]
+
+    def kl_divergences(self, factor_order=None):
+        mfs = self.mean_field_history(factor_order)
+        n = len(self.history)
+        return [m1.kl(m2) for m1, m2 in zip(mfs[n:], mfs)]

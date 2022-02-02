@@ -110,7 +110,17 @@ class FactorJac(Factor):
     ):
         self.eps = eps
         self._args = args
-        self._arg_names = arg_names or [arg for arg in getfullargspec(factor).args]
+        if not arg_names:
+            arg_names = [arg for arg in getfullargspec(factor).args]
+            # Make sure arg_names matches length of args
+            for v in args[len(arg_names) :]:
+                arg_name = v.name
+                # Make sure arg_name is unique
+                while arg_name in arg_names:
+                    arg_name += "_"
+                arg_names.append(arg_name)
+
+        self._arg_names = arg_names
         self.factor_out = factor_out
 
         kwargs = dict(zip(self.arg_names, self.args))

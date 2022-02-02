@@ -69,6 +69,10 @@ class AbstractMessage(Prior, ABC):
 
     @cached_property
     def scale(self) -> np.ndarray:
+        return self.scale
+
+    @cached_property
+    def std(self) -> np.ndarray:
         return self.variance ** 0.5
 
     def __hash__(self):
