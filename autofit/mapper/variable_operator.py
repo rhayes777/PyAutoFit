@@ -74,7 +74,7 @@ class MergedVariableOperator(VariableLinearOperator):
     def to_block(self, cls=None):
         blocks = {}
         for op in self.operators:
-            blocks.update(op.to_block().operators)
+            blocks.update(op.to_block(cls).operators)
 
         return VariableOperator(blocks)
 
