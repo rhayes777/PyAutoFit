@@ -71,7 +71,7 @@ class MergedVariableOperator(VariableLinearOperator):
     def is_diagonal(self):
         return all(op.is_diagonal for op in self.operators.values())
 
-    def to_block(self):
+    def to_block(self, cls=None):
         blocks = {}
         for op in self.operators:
             blocks.update(op.to_block().operators)
@@ -220,7 +220,7 @@ class VariableOperator(VariableLinearOperator):
     def blocks(self) -> VariableData:
         return VariableData({v: op.to_dense() for v, op in self.operators.items()})
 
-    def to_block(self) -> "VariableOperator":
+    def to_block(self, cls=None) -> "VariableOperator":
         return self
 
     @cached_property
@@ -584,7 +584,7 @@ class RectVariableOperator(VariableLinearOperator):
             }
         )
 
-    def to_block(self) -> "VariableOperator":
+    def to_block(self, cls=None) -> "VariableOperator":
         return self
 
     @cached_property
