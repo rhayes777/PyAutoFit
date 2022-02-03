@@ -107,8 +107,8 @@ def make_model_approx(centres, widths):
     model_approx = graph.EPMeanField.from_approx_dists(
         model,
         {
-            mu_: NormalMessage(0, 32),
-            logt_: NormalMessage(0, 32),
+            mu_: NormalMessage(0, 10),
+            logt_: NormalMessage(0, 10),
             **{x_: NormalMessage(0, 10) for x_ in centres_},
         },
     )

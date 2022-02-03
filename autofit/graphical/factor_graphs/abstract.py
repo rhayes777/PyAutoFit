@@ -96,8 +96,8 @@ class AbstractNode(ABC):
         }
 
     @cached_property
-    def fixed_values(self):
-        return {}
+    def fixed_values(self) -> VariableData:
+        return VariableData()
 
     @cached_property
     def variables(self) -> Set[Variable]:
