@@ -38,7 +38,80 @@ from autofit.graphical.factor_graphs.abstract import FactorValue, AbstractFactor
 
 
 class Factor(AbstractFactor):
-    """
+    """Represents factors in Graphical models. The functions passed to this
+    object will be called by positional arguments (to allow compatibility)
+    with the jax API.
+
+    Parameters
+    ----------
+    factor
+        the function being wrapped, must accept calls
+        through positional arguments
+
+    *args: Variables
+        Variables for each positional argument for the function
+
+    factor_out, default FactorValue:
+        The output of the factor. This can just be `FactorValue`
+        or can be a arbitrarily nested structure of lists, tuples and dicts
+        e.g.
+        >>> foo = lambda x, y: (z, {'a': [a]})
+        >>> factor = Factor(foo, x, y, factor_out=(z, {'a': [a]}))
+    name: optional, str
+        the name of the factor, if not passed then uses the name
+        of the function passed
+
+    plates: Tuple[Plate, ...] = ()
+        plates that the factor are associated with
+
+    vjp: optional False
+        if True uses jax.vjp to calculate the Jacobian of the
+        outputs
+
+    factor_vjp: optional
+        Must be a function produces functionaly equivalent
+        output to jax.vjp(factor, *args) <equiv> factor_vjp(*args)
+
+    factor_jacobian: optional
+        function equivalent to calling,
+        factor(*args), jax.jacobian(factor, len(range(args)))(*args)
+
+    jacobian=None,
+        function equivalent to calling,
+        jax.jacobian(factor, len(range(args)))
+
+    numerical_jacobian=True
+        if True calculates Jacobian using finite differences
+        if False calculates Jacobian using jax
+
+    jacfwd=True
+        if calculates jacobian using jax.jacfwd instead of
+        jax.jacobian
+
+    eps=1e-8
+        the interval overwhich to calculate the finite differences
+
+
+
+
+    Methods
+    -------
+    __call__({x: x0}) -> FactorValue
+        calls the factor, the passed input must be a dictionary with
+        where the keys are the Variable objects that the function takes
+        as input.
+
+        returns a FactorValue object which behaves like an np.ndarray
+        deterministic values are stored in the deterministic_values
+        attribute
+
+    func_jacobian({x: x0}) -> Tuple[FactorValue, AbstractJacobianValue]
+        calls the factor and returns it value and the Jacobian of its value
+        with respect to the `variables` passed. The Jacobian is returned as
+        a VariableLinearOperator with the appropriate methods for calculating
+        the vector-Jacobian or Jacobian-vector products depending on how
+        the Jacobian is calculated internally.
+
     Examples
     --------
     def linear(x, a, b):
@@ -110,25 +183,38 @@ class Factor(AbstractFactor):
             if arg_names[0] == "self":
                 arg_names = arg_names[1:]
 
-            # Make sure arg_names matches length of args
-            for v in args[len(arg_names) :]:
-                arg_name = v.name
-                # Make sure arg_name is unique
-                while arg_name in arg_names:
-                    arg_name += "_"
-                arg_names.append(arg_name)
+        # Make sure arg_names matches length of args
+        for v in args[len(arg_names) :]:
+            arg_name = v.name
+            # Make sure arg_name is unique
+            while arg_name in arg_names:
+                arg_name += "_"
+            arg_names.append(arg_name)
 
-        # self._args = args
-        # self._arg_names = arg_names
         kwargs = dict(zip(arg_names, args))
         name = name or factor.__name__
-        super().__init__(name=name, plates=plates, **kwargs)
 
-        self.factor_out = factor_out
-        det_variables = set(v[0] for v in nested_filter(is_variable, factor_out))
-        det_variables.discard(FactorValue)
-        self._deterministic_variables = det_variables
+        # self._plates = plates
+        # self._kwargs = {}
+        # self._deterministic_variables = set()
+        # self._variable_name_kw = {}
+        # self.id = next(self._id)
 
+        # self._plates = plates
+        # self._kwargs = kwargs
+        # self._deterministic_variables = set(deterministic_variables)
+        # self._variable_name_kw = {v.name: kw for kw, v in kwargs.items()}
+        # self.id = next(self._id)
+
+        AbstractFactor.__init__(
+            self,
+            name=name,
+            plates=plates,
+            factor_out=factor_out,
+            **kwargs,
+        )
+
+        # self.factor_out = factor_out
         self.eps = eps
         self._set_factor(factor)
         self._set_jacobians(
@@ -256,6 +342,45 @@ class Factor(AbstractFactor):
 
 
 class FactorKW(Factor):
+    """Represents factors in Graphical models. The functions passed to this
+    object will be called by keyword arguments
+
+    Parameters
+    ----------
+    factor
+        the function being wrapped, must accept calls
+        through positional arguments
+    **kwargs: Variables
+        Variables for each keyword argument for the function
+    factor_out:
+        The output of the factor. This can just be `FactorValue`
+        or can be a arbitrarily nested structure of lists, tuples and dicts
+        e.g.
+        >>> foo = lambda x, y: (z, {'a': [a]})
+        >>> factor = Factor(foo, x, y, factor_out=(z, {'a': [a]}))
+    name: optional, str
+        the name of the factor, if not passed then uses the name
+        of the function passed
+
+    Methods
+    -------
+    __call__({x: x0}) -> FactorValue
+        calls the factor, the passed input must be a dictionary with
+        where the keys are the Variable objects that the function takes
+        as input.
+
+        returns a FactorValue object which behaves like an np.ndarray
+        deterministic values are stored in the deterministic_values
+        attribute
+
+    func_jacobian({x: x0}) -> Tuple[FactorValue, AbstractJacobianValue]
+        calls the factor and returns it value and the Jacobian of its value
+        with respect to the `variables` passed. The Jacobian is returned as
+        a VariableLinearOperator with the appropriate methods for calculating
+        the vector-Jacobian or Jacobian-vector products depending on how
+        the Jacobian is calculated internally.
+    """
+
     def __init__(
         self,
         factor,

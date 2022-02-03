@@ -77,7 +77,7 @@ class MeanField(CollectionPriorModel, Dict[Variable, AbstractMessage], Factor):
         log_norm: np.ndarray = 0.0,
     ):
         dict.__init__(self, dists)
-        Factor.__init__(self, self._logpdf, *dists)
+        Factor.__init__(self, self._logpdf, *dists, arg_names=[])
         CollectionPriorModel.__init__(self)
 
         if isinstance(dists, MeanField):
@@ -163,15 +163,7 @@ class MeanField(CollectionPriorModel, Dict[Variable, AbstractMessage], Factor):
         the result is broadcast to the appropriate shape given the variable
         plates
         """
-        return reduce(
-            add_arrays,
-            (
-                aggregate(
-                    self._broadcast(self._variable_plates[v], m.logpdf(values[v])),
-                )
-                for v, m in self.items()
-            ),
-        )
+        return sum(np.sum(m.logpdf(values[v])) for v, m in self.items())
 
     def logpdf_gradient(self, values: Dict[Variable, np.ndarray], **kwargs):
         logl = 0

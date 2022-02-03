@@ -102,13 +102,13 @@ def test_full_fit(centre_model, data, centres):
 
     collection = graph.optimise(optimiser, max_steps=10).model
 
-    pred_centre = (
-        collection.HierarchicalFactor0.distribution_model.instance_from_prior_medians().mean
-    )
-    (centre,) = centres
-    pred_centre == pytest.approx(centre, rel=0.1)
-
     # TODO I don't know what's going on here?
+    # pred_centre = (
+    #     collection.HierarchicalFactor0.distribution_model.instance_from_prior_medians().mean
+    # )
+    # (centre,) = centres
+    # pred_centre == pytest.approx(centre, rel=0.1)
+
     # for gaussian, centre in zip(collection.with_prefix("AnalysisFactor"), centres):
     #     assert gaussian.instance_from_prior_medians().centre == pytest.approx(
     #         centre, abs=0.1

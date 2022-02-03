@@ -131,12 +131,14 @@ class FactorGraph(AbstractNode):
 
     @cached_property
     def all_variables(self):
-        return reduce(set.union, (factor.all_variables for factor in self.factors))
+        return reduce(
+            frozenset.union, (factor.all_variables for factor in self.factors)
+        )
 
     @cached_property
     def deterministic_variables(self):
         return reduce(
-            set.union, (factor.deterministic_variables for factor in self.factors)
+            frozenset.union, (factor.deterministic_variables for factor in self.factors)
         )
 
     @cached_property
@@ -210,7 +212,7 @@ class FactorGraph(AbstractNode):
         # missing deterministic variables that need to be calculated
         log_value = 0.0
         det_values = {}
-        variables = variable_dict.copy()
+        variables = {**self.fixed_values, **variable_dict}
 
         missing = set(v.name for v in self.variables).difference(
             v.name for v in variables
@@ -242,7 +244,7 @@ class FactorGraph(AbstractNode):
         log_value = 0.0
         det_values = {}
         factor_jacs = {}
-        variables = variable_dict.copy()
+        variables = {**self.fixed_values, **variable_dict}
 
         missing = set(v.name for v in self.variables).difference(
             v.name for v in variables

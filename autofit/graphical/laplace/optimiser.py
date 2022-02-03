@@ -79,7 +79,11 @@ class LaplaceOptimiser(AbstractFactorOptimiser):
         free_variables = factor_approx.free_variables
         det_variables = factor_approx.deterministic_variables
 
-        parameters = (params or MeanField.mean.fget(mean_field)).subset(free_variables)
+        parameters = MeanField.mean.fget(mean_field)
+        if params:
+            for v, p in params.items():
+                parameters[v] = p
+
         hessian = self.make_hessian(mean_field, free_variables, **self.hessian_kws)
         if det_variables:
             det_hessian = self.make_hessian(mean_field, det_variables)
@@ -89,7 +93,7 @@ class LaplaceOptimiser(AbstractFactorOptimiser):
         state = newton.OptimisationState(
             factor_approx,
             factor_approx.func_gradient,
-            parameters,
+            parameters.subset(free_variables),
             hessian,
             det_hessian,
         )
