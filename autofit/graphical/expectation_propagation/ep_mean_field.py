@@ -8,7 +8,7 @@ from autoconf import cached_property
 from autofit.graphical.factor_graphs.factor import Factor
 from autofit.graphical.factor_graphs.graph import FactorGraph
 from autofit.graphical.utils import Status
-from autofit.mapper.variable import Variable
+from autofit.mapper.variable import Variable, Plate, VariableData
 from autofit.messages.abstract import AbstractMessage
 from autofit.graphical.mean_field import MeanField, FactorApproximation
 
@@ -65,6 +65,35 @@ class EPMeanField(FactorGraph):
         self._factor_mean_field = factor_mean_field
 
         super().__init__(self.factor_graph.factors)
+
+    def subset(self, plates_index):
+        factor_mean_field_subset = {}
+        factor_mean_field_rescale = {}
+        for factor, mean_field in self.factor_mean_field.items():
+            mean_field_subset = mean_field.subset(plates_index=plates_index)
+            factor_mean_field_subset[factor] = mean_field_subset
+            mean_field_size = VariableData.prod(VariableData.plate_sizes(mean_field))
+            subset_size = VariableData.prod(VariableData.plate_sizes(mean_field_subset))
+            scale_factor = subset_size / mean_field_size
+            factor_mean_field_rescale[factor] = {
+                v: scale_factor * mean_field[v].size / message.size
+                for v, message in mean_field_subset.items()
+            }
+
+        return EPMeanFieldSubset(
+            self.factor_graph,
+            factor_mean_field_subset,
+            factor_mean_field_rescale,
+            self,
+            plates_index,
+        )
+
+    def subselect(self, plates_index):
+        factor_mean_field_subset = {}
+        for factor, mean_field in self.factor_mean_field.items():
+            factor_mean_field_subset[factor] = mean_field.subset(
+                plates_index=plates_index
+            )
 
     @property
     def name(self):
@@ -225,3 +254,103 @@ class EPMeanField(FactorGraph):
             logger.exception(e)
             log_evidence = float("nan")
         return f"{clsname}({self.factor_graph}, " f"log_evidence={log_evidence})"
+
+
+class EPMeanFieldSubset(EPMeanField):
+    """
+    this class encode the EP mean-field approximation to a factor graph
+
+
+    Attributes
+    ----------
+    factor_graph: FactorGraph
+        the base factor graph being approximated
+
+    factor_mean_field: Dict[Factor, MeanField]
+        the mean-field approximation for each factor in the factor graph
+
+    mean_field: MeanField
+        the mean-field approximation of the full factor graph
+        i.e. the product of the factor mean-field approximations
+
+    variables: Set[Variable]
+        the variables of the approximation
+
+    deterministic_variables: Set[Variable]
+        the deterministic variables
+
+    log_evidence: float
+        the approximate log evidence of the approximation
+
+    is_valid: bool
+        returns whether the factor mean-field approximations are all valid
+
+    Methods
+    -------
+    from_approx_dists(factor_graph, approx_dists)
+        create a EPMeanField object from the passed factor_graph
+        using approx_dists to initialise the factor mean-field approximations
+
+    factor_approximation(factor)
+        create the FactorApproximation for the factor
+
+    project_factor_approx(factor_approximation)
+        given the passed FactorApproximation, return a new `EPMeanField`
+        object encoding the updated mean-field approximation
+    """
+
+    def __init__(
+        self,
+        factor_graph: FactorGraph,
+        factor_mean_field: Dict[Factor, MeanField],
+        factor_rescale: Dict[Factor, Dict[Variable, float]],
+        ep_mean_field: EPMeanField,
+        plates_index: Dict[Plate, List[int]],
+    ):
+        super().__init__(factor_graph, factor_mean_field)
+
+        self._factor_rescale = factor_rescale
+        self._ep_mean_field = ep_mean_field
+        self._plates_index = plates_index
+
+    def factor_approximation(self, factor: Factor) -> FactorApproximation:
+        """
+        Create an approximation for one factor.
+
+        This comprises:
+        - The factor
+        - The factor's variable distributions
+        - The cavity distribution, which is the product of the distributions
+        for each variable for all other factors
+        - The model distribution, which is the product of the distributions
+        for each variable for all factors
+
+        Parameters
+        ----------
+        factor
+            Some factor
+
+        Returns
+        -------
+        An object comprising distributions with a specific distribution excluding
+        that factor
+        """
+        factor_mean_field = self._factor_mean_field.copy()
+
+        factor_dist = factor_mean_field.pop(factor)
+        cavity_dist = dict(
+            MeanField({v: 1.0 for v in factor_dist.all_variables}).prod(
+                *factor_mean_field.values()
+            )
+        )
+        model_dist = factor_dist.prod(cavity_dist)
+
+        factor_dist = dict(factor_dist)
+        for v, scale in self._factor_rescale[factor].items():
+            if scale < 1:
+                factor_dist[v] = factor_dist[v] ** scale
+                cavity_dist[v] *= factor_dist[v] ** (1 - scale)
+
+        return FactorApproximation(
+            factor, MeanField(cavity_dist), MeanField(factor_dist), model_dist
+        )

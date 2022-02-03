@@ -106,6 +106,19 @@ class AbstractMessage(Prior, ABC):
     def ndim(self) -> int:
         return self._broadcast.ndim
 
+    def _reset_cache(self):
+        cached_attrs = [
+            "log_partition",
+            "variance",
+            "std",
+            "scale",
+            # "mean",
+            "natural_parameters",
+            "is_valid",
+        ]
+        for attr in cached_attrs:
+            self.__dict__.pop(attr, None)
+
     def __getitem__(self, index) -> "AbstractMessage":
         cls = type(self)
         if index:
@@ -114,12 +127,7 @@ class AbstractMessage(Prior, ABC):
             return self
 
     def __setitem__(self, index, value):
-        del self.log_partition
-        del self.variance
-        del self.std
-        # del self.mean
-        del self.natural_parameters
-        del self.is_valid
+        self._reset_cache()
         for param0, param1 in zip(self.parameters, value.parameters):
             param0[index] = param1
 
