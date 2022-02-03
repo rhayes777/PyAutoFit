@@ -350,7 +350,7 @@ class VariableData(Dict[Variable, np.ndarray]):
         return sum(VariableData.var_sum(self).values())
 
     def prod(self) -> float:
-        return VariableData.reduce(VariableData.var_prod(self).values(), operator.mul)
+        return VariableData.reduce(VariableData.var_prod(self), operator.mul)
 
     def all(self) -> bool:
         return all(VariableData.var_all(self).values())
@@ -395,6 +395,15 @@ class VariableData(Dict[Variable, np.ndarray]):
 
     def merge(self, other):
         return VariableData({**self, **other})
+
+    def plate_sizes(self):
+        sizes = {}
+        for v, val in self.items():
+            shape = np.shape(val)
+            assert len(shape) == len(v.plates), "shape must match the number of plates"
+            for p, s in zip(v.plates, shape):
+                assert sizes.setdefault(p, s) == s, "plate sizes must be consistent"
+        return sizes
 
 
 class VariableLinearOperator(ABC):

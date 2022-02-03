@@ -118,8 +118,41 @@ class MeanField(CollectionPriorModel, Dict[Variable, AbstractMessage], Factor):
     __getitem__ = dict.__getitem__
     __len__ = dict.__len__
 
-    def subset(self, variables):
+    @property
+    def shapes(self):
+        return {v: np.shape(m) for v, m in self.items()}
+
+    @property
+    def sizes(self):
+        return {v: np.size(m) for v, m in self.items()}
+
+    def subset(self, variables=None, plates_index=None):
         cls = type(self) if isinstance(self, MeanField) else MeanField
+        variables = variables or self.variables
+        if plates_index:
+            plate_sizes = VariableData.plate_sizes(self)
+
+            def make_index_seq(p, plates_index, plate_sizes):
+                seq = plates_index.get(p, range(plate_sizes[p]))
+                if isinstance(seq, slice):
+                    seq = range(plate_sizes[p])[seq]
+
+                return seq
+
+            def make_indexes(v, plates_index, plate_sizes):
+                if any(p in plates_index for p in v.plates):
+                    return np.ix_(
+                        *(
+                            make_index_seq(p, plates_index, plate_sizes)
+                            for p in v.plates
+                        )
+                    )
+                return ()
+
+            variable_index = (
+                (v, make_indexes(v, plates_index, plate_sizes)) for v in variables
+            )
+            return cls((v, self[v][index]) for v, index in variable_index)
         return cls((v, self[v]) for v in variables)
 
     @property

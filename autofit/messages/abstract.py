@@ -108,7 +108,10 @@ class AbstractMessage(Prior, ABC):
 
     def __getitem__(self, index) -> "AbstractMessage":
         cls = type(self)
-        return cls(param[index] for param in self.parameters)
+        if index:
+            return cls(*(param[index] for param in self.parameters))
+        else:
+            return self
 
     def __setitem__(self, index, value):
         del self.log_partition
@@ -123,8 +126,10 @@ class AbstractMessage(Prior, ABC):
     def update(self, index, value):
         cls = type(self)
         return cls(
-            update_array(param0, index, param1)
-            for param0, param1 in zip(self.parameters, value.parameters)
+            *(
+                update_array(param0, index, param1)
+                for param0, param1 in zip(self.parameters, value.parameters)
+            )
         )
 
     @classmethod
