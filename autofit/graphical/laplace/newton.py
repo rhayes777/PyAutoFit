@@ -14,11 +14,11 @@ from autofit.graphical.utils import Status, StatusFlag
 
 
 def gradient_ascent(state: OptimisationState) -> VariableData:
-    return state.gradient.subset(state.parameters)
+    return state.gradient
 
 
 def newton_direction(state: OptimisationState) -> VariableData:
-    return state.hessian.ldiv(state.gradient).subset(state.parameters.key())
+    return state.hessian.ldiv(state.gradient)
 
 
 logger = logging.getLogger(__name__)

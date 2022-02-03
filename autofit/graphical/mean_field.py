@@ -170,7 +170,7 @@ class MeanField(CollectionPriorModel, Dict[Variable, AbstractMessage], Factor):
         gradl = {}
         for v, m in self.items():
             lv, gradl[v] = m.logpdf_gradient(values[v])
-            logl = np.sum(lv)
+            logl += np.sum(lv)
 
         return logl, gradl
 
@@ -382,9 +382,11 @@ class FactorApproximation(AbstractNode):
 
         variable_dict = {**self.fixed_values, **values}
         fval, fjac = self.factor.func_jacobian(variable_dict)
-        variable_dict.update(fval.deterministic_values)
 
-        log_cavity, grad_cavity = self.cavity_dist.logpdf_gradient(variable_dict)
+        variable_dict.update(fval.deterministic_values)
+        log_cavity, grad_cavity = self.cavity_dist.logpdf_gradient(
+            {**variable_dict, **fval.deterministic_values}
+        )
 
         logl = np.sum(fval) + np.sum(log_cavity)
         grad = fjac.grad(grad_cavity)
