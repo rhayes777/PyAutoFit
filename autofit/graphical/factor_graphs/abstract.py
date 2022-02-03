@@ -96,6 +96,10 @@ class AbstractNode(ABC):
         }
 
     @cached_property
+    def fixed_values(self):
+        return {}
+
+    @cached_property
     def variables(self) -> Set[Variable]:
         """
         Dictionary mapping the names of variables to those variables
@@ -104,7 +108,7 @@ class AbstractNode(ABC):
 
     @property
     def free_variables(self) -> Set[Variable]:
-        return self.variables - getattr(self, "fixed_values", {}).keys()
+        return self.variables - self.fixed_values.keys()
 
     @property
     def kwargs(self) -> Dict[str, Variable]:

@@ -89,9 +89,9 @@ class MeanField(CollectionPriorModel, Dict[Variable, AbstractMessage], Factor):
 
     @cached_property
     def fixed_values(self):
-        return {
-            k: dist.mean for k, dist in self.items() if isinstance(dist, FixedMessage)
-        }
+        return VariableData(
+            {k: dist.mean for k, dist in self.items() if isinstance(dist, FixedMessage)}
+        )
 
     @classmethod
     def from_priors(cls, priors: Iterable[Prior]) -> "MeanField":
