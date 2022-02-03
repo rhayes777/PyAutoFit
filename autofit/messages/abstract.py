@@ -16,6 +16,15 @@ from ..mapper.variable import Variable
 enforce_id_match = True
 
 
+def update_array(arr1, ind, arr2):
+    if np.shape(arr1):
+        out = arr1.copy()
+        out[ind] = arr2
+        return out
+
+    return arr2
+
+
 class AbstractMessage(Prior, ABC):
     log_base_measure: float
     _projection_class: Optional[Type["AbstractMessage"]] = None
@@ -69,7 +78,7 @@ class AbstractMessage(Prior, ABC):
 
     @cached_property
     def scale(self) -> np.ndarray:
-        return self.scale
+        return self.std
 
     @cached_property
     def std(self) -> np.ndarray:
@@ -96,6 +105,27 @@ class AbstractMessage(Prior, ABC):
     @property
     def ndim(self) -> int:
         return self._broadcast.ndim
+
+    def __getitem__(self, index) -> "AbstractMessage":
+        cls = type(self)
+        return cls(param[index] for param in self.parameters)
+
+    def __setitem__(self, index, value):
+        del self.log_partition
+        del self.variance
+        del self.std
+        # del self.mean
+        del self.natural_parameters
+        del self.is_valid
+        for param0, param1 in zip(self.parameters, value.parameters):
+            param0[index] = param1
+
+    def update(self, index, value):
+        cls = type(self)
+        return cls(
+            update_array(param0, index, param1)
+            for param0, param1 in zip(self.parameters, value.parameters)
+        )
 
     @classmethod
     def from_natural_parameters(
