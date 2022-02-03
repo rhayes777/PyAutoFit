@@ -1,11 +1,11 @@
-from autofit.graphical.factor_graphs.factor import Factor
+from autofit.graphical.factor_graphs.factor import FactorKW
 from autofit.mapper.prior.abstract import Prior
 from autofit.mapper.prior_model.collection import CollectionPriorModel
 from autofit.non_linear.analysis import Analysis
 from autofit.tools.namer import namer
 
 
-class PriorFactor(Factor, Analysis):
+class PriorFactor(FactorKW, Analysis):
     def __init__(self, prior: Prior):
         """
         A factor that wraps a prior such that is can be optimised
@@ -20,11 +20,7 @@ class PriorFactor(Factor, Analysis):
             are generated programmatically.
         """
         # TODO: Consider analytical solution rather than implementing optimisation
-        super().__init__(
-            prior.factor,
-            x=prior,
-            name=namer(self.__class__.__name__)
-        )
+        super().__init__(prior.factor, x=prior, name=namer(self.__class__.__name__))
         self.prior = prior
 
     @property
@@ -32,9 +28,7 @@ class PriorFactor(Factor, Analysis):
         """
         A trivial prior model to conform to the expected interface.
         """
-        return CollectionPriorModel(
-            self.prior
-        )
+        return CollectionPriorModel(self.prior)
 
     @property
     def analysis(self) -> "PriorFactor":
@@ -43,10 +37,7 @@ class PriorFactor(Factor, Analysis):
         """
         return self
 
-    def log_likelihood_function(
-            self,
-            instance
-    ) -> float:
+    def log_likelihood_function(self, instance) -> float:
         """
         Compute the likelihood.
 

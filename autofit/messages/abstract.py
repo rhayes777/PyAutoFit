@@ -447,7 +447,7 @@ class AbstractMessage(Prior, ABC):
         return loglike.sum(), (g,)
 
     def as_factor(self, variable: "Variable", name: Optional[str] = None):
-        from autofit.graphical.factor_graphs.jacobians import FactorJac
+        from autofit.graphical.factor_graphs import Factor
 
         if name is None:
             shape = self.shape
@@ -455,7 +455,7 @@ class AbstractMessage(Prior, ABC):
             family = clsname[:-7] if clsname.endswith("Message") else clsname
             name = f"{family}Likelihood" + (str(shape) if shape else "")
 
-        return FactorJac(
+        return Factor(
             self.logpdf,
             variable,
             name=name,

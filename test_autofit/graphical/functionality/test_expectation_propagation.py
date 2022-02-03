@@ -7,10 +7,13 @@ from autofit import graphical as graph
 from autofit.messages import abstract
 from autofit.messages.normal import NormalMessage
 
+x = graph.Variable("x")
+graph.Factor(stats.norm(loc=-0.5, scale=0.5).logpdf, x)
+
 
 @pytest.fixture(name="normal_factor")
 def make_normal_factor(x):
-    return graph.Factor(stats.norm(loc=-0.5, scale=0.5).logpdf, x=x)
+    return graph.Factor(stats.norm(loc=-0.5, scale=0.5).logpdf, x)
 
 
 @pytest.fixture(name="model")

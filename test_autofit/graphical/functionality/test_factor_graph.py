@@ -32,17 +32,17 @@ def make_y():
 
 @pytest.fixture(name="sigmoid")
 def make_sigmoid(x):
-    return graph.Factor(log_sigmoid, x=x)
+    return graph.Factor(log_sigmoid, x)
 
 
 @pytest.fixture(name="vectorised_sigmoid")
 def make_vectorised_sigmoid(x):
-    return graph.Factor(log_sigmoid, vectorised=True, x=x)
+    return graph.Factor(log_sigmoid, x)
 
 
 @pytest.fixture(name="phi")
 def make_phi(x):
-    return graph.Factor(log_phi, x=x)
+    return graph.Factor(log_phi, x)
 
 
 @pytest.fixture(name="compound")
@@ -51,15 +51,14 @@ def make_compound(sigmoid, phi):
 
 
 @pytest.fixture(name="plus")
-def make_plus(x):
-    return graph.Factor(plus_two, x=x)
+def make_plus(x, y):
+    return graph.Factor(plus_two, x, factor_out=y)
 
 
 @pytest.fixture(name="flat_compound")
 def make_flat_compound(plus, y, sigmoid):
-    g = plus == y
-    phi = graph.Factor(log_phi, x=y)
-    return phi * g * sigmoid
+    phi = graph.Factor(log_phi, y)
+    return phi * plus * sigmoid
 
 
 def test_factor_jacobian():
@@ -85,30 +84,11 @@ class TestFactorGraph:
         assert phi.name == "log_phi"
         assert compound.name == "(log_sigmoid*log_phi)"
 
-    def test_argument(self, sigmoid, phi, compound):
-        values = {Variable("x"): 5}
+    def test_argument(self, x, sigmoid, phi, compound):
+        values = {x: 5}
         assert sigmoid(values).log_value == -0.006715348489118068
         assert phi(values).log_value == -13.418938533204672
         assert compound(values).log_value == -13.42565388169379
-
-    def test_factor_shape(self, sigmoid, phi, compound):
-        values = {Variable("x"): [5]}
-        assert sigmoid(values).log_value == -0.006715348489118068
-        assert phi(values).log_value == -13.418938533204672
-        assert compound(values).log_value == -13.42565388169379
-
-    def test_vectorisation(self, sigmoid, vectorised_sigmoid):
-        variables = {Variable("x"): np.full(1000, 5.0)}
-        assert np.allclose(
-            sigmoid(variables).log_value, vectorised_sigmoid(variables).log_value
-        )
-
-    def test_deterministic_variable_name(self, flat_compound):
-        print(flat_compound)
-        assert (
-            str(flat_compound)
-            == "(Factor(log_phi, x=y) * (Factor(plus_two, x=x) == (y)) * Factor(log_sigmoid, x=x))"
-        )
 
     def test_deterministic_variable_value(self, flat_compound, x, y):
         value = flat_compound({x: 3})
@@ -118,6 +98,6 @@ class TestFactorGraph:
 
     @pytest.mark.parametrize("coefficient", [1, 2, 3, 4, 5])
     def test_jacobian(self, x, coefficient):
-        factor = graph.Factor(lambda p: coefficient * p, p=x)
+        factor = graph.Factor(lambda p: coefficient * p, x)
 
         assert factor.jacobian({x: 2}).grad()[x] == pytest.approx(coefficient)

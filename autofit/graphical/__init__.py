@@ -12,7 +12,6 @@ from .factor_graphs import (
     VariableData,
     Factor,
     FactorValue,
-    FactorJac,
     FactorGraph,
 )
 from .mean_field import FactorApproximation, MeanField

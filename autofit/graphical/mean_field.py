@@ -8,8 +8,6 @@ import numpy as np
 from autoconf import cached_property
 
 from autofit import exc
-from autofit.graphical.factor_graphs.factor import Factor, AbstractNode
-from autofit.graphical.factor_graphs.jacobians import AbstractJacobian
 from autofit.graphical.utils import (
     StatusFlag,
     prod,
@@ -31,6 +29,11 @@ from autofit.messages.abstract import AbstractMessage
 from autofit.messages.fixed import FixedMessage
 from autofit.mapper.prior_model.collection import CollectionPriorModel
 
+
+from autofit.graphical.factor_graphs.jacobians import AbstractJacobian
+from autofit.graphical.factor_graphs.abstract import AbstractNode
+from autofit.graphical.factor_graphs.factor import Factor
+
 VariableFactorDist = Dict[str, Dict[Factor, AbstractMessage]]
 Projection = Dict[str, AbstractMessage]
 
@@ -39,6 +42,7 @@ logger = logging.getLogger(__name__)
 _log_projection_warnings = logger.debug
 
 
+# Does this need to be a Factor?
 class MeanField(CollectionPriorModel, Dict[Variable, AbstractMessage], Factor):
     """For a factor with multiple variables, this class represents the
     the mean field approximation to that factor,
@@ -73,7 +77,7 @@ class MeanField(CollectionPriorModel, Dict[Variable, AbstractMessage], Factor):
         log_norm: np.ndarray = 0.0,
     ):
         dict.__init__(self, dists)
-        Factor.__init__(self, self._logpdf, **{v.name: v for v in dists})
+        Factor.__init__(self, self._logpdf, *dists)
         CollectionPriorModel.__init__(self)
 
         if isinstance(dists, MeanField):
@@ -118,10 +122,6 @@ class MeanField(CollectionPriorModel, Dict[Variable, AbstractMessage], Factor):
         cls = type(self) if isinstance(self, MeanField) else MeanField
         return cls((v, self[v]) for v in variables)
 
-    def _logpdf(self, **kwargs: np.ndarray) -> np.ndarray:
-        var_names = self.name_variable_dict
-        return self.logpdf({var_names[k]: value for k, value in kwargs.items()})
-
     @property
     def mean(self):
         return VariableData({v: dist.mean for v, dist in self.items()})
@@ -150,6 +150,10 @@ class MeanField(CollectionPriorModel, Dict[Variable, AbstractMessage], Factor):
         """
         return {v: dist for v, dist in self.items()}
 
+    def _logpdf(self, *args: np.ndarray) -> np.ndarray:
+        var_names = self.name_variable_dict
+        return self.logpdf(dict(zip(self.args, args)))
+
     def logpdf(
         self,
         values: Dict[Variable, np.ndarray],
@@ -169,36 +173,14 @@ class MeanField(CollectionPriorModel, Dict[Variable, AbstractMessage], Factor):
             ),
         )
 
-    def __call__(
-        self,
-        values: Dict[Variable, np.ndarray],
-    ) -> FactorValue:
-        return FactorValue(self.logpdf(values), {})
-
     def logpdf_gradient(self, values: Dict[Variable, np.ndarray], **kwargs):
         logl = 0
         gradl = {}
         for v, m in self.items():
             lv, gradl[v] = m.logpdf_gradient(values[v])
-            lv = aggregate(self._broadcast(self._variable_plates[v], lv))
-            logl = add_arrays(logl, lv)
+            logl = np.sum(lv)
 
         return logl, gradl
-
-    def logpdf_gradient_hessian(
-        self,
-        values: Dict[Variable, np.ndarray],
-        **kwargs,
-    ):
-        logl = 0.0
-        gradl = JacobianValue({})
-        hessl = HessianValue({})
-        for v, m in self.items():
-            lv, gradl[v], hessl[v] = m.logpdf_gradient_hessian(values[v])
-            lv = aggregate(self._broadcast(self._variable_plates[v], lv))
-            logl = add_arrays(logl, lv)
-
-        return logl, gradl, hessl
 
     def __repr__(self):
         reprdict = (

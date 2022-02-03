@@ -29,13 +29,13 @@ def likelihood_jacobian(z, y):
 
 @pytest.fixture(name="likelihood_factor")
 def make_likelihood_factor(z_, y_, obs, dims):
-    factor = graph.FactorJac(likelihood, z_, y_)
+    factor = graph.Factor(likelihood, z_, y_)
     return factor
 
 
 @pytest.fixture(name="likelihood_factor_jac")
 def make_likelihood_factor_jac(z_, y_, obs, dims):
-    factor = graph.FactorJac(likelihood, z_, y_, factor_jacobian=likelihood_jacobian)
+    factor = graph.Factor(likelihood, z_, y_, factor_jacobian=likelihood_jacobian)
     return factor
 
 

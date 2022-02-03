@@ -1,5 +1,4 @@
 from typing import Union
-from .factor import AbstractFactor, Factor, DeterministicFactor
 from .abstract import (
     Value,
     FactorValue,
@@ -9,6 +8,7 @@ from .abstract import (
     VariableData,
     Plate,
 )
+from .factor import AbstractFactor, Factor
 
 from .graph import FactorGraph
 from .transform import (
@@ -17,7 +17,3 @@ from .transform import (
     identity_transform,
     TransformedNode,
 )
-from .jacobians import FactorJac, FactorJacobian, DeterministicFactorJacobian
-
-# FactorNode = Union[Factor, FactorJacobian]
-# DeterministicFactorNode = Union[DeterministicFactor, DeterministicFactorJacobian]

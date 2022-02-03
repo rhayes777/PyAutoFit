@@ -92,26 +92,26 @@ def make_y_(obs, dims):
 
 @pytest.fixture(name="linear_factor")
 def make_linear_factor(x_, a_, b_, z_):
-    return graph.FactorJac(linear, x_, a_, b_, factor_out=z_)
+    return graph.Factor(linear, x_, a_, b_, factor_out=z_)
 
 
 @pytest.fixture(name="linear_factor_jac")
 def make_linear_factor_jac(x_, a_, b_, z_):
-    return graph.FactorJac(
+    return graph.Factor(
         linear, x_, a_, b_, factor_jacobian=linear_jacobian, factor_out=z_
     )
 
 
 @pytest.fixture(name="prior_a")
 def make_prior_a(prior, a_):
-    return graph.FactorJac(prior, a_)
+    return graph.Factor(prior, a_)
 
 
 @pytest.fixture(name="prior_b")
 def make_prior_b(prior, b_):
-    return graph.FactorJac(prior, b_)
+    return graph.Factor(prior, b_)
 
 
 @pytest.fixture(name="likelihood_factor")
 def make_likelihood_factor(likelihood, z_, y_):
-    return graph.FactorJac(likelihood, z_, y_)
+    return graph.Factor(likelihood, z_, y_)

@@ -5,9 +5,7 @@ from autofit import graphical as graph
 from autofit.graphical import (
     EPMeanField,
     LaplaceOptimiser,
-    FactorJac,
     EPOptimiser,
-    utils,
 )
 from autofit.messages import FixedMessage, NormalMessage
 

@@ -88,7 +88,7 @@ def make_model_approx(centres, widths):
         NormalMessage(c, w).as_factor(x) for c, w, x in zip(centres, widths, centres_)
     ]
     normal_likelihoods = [
-        graph.FactorJac(
+        graph.Factor(
             normal_loglike_t,
             centre,
             mu_,
@@ -137,7 +137,7 @@ def test_hierarchical(centres, widths):
         for c, w, x in zip(centres, widths, centres_)
     ]
 
-    hierarchical_factor = graph.FactorJac(
+    hierarchical_factor = graph.Factor(
         hierarchical_loglike_t,
         mu_,
         logt_,
@@ -207,7 +207,7 @@ def test_full(data):
 
     # Setting up model
     data_loglikes = [
-        graph.FactorJac(
+        graph.Factor(
             normal_loglike_t,
             s_,
             x_,
@@ -218,11 +218,10 @@ def test_full(data):
         for i, (s_, x_, logt_) in enumerate(zip(samples, x_i_, logt_i_))
     ]
     centre_loglikes = [
-        graph.FactorJac(normal_loglike_t, x_, mu_x_, logt_x_) for x_ in x_i_
+        graph.Factor(normal_loglike_t, x_, mu_x_, logt_x_) for x_ in x_i_
     ]
     precision_loglikes = [
-        graph.FactorJac(normal_loglike_t, logt_, mu_logt_, logt_logt_)
-        for logt_ in logt_i_
+        graph.Factor(normal_loglike_t, logt_, mu_logt_, logt_logt_) for logt_ in logt_i_
     ]
     priors = [
         messages.NormalMessage(0, 10).as_factor(v, name=f"prior_{v.name}")
@@ -246,7 +245,7 @@ def test_full_hierachical(data):
 
     # Setting up model
     data_loglikes = [
-        graph.FactorJac(
+        graph.Factor(
             normal_loglike_t,
             s_,
             x_,
@@ -256,7 +255,7 @@ def test_full_hierachical(data):
         )
         for i, (s_, x_, logt_) in enumerate(zip(samples, x_i_, logt_i_))
     ]
-    centre_loglike = graph.FactorJac(
+    centre_loglike = graph.Factor(
         hierarchical_loglike_t,
         mu_x_,
         logt_x_,
@@ -264,7 +263,7 @@ def test_full_hierachical(data):
         name="mean_loglike",
         factor_jacobian=hierarchical_loglike_t_jac,
     )
-    logt_loglike = graph.FactorJac(
+    logt_loglike = graph.Factor(
         hierarchical_loglike_t,
         mu_logt_,
         logt_logt_,

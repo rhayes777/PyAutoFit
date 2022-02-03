@@ -35,6 +35,10 @@ from autofit.mapper.variable import (
     variables,
     VariableLinearOperator,
 )
+from autofit.graphical.factor_graphs.jacobians import (
+    AbstractJacobian,
+    JacobianVectorProduct,
+)
 
 Value = Dict[Variable, np.ndarray]
 
@@ -51,149 +55,6 @@ class FactorInterface(Protocol):
 class FactorGradientInterface(Protocol):
     def __call__(self, values: Value) -> Tuple[FactorValue, GradientValue]:
         pass
-
-
-from autofit.graphical.factor_graphs.numerical import (
-    # numerical_func_jacobian,
-    numerical_func_jacobian_hessian,
-)
-
-from autofit.mapper.variable_operator import (
-    RectVariableOperator,
-    LinearOperator,
-    VariableOperator,
-)
-
-
-class AbstractJacobian(VariableLinearOperator):
-    """
-    Examples
-    --------
-    def linear(x, a, b):
-        z = x.dot(a) + b
-        return (z**2).sum(), z
-
-    def full(x, a, b):
-        z2, z = linear(x, a, b)
-        return z2 + z.sum()
-
-    x_, a_, b_, y_, z_ = variables("x, a, b, y, z")
-    x = np.arange(10.).reshape(5, 2)
-    a = np.arange(2.).reshape(2, 1)
-    b = np.ones(1)
-    y = np.arange(0., 10., 2).reshape(5, 1)
-    # values = {x_: x, y_: y, a_: a, b_: b}
-
-    linear_factor_jvp = FactorJVP(
-        linear, x_, a_, b_, factor_out=(FactorValue, z_))
-
-    linear_factor_vjp = FactorVJP(
-        linear, x_, a_, b_, factor_out=(FactorValue, z_))
-
-    values = {x_: x, a_: a, b_: b}
-
-    jvp_val, jvp_jac = linear_factor_jvp.func_jacobian(values)
-    vjp_val, vjp_jac = linear_factor_vjp.func_jacobian(values)
-
-
-    assert np.allclose(vjp_val, jvp_val)
-    assert (vjp_jac(vjp_val) - jvp_jac(vjp_val)).norm() == 0
-    """
-
-    def __call__(self, values):
-        return self.__rmul__(values)
-
-    def __str__(self) -> str:
-        out_var = str(
-            nested_update(self.factor_out, {v: v.name for v in self.out_variables})
-        ).replace("'", "")
-
-        in_var = ", ".join(v.name for v in self.variables)
-        cls_name = type(self).__name__
-        return f"{cls_name}({out_var} → ∂({in_var})ᵀ {out_var})"
-
-    __repr__ = __str__
-
-    def _full_repr(self) -> str:
-        out_var = str(self.factor_out)
-        in_var = str(self.variables)
-        cls_name = type(self).__name__
-        return f"{cls_name}({out_var} → ∂({in_var})ᵀ {out_var})"
-
-    def grad(self, values=None):
-        grad = VariableData({FactorValue: 1.0})
-        if values:
-            grad.update(values)
-
-        for v, g in self(grad).items():
-            grad[v] = grad.get(v, 0) + g
-
-        return grad
-
-
-class JacobianVectorProduct(AbstractJacobian, RectVariableOperator):
-    __init__ = RectVariableOperator.__init__
-
-    @property
-    def variables(self):
-        return self.left_variables
-
-    @property
-    def out_variables(self):
-        return self.right_variables
-
-    @property
-    def factor_out(self):
-        return tuple(self.out_variables)
-
-
-class VectorJacobianProduct(AbstractJacobian):
-    def __init__(
-        self, factor_out, vjp: Callable, *variables: Variable, out_shapes=None
-    ):
-        self.factor_out = factor_out
-        self.vjp = vjp
-        self._variables = variables
-        self.out_shapes = out_shapes
-
-    @property
-    def variables(self):
-        return self._variables
-
-    @cached_property
-    def out_variables(self):
-        return set(v[0] for v in nested_filter(is_variable, self.factor_out))
-
-    def _get_cotangent(self, values):
-        if isinstance(values, FactorValue):
-            values = values.to_dict()
-
-        if isinstance(values, dict):
-            if self.out_shapes:
-                for v in self.out_shapes.keys() - values.keys():
-                    values[v] = np.zeros(self.out_shapes[v])
-            out = nested_update(self.factor_out, values)
-            return out
-
-        if isinstance(values, int):
-            values = float(values)
-
-        return values
-
-    def __call__(self, values: Union[VariableData, FactorValue]) -> VariableData:
-        v = self._get_cotangent(values)
-        grads = self.vjp(v)
-        return VariableData(zip(self.variables, grads))
-
-    __rmul__ = __call__
-
-    def _not_implemented(self, *args):
-        raise NotImplementedError()
-
-    __rtruediv__ = _not_implemented
-    ldiv = _not_implemented
-    __mul__ = _not_implemented
-    update = _not_implemented
 
 
 class AbstractNode(ABC):
@@ -437,40 +298,24 @@ class AbstractNode(ABC):
     def __call__(self, **kwargs) -> FactorValue:
         pass
 
-    def __hash__(self):
-        return hash(
-            (
-                self._factor,
-                frozenset(self.name_variable_dict.items()),
-                frozenset(self._deterministic_variables),
-            )
+    @property
+    def _unique_representation(self):
+        return (
+            self._factor,
+            self.arg_names,
+            self.args,
+            frozenset(self._deterministic_variables),
         )
 
-    def _factor_value(self, raw_fval):
-        """Converts the raw output of the factor into a `FactorValue`
-        where the values of the deterministic values are stored in a dict
-        attribute `FactorValue.deterministic_values`
-        """
-        det_values = VariableData(nested_filter(is_variable, self.factor_out, raw_fval))
-        fval = det_values.pop(FactorValue, 0.0)
-        return FactorValue(fval, det_values)
+    def __hash__(self):
+        return hash(self._unique_representation)
 
-    def _unpack_jacobian_out(self, raw_jac: Any) -> Dict[Variable, VariableData]:
-        jac = {}
-        for v0, vjac in nested_filter(is_variable, self.factor_out, raw_jac):
-            jac[v0] = VariableData()
-            for v1, j in zip(self.args, vjac):
-                jac[v0][v1] = j
+    def __eq__(self, other):
+        if isinstance(other, type(self)):
+            return self._unique_representation == other._unique_representation
+        return False
 
-        return jac
-
-    def _jac_out_to_jvp(
-        self, raw_jac: Any, values: VariableData
-    ) -> JacobianVectorProduct:
-        jac = self._unpack_jacobian_out(raw_jac)
-        return JacobianVectorProduct.from_dense(jac, values=values)
-
-    def _call_args(self, *args):
+    def _factor_args(self, *args):
         return self._factor(**dict(zip(self.arg_names, args)))
 
     def _numerical_factor_jacobian(
@@ -487,7 +332,7 @@ class AbstractNode(ABC):
         eps = eps or self.eps
         args = tuple(np.array(value, dtype=np.float64) for value in args)
 
-        raw_fval0 = self._call_args(*args)
+        raw_fval0 = self._factor_args(*args)
         fval0 = self._factor_value(raw_fval0).to_dict()
 
         jac = {
@@ -501,7 +346,7 @@ class AbstractNode(ABC):
             with np.nditer(val, op_flags=["readwrite"], flags=["multi_index"]) as it:
                 for x_i in it:
                     val[it.multi_index] += eps
-                    fval1 = self._factor_value(self._call_args(*args)).to_dict()
+                    fval1 = self._factor_value(self._factor_args(*args)).to_dict()
                     jac_v1_i = (fval1 - fval0) / eps
                     x_i -= eps
                     indexes = (Ellipsis,) + it.multi_index
@@ -523,23 +368,10 @@ class AbstractNode(ABC):
         jvp = self._jac_out_to_jvp(raw_jac, values=fval.to_dict().merge(values))
         return fval, jvp
 
-    func_jacobian = numerical_func_jacobian
-
     def jacobian(
         self, values: Dict[Variable, np.array], eps=1e-6
     ) -> "AbstractJacobian":
         return self.func_jacobian(values, eps=eps)[1]
-
-    def hessian(
-        self,
-        values: Dict[Variable, np.array],
-        variables: Optional[Tuple[Variable, ...]] = None,
-        _eps: float = 1e-6,
-        _calc_deterministic: bool = True,
-    ) -> "AbstractHessian":
-        return self.func_jacobian_hessian(
-            values, variables, _eps=_eps, _calc_deterministic=_calc_deterministic
-        )[2]
 
     def func_gradient(self, values: VariableData) -> Tuple[FactorValue, GradientValue]:
         fval, fjac = self.func_jacobian(values)
@@ -547,6 +379,138 @@ class AbstractNode(ABC):
 
     def flatten(self, param_shapes: FlattenArrays) -> "FlattenedNode":
         return FlattenedNode(self, param_shapes)
+
+
+class AbstractFactor(AbstractNode, ABC):
+    def __init__(
+        self,
+        name="",
+        plates: Tuple[Plate, ...] = (),
+        **kwargs: Variable,
+    ):
+        super().__init__(plates=plates, **kwargs)
+        self._name = name or f"factor_{self.id}"
+        self._deterministic_variables = set()
+
+    def __lt__(self, other):
+        return self.name < other.name
+
+    def __gt__(self, other):
+        return self.name > other.name
+
+    @property
+    def deterministic_variables(self) -> Tuple[Variable]:
+        return self._deterministic_variables
+
+    @property
+    def name(self) -> str:
+        return self._name
+
+    def __mul__(self, other):
+        """
+        When two factors are multiplied together this creates a graph
+        """
+        from autofit.graphical.factor_graphs.graph import FactorGraph
+
+        return FactorGraph([self]) * other
+
+    @property
+    def variables(self) -> Set[Variable]:
+        """
+        Dictionary mapping the names of variables to those variables
+        """
+        return set(self._kwargs.values())
+
+    @property
+    def _kwargs_dims(self) -> Dict[str, int]:
+        """
+        The number of plates for each keyword argument variable
+        """
+        return {key: len(value) for key, value in self._kwargs.items()}
+
+    @cached_property
+    def _variable_plates(self) -> Dict[str, np.ndarray]:
+        """
+        Maps the name of each variable to the indices of its plates
+        within this node
+        """
+        return {
+            variable: self._match_plates(variable.plates)
+            for variable in self.all_variables
+        }
+
+    @property
+    def n_deterministic(self) -> int:
+        """
+        How many deterministic variables are there associated with this node?
+        """
+        return len(self._deterministic_variables)
+
+    def _resolve_args(self, **kwargs: np.ndarray) -> dict:
+        """
+        Transforms in the input arguments to match the arguments
+        specified for the factor.
+
+        Parameters
+        ----------
+        args
+        kwargs
+
+        Returns
+        -------
+
+        """
+        return {n: kwargs[v.name] for n, v in self._kwargs.items()}
+
+    def _set_factor(self, factor):
+        self._factor = factor
+        self._has_exact_projection = getattr(factor, "has_exact_projection", None)
+        self._calc_exact_projection = getattr(factor, "calc_exact_projection", None)
+        self._calc_exact_update = getattr(factor, "calc_exact_update", None)
+
+    def has_exact_projection(self, mean_field) -> bool:
+        if self._has_exact_projection:
+            return self._has_exact_projection(**self.resolve_variable_dict(mean_field))
+        else:
+            return False
+
+    def calc_exact_projection(self, mean_field) -> "MeanField":
+        if self._calc_exact_projection:
+            from autofit.graphical.mean_field import MeanField
+
+            projection = self._calc_exact_projection(
+                **self.resolve_variable_dict(mean_field)
+            )
+            return MeanField({self._kwargs[v]: dist for v, dist in projection.items()})
+        else:
+            return NotImplementedError
+
+    def calc_exact_update(self, mean_field) -> "MeanField":
+        if self._calc_exact_update:
+            from autofit.graphical.mean_field import MeanField
+
+            projection = self._calc_exact_update(
+                **self.resolve_variable_dict(mean_field)
+            )
+            return MeanField({self._kwargs[v]: dist for v, dist in projection.items()})
+        else:
+            return NotImplementedError
+
+    def safe_exact_update(self, mean_field) -> Tuple[bool, "MeanField"]:
+        if self._has_exact_projection:
+            from autofit.graphical.mean_field import MeanField
+
+            _mean_field = self.resolve_variable_dict(mean_field)
+            if self._has_exact_projection(**_mean_field):
+                projection = self._calc_exact_update(**_mean_field)
+                return True, MeanField(
+                    {self._kwargs[v]: dist for v, dist in projection.items()}
+                )
+
+        return False, mean_field
+
+    def name_for_variable(self, variable):
+        return self.name
 
 
 class FlattenedNode:
@@ -588,3 +552,6 @@ class FlattenedNode:
             return super().__getattribute__(name)
         except AttributeError:
             return getattr(self.node, name)
+
+
+from autofit.graphical.mean_field import MeanField

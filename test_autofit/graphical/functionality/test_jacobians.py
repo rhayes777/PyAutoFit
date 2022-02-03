@@ -12,8 +12,8 @@ except ImportError:
     _HAS_JAX = False
 
 from autofit.mapper.variable import variables
-from autofit.graphical.factor_graphs.jacobians import (
-    FactorJac,
+from autofit.graphical.factor_graphs import (
+    Factor,
     FactorValue,
 )
 
@@ -33,7 +33,7 @@ def test_jacobian_equiv():
     c = -1.0
 
     factors = [
-        FactorJac(
+        Factor(
             linear,
             x_,
             a_,
@@ -42,7 +42,7 @@ def test_jacobian_equiv():
             factor_out=(FactorValue, z_),
             numerical_jacobian=False,
         ),
-        FactorJac(
+        Factor(
             linear,
             x_,
             a_,
@@ -52,7 +52,7 @@ def test_jacobian_equiv():
             numerical_jacobian=False,
             jacfwd=False,
         ),
-        FactorJac(
+        Factor(
             linear,
             x_,
             a_,
@@ -62,7 +62,7 @@ def test_jacobian_equiv():
             numerical_jacobian=False,
             vjp=True,
         ),
-        FactorJac(
+        Factor(
             linear,
             x_,
             a_,
@@ -118,11 +118,9 @@ def test_jac_model():
     b = np.ones(1)
     y = np.arange(0.0, 10.0, 2).reshape(5, 1)
     values = {x_: x, y_: y, a_: a, b_: b}
-    linear_factor = FactorJac(
-        linear, x_, a_, b_, factor_out=(FactorValue, z_), vjp=True
-    )
-    like_factor = FactorJac(likelihood, y_, z_, vjp=True)
-    full_factor = FactorJac(combined, x_, y_, a_, b_, vjp=True)
+    linear_factor = Factor(linear, x_, a_, b_, factor_out=(FactorValue, z_), vjp=True)
+    like_factor = Factor(likelihood, y_, z_, vjp=True)
+    full_factor = Factor(combined, x_, y_, a_, b_, vjp=True)
     model_factor = like_factor * linear_factor
 
     x = np.arange(10.0).reshape(5, 2)

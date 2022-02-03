@@ -18,4 +18,4 @@ def make_x():
 
 @pytest.fixture(name="probit_factor")
 def make_probit_factor(x):
-    return graph.FactorJac(stats.norm(loc=0.0, scale=1.0).logcdf, x, arg_names=["x"])
+    return graph.Factor(stats.norm(loc=0.0, scale=1.0).logcdf, x)
