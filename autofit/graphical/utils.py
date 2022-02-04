@@ -232,7 +232,8 @@ class OptResult(NamedTuple):
 def gen_subsets(n, x, n_iters=None, rng=None):
     """
     Generates random subsets of length n of the array x, if the elements of
-    x are unique then each subset will not contain repeated elements.
+    x are unique then each subset will not contain repeated elements. Each 
+    element is guaranteed to reappear after at most 2*len(x) new elements. 
 
     If `x` is a multi-dimensional array, it is only shuffled along its
 first index.
@@ -268,6 +269,14 @@ first index.
             i = n
 
 def gen_dict(dict_gen):
+    """
+    Examples
+    --------
+    >>> list(gen_dict({1: gen_subsets(3, 4, 3), 2: gen_subsets(2, 5, 3)}))
+    [{1: array([2, 1, 3]), 2: array([2, 0])},
+     {1: array([0, 3, 1]), 2: array([3, 1])},
+     {1: array([2, 0, 1]), 2: array([4, 2])}]
+    """
     keys = tuple(dict_gen.keys())
     for val in zip(*dict_gen.values()):
         yield dict(zip(keys, val))
