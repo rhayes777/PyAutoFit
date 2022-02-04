@@ -7,8 +7,7 @@ from pathlib import Path
 
 import pytest
 from matplotlib import pyplot
-from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+from autofit.database.model import sa
 
 from autoconf import conf
 from autofit import database as db
@@ -76,8 +75,8 @@ def make_plot_patch(monkeypatch):
 
 @pytest.fixture(name="session")
 def make_session():
-    engine = create_engine('sqlite://')
-    session = sessionmaker(bind=engine)()
+    engine = sa.create_engine('sqlite://')
+    session = sa.orm.sessionmaker(bind=engine)()
     db.Base.metadata.create_all(engine)
     yield session
     session.close()
