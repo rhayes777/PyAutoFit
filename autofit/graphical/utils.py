@@ -229,19 +229,43 @@ class OptResult(NamedTuple):
     status: Status = Status()
 
 
-def gen_subsets(n, x, rng=None, n_iters=None):
+def gen_subsets(n, x, n_iters=None, rng=None):
+    """
+    Generates random subsets of length n of the array x, if the elements of
+    x are unique then each subset will not contain repeated elements.
+
+    If `x` is a multi-dimensional array, it is only shuffled along its
+first index.
+
+    if x is an integer, generate subsets of ``np.arange(x)``.
+
+    generates n_iters subsets before stopping. If n_iters is None then
+    generates random subsets for ever
+
+    rng is an optionally passed random number generator
+
+    Examples
+    --------
+    >>> list(gen_subsets(3, 5, n_iters=3))
+    [array([0, 2, 3]), array([1, 4, 0]), array([2, 3, 4])]
+    >>> list(gen_subsets(3, [1,10,5,3], n_iters=3))
+    [array([ 5, 10,  1]), array([3, 5, 1]), array([10,  3,  5])]
+    """
     rng = rng or np.random.default_rng()
     x_shuffled = rng.permutation(x)
     tot = len(x_shuffled)
 
+    i = 0 
+    stop = tot - n + 1
     iters = iter(int, 1) if n_iters is None else range(n_iters)
     for j in iters:
-        for i in range(0, tot - n, n):
+        if i < stop:
             yield x_shuffled[i : i + n]
-
-        i += n
-        x_shuffled = np.r_[x_shuffled[i:], rng.permutation(x_shuffled[:i])]
-
+            i += n
+        else:
+            x_shuffled = np.r_[x_shuffled[i:], rng.permutation(x_shuffled[:i])]
+            yield x_shuffled[:n]
+            i = n
 
 def gen_dict(dict_gen):
     keys = tuple(dict_gen.keys())
