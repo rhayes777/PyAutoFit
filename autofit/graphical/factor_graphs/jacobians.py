@@ -27,38 +27,9 @@ from autofit.mapper.variable import (
     VariableData,
     VariableLinearOperator,
 )
-
 from autofit.mapper.variable_operator import (
     RectVariableOperator,
 )
-
-# from autoconf import cached_property
-
-# from autofit.graphical.factor_graphs.factor import (
-#     AbstractFactor,
-#     Factor,
-#     DeterministicFactor,
-# )
-
-# from autofit.graphical.factor_graphs.abstract import (
-#     AbstractJacobian,
-#     JacobianVectorProduct,
-#     VectorJacobianProduct,
-# )
-# from autofit.graphical.utils import (
-#     aggregate,
-#     Axis,
-#     nested_filter,
-#     nested_update,
-#     is_variable,
-# )
-# from autofit.mapper.variable import (
-#     Variable,
-#     Plate,
-#     VariableData,
-#     FactorValue,
-# )
-
 from abc import ABC
 from typing import (
     Tuple,
@@ -66,8 +37,6 @@ from typing import (
     Union,
     Callable,
 )
-
-# from autofit.graphical.factor_graphs.factor import Factor
 
 Protocol = ABC  # for python 3.7 compat
 

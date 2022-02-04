@@ -171,12 +171,10 @@ class FlattenArrays(dict):
         arrays = [arr[(ind,) * ndim] for ind in self.inds]
         arr_shapes = [arr.shape[ndim:] for arr in arrays]
         return VariableData(
-            {
-                k: arr.reshape(shape * ndim + arr_shape)
-                if shape or arr_shape
-                else arr.item()
-                for (k, shape), arr_shape, arr in zip(self.items(), arr_shapes, arrays)
-            }
+            (k, arr.reshape(shape * ndim + arr_shape))
+            if shape or arr_shape
+            else arr.item()
+            for (k, shape), arr_shape, arr in zip(self.items(), arr_shapes, arrays)
         )
 
     def flatten2d(self, values: Dict[Variable, np.ndarray]) -> np.ndarray:

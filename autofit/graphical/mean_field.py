@@ -171,9 +171,7 @@ class MeanField(CollectionPriorModel, Dict[Variable, AbstractMessage], Factor):
 
     def __repr__(self):
         reprdict = (
-                "{\n"
-                + "\n".join("  {}: {}".format(k, v) for k, v in self.items())
-                + "\n  }"
+            "{\n" + "\n".join(f"  {k}: {v}" for k, v in self.items()) + "\n  }"
         )
         classname = type(self).__name__
         return f"{classname}({reprdict}, log_norm={self.log_norm})"
@@ -408,7 +406,7 @@ class FactorApproximation(AbstractNode):
                     )
 
             for warn in caught_warnings:
-                message = "%s:%d: %s" % (warn.filename, warn.lineno, warn.message)
+                message = f"{warn.filename}:{warn.lineno}: {warn.message}"
                 messages += ("project_mean_field warning: " + message,)
                 _log_projection_warnings(message)
 

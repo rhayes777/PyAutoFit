@@ -295,7 +295,7 @@ class EPHistory:
 
     def mean_field_history(self, factor_order=None):
         return [
-            approx.mean_field for _, approx, status in self.full_history(factor_order)
+            approx.mean_field for _, approx, _ in self.full_history(factor_order)
         ]
 
     def variable_history(self, factor_order=None):

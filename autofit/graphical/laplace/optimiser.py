@@ -90,15 +90,13 @@ class LaplaceOptimiser(AbstractFactorOptimiser):
         else:
             det_hessian = None
 
-        state = newton.OptimisationState(
+        return newton.OptimisationState(
             factor_approx,
             factor_approx.func_gradient,
             parameters.subset(free_variables),
             hessian,
             det_hessian,
         )
-
-        return state
 
     def optimise_state(
             self,

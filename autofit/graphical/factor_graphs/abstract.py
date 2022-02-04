@@ -154,15 +154,11 @@ class AbstractNode(ABC):
         """
         A tuple of the set of all plates in this graph, ordered by id
         """
-        return tuple(
-            sorted(
-                set(
-                    plate
-                    for variable in self.all_variables
-                    for plate in variable.plates
-                )
-            )
-        )
+        return tuple(sorted(set(
+            plate
+            for variable in self.all_variables
+            for plate in variable.plates
+        )))
 
     def __getitem__(self, item):
         try:
@@ -378,8 +374,7 @@ class AbstractFactor(AbstractNode, ABC):
     def has_exact_projection(self, mean_field) -> bool:
         if self._has_exact_projection:
             return self._has_exact_projection(**self.resolve_variable_dict(mean_field))
-        else:
-            return False
+        return False
 
     def calc_exact_projection(self, mean_field) -> "MeanField":
         if self._calc_exact_projection:

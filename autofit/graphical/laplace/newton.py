@@ -365,7 +365,7 @@ def optimise_quasi_newton(
                 quasi_newton_kws=quasi_newton_kws,
             )
             for warn in caught_warnings:
-                warn_message = "%s:%d: %s" % (warn.filename, warn.lineno, warn.message)
+                warn_message = f"{warn.filename}:{warn.lineno}: {warn.message}"
                 messages += ("optimise_quasi_newton warning: " + warn_message,)
                 _log_projection_warnings(warn_message)
 

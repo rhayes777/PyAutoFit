@@ -178,18 +178,6 @@ class Factor(AbstractFactor):
         kwargs = dict(zip(arg_names, args))
         name = name or factor.__name__
 
-        # self._plates = plates
-        # self._kwargs = {}
-        # self._deterministic_variables = set()
-        # self._variable_name_kw = {}
-        # self.id = next(self._id)
-
-        # self._plates = plates
-        # self._kwargs = kwargs
-        # self._deterministic_variables = set(deterministic_variables)
-        # self._variable_name_kw = {v.name: kw for kw, v in kwargs.items()}
-        # self.id = next(self._id)
-
         AbstractFactor.__init__(
             self,
             name=name,
@@ -234,8 +222,6 @@ class Factor(AbstractFactor):
                 raise ModuleNotFoundError(
                     "jax needed if `factor_vjp` not passed with vjp=True"
                 )
-            else:
-                self._factor_vjp = self._jax_factor_vjp
 
             self.func_jacobian = self._vjp_func_jacobian
         else:
@@ -272,6 +258,8 @@ class Factor(AbstractFactor):
 
     def _jax_factor_vjp(self, *args) -> Tuple[Any, Callable]:
         return jax.vjp(self._factor, *args)
+
+    _factor_vjp = _jax_factor_vjp
 
     def _vjp_func_jacobian(
             self, values: VariableData

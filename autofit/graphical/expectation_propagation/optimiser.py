@@ -29,9 +29,7 @@ class AbstractFactorOptimiser(ABC):
     """
 
     def __init__(self, initial_values=None, deltas=None):
-        self.initial_values = {}
-        if initial_values:
-            self.initial_values.update(initial_values)
+        self.initial_values = initial_values or {}
 
         self.deltas = defaultdict(lambda: 1)
         if deltas:
@@ -239,11 +237,7 @@ class EPOptimiser:
                         )
                         messages = status.messages
                         for warn in caught_warnings:
-                            warn_message = "%s:%d: %s" % (
-                                warn.filename,
-                                warn.lineno,
-                                warn.message,
-                            )
+                            warn_message = f"{warn.filename}:{warn.lineno}: {warn.message}"
                             messages += (
                                 "optimise_quasi_newton warning: " + warn_message,
                             )
