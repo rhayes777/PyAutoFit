@@ -122,29 +122,34 @@ class MeanField(CollectionPriorModel, Dict[Variable, AbstractMessage], Factor):
     def sizes(self):
         return {v: np.size(m) for v, m in self.items()}
 
+    def __getitem__(self, index):
+        if isinstance(index, Variable):
+            return dict.__getitem__(self, index)
+        else:
+            return self.subset(self.variables, plates_index=index)
+
+    def __setitem__(self, index, value):
+        if isinstance(index, Variable):
+            dict.__setitem__(self, index, value)
+        elif isinstance(value, MeanField):
+            self.update_mean_field(value, index)
+
+    def update_mean_field(self, mean_field, plates_index=None):
+        if plates_index:
+            plate_sizes = VariableData.plate_sizes(self)
+            for v, new_message in mean_field.items():
+                index = v.make_indexes(plates_index, plate_sizes)
+                self[v][index] = new_message
+        else:
+            self.update(mean_field)
+
+        return self
+
     def subset(self, variables=None, plates_index=None, rescale=False):
         cls = type(self) if isinstance(self, MeanField) else MeanField
         variables = variables or self.variables
         if plates_index:
             plate_sizes = VariableData.plate_sizes(self)
-
-            # def make_index_seq(p, plates_index, plate_sizes):
-            #     seq = plates_index.get(p, range(plate_sizes[p]))
-            #     if isinstance(seq, slice):
-            #         seq = range(plate_sizes[p])[seq]
-
-            #     return seq
-
-            # def make_indexes(v, plates_index, plate_sizes):
-            #     if any(p in plates_index for p in v.plates):
-            #         return np.ix_(
-            #             *(
-            #                 make_index_seq(p, plates_index, plate_sizes)
-            #                 for p in v.plates
-            #             )
-            #         )
-            #     return ()
-
             variable_index = (
                 (v, v.make_indexes(plates_index, plate_sizes)) for v in variables
             )

@@ -95,12 +95,29 @@ class EPMeanField(FactorGraph):
             plates_index,
         )
 
-    def subselect(self, plates_index):
-        factor_mean_field_subset = {}
-        for factor, mean_field in self.factor_mean_field.items():
-            factor_mean_field_subset[factor] = mean_field.subset(
-                plates_index=plates_index
-            )
+    __getitem__ = subset
+
+    def __setitem__(self, index, subset_approx):
+        subset_fac_meanfield = subset_approx.factor_mean_field 
+        for factor, subset_fac  in subset_approx._factor_subset_factor.items():
+            new_dist = subset_fac_meanfield[subset_fac]
+            self.update_factor_mean_field(factor, new_dist, index)
+
+    def update(self, subset_approx):
+        self[subset_approx.plates_index] = subset_approx
+        return self 
+
+    def update_factor_mean_field(
+            self,
+            factor: Factor,
+            new_dist: MeanField,
+            index: Optional[Dict[Plate, List[int]]] = None, 
+    ):
+        if index:
+            self._factor_mean_field[factor][index] = new_dist
+        else:
+            self._factor_mean_field[factor] = new_dist
+
 
     @property
     def name(self):
@@ -136,7 +153,7 @@ class EPMeanField(FactorGraph):
             approx_dists: Dict[Variable, AbstractMessage],
     ) -> "EPMeanField":
         factor_mean_field = {
-            factor: MeanField({v: approx_dists[v] for v in factor.all_variables})
+            factor: MeanField({v: approx_dists[v].copy() for v in factor.all_variables})
             for factor in factor_graph.factors
         }
 
@@ -186,7 +203,7 @@ class EPMeanField(FactorGraph):
         status: Status = Status(),
     ) -> Tuple["EPMeanField", Status]:
 
-        new_factor_dist = new_dist.project_mean_field(
+        new_factor_dist, status = new_dist.factor_meanfield(
             factor_approx.cavity_dist,
             factor_approx.factor_dist,
             delta=delta,
@@ -210,7 +227,8 @@ class EPMeanField(FactorGraph):
         factor_mean_field[projection.factor] = projection.factor_dist
 
         new_approx = type(self)(
-            factor_graph=self._factor_graph, factor_mean_field=factor_mean_field
+            factor_graph=self._factor_graph, 
+            factor_mean_field=factor_mean_field
         )
         return new_approx, status
 
@@ -345,6 +363,10 @@ class EPMeanFieldSubset(EPMeanField):
         self._ep_mean_field = ep_mean_field
         self._plates_index = plates_index
 
+    @property 
+    def plates_index(self):
+        return self._plates_index
+
     def project_mean_field(
         self,
         new_dist: MeanField,
@@ -354,9 +376,13 @@ class EPMeanFieldSubset(EPMeanField):
     ) -> Tuple["EPMeanField", Status]:
 
         # We're fitting the full factor_dist, not the subset factor_dist
-        cavity_dist = factor_approx.model_dist / factor_approx.factor_dist
-        new_factor_dist = new_dist.project_mean_field(
-            cavity_dist,
+        cavity_dist = MeanField(factor_approx.cavity_dist)
+        for v, scale in self._factor_rescale[factor_approx.factor].items():
+            if scale < 1:
+                cavity_dist[v] = factor_approx.model_dist[v] / factor_approx.factor_dist[v]
+
+        new_factor_dist, status = new_dist.factor_meanfield(
+            MeanField(cavity_dist),
             factor_approx.factor_dist,
             delta=delta,
             status=status,
@@ -368,6 +394,7 @@ class EPMeanFieldSubset(EPMeanField):
             factor_graph=self._factor_graph,
             factor_mean_field=factor_mean_field,
             factor_rescale=self._factor_rescale,
+            factor_subset_factor=self._factor_subset_factor, 
             ep_mean_field=self._ep_mean_field,
             plates_index=self._plates_index,
         )

@@ -1,6 +1,7 @@
 from inspect import getfullargspec
-from typing import Tuple, Dict, Any, Callable
+from typing import Tuple, Dict, Any, Callable, Union, List, Optional
 
+import numpy as np
 try:
     import jax
 

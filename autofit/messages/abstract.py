@@ -5,6 +5,7 @@ from numbers import Real
 from operator import and_
 from typing import Dict, Tuple, Iterator
 from typing import Optional, Union, Type, List
+from copy import copy 
 
 import numpy as np
 
@@ -41,6 +42,11 @@ class AbstractMessage(Prior, ABC):
             self.parameters = tuple(np.asanyarray(p) for p in parameters)
         else:
             self.parameters = tuple(parameters)
+
+    def copy(self):
+        return type(self)(
+            *(copy(params) for params in self.parameters), log_norm=self.log_norm
+        )
 
     def __bool__(self):
         return True

@@ -11,8 +11,7 @@ from .laplace import LaplaceOptimiser, OptimisationState
 from .mean_field import FactorApproximation, MeanField
 from .utils import Status
 from .. import messages
-from ..mapper.variable import FactorValue
-from ..mapper.variable import Variable
+from ..mapper.variable import Variable, Plate, VariableData, FactorValue
 
 dir(Variable)
 dir(messages)
