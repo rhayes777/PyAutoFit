@@ -1,14 +1,14 @@
 from typing import Optional
 
 import numpy as np
-from sqlalchemy.orm import Session
 
 from autoconf import conf
 from autofit import exc
+from autofit.database.sqlalchemy_ import sa
 from autofit.non_linear.abstract_search import IntervalCounter
 from autofit.non_linear.abstract_search import NonLinearSearch
-from autofit.non_linear.initializer import InitializerPrior
 from autofit.non_linear.abstract_search import PriorPasser
+from autofit.non_linear.initializer import InitializerPrior
 
 
 class AbstractNest(NonLinearSearch):
@@ -19,7 +19,7 @@ class AbstractNest(NonLinearSearch):
             unique_tag: Optional[str] = None,
             prior_passer: Optional[PriorPasser] = None,
             iterations_per_update: Optional[int] = None,
-            session: Optional[Session] = None,
+            session: Optional[sa.orm.Session] = None,
             **kwargs
     ):
         """

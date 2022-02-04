@@ -1,6 +1,6 @@
 from typing import Optional
 
-from sqlalchemy.orm import Session
+from autofit.database.sqlalchemy_ import sa
 
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.optimize.abstract_optimize import AbstractOptimizer
@@ -26,7 +26,7 @@ class LBFGS(AbstractOptimizer):
             prior_passer: Optional[PriorPasser] = None,
             initializer: Optional[Initializer] = None,
             iterations_per_update: int = None,
-            session: Optional[Session] = None,
+            session: Optional[sa.orm.Session] = None,
             **kwargs
     ):
         """

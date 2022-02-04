@@ -1,14 +1,13 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, Float
-
 from .model import Object
+from ..sqlalchemy_ import sa
 
 
 class NoneInstance(Object):
     __tablename__ = "none"
 
-    id = Column(
-        Integer,
-        ForeignKey(
+    id = sa.Column(
+        sa.Integer,
+        sa.ForeignKey(
             "object.id"
         ),
         primary_key=True,
@@ -29,9 +28,9 @@ class Collection(Object):
 
     __tablename__ = "collection"
 
-    id = Column(
-        Integer,
-        ForeignKey(
+    id = sa.Column(
+        sa.Integer,
+        sa.ForeignKey(
             "object.id"
         ),
         primary_key=True
@@ -74,9 +73,9 @@ class Instance(Object):
 
     __tablename__ = "instance"
 
-    id = Column(
-        Integer,
-        ForeignKey(
+    id = sa.Column(
+        sa.Integer,
+        sa.ForeignKey(
             "object.id"
         ),
         primary_key=True,
@@ -121,15 +120,15 @@ class Value(Object):
         'polymorphic_identity': 'value'
     }
 
-    id = Column(
-        Integer,
-        ForeignKey(
+    id = sa.Column(
+        sa.Integer,
+        sa.ForeignKey(
             "object.id"
         ),
         primary_key=True,
     )
 
-    value = Column(Float)
+    value = sa.Column(sa.Float)
 
     @classmethod
     def _from_object(
@@ -155,15 +154,15 @@ class StringValue(Object):
         'polymorphic_identity': 'string_value'
     }
 
-    id = Column(
-        Integer,
-        ForeignKey(
+    id = sa.Column(
+        sa.Integer,
+        sa.ForeignKey(
             "object.id"
         ),
         primary_key=True,
     )
 
-    value = Column(String)
+    value = sa.Column(sa.String)
 
     @classmethod
     def _from_object(
