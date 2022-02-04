@@ -3,7 +3,7 @@
 from configparser import ConfigParser
 from sys import argv
 
-from autofit.tools import edenise
+from autoeden import edenise
 
 
 def main(
@@ -24,7 +24,7 @@ def main(
             ).split(",")
         ]
 
-        edenise.edenise(
+        edenise(
             root_directory=root_directory,
             name=config.get("eden", "name"),
             prefix=config.get("eden", "prefix"),
