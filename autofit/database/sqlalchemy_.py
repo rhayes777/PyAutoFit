@@ -1,3 +1,11 @@
+"""
+All usage of SQLAlchemy should be imported via this module to allow SQLAlchemy to be
+installed optionally.
+
+Sufficient interface is implemented to permit import of SQLAlchemy based classes without
+any error. If any attempt is made to use those classes a meaningful warning is returned.
+"""
+
 try:
     import sqlalchemy as sa
     from sqlalchemy.ext import declarative
