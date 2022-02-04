@@ -15,12 +15,12 @@ class AbstractModelFactor(FactorKW, AbstractDeclarativeFactor, ABC):
         return self._prior_model
 
     def __init__(
-        self,
-        prior_model: AbstractPriorModel,
-        factor,
-        optimiser: Optional[AbstractFactorOptimiser],
-        prior_variable_dict,
-        name=None,
+            self,
+            prior_model: AbstractPriorModel,
+            factor,
+            optimiser: Optional[AbstractFactorOptimiser],
+            prior_variable_dict,
+            name=None,
     ):
         """
         A factor in the graph that actually computes the likelihood of a model

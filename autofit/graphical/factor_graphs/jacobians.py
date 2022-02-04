@@ -39,18 +39,11 @@ except ImportError:
 #     FactorValue,
 # )
 
-from abc import ABC, abstractmethod
-from itertools import count
+from abc import ABC
 from typing import (
-    List,
     Tuple,
     Dict,
-    cast,
-    Set,
-    Optional,
     Union,
-    Collection,
-    Any,
     Callable,
 )
 
@@ -89,8 +82,6 @@ class FactorGradientInterface(Protocol):
 
 from autofit.mapper.variable_operator import (
     RectVariableOperator,
-    LinearOperator,
-    VariableOperator,
 )
 
 
@@ -178,7 +169,7 @@ class JacobianVectorProduct(AbstractJacobian, RectVariableOperator):
 
 class VectorJacobianProduct(AbstractJacobian):
     def __init__(
-        self, factor_out, vjp: Callable, *variables: Variable, out_shapes=None
+            self, factor_out, vjp: Callable, *variables: Variable, out_shapes=None
     ):
         self.factor_out = factor_out
         self.vjp = vjp

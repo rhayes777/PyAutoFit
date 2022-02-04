@@ -15,11 +15,11 @@ class HierarchicalFactor(PriorModel):
     _plates: Tuple[Plate, ...] = ()
 
     def __init__(
-        self,
-        distribution: Type[AbstractMessage],
-        optimiser=None,
-        name: Optional[str] = None,
-        **kwargs,
+            self,
+            distribution: Type[AbstractMessage],
+            optimiser=None,
+            name: Optional[str] = None,
+            **kwargs,
     ):
         """
         Associates variables in the graph with a distribution. That is,
@@ -106,9 +106,9 @@ class HierarchicalFactor(PriorModel):
 
 class _HierarchicalFactor(AbstractModelFactor):
     def __init__(
-        self,
-        distribution_model: HierarchicalFactor,
-        drawn_prior: Prior,
+            self,
+            distribution_model: HierarchicalFactor,
+            drawn_prior: Prior,
     ):
         """
         A factor that links a variable to a parameterised distribution.
@@ -171,6 +171,6 @@ class _HierarchicalFactor(AbstractModelFactor):
         return self
 
     def visualize(
-        self, paths: AbstractPaths, instance: ModelInstance, during_analysis: bool
+            self, paths: AbstractPaths, instance: ModelInstance, during_analysis: bool
     ):
         pass

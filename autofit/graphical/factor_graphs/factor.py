@@ -1,11 +1,5 @@
-from abc import ABC
-from functools import lru_cache
 from inspect import getfullargspec
-from itertools import chain, repeat
-from typing import Tuple, Dict, Union, Any, Callable, List, Optional
-
-import numpy as np
-
+from typing import Tuple, Dict, Any, Callable
 
 try:
     import jax
@@ -14,25 +8,18 @@ try:
 except ImportError:
     _HAS_JAX = False
 
-from autoconf import cached_property
-
-
 from autofit.graphical.utils import (
     nested_filter,
-    nested_update,
     is_variable,
-    aggregate,
-    Axis,
 )
-from autofit.mapper.variable import Variable, Plate, VariableData, broadcast_plates
+from autofit.mapper.variable import Variable, Plate, VariableData
 
 from autofit.graphical.factor_graphs.jacobians import (
-    AbstractJacobian,
     VectorJacobianProduct,
     JacobianVectorProduct,
 )
 from autofit.graphical.factor_graphs.abstract import FactorValue, AbstractFactor
-from autofit.graphical.factor_graphs.abstract import FactorValue, AbstractFactor
+
 
 # from autofit.graphical.mean_field import MeanField
 
@@ -163,20 +150,20 @@ class Factor(AbstractFactor):
     """
 
     def __init__(
-        self,
-        factor,
-        *args: Variable,
-        name="",
-        arg_names=None,
-        factor_out=FactorValue,
-        plates: Tuple[Plate, ...] = (),
-        vjp=False,
-        factor_vjp=None,
-        factor_jacobian=None,
-        jacobian=None,
-        numerical_jacobian=True,
-        jacfwd=True,
-        eps=1e-8,
+            self,
+            factor,
+            *args: Variable,
+            name="",
+            arg_names=None,
+            factor_out=FactorValue,
+            plates: Tuple[Plate, ...] = (),
+            vjp=False,
+            factor_vjp=None,
+            factor_jacobian=None,
+            jacobian=None,
+            numerical_jacobian=True,
+            jacfwd=True,
+            eps=1e-8,
     ):
         if not arg_names:
             arg_names = [arg for arg in getfullargspec(factor).args]
@@ -184,7 +171,7 @@ class Factor(AbstractFactor):
                 arg_names = arg_names[1:]
 
         # Make sure arg_names matches length of args
-        for v in args[len(arg_names) :]:
+        for v in args[len(arg_names):]:
             arg_name = v.name
             # Make sure arg_name is unique
             while arg_name in arg_names:
@@ -235,13 +222,13 @@ class Factor(AbstractFactor):
     #     return self._arg_names
 
     def _set_jacobians(
-        self,
-        vjp=False,
-        factor_vjp=None,
-        factor_jacobian=None,
-        jacobian=None,
-        numerical_jacobian=True,
-        jacfwd=True,
+            self,
+            vjp=False,
+            factor_vjp=None,
+            factor_jacobian=None,
+            jacobian=None,
+            numerical_jacobian=True,
+            jacfwd=True,
     ):
         if vjp:
             if factor_vjp:
@@ -290,7 +277,7 @@ class Factor(AbstractFactor):
         return jax.vjp(self._factor, *args)
 
     def _vjp_func_jacobian(
-        self, values: VariableData
+            self, values: VariableData
     ) -> Tuple[FactorValue, VectorJacobianProduct]:
         """Calls the factor and returns the factor value with deterministic
         values, and a `VectorJacobianProduct` operator that allows the
@@ -309,7 +296,7 @@ class Factor(AbstractFactor):
         return fval, fvjp_op
 
     def _jvp_func_jacobian(
-        self, values: VariableData, **kwargs
+            self, values: VariableData, **kwargs
     ) -> Tuple[FactorValue, JacobianVectorProduct]:
         args = (values[k] for k in self.args)
         raw_fval, raw_jac = self._factor_jacobian(*args, **kwargs)
@@ -335,7 +322,7 @@ class Factor(AbstractFactor):
         return jac
 
     def _jac_out_to_jvp(
-        self, raw_jac: Any, values: VariableData
+            self, raw_jac: Any, values: VariableData
     ) -> JacobianVectorProduct:
         jac = self._unpack_jacobian_out(raw_jac)
         return JacobianVectorProduct.from_dense(jac, values=values)
@@ -382,20 +369,20 @@ class FactorKW(Factor):
     """
 
     def __init__(
-        self,
-        factor,
-        name="",
-        arg_names=None,
-        factor_out=FactorValue,
-        plates: Tuple[Plate, ...] = (),
-        vjp=False,
-        factor_vjp=None,
-        factor_jacobian=None,
-        jacobian=None,
-        numerical_jacobian=True,
-        jacfwd=True,
-        eps=1e-8,
-        **kwargs: Variable,
+            self,
+            factor,
+            name="",
+            arg_names=None,
+            factor_out=FactorValue,
+            plates: Tuple[Plate, ...] = (),
+            vjp=False,
+            factor_vjp=None,
+            factor_jacobian=None,
+            jacobian=None,
+            numerical_jacobian=True,
+            jacfwd=True,
+            eps=1e-8,
+            **kwargs: Variable,
     ):
         args = tuple(kwargs.values())
         arg_names = tuple(kwargs.keys())

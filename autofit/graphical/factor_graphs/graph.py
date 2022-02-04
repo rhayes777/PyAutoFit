@@ -6,17 +6,17 @@ from typing import Tuple, Dict, Collection, List, Type
 import numpy as np
 
 from autoconf import cached_property
-from autofit.graphical.factor_graphs.abstract import FactorValue, AbstractNode, Value
+from autofit.graphical.factor_graphs.abstract import FactorValue, AbstractNode
 from autofit.graphical.factor_graphs.factor import Factor
 from autofit.graphical.factor_graphs.jacobians import VectorJacobianProduct
-from autofit.graphical.utils import add_arrays, aggregate, Axis, rescale_to_artists
-from autofit.mapper.variable import Variable, Plate
+from autofit.graphical.utils import rescale_to_artists
+from autofit.mapper.variable import Variable
 
 
 class FactorGraph(AbstractNode):
     def __init__(
-        self,
-        factors: Collection[Factor],
+            self,
+            factors: Collection[Factor],
     ):
         """
         A graph relating factors
@@ -61,7 +61,7 @@ class FactorGraph(AbstractNode):
                 factor
                 for factor in self._factors
                 if variable in factor.variables
-                and (excluded_factor is None or factor != excluded_factor)
+                   and (excluded_factor is None or factor != excluded_factor)
             }
         )
 
@@ -116,8 +116,8 @@ class FactorGraph(AbstractNode):
                 [
                     v
                     for v, c in Counter(
-                        v for f in self.factors for v in f.deterministic_variables
-                    ).items()
+                    v for f in self.factors for v in f.deterministic_variables
+                ).items()
                     if c > 1
                 ],
             )
@@ -186,8 +186,8 @@ class FactorGraph(AbstractNode):
         return self(dict(zip(self.args, args)))
 
     def __call__(
-        self,
-        variable_dict: Dict[Variable, np.ndarray],
+            self,
+            variable_dict: Dict[Variable, np.ndarray],
     ) -> FactorValue:
         """
         Call each function in the graph in the correct order, adding the logarithmic results.
@@ -236,7 +236,7 @@ class FactorGraph(AbstractNode):
         return FactorValue(log_value, det_values)
 
     def func_jacobian(
-        self, variable_dict: Dict[Variable, np.ndarray], **kwargs
+            self, variable_dict: Dict[Variable, np.ndarray], **kwargs
     ) -> FactorValue:
 
         # generate set of factors to call, these are indexed by the
@@ -339,21 +339,21 @@ class FactorGraph(AbstractNode):
         return G
 
     def draw_graph(
-        self,
-        pos=None,
-        ax=None,
-        size=20,
-        color="k",
-        fill="w",
-        factor_shape="s",
-        variable_shape="o",
-        factor_kws=None,
-        variable_kws=None,
-        edge_kws=None,
-        factors=None,
-        draw_labels=False,
-        label_kws=None,
-        **kwargs,
+            self,
+            pos=None,
+            ax=None,
+            size=20,
+            color="k",
+            fill="w",
+            factor_shape="s",
+            variable_shape="o",
+            factor_kws=None,
+            variable_kws=None,
+            edge_kws=None,
+            factors=None,
+            draw_labels=False,
+            label_kws=None,
+            **kwargs,
     ):
         try:
             import matplotlib.pyplot as plt
@@ -408,21 +408,21 @@ class FactorGraph(AbstractNode):
         return pos, fs, vs, edges
 
     def draw_graph_labels(
-        self,
-        pos,
-        factor_labels=None,
-        variable_labels=None,
-        shift=0.1,
-        f_shift=None,
-        v_shift=None,
-        f_horizontalalignment="right",
-        v_horizontalalignment="left",
-        f_kws=None,
-        v_kws=None,
-        graph=None,
-        ax=None,
-        rescale=True,
-        **kwargs,
+            self,
+            pos,
+            factor_labels=None,
+            variable_labels=None,
+            shift=0.1,
+            f_shift=None,
+            v_shift=None,
+            f_horizontalalignment="right",
+            v_horizontalalignment="left",
+            f_kws=None,
+            v_kws=None,
+            graph=None,
+            ax=None,
+            rescale=True,
+            **kwargs,
     ):
         try:
             import matplotlib.pyplot as plt

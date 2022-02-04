@@ -7,27 +7,24 @@ autofit.graphical
 Note that this interface assumes that we're performing a maximisation. 
 In scipy the interface is defined for minimisations.
 """
-from typing import Optional, Dict, Tuple
 import warnings
+from typing import Optional, Dict, Tuple
 
 import numpy as np
 from scipy.optimize import linesearch
-from scipy.optimize.optimize import _LineSearchError
 
 from autoconf import cached_property
-
 from autofit.graphical.factor_graphs.abstract import (
     FactorValue,
     FactorInterface,
     FactorGradientInterface,
 )
+from autofit.graphical.utils import FlattenArrays
 from autofit.mapper.variable_operator import (
     VariableData,
     VariableLinearOperator,
     MergedVariableOperator,
 )
-
-from autofit.graphical.utils import FlattenArrays
 
 
 class FlattenedState:
@@ -57,7 +54,7 @@ class FlattenedState:
 
     def _func_gradient(self, x):
         v, g = self.func_gradient(x)
-        return -v, -g  
+        return -v, -g
 
     @property
     def parameters(self):
@@ -66,19 +63,19 @@ class FlattenedState:
 
 class OptimisationState:
     def __init__(
-        self,
-        factor: FactorInterface,
-        factor_gradient: FactorGradientInterface,
-        parameters: VariableData,
-        hessian: Optional[VariableLinearOperator] = None,
-        det_hessian: Optional[VariableLinearOperator] = None,
-        value: Optional[FactorValue] = None,
-        gradient: Optional[VariableData] = None,
-        search_direction: Optional[VariableData] = None,
-        f_count: int = 0,
-        g_count: int = 0,
-        args=(),
-        next_states: Optional[Dict[float, "OptimisationState"]] = None,
+            self,
+            factor: FactorInterface,
+            factor_gradient: FactorGradientInterface,
+            parameters: VariableData,
+            hessian: Optional[VariableLinearOperator] = None,
+            det_hessian: Optional[VariableLinearOperator] = None,
+            value: Optional[FactorValue] = None,
+            gradient: Optional[VariableData] = None,
+            search_direction: Optional[VariableData] = None,
+            f_count: int = 0,
+            g_count: int = 0,
+            args=(),
+            next_states: Optional[Dict[float, "OptimisationState"]] = None,
     ):
         self.factor = factor
         self.factor_gradient = factor_gradient
@@ -224,15 +221,15 @@ class OptimisationState:
 
 
 def line_search_wolfe1(
-    state: OptimisationState,
-    old_state: Optional[OptimisationState] = None,
-    c1=1e-4,
-    c2=0.9,
-    amax=50,
-    amin=1e-8,
-    xtol=1e-14,
-    extra_condition=None,
-    **kwargs,
+        state: OptimisationState,
+        old_state: Optional[OptimisationState] = None,
+        c1=1e-4,
+        c2=0.9,
+        amax=50,
+        amin=1e-8,
+        xtol=1e-14,
+        extra_condition=None,
+        **kwargs,
 ) -> Tuple[Optional[float], OptimisationState]:
     """
     As `scalar_search_wolfe1` but do a line search to direction `pk`
@@ -284,14 +281,14 @@ def line_search_wolfe1(
 
 
 def line_search_wolfe2(
-    state: OptimisationState,
-    old_state: Optional[OptimisationState] = None,
-    c1=1e-4,
-    c2=0.9,
-    amax=None,
-    extra_condition=None,
-    maxiter=10,
-    **kwargs,
+        state: OptimisationState,
+        old_state: Optional[OptimisationState] = None,
+        c1=1e-4,
+        c2=0.9,
+        amax=None,
+        extra_condition=None,
+        maxiter=10,
+        **kwargs,
 ) -> Tuple[Optional[float], OptimisationState]:
     """
     As `scalar_search_wolfe1` but do a line search to direction `pk`
@@ -342,9 +339,8 @@ def line_search_wolfe2(
 
 
 def line_search(
-    state: OptimisationState, old_state: Optional[FactorValue] = None, **kwargs
+        state: OptimisationState, old_state: Optional[FactorValue] = None, **kwargs
 ) -> Tuple[Optional[float], OptimisationState]:
-
     stepsize, next_state = line_search_wolfe1(state, old_state, **kwargs)
 
     if stepsize is None:

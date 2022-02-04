@@ -1,12 +1,11 @@
+import collections
+from enum import Enum
 from functools import reduce
 from operator import mul
 from typing import Iterable, Tuple, TypeVar, Dict, NamedTuple, Optional, Union
-from enum import Enum
-import collections
-import six
-
 
 import numpy as np
+import six
 from scipy.linalg import block_diag
 from scipy.optimize import OptimizeResult
 
