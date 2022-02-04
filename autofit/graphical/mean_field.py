@@ -15,6 +15,7 @@ from autofit.graphical.utils import (
     prod,
     OptResult,
     Status,
+    LogWarnings,
 )
 from autofit.mapper.prior.abstract import Prior
 from autofit.mapper.prior_model.collection import CollectionPriorModel
@@ -396,7 +397,7 @@ class FactorApproximation(AbstractNode):
 
         updated = False
         try:
-            with warnings.catch_warnings(record=True) as caught_warnings:
+            with LogWarnings(logger=_log_projection_warnings, action='always') as caught_warnings:
                 factor_dist = model_dist / self.cavity_dist
                 if delta < 1:
                     log_norm = factor_dist.log_norm
@@ -405,10 +406,8 @@ class FactorApproximation(AbstractNode):
                             delta * log_norm + (1 - delta) * self.factor_dist.log_norm
                     )
 
-            for warn in caught_warnings:
-                message = f"{warn.filename}:{warn.lineno}: {warn.message}"
+            for message in caught_warnings.messages:
                 messages += ("project_mean_field warning: " + message,)
-                _log_projection_warnings(message)
 
             if not factor_dist.is_valid:
                 success = False

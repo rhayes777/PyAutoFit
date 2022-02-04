@@ -5,7 +5,7 @@ from typing import Optional, Dict, Tuple, Any, Callable
 import numpy as np
 
 from autofit.graphical.laplace.line_search import line_search, OptimisationState
-from autofit.graphical.utils import Status, StatusFlag
+from autofit.graphical.utils import Status, StatusFlag, LogWarnings
 from autofit.mapper.variable_operator import VariableData
 
 
@@ -351,9 +351,7 @@ def optimise_quasi_newton(
             success, message = stop
             break
 
-        with warnings.catch_warnings(record=True) as caught_warnings:
-            warnings.simplefilter("always")
-
+        with LogWarnings(logger=_log_projection_warnings, action='always') as caught_warnings:
             stepsize, state1 = take_quasi_newton_step(
                 state,
                 old_state,
@@ -364,10 +362,8 @@ def optimise_quasi_newton(
                 line_search_kws=line_search_kws,
                 quasi_newton_kws=quasi_newton_kws,
             )
-            for warn in caught_warnings:
-                warn_message = f"{warn.filename}:{warn.lineno}: {warn.message}"
-                messages += ("optimise_quasi_newton warning: " + warn_message,)
-                _log_projection_warnings(warn_message)
+        for warn_message in caught_warnings.messages:
+            messages += ("optimise_quasi_newton warning: " + warn_message,)
 
         if stepsize is None:
             success = False

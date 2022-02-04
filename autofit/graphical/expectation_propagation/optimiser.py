@@ -14,7 +14,7 @@ from autofit.graphical.expectation_propagation.history import EPHistory
 from autofit.graphical.factor_graphs.factor import Factor
 from autofit.graphical.factor_graphs.graph import FactorGraph
 from autofit.graphical.mean_field import MeanField, FactorApproximation, Status
-from autofit.graphical.utils import StatusFlag
+from autofit.graphical.utils import StatusFlag, LogWarnings
 from autofit.mapper.identifier import Identifier
 from autofit.non_linear.paths import DirectoryPaths
 from autofit.non_linear.paths.abstract import AbstractPaths
@@ -230,20 +230,19 @@ class EPOptimiser:
                 factor_logger = logging.getLogger(factor.name)
                 factor_logger.debug("Optimising...")
                 try:
-                    with warnings.catch_warnings(record=True) as caught_warnings:
+                    with LogWarnings(logger=factor_logger.debug, action='always') as caught_warnings:
                         model_approx, status = optimiser.optimise(
                             factor,
                             model_approx,
                         )
-                        messages = status.messages
-                        for warn in caught_warnings:
-                            warn_message = f"{warn.filename}:{warn.lineno}: {warn.message}"
-                            messages += (
-                                "optimise_quasi_newton warning: " + warn_message,
-                            )
-                            factor_logger.debug(warn_message)
 
-                        status = Status(status.success, messages, status.flag)
+                    messages = status.messages
+                    for warn_message in caught_warnings:
+                        messages += (
+                            "optimise_quasi_newton warning: " + warn_message,
+                        )
+
+                    status = Status(status.success, messages, status.flag)
 
                 except (ValueError, ArithmeticError, RuntimeError) as e:
                     logger.exception(e)
