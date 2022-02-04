@@ -72,7 +72,7 @@ class EPMeanField(FactorGraph):
     @cached_property
     def fixed_values(self):
         return {
-            v: v for mf in self._factor_mean_field.values() 
+            k: v for mf in self._factor_mean_field.values() 
             for k, v in mf.fixed_values.items()
         }
 

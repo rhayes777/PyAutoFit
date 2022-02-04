@@ -406,8 +406,8 @@ class FactorApproximation(AbstractNode):
                             delta * log_norm + (1 - delta) * self.factor_dist.log_norm
                     )
 
-            for message in caught_warnings.messages:
-                messages += ("project_mean_field warning: " + message,)
+            for m in caught_warnings.messages:
+                messages += (f"project_mean_field warning: {m}",)
 
             if not factor_dist.is_valid:
                 success = False

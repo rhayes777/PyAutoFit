@@ -237,10 +237,8 @@ class EPOptimiser:
                         )
 
                     messages = status.messages
-                    for warn_message in caught_warnings:
-                        messages += (
-                            "optimise_quasi_newton warning: " + warn_message,
-                        )
+                    for m in caught_warnings.messages:
+                        messages += f"optimise_quasi_newton warning: {m}",
 
                     status = Status(status.success, messages, status.flag)
 
