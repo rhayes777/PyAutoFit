@@ -361,7 +361,7 @@ class VariableData(Dict[Variable, np.ndarray]):
 
     def subset(self, variables):
         cls = _get_variable_data_class(self)
-        return cls((v, self[v]) for v in variables)
+        return cls((v, self[v]) for v in variables if v in self)
 
     def sum(self) -> float:
         return sum(VariableData.var_sum(self).values())

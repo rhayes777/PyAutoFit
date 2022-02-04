@@ -66,49 +66,40 @@ def make_model_approx():
     model_approx = graph.EPMeanField.from_approx_dists(
         make_model(), mean_field0
     )
-    return model_approx 
+    return model_approx
 
 
 def test_stochastic_linear_regression():
-    model_approx = make_model_approx()
+    params = [
+        (50, 5, False), 
+        (10, 20, True), 
+    ]
+    for n_batch, n_iters, inplace in params:
+        model_approx = make_model_approx()
+        ep_opt = graph.StochasticEPOptimiser(
+            model_approx.factor_graph, 
+            graph.LaplaceOptimiser()
+        )
+        batches = graph.utils.gen_dict({
+            obs: graph.utils.gen_subsets(n_batch, n_obs, n_iters=n_iters)
+        })
+        new_approx = ep_opt.run(model_approx, batches, inplace=inplace)
+        mean_field = new_approx.mean_field
 
-    n_batch = 100
-    n = n_obs
-    n_iters = 5
-    batches = graph.utils.gen_dict({
-        obs: graph.utils.gen_subsets(n_batch, n, n_iters=n_iters)
-    })
 
-    laplace = graph.LaplaceOptimiser()
-    new_approx = model_approx 
-    factors = new_approx.factor_graph.factors 
+        X = np.c_[x, np.ones(n_obs)]
+        XTX = X.T.dot(X) + np.eye(3) / prior_std
+        cov = np.linalg.inv(XTX)
 
-    for batch in batches:
-        subset_approx = new_approx.subset(batch)
-        for factor in factors:
-            subset_factor = subset_approx._factor_subset_factor[factor]
-            factor_approx = subset_approx.get_factor_approx(subset_factor)
+        cov_a = cov[:2, :]
+        cov_b = cov[2, :]
+        mean_a = cov_a.dot(X.T.dot(y))
+        mean_b = cov_b.dot(X.T.dot(y))
 
-            mean_field, status = laplace.optimise_approx(factor_approx)
-            subset_approx, status = subset_approx.project_mean_field(mean_field, factor_approx, status=status)
+        a_std = cov_a.diagonal()[:, None]**0.5
+        b_std = cov_b[[-1]]**0.5
 
-        new_approx[batch] = subset_approx
-            
-
-    X = np.c_[x, np.ones(n_obs)]
-    XTX = X.T.dot(X) + np.eye(3) / prior_std
-    cov = np.linalg.inv(XTX)
-
-    cov_a = cov[:2, :]
-    cov_b = cov[2, :]
-    mean_a = cov_a.dot(X.T.dot(y))
-    mean_b = cov_b.dot(X.T.dot(y))
-
-    a_std = cov_a.diagonal()[:, None]**0.5
-    b_std = cov_b[[-1]]**0.5
-
-    mean_field = new_approx.mean_field
-    assert mean_field[a_].mean == pytest.approx(mean_a, rel=1e-2)
-    assert mean_field[b_].mean == pytest.approx(mean_b, rel=1e-2)
-    assert mean_field[a_].sigma == pytest.approx(a_std, rel=1.) 
-    assert mean_field[b_].sigma == pytest.approx(b_std, rel=1.) 
+        assert mean_field[a_].mean == pytest.approx(mean_a, rel=1e-1), n_batch
+        assert mean_field[b_].mean == pytest.approx(mean_b, rel=1e-1), n_batch
+        assert mean_field[a_].sigma == pytest.approx(a_std, rel=1.), n_batch
+        assert mean_field[b_].sigma == pytest.approx(b_std, rel=1.), n_batch

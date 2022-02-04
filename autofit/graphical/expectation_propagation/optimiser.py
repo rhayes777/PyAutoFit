@@ -4,7 +4,7 @@ import warnings
 from abc import ABC, abstractmethod
 from collections import defaultdict
 from pathlib import Path
-from typing import Dict, Tuple, Optional, List
+from typing import Dict, Tuple, Optional, List, Generator
 
 import matplotlib.pyplot as plt
 
@@ -16,6 +16,7 @@ from autofit.graphical.factor_graphs.graph import FactorGraph
 from autofit.graphical.mean_field import MeanField, FactorApproximation, Status
 from autofit.graphical.utils import StatusFlag, LogWarnings
 from autofit.mapper.identifier import Identifier
+from autofit.mapper.variable import Plate 
 from autofit.non_linear.paths import DirectoryPaths
 from autofit.non_linear.paths.abstract import AbstractPaths
 from autofit.tools.util import IntervalCounter
@@ -43,10 +44,18 @@ class AbstractFactorOptimiser(ABC):
             status: Optional[Status] = Status(),
     ) -> Tuple[EPMeanField, Status]:
         delta = self.deltas[factor_approx.factor]
-        projection, status = factor_approx.project(
-            new_model_dist, delta=delta, status=status
+        # mean_field, status = factor_approx.project(
+        #     new_model_dist, delta=delta, status=status
+        # )
+        # new_approx, status = model_approx.project(projection, status)
+        new_approx, status = model_approx.project_mean_field(
+            new_model_dist, 
+            factor_approx,  
+            delta=delta, 
+            status=status,
         )
-        new_approx, status = model_approx.project(projection, status)
+
+
         return new_approx, status
 
     @abstractmethod
@@ -278,3 +287,102 @@ class EPOptimiser:
         """
         with open(self.output_path / "graph.results", "w+") as f:
             f.write(self.factor_graph.make_results_text(model_approx))
+
+
+class StochasticEPOptimiser(EPOptimiser):
+    def run(
+            self,
+            model_approx: EPMeanField,
+            batches: Generator[Dict[Plate, List[int]], None, None],
+            log_interval: int = 10,
+            visualise_interval: int = 100,
+            output_interval: int = 10,
+            inplace=False, 
+    ) -> EPMeanField:
+        """
+        Run the optimisation on an approximation of the model.
+
+        Parameters
+        ----------
+        model_approx
+            A collection of messages describing priors on the model's variables.
+        max_steps
+            The maximum number of steps prior to termination. Termination may also
+            occur when difference in log evidence or KL Divergence drop below a given
+            threshold for two consecutive optimisations of a given factor.
+        log_interval
+            How steps should we wait before logging information?
+        visualise_interval
+            How steps should we wait before visualising information?
+            This includes plots of KL Divergence and Evidence.
+        output_interval
+            How steps should we wait before outputting information?
+            This includes the model.results file which describes the current mean values
+            of each message.
+
+        Returns
+        -------
+        An updated approximation of the model
+        """
+        should_log = IntervalCounter(log_interval)
+        should_visualise = IntervalCounter(visualise_interval)
+        should_output = IntervalCounter(output_interval)
+
+        for batch in batches:
+            subset_approx = model_approx[batch]
+
+            for factor, optimiser in self.factor_optimisers.items():
+                factor_logger = logging.getLogger(factor.name)
+                factor_logger.debug("Optimising...")
+
+                subset_factor = subset_approx._factor_subset_factor[factor]
+                try:
+                    with LogWarnings(logger=factor_logger.debug, action='always') as caught_warnings:
+
+                        subset_approx, status = optimiser.optimise(
+                            subset_factor,
+                            subset_approx,
+                        )
+
+                    messages = status.messages
+                    for m in caught_warnings.messages:
+                        messages += f"optimise_quasi_newton warning: {m}",
+
+                    status = Status(status.success, messages, status.flag)
+
+                except (ValueError, ArithmeticError, RuntimeError) as e:
+                    logger.exception(e)
+                    status = Status(
+                        False,
+                        (f"Factor: {factor} experienced error {e}",),
+                        StatusFlag.FAILURE,
+                    )
+
+                if status and should_log():
+                    self._log_factor(factor)
+
+                factor_logger.debug(status)
+
+                if self.ep_history(factor, subset_approx, status):
+                    logger.info("Terminating optimisation")
+                    break  # callback controls convergence
+
+            else:  # If no break do next iteration
+                
+                if inplace:
+                    model_approx[batch] = subset_approx
+                else:
+                    model_approx = model_approx.merge(batch, subset_approx)
+
+                if should_visualise():
+                    self.visualiser()
+                if should_output():
+                    self._output_results(model_approx)
+                continue
+            break  # stop iterations
+
+
+        self.visualiser()
+        self._output_results(model_approx)
+
+        return model_approx

@@ -134,6 +134,18 @@ class MeanField(CollectionPriorModel, Dict[Variable, AbstractMessage], Factor):
         elif isinstance(value, MeanField):
             self.update_mean_field(value, index)
 
+    def merge(self, index, mean_field):
+        new_dist = dict(self)
+        if index:
+            plate_sizes = VariableData.plate_sizes(self)
+            for v, message in mean_field.items():
+                i = v.make_indexes(index, plate_sizes)
+                new_dist[v] = new_dist[v].merge(i, message)
+        else:
+            new_dist.update(mean_field)
+
+        return MeanField(new_dist)
+
     def update_mean_field(self, mean_field, plates_index=None):
         if plates_index:
             plate_sizes = VariableData.plate_sizes(self)
@@ -165,7 +177,7 @@ class MeanField(CollectionPriorModel, Dict[Variable, AbstractMessage], Factor):
 
             return cls(mean_field)
 
-        return cls((v, self[v]) for v in variables)
+        return cls((v, self[v]) for v in variables if v in self.keys())
 
     @property
     def mean(self):
@@ -309,7 +321,7 @@ class MeanField(CollectionPriorModel, Dict[Variable, AbstractMessage], Factor):
     ) -> "MeanField":
         return dist if isinstance(dist, cls) else MeanField(dist)
 
-    def factor_meanfield(
+    def update_factor_mean_field(
         self,
         cavity_dist: "MeanField",
         last_dist: Optional["MeanField"] = None,
@@ -499,7 +511,7 @@ class FactorApproximation(AbstractNode):
         status: Status = Status(),
     ) -> Tuple["FactorApproximation", Status]:
 
-        factor_dist, status = model_dist.factor_meanfield(
+        factor_dist, status = model_dist.update_factor_mean_field(
             self.cavity_dist,
             last_dist=self.factor_dist,
             delta=delta,

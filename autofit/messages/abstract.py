@@ -137,7 +137,7 @@ class AbstractMessage(Prior, ABC):
         for param0, param1 in zip(self.parameters, value.parameters):
             param0[index] = param1
 
-    def update(self, index, value):
+    def merge(self, index, value):
         cls = type(self)
         return cls(
             *(
