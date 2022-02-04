@@ -10,10 +10,6 @@ from typing import (
     Any,
 )
 
-# from autofit.graphical.factor_graphs.factor import Factor
-
-Protocol = ABC  # for python 3.7 compat
-
 import numpy as np
 
 from autoconf import cached_property
@@ -29,10 +25,8 @@ from autofit.mapper.variable import (
     FactorValue,
     VariableData,
 )
-from autofit.graphical.factor_graphs.jacobians import (
-    AbstractJacobian,
-    JacobianVectorProduct,
-)
+
+Protocol = ABC  # for python 3.7 compat
 
 Value = Dict[Variable, np.ndarray]
 
@@ -301,14 +295,14 @@ class AbstractNode(ABC):
 
     def numerical_func_jacobian(
             self, values: VariableData, **kwargs
-    ) -> Tuple[FactorValue, JacobianVectorProduct]:
+    ) -> tuple:
         args = (values[k] for k in self.args)
         raw_fval, raw_jac = self._numerical_factor_jacobian(*args, **kwargs)
         fval = self._factor_value(raw_fval)
         jvp = self._jac_out_to_jvp(raw_jac, values=fval.to_dict().merge(values))
         return fval, jvp
 
-    def jacobian(self, values: Dict[Variable, np.array], **kwargs) -> AbstractJacobian:
+    def jacobian(self, values: Dict[Variable, np.array], **kwargs):
         return self.func_jacobian(values, **kwargs)[1]
 
     def func_gradient(self, values: VariableData) -> Tuple[FactorValue, GradientValue]:
@@ -495,6 +489,3 @@ class FlattenedNode:
             return super().__getattribute__(name)
         except AttributeError:
             return getattr(self.node, name)
-
-
-from autofit.graphical.mean_field import MeanField

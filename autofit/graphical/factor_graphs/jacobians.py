@@ -12,6 +12,26 @@ try:
 except ImportError:
     _HAS_JAX = False
 
+
+import numpy as np
+
+from autoconf import cached_property
+from autofit.graphical.utils import (
+    nested_filter,
+    nested_update,
+    is_variable,
+)
+from autofit.mapper.variable import (
+    Variable,
+    FactorValue,
+    VariableData,
+    VariableLinearOperator,
+)
+
+from autofit.mapper.variable_operator import (
+    RectVariableOperator,
+)
+
 # from autoconf import cached_property
 
 # from autofit.graphical.factor_graphs.factor import (
@@ -51,21 +71,6 @@ from typing import (
 
 Protocol = ABC  # for python 3.7 compat
 
-import numpy as np
-
-from autoconf import cached_property
-from autofit.graphical.utils import (
-    nested_filter,
-    nested_update,
-    is_variable,
-)
-from autofit.mapper.variable import (
-    Variable,
-    FactorValue,
-    VariableData,
-    VariableLinearOperator,
-)
-
 Value = Dict[Variable, np.ndarray]
 GradientValue = VariableData
 
@@ -78,11 +83,6 @@ class FactorInterface(Protocol):
 class FactorGradientInterface(Protocol):
     def __call__(self, values: Value) -> Tuple[FactorValue, GradientValue]:
         pass
-
-
-from autofit.mapper.variable_operator import (
-    RectVariableOperator,
-)
 
 
 class AbstractJacobian(VariableLinearOperator):

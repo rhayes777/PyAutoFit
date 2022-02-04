@@ -14,10 +14,7 @@ from autofit.graphical.utils import (
 )
 from autofit.mapper.variable import Variable, Plate, VariableData
 
-from autofit.graphical.factor_graphs.jacobians import (
-    VectorJacobianProduct,
-    JacobianVectorProduct,
-)
+
 from autofit.graphical.factor_graphs.abstract import FactorValue, AbstractFactor
 
 
@@ -278,12 +275,15 @@ class Factor(AbstractFactor):
 
     def _vjp_func_jacobian(
             self, values: VariableData
-    ) -> Tuple[FactorValue, VectorJacobianProduct]:
+    ) -> tuple:
         """Calls the factor and returns the factor value with deterministic
         values, and a `VectorJacobianProduct` operator that allows the
         calculation of the gradient of the input values to be calculated
         with respect to the gradients of the output values (i.e backprop)
         """
+        from autofit.graphical.factor_graphs.jacobians import (
+            VectorJacobianProduct,
+        )
         raw_fval, fvjp = self._factor_vjp(*(values[v] for v in self.args))
         fval = self._factor_value(raw_fval)
 
@@ -297,7 +297,7 @@ class Factor(AbstractFactor):
 
     def _jvp_func_jacobian(
             self, values: VariableData, **kwargs
-    ) -> Tuple[FactorValue, JacobianVectorProduct]:
+    ) -> tuple:
         args = (values[k] for k in self.args)
         raw_fval, raw_jac = self._factor_jacobian(*args, **kwargs)
         fval = self._factor_value(raw_fval)
@@ -323,7 +323,10 @@ class Factor(AbstractFactor):
 
     def _jac_out_to_jvp(
             self, raw_jac: Any, values: VariableData
-    ) -> JacobianVectorProduct:
+    ):
+        from autofit.graphical.factor_graphs.jacobians import (
+            JacobianVectorProduct,
+        )
         jac = self._unpack_jacobian_out(raw_jac)
         return JacobianVectorProduct.from_dense(jac, values=values)
 
