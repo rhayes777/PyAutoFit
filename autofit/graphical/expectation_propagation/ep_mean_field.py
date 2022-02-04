@@ -67,23 +67,31 @@ class EPMeanField(FactorGraph):
         super().__init__(self.factor_graph.factors)
 
     def subset(self, plates_index):
+        factor_subset_factor = {}
         factor_mean_field_subset = {}
         factor_mean_field_rescale = {}
         for factor, mean_field in self.factor_mean_field.items():
+            plate_sizes = VariableData.plate_sizes(mean_field)
+            factor_subset_factor[factor] = subset_factor = factor.subset(
+                plates_index, plate_sizes
+            )
+
             mean_field_subset = mean_field.subset(plates_index=plates_index)
-            factor_mean_field_subset[factor] = mean_field_subset
-            mean_field_size = VariableData.prod(VariableData.plate_sizes(mean_field))
+            factor_mean_field_subset[subset_factor] = mean_field_subset
+            mean_field_size = VariableData.prod(plate_sizes)
             subset_size = VariableData.prod(VariableData.plate_sizes(mean_field_subset))
             scale_factor = subset_size / mean_field_size
-            factor_mean_field_rescale[factor] = {
+            factor_mean_field_rescale[subset_factor] = {
                 v: scale_factor * mean_field[v].size / message.size
                 for v, message in mean_field_subset.items()
             }
 
+        subset_factor_graph = FactorGraph(factor_subset_factor.values())
         return EPMeanFieldSubset(
-            self.factor_graph,
+            subset_factor_graph,
             factor_mean_field_subset,
             factor_mean_field_rescale,
+            factor_subset_factor,
             self,
             plates_index,
         )
@@ -169,6 +177,30 @@ class EPMeanField(FactorGraph):
         model_dist = factor_dist.prod(cavity_dist)
 
         return FactorApproximation(factor, cavity_dist, factor_dist, model_dist)
+
+    get_factor_approx = factor_approximation
+
+    def project_mean_field(
+        self,
+        new_dist: MeanField,
+        factor_approx: FactorApproximation,
+        delta: float = 1.0,
+        status: Status = Status(),
+    ) -> Tuple["EPMeanField", Status]:
+
+        new_factor_dist = new_dist.project_mean_field(
+            factor_approx.cavity_dist,
+            factor_approx.factor_dist,
+            delta=delta,
+            status=status,
+        )
+        factor_mean_field = self.factor_mean_field
+        factor_mean_field[factor_approx.factor] = new_factor_dist
+
+        new_approx = type(self)(
+            factor_graph=self._factor_graph, factor_mean_field=factor_mean_field
+        )
+        return new_approx, status
 
     def project_factor_approx(
         self,
@@ -304,14 +336,44 @@ class EPMeanFieldSubset(EPMeanField):
         factor_graph: FactorGraph,
         factor_mean_field: Dict[Factor, MeanField],
         factor_rescale: Dict[Factor, Dict[Variable, float]],
+        factor_subset_factor: Dict[Factor, Factor],
         ep_mean_field: EPMeanField,
         plates_index: Dict[Plate, List[int]],
     ):
         super().__init__(factor_graph, factor_mean_field)
 
         self._factor_rescale = factor_rescale
+        self._factor_subset_factor = factor_subset_factor
         self._ep_mean_field = ep_mean_field
         self._plates_index = plates_index
+
+    def project_mean_field(
+        self,
+        new_dist: MeanField,
+        factor_approx: FactorApproximation,
+        delta: float = 1.0,
+        status: Status = Status(),
+    ) -> Tuple["EPMeanField", Status]:
+
+        # We're fitting the full factor_dist, not the subset factor_dist
+        cavity_dist = factor_approx.model_dist / factor_approx.factor_dist
+        new_factor_dist = new_dist.project_mean_field(
+            cavity_dist,
+            factor_approx.factor_dist,
+            delta=delta,
+            status=status,
+        )
+        factor_mean_field = self.factor_mean_field
+        factor_mean_field[factor_approx.factor] = new_factor_dist
+
+        new_approx = type(self)(
+            factor_graph=self._factor_graph,
+            factor_mean_field=factor_mean_field,
+            factor_rescale=self._factor_rescale,
+            ep_mean_field=self._ep_mean_field,
+            plates_index=self._plates_index,
+        )
+        return new_approx, status
 
     def factor_approximation(self, factor: Factor) -> FactorApproximation:
         """

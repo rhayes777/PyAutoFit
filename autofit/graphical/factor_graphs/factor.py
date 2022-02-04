@@ -194,18 +194,6 @@ class Factor(AbstractFactor):
         kwargs = dict(zip(arg_names, args))
         name = name or factor.__name__
 
-        # self._plates = plates
-        # self._kwargs = {}
-        # self._deterministic_variables = set()
-        # self._variable_name_kw = {}
-        # self.id = next(self._id)
-
-        # self._plates = plates
-        # self._kwargs = kwargs
-        # self._deterministic_variables = set(deterministic_variables)
-        # self._variable_name_kw = {v.name: kw for kw, v in kwargs.items()}
-        # self.id = next(self._id)
-
         AbstractFactor.__init__(
             self,
             name=name,
@@ -226,13 +214,80 @@ class Factor(AbstractFactor):
             jacfwd=jacfwd,
         )
 
-    # @property
-    # def args(self):
-    #     return self._args
+    @property
+    def shape(self) -> Tuple[int, ...]:
+        if self.plates:
+            return self._factor.shape
 
-    # @property
-    # def arg_names(self):
-    #     return self._arg_names
+        return ()
+
+    def __getitem__(
+        self, plates_index: Dict[Plate, Union[List[int], range, slice]]
+    ) -> "Factor":
+        return self.subset(plates_index)
+
+    def subset(
+        self,
+        plates_index: Dict[Plate, Union[List[int], range, slice]],
+        plate_sizes: Optional[Dict[Plate, int]] = None,
+    ) -> "Factor":
+        if not self.plates:
+            return self
+
+        plate_sizes = plate_sizes or dict(zip(self.plates, self.shape))
+        index = Variable.make_indexes(self, plates_index, plate_sizes)
+        subset_factor = self._factor[index]
+        kws = self._subset_jacobian(subset_factor, index)
+
+        subset = ", ".join(map("{0.name}={1}".format, self.plates, map(np.size, index)))
+        kws["name"] = f"{self.name}[{subset}]"
+        kws["eps"] = self.eps
+        kws["factor_out"] = self.factor_out
+        kws["plates"] = self.plates
+
+        return Factor(subset_factor, *self.args, **kws)
+
+    def _subset_jacobian(self, subset_factor, index):
+        jac_kws = {"vjp": self._vjp}
+        if self._vjp:
+            factor_vjp = None
+            if self._factor_vjp != self._jax_factor_vjp:
+                try:
+                    factor_vjp = self._factor_vjp[index]
+                except TypeError:
+                    try:
+                        factor_vjp = subset_factor.factor_vjp
+                    except AttributeError:
+                        pass
+
+            jac_kws["factor_vjp"] = factor_vjp
+        else:
+            factor_jacobian = None
+            jacobian = None
+            if self._factor_jacobian != Factor._factor_jacobian:
+                try:
+                    factor_jacobian = self._factor_jacobian[index]
+                except TypeError:
+                    try:
+                        factor_jacobian = subset_factor.factor_jacobian
+                    except AttributeError:
+                        pass
+
+            elif self._jacobian != Factor._jacobian:
+                try:
+                    jacobian = self.jacobian[index]
+                except TypeError:
+                    try:
+                        jacobian = subset_factor.jacobian
+                    except AttributeError:
+                        pass
+            elif self._factor_jacobian != self._numerical_factor_jacobian:
+                jac_kws["jacfwd"] = self._jacfwd
+
+            jac_kws["jacobian"] = jacobian
+            jac_kws["factor_jacobian"] = factor_jacobian
+
+        return jac_kws
 
     def _set_jacobians(
         self,
@@ -243,6 +298,8 @@ class Factor(AbstractFactor):
         numerical_jacobian=True,
         jacfwd=True,
     ):
+        self._vjp = vjp
+        self._jacfwd = jacfwd
         if vjp:
             if factor_vjp:
                 self._factor_vjp = factor_vjp

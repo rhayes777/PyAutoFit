@@ -1,5 +1,5 @@
 from itertools import chain, count
-from typing import Optional, Tuple, Dict, Set
+from typing import Optional, Tuple, Dict, Set, Union, List
 import operator
 from abc import ABC, abstractmethod
 from functools import wraps, reduce
@@ -41,6 +41,17 @@ class Plate:
     def __gt__(self, other):
         return self.id > other.id
 
+    def make_index_seq(
+        self,
+        plates_index: Dict["Plate", Union[List[int], range, slice]],
+        plate_sizes: Dict["Plate", int],
+    ) -> Union[List[int], range]:
+        seq = plates_index.get(self, range(plate_sizes[self]))
+        if isinstance(seq, slice):
+            seq = range(plate_sizes[self])[seq]
+
+        return seq
+
 
 class Variable(ModelObject):
     # __slots__ = ("name", "plates")
@@ -80,6 +91,17 @@ class Variable(ModelObject):
         How many dimensions does this variable have?
         """
         return len(self.plates)
+
+    def make_indexes(
+        self,
+        plates_index: Dict["Plate", Union[List[int], range, slice]],
+        plate_sizes: Dict["Plate", int],
+    ) -> Tuple[np.ndarray, ...]:
+        if any(p in plates_index for p in self.plates):
+            return np.ix_(
+                *(p.make_index_seq(plates_index, plate_sizes) for p in self.plates)
+            )
+        return ()
 
 
 def variables(*vals):

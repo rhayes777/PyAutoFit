@@ -132,25 +132,25 @@ class MeanField(CollectionPriorModel, Dict[Variable, AbstractMessage], Factor):
         if plates_index:
             plate_sizes = VariableData.plate_sizes(self)
 
-            def make_index_seq(p, plates_index, plate_sizes):
-                seq = plates_index.get(p, range(plate_sizes[p]))
-                if isinstance(seq, slice):
-                    seq = range(plate_sizes[p])[seq]
+            # def make_index_seq(p, plates_index, plate_sizes):
+            #     seq = plates_index.get(p, range(plate_sizes[p]))
+            #     if isinstance(seq, slice):
+            #         seq = range(plate_sizes[p])[seq]
 
-                return seq
+            #     return seq
 
-            def make_indexes(v, plates_index, plate_sizes):
-                if any(p in plates_index for p in v.plates):
-                    return np.ix_(
-                        *(
-                            make_index_seq(p, plates_index, plate_sizes)
-                            for p in v.plates
-                        )
-                    )
-                return ()
+            # def make_indexes(v, plates_index, plate_sizes):
+            #     if any(p in plates_index for p in v.plates):
+            #         return np.ix_(
+            #             *(
+            #                 make_index_seq(p, plates_index, plate_sizes)
+            #                 for p in v.plates
+            #             )
+            #         )
+            #     return ()
 
             variable_index = (
-                (v, make_indexes(v, plates_index, plate_sizes)) for v in variables
+                (v, v.make_indexes(plates_index, plate_sizes)) for v in variables
             )
             mean_field = dict((v, self[v][index]) for v, index in variable_index)
             if rescale:
@@ -341,8 +341,20 @@ class MeanField(CollectionPriorModel, Dict[Variable, AbstractMessage], Factor):
                 factor_dist = factor_dist.update_invalid(last_dist)
                 # May want to check another way
                 # e.g. factor_dist.check_valid().sum() / factor_dist.check_valid().size
-                if factor_dist.check_valid().any():
+                valid = factor_dist.check_valid()
+                if valid.any():
                     updated = True
+                    n_valid = valid.sum()
+                    n_total = valid.size
+                    logger.debug(
+                        "meanfield with variables: %r ,"
+                        "partially updated %d parameters "
+                        "out of %d total, %.0%%",
+                        tuple(self.variables),
+                        n_valid,
+                        n_total,
+                        n_valid / n_total,
+                    )
 
                 flag = StatusFlag.BAD_PROJECTION
             else:

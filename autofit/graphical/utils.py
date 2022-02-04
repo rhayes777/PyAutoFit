@@ -188,53 +188,24 @@ class OptResult(NamedTuple):
     status: Status = Status()
 
 
-def add_arrays(*arrays: np.ndarray) -> np.ndarray:
-    """Sums over broadcasting multidimensional arrays
-    whilst preserving the total sum
+def gen_subsets(n, x, rng=None, n_iters=None):
+    rng = rng or np.random.default_rng()
+    x_shuffled = rng.permutation(x)
+    tot = len(x_shuffled)
 
-    a = np.arange(10).reshape(1, 2, 1, 5)
-    b = np.arange(8).reshape(2, 2, 2, 1)
+    iters = iter(int, 1) if n_iters is None else range(n_iters)
+    for j in iters:
+        for i in range(0, tot - n, n):
+            yield x_shuffled[i : i + n]
 
-    >>> add_arrays(a, b).sum()
-    73.0
-    >>> add_arrays(a, b).shape
-    (2, 2, 2, 5)
-    >>> a.sum() + b.sum()
-    73
-    """
-    b = np.broadcast(*arrays)
-    return sum(a * np.size(a) / b.size for a in arrays)
+        i += n
+        x_shuffled = np.r_[x_shuffled[i:], rng.permutation(x_shuffled[:i])]
 
 
-Axis = Optional[Union[bool, int, Tuple[int, ...]]]
-
-
-def aggregate(array: np.ndarray, axis: Axis = None, **kwargs) -> np.ndarray:
-    """
-    aggregates the values of array
-
-    if axis is False then aggregate returns the unmodified array
-
-    otherwise aggrate returns np.sum(array, axis=axis, **kwargs)
-    """
-    if axis is False:
-        return array
-    else:
-        return np.sum(array, axis=axis, **kwargs)
-
-
-def diag(array: np.ndarray, *ds: Tuple[int, ...]) -> np.ndarray:
-    array = np.asanyarray(array)
-    d1 = array.shape
-    if ds:
-        ds = (d1,) + ds
-    else:
-        ds = (d1, d1)
-
-    out = np.zeros(sum(ds, ()))
-    diag_inds = tuple(map(np.ravel, (i for d in ds for i in np.indices(d))))
-    out[diag_inds] = array.ravel()
-    return out
+def gen_dict(dict_gen):
+    keys = tuple(dict_gen.keys())
+    for val in zip(*dict_gen.values()):
+        yield dict(zip(keys, val))
 
 
 _M = TypeVar("_M")
@@ -321,3 +292,53 @@ def rescale_to_artists(artists, ax=None):
             break
 
     return xlim, ylim
+
+
+# These may no longer be needed?
+def add_arrays(*arrays: np.ndarray) -> np.ndarray:
+    """Sums over broadcasting multidimensional arrays
+    whilst preserving the total sum
+
+    a = np.arange(10).reshape(1, 2, 1, 5)
+    b = np.arange(8).reshape(2, 2, 2, 1)
+
+    >>> add_arrays(a, b).sum()
+    73.0
+    >>> add_arrays(a, b).shape
+    (2, 2, 2, 5)
+    >>> a.sum() + b.sum()
+    73
+    """
+    b = np.broadcast(*arrays)
+    return sum(a * np.size(a) / b.size for a in arrays)
+
+
+Axis = Optional[Union[bool, int, Tuple[int, ...]]]
+
+
+def aggregate(array: np.ndarray, axis: Axis = None, **kwargs) -> np.ndarray:
+    """
+    aggregates the values of array
+
+    if axis is False then aggregate returns the unmodified array
+
+    otherwise aggrate returns np.sum(array, axis=axis, **kwargs)
+    """
+    if axis is False:
+        return array
+    else:
+        return np.sum(array, axis=axis, **kwargs)
+
+
+def diag(array: np.ndarray, *ds: Tuple[int, ...]) -> np.ndarray:
+    array = np.asanyarray(array)
+    d1 = array.shape
+    if ds:
+        ds = (d1,) + ds
+    else:
+        ds = (d1, d1)
+
+    out = np.zeros(sum(ds, ()))
+    diag_inds = tuple(map(np.ravel, (i for d in ds for i in np.indices(d))))
+    out[diag_inds] = array.ravel()
+    return out

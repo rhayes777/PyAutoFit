@@ -121,10 +121,10 @@ class AbstractMessage(Prior, ABC):
 
     def __getitem__(self, index) -> "AbstractMessage":
         cls = type(self)
-        if index:
-            return cls(*(param[index] for param in self.parameters))
-        else:
+        if index == ():
             return self
+        else:
+            return cls(*(param[index] for param in self.parameters))
 
     def __setitem__(self, index, value):
         self._reset_cache()
@@ -499,7 +499,7 @@ class AbstractMessage(Prior, ABC):
             name = f"{family}Likelihood" + (str(shape) if shape else "")
 
         return Factor(
-            self.logpdf,
+            self,
             variable,
             name=name,
             factor_jacobian=self.factor_jacobian,
