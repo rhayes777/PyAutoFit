@@ -23,6 +23,25 @@ def is_iterable(arg):
 
 
 def nested_filter(func, *args):
+    """ Iterates through a potentially nested set of list, tuples and dictionaries, 
+    recursively looping through the structure and returning the arguments
+    that func return true on, 
+
+    Example
+    -------
+    >>> list(nested_filter(
+    ...     lambda x, *args: x==2,
+    ...     [1, (2, 3), [3, 2, {1, 2}]]
+    ... ))
+    [(2,), (2,), (2,)]
+
+    >>> list(nested_filter(
+    ...     lambda x, *args: x==2,
+    ...     [1, (2, 3), [3, 2, {1, 2}]],
+    ...     [1, ('a', 3), [3, 'b', {1, 'c'}]]
+    ... ))
+    [(2, 'a'), (2, 'b'), (2, 'c')]
+    """
     out, *_ = args
     if isinstance(out, dict):
         for k in out:
