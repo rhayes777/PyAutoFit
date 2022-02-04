@@ -310,6 +310,52 @@ class MeanField(CollectionPriorModel, Dict[Variable, AbstractMessage], Factor):
     ) -> "MeanField":
         return dist if isinstance(dist, cls) else MeanField(dist)
 
+    def factor_meanfield(
+        self,
+        cavity_dist: "MeanField",
+        last_dist: Optional["MeanField"] = None,
+        delta: float = 1.0,
+        status: Status = Status(),
+    ) -> Tuple["MeanField", Status]:
+
+        success, messages, _, flag = status
+        updated = False
+        try:
+            with warnings.catch_warnings(record=True) as caught_warnings:
+                factor_dist = self / cavity_dist
+                if delta < 1:
+                    log_norm = factor_dist.log_norm
+                    factor_dist = factor_dist ** delta * last_dist ** (1 - delta)
+                    factor_dist.log_norm = (
+                        delta * log_norm + (1 - delta) * last_dist.log_norm
+                    )
+
+            for warn in caught_warnings:
+                message = "%s:%d: %s" % (warn.filename, warn.lineno, warn.message)
+                messages += ("project_mean_field warning: " + message,)
+                _log_projection_warnings(message)
+
+            if not factor_dist.is_valid:
+                success = False
+                messages += (f"model projection for {self} is invalid",)
+                factor_dist = factor_dist.update_invalid(last_dist)
+                # May want to check another way
+                # e.g. factor_dist.check_valid().sum() / factor_dist.check_valid().size
+                if factor_dist.check_valid().any():
+                    updated = True
+
+                flag = StatusFlag.BAD_PROJECTION
+            else:
+                updated = True
+
+        except exc.MessageException as e:
+            logger.exception(e)
+            factor_dist = last_dist
+
+        return factor_dist, Status(
+            success=success, messages=messages, flag=flag, updated=updated
+        )
+
 
 class FactorApproximation(AbstractNode):
     """
@@ -441,52 +487,57 @@ class FactorApproximation(AbstractNode):
         self,
         model_dist: MeanField,
         delta: float = 1.0,
-        status: Optional[Status] = None,
+        status: Status = Status(),
     ) -> Tuple["FactorApproximation", Status]:
-        success, messages, _, flag = Status() if status is None else status
 
-        updated = False
-        try:
-            with warnings.catch_warnings(record=True) as caught_warnings:
-                factor_dist = model_dist / self.cavity_dist
-                if delta < 1:
-                    log_norm = factor_dist.log_norm
-                    factor_dist = factor_dist ** delta * self.factor_dist ** (1 - delta)
-                    factor_dist.log_norm = (
-                        delta * log_norm + (1 - delta) * self.factor_dist.log_norm
-                    )
-
-            for warn in caught_warnings:
-                message = "%s:%d: %s" % (warn.filename, warn.lineno, warn.message)
-                messages += ("project_mean_field warning: " + message,)
-                _log_projection_warnings(message)
-
-            if not factor_dist.is_valid:
-                success = False
-                messages += (f"model projection for {self} is invalid",)
-                factor_dist = factor_dist.update_invalid(self.factor_dist)
-                # May want to check another way
-                # e.g. factor_dist.check_valid().sum() / factor_dist.check_valid().size
-                if factor_dist.check_valid().any():
-                    updated = True
-
-                flag = StatusFlag.BAD_PROJECTION
-            else:
-                updated = True
-
-        except exc.MessageException as e:
-            logger.exception(e)
-            factor_dist = self.factor_dist
-
+        factor_dist, status = model_dist.factor_meanfield(
+            self.cavity_dist,
+            last_dist=self.factor_dist,
+            delta=delta,
+            status=status,
+        )
         new_approx = FactorApproximation(
             self.factor,
             self.cavity_dist,
             factor_dist=factor_dist,
             model_dist=model_dist,
         )
-        return new_approx, Status(
-            success=success, messages=messages, flag=flag, updated=updated
-        )
+        return new_approx, status
+
+        # success, messages, _, flag = Status() if status is None else status
+
+        # updated = False
+        # try:
+        #     with warnings.catch_warnings(record=True) as caught_warnings:
+        #         factor_dist = model_dist / self.cavity_dist
+        #         if delta < 1:
+        #             log_norm = factor_dist.log_norm
+        #             factor_dist = factor_dist ** delta * self.factor_dist ** (1 - delta)
+        #             factor_dist.log_norm = (
+        #                 delta * log_norm + (1 - delta) * self.factor_dist.log_norm
+        #             )
+
+        #     for warn in caught_warnings:
+        #         message = "%s:%d: %s" % (warn.filename, warn.lineno, warn.message)
+        #         messages += ("project_mean_field warning: " + message,)
+        #         _log_projection_warnings(message)
+
+        #     if not factor_dist.is_valid:
+        #         success = False
+        #         messages += (f"model projection for {self} is invalid",)
+        #         factor_dist = factor_dist.update_invalid(self.factor_dist)
+        #         # May want to check another way
+        #         # e.g. factor_dist.check_valid().sum() / factor_dist.check_valid().size
+        #         if factor_dist.check_valid().any():
+        #             updated = True
+
+        #         flag = StatusFlag.BAD_PROJECTION
+        #     else:
+        #         updated = True
+
+        # except exc.MessageException as e:
+        #     logger.exception(e)
+        #     factor_dist = self.factor_dist
 
     project = project_mean_field
 
