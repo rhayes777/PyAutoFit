@@ -1,5 +1,3 @@
-import pickle
-
 import dill
 
 import autofit as af

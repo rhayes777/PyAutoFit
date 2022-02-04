@@ -2,8 +2,6 @@ import numpy as np
 import pytest
 from scipy import integrate
 
-from autofit.graphical import MeanField
-from autofit.mapper.variable import Plate, Variable
 from autofit.messages import transform
 from autofit.messages.beta import BetaMessage
 from autofit.messages.gamma import GammaMessage

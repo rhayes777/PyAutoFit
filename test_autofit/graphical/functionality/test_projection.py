@@ -4,7 +4,6 @@ from scipy import integrate, stats
 
 import autofit.messages.normal
 from autofit import graphical as graph
-from autofit.mapper.variable import Variable
 
 
 @pytest.fixture(name="q_cavity")

@@ -1,8 +1,7 @@
 from itertools import combinations
 
-import pytest
-
 import numpy as np
+import pytest
 
 try:
     import jax

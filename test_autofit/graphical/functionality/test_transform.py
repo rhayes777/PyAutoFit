@@ -1,11 +1,8 @@
 import numpy as np
 import pytest
-from scipy import stats, linalg, optimize
+from scipy import stats, linalg
 
 import autofit.graphical.factor_graphs.transform as transform
-from autofit.graphical import Factor, utils, MeanField
-from autofit.mapper.variable import Variable, Plate
-from autofit.messages.normal import NormalMessage
 
 
 def test_diagonal_from_dense():
