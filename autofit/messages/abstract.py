@@ -48,7 +48,7 @@ class AbstractMessage(Prior, ABC):
     @staticmethod
     @abstractmethod
     def invert_natural_parameters(
-        natural_parameters: np.ndarray,
+            natural_parameters: np.ndarray,
     ) -> Tuple[np.ndarray, ...]:
         pass
 
@@ -99,7 +99,7 @@ class AbstractMessage(Prior, ABC):
 
     @classmethod
     def from_natural_parameters(
-        cls, natural_parameters: np.ndarray, **kwargs
+            cls, natural_parameters: np.ndarray, **kwargs
     ) -> "AbstractMessage":
         cls_ = cls._projection_class or cls
         args = cls_.invert_natural_parameters(natural_parameters)
@@ -108,13 +108,13 @@ class AbstractMessage(Prior, ABC):
     @classmethod
     @abstractmethod
     def invert_sufficient_statistics(
-        cls, sufficient_statistics: np.ndarray
+            cls, sufficient_statistics: np.ndarray
     ) -> np.ndarray:
         pass
 
     @classmethod
     def from_sufficient_statistics(
-        cls, suff_stats: np.ndarray, **kwargs
+            cls, suff_stats: np.ndarray, **kwargs
     ) -> "AbstractMessage":
         natural_params = cls.invert_sufficient_statistics(suff_stats)
         cls_ = cls._projection_class or cls
@@ -230,7 +230,7 @@ class AbstractMessage(Prior, ABC):
         return np.nan_to_num(log_base + eta_t - log_partition, nan=-np.inf)
 
     def numerical_logpdf_gradient(
-        self, x: np.ndarray, eps: float = 1e-6
+            self, x: np.ndarray, eps: float = 1e-6
     ) -> Tuple[np.ndarray, np.ndarray]:
         shape = np.shape(x)
         if shape:
@@ -261,7 +261,7 @@ class AbstractMessage(Prior, ABC):
         return logl0, grad_logl
 
     def numerical_logpdf_gradient_hessian(
-        self, x: np.ndarray, eps: float = 1e-6
+            self, x: np.ndarray, eps: float = 1e-6
     ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         shape = np.shape(x)
         if shape:
@@ -309,7 +309,7 @@ class AbstractMessage(Prior, ABC):
 
     @classmethod
     def project(
-        cls, samples: np.ndarray, log_weight_list: Optional[np.ndarray] = None, id_=None
+            cls, samples: np.ndarray, log_weight_list: Optional[np.ndarray] = None, id_=None
     ) -> "AbstractMessage":
         """Calculates the sufficient statistics of a set of samples
         and returns the distribution with the appropriate parameters
@@ -339,7 +339,7 @@ class AbstractMessage(Prior, ABC):
 
     @classmethod
     def from_mode(
-        cls, mode: np.ndarray, covariance: np.ndarray, id_
+            cls, mode: np.ndarray, covariance: np.ndarray, id_
     ) -> "AbstractMessage":
         pass
 
@@ -414,7 +414,7 @@ class AbstractMessage(Prior, ABC):
 
     @staticmethod
     def _get_mean_variance(
-        mean: np.ndarray, covariance: np.ndarray
+            mean: np.ndarray, covariance: np.ndarray
     ) -> Tuple[np.ndarray, np.ndarray]:
         mean, covariance = np.asanyarray(mean), np.asanyarray(covariance)
 
@@ -440,7 +440,7 @@ class AbstractMessage(Prior, ABC):
         return np.sum(self.logpdf(x))
 
     def factor_jacobian(
-        self, x: np.ndarray, _variables: Optional[Tuple[str]] = ("x",)
+            self, x: np.ndarray, _variables: Optional[Tuple[str]] = ("x",)
     ) -> Union[np.ndarray, Tuple[np.ndarray, Tuple[np.ndarray, ...]]]:
         loglike, g = self.logpdf_gradient(x)
         g = np.expand_dims(g, list(range(loglike.ndim)))
@@ -466,11 +466,11 @@ class AbstractMessage(Prior, ABC):
 
     @classmethod
     def transformed(
-        cls,
-        transform: Union[AbstractDensityTransform, Type[AbstractDensityTransform]],
-        clsname: Optional[str] = None,
-        support: Optional[Tuple[Tuple[float, float], ...]] = None,
-        wrapper_cls=None,
+            cls,
+            transform: Union[AbstractDensityTransform, Type[AbstractDensityTransform]],
+            clsname: Optional[str] = None,
+            support: Optional[Tuple[Tuple[float, float], ...]] = None,
+            wrapper_cls=None,
     ):
         # noinspection PyUnresolvedReferences
         """
@@ -558,10 +558,10 @@ class AbstractMessage(Prior, ABC):
 
     @classmethod
     def shifted(
-        cls,
-        shift: float = 0,
-        scale: float = 1,
-        wrapper_cls=None,
+            cls,
+            shift: float = 0,
+            scale: float = 1,
+            wrapper_cls=None,
     ):
         return cls.transformed(
             LinearShiftTransform(shift=shift, scale=scale),
@@ -571,13 +571,13 @@ class AbstractMessage(Prior, ABC):
 
     @classmethod
     def _reconstruct(
-        cls,
-        parameters: Tuple[np.ndarray, ...],
-        log_norm: float,
-        id_,
-        lower_limit,
-        upper_limit,
-        *args,
+            cls,
+            parameters: Tuple[np.ndarray, ...],
+            log_norm: float,
+            id_,
+            lower_limit,
+            upper_limit,
+            *args,
     ):
         return cls(
             *parameters,
@@ -616,9 +616,9 @@ class AbstractMessage(Prior, ABC):
 
 
 def map_dists(
-    dists: Dict[str, AbstractMessage],
-    values: Dict[str, np.ndarray],
-    _call: str = "logpdf",
+        dists: Dict[str, AbstractMessage],
+        values: Dict[str, np.ndarray],
+        _call: str = "logpdf",
 ) -> Iterator[Tuple[str, np.ndarray]]:
     """
     Calls a method (default: logpdf) for each Message in dists

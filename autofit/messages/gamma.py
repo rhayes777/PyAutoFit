@@ -75,11 +75,11 @@ class GammaMessage(AbstractMessage):
         # TODO check this is correct
         # https://arxiv.org/pdf/0911.4863.pdf
         return (
-            (P.alpha - Q.alpha) * special.psi(P.alpha)
-            - special.gammaln(P.alpha)
-            + special.gammaln(Q.alpha)
-            + Q.alpha * (np.log(P.beta / Q.beta))
-            + P.alpha * (Q.beta / P.beta - 1)
+                (P.alpha - Q.alpha) * special.psi(P.alpha)
+                - special.gammaln(P.alpha)
+                + special.gammaln(Q.alpha)
+                + Q.alpha * (np.log(P.beta / Q.beta))
+                + P.alpha * (Q.beta / P.beta - 1)
         )
 
     def logpdf_gradient(self, x):

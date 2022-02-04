@@ -35,13 +35,13 @@ class NormalMessage(AbstractMessage):
     _parameter_support = ((-np.inf, np.inf), (0, np.inf))
 
     def __init__(
-        self,
-        mean,
-        sigma,
-        lower_limit=-math.inf,
-        upper_limit=math.inf,
-        log_norm=0.0,
-        id_=None,
+            self,
+            mean,
+            sigma,
+            lower_limit=-math.inf,
+            upper_limit=math.inf,
+            log_norm=0.0,
+            id_=None,
     ):
         if (np.array(sigma) < 0).any():
             raise exc.MessageException("Sigma cannot be negative")
@@ -103,14 +103,14 @@ class NormalMessage(AbstractMessage):
 
     def kl(self, dist):
         return (
-            np.log(dist.sigma / self.sigma)
-            + (self.sigma ** 2 + (self.mean - dist.mean) ** 2) / 2 / dist.sigma ** 2
-            - 1 / 2
+                np.log(dist.sigma / self.sigma)
+                + (self.sigma ** 2 + (self.mean - dist.mean) ** 2) / 2 / dist.sigma ** 2
+                - 1 / 2
         )
 
     @classmethod
     def from_mode(
-        cls, mode: np.ndarray, covariance: Union[float, LinearOperator] = 1.0, id_=None
+            cls, mode: np.ndarray, covariance: Union[float, LinearOperator] = 1.0, id_=None
     ):
         if isinstance(covariance, LinearOperator):
             variance = covariance.diagonal()
@@ -119,7 +119,7 @@ class NormalMessage(AbstractMessage):
         return cls(mode, np.abs(variance) ** 0.5, id_=id_)
 
     def _normal_gradient_hessian(
-        self, x: np.ndarray
+            self, x: np.ndarray
     ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         # raise Exception
         shape = np.shape(x)
