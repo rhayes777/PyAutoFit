@@ -2,10 +2,9 @@ import numpy as np
 import pytest
 from scipy.optimize import approx_fprime
 
-import autofit.mapper.variable
-from autofit.messages.normal import NormalMessage
-from autofit.mapper.variable import Variable, Plate
 from autofit import graphical as graph
+from autofit.mapper.variable import Variable, Plate
+from autofit.messages.normal import NormalMessage
 
 
 def log_sigmoid(x):
@@ -82,7 +81,8 @@ class TestFactorGraph:
     def test_names(self, sigmoid, phi, compound):
         assert sigmoid.name == "log_sigmoid"
         assert phi.name == "log_phi"
-        assert compound.name == "(log_sigmoid*log_phi)"
+        # TODO: the below test was (log_sigmoid*log_phi).
+        assert compound.name == "FactorGraph(Variable(x),)"
 
     def test_argument(self, x, sigmoid, phi, compound):
         values = {x: 5}

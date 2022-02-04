@@ -14,7 +14,8 @@ from sqlalchemy.orm import Session
 
 from autoconf import conf
 from autofit import exc
-from autofit.graphical import EPMeanField, MeanField, Factor, AnalysisFactor, _HierarchicalFactor
+from autofit.graphical import EPMeanField, MeanField, AnalysisFactor, _HierarchicalFactor
+from autofit.graphical.factor_graphs.factor import Factor
 from autofit.graphical.utils import Status
 from autofit.non_linear.initializer import Initializer
 from autofit.non_linear.parallel import SneakyPool

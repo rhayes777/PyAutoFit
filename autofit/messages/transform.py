@@ -99,7 +99,7 @@ class AbstractDensityTransform(ABC):
         return self.transform(x), self.jacobian(x)
 
     def transform_det_jac(
-        self, x
+            self, x
     ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, LinearOperator]:
         return (self.transform(x), *self.log_det_grad(x), self.jacobian(x))
 
@@ -204,7 +204,7 @@ class FunctionTransform(AbstractDensityTransform):
         return np.log(gs), hs / gs
 
     def transform_det_jac(
-        self, x
+            self, x
     ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, LinearOperator]:
         if self.func_grad_hess:
             x0, gs, hs = self.func_grad_hess(x, *self.args)
@@ -349,8 +349,8 @@ class MultinomialLogitTransform(AbstractDensityTransform):
         p1 = 1 - np.sum(p, axis=self.axis, keepdims=True)
         # Hack to make sure summation broadcasting works correctly
         log_d = (
-            -np.log(p).sum(axis=self.axis, keepdims=True) - np.log(p1)
-        ) * np.full_like(p, p1.size / p.size)
+                        -np.log(p).sum(axis=self.axis, keepdims=True) - np.log(p1)
+                ) * np.full_like(p, p1.size / p.size)
         return log_d
 
     def log_det_grad(self, p):
@@ -358,12 +358,12 @@ class MultinomialLogitTransform(AbstractDensityTransform):
         p1 = 1 - np.sum(p, axis=self.axis, keepdims=True)
         # Hack to make sure summation broadcasting works correctly
         log_d = (
-            -np.log(p).sum(axis=self.axis, keepdims=True) - np.log(p1)
-        ) * np.full_like(p, p1.size / p.size)
+                        -np.log(p).sum(axis=self.axis, keepdims=True) - np.log(p1)
+                ) * np.full_like(p, p1.size / p.size)
         return log_d, 1 / p1 - 1 / p
 
     def transform_det_jac(
-        self, p
+            self, p
     ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, LinearOperator]:
         p = np.asanyarray(p)
         pn1 = 1 - np.sum(p, axis=self.axis, keepdims=True)

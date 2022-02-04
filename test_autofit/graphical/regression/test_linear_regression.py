@@ -1,7 +1,6 @@
 import numpy as np
 import pytest
 
-from autofit import graphical as graph
 from autofit.graphical import (
     EPMeanField,
     LaplaceOptimiser,
@@ -25,12 +24,12 @@ def make_model(likelihood_factor, linear_factor, prior_a, prior_b):
 
 @pytest.fixture(name="model_approx")
 def make_model_approx(
-    model,
-    a_,
-    b_,
-    z_,
-    x_,
-    y_,
+        model,
+        a_,
+        b_,
+        z_,
+        x_,
+        y_,
 ):
     a = np.array([[-1.3], [0.7]])
     b = np.array([-0.5])
@@ -86,7 +85,7 @@ def check_model_approx(model_approx, a_, b_, z_, x_, y_):
 
 @pytest.fixture(name="model_jac_approx")
 def make_model_jac_approx(
-    model, a_, b_, z_, x_, y_, likelihood_factor, linear_factor_jac, prior_a, prior_b
+        model, a_, b_, z_, x_, y_, likelihood_factor, linear_factor_jac, prior_a, prior_b
 ):
     a = np.array([[-1.3], [0.7]])
     b = np.array([-0.5])
@@ -114,12 +113,12 @@ def make_model_jac_approx(
 
 
 def test_jacobian(
-    a_,
-    b_,
-    x_,
-    z_,
-    linear_factor,
-    linear_factor_jac,
+        a_,
+        b_,
+        x_,
+        z_,
+        linear_factor,
+        linear_factor_jac,
 ):
     n, m, d = 5, 4, 3
     x = np.random.rand(n, d)
@@ -141,12 +140,12 @@ def test_jacobian(
 
 
 def test_laplace(
-    model_approx,
-    a_,
-    b_,
-    x_,
-    y_,
-    z_,
+        model_approx,
+        a_,
+        b_,
+        x_,
+        y_,
+        z_,
 ):
     laplace = LaplaceOptimiser()
     opt = EPOptimiser(model_approx.factor_graph, default_optimiser=laplace)
@@ -156,12 +155,12 @@ def test_laplace(
 
 
 def test_laplace_jac(
-    model_jac_approx,
-    a_,
-    b_,
-    x_,
-    y_,
-    z_,
+        model_jac_approx,
+        a_,
+        b_,
+        x_,
+        y_,
+        z_,
 ):
     laplace = LaplaceOptimiser()
     opt = EPOptimiser(model_jac_approx.factor_graph, default_optimiser=laplace)

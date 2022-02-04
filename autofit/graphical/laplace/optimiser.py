@@ -1,12 +1,12 @@
 from typing import Optional, Dict, Tuple, Any, Union
 
-from autofit.mapper.variable_operator import VariableData
-from autofit.graphical.factor_graphs.factor import Factor
-from autofit.graphical.mean_field import MeanField, FactorApproximation
-from autofit.graphical.utils import Status, StatusFlag
 from autofit.graphical.expectation_propagation.ep_mean_field import EPMeanField
 from autofit.graphical.expectation_propagation.optimiser import AbstractFactorOptimiser
+from autofit.graphical.factor_graphs.factor import Factor
 from autofit.graphical.laplace import newton
+from autofit.graphical.mean_field import MeanField, FactorApproximation
+from autofit.graphical.utils import Status
+from autofit.mapper.variable_operator import VariableData
 
 FactorApprox = Union[EPMeanField, FactorApproximation, Factor]
 
@@ -17,22 +17,22 @@ def make_posdef_hessian(mean_field, variables):
 
 class LaplaceOptimiser(AbstractFactorOptimiser):
     def __init__(
-        self,
-        make_hessian=make_posdef_hessian,
-        search_direction=newton.newton_direction,
-        calc_line_search=newton.line_search,
-        quasi_newton_update=newton.full_diag_update,
-        stop_conditions=newton.stop_conditions,
-        make_det_hessian=None,
-        max_iter: int = 100,
-        n_refine: int = 3,
-        hessian_kws: Optional[Dict[str, Any]] = None,
-        det_hessian_kws: Optional[Dict[str, Any]] = None,
-        search_direction_kws: Optional[Dict[str, Any]] = None,
-        line_search_kws: Optional[Dict[str, Any]] = None,
-        quasi_newton_kws: Optional[Dict[str, Any]] = None,
-        stop_kws: Optional[Dict[str, Any]] = None,
-        deltas: Optional[Dict[str, int]] = None,
+            self,
+            make_hessian=make_posdef_hessian,
+            search_direction=newton.newton_direction,
+            calc_line_search=newton.line_search,
+            quasi_newton_update=newton.full_diag_update,
+            stop_conditions=newton.stop_conditions,
+            make_det_hessian=None,
+            max_iter: int = 100,
+            n_refine: int = 3,
+            hessian_kws: Optional[Dict[str, Any]] = None,
+            det_hessian_kws: Optional[Dict[str, Any]] = None,
+            search_direction_kws: Optional[Dict[str, Any]] = None,
+            line_search_kws: Optional[Dict[str, Any]] = None,
+            quasi_newton_kws: Optional[Dict[str, Any]] = None,
+            stop_kws: Optional[Dict[str, Any]] = None,
+            deltas: Optional[Dict[str, int]] = None,
     ):
         super().__init__(deltas=deltas)
 
@@ -69,10 +69,10 @@ class LaplaceOptimiser(AbstractFactorOptimiser):
         )
 
     def prepare_state(
-        self,
-        factor_approx: FactorApprox,
-        mean_field: MeanField = None,
-        params: VariableData = None,
+            self,
+            factor_approx: FactorApprox,
+            mean_field: MeanField = None,
+            params: VariableData = None,
     ) -> newton.OptimisationState:
         mean_field = mean_field or factor_approx.model_dist
 
@@ -90,7 +90,7 @@ class LaplaceOptimiser(AbstractFactorOptimiser):
         else:
             det_hessian = None
 
-        state = newton.OptimisationState(
+        return newton.OptimisationState(
             factor_approx,
             factor_approx.func_gradient,
             parameters.subset(free_variables),
@@ -98,23 +98,21 @@ class LaplaceOptimiser(AbstractFactorOptimiser):
             det_hessian,
         )
 
-        return state
-
     def optimise_state(
-        self,
-        state: newton.OptimisationState,
-        old_state: Optional[newton.OptimisationState] = None,
-        **kwargs
+            self,
+            state: newton.OptimisationState,
+            old_state: Optional[newton.OptimisationState] = None,
+            **kwargs
     ) -> Tuple[bool, newton.OptimisationState, str]:
         kws = {**self.default_kws, **kwargs}
         return newton.optimise_quasi_newton(state, old_state, **kws)
 
     def optimise_approx(
-        self,
-        factor_approx: FactorApprox,
-        mean_field: MeanField = None,
-        params: VariableData = None,
-        **kwargs
+            self,
+            factor_approx: FactorApprox,
+            mean_field: MeanField = None,
+            params: VariableData = None,
+            **kwargs
     ) -> Tuple[MeanField, Status]:
 
         mean_field = mean_field or factor_approx.model_dist
@@ -140,11 +138,11 @@ class LaplaceOptimiser(AbstractFactorOptimiser):
         return next_state
 
     def refine_approx(
-        self,
-        factor_approx: FactorApprox,
-        mean_field: MeanField = None,
-        params: VariableData = None,
-        n_refine=None,
+            self,
+            factor_approx: FactorApprox,
+            mean_field: MeanField = None,
+            params: VariableData = None,
+            n_refine=None,
     ) -> Tuple[MeanField, Status]:
         mean_field = mean_field or factor_approx.model_dist
         state = self.prepare_state(factor_approx, mean_field, params)
@@ -152,22 +150,22 @@ class LaplaceOptimiser(AbstractFactorOptimiser):
         return mean_field.from_opt_state(next_state)
 
     def refine(
-        self,
-        factor: Factor,
-        model_approx: EPMeanField,
-        status: Optional[Status] = Status(),
-        n_refine=None,
+            self,
+            factor: Factor,
+            model_approx: EPMeanField,
+            status: Optional[Status] = Status(),
+            n_refine=None,
     ) -> Tuple[EPMeanField, Status]:
         factor_approx = model_approx.factor_approximation(factor)
         new_model_dist = self.refine_approx(factor_approx, n_refine=n_refine)
         return self.update_model_approx(new_model_dist, factor_approx, model_approx)
 
     def optimise(
-        self,
-        factor: Factor,
-        model_approx: EPMeanField,
-        status: Optional[Status] = Status(),
-        **kwargs
+            self,
+            factor: Factor,
+            model_approx: EPMeanField,
+            status: Optional[Status] = Status(),
+            **kwargs
     ) -> Tuple[EPMeanField, Status]:
 
         factor_approx = model_approx.factor_approximation(factor)

@@ -142,7 +142,7 @@ class FactorHistory:
         infinite.
         """
         return (
-            self.latest_successful.log_evidence - self.previous_successful.log_evidence
+                self.latest_successful.log_evidence - self.previous_successful.log_evidence
         )
 
     @property
@@ -175,10 +175,10 @@ class FactorHistory:
 
 class EPHistory:
     def __init__(
-        self,
-        callbacks: Tuple[EPCallBack, ...] = (),
-        kl_tol: Optional[float] = 1e-1,
-        evidence_tol: Optional[float] = None,
+            self,
+            callbacks: Tuple[EPCallBack, ...] = (),
+            kl_tol: Optional[float] = 1e-1,
+            evidence_tol: Optional[float] = None,
     ):
         """
         Track the history an an EP Optimization.
@@ -223,7 +223,7 @@ class EPHistory:
         return self.history.items()
 
     def __call__(
-        self, factor: Factor, approx: EPMeanField, status: Status = Status()
+            self, factor: Factor, approx: EPMeanField, status: Status = Status()
     ) -> bool:
         """
         Add history for a given factor and determine whether optimisation
@@ -295,7 +295,7 @@ class EPHistory:
 
     def mean_field_history(self, factor_order=None):
         return [
-            approx.mean_field for _, approx, status in self.full_history(factor_order)
+            approx.mean_field for _, approx, _ in self.full_history(factor_order)
         ]
 
     def variable_history(self, factor_order=None):

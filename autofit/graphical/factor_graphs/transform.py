@@ -4,6 +4,8 @@ from typing import Dict, Tuple, Optional, List
 import numpy as np
 from scipy.linalg import cho_factor
 
+from autoconf import cached_property
+from autofit.graphical.factor_graphs.abstract import AbstractNode, Value, FactorValue
 # from ...mapper.operator import
 from autofit.mapper.operator import (
     CholeskyOperator,
@@ -11,9 +13,6 @@ from autofit.mapper.operator import (
     IdentityOperator,
     DiagonalMatrix,
 )
-from autoconf import cached_property
-from autofit.graphical.factor_graphs.abstract import AbstractNode, Value, FactorValue
-from autofit.graphical.utils import Axis
 from autofit.mapper.variable import Variable, VariableData
 
 
@@ -171,17 +170,17 @@ class TransformedNode(AbstractNode):
         return f"FactorApproximation({self.node.name})"
 
     def __call__(
-        self,
-        values: Dict[Variable, np.ndarray],
+            self,
+            values: Dict[Variable, np.ndarray],
     ) -> FactorValue:
         return self.node(self.transform.ldiv(values))
 
     def func_jacobian(
-        self,
-        values: Dict[Variable, np.ndarray],
-        variables: Optional[List[Variable]] = None,
-        _calc_deterministic: bool = True,
-        **kwargs,
+            self,
+            values: Dict[Variable, np.ndarray],
+            variables: Optional[List[Variable]] = None,
+            _calc_deterministic: bool = True,
+            **kwargs,
     ) -> Tuple[FactorValue, VariableData]:
         fval, jval = self.node.func_jacobian(
             self.transform.ldiv(values),
@@ -194,11 +193,11 @@ class TransformedNode(AbstractNode):
         return fval, grad
 
     def func_jacobian_hessian(
-        self,
-        values: Dict[Variable, np.ndarray],
-        variables: Optional[List[Variable]] = None,
-        _calc_deterministic: bool = True,
-        **kwargs,
+            self,
+            values: Dict[Variable, np.ndarray],
+            variables: Optional[List[Variable]] = None,
+            _calc_deterministic: bool = True,
+            **kwargs,
     ) -> Tuple[FactorValue, VariableData, VariableData]:
         M = self.transform
         fval, jval, hval = self.node.func_jacobian_hessian(

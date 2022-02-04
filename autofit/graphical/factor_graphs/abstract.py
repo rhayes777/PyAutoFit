@@ -4,25 +4,17 @@ from typing import (
     List,
     Tuple,
     Dict,
-    cast,
     Set,
     Optional,
-    Union,
     Collection,
     Any,
-    Callable,
 )
-
-# from autofit.graphical.factor_graphs.factor import Factor
-
-Protocol = ABC  # for python 3.7 compat
 
 import numpy as np
 
 from autoconf import cached_property
 from autofit.graphical.utils import (
     FlattenArrays,
-    Axis,
     nested_filter,
     nested_update,
     is_variable,
@@ -32,16 +24,11 @@ from autofit.mapper.variable import (
     Plate,
     FactorValue,
     VariableData,
-    variables,
-    VariableLinearOperator,
 )
-from autofit.graphical.factor_graphs.jacobians import (
-    AbstractJacobian,
-    JacobianVectorProduct,
-)
+
+Protocol = ABC  # for python 3.7 compat
 
 Value = Dict[Variable, np.ndarray]
-
 
 GradientValue = VariableData
 HessianValue = Any
@@ -64,11 +51,11 @@ class AbstractNode(ABC):
     eps = 1e-6
 
     def __init__(
-        self,
-        plates: Tuple[Plate, ...] = (),
-        factor_out=FactorValue,
-        name="",
-        **kwargs: Variable,
+            self,
+            plates: Tuple[Plate, ...] = (),
+            factor_out=FactorValue,
+            name="",
+            **kwargs: Variable,
     ):
         """
         A node in a factor graph
@@ -87,7 +74,7 @@ class AbstractNode(ABC):
         self.id = next(self._id)
 
     def resolve_variable_dict(
-        self, variable_dict: Dict[Variable, np.ndarray]
+            self, variable_dict: Dict[Variable, np.ndarray]
     ) -> Dict[str, np.ndarray]:
         return {
             self.variable_name_kw[v.name]: x
@@ -167,15 +154,11 @@ class AbstractNode(ABC):
         """
         A tuple of the set of all plates in this graph, ordered by id
         """
-        return tuple(
-            sorted(
-                set(
-                    plate
-                    for variable in self.all_variables
-                    for plate in variable.plates
-                )
-            )
-        )
+        return tuple(sorted(set(
+            plate
+            for variable in self.all_variables
+            for plate in variable.plates
+        )))
 
     def __getitem__(self, item):
         try:
@@ -266,7 +249,7 @@ class AbstractNode(ABC):
         return self._factor(**dict(zip(self.arg_names, args)))
 
     def _numerical_factor_jacobian(
-        self, *args, eps: Optional[float] = None, **kwargs
+            self, *args, eps: Optional[float] = None, **kwargs
     ) -> Tuple[Any, Any]:
         """Calculates the dense numerical jacobian matrix with respect to
         the input arguments, broadly speaking, the following should return the
@@ -307,15 +290,15 @@ class AbstractNode(ABC):
         return raw_fval0, jac_out
 
     def numerical_func_jacobian(
-        self, values: VariableData, **kwargs
-    ) -> Tuple[FactorValue, JacobianVectorProduct]:
+            self, values: VariableData, **kwargs
+    ) -> tuple:
         args = (values[k] for k in self.args)
         raw_fval, raw_jac = self._numerical_factor_jacobian(*args, **kwargs)
         fval = self._factor_value(raw_fval)
         jvp = self._jac_out_to_jvp(raw_jac, values=fval.to_dict().merge(values))
         return fval, jvp
 
-    def jacobian(self, values: Dict[Variable, np.array], **kwargs) -> AbstractJacobian:
+    def jacobian(self, values: Dict[Variable, np.array], **kwargs):
         return self.func_jacobian(values, **kwargs)[1]
 
     def func_gradient(self, values: VariableData) -> Tuple[FactorValue, GradientValue]:
@@ -391,8 +374,7 @@ class AbstractFactor(AbstractNode, ABC):
     def has_exact_projection(self, mean_field) -> bool:
         if self._has_exact_projection:
             return self._has_exact_projection(**self.resolve_variable_dict(mean_field))
-        else:
-            return False
+        return False
 
     def calc_exact_projection(self, mean_field) -> "MeanField":
         if self._calc_exact_projection:
@@ -502,6 +484,3 @@ class FlattenedNode:
             return super().__getattribute__(name)
         except AttributeError:
             return getattr(self.node, name)
-
-
-from autofit.graphical.mean_field import MeanField

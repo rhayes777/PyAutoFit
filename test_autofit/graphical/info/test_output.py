@@ -1,4 +1,3 @@
-import autofit as af
 from autoconf.conf import with_config
 from autofit import graphical as g, DirectoryPaths
 
@@ -19,12 +18,12 @@ class MockResult(m.MockResult):
 
 class MockSearch(m.MockSearch):
     def fit(
-        self,
-        model,
-        analysis,
-        info=None,
-        pickle_files=None,
-        log_likelihood_cap=None,
+            self,
+            model,
+            analysis,
+            info=None,
+            pickle_files=None,
+            log_likelihood_cap=None,
     ):
         super().fit(model, analysis)
         return MockResult(model)
@@ -39,7 +38,7 @@ def _run_optimisation(factor_graph_model, paths=None):
         visualise_interval=1,
         output_interval=1,
         paths=paths
-        or DirectoryPaths(
+              or DirectoryPaths(
             name="name",
             is_identifier_in_paths=False,
         ),

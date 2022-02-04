@@ -129,12 +129,7 @@ class VariableMetaClass(type, Variable):
 class FactorValue(np.ndarray, metaclass=VariableMetaClass):
     def __new__(cls, input_array, deterministic_values=None):
         obj = np.asarray(input_array).view(cls)
-
-        if deterministic_values is None:
-            obj.deterministic_values = {}
-        else:
-            obj.deterministic_values = deterministic_values
-
+        obj.deterministic_values = deterministic_values or {}
         return obj
 
     def __array_finalize__(self, obj):

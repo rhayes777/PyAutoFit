@@ -9,12 +9,12 @@ from autofit.graphical.expectation_propagation import (
     EPMeanField,
     AbstractFactorOptimiser,
 )
-from autofit.mapper.variable import Variable, VariableData
-from autofit.graphical.factor_graphs.factor import Factor
 from autofit.graphical.factor_graphs import transform as t
+from autofit.graphical.factor_graphs.factor import Factor
 from autofit.graphical.mean_field import MeanField, FactorApproximation, Status
 from autofit.graphical.utils import propagate_uncertainty, FlattenArrays, OptResult
 from autofit.mapper.operator import LinearOperator
+from autofit.mapper.variable import Variable, VariableData
 from autofit.messages.fixed import FixedMessage
 
 ArraysDict = Dict[Variable, np.ndarray]
@@ -24,19 +24,19 @@ class OptFactor:
     """ """
 
     def __init__(
-        self,
-        factor: Factor,
-        param_shapes: FlattenArrays,
-        fixed_kws: Optional[Dict[str, np.ndarray]] = None,
-        model_dist: Optional[MeanField] = None,
-        transform: Optional[LinearOperator] = None,
-        bounds: Optional[Dict[str, Tuple[float, float]]] = None,
-        method: str = "L-BFGS-B",
-        jac=False,
-        tol=None,
-        options=None,
-        callback=None,
-        constraints=None,
+            self,
+            factor: Factor,
+            param_shapes: FlattenArrays,
+            fixed_kws: Optional[Dict[str, np.ndarray]] = None,
+            model_dist: Optional[MeanField] = None,
+            transform: Optional[LinearOperator] = None,
+            bounds: Optional[Dict[str, Tuple[float, float]]] = None,
+            method: str = "L-BFGS-B",
+            jac=False,
+            tol=None,
+            options=None,
+            callback=None,
+            constraints=None,
     ):
         self.factor = factor
         self.param_shapes = param_shapes
@@ -92,9 +92,9 @@ class OptFactor:
 
     @classmethod
     def from_approx(
-        cls,
-        factor_approx: FactorApproximation,
-        transform: Optional[LinearOperator] = None,
+            cls,
+            factor_approx: FactorApproximation,
+            transform: Optional[LinearOperator] = None,
     ) -> "OptFactor":
         value_shapes = {}
         fixed_kws = {}
@@ -157,7 +157,7 @@ class OptFactor:
         }
 
     def _parse_result(
-        self, result: OptimizeResult, status: Status = Status()
+            self, result: OptimizeResult, status: Status = Status()
     ) -> OptResult:
         success, messages, flag = status
         success = result.success
@@ -201,10 +201,10 @@ class OptFactor:
         return minimize(func, x0, **opt_kws)
 
     def minimise(
-        self,
-        arrays_dict: Optional[ArraysDict] = None,
-        status: Status = Status(),
-        **kwargs,
+            self,
+            arrays_dict: Optional[ArraysDict] = None,
+            status: Status = Status(),
+            **kwargs,
     ):
         self.sign = 1
         p0 = self.get_random_start(arrays_dict or {})
@@ -212,10 +212,10 @@ class OptFactor:
         return self._parse_result(res, status=status)
 
     def maximise(
-        self,
-        arrays_dict: Optional[Dict[Variable, np.ndarray]] = None,
-        status: Status = Status(),
-        **kwargs,
+            self,
+            arrays_dict: Optional[Dict[Variable, np.ndarray]] = None,
+            status: Status = Status(),
+            **kwargs,
     ):
         self.sign = -1
         p0 = self.get_random_start(arrays_dict or {})
@@ -242,14 +242,14 @@ def update_det_cov(res: OptResult, jacobian: VariableData):
 
 class LaplaceFactorOptimiser(AbstractFactorOptimiser):
     def __init__(
-        self,
-        whiten_optimiser=True,
-        transforms=None,
-        deltas=None,
-        initial_values=None,
-        opt_kws=None,
-        default_opt_kws=None,
-        transform_cls=t.InvCholeskyTransform,
+            self,
+            whiten_optimiser=True,
+            transforms=None,
+            deltas=None,
+            initial_values=None,
+            opt_kws=None,
+            default_opt_kws=None,
+            transform_cls=t.InvCholeskyTransform,
     ):
         super().__init__(deltas=deltas)
 
@@ -274,10 +274,10 @@ class LaplaceFactorOptimiser(AbstractFactorOptimiser):
         self.transform_cls = transform_cls
 
     def optimise(
-        self,
-        factor: Factor,
-        model_approx: EPMeanField,
-        status: Optional[Status] = Status(),
+            self,
+            factor: Factor,
+            model_approx: EPMeanField,
+            status: Optional[Status] = Status(),
     ) -> Tuple[EPMeanField, Status]:
 
         whiten = self.transforms[factor]
@@ -327,12 +327,12 @@ maximize_factor_approx = maximise_factor_approx
 
 
 def find_factor_mode(
-    factor_approx: FactorApproximation,
-    return_cov: bool = True,
-    status: Status = Status(),
-    min_iter: int = 2,
-    opt_kws: Optional[dict] = None,
-    **kwargs,
+        factor_approx: FactorApproximation,
+        return_cov: bool = True,
+        status: Status = Status(),
+        min_iter: int = 2,
+        opt_kws: Optional[dict] = None,
+        **kwargs,
 ) -> OptResult:
     """ """
     opt_kws = {} if opt_kws is None else opt_kws
@@ -353,11 +353,11 @@ def find_factor_mode(
 
 
 def laplace_factor_approx(
-    model_approx: EPMeanField,
-    factor: Factor,
-    delta: float = 1.0,
-    status: Status = Status(),
-    opt_kws: Optional[Dict[str, Any]] = None,
+        model_approx: EPMeanField,
+        factor: Factor,
+        delta: float = 1.0,
+        status: Status = Status(),
+        opt_kws: Optional[Dict[str, Any]] = None,
 ):
     opt_kws = {} if opt_kws is None else opt_kws
     factor_approx = model_approx.factor_approximation(factor)
@@ -383,10 +383,10 @@ class LaplaceOptimiser:
         self.opt_kws = {} if opt_kws is None else opt_kws
 
     def step(
-        self,
-        model_approx,
-        factors: Optional[List[Factor]] = None,
-        status: Status = Status(),
+            self,
+            model_approx,
+            factors: Optional[List[Factor]] = None,
+            status: Status = Status(),
     ) -> Iterator[Tuple[Factor, EPMeanField, Status]]:
         new_approx = model_approx
         factors = model_approx.factor_graph.factors if factors is None else factors
@@ -397,10 +397,10 @@ class LaplaceOptimiser:
             yield factor, new_approx, status
 
     def run(
-        self,
-        model_approx: EPMeanField,
-        factors: Optional[List[Factor]] = None,
-        status: Status = Status(),
+            self,
+            model_approx: EPMeanField,
+            factors: Optional[List[Factor]] = None,
+            status: Status = Status(),
     ) -> EPMeanField:
         new_approx = model_approx
         for i in range(self.n_iter):
@@ -428,12 +428,12 @@ class LeastSquaresOpt:
     )
 
     def __init__(
-        self,
-        factor_approx: FactorApproximation,
-        fixed_kws=None,
-        param_bounds=None,
-        opt_only=None,
-        **kwargs,
+            self,
+            factor_approx: FactorApproximation,
+            fixed_kws=None,
+            param_bounds=None,
+            opt_only=None,
+            **kwargs,
     ):
 
         self.factor_approx = factor_approx
@@ -540,10 +540,10 @@ class LeastSquaresOpt:
 
 
 def lstsq_laplace_factor_approx(
-    model_approx: EPMeanField,
-    factor: Factor,
-    delta: float = 0.5,
-    opt_kws: Optional[Dict[str, Any]] = None,
+        model_approx: EPMeanField,
+        factor: Factor,
+        delta: float = 0.5,
+        opt_kws: Optional[Dict[str, Any]] = None,
 ):
     """ """
     factor_approx = model_approx.factor_approximation(factor)

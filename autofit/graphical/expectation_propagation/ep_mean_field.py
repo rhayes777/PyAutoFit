@@ -4,13 +4,12 @@ from typing import Dict, Tuple, Optional, List
 import numpy as np
 
 from autoconf import cached_property
-
 from autofit.graphical.factor_graphs.factor import Factor
 from autofit.graphical.factor_graphs.graph import FactorGraph
+from autofit.graphical.mean_field import MeanField, FactorApproximation
 from autofit.graphical.utils import Status
 from autofit.mapper.variable import Variable, Plate, VariableData
 from autofit.messages.abstract import AbstractMessage
-from autofit.graphical.mean_field import MeanField, FactorApproximation
 
 logger = logging.getLogger(__name__)
 
@@ -59,7 +58,7 @@ class EPMeanField(FactorGraph):
     """
 
     def __init__(
-        self, factor_graph: FactorGraph, factor_mean_field: Dict[Factor, MeanField]
+            self, factor_graph: FactorGraph, factor_mean_field: Dict[Factor, MeanField]
     ):
         self._factor_graph = factor_graph
         self._factor_mean_field = factor_mean_field
@@ -109,11 +108,10 @@ class EPMeanField(FactorGraph):
 
     @cached_property
     def fixed_values(self):
-        fixed_values = {}
-        for mf in self._factor_mean_field.values():
-            fixed_values.update(mf.fixed_values)
-
-        return fixed_values
+        return {
+            k: v for mf in self._factor_mean_field.values() 
+            for k, v in mf.fixed_values.items()
+        }
 
     @property
     def variables(self):
@@ -133,9 +131,9 @@ class EPMeanField(FactorGraph):
 
     @classmethod
     def from_approx_dists(
-        cls,
-        factor_graph: FactorGraph,
-        approx_dists: Dict[Variable, AbstractMessage],
+            cls,
+            factor_graph: FactorGraph,
+            approx_dists: Dict[Variable, AbstractMessage],
     ) -> "EPMeanField":
         factor_mean_field = {
             factor: MeanField({v: approx_dists[v] for v in factor.all_variables})
@@ -203,9 +201,9 @@ class EPMeanField(FactorGraph):
         return new_approx, status
 
     def project_factor_approx(
-        self,
-        projection: FactorApproximation,
-        status: Optional[Status] = None,
+            self,
+            projection: FactorApproximation,
+            status: Optional[Status] = None,
     ) -> Tuple["EPMeanField", Status]:
         """ """
         factor_mean_field = self.factor_mean_field

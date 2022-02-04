@@ -1,17 +1,41 @@
+import collections
+from enum import Enum
 from functools import reduce
 from operator import mul
 from typing import Iterable, Tuple, TypeVar, Dict, NamedTuple, Optional, Union
-from enum import Enum
-import collections
-import six
-
+import warnings
+import logging
 
 import numpy as np
+import six
 from scipy.linalg import block_diag
 from scipy.optimize import OptimizeResult
 
 from autofit.mapper.variable import Variable, VariableData
 
+
+class LogWarnings(warnings.catch_warnings):
+    def __init__(self, *, module=None, messages=None, action=None, logger=logging.warning):
+        super().__init__(record=True, module=module)
+        self.messages = [] if messages is None else messages
+        self.log = []
+        self.action = action 
+        self.logger = logger
+
+    def log_warning(self, warn):
+        self.log.append(warn)
+        warn_message = f"{warn.filename}:{warn.lineno}: {warn.message}"
+        self.messages.append(warn_message)
+        self.logger(warn_message)
+
+    def __enter__(self):
+        self.log = super().__enter__()
+        self._module._showwarnmsg_impl = self.log_warning
+        if self.action:
+            warnings.simplefilter(self.action)
+
+        return self
+        
 
 def is_variable(v, *args):
     return isinstance(v, Variable)
@@ -24,6 +48,25 @@ def is_iterable(arg):
 
 
 def nested_filter(func, *args):
+    """ Iterates through a potentially nested set of list, tuples and dictionaries, 
+    recursively looping through the structure and returning the arguments
+    that func return true on, 
+
+    Example
+    -------
+    >>> list(nested_filter(
+    ...     lambda x, *args: x==2,
+    ...     [1, (2, 3), [3, 2, {1, 2}]]
+    ... ))
+    [(2,), (2,), (2,)]
+
+    >>> list(nested_filter(
+    ...     lambda x, *args: x==2,
+    ...     [1, (2, 3), [3, 2, {1, 2}]],
+    ...     [1, ('a', 3), [3, 'b', {1, 'c'}]]
+    ... ))
+    [(2, 'a'), (2, 'b'), (2, 'c')]
+    """
     out, *_ = args
     if isinstance(out, dict):
         for k in out:
@@ -152,14 +195,12 @@ class FlattenArrays(dict):
             ndim = arr.ndim
         arrays = [arr[(ind,) * ndim] for ind in self.inds]
         arr_shapes = [arr.shape[ndim:] for arr in arrays]
-        return VariableData(
-            {
-                k: arr.reshape(shape * ndim + arr_shape)
-                if shape or arr_shape
-                else arr.item()
-                for (k, shape), arr_shape, arr in zip(self.items(), arr_shapes, arrays)
-            }
-        )
+        return VariableData({
+            k: arr.reshape(shape * ndim + arr_shape)
+            if shape or arr_shape
+            else arr.item()
+            for (k, shape), arr_shape, arr in zip(self.items(), arr_shapes, arrays)
+        })
 
     def flatten2d(self, values: Dict[Variable, np.ndarray]) -> np.ndarray:
         assert all(np.shape(values[k]) == shape * 2 for k, shape in self.items())

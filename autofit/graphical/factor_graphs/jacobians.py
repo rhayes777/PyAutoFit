@@ -12,51 +12,6 @@ try:
 except ImportError:
     _HAS_JAX = False
 
-# from autoconf import cached_property
-
-# from autofit.graphical.factor_graphs.factor import (
-#     AbstractFactor,
-#     Factor,
-#     DeterministicFactor,
-# )
-
-# from autofit.graphical.factor_graphs.abstract import (
-#     AbstractJacobian,
-#     JacobianVectorProduct,
-#     VectorJacobianProduct,
-# )
-# from autofit.graphical.utils import (
-#     aggregate,
-#     Axis,
-#     nested_filter,
-#     nested_update,
-#     is_variable,
-# )
-# from autofit.mapper.variable import (
-#     Variable,
-#     Plate,
-#     VariableData,
-#     FactorValue,
-# )
-
-from abc import ABC, abstractmethod
-from itertools import count
-from typing import (
-    List,
-    Tuple,
-    Dict,
-    cast,
-    Set,
-    Optional,
-    Union,
-    Collection,
-    Any,
-    Callable,
-)
-
-# from autofit.graphical.factor_graphs.factor import Factor
-
-Protocol = ABC  # for python 3.7 compat
 
 import numpy as np
 
@@ -72,6 +27,18 @@ from autofit.mapper.variable import (
     VariableData,
     VariableLinearOperator,
 )
+from autofit.mapper.variable_operator import (
+    RectVariableOperator,
+)
+from abc import ABC
+from typing import (
+    Tuple,
+    Dict,
+    Union,
+    Callable,
+)
+
+Protocol = ABC  # for python 3.7 compat
 
 Value = Dict[Variable, np.ndarray]
 GradientValue = VariableData
@@ -85,13 +52,6 @@ class FactorInterface(Protocol):
 class FactorGradientInterface(Protocol):
     def __call__(self, values: Value) -> Tuple[FactorValue, GradientValue]:
         pass
-
-
-from autofit.mapper.variable_operator import (
-    RectVariableOperator,
-    LinearOperator,
-    VariableOperator,
-)
 
 
 class AbstractJacobian(VariableLinearOperator):
@@ -178,7 +138,7 @@ class JacobianVectorProduct(AbstractJacobian, RectVariableOperator):
 
 class VectorJacobianProduct(AbstractJacobian):
     def __init__(
-        self, factor_out, vjp: Callable, *variables: Variable, out_shapes=None
+            self, factor_out, vjp: Callable, *variables: Variable, out_shapes=None
     ):
         self.factor_out = factor_out
         self.vjp = vjp

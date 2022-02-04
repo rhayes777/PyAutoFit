@@ -1,10 +1,7 @@
-import numpy as np
 import pytest
 from scipy import stats
 
-import autofit.messages.normal
 from autofit import graphical as graph
-from autofit.messages import abstract
 from autofit.messages.normal import NormalMessage
 
 x = graph.Variable("x")

@@ -2,7 +2,6 @@ import numpy as np
 import pytest
 
 from autofit import graphical as graph
-from autofit.messages import abstract
 from autofit.messages.fixed import FixedMessage
 from autofit.messages.normal import NormalMessage
 
@@ -46,11 +45,11 @@ def make_model(prior_a, prior_b, likelihood_factor_jac, linear_factor_jac):
 
 @pytest.fixture(name="start_approx")
 def make_start_approx(
-    a_,
-    b_,
-    z_,
-    x_,
-    y_,
+        a_,
+        b_,
+        z_,
+        x_,
+        y_,
 ):
     a = np.array([[-1.3], [0.7]])
     b = np.array([-0.5])
@@ -71,10 +70,10 @@ def make_start_approx(
 
 
 def test_laplace(
-    model,
-    start_approx,
-    y_,
-    z_,
+        model,
+        start_approx,
+        y_,
+        z_,
 ):
     model_approx = graph.EPMeanField.from_approx_dists(model, start_approx)
     laplace = graph.LaplaceOptimiser()

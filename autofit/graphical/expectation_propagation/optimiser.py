@@ -1,24 +1,24 @@
 import logging
 import os
-from abc import ABC, abstractmethod
-from pathlib import Path
-from collections import defaultdict
-from typing import Dict, Tuple, Optional, List
 import warnings
+from abc import ABC, abstractmethod
+from collections import defaultdict
+from pathlib import Path
+from typing import Dict, Tuple, Optional, List
 
 import matplotlib.pyplot as plt
 
 from autofit import exc
-from autofit.graphical.factor_graphs.factor import Factor
-from autofit.graphical.factor_graphs.graph import FactorGraph
-from autofit.graphical.utils import Status, StatusFlag
-from autofit.non_linear.paths import DirectoryPaths
 from autofit.graphical.expectation_propagation.ep_mean_field import EPMeanField
 from autofit.graphical.expectation_propagation.history import EPHistory
+from autofit.graphical.factor_graphs.factor import Factor
+from autofit.graphical.factor_graphs.graph import FactorGraph
+from autofit.graphical.mean_field import MeanField, FactorApproximation, Status
+from autofit.graphical.utils import StatusFlag, LogWarnings
 from autofit.mapper.identifier import Identifier
+from autofit.non_linear.paths import DirectoryPaths
 from autofit.non_linear.paths.abstract import AbstractPaths
 from autofit.tools.util import IntervalCounter
-from autofit.graphical.mean_field import MeanField, FactorApproximation, Status
 
 logger = logging.getLogger(__name__)
 
@@ -29,20 +29,18 @@ class AbstractFactorOptimiser(ABC):
     """
 
     def __init__(self, initial_values=None, deltas=None):
-        self.initial_values = {}
-        if initial_values:
-            self.initial_values.update(initial_values)
+        self.initial_values = initial_values or {}
 
         self.deltas = defaultdict(lambda: 1)
         if deltas:
             self.deltas.update(deltas)
 
     def update_model_approx(
-        self,
-        new_model_dist: MeanField,
-        factor_approx: FactorApproximation,
-        model_approx: EPMeanField,
-        status: Optional[Status] = Status(),
+            self,
+            new_model_dist: MeanField,
+            factor_approx: FactorApproximation,
+            model_approx: EPMeanField,
+            status: Optional[Status] = Status(),
     ) -> Tuple[EPMeanField, Status]:
         delta = self.deltas[factor_approx.factor]
         projection, status = factor_approx.project(
@@ -53,7 +51,7 @@ class AbstractFactorOptimiser(ABC):
 
     @abstractmethod
     def optimise(
-        self, factor: Factor, model_approx: EPMeanField, status: Status = Status()
+            self, factor: Factor, model_approx: EPMeanField, status: Status = Status()
     ) -> Tuple[EPMeanField, Status]:
         pass
 
@@ -98,13 +96,13 @@ class Visualise:
 
 class EPOptimiser:
     def __init__(
-        self,
-        factor_graph: FactorGraph,
-        default_optimiser: Optional[AbstractFactorOptimiser] = None,
-        factor_optimisers: Optional[Dict[Factor, AbstractFactorOptimiser]] = None,
-        ep_history: Optional[EPHistory] = None,
-        factor_order: Optional[List[Factor]] = None,
-        paths: AbstractPaths = None,
+            self,
+            factor_graph: FactorGraph,
+            default_optimiser: Optional[AbstractFactorOptimiser] = None,
+            factor_optimisers: Optional[Dict[Factor, AbstractFactorOptimiser]] = None,
+            ep_history: Optional[EPHistory] = None,
+            factor_order: Optional[List[Factor]] = None,
+            paths: AbstractPaths = None,
     ):
         """
         Optimise a factor graph.
@@ -191,12 +189,12 @@ class EPOptimiser:
             factor_logger.exception(e)
 
     def run(
-        self,
-        model_approx: EPMeanField,
-        max_steps: int = 100,
-        log_interval: int = 10,
-        visualise_interval: int = 100,
-        output_interval: int = 10,
+            self,
+            model_approx: EPMeanField,
+            max_steps: int = 100,
+            log_interval: int = 10,
+            visualise_interval: int = 100,
+            output_interval: int = 10,
     ) -> EPMeanField:
         """
         Run the optimisation on an approximation of the model.
@@ -232,24 +230,17 @@ class EPOptimiser:
                 factor_logger = logging.getLogger(factor.name)
                 factor_logger.debug("Optimising...")
                 try:
-                    with warnings.catch_warnings(record=True) as caught_warnings:
+                    with LogWarnings(logger=factor_logger.debug, action='always') as caught_warnings:
                         model_approx, status = optimiser.optimise(
                             factor,
                             model_approx,
                         )
-                        messages = status.messages
-                        for warn in caught_warnings:
-                            warn_message = "%s:%d: %s" % (
-                                warn.filename,
-                                warn.lineno,
-                                warn.message,
-                            )
-                            messages += (
-                                "optimise_quasi_newton warning: " + warn_message,
-                            )
-                            factor_logger.debug(warn_message)
 
-                        status = Status(status.success, messages, status.flag)
+                    messages = status.messages
+                    for m in caught_warnings.messages:
+                        messages += f"optimise_quasi_newton warning: {m}",
+
+                    status = Status(status.success, messages, status.flag)
 
                 except (ValueError, ArithmeticError, RuntimeError) as e:
                     logger.exception(e)

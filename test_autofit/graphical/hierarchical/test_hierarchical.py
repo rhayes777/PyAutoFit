@@ -3,7 +3,7 @@ import pytest
 from scipy import stats
 
 from autofit import graphical as graph
-from autofit.graphical import Variable, messages, LaplaceOptimiser, EPOptimiser
+from autofit.graphical import Variable, messages
 from autofit.messages.normal import NormalMessage
 
 
