@@ -2,8 +2,7 @@ import logging
 from abc import ABC, abstractmethod
 from typing import Optional, List, Union, cast
 
-from sqlalchemy import desc
-from sqlalchemy.orm import Session
+from ..sqlalchemy_ import sa
 
 from autofit.database import query as q
 from .scrape import Scraper
@@ -148,7 +147,7 @@ class AbstractAggregator(ABC):
 class Aggregator(AbstractAggregator):
     def __init__(
             self,
-            session: Session,
+            session: sa.orm.Session,
             filename: Optional[str] = None,
             predicate: AbstractQuery = NullPredicate(),
             offset=0,
@@ -401,7 +400,7 @@ class Aggregator(AbstractAggregator):
                     order_by,
                     Reverse
             ):
-                attribute = desc(attribute)
+                attribute = sa.desc(attribute)
             query = query.order_by(
                 attribute
             )

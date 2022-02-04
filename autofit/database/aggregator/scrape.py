@@ -4,10 +4,8 @@ import pickle
 from pathlib import Path
 from typing import Optional, Union
 
-from sqlalchemy.orm import Session
-from sqlalchemy.orm.exc import NoResultFound
-
 from .. import model as m
+from ..sqlalchemy_ import sa
 from ...mapper.model_object import Identifier
 
 logger = logging.getLogger(
@@ -34,7 +32,7 @@ class Scraper:
     def __init__(
             self,
             directory: Union[Path, str],
-            session: Session
+            session: sa.orm.Session
     ):
         """
         Facilitates scraping of data output into a directory
@@ -115,7 +113,7 @@ class Scraper:
                 logger.warning(
                     f"Fit already existed with identifier {identifier}"
                 )
-            except NoResultFound:
+            except sa.orm.exc.NoResultFound:
                 try:
                     log_likelihood = samples.max_log_likelihood_sample.log_likelihood
                 except AttributeError:

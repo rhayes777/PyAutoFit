@@ -1,11 +1,11 @@
 from typing import Optional
-from sqlalchemy.orm import Session
 
 from autoconf import conf
+from autofit.database.sqlalchemy_ import sa
 from autofit.non_linear.abstract_search import NonLinearSearch
-from autofit.non_linear.mcmc.auto_correlations import AutoCorrelationsSettings
 from autofit.non_linear.abstract_search import PriorPasser
 from autofit.non_linear.initializer import Initializer
+from autofit.non_linear.mcmc.auto_correlations import AutoCorrelationsSettings
 
 
 class AbstractMCMC(NonLinearSearch):
@@ -17,13 +17,12 @@ class AbstractMCMC(NonLinearSearch):
             unique_tag: Optional[str] = None,
             prior_passer: Optional[PriorPasser] = None,
             initializer: Optional[Initializer] = None,
-            auto_correlations_settings = AutoCorrelationsSettings(),
+            auto_correlations_settings=AutoCorrelationsSettings(),
             iterations_per_update: Optional[int] = None,
             number_of_cores: Optional[int] = None,
-            session: Optional[Session] = None,
+            session: Optional[sa.orm.Session] = None,
             **kwargs
     ):
-
         self.auto_correlations_settings = auto_correlations_settings
         self.auto_correlations_settings.update_via_config(
             config=self.config_type[self.__class__.__name__]["auto_correlations"]

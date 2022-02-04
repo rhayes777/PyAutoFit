@@ -2,12 +2,10 @@ import pickle
 from functools import wraps
 from typing import List
 
-from sqlalchemy import Column, Integer, ForeignKey, String, Boolean, inspect, Float
-from sqlalchemy.orm import relationship, backref
-
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.samples import Samples
 from .model import Base, Object
+from ..sqlalchemy_ import sa
 
 
 class Pickle(Base):
@@ -20,24 +18,24 @@ class Pickle(Base):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-    id = Column(
-        Integer,
+    id = sa.Column(
+        sa.Integer,
         primary_key=True
     )
 
-    name = Column(
-        String
+    name = sa.Column(
+        sa.String
     )
-    string = Column(
-        String
+    string = sa.Column(
+        sa.String
     )
-    fit_id = Column(
-        String,
-        ForeignKey(
+    fit_id = sa.Column(
+        sa.String,
+        sa.ForeignKey(
             "fit.id"
         )
     )
-    fit = relationship(
+    fit = sa.orm.relationship(
         "Fit",
         uselist=False
     )
@@ -69,21 +67,21 @@ class Pickle(Base):
 class Info(Base):
     __tablename__ = "info"
 
-    id = Column(
-        Integer,
+    id = sa.Column(
+        sa.Integer,
         primary_key=True
     )
 
-    key = Column(String)
-    value = Column(String)
+    key = sa.Column(sa.String)
+    value = sa.Column(sa.String)
 
-    fit_id = Column(
-        String,
-        ForeignKey(
+    fit_id = sa.Column(
+        sa.String,
+        sa.ForeignKey(
             "fit.id"
         )
     )
-    fit = relationship(
+    fit = sa.orm.relationship(
         "Fit",
         uselist=False
     )
@@ -103,20 +101,20 @@ def try_none(func):
 class NamedInstance(Base):
     __tablename__ = "named_instance"
 
-    id = Column(
-        Integer,
+    id = sa.Column(
+        sa.Integer,
         primary_key=True
     )
-    name = Column(String)
+    name = sa.Column(sa.String)
 
-    instance_id = Column(
-        Integer,
-        ForeignKey(
+    instance_id = sa.Column(
+        sa.Integer,
+        sa.ForeignKey(
             "object.id"
         )
     )
 
-    __instance = relationship(
+    __instance = sa.orm.relationship(
         "Object",
         uselist=False,
         backref="named_instance",
@@ -137,13 +135,13 @@ class NamedInstance(Base):
             instance
         )
 
-    fit_id = Column(
-        String,
-        ForeignKey(
+    fit_id = sa.Column(
+        sa.String,
+        sa.ForeignKey(
             "fit.id"
         )
     )
-    fit = relationship(
+    fit = sa.orm.relationship(
         "Fit",
         uselist=False
     )
@@ -208,15 +206,15 @@ class NamedInstancesWrapper:
 class Fit(Base):
     __tablename__ = "fit"
 
-    id = Column(
-        String,
+    id = sa.Column(
+        sa.String,
         primary_key=True,
     )
-    is_complete = Column(
-        Boolean
+    is_complete = sa.Column(
+        sa.Boolean
     )
 
-    _named_instances: List[NamedInstance] = relationship(
+    _named_instances: List[NamedInstance] = sa.orm.relationship(
         "NamedInstance"
     )
 
@@ -240,7 +238,7 @@ class Fit(Base):
             self
         )
 
-    _info: List[Info] = relationship(
+    _info: List[Info] = sa.orm.relationship(
         "Info"
     )
 
@@ -252,20 +250,20 @@ class Fit(Base):
             **kwargs
         )
 
-    max_log_likelihood = Column(
-        Float
+    max_log_likelihood = sa.Column(
+        sa.Float
     )
 
-    parent_id = Column(
-        String,
-        ForeignKey(
+    parent_id = sa.Column(
+        sa.String,
+        sa.ForeignKey(
             "fit.id"
         )
     )
 
-    children: List["Fit"] = relationship(
+    children: List["Fit"] = sa.orm.relationship(
         "Fit",
-        backref=backref(
+        backref=sa.orm.backref(
             'parent',
             remote_side=[id]
         )
@@ -296,21 +294,21 @@ class Fit(Base):
 
         return best_fit
 
-    is_grid_search = Column(
-        Boolean
+    is_grid_search = sa.Column(
+        sa.Boolean
     )
 
-    unique_tag = Column(
-        String
+    unique_tag = sa.Column(
+        sa.String
     )
-    name = Column(
-        String
+    name = sa.Column(
+        sa.String
     )
-    path_prefix = Column(
-        String
+    path_prefix = sa.Column(
+        sa.String
     )
 
-    _samples = relationship(
+    _samples = sa.orm.relationship(
         Object,
         uselist=False,
         foreign_keys=[
@@ -363,7 +361,7 @@ class Fit(Base):
             model
         )
 
-    pickles: List[Pickle] = relationship(
+    pickles: List[Pickle] = sa.orm.relationship(
         "Pickle",
         lazy="joined"
     )
@@ -449,27 +447,27 @@ class Fit(Base):
         except AttributeError:
             return None
 
-    model_id = Column(
-        Integer,
-        ForeignKey(
+    model_id = sa.Column(
+        sa.Integer,
+        sa.ForeignKey(
             "object.id"
         )
     )
-    __model = relationship(
+    __model = sa.orm.relationship(
         "Object",
         uselist=False,
         backref="fit_model",
         foreign_keys=[model_id]
     )
 
-    instance_id = Column(
-        Integer,
-        ForeignKey(
+    instance_id = sa.Column(
+        sa.Integer,
+        sa.ForeignKey(
             "object.id"
         )
     )
 
-    __instance = relationship(
+    __instance = sa.orm.relationship(
         "Object",
         uselist=False,
         backref="fit_instance",
@@ -489,4 +487,4 @@ class Fit(Base):
         return f"<{self.__class__.__name__} {self}>"
 
 
-fit_attributes = inspect(Fit).columns
+fit_attributes = sa.inspect(Fit).columns

@@ -1,10 +1,7 @@
 import logging
 from functools import wraps
 from typing import Optional
-
-from sqlalchemy import text
-from sqlalchemy.exc import OperationalError
-from sqlalchemy.orm import Session
+from ..sqlalchemy_ import sa
 
 logger = logging.getLogger(
     __name__
@@ -36,7 +33,7 @@ def needs_revision_table(
     def wrapper(self, *args, **kwargs):
         try:
             return func(self, *args, **kwargs)
-        except OperationalError as e:
+        except sa.exc.OperationalError as e:
             if self.is_table:
                 raise e
             self._init_revision_table()
@@ -46,7 +43,7 @@ def needs_revision_table(
 
 
 class SessionWrapper:
-    def __init__(self, session: Session):
+    def __init__(self, session: sa.orm.Session):
         """
         Wraps a SQLAlchemy session so that certain commands can be
         encapsulated.
@@ -78,7 +75,7 @@ class SessionWrapper:
                 "SELECT 1 FROM revision"
             )
             return True
-        except OperationalError:
+        except sa.exc.OperationalError:
             return False
 
     @property
@@ -98,7 +95,7 @@ class SessionWrapper:
     @needs_revision_table
     def revision_id(self, revision_id: str):
         self.session.execute(
-            text(
+            sa.text(
                 f"UPDATE revision SET revision_id = :revision_id"
             ),
             {"revision_id": revision_id}

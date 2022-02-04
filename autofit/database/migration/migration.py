@@ -3,10 +3,8 @@ from abc import ABC, abstractmethod
 from hashlib import md5
 from typing import Union, Generator, Iterable, Optional
 
-from sqlalchemy.exc import OperationalError
-from sqlalchemy.orm import Session
-
 from .session_wrapper import SessionWrapper
+from ..sqlalchemy_ import sa
 
 logger = logging.getLogger(
     __name__
@@ -194,7 +192,7 @@ class Migrator:
             self._steps
         )
 
-    def migrate(self, session: Session):
+    def migrate(self, session: sa.orm.Session):
         """
         Migrate the database that session points to to the current
         revision.
@@ -235,7 +233,7 @@ class Migrator:
                     session.execute(
                         string
                     )
-                except OperationalError as e:
+                except sa.exc.OperationalError as e:
                     logger.debug(e)
 
         wrapper.revision_id = self.latest_revision.id

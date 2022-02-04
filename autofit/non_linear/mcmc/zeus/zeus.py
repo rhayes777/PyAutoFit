@@ -3,7 +3,7 @@ from typing import Optional
 
 import numpy as np
 import zeus
-from sqlalchemy.orm import Session
+from autofit.database.sqlalchemy_ import sa
 
 from autoconf import conf
 from autofit import exc
@@ -38,7 +38,7 @@ class Zeus(AbstractMCMC):
             auto_correlations_settings=AutoCorrelationsSettings(),
             iterations_per_update: int = None,
             number_of_cores: int = None,
-            session: Optional[Session] = None,
+            session: Optional[sa.orm.Session] = None,
             **kwargs
     ):
         """

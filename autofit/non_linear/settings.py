@@ -1,15 +1,17 @@
-from sqlalchemy.orm import Session
 from typing import Optional, List
+
+from autofit.database.sqlalchemy_ import sa
+
 
 class SettingsSearch:
     def __init__(
-        self,
-        path_prefix: str,
-        unique_tag: Optional[str] = None,
-        number_of_cores: Optional[int] = 1,
-        session: Optional[Session] = None,
-        info: Optional[dict] = None,
-        pickle_files: Optional[List[str]] = None,
+            self,
+            path_prefix: str,
+            unique_tag: Optional[str] = None,
+            number_of_cores: Optional[int] = 1,
+            session: Optional[sa.orm.Session] = None,
+            info: Optional[dict] = None,
+            pickle_files: Optional[List[str]] = None,
     ):
         """
         Stores all the input settings that are used in search's and their `fit functions.

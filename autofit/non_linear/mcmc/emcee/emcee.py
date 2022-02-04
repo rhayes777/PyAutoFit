@@ -4,17 +4,17 @@ from typing import Optional
 
 import emcee
 import numpy as np
-from sqlalchemy.orm import Session
 
 from autoconf import conf
 from autofit import exc
+from autofit.database.sqlalchemy_ import sa
 from autofit.mapper.model_mapper import ModelMapper
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
+from autofit.non_linear.abstract_search import PriorPasser
+from autofit.non_linear.initializer import Initializer
 from autofit.non_linear.mcmc.abstract_mcmc import AbstractMCMC
 from autofit.non_linear.mcmc.auto_correlations import AutoCorrelationsSettings
 from autofit.non_linear.mcmc.emcee.samples import EmceeSamples
-from autofit.non_linear.abstract_search import PriorPasser
-from autofit.non_linear.initializer import Initializer
 from autofit.plot import EmceePlotter
 from autofit.plot.output import Output
 
@@ -34,7 +34,7 @@ class Emcee(AbstractMCMC):
             auto_correlations_settings=AutoCorrelationsSettings(),
             iterations_per_update: int = None,
             number_of_cores: int = None,
-            session: Optional[Session] = None,
+            session: Optional[sa.orm.Session] = None,
             **kwargs
     ):
         """
@@ -263,5 +263,3 @@ class Emcee(AbstractMCMC):
 
         if should_plot("time_series"):
             plotter.time_series()
-
-
