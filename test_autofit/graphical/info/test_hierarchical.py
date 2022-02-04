@@ -56,7 +56,15 @@ def test_info_for_hierarchical_factor(graph):
     )
     assert (
         info
-        == "HierarchicalFactor1\n\nmean (HierarchicalFactor1, PriorFactor1)                                                  GaussianPrior, mean = 100, sigma = 10\nsigma (HierarchicalFactor1, PriorFactor0)                                                 GaussianPrior, mean = 10, sigma = 5\n\nDrawn Variables\n\nAnalysisFactor2.centre, PriorFactor7                                                      UniformPrior, lower_limit = 0.0, upper_limit = 100.0\nAnalysisFactor3.centre, PriorFactor4                                                      UniformPrior, lower_limit = 0.0, upper_limit = 100.0"
+        == """HierarchicalFactor0
+
+mean (HierarchicalFactor0, PriorFactor1)                                                  GaussianPrior, mean = 100, sigma = 10
+sigma (HierarchicalFactor0, PriorFactor0)                                                 GaussianPrior, mean = 10, sigma = 5
+
+Drawn Variables
+
+AnalysisFactor0.centre, PriorFactor7                                                      UniformPrior, lower_limit = 0.0, upper_limit = 1.0
+AnalysisFactor1.centre, PriorFactor4                                                      UniformPrior, lower_limit = 0.0, upper_limit = 1.0"""
     )
 
 
@@ -93,8 +101,8 @@ HierarchicalFactors
 
 HierarchicalFactor0
 
-mean                                                                                      GaussianPrior, mean = 100, sigma = 10
-sigma                                                                                     GaussianPrior, mean = 10, sigma = 5
+mean (HierarchicalFactor0, PriorFactor1)                                                  GaussianPrior, mean = 100, sigma = 10
+sigma (HierarchicalFactor0, PriorFactor0)                                                 GaussianPrior, mean = 10, sigma = 5
 
 Drawn Variables
 

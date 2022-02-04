@@ -1,5 +1,4 @@
 from .factor import AbstractFactor, Factor
-
 from .graph import FactorGraph
 from .transform import (
     VariableTransform,
@@ -7,3 +6,6 @@ from .transform import (
     identity_transform,
     TransformedNode,
 )
+from ...mapper.variable import FactorValue
+
+dir(FactorValue)
