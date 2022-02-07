@@ -389,29 +389,23 @@ class EPMeanFieldSubset(EPMeanField):
         status: Status = Status(),
     ) -> Tuple["EPMeanField", Status]:
 
-        # We're fitting the full factor_dist, not the subset factor_dist
-        cavity_dist = MeanField(factor_approx.cavity_dist)
-        factor_dist = self._factor_mean_field[factor_approx.factor]
+        factor_mean_field = self.factor_mean_field
         
-        for v, scale in self._factor_rescale[factor_approx.factor].items():
-            if scale < 1:
-                cavity_dist[v] = cavity_dist[v]
-                # TODO find out why this doesn't work...
-                # cavity_dist[v] = cavity_dist[v] / factor_dist[v]**((1 - scale))
-
+        # We're fitting the full factor_dist, not the subset factor_dist
+        rescale1 = {
+            v: 1 - scale 
+            for v, scale in self._factor_rescale[factor_approx.factor].items()
+        }
+        last_factor_dist = factor_mean_field.pop(factor_approx.factor)
+        subset_cavity_dist = last_factor_dist.rescale(rescale1)
+        
         new_factor_dist, status = new_dist.update_factor_mean_field(
-            MeanField(cavity_dist),
+            factor_approx.cavity_dist,
             factor_approx.factor_dist,
             delta=delta,
             status=status,
         )
-        factor_mean_field = self.factor_mean_field
-        new_factor_dist = dict(new_factor_dist)
-        for v, scale in self._factor_rescale[factor_approx.factor].items():
-            if scale < 1: 
-                new_factor_dist[v] = new_factor_dist[v] * factor_dist[v]**(1 - scale)
-
-        factor_mean_field[factor_approx.factor] = MeanField(new_factor_dist)
+        factor_mean_field[factor_approx.factor] = new_factor_dist  * subset_cavity_dist
 
         new_approx = type(self)(
             factor_graph=self._factor_graph,

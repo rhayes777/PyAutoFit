@@ -1,5 +1,5 @@
 from inspect import getfullargspec
-from typing import Tuple, Dict, Any, Callable, Union, List, Optional
+from typing import Tuple, Dict, Any, Callable, Union, List, Optional, TYPE_CHECKING
 
 import numpy as np
 try:
@@ -19,7 +19,11 @@ from autofit.mapper.variable import Variable, Plate, VariableData
 from autofit.graphical.factor_graphs.abstract import FactorValue, AbstractFactor
 
 
-# from autofit.graphical.mean_field import MeanField
+# if TYPE_CHECKING:
+#     from autofit.graphical.factor_graphs.jacobians import (
+#         AbstractJacobian, VectorJacobianProduct, JacobianVectorProduct
+#     )
+#     from autofit.graphical.mean_field import MeanField
 
 
 class Factor(AbstractFactor):
@@ -310,7 +314,7 @@ class Factor(AbstractFactor):
                 else:
                     self._jacobian = jax.jacobian(self._factor, range(self.n_args))
 
-    def _factor_value(self, raw_fval):
+    def _factor_value(self, raw_fval) -> FactorValue:
         """Converts the raw output of the factor into a `FactorValue`
         where the values of the deterministic values are stored in a dict
         attribute `FactorValue.deterministic_values`
@@ -319,7 +323,7 @@ class Factor(AbstractFactor):
         fval = det_values.pop(FactorValue, 0.0)
         return FactorValue(fval, det_values)
 
-    def __call__(self, values: VariableData):
+    def __call__(self, values: VariableData) -> FactorValue:
         """Calls the factor with the values specified by the dictionary of
         values passed, returns a FactorValue with the value returned by the
         factor, and any deterministic factors"""
@@ -333,7 +337,7 @@ class Factor(AbstractFactor):
 
     def _vjp_func_jacobian(
             self, values: VariableData
-    ) -> tuple:
+    ) -> Tuple[FactorValue, "VectorJacobianProduct"]:
         """Calls the factor and returns the factor value with deterministic
         values, and a `VectorJacobianProduct` operator that allows the
         calculation of the gradient of the input values to be calculated
@@ -355,7 +359,7 @@ class Factor(AbstractFactor):
 
     def _jvp_func_jacobian(
             self, values: VariableData, **kwargs
-    ) -> tuple:
+    ) ->  Tuple[FactorValue, "JacobianVectorProduct"]:
         args = (values[k] for k in self.args)
         raw_fval, raw_jac = self._factor_jacobian(*args, **kwargs)
         fval = self._factor_value(raw_fval)
@@ -381,7 +385,7 @@ class Factor(AbstractFactor):
 
     def _jac_out_to_jvp(
             self, raw_jac: Any, values: VariableData
-    ):
+    ) -> "JacobianVectorProduct":
         from autofit.graphical.factor_graphs.jacobians import (
             JacobianVectorProduct,
         )

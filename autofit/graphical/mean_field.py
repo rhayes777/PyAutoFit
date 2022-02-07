@@ -157,7 +157,7 @@ class MeanField(CollectionPriorModel, Dict[Variable, AbstractMessage], Factor):
 
         return self
 
-    def subset(self, variables=None, plates_index=None, rescale=False):
+    def subset(self, variables=None, plates_index=None):
         cls = type(self) if isinstance(self, MeanField) else MeanField
         variables = variables or self.variables
         if plates_index:
@@ -166,18 +166,23 @@ class MeanField(CollectionPriorModel, Dict[Variable, AbstractMessage], Factor):
                 (v, v.make_indexes(plates_index, plate_sizes)) for v in variables
             )
             mean_field = dict((v, self[v][index]) for v, index in variable_index)
-            if rescale:
-                mean_field_size = VariableData.prod(plate_sizes)
-                subset_size = VariableData.prod(VariableData.plate_sizes(mean_field))
-                scale_factor = subset_size / mean_field_size
-                for v, mf in mean_field.items():
-                    s = scale_factor * self[v].size / mf.size
-                    if s < 1:
-                        mean_field[v] = mf ** s
 
             return cls(mean_field)
 
         return cls((v, self[v]) for v in variables if v in self.keys())
+
+    def rescale(self, rescale: Dict[Variable, float]) -> "MeanField":
+        rescaled = {}
+        for v, message in self.items():
+            scale = rescale.get(v, 1)
+            if scale == 1:
+                rescaled[v] = message 
+            elif scale == 0:
+                rescaled[v] = 1.
+            else:
+                rescaled[v] = message ** scale 
+        
+        return MeanField(rescaled)
 
     @property
     def mean(self):

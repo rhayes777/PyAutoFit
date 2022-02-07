@@ -6,6 +6,6 @@ from .transform import (
     identity_transform,
     TransformedNode,
 )
-from ...mapper.variable import FactorValue
+from ...mapper.variable import Variable, Plate, FactorValue
 
 dir(FactorValue)

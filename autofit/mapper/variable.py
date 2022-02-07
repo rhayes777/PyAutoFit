@@ -1,5 +1,5 @@
 from itertools import chain, count
-from typing import Optional, Tuple, Dict, Set, Union, List
+from typing import Optional, Tuple, Dict, Set, Union, List, TYPE_CHECKING
 import operator
 from abc import ABC, abstractmethod
 from functools import wraps, reduce
@@ -9,6 +9,9 @@ import numpy as np
 from autoconf import cached_property
 
 from autofit.mapper.model_object import ModelObject
+
+# if TYPE_CHECKING:
+#     from autofit.mapper.variable_operator import VariableFullOperator, VariableOperator 
 
 
 class Plate:
