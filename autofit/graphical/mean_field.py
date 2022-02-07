@@ -73,7 +73,7 @@ class MeanField(CollectionPriorModel, Dict[Variable, AbstractMessage], Factor):
             log_norm: np.ndarray = 0.0,
     ):
         dict.__init__(self, dists)
-        Factor.__init__(self, self._logpdf, *dists, arg_names=[])
+        Factor.__init__(self, self._logpdf, *self, arg_names=[])
         CollectionPriorModel.__init__(self)
 
         if isinstance(dists, MeanField):
