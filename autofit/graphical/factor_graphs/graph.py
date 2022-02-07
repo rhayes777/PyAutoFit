@@ -40,6 +40,9 @@ class FactorGraph(AbstractNode):
 
         super().__init__(**_kwargs)
 
+    def copy(self):
+        return type(self)(self.factors)
+
     def related_factors(self, variable: Variable, excluded_factor=None) -> List[Factor]:
         """
         A list of factors which contain the variable.

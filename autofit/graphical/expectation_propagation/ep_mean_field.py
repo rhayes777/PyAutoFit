@@ -65,6 +65,16 @@ class EPMeanField(FactorGraph):
 
         super().__init__(self.factor_graph.factors)
 
+    @property 
+    def parameters(self):
+        return {
+            'factor_graph': self._factor_graph, 
+            'factor_mean_field': self._factor_mean_field
+        }
+
+    def copy(self):
+        return type(self)(**{k: val.copy() for k, val in self.parameters.items()})
+
     def subset(self, plates_index):
         factor_subset_factor = {}
         factor_mean_field_subset = {}
@@ -377,9 +387,29 @@ class EPMeanFieldSubset(EPMeanField):
         self._ep_mean_field = ep_mean_field
         self._plates_index = plates_index
 
+    
+    @property 
+    def parameters(self):
+        return {
+            "factor_graph": self._factor_graph, 
+            "factor_mean_field": self._factor_mean_field,
+            "factor_rescale": self._factor_rescale,
+            "factor_subset_factor": self._factor_subset_factor,
+            "ep_mean_field": self._ep_mean_field,
+            "plates_index": self._plates_index,
+        }
+
     @property 
     def plates_index(self):
-        return self._plates_index
+        return self._plates_index.copy()
+
+    @property 
+    def factor_rescale(self):
+        return self._factor_rescale.copy()
+
+    @property 
+    def factor_subset_factor(self):
+        return self._factor_subset_factor.copy()
 
     def project_mean_field(
         self,

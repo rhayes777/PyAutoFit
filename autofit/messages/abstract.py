@@ -513,6 +513,14 @@ class AbstractMessage(Prior, ABC):
             arg_names=["x"],
         )
 
+    def calc_exact_update(self, x: "AbstractMessage") -> "AbstractMessage":
+        return self, 
+
+    def has_exact_projection(self, x: "AbstractMessage") -> bool:
+        if type(self) == type(x):
+            return True 
+        return False
+
     @classmethod
     def transformed(
             cls,

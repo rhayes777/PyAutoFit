@@ -74,13 +74,18 @@ class AbstractNode(ABC):
         self.id = next(self._id)
 
     def resolve_variable_dict(
-            self, variable_dict: Dict[Variable, np.ndarray]
+            self, values: Dict[Variable, np.ndarray]
     ) -> Dict[str, np.ndarray]:
         return {
             self.variable_name_kw[v.name]: x
-            for v, x in variable_dict.items()
+            for v, x in values.items()
             if v.name in self.variable_name_kw
         }
+
+    def resolve_args(
+            self, values: Dict[Variable, np.ndarray]
+    ) -> Tuple[np.ndarray, ...]:
+        return (values[k] for k in self.args)
 
     @cached_property
     def fixed_values(self) -> VariableData:
@@ -349,22 +354,6 @@ class AbstractFactor(AbstractNode, ABC):
         """
         return len(self._deterministic_variables)
 
-    def _resolve_args(self, **kwargs: np.ndarray) -> dict:
-        """
-        Transforms in the input arguments to match the arguments
-        specified for the factor.
-
-        Parameters
-        ----------
-        args
-        kwargs
-
-        Returns
-        -------
-
-        """
-        return {n: kwargs[v.name] for n, v in self._kwargs.items()}
-
     def _set_factor(self, factor):
         self._factor = factor
         self._has_exact_projection = getattr(factor, "has_exact_projection", None)
@@ -373,17 +362,15 @@ class AbstractFactor(AbstractNode, ABC):
 
     def has_exact_projection(self, mean_field) -> bool:
         if self._has_exact_projection:
-            return self._has_exact_projection(**self.resolve_variable_dict(mean_field))
+            return self._has_exact_projection(*self.resolve_args(mean_field))
         return False
 
     def calc_exact_projection(self, mean_field) -> "MeanField":
         if self._calc_exact_projection:
             from autofit.graphical.mean_field import MeanField
 
-            projection = self._calc_exact_projection(
-                **self.resolve_variable_dict(mean_field)
-            )
-            return MeanField({self._kwargs[v]: dist for v, dist in projection.items()})
+            projection = self._calc_exact_projection(*self.resolve_args(mean_field))
+            return MeanField(zip(self.args, projection))
         else:
             return NotImplementedError
 
@@ -391,20 +378,17 @@ class AbstractFactor(AbstractNode, ABC):
         if self._calc_exact_update:
             from autofit.graphical.mean_field import MeanField
 
-            projection = self._calc_exact_update(
-                **self.resolve_variable_dict(mean_field)
-            )
-            return MeanField({self._kwargs[v]: dist for v, dist in projection.items()})
+            projection = self._calc_exact_update(*self.resolve_args(mean_field))
+            return MeanField(zip(self.args, projection))
         else:
             return NotImplementedError
 
     def safe_exact_update(self, mean_field) -> Tuple[bool, "MeanField"]:
         if self._has_exact_projection:
             from autofit.graphical.mean_field import MeanField
-
-            _mean_field = self.resolve_variable_dict(mean_field)
-            if self._has_exact_projection(**_mean_field):
-                projection = self._calc_exact_update(**_mean_field)
+            args = tuple(self.resolve_args(mean_field))
+            if self._has_exact_projection(*args):
+                projection = self._calc_exact_update(*args)
                 return True, MeanField(
                     {self._kwargs[v]: dist for v, dist in projection.items()}
                 )
