@@ -1,3 +1,4 @@
+from copy import copy
 from typing import Union, Type, Optional, Tuple
 
 import numpy as np
@@ -129,6 +130,11 @@ class TransformedWrapperInstance(Prior):
             self.instance(),
             item
         )
+
+    def copy(self):
+        copied = copy(self)
+        self._instance = None
+        return copied
 
     @property
     def cls(self):
