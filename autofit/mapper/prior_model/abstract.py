@@ -569,6 +569,10 @@ class AbstractPriorModel(AbstractModel):
         )
 
     def alphabetise(self):
+        """
+        Assign to the priors contained by this object according to their
+        path alphabetically
+        """
         for _, prior in sorted(
                 self.path_priors_tuples,
                 key=lambda tup: tup[0]
