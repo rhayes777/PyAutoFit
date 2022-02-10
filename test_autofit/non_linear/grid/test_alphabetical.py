@@ -13,11 +13,11 @@ def make_prior():
 @pytest.fixture(
     name="model"
 )
-def make_model(prior):
+def make_model():
     model = af.Model(
         af.Gaussian
     )
-    model.centre = prior
+    model.centre = af.UniformPrior()
     return model
 
 
@@ -43,11 +43,7 @@ def test_jump_id():
     assert prior.id == latest_id + 1
 
 
-def test_alphabetise_model():
-    model = af.Model(
-        af.Gaussian
-    )
-
+def test_alphabetise_model(model):
     assert model.priors_ordered_by_id[0] is not model.centre
 
     model.alphabetise()
@@ -64,4 +60,4 @@ def test_alphabetise_collection(
     assert collection[0] == prior
     assert collection[1] == model
 
-    assert collection[0].priors_ordered_by_id[0] is model.centre
+    assert collection[1].priors_ordered_by_id[0] is model.centre
