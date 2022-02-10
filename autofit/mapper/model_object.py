@@ -10,6 +10,12 @@ class ModelObject:
     def __init__(self, id_=None):
         self.id = next(self._ids) if id_ is None else id_
 
+    def jump_id(self):
+        """
+        Give this object the latest id
+        """
+        self.id = next(self._ids)
+
     @property
     def component_number(self):
         return self.id
