@@ -568,17 +568,6 @@ class AbstractPriorModel(AbstractModel):
             list(self.unique_prior_tuples), key=lambda prior_tuple: prior_tuple.prior.id
         )
 
-    def alphabetise(self):
-        """
-        Assign to the priors contained by this object according to their
-        path alphabetically
-        """
-        for _, prior in sorted(
-                self.path_priors_tuples,
-                key=lambda tup: tup[0]
-        ):
-            prior.jump_id()
-
     @property
     def priors_ordered_by_id(self):
         return [
