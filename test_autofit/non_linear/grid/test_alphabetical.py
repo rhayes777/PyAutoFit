@@ -47,7 +47,6 @@ def test_alphabetise_model():
     model = af.Model(
         af.Gaussian
     )
-    model.centre = af.UniformPrior()
 
     assert model.priors_ordered_by_id[0] is not model.centre
 
@@ -61,5 +60,8 @@ def test_alphabetise_collection(
         model,
 ):
     collection.alphabetise()
+
     assert collection[0] == prior
     assert collection[1] == model
+
+    assert collection[0].priors_ordered_by_id[0] is model.centre
