@@ -180,6 +180,8 @@ class GridSearch:
         result: GridSearchResult
             An object that comprises the results from each individual fit
         """
+        model.alphabetise()
+
         self.paths.model = model
         self.paths.search = self
         if parent is not None:
