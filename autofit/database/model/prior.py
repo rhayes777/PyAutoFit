@@ -1,6 +1,6 @@
 from typing import Union
 
-from sqlalchemy import Column, Integer, ForeignKey
+from ..sqlalchemy_ import sa
 
 from autofit.mapper.prior import abstract
 from autofit.mapper.prior_model import prior_model
@@ -16,9 +16,9 @@ class CollectionPriorModel(Object):
 
     __tablename__ = "collection_prior_model"
 
-    id = Column(
-        Integer,
-        ForeignKey(
+    id = sa.Column(
+        sa.Integer,
+        sa.ForeignKey(
             "object.id"
         ),
         primary_key=True,
@@ -59,9 +59,9 @@ class PriorModel(Object):
 
     __tablename__ = "prior_model"
 
-    id = Column(
-        Integer,
-        ForeignKey(
+    id = sa.Column(
+        sa.Integer,
+        sa.ForeignKey(
             "object.id"
         ),
         primary_key=True,
@@ -95,9 +95,9 @@ class Prior(Object):
 
     __tablename__ = "prior"
 
-    id = Column(
-        Integer,
-        ForeignKey(
+    id = sa.Column(
+        sa.Integer,
+        sa.ForeignKey(
             "object.id"
         ),
         primary_key=True,

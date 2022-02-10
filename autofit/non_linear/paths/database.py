@@ -1,8 +1,7 @@
 import shutil
 from typing import Optional
 
-from sqlalchemy.orm.exc import NoResultFound
-
+from autofit.database.sqlalchemy_ import sa
 from .abstract import AbstractPaths
 from ...database.model import Fit
 
@@ -157,7 +156,7 @@ class DatabasePaths(AbstractPaths):
                 ).filter(
                     Fit.id == self.identifier
                 ).one()
-            except NoResultFound:
+            except sa.orm.exc.NoResultFound:
                 self._fit = Fit(
                     id=self.identifier,
                     is_complete=False,

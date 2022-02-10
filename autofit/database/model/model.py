@@ -3,13 +3,11 @@ import inspect
 from typing import List, Tuple, Any, Iterable, Union, ItemsView, Type
 
 import numpy as np
-from sqlalchemy import Column, Integer, String, ForeignKey
-from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy.orm import relationship
 
 from autoconf.class_path import get_class, get_class_path
+from ..sqlalchemy_ import sa, declarative
 
-Base = declarative_base()
+Base = declarative.declarative_base()
 
 _schema_version = 1
 
@@ -17,40 +15,40 @@ _schema_version = 1
 class Object(Base):
     __tablename__ = "object"
 
-    type = Column(
-        String
+    type = sa.Column(
+        sa.String
     )
 
-    id = Column(
-        Integer,
+    id = sa.Column(
+        sa.Integer,
         primary_key=True,
     )
 
-    parent_id = Column(
-        Integer,
-        ForeignKey(
+    parent_id = sa.Column(
+        sa.Integer,
+        sa.ForeignKey(
             "object.id"
         )
     )
-    parent = relationship(
+    parent = sa.orm.relationship(
         "Object",
         uselist=False,
         remote_side=[id]
     )
 
-    samples_for_id = Column(
-        String,
-        ForeignKey(
+    samples_for_id = sa.Column(
+        sa.String,
+        sa.ForeignKey(
             "fit.id"
         )
     )
-    samples_for = relationship(
+    samples_for = sa.orm.relationship(
         "Fit",
         uselist=False,
         foreign_keys=[samples_for_id]
     )
 
-    children: List["Object"] = relationship(
+    children: List["Object"] = sa.orm.relationship(
         "Object",
         uselist=True,
     )
@@ -58,7 +56,7 @@ class Object(Base):
     def __len__(self):
         return len(self.children)
 
-    name = Column(String)
+    name = sa.Column(sa.String)
 
     __mapper_args__ = {
         'polymorphic_identity': 'object',
@@ -227,8 +225,8 @@ class Object(Base):
                 child
             )
 
-    class_path = Column(
-        String
+    class_path = sa.Column(
+        sa.String
     )
 
     @property

@@ -2,14 +2,14 @@ from os import path
 from typing import Optional
 
 import numpy as np
-from sqlalchemy.orm import Session
 
 from autoconf import conf
 from autofit import exc
+from autofit.database.sqlalchemy_ import sa
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
-from autofit.non_linear.optimize.abstract_optimize import AbstractOptimizer
 from autofit.non_linear.abstract_search import PriorPasser
 from autofit.non_linear.initializer import Initializer
+from autofit.non_linear.optimize.abstract_optimize import AbstractOptimizer
 from autofit.non_linear.optimize.pyswarms.samples import PySwarmsSamples
 from autofit.plot import PySwarmsPlotter
 from autofit.plot.output import Output
@@ -25,7 +25,7 @@ class AbstractPySwarms(AbstractOptimizer):
             initializer: Optional[Initializer] = None,
             iterations_per_update: int = None,
             number_of_cores: int = None,
-            session: Optional[Session] = None,
+            session: Optional[sa.orm.Session] = None,
             **kwargs
     ):
         """

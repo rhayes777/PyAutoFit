@@ -10,7 +10,7 @@ from os import path
 from typing import Optional, Union, Tuple, List
 
 import numpy as np
-from sqlalchemy.orm import Session
+from autofit.database.sqlalchemy_ import sa
 
 from autoconf import conf
 from autofit import exc
@@ -77,7 +77,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             initializer: Initializer = None,
             iterations_per_update: int = None,
             number_of_cores: int = 1,
-            session: Optional[Session] = None,
+            session: Optional[sa.orm.Session] = None,
             **kwargs
     ):
         """

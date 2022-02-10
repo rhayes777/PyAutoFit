@@ -3,17 +3,15 @@ import shutil
 from pathlib import Path
 
 import pytest
-from sqlalchemy import String, Column
-from sqlalchemy.exc import OperationalError
 
 import autofit as af
 from autoconf.conf import output_path_for_test
 from autofit.database import Fit
+from autofit.database.sqlalchemy_ import sa
 
 directory = Path(
     __file__
 ).parent
-
 
 origin = Path(
     __file__
@@ -46,7 +44,7 @@ def _check_migration():
                 "database_copy.sqlite"
             ).fits
         )
-    except OperationalError as e:
+    except sa.exc.OperationalError as e:
         raise AssertionError(
             "Migration steps are not complete"
         ) from e
@@ -69,8 +67,8 @@ def test():
     remove=False
 )
 def test_fail():
-    Fit.random_column = Column(
-        String
+    Fit.random_column = sa.Column(
+        sa.String
     )
 
     with pytest.raises(

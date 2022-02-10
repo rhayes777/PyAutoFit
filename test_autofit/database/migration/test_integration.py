@@ -1,8 +1,6 @@
 import pytest
-from sqlalchemy.exc import OperationalError
 
 from autofit.database.migration import SessionWrapper
-from autofit.database.migration.session_wrapper import needs_revision_table
 
 
 @pytest.fixture(

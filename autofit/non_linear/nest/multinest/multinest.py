@@ -1,15 +1,14 @@
 from os import path
 from typing import Optional
 
-from sqlalchemy.orm import Session
-
 from autoconf import conf
+from autofit.database.sqlalchemy_ import sa
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear import abstract_search
 from autofit.non_linear import result as res
+from autofit.non_linear.abstract_search import PriorPasser
 from autofit.non_linear.nest import abstract_nest
 from autofit.non_linear.nest.multinest.samples import MultiNestSamples
-from autofit.non_linear.abstract_search import PriorPasser
 
 
 class MultiNest(abstract_nest.AbstractNest):
@@ -28,7 +27,7 @@ class MultiNest(abstract_nest.AbstractNest):
             path_prefix: Optional[str] = None,
             unique_tag: Optional[str] = None,
             prior_passer: Optional[PriorPasser] = None,
-            session: Optional[Session] = None,
+            session: Optional[sa.orm.Session] = None,
             **kwargs
     ):
         """
@@ -180,4 +179,3 @@ class MultiNest(abstract_nest.AbstractNest):
             unconverged_sample_size=1,
             time=self.timer.time
         )
-

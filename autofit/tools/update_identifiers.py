@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import Union
 
 import yaml
-from sqlalchemy.orm import Session
+from autofit.database.sqlalchemy_ import sa
 
 from autofit.aggregator import Aggregator as ClassicAggregator
 from autofit.database.aggregator import Aggregator as DatabaseAggregator
@@ -228,7 +228,7 @@ def update_directory_identifiers(
 
 
 def update_database_identifiers(
-        session: Session
+        session: sa.orm.Session
 ):
     """
     Update identifiers for a database.

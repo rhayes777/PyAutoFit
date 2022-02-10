@@ -2,7 +2,7 @@ import copy
 from os import path
 from typing import Optional
 
-from sqlalchemy.orm import Session
+from autofit.database.sqlalchemy_ import sa
 
 from autoconf import conf
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
@@ -34,7 +34,7 @@ class UltraNest(abstract_nest.AbstractNest):
             prior_passer: PriorPasser = None,
             iterations_per_update: int = None,
             number_of_cores: int = None,
-            session: Optional[Session] = None,
+            session: Optional[sa.orm.Session] = None,
             **kwargs
     ):
         """

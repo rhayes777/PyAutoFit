@@ -1,7 +1,7 @@
 from typing import Optional
 
 from dynesty import NestedSampler as StaticSampler
-from sqlalchemy.orm import Session
+from autofit.database.sqlalchemy_ import sa
 
 from .abstract import AbstractDynesty, prior_transform
 
@@ -29,7 +29,7 @@ class DynestyStatic(AbstractDynesty):
             prior_passer=None,
             iterations_per_update: int = None,
             number_of_cores: int = None,
-            session: Optional[Session] = None,
+            session: Optional[sa.orm.Session] = None,
             **kwargs
     ):
         """
