@@ -6,7 +6,7 @@ import types
 from collections import defaultdict
 from functools import wraps
 from random import random
-from typing import Tuple, Optional, Dict, List
+from typing import Tuple, Optional, Dict, List, Iterable
 
 import numpy as np
 
@@ -567,17 +567,6 @@ class AbstractPriorModel(AbstractModel):
         return sorted(
             list(self.unique_prior_tuples), key=lambda prior_tuple: prior_tuple.prior.id
         )
-
-    def alphabetise(self):
-        """
-        Assign to the priors contained by this object according to their
-        path alphabetically
-        """
-        for _, prior in sorted(
-                self.path_priors_tuples,
-                key=lambda tup: tup[0]
-        ):
-            prior.jump_id()
 
     @property
     def priors_ordered_by_id(self):
@@ -1313,6 +1302,27 @@ class AbstractPriorModel(AbstractModel):
             for path, _
             in self.path_priors_tuples
         ]
+
+    def sort_priors_alphabetically(
+            self,
+            priors: Iterable[Prior]
+    ) -> List[Prior]:
+        """
+        Sort priors by their paths according to this model.
+
+        Parameters
+        ----------
+        priors
+            A set of priors
+
+        Returns
+        -------
+        Those priors sorted alphabetically by path.
+        """
+        return sorted(
+            priors,
+            key=lambda prior: self.path_for_prior(prior)
+        )
 
     def path_for_prior(self, prior: Prior) -> Optional[Path]:
         """

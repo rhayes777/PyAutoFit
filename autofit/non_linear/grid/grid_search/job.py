@@ -48,7 +48,13 @@ class Job(AbstractJob):
         result = self.search_instance.fit(model=self.model, analysis=self.analysis, info=self.info)
         result_list_row = [
             self.index,
-            *[prior.lower_limit for prior in self.arguments.values()],
+            *[
+                prior.lower_limit
+                for prior
+                in self.model.sort_priors_alphabetically(
+                    self.arguments.values()
+                )
+            ],
             result.log_likelihood,
         ]
 
