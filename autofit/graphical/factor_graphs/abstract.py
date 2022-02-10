@@ -383,18 +383,6 @@ class AbstractFactor(AbstractNode, ABC):
         else:
             return NotImplementedError
 
-    def safe_exact_update(self, mean_field) -> Tuple[bool, "MeanField"]:
-        if self._has_exact_projection:
-            from autofit.graphical.mean_field import MeanField
-            args = tuple(self.resolve_args(mean_field))
-            if self._has_exact_projection(*args):
-                projection = self._calc_exact_update(*args)
-                return True, MeanField(
-                    {self._kwargs[v]: dist for v, dist in projection.items()}
-                )
-
-        return False, mean_field
-
     def name_for_variable(self, variable):
         return self.name
 

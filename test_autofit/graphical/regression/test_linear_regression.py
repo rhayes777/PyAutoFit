@@ -154,6 +154,7 @@ def make_normal_model_approx(
     new_model = normal_factor * linear_factor * prior_a * prior_b
     return EPMeanField.from_approx_dists(new_model, approx0)
 
+
 def test_exact_updates(
         normal_model_approx,
         a_,
