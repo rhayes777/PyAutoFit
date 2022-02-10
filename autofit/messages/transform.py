@@ -6,11 +6,7 @@ import numpy as np
 from scipy.special import ndtr, ndtri
 from scipy.stats._continuous_distns import _norm_pdf
 
-from ..mapper.operator import (
-    DiagonalMatrix,
-    LinearOperator,
-    ShermanMorrison
-)
+from ..mapper.operator import DiagonalMatrix, LinearOperator, ShermanMorrison
 
 
 def numerical_jacobian(x, func, eps=1e-8, args=(), **kwargs):
@@ -18,7 +14,7 @@ def numerical_jacobian(x, func, eps=1e-8, args=(), **kwargs):
     f0 = func(x, *args, **kwargs)
     jac = np.empty(np.shape(f0) + np.shape(x))
     fslice = (slice(None),) * np.ndim(f0)
-    with np.nditer(x, flags=['multi_index'], op_flags=['readwrite']) as it:
+    with np.nditer(x, flags=["multi_index"], op_flags=["readwrite"]) as it:
         for xi in it:
             xi += eps
             f1 = func(x, *args, **kwargs)
@@ -43,7 +39,7 @@ class AbstractDensityTransform(ABC):
     -------
     transform
         calculates f(x)
-    
+
     inv_transform
         calculates f^{-1}(y)
 
@@ -66,7 +62,7 @@ class AbstractDensityTransform(ABC):
         calculates f(x), log_det, d log_det/dx, df/dx
 
     These final 3 functions are defined so that child classes
-    can define custom methods that avoid recalculation of intermediate 
+    can define custom methods that avoid recalculation of intermediate
     values that are needed to calculate multiple versions of the quantities
     """
 
@@ -94,9 +90,7 @@ class AbstractDensityTransform(ABC):
         return self.log_det_grad(x)[1].sum(0)
 
     def log_det_hess(self, x: np.ndarray) -> np.ndarray:
-        return numerical_jacobian(
-            x, self._numerical_jacobian_func
-        )
+        return numerical_jacobian(x, self._numerical_jacobian_func)
 
     def transform_det(self, x) -> Tuple[np.ndarray, np.ndarray]:
         return self.transform(x), self.log_det(x)
@@ -107,11 +101,7 @@ class AbstractDensityTransform(ABC):
     def transform_det_jac(
             self, x
     ) -> Tuple[np.ndarray, np.ndarray, np.ndarray, LinearOperator]:
-        return (
-            self.transform(x),
-            *self.log_det_grad(x),
-            self.jacobian(x)
-        )
+        return (self.transform(x), *self.log_det_grad(x), self.jacobian(x))
 
     def transform_func(self, func):
         @wraps(func)
@@ -171,9 +161,7 @@ class LinearShiftTransform(LinearTransform):
     def __init__(self, shift: float = 0, scale: float = 1):
         self.shift = shift
         self.scale = scale
-        super().__init__(
-            DiagonalMatrix(np.reciprocal(self.scale))
-        )
+        super().__init__(DiagonalMatrix(np.reciprocal(self.scale)))
 
     def inv_transform(self, x: np.ndarray) -> np.ndarray:
         return x * self.scale + self.shift
@@ -182,7 +170,7 @@ class LinearShiftTransform(LinearTransform):
         return (x - self.shift) / self.scale
 
     def log_det(self, x: np.ndarray) -> np.ndarray:
-        return - np.log(self.scale) * np.ones_like(x)
+        return -np.log(self.scale) * np.ones_like(x)
 
 
 class FunctionTransform(AbstractDensityTransform):
@@ -240,8 +228,7 @@ def log3(x):
     return np.log(x), ix, -np.square(ix)
 
 
-log_transform = FunctionTransform(
-    np.log, np.exp, np.reciprocal, func_grad_hess=log3)
+log_transform = FunctionTransform(np.log, np.exp, np.reciprocal, func_grad_hess=log3)
 
 
 def _log_10_inv(x):
@@ -249,9 +236,7 @@ def _log_10_inv(x):
 
 
 # TODO: what should func_grad_hess look like? np.log10, ... ?
-log_10_transform = FunctionTransform(
-    np.log10, _log_10_inv, np.reciprocal
-)
+log_10_transform = FunctionTransform(np.log10, _log_10_inv, np.reciprocal)
 
 
 def sigmoid(x, scale=1, shift=0):
@@ -288,11 +273,14 @@ def logit_grad_hess(x, scale=1, shift=0):
 
 
 logistic_transform = FunctionTransform(
-    logit, sigmoid, logit_grad, func_grad_hess=logit_grad_hess)
+    logit, sigmoid, logit_grad, func_grad_hess=logit_grad_hess
+)
 
 
 def shifted_logistic(shift=0, scale=1):
-    return FunctionTransform(logit, sigmoid, logit_grad, func_grad_hess=logit_grad_hess, args=(scale, shift))
+    return FunctionTransform(
+        logit, sigmoid, logit_grad, func_grad_hess=logit_grad_hess, args=(scale, shift)
+    )
 
 
 def ndtri_grad(x):
@@ -308,7 +296,8 @@ def ndtri_grad_hess(x):
 
 
 phi_transform = FunctionTransform(
-    ndtri, ndtr, ndtri_grad, func_grad_hess=ndtri_grad_hess)
+    ndtri, ndtr, ndtri_grad, func_grad_hess=ndtri_grad_hess
+)
 
 
 class MultinomialLogitTransform(AbstractDensityTransform):
@@ -320,7 +309,7 @@ class MultinomialLogitTransform(AbstractDensityTransform):
 
     When p's n-simplex is defined by,
 
-    all(0 <= p_i <= 1 for p_i in p) and sum(p) < 1 
+    all(0 <= p_i <= 1 for p_i in p) and sum(p) < 1
     """
 
     def __init__(self, axis=-1):
@@ -331,7 +320,8 @@ class MultinomialLogitTransform(AbstractDensityTransform):
         keepdims = np.ndim(p) == self.ndim + 1
         if not (keepdims or np.ndim(p) == self.ndim):
             raise ValueError(
-                f"dimension of input must be {self.ndim} or {self.ndim + 1}")
+                f"dimension of input must be {self.ndim} or {self.ndim + 1}"
+            )
 
         return p, keepdims
 
@@ -351,8 +341,7 @@ class MultinomialLogitTransform(AbstractDensityTransform):
         # ln1p = np.log(pn1)
         # lnp = np.log(p)
         return ShermanMorrison(
-            DiagonalMatrix(1 / p),
-            1 / np.sqrt(pn1) * np.ones_like(p)
+            DiagonalMatrix(1 / p), 1 / np.sqrt(pn1) * np.ones_like(p)
         )
 
     def log_det(self, p):
@@ -360,7 +349,7 @@ class MultinomialLogitTransform(AbstractDensityTransform):
         p1 = 1 - np.sum(p, axis=self.axis, keepdims=True)
         # Hack to make sure summation broadcasting works correctly
         log_d = (
-                        - np.log(p).sum(axis=self.axis, keepdims=True) - np.log(p1)
+                        -np.log(p).sum(axis=self.axis, keepdims=True) - np.log(p1)
                 ) * np.full_like(p, p1.size / p.size)
         return log_d
 
@@ -369,7 +358,7 @@ class MultinomialLogitTransform(AbstractDensityTransform):
         p1 = 1 - np.sum(p, axis=self.axis, keepdims=True)
         # Hack to make sure summation broadcasting works correctly
         log_d = (
-                        - np.log(p).sum(axis=self.axis, keepdims=True) - np.log(p1)
+                        -np.log(p).sum(axis=self.axis, keepdims=True) - np.log(p1)
                 ) * np.full_like(p, p1.size / p.size)
         return log_d, 1 / p1 - 1 / p
 
@@ -382,17 +371,12 @@ class MultinomialLogitTransform(AbstractDensityTransform):
         lnp = np.log(p)
         x = lnp - ln1p
         # Hack to make sure summation broadcasting works correctly
-        logd = (
-                       - lnp.sum(axis=self.axis, keepdims=True) - ln1p
-               ) * np.full_like(p, pn1.size / p.size)
+        logd = (-lnp.sum(axis=self.axis, keepdims=True) - ln1p) * np.full_like(
+            p, pn1.size / p.size
+        )
         logd_grad = 1 / pn1 - 1 / p
-        jac = ShermanMorrison(
-            DiagonalMatrix(1 / p),
-            1 / np.sqrt(pn1) * np.ones_like(p)
-        )
-        return (
-            x, logd, logd_grad, jac
-        )
+        jac = ShermanMorrison(DiagonalMatrix(1 / p), 1 / np.sqrt(pn1) * np.ones_like(p))
+        return (x, logd, logd_grad, jac)
 
 
 multinomial_logit_transform = MultinomialLogitTransform()

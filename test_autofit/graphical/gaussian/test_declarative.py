@@ -6,18 +6,10 @@ import autofit.graphical as ep
 from test_autofit.graphical.gaussian.model import Gaussian, make_data, Analysis
 
 
-@pytest.fixture(
-    name="make_model_factor"
-)
-def make_make_model_factor(
-        normalization,
-        normalization_prior,
-        x
-):
+@pytest.fixture(name="make_model_factor")
+def make_make_model_factor(normalization, normalization_prior, x):
     def make_factor_model(
-            centre: float,
-            sigma: float,
-            optimiser=None
+            centre: float, sigma: float, optimiser=None
     ) -> ep.AnalysisFactor:
         """
         We'll make a LikelihoodModel for each Gaussian we're fitting.
@@ -27,12 +19,7 @@ def make_make_model_factor(
         Note that the normalization value is shared.
         """
         y = make_data(
-            Gaussian(
-                centre=centre,
-                normalization=normalization,
-                sigma=sigma
-            ),
-            x
+            Gaussian(centre=centre, normalization=normalization, sigma=sigma), x
         )
 
         """
@@ -56,37 +43,24 @@ def make_make_model_factor(
         of the default optimiser.
         """
         return ep.AnalysisFactor(
-            prior_model,
-            analysis=Analysis(
-                x=x,
-                y=y
-            ),
-            optimiser=optimiser
+            prior_model, analysis=Analysis(x=x, y=y), optimiser=optimiser
         )
 
     return make_factor_model
 
 
-@pytest.fixture(
-    name="normalization"
-)
+@pytest.fixture(name="normalization")
 def make_normalization():
     return 25.0
 
 
-@pytest.fixture(
-    name="normalization_prior"
-)
+@pytest.fixture(name="normalization_prior")
 def make_normalization_prior():
     return af.GaussianPrior(mean=25, sigma=10)
 
 
-@pytest.fixture(
-    name="factor_model"
-)
-def make_factor_model_collection(
-        make_model_factor
-):
+@pytest.fixture(name="factor_model")
+def make_factor_model_collection(make_model_factor):
     """
     Here's a good example in which we have two Gaussians fit with a shared variable
 
@@ -98,63 +72,41 @@ def make_factor_model_collection(
     a factor graph representing a fit on the ensemble.
     """
     return ep.FactorGraphModel(
-        make_model_factor(
-            centre=40,
-            sigma=10
-        ),
-        make_model_factor(
-            centre=60,
-            sigma=15
-        )
+        make_model_factor(centre=40, sigma=10), make_model_factor(centre=60, sigma=15)
     )
 
 
 def test_custom_optimiser(make_model_factor):
-    other_optimiser = ep.LaplaceFactorOptimiser()
+    other_optimiser = ep.LaplaceOptimiser()
 
-    factor_1 = make_model_factor(
-        centre=40,
-        sigma=10,
-        optimiser=other_optimiser
-    )
-    factor_2 = make_model_factor(
-        centre=60,
-        sigma=15
-    )
+    factor_1 = make_model_factor(centre=40, sigma=10, optimiser=other_optimiser)
+    factor_2 = make_model_factor(centre=60, sigma=15)
 
-    factor_model = ep.FactorGraphModel(
-        factor_1, factor_2
-    )
+    factor_model = ep.FactorGraphModel(factor_1, factor_2)
 
-    default_optimiser = ep.LaplaceFactorOptimiser()
-    ep_optimiser = factor_model._make_ep_optimiser(
-        default_optimiser
-    )
+    default_optimiser = ep.LaplaceOptimiser()
+    ep_optimiser = factor_model._make_ep_optimiser(default_optimiser)
 
     factor_optimisers = ep_optimiser.factor_optimisers
     assert factor_optimisers[factor_1] is other_optimiser
     assert factor_optimisers[factor_2] is default_optimiser
 
 
-def test_factor_model_attributes(
-        factor_model
-):
+def test_factor_model_attributes(factor_model):
     """
     There are:
-    - 5 messages - one for each prior 
+    - 5 messages - one for each prior
     - 7 factors - one for each prior plus one for each likelihood
     """
     assert len(factor_model.message_dict) == 5
     assert len(factor_model.graph.factors) == 7
 
 
-def _test_optimise_factor_model(
-        factor_model
-):
+def _test_optimise_factor_model(factor_model):
     """
     We optimise the model
     """
-    laplace = ep.LaplaceFactorOptimiser()
+    laplace = ep.LaplaceOptimiser()
 
     collection = factor_model.optimise(laplace)
 
@@ -177,15 +129,9 @@ def test_gaussian():
         sigma=af.GaussianPrior(mean=10, sigma=10),
     )
 
-    factor_model = ep.AnalysisFactor(
-        prior_model,
-        analysis=Analysis(
-            x=x,
-            y=y
-        )
-    )
+    factor_model = ep.AnalysisFactor(prior_model, analysis=Analysis(x=x, y=y))
 
-    laplace = ep.LaplaceFactorOptimiser()
+    laplace = ep.LaplaceOptimiser()
     model = factor_model.optimise(laplace)
 
     assert model.centre.mean == pytest.approx(50, rel=0.1)
@@ -205,10 +151,7 @@ def make_factor_model(prior_model):
         def log_likelihood_function(*_):
             return 1
 
-    return ep.AnalysisFactor(
-        prior_model,
-        analysis=MockAnalysis()
-    )
+    return ep.AnalysisFactor(prior_model, analysis=MockAnalysis())
 
 
 def test_messages(likelihood_model):

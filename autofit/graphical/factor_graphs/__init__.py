@@ -1,24 +1,11 @@
-from typing import Union
-from .abstract import \
-    Value, FactorValue, JacobianValue, HessianValue, AbstractNode, Variable, \
-    Plate
-from .factor import \
-    AbstractFactor, Factor, DeterministicFactor
-from .jacobians import \
-    FactorJacobian, DeterministicFactorJacobian
+from .factor import AbstractFactor, Factor
 from .graph import FactorGraph
 from .transform import (
     VariableTransform,
-    FullCholeskyTransform, 
-    identity_transform, 
+    FullCholeskyTransform,
+    identity_transform,
     TransformedNode,
 )
+from ...mapper.variable import FactorValue
 
-FactorNode = Union[
-    Factor,
-    FactorJacobian
-]
-DeterministicFactorNode = Union[
-    DeterministicFactor,
-    DeterministicFactorJacobian
-]
+dir(FactorValue)

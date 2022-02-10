@@ -1,19 +1,16 @@
 from collections import Counter, defaultdict
 from functools import reduce
 from itertools import count
-from typing import (
-    Tuple, Dict, Collection, List, Type
-)
+from typing import Tuple, Dict, Collection, List, Type
 
 import numpy as np
 
 from autoconf import cached_property
 from autofit.graphical.factor_graphs.abstract import FactorValue, AbstractNode
 from autofit.graphical.factor_graphs.factor import Factor
-from autofit.graphical.utils import (
-    add_arrays, aggregate, Axis, rescale_to_artists
-)
-from autofit.mapper.variable import Variable, Plate
+from autofit.graphical.factor_graphs.jacobians import VectorJacobianProduct
+from autofit.graphical.utils import rescale_to_artists
+from autofit.mapper.variable import Variable
 
 
 class FactorGraph(AbstractNode):
@@ -33,29 +30,17 @@ class FactorGraph(AbstractNode):
 
         self._factors = tuple(factors)
 
-        self._factor_all_variables = {
-            f: f.all_variables for f in self._factors
-        }
+        self._factor_all_variables = {f: f.all_variables for f in self._factors}
 
         self._call_sequence = self._get_call_sequence()
 
         self._validate()
 
-        _kwargs = {
-            variable.name: variable
-            for variable
-            in self.variables
-        }
+        _kwargs = {variable.name: variable for variable in self.variables}
 
-        super().__init__(
-            **_kwargs
-        )
+        super().__init__(**_kwargs)
 
-    def related_factors(
-            self,
-            variable: Variable,
-            excluded_factor=None
-    ) -> List[Factor]:
+    def related_factors(self, variable: Variable, excluded_factor=None) -> List[Factor]:
         """
         A list of factors which contain the variable.
 
@@ -71,28 +56,20 @@ class FactorGraph(AbstractNode):
         -------
         The factors associated with the variable
         """
-        return sorted({
-            factor for factor
-            in self._factors
-            if variable in factor.variables
-               and (excluded_factor is None or factor != excluded_factor)
-        })
+        return sorted(
+            {
+                factor
+                for factor in self._factors
+                if variable in factor.variables
+                   and (excluded_factor is None or factor != excluded_factor)
+            }
+        )
 
-    def _factors_with_type(
-            self,
-            factor_type: Type[Factor]
-    ) -> List[Factor]:
+    def _factors_with_type(self, factor_type: Type[Factor]) -> List[Factor]:
         """
         Find all factors with a given type
         """
-        return [
-            factor for factor
-            in self._factors
-            if isinstance(
-                factor,
-                factor_type
-            )
-        ]
+        return [factor for factor in self._factors if isinstance(factor, factor_type)]
 
     def factors_by_type(self) -> Dict[Type[Factor], List[Factor]]:
         """
@@ -110,11 +87,7 @@ class FactorGraph(AbstractNode):
         """
         string = ""
         for factor_type, factors in self.factors_by_type().items():
-            factor_info = "\n\n".join(
-                factor.info
-                for factor
-                in factors
-            )
+            factor_info = "\n\n".join(factor.info for factor in factors)
             string = f"{string}{factor_type.__name__}s\n\n{factor_info}\n\n"
         return string
 
@@ -123,35 +96,9 @@ class FactorGraph(AbstractNode):
         Generate text describing the graph w.r.t. a given model approximation
         """
         results_text = "\n\n".join(
-            factor.make_results_text(
-                model_approx
-            )
-            for factor
-            in self._factors
+            factor.make_results_text(model_approx) for factor in self._factors
         )
         return f"{self.name}\n\n{results_text}"
-
-    def broadcast_plates(
-            self,
-            plates: Collection[Plate],
-            value: np.ndarray
-    ) -> np.ndarray:
-        """
-        Extract the indices of a collection of plates then match
-        the shape of the data to that shape.
-
-        Parameters
-        ----------
-        plates
-            Plates representing the dimensions of some factor
-        value
-            A value to broadcast
-
-        Returns
-        -------
-        The value reshaped to match the plates
-        """
-        return self._broadcast(self._match_plates(plates), value)
 
     @property
     def name(self):
@@ -167,11 +114,12 @@ class FactorGraph(AbstractNode):
             map(
                 str,
                 [
-                    v for v, c in Counter(
-                    v for f in self.factors
-                    for v in f.deterministic_variables).items()
+                    v
+                    for v, c in Counter(
+                    v for f in self.factors for v in f.deterministic_variables
+                ).items()
                     if c > 1
-                ]
+                ],
             )
         )
         if det_var_counts:
@@ -184,14 +132,14 @@ class FactorGraph(AbstractNode):
     @cached_property
     def all_variables(self):
         return reduce(
-            set.union,
-            (factor.all_variables for factor in self.factors))
+            frozenset.union, (factor.all_variables for factor in self.factors)
+        )
 
     @cached_property
     def deterministic_variables(self):
         return reduce(
-            set.union,
-            (factor.deterministic_variables for factor in self.factors))
+            frozenset.union, (factor.deterministic_variables for factor in self.factors)
+        )
 
     @cached_property
     def variables(self):
@@ -220,7 +168,7 @@ class FactorGraph(AbstractNode):
             for factor in factors:
                 det_vars = factor.deterministic_variables
                 calls.append(factor)
-                # TODO: this might cause problems 
+                # TODO: this might cause problems
                 # TODO: if det_vars appear more than once
                 new_variables.update(det_vars)
 
@@ -234,10 +182,12 @@ class FactorGraph(AbstractNode):
 
         return call_sequence
 
+    def _call_args(self, *args):
+        return self(dict(zip(self.args, args)))
+
     def __call__(
             self,
             variable_dict: Dict[Variable, np.ndarray],
-            axis: Axis = False,
     ) -> FactorValue:
         """
         Call each function in the graph in the correct order, adding the logarithmic results.
@@ -260,13 +210,11 @@ class FactorGraph(AbstractNode):
 
         # generate set of factors to call, these are indexed by the
         # missing deterministic variables that need to be calculated
-        log_value = 0.
+        log_value = 0.0
         det_values = {}
-        variables = variable_dict.copy()
+        variables = {**self.fixed_values, **variable_dict}
 
-        missing = set(
-            v.name for v in self.variables
-        ).difference(
+        missing = set(v.name for v in self.variables).difference(
             v.name for v in variables
         )
         if missing:
@@ -281,12 +229,67 @@ class FactorGraph(AbstractNode):
             # TODO parallelise this part?
             for factor in calls:
                 ret = factor(variables)
-                ret_value = self.broadcast_plates(factor.plates, ret.log_value)
-                log_value = add_arrays(log_value, aggregate(ret_value, axis))
+                log_value += np.sum(ret)
                 det_values.update(ret.deterministic_values)
                 variables.update(ret.deterministic_values)
 
         return FactorValue(log_value, det_values)
+
+    def func_jacobian(
+            self, variable_dict: Dict[Variable, np.ndarray], **kwargs
+    ) -> FactorValue:
+
+        # generate set of factors to call, these are indexed by the
+        # missing deterministic variables that need to be calculated
+        log_value = 0.0
+        det_values = {}
+        factor_jacs = {}
+        variables = {**self.fixed_values, **variable_dict}
+
+        missing = set(v.name for v in self.variables).difference(
+            v.name for v in variables
+        )
+        if missing:
+            n_miss = len(missing)
+            missing_str = ", ".join(missing)
+            raise ValueError(
+                f"{self} missing {n_miss} arguments: {missing_str}"
+                f"factor graph call signature: {self.call_signature}"
+            )
+
+        for calls in self._call_sequence:
+            # TODO parallelise this part?
+            for factor in calls:
+                ret, factor_jacs[factor] = factor.func_jacobian(variables, **kwargs)
+                log_value += ret
+
+                det_values.update(ret.deterministic_values)
+                variables.update(ret.deterministic_values)
+
+        jac_out = (FactorValue,) + tuple(det_values)
+        jac_variables = tuple(variables)
+
+        def graph_vjp(args):
+            args = args if isinstance(args, tuple) else (args,)
+            grads = {}
+            grads.update(zip(jac_out, args))
+            for calls in self._call_sequence[::-1]:
+                for factor in calls:
+                    factor_grad = factor_jacs[factor](grads)
+                    for v, v_grad in factor_grad.items():
+                        grads[v] = grads.get(v, 0) + v_grad
+
+            return tuple(grads[v] for v in jac_variables)
+
+        fval = FactorValue(log_value, det_values)
+        graph_vjp = VectorJacobianProduct(
+            jac_out,
+            graph_vjp,
+            *jac_variables,
+            out_shapes=fval.to_dict().shapes,
+        )
+
+        return fval, graph_vjp
 
     def __mul__(self, other: AbstractNode) -> "FactorGraph":
         """
@@ -302,7 +305,8 @@ class FactorGraph(AbstractNode):
         else:
             raise TypeError(
                 f"type of passed element {(type(other))} "
-                "does not match required types, (`FactorGraph`, `FactorNode`)")
+                "does not match required types, (`FactorGraph`, `FactorNode`)"
+            )
 
         return type(self)(factors)
 
@@ -326,26 +330,38 @@ class FactorGraph(AbstractNode):
             raise ImportError("networkx required for graph") from e
 
         G = nx.Graph()
-        G.add_nodes_from(self.factors, bipartite='factor')
-        G.add_nodes_from(self.all_variables, bipartite='variable')
+        G.add_nodes_from(self.factors, bipartite="factor")
+        G.add_nodes_from(self.all_variables, bipartite="variable")
         G.add_edges_from(
-            (f, v) for f, vs in self.factor_all_variables.items() for v in vs)
+            (f, v) for f, vs in self.factor_all_variables.items() for v in vs
+        )
 
         return G
 
     def draw_graph(
             self,
-            pos=None, ax=None, size=20, color='k', fill='w',
-            factor_shape='s', variable_shape='o',
-            factor_kws=None, variable_kws=None, edge_kws=None,
-            factors=None, draw_labels=False, label_kws=None,
-            **kwargs
+            pos=None,
+            ax=None,
+            size=20,
+            color="k",
+            fill="w",
+            factor_shape="s",
+            variable_shape="o",
+            factor_kws=None,
+            variable_kws=None,
+            edge_kws=None,
+            factors=None,
+            draw_labels=False,
+            label_kws=None,
+            **kwargs,
     ):
         try:
             import matplotlib.pyplot as plt
             import networkx as nx
         except ImportError as e:
-            raise ImportError("Matplotlib and networkx required for draw_graph()") from e
+            raise ImportError(
+                "Matplotlib and networkx required for draw_graph()"
+            ) from e
         except RuntimeError as e:
             print("Matplotlib unable to open display")
             raise e
@@ -357,17 +373,17 @@ class FactorGraph(AbstractNode):
         if pos is None:
             pos = bipartite_layout(factors or self.factors)
 
-        kwargs.setdefault('ms', size)
-        kwargs.setdefault('c', color)
-        kwargs.setdefault('mec', color)
-        kwargs.setdefault('mfc', fill)
-        kwargs.setdefault('ls', '')
+        kwargs.setdefault("ms", size)
+        kwargs.setdefault("c", color)
+        kwargs.setdefault("mec", color)
+        kwargs.setdefault("mfc", fill)
+        kwargs.setdefault("ls", "")
 
         factor_kws = factor_kws or {}
-        factor_kws.setdefault('marker', factor_shape)
+        factor_kws.setdefault("marker", factor_shape)
 
         variable_kws = variable_kws or {}
-        variable_kws.setdefault('marker', variable_shape)
+        variable_kws.setdefault("marker", variable_shape)
 
         # draw factors
         xy = np.array([pos[f] for f in self.factors]).T
@@ -388,9 +404,7 @@ class FactorGraph(AbstractNode):
             labelleft=False,
         )
         if draw_labels:
-            self.draw_graph_labels(
-                pos, ax=ax, **(label_kws or {})
-            )
+            self.draw_graph_labels(pos, ax=ax, **(label_kws or {}))
         return pos, fs, vs, edges
 
     def draw_graph_labels(
@@ -401,28 +415,28 @@ class FactorGraph(AbstractNode):
             shift=0.1,
             f_shift=None,
             v_shift=None,
-            f_horizontalalignment='right',
-            v_horizontalalignment='left',
+            f_horizontalalignment="right",
+            v_horizontalalignment="left",
             f_kws=None,
             v_kws=None,
             graph=None,
             ax=None,
             rescale=True,
-            **kwargs
+            **kwargs,
     ):
         try:
             import matplotlib.pyplot as plt
             import networkx as nx
         except ImportError as e:
-            raise ImportError("Matplotlib and networkx required for draw_graph()") from e
+            raise ImportError(
+                "Matplotlib and networkx required for draw_graph()"
+            ) from e
         ax = ax or plt.gca()
         graph = graph or self.graph
-        factor_labels = (
-                factor_labels or {f: f.name for f in self.factors})
-        variable_labels = (
-                variable_labels or {v: v.name for v in self.all_variables})
-        f_kws = f_kws or {'horizontalalignment': 'right'}
-        v_kws = v_kws or {'horizontalalignment': 'left'}
+        factor_labels = factor_labels or {f: f.name for f in self.factors}
+        variable_labels = variable_labels or {v: v.name for v in self.all_variables}
+        f_kws = f_kws or {"horizontalalignment": "right"}
+        v_kws = v_kws or {"horizontalalignment": "left"}
 
         f_shift = f_shift or shift
         f_pos = {f: (x - f_shift, y) for f, (x, y) in pos.items()}
@@ -431,9 +445,11 @@ class FactorGraph(AbstractNode):
 
         text = {
             **nx.draw_networkx_labels(
-                graph, f_pos, labels=factor_labels, ax=ax, **f_kws, **kwargs),
+                graph, f_pos, labels=factor_labels, ax=ax, **f_kws, **kwargs
+            ),
             **nx.draw_networkx_labels(
-                graph, v_pos, labels=variable_labels, ax=ax, **v_kws, **kwargs)
+                graph, v_pos, labels=variable_labels, ax=ax, **v_kws, **kwargs
+            ),
         }
         if rescale:
             rescale_to_artists(text.values(), ax=ax)

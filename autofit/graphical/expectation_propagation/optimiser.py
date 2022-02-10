@@ -1,28 +1,26 @@
 import logging
 import os
+import warnings
 from abc import ABC, abstractmethod
+from collections import defaultdict
 from pathlib import Path
-from typing import (
-    Dict, Tuple, Optional, List
-)
+from typing import Dict, Tuple, Optional, List
 
 import matplotlib.pyplot as plt
 
 from autofit import exc
-from autofit.graphical.factor_graphs import (
-    Factor, FactorGraph
-)
-from autofit.graphical.utils import Status
+from autofit.graphical.expectation_propagation.ep_mean_field import EPMeanField
+from autofit.graphical.expectation_propagation.history import EPHistory
+from autofit.graphical.factor_graphs.factor import Factor
+from autofit.graphical.factor_graphs.graph import FactorGraph
+from autofit.graphical.mean_field import MeanField, FactorApproximation, Status
+from autofit.graphical.utils import StatusFlag, LogWarnings
+from autofit.mapper.identifier import Identifier
 from autofit.non_linear.paths import DirectoryPaths
-from .ep_mean_field import EPMeanField
-from .history import EPHistory
-from ...mapper.identifier import Identifier
-from ...non_linear.paths.abstract import AbstractPaths
-from ...tools.util import IntervalCounter
+from autofit.non_linear.paths.abstract import AbstractPaths
+from autofit.tools.util import IntervalCounter
 
-logger = logging.getLogger(
-    __name__
-)
+logger = logging.getLogger(__name__)
 
 
 class AbstractFactorOptimiser(ABC):
@@ -30,22 +28,36 @@ class AbstractFactorOptimiser(ABC):
     An optimiser used to optimise individual factors during EPOptimisation.
     """
 
+    def __init__(self, initial_values=None, deltas=None):
+        self.initial_values = initial_values or {}
+
+        self.deltas = defaultdict(lambda: 1)
+        if deltas:
+            self.deltas.update(deltas)
+
+    def update_model_approx(
+            self,
+            new_model_dist: MeanField,
+            factor_approx: FactorApproximation,
+            model_approx: EPMeanField,
+            status: Optional[Status] = Status(),
+    ) -> Tuple[EPMeanField, Status]:
+        delta = self.deltas[factor_approx.factor]
+        projection, status = factor_approx.project(
+            new_model_dist, delta=delta, status=status
+        )
+        new_approx, status = model_approx.project(projection, status)
+        return new_approx, status
+
     @abstractmethod
     def optimise(
-            self,
-            factor: Factor,
-            model_approx: EPMeanField,
-            status: Status = Status()
+            self, factor: Factor, model_approx: EPMeanField, status: Status = Status()
     ) -> Tuple[EPMeanField, Status]:
         pass
 
 
 class Visualise:
-    def __init__(
-            self,
-            ep_history: EPHistory,
-            output_path: Path
-    ):
+    def __init__(self, ep_history: EPHistory, output_path: Path):
         """
         Handles visualisation of expectation propagation optimisation.
 
@@ -67,21 +79,19 @@ class Visualise:
         Save a plot of Evidence and KL Divergence for the ep_history
         """
         fig, (evidence_plot, kl_plot) = plt.subplots(2)
-        fig.suptitle('Evidence and KL Divergence')
-        for factor, factor_history in self.ep_history.items():
-            evidence_plot.plot(
-                factor_history.evidences,
-                label=f"{factor.name} evidence"
-            )
-            kl_plot.plot(
-                factor_history.kl_divergences,
-                label=f"{factor.name} divergence"
-            )
-            evidence_plot.legend()
-            kl_plot.legend()
-        plt.savefig(
-            str(self.output_path / "graph.png")
-        )
+        fig.suptitle("Evidence and KL Divergence")
+        evidence_plot.plot(self.ep_history.evidences(), label="evidence")
+        kl_plot.semilogy(self.ep_history.kl_divergences(), label="KL divergence")
+        # for factor, factor_history in self.ep_history.items():
+        #     evidence_plot.plot(
+        #         factor_history.evidences, label=f"{factor.name} evidence"
+        #     )
+        #     kl_plot.plot(
+        #         factor_history.kl_divergences, label=f"{factor.name} divergence"
+        #     )
+        evidence_plot.legend()
+        kl_plot.legend()
+        plt.savefig(str(self.output_path / "graph.png"))
 
 
 class EPOptimiser:
@@ -92,7 +102,7 @@ class EPOptimiser:
             factor_optimisers: Optional[Dict[Factor, AbstractFactorOptimiser]] = None,
             ep_history: Optional[EPHistory] = None,
             factor_order: Optional[List[Factor]] = None,
-            paths: AbstractPaths = None
+            paths: AbstractPaths = None,
     ):
         """
         Optimise a factor graph.
@@ -118,9 +128,7 @@ class EPOptimiser:
         paths
             Optionally define how data should be output
         """
-        self.paths = paths or DirectoryPaths(
-            identifier=str(Identifier(factor_graph))
-        )
+        self.paths = paths or DirectoryPaths(identifier=str(Identifier(factor_graph)))
 
         factor_optimisers = factor_optimisers or {}
         self.factor_graph = factor_graph
@@ -131,16 +139,15 @@ class EPOptimiser:
             self.factor_optimisers = factor_optimisers
             missing = set(self.factors) - self.factor_optimisers.keys()
             if missing:
-                raise (ValueError(
-                    f"missing optimisers for {missing}, "
-                    "pass a default_optimiser or add missing optimsers"
-                ))
+                raise (
+                    ValueError(
+                        f"missing optimisers for {missing}, "
+                        "pass a default_optimiser or add missing optimsers"
+                    )
+                )
         else:
             self.factor_optimisers = {
-                factor: factor_optimisers.get(
-                    factor,
-                    default_optimiser
-                )
+                factor: factor_optimisers.get(factor, default_optimiser)
                 for factor in self.factors
             }
 
@@ -152,10 +159,7 @@ class EPOptimiser:
         with open(self.output_path / "graph.info", "w+") as f:
             f.write(self.factor_graph.info)
 
-        self.visualiser = Visualise(
-            self.ep_history,
-            self.output_path
-        )
+        self.visualiser = Visualise(self.ep_history, self.output_path)
 
     @property
     def output_path(self) -> Path:
@@ -172,20 +176,15 @@ class EPOptimiser:
         """
         Log information for the factor and its history.
         """
-        factor_logger = logging.getLogger(
-            factor.name
-        )
+        factor_logger = logging.getLogger(factor.name)
         try:
             factor_history = self.ep_history[factor]
-            log_evidence = factor_history.latest_successful.log_evidence
-            divergence = factor_history.kl_divergence()
+            if factor_history.history:
+                log_evidence = factor_history.latest_update.log_evidence
+                divergence = factor_history.kl_divergence()
 
-            factor_logger.info(
-                f"Log Evidence = {log_evidence}"
-            )
-            factor_logger.info(
-                f"KL Divergence = {divergence}"
-            )
+                factor_logger.info(f"Log Evidence = {log_evidence}")
+                factor_logger.info(f"KL Divergence = {divergence}")
         except exc.HistoryException as e:
             factor_logger.exception(e)
 
@@ -228,20 +227,27 @@ class EPOptimiser:
 
         for _ in range(max_steps):
             for factor, optimiser in self.factor_optimisers.items():
-                factor_logger = logging.getLogger(
-                    factor.name
-                )
+                factor_logger = logging.getLogger(factor.name)
                 factor_logger.debug("Optimising...")
                 try:
-                    model_approx, status = optimiser.optimise(
-                        factor,
-                        model_approx,
-                    )
+                    with LogWarnings(logger=factor_logger.debug, action='always') as caught_warnings:
+                        model_approx, status = optimiser.optimise(
+                            factor,
+                            model_approx,
+                        )
+
+                    messages = status.messages
+                    for m in caught_warnings.messages:
+                        messages += f"optimise_quasi_newton warning: {m}",
+
+                    status = Status(status.success, messages, status.flag)
+
                 except (ValueError, ArithmeticError, RuntimeError) as e:
                     logger.exception(e)
                     status = Status(
                         False,
-                        (f"Factor: {factor} experienced error {e}",)
+                        (f"Factor: {factor} experienced error {e}",),
+                        StatusFlag.FAILURE,
                     )
 
                 if status and should_log():
@@ -257,16 +263,12 @@ class EPOptimiser:
                 if should_visualise():
                     self.visualiser()
                 if should_output():
-                    self._output_results(
-                        model_approx
-                    )
+                    self._output_results(model_approx)
                 continue
             break  # stop iterations
 
         self.visualiser()
-        self._output_results(
-            model_approx
-        )
+        self._output_results(model_approx)
 
         return model_approx
 
@@ -275,8 +277,4 @@ class EPOptimiser:
         Save the graph.results text
         """
         with open(self.output_path / "graph.results", "w+") as f:
-            f.write(
-                self.factor_graph.make_results_text(
-                    model_approx
-                )
-            )
+            f.write(self.factor_graph.make_results_text(model_approx))

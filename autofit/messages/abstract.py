@@ -3,9 +3,7 @@ from functools import reduce
 from inspect import getfullargspec
 from numbers import Real
 from operator import and_
-from typing import (
-    Dict, Tuple, Iterator
-)
+from typing import Dict, Tuple, Iterator
 from typing import Optional, Union, Type, List
 
 import numpy as np
@@ -20,26 +18,18 @@ enforce_id_match = True
 
 class AbstractMessage(Prior, ABC):
     log_base_measure: float
-    _projection_class: Optional[Type['AbstractMessage']] = None
+    _projection_class: Optional[Type["AbstractMessage"]] = None
     _multivariate: bool = False
     _parameter_support: Optional[Tuple[Tuple[float, float], ...]] = None
     _support: Optional[Tuple[Tuple[float, float], ...]] = None
 
-    def __init__(
-            self,
-            *parameters: Union[np.ndarray, float],
-            log_norm=0.,
-            **kwargs
-    ):
-        super().__init__(
-            **kwargs
-        )
+    def __init__(self, *parameters: Union[np.ndarray, float], log_norm=0.0, **kwargs):
+        super().__init__(**kwargs)
         self.log_norm = log_norm
         self._broadcast = np.broadcast(*parameters)
 
         if self.shape:
-            self.parameters = tuple(
-                np.asanyarray(p) for p in parameters)
+            self.parameters = tuple(np.asanyarray(p) for p in parameters)
         else:
             self.parameters = tuple(parameters)
 
@@ -57,8 +47,9 @@ class AbstractMessage(Prior, ABC):
 
     @staticmethod
     @abstractmethod
-    def invert_natural_parameters(natural_parameters: np.ndarray
-                                  ) -> Tuple[np.ndarray, ...]:
+    def invert_natural_parameters(
+            natural_parameters: np.ndarray,
+    ) -> Tuple[np.ndarray, ...]:
         pass
 
     @staticmethod
@@ -78,6 +69,10 @@ class AbstractMessage(Prior, ABC):
 
     @cached_property
     def scale(self) -> np.ndarray:
+        return self.scale
+
+    @cached_property
+    def std(self) -> np.ndarray:
         return self.variance ** 0.5
 
     def __hash__(self):
@@ -104,9 +99,7 @@ class AbstractMessage(Prior, ABC):
 
     @classmethod
     def from_natural_parameters(
-            cls,
-            natural_parameters: np.ndarray,
-            **kwargs
+            cls, natural_parameters: np.ndarray, **kwargs
     ) -> "AbstractMessage":
         cls_ = cls._projection_class or cls
         args = cls_.invert_natural_parameters(natural_parameters)
@@ -127,35 +120,30 @@ class AbstractMessage(Prior, ABC):
         cls_ = cls._projection_class or cls
         return cls_.from_natural_parameters(natural_params, **kwargs)
 
-    def sum_natural_parameters(
-            self, *dists: "AbstractMessage"
-    ) -> "AbstractMessage":
+    def sum_natural_parameters(self, *dists: "AbstractMessage") -> "AbstractMessage":
         """return the unnormalised result of multiplying the pdf
         of this distribution with another distribution of the same
         type
         """
         new_params = sum(
-            (dist.natural_parameters for dist in self._iter_dists(dists)
-             if isinstance(dist, AbstractMessage)),
-            self.natural_parameters)
-        mul_dist = self.from_natural_parameters(
-            new_params,
-            id_=self.id
+            (
+                dist.natural_parameters
+                for dist in self._iter_dists(dists)
+                if isinstance(dist, AbstractMessage)
+            ),
+            self.natural_parameters,
         )
+        mul_dist = self.from_natural_parameters(new_params, id_=self.id)
         return mul_dist
 
-    def sub_natural_parameters(
-            self, other: "AbstractMessage"
-    ) -> "AbstractMessage":
+    def sub_natural_parameters(self, other: "AbstractMessage") -> "AbstractMessage":
         """return the unnormalised result of dividing the pdf
         of this distribution with another distribution of the same
         type"""
         log_norm = self.log_norm - other.log_norm
-        new_params = (self.natural_parameters - other.natural_parameters)
+        new_params = self.natural_parameters - other.natural_parameters
         div_dist = self.from_natural_parameters(
-            new_params,
-            log_norm=log_norm,
-            id_=self.id
+            new_params, log_norm=log_norm, id_=self.id
         )
         return div_dist
 
@@ -167,11 +155,7 @@ class AbstractMessage(Prior, ABC):
             return self._multiply(other)
         else:
             log_norm = self.log_norm + np.log(other)
-            return type(self)(
-                *self.parameters,
-                log_norm=log_norm,
-                id_=self.id
-            )
+            return type(self)(*self.parameters, log_norm=log_norm, id_=self.id)
 
     def __rmul__(self, other: "AbstractMessage") -> "AbstractMessage":
         return self * other
@@ -181,21 +165,13 @@ class AbstractMessage(Prior, ABC):
             return self._divide(other)
         else:
             log_norm = self.log_norm - np.log(other)
-            return type(self)(
-                *self.parameters,
-                log_norm=log_norm,
-                id_=self.id
-            )
+            return type(self)(*self.parameters, log_norm=log_norm, id_=self.id)
 
     def __pow__(self, other: Real) -> "AbstractMessage":
         natural = self.natural_parameters
         new_params = other * natural
         log_norm = other * self.log_norm
-        return self.from_natural_parameters(
-            new_params,
-            log_norm=log_norm,
-            id_=self.id
-        )
+        return self.from_natural_parameters(new_params, log_norm=log_norm, id_=self.id)
 
     @classmethod
     def parameter_names(cls):
@@ -204,20 +180,21 @@ class AbstractMessage(Prior, ABC):
     def __str__(self) -> str:
         param_attrs = [
             (attr, np.asanyarray(getattr(self, attr)))
-            for attr in self.parameter_names()]
+            for attr in self.parameter_names()
+        ]
         if self.shape:
             pad = max(len(attr) for attr, _ in param_attrs)
             attr_str = "    {:<%d}={}" % pad
-            param_strs = ',\n'.join(
-                attr_str.format(
-                    attr, np.array2string(val, prefix=' ' * (pad + 5)))
-                for attr, val in param_attrs)
+            param_strs = ",\n".join(
+                attr_str.format(attr, np.array2string(val, prefix=" " * (pad + 5)))
+                for attr, val in param_attrs
+            )
             return f"{type(self).__name__}(\n{param_strs})"
         else:
-            param_strs = ', '.join(
-                attr + '=' +
-                np.array2string(val, prefix=' ' * (len(attr) + 1))
-                for attr, val in param_attrs)
+            param_strs = ", ".join(
+                attr + "=" + np.array2string(val, prefix=" " * (len(attr) + 1))
+                for attr, val in param_attrs
+            )
             return f"{type(self).__name__}({param_strs})"
 
     __repr__ = __str__
@@ -234,7 +211,8 @@ class AbstractMessage(Prior, ABC):
         else:
             raise ValueError(
                 f"shape of passed value {shape} does not "
-                f"match message shape {self.shape}")
+                f"match message shape {self.shape}"
+            )
 
     def factor(self, x):
         self.assert_within_limits(x)
@@ -249,13 +227,11 @@ class AbstractMessage(Prior, ABC):
     @classmethod
     def natural_logpdf(cls, eta, t, log_base, log_partition):
         eta_t = np.multiply(eta, t).sum(0)
-        return np.nan_to_num(
-            log_base + eta_t - log_partition,
-            nan=-np.inf
-        )
+        return np.nan_to_num(log_base + eta_t - log_partition, nan=-np.inf)
 
-    def numerical_logpdf_gradient(self, x: np.ndarray, eps: float = 1e-6
-                                  ) -> Tuple[np.ndarray, np.ndarray]:
+    def numerical_logpdf_gradient(
+            self, x: np.ndarray, eps: float = 1e-6
+    ) -> Tuple[np.ndarray, np.ndarray]:
         shape = np.shape(x)
         if shape:
             x0 = np.array(x, dtype=np.float64)
@@ -263,7 +239,7 @@ class AbstractMessage(Prior, ABC):
             if self._multivariate:
                 grad_logl = np.empty(logl0.shape + x0.shape)
                 sl = tuple(slice(None) for _ in range(logl0.ndim))
-                with np.nditer(x0, flags=['multi_index'], op_flags=['readwrite']) as it:
+                with np.nditer(x0, flags=["multi_index"], op_flags=["readwrite"]) as it:
                     for xv in it:
                         xv += eps
                         logl = self.logpdf(x0)
@@ -272,7 +248,7 @@ class AbstractMessage(Prior, ABC):
             else:
                 l0 = logl0.sum()
                 grad_logl = np.empty_like(x0)
-                with np.nditer(x0, flags=['multi_index'], op_flags=['readwrite']) as it:
+                with np.nditer(x0, flags=["multi_index"], op_flags=["readwrite"]) as it:
                     for xv in it:
                         xv += eps
                         logl = self.logpdf(x0).sum()  # type: ignore
@@ -284,8 +260,9 @@ class AbstractMessage(Prior, ABC):
 
         return logl0, grad_logl
 
-    def numerical_logpdf_gradient_hessian(self, x: np.ndarray, eps: float = 1e-6
-                                          ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+    def numerical_logpdf_gradient_hessian(
+            self, x: np.ndarray, eps: float = 1e-6
+    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         shape = np.shape(x)
         if shape:
             x0 = np.array(x, dtype=np.float64)
@@ -293,7 +270,7 @@ class AbstractMessage(Prior, ABC):
                 logl0, gradl0 = self.numerical_logpdf_gradient(x0)
                 hess_logl = np.empty(gradl0.shape + x0.shape)
                 sl = tuple(slice(None) for _ in range(gradl0.ndim))
-                with np.nditer(x0, flags=['multi_index'], op_flags=['readwrite']) as it:
+                with np.nditer(x0, flags=["multi_index"], op_flags=["readwrite"]) as it:
                     for xv in it:
                         xv += eps
                         _, gradl = self.numerical_logpdf_gradient(x0)
@@ -304,7 +281,7 @@ class AbstractMessage(Prior, ABC):
                 l0 = logl0.sum()
                 grad_logl = np.empty_like(x0)
                 hess_logl = np.empty_like(x0)
-                with np.nditer(x0, flags=['multi_index'], op_flags=['readwrite']) as it:
+                with np.nditer(x0, flags=["multi_index"], op_flags=["readwrite"]) as it:
                     for xv in it:
                         xv += eps
                         l1 = self.logpdf(x0).sum()
@@ -332,10 +309,7 @@ class AbstractMessage(Prior, ABC):
 
     @classmethod
     def project(
-            cls,
-            samples: np.ndarray,
-            log_weight_list: Optional[np.ndarray] = None,
-            id_=None
+            cls, samples: np.ndarray, log_weight_list: Optional[np.ndarray] = None, id_=None
     ) -> "AbstractMessage":
         """Calculates the sufficient statistics of a set of samples
         and returns the distribution with the appropriate parameters
@@ -361,23 +335,15 @@ class AbstractMessage(Prior, ABC):
         assert np.isfinite(suff_stats).all()
 
         cls_ = cls._projection_class or cls
-        return cls_.from_sufficient_statistics(
-            suff_stats,
-            log_norm=log_norm,
-            id_=id_
-        )
+        return cls_.from_sufficient_statistics(suff_stats, log_norm=log_norm, id_=id_)
 
     @classmethod
     def from_mode(
-            cls,
-            mode: np.ndarray,
-            covariance: np.ndarray,
-            id_
+            cls, mode: np.ndarray, covariance: np.ndarray, id_
     ) -> "AbstractMessage":
         pass
 
-    def log_normalisation(self, *elems: Union["AbstractMessage", float]
-                          ) -> np.ndarray:
+    def log_normalisation(self, *elems: Union["AbstractMessage", float]) -> np.ndarray:
         """
         Calculates the log of the integral of the product of a
         set of distributions
@@ -386,13 +352,14 @@ class AbstractMessage(Prior, ABC):
         """
         # Remove floats from messages passed
         dists: List[AbstractMessage] = [
-            dist for dist in self._iter_dists(elems)
-            if isinstance(dist, AbstractMessage)]
+            dist
+            for dist in self._iter_dists(elems)
+            if isinstance(dist, AbstractMessage)
+        ]
 
         # Calculate log product of message normalisation
         log_norm = self.log_base_measure - self.log_partition
-        log_norm += sum(
-            dist.log_base_measure - dist.log_partition for dist in dists)
+        log_norm += sum(dist.log_base_measure - dist.log_partition for dist in dists)
 
         # Calculate log normalisation of product of messages
         prod_dist = self.sum_natural_parameters(*dists)
@@ -411,27 +378,26 @@ class AbstractMessage(Prior, ABC):
                 for dist in elem:
                     yield dist
 
-    def update_invalid(self, other: 'AbstractMessage') -> 'AbstractMessage':
+    def update_invalid(self, other: "AbstractMessage") -> "AbstractMessage":
         valid = self.check_valid()
         if self.ndim:
             valid_parameters: Iterator[np.ndarray] = (
-                np.where(valid, p, p_safe) for p, p_safe in zip(self, other))
+                np.where(valid, p, p_safe) for p, p_safe in zip(self, other)
+            )
         else:
             # TODO: Fairly certain this would not work
             valid_parameters = iter(self if valid else other)
-        return type(self)(
-            *valid_parameters,
-            log_norm=self.log_norm,
-            id_=self.id
-        )
+        return type(self)(*valid_parameters, log_norm=self.log_norm, id_=self.id)
 
     def check_support(self) -> np.ndarray:
         if self._parameter_support is not None:
             return reduce(
                 and_,
-                ((p >= support[0]) & (p <= support[1])
-                 for p, support in
-                 zip(self.parameters, self._parameter_support)))
+                (
+                    (p >= support[0]) & (p <= support[1])
+                    for p, support in zip(self.parameters, self._parameter_support)
+                ),
+            )
         elif self.ndim:
             return np.array(True, dtype=bool, ndmin=self.ndim)
         return np.array([True])
@@ -447,8 +413,9 @@ class AbstractMessage(Prior, ABC):
         return np.all(self.check_finite()) and np.all(self.check_support())
 
     @staticmethod
-    def _get_mean_variance(mean: np.ndarray, covariance: np.ndarray
-                           ) -> Tuple[np.ndarray, np.ndarray]:
+    def _get_mean_variance(
+            mean: np.ndarray, covariance: np.ndarray
+    ) -> Tuple[np.ndarray, np.ndarray]:
         mean, covariance = np.asanyarray(mean), np.asanyarray(covariance)
 
         if not covariance.shape:
@@ -465,42 +432,42 @@ class AbstractMessage(Prior, ABC):
         else:
             raise ValueError(
                 f"shape of covariance {covariance.shape} is invalid "
-                f"must be (), {mean.shape}, or {mean.shape * 2}")
+                f"must be (), {mean.shape}, or {mean.shape * 2}"
+            )
         return mean, variance
 
-    def __call__(
-            self,
-            x: np.ndarray,
-            _variables: Optional[Tuple[str]] = ('x',)
-    ) -> Union[np.ndarray, Tuple[np.ndarray, Tuple[np.ndarray, ...]]]:
-        if _variables is None:
-            return self.logpdf(x)
-        else:
-            if 'x' in _variables:
-                loglike, g = self.logpdf_gradient(x)
-                g = np.expand_dims(g, list(range(loglike.ndim)))
-                return loglike, (g,)
-            else:
-                return self.logpdf(x), ()
+    def __call__(self, x):
+        return np.sum(self.logpdf(x))
 
-    def as_factor(self, variable: "Variable", name: Optional[str] = None
-                  ):
-        from autofit.graphical import FactorJacobian
+    def factor_jacobian(
+            self, x: np.ndarray, _variables: Optional[Tuple[str]] = ("x",)
+    ) -> Union[np.ndarray, Tuple[np.ndarray, Tuple[np.ndarray, ...]]]:
+        loglike, g = self.logpdf_gradient(x)
+        g = np.expand_dims(g, list(range(loglike.ndim)))
+        return loglike.sum(), (g,)
+
+    def as_factor(self, variable: "Variable", name: Optional[str] = None):
+        from autofit.graphical.factor_graphs import Factor
+
         if name is None:
             shape = self.shape
             clsname = type(self).__name__
-            family = clsname[:-7] if clsname.endswith('Message') else clsname
-            name = f"{family}Likelihood" + (str(shape) if shape else '')
+            family = clsname[:-7] if clsname.endswith("Message") else clsname
+            name = f"{family}Likelihood" + (str(shape) if shape else "")
 
-        return FactorJacobian(self, x=variable, name=name, vectorised=True)
+        return Factor(
+            self.logpdf,
+            variable,
+            name=name,
+            factor_jacobian=self.factor_jacobian,
+            plates=variable.plates,
+            arg_names=["x"],
+        )
 
     @classmethod
     def transformed(
             cls,
-            transform: Union[
-                AbstractDensityTransform,
-                Type[AbstractDensityTransform]
-            ],
+            transform: Union[AbstractDensityTransform, Type[AbstractDensityTransform]],
             clsname: Optional[str] = None,
             support: Optional[Tuple[Tuple[float, float], ...]] = None,
             wrapper_cls=None,
@@ -580,6 +547,7 @@ class AbstractMessage(Prior, ABC):
         >>> samples.min(), samples.mean(), samples.max()
         """
         from .transform_wrapper import TransformedWrapper
+
         wrapper_cls = wrapper_cls or TransformedWrapper
         return wrapper_cls(
             cls=cls,
@@ -598,7 +566,7 @@ class AbstractMessage(Prior, ABC):
         return cls.transformed(
             LinearShiftTransform(shift=shift, scale=scale),
             clsname=f"Shifted{cls.__name__}",
-            wrapper_cls=wrapper_cls
+            wrapper_cls=wrapper_cls,
         )
 
     @classmethod
@@ -609,14 +577,14 @@ class AbstractMessage(Prior, ABC):
             id_,
             lower_limit,
             upper_limit,
-            *args
+            *args,
     ):
         return cls(
             *parameters,
             log_norm=log_norm,
             id_=id_,
             lower_limit=lower_limit,
-            upper_limit=upper_limit
+            upper_limit=upper_limit,
         )
 
     def __reduce__(self):
@@ -628,7 +596,7 @@ class AbstractMessage(Prior, ABC):
                 self.log_norm,
                 self.id,
                 self.lower_limit,
-                self.upper_limit
+                self.upper_limit,
             ),
         )
 
@@ -647,10 +615,11 @@ class AbstractMessage(Prior, ABC):
         return cls.logpdf_gradient_hessian(self, x)
 
 
-def map_dists(dists: Dict[str, AbstractMessage],
-              values: Dict[str, np.ndarray],
-              _call: str = 'logpdf'
-              ) -> Iterator[Tuple[str, np.ndarray]]:
+def map_dists(
+        dists: Dict[str, AbstractMessage],
+        values: Dict[str, np.ndarray],
+        _call: str = "logpdf",
+) -> Iterator[Tuple[str, np.ndarray]]:
     """
     Calls a method (default: logpdf) for each Message in dists
     on the corresponding value in values

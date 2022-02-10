@@ -2,12 +2,15 @@ import numpy as np
 import pytest
 from scipy import integrate
 
-from autofit.graphical import MeanField
-from autofit.mapper.variable import Plate, Variable
 from autofit.messages import transform
 from autofit.messages.beta import BetaMessage
 from autofit.messages.gamma import GammaMessage
-from autofit.messages.normal import NormalMessage, UniformNormalMessage, LogNormalMessage, MultiLogitNormalMessage
+from autofit.messages.normal import (
+    NormalMessage,
+    UniformNormalMessage,
+    LogNormalMessage,
+    MultiLogitNormalMessage,
+)
 from autofit.messages.transform import numerical_jacobian
 
 
@@ -18,8 +21,7 @@ def check_dist_norm(dist):
 
 def check_dist_norms(dist):
     vals, err = integrate.quad_vec(
-        lambda x: dist.pdf(np.full(dist.shape, x)),
-        *dist._support[0]
+        lambda x: dist.pdf(np.full(dist.shape, x)), *dist._support[0]
     )
     assert np.allclose(vals, 1, atol=err), dist
 
@@ -30,8 +32,8 @@ def check_log_normalisation(ms):
 
     # Calculate normalisation numerically
     i12, ierr = integrate.quad(
-        lambda x: np.exp(sum(m.logpdf(x) for m in ms)),
-        *m1._support[0])
+        lambda x: np.exp(sum(m.logpdf(x) for m in ms)), *m1._support[0]
+    )
 
     # verify within tolerance
     assert np.abs(A - i12) < ierr < 1e-1, m1
@@ -53,21 +55,11 @@ def check_numerical_gradient_hessians(message, x=None):
 
 def test_message_norm():
     messages = [
-        tuple(
-            map(NormalMessage,
-                [0.5, 0.1], [0.2, 0.3])),
-        tuple(
-            map(NormalMessage,
-                [0.5, 0.1, -0.5], [0.2, 0.3, 1.3])),
-        tuple(
-            map(GammaMessage,
-                [0.5, 1.1], [0.2, 1.3])),
-        tuple(
-            map(GammaMessage,
-                [0.5, 1.1, 2], [0.2, 1.3, 1])),
-        tuple(
-            map(BetaMessage,
-                [2., 3.2, 1.5], [4.1, 2.3, 3])),
+        tuple(map(NormalMessage, [0.5, 0.1], [0.2, 0.3])),
+        tuple(map(NormalMessage, [0.5, 0.1, -0.5], [0.2, 0.3, 1.3])),
+        tuple(map(GammaMessage, [0.5, 1.1], [0.2, 1.3])),
+        tuple(map(GammaMessage, [0.5, 1.1, 2], [0.2, 1.3, 1])),
+        tuple(map(BetaMessage, [2.0, 3.2, 1.5], [4.1, 2.3, 3])),
     ]
     for ms in messages:
         check_log_normalisation(ms)
@@ -82,9 +74,7 @@ SUN = UN.shifted(shift=0.3, scale=0.8)
 LN = LogNormalMessage
 MLN = MultiLogitNormalMessage
 # test doubly transformed distributions
-WN = NormalMessage.transformed(
-    transform.log_transform
-).transformed(
+WN = NormalMessage.transformed(transform.log_transform).transformed(
     transform.exp_transform,
 )
 
@@ -92,90 +82,34 @@ WN = NormalMessage.transformed(
 @pytest.mark.parametrize(
     "M, m, s, x",
     [
-        (N, 1., 0.5, 0.3),
-        (N, 1., 0.5, [0.3, 2.1]),
-        (N, [0.1, 1., 2.], [2., 0.5, 3.], [0.1, 0.2, 0.3]),
-        (N, [0.1, 1., 2.], [2., 0.5, 3.], [[0.1, 0.2, 0.3], [2., 1., -1]]),
-        (UN, 1., 0.5, None),
-        (UN, [0.1, 1., 2.], [.1, 0.5, 0.2], None),
-        (SUN, 1., 0.5, None),
-        (SUN, [0.1, 1., 2.], [.1, 0.5, 0.2], None),
-        (LN, 1., 0.5, None),
-        (LN, [0.1, 1., 2.], [2., 0.5, 3.], None),
-        (LN, [0.1, 1., 2.], [2., 0.5, 3.], None),
-        (MLN, [0.1, 1., 2.], [.1, 0.5, 0.2], None),
-        (WN, 1., 0.5, 0.3),
-        (WN, 1., 0.5, [0.3, 2.1]),
-        (WN, [0.1, 1., 2.], [2., 0.5, 3.], [0.1, 0.2, 0.3]),
-        (WN, [0.1, 1., 2.], [2., 0.5, 3.], [[0.1, 0.2, 0.3], [2., 1., -1]]),
-    ]
+        (N, 1.0, 0.5, 0.3),
+        (N, 1.0, 0.5, [0.3, 2.1]),
+        (N, [0.1, 1.0, 2.0], [2.0, 0.5, 3.0], [0.1, 0.2, 0.3]),
+        (N, [0.1, 1.0, 2.0], [2.0, 0.5, 3.0], [[0.1, 0.2, 0.3], [2.0, 1.0, -1]]),
+        (UN, 1.0, 0.5, None),
+        (UN, [0.1, 1.0, 2.0], [0.1, 0.5, 0.2], None),
+        (SUN, 1.0, 0.5, None),
+        (SUN, [0.1, 1.0, 2.0], [0.1, 0.5, 0.2], None),
+        (LN, 1.0, 0.5, None),
+        (LN, [0.1, 1.0, 2.0], [2.0, 0.5, 3.0], None),
+        (LN, [0.1, 1.0, 2.0], [2.0, 0.5, 3.0], None),
+        (MLN, [0.1, 1.0, 2.0], [0.1, 0.5, 0.2], None),
+        (WN, 1.0, 0.5, 0.3),
+        (WN, 1.0, 0.5, [0.3, 2.1]),
+        (WN, [0.1, 1.0, 2.0], [2.0, 0.5, 3.0], [0.1, 0.2, 0.3]),
+        (WN, [0.1, 1.0, 2.0], [2.0, 0.5, 3.0], [[0.1, 0.2, 0.3], [2.0, 1.0, -1]]),
+    ],
 )
-def test_numerical_gradient_hessians(
-        M, m, s, x
-):
+def test_numerical_gradient_hessians(M, m, s, x):
     check_numerical_gradient_hessians(M(m, s), x)
 
 
-def test_meanfield_gradients():
-    n1, n2, n3 = 2, 3, 5
-    p1, p2, p3 = [Plate() for i in range(3)]
-
-    v1 = Variable('v1', p1, p2)
-    v2 = Variable('v2', p2, p3)
-    v3 = Variable('v3', p3, p1)
-
-    mean_field = MeanField({
-        v1: NormalMessage(
-            np.random.randn(n1, n2),
-            np.random.exponential(size=(n1, n2))),
-        v2: NormalMessage(
-            np.random.randn(n2, n3),
-            np.random.exponential(size=(n2, n3))),
-        v3: NormalMessage(
-            np.random.randn(n3, n1),
-            np.random.exponential(size=(n3, n1)))
-    })
-
-    values = mean_field.sample()
-    l0 = mean_field(values, axis=None)
-    logl = mean_field(values, axis=False)
-    assert logl.sum() == pytest.approx(l0, abs=1e-5)
-    logl = mean_field(values, axis=1)
-    assert logl.sum() == pytest.approx(l0, abs=1e-5)
-    logl = mean_field(values, axis=2)
-    assert logl.sum() == pytest.approx(l0, abs=1e-5)
-    logl = mean_field(values, axis=(0, 2))
-    assert logl.sum() == pytest.approx(l0, abs=1e-5)
-
-    njac0 = mean_field._numerical_func_jacobian(
-        values, axis=None, _eps=1e-8)[1]
-    njac1 = mean_field._numerical_func_jacobian(
-        values, axis=1, _eps=1e-8)[1]
-    njac2 = mean_field._numerical_func_jacobian(
-        values, axis=(0, 1), _eps=1e-8)[1]
-    njac = mean_field._numerical_func_jacobian_hessian(
-        values, axis=False, _eps=1e-8)[1]
-    grad = mean_field.logpdf_gradient(values, axis=False)[1]
-    for v in grad:
-        norm = np.linalg.norm(grad[v] - njac[v].sum((0, 1, 2)))
-        assert norm == pytest.approx(0, abs=1e-2)
-        norm = np.linalg.norm(grad[v] - njac0[v])
-        assert norm == pytest.approx(0, abs=1e-2)
-        norm = np.linalg.norm(grad[v] - njac1[v].sum((0, 1)))
-        assert norm == pytest.approx(0, abs=1e-2)
-        norm = np.linalg.norm(grad[v] - njac2[v].sum(0))
-        assert norm == pytest.approx(0, abs=1e-2)
-
-
 def test_beta():
-    a = b = np.r_[2., 3.2, 1.5]
+    a = b = np.r_[2.0, 3.2, 1.5]
     beta = BetaMessage(a, b[::-1])
     check_dist_norms(beta)
 
-    betas = [
-        BetaMessage(a, b)
-        for a, b in (np.random.poisson(5, size=(10, 2)) + 1)
-    ]
+    betas = [BetaMessage(a, b) for a, b in (np.random.poisson(5, size=(10, 2)) + 1)]
     for b in betas:
         check_dist_norm(b)
 
@@ -232,8 +166,7 @@ def test_multinomial_logit():
     assert np.allclose(mult_logit.inv_transform(xs), ps)
     assert np.allclose(njac, jac.to_dense())
     assert np.isclose(
-        logd.sum(),
-        np.linalg.slogdet(njac.reshape(jac.lsize, jac.rsize))[1]
+        logd.sum(), np.linalg.slogdet(njac.reshape(jac.lsize, jac.rsize))[1]
     )
     assert np.allclose(nlogd_grad.sum((0, 1)), logd_grad, 1e-5, 1e-3)
 
@@ -246,7 +179,7 @@ def test_normal_simplex():
     mult_logit = transform.MultinomialLogitTransform()
     NormalSimplex = NormalMessage.transformed(mult_logit)
 
-    message = NormalSimplex([-1, 2], [.3, .3])
+    message = NormalSimplex([-1, 2], [0.3, 0.3])
 
     check_numerical_gradient_hessians(message, message.sample())
 
@@ -257,8 +190,5 @@ def test_normal_simplex():
         return [0, 1 - sum(args)]
 
     # verify transformation normalises correctly
-    res, err = integrate.nquad(
-        func,
-        [simplex_lims] * message.size
-    )
+    res, err = integrate.nquad(func, [simplex_lims] * message.size)
     assert res == pytest.approx(1, rel=err)

@@ -1,21 +1,19 @@
-from . import optimise as optimize
 from . import utils
 from .declarative.abstract import PriorFactor
 from .declarative.collection import FactorGraphModel
 from .declarative.factor.analysis import AnalysisFactor
 from .declarative.factor.hierarchical import _HierarchicalFactor, HierarchicalFactor
-from .expectation_propagation import EPMeanField, EPOptimiser
-from .factor_graphs import (
-    Factor,
-    FactorJacobian,
-    FactorGraph,
-    AbstractFactor,
-    FactorValue,
-    VariableTransform,
-    FullCholeskyTransform,
-    identity_transform
-)
+from .expectation_propagation.ep_mean_field import EPMeanField
+from .expectation_propagation.optimiser import EPOptimiser
+from .factor_graphs import FactorGraph
+from .factor_graphs.factor import Factor
+from .laplace import LaplaceOptimiser, OptimisationState
 from .mean_field import FactorApproximation, MeanField
-from .optimise import OptFactor, LaplaceFactorOptimiser, lstsq_laplace_factor_approx
-from .sampling import ImportanceSampler, project_factor_approx_sample
 from .utils import Status
+from .. import messages
+from ..mapper.variable import FactorValue
+from ..mapper.variable import Variable
+
+dir(Variable)
+dir(messages)
+dir(FactorValue)

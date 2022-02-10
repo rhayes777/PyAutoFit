@@ -1,9 +1,10 @@
-from typing import Set, Optional, Type, List
+from typing import Set, Optional, Type, List, Tuple
 
 from autofit.mapper.model import ModelInstance
 from autofit.mapper.prior.abstract import Prior
 from autofit.mapper.prior_model.collection import CollectionPriorModel
 from autofit.mapper.prior_model.prior_model import PriorModel
+from autofit.mapper.variable import Plate
 from autofit.messages.abstract import AbstractMessage
 from autofit.non_linear.paths.abstract import AbstractPaths
 from autofit.tools.namer import namer
@@ -11,6 +12,8 @@ from .abstract import AbstractModelFactor
 
 
 class HierarchicalFactor(PriorModel):
+    _plates: Tuple[Plate, ...] = ()
+
     def __init__(
             self,
             distribution: Type[AbstractMessage],
@@ -63,13 +66,8 @@ class HierarchicalFactor(PriorModel):
             prior
         )
         """
-        super().__init__(
-            distribution,
-            **kwargs
-        )
-        self._name = name or namer(
-            self.__class__.__name__
-        )
+        super().__init__(distribution, **kwargs)
+        self._name = name or namer(self.__class__.__name__)
         self._factors = list()
         self.optimiser = optimiser
 
@@ -81,10 +79,11 @@ class HierarchicalFactor(PriorModel):
     def prior_model(self):
         return self
 
-    def add_drawn_variable(
-            self,
-            prior: Prior
-    ):
+    @property
+    def plates(self):
+        return self._plates
+
+    def add_drawn_variable(self, prior: Prior):
         """
         Add a variable which is drawn from the distribution. This
         is likely the attribute of a FactorModel in the graph.
@@ -94,12 +93,7 @@ class HierarchicalFactor(PriorModel):
         prior
             A variable which is sampled from the distribution.
         """
-        self._factors.append(
-            _HierarchicalFactor(
-                self,
-                prior
-            )
-        )
+        self._factors.append(_HierarchicalFactor(self, prior))
 
     @property
     def factors(self) -> List["_HierarchicalFactor"]:
@@ -130,43 +124,28 @@ class _HierarchicalFactor(AbstractModelFactor):
         self.distribution_model = distribution_model
         self.drawn_prior = drawn_prior
 
-        def _factor(
-                **kwargs
-        ):
-            argument = kwargs.pop(
-                "argument"
-            )
+        def _factor(**kwargs):
+            argument = kwargs.pop("argument")
             arguments = dict()
             for name_, array in kwargs.items():
                 prior_id = int(name_.split("_")[1])
-                prior = distribution_model.prior_with_id(
-                    prior_id
-                )
+                prior = distribution_model.prior_with_id(prior_id)
                 arguments[prior] = array
-            result = distribution_model.instance_for_arguments(
-                arguments
-            )(argument)
+            result = distribution_model.instance_for_arguments(arguments)(argument)
             return result
 
-        prior_variable_dict = {
-            prior.name: prior
-            for prior
-            in distribution_model.priors
-        }
+        prior_variable_dict = {prior.name: prior for prior in distribution_model.priors}
 
-        prior_variable_dict[
-            "argument"
-        ] = drawn_prior
+        prior_variable_dict["argument"] = drawn_prior
 
         super().__init__(
             prior_model=CollectionPriorModel(
-                distribution_model=distribution_model,
-                drawn_prior=drawn_prior
+                distribution_model=distribution_model, drawn_prior=drawn_prior
             ),
             factor=_factor,
             optimiser=distribution_model.optimiser,
             prior_variable_dict=prior_variable_dict,
-            name=distribution_model.name
+            name=distribution_model.name,
         )
 
     @property
@@ -174,9 +153,7 @@ class _HierarchicalFactor(AbstractModelFactor):
         return self.drawn_prior
 
     def log_likelihood_function(self, instance):
-        return instance.distribution_model(
-            instance.drawn_prior
-        )[0]
+        return instance.distribution_model(instance.drawn_prior)
 
     @property
     def priors(self) -> Set[Prior]:
@@ -186,9 +163,7 @@ class _HierarchicalFactor(AbstractModelFactor):
         variable drawn from the distribution.
         """
         priors = super().priors
-        priors.add(
-            self.drawn_prior
-        )
+        priors.add(self.drawn_prior)
         return priors
 
     @property
@@ -196,9 +171,6 @@ class _HierarchicalFactor(AbstractModelFactor):
         return self
 
     def visualize(
-            self,
-            paths: AbstractPaths,
-            instance: ModelInstance,
-            during_analysis: bool
+            self, paths: AbstractPaths, instance: ModelInstance, during_analysis: bool
     ):
         pass

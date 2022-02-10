@@ -1,15 +1,16 @@
 from abc import ABC, abstractmethod
 from typing import Set, List, Dict, Optional
+from typing import Tuple
 
 from autofit.graphical.declarative.factor.prior import PriorFactor
 from autofit.graphical.declarative.graph import DeclarativeFactorGraph
 from autofit.graphical.declarative.result import EPResult
 from autofit.graphical.expectation_propagation import AbstractFactorOptimiser
-from autofit.graphical.expectation_propagation import EPMeanField
-from autofit.graphical.expectation_propagation import EPOptimiser
+from autofit.graphical.expectation_propagation import EPMeanField, EPOptimiser
 from autofit.mapper.model import ModelInstance
 from autofit.mapper.prior.abstract import Prior
 from autofit.mapper.prior_model.collection import CollectionPriorModel
+from autofit.mapper.variable import Plate
 from autofit.messages.normal import NormalMessage
 from autofit.non_linear.analysis import Analysis
 from autofit.non_linear.paths.abstract import AbstractPaths
@@ -17,6 +18,7 @@ from autofit.non_linear.paths.abstract import AbstractPaths
 
 class AbstractDeclarativeFactor(Analysis, ABC):
     optimiser: AbstractFactorOptimiser
+    _plates: Tuple[Plate, ...] = ()
 
     @property
     @abstractmethod
@@ -82,6 +84,10 @@ class AbstractDeclarativeFactor(Analysis, ABC):
                 in self.model_factors
             ] + self.prior_factors
         )
+
+    @property
+    def plates(self):
+        return self._plates
 
     def mean_field_approximation(self) -> EPMeanField:
         """

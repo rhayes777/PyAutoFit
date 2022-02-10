@@ -1,77 +1,61 @@
 from abc import ABC, abstractmethod
 from itertools import count
-from typing import \
-    (
-    List, Tuple, Dict, cast, Set, Optional, Union, Collection
+from typing import (
+    List,
+    Tuple,
+    Dict,
+    Set,
+    Optional,
+    Collection,
+    Any,
 )
 
 import numpy as np
 
 from autoconf import cached_property
-from autofit.graphical.utils import FlattenArrays
-from autofit.mapper.variable import Variable, Plate
+from autofit.graphical.utils import (
+    FlattenArrays,
+    nested_filter,
+    nested_update,
+    is_variable,
+)
+from autofit.mapper.variable import (
+    Variable,
+    Plate,
+    FactorValue,
+    VariableData,
+)
+
+Protocol = ABC  # for python 3.7 compat
 
 Value = Dict[Variable, np.ndarray]
 
-
-class FactorValue(np.ndarray):
-
-    def __new__(cls, input_array, deterministic_values=None):
-        obj = np.asarray(input_array).view(cls)
-
-        if deterministic_values is None:
-            obj.deterministic_values = {}
-        else:
-            obj.deterministic_values = deterministic_values
-
-        return obj
-
-    def __array_finalize__(self, obj):
-        if obj is None:
-            return
-        self.deterministic_values = getattr(
-            obj, 'deterministic_values', None)
-
-    @property
-    def log_value(self) -> np.ndarray:
-        if self.shape:
-            return self.base
-        else:
-            return self.item()
-
-    def __getitem__(self, index) -> np.ndarray:
-        if isinstance(index, Variable):
-            return self.deterministic_values[index]
-        else:
-            return super().__getitem__(index)
-
-    def keys(self):
-        return self.deterministic_values.keys()
-
-    def values(self):
-        return self.deterministic_values.values()
-
-    def items(self):
-        return self.deterministic_values.items()
+GradientValue = VariableData
+HessianValue = Any
 
 
-JacobianValue = Dict[Variable, FactorValue]
-HessianValue = Dict[Variable, np.ndarray]
+class FactorInterface(Protocol):
+    def __call__(self, values: Value) -> FactorValue:
+        pass
 
-from autofit.graphical.factor_graphs.numerical import (
-    numerical_func_jacobian, numerical_func_jacobian_hessian
-)
+
+class FactorGradientInterface(Protocol):
+    def __call__(self, values: Value) -> Tuple[FactorValue, GradientValue]:
+        pass
 
 
 class AbstractNode(ABC):
-    _deterministic_variables: Set[Variable] = frozenset()
+    _plates: Tuple[Plate, ...] = ()
     _factor: callable = None
     _id = count()
-    _plates = None
+    eps = 1e-6
 
     def __init__(
             self,
-            **kwargs: Variable
+            plates: Tuple[Plate, ...] = (),
+            factor_out=FactorValue,
+            name="",
+            **kwargs: Variable,
     ):
         """
         A node in a factor graph
@@ -83,55 +67,114 @@ class AbstractNode(ABC):
         kwargs
             Key word arguments passed to the value
         """
+        self._plates = plates
         self._kwargs = kwargs
-        self._variable_name_kw = {
-            v.name: kw for kw, v in kwargs.items()}
+        self._name = name or type(self).__name__ + str(tuple(self.variables))
+        self._factor_out = factor_out
         self.id = next(self._id)
 
     def resolve_variable_dict(
             self, variable_dict: Dict[Variable, np.ndarray]
     ) -> Dict[str, np.ndarray]:
         return {
-            self._variable_name_kw[v.name]: x
+            self.variable_name_kw[v.name]: x
             for v, x in variable_dict.items()
-            if v.name in self._variable_name_kw}
-
-    @property
-    @abstractmethod
-    def variables(self):
-        pass
-
-    @property
-    def name_variable_dict(self) -> Dict[str, Variable]:
-        return {
-            variable.name: variable
-            for variable in self.variables
+            if v.name in self.variable_name_kw
         }
 
+    @cached_property
+    def fixed_values(self) -> VariableData:
+        return VariableData()
+
+    @cached_property
+    def variables(self) -> Set[Variable]:
+        """
+        Dictionary mapping the names of variables to those variables
+        """
+        return frozenset(self._kwargs.values())
+
     @property
-    @abstractmethod
-    def deterministic_variables(self):
-        return self._deterministic_variables
+    def free_variables(self) -> Set[Variable]:
+        return self.variables - self.fixed_values.keys()
+
+    @property
+    def kwargs(self) -> Dict[str, Variable]:
+        return self._kwargs
+
+    @kwargs.setter
+    def kwargs(self, kwargs):
+        del self.variables
+        del self.name_variable_dict
+        del self.variable_name_dict
+        self._kwargs = kwargs
+
+    @property
+    def args(self) -> Tuple[Variable, ...]:
+        return tuple(self.kwargs.values())
+
+    @property
+    def arg_names(self) -> Tuple[str, ...]:
+        return tuple(self.kwargs)
+
+    @property
+    def factor_out(self):
+        return self._factor_out
+
+    @factor_out.setter
+    def factor_out(self, factor_out):
+        del self.deterministic_variables
+        self._factor_out = factor_out
+
+    @property
+    def n_args(self) -> int:
+        return len(self.args)
+
+    @cached_property
+    def name_variable_dict(self) -> Dict[str, Variable]:
+        return {variable.name: variable for variable in self.variables}
+
+    @cached_property
+    def variable_name_dict(self) -> Dict[str, Variable]:
+        return {variable.name: kw for kw, variable in self._kwargs.items()}
+
+    @cached_property
+    def deterministic_variables(self) -> Set[Variable]:
+        deterministic_variables = set(
+            v for v, in nested_filter(is_variable, self.factor_out)
+        )
+        deterministic_variables.discard(FactorValue)
+        return frozenset(deterministic_variables)
+
+    @property
+    def plates(self) -> Tuple[Plate, ...]:
+        return self._plates
+
+    @cached_property
+    def sorted_plates(self) -> Tuple[Plate, ...]:
+        """
+        A tuple of the set of all plates in this graph, ordered by id
+        """
+        return tuple(sorted(set(
+            plate
+            for variable in self.all_variables
+            for plate in variable.plates
+        )))
 
     def __getitem__(self, item):
         try:
-            return self._kwargs[
-                item
-            ]
-        except KeyError:
-            for variable in self.variables | self._deterministic_variables:
+            return self._kwargs[item]
+        except KeyError as e:
+            for variable in self.all_variables:
                 if variable.name == item:
                     return variable
-            raise AttributeError(
-                f"No attribute {item}"
-            )
+            raise AttributeError(f"No attribute {item}") from e
 
     @property
-    @abstractmethod
     def name(self) -> str:
         """
         A name for this object
         """
+        return self._name
 
     @property
     def call_signature(self) -> str:
@@ -147,109 +190,14 @@ class AbstractNode(ABC):
         """
         The names of the variables passed as keyword arguments
         """
-        return [
-            arg.name
-            for arg
-            in self._kwargs.values()
-        ]
+        return [arg.name for arg in self._kwargs.values()]
 
-    @cached_property
+    @property
     def all_variables(self) -> Set[Variable]:
         """
         A dictionary of variables associated with this node
         """
-        return self.variables | self.deterministic_variables
-
-    def _broadcast(
-            self,
-            plate_inds: np.ndarray,
-            value: np.ndarray
-    ) -> np.ndarray:
-        """
-        Ensure the shape of the data matches the shape of the plates
-
-        Parameters
-        ----------
-        plate_inds
-            The indices of the plates of some factor within this node
-        value
-            Some data
-
-        Returns
-        -------
-        The data reshaped
-        """
-        shape = np.shape(value)
-        shift = len(shape) - plate_inds.size
-
-        assert shift in {0, 1}, shift
-        newshape = np.ones(self.ndim + shift, dtype=int)
-        newshape[:shift] = shape[:shift]
-        newshape[shift + plate_inds] = shape[shift:]
-
-        # reorder axes of value to match ordering of newshape
-        movedvalue = np.moveaxis(
-            value,
-            np.arange(plate_inds.size) + shift,
-            np.argsort(plate_inds) + shift)
-        return np.reshape(movedvalue, newshape)
-
-    def _broadcast2d(
-            self,
-            plate_inds: np.ndarray,
-            value: np.ndarray
-    ) -> np.ndarray:
-        """
-        Ensure the shape of the data matches the shape of the plates
-
-        Parameters
-        ----------
-        plate_inds
-            The indices of the plates of some factor within this node
-        value
-            Some data
-
-        Returns
-        -------
-        The data reshaped
-        """
-        shape2d = np.shape(value)
-        ndim = len(shape2d) // 2
-        shape1, shape2 = shape2d[:ndim], shape2d[ndim:]
-
-        newshape = np.ones(self.ndim * 2)
-        newshape[plate_inds] = shape1
-        newshape[plate_inds + self.ndim] = shape2
-
-        # reorder axes of value to match ordering of newshape
-        plate_order = np.argsort(plate_inds)
-        movedvalue = np.moveaxis(
-            value,
-            np.arange(plate_inds.size * 2),
-            np.r_[plate_order, plate_order + ndim])
-        return np.reshape(movedvalue, newshape)
-
-    @cached_property
-    def plates(self) -> Tuple[Plate]:
-        """
-        A tuple of the set of all plates in this graph
-
-        split into two properties to allow manual ordering 
-        of plate order
-        """
-        return self._plates or self.sorted_plates
-
-    @cached_property
-    def sorted_plates(self) -> Tuple[Plate]:
-        """
-        A tuple of the set of all plates in this graph, ordered by id
-        """
-        return tuple(sorted(set(
-            cast(Plate, plate)
-            for variable
-            in self.all_variables
-            for plate in variable.plates
-        )))
+        return self.variables.union(self.deterministic_variables)
 
     @property
     def ndim(self) -> int:
@@ -258,12 +206,9 @@ class AbstractNode(ABC):
 
         That is, the total dimensions of those variables.
         """
-        return len(self.plates)
+        return len(self.sorted_plates)
 
-    def _match_plates(
-            self,
-            plates: Collection[Plate]
-    ) -> np.ndarray:
+    def _match_plates(self, plates: Collection[Plate]) -> np.ndarray:
         """
         Find indices plates from some factor in the collection of
         plates associated with this node.
@@ -283,49 +228,225 @@ class AbstractNode(ABC):
     def __call__(self, **kwargs) -> FactorValue:
         pass
 
-    def __hash__(self):
-        return hash((
+    @property
+    def _unique_representation(self):
+        return (
             self._factor,
-            frozenset(self.name_variable_dict.items()),
-            frozenset(self._deterministic_variables),))
+            self.arg_names,
+            self.args,
+            self.deterministic_variables,
+        )
 
-    _numerical_func_jacobian = numerical_func_jacobian
-    _numerical_func_jacobian_hessian = numerical_func_jacobian_hessian
-    func_jacobian = numerical_func_jacobian
-    func_jacobian_hessian = numerical_func_jacobian_hessian
+    def __hash__(self):
+        return hash(self._unique_representation)
 
-    def jacobian(
-            self,
-            values: Dict[Variable, np.array],
-            variables: Optional[Tuple[Variable, ...]] = None,
-            axis: Optional[Union[bool, int, Tuple[int, ...]]] = False,
-            _eps: float = 1e-6,
-            _calc_deterministic: bool = True) -> JacobianValue:
-        return self.func_jacobian(
-            values, variables, axis,
-            _eps=_eps, _calc_deterministic=_calc_deterministic)[1]
+    def __eq__(self, other) -> bool:
+        if isinstance(other, type(self)):
+            return self._unique_representation == other._unique_representation
+        return False
 
-    def hessian(
-            self,
-            values: Dict[Variable, np.array],
-            variables: Optional[Tuple[Variable, ...]] = None,
-            axis: Optional[Union[bool, int, Tuple[int, ...]]] = False,
-            _eps: float = 1e-6,
-            _calc_deterministic: bool = True) -> HessianValue:
-        return self.func_jacobian_hessian(
-            values, variables, axis,
-            _eps=_eps, _calc_deterministic=_calc_deterministic)[2]
+    def _factor_args(self, *args):
+        return self._factor(**dict(zip(self.arg_names, args)))
 
-    def flatten(self, param_shapes: FlattenArrays) -> 'FlattenedNode':
+    def _numerical_factor_jacobian(
+            self, *args, eps: Optional[float] = None, **kwargs
+    ) -> Tuple[Any, Any]:
+        """Calculates the dense numerical jacobian matrix with respect to
+        the input arguments, broadly speaking, the following should return the
+        same values (within numerical precision of the finite differences)
+
+        factor._numerical_factor_jacobian(*args)
+
+        factor._factor(*args), jax.jacobian(factor._factor, range(len(args)))(*args)
+        """
+        eps = eps or self.eps
+        args = tuple(np.array(value, dtype=np.float64) for value in args)
+
+        raw_fval0 = self._factor_args(*args)
+        fval0 = self._factor_value(raw_fval0).to_dict()
+
+        jac = {
+            v0: tuple(
+                np.empty_like(val, shape=np.shape(val) + np.shape(value))
+                for value in args
+            )
+            for v0, val in fval0.items()
+        }
+        for i, val in enumerate(args):
+            with np.nditer(val, op_flags=["readwrite"], flags=["multi_index"]) as it:
+                for x_i in it:
+                    val[it.multi_index] += eps
+                    fval1 = self._factor_value(self._factor_args(*args)).to_dict()
+                    jac_v1_i = (fval1 - fval0) / eps
+                    x_i -= eps
+                    indexes = (Ellipsis,) + it.multi_index
+                    for v0, jac_v0v_i in jac_v1_i.items():
+                        jac[v0][i][indexes] = jac_v0v_i
+
+        # This replicates the output of normal
+        # jax.jacobian(self.factor, len(self.args))(*args)
+        jac_out = nested_update(self.factor_out, jac)
+
+        return raw_fval0, jac_out
+
+    def numerical_func_jacobian(
+            self, values: VariableData, **kwargs
+    ) -> tuple:
+        args = (values[k] for k in self.args)
+        raw_fval, raw_jac = self._numerical_factor_jacobian(*args, **kwargs)
+        fval = self._factor_value(raw_fval)
+        jvp = self._jac_out_to_jvp(raw_jac, values=fval.to_dict().merge(values))
+        return fval, jvp
+
+    def jacobian(self, values: Dict[Variable, np.array], **kwargs):
+        return self.func_jacobian(values, **kwargs)[1]
+
+    def func_gradient(self, values: VariableData) -> Tuple[FactorValue, GradientValue]:
+        fval, fjac = self.func_jacobian(values)
+        return fval, fjac.grad()
+
+    def flatten(self, param_shapes: FlattenArrays) -> "FlattenedNode":
         return FlattenedNode(self, param_shapes)
 
 
+class AbstractFactor(AbstractNode, ABC):
+    def __lt__(self, other):
+        return self.name < other.name
+
+    def __gt__(self, other):
+        return self.name > other.name
+
+    def __mul__(self, other):
+        """
+        When two factors are multiplied together this creates a graph
+        """
+        from autofit.graphical.factor_graphs.graph import FactorGraph
+
+        return FactorGraph([self]) * other
+
+    @property
+    def _kwargs_dims(self) -> Dict[str, int]:
+        """
+        The number of plates for each keyword argument variable
+        """
+        return {key: len(value) for key, value in self._kwargs.items()}
+
+    @cached_property
+    def _variable_plates(self) -> Dict[str, np.ndarray]:
+        """
+        Maps the name of each variable to the indices of its plates
+        within this node
+        """
+        return {
+            variable: self._match_plates(variable.plates)
+            for variable in self.all_variables
+        }
+
+    @property
+    def n_deterministic(self) -> int:
+        """
+        How many deterministic variables are there associated with this node?
+        """
+        return len(self._deterministic_variables)
+
+    def _resolve_args(self, **kwargs: np.ndarray) -> dict:
+        """
+        Transforms in the input arguments to match the arguments
+        specified for the factor.
+
+        Parameters
+        ----------
+        args
+        kwargs
+
+        Returns
+        -------
+
+        """
+        return {n: kwargs[v.name] for n, v in self._kwargs.items()}
+
+    def _set_factor(self, factor):
+        self._factor = factor
+        self._has_exact_projection = getattr(factor, "has_exact_projection", None)
+        self._calc_exact_projection = getattr(factor, "calc_exact_projection", None)
+        self._calc_exact_update = getattr(factor, "calc_exact_update", None)
+
+    def has_exact_projection(self, mean_field) -> bool:
+        if self._has_exact_projection:
+            return self._has_exact_projection(**self.resolve_variable_dict(mean_field))
+        return False
+
+    def calc_exact_projection(self, mean_field) -> "MeanField":
+        if self._calc_exact_projection:
+            from autofit.graphical.mean_field import MeanField
+
+            projection = self._calc_exact_projection(
+                **self.resolve_variable_dict(mean_field)
+            )
+            return MeanField({self._kwargs[v]: dist for v, dist in projection.items()})
+        else:
+            return NotImplementedError
+
+    def calc_exact_update(self, mean_field) -> "MeanField":
+        if self._calc_exact_update:
+            from autofit.graphical.mean_field import MeanField
+
+            projection = self._calc_exact_update(
+                **self.resolve_variable_dict(mean_field)
+            )
+            return MeanField({self._kwargs[v]: dist for v, dist in projection.items()})
+        else:
+            return NotImplementedError
+
+    def safe_exact_update(self, mean_field) -> Tuple[bool, "MeanField"]:
+        if self._has_exact_projection:
+            from autofit.graphical.mean_field import MeanField
+
+            _mean_field = self.resolve_variable_dict(mean_field)
+            if self._has_exact_projection(**_mean_field):
+                projection = self._calc_exact_update(**_mean_field)
+                return True, MeanField(
+                    {self._kwargs[v]: dist for v, dist in projection.items()}
+                )
+
+        return False, mean_field
+
+    def name_for_variable(self, variable):
+        return self.name
+
+    @property
+    def info(self):
+        return repr(self)
+
+    def __repr__(self) -> str:
+        args = ", ".join(map(str, self.args))
+        clsname = type(self).__name__
+        if self.deterministic_variables:
+            args += ", factor_out={self.factor_out}"
+
+        return f"{clsname}({self.name}, {args})"
+
+    def make_results_text(self, model_approx):
+        """
+        Create a string describing the posterior values after this factor
+        during or after an EPOptimisation.
+        Parameters
+        ----------
+        model_approx: EPMeanField
+        Returns
+        -------
+        A string containing the name of this factor with the names and
+        values of each associated variable in the mean field.
+        """
+        string = "\n".join(
+            f"{variable} = {model_approx.mean_field[variable].mean}"
+            for variable in self.variables
+        )
+        return f"{self.name}\n\n{string}"
+
+
 class FlattenedNode:
-    def __init__(
-            self,
-            node: 'AbstractNode',
-            param_shapes: FlattenArrays
-    ):
+    def __init__(self, node: "AbstractNode", param_shapes: FlattenArrays):
         self.node = node
         self.param_shapes = param_shapes
 
@@ -335,19 +456,19 @@ class FlattenedNode:
     def unflatten(self, x0: np.ndarray) -> Value:
         return self.param_shapes.unflatten(x0)
 
-    def __call__(self, x: np.ndarray, axis=None) -> np.ndarray:
+    def __call__(self, x: np.ndarray) -> np.ndarray:
         values = self.unflatten(x)
-        return self.node(values, axis=axis)
+        return self.node(values)
 
-    def func_jacobian(self, x: np.ndarray, axis=None):
+    def func_jacobian(self, x: np.ndarray):
         values = self.unflatten(x)
-        fval, jval = self.node.func_jacobian(values, axis=axis)
+        fval, jval = self.node.func_jacobian(values)
         grad = self.flatten(jval)
         return fval, grad
 
-    def func_jacobian_hessian(self, x: np.ndarray, axis=None):
+    def func_jacobian_hessian(self, x: np.ndarray):
         values = self.unflatten(x)
-        fval, jval, hval = self.node.func_jacobian_hessian(values, axis=axis)
+        fval, jval, hval = self.node.func_jacobian_hessian(values)
         grad = self.flatten(jval)
         hess = self.param_shapes.flatten2d(hval)
         return fval, grad, hess

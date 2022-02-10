@@ -1,150 +1,47 @@
-import numpy as np
 import pytest
 from scipy import stats
 
-import autofit.messages.normal
-from autofit import graphical as mp
-from autofit.messages import abstract
+from autofit import graphical as graph
 from autofit.messages.normal import NormalMessage
 
+x = graph.Variable("x")
+graph.Factor(stats.norm(loc=-0.5, scale=0.5).logpdf, x)
 
-@pytest.fixture(
-    name="normal_factor"
-)
+
+@pytest.fixture(name="normal_factor")
 def make_normal_factor(x):
-    return mp.Factor(
-        stats.norm(
-            loc=-0.5,
-            scale=0.5
-        ).logpdf,
-        x=x
-    )
+    return graph.Factor(stats.norm(loc=-0.5, scale=0.5).logpdf, x)
 
 
-@pytest.fixture(
-    name="model"
-)
-def make_model(
-        probit_factor,
-        normal_factor
-):
+@pytest.fixture(name="model")
+def make_model(probit_factor, normal_factor):
     return probit_factor * normal_factor
 
 
-@pytest.fixture(
-    name="message"
-)
+@pytest.fixture(name="message")
 def make_message():
     return NormalMessage(0, 1)
 
 
-@pytest.fixture(
-    name="model_approx"
-)
-def make_model_approx(
-        model,
-        x,
-        message
-):
-    return mp.EPMeanField.from_kws(
-        model,
-        {x: message}
-    )
+@pytest.fixture(name="model_approx")
+def make_model_approx(model, x, message):
+    return graph.EPMeanField.from_kws(model, {x: message})
 
 
-@pytest.fixture(
-    name="probit_approx"
-)
-def make_probit_approx(
-        probit_factor,
-        model_approx
-):
-    return model_approx.factor_approximation(
-        probit_factor
-    )
+@pytest.fixture(name="probit_approx")
+def make_probit_approx(probit_factor, model_approx):
+    return model_approx.factor_approximation(probit_factor)
 
 
-def test_approximations(
-        probit_approx,
-        model_approx,
-        x,
-        message
-):
-    opt_probit = mp.OptFactor.from_approx(probit_approx)
-    result = opt_probit.maximise({x: 0.})
-
-    probit_model = autofit.messages.normal.NormalMessage.from_mode(
-        result.mode[x],
-        covariance=result.hess_inv[x],
-        id_=message.id
-    )
-
-    probit_model_dist = mp.MeanField({x: probit_model})
+def test_approximations(probit_approx, model_approx, x, message):
+    opt = graph.LaplaceOptimiser()
+    probit_model_dist, status = opt.optimise_approx(probit_approx)
 
     # get updated factor approximation
-    probit_project, status = probit_approx.project(
-        probit_model_dist, delta=1.
-    )
+    probit_project, status = probit_approx.project(probit_model_dist, delta=1.0)
 
     assert probit_project.model_dist[x].mean == pytest.approx(0.506, rel=0.1)
     assert probit_project.model_dist[x].sigma == pytest.approx(0.814, rel=0.1)
 
     assert probit_project.factor_dist[x].mean == pytest.approx(1.499, rel=0.1)
     assert probit_project.factor_dist[x].sigma == pytest.approx(1.401, rel=0.1)
-
-
-def test_looped_importance_sampling(
-        model,
-        normal_factor,
-        probit_factor,
-        x,
-        message
-):
-    abstract.enforce_id_match = False
-
-    model_approx = mp.EPMeanField.from_kws(
-        model,
-        {
-            x: autofit.messages.normal.NormalMessage(
-                0, 1, id_=message.id
-            )
-        }
-    )
-
-    np.random.seed(1)
-    sampler = mp.ImportanceSampler(
-        n_samples=1000
-    )
-    history = list()
-
-    for i in range(3):
-        for factor in [normal_factor, probit_factor]:
-            # get factor, cavity distribution and model approximation
-            factor_approx = model_approx.factor_approximation(factor)
-            # sample from model approximation
-            sample = sampler.sample(factor_approx)
-            # project sufficient statistcs of sample onto normal dist
-            model_dist = mp.project_factor_approx_sample(
-                factor_approx,
-                sample
-            )
-
-            # divide projection by cavity distribution
-            factor_project, status = factor_approx.project(
-                model_dist,
-                delta=1
-            )
-
-            # update model approximation
-            model_approx, status = model_approx.project(
-                factor_project,
-                status
-            )
-
-            # save and print current approximation
-            history.append(model_approx)
-
-    result = history[-1].mean_field[x]
-
-    assert result.mean == pytest.approx(-0.243, rel=0.1)
-    assert result.sigma == pytest.approx(0.466, rel=0.1)

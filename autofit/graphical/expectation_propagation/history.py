@@ -1,21 +1,16 @@
 import logging
 from functools import wraps
-from typing import (
-    Tuple, Callable, List, Union, Optional
-)
+from itertools import repeat
+from typing import Tuple, Callable, List, Union, Optional
 
 import numpy as np
 
-from autofit.graphical.factor_graphs import (
-    Factor
-)
+from autofit.graphical.factor_graphs.factor import Factor
 from autofit.graphical.utils import Status
 from .ep_mean_field import EPMeanField
 from ... import exc
 
-logger = logging.getLogger(
-    __name__
-)
+logger = logging.getLogger(__name__)
 
 EPCallBack = Callable[[Factor, EPMeanField, Status], bool]
 
@@ -39,10 +34,7 @@ def default_inf(func):
 
 
 class FactorHistory:
-    def __init__(
-            self,
-            factor: Factor
-    ):
+    def __init__(self, factor: Factor):
         """
         Tracks the history of a single factor
 
@@ -54,11 +46,7 @@ class FactorHistory:
         self.factor = factor
         self.history = list()
 
-    def __call__(
-            self,
-            approx: EPMeanField,
-            status: Status
-    ):
+    def __call__(self, approx: EPMeanField, status: Status):
         """
         Add an optimisation result to the factor's history
 
@@ -69,19 +57,14 @@ class FactorHistory:
         status
             Describes whether the optimisation was successful
         """
-        self.history.append((
-            approx, status
-        ))
+        self.history.append((approx, status))
 
     @property
     def successes(self) -> List[EPMeanField]:
         """
         A list of mean fields produced by successful optimisations
         """
-        return [
-            approx for approx, success
-            in self.history if success
-        ]
+        return [approx for approx, success in self.history if success]
 
     @property
     def latest_successful(self) -> EPMeanField:
@@ -90,10 +73,10 @@ class FactorHistory:
         """
         try:
             return self.successes[-1]
-        except IndexError:
+        except IndexError as e:
             raise exc.HistoryException(
                 f"There have been no successful optimisations for factor {self.factor}"
-            )
+            ) from e
 
     @property
     def previous_successful(self) -> EPMeanField:
@@ -107,18 +90,47 @@ class FactorHistory:
                 f"There have been one or no successful optimisations for factor {self.factor}"
             )
 
+    @property
+    def updates(self) -> List[EPMeanField]:
+        """
+        A list of mean fields produced by successful optimisations
+        """
+        return [approx for approx, status in self.history if status.updated]
+
+    @property
+    def latest_update(self) -> EPMeanField:
+        """
+        Last updated mean field
+        """
+        try:
+            return self.updates[-1]
+        except IndexError as e:
+            raise exc.HistoryException(
+                f"There have been no successful optimisations for factor {self.factor}"
+            ) from e
+
+    @property
+    def previous_update(self) -> EPMeanField:
+        """
+        Last-but-one updated mean field
+        """
+        try:
+            return self.updates[-2]
+        except IndexError:
+            raise exc.HistoryException(
+                f"There have been one or no successful optimisations for factor {self.factor}"
+            )
+
     @default_inf
     def kl_divergence(self) -> Union[float, np.ndarray]:
         """
         The KL Divergence between the mean fields produced by the last
-        two successful optimisations.
+        two updates.
 
         If there are less than two successful optimisations then this is
         infinite.
         """
-        return self.latest_successful.mean_field.kl(
-            self.previous_successful.mean_field
-        )
+        return self.latest_update.mean_field.kl(self.previous_update.mean_field)
 
     @default_inf
     def evidence_divergence(self) -> Union[float, np.ndarray]:
@@ -129,7 +141,9 @@ class FactorHistory:
         If there are less than two successful optimisations then this is
         infinite.
         """
-        return self.latest_successful.log_evidence - self.previous_successful.log_evidence
+        return (
+                self.latest_successful.log_evidence - self.previous_successful.log_evidence
+        )
 
     @property
     def evidences(self) -> List[float]:
@@ -138,10 +152,8 @@ class FactorHistory:
         when optimisation failed.
         """
         return [
-            approx.log_evidence
-            if status else None
-            for approx, status
-            in self.history
+            approx.log_evidence if status.updated else None
+            for approx, status in self.history
         ]
 
     @property
@@ -154,12 +166,8 @@ class FactorHistory:
         for i in range(1, len(self.history)):
             previous, previous_success = self.history[i - 1]
             current, current_success = self.history[i]
-            if previous_success and current_success:
-                divergences.append(
-                    current.mean_field.kl(
-                        previous.mean_field
-                    )
-                )
+            if previous_success.updated and current_success.updated:
+                divergences.append(current.mean_field.kl(previous.mean_field))
             else:
                 divergences.append(None)
         return divergences
@@ -170,7 +178,7 @@ class EPHistory:
             self,
             callbacks: Tuple[EPCallBack, ...] = (),
             kl_tol: Optional[float] = 1e-1,
-            evidence_tol: Optional[float] = None
+            evidence_tol: Optional[float] = None,
     ):
         """
         Track the history an an EP Optimization.
@@ -215,10 +223,7 @@ class EPHistory:
         return self.history.items()
 
     def __call__(
-            self,
-            factor: Factor,
-            approx: EPMeanField,
-            status: Status = Status()
+            self, factor: Factor, approx: EPMeanField, status: Status = Status()
     ) -> bool:
         """
         Add history for a given factor and determine whether optimisation
@@ -241,20 +246,14 @@ class EPHistory:
         """
         self[factor](approx, status)
         if status.success:
-            if any([
-                callback(factor, approx, status)
-                for callback in self._callbacks
-            ]):
+            if any([callback(factor, approx, status) for callback in self._callbacks]):
                 return True
 
             return self.is_converged(factor)
 
         return False
 
-    def is_kl_converged(
-            self,
-            factor: Factor
-    ) -> bool:
+    def is_kl_converged(self, factor: Factor) -> bool:
         """
         True if the KL Divergence between the mean fields produced by
         two consecutive, successful optimisations is below the specified
@@ -262,10 +261,7 @@ class EPHistory:
         """
         return self[factor].kl_divergence() < self.kl_tol
 
-    def is_kl_evidence_converged(
-            self,
-            factor: Factor
-    ) -> bool:
+    def is_kl_evidence_converged(self, factor: Factor) -> bool:
         """
         True if the difference in evidence between produced by two consecutive,
         successful optimisations is below the specified tolerance.
@@ -273,16 +269,11 @@ class EPHistory:
         evidence_divergence = self[factor].evidence_divergence()
 
         if evidence_divergence < 0:
-            logger.warning(
-                f"Evidence for factor {factor} has decreased"
-            )
+            logger.warning(f"Evidence for factor {factor} has decreased")
 
         return abs(evidence_divergence) < self.evidence_tol
 
-    def is_converged(
-            self,
-            factor: Factor
-    ) -> bool:
+    def is_converged(self, factor: Factor) -> bool:
         """
         True if either convergence condition is met.
         """
@@ -291,3 +282,35 @@ class EPHistory:
         if self.evidence_tol and self.is_kl_evidence_converged(factor):
             return True
         return False
+
+    def full_history(self, factor_order=None):
+        factor_order = factor_order or self.history.keys()
+        return [
+            (f, approx, stat)
+            for iteration in zip(
+                *(zip(repeat(f), self.history[f].history) for f in factor_order)
+            )
+            for f, (approx, stat) in iteration
+        ]
+
+    def mean_field_history(self, factor_order=None):
+        return [
+            approx.mean_field for _, approx, _ in self.full_history(factor_order)
+        ]
+
+    def variable_history(self, factor_order=None):
+        history = {}
+        for mf in self.mean_field_history(factor_order):
+            for v, m in mf.items():
+                history.setdefault(v, []).append(m)
+
+        return history
+
+    def evidences(self, factor_order=None):
+        history = self.full_history(factor_order)
+        return [approx.log_evidence for _, approx, status in history]
+
+    def kl_divergences(self, factor_order=None):
+        mfs = self.mean_field_history(factor_order)
+        n = len(self.history)
+        return [m1.kl(m2) for m1, m2 in zip(mfs[n:], mfs)]

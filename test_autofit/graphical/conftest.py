@@ -3,12 +3,10 @@ import pytest
 from scipy import stats
 
 import autofit.mapper.variable
-from autofit import graphical as mp
+from autofit import graphical as graph
 
 
-@pytest.fixture(
-    autouse=True
-)
+@pytest.fixture(autouse=True)
 def set_seed():
     np.random.seed(0)
 
@@ -20,4 +18,4 @@ def make_x():
 
 @pytest.fixture(name="probit_factor")
 def make_probit_factor(x):
-    return mp.Factor(stats.norm(loc=0.0, scale=1.0).logcdf, x=x)
+    return graph.Factor(stats.norm(loc=0.0, scale=1.0).logcdf, x)

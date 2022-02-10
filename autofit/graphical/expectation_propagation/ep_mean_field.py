@@ -1,25 +1,21 @@
 import logging
-from typing import (
-    Dict, Tuple, Optional, List
-)
+from typing import Dict, Tuple, Optional, List
 
 import numpy as np
 
-from autofit.graphical.factor_graphs import (
-    Factor, FactorGraph
-)
+from autoconf import cached_property
+from autofit.graphical.factor_graphs.factor import Factor
+from autofit.graphical.factor_graphs.graph import FactorGraph
 from autofit.graphical.mean_field import MeanField, FactorApproximation
 from autofit.graphical.utils import Status
 from autofit.mapper.variable import Variable
 from autofit.messages.abstract import AbstractMessage
 
-logger = logging.getLogger(
-    __name__
-)
+logger = logging.getLogger(__name__)
 
 
 class EPMeanField(FactorGraph):
-    '''
+    """
     this class encode the EP mean-field approximation to a factor graph
 
 
@@ -59,12 +55,10 @@ class EPMeanField(FactorGraph):
     project_factor_approx(factor_approximation)
         given the passed FactorApproximation, return a new `EPMeanField`
         object encoding the updated mean-field approximation
-    '''
+    """
 
     def __init__(
-            self,
-            factor_graph: FactorGraph,
-            factor_mean_field: Dict[Factor, MeanField]
+            self, factor_graph: FactorGraph, factor_mean_field: Dict[Factor, MeanField]
     ):
         self._factor_graph = factor_graph
         self._factor_mean_field = factor_mean_field
@@ -74,6 +68,13 @@ class EPMeanField(FactorGraph):
     @property
     def name(self):
         return f"EP_{self.factor_graph.name}"
+
+    @cached_property
+    def fixed_values(self):
+        return {
+            k: v for mf in self._factor_mean_field.values() 
+            for k, v in mf.fixed_values.items()
+        }
 
     @property
     def variables(self):
@@ -98,16 +99,11 @@ class EPMeanField(FactorGraph):
             approx_dists: Dict[Variable, AbstractMessage],
     ) -> "EPMeanField":
         factor_mean_field = {
-            factor: MeanField({
-                v: approx_dists[v] for v in factor.all_variables
-            })
+            factor: MeanField({v: approx_dists[v] for v in factor.all_variables})
             for factor in factor_graph.factors
         }
 
-        return cls(
-            factor_graph,
-            factor_mean_field
-        )
+        return cls(factor_graph, factor_mean_field)
 
     from_kws = from_approx_dists
 
@@ -135,42 +131,33 @@ class EPMeanField(FactorGraph):
         """
         factor_mean_field = self._factor_mean_field.copy()
         factor_dist = factor_mean_field.pop(factor)
-        cavity_dist = MeanField({
-            v: 1. for v
-            in factor_dist.all_variables
-        }).prod(
+        cavity_dist = MeanField({v: 1.0 for v in factor_dist.all_variables}).prod(
             *factor_mean_field.values()
         )
 
         model_dist = factor_dist.prod(cavity_dist)
 
-        return FactorApproximation(
-            factor,
-            cavity_dist,
-            factor_dist,
-            model_dist
-        )
+        return FactorApproximation(factor, cavity_dist, factor_dist, model_dist)
 
     def project_factor_approx(
-            self, projection: FactorApproximation, status: Optional[Status] = None,
+            self,
+            projection: FactorApproximation,
+            status: Optional[Status] = None,
     ) -> Tuple["EPMeanField", Status]:
-        """
-        """
+        """ """
         factor_mean_field = self.factor_mean_field
         factor_mean_field[projection.factor] = projection.factor_dist
 
         new_approx = type(self)(
-            factor_graph=self._factor_graph,
-            factor_mean_field=factor_mean_field)
+            factor_graph=self._factor_graph, factor_mean_field=factor_mean_field
+        )
         return new_approx, status
 
     project = project_factor_approx
 
     @property
     def mean_field(self) -> MeanField:
-        return MeanField({
-            v: 1. for v in self.all_variables
-        }).prod(
+        return MeanField({v: 1.0 for v in self.all_variables}).prod(
             *self._factor_mean_field.values()
         )
 
@@ -178,8 +165,7 @@ class EPMeanField(FactorGraph):
 
     @property
     def variable_messages(self) -> Dict[Variable, List[AbstractMessage]]:
-        variable_messages = {
-            v: [] for v in self.all_variables}
+        variable_messages = {v: [] for v in self.all_variables}
         for meanfield in self.factor_mean_field.values():
             for v, message in meanfield.items():
                 variable_messages[v].append(message)
@@ -220,7 +206,8 @@ class EPMeanField(FactorGraph):
         Z = ∏ᵢ Zᵢ ∏ₐ Zₐ
         """
         variable_evidence = {
-            v: np.sum(logz) for v, logz in self.variable_evidence.items()}
+            v: np.sum(logz) for v, logz in self.variable_evidence.items()
+        }
         factor_evidence = sum(
             np.sum(meanfield.log_norm)
             - sum(variable_evidence[v] for v in factor.all_variables)
@@ -235,6 +222,4 @@ class EPMeanField(FactorGraph):
         except Exception as e:
             logger.exception(e)
             log_evidence = float("nan")
-        return (
-            f"{clsname}({self.factor_graph}, "
-            f"log_evidence={log_evidence})")
+        return f"{clsname}({self.factor_graph}, " f"log_evidence={log_evidence})"

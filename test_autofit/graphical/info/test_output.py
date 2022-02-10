@@ -1,4 +1,3 @@
-import autofit as af
 from autoconf.conf import with_config
 from autofit import graphical as g, DirectoryPaths
 
@@ -26,17 +25,11 @@ class MockSearch(m.MockSearch):
             pickle_files=None,
             log_likelihood_cap=None,
     ):
-        super().fit(
-            model,
-            analysis
-        )
+        super().fit(model, analysis)
         return MockResult(model)
 
 
-def _run_optimisation(
-        factor_graph_model,
-        paths=None
-):
+def _run_optimisation(factor_graph_model, paths=None):
     search = MockSearch()
     factor_graph_model.optimise(
         search,
@@ -44,23 +37,16 @@ def _run_optimisation(
         log_interval=1,
         visualise_interval=1,
         output_interval=1,
-        paths=paths or DirectoryPaths(
+        paths=paths
+              or DirectoryPaths(
             name="name",
             is_identifier_in_paths=False,
-        )
+        ),
     )
 
 
-@with_config(
-    "general",
-    "output",
-    "remove_files",
-    value=False
-)
-def test_output(
-        output_directory,
-        factor_graph_model
-):
+@with_config("general", "output", "remove_files", value=False)
+def test_output(output_directory, factor_graph_model):
     factor_graph_model.model_factors[0]._name = "factor_1"
     factor_graph_model.model_factors[1]._name = "factor_2"
     _run_optimisation(factor_graph_model)
@@ -74,31 +60,15 @@ def test_output(
         assert (path / f"optimization_{number}").exists()
 
 
-@with_config(
-    "general",
-    "output",
-    "remove_files",
-    value=False
-)
-def test_default_output(
-        output_directory,
-        factor_graph_model
-):
+@with_config("general", "output", "remove_files", value=False)
+def test_default_output(output_directory, factor_graph_model):
     _run_optimisation(factor_graph_model)
     assert (output_directory / "name/AnalysisFactor0").exists()
     assert (output_directory / "name/AnalysisFactor1").exists()
 
 
-@with_config(
-    "general",
-    "output",
-    "remove_files",
-    value=False
-)
-def test_path_prefix(
-        output_directory,
-        factor_graph_model
-):
+@with_config("general", "output", "remove_files", value=False)
+def test_path_prefix(output_directory, factor_graph_model):
     paths = DirectoryPaths(
         path_prefix="path_prefix",
         name="name",
@@ -107,14 +77,11 @@ def test_path_prefix(
     optimiser = g.EPOptimiser(
         factor_graph=factor_graph_model.graph,
         paths=paths,
-        default_optimiser=MockSearch()
+        default_optimiser=MockSearch(),
     )
 
     assert optimiser.output_path == output_directory / "path_prefix/name"
 
-    _run_optimisation(
-        factor_graph_model,
-        paths=paths
-    )
+    _run_optimisation(factor_graph_model, paths=paths)
     assert (output_directory / "path_prefix/name/AnalysisFactor0").exists()
     assert (output_directory / "path_prefix/name/AnalysisFactor1").exists()

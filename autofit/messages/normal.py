@@ -1,23 +1,25 @@
 import math
-from typing import Tuple
+from typing import Tuple, Union
 
 import numpy as np
 from scipy.special.cython_special import erfcinv
 from scipy.stats import norm
 
 from autoconf import cached_property
+from autofit.mapper.operator import LinearOperator
 from autofit.messages.abstract import AbstractMessage
-from .transform import phi_transform, log_transform, multinomial_logit_transform, log_10_transform
+from .transform import (
+    phi_transform,
+    log_transform,
+    multinomial_logit_transform,
+    log_10_transform,
+)
 from .. import exc
 
 
 def is_nan(value):
-    is_nan_ = np.isnan(
-        value
-    )
-    if isinstance(
-            is_nan_, np.ndarray
-    ):
+    is_nan_ = np.isnan(value)
+    if isinstance(is_nan_, np.ndarray):
         is_nan_ = is_nan_.all()
     return is_nan_
 
@@ -26,9 +28,9 @@ class NormalMessage(AbstractMessage):
     @cached_property
     def log_partition(self):
         eta1, eta2 = self.natural_parameters
-        return - eta1 ** 2 / 4 / eta2 - np.log(-2 * eta2) / 2
+        return -(eta1 ** 2) / 4 / eta2 - np.log(-2 * eta2) / 2
 
-    log_base_measure = - 0.5 * np.log(2 * np.pi)
+    log_base_measure = -0.5 * np.log(2 * np.pi)
     _support = ((-np.inf, np.inf),)
     _parameter_support = ((-np.inf, np.inf), (0, np.inf))
 
@@ -39,18 +41,17 @@ class NormalMessage(AbstractMessage):
             lower_limit=-math.inf,
             upper_limit=math.inf,
             log_norm=0.0,
-            id_=None
+            id_=None,
     ):
         if (np.array(sigma) < 0).any():
-            raise exc.MessageException(
-                "Sigma cannot be negative"
-            )
+            raise exc.MessageException("Sigma cannot be negative")
         super().__init__(
-            mean, sigma,
+            mean,
+            sigma,
             log_norm=log_norm,
             lower_limit=lower_limit,
             upper_limit=upper_limit,
-            id_=id_
+            id_=id_,
         )
         self.mean, self.sigma = self.parameters
 
@@ -62,21 +63,18 @@ class NormalMessage(AbstractMessage):
 
     @cached_property
     def natural_parameters(self):
-        return self.calc_natural_parameters(
-            self.mean,
-            self.sigma
-        )
+        return self.calc_natural_parameters(self.mean, self.sigma)
 
     @staticmethod
     def calc_natural_parameters(mu, sigma):
         precision = sigma ** -2
-        return np.array([mu * precision, - precision / 2])
+        return np.array([mu * precision, -precision / 2])
 
     @staticmethod
     def invert_natural_parameters(natural_parameters):
         eta1, eta2 = natural_parameters
-        mu = - 0.5 * eta1 / eta2
-        sigma = np.sqrt(- 0.5 / eta2)
+        mu = -0.5 * eta1 / eta2
+        sigma = np.sqrt(-0.5 / eta2)
         return mu, sigma
 
     @staticmethod
@@ -111,30 +109,36 @@ class NormalMessage(AbstractMessage):
         )
 
     @classmethod
-    def from_mode(cls, mode: np.ndarray, covariance: float = 1., id_=None):
-        mode, variance = cls._get_mean_variance(mode, covariance)
-        return cls(mode, variance ** 0.5, id_=id_)
+    def from_mode(
+            cls, mode: np.ndarray, covariance: Union[float, LinearOperator] = 1.0, id_=None
+    ):
+        if isinstance(covariance, LinearOperator):
+            variance = covariance.diagonal()
+        else:
+            mode, variance = cls._get_mean_variance(mode, covariance)
+        return cls(mode, np.abs(variance) ** 0.5, id_=id_)
 
-    def _normal_gradient_hessian(self, x: np.ndarray
-                                 ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+    def _normal_gradient_hessian(
+            self, x: np.ndarray
+    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         # raise Exception
         shape = np.shape(x)
         if shape:
             x = np.asanyarray(x)
             deltax = x - self.mean
-            hess_logl = - self.sigma ** -2
+            hess_logl = -self.sigma ** -2
             grad_logl = deltax * hess_logl
             eta_t = 0.5 * grad_logl * deltax
             logl = self.log_base_measure + eta_t - np.log(self.sigma)
 
             if shape[1:] == self.shape:
                 hess_logl = np.repeat(
-                    np.reshape(hess_logl, (1,) + np.shape(hess_logl)),
-                    shape[0], 0)
+                    np.reshape(hess_logl, (1,) + np.shape(hess_logl)), shape[0], 0
+                )
 
         else:
             deltax = x - self.mean
-            hess_logl = - self.sigma ** -2
+            hess_logl = -self.sigma ** -2
             grad_logl = deltax * hess_logl
             eta_t = 0.5 * grad_logl * deltax
             logl = self.log_base_measure + eta_t - np.log(self.sigma)
@@ -184,9 +188,7 @@ class NormalMessage(AbstractMessage):
         """
         The line of text describing this prior for the model_mapper.info file
         """
-        return (
-            f"GaussianPrior, mean = {self.mean}, sigma = {self.sigma}"
-        )
+        return f"GaussianPrior, mean = {self.mean}, sigma = {self.sigma}"
 
     def __repr__(self):
         return (
@@ -204,17 +206,14 @@ class NormalMessage(AbstractMessage):
         return {**prior_dict, "mean": self.mean, "sigma": self.sigma}
 
 
-UniformNormalMessage = NormalMessage.transformed(
-    phi_transform, 'UniformNormalMessage')
+UniformNormalMessage = NormalMessage.transformed(phi_transform, "UniformNormalMessage")
 UniformNormalMessage.__module__ = __name__
 
-Log10UniformNormalMessage = UniformNormalMessage.transformed(
-    log_10_transform
-)
+Log10UniformNormalMessage = UniformNormalMessage.transformed(log_10_transform)
 
-LogNormalMessage = NormalMessage.transformed(
-    log_transform, 'LogNormalMessage')
+LogNormalMessage = NormalMessage.transformed(log_transform, "LogNormalMessage")
 
 # Support is the simplex
 MultiLogitNormalMessage = NormalMessage.transformed(
-    multinomial_logit_transform, 'MultiLogitNormalMessage', ((0, 1),))
+    multinomial_logit_transform, "MultiLogitNormalMessage", ((0, 1),)
+)

@@ -4,46 +4,53 @@ from typing import Tuple, List
 
 import numpy as np
 from scipy._lib._util import _asarray_validated
-from scipy.linalg import cho_factor, solve_triangular, get_blas_funcs, block_diag
+from scipy.linalg import (
+    cho_factor,
+    solve_triangular,
+    get_blas_funcs,
+    block_diag,
+    qr_update,
+    qr,
+)
 
 from autoconf import cached_property
 
 
 class LinearOperator(ABC):
-    """Implements the functionality of a linear operator. 
+    """Implements the functionality of a linear operator.
 
     All linear operators can be expressed as a tensor/matrix
     However for some it there may be more efficient representations
 
-    e.g. The Diagonal Matrix (see `DiagonalMatrix`), 
+    e.g. The Diagonal Matrix (see `DiagonalMatrix`),
     Sherman-Morrison Matrix (see `ShermanMorrison`)
     or the vector-Jacobian product of a function see jax.jvp [0]
 
     The class also has the attributes, lshape, rshape, lsize, rsize to allow multidimensional tensors to be used,
-    see `ShermanMorrison`, `MultiVecOuterProduct`, or 
+    see `ShermanMorrison`, `MultiVecOuterProduct`, or
     `autofit.messages.transform.MultinomialLogitTransform`
     for examples of this use case
 
     If `M` is the dense matrix represenation of the LinearOperator then the
     actions of the methods can be represented by the appropriate matrix
-    operation, 
+    operation,
 
     Methods
     -------
     __mul__(x):
-        M.dot(x) 
+        M.dot(x)
         M·x
 
     __rmul__(x):
-        x.dot(M) 
+        x.dot(M)
         x·M
 
     __rtruediv__(x):
-        x.dot(inv(M)) 
+        x.dot(inv(M))
         x / M
 
     ldiv(x):
-        inv(M).dot(x) 
+        inv(M).dot(x)
         M \ x
 
     log_det():
@@ -60,7 +67,9 @@ class LinearOperator(ABC):
 
     [0] https://jax.readthedocs.io/en/latest/notebooks/autodiff_cookbook.html#vector-jacobian-product
     """
+
     _ldim = 1
+    is_diagonal = False
 
     @abstractmethod
     def __mul__(self, x: np.ndarray) -> np.ndarray:
@@ -77,6 +86,12 @@ class LinearOperator(ABC):
     @abstractmethod
     def ldiv(self, x: np.ndarray) -> np.ndarray:
         pass
+
+    def inv(self):
+        return InverseOperator(self)
+
+    def from_dense(self, M, shape=None, ldim=None):
+        return self.operator.from_dense(M, shape, ldim)
 
     @property
     @abstractmethod
@@ -106,16 +121,17 @@ class LinearOperator(ABC):
     def rdim(self):
         return self.ndim - self.ldim
 
+    @property
     def ndim(self):
         return len(self.shape)
 
     @property
     def lshape(self):
-        return self.shape[:self.ldim]
+        return self.shape[: self.ldim]
 
     @property
     def rshape(self):
-        return self.shape[self.ldim:]
+        return self.shape[self.ldim :]
 
     @cached_property
     @abstractmethod
@@ -128,10 +144,10 @@ class LinearOperator(ABC):
     def invquad(self, M: np.ndarray) -> np.ndarray:
         return (M / self).T / self
 
-    def transform_bounds(
-            self,
-            bounds: List[Tuple]
-    ) -> List[Tuple]:
+    def to_operator(self):
+        return self
+
+    def transform_bounds(self, bounds: List[Tuple]) -> List[Tuple]:
         """
         Convenience method for transforming the bounds of an
         operation by this matrix.
@@ -149,17 +165,10 @@ class LinearOperator(ABC):
         -------
         The bounds transformed according to this transformation.
         """
-        lower, upper = zip(
-            *bounds
-        )
+        lower, upper = zip(*bounds)
         lower = self * lower
         upper = self * upper
-        return list(
-            zip(
-                lower,
-                upper
-            )
-        )
+        return list(zip(lower, upper))
 
     def __array_ufunc__(self, ufunc, method, *inputs, **kwargs):
         if ufunc in (np.multiply, np.matmul):
@@ -170,38 +179,69 @@ class LinearOperator(ABC):
             return NotImplemented
 
 
-class MatrixOperator(LinearOperator):
+class InverseOperator(LinearOperator):
+    def __init__(self, operator):
+        self.operator = operator
 
-    def __init__(self, M: np.ndarray, shape=None, ldim=1):
-        self.M = np.asanyarray(M)
-        self._shape = shape or self.M.shape
-        self._ldim = 1
+    def __mul__(self, x: np.ndarray) -> np.ndarray:
+        return self.operator.ldiv(x)
+
+    def __rtruediv__(self, x: np.ndarray) -> np.ndarray:
+        return x * self.operator
+
+    def __rmul__(self, x: np.ndarray) -> np.ndarray:
+        return x / self.operator
+
+    def ldiv(self, x: np.ndarray) -> np.ndarray:
+        return self * x
 
     @property
-    def shape(self):
-        return self._shape
+    def shape(self) -> Tuple[int, ...]:
+        return self.operator.shape
+
+    def __len__(self) -> int:
+        return self.operator.lsize
+
+    @property
+    def lsize(self) -> int:
+        return np.prod(self.lshape, dtype=int)
+
+    @property
+    def rsize(self) -> int:
+        return np.prod(self.operator.rshape, dtype=int)
 
     @cached_property
     def log_det(self):
-        return np.linalg.slogdet(self.M)[1]
+        return -self.operator.log_det
 
-    def __mul__(self, x: np.ndarray) -> np.ndarray:
-        return self.M.dot(x)
+    def quad(self, M: np.ndarray) -> np.ndarray:
+        return self.operator.invquad(M)
 
-    def __rtruediv__(self, x: np.ndarray) -> np.ndarray:
-        return np.linalg.solve(self.M.T, x.T)
-
-    def __rmul__(self, x: np.ndarray) -> np.ndarray:
-        return np.dot(x, self.M)
-
-    def ldiv(self, x: np.ndarray) -> np.ndarray:
-        return np.linalg.solve(self.M, x)
+    def invquad(self, M: np.ndarray) -> np.ndarray:
+        return self.operator.quad(M)
 
     def to_dense(self):
-        return self.M
+        M = self.operator.to_dense()
+        M2 = np.reshape(M, (self.lsize, self.rsize))
+        return np.linalg.inv(M2).reshape(self.operator.shape)
+
+    def to_operator(self):
+        return self.from_dense(self.to_dense(), self.shape, self.ldim)
+
+    def diagonal(self):
+        return self.to_operator().diagonal()
+
+    def inv(self):
+        return self.operator
+
+    @property
+    def is_diagonal(self):
+        return self.operator.is_diagonal
 
 
 class IdentityOperator(LinearOperator):
+    is_diagonal = True
+
     def __init__(self):
         pass
 
@@ -219,9 +259,9 @@ class IdentityOperator(LinearOperator):
     quad = _identity
     invquad = _identity
 
-    @property
+    @cached_property
     def log_det(self):
-        return 0.
+        return 0.0
 
     @property
     def shape(self):
@@ -231,8 +271,117 @@ class IdentityOperator(LinearOperator):
         return 0
 
 
-def _mul_triangular(c, b, trans=False, lower=True, overwrite_b=False,
-                    check_finite=True):
+# TODO refactor these for non-square transformations
+
+
+def _wrap_leftop(method):
+    @wraps(method)
+    def leftmethod(self, x: np.ndarray) -> np.ndarray:
+        x = np.asanyarray(x)
+        outshape = self.lshape + x.shape[self.rdim :] if self.ndim else x.shape
+        return method(self, x.reshape(self.rsize, -1)).reshape(outshape)
+
+    return leftmethod
+
+
+def _wrap_rightop(method):
+    @wraps(method)
+    def rightmethod(self, x: np.ndarray) -> np.ndarray:
+        x = np.asanyarray(x)
+        outshape = x.shape[: -self.ldim] + self.rshape if self.ndim else x.shape
+        return method(self, x.reshape(-1, self.lsize)).reshape(outshape)
+
+    return rightmethod
+
+
+class MatrixOperator(LinearOperator):
+    def __init__(self, M: np.ndarray, shape=None, ldim=None):
+        self._shape = shape or np.shape(M)
+        self._ldim = len(self.shape) // 2 if ldim is None else ldim
+        self._M = np.asanyarray(M).reshape(self.shape)
+        self._M2D = self._M.reshape(self.lsize, self.rsize)
+
+    @classmethod
+    def from_dense(
+        cls, M: np.ndarray, shape: Tuple[int, ...] = None, ldim: int = None
+    ) -> "MatrixOperator":
+        return cls(M, shape, ldim)
+
+    @classmethod
+    def from_operator(cls, operator: "MatrixOperator") -> "MatrixOperator":
+        return cls.from_dense(operator.to_dense(), operator.shape, operator.ldim)
+
+    @property
+    def shape(self) -> Tuple[int, ...]:
+        return self._shape
+
+    @cached_property
+    def log_det(self):
+        return np.linalg.slogdet(self._M2D)[1]
+
+    @_wrap_leftop
+    def __mul__(self, x: np.ndarray) -> np.ndarray:
+        return self._M2D.dot(x)
+
+    @_wrap_rightop
+    def __rtruediv__(self, x: np.ndarray) -> np.ndarray:
+        return np.linalg.solve(self._M2D.T, x.T)
+
+    @_wrap_rightop
+    def __rmul__(self, x: np.ndarray) -> np.ndarray:
+        return np.dot(x, self._M2D)
+
+    @_wrap_leftop
+    def ldiv(self, x: np.ndarray) -> np.ndarray:
+        return np.linalg.solve(self._M2D, x)
+
+    def to_dense(self):
+        return self._M.copy()
+
+    def diagonal(self) -> np.ndarray:
+        return (
+            self.to_dense()
+            .reshape(self.rsize, self.lsize)
+            .diagonal()
+            .reshape(self.rshape)
+        )
+
+    def to_diagonal(self):
+        return DiagonalMatrix(self.diagonal())
+
+    def __add__(self, other: "MatrixOperator") -> "MatrixOperator":
+        return type(self).from_dense(
+            self.to_dense() + other.to_dense(), self.shape, self.ldim
+        )
+
+    def __sub__(self, other: "MatrixOperator") -> "MatrixOperator":
+        return type(self).from_dense(
+            self.to_dense() - other.to_dense(), self.shape, self.ldim
+        )
+
+    def update(self, *args):
+        M = self.to_dense().reshape(self.lsize, self.rsize)
+        for (u, v) in args:
+            M += u.ravel()[:, None] * v.ravel()[None, :]
+
+        return type(self).from_dense(M, self.shape, self.ldim)
+
+    def lowrankupdate(self, *args):
+        return self.update(*((u, u) for u in args))
+
+    def lowrankdowndate(self, *args):
+        return self.update(*((u, -u) for u in args))
+
+    def diagonalupdate(self, d):
+        M = self._M.copy()
+        # set diagonal
+        M.flat[:: self.lsize + 1] += d.ravel()
+        return type(self).from_dense(M, self.shape, self.ldim)
+
+
+def _mul_triangular(
+    c, b, trans=False, lower=True, overwrite_b=False, check_finite=True
+):
     """wrapper for BLAS function trmv to perform triangular matrix
     multiplications
 
@@ -271,27 +420,28 @@ def _mul_triangular(c, b, trans=False, lower=True, overwrite_b=False,
     if b.shape[0] != n:
         raise ValueError(
             f"shapes {c.shape} and {b.shape} not aligned: "
-            f"{n} (dim 1) != {b.shape[0]} (dim 0)")
+            f"{n} (dim 1) != {b.shape[0]} (dim 0)"
+        )
 
-    trmv, = get_blas_funcs(('trmv',), (a1, b1))
+    (trmv,) = get_blas_funcs(("trmv",), (a1, b1))
     if a1.flags.f_contiguous:
+
         def _trmv(a1, b1, overwrite_x):
-            return trmv(
-                a1, b1,
-                lower=lower, trans=trans, overwrite_x=overwrite_x)
+            return trmv(a1, b1, lower=lower, trans=trans, overwrite_x=overwrite_x)
+
     else:
         # transposed system is solved since trmv expects Fortran ordering
         def _trmv(a1, b1, overwrite_x=overwrite_b):
             return trmv(
-                a1.T, b1,
-                lower=not lower, trans=not trans, overwrite_x=overwrite_x)
+                a1.T, b1, lower=not lower, trans=not trans, overwrite_x=overwrite_x
+            )
 
     if b1.ndim == 1:
         return _trmv(a1, b1, overwrite_b)
     elif b1.ndim == 2:
         # trmv only works for vector multiplications
         # set Fortran order so memory contiguous
-        b2 = np.array(b1, order='F')
+        b2 = np.array(b1, order="F")
         for i in range(b2.shape[1]):
             # overwrite results
             _trmv(a1, b2[:, i], True)
@@ -305,49 +455,88 @@ def _mul_triangular(c, b, trans=False, lower=True, overwrite_b=False,
         raise ValueError("b must have 1 or 2 dimensions, has {b.ndim}")
 
 
-# TODO refactor these for non-square transformations
+class QROperator(MatrixOperator):
+    """This stores the matrix in the QR decomposition form"""
 
-def _wrap_leftop(method):
-    @wraps(method)
-    def leftmethod(self, x: np.ndarray) -> np.ndarray:
-        x = np.asanyarray(x)
-        return method(self, x.reshape(self.rsize, -1)).reshape(x.shape)
+    def __init__(self, Q, R, shape=None, ldim=None):
+        self.Q = Q
+        self.R = R
+        self._shape = shape or self.Q.shape
+        self._ldim = ldim or len(self._shape) // 2
 
-    return leftmethod
+    @cached_property
+    def M(self) -> np.ndarray:
+        return self.Q.dot(self.R)
+
+    @classmethod
+    def from_dense(cls, hess, shape=None, ldim=None):
+        shape = np.shape(hess)
+        ldim = ldim or np.ndim(hess) // 2
+        length = np.prod(shape[:ldim])
+        M = np.reshape(hess, (length, length))
+        return cls(*qr(M), shape=shape, ldim=ldim)
+
+    @_wrap_leftop
+    def __mul__(self, x):
+        return self.M.dot(x)
+
+    @_wrap_rightop
+    def __rmul__(self, x):
+        return x @ self.M
+
+    @_wrap_rightop
+    def __rtruediv__(self, x):
+        return solve_triangular(self.R.T, x.T @ self.Q.T, lower=True).T
+
+    @_wrap_leftop
+    def ldiv(self, x):
+        return self.Q.T @ solve_triangular(self.R, x, lower=False)
+
+    @cached_property
+    def log_det(self):
+        return np.sum(np.log(self.R.diagonal()))
+
+    rdiv = __rtruediv__
+    rmul = __rmul__
+    lmul = __mul__
+    __matmul__ = __mul__
+
+    def to_dense(self):
+        return self.M.copy()
+
+    def update(self, *args):
+        Q, R = self.Q, self.R
+        for u, v in args:
+            Q, R = qr_update(Q, R, np.ravel(u), np.ravel(v))
+        return QROperator(Q, R, self.shape, self.ldim)
 
 
-def _wrap_rightop(method):
-    @wraps(method)
-    def rightmethod(self, x: np.ndarray) -> np.ndarray:
-        x = np.asanyarray(x)
-        return method(self, x.reshape(-1, self.lsize)).reshape(x.shape)
-
-    return rightmethod
-
-
-class CholeskyOperator(LinearOperator):
-    """ This performs the whitening transforms for the passed
+class CholeskyOperator(MatrixOperator):
+    """This performs the whitening transforms for the passed
     cholesky factor of the Hessian/inverse covariance of the system.
 
     see https://en.wikipedia.org/wiki/Whitening_transformation
 
-    >>> M = CholeskyTransform(linalg.cho_factor(hess))
+    >>> M = CholeskyOperator(linalg.cho_factor(hess))
     >>> y = M * x
     >>> f, df_dx = func_and_gradient(M.ldiv(y))
     >>> df_dy = df_df * M
-    >>> 
+    >>>
     """
 
-    # TODO implement tensor shape functionality
-
-    def __init__(self, cho_factor):
+    def __init__(self, cho_factor, shape=None, ldim=None):
         self.c, self.lower = self.cho_factor = cho_factor
         self.L = self.c if self.lower else self.c.T
         self.U = self.c.T if self.lower else self.c
+        self._shape = shape or self.L.shape
+        self._ldim = ldim or len(self._shape) // 2
 
     @classmethod
-    def from_dense(cls, hess):
-        return cls(cho_factor(hess))
+    def from_dense(cls, hess, shape=None, ldim=None):
+        shape = np.shape(hess)
+        ldim = ldim or np.ndim(hess) // 2
+        length = np.prod(shape[:ldim])
+        return cls(cho_factor(np.reshape(hess, (length, length))), shape, ldim)
 
     @_wrap_leftop
     def __mul__(self, x):
@@ -374,54 +563,16 @@ class CholeskyOperator(LinearOperator):
     lmul = __mul__
     __matmul__ = __mul__
 
-    @property
-    def shape(self):
-        return self.c.shape
-
     def to_dense(self):
         return np.tril(self.L) @ np.triu(self.U)
 
 
-class InverseLinearOperator(LinearOperator):
-    def __init__(self, transform):
-        self.transform = transform
-
-    @abstractmethod
-    def __mul__(self, x: np.ndarray) -> np.ndarray:
-        return x / self.transform
-
-    @abstractmethod
-    def __rtruediv__(self, x: np.ndarray) -> np.ndarray:
-        return self.transform * x
-
-    @abstractmethod
-    def __rmul__(self, x: np.ndarray) -> np.ndarray:
-        return self.transform.ldiv(x)
-
-    @abstractmethod
-    def ldiv(self, x: np.ndarray) -> np.ndarray:
-        return x * self.transform
-
-    @property
-    def shape(self) -> Tuple[int, ...]:
-        return self.transform.shape
-
-    @property
-    def ldim(self):
-        return self.transform.ldim
-
-    @cached_property
-    def log_det(self):
-        return - self.transform.log_det
-
-    def to_dense(self):
-        return np.linalg.inv(self.transform.to_dense())
-
-
+# This class may no longer be necessary?
 class InvCholeskyTransform(CholeskyOperator):
     """In the case where the covariance matrix is passed
     we perform the inverse operations
     """
+
     __mul__ = CholeskyOperator.__rtruediv__
     __rmul__ = CholeskyOperator.ldiv
     __rtruediv__ = CholeskyOperator.__mul__
@@ -434,58 +585,44 @@ class InvCholeskyTransform(CholeskyOperator):
 
     @cached_property
     def log_det(self):
-        return - np.sum(np.log(self.U.diagonal()))
+        return -np.sum(np.log(self.U.diagonal()))
 
     def to_dense(self):
         return solve_triangular(self.U, np.triul(self.L), lower=False)
 
 
-class DiagonalMatrix(LinearOperator):
+class DiagonalMatrix(MatrixOperator):
     """
     Represents the DiagonalMatrix with diagonal `scale`
 
     M = np.diag(scale.ravel())
-    
+
     """
+
+    is_diagonal = True
 
     def __init__(self, scale, inv_scale=None):
         self.scale = np.asanyarray(scale)
         self._fscale = np.ravel(self.scale)
-        self._finv_scale = (
-            1 / scale
-            if inv_scale is None
-            else np.ravel(inv_scale)
-        )
+
+        # Lazily calculate inverse
+        if inv_scale is not None:
+            self._finv_scale = np.ravel(inv_scale)
+
         self._ldim = len(self.scale.shape)
 
-    @classmethod
-    def from_dense(
-            cls,
-            inverse_hessian: np.ndarray
-    ) -> "DiagonalMatrix":
-        """
-        Create a diagonal matrix from the inverse hessian.
+    @cached_property
+    def _finv_scale(self):
+        return 1 / self._fscale
 
-        The matrix transforms parameter space by some coefficient
-        in each dimension.
-
-        Parameters
-        ----------
-        inverse_hessian
-            The inverse hessian determined during an optimisation
-
-        Returns
-        -------
-        A DiagonalMatrix which whitens the parameter space according to
-        the hessian
-        """
-        return cls(
-            np.sqrt(
-                np.diagonal(
-                    inverse_hessian
-                )
-            )
+    def inv(self):
+        return DiagonalMatrix(
+            np.reshape(self._finv_scale, self.scale.shape), self.scale
         )
+
+    @classmethod
+    def from_dense(cls, M: np.ndarray, shape=None, ldim=None) -> "MatrixOperator":
+        return MatrixOperator(M, shape, ldim)
 
     @_wrap_leftop
     def __mul__(self, x):
@@ -519,6 +656,28 @@ class DiagonalMatrix(LinearOperator):
     def to_dense(self):
         return np.diag(self._fscale).reshape(self.shape)
 
+    def diagonal(self):
+        return self.scale
+
+    def __add__(self, other):
+        if isinstance(other, DiagonalMatrix):
+            return DiagonalMatrix(self.scale + other.scale)
+        else:
+            return MatrixOperator(
+                self.to_dense() + other.to_dense(), self.shape, self.ldim
+            )
+
+    def __sub__(self, other):
+        if isinstance(other, DiagonalMatrix):
+            return DiagonalMatrix(self.scale - other.scale)
+        else:
+            return MatrixOperator(
+                self.to_dense() - other.to_dense(), self.shape, self.ldim
+            )
+
+    def diagonalupdate(self, d):
+        return type(self)(self.scale + d)
+
 
 class VecOuterProduct(LinearOperator):
     """
@@ -549,7 +708,7 @@ class VecOuterProduct(LinearOperator):
 
     @cached_property
     def log_det(self):
-        return - np.inf
+        return -np.inf
 
     rdiv = __rtruediv__
     rmul = __rmul__
@@ -590,15 +749,13 @@ class MultiVecOuterProduct(LinearOperator):
     @_wrap_leftop
     def __mul__(self, x):
         return np.einsum(
-            "ij,ik,ikl -> ijl",
-            self.vec, self.vecT, x.reshape(*self.lshape, -1)
+            "ij,ik,ikl -> ijl", self.vec, self.vecT, x.reshape(*self.lshape, -1)
         )
 
     @_wrap_rightop
     def __rmul__(self, x):
         return np.einsum(
-            "ij,ik,lij -> lik",
-            self.vec, self.vecT, x.reshape(-1, *self.rshape)
+            "ij,ik,lij -> lik", self.vec, self.vecT, x.reshape(-1, *self.rshape)
         )
 
     def __rtruediv__(self, x):
@@ -609,7 +766,7 @@ class MultiVecOuterProduct(LinearOperator):
 
     @cached_property
     def log_det(self):
-        return - np.inf
+        return -np.inf
 
     rdiv = __rtruediv__
     rmul = __rmul__
@@ -630,15 +787,15 @@ class MultiVecOuterProduct(LinearOperator):
         return self.shape[2:]
 
     def to_dense(self):
-        return block_diag(*(
-                self.vec[:, :, None] * self.vecT[:, None, :]
-        )).reshape(self.shape)
+        return block_diag(*(self.vec[:, :, None] * self.vecT[:, None, :])).reshape(
+            self.shape
+        )
 
 
 class ShermanMorrison(LinearOperator):
     """
-    Represents the Sherman-Morrison low rank update, 
-    inv(A + vec @ vec.T) = 
+    Represents the Sherman-Morrison low rank update,
+    inv(A + vec @ vec.T) =
         inv(A) - inv(A) @ vec @ vec.T @ inv(A) / (1 + vec @ inv(A) @ vec/T)
     """
 
