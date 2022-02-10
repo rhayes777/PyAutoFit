@@ -61,3 +61,17 @@ def test_alphabetise_collection(
     assert collection[1] == model
 
     assert collection[1].priors_ordered_by_id[0] is model.centre
+
+
+def test_sort_alphabetically(
+        model
+):
+    assert model.sort_priors_alphabetically([
+        model.sigma,
+        model.centre,
+        model.normalization,
+    ]) == [
+               model.centre,
+               model.normalization,
+               model.sigma,
+           ]

@@ -1314,6 +1314,12 @@ class AbstractPriorModel(AbstractModel):
             in self.path_priors_tuples
         ]
 
+    def sort_priors_alphabetically(self, priors):
+        return sorted(
+            priors,
+            key=lambda prior: self.path_for_prior(prior)
+        )
+
     def path_for_prior(self, prior: Prior) -> Optional[Path]:
         """
         Find a path that points at the given tuple.
