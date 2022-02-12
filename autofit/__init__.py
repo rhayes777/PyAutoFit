@@ -59,7 +59,6 @@ from .non_linear.mcmc.emcee.emcee import Emcee
 from .non_linear.mcmc.zeus.zeus import Zeus
 from .non_linear.nest.dynesty import DynestyDynamic
 from .non_linear.nest.dynesty import DynestyStatic
-from .non_linear.nest.multinest.multinest import MultiNest
 from .non_linear.nest.ultranest.ultranest import UltraNest
 from .non_linear.optimize.drawer.drawer import Drawer
 from .non_linear.optimize.lbfgs.lbfgs import LBFGS
