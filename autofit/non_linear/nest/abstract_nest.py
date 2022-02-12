@@ -59,7 +59,6 @@ class AbstractNest(NonLinearSearch):
                 analysis,
                 model,
                 samples_from_model,
-                stagger_resampling_likelihood,
                 log_likelihood_cap=None
         ):
 
@@ -71,7 +70,6 @@ class AbstractNest(NonLinearSearch):
                 log_likelihood_cap=log_likelihood_cap
             )
 
-            self.stagger_resampling_likelihood = stagger_resampling_likelihood
             self.stagger_accepted_samples = 0
             self.resampling_figure_of_merit = -1.0e99
 
@@ -82,39 +80,13 @@ class AbstractNest(NonLinearSearch):
             try:
                 return self.figure_of_merit_from(parameter_list=parameters)
             except exc.FitException:
-                return self.stagger_resampling_figure_of_merit()
+                return self.resample_figure_of_merit
 
         def figure_of_merit_from(self, parameter_list):
             """The figure of merit is the value that the `NonLinearSearch` uses to sample parameter space. All Nested
             samplers use the log likelihood.
             """
             return self.log_likelihood_from(parameter_list=parameter_list)
-
-        def stagger_resampling_figure_of_merit(self):
-            """By default, when a fit raises an exception a log likelihood of -np.inf is returned, which leads the
-            sampler to discard the sample.
-
-            However, we found that this causes memory issues when running PyMultiNest. Therefore, we 'hack' a solution
-            by not returning -np.inf (which leads the sample to be discarded) but instead a large negative float which
-            is treated as a real sample (and does not lead too memory issues). The value returned is staggered to avoid
-            all initial samples returning the same log likelihood and the `NonLinearSearch` terminating."""
-
-            if not self.stagger_resampling_likelihood:
-
-                return self.resample_figure_of_merit
-
-            else:
-
-                if self.stagger_accepted_samples < 10:
-
-                    self.stagger_accepted_samples += 1
-                    self.resampling_figure_of_merit += 1e90
-
-                    return self.resampling_figure_of_merit
-
-                else:
-
-                    return -1.0 * np.abs(self.resampling_figure_of_merit) * 10.0
 
     @property
     def config_type(self):
@@ -127,6 +99,5 @@ class AbstractNest(NonLinearSearch):
             model=model,
             analysis=analysis,
             samples_from_model=self.samples_from,
-            stagger_resampling_likelihood=self.config_dict_settings["stagger_resampling_likelihood"],
             log_likelihood_cap=log_likelihood_cap
         )
