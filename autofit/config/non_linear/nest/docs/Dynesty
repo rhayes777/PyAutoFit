@@ -70,7 +70,7 @@
         results to the samples_backup folder of the search. A backup_every_update of -1 turns off backups.
    model_results_every_update -> int
         The number of new maximum likelihood models that must be sampled for PyAutoLens to output a new model.results
-        file using the latest MultiNest samples and thus most up to data PDFs. A model_results_every_update of -1
+        file using the latest nested samples and thus most up to data PDFs. A model_results_every_update of -1
         turns off backups.
    log_every_update -> int
         The number of new maximum likelihood models that must be sampled for PyAutoLens to log the results to the
