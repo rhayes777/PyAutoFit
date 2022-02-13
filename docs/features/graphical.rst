@@ -1,7 +1,7 @@
 .. _graphical:
 
 Graphical Models
-----------------
+================
 
 Throughout most examples, we compose a model and fit it to a single dataset. For simple model-fitting tasks this is
 sufficient, however it is common for one to have multiple datasets and a desire to fit them simultaneously with a 
