@@ -1,18 +1,7 @@
 .. _empirical_bayes:
 
-Empirical Bayes
-===============
-
-In Empirical Bayes, the priors that are applied to the analysis are learnt from the data itself. This can manifest in
-different ways, for example in MCMC analysis by fitting the data to determine where one initializes the MCMC walkers,
-or in nested sampling fitting the data to derive priors where initial sampling occurs.
-
-**PyAutoFit** has mature support for fitting models following an empirical Bayes approach, which typically first perform
-efficient initial fits to data to estimate the priors on the model parameters. These priors are then used to fit more
-complex models which require more computationally fitting procedures.
-
 Search Chaining
----------------
+===============
 
 To perform a model-fit, we typically compose one model and fit it to our data using one non-linear search.
 

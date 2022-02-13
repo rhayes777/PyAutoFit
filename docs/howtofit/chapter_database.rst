@@ -3,7 +3,7 @@
 Chapter: Database
 =================
 
-In this chapter 1, we introduce you to the **PyAutoFit**'s database functionality that allows one to output all model-fitting results
+In this chapter, we introduce you to the **PyAutoFit**'s database functionality that allows one to output all model-fitting results
 to a relational database. This means model-fits to large datasets can then be loaded and inspected in a Jupyter notebook.
 
 You can start the tutorials right now by going to `our binder <https://mybinder.org/v2/gh/Jammy2211/autofit_workspace/HEAD>`_
