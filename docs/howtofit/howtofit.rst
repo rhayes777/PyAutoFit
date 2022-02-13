@@ -13,19 +13,14 @@ The lectures are provided as *Jupyter notebooks* and currently consist of 3 chap
 - ``chapter_database``: How to output results to a .sqlite database format and load them for analysis after model-fitting is complete.
 - ``chapter_graphical_models``: How to compose and fit graphical models which fit many datasets simultaneously.
 
-Full Explanation
-----------------
-
-Welcome to **HowToFit** - The **PyAutoFit** tutorial!
-
-STATISTICS AND THEORY
+Statistics and Theory
 ---------------------
 
 **HowToFit** assumes minimal previous knowledge of statistics, model-fitting and Bayesian inference. However, it is beneficial
 yourself a basic theoretical grounding as you go through the lectures. I heartily recommend you aim to read up on
 the concepts introduced throughout the lectures once you understand how to use them in **PyAutoFit**.
 
-JUYPTER NOTEBOOKS
+Jupyter Notebooks
 -----------------
 
 The tutorials are supplied as *Jupyter notebooks*, which come with a ``.ipynb`` suffix. For those new to
@@ -45,7 +40,7 @@ folder of each chapter.
 For actual **PyAutoFit** use I recommend you use Python scripts. Therefore, as you go through the lecture
 series you will notice that we will transition you to Python scripts.
 
-CODE STYLE AND FORMATTING
+Code Style and Formatting
 -------------------------
 
 You may notice the style and formatting of our Python code looks different to what you are used to. For
@@ -60,8 +55,8 @@ interested in the style and would like to adapt it to your own code, check out t
 
 https://github.com/python/black
 
-HOW TO TACKLE HowToFit
------------------------
+How to Approach HowToFit
+------------------------
 
 The **HowToFit** lecture series current sits at 3 chapters, and each will take more than a couple of hours to go through
 properly. You probably want to be begin modeling with **PyAutoFit** faster than that! Furthermore, the concepts in the
@@ -73,7 +68,7 @@ interested in, building on the scripts found in the 'autofit_workspace/examples'
 with the results and confident with your use of **PyAutoFit**, you can then begin to cover the advanced functionality
 covered in other chapters.
 
-OVERVIEW OF CHAPTER 1 (Beginner)
+Overview of Chapter 1 (Beginner)
 --------------------------------
 
 **Model Fitting with PyAutoFit**
@@ -88,7 +83,7 @@ be able to:
 5) Compose and fit complex models using **PyAutoFit**'s advanced model composition API.
 6) Analyse the results of a model-fit, including parameter estimates and errors.
 
-OVERVIEW OF CHAPTER DATABASE
+Overview of Chapter Database
 ----------------------------
 
 **Writing Large Suites of Results to an SQLite3 Database**
@@ -100,7 +95,7 @@ Here, we learn how to use **PyAutoFit**'s sqlite3 database feature. You'll be ab
 3) Query the database to get subsets of results.
 4) Interface the database and your model-fitting code to perform custom tasks.
 
-OVERVIEW OF CHAPTER GRAPHICAL MODELS
+Overview of Chapter Graphical Models
 ------------------------------------
 
 **Fitting a Graphical Model to a Large Dataset**
