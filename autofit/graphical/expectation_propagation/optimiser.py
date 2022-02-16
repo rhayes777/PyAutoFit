@@ -450,6 +450,12 @@ class StochasticEPOptimiser(EPOptimiser):
                 else:
                     model_approx = model_approx.merge(batch, subset_approx)
 
+                if self.ep_history(
+                        model_approx.factor_graph, model_approx
+                ):
+                    logger.info("Terminating optimisation")
+                    break  # callback controls convergence
+
                 if should_visualise():
                     self.visualiser()
                 if should_output():
