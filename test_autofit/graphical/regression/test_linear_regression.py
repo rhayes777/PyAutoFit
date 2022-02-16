@@ -104,7 +104,7 @@ def test_jacobian(
 
     assert fval0 == fval1
     assert (fgrad0 - fgrad1).norm() < 1e-6
-    assert (fval0.deterministic_values - fval1.deterministic_values).norm() == 0
+    assert (fval0.deterministic_values - fval1.deterministic_values).norm() < 1e-6
 
 
 def test_laplace(
