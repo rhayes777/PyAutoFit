@@ -376,7 +376,7 @@ class MeanField(CollectionPriorModel, Dict[Variable, AbstractMessage], Factor):
             factor_dist = last_dist
 
         return factor_dist, Status(
-            success=success, messages=messages, flag=flag, updated=updated
+            success=success, messages=messages, updated=updated, flag=flag
         )
 
 
