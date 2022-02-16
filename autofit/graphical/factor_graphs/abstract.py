@@ -394,7 +394,7 @@ class AbstractFactor(AbstractNode, ABC):
         args = ", ".join(map(str, self.args))
         clsname = type(self).__name__
         if self.deterministic_variables:
-            args += ", factor_out={self.factor_out}"
+            args += f", factor_out={self.factor_out}"
 
         return f"{clsname}({self.name}, {args})"
 
