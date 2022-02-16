@@ -180,6 +180,7 @@ class FlattenArrays(dict):
             zip(np.r_[0, self.splits[:-1]], self.splits)
         ]
         self.sizes = {k: np.prod(s, dtype=int) for k, s in self.items()}
+        self.k_inds = dict(zip(self, self.inds))
 
     @classmethod
     def from_arrays(cls, arrays: Dict[str, np.ndarray]) -> "FlattenArrays":
@@ -188,6 +189,13 @@ class FlattenArrays(dict):
     def flatten(self, arrays_dict: Dict[Variable, np.ndarray]) -> np.ndarray:
         assert all(np.shape(arrays_dict[k]) == shape for k, shape in self.items())
         return np.concatenate([np.ravel(arrays_dict[k]) for k in self.keys()])
+
+    def extract(self, key, flat, ndim=None):
+        if ndim is None:
+            ndim = len(flat.shape)
+
+        ind = self.k_inds[key]
+        return flat[(ind,) * ndim]
 
     def unflatten(self, arr: np.ndarray, ndim=None) -> Dict[str, np.ndarray]:
         arr = np.asanyarray(arr)

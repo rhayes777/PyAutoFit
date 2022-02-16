@@ -61,10 +61,10 @@ class MergedVariableOperator(VariableLinearOperator):
 
     def __getitem__(self, variable):
         for op in self.operators:
-            if variable in op:
+            if variable in op.variables:
                 return op[variable]
 
-        raise IndexError(f"{variable} not in operator")
+        raise KeyError(f"{variable} not in operator")
 
     @property
     def variables(self):
@@ -299,6 +299,11 @@ class VariableFullOperator(VariableLinearOperator):
         self.operator = op
         self.param_shapes = param_shapes
 
+    def __getitem__(self, variable):
+        return self.param_shapes.extract(variable, self.operator).reshape(
+            self.param_shapes[variable] * 2
+        )
+
     def inv(self):
         return type(self)(self.operator.inv(), self.param_shapes)
 
@@ -397,6 +402,12 @@ class IdentityVariableOperator(VariableLinearOperator):
 
     def _identity(self, values: VariableData) -> VariableData:
         return values
+
+    def __getitem__(self, variable):
+        if variable in self:
+            return identity_operator
+        else:
+            raise KeyError(f"{variable} not present")
 
     @property
     def variables(self):

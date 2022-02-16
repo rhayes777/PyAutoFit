@@ -452,6 +452,18 @@ class VariableLinearOperator(ABC):
     def variables(self) -> VariableData:
         pass
 
+    def __getitem__(self, variable) -> "LinearOperator":
+        raise NotImplementedError()
+
+    def get(self, variable, default=None):
+        try:
+            return self[variable]
+        except KeyError:
+            return default
+
+    def __contains__(self, variable):
+        return variable in self.variables
+
     def dot(self, x):
         return self * x
 
@@ -478,6 +490,7 @@ class VariableLinearOperator(ABC):
 
     def blocks(self):
         return self.to_block().blocks()
+
 
 
 class InverseVariableOperator(VariableLinearOperator):

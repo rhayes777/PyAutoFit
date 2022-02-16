@@ -305,6 +305,12 @@ class MatrixOperator(LinearOperator):
         M = self.operator.to_dense()[index]
         return self.from_dense(M, ldim=self.ldim)
 
+    def reshape(self, shape):
+        return self.from_dense(
+            self.operator.to_dense().reshape(shape), 
+            ldim=self.ldim
+        )
+
     @classmethod
     def from_dense(
         cls, M: np.ndarray, shape: Tuple[int, ...] = None, ldim: int = None
@@ -622,6 +628,10 @@ class DiagonalMatrix(MatrixOperator):
             )
         else:
             raise NotImplementedError()
+
+    def reshape(self, shape):
+        shape = shape[:len(shape)//2]
+        return DiagonalMatrix(self.scale.reshape(shape))
 
     @cached_property
     def _finv_scale(self):

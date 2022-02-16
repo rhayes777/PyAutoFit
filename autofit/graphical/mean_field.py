@@ -298,9 +298,6 @@ class MeanField(CollectionPriorModel, Dict[Variable, AbstractMessage], Factor):
         Projects the mode and covariance
         """
         mode = ChainMap(mode, self.fixed_values)
-        if isinstance(covar, VariableLinearOperator):
-            covar = covar.to_block(MatrixOperator).operators
-
         projection = MeanField(
             {
                 v: self[v].from_mode(mode[v], covar.get(v), id_=self[v].id)
