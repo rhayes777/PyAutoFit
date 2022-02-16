@@ -59,6 +59,13 @@ class MergedVariableOperator(VariableLinearOperator):
     lmul = __mul__
     __matmul__ = __mul__
 
+    def __getitem__(self, variable):
+        for op in self.operators:
+            if variable in op:
+                return op[variable]
+
+        raise IndexError(f"{variable} not in operator")
+
     @property
     def variables(self):
         variables = self.operators[0].variables
@@ -172,6 +179,9 @@ class VariableOperator(VariableLinearOperator):
     rmul = __rmul__
     lmul = __mul__
     __matmul__ = __mul__
+
+    def __getitem__(self, variable):
+        return self.operators[variable]
 
     @property
     def is_diagonal(self):

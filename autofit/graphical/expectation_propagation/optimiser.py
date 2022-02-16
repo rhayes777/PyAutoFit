@@ -261,7 +261,7 @@ class EPOptimiser:
     ):
         factor_logger = self.factor_loggers.get(factor.name, logging.getLogger(factor.name))
         factor_logger.debug("Optimising...")
-
+        
         optimiser = optimiser or self.factor_optimisers[factor]
         try:
             with LogWarnings(logger=factor_logger.debug, action='always') as caught_warnings:
@@ -278,7 +278,7 @@ class EPOptimiser:
             logger.exception(e)
             status = Status(
                 False,
-                status.messages + (f"Factor: {factor} experienced error {e}",),
+                (f"Factor: {factor} experienced error {e}",),
                 StatusFlag.FAILURE,
             )
 

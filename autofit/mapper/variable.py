@@ -544,3 +544,6 @@ class InverseVariableOperator(VariableLinearOperator):
 
     def to_block(self) -> "VariableOperator":
         return self.to_full().to_block()
+
+    def __getitem__(self, variable):
+        return self.to_full()[variable]

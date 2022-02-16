@@ -289,7 +289,7 @@ class Factor(AbstractFactor):
     ):
         self._vjp = vjp
         self._jacfwd = jacfwd
-        if vjp:
+        if vjp or factor_vjp:
             if factor_vjp:
                 self._factor_vjp = factor_vjp
             elif not _HAS_JAX:

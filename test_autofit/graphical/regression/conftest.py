@@ -34,7 +34,7 @@ def linear(x, a, b):
 
 
 def linear_jacobian(x, a, b):
-    z = np.matmul(x, a) + np.expand_dims(b, -2)
+    z = x.dot(a) + b
 
     (n, m) = z.shape
     d = np.shape(x)[1]
@@ -98,7 +98,10 @@ def make_linear_factor(x_, a_, b_, z_):
 @pytest.fixture(name="linear_factor_jac")
 def make_linear_factor_jac(x_, a_, b_, z_):
     return graph.Factor(
-        linear, x_, a_, b_, factor_jacobian=linear_jacobian, factor_out=z_
+        linear, x_, a_, b_, 
+        vjp=True, 
+        # factor_jacobian=linear_jacobian, 
+        factor_out=z_
     )
 
 

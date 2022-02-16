@@ -301,6 +301,10 @@ class MatrixOperator(LinearOperator):
         self._M = np.asanyarray(M).reshape(self.shape)
         self._M2D = self._M.reshape(self.lsize, self.rsize)
 
+    def __getitem__(self, index):
+        M = self.operator.to_dense()[index]
+        return self.from_dense(M, ldim=self.ldim)
+
     @classmethod
     def from_dense(
         cls, M: np.ndarray, shape: Tuple[int, ...] = None, ldim: int = None
@@ -609,7 +613,15 @@ class DiagonalMatrix(MatrixOperator):
         if inv_scale is not None:
             self._finv_scale = np.ravel(inv_scale)
 
-        self._ldim = len(self.scale.shape)
+        self._ldim = self.scale.ndim
+
+    def __getitem__(self, index):
+        if index[:self.ldim] == index[self.ldim:]:
+            return DiagonalMatrix(
+                self.scale[index[:self.ldim]]
+            )
+        else:
+            raise NotImplementedError()
 
     @cached_property
     def _finv_scale(self):
