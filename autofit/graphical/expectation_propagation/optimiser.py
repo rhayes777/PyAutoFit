@@ -42,8 +42,9 @@ class AbstractFactorOptimiser(ABC):
             factor_approx: FactorApproximation,
             model_approx: EPMeanField,
             status: Optional[Status] = Status(),
+            delta: Optional[float] = None, 
     ) -> Tuple[EPMeanField, Status]:
-        delta = self.deltas[factor_approx.factor]
+        delta = delta or self.deltas[factor_approx.factor]
         new_approx, status = model_approx.project_mean_field(
             new_model_dist, 
             factor_approx,  
