@@ -72,7 +72,7 @@ def make_model_approx():
 def test_stochastic_linear_regression():
     params = [
         (50, 5, False), 
-        (10, 20, True), 
+        (20, 50, True), 
     ]
     for n_batch, n_iters, inplace in params:
         model_approx = make_model_approx()

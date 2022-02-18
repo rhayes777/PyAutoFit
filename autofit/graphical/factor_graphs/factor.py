@@ -19,11 +19,10 @@ from autofit.mapper.variable import Variable, Plate, VariableData
 from autofit.graphical.factor_graphs.abstract import FactorValue, AbstractFactor
 
 
-# if TYPE_CHECKING:
-#     from autofit.graphical.factor_graphs.jacobians import (
-#         AbstractJacobian, VectorJacobianProduct, JacobianVectorProduct
-#     )
-#     from autofit.graphical.mean_field import MeanField
+if TYPE_CHECKING:
+    from autofit.graphical.factor_graphs.jacobians import (
+        VectorJacobianProduct, JacobianVectorProduct
+    )
 
 
 class Factor(AbstractFactor):

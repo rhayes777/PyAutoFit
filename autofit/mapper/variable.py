@@ -10,8 +10,9 @@ from autoconf import cached_property
 
 from autofit.mapper.model_object import ModelObject
 
-# if TYPE_CHECKING:
-#     from autofit.mapper.variable_operator import VariableFullOperator, VariableOperator 
+if TYPE_CHECKING:
+    from autofit.mapper.operator import LinearOperator 
+    from autofit.mapper.variable_operator import VariableFullOperator, VariableOperator 
 
 
 class Plate:

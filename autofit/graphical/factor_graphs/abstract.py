@@ -8,6 +8,7 @@ from typing import (
     Optional,
     Collection,
     Any,
+    TYPE_CHECKING, 
 )
 
 import numpy as np
@@ -25,6 +26,9 @@ from autofit.mapper.variable import (
     FactorValue,
     VariableData,
 )
+
+if TYPE_CHECKING:
+    from autofit.graphical.mean_field import MeanField
 
 Protocol = ABC  # for python 3.7 compat
 
