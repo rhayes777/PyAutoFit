@@ -59,7 +59,6 @@ from .non_linear.mcmc.emcee.emcee import Emcee
 from .non_linear.mcmc.zeus.zeus import Zeus
 from .non_linear.nest.dynesty import DynestyDynamic
 from .non_linear.nest.dynesty import DynestyStatic
-from .non_linear.nest.multinest.multinest import MultiNest
 from .non_linear.nest.ultranest.ultranest import UltraNest
 from .non_linear.optimize.drawer.drawer import Drawer
 from .non_linear.optimize.lbfgs.lbfgs import LBFGS
@@ -80,4 +79,4 @@ from . import database as db
 
 conf.instance.register(__file__)
 
-__version__ = '2021.10.14.1'
+__version__ = '2022.02.13.1'

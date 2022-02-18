@@ -175,8 +175,6 @@ class MockOptimizer(MockSearch):
     init_args = list()
 
 
-
-
 @pytest.fixture(autouse=True)
 def empty_args():
     MockOptimizer.init_args = list()

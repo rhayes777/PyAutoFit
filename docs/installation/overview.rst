@@ -17,7 +17,7 @@ The installation guide for both approaches can be found at:
 
 - `PyPI installation guide <https://pyautofit.readthedocs.io/en/latest/installation/pip.html>`_
 
-Users who wish to build **PyAutoFit** from source (e.g. via a `git clone`) should follow
+Users who wish to build **PyAutoFit** from source (e.g. via a ``git clone``) should follow
 our `building from source installation guide <https://pyautofit.readthedocs.io/en/latest/installation/source.html>`_.
 
 Known Issues
@@ -45,7 +45,3 @@ Dependencies
 **numpy** https://numpy.org/
 
 **scipy** https://www.scipy.org/
-
-And the following optional dependencies:
-
-**PyMultiNest** http://johannesbuchner.github.io/pymultinest-tutorial/install.html

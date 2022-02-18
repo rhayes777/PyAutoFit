@@ -15,7 +15,6 @@ Non-Linear Searches
 
    DynestyDynamic
    DynestyStatic
-   MultiNest
    UltraNest
 
 **MCMC:**

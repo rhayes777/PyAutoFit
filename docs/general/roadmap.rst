@@ -12,12 +12,6 @@ We are always striving to add new non-linear searches to **PyAutoFit*. In the sh
 
 If you would like to see a non-linear search implemented in **PyAutoFit** please `raise an issue on GitHub <https://github.com/rhayes777/PyAutoFit/issues>`_!
 
-**Graphical Models**
-
-Graphical models allow one to compose complex models that fit for global trends in many model-fits to individual
-datasets. This feature is in development and described in the **Graphical Models** tab of the readthedocs,
-however it is still in beta.
-
 **Approximate Bayesian Computation**
 
 Approximate Bayesian Computational (ABC) allows for one to infer parameter values for likelihood functions that are

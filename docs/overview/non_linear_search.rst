@@ -7,7 +7,7 @@ Non-linear Search
 
 - **Optimizers**: ``PySwarms``.
 - **MCMC**: ``emcee`` and ``Zeus``.
-- **Nested Samplers**: ``dynesty``, ``UltraNest`` (optional) and ``PyMultiNest`` (optional).
+- **Nested Samplers**: ``dynesty`` and ``UltraNest`` (optional).
 
 Functionality
 -------------

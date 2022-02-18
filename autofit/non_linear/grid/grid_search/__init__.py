@@ -146,7 +146,7 @@ class GridSearch:
         return arguments
 
     def model_mappers(self, model, grid_priors):
-        grid_priors = list(set(grid_priors))
+        grid_priors = model.sort_priors_alphabetically(set(grid_priors))
         lists = self.make_lists(grid_priors)
         for values in lists:
             arguments = self.make_arguments(values, grid_priors)
@@ -229,7 +229,9 @@ class GridSearch:
             "...in parallel"
         )
 
-        grid_priors = list(set(grid_priors))
+        grid_priors = model.sort_priors_alphabetically(
+            set(grid_priors)
+        )
         lists = self.make_lists(grid_priors)
 
         results_list = [
@@ -288,7 +290,9 @@ class GridSearch:
         )
 
     def make_jobs(self, model, analysis, grid_priors, info: Optional[Dict] = None):
-        grid_priors = list(set(grid_priors))
+        grid_priors = model.sort_priors_alphabetically(
+            set(grid_priors)
+        )
         lists = self.make_lists(grid_priors)
 
         jobs = list()
