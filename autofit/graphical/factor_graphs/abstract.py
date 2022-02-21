@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from itertools import count
+from itertools import count, chain
 from typing import (
     List,
     Tuple,
@@ -364,17 +364,27 @@ class AbstractFactor(AbstractNode, ABC):
         self._calc_exact_projection = getattr(factor, "calc_exact_projection", None)
         self._calc_exact_update = getattr(factor, "calc_exact_update", None)
 
+    def resolve_args_and_out(self, values):
+        if self.factor_out == FactorValue:
+            return self.resolve_args(values)
+        else:
+            return chain(self.resolve_args(values), (nested_update(self.factor_out, values),))
+
     def has_exact_projection(self, mean_field) -> bool:
         if self._has_exact_projection:
-            return self._has_exact_projection(*self.resolve_args(mean_field))
+            return self._has_exact_projection(*self.resolve_args_and_out(mean_field))
         return False
 
     def calc_exact_projection(self, mean_field) -> "MeanField":
         if self._calc_exact_projection:
             from autofit.graphical.mean_field import MeanField
 
-            projection = self._calc_exact_projection(*self.resolve_args(mean_field))
-            return MeanField(zip(self.args, projection))
+            projection = self._calc_exact_projection(*self.resolve_args_and_out(mean_field))
+            return MeanField(
+                nested_filter(
+                    is_variable, self.args + (self.factor_out,), projection
+                )
+            )
         else:
             return NotImplementedError
 
@@ -382,8 +392,12 @@ class AbstractFactor(AbstractNode, ABC):
         if self._calc_exact_update:
             from autofit.graphical.mean_field import MeanField
 
-            projection = self._calc_exact_update(*self.resolve_args(mean_field))
-            return MeanField(zip(self.args, projection))
+            projection = self._calc_exact_update(*self.resolve_args_and_out(mean_field))
+            return MeanField(
+                nested_filter(
+                    is_variable, self.args + (self.factor_out,), projection
+                )
+            )
         else:
             return NotImplementedError
 
