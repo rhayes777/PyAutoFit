@@ -205,7 +205,27 @@ class GaussianPrior(NormalMessage):
     )
 
     @classmethod
-    def with_limits(cls, lower_limit, upper_limit):
+    def with_limits(
+            cls,
+            lower_limit: float,
+            upper_limit: float
+    ) -> "GaussianPrior":
+        """
+        Create a new gaussian prior centred between two limits
+        with sigma distance between this limits.
+
+        Note that these limits are not strict so exceptions will not
+        be raised for values outside of the limits.
+
+        Parameters
+        ----------
+        lower_limit
+        upper_limit
+
+        Returns
+        -------
+        A new GaussianPrior
+        """
         return cls(
             mean=(lower_limit + upper_limit) / 2,
             sigma=upper_limit - lower_limit,

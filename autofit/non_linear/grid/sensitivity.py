@@ -203,6 +203,13 @@ class Sensitivity:
             A NonLinear search class which is copied and used to evaluate fitness
         number_of_cores
             How many cores does this computer have? Minimum 2.
+        limit_scale
+            Scales the priors for each perturbation model.
+                A scale of 1 means priors have limits the same size as the grid square.
+                A scale of 2 means priors have limits larger than the grid square with
+                    width twice a grid square.
+                A scale of 0.5 means priors have limits smaller than the grid square
+                    with width half a grid square.
         """
         self.logger = logging.getLogger(
             f"Sensitivity ({search.name})"
@@ -367,6 +374,13 @@ class Sensitivity:
     def _perturbation_models(self) -> Generator[
         AbstractPriorModel, None, None
     ]:
+        """
+        A list of models representing a perturbation at each grid square.
+
+        By default models have priors with limits at the edges of a grid square.
+        These limits can be scaled using the limit_scale variable. If the variable
+        is 2 then the priors will have width twice the step size.
+        """
         for list_ in self._lists:
             half_step = self.limit_scale * (self.step_size / 2)
             limits = [

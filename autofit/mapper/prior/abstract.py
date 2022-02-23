@@ -66,7 +66,14 @@ class Prior(Variable, ABC, ArithmeticMixin):
             )
 
     @classmethod
-    def with_limits(cls, lower_limit, upper_limit):
+    def with_limits(
+            cls,
+            lower_limit: float,
+            upper_limit: float
+    ) -> "Prior":
+        """
+        Create a new instance of the same prior class with the passed limits.
+        """
         return cls(
             lower_limit=lower_limit,
             upper_limit=upper_limit,
