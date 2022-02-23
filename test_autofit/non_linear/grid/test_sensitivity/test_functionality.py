@@ -44,3 +44,40 @@ def test_job_paths(
     output_path = search.paths.output_path
     assert job.perturbed_search.paths.output_path == f"{output_path}/[perturbed]"
     assert job.search.paths.output_path == f"{output_path}/[base]"
+
+
+class TestPerturbationModels:
+    def test_perturbation_models(
+            self,
+            sensitivity
+    ):
+        jobs = sensitivity._make_jobs()
+        models = [
+            job.perturbation_model
+            for job in jobs
+        ]
+
+        first, second, *_ = models
+
+        assert first is not second
+
+        assert first.sigma.lower_limit == 0.0
+        assert first.sigma.upper_limit == 0.5
+        assert second.sigma.lower_limit == 0.5
+        assert second.sigma.upper_limit == 1.0
+
+    def test_model_with_limits(self):
+        model = af.Model(af.Gaussian)
+
+        with_limits = model.with_limits([
+            (3, 5),
+            (3, 5),
+            (3, 5),
+        ])
+        assert with_limits.centre.lower_limit == 3
+        assert with_limits.centre.upper_limit == 5
+
+    def test_prior_with_limits(self):
+        prior = af.UniformPrior().with_limits(3, 5)
+        assert prior.lower_limit == 3
+        assert prior.upper_limit == 5

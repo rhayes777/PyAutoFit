@@ -361,6 +361,21 @@ class Sensitivity:
             )
 
     @property
+    def _perturbation_models(self) -> Generator[
+        AbstractPriorModel, None, None
+    ]:
+        for list_ in self._lists:
+            half_step = self.step_size / 2
+            limits = [
+                (
+                    centre - half_step,
+                    centre + half_step
+                )
+                for centre in list_
+            ]
+            yield self.perturbation_model.with_limits(limits)
+
+    @property
     def _searches(self) -> Generator[
         NonLinearSearch, None, None
     ]:
@@ -405,12 +420,15 @@ class Sensitivity:
         Each job fits a perturbed image with the original model
         and a model which includes a perturbation.
         """
-        for number, (perturbation_instance, search) in enumerate(
-                zip(
-                    self._perturbation_instances,
-                    self._searches
-                )
-        ):
+        for number, (
+                perturbation_instance,
+                perturbation_model,
+                search
+        ) in enumerate(zip(
+            self._perturbation_instances,
+            self._perturbation_models,
+            self._searches
+        )):
             instance = copy(self.instance)
             instance.perturbation = perturbation_instance
 
@@ -421,7 +439,7 @@ class Sensitivity:
                     analysis_class=self.analysis_class,
                 ),
                 model=self.model,
-                perturbation_model=self.perturbation_model,
+                perturbation_model=perturbation_model,
                 base_instance=self.instance,
                 perturbation_instance=perturbation_instance,
                 search=search,

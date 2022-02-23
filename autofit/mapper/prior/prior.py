@@ -204,6 +204,13 @@ class GaussianPrior(NormalMessage):
         "sigma"
     )
 
+    @classmethod
+    def with_limits(cls, lower_limit, upper_limit):
+        return cls(
+            mean=(lower_limit + upper_limit) / 2,
+            sigma=upper_limit - lower_limit,
+        )
+
     @assert_within_limits
     def value_for(self, unit):
         """
