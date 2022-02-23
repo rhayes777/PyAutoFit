@@ -1,11 +1,11 @@
 from abc import ABC, abstractmethod
+from copy import copy
 from functools import reduce
 from inspect import getfullargspec
 from numbers import Real
 from operator import and_
 from typing import Dict, Tuple, Iterator
 from typing import Optional, Union, Type, List
-from copy import copy 
 
 import numpy as np
 
@@ -44,9 +44,11 @@ class AbstractMessage(Prior, ABC):
             self.parameters = tuple(parameters)
 
     def copy(self):
-        return type(self)(
+        result = type(self)(
             *(copy(params) for params in self.parameters), log_norm=self.log_norm
         )
+        result.id = self.id
+        return result
 
     def __bool__(self):
         return True
@@ -514,11 +516,11 @@ class AbstractMessage(Prior, ABC):
         )
 
     def calc_exact_update(self, x: "AbstractMessage") -> "AbstractMessage":
-        return self, 
+        return self,
 
     def has_exact_projection(self, x: "AbstractMessage") -> bool:
         if type(self) == type(x):
-            return True 
+            return True
         return False
 
     @classmethod
