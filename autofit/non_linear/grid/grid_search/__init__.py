@@ -283,7 +283,7 @@ class GridSearch:
                 job_result
             )
             results_list.append(job_result.result_list_row)
-            write_results(results_list)
+            write_results()
             if i % self._result_output_interval == 0:
                 save_results()
 
