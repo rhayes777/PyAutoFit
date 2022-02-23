@@ -4,8 +4,9 @@ import os
 from copy import copy
 from itertools import count
 from pathlib import Path
-from typing import List, Generator, Callable, ClassVar, Optional, Type, Union, Tuple
+from typing import List, Generator, Callable, ClassVar, Type, Union, Tuple
 
+from autoconf import cached_property
 from autofit.mapper.model import ModelInstance
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.abstract_search import NonLinearSearch
@@ -13,7 +14,6 @@ from autofit.non_linear.analysis import Analysis
 from autofit.non_linear.grid.grid_search import make_lists
 from autofit.non_linear.parallel import AbstractJob, Process, AbstractJobResult
 from autofit.non_linear.result import Result
-
 
 
 class JobResult(AbstractJobResult):
@@ -55,11 +55,11 @@ class Job(AbstractJob):
 
     def __init__(
             self,
-            analysis: Analysis,
+            analysis_factory: "AnalysisFactory",
             model: AbstractPriorModel,
             perturbation_model: AbstractPriorModel,
-            base_instance:ModelInstance,
-            perturbation_instance:ModelInstance,
+            base_instance: ModelInstance,
+            perturbation_instance: ModelInstance,
             search: NonLinearSearch,
             number: int,
     ):
@@ -73,8 +73,8 @@ class Job(AbstractJob):
             A base model that fits the image without a perturbation
         perturbation_model
             A model of the perturbation which has been added to the underlying image
-        analysis
-            A class definition which can compares instances of a model to a perturbed image
+        analysis_factory
+            Factory to generate analysis classes which comprise a model and data
         search
             A non-linear search
         """
@@ -82,7 +82,7 @@ class Job(AbstractJob):
             number=number
         )
 
-        self.analysis = analysis
+        self.analysis_factory = analysis_factory
         self.model = model
 
         self.perturbation_model = perturbation_model
@@ -99,6 +99,10 @@ class Job(AbstractJob):
                 "[perturbed]",
             )
         )
+
+    @cached_property
+    def analysis(self):
+        return self.analysis_factory()
 
     def perform(self) -> JobResult:
         """
@@ -164,7 +168,7 @@ class Sensitivity:
             simulate_function: Callable,
             analysis_class: Type[Analysis],
             search: NonLinearSearch,
-            job_cls : ClassVar=Job,
+            job_cls: ClassVar = Job,
             number_of_steps: Union[Tuple[int], int] = 4,
             number_of_cores: int = 2,
     ):
@@ -410,12 +414,11 @@ class Sensitivity:
             instance = copy(self.instance)
             instance.perturbation = perturbation_instance
 
-            dataset = self.simulate_function(
-                instance
-            )
             yield self.job_cls(
-                analysis=self.analysis_class(
-                    dataset
+                analysis_factory=AnalysisFactory(
+                    instance=instance,
+                    simulate_function=self.simulate_function,
+                    analysis_class=self.analysis_class,
                 ),
                 model=self.model,
                 perturbation_model=self.perturbation_model,
@@ -424,3 +427,23 @@ class Sensitivity:
                 search=search,
                 number=number
             )
+
+
+class AnalysisFactory:
+    def __init__(
+            self,
+            instance,
+            simulate_function,
+            analysis_class,
+    ):
+        self.instance = instance
+        self.simulate_function = simulate_function
+        self.analysis_class = analysis_class
+
+    def __call__(self):
+        dataset = self.simulate_function(
+            self.instance
+        )
+        return self.analysis_class(
+            dataset
+        )

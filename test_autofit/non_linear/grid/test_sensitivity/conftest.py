@@ -2,10 +2,8 @@ import numpy as np
 import pytest
 
 import autofit as af
-
-from autofit.non_linear.grid import sensitivity as s
-
 from autofit.mock.mock import MockSearch
+from autofit.non_linear.grid import sensitivity as s
 
 x = np.array(range(10))
 
@@ -64,6 +62,14 @@ def make_sensitivity(
     )
 
 
+class MockAnalysisFactory:
+    def __init__(self, analysis):
+        self.analysis = analysis
+
+    def __call__(self):
+        return self.analysis
+
+
 @pytest.fixture(
     name="job"
 )
@@ -84,7 +90,7 @@ def make_job(
         perturbation_model=af.PriorModel(af.Gaussian),
         base_instance=base_instance,
         perturbation_instance=instance,
-        analysis=Analysis(image),
+        analysis_factory=MockAnalysisFactory(Analysis(image)),
         search=search,
         number=1
     )
