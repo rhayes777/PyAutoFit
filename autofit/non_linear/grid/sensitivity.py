@@ -436,6 +436,10 @@ class AnalysisFactory:
             simulate_function,
             analysis_class,
     ):
+        """
+        Callable to delay simulation such that it is performed
+        on the Job subprocess
+        """
         self.instance = instance
         self.simulate_function = simulate_function
         self.analysis_class = analysis_class
