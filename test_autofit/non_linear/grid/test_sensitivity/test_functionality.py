@@ -1,3 +1,5 @@
+import pytest
+
 import autofit as af
 from autofit.non_linear.grid import sensitivity as s
 
@@ -47,10 +49,21 @@ def test_job_paths(
 
 
 class TestPerturbationModels:
+    @pytest.mark.parametrize(
+        "limit_scale, fl, fu, sl, su",
+        [
+            (1.0, 0.0, 0.5, 0.5, 1.0,),
+            (2.0, -0.25, 0.75, 0.25, 1.25,),
+            (4.0, -0.75, 1.25, -0.25, 1.75,),
+        ]
+    )
     def test_perturbation_models(
             self,
-            sensitivity
+            sensitivity,
+            limit_scale,
+            fl, fu, sl, su
     ):
+        sensitivity.limit_scale = limit_scale
         jobs = sensitivity._make_jobs()
         models = [
             job.perturbation_model
@@ -61,10 +74,10 @@ class TestPerturbationModels:
 
         assert first is not second
 
-        assert first.sigma.lower_limit == 0.0
-        assert first.sigma.upper_limit == 0.5
-        assert second.sigma.lower_limit == 0.5
-        assert second.sigma.upper_limit == 1.0
+        assert first.sigma.lower_limit == fl
+        assert first.sigma.upper_limit == fu
+        assert second.sigma.lower_limit == sl
+        assert second.sigma.upper_limit == su
 
     def test_model_with_limits(self):
         model = af.Model(af.Gaussian)

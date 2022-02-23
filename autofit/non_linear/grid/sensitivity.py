@@ -171,6 +171,7 @@ class Sensitivity:
             job_cls: ClassVar = Job,
             number_of_steps: Union[Tuple[int], int] = 4,
             number_of_cores: int = 2,
+            limit_scale: int = 1,
     ):
         """
         Perform sensitivity mapping to evaluate whether a perturbation
@@ -222,6 +223,8 @@ class Sensitivity:
 
         self.number_of_steps = number_of_steps
         self.number_of_cores = number_of_cores or 2
+
+        self.limit_scale = limit_scale
 
     @property
     def step_size(self):
@@ -365,7 +368,7 @@ class Sensitivity:
         AbstractPriorModel, None, None
     ]:
         for list_ in self._lists:
-            half_step = self.step_size / 2
+            half_step = self.limit_scale * (self.step_size / 2)
             limits = [
                 (
                     centre - half_step,
