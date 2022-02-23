@@ -79,6 +79,18 @@ class TestPerturbationModels:
         assert second.sigma.lower_limit == sl
         assert second.sigma.upper_limit == su
 
+    def test_physical(
+            self,
+            sensitivity
+    ):
+        sensitivity.perturbation_model.sigma = af.UniformPrior(
+            upper_limit=10
+        )
+        model = list(
+            sensitivity._make_jobs()
+        )[0].perturbation_model
+        assert model.sigma.upper_limit == 5
+
     def test_model_with_limits(self):
         model = af.Model(af.Gaussian)
 
