@@ -860,6 +860,29 @@ class AbstractPriorModel(AbstractModel):
 
         return self.mapper_from_prior_arguments(arguments)
 
+    def with_limits(
+            self, limits: List[Tuple[float, float]]
+    ) -> "AbstractPriorModel":
+        """
+        Create a new instance of this model where each prior is updated to
+        lie between new limits.
+
+        Parameters
+        ----------
+        limits
+            A list of pairs of lower and upper limits, one for each prior.
+
+        Returns
+        -------
+        A new model with updated limits
+        """
+        return self.mapper_from_prior_arguments({
+            prior: prior.with_limits(*prior_limits)
+            for prior, prior_limits in zip(
+                self.priors, limits
+            )
+        })
+
     def instance_from_prior_medians(self):
         """
         Returns a list of physical values from the median values of the priors.

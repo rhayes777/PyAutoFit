@@ -1,4 +1,5 @@
 import copy
+import csv
 import logging
 from os import path
 from typing import List, Tuple, Union, Type, Optional, Dict
@@ -234,18 +235,6 @@ class GridSearch:
         )
         lists = self.make_lists(grid_priors)
 
-        results_list = [
-            ["index"]
-            + list(map(model.name_for_prior, grid_priors))
-            + ["likelihood_merit"]
-        ]
-
-        if results_list[0][1] == "galaxies_subhalo_mass_centre_1":
-
-            raise exc.GridSearchException(
-                "The grid search parameters have been swapped due to a currently unknown bug."
-            )
-
         builder = ResultBuilder(
             lists=lists,
             grid_priors=grid_priors
@@ -258,6 +247,26 @@ class GridSearch:
                 "result",
                 builder()
             )
+
+        def write_results():
+            self.logger.debug(
+                "Writing results"
+            )
+            with open(path.join(self.paths.output_path, "results.csv"), "w+") as f:
+                writer = csv.writer(f)
+                writer.writerow([
+                    ["index"]
+                    + list(map(model.name_for_prior, grid_priors))
+                    + ["likelihood_merit"]
+                ])
+
+                for results in results_list:
+                    writer.writerow([
+                        f"{value:.2f}"
+                        for value in results
+                    ])
+
+        results_list = []
 
         for i, job_result in enumerate(
                 process_class.run_jobs(
@@ -274,7 +283,7 @@ class GridSearch:
                 job_result
             )
             results_list.append(job_result.result_list_row)
-            self.write_results(results_list)
+            write_results()
             if i % self._result_output_interval == 0:
                 save_results()
 
@@ -309,27 +318,6 @@ class GridSearch:
                 )
             )
         return jobs
-
-    def write_results(self, results_list):
-        self.logger.debug(
-            "Writing results"
-        )
-        with open(path.join(self.paths.output_path, "results.csv"), "w+") as f:
-            f.write(
-                "\n".join(
-                    map(
-                        lambda ls: ", ".join(
-                            map(
-                                lambda value: "{:.2f}".format(value)
-                                if isinstance(value, float)
-                                else str(value),
-                                ls,
-                            )
-                        ),
-                        results_list,
-                    )
-                )
-            )
 
     def job_for_analysis_grid_priors_and_values(
             self,
