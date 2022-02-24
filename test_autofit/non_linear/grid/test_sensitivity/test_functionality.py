@@ -95,14 +95,24 @@ class TestPerturbationModels:
         model = af.Model(af.Gaussian)
 
         with_limits = model.with_limits([
-            (3, 5),
-            (3, 5),
-            (3, 5),
+            (0.3, 0.5),
+            (0.3, 0.5),
+            (0.3, 0.5),
         ])
-        assert with_limits.centre.lower_limit == 3
-        assert with_limits.centre.upper_limit == 5
+        assert with_limits.centre.lower_limit == 0.3
+        assert with_limits.centre.upper_limit == 0.5
 
     def test_prior_with_limits(self):
-        prior = af.UniformPrior().with_limits(3, 5)
+        prior = af.UniformPrior(
+            lower_limit=0,
+            upper_limit=10,
+        ).with_limits(3, 5)
         assert prior.lower_limit == 3
         assert prior.upper_limit == 5
+
+    def test_existing_limits(self):
+        prior = af.UniformPrior(
+            2, 4
+        ).with_limits(3, 5)
+        assert prior.lower_limit == 3
+        assert prior.upper_limit == 4
