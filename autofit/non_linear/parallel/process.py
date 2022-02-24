@@ -171,6 +171,7 @@ class Process(multiprocessing.Process):
         logger.debug("Starting processes")
 
         process_count = 0
+        exception = None
 
         while process_count < total:
             for process in processes:
@@ -179,6 +180,7 @@ class Process(multiprocessing.Process):
                     if isinstance(result, Exception):
                         process_count += 1
                         logger.exception(result)
+                        exception = result
                     process_count += 1
                     yield result
 
@@ -191,9 +193,10 @@ class Process(multiprocessing.Process):
 
         logger.debug("Joining processes")
 
-        raise AssertionError(
-            "Some jobs failed"
-        )
+        if exception is not None:
+            raise AssertionError(
+                exception
+            )
 
 
 class StopCommand:

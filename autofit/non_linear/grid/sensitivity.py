@@ -267,6 +267,9 @@ class Sensitivity:
                 self._make_jobs(),
                 number_of_cores=self.number_of_cores
         ):
+            if isinstance(result, Exception):
+                raise result
+
             results.append(result)
             results = sorted(results)
 
