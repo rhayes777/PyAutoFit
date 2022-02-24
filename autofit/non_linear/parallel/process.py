@@ -112,6 +112,7 @@ class Process(multiprocessing.Process):
                     )
                 except Exception as e:
                     logger.exception(e)
+                    self.queue.put(e)
         self.logger.debug("terminating")
         self.job_queue.close()
 
