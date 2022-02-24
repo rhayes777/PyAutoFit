@@ -53,8 +53,8 @@ class TestPerturbationModels:
         "limit_scale, fl, fu, sl, su",
         [
             (1.0, 0.0, 0.5, 0.5, 1.0,),
-            (2.0, -0.25, 0.75, 0.25, 1.25,),
-            (4.0, -0.75, 1.25, -0.25, 1.75,),
+            (2.0, 0.0, 0.75, 0.25, 1.0,),
+            (4.0, 0.0, 1.0, 0.0, 1.0,),
         ]
     )
     def test_perturbation_models(

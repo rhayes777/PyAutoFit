@@ -879,7 +879,7 @@ class AbstractPriorModel(AbstractModel):
         return self.mapper_from_prior_arguments({
             prior: prior.with_limits(*prior_limits)
             for prior, prior_limits in zip(
-                self.priors, limits
+                self.priors_ordered_by_id, limits
             )
         })
 

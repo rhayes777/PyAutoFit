@@ -381,19 +381,16 @@ class Sensitivity:
         These limits can be scaled using the limit_scale variable. If the variable
         is 2 then the priors will have width twice the step size.
         """
-        half_steps = [
-            self.limit_scale * prior.value_for(self.step_size) / 2
-            for prior in self.perturbation_model.priors_ordered_by_id
-        ]
-        for list_ in self._physical_values:
+        half_step = self.limit_scale * self.step_size / 2
+        for list_ in self._lists:
             limits = [
                 (
-                    centre - half_step,
-                    centre + half_step
+                    prior.value_for(max(0.0, centre - half_step)),
+                    prior.value_for(min(1.0, centre + half_step)),
                 )
-                for centre, half_step in zip(
+                for centre, prior in zip(
                     list_,
-                    half_steps
+                    self.perturbation_model.priors_ordered_by_id
                 )
             ]
             yield self.perturbation_model.with_limits(limits)

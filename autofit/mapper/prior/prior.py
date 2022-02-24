@@ -169,6 +169,20 @@ class LogUniformPrior(WrappedInstance):
             upper_limit=upper_limit,
         )
 
+    @classmethod
+    def with_limits(
+            cls,
+            lower_limit: float,
+            upper_limit: float
+    ):
+        return super().with_limits(
+            lower_limit=max(
+                0.000001,
+                lower_limit
+            ),
+            upper_limit=upper_limit,
+        )
+
     __identifier_fields__ = ("lower_limit", "upper_limit")
 
     @staticmethod
