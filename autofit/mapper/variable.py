@@ -57,6 +57,18 @@ class Plate:
         return seq
 
 
+def plates(*vals):
+    """Helper function for making multiple plate objects
+
+    Example
+    -------
+    x_, a_, b_, y_, z_ = plates("x, a, b", "y, z")
+    """
+    for val in vals:
+        for v in val.split(","):
+            yield Plate(v.strip())
+
+
 class Variable(ModelObject):
     # __slots__ = ("name", "plates")
 

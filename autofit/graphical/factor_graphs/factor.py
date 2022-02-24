@@ -169,7 +169,7 @@ class Factor(AbstractFactor):
     ):
         if not arg_names:
             arg_names = [arg for arg in getfullargspec(factor).args]
-            if arg_names[0] == "self":
+            if arg_names and arg_names[0] == "self":
                 arg_names = arg_names[1:]
 
         # Make sure arg_names matches length of args
