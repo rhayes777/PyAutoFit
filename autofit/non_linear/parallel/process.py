@@ -104,11 +104,14 @@ class Process(multiprocessing.Process):
                 break
             else:
                 job = self.job_queue.get()
-                self.queue.put(
-                    job.perform(
-                        *self.job_args
+                try:
+                    self.queue.put(
+                        job.perform(
+                            *self.job_args
+                        )
                     )
-                )
+                except Exception as e:
+                    logger.exception(e)
         self.logger.debug("terminating")
         self.job_queue.close()
 
@@ -172,6 +175,9 @@ class Process(multiprocessing.Process):
             for process in processes:
                 while not process.queue.empty():
                     result = process.queue.get()
+                    if isinstance(result, Exception):
+                        process_count += 1
+                        logger.exception(result)
                     process_count += 1
                     yield result
 
@@ -183,6 +189,10 @@ class Process(multiprocessing.Process):
             process.join(timeout=1.0)
 
         logger.debug("Joining processes")
+
+        raise AssertionError(
+            "Some jobs failed"
+        )
 
 
 class StopCommand:
