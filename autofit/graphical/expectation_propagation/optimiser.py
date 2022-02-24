@@ -73,7 +73,9 @@ class AbstractFactorOptimiser(ABC):
                 new_model_dist, factor_approx, model_approx, status
             )
         else:
-            raise NotImplementedError
+            raise NotImplementedError(
+                "Factor does not have exact updates methods"
+            )
 
         return new_approx, status 
 

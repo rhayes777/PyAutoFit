@@ -12,6 +12,7 @@ except ImportError:
 from autofit.graphical.utils import (
     nested_filter,
     is_variable,
+    try_getitem, 
 )
 from autofit.mapper.variable import Variable, Plate, VariableData
 
@@ -240,35 +241,22 @@ class Factor(AbstractFactor):
         if self._vjp:
             factor_vjp = None
             if self._factor_vjp != self._jax_factor_vjp:
-                try:
-                    factor_vjp = self._factor_vjp[index]
-                except TypeError:
-                    try:
-                        factor_vjp = subset_factor.factor_vjp
-                    except AttributeError:
-                        pass
+                factor_vjp = try_getitem(
+                    self._factor_vjp, index, getattr(subset_factor, 'factor_vjp', None)
+                )
 
             jac_kws["factor_vjp"] = factor_vjp
         else:
             factor_jacobian = None
             jacobian = None
             if self._factor_jacobian != Factor._factor_jacobian:
-                try:
-                    factor_jacobian = self._factor_jacobian[index]
-                except TypeError:
-                    try:
-                        factor_jacobian = subset_factor.factor_jacobian
-                    except AttributeError:
-                        pass
-
+                factor_jacobian = try_getitem(
+                    self._factor_jacobian, index, getattr(subset_factor, 'factor_jacobian', None)
+                )
             elif self._jacobian != Factor._jacobian:
-                try:
-                    jacobian = self.jacobian[index]
-                except TypeError:
-                    try:
-                        jacobian = subset_factor.jacobian
-                    except AttributeError:
-                        pass
+                jacobian = try_getitem(
+                    self.jacobian, index, getattr(subset_factor, 'jacobian', None)
+                )
             elif self._factor_jacobian != self._numerical_factor_jacobian:
                 jac_kws["jacfwd"] = self._jacfwd
 

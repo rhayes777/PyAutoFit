@@ -517,9 +517,7 @@ class AbstractMessage(Prior, ABC):
         return self, 
 
     def has_exact_projection(self, x: "AbstractMessage") -> bool:
-        if type(self) == type(x):
-            return True 
-        return False
+        return type(self) is type(x)
 
     @classmethod
     def transformed(

@@ -13,6 +13,11 @@ from scipy.optimize import OptimizeResult
 
 from autofit.mapper.variable import Variable, VariableData
 
+def try_getitem(value, index, default=None):
+    try:
+        return value[index]
+    except TypeError:
+        return default
 
 class LogWarnings(warnings.catch_warnings):
     def __init__(self, *, module=None, messages=None, action=None, logger=logging.warning):
@@ -408,8 +413,8 @@ def aggregate(array: np.ndarray, axis: Axis = None, **kwargs) -> np.ndarray:
     """
     if axis is False:
         return array
-    else:
-        return np.sum(array, axis=axis, **kwargs)
+        
+    return np.sum(array, axis=axis, **kwargs)
 
 
 def diag(array: np.ndarray, *ds: Tuple[int, ...]) -> np.ndarray:

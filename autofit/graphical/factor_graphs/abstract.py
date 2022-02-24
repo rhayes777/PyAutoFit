@@ -19,6 +19,7 @@ from autofit.graphical.utils import (
     nested_filter,
     nested_update,
     is_variable,
+    Status, 
 )
 from autofit.mapper.variable import (
     Variable,
@@ -29,6 +30,7 @@ from autofit.mapper.variable import (
 
 if TYPE_CHECKING:
     from autofit.graphical.mean_field import MeanField
+    from autofit.graphical.expectation_propagation import EPMeanField
 
 Protocol = ABC  # for python 3.7 compat
 
@@ -386,7 +388,7 @@ class AbstractFactor(AbstractNode, ABC):
                 )
             )
         else:
-            return NotImplementedError
+            raise NotImplementedError
 
     def calc_exact_update(self, mean_field) -> "MeanField":
         if self._calc_exact_update:
@@ -399,7 +401,7 @@ class AbstractFactor(AbstractNode, ABC):
                 )
             )
         else:
-            return NotImplementedError
+            raise NotImplementedError
 
     def name_for_variable(self, variable):
         return self.name

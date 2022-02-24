@@ -75,7 +75,10 @@ class EPMeanField(FactorGraph):
     def copy(self):
         return type(self)(**{k: val.copy() for k, val in self.parameters.items()})
 
-    def subset(self, plates_index):
+    def subset(self, plates_index: Dict[Plate, List[int]]) -> "EPMeanFieldSubset":
+        """Given a dictionary of Plates with a subset of indexes 
+        returns the EPMeanFieldSubset that corresponds to the subset of indexes.
+        """
         factor_subset_factor = {}
         factor_mean_field_subset = {}
         factor_mean_field_rescale = {}

@@ -627,7 +627,7 @@ class DiagonalMatrix(MatrixOperator):
                 self.scale[index[:self.ldim]]
             )
         else:
-            raise NotImplementedError()
+            raise NotImplementedError("Can't get diagonal for non 'square' operators")
 
     def reshape(self, shape):
         shape = shape[:len(shape)//2]
