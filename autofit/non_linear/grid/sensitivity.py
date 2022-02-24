@@ -14,6 +14,7 @@ from autofit.non_linear.analysis import Analysis
 from autofit.non_linear.grid.grid_search import make_lists
 from autofit.non_linear.parallel import AbstractJob, Process, AbstractJobResult
 from autofit.non_linear.result import Result
+from autofit.text.text_util import padding
 
 
 class JobResult(AbstractJobResult):
@@ -280,13 +281,15 @@ class Sensitivity:
                     values = physical_values[
                         result_.number
                     ]
-                    writer.writerow([
-                        result_.number,
-                        *values,
-                        result_.log_likelihood_base,
-                        result_.log_likelihood_perturbed,
-                        result_.log_likelihood_difference,
-                    ])
+                    writer.writerow(
+                        padding(item)
+                        for item in [
+                            result_.number,
+                            *values,
+                            result_.log_likelihood_base,
+                            result_.log_likelihood_perturbed,
+                            result_.log_likelihood_difference,
+                        ])
 
         return SensitivityResult(results)
 
