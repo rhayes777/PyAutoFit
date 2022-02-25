@@ -28,6 +28,7 @@ class AbstractFactorOptimiser(ABC):
     """
     An optimiser used to optimise individual factors during EPOptimisation.
     """
+    logger = logger.debug
 
     def __init__(self, initial_values=None, deltas=None, inplace=False):
         self.initial_values = initial_values or {}
@@ -63,7 +64,7 @@ class AbstractFactorOptimiser(ABC):
             self, factor: Factor, model_approx: EPMeanField, status: Status = Status()
     ) -> Tuple[EPMeanField, Status]:
     
-        with LogWarnings(action='always') as caught_warnings:
+        with LogWarnings(logger=self.logger, action='always') as caught_warnings:
             if factor._calc_exact_update:
                 factor_approx = model_approx.factor_approximation(factor)
                 new_approx = model_approx if self.inplace else model_approx.copy()
