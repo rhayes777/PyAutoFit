@@ -206,6 +206,59 @@ class NormalMessage(AbstractMessage):
         return {**prior_dict, "mean": self.mean, "sigma": self.sigma}
 
 
+class NaturalNormal(NormalMessage):
+    """Identical to the NormalMessage but allows non-normalised values, 
+    e.g negative or infinite variances
+    """
+    _parameter_support = ((-np.inf, np.inf), (-np.inf, np.inf))
+
+    def __init__(
+            self,
+            eta1,
+            eta2,
+            lower_limit=-math.inf,
+            upper_limit=math.inf,
+            log_norm=0.0,
+            id_=None,
+    ):
+        AbstractMessage.__init__(
+            self, 
+            eta1,
+            eta2,
+            log_norm=log_norm,
+            lower_limit=lower_limit,
+            upper_limit=upper_limit,
+            id_=id_,
+        )
+    
+    @cached_property
+    def sigma(self):
+        precision = -2 * self.parameters[1]
+        return precision**-0.5
+
+    @cached_property
+    def mean(self):
+        return - self.parameters[0] / self.parameters[1] / 2
+
+    @staticmethod
+    def calc_natural_parameters(eta1, eta2):
+        return np.array([eta1, eta2])
+    
+    @cached_property
+    def natural_parameters(self):
+        return self.calc_natural_parameters(*self.parameters)
+
+    @classmethod
+    def invert_sufficient_statistics(cls, suff_stats):
+        m1, m2 = suff_stats
+        precision = 1/(m2 - m1 ** 2)
+        return cls.calc_natural_parameters(m1 * precision, -2 * precision)
+
+    @staticmethod
+    def invert_natural_parameters(natural_parameters):
+        return natural_parameters
+
+
 UniformNormalMessage = NormalMessage.transformed(phi_transform, "UniformNormalMessage")
 UniformNormalMessage.__module__ = __name__
 
