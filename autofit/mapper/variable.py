@@ -433,9 +433,9 @@ class VariableData(Dict[Variable, np.ndarray]):
         sizes = {}
         for v, val in self.items():
             shape = np.shape(val)
-            assert len(shape) == len(v.plates), "shape must match the number of plates"
+            assert len(shape) == len(v.plates), f"shape must match the number of plates of {v}"
             for p, s in zip(v.plates, shape):
-                assert sizes.setdefault(p, s) == s, "plate sizes must be consistent"
+                assert sizes.setdefault(p, s) == s, f"plate sizes must be consistent, {sizes[p]} != {s}"
         return sizes
 
 
