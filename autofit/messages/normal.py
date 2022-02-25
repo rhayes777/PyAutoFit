@@ -210,7 +210,7 @@ class NaturalNormal(NormalMessage):
     """Identical to the NormalMessage but allows non-normalised values, 
     e.g negative or infinite variances
     """
-    _parameter_support = ((-np.inf, np.inf), (-np.inf, np.inf))
+    _parameter_support = ((-np.inf, np.inf), (-np.inf, 0))
 
     def __init__(
             self,
