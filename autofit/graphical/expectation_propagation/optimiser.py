@@ -62,20 +62,29 @@ class AbstractFactorOptimiser(ABC):
     def exact_fit(
             self, factor: Factor, model_approx: EPMeanField, status: Status = Status()
     ) -> Tuple[EPMeanField, Status]:
-        if factor._calc_exact_update:
-            factor_approx = model_approx.factor_approximation(factor)
-            new_approx = model_approx if self.inplace else model_approx.copy()
-            new_approx.update_factor_mean_field(factor, factor.calc_exact_update(factor_approx.cavity_dist))
-        elif factor._calc_exact_projection:
-            factor_approx = model_approx.factor_approximation(factor)
-            new_model_dist = factor.calc_exact_projection(factor_approx.cavity_dist) 
-            new_approx, status = self.update_model_approx(
-                new_model_dist, factor_approx, model_approx, status
-            )
-        else:
-            raise NotImplementedError(
-                "Factor does not have exact updates methods"
-            )
+    
+        with LogWarnings(action='always') as caught_warnings:
+            if factor._calc_exact_update:
+                factor_approx = model_approx.factor_approximation(factor)
+                new_approx = model_approx if self.inplace else model_approx.copy()
+                new_approx.update_factor_mean_field(
+                    factor, factor.calc_exact_update(factor_approx.cavity_dist)
+                )
+            elif factor._calc_exact_projection:
+                factor_approx = model_approx.factor_approximation(factor)
+                new_model_dist = factor.calc_exact_projection(factor_approx.cavity_dist) 
+                new_approx, status = self.update_model_approx(
+                    new_model_dist, factor_approx, model_approx, status
+                )
+
+            else:
+                raise NotImplementedError(
+                    "Factor does not have exact updates methods"
+                )
+
+        status_kws = status._asdict()
+        status_kws['messages'] = status.messages + tuple(caught_warnings.messages)
+        status = Status(**status_kws)
 
         return new_approx, status 
 
