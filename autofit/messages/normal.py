@@ -258,6 +258,19 @@ class NaturalNormal(NormalMessage):
     def invert_natural_parameters(natural_parameters):
         return natural_parameters
 
+    
+    @classmethod
+    def from_mode(
+            cls, mode: np.ndarray, covariance: Union[float, LinearOperator] = 1.0, id_=None
+    ):
+        if isinstance(covariance, LinearOperator):
+            precision = covariance.inv().diagonal()
+        else:
+            mode, variance = cls._get_mean_variance(mode, covariance)
+            precision = 1/variance 
+
+        return cls(mode * precision, - 2 * precision ** 0.5, id_=id_)
+
 
 UniformNormalMessage = NormalMessage.transformed(phi_transform, "UniformNormalMessage")
 UniformNormalMessage.__module__ = __name__
