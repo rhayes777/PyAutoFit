@@ -238,7 +238,7 @@ class NaturalNormal(NormalMessage):
 
     @cached_property
     def mean(self):
-        return - np.nan_to_num(self.parameters[0] / self.parameters[1]) / 2
+        return np.nan_to_num(- self.parameters[0] / self.parameters[1] / 2)
 
     @staticmethod
     def calc_natural_parameters(eta1, eta2):
