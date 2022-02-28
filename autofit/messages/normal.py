@@ -110,13 +110,13 @@ class NormalMessage(AbstractMessage):
 
     @classmethod
     def from_mode(
-            cls, mode: np.ndarray, covariance: Union[float, LinearOperator] = 1.0, id_=None
+            cls, mode: np.ndarray, covariance: Union[float, LinearOperator] = 1.0, **kwargs
     ):
         if isinstance(covariance, LinearOperator):
             variance = covariance.diagonal()
         else:
             mode, variance = cls._get_mean_variance(mode, covariance)
-        return cls(mode, np.abs(variance) ** 0.5, id_=id_)
+        return cls(mode, np.abs(variance) ** 0.5, **kwargs)
 
     def _normal_gradient_hessian(
             self, x: np.ndarray
@@ -261,7 +261,7 @@ class NaturalNormal(NormalMessage):
     
     @classmethod
     def from_mode(
-            cls, mode: np.ndarray, covariance: Union[float, LinearOperator] = 1.0, id_=None
+            cls, mode: np.ndarray, covariance: Union[float, LinearOperator] = 1.0, **kwargs 
     ):
         if isinstance(covariance, LinearOperator):
             precision = covariance.inv().diagonal()
@@ -269,7 +269,7 @@ class NaturalNormal(NormalMessage):
             mode, variance = cls._get_mean_variance(mode, covariance)
             precision = 1/variance 
 
-        return cls(mode * precision, - 2 * precision ** 0.5, id_=id_)
+        return cls(mode * precision, - precision/2, **kwargs)
 
 
 UniformNormalMessage = NormalMessage.transformed(phi_transform, "UniformNormalMessage")
