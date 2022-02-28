@@ -1,6 +1,14 @@
 from pathlib import Path
 
+from autoconf.conf import with_config
 
+
+@with_config(
+    "general",
+    "model",
+    "ignore_prior_limits",
+    value=True
+)
 def test_sensitivity(
         sensitivity
 ):
@@ -12,7 +20,7 @@ def test_sensitivity(
     ) / "results.csv"
     assert path.exists()
     with open(path) as f:
-        assert next(
-            f) == 'index,centre,normalization,sigma,log_likelihood_base,log_likelihood_perturbed,log_likelihood_difference\n'
-        assert next(f) == '0,0.25,0.25,0.25,2.0,2.0,0.0\n'
-        assert next(f) == '1,0.25,0.25,0.75,2.0,2.0,0.0\n'
+        all_lines = set(f)
+        assert 'index,centre,normalization,sigma,log_likelihood_base,log_likelihood_perturbed,log_likelihood_difference\n' in all_lines
+        assert '     0,  0.25,  0.25,  0.25,   2.0,   2.0,   0.0\n' in all_lines
+        assert '     1,  0.25,  0.25,  0.75,   2.0,   2.0,   0.0\n' in all_lines

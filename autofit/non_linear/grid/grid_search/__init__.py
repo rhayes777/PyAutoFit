@@ -8,6 +8,7 @@ from autofit import exc
 from autofit.mapper.prior import prior as p
 from autofit.non_linear.abstract_search import NonLinearSearch
 from autofit.non_linear.parallel import Process
+from autofit.text.text_util import padding
 from .job import Job
 from .result import GridSearchResult
 from .result_builder import ResultBuilder
@@ -262,7 +263,7 @@ class GridSearch:
 
                 for results in results_list:
                     writer.writerow([
-                        f"{value:.2f}"
+                        padding(f"{value:.2f}")
                         for value in results
                     ])
 
