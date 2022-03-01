@@ -120,7 +120,7 @@ class AbstractMessage(Prior, ABC):
             "variance",
             "std",
             "scale",
-            # "mean",
+            "mean",
             "natural_parameters",
             "is_valid",
         ]

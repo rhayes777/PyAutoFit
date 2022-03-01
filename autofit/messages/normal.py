@@ -53,13 +53,17 @@ class NormalMessage(AbstractMessage):
             upper_limit=upper_limit,
             id_=id_,
         )
-        self.mean, self.sigma = self.parameters
+        self.mu, self.sigma = self.parameters
 
     def cdf(self, x):
         return norm.cdf(x, loc=self.mean, scale=self.sigma)
 
     def ppf(self, x):
         return norm.ppf(x, loc=self.mean, scale=self.sigma)
+
+    @cached_property
+    def mean(self):
+        return self.mu
 
     @cached_property
     def natural_parameters(self):
