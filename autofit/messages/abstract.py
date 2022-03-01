@@ -120,7 +120,7 @@ class AbstractMessage(Prior, ABC):
         for n in dir(cls):
             attr = getattr(cls, n)
             if isinstance(attr, cached_property):
-                yield attr
+                yield n
 
     def _reset_cache(self):
         for attr in self._cached_attrs():
