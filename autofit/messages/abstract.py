@@ -28,6 +28,7 @@ def update_array(arr1, ind, arr2):
 
 class AbstractMessage(Prior, ABC):
     log_base_measure: float
+    _Base_class: Optional[Type["AbstractMessage"]] = None
     _projection_class: Optional[Type["AbstractMessage"]] = None
     _multivariate: bool = False
     _parameter_support: Optional[Tuple[Tuple[float, float], ...]] = None
@@ -128,7 +129,7 @@ class AbstractMessage(Prior, ABC):
             self.__dict__.pop(attr, None)
 
     def __getitem__(self, index) -> "AbstractMessage":
-        cls = type(self)
+        cls = self._Base_class or type(self)
         if index == ():
             return self
         else:
