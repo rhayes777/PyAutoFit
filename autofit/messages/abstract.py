@@ -115,17 +115,15 @@ class AbstractMessage(Prior, ABC):
     def ndim(self) -> int:
         return self._broadcast.ndim
 
+    @classmethod
+    def _cached_attrs(cls):
+        for n in dir(cls):
+            attr = getattr(cls, n)
+            if isinstance(attr, cached_property):
+                yield attr
+
     def _reset_cache(self):
-        cached_attrs = [
-            "log_partition",
-            "variance",
-            "std",
-            "scale",
-            "mean",
-            "natural_parameters",
-            "is_valid",
-        ]
-        for attr in cached_attrs:
+        for attr in self._cached_attrs():
             self.__dict__.pop(attr, None)
 
     def __getitem__(self, index) -> "AbstractMessage":
