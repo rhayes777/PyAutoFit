@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from itertools import count
+from itertools import count, chain
 from typing import (
     List,
     Tuple,
@@ -8,6 +8,7 @@ from typing import (
     Optional,
     Collection,
     Any,
+    TYPE_CHECKING, 
 )
 
 import numpy as np
@@ -18,6 +19,7 @@ from autofit.graphical.utils import (
     nested_filter,
     nested_update,
     is_variable,
+    Status, 
 )
 from autofit.mapper.variable import (
     Variable,
@@ -25,6 +27,10 @@ from autofit.mapper.variable import (
     FactorValue,
     VariableData,
 )
+
+if TYPE_CHECKING:
+    from autofit.graphical.mean_field import MeanField
+    from autofit.graphical.expectation_propagation import EPMeanField
 
 Protocol = ABC  # for python 3.7 compat
 
@@ -75,13 +81,18 @@ class AbstractNode(ABC):
         self.id = next(self._id)
 
     def resolve_variable_dict(
-            self, variable_dict: Dict[Variable, np.ndarray]
+            self, values: Dict[Variable, np.ndarray]
     ) -> Dict[str, np.ndarray]:
         return {
             self.variable_name_kw[v.name]: x
-            for v, x in variable_dict.items()
+            for v, x in values.items()
             if v.name in self.variable_name_kw
         }
+
+    def resolve_args(
+            self, values: Dict[Variable, np.ndarray]
+    ) -> Tuple[np.ndarray, ...]:
+        return (values[k] for k in self.args)
 
     @cached_property
     def fixed_values(self) -> VariableData:
@@ -350,67 +361,48 @@ class AbstractFactor(AbstractNode, ABC):
         """
         return len(self._deterministic_variables)
 
-    def _resolve_args(self, **kwargs: np.ndarray) -> dict:
-        """
-        Transforms in the input arguments to match the arguments
-        specified for the factor.
-
-        Parameters
-        ----------
-        args
-        kwargs
-
-        Returns
-        -------
-
-        """
-        return {n: kwargs[v.name] for n, v in self._kwargs.items()}
-
     def _set_factor(self, factor):
         self._factor = factor
         self._has_exact_projection = getattr(factor, "has_exact_projection", None)
         self._calc_exact_projection = getattr(factor, "calc_exact_projection", None)
         self._calc_exact_update = getattr(factor, "calc_exact_update", None)
 
+    def resolve_args_and_out(self, values):
+        if self.factor_out == FactorValue:
+            return self.resolve_args(values)
+        else:
+            return chain(self.resolve_args(values), (nested_update(self.factor_out, values),))
+
     def has_exact_projection(self, mean_field) -> bool:
         if self._has_exact_projection:
-            return self._has_exact_projection(**self.resolve_variable_dict(mean_field))
+            return self._has_exact_projection(*self.resolve_args_and_out(mean_field))
         return False
 
     def calc_exact_projection(self, mean_field) -> "MeanField":
         if self._calc_exact_projection:
             from autofit.graphical.mean_field import MeanField
 
-            projection = self._calc_exact_projection(
-                **self.resolve_variable_dict(mean_field)
+            projection = self._calc_exact_projection(*self.resolve_args_and_out(mean_field))
+            return MeanField(
+                nested_filter(
+                    is_variable, self.args + (self.factor_out,), projection
+                )
             )
-            return MeanField({self._kwargs[v]: dist for v, dist in projection.items()})
         else:
-            return NotImplementedError
+            raise NotImplementedError
 
     def calc_exact_update(self, mean_field) -> "MeanField":
         if self._calc_exact_update:
             from autofit.graphical.mean_field import MeanField
 
-            projection = self._calc_exact_update(
-                **self.resolve_variable_dict(mean_field)
-            )
-            return MeanField({self._kwargs[v]: dist for v, dist in projection.items()})
-        else:
-            return NotImplementedError
-
-    def safe_exact_update(self, mean_field) -> Tuple[bool, "MeanField"]:
-        if self._has_exact_projection:
-            from autofit.graphical.mean_field import MeanField
-
-            _mean_field = self.resolve_variable_dict(mean_field)
-            if self._has_exact_projection(**_mean_field):
-                projection = self._calc_exact_update(**_mean_field)
-                return True, MeanField(
-                    {self._kwargs[v]: dist for v, dist in projection.items()}
+            projection = self._calc_exact_update(*self.resolve_args_and_out(mean_field))
+            return MeanField(
+                nested_filter(
+                    is_variable, self.args + (self.factor_out,), projection
                 )
-
-        return False, mean_field
+            )
+        else:
+            raise NotImplementedError
 
     def name_for_variable(self, variable):
         return self.name
@@ -423,7 +415,7 @@ class AbstractFactor(AbstractNode, ABC):
         args = ", ".join(map(str, self.args))
         clsname = type(self).__name__
         if self.deterministic_variables:
-            args += ", factor_out={self.factor_out}"
+            args += f", factor_out={self.factor_out}"
 
         return f"{clsname}({self.name}, {args})"
 

@@ -363,7 +363,7 @@ def optimise_quasi_newton(
                 quasi_newton_kws=quasi_newton_kws,
             )
         for m in caught_warnings.messages:
-            messages += ("optimise_quasi_newton warning: {m}",)
+            messages += (f"optimise_quasi_newton warning: {m}",)
 
         if stepsize is None:
             success = False

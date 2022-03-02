@@ -40,6 +40,9 @@ class FactorGraph(AbstractNode):
 
         super().__init__(**_kwargs)
 
+    def copy(self):
+        return type(self)(self.factors)
+
     def related_factors(self, variable: Variable, excluded_factor=None) -> List[Factor]:
         """
         A list of factors which contain the variable.
@@ -443,8 +446,8 @@ class FactorGraph(AbstractNode):
         graph = graph or self.graph
         factor_labels = factor_labels or {f: f.name for f in self.factors}
         variable_labels = variable_labels or {v: v.name for v in self.all_variables}
-        f_kws = f_kws or {"horizontalalignment": "right"}
-        v_kws = v_kws or {"horizontalalignment": "left"}
+        f_kws = f_kws or {"horizontalalignment": f_horizontalalignment}
+        v_kws = v_kws or {"horizontalalignment": v_horizontalalignment}
 
         f_shift = f_shift or shift
         f_pos = {f: (x - f_shift, y) for f, (x, y) in pos.items()}

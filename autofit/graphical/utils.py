@@ -13,6 +13,11 @@ from scipy.optimize import OptimizeResult
 
 from autofit.mapper.variable import Variable, VariableData
 
+def try_getitem(value, index, default=None):
+    try:
+        return value[index]
+    except TypeError:
+        return default
 
 class LogWarnings(warnings.catch_warnings):
     def __init__(self, *, module=None, messages=None, action=None, logger=logging.warning):
@@ -180,6 +185,7 @@ class FlattenArrays(dict):
             zip(np.r_[0, self.splits[:-1]], self.splits)
         ]
         self.sizes = {k: np.prod(s, dtype=int) for k, s in self.items()}
+        self.k_inds = dict(zip(self, self.inds))
 
     @classmethod
     def from_arrays(cls, arrays: Dict[str, np.ndarray]) -> "FlattenArrays":
@@ -188,6 +194,13 @@ class FlattenArrays(dict):
     def flatten(self, arrays_dict: Dict[Variable, np.ndarray]) -> np.ndarray:
         assert all(np.shape(arrays_dict[k]) == shape for k, shape in self.items())
         return np.concatenate([np.ravel(arrays_dict[k]) for k in self.keys()])
+
+    def extract(self, key, flat, ndim=None):
+        if ndim is None:
+            ndim = len(flat.shape)
+
+        ind = self.k_inds[key]
+        return flat[(ind,) * ndim]
 
     def unflatten(self, arr: np.ndarray, ndim=None) -> Dict[str, np.ndarray]:
         arr = np.asanyarray(arr)
@@ -229,53 +242,57 @@ class OptResult(NamedTuple):
     status: Status = Status()
 
 
-def add_arrays(*arrays: np.ndarray) -> np.ndarray:
-    """Sums over broadcasting multidimensional arrays
-    whilst preserving the total sum
-
-    a = np.arange(10).reshape(1, 2, 1, 5)
-    b = np.arange(8).reshape(2, 2, 2, 1)
-
-    >>> add_arrays(a, b).sum()
-    73.0
-    >>> add_arrays(a, b).shape
-    (2, 2, 2, 5)
-    >>> a.sum() + b.sum()
-    73
+def gen_subsets(n, x, n_iters=None, rng=None):
     """
-    b = np.broadcast(*arrays)
-    return sum(a * np.size(a) / b.size for a in arrays)
+    Generates random subsets of length n of the array x, if the elements of
+    x are unique then each subset will not contain repeated elements. Each 
+    element is guaranteed to reappear after at most 2*len(x) new elements. 
 
+    If `x` is a multi-dimensional array, it is only shuffled along its
+first index.
 
-Axis = Optional[Union[bool, int, Tuple[int, ...]]]
+    if x is an integer, generate subsets of ``np.arange(x)``.
 
+    generates n_iters subsets before stopping. If n_iters is None then
+    generates random subsets for ever
 
-def aggregate(array: np.ndarray, axis: Axis = None, **kwargs) -> np.ndarray:
+    rng is an optionally passed random number generator
+
+    Examples
+    --------
+    >>> list(gen_subsets(3, 5, n_iters=3))
+    [array([0, 2, 3]), array([1, 4, 0]), array([2, 3, 4])]
+    >>> list(gen_subsets(3, [1,10,5,3], n_iters=3))
+    [array([ 5, 10,  1]), array([3, 5, 1]), array([10,  3,  5])]
     """
-    aggregates the values of array
+    rng = rng or np.random.default_rng()
+    x_shuffled = rng.permutation(x)
+    tot = len(x_shuffled)
 
-    if axis is False then aggregate returns the unmodified array
+    i = 0 
+    stop = tot - n + 1
+    iters = iter(int, 1) if n_iters is None else range(n_iters)
+    for j in iters:
+        if i < stop:
+            yield x_shuffled[i : i + n]
+            i += n
+        else:
+            x_shuffled = np.r_[x_shuffled[i:], rng.permutation(x_shuffled[:i])]
+            yield x_shuffled[:n]
+            i = n
 
-    otherwise aggrate returns np.sum(array, axis=axis, **kwargs)
+def gen_dict(dict_gen):
     """
-    if axis is False:
-        return array
-    else:
-        return np.sum(array, axis=axis, **kwargs)
-
-
-def diag(array: np.ndarray, *ds: Tuple[int, ...]) -> np.ndarray:
-    array = np.asanyarray(array)
-    d1 = array.shape
-    if ds:
-        ds = (d1,) + ds
-    else:
-        ds = (d1, d1)
-
-    out = np.zeros(sum(ds, ()))
-    diag_inds = tuple(map(np.ravel, (i for d in ds for i in np.indices(d))))
-    out[diag_inds] = array.ravel()
-    return out
+    Examples
+    --------
+    >>> list(gen_dict({1: gen_subsets(3, 4, 3), 2: gen_subsets(2, 5, 3)}))
+    [{1: array([2, 1, 3]), 2: array([2, 0])},
+     {1: array([0, 3, 1]), 2: array([3, 1])},
+     {1: array([2, 0, 1]), 2: array([4, 2])}]
+    """
+    keys = tuple(dict_gen.keys())
+    for val in zip(*dict_gen.values()):
+        yield dict(zip(keys, val))
 
 
 _M = TypeVar("_M")
@@ -362,3 +379,53 @@ def rescale_to_artists(artists, ax=None):
             break
 
     return xlim, ylim
+
+
+# These may no longer be needed?
+def add_arrays(*arrays: np.ndarray) -> np.ndarray:
+    """Sums over broadcasting multidimensional arrays
+    whilst preserving the total sum
+
+    a = np.arange(10).reshape(1, 2, 1, 5)
+    b = np.arange(8).reshape(2, 2, 2, 1)
+
+    >>> add_arrays(a, b).sum()
+    73.0
+    >>> add_arrays(a, b).shape
+    (2, 2, 2, 5)
+    >>> a.sum() + b.sum()
+    73
+    """
+    b = np.broadcast(*arrays)
+    return sum(a * np.size(a) / b.size for a in arrays)
+
+
+Axis = Optional[Union[bool, int, Tuple[int, ...]]]
+
+
+def aggregate(array: np.ndarray, axis: Axis = None, **kwargs) -> np.ndarray:
+    """
+    aggregates the values of array
+
+    if axis is False then aggregate returns the unmodified array
+
+    otherwise aggrate returns np.sum(array, axis=axis, **kwargs)
+    """
+    if axis is False:
+        return array
+        
+    return np.sum(array, axis=axis, **kwargs)
+
+
+def diag(array: np.ndarray, *ds: Tuple[int, ...]) -> np.ndarray:
+    array = np.asanyarray(array)
+    d1 = array.shape
+    if ds:
+        ds = (d1,) + ds
+    else:
+        ds = (d1, d1)
+
+    out = np.zeros(sum(ds, ()))
+    diag_inds = tuple(map(np.ravel, (i for d in ds for i in np.indices(d))))
+    out[diag_inds] = array.ravel()
+    return out

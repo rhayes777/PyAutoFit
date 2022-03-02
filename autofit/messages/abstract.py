@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from copy import copy
 from functools import reduce
 from inspect import getfullargspec
 from numbers import Real
@@ -16,8 +17,18 @@ from ..mapper.variable import Variable
 enforce_id_match = True
 
 
+def update_array(arr1, ind, arr2):
+    if np.shape(arr1):
+        out = arr1.copy()
+        out[ind] = arr2
+        return out
+
+    return arr2
+
+
 class AbstractMessage(Prior, ABC):
     log_base_measure: float
+    _Base_class: Optional[Type["AbstractMessage"]] = None
     _projection_class: Optional[Type["AbstractMessage"]] = None
     _multivariate: bool = False
     _parameter_support: Optional[Tuple[Tuple[float, float], ...]] = None
@@ -32,6 +43,13 @@ class AbstractMessage(Prior, ABC):
             self.parameters = tuple(np.asanyarray(p) for p in parameters)
         else:
             self.parameters = tuple(parameters)
+
+    def copy(self):
+        result = type(self)(
+            *(copy(params) for params in self.parameters), log_norm=self.log_norm
+        )
+        result.id = self.id
+        return result
 
     def __bool__(self):
         return True
@@ -69,7 +87,7 @@ class AbstractMessage(Prior, ABC):
 
     @cached_property
     def scale(self) -> np.ndarray:
-        return self.scale
+        return self.std
 
     @cached_property
     def std(self) -> np.ndarray:
@@ -96,6 +114,38 @@ class AbstractMessage(Prior, ABC):
     @property
     def ndim(self) -> int:
         return self._broadcast.ndim
+
+    @classmethod
+    def _cached_attrs(cls):
+        for n in dir(cls):
+            attr = getattr(cls, n)
+            if isinstance(attr, cached_property):
+                yield n
+
+    def _reset_cache(self):
+        for attr in self._cached_attrs():
+            self.__dict__.pop(attr, None)
+
+    def __getitem__(self, index) -> "AbstractMessage":
+        cls = self._Base_class or type(self)
+        if index == ():
+            return self
+        else:
+            return cls(*(param[index] for param in self.parameters))
+
+    def __setitem__(self, index, value):
+        self._reset_cache()
+        for param0, param1 in zip(self.parameters, value.parameters):
+            param0[index] = param1
+
+    def merge(self, index, value):
+        cls = type(self)
+        return cls(
+            *(
+                update_array(param0, index, param1)
+                for param0, param1 in zip(self.parameters, value.parameters)
+            )
+        )
 
     @classmethod
     def from_natural_parameters(
@@ -456,13 +506,19 @@ class AbstractMessage(Prior, ABC):
             name = f"{family}Likelihood" + (str(shape) if shape else "")
 
         return Factor(
-            self.logpdf,
+            self,
             variable,
             name=name,
             factor_jacobian=self.factor_jacobian,
             plates=variable.plates,
             arg_names=["x"],
         )
+
+    def calc_exact_update(self, x: "AbstractMessage") -> "AbstractMessage":
+        return self,
+
+    def has_exact_projection(self, x: "AbstractMessage") -> bool:
+        return type(self) is type(x)
 
     @classmethod
     def transformed(

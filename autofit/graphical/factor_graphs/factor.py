@@ -1,6 +1,7 @@
 from inspect import getfullargspec
-from typing import Tuple, Dict, Any, Callable
+from typing import Tuple, Dict, Any, Callable, Union, List, Optional, TYPE_CHECKING
 
+import numpy as np
 try:
     import jax
 
@@ -11,6 +12,7 @@ except ImportError:
 from autofit.graphical.utils import (
     nested_filter,
     is_variable,
+    try_getitem, 
 )
 from autofit.mapper.variable import Variable, Plate, VariableData
 
@@ -18,7 +20,10 @@ from autofit.mapper.variable import Variable, Plate, VariableData
 from autofit.graphical.factor_graphs.abstract import FactorValue, AbstractFactor
 
 
-# from autofit.graphical.mean_field import MeanField
+if TYPE_CHECKING:
+    from autofit.graphical.factor_graphs.jacobians import (
+        VectorJacobianProduct, JacobianVectorProduct
+    )
 
 
 class Factor(AbstractFactor):
@@ -164,7 +169,7 @@ class Factor(AbstractFactor):
     ):
         if not arg_names:
             arg_names = [arg for arg in getfullargspec(factor).args]
-            if arg_names[0] == "self":
+            if arg_names and arg_names[0] == "self":
                 arg_names = arg_names[1:]
 
         # Make sure arg_names matches length of args
@@ -198,13 +203,67 @@ class Factor(AbstractFactor):
             jacfwd=jacfwd,
         )
 
-    # @property
-    # def args(self):
-    #     return self._args
+    @property
+    def shape(self) -> Tuple[int, ...]:
+        if self.plates:
+            return self._factor.shape
 
-    # @property
-    # def arg_names(self):
-    #     return self._arg_names
+        return ()
+
+    def __getitem__(
+        self, plates_index: Dict[Plate, Union[List[int], range, slice]]
+    ) -> "Factor":
+        return self.subset(plates_index)
+
+    def subset(
+        self,
+        plates_index: Dict[Plate, Union[List[int], range, slice]],
+        plate_sizes: Optional[Dict[Plate, int]] = None,
+    ) -> "Factor":
+        if not self.plates:
+            return self
+
+        plate_sizes = plate_sizes or dict(zip(self.plates, self.shape))
+        index = Variable.make_indexes(self, plates_index, plate_sizes)
+        subset_factor = self._factor[index]
+        kws = self._subset_jacobian(subset_factor, index)
+
+        subset = ", ".join(map("{0.name}={1}".format, self.plates, map(np.size, index)))
+        kws["name"] = f"{self.name}[{subset}]"
+        kws["eps"] = self.eps
+        kws["factor_out"] = self.factor_out
+        kws["plates"] = self.plates
+
+        return Factor(subset_factor, *self.args, **kws)
+
+    def _subset_jacobian(self, subset_factor, index):
+        jac_kws = {"vjp": self._vjp}
+        if self._vjp:
+            factor_vjp = None
+            if self._factor_vjp != self._jax_factor_vjp:
+                factor_vjp = try_getitem(
+                    self._factor_vjp, index, getattr(subset_factor, 'factor_vjp', None)
+                )
+
+            jac_kws["factor_vjp"] = factor_vjp
+        else:
+            factor_jacobian = None
+            jacobian = None
+            if self._factor_jacobian != Factor._factor_jacobian:
+                factor_jacobian = try_getitem(
+                    self._factor_jacobian, index, getattr(subset_factor, 'factor_jacobian', None)
+                )
+            elif self._jacobian != Factor._jacobian:
+                jacobian = try_getitem(
+                    self.jacobian, index, getattr(subset_factor, 'jacobian', None)
+                )
+            elif self._factor_jacobian != self._numerical_factor_jacobian:
+                jac_kws["jacfwd"] = self._jacfwd
+
+            jac_kws["jacobian"] = jacobian
+            jac_kws["factor_jacobian"] = factor_jacobian
+
+        return jac_kws
 
     def _set_jacobians(
             self,
@@ -215,7 +274,9 @@ class Factor(AbstractFactor):
             numerical_jacobian=True,
             jacfwd=True,
     ):
-        if vjp:
+        self._vjp = vjp
+        self._jacfwd = jacfwd
+        if vjp or factor_vjp:
             if factor_vjp:
                 self._factor_vjp = factor_vjp
             elif not _HAS_JAX:
@@ -240,7 +301,7 @@ class Factor(AbstractFactor):
                 else:
                     self._jacobian = jax.jacobian(self._factor, range(self.n_args))
 
-    def _factor_value(self, raw_fval):
+    def _factor_value(self, raw_fval) -> FactorValue:
         """Converts the raw output of the factor into a `FactorValue`
         where the values of the deterministic values are stored in a dict
         attribute `FactorValue.deterministic_values`
@@ -249,7 +310,7 @@ class Factor(AbstractFactor):
         fval = det_values.pop(FactorValue, 0.0)
         return FactorValue(fval, det_values)
 
-    def __call__(self, values: VariableData):
+    def __call__(self, values: VariableData) -> FactorValue:
         """Calls the factor with the values specified by the dictionary of
         values passed, returns a FactorValue with the value returned by the
         factor, and any deterministic factors"""
@@ -263,7 +324,7 @@ class Factor(AbstractFactor):
 
     def _vjp_func_jacobian(
             self, values: VariableData
-    ) -> tuple:
+    ) -> Tuple[FactorValue, "VectorJacobianProduct"]:
         """Calls the factor and returns the factor value with deterministic
         values, and a `VectorJacobianProduct` operator that allows the
         calculation of the gradient of the input values to be calculated
@@ -285,7 +346,7 @@ class Factor(AbstractFactor):
 
     def _jvp_func_jacobian(
             self, values: VariableData, **kwargs
-    ) -> tuple:
+    ) ->  Tuple[FactorValue, "JacobianVectorProduct"]:
         args = (values[k] for k in self.args)
         raw_fval, raw_jac = self._factor_jacobian(*args, **kwargs)
         fval = self._factor_value(raw_fval)
@@ -311,7 +372,7 @@ class Factor(AbstractFactor):
 
     def _jac_out_to_jvp(
             self, raw_jac: Any, values: VariableData
-    ):
+    ) -> "JacobianVectorProduct":
         from autofit.graphical.factor_graphs.jacobians import (
             JacobianVectorProduct,
         )

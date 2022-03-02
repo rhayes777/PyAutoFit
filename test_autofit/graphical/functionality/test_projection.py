@@ -45,12 +45,5 @@ def test_laplace_method(probit_factor, q_cavity, x):
     new_dist, s = opt.optimise_approx(probit_approx)
     q_probit_laplace = new_dist[x]
 
-    # opt_probit = graph.OptFactor.from_approx(probit_approx)
-    # result = opt_probit.maximise({x: 0.0})
-
-    # q_probit_laplace = autofit.messages.normal.NormalMessage.from_mode(
-    #     result.mode[x], covariance=result.hess_inv[x]
-    # )
-
     assert q_probit_laplace.mean == pytest.approx(-0.258, rel=0.01)
     assert q_probit_laplace.sigma == pytest.approx(0.462, rel=0.01)
