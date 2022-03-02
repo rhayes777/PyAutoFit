@@ -12,6 +12,17 @@ class ModelObject:
             id_=None,
             label=None,
     ):
+        """
+        A generic object in AutoFit
+
+        Parameters
+        ----------
+        id_
+            A unique integer identifier. This is used to hash and order priors.
+        label
+            A label which can optionally be set for visualising this object in a
+            graph.
+        """
         self.id = next(self._ids) if id_ is None else id_
         self.label = label
 
