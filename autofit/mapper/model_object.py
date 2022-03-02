@@ -7,8 +7,13 @@ from .identifier import Identifier
 class ModelObject:
     _ids = itertools.count()
 
-    def __init__(self, id_=None):
+    def __init__(
+            self,
+            id_=None,
+            label=None,
+    ):
         self.id = next(self._ids) if id_ is None else id_
+        self.label = label
 
     @property
     def component_number(self):

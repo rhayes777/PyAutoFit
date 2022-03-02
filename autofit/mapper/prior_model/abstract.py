@@ -187,8 +187,8 @@ class AbstractPriorModel(AbstractModel):
     @DynamicAttrs
     """
 
-    def __init__(self):
-        super().__init__()
+    def __init__(self, label=None):
+        super().__init__(label=label)
         self._assertions = list()
 
     def without_attributes(self) -> "AbstractModel":

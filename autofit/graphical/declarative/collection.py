@@ -116,10 +116,29 @@ class FactorGraphModel(AbstractDeclarativeFactor):
             self,
             **kwargs
     ):
+        graph = self.graph
+
+        factor_labels = {
+            factor: factor.name
+            if factor.label is None
+            else factor.label
+            for factor in graph.factors
+        }
+        variable_labels = {
+            variable: variable.name
+            if variable.label is None
+            else variable.label
+            for variable in graph.all_variables
+        }
+
         import matplotlib.pyplot as plt
         if "draw_labels" not in kwargs:
             kwargs["draw_labels"] = True
-        self.graph.draw_graph(
+        if "variable_labels" not in kwargs:
+            kwargs["variable_labels"] = variable_labels
+        if "factor_labels" not in kwargs:
+            kwargs["factor_labels"] = factor_labels
+        graph.draw_graph(
             **kwargs
         )
         plt.show()

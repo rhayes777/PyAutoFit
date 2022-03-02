@@ -11,6 +11,7 @@ from autofit.mapper.prior.deferred import DeferredInstance
 from autofit.mapper.prior.tuple_prior import TuplePrior
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.mapper.prior_model.abstract import check_assertions
+from autofit.tools.namer import namer
 
 logger = logging.getLogger(__name__)
 
@@ -54,7 +55,9 @@ class PriorModel(AbstractPriorModel):
         cls: class
             The class associated with this instance
         """
-        super().__init__()
+        super().__init__(
+            label=namer(cls.__name__)
+        )
         if cls is self:
             return
 
@@ -204,6 +207,11 @@ class PriorModel(AbstractPriorModel):
 
     @assert_not_frozen
     def __setattr__(self, key, value):
+        try:
+            value.label = namer(key)
+        except AttributeError:
+            pass
+
         if key not in (
                 "component_number",
                 "phase_property_position",
