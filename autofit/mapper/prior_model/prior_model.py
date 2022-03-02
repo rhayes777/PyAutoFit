@@ -57,6 +57,8 @@ class PriorModel(AbstractPriorModel):
         """
         super().__init__(
             label=namer(cls.__name__)
+            if inspect.isclass(cls)
+            else None
         )
         if cls is self:
             return
@@ -209,7 +211,7 @@ class PriorModel(AbstractPriorModel):
     def __setattr__(self, key, value):
         try:
             value.label = namer(key)
-        except AttributeError:
+        except (AttributeError, TypeError):
             pass
 
         if key not in (
