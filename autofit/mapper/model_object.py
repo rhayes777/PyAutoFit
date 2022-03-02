@@ -24,7 +24,15 @@ class ModelObject:
             graph.
         """
         self.id = next(self._ids) if id_ is None else id_
-        self.label = label
+        self._label = label
+
+    @property
+    def label(self):
+        return self._label
+
+    @label.setter
+    def label(self, label):
+        self._label = label
 
     @property
     def component_number(self):
