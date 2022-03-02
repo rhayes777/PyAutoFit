@@ -31,7 +31,9 @@ class AbstractJob(ABC):
     _number = count()
 
     def __init__(self, number=None):
-        self.number = number or next(self._number)
+        if number is None:
+            number = next(self._number)
+        self.number = number
 
     @abstractmethod
     def perform(self, *args):

@@ -37,6 +37,7 @@ class AnalysisFactor(AbstractModelFactor):
             A custom optimiser that will be used to fit this factor specifically
             instead of the default optimiser
         """
+        self.label = prior_model.label
         self.analysis = analysis
 
         def _factor(

@@ -53,6 +53,7 @@ class FactorGradientInterface(Protocol):
 class AbstractNode(ABC):
     _plates: Tuple[Plate, ...] = ()
     _factor: callable = None
+    label = None
     _id = count()
     eps = 1e-6
 

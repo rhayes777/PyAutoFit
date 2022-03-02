@@ -80,8 +80,8 @@ def assert_not_frozen(func):
 
 
 class AbstractModel(ModelObject):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, label=None):
+        super().__init__(label=label)
         self._is_frozen = False
         self._frozen_cache = dict()
 

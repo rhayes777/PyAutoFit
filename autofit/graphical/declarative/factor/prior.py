@@ -22,6 +22,7 @@ class PriorFactor(FactorKW, Analysis):
         # TODO: Consider analytical solution rather than implementing optimisation
         super().__init__(prior.factor, x=prior, name=namer(self.__class__.__name__))
         self.prior = prior
+        self.label = f"PriorFactor({prior.label})"
 
     @property
     def prior_model(self) -> CollectionPriorModel:

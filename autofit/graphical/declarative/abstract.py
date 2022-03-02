@@ -85,6 +85,48 @@ class AbstractDeclarativeFactor(Analysis, ABC):
             ] + self.prior_factors
         )
 
+    def draw_graph(
+            self,
+            **kwargs
+    ):
+        """
+        Visualise the graph.
+
+        Variables and Factors are nodes labelled according to their corresponding
+        prior or model respectively.
+
+        Parameters
+        ----------
+        kwargs
+            Arguments passed to visualisation
+        """
+        graph = self.graph
+
+        factor_labels = {
+            factor: factor.name
+            if factor.label is None
+            else factor.label
+            for factor in graph.factors
+        }
+        variable_labels = {
+            variable: variable.name
+            if variable.label is None
+            else variable.label
+            for variable in graph.all_variables
+        }
+
+        import matplotlib.pyplot as plt
+        if "draw_labels" not in kwargs:
+            kwargs["draw_labels"] = True
+        if "variable_labels" not in kwargs:
+            kwargs["variable_labels"] = variable_labels
+        if "factor_labels" not in kwargs:
+            kwargs["factor_labels"] = factor_labels
+        graph.draw_graph(
+            **kwargs
+        )
+        plt.show()
+
     @property
     def plates(self):
         return self._plates

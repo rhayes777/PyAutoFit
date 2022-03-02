@@ -7,8 +7,32 @@ from .identifier import Identifier
 class ModelObject:
     _ids = itertools.count()
 
-    def __init__(self, id_=None):
+    def __init__(
+            self,
+            id_=None,
+            label=None,
+    ):
+        """
+        A generic object in AutoFit
+
+        Parameters
+        ----------
+        id_
+            A unique integer identifier. This is used to hash and order priors.
+        label
+            A label which can optionally be set for visualising this object in a
+            graph.
+        """
         self.id = next(self._ids) if id_ is None else id_
+        self._label = label
+
+    @property
+    def label(self):
+        return self._label
+
+    @label.setter
+    def label(self, label):
+        self._label = label
 
     @property
     def component_number(self):
