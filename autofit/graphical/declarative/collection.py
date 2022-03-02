@@ -111,3 +111,15 @@ class FactorGraphModel(AbstractDeclarativeFactor):
                     model_factor
                 )
         return model_factors
+
+    def draw_graph(
+            self,
+            **kwargs
+    ):
+        import matplotlib.pyplot as plt
+        if "draw_labels" not in kwargs:
+            kwargs["draw_labels"] = True
+        self.graph.draw_graph(
+            **kwargs
+        )
+        plt.show()
