@@ -84,8 +84,6 @@ def test_custom_optimiser(make_model_factor):
 
     factor_model = ep.FactorGraphModel(factor_1, factor_2)
 
-    factor_model.draw_graph()
-
     default_optimiser = ep.LaplaceOptimiser()
     ep_optimiser = factor_model._make_ep_optimiser(default_optimiser)
 
