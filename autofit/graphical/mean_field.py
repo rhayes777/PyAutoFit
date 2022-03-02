@@ -73,7 +73,7 @@ class MeanField(CollectionPriorModel, Dict[Variable, AbstractMessage], Factor):
             log_norm: np.ndarray = 0.0,
     ):
         dict.__init__(self, dists)
-        Factor.__init__(self, self._logpdf, *dists, arg_names=[])
+        Factor.__init__(self, self._logpdf, *self, arg_names=[])
         CollectionPriorModel.__init__(self)
 
         if isinstance(dists, MeanField):
@@ -114,9 +114,75 @@ class MeanField(CollectionPriorModel, Dict[Variable, AbstractMessage], Factor):
     __getitem__ = dict.__getitem__
     __len__ = dict.__len__
 
-    def subset(self, variables):
+    @property
+    def shapes(self):
+        return {v: np.shape(m) for v, m in self.items()}
+
+    @property
+    def sizes(self):
+        return {v: np.size(m) for v, m in self.items()}
+
+    def __getitem__(self, index):
+        if isinstance(index, Variable):
+            return dict.__getitem__(self, index)
+        else:
+            return self.subset(self.variables, plates_index=index)
+
+    def __setitem__(self, index, value):
+        if isinstance(index, Variable):
+            dict.__setitem__(self, index, value)
+        elif isinstance(value, MeanField):
+            self.update_mean_field(value, index)
+
+    def merge(self, index, mean_field):
+        new_dist = dict(self)
+        if index:
+            plate_sizes = VariableData.plate_sizes(self)
+            for v, message in mean_field.items():
+                i = v.make_indexes(index, plate_sizes)
+                new_dist[v] = new_dist[v].merge(i, message)
+        else:
+            new_dist.update(mean_field)
+
+        return MeanField(new_dist)
+
+    def update_mean_field(self, mean_field, plates_index=None):
+        if plates_index:
+            plate_sizes = VariableData.plate_sizes(self)
+            for v, new_message in mean_field.items():
+                index = v.make_indexes(plates_index, plate_sizes)
+                self[v][index] = new_message
+        else:
+            self.update(mean_field)
+
+        return self
+
+    def subset(self, variables=None, plates_index=None):
         cls = type(self) if isinstance(self, MeanField) else MeanField
-        return cls((v, self[v]) for v in variables)
+        variables = variables or self.variables
+        if plates_index:
+            plate_sizes = VariableData.plate_sizes(self)
+            variable_index = (
+                (v, v.make_indexes(plates_index, plate_sizes)) for v in variables
+            )
+            mean_field = dict((v, self[v][index]) for v, index in variable_index)
+
+            return cls(mean_field)
+
+        return cls((v, self[v]) for v in variables if v in self.keys())
+
+    def rescale(self, rescale: Dict[Variable, float]) -> "MeanField":
+        rescaled = {}
+        for v, message in self.items():
+            scale = rescale.get(v, 1)
+            if scale == 1:
+                rescaled[v] = message 
+            elif scale == 0:
+                rescaled[v] = 1.
+            else:
+                rescaled[v] = message ** scale 
+        
+        return MeanField(rescaled)
 
     @property
     def mean(self):
@@ -232,9 +298,6 @@ class MeanField(CollectionPriorModel, Dict[Variable, AbstractMessage], Factor):
         Projects the mode and covariance
         """
         mode = ChainMap(mode, self.fixed_values)
-        if isinstance(covar, VariableLinearOperator):
-            covar = covar.to_block(MatrixOperator).operators
-
         projection = MeanField(
             {
                 v: self[v].from_mode(mode[v], covar.get(v), id_=self[v].id)
@@ -259,6 +322,62 @@ class MeanField(CollectionPriorModel, Dict[Variable, AbstractMessage], Factor):
             cls, dist: Union[Dict[Variable, AbstractMessage], "MeanField"]
     ) -> "MeanField":
         return dist if isinstance(dist, cls) else MeanField(dist)
+
+    def update_factor_mean_field(
+        self,
+        cavity_dist: "MeanField",
+        last_dist: Optional["MeanField"] = None,
+        delta: float = 1.0,
+        status: Status = Status(),
+    ) -> Tuple["MeanField", Status]:
+
+        success, messages, _, flag = status
+        updated = False
+        try:
+            with LogWarnings(logger=_log_projection_warnings, action='always') as caught_warnings:
+                factor_dist = self / cavity_dist
+                if delta < 1:
+                    log_norm = factor_dist.log_norm
+                    factor_dist = factor_dist ** delta * last_dist ** (1 - delta)
+                    factor_dist.log_norm = (
+                        delta * log_norm + (1 - delta) * last_dist.log_norm
+                    )
+
+            for m in caught_warnings.messages:
+                messages += (f"project_mean_field warning: {m}",)
+
+            if not factor_dist.is_valid:
+                success = False
+                messages += (f"model projection for {self} is invalid",)
+                factor_dist = factor_dist.update_invalid(last_dist)
+                # May want to check another way
+                # e.g. factor_dist.check_valid().sum() / factor_dist.check_valid().size
+                valid = factor_dist.check_valid()
+                if valid.any():
+                    updated = True
+                    n_valid = valid.sum()
+                    n_total = valid.size
+                    logger.debug(
+                        "meanfield with variables: %r ,"
+                        "partially updated %d parameters "
+                        "out of %d total, %.0%%",
+                        tuple(self.variables),
+                        n_valid,
+                        n_total,
+                        n_valid / n_total,
+                    )
+
+                flag = StatusFlag.BAD_PROJECTION
+            else:
+                updated = True
+
+        except exc.MessageException as e:
+            logger.exception(e)
+            factor_dist = last_dist
+
+        return factor_dist, Status(
+            success=success, messages=messages, updated=updated, flag=flag
+        )
 
 
 class FactorApproximation(AbstractNode):
@@ -388,53 +507,25 @@ class FactorApproximation(AbstractNode):
         return logl, grad
 
     def project_mean_field(
-            self,
-            model_dist: MeanField,
-            delta: float = 1.0,
-            status: Optional[Status] = None,
+        self,
+        model_dist: MeanField,
+        delta: float = 1.0,
+        status: Status = Status(),
     ) -> Tuple["FactorApproximation", Status]:
-        success, messages, _, flag = Status() if status is None else status
 
-        updated = False
-        try:
-            with LogWarnings(logger=_log_projection_warnings, action='always') as caught_warnings:
-                factor_dist = model_dist / self.cavity_dist
-                if delta < 1:
-                    log_norm = factor_dist.log_norm
-                    factor_dist = factor_dist ** delta * self.factor_dist ** (1 - delta)
-                    factor_dist.log_norm = (
-                            delta * log_norm + (1 - delta) * self.factor_dist.log_norm
-                    )
-
-            for m in caught_warnings.messages:
-                messages += (f"project_mean_field warning: {m}",)
-
-            if not factor_dist.is_valid:
-                success = False
-                messages += (f"model projection for {self} is invalid",)
-                factor_dist = factor_dist.update_invalid(self.factor_dist)
-                # May want to check another way
-                # e.g. factor_dist.check_valid().sum() / factor_dist.check_valid().size
-                if factor_dist.check_valid().any():
-                    updated = True
-
-                flag = StatusFlag.BAD_PROJECTION
-            else:
-                updated = True
-
-        except exc.MessageException as e:
-            logger.exception(e)
-            factor_dist = self.factor_dist
-
+        factor_dist, status = model_dist.update_factor_mean_field(
+            self.cavity_dist,
+            last_dist=self.factor_dist,
+            delta=delta,
+            status=status,
+        )
         new_approx = FactorApproximation(
             self.factor,
             self.cavity_dist,
             factor_dist=factor_dist,
             model_dist=model_dist,
         )
-        return new_approx, Status(
-            success=success, messages=messages, flag=flag, updated=updated
-        )
+        return new_approx, status
 
     project = project_mean_field
 

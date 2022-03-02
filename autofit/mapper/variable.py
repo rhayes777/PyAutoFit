@@ -1,5 +1,5 @@
 from itertools import chain, count
-from typing import Optional, Tuple, Dict, Set
+from typing import Optional, Tuple, Dict, Set, Union, List, TYPE_CHECKING
 import operator
 from abc import ABC, abstractmethod
 from functools import wraps, reduce
@@ -9,6 +9,10 @@ import numpy as np
 from autoconf import cached_property
 
 from autofit.mapper.model_object import ModelObject
+
+if TYPE_CHECKING:
+    from autofit.mapper.operator import LinearOperator 
+    from autofit.mapper.variable_operator import VariableFullOperator, VariableOperator 
 
 
 class Plate:
@@ -40,6 +44,29 @@ class Plate:
 
     def __gt__(self, other):
         return self.id > other.id
+
+    def make_index_seq(
+        self,
+        plates_index: Dict["Plate", Union[List[int], range, slice]],
+        plate_sizes: Dict["Plate", int],
+    ) -> Union[List[int], range]:
+        seq = plates_index.get(self, range(plate_sizes[self]))
+        if isinstance(seq, slice):
+            seq = range(plate_sizes[self])[seq]
+
+        return seq
+
+
+def plates(*vals):
+    """Helper function for making multiple plate objects
+
+    Example
+    -------
+    x_, a_, b_, y_, z_ = plates("x, a, b", "y, z")
+    """
+    for val in vals:
+        for v in val.split(","):
+            yield Plate(v.strip())
 
 
 class Variable(ModelObject):
@@ -80,6 +107,17 @@ class Variable(ModelObject):
         How many dimensions does this variable have?
         """
         return len(self.plates)
+
+    def make_indexes(
+        self,
+        plates_index: Dict["Plate", Union[List[int], range, slice]],
+        plate_sizes: Dict["Plate", int],
+    ) -> Tuple[np.ndarray, ...]:
+        if any(p in plates_index for p in self.plates):
+            return np.ix_(
+                *(p.make_index_seq(plates_index, plate_sizes) for p in self.plates)
+            )
+        return ()
 
 
 def variables(*vals):
@@ -339,13 +377,13 @@ class VariableData(Dict[Variable, np.ndarray]):
 
     def subset(self, variables):
         cls = _get_variable_data_class(self)
-        return cls((v, self[v]) for v in variables)
+        return cls((v, self[v]) for v in variables if v in self)
 
     def sum(self) -> float:
         return sum(VariableData.var_sum(self).values())
 
     def prod(self) -> float:
-        return VariableData.reduce(VariableData.var_prod(self).values(), operator.mul)
+        return VariableData.reduce(VariableData.var_prod(self), operator.mul)
 
     def all(self) -> bool:
         return all(VariableData.var_all(self).values())
@@ -391,6 +429,15 @@ class VariableData(Dict[Variable, np.ndarray]):
     def merge(self, other):
         return VariableData({**self, **other})
 
+    def plate_sizes(self):
+        sizes = {}
+        for v, val in self.items():
+            shape = np.shape(val)
+            assert len(shape) == len(v.plates), f"shape must match the number of plates of {v}"
+            for p, s in zip(v.plates, shape):
+                assert sizes.setdefault(p, s) == s, f"plate sizes must be consistent, {sizes[p]} != {s}"
+        return sizes
+
 
 class VariableLinearOperator(ABC):
     """Implements the functionality of a linear operator acting
@@ -418,6 +465,18 @@ class VariableLinearOperator(ABC):
     def variables(self) -> VariableData:
         pass
 
+    def __getitem__(self, variable) -> "LinearOperator":
+        raise NotImplementedError()
+
+    def get(self, variable, default=None):
+        try:
+            return self[variable]
+        except KeyError:
+            return default
+
+    def __contains__(self, variable):
+        return variable in self.variables
+
     def dot(self, x):
         return self * x
 
@@ -444,6 +503,7 @@ class VariableLinearOperator(ABC):
 
     def blocks(self):
         return self.to_block().blocks()
+
 
 
 class InverseVariableOperator(VariableLinearOperator):
@@ -510,3 +570,6 @@ class InverseVariableOperator(VariableLinearOperator):
 
     def to_block(self) -> "VariableOperator":
         return self.to_full().to_block()
+
+    def __getitem__(self, variable):
+        return self.to_full()[variable]

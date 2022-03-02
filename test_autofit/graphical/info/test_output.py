@@ -37,8 +37,7 @@ def _run_optimisation(factor_graph_model, paths=None):
         log_interval=1,
         visualise_interval=1,
         output_interval=1,
-        paths=paths
-              or DirectoryPaths(
+        paths=paths or DirectoryPaths(
             name="name",
             is_identifier_in_paths=False,
         ),
