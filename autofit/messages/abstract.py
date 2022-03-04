@@ -441,7 +441,7 @@ class AbstractMessage(Prior, ABC):
             # TODO: Fairly certain this would not work
             valid_parameters = iter(self if valid else other)
         cls = self._Base_class or type(self)
-        return cls(valid_parameters, log_norm=self.log_norm, id_=self.id)
+        return cls(*valid_parameters, log_norm=self.log_norm, id_=self.id)
 
     def check_support(self) -> np.ndarray:
         if self._parameter_support is not None:
