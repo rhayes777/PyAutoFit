@@ -45,7 +45,8 @@ class AbstractMessage(Prior, ABC):
             self.parameters = tuple(parameters)
 
     def copy(self):
-        result = type(self)(
+        cls = self._Base_class or type(self)
+        result = cls(
             *(copy(params) for params in self.parameters), log_norm=self.log_norm
         )
         result.id = self.id
@@ -139,7 +140,7 @@ class AbstractMessage(Prior, ABC):
             param0[index] = param1
 
     def merge(self, index, value):
-        cls = type(self)
+        cls = self._Base_class or type(self)
         return cls(
             *(
                 update_array(param0, index, param1)
@@ -151,7 +152,7 @@ class AbstractMessage(Prior, ABC):
     def from_natural_parameters(
             cls, natural_parameters: np.ndarray, **kwargs
     ) -> "AbstractMessage":
-        cls_ = cls._projection_class or cls
+        cls_ = cls._projection_class or cls._Base_class or cls
         args = cls_.invert_natural_parameters(natural_parameters)
         return cls_(*args, **kwargs)
 
@@ -167,7 +168,7 @@ class AbstractMessage(Prior, ABC):
             cls, suff_stats: np.ndarray, **kwargs
     ) -> "AbstractMessage":
         natural_params = cls.invert_sufficient_statistics(suff_stats)
-        cls_ = cls._projection_class or cls
+        cls_ = cls._projection_class or cls._Base_class or cls
         return cls_.from_natural_parameters(natural_params, **kwargs)
 
     def sum_natural_parameters(self, *dists: "AbstractMessage") -> "AbstractMessage":
@@ -204,8 +205,9 @@ class AbstractMessage(Prior, ABC):
         if isinstance(other, Prior):
             return self._multiply(other)
         else:
+            cls = self._Base_class or type(self)
             log_norm = self.log_norm + np.log(other)
-            return type(self)(*self.parameters, log_norm=log_norm, id_=self.id)
+            return cls(*self.parameters, log_norm=log_norm, id_=self.id)
 
     def __rmul__(self, other: "AbstractMessage") -> "AbstractMessage":
         return self * other
@@ -214,8 +216,9 @@ class AbstractMessage(Prior, ABC):
         if isinstance(other, Prior):
             return self._divide(other)
         else:
+            cls = self._Base_class or type(self)
             log_norm = self.log_norm - np.log(other)
-            return type(self)(*self.parameters, log_norm=log_norm, id_=self.id)
+            return cls(*self.parameters, log_norm=log_norm, id_=self.id)
 
     def __pow__(self, other: Real) -> "AbstractMessage":
         natural = self.natural_parameters
@@ -384,7 +387,7 @@ class AbstractMessage(Prior, ABC):
 
         assert np.isfinite(suff_stats).all()
 
-        cls_ = cls._projection_class or cls
+        cls_ = cls._projection_class or cls._Base_class or cls
         return cls_.from_sufficient_statistics(suff_stats, log_norm=log_norm, id_=id_)
 
     @classmethod
@@ -437,7 +440,8 @@ class AbstractMessage(Prior, ABC):
         else:
             # TODO: Fairly certain this would not work
             valid_parameters = iter(self if valid else other)
-        return type(self)(*valid_parameters, log_norm=self.log_norm, id_=self.id)
+        cls = self._Base_class or type(self)
+        return cls(valid_parameters, log_norm=self.log_norm, id_=self.id)
 
     def check_support(self) -> np.ndarray:
         if self._parameter_support is not None:
