@@ -65,6 +65,19 @@ class Prior(Variable, ABC, ArithmeticMixin):
                 "The upper limit of a prior must be greater than its lower limit"
             )
 
+    def with_limits(
+            self,
+            lower_limit: float,
+            upper_limit: float
+    ) -> "Prior":
+        """
+        Create a new instance of the same prior class with the passed limits.
+        """
+        return self.__class__(
+            lower_limit=max(lower_limit, self.lower_limit),
+            upper_limit=min(upper_limit, self.upper_limit),
+        )
+
     @property
     @abstractmethod
     def factor(self):

@@ -4,8 +4,9 @@ import os
 from copy import copy
 from itertools import count
 from pathlib import Path
-from typing import List, Generator, Callable, ClassVar, Optional, Type, Union, Tuple
+from typing import List, Generator, Callable, ClassVar, Type, Union, Tuple
 
+from autoconf import cached_property
 from autofit.mapper.model import ModelInstance
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.abstract_search import NonLinearSearch
@@ -13,7 +14,7 @@ from autofit.non_linear.analysis import Analysis
 from autofit.non_linear.grid.grid_search import make_lists
 from autofit.non_linear.parallel import AbstractJob, Process, AbstractJobResult
 from autofit.non_linear.result import Result
-
+from autofit.text.text_util import padding
 
 
 class JobResult(AbstractJobResult):
@@ -55,11 +56,11 @@ class Job(AbstractJob):
 
     def __init__(
             self,
-            analysis: Analysis,
+            analysis_factory: "AnalysisFactory",
             model: AbstractPriorModel,
             perturbation_model: AbstractPriorModel,
-            base_instance:ModelInstance,
-            perturbation_instance:ModelInstance,
+            base_instance: ModelInstance,
+            perturbation_instance: ModelInstance,
             search: NonLinearSearch,
             number: int,
     ):
@@ -73,8 +74,8 @@ class Job(AbstractJob):
             A base model that fits the image without a perturbation
         perturbation_model
             A model of the perturbation which has been added to the underlying image
-        analysis
-            A class definition which can compares instances of a model to a perturbed image
+        analysis_factory
+            Factory to generate analysis classes which comprise a model and data
         search
             A non-linear search
         """
@@ -82,7 +83,7 @@ class Job(AbstractJob):
             number=number
         )
 
-        self.analysis = analysis
+        self.analysis_factory = analysis_factory
         self.model = model
 
         self.perturbation_model = perturbation_model
@@ -99,6 +100,10 @@ class Job(AbstractJob):
                 "[perturbed]",
             )
         )
+
+    @cached_property
+    def analysis(self):
+        return self.analysis_factory()
 
     def perform(self) -> JobResult:
         """
@@ -164,9 +169,10 @@ class Sensitivity:
             simulate_function: Callable,
             analysis_class: Type[Analysis],
             search: NonLinearSearch,
-            job_cls : ClassVar=Job,
+            job_cls: ClassVar = Job,
             number_of_steps: Union[Tuple[int], int] = 4,
             number_of_cores: int = 2,
+            limit_scale: int = 1,
     ):
         """
         Perform sensitivity mapping to evaluate whether a perturbation
@@ -198,6 +204,13 @@ class Sensitivity:
             A NonLinear search class which is copied and used to evaluate fitness
         number_of_cores
             How many cores does this computer have? Minimum 2.
+        limit_scale
+            Scales the priors for each perturbation model.
+                A scale of 1 means priors have limits the same size as the grid square.
+                A scale of 2 means priors have limits larger than the grid square with
+                    width twice a grid square.
+                A scale of 0.5 means priors have limits smaller than the grid square
+                    with width half a grid square.
         """
         self.logger = logging.getLogger(
             f"Sensitivity ({search.name})"
@@ -218,6 +231,8 @@ class Sensitivity:
 
         self.number_of_steps = number_of_steps
         self.number_of_cores = number_of_cores or 2
+
+        self.limit_scale = limit_scale
 
     @property
     def step_size(self):
@@ -252,6 +267,9 @@ class Sensitivity:
                 self._make_jobs(),
                 number_of_cores=self.number_of_cores
         ):
+            if isinstance(result, Exception):
+                raise result
+
             results.append(result)
             results = sorted(results)
 
@@ -266,13 +284,15 @@ class Sensitivity:
                     values = physical_values[
                         result_.number
                     ]
-                    writer.writerow([
-                        result_.number,
-                        *values,
-                        result_.log_likelihood_base,
-                        result_.log_likelihood_perturbed,
-                        result_.log_likelihood_difference,
-                    ])
+                    writer.writerow(
+                        padding(item)
+                        for item in [
+                            result_.number,
+                            *values,
+                            result_.log_likelihood_base,
+                            result_.log_likelihood_perturbed,
+                            result_.log_likelihood_difference,
+                        ])
 
         return SensitivityResult(results)
 
@@ -357,6 +377,31 @@ class Sensitivity:
             )
 
     @property
+    def _perturbation_models(self) -> Generator[
+        AbstractPriorModel, None, None
+    ]:
+        """
+        A list of models representing a perturbation at each grid square.
+
+        By default models have priors with limits at the edges of a grid square.
+        These limits can be scaled using the limit_scale variable. If the variable
+        is 2 then the priors will have width twice the step size.
+        """
+        half_step = self.limit_scale * self.step_size / 2
+        for list_ in self._lists:
+            limits = [
+                (
+                    prior.value_for(max(0.0, centre - half_step)),
+                    prior.value_for(min(1.0, centre + half_step)),
+                )
+                for centre, prior in zip(
+                    list_,
+                    self.perturbation_model.priors_ordered_by_id
+                )
+            ]
+            yield self.perturbation_model.with_limits(limits)
+
+    @property
     def _searches(self) -> Generator[
         NonLinearSearch, None, None
     ]:
@@ -401,26 +446,52 @@ class Sensitivity:
         Each job fits a perturbed image with the original model
         and a model which includes a perturbation.
         """
-        for number, (perturbation_instance, search) in enumerate(
-                zip(
-                    self._perturbation_instances,
-                    self._searches
-                )
-        ):
+        for number, (
+                perturbation_instance,
+                perturbation_model,
+                search
+        ) in enumerate(zip(
+            self._perturbation_instances,
+            self._perturbation_models,
+            self._searches
+        )):
             instance = copy(self.instance)
             instance.perturbation = perturbation_instance
 
-            dataset = self.simulate_function(
-                instance
-            )
             yield self.job_cls(
-                analysis=self.analysis_class(
-                    dataset
+                analysis_factory=AnalysisFactory(
+                    instance=instance,
+                    simulate_function=self.simulate_function,
+                    analysis_class=self.analysis_class,
                 ),
                 model=self.model,
-                perturbation_model=self.perturbation_model,
+                perturbation_model=perturbation_model,
                 base_instance=self.instance,
                 perturbation_instance=perturbation_instance,
                 search=search,
                 number=number
             )
+
+
+class AnalysisFactory:
+    def __init__(
+            self,
+            instance,
+            simulate_function,
+            analysis_class,
+    ):
+        """
+        Callable to delay simulation such that it is performed
+        on the Job subprocess
+        """
+        self.instance = instance
+        self.simulate_function = simulate_function
+        self.analysis_class = analysis_class
+
+    def __call__(self):
+        dataset = self.simulate_function(
+            self.instance
+        )
+        return self.analysis_class(
+            dataset
+        )

@@ -259,7 +259,7 @@ class MockSearch(NonLinearSearch):
             analysis.save_attributes_for_aggregator(paths=self.paths)
 
         fitness_function = Fitness(model.instance_from_vector, result=self.result)
-        fitness_function(model.prior_count * [0.8])
+        fitness_function([prior.mean for prior in model.priors_ordered_by_id])
 
         return fitness_function.result
 

@@ -169,6 +169,20 @@ class LogUniformPrior(WrappedInstance):
             upper_limit=upper_limit,
         )
 
+    @classmethod
+    def with_limits(
+            cls,
+            lower_limit: float,
+            upper_limit: float
+    ):
+        return super().with_limits(
+            lower_limit=max(
+                0.000001,
+                lower_limit
+            ),
+            upper_limit=upper_limit,
+        )
+
     __identifier_fields__ = ("lower_limit", "upper_limit")
 
     @staticmethod
@@ -203,6 +217,33 @@ class GaussianPrior(NormalMessage):
         "mean",
         "sigma"
     )
+
+    @classmethod
+    def with_limits(
+            cls,
+            lower_limit: float,
+            upper_limit: float
+    ) -> "GaussianPrior":
+        """
+        Create a new gaussian prior centred between two limits
+        with sigma distance between this limits.
+
+        Note that these limits are not strict so exceptions will not
+        be raised for values outside of the limits.
+
+        Parameters
+        ----------
+        lower_limit
+        upper_limit
+
+        Returns
+        -------
+        A new GaussianPrior
+        """
+        return cls(
+            mean=(lower_limit + upper_limit) / 2,
+            sigma=upper_limit - lower_limit,
+        )
 
     @assert_within_limits
     def value_for(self, unit):

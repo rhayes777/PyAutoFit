@@ -2,6 +2,13 @@ from autoconf import conf
 from autofit.text import formatter as frm, samples_text
 
 
+def padding(item, target=6):
+    string = str(item)
+    difference = target - len(string)
+    prefix = difference * " "
+    return f"{prefix}{string}"
+
+
 def results_to_file(samples, filename):
     """Output the full model.results file, which include the most-likely model, most-probable model at 1 and 3
     sigma confidence and information on the maximum log likelihood.
