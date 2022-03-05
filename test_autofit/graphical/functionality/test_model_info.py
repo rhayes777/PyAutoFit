@@ -2,7 +2,6 @@ import pytest
 
 import autofit as af
 from autofit import graphical as g
-from autofit.non_linear.mock.mock_analysis import MockAnalysis
 
 
 @pytest.fixture(
@@ -13,7 +12,7 @@ def make_analysis_factor():
         prior_model=af.PriorModel(
             af.Gaussian
         ),
-        analysis=MockAnalysis(),
+        analysis=af.m.MockAnalysis(),
         name="AnalysisFactor0"
     )
 

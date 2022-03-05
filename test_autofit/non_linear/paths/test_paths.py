@@ -8,8 +8,6 @@ import autofit as af
 from autoconf.conf import output_path_for_test
 from autofit.non_linear.paths.null import NullPaths
 
-from autofit.non_linear.mock.mock_search import MockSearch
-
 def test_null_paths():
     search = af.DynestyStatic()
 
@@ -26,24 +24,24 @@ class TestPathDecorator:
         assert paths.path_prefix == ""
 
     def test_with_arguments(self):
-        search = MockSearch()
+        search = af.m.MockSearch()
         search.paths = af.DirectoryPaths(name="name")
 
         self.assert_paths_as_expected(search.paths)
 
     def test_positional(self):
-        search = MockSearch("name")
+        search = af.m.MockSearch("name")
         paths = search.paths
 
         assert paths.name == "name"
 
     def test_paths_argument(self):
-        search = MockSearch()
+        search = af.m.MockSearch()
         search.paths = af.DirectoryPaths(name="name")
         self.assert_paths_as_expected(search.paths)
 
     def test_combination_argument(self):
-        search = MockSearch("other", )
+        search = af.m.MockSearch("other", )
         search.paths = af.DirectoryPaths(name="name")
         self.assert_paths_as_expected(search.paths)
 

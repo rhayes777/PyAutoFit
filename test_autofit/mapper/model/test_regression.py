@@ -3,7 +3,6 @@ import pytest
 import autofit as af
 from autoconf.exc import ConfigException
 from autofit.mapper.model_object import Identifier
-from autofit.mapper.mock.mock_model import MockWithTuple
 
 
 class SomeWeirdClass:
@@ -62,7 +61,7 @@ def test_function_from_instance():
 
 
 def test_as_model_tuples():
-    model = af.Model(MockWithTuple)
+    model = af.Model(af.m.MockWithTuple)
     assert isinstance(
         model.tup.tup_0,
         af.UniformPrior
@@ -83,13 +82,13 @@ def test_as_model_tuples():
 
 
 def test_set_centre():
-    model = af.Model(MockWithTuple)
+    model = af.Model(af.m.MockWithTuple)
     model.tup_0 = 10.0
 
     instance = model.instance_from_prior_medians()
     assert instance.tup[0] == 10.0
 
-    model = af.Model(MockWithTuple)
+    model = af.Model(af.m.MockWithTuple)
     model.tup.tup_0 = 10.0
 
     instance = model.instance_from_prior_medians()
@@ -98,7 +97,7 @@ def test_set_centre():
 
 def test_passing_priors():
     model = af.Model(
-        MockWithTuple
+        af.m.MockWithTuple
     )
 
     new_model = model.mapper_from_gaussian_tuples([
@@ -111,7 +110,7 @@ def test_passing_priors():
 
 def test_passing_fixed():
     model = af.Model(
-        MockWithTuple
+        af.m.MockWithTuple
     )
     model.tup_0 = 0.1
     model.tup_1 = 2.0

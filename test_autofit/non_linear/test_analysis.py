@@ -6,7 +6,6 @@ import pytest
 
 import autofit as af
 from autoconf.conf import with_config
-from autofit.non_linear.mock.mock_search import MockSearch
 from autofit.non_linear.analysis.multiprocessing import AnalysisPool
 from autofit.non_linear.paths.abstract import AbstractPaths
 from autofit.non_linear.paths.sub_directory_paths import SubDirectoryPaths
@@ -146,7 +145,7 @@ def test_sum_analyses():
     name="search"
 )
 def make_search():
-    return MockSearch(
+    return af.m.MockSearch(
         "search_name"
     )
 

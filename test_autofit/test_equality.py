@@ -3,12 +3,10 @@ from copy import deepcopy
 import pytest
 
 import autofit as af
-from autofit.mapper.mock.mock_model import MockClassx2Tuple, MockComponents, MockChildTuplex3, MockChildTuplex2
-
 
 @pytest.fixture(name="prior_model")
 def make_prior_model():
-    return af.PriorModel(MockClassx2Tuple)
+    return af.PriorModel(af.m.MockClassx2Tuple)
 
 
 class TestCase:
@@ -44,10 +42,10 @@ class TestCase:
     def test_non_trivial_equality(self):
 
         mock_components = af.PriorModel(
-            MockComponents,
-            components_0=af.CollectionPriorModel(mock_cls_0=MockChildTuplex2),
+            af.m.MockComponents,
+            components_0=af.CollectionPriorModel(mock_cls_0=af.m.MockChildTuplex2),
             components_1=af.CollectionPriorModel(
-                mock_cls_2=MockChildTuplex3
+                mock_cls_2=af.m.MockChildTuplex3
             ),
         )
 
@@ -63,7 +61,7 @@ class TestCase:
 
     def test_model_instance_equality(self):
         model_instance = af.ModelInstance()
-        model_instance.profile = MockClassx2Tuple()
+        model_instance.profile = af.m.MockClassx2Tuple()
         model_instance_copy = deepcopy(model_instance)
 
         assert model_instance == model_instance_copy

@@ -4,8 +4,6 @@ import pytest
 
 import autofit as af
 
-from autofit.mapper.mock.mock_model import MockClassx3
-
 pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
 
 
@@ -40,7 +38,7 @@ class TestDrawerConfig:
         drawer.paths = af.DirectoryPaths(path_prefix=path.join("non_linear", "drawer"))
         drawer.paths._identifier = "tag"
 
-        model = af.ModelMapper(mock_class=MockClassx3)
+        model = af.ModelMapper(mock_class=af.m.MockClassx3)
         model.mock_class.one = af.LogUniformPrior(lower_limit=1e-8, upper_limit=100.0)
         model.mock_class.two = af.LogUniformPrior(lower_limit=1e-8, upper_limit=100.0)
         model.mock_class.three = af.LogUniformPrior(lower_limit=1e-8, upper_limit=100.0)

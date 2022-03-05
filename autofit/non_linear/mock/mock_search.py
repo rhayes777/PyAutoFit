@@ -1,11 +1,12 @@
 import math
-from typing import Optional
+from typing import Optional, Tuple
 
 from autoconf import conf
 
+from autofit.graphical import FactorApproximation
+from autofit.graphical.utils import Status
 from autofit.non_linear.abstract_search import NonLinearSearch
 from autofit.non_linear.samples import Sample
-
 from autofit.non_linear.mock.mock_result import MockResult
 from autofit.non_linear.mock.mock_samples import MockSamples
 
@@ -141,3 +142,24 @@ class MockSearch(NonLinearSearch):
                 for prior in sorted(model.priors, key=lambda prior: prior.id)
             ]
         )
+
+
+class MockOptimizer(MockSearch):
+
+    def __init__(self, **kwargs):
+        super().__init__(fit_fast=False, **kwargs)
+
+    @property
+    def samples_cls(self):
+        return MockOptimizer
+
+    def project(
+            self,
+            factor_approx: FactorApproximation,
+            status: Status = Status()
+    ) -> Tuple[FactorApproximation, Status]:
+        pass
+
+    init_args = list()
+
+

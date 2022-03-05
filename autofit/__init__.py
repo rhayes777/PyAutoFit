@@ -1,6 +1,7 @@
 from .non_linear.grid.grid_search import GridSearch as SearchGridSearch
 from . import conf
 from . import exc
+from . import mock as m
 from .database.aggregator.aggregator import GridSearchAggregator
 from .non_linear.samples import MCMCSamples
 from .non_linear.samples import NestSamples

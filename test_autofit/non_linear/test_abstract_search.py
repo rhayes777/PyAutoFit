@@ -8,9 +8,6 @@ import pytest
 import autofit as af
 from autoconf import conf
 
-from autofit.mapper.mock.mock_model import MockClassx4, MockClassx2Tuple
-from autofit.non_linear.mock.mock_search import MockSearch, MockSamples
-
 pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
 
 
@@ -21,18 +18,18 @@ def make_mapper():
 
 @pytest.fixture(name="mock_list")
 def make_mock_list():
-    return [af.PriorModel(MockClassx4), af.PriorModel(MockClassx4)]
+    return [af.PriorModel(af.m.MockClassx4), af.PriorModel(af.m.MockClassx4)]
 
 
 @pytest.fixture(name="result")
 def make_result():
     mapper = af.ModelMapper()
-    mapper.component = MockClassx2Tuple
+    mapper.component = af.m.MockClassx2Tuple
     # noinspection PyTypeChecker
     return af.Result(
-        samples=MockSamples(gaussian_tuples=[(0, 0), (1, 0)]),
+        samples=af.m.MockSamples(gaussian_tuples=[(0, 0), (1, 0)]),
         model=mapper,
-        search=MockSearch(),
+        search=af.m.MockSearch(),
     )
 
 
@@ -67,7 +64,7 @@ class TestResult:
 
 class TestLabels:
     def test_param_names(self):
-        model = af.PriorModel(MockClassx4)
+        model = af.PriorModel(af.m.MockClassx4)
         assert [
                    "one",
                    "two",
@@ -90,7 +87,7 @@ test_path = path.join(
 class TestMovePickleFiles:
     def test__move_pickle_files(self):
 
-        search = MockSearch()
+        search = af.m.MockSearch()
         search.paths = af.DirectoryPaths(
             name="pickles",
             path_prefix=path.join("non_linear", "abstract_search")

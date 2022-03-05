@@ -1,8 +1,6 @@
 import pytest
 
 import autofit as af
-from autofit.non_linear.mock.mock_analysis import MockAnalysis
-from test_autofit.non_linear.grid.test_optimizer_grid_search import MockOptimizer
 
 
 @pytest.fixture(
@@ -10,7 +8,7 @@ from test_autofit.non_linear.grid.test_optimizer_grid_search import MockOptimize
 )
 def make_search(session):
     return af.SearchGridSearch(
-        search=MockOptimizer(
+        search=af.m.MockOptimizer(
             session=session
         ),
         number_of_steps=2
@@ -26,7 +24,7 @@ def run_search(
 ):
     search.fit(
         model=mapper,
-        analysis=MockAnalysis(),
+        analysis=af.m.MockAnalysis(),
         grid_priors=[
             mapper.component.one_tuple.one_tuple_0,
             mapper.component.one_tuple.one_tuple_1,

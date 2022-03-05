@@ -151,7 +151,7 @@ def make_factor_model(prior_model):
         def log_likelihood_function(*_):
             return 1
 
-    return ep.AnalysisFactor(prior_model, analysis=MockAnalysis())
+    return ep.AnalysisFactor(prior_model, analysis=af.m.MockAnalysis())
 
 
 def test_messages(likelihood_model):

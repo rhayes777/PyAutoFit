@@ -36,3 +36,15 @@ class MockResult(Result):
     def last(self):
         return self
 
+
+
+class MockResultGrid(Result):
+    def __init__(self, log_likelihood):
+        # noinspection PyTypeChecker
+        super().__init__(None, None)
+        self._log_likelihood = log_likelihood
+        self.model = log_likelihood
+
+    @property
+    def log_likelihood(self):
+        return self._log_likelihood

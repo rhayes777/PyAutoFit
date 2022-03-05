@@ -1,13 +1,13 @@
+import autofit as af
+
+
 from autoconf.conf import with_config
 from autofit import graphical as g, DirectoryPaths
-
-from autofit.non_linear.mock.mock_result import MockResult as MockResultNL
-from autofit.non_linear.mock.mock_search import MockSearch as MockSearchNL
 
 MAX_STEPS = 3
 
 
-class MockResult(MockResultNL):
+class MockResult(af.m.MockResult):
     def __init__(self, model):
         super().__init__()
         self.model = model
@@ -17,7 +17,7 @@ class MockResult(MockResultNL):
         return self.model
 
 
-class MockSearch(MockSearchNL):
+class MockSearch(af.m.MockSearch):
     def fit(
             self,
             model,
@@ -27,11 +27,11 @@ class MockSearch(MockSearchNL):
             log_likelihood_cap=None,
     ):
         super().fit(model, analysis)
-        return MockResult(model)
+        return af.m.MockResult(model)
 
 
 def _run_optimisation(factor_graph_model, paths=None):
-    search = MockSearch()
+    search = af.m.MockSearch()
     factor_graph_model.optimise(
         search,
         max_steps=MAX_STEPS,
@@ -77,7 +77,7 @@ def test_path_prefix(output_directory, factor_graph_model):
     optimiser = g.EPOptimiser(
         factor_graph=factor_graph_model.graph,
         paths=paths,
-        default_optimiser=MockSearch(),
+        default_optimiser=af.m.MockSearch(),
     )
 
     assert optimiser.output_path == output_directory / "path_prefix/name"

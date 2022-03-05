@@ -1,7 +1,6 @@
 import pytest
 
 import autofit as af
-from autofit.mapper.mock.mock_model import MockWithTuple
 
 
 @pytest.fixture(
@@ -159,7 +158,7 @@ def test_samples_lazy_attributes(
 def test_tuples(samples):
     model = af.Collection(
         lens=af.Model(
-            MockWithTuple
+            af.m.MockWithTuple
         )
     )
     samples = af.Samples(

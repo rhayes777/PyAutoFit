@@ -2,7 +2,6 @@ import pytest
 
 import autofit as af
 from autofit.mapper.prior_model.abstract import paths_to_tree
-from autofit.mapper.mock.mock_model import MockWithTuple
 
 
 class TestWithoutAttributes:
@@ -181,7 +180,7 @@ def test_indices(
     name="tuple_model"
 )
 def make_tuple_model():
-    return af.Model(MockWithTuple)
+    return af.Model(af.m.MockWithTuple)
 
 
 class TestTuples:

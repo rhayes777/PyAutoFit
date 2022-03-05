@@ -1,12 +1,10 @@
 import pytest
 
 import autofit as af
-from autofit.non_linear.mock.mock_analysis import MockAnalysis
-from test_autofit.non_linear.grid.test_optimizer_grid_search import MockOptimizer
 
 
 def test_is_database_paths(session):
-    optimizer = MockOptimizer(
+    optimizer = af.m.MockOptimizer(
         session=session
     )
     assert isinstance(
@@ -25,7 +23,7 @@ def test_save_all_samples_boolean(
         session,
         save_all_samples
 ):
-    optimizer = MockOptimizer(
+    optimizer = af.m.MockOptimizer(
         session=session,
         save_all_samples=save_all_samples
     )
@@ -45,10 +43,10 @@ def test_save_all_samples(
         save_all_samples,
         n_samples
 ):
-    analysis = MockAnalysis()
+    analysis = af.m.MockAnalysis()
     model = af.Model(af.Gaussian)
 
-    optimizer = MockOptimizer(
+    optimizer = af.m.MockOptimizer(
         session=session,
         save_all_samples=save_all_samples,
         sample_multiplier=2
@@ -67,12 +65,12 @@ def test_save_all_samples(
 
 
 def test_unique_tag(session):
-    analysis = MockAnalysis()
+    analysis = af.m.MockAnalysis()
     model = af.Model(af.Gaussian)
 
     unique_tag = "unique"
 
-    optimizer = MockOptimizer(
+    optimizer = af.m.MockOptimizer(
         session=session,
         unique_tag=unique_tag
     )

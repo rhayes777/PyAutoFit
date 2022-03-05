@@ -5,8 +5,6 @@ import pytest
 import autofit as af
 from autofit import exc
 
-from autofit.mapper.mock.mock_model import MockClassx2, MockClassInf
-
 
 class TestPriorLimits:
     def test_out_of_order_prior_limits(self):
@@ -50,7 +48,7 @@ class TestPriorLimits:
 
     def test_prior_creation(self):
         mapper = af.ModelMapper()
-        mapper.component = MockClassx2
+        mapper.component = af.m.MockClassx2
 
         prior_tuples = mapper.prior_tuples_ordered_by_id
 
@@ -62,7 +60,7 @@ class TestPriorLimits:
 
     def test_out_of_limits(self):
         mm = af.ModelMapper()
-        mm.mock_class_gaussian = MockClassx2
+        mm.mock_class_gaussian = af.m.MockClassx2
 
         assert mm.instance_from_vector([1, 2]) is not None
 
@@ -74,7 +72,7 @@ class TestPriorLimits:
 
     def test_inf(self):
         mm = af.ModelMapper()
-        mm.mock_class_inf = MockClassInf
+        mm.mock_class_inf = af.m.MockClassInf
 
         prior_tuples = mm.prior_tuples_ordered_by_id
 
@@ -94,7 +92,7 @@ class TestPriorLimits:
 
     def test_preserve_limits_tuples(self):
         mm = af.ModelMapper()
-        mm.mock_class_gaussian = MockClassx2
+        mm.mock_class_gaussian = af.m.MockClassx2
 
         new_mapper = mm.mapper_from_gaussian_tuples(
             tuples=[(0.0, 0.5), (0.0, 1)], use_widths=True, use_errors=True
@@ -110,7 +108,7 @@ class TestPriorLimits:
 
     def test__only_use_passed_errors_to_set_up_gaussian_prior(self):
         mm = af.ModelMapper()
-        mm.mock_class_gaussian = MockClassx2
+        mm.mock_class_gaussian = af.m.MockClassx2
 
         new_mapper = mm.mapper_from_gaussian_tuples(
             tuples=[(0.1, 0.2), (0.3, 0.4)], use_widths=False, use_errors=True
@@ -126,7 +124,7 @@ class TestPriorLimits:
 
     def test__only_use_widths_to_pass_priors(self):
         mm = af.ModelMapper()
-        mm.mock_class_gaussian = MockClassx2
+        mm.mock_class_gaussian = af.m.MockClassx2
 
         new_mapper = mm.mapper_from_gaussian_tuples(
             tuples=[(5.0, 5.0), (5.0, 5.0)], use_widths=True, use_errors=False
@@ -142,7 +140,7 @@ class TestPriorLimits:
 
     def test__use_max_of_widths_and_passed_errors_to_pass_priors(self):
         mm = af.ModelMapper()
-        mm.mock_class_gaussian = MockClassx2
+        mm.mock_class_gaussian = af.m.MockClassx2
 
         new_mapper = mm.mapper_from_gaussian_tuples(
             tuples=[(5.0, 0.2), (5.0, 5.0)], use_widths=True, use_errors=True
@@ -158,7 +156,7 @@ class TestPriorLimits:
 
     def test_from_gaussian_no_limits(self):
         mm = af.ModelMapper()
-        mm.mock_class_gaussian = MockClassx2
+        mm.mock_class_gaussian = af.m.MockClassx2
 
         new_mapper = mm.mapper_from_gaussian_tuples(
             [(0.0, 0.5), (0.0, 1)], no_limits=True
@@ -217,8 +215,8 @@ class TestAddition:
     def test_mapper_plus_mapper(self):
         one = af.ModelMapper()
         two = af.ModelMapper()
-        one.a = af.PriorModel(MockClassx2)
-        two.b = af.PriorModel(MockClassx2)
+        one.a = af.PriorModel(af.m.MockClassx2)
+        two.b = af.PriorModel(af.m.MockClassx2)
 
         three = one + two
 

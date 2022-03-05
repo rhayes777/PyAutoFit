@@ -6,7 +6,6 @@ import autofit as af
 from autofit import graphical as g
 from autofit.graphical import AnalysisFactor
 from autofit.graphical.declarative.graph import GraphInfoFormatter
-from autofit.non_linear.mock.mock_analysis import MockAnalysis
 from autofit.tools.namer import namer
 
 
@@ -28,13 +27,13 @@ def make_factor_graph_model():
         af.Collection(
             one=af.UniformPrior()
         ),
-        MockAnalysis()
+        af.m.MockAnalysis()
     )
     model_factor_2 = g.AnalysisFactor(
         af.Collection(
             one=af.UniformPrior()
         ),
-        MockAnalysis()
+        af.m.MockAnalysis()
     )
 
     return g.FactorGraphModel(
@@ -54,11 +53,11 @@ def make_non_trivial_model():
 
     model_factor_1 = g.AnalysisFactor(
         one,
-        MockAnalysis()
+        af.m.MockAnalysis()
     )
     model_factor_2 = g.AnalysisFactor(
         two,
-        MockAnalysis()
+        af.m.MockAnalysis()
     )
 
     return g.FactorGraphModel(
