@@ -3,7 +3,7 @@ import copy
 import pytest
 
 import autofit as af
-from autofit.mock.mock_model import (
+from autofit.mapper.mock.mock_model import (
     MockClassx2,
     MockComplexClass,
     MockComponents,

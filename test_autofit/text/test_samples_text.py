@@ -5,8 +5,8 @@ import pytest
 import autofit as af
 
 from autofit.non_linear.mock.mock_samples import MockSamples
-from autofit.mock.mock_model import MockClassx2
-from autofit.mock.mock_model import MockClassx2FormatExp
+from autofit.mapper.mock.mock_model import MockClassx2
+from autofit.mapper.mock.mock_model import MockClassx2FormatExp
 from autofit.non_linear.samples import Sample
 from autofit import StoredSamples
 from autofit.text import samples_text

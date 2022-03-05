@@ -1,7 +1,7 @@
 import autofit as af
 import numpy as np
 import pytest
-from autofit.mock.mock_model import (
+from autofit.mapper.mock.mock_model import (
     MockClassx2,
     MockClassx2Tuple,
     MockClassx2NoSuperScript,
@@ -11,7 +11,7 @@ from autofit.mock.mock_model import (
     MockWithFloat,
     MockWithTuple
 )
-from autofit.mock.mock_model import MockChildTuplex2, MockChildTuplex3, MockChildTuple
+from autofit.mapper.mock.mock_model import MockChildTuplex2, MockChildTuplex3, MockChildTuple
 
 
 @pytest.fixture(name="initial_model")

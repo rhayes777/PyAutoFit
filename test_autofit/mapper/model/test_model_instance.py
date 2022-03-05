@@ -1,7 +1,7 @@
 import pytest
 
 import autofit as af
-from autofit.mock.mock_model import MockClassx2, MockClassx3TupleFloat, MockComponents
+from autofit.mapper.mock.mock_model import MockClassx2, MockClassx3TupleFloat, MockComponents
 
 @pytest.fixture(name="mock_components_1")
 def make_mock_components_1():

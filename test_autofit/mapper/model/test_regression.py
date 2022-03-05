@@ -3,7 +3,7 @@ import pytest
 import autofit as af
 from autoconf.exc import ConfigException
 from autofit.mapper.model_object import Identifier
-from autofit.mock.mock_model import MockWithTuple
+from autofit.mapper.mock.mock_model import MockWithTuple
 
 
 class SomeWeirdClass:

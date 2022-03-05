@@ -4,7 +4,7 @@ import autofit as af
 
 from autofit.text import formatter as frm
 
-from autofit.mock.mock_model import MockClassx2, MockChildTuplex2
+from autofit.mapper.mock.mock_model import MockClassx2, MockChildTuplex2
 
 
 def test_parameterization():

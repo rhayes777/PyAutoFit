@@ -3,7 +3,7 @@ import pytest
 
 import autofit as af
 
-from autofit.mock.mock_model import MockClassx2
+from autofit.mapper.mock.mock_model import MockClassx2
 from autofit.non_linear.mock.mock_samples import MockSamples, MockNestSamples
 
 from autofit.text import text_util

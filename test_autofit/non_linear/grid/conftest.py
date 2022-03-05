@@ -2,7 +2,7 @@ import pytest
 
 import autofit as af
 
-from autofit.mock.mock_model import MockClassx2Tuple
+from autofit.mapper.mock.mock_model import MockClassx2Tuple
 from autofit.non_linear.mock.mock_search import MockSearch
 
 @pytest.fixture(name="mapper")

@@ -3,7 +3,7 @@ from os import path
 import pytest
 
 import autofit as af
-from autofit.mock.mock_model import MockClassx4
+from autofit.mapper.mock.mock_model import MockClassx4
 
 pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
 

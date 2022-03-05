@@ -4,7 +4,7 @@ import pytest
 import json
 
 import autofit as af
-from autofit.mock.mock_model import MockWithTuple
+from autofit.mapper.mock.mock_model import MockWithTuple
 
 @pytest.fixture(
     name="model_dict"

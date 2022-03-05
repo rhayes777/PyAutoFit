@@ -3,7 +3,7 @@ from copy import deepcopy
 import pytest
 
 import autofit as af
-from autofit.mock.mock_model import MockClassx2Tuple, MockComponents, MockChildTuplex3, MockChildTuplex2
+from autofit.mapper.mock.mock_model import MockClassx2Tuple, MockComponents, MockChildTuplex3, MockChildTuplex2
 
 
 @pytest.fixture(name="prior_model")

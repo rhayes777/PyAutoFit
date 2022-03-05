@@ -1,6 +1,6 @@
 import autofit as af
 
-from autofit.mock.mock_model import MockOverload
+from autofit.mapper.mock.mock_model import MockOverload
 
 
 def test_constructor():

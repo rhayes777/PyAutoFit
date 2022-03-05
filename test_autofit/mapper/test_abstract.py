@@ -1,6 +1,6 @@
 import autofit as af
 
-from autofit.mock.mock_model import MockClassx2Tuple
+from autofit.mapper.mock.mock_model import MockClassx2Tuple
 
 
 class TestCase:

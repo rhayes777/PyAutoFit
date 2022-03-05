@@ -5,7 +5,7 @@ import pytest
 import autofit as af
 from autofit import exc
 
-from autofit.mock.mock_model import MockClassx2, MockClassInf
+from autofit.mapper.mock.mock_model import MockClassx2, MockClassInf
 
 
 class TestPriorLimits:

@@ -2,7 +2,7 @@ import pytest
 
 import autofit as af
 from autofit.mapper.prior_model.abstract import paths_to_tree
-from autofit.mock.mock_model import MockWithTuple
+from autofit.mapper.mock.mock_model import MockWithTuple
 
 
 class TestWithoutAttributes:

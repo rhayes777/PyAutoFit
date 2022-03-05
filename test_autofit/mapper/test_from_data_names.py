@@ -1,7 +1,7 @@
 import pytest
 
 import autofit as af
-from autofit.mock.mock_model import MockClassx2, MockClassx4
+from autofit.mapper.mock.mock_model import MockClassx2, MockClassx4
 
 names = ["one", "two", "three"]
 

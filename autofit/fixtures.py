@@ -1,6 +1,6 @@
 import autofit as af
 
-from autofit.mock.mock_model import MockClassx4
+from autofit.mapper.mock.mock_model import MockClassx4
 from autofit.non_linear.mock.mock_samples import MockSamples
 
 

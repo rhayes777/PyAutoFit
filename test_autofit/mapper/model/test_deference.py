@@ -2,7 +2,7 @@ import pytest
 
 import autofit as af
 
-from autofit.mock.mock_model import MockClassx2, MockDeferredClass
+from autofit.mapper.mock.mock_model import MockClassx2, MockDeferredClass
 
 
 @pytest.fixture(name="deferred_instance")
