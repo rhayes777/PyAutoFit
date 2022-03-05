@@ -54,6 +54,7 @@ class NormalMessage(AbstractMessage):
             id_=id_,
         )
         self.mu, self.sigma = self.parameters
+       # self.mean = self.mu
 
     def cdf(self, x):
         return norm.cdf(x, loc=self.mean, scale=self.sigma)
