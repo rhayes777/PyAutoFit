@@ -2,7 +2,7 @@ import pytest
 
 import autofit as af
 from autofit import graphical as g
-from autofit.mock.mock import MockAnalysis
+from autofit.non_linear.mock.mock_analysis import MockAnalysis
 
 
 @pytest.fixture(

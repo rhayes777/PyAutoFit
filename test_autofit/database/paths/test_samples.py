@@ -2,7 +2,7 @@ import pytest
 
 import autofit as af
 from autofit import database as m
-from autofit.mock.mock import MockSamples
+from autofit.non_linear.mock.mock_samples import MockSamples
 
 
 @pytest.fixture(

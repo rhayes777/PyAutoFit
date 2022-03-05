@@ -8,7 +8,8 @@ import autofit as af
 from autofit import exc, Result
 from autofit.graphical import FactorApproximation
 from autofit.graphical.utils import Status
-from autofit.mock.mock import MockAnalysis, MockSearch
+from autofit.non_linear.mock.mock_analysis import MockAnalysis
+from autofit.non_linear.mock.mock_search import MockSearch
 
 
 def test_unpickle_result():

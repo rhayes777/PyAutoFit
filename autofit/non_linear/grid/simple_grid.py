@@ -1,7 +1,7 @@
 from copy import copy
 
 from autofit.mapper.prior_model import abstract
-from autofit.mock.mock import MockSamples
+from autofit.non_linear.mock.mock_samples import MockSamples
 from autofit.non_linear import abstract_search
 from autofit.non_linear import paths
 from autofit.non_linear.result import Result

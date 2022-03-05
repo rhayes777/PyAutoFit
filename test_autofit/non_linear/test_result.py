@@ -2,7 +2,8 @@ import pytest
 import autofit as af
 
 from autofit.mock.mock_model import MockClassx2Tuple
-from autofit.mock.mock import MockSamples, MockSearch
+from autofit.non_linear.mock.mock_samples import MockSamples
+from autofit.non_linear.mock.mock_search import MockSearch
 
 @pytest.fixture(name="result")
 def make_result():

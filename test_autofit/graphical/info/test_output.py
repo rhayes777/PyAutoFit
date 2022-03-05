@@ -1,12 +1,13 @@
 from autoconf.conf import with_config
 from autofit import graphical as g, DirectoryPaths
 
-from autofit.mock import mock as m
+from autofit.non_linear.mock.mock_result import MockResult as MockResultNL
+from autofit.non_linear.mock.mock_search import MockSearch as MockSearchNL
 
 MAX_STEPS = 3
 
 
-class MockResult(m.MockResult):
+class MockResult(MockResultNL):
     def __init__(self, model):
         super().__init__()
         self.model = model
@@ -16,7 +17,7 @@ class MockResult(m.MockResult):
         return self.model
 
 
-class MockSearch(m.MockSearch):
+class MockSearch(MockSearchNL):
     def fit(
             self,
             model,

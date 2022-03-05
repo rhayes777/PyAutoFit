@@ -1,7 +1,7 @@
 import pytest
 
 import autofit as af
-from autofit.mock.mock import MockAnalysis
+from autofit.non_linear.mock.mock_analysis import MockAnalysis
 from test_autofit.non_linear.grid.test_optimizer_grid_search import MockOptimizer
 
 

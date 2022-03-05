@@ -6,7 +6,7 @@ from autofit.non_linear.grid.grid_search import ResultBuilder
 from autofit.non_linear.grid.grid_search.job import JobResult
 from autofit.non_linear.grid.grid_search.result_builder import Placeholder
 
-from autofit.mock.mock import MockSearch, MockResult
+from autofit.non_linear.mock.mock_search import MockSearch, MockResult
 
 @pytest.fixture(
     name="result_builder"

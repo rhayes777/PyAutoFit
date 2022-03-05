@@ -8,7 +8,7 @@ import autofit as af
 from autoconf.conf import output_path_for_test
 from autofit.non_linear.paths.null import NullPaths
 
-from autofit.mock.mock import MockSearch
+from autofit.non_linear.mock.mock_search import MockSearch
 
 def test_null_paths():
     search = af.DynestyStatic()

@@ -5,7 +5,7 @@ from autoconf.conf import with_config
 
 import autofit as af
 from autofit.mock.mock_model import MockClassx2, MockClassx4
-from autofit.mock.mock import MockSamples
+from autofit.non_linear.mock.mock_samples import MockSamples
 
 pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
 

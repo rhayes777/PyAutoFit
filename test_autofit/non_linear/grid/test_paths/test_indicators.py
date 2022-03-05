@@ -6,7 +6,8 @@ import autofit as af
 from autoconf.conf import output_path_for_test
 from autofit.database.aggregator.scrape import Scraper
 
-from autofit.mock.mock import MockAnalysis, MockSearch
+from autofit.non_linear.mock.mock_analysis import MockAnalysis
+from autofit.non_linear.mock.mock_search import MockSearch
 
 from test_autofit.non_linear.grid.test_optimizer_grid_search import MockOptimizer
 

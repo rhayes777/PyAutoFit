@@ -4,7 +4,9 @@ import pytest
 import autofit as af
 from autofit import conf
 from autofit.mapper.model_object import Identifier
-from autofit.mock.mock import MockSamples, MockSearch, MockAnalysis
+from autofit.non_linear.mock.mock_samples import MockSamples
+from autofit.non_linear.mock.mock_search import MockSearch
+from autofit.non_linear.mock.mock_analysis import MockAnalysis
 
 
 def set_version(version):

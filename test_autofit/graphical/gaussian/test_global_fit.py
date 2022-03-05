@@ -4,7 +4,7 @@ import pytest
 
 import autofit as af
 import autofit.graphical as g
-from autofit.mock.mock import MockSearch
+from autofit.non_linear.mock.mock_search import MockSearch
 from autofit.tools.namer import namer
 
 

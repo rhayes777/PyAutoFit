@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 
 import autofit as af
-from autofit.mock.mock import MockSearch
+from autofit.non_linear.mock.mock_search import MockSearch
 from autofit.non_linear.grid import sensitivity as s
 
 x = np.array(range(10))
