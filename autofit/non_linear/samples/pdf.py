@@ -1,5 +1,5 @@
 import math
-from typing import List, Optional
+from typing import List, Optional, Tuple
 
 import numpy as np
 
@@ -491,6 +491,19 @@ class PDFSamples(Samples):
             non-linear search.
         """
         return np.cov(m=self.parameter_lists, rowvar=False, aweights=self.weight_list)
+
+
+def marginalize(parameter_list: List, sigma: float, weight_list:Optional[List]=None) -> Tuple[float, float, float]:
+
+    low_limit = (1 - math.erf(sigma / math.sqrt(2))) / 2
+
+    median = quantile(x=parameter_list, q=0.5, weights=weight_list)[0]
+    lower = quantile(x=parameter_list, q=low_limit, weights=weight_list)[0]
+    upper = quantile(
+        x=parameter_list, q=1 - low_limit, weights=weight_list
+    )[0]
+
+    return median, lower, upper
 
 
 def quantile(x, q, weights=None):

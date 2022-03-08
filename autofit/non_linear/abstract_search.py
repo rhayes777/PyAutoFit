@@ -527,6 +527,8 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                     self.paths.save_object("results", samples.results_internal)
                 analysis.save_results_for_aggregator(paths=self.paths, model=model, samples=samples)
 
+        self.paths.samples_to_csv(samples=samples)
+
         result = analysis.make_result(samples=samples, model=model, search=self)
 
         analysis = analysis.modify_after_fit(paths=self.paths, model=model, result=result)

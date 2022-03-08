@@ -142,11 +142,15 @@ class DirectoryPaths(AbstractPaths):
         )
 
     def save_samples(self, samples):
+        pass
+
+    def samples_to_csv(self, samples):
         """
         Save the final-result samples associated with the phase as a pickle
         """
-        samples.write_table(filename=self._samples_file)
-        samples.info_to_json(filename=self._info_file)
+        if conf.instance["general"]["output"]["samples_to_csv"]:
+            samples.write_table(filename=self._samples_file)
+            samples.info_to_json(filename=self._info_file)
 
     def load_samples_info(self):
         with open_(self._info_file) as infile:
