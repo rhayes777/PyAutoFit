@@ -2,7 +2,6 @@ import pytest
 
 import autofit as af
 from autofit import graphical as g
-from autofit.mock.mock import MockAnalysis
 
 
 @pytest.fixture(
@@ -46,7 +45,7 @@ def test_optimise(model_gaussian_x1, prior):
     optimizer = af.DynestyStatic(
         maxcall=10
     )
-    analysis = MockAnalysis()
+    analysis = af.m.MockAnalysis()
     factor = g.AnalysisFactor(
         model_gaussian_x1,
         analysis

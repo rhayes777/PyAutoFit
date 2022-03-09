@@ -4,7 +4,6 @@ import pytest
 
 import autofit as af
 import autofit.graphical as g
-from autofit.mock.mock import MockSearch
 from autofit.tools.namer import namer
 
 
@@ -105,7 +104,7 @@ class TestGlobalLikelihood:
 
     def test_global_search(self, model_factor, model_factor_2):
         collection = g.FactorGraphModel(model_factor, model_factor_2)
-        search = MockSearch()
+        search = af.m.MockSearch()
 
         class Analysis(af.Analysis):
             def log_likelihood_function(self, instance):

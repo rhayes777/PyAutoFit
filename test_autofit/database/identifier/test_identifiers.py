@@ -4,7 +4,6 @@ import pytest
 import autofit as af
 from autofit import conf
 from autofit.mapper.model_object import Identifier
-from autofit.mock.mock import MockSamples, MockSearch, MockAnalysis
 
 
 def set_version(version):
@@ -222,20 +221,20 @@ def test_identifier_fields():
 
 
 def test_unique_tag():
-    search = MockSearch()
+    search = af.m.MockSearch()
 
     search.fit(
         model=af.Collection(),
-        analysis=MockAnalysis()
+        analysis=af.m.MockAnalysis()
     )
 
     identifier = search.paths.identifier
 
-    search = MockSearch(unique_tag="dataset")
+    search = af.m.MockSearch(unique_tag="dataset")
 
     search.fit(
         model=af.Collection(),
-        analysis=MockAnalysis(),
+        analysis=af.m.MockAnalysis(),
     )
 
     assert search.paths.identifier != identifier
@@ -367,11 +366,11 @@ def test__identifier_description__after_model_and_instance():
 
     max_log_likelihood_instance = model.instance_from_prior_medians()
 
-    samples = MockSamples(
+    samples = af.m.MockSamples(
         max_log_likelihood_instance=max_log_likelihood_instance,
         gaussian_tuples=[(1.0, 2.0), (3.0, 4.0), (5.0, 6.0)]
     )
-    search = MockSearch(prior_passer=af.PriorPasser(sigma=1.0, use_errors=True, use_widths=False))
+    search = af.m.MockSearch(prior_passer=af.PriorPasser(sigma=1.0, use_errors=True, use_widths=False))
 
     result = af.Result(samples=samples, model=model, search=search)
 

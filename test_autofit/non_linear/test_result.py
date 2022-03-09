@@ -1,18 +1,15 @@
 import pytest
 import autofit as af
 
-from autofit.mock.mock_model import MockClassx2Tuple
-from autofit.mock.mock import MockSamples, MockSearch
-
 @pytest.fixture(name="result")
 def make_result():
     mapper = af.ModelMapper()
-    mapper.component = MockClassx2Tuple
+    mapper.component = af.m.MockClassx2Tuple
     # noinspection PyTypeChecker
     return af.Result(
-        samples=MockSamples(gaussian_tuples=[(0, 0), (1, 0)]),
+        samples=af.m.MockSamples(gaussian_tuples=[(0, 0), (1, 0)]),
         model=mapper,
-        search=MockSearch(),
+        search=af.m.MockSearch(),
     )
 
 

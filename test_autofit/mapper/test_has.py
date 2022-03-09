@@ -1,7 +1,5 @@
 import autofit as af
 
-from autofit.mock.mock_model import MockClassx2
-
 class GaussianChild(af.Gaussian):
     pass
 
@@ -124,7 +122,7 @@ def test_is_only_model():
     ) is True
 
     collection.other = af.PriorModel(
-        MockClassx2
+        af.m.MockClassx2
     )
 
     assert collection.is_only_model(

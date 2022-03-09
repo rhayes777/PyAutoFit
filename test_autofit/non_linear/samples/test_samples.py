@@ -2,8 +2,6 @@ import os
 import pytest
 
 import autofit as af
-from autofit.mock.mock_model import MockClassx2, MockClassx4
-from autofit.mock.mock import MockSamples
 
 pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
 
@@ -34,7 +32,7 @@ def test__table__rows(samples_x5):
 
 def test__table__write_table():
 
-    model = af.Collection(mock_class_1=MockClassx4)
+    model = af.Collection(mock_class_1=af.m.MockClassx4)
 
     parameters = [
         [0.0, 1.0, 2.0, 3.0],
@@ -74,7 +72,7 @@ def test__max_log_likelihood_vector_and_instance(samples_x5):
 
 
 def test__log_prior_list_and_max_log_posterior_vector_and_instance():
-    model = af.Collection(mock_class_1=MockClassx4)
+    model = af.Collection(mock_class_1=af.m.MockClassx4)
 
     parameters = [
         [0.0, 1.0, 2.0, 3.0],
@@ -84,7 +82,7 @@ def test__log_prior_list_and_max_log_posterior_vector_and_instance():
         [21.0, 22.0, 23.0, 24.0],
     ]
 
-    samples_x5 = MockSamples(
+    samples_x5 = af.m.MockSamples(
         model=model,
         sample_list=af.Sample.from_lists(
             model=model,
@@ -116,8 +114,8 @@ def test__gaussian_priors():
         [1.12, 2.12, 3.12, 4.32],
     ]
 
-    model = af.Collection(mock_class=MockClassx4)
-    samples_x5 = MockSamples(
+    model = af.Collection(mock_class=af.m.MockClassx4)
+    samples_x5 = af.m.MockSamples(
         model=model,
         sample_list=af.Sample.from_lists(
             model=model,
@@ -142,7 +140,7 @@ def test__gaussian_priors():
 
 
 def test__instance_from_sample_index():
-    model = af.Collection(mock_class=MockClassx4)
+    model = af.Collection(mock_class=af.m.MockClassx4)
 
     parameters = [
         [1.0, 2.0, 3.0, 4.0],
@@ -152,7 +150,7 @@ def test__instance_from_sample_index():
         [1.1, 2.1, 3.1, 4.1],
     ]
 
-    samples_x5 = MockSamples(
+    samples_x5 = af.m.MockSamples(
         model=model,
         sample_list=af.Sample.from_lists(
             model=model,
@@ -202,7 +200,7 @@ def test__sum_of_samples(samples_x5):
 
 def test__addition_of_samples__raises_error_if_model_mismatch(samples_x5):
 
-    model = af.Collection(mock_class_1=MockClassx2)
+    model = af.Collection(mock_class_1=af.m.MockClassx2)
 
     parameters = [
         [0.0, 1.0],
@@ -212,7 +210,7 @@ def test__addition_of_samples__raises_error_if_model_mismatch(samples_x5):
         [0.0, 1.0],
     ]
 
-    samples_different_model = MockSamples(
+    samples_different_model = af.m.MockSamples(
         model=model,
         sample_list=af.Sample.from_lists(
             model=model,

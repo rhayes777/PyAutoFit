@@ -1,6 +1,7 @@
 from .non_linear.grid.grid_search import GridSearch as SearchGridSearch
 from . import conf
 from . import exc
+from . import mock as m
 from .database.aggregator.aggregator import GridSearchAggregator
 from .non_linear.samples import MCMCSamples
 from .non_linear.samples import NestSamples
@@ -69,6 +70,7 @@ from .non_linear.paths import DatabasePaths
 from .non_linear.result import Result
 from .non_linear.result import ResultsCollection
 from .non_linear.settings import SettingsSearch
+from .non_linear.samples.pdf import marginalize
 from .example.model import Gaussian
 from .text import formatter
 from .text import samples_text

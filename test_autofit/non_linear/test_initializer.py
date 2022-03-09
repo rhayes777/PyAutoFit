@@ -1,5 +1,4 @@
 import autofit as af
-from autofit.mock.mock_model import MockClassx4
 
 
 class MockFitness:
@@ -10,7 +9,7 @@ class MockFitness:
 class TestInitializePrior:
     def test__prior__samples_sample_priors(self):
 
-        model = af.PriorModel(MockClassx4)
+        model = af.PriorModel(af.m.MockClassx4)
         model.one = af.UniformPrior(lower_limit=0.099, upper_limit=0.101)
         model.two = af.UniformPrior(lower_limit=0.199, upper_limit=0.201)
         model.three = af.UniformPrior(lower_limit=0.299, upper_limit=0.301)
@@ -44,7 +43,7 @@ class TestInitializePrior:
 
     def test__samples_in_test_model(self):
 
-        model = af.PriorModel(MockClassx4)
+        model = af.PriorModel(af.m.MockClassx4)
         model.one = af.UniformPrior(lower_limit=0.099, upper_limit=0.101)
         model.two = af.UniformPrior(lower_limit=0.199, upper_limit=0.201)
         model.three = af.UniformPrior(lower_limit=0.299, upper_limit=0.301)
@@ -80,7 +79,7 @@ class TestInitializePrior:
 class TestInitializeBall:
     def test__ball__samples_sample_centre_of_priors(self):
 
-        model = af.PriorModel(MockClassx4)
+        model = af.PriorModel(af.m.MockClassx4)
         model.one = af.UniformPrior(lower_limit=0.0, upper_limit=1.0)
         model.two = af.UniformPrior(lower_limit=0.0, upper_limit=2.0)
         model.three = af.UniformPrior(lower_limit=0.0, upper_limit=3.0)

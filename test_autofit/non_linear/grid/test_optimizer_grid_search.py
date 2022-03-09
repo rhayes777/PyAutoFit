@@ -1,14 +1,10 @@
 import pickle
-from typing import Tuple
 
 import numpy as np
 import pytest
 
 import autofit as af
 from autofit import exc, Result
-from autofit.graphical import FactorApproximation
-from autofit.graphical.utils import Status
-from autofit.mock.mock import MockAnalysis, MockSearch
 
 
 def test_unpickle_result():
@@ -48,7 +44,7 @@ class TestGridSearchablePriors:
         assert mappers[-1].component.one_tuple.one_tuple_1.upper_limit == 2.0
 
     def test_non_grid_searched_dimensions(self, mapper):
-        search = MockSearch()
+        search = af.m.MockSearch()
         search.paths = af.DirectoryPaths(name="")
         grid_search = af.SearchGridSearch(
             number_of_steps=10,
@@ -150,41 +146,22 @@ class TestGridSearchablePriors:
 @pytest.fixture(name="grid_search_05")
 def make_grid_search_05():
     search = af.SearchGridSearch(
-        search=MockOptimizer(), number_of_steps=2
+        search=af.m.MockOptimizer(), number_of_steps=2
     )
     search.search.paths = af.DirectoryPaths(name="sample_name")
     return search
 
 
-class MockOptimizer(MockSearch):
-
-    def __init__(self, **kwargs):
-        super().__init__(fit_fast=False, **kwargs)
-
-    @property
-    def samples_cls(self):
-        return MockOptimizer
-
-    def project(
-            self,
-            factor_approx: FactorApproximation,
-            status: Status = Status()
-    ) -> Tuple[FactorApproximation, Status]:
-        pass
-
-    init_args = list()
-
-
 @pytest.fixture(autouse=True)
 def empty_args():
-    MockOptimizer.init_args = list()
+    af.m.MockOptimizer.init_args = list()
 
 
 class TestGridNLOBehaviour:
     def test_results(self, grid_search_05, mapper):
         result = grid_search_05.fit(
             model=mapper,
-            analysis=MockAnalysis(),
+            analysis=af.m.MockAnalysis(),
             grid_priors=[
                 mapper.component.one_tuple.one_tuple_0,
                 mapper.component.one_tuple.one_tuple_1,
@@ -195,13 +172,13 @@ class TestGridNLOBehaviour:
         assert result.no_dimensions == 2
 
         grid_search = af.SearchGridSearch(
-            search=MockOptimizer(),
+            search=af.m.MockOptimizer(),
             number_of_steps=10,
         )
         grid_search.search.paths = af.DirectoryPaths(name="sample_name")
         result = grid_search.fit(
             model=mapper,
-            analysis=MockAnalysis(),
+            analysis=af.m.MockAnalysis(),
             grid_priors=[
                 mapper.component.one_tuple.one_tuple_0,
                 mapper.component.one_tuple.one_tuple_1,
@@ -214,13 +191,13 @@ class TestGridNLOBehaviour:
 
     # def test_results_parallel(self, mapper, container):
     #     grid_search = af.SearchGridSearch(
-    #         search=container.MockOptimizer,
+    #         search=container.af.m.MockOptimizer,
     #         number_of_steps=10,
     #         paths=af.Paths(name="sample_name"),
     #         parallel=True,
     #     )
     #     result = grid_search.fit(
-    #         container.MockAnalysis(),
+    #         container.af.m.MockAnalysis(),
     #         mapper,
     #         [mapper.component.one_tuple.one_tuple_0, mapper.component.one_tuple.one_tuple_1],
     #     )
@@ -230,15 +207,15 @@ class TestGridNLOBehaviour:
     #     assert result.likelihood_merit_array.shape == (10, 10)
 
     # def test_generated_models_with_instances(self, grid_search, container, mapper):
-    #     instance_component = mock.MockClassx2Tuple()
+    #     instance_component = mock.af.m.MockClassx2Tuple()
     #     mapper.instance_component = instance_component
     #
-    #     analysis = container.MockAnalysis()
+    #     analysis = container.af.m.MockAnalysis()
     #
     #     grid_search.fit(analysis, mapper, [mapper.component.one_tuple.one_tuple_0])
     #
     #     for instance in container.fit_instances:
-    #         assert isinstance(instance.component, mock.MockClassx2Tuple)
+    #         assert isinstance(instance.component, mock.af.m.MockClassx2Tuple)
     #         assert instance.instance_component == instance_component
     #
     # def test_generated_models_with_instance_attributes(
@@ -247,14 +224,14 @@ class TestGridNLOBehaviour:
     #     instance = 2.0
     #     mapper.component.one_tuple.one_tuple_1 = instance
     #
-    #     analysis = container.MockAnalysis()
+    #     analysis = container.af.m.MockAnalysis()
     #
     #     grid_search.fit(analysis, mapper, [mapper.component.one_tuple.one_tuple_0])
     #
     #     assert len(container.fit_instances) > 0
     #
     #     for instance in container.fit_instances:
-    #         assert isinstance(instance.component, mock.MockClassx2Tuple)
+    #         assert isinstance(instance.component, mock.af.m.MockClassx2Tuple)
     #         # noinspection PyUnresolvedReferences
     #         assert instance.component.centre[1] == 2
 
@@ -276,22 +253,10 @@ class TestGridNLOBehaviour:
         assert grid_search.paths.output_path != search.paths.output_path
 
 
-class MockResult(Result):
-    def __init__(self, log_likelihood):
-        # noinspection PyTypeChecker
-        super().__init__(None, None)
-        self._log_likelihood = log_likelihood
-        self.model = log_likelihood
-
-    @property
-    def log_likelihood(self):
-        return self._log_likelihood
-
-
 @pytest.fixture(name="grid_search_result")
 def make_grid_search_result():
-    one = MockResult(1)
-    two = MockResult(2)
+    one = af.m.MockResultGrid(1)
+    two = af.m.MockResultGrid(2)
 
     # noinspection PyTypeChecker
     return af.GridSearchResult(

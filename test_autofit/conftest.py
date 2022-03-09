@@ -11,7 +11,7 @@ from autofit.database.model import sa
 
 from autoconf import conf
 from autofit import database as db
-from autofit.mock import fixtures
+from autofit import fixtures
 
 if sys.platform == 'darwin':
     multiprocessing.set_start_method('forkserver')

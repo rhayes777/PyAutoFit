@@ -4,8 +4,6 @@ import autofit as af
 
 from autofit.text import formatter as frm
 
-from autofit.mock.mock_model import MockClassx2, MockChildTuplex2
-
 
 def test_parameterization():
     model = af.Collection(
@@ -86,7 +84,7 @@ class TestGenerateModelInfo:
 
     def test_basic(self):
         mm = af.ModelMapper()
-        mm.mock_class = MockClassx2
+        mm.mock_class = af.m.MockClassx2
         model_info = mm.info
 
         assert (
@@ -98,7 +96,7 @@ class TestGenerateModelInfo:
 
     def test_with_instance(self):
         mm = af.ModelMapper()
-        mm.mock_class = MockClassx2
+        mm.mock_class = af.m.MockClassx2
 
         mm.mock_class.two = 1.0
 
@@ -122,7 +120,7 @@ class TestGenerateModelInfo:
 
     # noinspection PyUnresolvedReferences
     def test_tuple_instance_model_info(self, mapper):
-        mapper.mock_cls = MockChildTuplex2
+        mapper.mock_cls = af.m.MockChildTuplex2
         info = mapper.info
 
         mapper.mock_cls.tup_0 = 1.0

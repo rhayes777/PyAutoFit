@@ -350,6 +350,8 @@ class FactorGraph(AbstractNode):
             fill="w",
             factor_shape="s",
             variable_shape="o",
+            factor_labels=None,
+            variable_labels=None,
             factor_kws=None,
             variable_kws=None,
             edge_kws=None,
@@ -407,7 +409,13 @@ class FactorGraph(AbstractNode):
             labelleft=False,
         )
         if draw_labels:
-            self.draw_graph_labels(pos, ax=ax, **(label_kws or {}))
+            self.draw_graph_labels(
+                pos,
+                ax=ax,
+                factor_labels=factor_labels,
+                variable_labels=variable_labels,
+                **(label_kws or {})
+            )
         return pos, fs, vs, edges
 
     def draw_graph_labels(

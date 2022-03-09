@@ -1,21 +1,18 @@
 import autofit as af
 
-from autofit.mock.mock_model import MockClassx2Tuple
-
-
 class TestCase:
     def test_transfer_tuples(self):
 
         model = af.ModelMapper()
         instance = af.ModelInstance()
 
-        model.profile = af.PriorModel(MockClassx2Tuple)
+        model.profile = af.PriorModel(af.m.MockClassx2Tuple)
         assert model.prior_count == 2
 
         result = model.copy_with_fixed_priors(instance)
         assert result.prior_count == 2
 
-        instance.profile = MockClassx2Tuple()
+        instance.profile = af.m.MockClassx2Tuple()
 
         result = model.copy_with_fixed_priors(instance)
         assert result.prior_count == 0
@@ -24,4 +21,4 @@ class TestCase:
 
         instance = result.instance_from_unit_vector([])
         assert result.profile.one_tuple == (0.0, 0.0)
-        assert isinstance(instance.profile, MockClassx2Tuple)
+        assert isinstance(instance.profile, af.m.MockClassx2Tuple)

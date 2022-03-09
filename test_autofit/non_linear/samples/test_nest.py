@@ -2,13 +2,10 @@ import pytest
 
 import autofit as af
 
-from autofit.mock.mock_model import MockClassx4
-from autofit.mock.mock import MockNestSamples
-
 pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
 
 def test__samples_within_parameter_range(samples_x5):
-    model = af.ModelMapper(mock_class_1=MockClassx4)
+    model = af.ModelMapper(mock_class_1=af.m.MockClassx4)
 
     parameters = [
         [0.0, 1.0, 2.0, 3.0],
@@ -18,7 +15,7 @@ def test__samples_within_parameter_range(samples_x5):
         [0.0, 1.0, 2.0, 3.0],
     ]
 
-    samples_x5 = MockNestSamples(
+    samples_x5 = af.m.MockNestSamples(
         model=model,
         sample_list=af.Sample.from_lists(
             model=model,
@@ -58,9 +55,9 @@ def test__samples_within_parameter_range(samples_x5):
 
 
 def test__acceptance_ratio_is_correct():
-    model = af.ModelMapper(mock_class_1=MockClassx4)
+    model = af.ModelMapper(mock_class_1=af.m.MockClassx4)
 
-    samples_x5 = MockNestSamples(
+    samples_x5 = af.m.MockNestSamples(
         model=model,
         sample_list=af.Sample.from_lists(
             model=model,

@@ -53,17 +53,15 @@ class NormalMessage(AbstractMessage):
             upper_limit=upper_limit,
             id_=id_,
         )
-        self.mu, self.sigma = self.parameters
+        self.mean, self.sigma = self.parameters
+
+    # self.mean = self.mu
 
     def cdf(self, x):
         return norm.cdf(x, loc=self.mean, scale=self.sigma)
 
     def ppf(self, x):
         return norm.ppf(x, loc=self.mean, scale=self.sigma)
-
-    @cached_property
-    def mean(self):
-        return self.mu
 
     @cached_property
     def natural_parameters(self):
@@ -161,12 +159,10 @@ class NormalMessage(AbstractMessage):
 
     def value_for(self, unit):
         """
-
         Parameters
         ----------
         unit: Float
             A unit hypercube value between 0 and 1
-
         Returns
         -------
         value: Float
@@ -178,9 +174,7 @@ class NormalMessage(AbstractMessage):
         """
         Returns the log prior of a physical value, so the log likelihood of a model evaluation can be converted to a
         posterior as log_prior + log_likelihood.
-
         This is used by Emcee in the log likelihood function evaluation.
-
         Parameters
         ----------
         value
@@ -211,7 +205,7 @@ class NormalMessage(AbstractMessage):
 
 
 class NaturalNormal(NormalMessage):
-    """Identical to the NormalMessage but allows non-normalised values, 
+    """Identical to the NormalMessage but allows non-normalised values,
     e.g negative or infinite variances
     """
     _parameter_support = ((-np.inf, np.inf), (-np.inf, 0))
@@ -226,7 +220,7 @@ class NaturalNormal(NormalMessage):
             id_=None,
     ):
         AbstractMessage.__init__(
-            self, 
+            self,
             eta1,
             eta2,
             log_norm=log_norm,
@@ -234,11 +228,11 @@ class NaturalNormal(NormalMessage):
             upper_limit=upper_limit,
             id_=id_,
         )
-    
+
     @cached_property
     def sigma(self):
         precision = -2 * self.parameters[1]
-        return precision**-0.5
+        return precision ** -0.5
 
     @cached_property
     def mean(self):
@@ -247,7 +241,7 @@ class NaturalNormal(NormalMessage):
     @staticmethod
     def calc_natural_parameters(eta1, eta2):
         return np.array([eta1, eta2])
-    
+
     @cached_property
     def natural_parameters(self):
         return self.calc_natural_parameters(*self.parameters)
@@ -262,18 +256,17 @@ class NaturalNormal(NormalMessage):
     def invert_natural_parameters(natural_parameters):
         return natural_parameters
 
-    
     @classmethod
     def from_mode(
-            cls, mode: np.ndarray, covariance: Union[float, LinearOperator] = 1.0, **kwargs 
+            cls, mode: np.ndarray, covariance: Union[float, LinearOperator] = 1.0, **kwargs
     ):
         if isinstance(covariance, LinearOperator):
             precision = covariance.inv().diagonal()
         else:
             mode, variance = cls._get_mean_variance(mode, covariance)
-            precision = 1/variance 
+            precision = 1 / variance
 
-        return cls(mode * precision, - precision/2, **kwargs)
+        return cls(mode * precision, - precision / 2, **kwargs)
 
 
 UniformNormalMessage = NormalMessage.transformed(phi_transform, "UniformNormalMessage")

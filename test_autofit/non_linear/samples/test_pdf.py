@@ -4,15 +4,13 @@ import pytest
 from autoconf.conf import with_config
 
 import autofit as af
-from autofit.mock.mock_model import MockClassx2, MockClassx4
-from autofit.mock.mock import MockSamples
 
 pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
 
 
 def test__from_csv_table():
 
-    model = af.ModelMapper(mock_class_1=MockClassx4)
+    model = af.ModelMapper(mock_class_1=af.m.MockClassx4)
 
     parameters = [
         [0.0, 1.0, 2.0, 3.0],
@@ -68,8 +66,8 @@ def test__converged__median_pdf_vector_and_instance():
     log_likelihood_list = 10 * [0.1]
     weight_list = 10 * [0.1]
 
-    model = af.ModelMapper(mock_class=MockClassx2)
-    samples_x5 = MockSamples(
+    model = af.ModelMapper(mock_class=af.m.MockClassx2)
+    samples_x5 = af.m.MockSamples(
         model=model,
         sample_list=af.Sample.from_lists(
             model=model,
@@ -110,8 +108,8 @@ def test__unconverged__median_pdf_vector():
     log_likelihood_list = 9 * [0.0] + [1.0]
     weight_list = 9 * [0.0] + [1.0]
 
-    model = af.ModelMapper(mock_class=MockClassx2)
-    samples_x5 = MockSamples(
+    model = af.ModelMapper(mock_class=af.m.MockClassx2)
+    samples_x5 = af.m.MockSamples(
         model=model,
         sample_list=af.Sample.from_lists(
             model=model,
@@ -149,8 +147,8 @@ def test__converged__vector_and_instance_at_upper_and_lower_sigma():
 
     weight_list = 10 * [0.1]
 
-    model = af.ModelMapper(mock_class=MockClassx2)
-    samples_x5 = MockSamples(
+    model = af.ModelMapper(mock_class=af.m.MockClassx2)
+    samples_x5 = af.m.MockSamples(
         model=model,
         sample_list=af.Sample.from_lists(
             model=model,
@@ -216,8 +214,8 @@ def test__unconverged_vector_at_lower_and_upper_sigma():
     log_likelihood_list = 9 * [0.0] + [1.0]
     weight_list = 9 * [0.0] + [1.0]
 
-    model = af.ModelMapper(mock_class=MockClassx2)
-    samples_x5 = MockSamples(
+    model = af.ModelMapper(mock_class=af.m.MockClassx2)
+    samples_x5 = af.m.MockSamples(
         model=model,
         sample_list=af.Sample.from_lists(
             model=model,
@@ -259,8 +257,8 @@ def test__converged__errors_vector_and_instance_at_upper_and_lower_sigma():
 
     weight_list = 10 * [0.1]
 
-    model = af.ModelMapper(mock_class=MockClassx2)
-    samples_x5 = MockSamples(
+    model = af.ModelMapper(mock_class=af.m.MockClassx2)
+    samples_x5 = af.m.MockSamples(
         model=model,
         sample_list=af.Sample.from_lists(
             model=model,
@@ -310,12 +308,12 @@ def test__converged__errors_vector_and_instance_at_upper_and_lower_sigma():
 
 
 def test__unconverged_sample_size__uses_value_unless_fewer_samples():
-    model = af.ModelMapper(mock_class_1=MockClassx4)
+    model = af.ModelMapper(mock_class_1=af.m.MockClassx4)
 
     log_likelihood_list = 4 * [0.0] + [1.0]
     weight_list = 4 * [0.0] + [1.0]
 
-    samples_x5 = MockSamples(
+    samples_x5 = af.m.MockSamples(
         model=model,
         sample_list=af.Sample.from_lists(
             model=model,
@@ -330,7 +328,7 @@ def test__unconverged_sample_size__uses_value_unless_fewer_samples():
     assert samples_x5.pdf_converged is False
     assert samples_x5.unconverged_sample_size == 2
 
-    samples_x5 = MockSamples(
+    samples_x5 = af.m.MockSamples(
         model=model,
         sample_list=af.Sample.from_lists(
             model=model,
@@ -347,7 +345,7 @@ def test__unconverged_sample_size__uses_value_unless_fewer_samples():
 
 
 def test__offset_vector_from_input_vector():
-    model = af.ModelMapper(mock_class_1=MockClassx4)
+    model = af.ModelMapper(mock_class_1=af.m.MockClassx4)
 
     parameters = [
         [1.1, 2.1, 3.1, 4.1],
@@ -361,7 +359,7 @@ def test__offset_vector_from_input_vector():
 
     log_likelihood_list = list(map(lambda weight: 10.0 * weight, weight_list))
 
-    samples_x5 = MockSamples(
+    samples_x5 = af.m.MockSamples(
         model=model,
         sample_list=af.Sample.from_lists(
             model=model,
@@ -388,9 +386,9 @@ def test__vector_drawn_randomly_from_pdf():
         [0.0, 1.0, 2.0, 3.0],
     ]
 
-    model = af.ModelMapper(mock_class_1=MockClassx4)
+    model = af.ModelMapper(mock_class_1=af.m.MockClassx4)
 
-    samples_x5 = MockSamples(
+    samples_x5 = af.m.MockSamples(
         model=model,
         sample_list=af.Sample.from_lists(
             model=model,
@@ -422,8 +420,8 @@ def test__covariance_matrix():
 
     parameters = [[2.0, 2.0], [1.0, 1.0], [0.0, 0.0]]
 
-    model = af.ModelMapper(mock_class=MockClassx2)
-    samples_x5 = MockSamples(
+    model = af.ModelMapper(mock_class=af.m.MockClassx2)
+    samples_x5 = af.m.MockSamples(
         model=model,
         sample_list=af.Sample.from_lists(
             model=model,
@@ -440,8 +438,8 @@ def test__covariance_matrix():
 
     parameters = [[0.0, 2.0], [1.0, 1.0], [2.0, 0.0]]
 
-    model = af.ModelMapper(mock_class=MockClassx2)
-    samples_x5 = MockSamples(
+    model = af.ModelMapper(mock_class=af.m.MockClassx2)
+    samples_x5 = af.m.MockSamples(
         model=model,
         sample_list=af.Sample.from_lists(
             model=model,
@@ -458,8 +456,8 @@ def test__covariance_matrix():
 
     weight_list = [0.1, 0.2, 0.3]
 
-    model = af.ModelMapper(mock_class=MockClassx2)
-    samples_x5 = MockSamples(
+    model = af.ModelMapper(mock_class=af.m.MockClassx2)
+    samples_x5 = af.m.MockSamples(
         model=model,
         sample_list=af.Sample.from_lists(
             model=model,

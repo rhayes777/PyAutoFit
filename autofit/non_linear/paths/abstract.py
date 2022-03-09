@@ -399,6 +399,11 @@ class AbstractPaths(ABC):
         Save samples to the database
         """
 
+    def samples_to_csv(self, samples):
+        """
+        Save the final-result samples associated with the phase as a pickle
+        """
+
     @abstractmethod
     def load_samples_info(self):
         pass

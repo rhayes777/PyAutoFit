@@ -2,7 +2,6 @@ import pytest
 
 import autofit as af
 from autofit import database as m
-from autofit.mock.mock import MockSamples
 
 
 @pytest.fixture(
@@ -13,7 +12,7 @@ def save_samples(
         paths,
         sample
 ):
-    samples =MockSamples(
+    samples =af.m.MockSamples(
         model=af.Model(
             af.Gaussian
         ),

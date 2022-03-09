@@ -4,9 +4,6 @@ import pytest
 
 import autofit as af
 
-from autofit.mock.mock import MockSamples
-from autofit.mock.mock_model import MockClassx2
-from autofit.mock.mock_model import MockClassx2FormatExp
 from autofit.non_linear.samples import Sample
 from autofit import StoredSamples
 from autofit.text import samples_text
@@ -16,7 +13,7 @@ text_path = path.join("{}".format(path.dirname(path.realpath(__file__))), "files
 
 @pytest.fixture(name="model")
 def make_model():
-    return af.ModelMapper(mock_class=MockClassx2)
+    return af.ModelMapper(mock_class=af.m.MockClassx2)
 
 
 @pytest.fixture(name="samples")
@@ -55,13 +52,13 @@ def test__latex(samples):
     assert r"$one_label^{\rm{o}} = 1.00^{+0.20}_{-0.00}$ & " in latex_results_at_sigma
     assert r"$two_label^{\rm{o}} = 2.00^{+0.20}_{-0.00}$" in latex_results_at_sigma
 
-    model = af.ModelMapper(mock_class=MockClassx2FormatExp)
+    model = af.ModelMapper(mock_class=af.m.MockClassx2FormatExp)
 
     parameters = [[1.0, 200.0], [1.2, 200.0]]
 
     log_likelihood_list = [1.0, 0.0]
 
-    samples_exp = MockSamples(
+    samples_exp = af.m.MockSamples(
         model=model,
         sample_list=af.Sample.from_lists(
             parameter_lists=parameters,

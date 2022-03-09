@@ -1,9 +1,8 @@
 import autofit as af
 from autofit import graphical as g
-from autofit.mock.mock import MockAnalysis
 
 
-class Analysis(MockAnalysis):
+class Analysis(af.m.MockAnalysis):
     def __init__(self):
         super().__init__()
         self.did_call_visualise = False

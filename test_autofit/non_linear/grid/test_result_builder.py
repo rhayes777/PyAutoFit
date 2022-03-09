@@ -6,8 +6,6 @@ from autofit.non_linear.grid.grid_search import ResultBuilder
 from autofit.non_linear.grid.grid_search.job import JobResult
 from autofit.non_linear.grid.grid_search.result_builder import Placeholder
 
-from autofit.mock.mock import MockSearch, MockResult
-
 @pytest.fixture(
     name="result_builder"
 )
@@ -28,8 +26,8 @@ def make_add_results(
         for number in numbers:
             result_builder.add(
                 JobResult(
-                    MockResult(
-                        search=MockSearch(
+                    af.m.MockResult(
+                        search=af.m.MockSearch(
                             name=str(number)
                         ),
                         model=af.Model(

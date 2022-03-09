@@ -3,9 +3,6 @@ import pytest
 
 import autofit as af
 
-from autofit.mock.mock_model import MockClassx2
-from autofit.mock.mock import MockSamples, MockNestSamples
-
 from autofit.text import text_util
 
 text_path = path.join("{}".format(path.dirname(path.realpath(__file__))), "files", "samples")
@@ -13,7 +10,7 @@ text_path = path.join("{}".format(path.dirname(path.realpath(__file__))), "files
 
 @pytest.fixture(name="model")
 def make_model():
-    return af.ModelMapper(mock_class=MockClassx2)
+    return af.ModelMapper(mock_class=af.m.MockClassx2)
 
 
 @pytest.fixture(name="samples")
@@ -22,7 +19,7 @@ def make_samples(model):
 
     log_likelihood_list = [1.0, 0.0]
 
-    return MockSamples(
+    return af.m.MockSamples(
         model=model,
         sample_list=af.Sample.from_lists(
             parameter_lists=parameters,
@@ -65,7 +62,7 @@ def test__search_summary_to_file(model):
 
     log_likelihood_list = [1.0, 0.0]
 
-    samples = MockSamples(
+    samples = af.m.MockSamples(
         model=model,
         sample_list=af.Sample.from_lists(
             parameter_lists=parameters,
@@ -84,7 +81,7 @@ def test__search_summary_to_file(model):
     assert lines[0] == "Total Samples = 2\n"
     results.close()
 
-    samples = MockNestSamples(
+    samples = af.m.MockNestSamples(
         model=model,
         sample_list=af.Sample.from_lists(
             parameter_lists=parameters,

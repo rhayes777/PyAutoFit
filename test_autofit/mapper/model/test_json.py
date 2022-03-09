@@ -4,7 +4,6 @@ import pytest
 import json
 
 import autofit as af
-from autofit.mock.mock_model import MockWithTuple
 
 @pytest.fixture(
     name="model_dict"
@@ -71,7 +70,7 @@ class TestTuple:
         )
 
     def test_model_with_tuple(self):
-        tuple_model = af.Model(MockWithTuple)
+        tuple_model = af.Model(af.m.MockWithTuple)
         tuple_model.instance_from_prior_medians()
         model_dict = tuple_model.dict()
 

@@ -1,8 +1,6 @@
 import pytest
 
 import autofit as af
-from autofit.mock.mock_model import MockWithTuple
-from autofit.mock.mock import MockSearch
 
 @pytest.fixture(
     name="model"
@@ -123,7 +121,7 @@ def test_component_names():
 
 def test_with_tuple():
     with_tuple = af.Model(
-        MockWithTuple
+        af.m.MockWithTuple
     )
     assert with_tuple.model_component_and_parameter_names == [
         "tup_0", "tup_1"
@@ -226,7 +224,7 @@ def make_result(
     return af.Result(
         samples,
         model,
-        MockSearch()
+        af.m.MockSearch()
     )
 
 
@@ -248,7 +246,7 @@ def make_modified_result(
     return af.Result(
         samples,
         model,
-        MockSearch()
+        af.m.MockSearch()
     )
 
 
