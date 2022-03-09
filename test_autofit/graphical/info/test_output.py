@@ -27,11 +27,11 @@ class MockSearch(af.m.MockSearch):
             log_likelihood_cap=None,
     ):
         super().fit(model, analysis)
-        return af.m.MockResult(model)
+        return MockResult(model)
 
 
 def _run_optimisation(factor_graph_model, paths=None):
-    search = af.m.MockSearch()
+    search = MockSearch()
     factor_graph_model.optimise(
         search,
         max_steps=MAX_STEPS,
@@ -77,7 +77,7 @@ def test_path_prefix(output_directory, factor_graph_model):
     optimiser = g.EPOptimiser(
         factor_graph=factor_graph_model.graph,
         paths=paths,
-        default_optimiser=af.m.MockSearch(),
+        default_optimiser=MockSearch(),
     )
 
     assert optimiser.output_path == output_directory / "path_prefix/name"
