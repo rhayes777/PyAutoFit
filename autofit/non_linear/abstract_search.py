@@ -1,7 +1,6 @@
 import copy
 import logging
 import multiprocessing as mp
-import os
 import time
 from abc import ABC, abstractmethod
 from collections import Counter
@@ -10,10 +9,10 @@ from os import path
 from typing import Optional, Union, Tuple, List
 
 import numpy as np
-from autofit.database.sqlalchemy_ import sa
 
 from autoconf import conf
 from autofit import exc
+from autofit.database.sqlalchemy_ import sa
 from autofit.graphical import EPMeanField, MeanField, AnalysisFactor, _HierarchicalFactor
 from autofit.graphical.factor_graphs.factor import Factor
 from autofit.graphical.utils import Status
@@ -313,20 +312,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             logger_ = logging.getLogger(
                 self.name
             )
-            if self.paths is not None and self.paths.model is not None:
-                log_path = path.join(
-                    self.paths.output_path,
-                    "output.log"
-                )
-                os.makedirs(
-                    self.paths.output_path,
-                    exist_ok=True
-                )
-                logger_.handlers.append(
-                    logging.FileHandler(log_path)
-                )
-                self._logger = logger_
-            return logger_
+            self._logger = logger_
         return self._logger
 
     @property
