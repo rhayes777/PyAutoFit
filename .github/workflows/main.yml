@@ -60,6 +60,7 @@ jobs:
         pip3 install pytest
         pip3 install -r PyAutoConf/requirements.txt
         pip3 install -r PyAutoFit/requirements.txt
+        pip3 install -r PyAutoFit/build_requirements.txt
     - name: Run tests
       run: |
         export ROOT_DIR=`pwd`
