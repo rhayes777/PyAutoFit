@@ -68,7 +68,7 @@ class AutoCorrelations(AutoCorrelationsSettings):
 
         Parameters
         ----------
-        check_for_convergence : bool
+        check_for_convergence
             Whether the auto-correlation lengths of the Emcee samples are checked to determine the stopping criteria.
             If `True`, this option may terminate the Emcee run before the input number of steps, nsteps, has
             been performed. If `False` nstep samples will be taken.

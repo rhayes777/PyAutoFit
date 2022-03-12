@@ -402,10 +402,10 @@ def _mul_triangular(
         A triangular matrix
     b : (M,) or (M, N) array_like
         vector/matrix being multiplied
-    lower : bool, optional
+    lower, optional
         Use only data contained in the lower triangle of `a`.
         Default is to use upper triangle.
-    trans : bool, optional
+    trans, optional
         type of multiplication,
 
         ========  =========
@@ -413,10 +413,10 @@ def _mul_triangular(
         ========  =========
         False     a b
         True      a^T b
-    overwrite_b : bool, optional
+    overwrite_b, optional
         Allow overwriting data in `b` (may enhance performance)
         not fully tested
-    check_finite : bool, optional
+    check_finite, optional
         Whether to check that the input matrices contain only finite numbers.
         Disabling may give a performance gain, but may result in problems
         (crashes, non-termination) if the inputs do contain infinities or NaNs.

@@ -615,7 +615,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         analysis : Analysis
             Contains the data and the log likelihood function which fits an instance of the model to the data, returning
             the log likelihood the `NonLinearSearch` maximizes.
-        during_analysis : bool
+        during_analysis
             If the update is during a non-linear search, in which case tasks are only performed after a certain number
              of updates and only a subset of visualization may be performed.
         """

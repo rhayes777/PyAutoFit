@@ -785,11 +785,11 @@ class AbstractPriorModel(AbstractModel):
         a
             print(tuples[i][1], width)
             The absolute width to be assigned to gaussian priors
-        use_errors : bool
+        use_errors
             If True, the passed errors of the model components estimated in a previous `NonLinearSearch` (computed
             at the prior_passer.sigma value) are used to set the pass Gaussian Prior sigma value (if both width and
             passed errors are used, the maximum of these two values are used).
-        use_widths : bool
+        use_widths
             If True, the minimum prior widths specified in the prior configs of the model components are used to
             set the passed Gaussian Prior sigma value (if both widths and passed errors are used, the maximum of
             these two values are used).

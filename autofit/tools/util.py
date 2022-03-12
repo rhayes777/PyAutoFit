@@ -90,9 +90,9 @@ def numpy_array_to_json(
     ----------
     array : np.ndarray
         The array that is written to json.
-    file_path : str
+    file_path
         The full path of the file that is output, including the file name and `.json` extension.
-    overwrite : bool
+    overwrite
         If `True` and a file already exists with the input file_path the .json file is overwritten. If 
         `False`, an error will be raised.
 
@@ -127,7 +127,7 @@ def numpy_array_from_json(file_path: str):
 
     Parameters
     ----------
-    file_path : str
+    file_path
         The full path of the file that is loaded, including the file name and ``.json`` extension.
 
     Returns
