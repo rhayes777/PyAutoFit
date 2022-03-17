@@ -384,7 +384,7 @@ class Samples:
 
         Parameters
         -----------
-        sample_index : int
+        sample_index
             The sample index of the weighted sample to return.
         """
         return self.model.instance_from_vector(vector=self.parameter_lists[sample_index])

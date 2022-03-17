@@ -265,7 +265,7 @@ class AbstractMessage(Prior, ABC):
             )
 
     def factor(self, x):
-        self.assert_within_limits(x)
+       # self.assert_within_limits(x)
         return self.logpdf(x)
 
     def logpdf(self, x: np.ndarray) -> np.ndarray:

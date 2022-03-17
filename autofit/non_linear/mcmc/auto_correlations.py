@@ -72,12 +72,12 @@ class AutoCorrelations(AutoCorrelationsSettings):
             Whether the auto-correlation lengths of the Emcee samples are checked to determine the stopping criteria.
             If `True`, this option may terminate the Emcee run before the input number of steps, nsteps, has
             been performed. If `False` nstep samples will be taken.
-        check_size : int
+        check_size
             The length of the samples used to check the auto-correlation lengths (from the latest sample backwards).
             For convergence, the auto-correlations must not change over a certain range of samples. A longer check-size
             thus requires more samples meet the auto-correlation threshold, taking longer to terminate sampling.
             However, shorter chains risk stopping sampling early due to noise.
-        required_length : int
+        required_length
             The length an auto_correlation chain must be for it to be used to evaluate whether its change threshold is
             sufficiently small to terminate sampling early.
         change_threshold

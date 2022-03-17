@@ -236,9 +236,6 @@ class EPOptimiser:
             factor_loggers=factor_loggers, 
         )
 
-
-
-
     @property
     def output_path(self) -> Path:
         """

@@ -102,6 +102,7 @@ class Scraper:
 
             logger.info(
                 f"Creating fit for: "
+                f"{item.search.paths.path_prefix} "
                 f"{item.search.unique_tag} "
                 f"{item.search.name} "
                 f"{identifier} ")
@@ -271,6 +272,7 @@ def _add_pickles(
         filenames = []
 
     for filename in filenames:
+
         try:
             with open(
                     pickle_path / filename,
@@ -279,7 +281,7 @@ def _add_pickles(
                 fit[
                     filename.split(".")[0]
                 ] = pickle.load(f)
-        except pickle.UnpicklingError as e:
+        except (pickle.UnpicklingError, ModuleNotFoundError) as e:
 
             if filename == "dynesty.pickle":
                 continue

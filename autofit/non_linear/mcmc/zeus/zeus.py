@@ -64,16 +64,16 @@ class Zeus(AbstractMCMC):
             and also acts as the folder after the path prefix and before the search name.
         prior_passer
             Controls how priors are passed from the results of this `NonLinearSearch` to a subsequent non-linear search.
-        nwalkers : int
+        nwalkers
             The number of walkers in the ensemble used to sample parameter space.
-        nsteps : int
+        nsteps
             The number of steps that must be taken by every walker. The `NonLinearSearch` will thus run for nwalkers *
             nsteps iterations.
         initializer
             Generates the initialize samples of non-linear parameter space (see autofit.non_linear.initializer).
         auto_correlations_settings : AutoCorrelationsSettings
             Customizes and performs auto correlation calculations performed during and after the search.
-        number_of_cores : int
+        number_of_cores
             The number of cores Zeus sampling is performed using a Python multiprocessing Pool instance. If 1, a
             pool instance is not created and the job runs in serial.
         session
