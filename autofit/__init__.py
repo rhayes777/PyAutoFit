@@ -3,6 +3,12 @@ from . import conf
 from . import exc
 from . import mock as m
 from .database.aggregator.aggregator import GridSearchAggregator
+from .graphical.expectation_propagation.history import EPHistory
+from .graphical.declarative.factor.analysis import AnalysisFactor
+from .graphical.declarative.collection import FactorGraphModel
+from .graphical.declarative.factor.hierarchical import HierarchicalFactor
+from .graphical.optimise import LaplaceFactorOptimiser
+from .graphical.laplace import LaplaceOptimiser
 from .non_linear.samples import MCMCSamples
 from .non_linear.samples import NestSamples
 from .non_linear.samples import Samples
@@ -24,6 +30,7 @@ from .mapper.model import path_instances_of_class
 from .mapper.model_mapper import ModelMapper
 from .mapper.model_mapper import ModelMapper as Mapper
 from .mapper.model_object import ModelObject
+from .mapper.operator import DiagonalMatrix
 from .mapper.prior.assertion import ComparisonAssertion
 from .mapper.prior.assertion import ComparisonAssertion
 from .mapper.prior.assertion import GreaterThanLessThanAssertion

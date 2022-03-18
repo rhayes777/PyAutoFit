@@ -159,7 +159,10 @@ class OptFactor:
     def _parse_result(
             self, result: OptimizeResult, status: Status = Status()
     ) -> OptResult:
-        success, messages, flag = status
+
+        messages = status.messages
+        flag = status.flag
+
         success = result.success
         try:
             message = result.message.decode()
@@ -293,7 +296,8 @@ class LaplaceFactorOptimiser(AbstractFactorOptimiser):
         # https://en.wikipedia.org/wiki/Broyden%27s_method
         value = factor_approx.factor(res.mode)
         res.mode.update(value.deterministic_values)
-        jacobian = factor_approx.factor.jacobian(res.mode, opt.free_vars)
+
+        jacobian = factor_approx.factor.jacobian(res.mode, free_vars=opt.free_vars)
         update_det_cov(res, jacobian)
 
         self.transforms[factor] = self.transform_cls.from_dense(res.full_hess_inv)

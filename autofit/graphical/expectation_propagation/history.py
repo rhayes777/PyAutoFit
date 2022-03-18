@@ -259,10 +259,6 @@ class EPHistory:
         two consecutive, successful optimisations is below the specified
         tolerance.
         """
-
-        print("OOOOOOOOO")
-        print(self[factor].kl_divergence())
-
         return self[factor].kl_divergence() < self.kl_tol
 
     def is_kl_evidence_converged(self, factor: Factor) -> bool:
@@ -274,8 +270,6 @@ class EPHistory:
 
         if evidence_divergence < 0:
             logger.warning(f"Evidence for factor {factor} has decreased")
-
-        print(abs(evidence_divergence))
 
         return abs(evidence_divergence) < self.evidence_tol
 
