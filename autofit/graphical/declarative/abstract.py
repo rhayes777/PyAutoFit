@@ -144,6 +144,7 @@ class AbstractDeclarativeFactor(Analysis, ABC):
             self,
             optimiser: AbstractFactorOptimiser,
             paths: Optional[AbstractPaths] = None,
+            ep_history: Optional = None,
     ) -> EPOptimiser:
         return EPOptimiser(
             self.graph,
@@ -153,6 +154,7 @@ class AbstractDeclarativeFactor(Analysis, ABC):
                 for factor in self.model_factors
                 if factor.optimiser is not None
             },
+            ep_history=ep_history,
             paths=paths
         )
 
@@ -160,6 +162,7 @@ class AbstractDeclarativeFactor(Analysis, ABC):
             self,
             optimiser: AbstractFactorOptimiser,
             paths: Optional[AbstractPaths] = None,
+            ep_history: Optional = None,
             **kwargs
     ) -> EPResult:
         """
@@ -181,6 +184,7 @@ class AbstractDeclarativeFactor(Analysis, ABC):
         opt = self._make_ep_optimiser(
             optimiser,
             paths=paths,
+            ep_history=ep_history
         )
         updated_ep_mean_field = opt.run(
             self.mean_field_approximation(),
