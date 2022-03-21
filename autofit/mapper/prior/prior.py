@@ -175,7 +175,7 @@ class LogUniformPrior(WrappedInstance):
             lower_limit: float,
             upper_limit: float
     ):
-        return super().with_limits(
+        return cls(
             lower_limit=max(
                 0.000001,
                 lower_limit
