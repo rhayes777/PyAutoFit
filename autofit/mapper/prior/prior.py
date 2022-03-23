@@ -266,18 +266,13 @@ class LogGaussianPrior(TransformedWrapperInstance):
     """A prior with a uniform distribution between a lower and upper limit"""
 
     def __init__(
-            cls,
+            self,
             mean,
             sigma,
             lower_limit=1e-6,
             upper_limit=1.0,
             id_=None,
     ):
-        if lower_limit <= 0.0:
-            raise exc.PriorException(
-                "The lower limit of a LogUniformPrior cannot be zero or negative."
-            )
-
         lower_limit = float(lower_limit)
         upper_limit = float(upper_limit)
 
@@ -289,3 +284,36 @@ class LogGaussianPrior(TransformedWrapperInstance):
             lower_limit=lower_limit,
             upper_limit=upper_limit,
         )
+
+    def _new_for_base_message(
+            self,
+            message
+    ):
+        """
+        Create a new instance of this wrapper but change the parameters used
+        to instantiate the underlying message. This is useful for retaining
+        the same transform stack after recreating the underlying message during
+        projection.
+        """
+        return LogGaussianPrior(
+            *message.parameters,
+            lower_limit=self.lower_limit,
+            upper_limit=self.upper_limit,
+            id_=self.instance().id
+        )
+
+    @assert_within_limits
+    def value_for(self, unit):
+        """
+
+        Parameters
+        ----------
+        unit: Float
+            A unit hypercube value between 0 and 1
+
+        Returns
+        -------
+        value: Float
+            A value for the attribute biased to the gaussian distribution
+        """
+        return super().value_for(unit)
