@@ -1,3 +1,5 @@
+import pickle
+
 import pytest
 
 import autofit as af
@@ -27,3 +29,10 @@ def test_values(
         unit, value
 ):
     assert log_gaussian.value_for(unit) == pytest.approx(value, rel=0.1)
+
+
+def test_pickle(log_gaussian):
+    loaded = pickle.loads(
+        pickle.dumps(log_gaussian)
+    )
+    assert loaded == log_gaussian
