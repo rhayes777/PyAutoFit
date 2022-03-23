@@ -2,7 +2,7 @@ import numpy as np
 
 from autoconf import conf
 from autofit import exc
-from autofit.messages.normal import NormalMessage, UniformNormalMessage
+from autofit.messages.normal import NormalMessage, UniformNormalMessage, LogNormalMessage
 from autofit.messages.transform import log_10_transform
 from autofit.messages.transform_wrapper import TransformedWrapperInstance
 from .abstract import epsilon, assert_within_limits
@@ -260,3 +260,32 @@ class GaussianPrior(NormalMessage):
             A value for the attribute biased to the gaussian distribution
         """
         return super().value_for(unit)
+
+
+class LogGaussianPrior(TransformedWrapperInstance):
+    """A prior with a uniform distribution between a lower and upper limit"""
+
+    def __init__(
+            cls,
+            mean,
+            sigma,
+            lower_limit=1e-6,
+            upper_limit=1.0,
+            id_=None,
+    ):
+        if lower_limit <= 0.0:
+            raise exc.PriorException(
+                "The lower limit of a LogUniformPrior cannot be zero or negative."
+            )
+
+        lower_limit = float(lower_limit)
+        upper_limit = float(upper_limit)
+
+        super().__init__(
+            LogNormalMessage,
+            mean=mean,
+            sigma=sigma,
+            id_=id_,
+            lower_limit=lower_limit,
+            upper_limit=upper_limit,
+        )
