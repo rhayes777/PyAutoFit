@@ -2,7 +2,7 @@ import numpy as np
 
 from autoconf import conf
 from autofit import exc
-from autofit.messages.normal import NormalMessage, UniformNormalMessage
+from autofit.messages.normal import NormalMessage, UniformNormalMessage, LogNormalMessage
 from autofit.messages.transform import log_10_transform
 from autofit.messages.transform_wrapper import TransformedWrapperInstance
 from .abstract import epsilon, assert_within_limits
@@ -243,6 +243,73 @@ class GaussianPrior(NormalMessage):
         return cls(
             mean=(lower_limit + upper_limit) / 2,
             sigma=upper_limit - lower_limit,
+        )
+
+    @assert_within_limits
+    def value_for(self, unit):
+        """
+
+        Parameters
+        ----------
+        unit: Float
+            A unit hypercube value between 0 and 1
+
+        Returns
+        -------
+        value: Float
+            A value for the attribute biased to the gaussian distribution
+        """
+        return super().value_for(unit)
+
+
+class LogGaussianPrior(WrappedInstance):
+    """A prior with a log gaussian distribution"""
+
+    __identifier_fields__ = (
+        "lower_limit",
+        "upper_limit",
+        "mean",
+        "sigma"
+    )
+
+    def __init__(
+            self,
+            mean,
+            sigma,
+            lower_limit=0.0,
+            upper_limit=float("inf"),
+            id_=None,
+    ):
+        lower_limit = float(lower_limit)
+        upper_limit = float(upper_limit)
+
+        self.mean = mean
+        self.sigma = sigma
+
+        super().__init__(
+            LogNormalMessage,
+            mean=mean,
+            sigma=sigma,
+            id_=id_,
+            lower_limit=lower_limit,
+            upper_limit=upper_limit,
+        )
+
+    def _new_for_base_message(
+            self,
+            message
+    ):
+        """
+        Create a new instance of this wrapper but change the parameters used
+        to instantiate the underlying message. This is useful for retaining
+        the same transform stack after recreating the underlying message during
+        projection.
+        """
+        return LogGaussianPrior(
+            *message.parameters,
+            lower_limit=self.lower_limit,
+            upper_limit=self.upper_limit,
+            id_=self.instance().id
         )
 
     @assert_within_limits

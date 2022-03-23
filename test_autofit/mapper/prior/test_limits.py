@@ -22,15 +22,6 @@ def test_intrinsic_lower_limit(prior):
         prior.value_for(0.0)
 
 
-def test_prior_factor(prior):
-    prior.factor(1.0)
-
-    with pytest.raises(
-            PriorLimitException
-    ):
-        prior.factor(-1.0)
-
-
 def test_optional(prior):
     prior.value_for(
         0.0,
