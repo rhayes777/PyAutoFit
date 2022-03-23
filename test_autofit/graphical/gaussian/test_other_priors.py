@@ -62,12 +62,7 @@ def _test_optimise_factor_model(factor_model):
 
 
 def test_trivial():
-    # prior = af.LogUniformPrior(lower_limit=10, upper_limit=20)
-    # prior = af.UniformPrior(lower_limit=10, upper_limit=20)
-    prior = af.LogGaussianPrior(
-        mean=15,
-        sigma=1
-    )
+    prior = af.UniformPrior(lower_limit=10, upper_limit=20)
 
     prior_model = af.Collection(value=prior)
 
@@ -78,8 +73,8 @@ def test_trivial():
 
     factor_model = ep.AnalysisFactor(prior_model, analysis=TrivialAnalysis())
 
-    # optimiser = ep.LaplaceOptimiser()
-    optimiser = af.DynestyStatic()
+    optimiser = ep.LaplaceOptimiser()
+    # optimiser = af.DynestyStatic()
     model = factor_model.optimise(optimiser)
 
     assert model.value.mean == pytest.approx(14, rel=0.1)
