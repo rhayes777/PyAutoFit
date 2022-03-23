@@ -263,14 +263,21 @@ class GaussianPrior(NormalMessage):
 
 
 class LogGaussianPrior(TransformedWrapperInstance):
-    """A prior with a uniform distribution between a lower and upper limit"""
+    """A prior with a log gaussian distribution"""
+
+    __identifier_fields__ = (
+        "lower_limit",
+        "upper_limit",
+        "mean",
+        "sigma"
+    )
 
     def __init__(
             self,
             mean,
             sigma,
-            lower_limit=1e-6,
-            upper_limit=1.0,
+            lower_limit=0.0,
+            upper_limit=float("inf"),
             id_=None,
     ):
         lower_limit = float(lower_limit)
