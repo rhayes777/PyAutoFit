@@ -66,3 +66,26 @@ Drawn Variables
 
 AnalysisFactor0.one, PriorFactor3                                                         UniformPrior, lower_limit = 0.0, upper_limit = 1.0
 PriorFactor2                                                                              UniformPrior, lower_limit = 0.0, upper_limit = 1.0"""
+
+
+def test_instance(graph):
+    model = graph.global_prior_model
+    assert model.prior_count == 4
+    instance = model.instance_from_unit_vector(
+        [0.1, 0.2, 0.3, 0.4]
+    )
+    dist_model_1 = instance[0].distribution_model
+    assert isinstance(
+        dist_model_1,
+        af.GaussianPrior
+    )
+    assert instance[0].drawn_prior == 0.1
+
+    dist_model_2 = instance[0].distribution_model
+    assert isinstance(
+        dist_model_2,
+        af.GaussianPrior
+    )
+    assert instance[1].drawn_prior == 0.2
+
+    assert dist_model_1 == dist_model_2
