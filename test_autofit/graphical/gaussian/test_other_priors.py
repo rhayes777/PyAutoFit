@@ -78,7 +78,7 @@ def test_trivial():
 
     factor_model = ep.AnalysisFactor(prior_model, analysis=TrivialAnalysis())
 
-    optimiser = ep.LaplaceOptimiser()
+    # optimiser = ep.LaplaceOptimiser()
     optimiser = af.DynestyStatic()
     model = factor_model.optimise(optimiser)
 

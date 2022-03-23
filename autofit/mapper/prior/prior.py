@@ -262,7 +262,7 @@ class GaussianPrior(NormalMessage):
         return super().value_for(unit)
 
 
-class LogGaussianPrior(TransformedWrapperInstance):
+class LogGaussianPrior(WrappedInstance):
     """A prior with a log gaussian distribution"""
 
     __identifier_fields__ = (
@@ -282,6 +282,9 @@ class LogGaussianPrior(TransformedWrapperInstance):
     ):
         lower_limit = float(lower_limit)
         upper_limit = float(upper_limit)
+
+        self.mean = mean
+        self.sigma = sigma
 
         super().__init__(
             LogNormalMessage,
