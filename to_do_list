@@ -1,0 +1,64 @@
+
+
+__Searches__
+
+- LBFGS: Limits on parameters, callback history.
+
+
+__Documentation__
+
+- Overview -- have an "advanced model composition" which using trivial examples illustrates the use of lists, dicts and
+multi-level models. Make it clear they are "dumb" examples for illustration. Make it clear that the model composed
+links to the results allowing API design.
+
+- Add Model section to readthedocs, which includes muiltiple cookbooks (simple, including lists and dicts, multi-level,
+search chaining).
+
+- Include docs on writing and loading models / collections with jsons and adding them together.
+
+- Explicit exampels of how to extend Analsyis (e.g. putting extra data in c0nstructor) for Python beginners.
+
+
+Amy was unsure how to use an instance to plot a new component:
+
+class LinearFit:
+    def __init__(self, gradient=0.01, intercept=1.0, scatter=0.1):
+
+        self.intercept = intercept
+        self.gradient = gradient
+        self.scatter = scatter
+
+    def profile_from_xvalues(self, xvalues):
+
+        return np.multiply(self.gradient, xvalues) + self.intercept
+
+
+
+instance = result.samples.max_log_likelihood_instance
+
+instance.profile_from_xvalues(xvalues=hi)
+
+
+Write this clearly somewhere.
+
+Maybe we need to split the results into two, the above stuff and Samples.
+
+
+__Samples__
+
+ - Have as_instance=True default argument in all Samples objects. Use decorator to implement the output.
+
+
+__Database__
+
+- Database: profiling tests, speed ups and tools. Use test mode to quickly generate large result libearies.
+- Database Storage, not needing full Dynesty etc, only store basics, no properties so we can remake each object.
+
+
+__Graphical Models__
+
+- Graphical models: model.info file, on-the-fly summary file, output of KL divergence / evidence in factors,
+  model.results of overall model. For output, include a single file which is the latest results and a folder with
+  all factor results, tilted, etc. FactorGraphResult.
+
+

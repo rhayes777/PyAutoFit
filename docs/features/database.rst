@@ -24,7 +24,6 @@ to the non-linear search:
     session = af.db.open_database("database.sqlite")
 
     emcee = af.Emcee(
-        path_prefix=path.join("features", "database"),
         session=session,  # This instructs the search to write to the .sqlite database.
     )
 

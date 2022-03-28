@@ -88,7 +88,7 @@ def numpy_array_to_json(
 
     Parameters
     ----------
-    array : np.ndarray
+    array
         The array that is written to json.
     file_path
         The full path of the file that is output, including the file name and `.json` extension.

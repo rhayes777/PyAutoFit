@@ -19,7 +19,7 @@ Next, install the **PyAutoFit** dependencies via pip:
 
    pip install -r PyAutoFit/requirements.txt
 
-If you are using a `conda` environment, add the source repository as follows:
+If you are using a ``conda`` environment, add the source repository as follows:
 
 .. code-block:: bash
 
@@ -31,6 +31,12 @@ Alternatively, if you are using a Python environment include the **PyAutoFit** s
 .. code-block:: bash
 
    export PYTHONPATH=$PYTHONPATH:/path/to/PyAutoFit
+
+For unit tests to pass you will also need the following optional requirements:
+
+.. code-block:: bash
+
+   pip install -r PyAutoFit/optional_requirements.txt
 
 Finally, check the **PyAutoFit** unit tests run and pass (you may need to install pytest via ``pip install pytest``):
 

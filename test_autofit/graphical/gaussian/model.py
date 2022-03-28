@@ -62,7 +62,7 @@ class Gaussian(Profile):
 
         Parameters
         ----------
-        xvalues : np.ndarray
+        xvalues
             The x coordinates in the original reference frame of the grid.
         """
         transformed_xvalues = np.subtract(xvalues, self.centre)

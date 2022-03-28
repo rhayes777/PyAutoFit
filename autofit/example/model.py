@@ -17,11 +17,12 @@ their methods (e.g. profile_1d_via_xvalues_from) can be used in the log likeliho
 class Gaussian(Dictable):
     def __init__(
         self,
-        centre=0.0,  # <- PyAutoFit recognises these constructor arguments
-        normalization=0.1,  # <- are the Gaussian`s model parameters.
-        sigma=0.01,
+        centre:float=0.0,  # <- PyAutoFit recognises these constructor arguments
+        normalization:float=0.1,  # <- are the Gaussian`s model parameters.
+        sigma:float=0.01,
     ):
-        """Represents a 1D `Gaussian` profile, which may be treated as a model-component of PyAutoFit the
+        """
+        Represents a 1D `Gaussian` profile, which may be treated as a model-component of PyAutoFit the
         parameters of which are fitted for by a non-linear search.
 
         Parameters
@@ -37,7 +38,7 @@ class Gaussian(Dictable):
         self.normalization = normalization
         self.sigma = sigma
 
-    def profile_1d_via_xvalues_from(self, xvalues):
+    def profile_1d_via_xvalues_from(self, xvalues:np.ndarray) -> np.ndarray:
         """
         Calculate the normalization of the profile on a line of Cartesian x coordinates.
 
@@ -45,7 +46,7 @@ class Gaussian(Dictable):
 
         Parameters
         ----------
-        xvalues : np.ndarray
+        xvalues
             The x coordinates in the original reference frame of the grid.
         """
         transformed_xvalues = xvalues - self.centre
@@ -55,20 +56,17 @@ class Gaussian(Dictable):
             np.exp(-0.5 * np.square(np.divide(transformed_xvalues, self.sigma))),
         )
 
-    def __call__(self, xvalues):
+    def __call__(self, xvalues:np.ndarray) -> np.ndarray:
         """
-        Calculate the normalization of the profile on a line of Cartesian x coordinates.
-        The input xvalues are translated to a coordinate system centred on the Gaussian, using its centre.
+        For certain graphical models, the `__call__` function is overwritten for producing the model-fit.
+        We include this here so these examples work, but it should not be important for most PyAutoFit users.
+
         Parameters
         ----------
-        xvalues : np.ndarray
+        xvalues
             The x coordinates in the original reference frame of the grid.
         """
-        transformed_xvalues = np.subtract(xvalues, self.centre)
-        return np.multiply(
-            np.divide(self.normalization, self.sigma * np.sqrt(2.0 * np.pi)),
-            np.exp(-0.5 * np.square(np.divide(transformed_xvalues, self.sigma))),
-        )
+        return self.profile_1d_via_xvalues_from(xvalues=xvalues)
 
     def dict(self) -> Dict:
         """
@@ -81,7 +79,6 @@ class Gaussian(Dictable):
         Returns
         -------
         The `Gaussian` type and model parameters as a dictionary.
-
         """
         return super().dict()
 
@@ -89,6 +86,9 @@ class Gaussian(Dictable):
             self,
             y
     ):
+        """
+        For graphical models, the inverse of the Gaussian is used to test certain aspects of the calculation.
+        """
 
         a = self.normalization / (
                 y * self.sigma * math.sqrt(2 * math.pi)
@@ -106,11 +106,12 @@ class Gaussian(Dictable):
 class Exponential(Dictable):
     def __init__(
         self,
-        centre=0.0,  # <- PyAutoFit recognises these constructor arguments are the model
-        normalization=0.1,  # <- parameters of the Gaussian.
-        rate=0.01,
+        centre:float=0.0,  # <- PyAutoFit recognises these constructor arguments are the model
+        normalization:float=0.1,  # <- parameters of the Gaussian.
+        rate:float=0.01,
     ):
-        """Represents a 1D Exponential profile, which may be treated as a model-component of PyAutoFit the
+        """
+        Represents a 1D Exponential profile, which may be treated as a model-component of PyAutoFit the
         parameters of which are fitted for by a `NonLinearSearch`.
 
         Parameters
@@ -126,7 +127,7 @@ class Exponential(Dictable):
         self.normalization = normalization
         self.rate = rate
 
-    def profile_1d_via_xvalues_from(self, xvalues):
+    def profile_1d_via_xvalues_from(self, xvalues:np.ndarray) -> np.ndarray:
         """
         Calculate the 1D Gaussian profile on a line of Cartesian x coordinates.
 
@@ -134,7 +135,7 @@ class Exponential(Dictable):
 
         Parameters
         ----------
-        values : np.ndarray
+        values
             The x coordinates in the original reference frame of the grid.
         """
         transformed_xvalues = np.subtract(xvalues, self.centre)
@@ -142,7 +143,7 @@ class Exponential(Dictable):
             self.rate, np.exp(-1.0 * self.rate * abs(transformed_xvalues))
         )
 
-    def __call__(self, xvalues):
+    def __call__(self, xvalues:np.ndarray) -> np.ndarray:
         """
         Calculate the 1D Gaussian profile on a line of Cartesian x coordinates.
 
@@ -150,13 +151,10 @@ class Exponential(Dictable):
 
         Parameters
         ----------
-        values : np.ndarray
+        values
             The x coordinates in the original reference frame of the grid.
         """
-        transformed_xvalues = np.subtract(xvalues, self.centre)
-        return self.normalization * np.multiply(
-            self.rate, np.exp(-1.0 * self.rate * abs(transformed_xvalues))
-        )
+        return self.profile_1d_via_xvalues_from(xvalues=xvalues)
 
     def dict(self) -> Dict:
         """
