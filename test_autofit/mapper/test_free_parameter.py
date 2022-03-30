@@ -60,12 +60,27 @@ def test_add_free_parameter(
     )
 
 
-def test_modify_model(
+@pytest.fixture(
+    name="modified"
+)
+def make_modified(
         model,
         combined_analysis
 ):
-    modified = combined_analysis.modify_model(model)
-    assert isinstance(
-        modified,
-        af.Collection
-    )
+    return combined_analysis.modify_model(model)
+
+
+def test_modify_model(
+        modified
+):
+    assert isinstance(modified, af.Collection)
+    assert len(modified) == 2
+
+
+def test_modified_models(
+        modified
+):
+    first, second = modified
+
+    assert first.sigma == second.sigma
+    assert first.centre != second.centre

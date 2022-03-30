@@ -321,3 +321,13 @@ class FreeParameterAnalysis(CombinedAnalysis):
     def __init__(self, *analyses: Analysis, free_parameter):
         super().__init__(*analyses)
         self.free_parameter = free_parameter
+
+    def modify_model(self, model):
+        return CollectionPriorModel([
+            model.mapper_from_partial_prior_arguments({
+                self.free_parameter: self.free_parameter.new()
+            })
+            for _ in range(len(
+                self.analyses
+            ))
+        ])

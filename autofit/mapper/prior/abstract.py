@@ -1,5 +1,6 @@
 import random
 from abc import ABC, abstractmethod
+from copy import copy
 from typing import Union, Tuple
 
 from autoconf import conf
@@ -64,6 +65,11 @@ class Prior(Variable, ABC, ArithmeticMixin):
             raise exc.PriorException(
                 "The upper limit of a prior must be greater than its lower limit"
             )
+
+    def new(self):
+        new = copy(self)
+        new.id = next(self._ids)
+        return new
 
     def with_limits(
             self,

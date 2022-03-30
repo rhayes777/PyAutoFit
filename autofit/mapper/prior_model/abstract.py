@@ -730,12 +730,12 @@ class AbstractPriorModel(AbstractModel):
 
     def mapper_from_partial_prior_arguments(self, arguments):
         """
-        Returns a new model mapper from a dictionary mapping_matrix existing priors to
+        Returns a new model mapper from a dictionary mapping existing priors to
         new priors, keeping existing priors where no mapping is provided.
         Parameters
         ----------
         arguments: {Prior: Prior}
-            A dictionary mapping_matrix priors to priors
+            A dictionary mapping priors to priors
         Returns
         -------
         model_mapper: ModelMapper
@@ -746,12 +746,12 @@ class AbstractPriorModel(AbstractModel):
 
     def mapper_from_prior_arguments(self, arguments):
         """
-        Returns a new model mapper from a dictionary mapping_matrix existing priors to
+        Returns a new model mapper from a dictionary mapping existing priors to
         new priors.
         Parameters
         ----------
         arguments: {Prior: Prior}
-            A dictionary mapping_matrix priors to priors
+            A dictionary mapping priors to priors
         Returns
         -------
         model_mapper: ModelMapper
@@ -1113,7 +1113,7 @@ class AbstractPriorModel(AbstractModel):
         Parameters
         ----------
         arguments: {Prior: float}
-            Dictionary mapping_matrix priors to attribute analysis_path and value pairs
+            Dictionary mapping priors to attribute analysis_path and value pairs
 
         Returns
         -------
