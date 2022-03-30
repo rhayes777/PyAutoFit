@@ -26,7 +26,7 @@ the installation has clean dependencies):
 
 .. code-block:: bash
 
-    pip install autofit==2022.03.18.2
+    pip install autofit==2022.03.30.1
 
 Next, clone the ``autofit workspace`` (the line ``--depth 1`` clones only the most recent branch on
 the ``autofit_workspace``, reducing the download size):
