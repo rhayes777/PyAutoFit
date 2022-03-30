@@ -59,13 +59,13 @@ def test_analyses_example():
     name="combined_analysis"
 )
 def make_combined_analysis(model):
-    return (Analysis() + Analysis()).set_free_parameters(
+    return (Analysis() + Analysis()).with_free_parameters(
         model.centre
     )
 
 
 def test_multiple_free_parameters(model):
-    combined_analysis = (Analysis() + Analysis()).set_free_parameters(
+    combined_analysis = (Analysis() + Analysis()).with_free_parameters(
         model.centre,
         model.sigma
     )

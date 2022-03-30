@@ -312,7 +312,7 @@ class CombinedAnalysis(Analysis):
             other
         )
 
-    def set_free_parameters(
+    def with_free_parameters(
             self,
             *free_parameters: Prior
     ) -> "FreeParameterAnalysis":
