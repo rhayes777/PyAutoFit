@@ -85,14 +85,18 @@ def make_modified(
 def test_modify_model(
         modified
 ):
-    assert isinstance(modified, af.Collection)
-    assert len(modified) == 2
+    parameter = modified.centre
+    assert isinstance(parameter, af.Collection)
+    assert len(parameter) == 2
 
 
 def test_modified_models(
         modified
 ):
-    first, second = modified
+    first, second = modified.centre
+    assert first != second
 
-    assert first.sigma == second.sigma
-    assert first.centre != second.centre
+    assert isinstance(
+        modified.sigma,
+        af.Prior
+    )

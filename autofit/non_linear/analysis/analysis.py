@@ -1,7 +1,9 @@
 import logging
 from abc import ABC
+from copy import deepcopy
 
 from autoconf import conf
+from autofit.mapper.model import ModelInstance, path_instances_of_class
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.mapper.prior_model.collection import CollectionPriorModel
 from autofit.non_linear.analysis.multiprocessing import AnalysisPool
@@ -323,9 +325,28 @@ class IndexedAnalysis(Analysis):
         self.index = index
 
     def log_likelihood_function(self, instance):
+        instance = deepcopy(instance)
+        for path, free_collection in path_instances_of_class(
+                instance,
+                FreeParameterInstance
+        ):
+            free_instance = free_collection[self.index]
+            item = instance
+            for key in path[:-1]:
+                item = getattr(item, key)
+            setattr(item, path[-1], free_instance[self.index])
+
         return self.analysis.log_likelihood_function(
-            instance[self.index]
+            instance
         )
+
+
+class FreeParameterInstance(ModelInstance):
+    pass
+
+
+class FreeParameterModel(CollectionPriorModel):
+    ModelInstance = FreeParameterInstance
 
 
 class FreeParameterAnalysis(CombinedAnalysis):
@@ -341,11 +362,10 @@ class FreeParameterAnalysis(CombinedAnalysis):
         self.free_parameter = free_parameter
 
     def modify_model(self, model):
-        return CollectionPriorModel([
-            model.mapper_from_partial_prior_arguments({
-                self.free_parameter: self.free_parameter.new()
-            })
-            for _ in range(len(
-                self.analyses
-            ))
+        parameter_collection = FreeParameterModel([
+            self.free_parameter.new()
+            for _ in self.analyses
         ])
+        return model.mapper_from_partial_prior_arguments({
+            self.free_parameter: parameter_collection
+        })
