@@ -50,6 +50,8 @@ class AbstractMessage(Prior, ABC):
             *(copy(params) for params in self.parameters), log_norm=self.log_norm
         )
         result.id = self.id
+        result.lower_limit = self.lower_limit
+        result.upper_limit = self.upper_limit
         return result
 
     def __bool__(self):
@@ -268,7 +270,7 @@ class AbstractMessage(Prior, ABC):
             )
 
     def factor(self, x):
-       # self.assert_within_limits(x)
+        # self.assert_within_limits(x)
         return self.logpdf(x)
 
     def logpdf(self, x: np.ndarray) -> np.ndarray:
