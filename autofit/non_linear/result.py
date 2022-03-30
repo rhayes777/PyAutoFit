@@ -112,7 +112,9 @@ class Result:
                     )
                 ),
                 log_weight_list=weights,
-                id_=prior.id
+                id_=prior.id,
+                lower_limit=prior.lower_limit,
+                upper_limit=prior.upper_limit,
             )
             for path, prior
             in self._model.path_priors_tuples

@@ -1,3 +1,5 @@
+import math
+
 import numpy as np
 from scipy import special
 
@@ -16,10 +18,25 @@ class GammaMessage(AbstractMessage):
     _support = ((0, np.inf),)
     _parameter_support = ((0, np.inf), (0, np.inf))
 
-    def __init__(self, alpha=1.0, beta=1.0, log_norm=0.0, id_=None):
+    def __init__(
+            self,
+            alpha=1.0,
+            beta=1.0,
+            lower_limit=-math.inf,
+            upper_limit=math.inf,
+            log_norm=0.0,
+            id_=None
+    ):
         self.alpha = alpha
         self.beta = beta
-        super().__init__(alpha, beta, log_norm=log_norm, id_=id_)
+        super().__init__(
+            alpha,
+            beta,
+            lower_limit=lower_limit,
+            upper_limit=upper_limit,
+            log_norm=log_norm,
+            id_=id_
+        )
 
     def value_for(self, unit: float) -> float:
         raise NotImplemented()
@@ -62,12 +79,12 @@ class GammaMessage(AbstractMessage):
         return np.random.gamma(a1, scale=1 / b1, size=shape)
 
     @classmethod
-    def from_mode(cls, mode, covariance, id_):
+    def from_mode(cls, mode, covariance, **kwargs):
         m, V = cls._get_mean_variance(mode, covariance)
 
         alpha = 1 + m ** 2 * V  # match variance
         beta = alpha / m  # match mean
-        return cls(alpha, beta, id_=id_)
+        return cls(alpha, beta, **kwargs)
 
     def kl(self, dist):
         P, Q = dist, self

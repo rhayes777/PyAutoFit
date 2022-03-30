@@ -1,3 +1,4 @@
+import math
 import warnings
 from typing import Union
 
@@ -74,6 +75,8 @@ class BetaMessage(AbstractMessage):
             self,
             alpha=0.5,
             beta=0.5,
+            lower_limit=-math.inf,
+            upper_limit=math.inf,
             log_norm=0,
             id_=None
     ):
@@ -82,6 +85,8 @@ class BetaMessage(AbstractMessage):
         super().__init__(
             alpha,
             beta,
+            lower_limit=lower_limit,
+            upper_limit=upper_limit,
             log_norm=log_norm,
             id_=id_
         )
