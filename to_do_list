@@ -16,6 +16,8 @@ search chaining).
 
 - Include docs on writing and loading models / collections with jsons and adding them together.
 
+- Show how to make model components benefits and explain the benefits of doing this.
+
 - Explicit exampels of how to extend Analsyis (e.g. putting extra data in c0nstructor) for Python beginners.
 
 
