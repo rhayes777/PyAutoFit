@@ -86,21 +86,20 @@ def make_modified(
 def test_modify_model(
         modified
 ):
-    parameter = modified.centre
-    assert isinstance(parameter, af.Collection)
-    assert len(parameter) == 2
+    assert isinstance(modified, af.Collection)
+    assert len(modified) == 2
 
 
 def test_modified_models(
         modified
 ):
-    first, second = modified.centre
-    assert first != second
+    first, second = modified
 
     assert isinstance(
-        modified.sigma,
+        first.sigma,
         af.Prior
     )
+    assert first.centre != second.centre
 
 
 def test_integration(
@@ -113,3 +112,6 @@ def test_integration(
         combined_analysis
     )
     result_1, result_2 = result
+
+    assert result_1._model.centre is not result_2._model.centre
+    assert result_1._model.sigma is result_2._model.sigma

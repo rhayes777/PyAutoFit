@@ -5,8 +5,6 @@ from autofit.mapper.prior_model.abstract import check_assertions
 
 
 class CollectionPriorModel(AbstractPriorModel):
-    ModelInstance = ModelInstance
-
     def name_for_prior(self, prior: Prior) -> str:
         """
         Construct a name for the prior. This is the path taken
@@ -155,10 +153,7 @@ class CollectionPriorModel(AbstractPriorModel):
                 del self.__dict__[key]
 
     @check_assertions
-    def _instance_for_arguments(
-            self,
-            arguments,
-    ):
+    def _instance_for_arguments(self, arguments):
         """
         Parameters
         ----------
@@ -170,7 +165,7 @@ class CollectionPriorModel(AbstractPriorModel):
         model_instances: [object]
             A list of instances constructed from the list of prior models.
         """
-        result = self.ModelInstance
+        result = ModelInstance()
         for key, value in self.__dict__.items():
             if isinstance(value, AbstractPriorModel):
                 value = value.instance_for_arguments(arguments)
