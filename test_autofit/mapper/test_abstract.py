@@ -22,11 +22,3 @@ def test_transfer_tuples():
     assert result.profile.one_tuple == (0.0, 0.0)
     assert isinstance(instance.profile, af.m.MockClassx2Tuple)
 
-
-def test_copy():
-    model = af.Model(af.Gaussian)
-    copy = model.copy()
-
-    collection = af.Collection(model, copy)
-
-    assert collection.prior_count == model.prior_count

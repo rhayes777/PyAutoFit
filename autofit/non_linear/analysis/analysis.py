@@ -43,6 +43,9 @@ class Analysis(ABC):
         """
         return self
 
+    def modify_model(self, model):
+        return model
+
     def modify_after_fit(self, paths: AbstractPaths, model: AbstractPriorModel, result: Result):
         """
         Overwrite this method to modify the attributes of the `Analysis` class before the non-linear search begins.
@@ -306,3 +309,15 @@ class CombinedAnalysis(Analysis):
             *self.analyses,
             other
         )
+
+    def set_free_parameter(self, free_parameter):
+        return FreeParameterAnalysis(
+            *self.analyses,
+            free_parameter=free_parameter
+        )
+
+
+class FreeParameterAnalysis(CombinedAnalysis):
+    def __init__(self, *analyses: Analysis, free_parameter):
+        super().__init__(*analyses)
+        self.free_parameter = free_parameter
