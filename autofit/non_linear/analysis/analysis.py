@@ -1,7 +1,9 @@
 import logging
 from abc import ABC
+from typing import Tuple
 
 from autoconf import conf
+from autofit.mapper.prior.abstract import Prior
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.mapper.prior_model.collection import CollectionPriorModel
 from autofit.non_linear.analysis.multiprocessing import AnalysisPool
@@ -310,7 +312,23 @@ class CombinedAnalysis(Analysis):
             other
         )
 
-    def set_free_parameters(self, *free_parameters):
+    def set_free_parameters(
+            self,
+            *free_parameters: Prior
+    ) -> "FreeParameterAnalysis":
+        """
+        Set some parameters as free parameters. The are priors which vary
+        independently for each analysis in the collection.
+
+        Parameters
+        ----------
+        free_parameters
+            Parameters that are allowed to vary independently.
+
+        Returns
+        -------
+        An analysis with freely varying parameters.
+        """
         return FreeParameterAnalysis(
             *self.analyses,
             free_parameters=free_parameters
@@ -318,7 +336,18 @@ class CombinedAnalysis(Analysis):
 
 
 class IndexedAnalysis(Analysis):
-    def __init__(self, analysis, index):
+    def __init__(self, analysis: Analysis, index: int):
+        """
+        One instance in a collection corresponds to this analysis. That
+        instance is identified by its index in the collection.
+
+        Parameters
+        ----------
+        analysis
+            An analysis that can be applied to an instance in a collection
+        index
+            The index of the instance that should be passed to the analysis
+        """
         self.analysis = analysis
         self.index = index
 
@@ -332,8 +361,22 @@ class FreeParameterAnalysis(CombinedAnalysis):
     def __init__(
             self,
             *analyses: Analysis,
-            free_parameters
+            free_parameters: Tuple[Prior, ...]
     ):
+        """
+        A combined analysis with free parameters.
+
+        All parameters for the model are shared across every analysis except
+        for the free parameters which are allowed to vary for individual
+        analyses.
+
+        Parameters
+        ----------
+        analyses
+            A list of analyses
+        free_parameters
+            A list of priors which are independent for each analysis
+        """
         super().__init__(*[
             IndexedAnalysis(
                 analysis,
@@ -344,7 +387,28 @@ class FreeParameterAnalysis(CombinedAnalysis):
         ])
         self.free_parameters = free_parameters
 
-    def modify_model(self, model):
+    def modify_model(
+            self,
+            model: AbstractPriorModel
+    ) -> AbstractPriorModel:
+        """
+        Create prior models where free parameters are replaced with new
+        priors. Return those prior models as a collection.
+
+        The number of dimensions of the new prior model is the number of the
+        old one plus the number of free parameters multiplied by the number
+        of free parameters.
+
+        Parameters
+        ----------
+        model
+            The original model
+
+        Returns
+        -------
+        A new model with all the same priors except for those associated
+        with free parameters.
+        """
         return CollectionPriorModel([
             model.mapper_from_partial_prior_arguments({
                 free_parameter: free_parameter.new()
@@ -356,8 +420,14 @@ class FreeParameterAnalysis(CombinedAnalysis):
         ])
 
     def make_result(
-            self, samples, model, search
+            self,
+            samples,
+            model,
+            search
     ):
+        """
+        Associate each model with an analysis when creating the result.
+        """
         return [
             analysis.make_result(samples, model, search)
             for model, analysis in zip(model, self.analyses)
