@@ -22,7 +22,19 @@ def test_copy():
 
 class Analysis(af.Analysis):
     def log_likelihood_function(self, instance):
-        return 1.0
+        return 1.0 if isinstance(
+            instance,
+            af.Gaussian
+        ) else 0.0
+
+
+def test_log_likelihood(
+        modified,
+        combined_analysis
+):
+    assert combined_analysis.log_likelihood_function(
+        modified.instance_from_prior_medians()
+    ) == 2
 
 
 def test_analyses_example():

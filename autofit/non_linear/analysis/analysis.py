@@ -317,9 +317,27 @@ class CombinedAnalysis(Analysis):
         )
 
 
+class IndexedAnalysis(Analysis):
+    def __init__(self, analysis, index):
+        self.analysis = analysis
+        self.index = index
+
+    def log_likelihood_function(self, instance):
+        return self.analysis.log_likelihood_function(
+            instance[self.index]
+        )
+
+
 class FreeParameterAnalysis(CombinedAnalysis):
     def __init__(self, *analyses: Analysis, free_parameter):
-        super().__init__(*analyses)
+        super().__init__(*[
+            IndexedAnalysis(
+                analysis,
+                index,
+            )
+            for index, analysis
+            in enumerate(analyses)
+        ])
         self.free_parameter = free_parameter
 
     def modify_model(self, model):
