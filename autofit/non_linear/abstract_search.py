@@ -464,6 +464,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         self.paths.restore()
 
         analysis = analysis.modify_before_fit(paths=self.paths, model=model)
+        model = analysis.modify_model(model)
 
         if not self.paths.is_complete or self.force_pickle_overwrite:
             self.logger.info(

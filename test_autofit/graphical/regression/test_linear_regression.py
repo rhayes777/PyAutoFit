@@ -122,7 +122,7 @@ def test_laplace(
     check_model_approx(mean_field, a_, b_, z_, x_, y_)
 
 
-def test_laplace_jac(
+def _test_laplace_jac(
         model_jac_approx,
         a_,
         b_,

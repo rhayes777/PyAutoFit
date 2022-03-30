@@ -16,6 +16,8 @@ from autofit import exc
 def samples_with_log_likelihood_list(
         log_likelihood_list
 ):
+    if isinstance(log_likelihood_list, float):
+        log_likelihood_list = [log_likelihood_list]
     return [
         Sample(
             log_likelihood=log_likelihood,
