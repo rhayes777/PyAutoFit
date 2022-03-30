@@ -2,6 +2,7 @@ import pytest
 
 import autofit as af
 from autofit.non_linear.analysis.analysis import FreeParameterAnalysis
+from autofit.non_linear.mock.mock_search import MockOptimizer
 
 
 @pytest.fixture(
@@ -100,3 +101,15 @@ def test_modified_models(
         modified.sigma,
         af.Prior
     )
+
+
+def test_integration(
+        combined_analysis,
+        model
+):
+    optimizer = MockOptimizer()
+    result = optimizer.fit(
+        model,
+        combined_analysis
+    )
+    result_1, result_2 = result
