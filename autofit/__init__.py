@@ -7,7 +7,6 @@ from .graphical.expectation_propagation.history import EPHistory
 from .graphical.declarative.factor.analysis import AnalysisFactor
 from .graphical.declarative.collection import FactorGraphModel
 from .graphical.declarative.factor.hierarchical import HierarchicalFactor
-from .graphical.optimise import LaplaceFactorOptimiser
 from .graphical.laplace import LaplaceOptimiser
 from .non_linear.samples import MCMCSamples
 from .non_linear.samples import NestSamples
