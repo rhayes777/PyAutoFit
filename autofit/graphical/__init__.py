@@ -8,7 +8,6 @@ from .expectation_propagation.optimiser import EPOptimiser, StochasticEPOptimise
 from .factor_graphs import FactorGraph
 from .factor_graphs.factor import Factor
 from .laplace import LaplaceOptimiser, OptimisationState
-from .optimise import LaplaceFactorOptimiser
 from .mean_field import FactorApproximation, MeanField
 from .utils import Status
 from .. import messages
