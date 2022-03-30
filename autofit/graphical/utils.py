@@ -312,6 +312,7 @@ def prod(iterable: Iterable[_M], *arg: Tuple[_M]) -> _M:
     >>> prod(range(1, 3), 2.)
     4.
     """
+    iterable = list(iterable)
     return reduce(mul, iterable, *arg)
 
 

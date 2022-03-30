@@ -186,7 +186,12 @@ class AbstractMessage(Prior, ABC):
             ),
             self.natural_parameters,
         )
-        mul_dist = self.from_natural_parameters(new_params, id_=self.id)
+        mul_dist = self.from_natural_parameters(
+            new_params,
+            id_=self.id,
+            lower_limit=self.lower_limit,
+            upper_limit=self.upper_limit,
+        )
         return mul_dist
 
     def sub_natural_parameters(self, other: "AbstractMessage") -> "AbstractMessage":
@@ -196,7 +201,11 @@ class AbstractMessage(Prior, ABC):
         log_norm = self.log_norm - other.log_norm
         new_params = self.natural_parameters - other.natural_parameters
         div_dist = self.from_natural_parameters(
-            new_params, log_norm=log_norm, id_=self.id
+            new_params,
+            log_norm=log_norm,
+            id_=self.id,
+            lower_limit=self.lower_limit,
+            upper_limit=self.upper_limit,
         )
         return div_dist
 
@@ -209,7 +218,13 @@ class AbstractMessage(Prior, ABC):
         else:
             cls = self._Base_class or type(self)
             log_norm = self.log_norm + np.log(other)
-            return cls(*self.parameters, log_norm=log_norm, id_=self.id)
+            return cls(
+                *self.parameters,
+                log_norm=log_norm,
+                id_=self.id,
+                lower_limit=self.lower_limit,
+                upper_limit=self.upper_limit,
+            )
 
     def __rmul__(self, other: "AbstractMessage") -> "AbstractMessage":
         return self * other
@@ -220,7 +235,13 @@ class AbstractMessage(Prior, ABC):
         else:
             cls = self._Base_class or type(self)
             log_norm = self.log_norm - np.log(other)
-            return cls(*self.parameters, log_norm=log_norm, id_=self.id)
+            return cls(
+                *self.parameters,
+                log_norm=log_norm,
+                id_=self.id,
+                lower_limit=self.lower_limit,
+                upper_limit=self.upper_limit,
+            )
 
     def __pow__(self, other: Real) -> "AbstractMessage":
         natural = self.natural_parameters
