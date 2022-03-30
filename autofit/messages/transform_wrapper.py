@@ -51,13 +51,13 @@ class TransformedWrapperInstance(Prior):
             self,
             samples: np.ndarray,
             log_weight_list: Optional[np.ndarray] = None,
-            id_=None
+            **kwargs,
     ):
         return self._new_for_base_message(
             self.transformed_wrapper.project(
                 samples=samples,
                 log_weight_list=log_weight_list,
-                id_=id_
+                **kwargs,
             )
         )
 

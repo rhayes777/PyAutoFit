@@ -391,7 +391,7 @@ class AbstractMessage(Prior, ABC):
 
     @classmethod
     def project(
-            cls, samples: np.ndarray, log_weight_list: Optional[np.ndarray] = None, id_=None
+            cls, samples: np.ndarray, log_weight_list: Optional[np.ndarray] = None, **kwargs
     ) -> "AbstractMessage":
         """Calculates the sufficient statistics of a set of samples
         and returns the distribution with the appropriate parameters
@@ -417,7 +417,7 @@ class AbstractMessage(Prior, ABC):
         assert np.isfinite(suff_stats).all()
 
         cls_ = cls._projection_class or cls._Base_class or cls
-        return cls_.from_sufficient_statistics(suff_stats, log_norm=log_norm, id_=id_)
+        return cls_.from_sufficient_statistics(suff_stats, log_norm=log_norm, **kwargs)
 
     @classmethod
     def from_mode(
