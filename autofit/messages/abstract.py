@@ -421,7 +421,7 @@ class AbstractMessage(Prior, ABC):
 
     @classmethod
     def from_mode(
-            cls, mode: np.ndarray, covariance: np.ndarray, id_
+            cls, mode: np.ndarray, covariance: np.ndarray, **kwargs
     ) -> "AbstractMessage":
         pass
 

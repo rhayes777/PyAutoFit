@@ -79,12 +79,12 @@ class GammaMessage(AbstractMessage):
         return np.random.gamma(a1, scale=1 / b1, size=shape)
 
     @classmethod
-    def from_mode(cls, mode, covariance, id_):
+    def from_mode(cls, mode, covariance, **kwargs):
         m, V = cls._get_mean_variance(mode, covariance)
 
         alpha = 1 + m ** 2 * V  # match variance
         beta = alpha / m  # match mean
-        return cls(alpha, beta, id_=id_)
+        return cls(alpha, beta, **kwargs)
 
     def kl(self, dist):
         P, Q = dist, self

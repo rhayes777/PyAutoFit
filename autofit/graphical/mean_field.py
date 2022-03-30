@@ -1,5 +1,4 @@
 import logging
-import warnings
 from collections import ChainMap
 from typing import Dict, Tuple, Optional, Union, Iterable
 
@@ -24,9 +23,8 @@ from autofit.mapper.variable import (
     Plate,
     VariableData,
     FactorValue,
-    VariableLinearOperator,
 )
-from autofit.mapper.variable_operator import MatrixOperator, VariableFullOperator
+from autofit.mapper.variable_operator import VariableFullOperator
 from autofit.messages.abstract import AbstractMessage
 from autofit.messages.fixed import FixedMessage
 
@@ -176,12 +174,12 @@ class MeanField(CollectionPriorModel, Dict[Variable, AbstractMessage], Factor):
         for v, message in self.items():
             scale = rescale.get(v, 1)
             if scale == 1:
-                rescaled[v] = message 
+                rescaled[v] = message
             elif scale == 0:
                 rescaled[v] = 1.
             else:
-                rescaled[v] = message ** scale 
-        
+                rescaled[v] = message ** scale
+
         return MeanField(rescaled)
 
     @property
@@ -238,7 +236,7 @@ class MeanField(CollectionPriorModel, Dict[Variable, AbstractMessage], Factor):
 
     def __repr__(self):
         reprdict = (
-            "{\n" + "\n".join(f"  {k}: {v}" for k, v in self.items()) + "\n  }"
+                "{\n" + "\n".join(f"  {k}: {v}" for k, v in self.items()) + "\n  }"
         )
         classname = type(self).__name__
         return f"{classname}({reprdict}, log_norm={self.log_norm})"
@@ -300,7 +298,13 @@ class MeanField(CollectionPriorModel, Dict[Variable, AbstractMessage], Factor):
         mode = ChainMap(mode, self.fixed_values)
         projection = MeanField(
             {
-                v: self[v].from_mode(mode[v], covar.get(v), id_=self[v].id)
+                v: self[v].from_mode(
+                    mode[v],
+                    covar.get(v),
+                    id_=self[v].id,
+                    lower_limit=self[v].lower_limit,
+                    upper_limit=self[v].upper_limit,
+                )
                 for v in self.keys() & mode.keys()
             }
         )
@@ -324,11 +328,11 @@ class MeanField(CollectionPriorModel, Dict[Variable, AbstractMessage], Factor):
         return dist if isinstance(dist, cls) else MeanField(dist)
 
     def update_factor_mean_field(
-        self,
-        cavity_dist: "MeanField",
-        last_dist: Optional["MeanField"] = None,
-        delta: float = 1.0,
-        status: Status = Status(),
+            self,
+            cavity_dist: "MeanField",
+            last_dist: Optional["MeanField"] = None,
+            delta: float = 1.0,
+            status: Status = Status(),
     ) -> Tuple["MeanField", Status]:
 
         success, messages, _, flag = status
@@ -340,7 +344,7 @@ class MeanField(CollectionPriorModel, Dict[Variable, AbstractMessage], Factor):
                     log_norm = factor_dist.log_norm
                     factor_dist = factor_dist ** delta * last_dist ** (1 - delta)
                     factor_dist.log_norm = (
-                        delta * log_norm + (1 - delta) * last_dist.log_norm
+                            delta * log_norm + (1 - delta) * last_dist.log_norm
                     )
 
             for m in caught_warnings.messages:
@@ -492,7 +496,6 @@ class FactorApproximation(AbstractNode):
             self,
             values: Dict[Variable, np.ndarray],
     ) -> Tuple[FactorValue, VariableData]:
-
         variable_dict = {**self.fixed_values, **values}
         fval, fjac = self.factor.func_jacobian(variable_dict)
 
@@ -507,12 +510,11 @@ class FactorApproximation(AbstractNode):
         return logl, grad
 
     def project_mean_field(
-        self,
-        model_dist: MeanField,
-        delta: float = 1.0,
-        status: Status = Status(),
+            self,
+            model_dist: MeanField,
+            delta: float = 1.0,
+            status: Status = Status(),
     ) -> Tuple["FactorApproximation", Status]:
-
         factor_dist, status = model_dist.update_factor_mean_field(
             self.cavity_dist,
             last_dist=self.factor_dist,
