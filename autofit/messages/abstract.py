@@ -47,11 +47,12 @@ class AbstractMessage(Prior, ABC):
     def copy(self):
         cls = self._Base_class or type(self)
         result = cls(
-            *(copy(params) for params in self.parameters), log_norm=self.log_norm
+            *(copy(params) for params in self.parameters),
+            log_norm=self.log_norm,
+            lower_limit=self.lower_limit,
+            upper_limit=self.upper_limit,
         )
         result.id = self.id
-        result.lower_limit = self.lower_limit
-        result.upper_limit = self.upper_limit
         return result
 
     def __bool__(self):
@@ -186,13 +187,12 @@ class AbstractMessage(Prior, ABC):
             ),
             self.natural_parameters,
         )
-        mul_dist = self.from_natural_parameters(
+        return self.from_natural_parameters(
             new_params,
             id_=self.id,
+            lower_limit=self.lower_limit,
+            upper_limit=self.upper_limit,
         )
-        mul_dist.lower_limit = self.lower_limit
-        mul_dist.upper_limit = self.upper_limit
-        return mul_dist
 
     def sub_natural_parameters(self, other: "AbstractMessage") -> "AbstractMessage":
         """return the unnormalised result of dividing the pdf
@@ -200,16 +200,13 @@ class AbstractMessage(Prior, ABC):
         type"""
         log_norm = self.log_norm - other.log_norm
         new_params = self.natural_parameters - other.natural_parameters
-        div_dist = self.from_natural_parameters(
+        return self.from_natural_parameters(
             new_params,
             log_norm=log_norm,
             id_=self.id,
             lower_limit=self.lower_limit,
             upper_limit=self.upper_limit,
         )
-        div_dist.lower_limit = self.lower_limit
-        div_dist.upper_limit = self.upper_limit
-        return div_dist
 
     _multiply = sum_natural_parameters
     _divide = sub_natural_parameters
@@ -237,22 +234,25 @@ class AbstractMessage(Prior, ABC):
         else:
             cls = self._Base_class or type(self)
             log_norm = self.log_norm - np.log(other)
-            instance = cls(
+            return cls(
                 *self.parameters,
                 log_norm=log_norm,
                 id_=self.id,
+                lower_limit=self.lower_limit,
+                upper_limit=self.upper_limit,
             )
-            instance.lower_limit = self.lower_limit
-            instance.upper_limit = self.upper_limit
-            return instance
 
     def __pow__(self, other: Real) -> "AbstractMessage":
         natural = self.natural_parameters
         new_params = other * natural
         log_norm = other * self.log_norm
-        new = self.from_natural_parameters(new_params, log_norm=log_norm, id_=self.id)
-        new.lower_limit = self.lower_limit
-        new.upper_limit = self.upper_limit
+        new = self.from_natural_parameters(
+            new_params,
+            log_norm=log_norm,
+            id_=self.id,
+            lower_limit=self.lower_limit,
+            upper_limit=self.upper_limit,
+        )
         return new
 
     @classmethod
@@ -470,9 +470,13 @@ class AbstractMessage(Prior, ABC):
             # TODO: Fairly certain this would not work
             valid_parameters = iter(self if valid else other)
         cls = self._Base_class or type(self)
-        new = cls(*valid_parameters, log_norm=self.log_norm, id_=self.id)
-        new.lower_limit = self.lower_limit
-        new.upper_limit = self.upper_limit
+        new = cls(
+            *valid_parameters,
+            log_norm=self.log_norm,
+            id_=self.id,
+            lower_limit=self.lower_limit,
+            upper_limit=self.upper_limit,
+        )
         return new
 
     def check_support(self) -> np.ndarray:

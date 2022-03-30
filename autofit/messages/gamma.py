@@ -1,3 +1,5 @@
+import math
+
 import numpy as np
 from scipy import special
 
@@ -16,10 +18,25 @@ class GammaMessage(AbstractMessage):
     _support = ((0, np.inf),)
     _parameter_support = ((0, np.inf), (0, np.inf))
 
-    def __init__(self, alpha=1.0, beta=1.0, log_norm=0.0, id_=None):
+    def __init__(
+            self,
+            alpha=1.0,
+            beta=1.0,
+            lower_limit=-math.inf,
+            upper_limit=math.inf,
+            log_norm=0.0,
+            id_=None
+    ):
         self.alpha = alpha
         self.beta = beta
-        super().__init__(alpha, beta, log_norm=log_norm, id_=id_)
+        super().__init__(
+            alpha,
+            beta,
+            lower_limit=lower_limit,
+            upper_limit=upper_limit,
+            log_norm=log_norm,
+            id_=id_
+        )
 
     def value_for(self, unit: float) -> float:
         raise NotImplemented()
