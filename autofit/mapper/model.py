@@ -131,6 +131,11 @@ class AbstractModel(ModelObject):
         return instance
 
     def copy(self):
+        """
+        Create a copy of the model. All priors remain equivalent - i.e. two
+        copies of a model in a collection has the same prior count as a single
+        model.
+        """
         return copy.deepcopy(self)
 
     def object_for_path(
