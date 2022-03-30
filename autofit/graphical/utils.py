@@ -10,6 +10,7 @@ import numpy as np
 import six
 from scipy.linalg import block_diag
 from scipy.optimize import OptimizeResult
+from collections import abc
 
 from autofit.mapper.variable import Variable, VariableData
 
@@ -47,7 +48,7 @@ def is_variable(v, *args):
 
 
 def is_iterable(arg):
-    return isinstance(arg, collections.Iterable) and not isinstance(
+    return isinstance(arg, abc.Iterable) and not isinstance(
         arg, six.string_types
     )
 

@@ -1,7 +1,7 @@
-import collections
 import logging
 import multiprocessing
 from abc import ABC, abstractmethod
+from collections import abc
 from itertools import count
 from typing import Iterable
 
@@ -83,7 +83,7 @@ class Process(multiprocessing.Process):
                 return self.initializer()
             if isinstance(
                     self.initargs,
-                    collections.Iterable
+                    abc.Iterable
             ):
                 initargs = tuple(self.initargs)
             else:
