@@ -67,6 +67,9 @@ class Prior(Variable, ABC, ArithmeticMixin):
             )
 
     def new(self):
+        """
+        Returns a copy of this prior with a new id assigned making it distinct
+        """
         new = copy(self)
         new.id = next(self._ids)
         return new
