@@ -59,9 +59,19 @@ def test_analyses_example():
     name="combined_analysis"
 )
 def make_combined_analysis(model):
-    return (Analysis() + Analysis()).set_free_parameter(
+    return (Analysis() + Analysis()).set_free_parameters(
         model.centre
     )
+
+
+def test_multiple_free_parameters(model):
+    combined_analysis = (Analysis() + Analysis()).set_free_parameters(
+        model.centre,
+        model.sigma
+    )
+    first, second = combined_analysis.modify_model(model)
+    assert first.centre is not second.centre
+    assert first.sigma is not second.sigma
 
 
 def test_add_free_parameter(
@@ -99,6 +109,7 @@ def test_modified_models(
         first.sigma,
         af.Prior
     )
+    assert first.sigma == second.sigma
     assert first.centre != second.centre
 
 

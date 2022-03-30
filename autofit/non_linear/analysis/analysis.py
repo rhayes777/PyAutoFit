@@ -310,10 +310,10 @@ class CombinedAnalysis(Analysis):
             other
         )
 
-    def set_free_parameter(self, free_parameter):
+    def set_free_parameters(self, *free_parameters):
         return FreeParameterAnalysis(
             *self.analyses,
-            free_parameter=free_parameter
+            free_parameters=free_parameters
         )
 
 
@@ -329,7 +329,11 @@ class IndexedAnalysis(Analysis):
 
 
 class FreeParameterAnalysis(CombinedAnalysis):
-    def __init__(self, *analyses: Analysis, free_parameter):
+    def __init__(
+            self,
+            *analyses: Analysis,
+            free_parameters
+    ):
         super().__init__(*[
             IndexedAnalysis(
                 analysis,
@@ -338,12 +342,13 @@ class FreeParameterAnalysis(CombinedAnalysis):
             for index, analysis
             in enumerate(analyses)
         ])
-        self.free_parameter = free_parameter
+        self.free_parameters = free_parameters
 
     def modify_model(self, model):
         return CollectionPriorModel([
             model.mapper_from_partial_prior_arguments({
-                self.free_parameter: self.free_parameter.new()
+                free_parameter: free_parameter.new()
+                for free_parameter in self.free_parameters
             })
             for _ in range(len(
                 self.analyses
