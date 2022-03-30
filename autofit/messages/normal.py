@@ -249,8 +249,8 @@ class NaturalNormal(NormalMessage):
     @classmethod
     def invert_sufficient_statistics(cls, suff_stats):
         m1, m2 = suff_stats
-        precision = 1 / (m2 - m1 ** 2)
-        return cls.calc_natural_parameters(m1 * precision, -2 * precision)
+        precision = 1/(m2 - m1 ** 2)
+        return cls.calc_natural_parameters(m1 * precision, - precision / 2)
 
     @staticmethod
     def invert_natural_parameters(natural_parameters):
