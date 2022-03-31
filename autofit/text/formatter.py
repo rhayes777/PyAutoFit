@@ -100,7 +100,7 @@ def format_string_for_parameter_name(parameter_name: str) -> str:
     except KeyError:
         pass
 
-    logger.warning(
+    logger.debug(
         "Could not find an entry for the parameter {} in the label_format.ini config at path {}".format(
             parameter_name, conf.instance.paths
         )
