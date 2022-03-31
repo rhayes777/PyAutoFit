@@ -483,6 +483,9 @@ class Samples:
         return with_paths
 
     def subsamples(self, model):
+        if self.model is None:
+            return None
+
         path_map = {
             tuple(self.model.all_paths_for_prior(
                 prior
