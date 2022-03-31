@@ -60,6 +60,8 @@ class Result:
         self._model = model
         self.__model = None
 
+        self.child_results = None
+
         self._instance = (
             samples.max_log_likelihood_instance if samples is not None else None
         )
@@ -179,35 +181,8 @@ class Result:
             self.samples.gaussian_priors_at_sigma(sigma=self.search.prior_passer.sigma), r=r
         )
 
-
-class CombinedResult(Result):
-    def __init__(
-            self,
-            samples: PDFSamples,
-            model,
-            child_results,
-            search=None,
-    ):
-        """
-        A combined result produced when optimisation is performed on a
-        combined analysis.
-
-        Parameters
-        ----------
-        samples
-        model
-        child_results
-        search
-        """
-        super().__init__(
-            samples=samples,
-            model=model,
-            search=search,
-        )
-        self.child_results = child_results
-
     def __getitem__(self, item):
-        return self.child_results[item]
+            return self.child_results[item]
 
     def __iter__(self):
         return iter(self.child_results)
