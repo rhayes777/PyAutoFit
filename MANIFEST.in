@@ -14,3 +14,6 @@ recursive-exclude *.egg-info *
 recursive-include tests *
 include requirements.txt
 recursive-include data *
+
+global-exclude test_autofit
+recursive-exclude test_autofit *
