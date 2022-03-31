@@ -188,6 +188,17 @@ class CombinedResult(Result):
             child_results,
             search=None,
     ):
+        """
+        A combined result produced when optimisation is performed on a
+        combined analysis.
+
+        Parameters
+        ----------
+        samples
+        model
+        child_results
+        search
+        """
         super().__init__(
             samples=samples,
             model=model,
