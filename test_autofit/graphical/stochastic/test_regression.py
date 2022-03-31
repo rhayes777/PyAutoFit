@@ -69,7 +69,7 @@ def make_model_approx():
     return model_approx
 
 
-def test_stochastic_linear_regression():
+def _test_stochastic_linear_regression():
     params = [
         (50, 5, False), 
         (20, 60, True), 
