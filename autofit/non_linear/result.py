@@ -180,6 +180,42 @@ class Result:
         )
 
 
+class CombinedResult(Result):
+    def __init__(
+            self,
+            samples: PDFSamples,
+            model,
+            child_results,
+            search=None,
+    ):
+        """
+        A combined result produced when optimisation is performed on a
+        combined analysis.
+
+        Parameters
+        ----------
+        samples
+        model
+        child_results
+        search
+        """
+        super().__init__(
+            samples=samples,
+            model=model,
+            search=search,
+        )
+        self.child_results = child_results
+
+    def __getitem__(self, item):
+        return self.child_results[item]
+
+    def __iter__(self):
+        return iter(self.child_results)
+
+    def __len__(self):
+        return len(self.child_results)
+
+
 class ResultsCollection:
     def __init__(self, result_list=None):
         """

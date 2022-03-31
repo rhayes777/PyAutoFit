@@ -9,7 +9,7 @@ from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.mapper.prior_model.collection import CollectionPriorModel
 from autofit.non_linear.analysis.multiprocessing import AnalysisPool
 from autofit.non_linear.paths.abstract import AbstractPaths
-from autofit.non_linear.result import Result
+from autofit.non_linear.result import Result, CombinedResult
 from autofit.non_linear.samples import Samples
 
 logger = logging.getLogger(
@@ -280,7 +280,18 @@ class CombinedAnalysis(Analysis):
     def make_result(
             self, samples, model, search
     ):
-        return [analysis.make_result(samples, model, search) for analysis in self.analyses]
+        return CombinedResult(
+            samples=samples,
+            model=model,
+            search=search,
+            child_results=[
+                analysis.make_result(
+                    samples,
+                    model,
+                    search
+                ) for analysis in self.analyses
+            ]
+        )
 
     def __len__(self):
         return len(self.analyses)
@@ -446,11 +457,16 @@ class FreeParameterAnalysis(CombinedAnalysis):
         """
         Associate each model with an analysis when creating the result.
         """
-        return [
-            analysis.make_result(
-                samples.subsamples(model),
-                model,
-                search
-            )
-            for model, analysis in zip(model, self.analyses)
-        ]
+        return CombinedResult(
+            samples=samples,
+            model=model,
+            search=search,
+            child_results=[
+                analysis.make_result(
+                    samples.subsamples(model),
+                    model,
+                    search
+                )
+                for model, analysis in zip(model, self.analyses)
+            ]
+        )
