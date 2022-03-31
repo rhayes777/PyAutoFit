@@ -459,12 +459,12 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             "Starting search"
         )
 
+        model = analysis.modify_model(model)
         self.paths.model = model
         self.paths.unique_tag = self.unique_tag
         self.paths.restore()
 
         analysis = analysis.modify_before_fit(paths=self.paths, model=model)
-        model = analysis.modify_model(model)
 
         if not self.paths.is_complete or self.force_pickle_overwrite:
             self.logger.info(
