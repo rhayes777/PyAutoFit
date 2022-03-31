@@ -728,6 +728,12 @@ class AbstractPriorModel(AbstractModel):
         ]
         return len(cls_models) > 0 and len(cls_models) == len(other_models)
 
+    def new(self):
+        return self.mapper_from_prior_arguments({
+            prior: prior.new()
+            for prior in self.priors
+        })
+
     def mapper_from_partial_prior_arguments(self, arguments):
         """
         Returns a new model mapper from a dictionary mapping existing priors to
@@ -760,6 +766,9 @@ class AbstractPriorModel(AbstractModel):
         logger.debug(f"Creating a new mapper from arguments")
 
         return self.gaussian_prior_model_for_arguments(arguments)
+
+    def gaussian_prior_model_for_arguments(self, arguments):
+        raise NotImplemented()
 
     def mapper_from_gaussian_tuples(
             self,

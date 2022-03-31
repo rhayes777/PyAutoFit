@@ -1,9 +1,10 @@
 import logging
 from abc import ABC
-from typing import Tuple
+from typing import Tuple, Union
 
 from autoconf import conf
 from autofit.mapper.prior.abstract import Prior
+from autofit.mapper.prior.tuple_prior import TuplePrior
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.mapper.prior_model.collection import CollectionPriorModel
 from autofit.non_linear.analysis.multiprocessing import AnalysisPool
@@ -314,7 +315,7 @@ class CombinedAnalysis(Analysis):
 
     def with_free_parameters(
             self,
-            *free_parameters: Prior
+            *free_parameters: Union[Prior, TuplePrior, AbstractPriorModel]
     ) -> "FreeParameterAnalysis":
         """
         Set some parameters as free parameters. The are priors which vary
@@ -385,7 +386,24 @@ class FreeParameterAnalysis(CombinedAnalysis):
             for index, analysis
             in enumerate(analyses)
         ])
-        self.free_parameters = free_parameters
+        self.free_parameters = [
+                                   parameter for parameter
+                                   in free_parameters
+                                   if isinstance(
+                parameter,
+                Prior
+            )
+                               ] + [
+                                   prior
+                                   for parameter
+                                   in free_parameters
+                                   if isinstance(
+                parameter,
+                (AbstractPriorModel, TuplePrior)
+            )
+                                   for prior
+                                   in parameter.priors
+                               ]
 
     def modify_model(
             self,
@@ -414,9 +432,7 @@ class FreeParameterAnalysis(CombinedAnalysis):
                 free_parameter: free_parameter.new()
                 for free_parameter in self.free_parameters
             })
-            for _ in range(len(
-                self.analyses
-            ))
+            for _ in self.analyses
         ])
 
     def make_result(

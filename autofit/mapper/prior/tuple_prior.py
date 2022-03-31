@@ -20,6 +20,20 @@ class TuplePrior(ModelObject):
     A prior comprising one or more priors in a tuple
     """
 
+    def __init__(self, **kwargs):
+        super().__init__()
+        for key, value in kwargs.items():
+            setattr(self, key, value)
+
+    def new(self):
+        return TuplePrior(**{
+            "key": value.new() if hasattr(
+                value, "new"
+            ) else value
+            for key, value
+            in self.tuples
+        })
+
     @property
     @cast_collection(PriorNameValue)
     def prior_tuples(self):
@@ -30,6 +44,10 @@ class TuplePrior(ModelObject):
             A list of priors contained in this tuple
         """
         return list(filter(lambda t: isinstance(t[1], Prior), self.__dict__.items()))
+
+    @property
+    def priors(self):
+        return [prior for _, prior in self.prior_tuples]
 
     @property
     def unique_prior_tuples(self):
