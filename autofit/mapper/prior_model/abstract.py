@@ -6,7 +6,7 @@ import types
 from collections import defaultdict
 from functools import wraps
 from random import random
-from typing import Tuple, Optional, Dict, List, Iterable
+from typing import Tuple, Optional, Dict, List, Iterable, Generator
 
 import numpy as np
 
@@ -1362,10 +1362,25 @@ class AbstractPriorModel(AbstractModel):
         -------
         A path, a series of attributes that point to one location of the prior.
         """
-        for path, path_prior in self.path_priors_tuples:
-            if path_prior == prior:
-                return path
+        for path in self.all_paths_for_prior(prior):
+            return path
         return None
+
+    def all_paths_for_prior(self, prior: Prior) -> Generator[Path, None, None]:
+        """
+        Find all paths that points at the given tuple.
+
+        Parameters
+        ----------
+        prior
+            A prior representing what's known about some dimension of the model.
+        Yields
+        -------
+        Paths, each a series of attributes that point to one location of the prior.
+        """
+        for path, path_prior in reversed(self.path_priors_tuples):
+            if path_prior == prior:
+                yield path
 
     @property
     def path_float_tuples(self):

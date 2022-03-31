@@ -447,6 +447,10 @@ class FreeParameterAnalysis(CombinedAnalysis):
         Associate each model with an analysis when creating the result.
         """
         return [
-            analysis.make_result(samples, model, search)
+            analysis.make_result(
+                samples.subsamples(model),
+                model,
+                search
+            )
             for model, analysis in zip(model, self.analyses)
         ]

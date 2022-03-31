@@ -101,6 +101,23 @@ class Sample:
             )
         return False
 
+    def subsample(self, path_map):
+        arg_dict = {}
+        for paths, new_path in path_map.items():
+            for path in paths:
+                if path in self.kwargs:
+                    arg_dict[new_path] = self.kwargs[path]
+                    break
+            else:
+                raise KeyError(f"No path from {paths} in sample")
+
+        return type(self)(
+            log_likelihood=self.log_likelihood,
+            log_prior=self.log_prior,
+            weight=self.weight,
+            kwargs=arg_dict
+        )
+
     @classmethod
     def from_lists(
             cls,

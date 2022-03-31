@@ -154,3 +154,22 @@ def test_prior_model(model):
     assert first is not second
     assert first != second
     assert first.centre != second.centre
+
+
+def test_split_samples(modified):
+    samples = af.Samples(
+        modified,
+        af.Sample.from_lists(
+            modified,
+            [[1, 2, 3, 4]],
+            [1], [1], [1]
+        ),
+    )
+
+    combined = samples.max_log_likelihood_instance
+
+    first = samples.subsamples(modified[0])
+    second = samples.subsamples(modified[1])
+
+    assert first.max_log_likelihood_instance.centre == combined[0].centre
+    assert second.max_log_likelihood_instance.centre == combined[1].centre

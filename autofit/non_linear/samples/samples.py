@@ -1,15 +1,15 @@
-from copy import copy
 import csv
 import json
-import numpy as np
-from typing import List, Optional, Tuple, Union
 import warnings
+from copy import copy
+from typing import List, Optional, Tuple, Union
 
+import numpy as np
+
+from autofit import exc
 from autofit.mapper.model import ModelInstance
 from autofit.mapper.prior_model.abstract import AbstractPriorModel, Path
 from autofit.non_linear.samples.sample import Sample
-
-from autofit import exc
 
 
 class Samples:
@@ -127,6 +127,7 @@ class Samples:
         other
             The Samples to be added to this Samples instance.
         """
+
         def raise_exc():
             raise exc.SamplesException(
                 "Cannot add together two Samples objects which have different models."
@@ -480,3 +481,24 @@ class Samples:
             for sample in self.sample_list
         ]
         return with_paths
+
+    def subsamples(self, model):
+        if self.model is None:
+            return None
+
+        path_map = {
+            tuple(self.model.all_paths_for_prior(
+                prior
+            )): path
+            for path, prior in model.path_priors_tuples
+        }
+        copied = copy(self)
+        copied._paths = None
+        copied._names = None
+        copied.model = model
+
+        copied.sample_list = [
+            sample.subsample(path_map)
+            for sample in self.sample_list
+        ]
+        return copied
