@@ -387,23 +387,25 @@ class FreeParameterAnalysis(CombinedAnalysis):
             in enumerate(analyses)
         ])
         self.free_parameters = [
-                                   parameter for parameter
-                                   in free_parameters
-                                   if isinstance(
+            parameter for parameter
+            in free_parameters
+            if isinstance(
                 parameter,
                 Prior
             )
-                               ] + [
-                                   prior
-                                   for parameter
-                                   in free_parameters
-                                   if isinstance(
+        ]
+        # noinspection PyUnresolvedReferences
+        self.free_parameters += [
+            prior
+            for parameter
+            in free_parameters
+            if isinstance(
                 parameter,
                 (AbstractPriorModel, TuplePrior)
             )
-                                   for prior
-                                   in parameter.priors
-                               ]
+            for prior
+            in parameter.priors
+        ]
 
     def modify_model(
             self,

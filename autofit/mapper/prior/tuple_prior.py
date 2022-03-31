@@ -25,15 +25,6 @@ class TuplePrior(ModelObject):
         for key, value in kwargs.items():
             setattr(self, key, value)
 
-    def new(self):
-        return TuplePrior(**{
-            "key": value.new() if hasattr(
-                value, "new"
-            ) else value
-            for key, value
-            in self.tuples
-        })
-
     @property
     @cast_collection(PriorNameValue)
     def prior_tuples(self):

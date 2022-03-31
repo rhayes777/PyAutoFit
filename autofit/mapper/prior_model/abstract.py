@@ -728,12 +728,6 @@ class AbstractPriorModel(AbstractModel):
         ]
         return len(cls_models) > 0 and len(cls_models) == len(other_models)
 
-    def new(self):
-        return self.mapper_from_prior_arguments({
-            prior: prior.new()
-            for prior in self.priors
-        })
-
     def mapper_from_partial_prior_arguments(self, arguments):
         """
         Returns a new model mapper from a dictionary mapping existing priors to

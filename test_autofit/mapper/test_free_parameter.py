@@ -128,14 +128,6 @@ def test_integration(
     assert result_1._model.sigma is result_2._model.sigma
 
 
-def test_new_tuple_prior():
-    centre = af.TuplePrior(
-        centre_0=af.UniformPrior()
-    )
-    new = centre.new()
-    assert centre[0] != new[0]
-
-
 def test_tuple_prior(model):
     model.centre = af.TuplePrior(
         centre_0=af.UniformPrior()
@@ -146,15 +138,6 @@ def test_tuple_prior(model):
 
     first, second = combined.modify_model(model)
     assert first.centre.centre_0 != second.centre.centre_0
-
-
-def test_new_prior_model(model):
-    new = model.new()
-    assert new.centre != model.centre
-
-    collection = af.Collection(model)
-    new = collection.new()
-    assert new[0].centre != collection[0].centre
 
 
 def test_prior_model(model):
