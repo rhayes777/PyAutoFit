@@ -34,13 +34,7 @@ class Result:
     @DynamicAttrs
     """
 
-    def __init__(
-            self,
-            samples: PDFSamples,
-            model,
-            search=None,
-            child_results=None,
-    ):
+    def __init__(self, samples: PDFSamples, model, search=None):
         """
         The result of a non-linear search, which includes:
 
@@ -62,8 +56,6 @@ class Result:
 
         self.samples = samples
         self.search = search
-
-        self.child_results = child_results
 
         self._model = model
         self.__model = None
@@ -186,6 +178,33 @@ class Result:
         return self.model.mapper_from_gaussian_tuples(
             self.samples.gaussian_priors_at_sigma(sigma=self.search.prior_passer.sigma), r=r
         )
+
+
+class CombinedResult(Result):
+    def __init__(
+            self,
+            samples: PDFSamples,
+            model,
+            child_results,
+            search=None,
+    ):
+        """
+        A combined result produced when optimisation is performed on a
+        combined analysis.
+
+        Parameters
+        ----------
+        samples
+        model
+        child_results
+        search
+        """
+        super().__init__(
+            samples=samples,
+            model=model,
+            search=search,
+        )
+        self.child_results = child_results
 
     def __getitem__(self, item):
         return self.child_results[item]
