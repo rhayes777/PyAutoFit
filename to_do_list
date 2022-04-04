@@ -14,6 +14,9 @@ links to the results allowing API design.
 - Add Model section to readthedocs, which includes muiltiple cookbooks (simple, including lists and dicts, multi-level,
 search chaining).
 
+- Turn analysis summing feature into multiple likelihood functions, write general doc, write howtolens chapter
+(c1 same datasets, c2 multi dataset with different parameters, c3 writing function for parameter variation, c4 different LH functions).
+
 - Include docs on writing and loading models / collections with jsons and adding them together.
 
 - Show how to make model components benefits and explain the benefits of doing this.
