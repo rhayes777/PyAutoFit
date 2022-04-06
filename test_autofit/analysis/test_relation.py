@@ -1,7 +1,6 @@
 import pytest
 
 import autofit as af
-from autofit.mapper.prior.compound import MultiplePrior, SumPrior
 from autofit.non_linear.analysis.free_parameter import IndexedAnalysis
 from autofit.non_linear.analysis.model_analysis import CombinedModelAnalysis, ModelAnalysis
 
@@ -90,8 +89,8 @@ def test_fit(
 def test_prior_arithmetic():
     m = af.UniformPrior()
     c = af.UniformPrior()
-    mul = MultiplePrior(10, m)
-    y = SumPrior(mul, c)
+    mul = af.Multiply(10, m)
+    y = af.Add(mul, c)
 
     assert y.prior_count == 2
     assert y.instance_from_prior_medians() == 5.5
@@ -122,8 +121,8 @@ def test_integration():
         LinearAnalysis(
             data(x)
         ).with_model(
-            SumPrior(
-                MultiplePrior(
+            af.Add(
+                af.Multiply(
                     x, m
                 ),
                 c

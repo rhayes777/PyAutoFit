@@ -83,6 +83,14 @@ from .text import formatter
 from .text import samples_text
 from .tools import util
 
+
+from autofit.mapper.prior.compound import SumPrior as Add
+from autofit.mapper.prior.compound import MultiplePrior as Multiply
+from autofit.mapper.prior.compound import DivisionPrior as Divide
+from autofit.mapper.prior.compound import ModPrior as Mod
+from autofit.mapper.prior.compound import PowerPrior as Power
+from autofit.mapper.prior.compound import AbsolutePrior as Abs
+
 from . import example as ex
 from . import database as db
 
