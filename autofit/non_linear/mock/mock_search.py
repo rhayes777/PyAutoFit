@@ -29,6 +29,14 @@ def samples_with_log_likelihood_list(
     ]
 
 
+def _make_samples(model):
+    return {
+        path: prior.value_for(0.5)
+        for path, prior
+        in model.path_priors_tuples
+    }
+
+
 class MockSearch(NonLinearSearch):
     def __init__(
             self,
@@ -118,11 +126,7 @@ class MockSearch(NonLinearSearch):
         samples = MockSamples(
             sample_list=samples_with_log_likelihood_list(
                 self.sample_multiplier * fit,
-                {
-                    path: prior.value_for(0.5)
-                    for path, prior
-                    in model.path_priors_tuples
-                }
+                _make_samples(model)
             ),
             model=model,
             gaussian_tuples=[
@@ -146,7 +150,10 @@ class MockSearch(NonLinearSearch):
             return self.samples
 
         return MockSamples(
-            sample_list=samples_with_log_likelihood_list([1.0, 2.0]),
+            sample_list=samples_with_log_likelihood_list(
+                [1.0, 2.0],
+                _make_samples(model)
+            ),
             gaussian_tuples=[
                 (prior.mean, prior.width if math.isfinite(prior.width) else 1.0)
                 for prior in sorted(model.priors, key=lambda prior: prior.id)
