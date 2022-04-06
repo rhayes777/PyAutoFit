@@ -1,7 +1,7 @@
 import pytest
 
 import autofit as af
-from autofit.non_linear.analysis.analysis import FreeParameterAnalysis
+from autofit.non_linear.analysis import FreeParameterAnalysis
 from autofit.non_linear.mock.mock_search import MockOptimizer
 
 
@@ -21,12 +21,23 @@ def test_copy():
     assert collection.prior_count == model.prior_count
 
 
+class Result(af.Result):
+    pass
+
+
 class Analysis(af.Analysis):
     def log_likelihood_function(self, instance):
         return 1.0 if isinstance(
             instance,
             af.Gaussian
         ) else 0.0
+
+    def make_result(self, samples, model, search):
+        return Result(
+            samples=samples,
+            model=model,
+            search=search
+        )
 
 
 def test_log_likelihood(
@@ -113,15 +124,28 @@ def test_modified_models(
     assert first.centre != second.centre
 
 
-def test_integration(
+@pytest.fixture(
+    name="result"
+)
+def make_result(
         combined_analysis,
-        model
+        model,
 ):
     optimizer = MockOptimizer()
-    result = optimizer.fit(
+    return optimizer.fit(
         model,
         combined_analysis
     )
+
+
+def test_result_type(result):
+    assert isinstance(result, Result)
+
+    for result_ in result:
+        assert isinstance(result_, Result)
+
+
+def test_integration(result):
     result_1, result_2 = result
 
     assert result_1._model.centre is not result_2._model.centre

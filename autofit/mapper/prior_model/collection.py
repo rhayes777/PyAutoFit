@@ -111,6 +111,8 @@ class CollectionPriorModel(AbstractPriorModel):
     @assert_not_frozen
     def add_dict_items(self, item_dict):
         for key, value in item_dict.items():
+            if isinstance(key, tuple):
+                key = ".".join(key)
             setattr(self, key, AbstractPriorModel.from_object(value))
 
     def __eq__(self, other):
