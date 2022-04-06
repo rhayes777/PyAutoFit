@@ -137,4 +137,15 @@ def test_integration():
     optimiser = af.DynestyStatic()
     result = optimiser.fit(None, combined)
 
-    print(result)
+    instances = [
+        result.instance
+        for result
+        in result.child_results
+    ]
+    assert instances == pytest.approx(
+        list(map(
+            data,
+            range(10)
+        )),
+        rel=0.01,
+    )
