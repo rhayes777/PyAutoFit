@@ -17,14 +17,14 @@ logger = logging.getLogger(
 
 
 class CombinedAnalysis(Analysis):
-    def __new__(cls, *analyses):
+    def __new__(cls, *analyses, **kwargs):
         from .model_analysis import ModelAnalysis, CombinedModelAnalysis
         if any(
                 isinstance(analysis, ModelAnalysis)
                 for analysis in analyses
         ):
             return object.__new__(CombinedModelAnalysis)
-        return object.__new__(CombinedAnalysis)
+        return object.__new__(cls)
 
     def __init__(self, *analyses: Analysis):
         """
@@ -233,7 +233,7 @@ class CombinedAnalysis(Analysis):
                 *self.analyses,
                 *other.analyses
             )
-        return CombinedAnalysis(
+        return type(self)(
             *self.analyses,
             other
         )

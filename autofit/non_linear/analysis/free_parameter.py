@@ -55,7 +55,45 @@ class IndexedAnalysis:
         return self.analysis.make_result(samples, model, search)
 
 
-class FreeParameterAnalysis(CombinedAnalysis):
+class IndexCollectionAnalysis(CombinedAnalysis):
+    def __init__(self, *analyses):
+        super().__init__(*[
+            IndexedAnalysis(
+                analysis,
+                index,
+            )
+            for index, analysis
+            in enumerate(analyses)
+        ])
+
+    def make_result(
+            self,
+            samples,
+            model,
+            search
+    ):
+        """
+        Associate each model with an analysis when creating the result.
+        """
+        child_results = [
+            analysis.make_result(
+                samples.subsamples(model),
+                model,
+                search
+            )
+            for model, analysis in zip(model, self.analyses)
+        ]
+        result = self.analyses[0].make_result(
+            samples=samples,
+            model=model,
+            search=search,
+
+        )
+        result.child_results = child_results
+        return result
+
+
+class FreeParameterAnalysis(IndexCollectionAnalysis):
     def __init__(
             self,
             *analyses: Analysis,
@@ -75,14 +113,7 @@ class FreeParameterAnalysis(CombinedAnalysis):
         free_parameters
             A list of priors which are independent for each analysis
         """
-        super().__init__(*[
-            IndexedAnalysis(
-                analysis,
-                index,
-            )
-            for index, analysis
-            in enumerate(analyses)
-        ])
+        super().__init__(*analyses)
         self.free_parameters = [
             parameter for parameter
             in free_parameters
@@ -133,29 +164,3 @@ class FreeParameterAnalysis(CombinedAnalysis):
             })
             for _ in self.analyses
         ])
-
-    def make_result(
-            self,
-            samples,
-            model,
-            search
-    ):
-        """
-        Associate each model with an analysis when creating the result.
-        """
-        child_results = [
-            analysis.make_result(
-                samples.subsamples(model),
-                model,
-                search
-            )
-            for model, analysis in zip(model, self.analyses)
-        ]
-        result = self.analyses[0].make_result(
-            samples=samples,
-            model=model,
-            search=search,
-
-        )
-        result.child_results = child_results
-        return result

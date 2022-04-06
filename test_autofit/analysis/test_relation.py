@@ -1,5 +1,6 @@
 import pytest
 
+import autofit as af
 from autofit.non_linear.analysis.model_analysis import CombinedModelAnalysis
 
 
@@ -61,3 +62,11 @@ def test_default(
     assert second is model
     assert third is model
 
+
+def test_fit(
+        combined_model_analysis,
+        model
+):
+    assert combined_model_analysis.log_likelihood_function(
+        af.Collection([model, model]).instance_from_prior_medians()
+    ) == 2

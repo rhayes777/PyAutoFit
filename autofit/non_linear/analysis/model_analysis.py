@@ -1,6 +1,6 @@
 from autofit.mapper.prior_model.collection import CollectionPriorModel
 from .analysis import Analysis
-from .combined import CombinedAnalysis
+from .free_parameter import IndexCollectionAnalysis
 
 
 class ModelAnalysis(Analysis):
@@ -15,7 +15,7 @@ class ModelAnalysis(Analysis):
         return self.analysis.log_likelihood_function(instance)
 
 
-class CombinedModelAnalysis(CombinedAnalysis):
+class CombinedModelAnalysis(IndexCollectionAnalysis):
     def modify_model(self, model):
         return CollectionPriorModel([
             analysis.model if isinstance(
