@@ -131,7 +131,7 @@ class LinearOperator(ABC):
 
     @property
     def rshape(self):
-        return self.shape[self.ldim :]
+        return self.shape[self.ldim:]
 
     @cached_property
     @abstractmethod
@@ -278,7 +278,7 @@ def _wrap_leftop(method):
     @wraps(method)
     def leftmethod(self, x: np.ndarray) -> np.ndarray:
         x = np.asanyarray(x)
-        outshape = self.lshape + x.shape[self.rdim :] if self.ndim else x.shape
+        outshape = self.lshape + x.shape[self.rdim:] if self.ndim else x.shape
         return method(self, x.reshape(self.rsize, -1)).reshape(outshape)
 
     return leftmethod
@@ -307,13 +307,13 @@ class MatrixOperator(LinearOperator):
 
     def reshape(self, shape):
         return self.from_dense(
-            self.operator.to_dense().reshape(shape), 
+            self.operator.to_dense().reshape(shape),
             ldim=self.ldim
         )
 
     @classmethod
     def from_dense(
-        cls, M: np.ndarray, shape: Tuple[int, ...] = None, ldim: int = None
+            cls, M: np.ndarray, shape: Tuple[int, ...] = None, ldim: int = None
     ) -> "MatrixOperator":
         return cls(M, shape, ldim)
 
@@ -351,9 +351,9 @@ class MatrixOperator(LinearOperator):
     def diagonal(self) -> np.ndarray:
         return (
             self.to_dense()
-            .reshape(self.rsize, self.lsize)
-            .diagonal()
-            .reshape(self.rshape)
+                .reshape(self.rsize, self.lsize)
+                .diagonal()
+                .reshape(self.rshape)
         )
 
     def to_diagonal(self):
@@ -390,7 +390,7 @@ class MatrixOperator(LinearOperator):
 
 
 def _mul_triangular(
-    c, b, trans=False, lower=True, overwrite_b=False, check_finite=True
+        c, b, trans=False, lower=True, overwrite_b=False, check_finite=True
 ):
     """wrapper for BLAS function trmv to perform triangular matrix
     multiplications
@@ -630,7 +630,7 @@ class DiagonalMatrix(MatrixOperator):
             raise NotImplementedError("Can't get diagonal for non 'square' operators")
 
     def reshape(self, shape):
-        shape = shape[:len(shape)//2]
+        shape = shape[:len(shape) // 2]
         return DiagonalMatrix(self.scale.reshape(shape))
 
     @cached_property
