@@ -27,6 +27,8 @@ class IndexedAnalysis:
         index
             The index of the instance that should be passed to the analysis
         """
+        if isinstance(analysis, IndexedAnalysis):
+            analysis = analysis.analysis
         self.analysis = analysis
         self.index = index
 

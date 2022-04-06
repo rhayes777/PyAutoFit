@@ -2,7 +2,8 @@ import pytest
 
 import autofit as af
 from autofit.mapper.prior.compound import MultiplePrior, SumPrior
-from autofit.non_linear.analysis.model_analysis import CombinedModelAnalysis
+from autofit.non_linear.analysis.free_parameter import IndexedAnalysis
+from autofit.non_linear.analysis.model_analysis import CombinedModelAnalysis, ModelAnalysis
 
 
 @pytest.fixture(
@@ -32,6 +33,19 @@ def test_combined_model_analysis(
         combined_model_analysis,
         CombinedModelAnalysis
     )
+
+    for analysis in combined_model_analysis.analyses:
+        assert isinstance(analysis, IndexedAnalysis)
+        assert isinstance(analysis.analysis, ModelAnalysis)
+
+
+def test_sum(model):
+    analyses = 3 * [af.Analysis().with_model(model)]
+    analysis = sum(analyses)
+
+    for analysis_ in analysis.analyses:
+        assert isinstance(analysis_, IndexedAnalysis)
+        assert isinstance(analysis_.analysis, ModelAnalysis)
 
 
 def test_modify(

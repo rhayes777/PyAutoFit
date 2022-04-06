@@ -18,8 +18,8 @@ class ModelAnalysis(Analysis):
 class CombinedModelAnalysis(IndexCollectionAnalysis):
     def modify_model(self, model):
         return CollectionPriorModel([
-            analysis.model if isinstance(
-                analysis,
+            analysis.analysis.model if isinstance(
+                analysis.analysis,
                 ModelAnalysis
             ) else model
             for analysis in self.analyses
