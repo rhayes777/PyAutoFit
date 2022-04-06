@@ -17,6 +17,15 @@ logger = logging.getLogger(
 
 
 class CombinedAnalysis(Analysis):
+    def __new__(cls, *analyses):
+        from .model_analysis import ModelAnalysis, CombinedModelAnalysis
+        if any(
+                isinstance(analysis, ModelAnalysis)
+                for analysis in analyses
+        ):
+            return object.__new__(CombinedModelAnalysis)
+        return object.__new__(CombinedAnalysis)
+
     def __init__(self, *analyses: Analysis):
         """
         Computes the summed log likelihood of multiple analyses

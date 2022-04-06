@@ -19,6 +19,13 @@ class Analysis(ABC):
     likelihood that some instance fits some data.
     """
 
+    def with_model(self, model):
+        from .model_analysis import ModelAnalysis
+        return ModelAnalysis(
+            analysis=self,
+            model=model
+        )
+
     def log_likelihood_function(self, instance):
         raise NotImplementedError()
 
