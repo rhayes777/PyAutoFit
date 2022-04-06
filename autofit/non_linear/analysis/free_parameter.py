@@ -7,13 +7,14 @@ from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.mapper.prior_model.collection import CollectionPriorModel
 from .analysis import Analysis
 from .combined import CombinedAnalysis
+from ..paths.abstract import AbstractPaths
 
 logger = logging.getLogger(
     __name__
 )
 
 
-class IndexedAnalysis(Analysis):
+class IndexedAnalysis:
     def __init__(self, analysis: Analysis, index: int):
         """
         One instance in a collection corresponds to this analysis. That
@@ -32,6 +33,22 @@ class IndexedAnalysis(Analysis):
     def log_likelihood_function(self, instance):
         return self.analysis.log_likelihood_function(
             instance[self.index]
+        )
+
+    def visualize(self, paths: AbstractPaths, instance, during_analysis):
+        return self.analysis.visualize(
+            paths, instance[self.index], during_analysis
+        )
+
+    def profile_log_likelihood_function(self, paths: AbstractPaths, instance):
+        return self.profile_log_likelihood_function(
+            paths, instance[self.index]
+        )
+
+    def __getattr__(self, item):
+        return getattr(
+            self.analysis,
+            item
         )
 
     def make_result(self, samples, model, search):

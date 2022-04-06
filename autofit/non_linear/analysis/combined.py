@@ -133,7 +133,7 @@ class CombinedAnalysis(Analysis):
         paths
             An object describing the paths for saving data (e.g. hard-disk directories or entries in sqlite database).
         instance
-            The maximum likliehood instance of the model so far in the non-linear search.
+            The maximum likelihood instance of the model so far in the non-linear search.
         during_analysis
             Is this visualisation during analysis?
         """
