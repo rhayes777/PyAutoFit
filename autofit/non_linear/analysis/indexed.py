@@ -28,6 +28,9 @@ class IndexedAnalysis:
         self.index = index
 
     def log_likelihood_function(self, instance):
+        """
+        Compute the log likelihood by taking the instance at the index
+        """
         return self.analysis.log_likelihood_function(
             instance[self.index]
         )
@@ -54,6 +57,15 @@ class IndexedAnalysis:
 
 class IndexCollectionAnalysis(CombinedAnalysis):
     def __init__(self, *analyses):
+        """
+        Collection of analyses where each analysis has a different
+        corresponding model.
+
+        Parameters
+        ----------
+        analyses
+            A list of analyses each with a separate model
+        """
         super().__init__(*[
             IndexedAnalysis(
                 analysis,
