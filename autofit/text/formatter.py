@@ -118,7 +118,7 @@ def convert_name_to_label(parameter_name, name_to_label):
     try:
         return label_conf["label"][parameter_name]
     except KeyError:
-        logger.warning(
+        logger.debug(
             "Could not find an entry for the parameter {} in the label_format.iniconfig at paths {}".format(
                 parameter_name, conf.instance.paths
             )
