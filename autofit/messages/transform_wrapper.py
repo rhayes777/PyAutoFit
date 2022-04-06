@@ -358,5 +358,6 @@ class TransformedWrapper:
             **kwargs
     ):
         mode, jac = self._transform.transform_jac(mode)
-        covariance = jac.quad(covariance)
+        if covariance.shape != ():
+            covariance = jac.quad(covariance)
         return self.cls.from_mode(mode, covariance, **kwargs)
