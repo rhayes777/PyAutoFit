@@ -9,6 +9,8 @@ class CompoundPrior(
     ArithmeticMixin,
     ABC
 ):
+    cls = float
+
     def __init__(self, left, right):
         """
         Comprises objects that are to undergo some arithmetic
