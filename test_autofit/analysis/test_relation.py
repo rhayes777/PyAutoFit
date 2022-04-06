@@ -1,6 +1,7 @@
 import pytest
 
 import autofit as af
+from autofit.mapper.prior.compound import MultiplePrior, SumPrior
 from autofit.non_linear.analysis.model_analysis import CombinedModelAnalysis
 
 
@@ -70,3 +71,56 @@ def test_fit(
     assert combined_model_analysis.log_likelihood_function(
         af.Collection([model, model]).instance_from_prior_medians()
     ) == 2
+
+
+def test_prior_arithmetic():
+    m = af.UniformPrior()
+    c = af.UniformPrior()
+    mul = MultiplePrior(10, m)
+    y = SumPrior(mul, c)
+
+    assert y.prior_count == 2
+    assert y.instance_from_prior_medians() == 5.5
+
+
+class LinearAnalysis(af.Analysis):
+    def __init__(self, value):
+        self.value = value
+
+    def log_likelihood_function(self, instance):
+        return -abs(self.value - instance)
+
+
+def test_integration():
+    def data(x):
+        return 3 * x + 5
+
+    m = af.GaussianPrior(
+        mean=3,
+        sigma=1
+    )
+    c = af.GaussianPrior(
+        mean=5,
+        sigma=1
+    )
+
+    analyses = [
+        LinearAnalysis(
+            data(x)
+        ).with_model(
+            SumPrior(
+                MultiplePrior(
+                    x, m
+                ),
+                c
+            )
+        )
+        for x in range(10)
+    ]
+
+    combined = sum(analyses)
+
+    optimiser = af.DynestyStatic()
+    result = optimiser.fit(None, combined)
+
+    print(result)
