@@ -80,7 +80,8 @@ class OptimisationState:
         self.factor = factor
         self.factor_gradient = factor_gradient
 
-        self._parameters = parameters
+        self._parameters = None
+        self.parameters = parameters
         self.hessian = hessian
         self.det_hessian = det_hessian
         self.f_count = np.asanyarray(f_count)
@@ -89,10 +90,9 @@ class OptimisationState:
 
         self.next_states = next_states or {}
 
-        if value is not None:
-            self.value = value
-        if gradient is not None:
-            self.gradient = gradient
+        self._value = value
+        self._gradient = gradient
+
         if search_direction is not None:
             self.search_direction = search_direction
 
@@ -103,24 +103,28 @@ class OptimisationState:
     @parameters.setter
     def parameters(self, parameters):
         # This forces recalculation of the value and gradient as needed
-        del self.value
-        del self.gradient
+        self._value = None
+        self._gradient = None
         self._parameters = parameters
 
-    @cached_property
+    @property
     def value(self):
-        self.f_count += 1
-        return self.factor(self.parameters, *self.args)
+        if self._value is None:
+            self.f_count += 1
+            self._value = self.factor(self.parameters, *self.args)
+        return self._value
 
-    @cached_property
+    @property
     def gradient(self):
-        return self.value_gradient[1]
+        if self._gradient is None:
+            self._gradient = self.value_gradient[1]
+        return self._gradient
         # return VariableData((v, grad[v]) for v in self.parameters)
 
     @cached_property
     def value_gradient(self):
         self.g_count += 1
-        self.value, self.gradient = val = self.factor_gradient(
+        self._value, self._gradient = val = self.factor_gradient(
             self.parameters, *self.args
         )
         return val
