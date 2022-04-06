@@ -229,7 +229,7 @@ class CombinedAnalysis(Analysis):
                 other,
                 CombinedAnalysis
         ):
-            return CombinedAnalysis(
+            return type(self)(
                 *self.analyses,
                 *other.analyses
             )

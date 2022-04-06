@@ -42,3 +42,22 @@ def test_modify(
     first, second = modified
     assert first is model
     assert second is model
+
+
+def test_default(
+        combined_model_analysis,
+        Analysis,
+        model
+):
+    analysis = combined_model_analysis + Analysis()
+    assert isinstance(
+        analysis,
+        CombinedModelAnalysis
+    )
+    modified = analysis.modify_model(model)
+
+    first, second, third = modified
+    assert first is model
+    assert second is model
+    assert third is model
+
