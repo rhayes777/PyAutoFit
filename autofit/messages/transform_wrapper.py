@@ -180,13 +180,13 @@ class TransformedWrapperInstance(Prior):
             self,
             mode: np.ndarray,
             covariance: np.ndarray,
-            id_=None
+            **kwargs
     ):
         return self._new_for_base_message(
             self.transformed_wrapper.from_mode(
                 mode,
                 covariance,
-                id_=id_
+                **kwargs
             )
         )
 
@@ -355,8 +355,8 @@ class TransformedWrapper:
             self,
             mode: np.ndarray,
             covariance: np.ndarray,
-            id_=None
+            **kwargs
     ):
         mode, jac = self._transform.transform_jac(mode)
         covariance = jac.quad(covariance)
-        return self.cls.from_mode(mode, covariance, id_=id_)
+        return self.cls.from_mode(mode, covariance, **kwargs)
