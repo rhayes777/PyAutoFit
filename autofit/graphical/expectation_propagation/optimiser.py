@@ -1,6 +1,5 @@
 import logging
 import os
-import warnings
 from abc import ABC, abstractmethod
 from collections import defaultdict
 from pathlib import Path
@@ -16,7 +15,7 @@ from autofit.graphical.factor_graphs.graph import FactorGraph
 from autofit.graphical.mean_field import MeanField, FactorApproximation, Status
 from autofit.graphical.utils import StatusFlag, LogWarnings
 from autofit.mapper.identifier import Identifier
-from autofit.mapper.variable import Plate 
+from autofit.mapper.variable import Plate
 from autofit.non_linear.paths import DirectoryPaths
 from autofit.non_linear.paths.abstract import AbstractPaths
 from autofit.tools.util import IntervalCounter
@@ -43,13 +42,13 @@ class AbstractFactorOptimiser(ABC):
             factor_approx: FactorApproximation,
             model_approx: EPMeanField,
             status: Optional[Status] = Status(),
-            delta: Optional[float] = None, 
+            delta: Optional[float] = None,
     ) -> Tuple[EPMeanField, Status]:
         delta = delta or self.deltas[factor_approx.factor]
         new_approx, status = model_approx.project_mean_field(
-            new_model_dist, 
-            factor_approx,  
-            delta=delta, 
+            new_model_dist,
+            factor_approx,
+            delta=delta,
             status=status,
         )
         return new_approx, status
@@ -63,7 +62,7 @@ class AbstractFactorOptimiser(ABC):
     def exact_fit(
             self, factor: Factor, model_approx: EPMeanField, status: Status = Status()
     ) -> Tuple[EPMeanField, Status]:
-    
+
         with LogWarnings(logger=self.logger, action='always') as caught_warnings:
             if factor._calc_exact_update:
                 factor_approx = model_approx.factor_approximation(factor)
@@ -73,7 +72,7 @@ class AbstractFactorOptimiser(ABC):
                 )
             elif factor._calc_exact_projection:
                 factor_approx = model_approx.factor_approximation(factor)
-                new_model_dist = factor.calc_exact_projection(factor_approx.cavity_dist) 
+                new_model_dist = factor.calc_exact_projection(factor_approx.cavity_dist)
                 new_approx, status = self.update_model_approx(
                     new_model_dist, factor_approx, model_approx, status
                 )
@@ -87,7 +86,7 @@ class AbstractFactorOptimiser(ABC):
         status_kws['messages'] = status.messages + tuple(caught_warnings.messages)
         status = Status(**status_kws)
 
-        return new_approx, status 
+        return new_approx, status
 
 
 class ExactFactorFit(AbstractFactorOptimiser):
@@ -141,7 +140,7 @@ class EPOptimiser:
             ep_history: Optional[EPHistory] = None,
             factor_order: Optional[List[Factor]] = None,
             paths: AbstractPaths = None,
-            factor_loggers: Optional[Dict[Factor, logging.Logger]] = None, 
+            factor_loggers: Optional[Dict[Factor, logging.Logger]] = None,
     ):
         """
         Optimise a factor graph.
@@ -201,7 +200,7 @@ class EPOptimiser:
 
         self.visualiser = Visualise(self.ep_history, self.output_path)
 
-    @classmethod 
+    @classmethod
     def from_meanfield(
             cls,
             model_approx: EPMeanField,
@@ -210,10 +209,10 @@ class EPOptimiser:
             ep_history: Optional[EPHistory] = None,
             factor_order: Optional[List[Factor]] = None,
             paths: AbstractPaths = None,
-            factor_loggers: Optional[Dict[Factor, logging.Logger]] = None, 
-            exact_fit_kws=None, 
+            factor_loggers: Optional[Dict[Factor, logging.Logger]] = None,
+            exact_fit_kws=None,
     ):
-        factor_graph = model_approx.factor_graph 
+        factor_graph = model_approx.factor_graph
         factor_order = factor_order or factor_graph.factors
 
         factor_optimisers = factor_optimisers or {}
@@ -225,15 +224,15 @@ class EPOptimiser:
                     factor_optimisers[factor] = ExactFactorFit(**(exact_fit_kws or {}))
                 else:
                     factor_optimisers[factor] = default_optimiser
-        
+
         return cls(
             factor_graph=factor_graph,
-            default_optimiser= default_optimiser,
+            default_optimiser=default_optimiser,
             factor_optimisers=factor_optimisers,
             ep_history=ep_history,
             factor_order=factor_order,
             paths=paths,
-            factor_loggers=factor_loggers, 
+            factor_loggers=factor_loggers,
         )
 
     @property
@@ -264,14 +263,14 @@ class EPOptimiser:
             factor_logger.exception(e)
 
     def factor_step(
-            self, 
-            factor, 
-            model_approx, 
+            self,
+            factor,
+            model_approx,
             optimiser=None
     ):
         factor_logger = self.factor_loggers.get(factor.name, logging.getLogger(factor.name))
         factor_logger.debug("Optimising...")
-        
+
         optimiser = optimiser or self.factor_optimisers[factor]
         try:
             with LogWarnings(logger=factor_logger.debug, action='always') as caught_warnings:
@@ -368,9 +367,9 @@ class EPOptimiser:
 class StochasticEPOptimiser(EPOptimiser):
 
     def factor_step(
-            self, 
-            factor, 
-            subset_approx, 
+            self,
+            factor,
+            subset_approx,
             optimiser=None
     ):
         factor_logger = self.factor_loggers.get(factor.name, logging.getLogger(factor.name))
@@ -406,7 +405,7 @@ class StochasticEPOptimiser(EPOptimiser):
             log_interval: int = 10,
             visualise_interval: int = 100,
             output_interval: int = 10,
-            inplace=False, 
+            inplace=False,
     ) -> EPMeanField:
         """
         Run the optimisation on an approximation of the model.
@@ -448,13 +447,12 @@ class StochasticEPOptimiser(EPOptimiser):
                 if status and should_log():
                     self._log_factor(factor)
 
-
                 if self.ep_history(factor, subset_approx, status):
                     logger.info("Terminating optimisation")
                     break  # callback controls convergence
 
             else:  # If no break do next iteration
-                
+
                 if inplace:
                     model_approx[batch] = subset_approx
                 else:
@@ -472,7 +470,6 @@ class StochasticEPOptimiser(EPOptimiser):
                     self._output_results(model_approx)
                 continue
             break  # stop iterations
-
 
         self.visualiser()
         self._output_results(model_approx)
