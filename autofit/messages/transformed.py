@@ -120,7 +120,8 @@ class TransformedMessage(AbstractMessage):
             self.instance.mean
         )
 
-    @cached_property
+    # @cached_property
+    @property
     def variance(self) -> np.ndarray:
         # noinspection PyUnresolvedReferences
         jac = self._transform.jacobian(self.instance.mean)
