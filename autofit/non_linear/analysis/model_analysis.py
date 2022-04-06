@@ -1,3 +1,4 @@
+from autofit.mapper.prior_model.collection import CollectionPriorModel
 from .analysis import Analysis
 from .combined import CombinedAnalysis
 
@@ -15,4 +16,11 @@ class ModelAnalysis(Analysis):
 
 
 class CombinedModelAnalysis(CombinedAnalysis):
-    pass
+    def modify_model(self, model):
+        return CollectionPriorModel([
+            analysis.model if isinstance(
+                analysis,
+                ModelAnalysis
+            ) else model
+            for analysis in self.analyses
+        ])
