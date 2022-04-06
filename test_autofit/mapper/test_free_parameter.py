@@ -1,7 +1,7 @@
 import pytest
 
 import autofit as af
-from autofit.non_linear.analysis.analysis import FreeParameterAnalysis
+from autofit.non_linear.analysis import FreeParameterAnalysis
 from autofit.non_linear.mock.mock_search import MockOptimizer
 
 
