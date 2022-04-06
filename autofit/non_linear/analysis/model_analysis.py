@@ -1,6 +1,6 @@
 from autofit.mapper.prior_model.collection import CollectionPriorModel
 from .analysis import Analysis
-from .free_parameter import IndexCollectionAnalysis
+from .indexed import IndexCollectionAnalysis
 
 
 class ModelAnalysis(Analysis):

@@ -1,7 +1,7 @@
 import pytest
 
 import autofit as af
-from autofit.non_linear.analysis.free_parameter import IndexedAnalysis
+from autofit.non_linear.analysis.indexed import IndexedAnalysis
 from autofit.non_linear.analysis.model_analysis import CombinedModelAnalysis, ModelAnalysis
 
 

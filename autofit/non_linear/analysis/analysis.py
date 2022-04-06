@@ -20,6 +20,20 @@ class Analysis(ABC):
     """
 
     def with_model(self, model):
+        """
+        Associate an explicit model with this analysis. Instances of the model
+        will be used to compute log likelihood in place of the model passed
+        from the search.
+
+        Parameters
+        ----------
+        model
+            A model to associate with this analysis
+
+        Returns
+        -------
+        An analysis for that model
+        """
         from .model_analysis import ModelAnalysis
         return ModelAnalysis(
             analysis=self,
