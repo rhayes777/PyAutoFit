@@ -34,6 +34,9 @@ class IndexedAnalysis(Analysis):
             instance[self.index]
         )
 
+    def make_result(self, samples, model, search):
+        return self.analysis.make_result(samples, model, search)
+
 
 class FreeParameterAnalysis(CombinedAnalysis):
     def __init__(

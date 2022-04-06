@@ -2,19 +2,18 @@ import math
 from typing import Optional, Tuple
 
 from autoconf import conf
-
+from autofit import exc
 from autofit.graphical import FactorApproximation
 from autofit.graphical.utils import Status
 from autofit.non_linear.abstract_search import NonLinearSearch
-from autofit.non_linear.samples import Sample
 from autofit.non_linear.mock.mock_result import MockResult
 from autofit.non_linear.mock.mock_samples import MockSamples
-
-from autofit import exc
+from autofit.non_linear.samples import Sample
 
 
 def samples_with_log_likelihood_list(
-        log_likelihood_list
+        log_likelihood_list,
+        kwargs
 ):
     if isinstance(log_likelihood_list, float):
         log_likelihood_list = [log_likelihood_list]
@@ -22,7 +21,8 @@ def samples_with_log_likelihood_list(
         Sample(
             log_likelihood=log_likelihood,
             log_prior=0,
-            weight=0
+            weight=0,
+            kwargs=kwargs,
         )
         for log_likelihood
         in log_likelihood_list
@@ -116,7 +116,14 @@ class MockSearch(NonLinearSearch):
                     raise e
                 index = (index + 1) % model.prior_count
         samples = MockSamples(
-            sample_list=samples_with_log_likelihood_list(self.sample_multiplier * fit),
+            sample_list=samples_with_log_likelihood_list(
+                self.sample_multiplier * fit,
+                {
+                    path: prior.value_for(0.5)
+                    for path, prior
+                    in model.path_priors_tuples
+                }
+            ),
             model=model,
             gaussian_tuples=[
                 (prior.mean, prior.width if math.isfinite(prior.width) else 1.0)
@@ -126,9 +133,10 @@ class MockSearch(NonLinearSearch):
 
         self.paths.save_samples(samples)
 
-        return MockResult(
+        return analysis.make_result(
             model=model,
             samples=samples,
+            search=self
         )
 
     def perform_update(self, model, analysis, during_analysis):
@@ -163,5 +171,3 @@ class MockOptimizer(MockSearch):
         pass
 
     init_args = list()
-
-
