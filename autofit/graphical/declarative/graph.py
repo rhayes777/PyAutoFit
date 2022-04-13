@@ -268,7 +268,8 @@ class DeclarativeFactorGraph(FactorGraph):
                 ).distribution_model
             )
 
-        return sorted(hierarchical_factor_set)
+        name = lambda x: x.name
+        return sorted(hierarchical_factor_set, key=name)
 
     @property
     def info(self) -> str:
