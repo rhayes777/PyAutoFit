@@ -5,13 +5,6 @@ from autofit.non_linear.analysis import FreeParameterAnalysis
 from autofit.non_linear.mock.mock_search import MockOptimizer
 
 
-@pytest.fixture(
-    name="model"
-)
-def make_model():
-    return af.Model(af.Gaussian)
-
-
 def test_copy():
     model = af.Model(af.Gaussian)
     copy = model.copy()
@@ -19,25 +12,6 @@ def test_copy():
     collection = af.Collection(model, copy)
 
     assert collection.prior_count == model.prior_count
-
-
-class Result(af.Result):
-    pass
-
-
-class Analysis(af.Analysis):
-    def log_likelihood_function(self, instance):
-        return 1.0 if isinstance(
-            instance,
-            af.Gaussian
-        ) else 0.0
-
-    def make_result(self, samples, model, search):
-        return Result(
-            samples=samples,
-            model=model,
-            search=search
-        )
 
 
 def test_log_likelihood(
@@ -49,7 +23,7 @@ def test_log_likelihood(
     ) == 2
 
 
-def test_analyses_example():
+def test_analyses_example(Analysis):
     model = af.Model(af.Gaussian)
     analyses = []
 
@@ -60,22 +34,20 @@ def test_analyses_example():
         copy = model.copy()
         copy.centre = prior
         analyses.append(
-            Analysis(
-
-            )
+            Analysis()
         )
 
 
 @pytest.fixture(
     name="combined_analysis"
 )
-def make_combined_analysis(model):
+def make_combined_analysis(model, Analysis):
     return (Analysis() + Analysis()).with_free_parameters(
         model.centre
     )
 
 
-def test_multiple_free_parameters(model):
+def test_multiple_free_parameters(model, Analysis):
     combined_analysis = (Analysis() + Analysis()).with_free_parameters(
         model.centre,
         model.sigma
@@ -138,7 +110,7 @@ def make_result(
     )
 
 
-def test_result_type(result):
+def test_result_type(result, Result):
     assert isinstance(result, Result)
 
     for result_ in result:
@@ -152,7 +124,7 @@ def test_integration(result):
     assert result_1._model.sigma is result_2._model.sigma
 
 
-def test_tuple_prior(model):
+def test_tuple_prior(model, Analysis):
     model.centre = af.TuplePrior(
         centre_0=af.UniformPrior()
     )
@@ -164,7 +136,7 @@ def test_tuple_prior(model):
     assert first.centre.centre_0 != second.centre.centre_0
 
 
-def test_prior_model(model):
+def test_prior_model(model, Analysis):
     model = af.Collection(
         model=model
     )
