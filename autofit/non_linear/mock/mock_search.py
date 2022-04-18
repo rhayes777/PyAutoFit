@@ -55,7 +55,8 @@ class MockSearch(NonLinearSearch):
         super().__init__(name=name, unique_tag=unique_tag, **kwargs)
 
         self.samples = samples or MockSamples()
-        self.result = result or MockResult(samples=samples)
+
+        self.result = MockResult(samples=samples) if result is None else result
 
         if prior_passer is not None:
             self.prior_passer = prior_passer
