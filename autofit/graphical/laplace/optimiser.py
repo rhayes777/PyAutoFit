@@ -96,6 +96,8 @@ class LaplaceOptimiser(AbstractFactorOptimiser):
             parameters.subset(free_variables),
             hessian,
             det_hessian,
+            lower_limit=MeanField.lower_limit.fget(mean_field),
+            upper_limit=MeanField.upper_limit.fget(mean_field),
         )
 
     def optimise_state(

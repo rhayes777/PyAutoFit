@@ -76,6 +76,8 @@ class OptimisationState:
             g_count: int = 0,
             args=(),
             next_states: Optional[Dict[float, "OptimisationState"]] = None,
+            lower_limit=None, 
+            upper_limit=None, 
     ):
         self.factor = factor
         self.factor_gradient = factor_gradient
@@ -87,14 +89,30 @@ class OptimisationState:
         self.f_count = np.asanyarray(f_count)
         self.g_count = np.asanyarray(g_count)
         self.args = args
+        self.lower_limit = lower_limit
+        self.upper_limit = upper_limit 
 
         self.next_states = next_states or {}
+
+        if not self.valid:
+            value = - FactorValue(np.inf) 
+            gradient = self.parameters.full_like(np.inf)
 
         self._value = value
         self._gradient = gradient
 
         if search_direction is not None:
             self.search_direction = search_direction
+
+    @property
+    def valid(self):
+        if self.lower_limit and (self.parameters < self.lower_limit).any():
+            return False 
+        
+        if self.upper_limit and (self.parameters > self.upper_limit).any():
+            return False 
+
+        return True
 
     @property
     def parameters(self):
@@ -112,6 +130,7 @@ class OptimisationState:
         if self._value is None:
             self.f_count += 1
             self._value = self.factor(self.parameters, *self.args)
+
         return self._value
 
     @property
@@ -119,7 +138,6 @@ class OptimisationState:
         if self._gradient is None:
             self._gradient = self.value_gradient[1]
         return self._gradient
-        # return VariableData((v, grad[v]) for v in self.parameters)
 
     @cached_property
     def value_gradient(self):
@@ -140,6 +158,8 @@ class OptimisationState:
             "f_count": self.f_count,
             "g_count": self.g_count,
             "args": self.args,
+            "lower_limit": self.lower_limit,
+            "upper_limit": self.upper_limit,
         }
 
     def copy(self):

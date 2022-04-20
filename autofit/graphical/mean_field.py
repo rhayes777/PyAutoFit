@@ -198,6 +198,20 @@ class MeanField(CollectionPriorModel, Dict[Variable, AbstractMessage], Factor):
     def scale(self):
         return VariableData({v: dist.scale for v, dist in self.items()})
 
+    @property
+    def lower_limit(self):
+        return VariableData({
+            v: np.full(m.shape, m.lower_limit) if m.shape else m.lower_limit
+            for v, m in self.items()
+        })
+
+    @property
+    def upper_limit(self):
+        return VariableData({
+            v: np.full(m.shape, m.upper_limit) if m.shape else m.lower_limit
+            for v, m in self.items()
+        })
+
     def precision(self, variables=None):
         variables = variables or self.all_variables
         variances = MeanField.variance.fget(self).subset(variables)
