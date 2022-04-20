@@ -104,6 +104,18 @@ class LinearAnalysis(af.Analysis):
         return -abs(self.value - instance)
 
 
+def test_embedded_model():
+    model = af.Model(
+        af.Gaussian
+    )
+    copy = model.replacing({
+        model.centre: af.UniformPrior()
+    })
+    assert copy is not model
+    assert copy.centre != model.centre
+    assert copy.sigma == model.sigma
+
+
 def test_integration():
     def data(x):
         return 3 * x + 5
