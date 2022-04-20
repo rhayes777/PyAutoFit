@@ -104,6 +104,13 @@ class LinearAnalysis(af.Analysis):
         return -abs(self.value - instance)
 
 
+class ComplexLinearAnalysis(LinearAnalysis):
+    def log_likelihood_function(self, instance):
+        return super().log_likelihood_function(
+            instance.centre
+        )
+
+
 def test_embedded_model():
     model = af.Model(
         af.Gaussian
@@ -116,19 +123,75 @@ def test_embedded_model():
     assert copy.sigma == model.sigma
 
 
-def test_integration():
-    def data(x):
-        return 3 * x + 5
+def data(x):
+    return 3 * x + 5
 
-    m = af.GaussianPrior(
+
+@pytest.fixture(
+    name="m"
+)
+def make_m():
+    return af.GaussianPrior(
         mean=3,
         sigma=1
     )
-    c = af.GaussianPrior(
+
+
+@pytest.fixture(
+    name="c"
+)
+def make_c():
+    return af.GaussianPrior(
         mean=5,
         sigma=1
     )
 
+
+def _test_embedded_integration(
+        m, c
+):
+    base_model = af.Model(
+        af.Gaussian
+    )
+
+    analyses = [
+        ComplexLinearAnalysis(
+            data(x)
+        ).with_model(
+            base_model.replacing({
+                base_model.centre: af.Add(
+                    af.Multiply(
+                        x, m
+                    ),
+                    c
+                )
+            })
+        )
+        for x in range(10)
+    ]
+
+    combined = sum(analyses)
+
+    optimiser = af.DynestyStatic()
+    result = optimiser.fit(None, combined)
+
+    centres = [
+        result.instance.centre
+        for result
+        in result.child_results
+    ]
+    assert centres == pytest.approx(
+        list(map(
+            data,
+            range(10)
+        )),
+        rel=0.01,
+    )
+
+
+def _test_integration(
+        m, c
+):
     analyses = [
         LinearAnalysis(
             data(x)
