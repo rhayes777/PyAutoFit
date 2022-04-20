@@ -178,6 +178,8 @@ class LinearOperator(ABC):
         else:
             return NotImplemented
 
+    def matrixabs(self):
+        raise NotADirectoryError()
 
 class InverseOperator(LinearOperator):
     def __init__(self, operator):
@@ -385,7 +387,7 @@ class MatrixOperator(LinearOperator):
     def diagonalupdate(self, d):
         M = self._M.copy()
         # set diagonal
-        M.flat[:: self.lsize + 1] += d.ravel()
+        M.flat[:: self.lsize + 1] += np.asanyarray(d).ravel()
         return type(self).from_dense(M, self.shape, self.ldim)
 
 
@@ -576,6 +578,9 @@ class CholeskyOperator(MatrixOperator):
     def to_dense(self):
         return np.tril(self.L) @ np.triu(self.U)
 
+    def matrixabs(self): 
+        return self 
+
 
 # This class may no longer be necessary?
 class InvCholeskyTransform(CholeskyOperator):
@@ -699,6 +704,9 @@ class DiagonalMatrix(MatrixOperator):
 
     def diagonalupdate(self, d):
         return type(self)(self.scale + d)
+
+    def matrixabs(self):
+        return type(self)(abs(self.scale))
 
 
 class VecOuterProduct(LinearOperator):

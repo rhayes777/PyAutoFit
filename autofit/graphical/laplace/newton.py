@@ -12,12 +12,16 @@ from autofit.mapper.variable_operator import VariableData
 ## get ascent direction
 
 
-def gradient_ascent(state: OptimisationState) -> VariableData:
+def gradient_ascent(state: OptimisationState, **kwargs) -> VariableData:
     return state.gradient
 
 
-def newton_direction(state: OptimisationState) -> VariableData:
+def _newton_direction(state: OptimisationState, **kwargs) -> VariableData:
     return state.hessian.ldiv(state.gradient)
+
+def newton_direction(state: OptimisationState, d=1e-6, **kwargs) -> VariableData:
+    posdef = state.hessian.abs().diagonalupdate(state.parameters.full_like(d))
+    return posdef.ldiv(state.gradient)
 
 
 logger = logging.getLogger(__name__)

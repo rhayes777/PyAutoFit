@@ -227,6 +227,9 @@ class VariableOperator(VariableLinearOperator):
     def to_diagonal(self) -> "VariableOperator":
         return type(self)({v: DiagonalMatrix(d) for v, d in self.diagonal().items()})
 
+    def abs(self) -> "VariableOperator":
+        return type(self)({v: d.matrixabs() for v, d in self.diagonal().items()})
+
     def blocks(self) -> VariableData:
         return VariableData({v: op.to_dense() for v, op in self.operators.items()})
 
@@ -354,6 +357,10 @@ class VariableFullOperator(VariableLinearOperator):
     def to_diagonal(self):
         diagonal = DiagonalMatrix(self.operator.diagonal())
         return type(self)(diagonal, self.param_shapes)
+
+    def abs(self):
+        matrixabs = self.operator.matrixabs()
+        return type(self)(matrixabs, self.param_shapes)
 
     def to_full(self):
         return self
