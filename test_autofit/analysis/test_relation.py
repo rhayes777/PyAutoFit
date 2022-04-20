@@ -123,6 +123,15 @@ def test_embedded_model():
     assert copy.sigma == model.sigma
 
 
+def test_names():
+    one = 1
+    two = af.UniformPrior()
+    add = af.Add(
+        one, two
+    )
+    assert add.paths == [("two",)]
+
+
 def data(x):
     return 3 * x + 5
 

@@ -1,7 +1,18 @@
+import inspect
+import logging
 from abc import ABC
 
 from autofit.mapper.prior.arithmetic import ArithmeticMixin
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
+
+logger = logging.getLogger(
+    __name__
+)
+
+
+def retrieve_name(var):
+    callers_local_vars = inspect.currentframe().f_back.f_back.f_locals.items()
+    return [var_name for var_name, var_val in callers_local_vars if var_val is var][0]
 
 
 class CompoundPrior(
@@ -24,8 +35,22 @@ class CompoundPrior(
             A prior, promise or float
         """
         super().__init__()
-        self.left = left
-        self.right = right
+        try:
+            left_name = retrieve_name(left)
+        except Exception as e:
+            logger.info(e)
+            left_name = "left"
+
+        try:
+            right_name = retrieve_name(right)
+        except Exception as e:
+            logger.info(e)
+            right_name = "right"
+
+        setattr(self, left_name, left)
+        setattr(self, right_name, right)
+        self._left = left
+        self._right = right
 
     def __repr__(self):
         return str(self)
@@ -47,9 +72,9 @@ class CompoundPrior(
         A value for the left object
         """
         try:
-            return self.left.instance_for_arguments(arguments, )
+            return self._left.instance_for_arguments(arguments, )
         except AttributeError:
-            return self.left
+            return self._left
 
     def right_for_arguments(
             self,
@@ -68,9 +93,9 @@ class CompoundPrior(
         A value for the right object
         """
         try:
-            return self.right.instance_for_arguments(arguments, )
+            return self._right.instance_for_arguments(arguments, )
         except AttributeError:
-            return self.right
+            return self._right
 
 
 class SumPrior(CompoundPrior):
