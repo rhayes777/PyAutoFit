@@ -23,7 +23,7 @@ datasets which:
 
 - Is built for *big-data* analysis, whereby results are output as a sqlite database which can be queried after model-fitting is complete.
 
-**PyAutoFit** supports advanced statistical methods such as `empirical Bayes <https://pyautofit.readthedocs.io/en/latest/features/empirical_bayes.html>`_, `sensitivity mapping <https://pyautofit.readthedocs.io/en/latest/features/sensitivity_mapping.html>`_ and `massively parallel model-fits <https://pyautofit.readthedocs.io/en/latest/features/search_grid_search.html>`_ .
+**PyAutoFit** supports advanced statistical methods such as `graphical and hierarchical models <https://pyautofit.readthedocs.io/en/latest/features/graphical.html>`_, `model-fit chaining <https://pyautofit.readthedocs.io/en/latest/features/search_chaining.html>`_, `sensitivity mapping <https://pyautofit.readthedocs.io/en/latest/features/sensitivity_mapping.html>`_ and `massively parallel model-fits <https://pyautofit.readthedocs.io/en/latest/features/search_grid_search.html>`_ .
 
 Getting Started
 ---------------
