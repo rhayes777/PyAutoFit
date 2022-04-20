@@ -19,7 +19,7 @@ class LaplaceOptimiser(AbstractFactorOptimiser):
     def __init__(
             self,
             make_hessian=make_posdef_hessian,
-            search_direction=newton.newton_direction,
+            search_direction=newton.newton_abs_direction,
             calc_line_search=newton.line_search,
             quasi_newton_update=newton.full_diag_update,
             stop_conditions=newton.stop_conditions,
@@ -96,6 +96,8 @@ class LaplaceOptimiser(AbstractFactorOptimiser):
             parameters.subset(free_variables),
             hessian,
             det_hessian,
+            lower_limit=MeanField.lower_limit.fget(mean_field),
+            upper_limit=MeanField.upper_limit.fget(mean_field),
         )
 
     def optimise_state(

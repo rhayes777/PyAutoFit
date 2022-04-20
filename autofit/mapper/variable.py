@@ -438,6 +438,15 @@ class VariableData(Dict[Variable, np.ndarray]):
                 assert sizes.setdefault(p, s) == s, f"plate sizes must be consistent, {sizes[p]} != {s}"
         return sizes
 
+    def full_like(self, fill_value, **kwargs):
+        return type(self)({
+            v: np.full_like(val, fill_value, **kwargs)
+            for v, val in self.items()
+        })
+
+    def zeros_like(self, **kwargs):
+        return self.full_like(0.)
+
 
 class VariableLinearOperator(ABC):
     """Implements the functionality of a linear operator acting
@@ -503,7 +512,6 @@ class VariableLinearOperator(ABC):
 
     def blocks(self):
         return self.to_block().blocks()
-
 
 
 class InverseVariableOperator(VariableLinearOperator):

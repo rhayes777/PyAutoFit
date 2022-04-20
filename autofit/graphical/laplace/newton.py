@@ -12,12 +12,16 @@ from autofit.mapper.variable_operator import VariableData
 ## get ascent direction
 
 
-def gradient_ascent(state: OptimisationState) -> VariableData:
+def gradient_ascent(state: OptimisationState, **kwargs) -> VariableData:
     return state.gradient
 
 
-def newton_direction(state: OptimisationState) -> VariableData:
+def newton_direction(state: OptimisationState, **kwargs) -> VariableData:
     return state.hessian.ldiv(state.gradient)
+
+def newton_abs_direction(state: OptimisationState, d=1e-6, **kwargs) -> VariableData:
+    posdef = state.hessian.abs().diagonalupdate(state.parameters.full_like(d))
+    return posdef.ldiv(state.gradient)
 
 
 logger = logging.getLogger(__name__)
@@ -223,7 +227,7 @@ def take_step(
         state: OptimisationState,
         old_state: Optional[OptimisationState] = None,
         *,
-        search_direction=newton_direction,
+        search_direction=newton_abs_direction,
         calc_line_search=line_search,
         search_direction_kws: Optional[Dict[str, Any]] = None,
         line_search_kws: Optional[Dict[str, Any]] = None,
@@ -236,7 +240,7 @@ def take_quasi_newton_step(
         state: OptimisationState,
         old_state: Optional[OptimisationState] = None,
         *,
-        search_direction=newton_direction,
+        search_direction=newton_abs_direction,
         calc_line_search=line_search,
         quasi_newton_update=full_bfgs_update,
         search_direction_kws: Optional[Dict[str, Any]] = None,
@@ -327,7 +331,7 @@ def optimise_quasi_newton(
         old_state: Optional[OptimisationState] = None,
         *,
         max_iter=100,
-        search_direction=newton_direction,
+        search_direction=newton_abs_direction,
         calc_line_search=line_search,
         quasi_newton_update=bfgs_update,
         stop_conditions=stop_conditions,
