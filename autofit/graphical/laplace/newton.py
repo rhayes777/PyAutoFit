@@ -16,10 +16,10 @@ def gradient_ascent(state: OptimisationState, **kwargs) -> VariableData:
     return state.gradient
 
 
-def _newton_direction(state: OptimisationState, **kwargs) -> VariableData:
+def newton_direction(state: OptimisationState, **kwargs) -> VariableData:
     return state.hessian.ldiv(state.gradient)
 
-def newton_direction(state: OptimisationState, d=1e-6, **kwargs) -> VariableData:
+def newton_abs_direction(state: OptimisationState, d=1e-6, **kwargs) -> VariableData:
     posdef = state.hessian.abs().diagonalupdate(state.parameters.full_like(d))
     return posdef.ldiv(state.gradient)
 
