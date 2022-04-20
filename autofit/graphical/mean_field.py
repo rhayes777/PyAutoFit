@@ -208,7 +208,7 @@ class MeanField(CollectionPriorModel, Dict[Variable, AbstractMessage], Factor):
     @property
     def upper_limit(self):
         return VariableData({
-            v: np.full(m.shape, m.upper_limit) if m.shape else m.lower_limit
+            v: np.full(m.shape, m.upper_limit) if m.shape else m.upper_limit
             for v, m in self.items()
         })
 
