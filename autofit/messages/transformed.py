@@ -124,7 +124,7 @@ class TransformedMessage(AbstractMessage):
     @property
     def variance(self) -> np.ndarray:
         # noinspection PyUnresolvedReferences
-        jac = self._transform.jacobian(self.instance.mean)
+        jac = self._transform.jacobian(self.mean)
         return jac.quad(self._Message.variance.func(self))
 
     def _sample(self, n_samples) -> np.ndarray:
