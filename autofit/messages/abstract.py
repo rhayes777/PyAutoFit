@@ -53,6 +53,9 @@ class AbstractMessage(ABC):
         else:
             self.parameters = tuple(parameters)
 
+    def __eq__(self, other):
+        return self.id == other.id
+
     def copy(self):
         cls = self._Base_class or type(self)
         result = cls(

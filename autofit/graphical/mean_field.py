@@ -263,7 +263,7 @@ class MeanField(CollectionPriorModel, Dict[Variable, AbstractMessage], Factor):
         dists = list(
             (k, prod((m.get(k, 1.0) for m in approxs), m)) for k, m in self.items()
         )
-        return MeanField({k: m for k, m in dists if isinstance(m, Prior)})
+        return MeanField({k: m for k, m in dists if isinstance(m, AbstractMessage)})
 
     __mul__ = prod
 
