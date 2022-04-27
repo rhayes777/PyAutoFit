@@ -226,20 +226,16 @@ class GaussianPrior(Prior):
             sigma,
             lower_limit=float("-inf"),
             upper_limit=float("inf"),
-            log_norm=0.0,
-            id_=None,
+
     ):
         super().__init__(
             lower_limit=lower_limit,
             upper_limit=upper_limit,
-            id_=id_,
             message=NormalMessage(
                 mean=mean,
                 sigma=sigma,
                 lower_limit=lower_limit,
                 upper_limit=upper_limit,
-                log_norm=log_norm,
-                id_=id_,
             )
         )
         self.mean = mean

@@ -16,7 +16,7 @@ class HierarchicalFactor(PriorModel):
 
     def __init__(
             self,
-            distribution: Type[AbstractMessage],
+            distribution: Type[Prior],
             optimiser=None,
             name: Optional[str] = None,
             **kwargs,
