@@ -1,3 +1,4 @@
+import math
 from abc import ABC, abstractmethod
 from copy import copy
 from functools import reduce
@@ -26,7 +27,7 @@ def update_array(arr1, ind, arr2):
     return arr2
 
 
-class AbstractMessage(Prior, ABC):
+class AbstractMessage(ABC):
     log_base_measure: float
     _Base_class: Optional[Type["AbstractMessage"]] = None
     _projection_class: Optional[Type["AbstractMessage"]] = None
@@ -34,8 +35,17 @@ class AbstractMessage(Prior, ABC):
     _parameter_support: Optional[Tuple[Tuple[float, float], ...]] = None
     _support: Optional[Tuple[Tuple[float, float], ...]] = None
 
-    def __init__(self, *parameters: Union[np.ndarray, float], log_norm=0.0, **kwargs):
-        super().__init__(**kwargs)
+    def __init__(
+            self,
+            *parameters: Union[np.ndarray, float],
+            log_norm=0.0,
+            lower_limit=-math.inf,
+            upper_limit=math.inf,
+            id_=None
+    ):
+        self.lower_limit = lower_limit
+        self.upper_limit = upper_limit
+        self.id = id_
         self.log_norm = log_norm
         self._broadcast = np.broadcast(*parameters)
 

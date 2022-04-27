@@ -1,5 +1,5 @@
 import random
-from abc import ABC, abstractmethod
+from abc import ABC
 from copy import copy
 from typing import Union, Tuple
 
@@ -41,6 +41,7 @@ class Prior(Variable, ABC, ArithmeticMixin):
 
     def __init__(
             self,
+            message,
             lower_limit=0.0,
             upper_limit=1.0,
             id_=None
@@ -59,6 +60,8 @@ class Prior(Variable, ABC, ArithmeticMixin):
         super().__init__(
             id_=id_
         )
+        self.message = message
+
         self.lower_limit = float(lower_limit)
         self.upper_limit = float(upper_limit)
         if self.lower_limit >= self.upper_limit:
@@ -126,7 +129,6 @@ class Prior(Variable, ABC, ArithmeticMixin):
             random.random()
         )
 
-    @abstractmethod
     def value_for(self, unit: float) -> float:
         """
         Return a physical value for a value between 0 and 1 with the transformation
@@ -141,6 +143,9 @@ class Prior(Variable, ABC, ArithmeticMixin):
         -------
         A physical value.
         """
+        result = self.message.value_for(unit)
+        self.assert_within_limits(result)
+        return result
 
     def instance_for_arguments(self, arguments):
         return arguments[self]

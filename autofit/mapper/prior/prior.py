@@ -1,5 +1,3 @@
-from copy import copy
-
 import numpy as np
 
 from autoconf import conf
@@ -7,10 +5,8 @@ from autofit import exc
 from autofit.messages.normal import NormalMessage, UniformNormalMessage, LogNormalMessage
 from autofit.messages.transform import log_10_transform
 from autofit.messages.transform_wrapper import TransformedWrapperInstance
-from .abstract import epsilon, assert_within_limits
-from .arithmetic import ArithmeticMixin, arithmetic_switch
-from ...messages import AbstractMessage
 from .abstract import Prior
+from .abstract import epsilon, assert_within_limits
 
 
 class Limits:
@@ -70,7 +66,7 @@ class WrappedInstance(
         )
 
 
-class UniformPrior(WrappedInstance):
+class UniformPrior(Prior):
     """A prior with a uniform distribution between a lower and upper limit"""
 
     def __init__(
@@ -218,7 +214,7 @@ class LogUniformPrior(WrappedInstance):
         return f"LogUniformPrior, lower_limit = {self.lower_limit}, upper_limit = {self.upper_limit}"
 
 
-class GaussianPrior(Prior, ArithmeticMixin):
+class GaussianPrior(Prior):
     """A prior with a gaussian distribution"""
 
     __identifier_fields__ = (
@@ -237,21 +233,19 @@ class GaussianPrior(Prior, ArithmeticMixin):
             log_norm=0.0,
             id_=None,
     ):
-        self.message = NormalMessage(
-            mean=mean,
-            sigma=sigma,
-            lower_limit=lower_limit,
-            upper_limit=upper_limit,
-            log_norm=log_norm,
-            id_=id_,
-        )
         super().__init__(
             lower_limit=lower_limit,
             upper_limit=upper_limit,
             id_=id_,
+            message=NormalMessage(
+                mean=mean,
+                sigma=sigma,
+                lower_limit=lower_limit,
+                upper_limit=upper_limit,
+                log_norm=log_norm,
+                id_=id_,
+            )
         )
-
-
 
     @classmethod
     def with_limits(
@@ -279,22 +273,6 @@ class GaussianPrior(Prior, ArithmeticMixin):
             mean=(lower_limit + upper_limit) / 2,
             sigma=upper_limit - lower_limit,
         )
-
-    @assert_within_limits
-    def value_for(self, unit):
-        """
-
-        Parameters
-        ----------
-        unit: Float
-            A unit hypercube value between 0 and 1
-
-        Returns
-        -------
-        value: Float
-            A value for the attribute biased to the gaussian distribution
-        """
-        return self.message.value_for(unit)
 
 
 class LogGaussianPrior(WrappedInstance):
