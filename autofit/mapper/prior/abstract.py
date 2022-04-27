@@ -150,6 +150,14 @@ class Prior(Variable, ABC, ArithmeticMixin):
     def instance_for_arguments(self, arguments):
         return arguments[self]
 
+    def __getattr__(self, item):
+        if item in ('__setstate__', '__getstate__'):
+            raise AttributeError(item)
+        return getattr(
+            self.message,
+            item
+        )
+
     def __eq__(self, other):
         try:
             return self.id == other.id

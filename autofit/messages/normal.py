@@ -15,7 +15,6 @@ from .transform import (
     log_10_transform,
 )
 from .. import exc
-from ..mapper.prior.arithmetic import arithmetic_switch
 
 
 def is_nan(value):

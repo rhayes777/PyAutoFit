@@ -62,7 +62,6 @@ class WrappedInstance(
             upper_limit=self.upper_limit,
             id_=self.instance().id,
             params=message.parameters,
-            is_message=True,
         )
 
 
@@ -147,7 +146,6 @@ class LogUniformPrior(WrappedInstance):
             upper_limit=1.0,
             id_=None,
             params=(0.0, 1.0),
-            is_message=False,
     ):
         if lower_limit <= 0.0:
             raise exc.PriorException(
@@ -170,7 +168,6 @@ class LogUniformPrior(WrappedInstance):
             id_=id_,
             lower_limit=lower_limit,
             upper_limit=upper_limit,
-            is_message=is_message,
         )
 
     @classmethod
@@ -244,6 +241,8 @@ class GaussianPrior(Prior):
                 id_=id_,
             )
         )
+        self.mean = mean
+        self.sigma = sigma
 
     @classmethod
     def with_limits(
@@ -290,7 +289,6 @@ class LogGaussianPrior(WrappedInstance):
             lower_limit=0.0,
             upper_limit=float("inf"),
             id_=None,
-            is_message=False,
     ):
         lower_limit = float(lower_limit)
         upper_limit = float(upper_limit)
@@ -305,7 +303,6 @@ class LogGaussianPrior(WrappedInstance):
             id_=id_,
             lower_limit=lower_limit,
             upper_limit=upper_limit,
-            is_message=is_message,
         )
 
     def _new_for_base_message(

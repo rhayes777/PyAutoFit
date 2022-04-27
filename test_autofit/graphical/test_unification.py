@@ -17,8 +17,7 @@ def make_prior():
     return af.GaussianPrior(
         mean=1,
         sigma=2,
-        is_message=True,
-    )
+    ).message
 
 
 def test():

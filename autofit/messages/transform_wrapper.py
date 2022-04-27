@@ -5,7 +5,6 @@ import numpy as np
 
 from autofit.messages.transform import AbstractDensityTransform, LinearShiftTransform
 from .abstract import AbstractMessage
-from ..mapper.prior.arithmetic import arithmetic_switch
 
 
 class TransformedWrapperInstance:
@@ -78,10 +77,8 @@ class TransformedWrapperInstance:
             lower_limit=self.lower_limit,
             upper_limit=self.upper_limit,
             id_=self.instance().id,
-            is_message=True,
         )
 
-    @arithmetic_switch
     def __mul__(self, other):
         """
         Multiply this message by some other message. Effectively multiplies the
@@ -96,11 +93,9 @@ class TransformedWrapperInstance:
             self.instance() * other
         )
 
-    @arithmetic_switch
     def __rmul__(self, other):
         return self * other
 
-    @arithmetic_switch
     def __truediv__(self, other):
         """
         Divide this message by some other message. Effectively divides the
@@ -110,7 +105,6 @@ class TransformedWrapperInstance:
             self.instance() / other.instance()
         )
 
-    @arithmetic_switch
     def __sub__(self, other):
         instance = self.instance()
         if isinstance(
