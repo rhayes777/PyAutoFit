@@ -74,13 +74,7 @@ class UniformPrior(Prior):
             lower_limit=0.0,
             upper_limit=1.0,
             id_=None,
-            params=(0.0, 1.0),
-            is_message=False,
     ):
-        if any(map(np.isnan, params)):
-            raise exc.MessageException(
-                "nan parameter passed to UniformPrior"
-            )
         lower_limit = float(lower_limit)
         upper_limit = float(upper_limit)
 
@@ -89,12 +83,16 @@ class UniformPrior(Prior):
             scale=upper_limit - lower_limit,
         )
         super().__init__(
-            Message,
-            *params,
+            WrappedInstance(
+                Message,
+                0, 1,
+                lower_limit=lower_limit,
+                upper_limit=upper_limit,
+                id_=id_,
+            ),
             lower_limit=lower_limit,
             upper_limit=upper_limit,
             id_=id_,
-            is_message=is_message,
         )
 
     def logpdf(self, x):

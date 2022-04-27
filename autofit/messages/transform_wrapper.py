@@ -1,16 +1,14 @@
-import functools
 from copy import copy
 from typing import Union, Type, Optional, Tuple
 
 import numpy as np
 
-from autofit.mapper.prior.abstract import Prior
 from autofit.messages.transform import AbstractDensityTransform, LinearShiftTransform
 from .abstract import AbstractMessage
 from ..mapper.prior.arithmetic import arithmetic_switch
 
 
-class TransformedWrapperInstance(Prior):
+class TransformedWrapperInstance:
     """
     An instance of a transformed message. e.g. a UniformNormal message.
 
@@ -26,7 +24,6 @@ class TransformedWrapperInstance(Prior):
             self,
             transformed_wrapper: "TransformedWrapper",
             *args,
-            is_message=True,
             **kwargs
     ):
         """
@@ -41,10 +38,7 @@ class TransformedWrapperInstance(Prior):
             Keyword arguments required to instantiate the underlying message
             class
         """
-        super().__init__(
-            id_=kwargs.get("id_")
-        )
-        self.is_message = is_message
+        self.id = kwargs.get("id_")
         self.transformed_wrapper = transformed_wrapper
         self.args = args
         self.kwargs = kwargs
