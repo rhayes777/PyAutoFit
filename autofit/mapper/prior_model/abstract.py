@@ -1285,6 +1285,9 @@ class AbstractPriorModel(AbstractModel):
         return self.id
 
     def __add__(self, other):
+        if isinstance(other, Prior):
+            return other + self
+
         result = copy.deepcopy(self)
 
         for key, value in other.__dict__.items():
