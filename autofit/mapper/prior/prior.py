@@ -6,6 +6,7 @@ from autofit.messages.normal import NormalMessage, UniformNormalMessage, LogNorm
 from autofit.messages.transform import log_10_transform
 from autofit.messages.transform_wrapper import TransformedWrapperInstance
 from .abstract import epsilon, assert_within_limits
+from .arithmetic import ArithmeticMixin
 
 
 class Limits:

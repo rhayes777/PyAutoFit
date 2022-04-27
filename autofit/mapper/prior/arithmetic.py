@@ -18,41 +18,41 @@ class ArithmeticMixin:
             self, other
         )
 
-    # def __floordiv__(self, other):
-    #     from autofit.mapper.prior.compound import FloorDivPrior
-    #     return FloorDivPrior(self, other)
-    #
-    # def __rfloordiv__(self, other):
-    #     from autofit.mapper.prior.compound import FloorDivPrior
-    #     return FloorDivPrior(other, self)
+    def __floordiv__(self, other):
+        from autofit.mapper.prior.compound import FloorDivPrior
+        return FloorDivPrior(self, other)
+
+    def __rfloordiv__(self, other):
+        from autofit.mapper.prior.compound import FloorDivPrior
+        return FloorDivPrior(other, self)
 
     def __abs__(self):
         from autofit.mapper.prior.compound import AbsolutePrior
         return AbsolutePrior(self)
 
-    # def __truediv__(self, other):
-    #     from autofit.mapper.prior.compound import DivisionPrior
-    #     return DivisionPrior(self, other)
-    #
-    # def __rtruediv__(self, other):
-    #     from autofit.mapper.prior.compound import DivisionPrior
-    #     return DivisionPrior(other, self)
-    #
-    # def __pow__(self, other):
-    #     from autofit.mapper.prior.compound import PowerPrior
-    #     return PowerPrior(self, other)
-    #
-    # def __rpow__(self, other):
-    #     from autofit.mapper.prior.compound import PowerPrior
-    #     return PowerPrior(other, self)
-    #
-    # def __mod__(self, other):
-    #     from autofit.mapper.prior.compound import ModPrior
-    #     return ModPrior(self, other)
-    #
-    # def __rmod__(self, other):
-    #     from autofit.mapper.prior.compound import ModPrior
-    #     return ModPrior(other, self)
+    def __truediv__(self, other):
+        from autofit.mapper.prior.compound import DivisionPrior
+        return DivisionPrior(self, other)
+
+    def __rtruediv__(self, other):
+        from autofit.mapper.prior.compound import DivisionPrior
+        return DivisionPrior(other, self)
+
+    def __pow__(self, other):
+        from autofit.mapper.prior.compound import PowerPrior
+        return PowerPrior(self, other)
+
+    def __rpow__(self, other):
+        from autofit.mapper.prior.compound import PowerPrior
+        return PowerPrior(other, self)
+
+    def __mod__(self, other):
+        from autofit.mapper.prior.compound import ModPrior
+        return ModPrior(self, other)
+
+    def __rmod__(self, other):
+        from autofit.mapper.prior.compound import ModPrior
+        return ModPrior(other, self)
 
     def __radd__(self, other):
         """
@@ -99,30 +99,30 @@ class ArithmeticMixin:
             self
         )
 
-    # def __mul__(self, other):
-    #     """
-    #     Multiple another object by this object. Multiplication
-    #     occurs after priors have been converted into values.
-    #
-    #     Parameters
-    #     ----------
-    #     other
-    #
-    #     Returns
-    #     -------
-    #     An object comprising two objects to be multiplied after
-    #     realisation
-    #     """
-    #     from autofit.mapper.prior.compound import MultiplePrior
-    #     return MultiplePrior(
-    #         self, other
-    #     )
-    #
-    # def __rmul__(self, other):
-    #     from autofit.mapper.prior.compound import MultiplePrior
-    #     return MultiplePrior(
-    #         other, self
-    #     )
+    def __mul__(self, other):
+        """
+        Multiple another object by this object. Multiplication
+        occurs after priors have been converted into values.
+
+        Parameters
+        ----------
+        other
+
+        Returns
+        -------
+        An object comprising two objects to be multiplied after
+        realisation
+        """
+        from autofit.mapper.prior.compound import MultiplePrior
+        return MultiplePrior(
+            self, other
+        )
+
+    def __rmul__(self, other):
+        from autofit.mapper.prior.compound import MultiplePrior
+        return MultiplePrior(
+            other, self
+        )
 
     def __gt__(self, other_prior):
         """

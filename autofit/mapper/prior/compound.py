@@ -52,8 +52,8 @@ class CompoundPrior(
         self._left = left
         self._right = right
 
-    def __repr__(self):
-        return str(self)
+    # def __repr__(self):
+    #     return str(self)
 
     def left_for_arguments(
             self,

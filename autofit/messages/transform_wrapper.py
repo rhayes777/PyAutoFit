@@ -1,3 +1,4 @@
+import functools
 from copy import copy
 from typing import Union, Type, Optional, Tuple
 
@@ -6,6 +7,19 @@ import numpy as np
 from autofit.mapper.prior.abstract import Prior
 from autofit.messages.transform import AbstractDensityTransform, LinearShiftTransform
 from .abstract import AbstractMessage
+
+
+def arithmetic_switch(func):
+    @functools.wraps(func)
+    def wrapper(self, other):
+        if self.is_message:
+            return func(self, other)
+        return getattr(
+            super(Prior, self),
+            func.__name__
+        )(other)
+
+    return wrapper
 
 
 class TransformedWrapperInstance(Prior):
@@ -41,6 +55,7 @@ class TransformedWrapperInstance(Prior):
         super().__init__(
             id_=kwargs.get("id_")
         )
+        self.is_message = False
         self.transformed_wrapper = transformed_wrapper
         self.args = args
         self.kwargs = kwargs
@@ -79,6 +94,7 @@ class TransformedWrapperInstance(Prior):
             id_=self.instance().id
         )
 
+    @arithmetic_switch
     def __mul__(self, other):
         """
         Multiply this message by some other message. Effectively multiplies the
@@ -93,9 +109,11 @@ class TransformedWrapperInstance(Prior):
             self.instance() * other
         )
 
+    @arithmetic_switch
     def __rmul__(self, other):
         return self * other
 
+    @arithmetic_switch
     def __truediv__(self, other):
         """
         Divide this message by some other message. Effectively divides the
@@ -105,6 +123,7 @@ class TransformedWrapperInstance(Prior):
             self.instance() / other.instance()
         )
 
+    @arithmetic_switch
     def __sub__(self, other):
         instance = self.instance()
         if isinstance(
