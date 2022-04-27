@@ -10,6 +10,7 @@ from autofit.messages.transform_wrapper import TransformedWrapperInstance
 from .abstract import epsilon, assert_within_limits
 from .arithmetic import ArithmeticMixin, arithmetic_switch
 from ...messages import AbstractMessage
+from .abstract import Prior
 
 
 class Limits:
@@ -217,7 +218,7 @@ class LogUniformPrior(WrappedInstance):
         return f"LogUniformPrior, lower_limit = {self.lower_limit}, upper_limit = {self.upper_limit}"
 
 
-class GaussianPrior(NormalMessage, ArithmeticMixin):
+class GaussianPrior(Prior, ArithmeticMixin):
     """A prior with a gaussian distribution"""
 
     __identifier_fields__ = (
@@ -235,27 +236,22 @@ class GaussianPrior(NormalMessage, ArithmeticMixin):
             upper_limit=float("inf"),
             log_norm=0.0,
             id_=None,
-            is_message=False,
     ):
-        self.is_message = is_message
-        super().__init__(
-            mean,
-            sigma,
+        self.message = NormalMessage(
+            mean=mean,
+            sigma=sigma,
             lower_limit=lower_limit,
             upper_limit=upper_limit,
             log_norm=log_norm,
             id_=id_,
         )
+        super().__init__(
+            lower_limit=lower_limit,
+            upper_limit=upper_limit,
+            id_=id_,
+        )
 
-    __mul__ = arithmetic_switch(AbstractMessage.__mul__)
-    __rmul__ = arithmetic_switch(AbstractMessage.__rmul__)
-    __truediv__ = arithmetic_switch(AbstractMessage.__truediv__)
-    __sub__ = arithmetic_switch(AbstractMessage.__sub__)
 
-    def as_message(self):
-        message = copy(self)
-        message.is_message = True
-        return message
 
     @classmethod
     def with_limits(
@@ -298,7 +294,7 @@ class GaussianPrior(NormalMessage, ArithmeticMixin):
         value: Float
             A value for the attribute biased to the gaussian distribution
         """
-        return super().value_for(unit)
+        return self.message.value_for(unit)
 
 
 class LogGaussianPrior(WrappedInstance):

@@ -88,11 +88,11 @@ class Prior(Variable, ABC, ArithmeticMixin):
         )
 
     @property
-    @abstractmethod
     def factor(self):
         """
         A callable PDF used as a factor in factor graphs
         """
+        return self.message.factor
 
     def assert_within_limits(self, value):
         if conf.instance["general"]["model"]["ignore_prior_limits"]:
