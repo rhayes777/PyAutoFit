@@ -62,6 +62,7 @@ class WrappedInstance(
             upper_limit=self.upper_limit,
             id_=self.instance().id,
             params=message.parameters,
+            transformed_wrapper=self.transformed_wrapper,
         )
 
 

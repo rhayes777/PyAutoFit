@@ -222,7 +222,7 @@ class AbstractMessage(ABC):
     _divide = sub_natural_parameters
 
     def __mul__(self, other: Union["AbstractMessage", Real]) -> "AbstractMessage":
-        if isinstance(other, Prior):
+        if isinstance(other, AbstractMessage):
             return self._multiply(other)
         else:
             cls = self._Base_class or type(self)

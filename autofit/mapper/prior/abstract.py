@@ -88,6 +88,7 @@ class Prior(Variable, ABC, ArithmeticMixin):
         return self.__class__(
             lower_limit=max(lower_limit, self.lower_limit),
             upper_limit=min(upper_limit, self.upper_limit),
+            message=self.message,
         )
 
     @property
@@ -149,6 +150,17 @@ class Prior(Variable, ABC, ArithmeticMixin):
 
     def instance_for_arguments(self, arguments):
         return arguments[self]
+
+    def project(self, samples, weights):
+        result = copy(self)
+        result.message = self.message.project(
+            samples=samples,
+            log_weight_list=weights,
+            id_=self.id,
+            lower_limit=self.lower_limit,
+            upper_limit=self.upper_limit,
+        )
+        return result
 
     def __getattr__(self, item):
         if item in ('__setstate__', '__getstate__'):
