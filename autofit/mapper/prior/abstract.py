@@ -110,7 +110,7 @@ class Prior(Variable, ABC, ArithmeticMixin):
             random.random()
         )
 
-    def value_for(self, unit: float) -> float:
+    def value_for(self, unit: float, ignore_prior_limits=False) -> float:
         """
         Return a physical value for a value between 0 and 1 with the transformation
         described by this prior.
@@ -125,7 +125,8 @@ class Prior(Variable, ABC, ArithmeticMixin):
         A physical value.
         """
         result = self.message.value_for(unit)
-        self.assert_within_limits(result)
+        if not ignore_prior_limits:
+            self.assert_within_limits(result)
         return result
 
     def instance_for_arguments(self, arguments):
