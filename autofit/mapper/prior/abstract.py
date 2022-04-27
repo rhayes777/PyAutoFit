@@ -12,26 +12,6 @@ from autofit.mapper.variable import Variable
 epsilon = 1e-14
 
 
-def assert_within_limits(
-        func,
-):
-    # noinspection PyShadowingNames
-    def wrapper(
-            self,
-            *args,
-            ignore_prior_limits=False,
-            **kwargs,
-    ):
-        value = func(
-            self, *args, **kwargs
-        )
-        if not ignore_prior_limits:
-            self.assert_within_limits(value)
-        return value
-
-    return wrapper
-
-
 class Prior(Variable, ABC, ArithmeticMixin):
     __database_args__ = (
         "lower_limit",

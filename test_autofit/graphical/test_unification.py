@@ -176,8 +176,7 @@ def make_uniform_prior():
         lower_limit=10,
         upper_limit=20,
         id_=1,
-        is_message=True,
-    )
+    ).message
 
 
 def test_prior_arithmetic(

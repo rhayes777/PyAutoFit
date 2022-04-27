@@ -6,7 +6,7 @@ from autofit.messages.normal import NormalMessage, UniformNormalMessage, LogNorm
 from autofit.messages.transform import log_10_transform
 from autofit.messages.transform_wrapper import TransformedWrapperInstance
 from .abstract import Prior
-from .abstract import epsilon, assert_within_limits
+from .abstract import epsilon
 
 
 class Limits:
@@ -107,7 +107,6 @@ class UniformPrior(Prior):
         """The line of text describing this prior for the model_mapper.info file"""
         return f"UniformPrior, lower_limit = {self.lower_limit}, upper_limit = {self.upper_limit}"
 
-    @assert_within_limits
     def value_for(self, unit):
         """
 
@@ -201,7 +200,7 @@ class LogUniformPrior(WrappedInstance):
             The physical value of this prior's corresponding parameter in a `NonLinearSearch` sample."""
         return 1.0 / value
 
-    @assert_within_limits
+    # @assert_within_limits
     def value_for(self, unit: float) -> float:
         return super().value_for(unit)
 
@@ -323,7 +322,7 @@ class LogGaussianPrior(WrappedInstance):
             id_=self.instance().id
         )
 
-    @assert_within_limits
+    # @assert_within_limits
     def value_for(self, unit):
         """
 
