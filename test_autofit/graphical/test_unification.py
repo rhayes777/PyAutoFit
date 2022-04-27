@@ -189,6 +189,7 @@ def test_prior_arithmetic(
     divided_value = divided.value_for(0.3)
     uniform_prior_value = uniform_prior.value_for(0.3)
 
+    assert multiplied_value != uniform_prior_value
     assert multiplied_value != divided_value
     assert divided_value == uniform_prior_value
 

@@ -11,7 +11,6 @@ from typing import Optional, Union, Type, List
 import numpy as np
 
 from autoconf import cached_property
-from autofit.mapper.prior.abstract import Prior
 from .transform import AbstractDensityTransform, LinearShiftTransform
 from ..mapper.variable import Variable
 
@@ -462,7 +461,7 @@ class AbstractMessage(ABC):
     @staticmethod
     def _iter_dists(dists) -> Iterator[Union["AbstractMessage", float]]:
         for elem in dists:
-            if isinstance(elem, Prior):
+            if isinstance(elem, AbstractMessage):
                 yield elem
             elif np.isscalar(elem):
                 yield elem
