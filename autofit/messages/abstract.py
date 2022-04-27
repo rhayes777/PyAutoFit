@@ -239,7 +239,7 @@ class AbstractMessage(ABC):
         return self * other
 
     def __truediv__(self, other: Union["AbstractMessage", Real]) -> "AbstractMessage":
-        if isinstance(other, Prior):
+        if isinstance(other, AbstractMessage):
             return self._divide(other)
         else:
             cls = self._Base_class or type(self)

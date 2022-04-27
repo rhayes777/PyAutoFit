@@ -57,12 +57,13 @@ class WrappedInstance(
             self,
             message
     ):
+        print(type(self))
         return type(self)(
+            self.transformed_wrapper,
+            *message.parameters,
             lower_limit=self.lower_limit,
             upper_limit=self.upper_limit,
             id_=self.instance().id,
-            params=message.parameters,
-            transformed_wrapper=self.transformed_wrapper,
         )
 
 
