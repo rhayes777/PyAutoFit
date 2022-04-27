@@ -175,7 +175,8 @@ def make_uniform_prior():
     return af.UniformPrior(
         lower_limit=10,
         upper_limit=20,
-        id_=1
+        id_=1,
+        is_message=True,
     )
 
 

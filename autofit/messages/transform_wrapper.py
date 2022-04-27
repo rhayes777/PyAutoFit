@@ -38,6 +38,7 @@ class TransformedWrapperInstance(Prior):
             self,
             transformed_wrapper: "TransformedWrapper",
             *args,
+            is_message=True,
             **kwargs
     ):
         """
@@ -55,12 +56,15 @@ class TransformedWrapperInstance(Prior):
         super().__init__(
             id_=kwargs.get("id_")
         )
-        self.is_message = False
+        self.is_message = is_message
         self.transformed_wrapper = transformed_wrapper
         self.args = args
         self.kwargs = kwargs
 
         self._instance = None
+
+    def as_message(self):
+        return self._new_for_base_message(self)
 
     def project(
             self,
@@ -91,7 +95,8 @@ class TransformedWrapperInstance(Prior):
             *message.parameters,
             lower_limit=self.lower_limit,
             upper_limit=self.upper_limit,
-            id_=self.instance().id
+            id_=self.instance().id,
+            is_message=True,
         )
 
     @arithmetic_switch

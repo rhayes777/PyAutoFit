@@ -1,3 +1,5 @@
+from copy import copy
+
 import numpy as np
 
 from autoconf import conf
@@ -6,7 +8,6 @@ from autofit.messages.normal import NormalMessage, UniformNormalMessage, LogNorm
 from autofit.messages.transform import log_10_transform
 from autofit.messages.transform_wrapper import TransformedWrapperInstance
 from .abstract import epsilon, assert_within_limits
-from .arithmetic import ArithmeticMixin
 
 
 class Limits:
@@ -61,7 +62,8 @@ class WrappedInstance(
             lower_limit=self.lower_limit,
             upper_limit=self.upper_limit,
             id_=self.instance().id,
-            params=message.parameters
+            params=message.parameters,
+            is_message=True,
         )
 
 
@@ -73,7 +75,8 @@ class UniformPrior(WrappedInstance):
             lower_limit=0.0,
             upper_limit=1.0,
             id_=None,
-            params=(0.0, 1.0)
+            params=(0.0, 1.0),
+            is_message=False,
     ):
         if any(map(np.isnan, params)):
             raise exc.MessageException(
@@ -91,7 +94,8 @@ class UniformPrior(WrappedInstance):
             *params,
             lower_limit=lower_limit,
             upper_limit=upper_limit,
-            id_=id_
+            id_=id_,
+            is_message=is_message,
         )
 
     def logpdf(self, x):
@@ -145,7 +149,8 @@ class LogUniformPrior(WrappedInstance):
             lower_limit=1e-6,
             upper_limit=1.0,
             id_=None,
-            params=(0.0, 1.0)
+            params=(0.0, 1.0),
+            is_message=False,
     ):
         if lower_limit <= 0.0:
             raise exc.PriorException(
@@ -168,6 +173,7 @@ class LogUniformPrior(WrappedInstance):
             id_=id_,
             lower_limit=lower_limit,
             upper_limit=upper_limit,
+            is_message=is_message,
         )
 
     @classmethod
@@ -218,6 +224,11 @@ class GaussianPrior(NormalMessage):
         "mean",
         "sigma"
     )
+
+    def as_message(self):
+        message = copy(self)
+        message.is_message = True
+        return message
 
     @classmethod
     def with_limits(
@@ -280,6 +291,7 @@ class LogGaussianPrior(WrappedInstance):
             lower_limit=0.0,
             upper_limit=float("inf"),
             id_=None,
+            is_message=False,
     ):
         lower_limit = float(lower_limit)
         upper_limit = float(upper_limit)
@@ -294,6 +306,7 @@ class LogGaussianPrior(WrappedInstance):
             id_=id_,
             lower_limit=lower_limit,
             upper_limit=upper_limit,
+            is_message=is_message,
         )
 
     def _new_for_base_message(

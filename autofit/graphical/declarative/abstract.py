@@ -45,7 +45,7 @@ class AbstractDeclarativeFactor(Analysis, ABC):
         A set of all priors encompassed by the contained likelihood models
         """
         return {
-            prior
+            prior.as_message()
             for model
             in self.model_factors
             for prior
