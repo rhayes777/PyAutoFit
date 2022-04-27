@@ -86,6 +86,14 @@ class AbstractModel(ModelObject):
         self._is_frozen = False
         self._frozen_cache = dict()
 
+    def __getstate__(self):
+        return {
+            key: value
+            for key, value
+            in self.__dict__.items()
+            if key != "_frozen_cache"
+        }
+
     def freeze(self):
         """
         Freeze this object.
