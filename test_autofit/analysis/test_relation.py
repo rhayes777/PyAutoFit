@@ -89,8 +89,8 @@ def test_fit(
 def test_prior_arithmetic():
     m = af.UniformPrior()
     c = af.UniformPrior()
-    mul = af.Multiply(10, m)
-    y = af.Add(mul, c)
+
+    y = m * 10 + c
 
     assert y.prior_count == 2
     assert y.instance_from_prior_medians() == 5.5
@@ -156,6 +156,19 @@ def make_c():
     )
 
 
+def test_multiple_models(m, c):
+    models = [
+        x * m + c
+        for x in (1, 2, 3)
+    ]
+
+    one, two, three = [
+        model.instance_from_prior_medians()
+        for model in models
+    ]
+    assert one < two < three
+
+
 def _test_embedded_integration(
         m, c
 ):
@@ -168,12 +181,7 @@ def _test_embedded_integration(
             data(x)
         ).with_model(
             base_model.replacing({
-                base_model.centre: af.Add(
-                    af.Multiply(
-                        x, m
-                    ),
-                    c
-                )
+                base_model.centre: m * x + c
             })
         )
         for x in range(10)
@@ -205,12 +213,7 @@ def _test_integration(
         LinearAnalysis(
             data(x)
         ).with_model(
-            af.Add(
-                af.Multiply(
-                    x, m
-                ),
-                c
-            )
+            m * x + c
         )
         for x in range(10)
     ]

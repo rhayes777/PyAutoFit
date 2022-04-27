@@ -35,16 +35,22 @@ class CompoundPrior(
             A prior, promise or float
         """
         super().__init__()
+        left_name = None
         try:
             left_name = retrieve_name(left)
         except Exception as e:
             logger.info(e)
+
+        if left_name in (None, "self"):
             left_name = "left"
 
+        right_name = None
         try:
             right_name = retrieve_name(right)
         except Exception as e:
             logger.info(e)
+
+        if right_name in (None, "right"):
             right_name = "right"
 
         setattr(self, left_name, left)

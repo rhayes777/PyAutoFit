@@ -7,19 +7,7 @@ import numpy as np
 from autofit.mapper.prior.abstract import Prior
 from autofit.messages.transform import AbstractDensityTransform, LinearShiftTransform
 from .abstract import AbstractMessage
-
-
-def arithmetic_switch(func):
-    @functools.wraps(func)
-    def wrapper(self, other):
-        if self.is_message:
-            return func(self, other)
-        return getattr(
-            super(Prior, self),
-            func.__name__
-        )(other)
-
-    return wrapper
+from ..mapper.prior.arithmetic import arithmetic_switch
 
 
 class TransformedWrapperInstance(Prior):

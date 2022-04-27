@@ -8,6 +8,7 @@ from autofit.messages.normal import NormalMessage, UniformNormalMessage, LogNorm
 from autofit.messages.transform import log_10_transform
 from autofit.messages.transform_wrapper import TransformedWrapperInstance
 from .abstract import epsilon, assert_within_limits
+from .arithmetic import ArithmeticMixin
 
 
 class Limits:
@@ -215,7 +216,7 @@ class LogUniformPrior(WrappedInstance):
         return f"LogUniformPrior, lower_limit = {self.lower_limit}, upper_limit = {self.upper_limit}"
 
 
-class GaussianPrior(NormalMessage):
+class GaussianPrior(NormalMessage, ArithmeticMixin):
     """A prior with a gaussian distribution"""
 
     __identifier_fields__ = (
@@ -224,6 +225,26 @@ class GaussianPrior(NormalMessage):
         "mean",
         "sigma"
     )
+
+    def __init__(
+            self,
+            mean,
+            sigma,
+            lower_limit=float("-inf"),
+            upper_limit=float("inf"),
+            log_norm=0.0,
+            id_=None,
+            is_message=False,
+    ):
+        self.is_message = is_message
+        super().__init__(
+            mean,
+            sigma,
+            lower_limit=lower_limit,
+            upper_limit=upper_limit,
+            log_norm=log_norm,
+            id_=id_,
+        )
 
     def as_message(self):
         message = copy(self)

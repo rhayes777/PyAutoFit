@@ -15,6 +15,7 @@ from .transform import (
     log_10_transform,
 )
 from .. import exc
+from ..mapper.prior.arithmetic import arithmetic_switch
 
 
 def is_nan(value):
@@ -55,7 +56,10 @@ class NormalMessage(AbstractMessage):
         )
         self.mean, self.sigma = self.parameters
 
-    # self.mean = self.mu
+    __mul__ = arithmetic_switch(AbstractMessage.__mul__)
+    __rmul__ = arithmetic_switch(AbstractMessage.__rmul__)
+    __truediv__ = arithmetic_switch(AbstractMessage.__truediv__)
+    __sub__ = arithmetic_switch(AbstractMessage.__sub__)
 
     def cdf(self, x):
         return norm.cdf(x, loc=self.mean, scale=self.sigma)
@@ -249,7 +253,7 @@ class NaturalNormal(NormalMessage):
     @classmethod
     def invert_sufficient_statistics(cls, suff_stats):
         m1, m2 = suff_stats
-        precision = 1/(m2 - m1 ** 2)
+        precision = 1 / (m2 - m1 ** 2)
         return cls.calc_natural_parameters(m1 * precision, - precision / 2)
 
     @staticmethod
