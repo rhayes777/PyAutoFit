@@ -485,7 +485,9 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
             self.timer.start()
 
+            model.freeze()
             self._fit(model=model, analysis=analysis, log_likelihood_cap=log_likelihood_cap)
+            model.unfreeze()
 
             self.paths.completed()
 

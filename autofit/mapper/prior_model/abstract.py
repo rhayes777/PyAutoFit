@@ -557,6 +557,7 @@ class AbstractPriorModel(AbstractModel):
 
     @property
     @cast_collection(PriorNameValue)
+    @frozen_cache
     def prior_tuples_ordered_by_id(self):
         """
         Returns

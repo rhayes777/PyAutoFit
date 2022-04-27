@@ -35,6 +35,7 @@ def frozen_cache(func):
             key = (func.__name__, self, *args,) + tuple(
                 kwargs.items()
             )
+
             if key not in self._frozen_cache:
                 self._frozen_cache[
                     key
