@@ -52,9 +52,6 @@ class CompoundPrior(
         self._left = left
         self._right = right
 
-    # def __repr__(self):
-    #     return str(self)
-
     def left_for_arguments(
             self,
             arguments: dict
@@ -111,7 +108,7 @@ class SumPrior(CompoundPrior):
         )
 
     def __str__(self):
-        return f"{self.left} + {self.right}"
+        return f"{self._left} + {self._right}"
 
 
 class MultiplePrior(CompoundPrior):
@@ -120,7 +117,7 @@ class MultiplePrior(CompoundPrior):
     """
 
     def __str__(self):
-        return f"{self.left} * {self.right}"
+        return f"{self._left} * {self._right}"
 
     def _instance_for_arguments(self, arguments):
         return self.left_for_arguments(
