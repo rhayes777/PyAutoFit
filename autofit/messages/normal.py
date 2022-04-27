@@ -56,11 +56,6 @@ class NormalMessage(AbstractMessage):
         )
         self.mean, self.sigma = self.parameters
 
-    __mul__ = arithmetic_switch(AbstractMessage.__mul__)
-    __rmul__ = arithmetic_switch(AbstractMessage.__rmul__)
-    __truediv__ = arithmetic_switch(AbstractMessage.__truediv__)
-    __sub__ = arithmetic_switch(AbstractMessage.__sub__)
-
     def cdf(self, x):
         return norm.cdf(x, loc=self.mean, scale=self.sigma)
 

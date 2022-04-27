@@ -8,7 +8,8 @@ from autofit.messages.normal import NormalMessage, UniformNormalMessage, LogNorm
 from autofit.messages.transform import log_10_transform
 from autofit.messages.transform_wrapper import TransformedWrapperInstance
 from .abstract import epsilon, assert_within_limits
-from .arithmetic import ArithmeticMixin
+from .arithmetic import ArithmeticMixin, arithmetic_switch
+from ...messages import AbstractMessage
 
 
 class Limits:
@@ -245,6 +246,11 @@ class GaussianPrior(NormalMessage, ArithmeticMixin):
             log_norm=log_norm,
             id_=id_,
         )
+
+    __mul__ = arithmetic_switch(AbstractMessage.__mul__)
+    __rmul__ = arithmetic_switch(AbstractMessage.__rmul__)
+    __truediv__ = arithmetic_switch(AbstractMessage.__truediv__)
+    __sub__ = arithmetic_switch(AbstractMessage.__sub__)
 
     def as_message(self):
         message = copy(self)
