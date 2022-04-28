@@ -108,7 +108,7 @@ class UniformPrior(Prior):
         """The line of text describing this prior for the model_mapper.info file"""
         return f"UniformPrior, lower_limit = {self.lower_limit}, upper_limit = {self.upper_limit}"
 
-    def value_for(self, unit):
+    def value_for(self, unit, ignore_prior_limits=False):
         """
 
         Parameters
@@ -120,7 +120,7 @@ class UniformPrior(Prior):
         value: Float
             A value for the attribute between the upper and lower limits
         """
-        return round(super().value_for(unit), 14)
+        return round(super().value_for(unit, ignore_prior_limits=ignore_prior_limits), 14)
 
     # noinspection PyUnusedLocal
     @staticmethod
