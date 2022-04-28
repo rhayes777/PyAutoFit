@@ -46,6 +46,14 @@ class NormalMessage(AbstractMessage):
         if (np.array(sigma) < 0).any():
             raise exc.MessageException("Sigma cannot be negative")
 
+        _is_nan = np.isnan(sigma)
+        if isinstance(_is_nan, np.ndarray):
+            _is_nan = _is_nan.all()
+        if _is_nan:
+            raise exc.MessageException(
+                "nan parameter passed to NormalMessage"
+            )
+
         super().__init__(
             mean,
             sigma,
@@ -250,7 +258,7 @@ class NaturalNormal(NormalMessage):
     @classmethod
     def invert_sufficient_statistics(cls, suff_stats):
         m1, m2 = suff_stats
-        precision = 1/(m2 - m1 ** 2)
+        precision = 1 / (m2 - m1 ** 2)
         return cls.calc_natural_parameters(m1 * precision, - precision / 2)
 
     @staticmethod
