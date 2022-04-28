@@ -152,32 +152,10 @@ class Identifier:
                     )
             d = value.__dict__
 
-            def _assert_fields_exist(
-                    attribute
-            ):
-                fields_ = getattr(
-                    value,
-                    attribute
-                )
-                missing_fields = [
-                    field for field in fields_
-                    if field not in d
-                ]
-                if len(missing_fields) > 0:
-                    string = '\n'.join(
-                        missing_fields
-                    )
-                    raise AssertionError(
-                        f"The following {attribute} do not exist for {type(value)}:\n{string}"
-                    )
-
             if hasattr(
                     value,
                     "__identifier_fields__"
             ):
-                _assert_fields_exist(
-                    "__identifier_fields__"
-                )
                 fields = value.__identifier_fields__
 
                 d = {
