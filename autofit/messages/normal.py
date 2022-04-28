@@ -199,13 +199,6 @@ class NormalMessage(AbstractMessage):
             )
         )
 
-    def dict(self) -> dict:
-        """
-        A dictionary representation of this prior
-        """
-        prior_dict = super().dict()
-        return {**prior_dict, "mean": self.mean, "sigma": self.sigma}
-
 
 class NaturalNormal(NormalMessage):
     """Identical to the NormalMessage but allows non-normalised values,

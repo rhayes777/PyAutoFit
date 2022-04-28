@@ -270,6 +270,13 @@ class GaussianPrior(Prior):
             sigma=upper_limit - lower_limit,
         )
 
+    def dict(self) -> dict:
+        """
+        A dictionary representation of this prior
+        """
+        prior_dict = super().dict()
+        return {**prior_dict, "mean": self.mean, "sigma": self.sigma}
+
     def __str__(self):
         """The line of text describing this prior for the model_mapper.info file"""
         return f"GaussianPrior, mean = {self.mean}, sigma = {self.sigma}"
