@@ -12,7 +12,7 @@ def make_prior():
         sigma=2,
         lower_limit=3,
         upper_limit=4
-    )
+    ).message
 
 
 def test_copy_limits(prior):
