@@ -57,7 +57,6 @@ class WrappedInstance(
             self,
             message
     ):
-        print(type(self))
         return type(self)(
             self.transformed_wrapper,
             *message.parameters,
@@ -270,6 +269,10 @@ class GaussianPrior(Prior):
             mean=(lower_limit + upper_limit) / 2,
             sigma=upper_limit - lower_limit,
         )
+
+    def __str__(self):
+        """The line of text describing this prior for the model_mapper.info file"""
+        return f"GaussianPrior, mean = {self.mean}, sigma = {self.sigma}"
 
 
 class LogGaussianPrior(WrappedInstance):
