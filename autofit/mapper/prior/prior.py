@@ -240,8 +240,6 @@ class GaussianPrior(Prior):
                 upper_limit=upper_limit,
             )
         )
-        self.mean = mean
-        self.sigma = sigma
 
     @classmethod
     def with_limits(
