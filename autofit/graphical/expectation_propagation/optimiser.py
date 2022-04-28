@@ -332,11 +332,15 @@ class EPOptimiser:
         should_output = IntervalCounter(output_interval)
 
         for _ in range(max_steps):
+            _should_log = should_log()
+            _should_visualise = should_visualise()
+            _should_output = should_output()
             for factor, optimiser in self.factor_optimisers.items():
+                print(factor)
                 model_approx, status = self.factor_step(
                     factor, model_approx, optimiser
                 )
-                if status and should_log():
+                if status and _should_log:
                     self._log_factor(factor)
 
                 if self.ep_history(factor, model_approx, status):
@@ -344,9 +348,9 @@ class EPOptimiser:
                     break  # callback controls convergence
 
             else:  # If no break do next iteration
-                if should_visualise():
+                if _should_visualise:
                     self.visualiser()
-                if should_output():
+                if _should_output:
                     self._output_results(model_approx)
                 continue
             break  # stop iterations
