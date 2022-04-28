@@ -45,6 +45,7 @@ class NormalMessage(AbstractMessage):
     ):
         if (np.array(sigma) < 0).any():
             raise exc.MessageException("Sigma cannot be negative")
+
         super().__init__(
             mean,
             sigma,

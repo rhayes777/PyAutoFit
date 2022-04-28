@@ -333,6 +333,7 @@ class EPOptimiser:
 
         for _ in range(max_steps):
             for factor, optimiser in self.factor_optimisers.items():
+                print(factor)
                 model_approx, status = self.factor_step(
                     factor, model_approx, optimiser
                 )
