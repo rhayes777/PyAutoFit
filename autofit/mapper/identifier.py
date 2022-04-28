@@ -158,12 +158,15 @@ class Identifier:
             ):
                 fields = value.__identifier_fields__
 
-                d = {
-                    k: v
-                    for k, v
-                    in d.items()
-                    if k in fields
-                }
+                try:
+                    d = {
+                        k: getattr(value, k)
+                        for k in fields
+                    }
+                except AttributeError as e:
+                    raise AssertionError(
+                        f"Missing identifier fields for {type(value)}"
+                    ) from e
             elif hasattr(
                     value,
                     "__class__"
@@ -186,9 +189,6 @@ class Identifier:
                         value,
                         "__exclude_identifier_fields__"
                 ):
-                    _assert_fields_exist(
-                        "__exclude_identifier_fields__"
-                    )
                     excluded_fields = value.__exclude_identifier_fields__
 
                     d = {
