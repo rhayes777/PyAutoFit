@@ -49,6 +49,11 @@ class Prior(Variable, ABC, ArithmeticMixin):
                 "The upper limit of a prior must be greater than its lower limit"
             )
 
+    def with_message(self, message):
+        new = copy(self)
+        new.message = message
+        return new
+
     def new(self):
         """
         Returns a copy of this prior with a new id assigned making it distinct

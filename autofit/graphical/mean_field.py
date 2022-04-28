@@ -104,7 +104,7 @@ class MeanField(CollectionPriorModel, Dict[Variable, AbstractMessage], Factor):
         -------
         A mean field
         """
-        return MeanField({prior: prior for prior in priors})
+        return MeanField({prior: prior.message for prior in priors})
 
     pop = dict.pop
     values = dict.values
