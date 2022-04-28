@@ -68,10 +68,13 @@ def assert_not_frozen(func):
 
     @wraps(func)
     def wrapper(self, *args, **kwargs):
-        if "_is_frozen" not in filter(
-                lambda arg: isinstance(arg, str),
-                args
-        ) and hasattr(self, "_is_frozen") and self._is_frozen:
+        string_args = list(filter(
+            lambda arg: isinstance(arg, str),
+            args
+        ))
+        if "_is_frozen" not in string_args and "_frozen_cache" not in string_args and hasattr(
+                self, "_is_frozen"
+        ) and self._is_frozen:
             raise AssertionError(
                 "Frozen models cannot be modified"
             )
@@ -82,9 +85,9 @@ def assert_not_frozen(func):
 
 class AbstractModel(ModelObject):
     def __init__(self, label=None):
-        super().__init__(label=label)
         self._is_frozen = False
         self._frozen_cache = dict()
+        super().__init__(label=label)
 
     def __getstate__(self):
         return {
@@ -93,6 +96,10 @@ class AbstractModel(ModelObject):
             in self.__dict__.items()
             if key != "_frozen_cache"
         }
+
+    def __setstate__(self, state):
+        self.__dict__.update(state)
+        self._frozen_cache = {}
 
     def freeze(self):
         """
