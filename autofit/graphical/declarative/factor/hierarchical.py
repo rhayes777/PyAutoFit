@@ -131,7 +131,7 @@ class _HierarchicalFactor(AbstractModelFactor):
                 prior_id = int(name_.split("_")[1])
                 prior = distribution_model.prior_with_id(prior_id)
                 arguments[prior] = array
-            result = distribution_model.instance_for_arguments(arguments)(argument)
+            result = distribution_model.instance_for_arguments(arguments).message(argument)
             return result
 
         prior_variable_dict = {prior.name: prior for prior in distribution_model.priors}
