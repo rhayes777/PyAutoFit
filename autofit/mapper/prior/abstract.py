@@ -70,11 +70,12 @@ class Prior(Variable, ABC, ArithmeticMixin):
         """
         Create a new instance of the same prior class with the passed limits.
         """
-        return self.__class__(
+        new = self.__class__(
             lower_limit=max(lower_limit, self.lower_limit),
             upper_limit=min(upper_limit, self.upper_limit),
-            message=self.message,
         )
+        new.message = self.message
+        return new
 
     @property
     def factor(self):
