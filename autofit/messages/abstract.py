@@ -3,6 +3,7 @@ from abc import ABC, abstractmethod
 from copy import copy
 from functools import reduce
 from inspect import getfullargspec
+from itertools import count
 from numbers import Real
 from operator import and_
 from typing import Dict, Tuple, Iterator
@@ -34,6 +35,8 @@ class AbstractMessage(ABC):
     _parameter_support: Optional[Tuple[Tuple[float, float], ...]] = None
     _support: Optional[Tuple[Tuple[float, float], ...]] = None
 
+    ids = count()
+
     def __init__(
             self,
             *parameters: Union[np.ndarray, float],
@@ -44,7 +47,7 @@ class AbstractMessage(ABC):
     ):
         self.lower_limit = lower_limit
         self.upper_limit = upper_limit
-        self.id = id_
+        self.id = next(self.ids) if id_ is None else id_
         self.log_norm = log_norm
         self._broadcast = np.broadcast(*parameters)
 
