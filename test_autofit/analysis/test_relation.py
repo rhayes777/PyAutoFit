@@ -235,3 +235,10 @@ def _test_integration(
         )),
         rel=0.01,
     )
+
+
+def test_remove(model):
+    model = model.replacing({
+        model.centre: None
+    })
+    assert model.centre is None
