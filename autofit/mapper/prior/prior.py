@@ -138,15 +138,14 @@ class UniformPrior(Prior):
         return 0.0
 
 
-class LogUniformPrior(WrappedInstance):
+class LogUniformPrior(Prior):
     """A prior with a uniform distribution between a lower and upper limit"""
 
     def __init__(
-            cls,
+            self,
             lower_limit=1e-6,
             upper_limit=1.0,
             id_=None,
-            params=(0.0, 1.0),
     ):
         if lower_limit <= 0.0:
             raise exc.PriorException(
@@ -164,11 +163,16 @@ class LogUniformPrior(WrappedInstance):
         )
 
         super().__init__(
-            Message,
-            *params,
-            id_=id_,
+            message=WrappedInstance(
+                Message,
+                0.0, 1.0,
+                id_=id_,
+                lower_limit=lower_limit,
+                upper_limit=upper_limit,
+            ),
             lower_limit=lower_limit,
             upper_limit=upper_limit,
+            id_=id_,
         )
 
     @classmethod
@@ -201,9 +205,8 @@ class LogUniformPrior(WrappedInstance):
             The physical value of this prior's corresponding parameter in a `NonLinearSearch` sample."""
         return 1.0 / value
 
-    # @assert_within_limits
-    def value_for(self, unit: float) -> float:
-        return super().value_for(unit)
+    def value_for(self, unit: float, ignore_prior_limits=False) -> float:
+        return super().value_for(unit, ignore_prior_limits=ignore_prior_limits)
 
     def __str__(self):
         """The line of text describing this prior for the model_mapper.info file"""
