@@ -23,7 +23,8 @@ search chaining).
 
 - Explicit exampels of how to extend Analsyis (e.g. putting extra data in c0nstructor) for Python beginners.
 
-- Prior arithmatic.
+- Prior arithmatic - based on multiwavelenght models where we can compose models with relations. But also document
+and test adding parameters, divisionm, etcx.
 
 Amy was unsure how to use an instance to plot a new component:
 
