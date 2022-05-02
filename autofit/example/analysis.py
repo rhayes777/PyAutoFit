@@ -47,10 +47,10 @@ class Analysis(af.Analysis):
 
         try:
             model_data = sum(
-                profile.profile_1d_via_xvalues_from(xvalues=xvalues) for profile in instance
+                profile.model_data_1d_via_xvalues_from(xvalues=xvalues) for profile in instance
             )
         except TypeError:
-            model_data = instance.profile_1d_via_xvalues_from(xvalues=xvalues)
+            model_data = instance.model_data_1d_via_xvalues_from(xvalues=xvalues)
 
         residual_map = self.data - model_data
         chi_squared_map = (residual_map / self.noise_map) ** 2.0
@@ -86,10 +86,10 @@ class Analysis(af.Analysis):
 
         try:
             model_data = sum(
-                profile.profile_1d_via_xvalues_from(xvalues=xvalues) for profile in instance
+                profile.model_data_1d_via_xvalues_from(xvalues=xvalues) for profile in instance
             )
         except TypeError:
-            model_data = instance.profile_1d_via_xvalues_from(xvalues=xvalues)
+            model_data = instance.model_data_1d_via_xvalues_from(xvalues=xvalues)
 
         plt.errorbar(
             x=xvalues,

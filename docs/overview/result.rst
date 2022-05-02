@@ -160,7 +160,7 @@ the maximum likelihood model:
 
 .. code-block:: bash
 
-    model_data = samples.max_log_likelihood_instance.profile_1d_via_xvalues_from(
+    model_data = samples.max_log_likelihood_instance.model_data_1d_via_xvalues_from(
         xvalues=np.arange(data.shape[0])
     )
 

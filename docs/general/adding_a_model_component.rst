@@ -29,7 +29,7 @@ line ``y = mx + c`` or equivalently ``y = (gradient * x) + intercept``.
             self.gradient = gradient
             self.intercept = intercept
 
-        def profile_1d_via_xvalues_from(self, xvalues):
+        def model_data_1d_via_xvalues_from(self, xvalues):
 
             return (self.gradient * xvalues) + self.intercept
 

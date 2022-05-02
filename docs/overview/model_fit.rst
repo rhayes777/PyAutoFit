@@ -53,7 +53,7 @@ When we fit the model to ``data`` and compute a likelihood an instance of the cl
 values of ``centre``, ``normalization`` and ``sigma`` chosen by the non-linear search algorithm that fits the model to
 the data.
 
-This means that the class's functions are available to compute the likelihood, so lets add a ``profile_1d_via_xvalues_from``
+This means that the class's functions are available to compute the likelihood, so lets add a ``model_data_1d_via_xvalues_from``
 function that generates the 1D profile from the ``Gaussian``.
 
 .. code-block:: bash
@@ -70,7 +70,7 @@ function that generates the 1D profile from the ``Gaussian``.
             self.normalization = normalization
             self.sigma = sigma
 
-        def profile_1d_via_xvalues_from(self, xvalues):
+        def model_data_1d_via_xvalues_from(self, xvalues):
 
             transformed_xvalues = xvalues - self.centre
 
@@ -131,7 +131,7 @@ define a **PyAutoFit** ``Analysis`` class:
             Use these xvalues to create model_data of our Gaussian.
             """
 
-            model_data = instance.profile_1d_via_xvalues_from(xvalues=xvalues)
+            model_data = instance.model_data_1d_via_xvalues_from(xvalues=xvalues)
 
             """
             Fit the model gaussian to the data, computing the residuals, chi-squareds
@@ -204,7 +204,7 @@ This can be used to straight forwardly plot the model fit to the data:
 
     instance = result.max_log_likelihood_instance
 
-    model_data = instance.profile_1d_via_xvalues_from(xvalues=np.arange(data.shape[0]))
+    model_data = instance.model_data_1d_via_xvalues_from(xvalues=np.arange(data.shape[0]))
 
     plt.plot(range(data.shape[0]), data)
     plt.plot(range(data.shape[0]), model_data)

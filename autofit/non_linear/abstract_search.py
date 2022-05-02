@@ -381,7 +381,8 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             return log_likelihood + sum(log_prior_list)
 
         def figure_of_merit_from(self, parameter_list):
-            """The figure of merit is the value that the `NonLinearSearch` uses to sample parameter space. This varies
+            """
+            The figure of merit is the value that the `NonLinearSearch` uses to sample parameter space. This varies
             between different `NonLinearSearch`s, for example:
 
                 - The *Optimizer* *PySwarms* uses the chi-squared value, which is the -2.0*log_posterior.

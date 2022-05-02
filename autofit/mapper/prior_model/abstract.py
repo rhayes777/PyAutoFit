@@ -51,9 +51,10 @@ def check_assertions(func):
                 in failed_assertions
                 if hasattr(assertion, "name") and assertion.name is not None
             ])
-            raise exc.FitException(
-                f"{number_of_failed_assertions} assertions failed!\n{name_string}"
-            )
+            if not conf.instance["general"]["test"]["exception_override"]:
+                raise exc.FitException(
+                    f"{number_of_failed_assertions} assertions failed!\n{name_string}"
+                )
 
         return func(s, arguments)
 

@@ -35,7 +35,7 @@ we again define our 1D ``Gaussian`` profile as a *model component* in **PyAutoFi
             self.normalization = normalization
             self.sigma = sigma
 
-        def profile_1d_via_xvalues_from(self, xvalues):
+        def model_data_1d_via_xvalues_from(self, xvalues):
 
             transformed_xvalues = xvalues - self.centre
 
@@ -60,7 +60,7 @@ Now lets define a new *model component*, a 1D ``Exponential``, using the same Py
             self.normalization = normalization
             self.rate = rate
 
-        def profile_1d_via_xvalues_from(self, xvalues):
+        def model_data_1d_via_xvalues_from(self, xvalues):
 
             transformed_xvalues = xvalues - self.centre
 
@@ -129,11 +129,11 @@ You are free to choose whichever names you want;  the names are used to pass the
 
             """
             The instance variable is a list of our model components. We can iterate over
-            this list, calling their profile_1d_via_xvalues_from and summing the result to compute
+            this list, calling their model_data_1d_via_xvalues_from and summing the result to compute
             the summed line profile of our model.
             """
 
-            model_data = sum([line.profile_1d_via_xvalues_from(xvalues=xvalues) for line in instance])
+            model_data = sum([line.model_data_1d_via_xvalues_from(xvalues=xvalues) for line in instance])
 
             """
             Fit the model line profile data to the observed data, computing the residuals and
