@@ -21,7 +21,7 @@ Model Composition
 
 we again define our 1D ``Gaussian`` profile as a *model component* in **PyAutoFit**:
 
-.. code-block:: bash
+.. code-block:: python
 
     class Gaussian:
         def __init__(
@@ -46,7 +46,7 @@ we again define our 1D ``Gaussian`` profile as a *model component* in **PyAutoFi
 
 Now lets define a new *model component*, a 1D ``Exponential``, using the same Python class format:
 
-.. code-block:: bash
+.. code-block:: python
 
     class Exponential:
         def __init__(
@@ -71,7 +71,7 @@ Now lets define a new *model component*, a 1D ``Exponential``, using the same Py
 We are now fitting multiple *model components*, therefore we create each component using the ``Model`` object we
 used in the previous tutorial and put them together in a ``Collection`` to build the overall model.
 
-.. code-block:: bash
+.. code-block:: python
 
     gaussian = af.Model(Gaussian)
     exponential = af.Model(Exponential)
@@ -90,7 +90,7 @@ The *model components* given to the ``Collection`` were also given names, in thi
 
 You are free to choose whichever names you want;  the names are used to pass the ``instance`` to the ``Analysis`` class:
 
-.. code-block:: bash
+.. code-block:: python
 
     class Analysis(af.Analysis):
 
@@ -153,7 +153,7 @@ Performing the *model-fit* uses the same steps as the previous example, whereby 
 ``Collection``), instantiate the ``Analysis`` and pass them a non-linear search. In this example, we'll use
 the nested sampling algorithm ``dynesty``, using the ``DynestyStatic`` sampler.
 
-.. code-block:: bash
+.. code-block:: python
 
     model = af.Collection(gaussian=Gaussian, exponential=Exponential)
 
@@ -169,7 +169,7 @@ Model Priors
 Now, lets consider how we *customize* the models that we *compose*. To begin, lets *compose* a model using a single
 ``Gaussian`` with the ``Model`` object:
 
-.. code-block:: bash
+.. code-block:: python
 
     gaussian = af.Model(Gaussian)
 
@@ -179,7 +179,7 @@ you can check them out at this `link <https://github.com/Jammy2211/autofit_works
 
 Priors can be manually specified as follows:
 
-.. code-block:: bash
+.. code-block:: python
 
     gaussian.centre = af.UniformPrior(lower_limit=0.0, upper_limit=100.0)
     gaussian.normalization = af.LogUniformPrior(lower_limit=0.0, upper_limit=1e2)
@@ -191,7 +191,7 @@ and ``upper_limit`` on the ``GaussianPrior`` set the physical limits of values o
 
 We can fit this model, with all new priors, using a non-linear search as we did before:
 
-.. code-block:: bash
+.. code-block:: python
 
     analysis = Analysis(data=data, noise_map=noise_map)
 
@@ -203,7 +203,7 @@ We can fit this model, with all new priors, using a non-linear search as we did 
 
 We can *compose* and *customize* the priors of multiple model components as follows:
 
-.. code-block:: bash
+.. code-block:: python
 
     gaussian = af.Model(Gaussian)
     gaussian.normalization = af.UniformPrior(lower_limit=0.0, upper_limit=1e2)
@@ -220,7 +220,7 @@ Model Customization
 
 The model can be *customized* to fix any *parameter* of the model to an input value:
 
-.. code-block:: bash
+.. code-block:: python
 
     gaussian.sigma = 0.5
 
@@ -229,7 +229,7 @@ dimensionality of *non-linear parameter space* by 1.
 
 We can also link two parameters, such that they always share the same value:
 
-.. code-block:: bash
+.. code-block:: python
 
     model.gaussian.centre = model.exponential.centre
 
@@ -239,7 +239,7 @@ the number of free *parameters* by 1.
 Finally, assertions can be made on parameters that remove values that do not meet those assertions
 from *non-linear parameter space*:
 
-.. code-block:: bash
+.. code-block:: python
 
     gaussian.add_assertion(gaussian.sigma > 5.0)
     gaussian.add_assertion(gaussian.normalization > exponential.normalization)

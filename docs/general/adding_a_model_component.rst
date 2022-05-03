@@ -20,7 +20,7 @@ line. We're only going to focus on the steps necessary to add this new model com
 To perform a linear fit, we require a ``LinearFit`` model-component that fits the data with a
 line ``y = mx + c`` or equivalently ``y = (gradient * x) + intercept``.
 
-.. code-block:: bash
+.. code-block:: python
 
     class LinearFit:
 
@@ -38,7 +38,7 @@ and ``intercept``.
 
 However, if we tried to make this a ``Model`` PyAutoFit would raises an error, e.g.
 
-.. code-block:: bash
+.. code-block:: python
 
     model = af.Model(LinearFit)
 
@@ -55,7 +55,7 @@ priors, these are the priors that will be used by default when a model-fit is pe
 Next, inspect the `TemplateObject.json  <https://github.com/Jammy2211/autofit_workspace/blob/master/config/priors/TemplateObject.json>`_ configuration file in ``autofit_workspace/config/priors``. You should see
 the following ``.json`` text:
 
-.. code-block:: bash
+.. code-block:: python
 
     {
         "parameter0": {
@@ -95,7 +95,7 @@ between -10.0 to 10.0.
 
 The ``.json`` file should read as follows:
 
-.. code-block:: bash
+.. code-block:: python
 
     {
         "gradient": {
@@ -112,7 +112,7 @@ The ``.json`` file should read as follows:
 
 We should now be able to make a ``Model`` of the ``LinearFit`` class.
 
-.. code-block:: bash
+.. code-block:: python
 
     model = af.Model(LinearFit)
 
@@ -134,7 +134,7 @@ class, fits the function ``y = m (x**p) + c``.
 If we import this module and try to make a  ``Model`` of the ``linear_fit.LinearFit`` or ``linear_fit.PowerFit``
 classes, we receive the same configuration error as before.
 
-.. code-block:: bash
+.. code-block:: python
 
     import linear_fit
     
@@ -146,7 +146,7 @@ that ``module`` and structured to contain Python class itself.
 
 Open the file ``autofit_workspace/config/priors/template_module.json``, (https://github.com/Jammy2211/autofit_workspace/blob/master/config/priors/template_module.json) which reads as follows:
 
-.. code-block:: bash
+.. code-block:: python
     
     {
         "ModelComponent0": {
@@ -194,7 +194,7 @@ We can again easily adapt this template for our ``linear_fit.py`` module. Copy, 
 ``linear_fit.json`` (noting again that **PyAutoFit** matches the module name to the configuration file) and update the
 parameters as follows:
 
-.. code-block:: bash
+.. code-block:: python
     
     {
         "LinearFit": {
@@ -230,7 +230,7 @@ parameters as follows:
 
 We are now able to create both the ``linear_fit.LinearFit`` and ``linear_fit.PowerFit`` objects as ``Model``'s.
 
-.. code-block:: bash
+.. code-block:: python
 
     model = af.Model(linear_fit.LinearFit)
     model = af.Model(linear_fit.PowerFit)
@@ -257,7 +257,7 @@ These configuration files include the following additional settings for our mode
 
 For our ``LinearFit`` update the ``label.ini`` config as follows:
 
-.. code-block:: bash
+.. code-block:: python
 
     [label]
     centre=x
@@ -268,7 +268,7 @@ For our ``LinearFit`` update the ``label.ini`` config as follows:
     intercept=c
     power=p
 
-.. code-block:: bash
+.. code-block:: python
 
     [superscript]
     Gaussian=g
@@ -278,7 +278,7 @@ For our ``LinearFit`` update the ``label.ini`` config as follows:
 
 and ``label_format.ini`` as:
 
-.. code-block:: bash
+.. code-block:: python
 
     [format]
     centre={:.2f}

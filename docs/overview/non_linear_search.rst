@@ -29,7 +29,7 @@ Settings
 
 We've seen that we can call a non-linear search as follows:
 
-.. code-block:: bash
+.. code-block:: python
 
    analysis = Analysis(data=data, noise_map=noise_map)
 
@@ -44,7 +44,7 @@ viewed at this `link <https://github.com/Jammy2211/autofit_workspace/blob/master
 
 Of course, we can manually specify all of the parameters instead:
 
-.. code-block:: bash
+.. code-block:: python
 
    analysis = Analysis(data=data, noise_map=noise_map)
 
@@ -74,7 +74,7 @@ The nested sampling algorithm ``dynesty`` has its own config file for default se
 this `link <https://github.com/Jammy2211/autofit_workspace/blob/master/config/non_linear/nest/Dynesty.ini>`_.
 ``DynestyStatic`` parameters can be manually specified as follows:
 
-.. code-block:: bash
+.. code-block:: python
 
    analysis = Analysis(data=data, noise_map=noise_map)
 
@@ -103,7 +103,7 @@ Output Paths
 We can also customize the output folder and path structure where results are output. The output folder is set
 using the **PyAutoFit** parent project **PyAutoConf** and the following command:
 
-.. code-block:: bash
+.. code-block:: python
 
    from autoconf import conf
 
@@ -122,7 +122,7 @@ output into a separate folder.
 The example code below would output the results to the
 path ``/path/to/output/folder_0/folder_1/unique_tag/example_mcmc/sihfiuy838h``:
 
-.. code-block:: bash
+.. code-block:: python
 
     from os import path
 
@@ -145,7 +145,7 @@ fitted, this can lead to long communication overheads and slow performance.
 requires no extra user input and is performed by default. To perform a parallel search, you simply specify
 the ``number_of_cores`` parameter (which is also found in the default config files):
 
-.. code-block:: bash
+.. code-block:: python
 
    analysis = Analysis(data=data, noise_map=noise_map)
 
