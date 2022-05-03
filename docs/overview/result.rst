@@ -104,9 +104,9 @@ make a corner plot of the probability density function (PDF):
     emcee_plotter = aplt.EmceePlotter(samples=result.samples)
     emcee_plotter.corner()
 
-Here is an example of how a PDF estimated for a lens model appears:
+Here is an example of how a PDF estimated for a model appears:
 
-.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/master/docs/images/corner.png
+.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/master/docs/images/cornerplot.png
   :width: 600
   :alt: Alternative text
 
@@ -160,15 +160,15 @@ the maximum likelihood model:
 
 .. code-block:: python
 
-    model_data = samples.max_log_likelihood_instance.model_data_1d_via_xvalues_from(
+    model_data_1d = samples.max_log_likelihood_instance.model_data_1d_via_xvalues_from(
         xvalues=np.arange(data.shape[0])
     )
 
     plt.plot(range(data.shape[0]), data)
-    plt.plot(range(data.shape[0]), model_data)
-    plt.title("Illustrative toy model fit to 1D Gaussian line profile data.")
-    plt.xlabel("x values of line profile")
-    plt.ylabel("Line profile normalization")
+    plt.plot(range(data.shape[0]), model_data_1d)
+    plt.title("Illustrative toy model fit to 1D Gaussian model data.")
+    plt.xlabel("x values of 1D profile")
+    plt.ylabel("Model data normalization")
     plt.show()
     plt.close()
 

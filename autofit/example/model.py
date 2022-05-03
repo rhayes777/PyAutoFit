@@ -40,7 +40,7 @@ class Gaussian(Dictable):
 
     def model_data_1d_via_xvalues_from(self, xvalues:np.ndarray) -> np.ndarray:
         """
-        Calculate the normalization of the profile on a line of Cartesian x coordinates.
+        Calculate the normalization of the profile on a 1D grid of Cartesian x coordinates.
 
         The input xvalues are translated to a coordinate system centred on the Gaussian, using its centre.
 
@@ -129,7 +129,7 @@ class Exponential(Dictable):
 
     def model_data_1d_via_xvalues_from(self, xvalues:np.ndarray) -> np.ndarray:
         """
-        Calculate the 1D Gaussian profile on a line of Cartesian x coordinates.
+        Calculate the 1D Gaussian profile on a 1D grid of Cartesian x coordinates.
 
         The input xvalues are translated to a coordinate system centred on the Exponential, using its centre.
 
@@ -145,7 +145,7 @@ class Exponential(Dictable):
 
     def __call__(self, xvalues:np.ndarray) -> np.ndarray:
         """
-        Calculate the 1D Gaussian profile on a line of Cartesian x coordinates.
+        Calculate the 1D Gaussian profile on a 1D grid of Cartesian x coordinates.
 
         The input xvalues are translated to a coordinate system centred on the Exponential, using its centre.
 

@@ -122,7 +122,7 @@ You are free to choose whichever names you want;  the names are used to pass the
 
             """
             Get the range of x-values the data is defined on, to evaluate the model of the
-            line profiles.
+            1D profiles.
             """
 
             xvalues = np.arange(self.data.shape[0])
@@ -130,17 +130,19 @@ You are free to choose whichever names you want;  the names are used to pass the
             """
             The instance variable is a list of our model components. We can iterate over
             this list, calling their model_data_1d_via_xvalues_from and summing the result to compute
-            the summed line profile of our model.
+            the summed 1D model data of the 1D profiles in our model.
             """
 
-            model_data = sum([line.model_data_1d_via_xvalues_from(xvalues=xvalues) for line in instance])
+            model_data_1d = sum([
+                profile_1d.model_data_1d_via_xvalues_from(xvalues=xvalues) for profile_1d in instance
+            ])
 
             """
-            Fit the model line profile data to the observed data, computing the residuals and
+            Fit the 1D model data to the observed data, computing the residuals and
             chi-squared.
             """
 
-            residual_map = self.data - model_data
+            residual_map = self.data - model_data_1d
             chi_squared_map = (residual_map / self.noise_map) ** 2.0
             log_likelihood = -0.5 * sum(chi_squared_map)
 

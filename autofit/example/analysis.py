@@ -46,13 +46,13 @@ class Analysis(af.Analysis):
         xvalues = np.arange(self.data.shape[0])
 
         try:
-            model_data = sum(
+            model_data_1d = sum(
                 profile.model_data_1d_via_xvalues_from(xvalues=xvalues) for profile in instance
             )
         except TypeError:
-            model_data = instance.model_data_1d_via_xvalues_from(xvalues=xvalues)
+            model_data_1d = instance.model_data_1d_via_xvalues_from(xvalues=xvalues)
 
-        residual_map = self.data - model_data
+        residual_map = self.data - model_data_1d
         chi_squared_map = (residual_map / self.noise_map) ** 2.0
         log_likelihood = -0.5 * sum(chi_squared_map)
 
@@ -85,11 +85,11 @@ class Analysis(af.Analysis):
         xvalues = np.arange(self.data.shape[0])
 
         try:
-            model_data = sum(
+            model_data_1d = sum(
                 profile.model_data_1d_via_xvalues_from(xvalues=xvalues) for profile in instance
             )
         except TypeError:
-            model_data = instance.model_data_1d_via_xvalues_from(xvalues=xvalues)
+            model_data_1d = instance.model_data_1d_via_xvalues_from(xvalues=xvalues)
 
         plt.errorbar(
             x=xvalues,
@@ -100,7 +100,7 @@ class Analysis(af.Analysis):
             elinewidth=1,
             capsize=2,
         )
-        plt.plot(range(self.data.shape[0]), model_data, color="r")
+        plt.plot(range(self.data.shape[0]), model_data_1d, color="r")
         plt.title("Dynesty model fit to 1D Gaussian + Exponential dataset.")
         plt.xlabel("x values of profile")
         plt.ylabel("Profile normalization")

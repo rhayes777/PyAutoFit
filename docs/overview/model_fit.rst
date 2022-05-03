@@ -128,17 +128,17 @@ define a **PyAutoFit** ``Analysis`` class:
             xvalues = np.arange(self.data.shape[0])
 
             """
-            Use these xvalues to create model_data of our Gaussian.
+            Use these xvalues to create the 1D model data of our Gaussian.
             """
 
-            model_data = instance.model_data_1d_via_xvalues_from(xvalues=xvalues)
+            model_data_1d = instance.model_data_1d_via_xvalues_from(xvalues=xvalues)
 
             """
             Fit the model gaussian to the data, computing the residuals, chi-squareds
             and returning the log likelihood value to the non-linear search.
             """
 
-            residual_map = self.data - model_data
+            residual_map = self.data - model_data_1d
             chi_squared_map = (residual_map / self.noise_map) ** 2.0
             log_likelihood = -0.5 * sum(chi_squared_map)
 
@@ -204,10 +204,10 @@ This can be used to straight forwardly plot the model fit to the data:
 
     instance = result.max_log_likelihood_instance
 
-    model_data = instance.model_data_1d_via_xvalues_from(xvalues=np.arange(data.shape[0]))
+    model_data_1d = instance.model_data_1d_via_xvalues_from(xvalues=np.arange(data.shape[0]))
 
     plt.plot(range(data.shape[0]), data)
-    plt.plot(range(data.shape[0]), model_data)
+    plt.plot(range(data.shape[0]), model_data_1d)
 
 Results are covered in more detail in the `result overview page <https://pyautofit.readthedocs.io/en/latest/overview/result.html>`_.
 
