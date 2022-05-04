@@ -68,7 +68,6 @@ def test_trivial():
 
     class TrivialAnalysis(af.Analysis):
         def log_likelihood_function(self, instance):
-            print(instance.value)
             result = -((instance.value - 14) ** 2)
             return result
 

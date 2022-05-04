@@ -336,7 +336,6 @@ class EPOptimiser:
             _should_visualise = should_visualise()
             _should_output = should_output()
             for factor, optimiser in self.factor_optimisers.items():
-                print(factor)
                 model_approx, status = self.factor_step(
                     factor, model_approx, optimiser
                 )
