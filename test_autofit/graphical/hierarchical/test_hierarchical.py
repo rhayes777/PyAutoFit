@@ -126,9 +126,8 @@ def test_simple(model_approx, centres):
 
     assert new_approx.mean_field[mu_].mean == pytest.approx(np.mean(centres), rel=1.0)
     assert new_approx.mean_field[logt_].mean == pytest.approx(
-        np.log(np.std(centres) ** -2), rel=1.0
+        np.log(np.std(centres) ** -2), rel=2.0, abs=1.0
     )
-
 
 def test_hierarchical(centres, widths):
     centres_ = [Variable(f"x_{i}") for i in range(n)]

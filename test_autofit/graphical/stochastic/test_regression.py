@@ -69,16 +69,18 @@ def make_model_approx():
     return model_approx
 
 
-def _test_stochastic_linear_regression():
+def test_stochastic_linear_regression():
+    np.random.seed(2)
     params = [
-        (50, 5, False), 
-        (20, 60, True), 
+        (50, 10, False, 1), 
+        (20, 50, True, 1), 
+        (5, 50, False, 0.5), 
     ]
-    for n_batch, n_iters, inplace in params:
+    for n_batch, n_iters, inplace, delta in params:
         model_approx = make_model_approx()
         ep_opt = graph.StochasticEPOptimiser(
             model_approx.factor_graph, 
-            graph.LaplaceOptimiser()
+            graph.LaplaceOptimiser(delta=delta)
         )
         batches = graph.utils.gen_dict({
             obs: graph.utils.gen_subsets(n_batch, n_obs, n_iters=n_iters)

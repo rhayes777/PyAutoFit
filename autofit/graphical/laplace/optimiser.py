@@ -32,9 +32,9 @@ class LaplaceOptimiser(AbstractFactorOptimiser):
             line_search_kws: Optional[Dict[str, Any]] = None,
             quasi_newton_kws: Optional[Dict[str, Any]] = None,
             stop_kws: Optional[Dict[str, Any]] = None,
-            deltas: Optional[Dict[str, int]] = None,
+            **kwargs
     ):
-        super().__init__(deltas=deltas)
+        super().__init__(**kwargs)
 
         self.make_hessian = make_hessian
         self.make_det_hessian = make_det_hessian or make_hessian

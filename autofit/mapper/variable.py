@@ -328,6 +328,7 @@ class VariableData(Dict[Variable, np.ndarray]):
     __add__ = _binary_op(operator.add)
     __radd__ = _binary_op(operator.add)
     __sub__ = _binary_op(operator.sub)
+    __rsub__ = _binary_op(operator.sub)
     __mul__ = _binary_op(operator.mul)
     __rmul__ = _binary_op(rmul)
     __truediv__ = _binary_op(operator.truediv)
