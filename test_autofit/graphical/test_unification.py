@@ -87,9 +87,9 @@ def test_uniform_normal(x):
         sigma=1.0
     )
 
-    assert message.pdf(0.9) == 0
-    assert message.pdf(3.2) == 0
-    assert message.pdf(1.5) > 0
+    assert message.pdf(0.9) == pytest.approx(0)
+    assert message.pdf(3.2) == pytest.approx(0)
+    assert message.pdf(1.5) > pytest.approx(0)
 
 
 @pytest.mark.parametrize(
@@ -116,7 +116,8 @@ def test_uniform_prior(
         lower_limit=lower_limit,
         upper_limit=upper_limit,
     ).value_for(
-        unit_value
+        unit_value,
+        ignore_prior_limits=True
     ) == pytest.approx(
         physical_value
     )
