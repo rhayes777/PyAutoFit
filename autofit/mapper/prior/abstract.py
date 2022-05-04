@@ -88,7 +88,7 @@ class Prior(Variable, ABC, ArithmeticMixin):
         if conf.instance["general"]["model"]["ignore_prior_limits"]:
             return
         if not (
-                self.lower_limit - epsilon <= value <= self.upper_limit + epsilon
+                self.lower_limit <= value <= self.upper_limit
         ):
             raise exc.PriorLimitException(
                 "The physical value {} for a prior "

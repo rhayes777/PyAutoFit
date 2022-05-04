@@ -496,7 +496,7 @@ class AbstractPriorModel(AbstractModel):
             except AttributeError:
                 pass
 
-    def instance_from_unit_vector(self, unit_vector, assert_priors_in_limits=True):
+    def instance_from_unit_vector(self, unit_vector, ignore_prior_limits=False):
         """
         Returns a ModelInstance, which has an attribute and class instance corresponding
         to every `PriorModel` attributed to this instance.
@@ -504,8 +504,8 @@ class AbstractPriorModel(AbstractModel):
         physical values via their priors.
         Parameters
         ----------
-        assert_priors_in_limits
-            If true then an exception is thrown if priors fall outside defined limits
+        ignore_prior_limits
+            If true then no exception is thrown if priors fall outside defined limits
         unit_vector: [float]
             A unit hypercube vector that is mapped to an instance of physical values via the priors.
         Returns
@@ -539,7 +539,10 @@ class AbstractPriorModel(AbstractModel):
             map(
                 lambda prior_tuple, unit: (
                     prior_tuple.prior,
-                    prior_tuple.prior.value_for(unit),
+                    prior_tuple.prior.value_for(
+                        unit,
+                        ignore_prior_limits=ignore_prior_limits,
+                    ),
                 ),
                 self.prior_tuples_ordered_by_id,
                 unit_vector,

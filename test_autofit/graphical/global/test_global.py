@@ -39,7 +39,10 @@ class TestGlobalLikelihood:
     def test_single_factor(self, model_factor, unit_value, likelihood):
         assert (
                 model_factor.log_likelihood_function(
-                    model_factor.global_prior_model.instance_from_unit_vector([unit_value])[0]
+                    model_factor.global_prior_model.instance_from_unit_vector(
+                        [unit_value],
+                        ignore_prior_limits=True,
+                    )[0]
                 )
                 == likelihood
         )
@@ -49,7 +52,10 @@ class TestGlobalLikelihood:
         collection = g.FactorGraphModel(model_factor, model_factor)
         assert (
                 collection.log_likelihood_function(
-                    collection.global_prior_model.instance_from_unit_vector([unit_value])
+                    collection.global_prior_model.instance_from_unit_vector(
+                        [unit_value],
+                        ignore_prior_limits=True
+                    )
                 )
                 == likelihood
         )
@@ -62,7 +68,10 @@ class TestGlobalLikelihood:
 
         assert (
                 collection.log_likelihood_function(
-                    collection.global_prior_model.instance_from_unit_vector(unit_vector)
+                    collection.global_prior_model.instance_from_unit_vector(
+                        unit_vector,
+                        ignore_prior_limits=True
+                    )
                 )
                 == likelihood
         )
