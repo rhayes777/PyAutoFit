@@ -196,14 +196,16 @@ class Prior(Variable, ABC, ArithmeticMixin):
         if prior_dict["type"] == "Deferred":
             return DeferredArgument()
 
-        from .prior import UniformPrior
-        from .prior import LogUniformPrior
-        from .prior import GaussianPrior
+        from .uniform import UniformPrior
+        from .log_uniform import LogUniformPrior
+        from .gaussian import GaussianPrior
+        from .log_gaussian import LogGaussianPrior
 
         prior_type_dict = {
             "Uniform": UniformPrior,
             "LogUniform": LogUniformPrior,
             "Gaussian": GaussianPrior,
+            "LogGaussian": LogGaussianPrior,
         }
 
         # noinspection PyProtectedMember

@@ -39,12 +39,12 @@ from .mapper.prior.deferred import DeferredInstance
 from .mapper.prior.width_modifier import AbsoluteWidthModifier
 from .mapper.prior.width_modifier import RelativeWidthModifier
 from .mapper.prior.width_modifier import WidthModifier
-from .mapper.prior.prior import GaussianPrior
-from .mapper.prior.prior import LogGaussianPrior
-from .mapper.prior.prior import LogUniformPrior
+from .mapper.prior import GaussianPrior
+from .mapper.prior import LogGaussianPrior
+from .mapper.prior import LogUniformPrior
 from .mapper.prior.abstract import Prior
 from .mapper.prior.tuple_prior import TuplePrior
-from .mapper.prior.prior import UniformPrior
+from .mapper.prior import UniformPrior
 from .mapper.prior_model.abstract import AbstractPriorModel
 from .mapper.prior_model.annotation import AnnotationPriorModel
 from .mapper.prior_model.attribute_pair import AttributeNameValue

@@ -470,7 +470,7 @@ class AbstractMessage(ABC):
     @staticmethod
     def _iter_dists(dists) -> Iterator[Union["AbstractMessage", float]]:
         for elem in dists:
-            from autofit.mapper.prior.prior import WrappedInstance
+            from autofit.mapper.prior.wrapped_instance import WrappedInstance
             if isinstance(elem, (AbstractMessage, WrappedInstance)):
                 yield elem
             elif np.isscalar(elem):
