@@ -280,7 +280,7 @@ class GaussianPrior(Prior):
         return f"GaussianPrior, mean = {self.mean}, sigma = {self.sigma}"
 
 
-class LogGaussianPrior(WrappedInstance):
+class LogGaussianPrior(Prior):
     """A prior with a log gaussian distribution"""
 
     __identifier_fields__ = (
@@ -304,13 +304,19 @@ class LogGaussianPrior(WrappedInstance):
         self.mean = mean
         self.sigma = sigma
 
-        super().__init__(
+        message = WrappedInstance(
             LogNormalMessage,
             mean=mean,
             sigma=sigma,
             id_=id_,
             lower_limit=lower_limit,
             upper_limit=upper_limit,
+        )
+        super().__init__(
+            message=message,
+            lower_limit=0.0,
+            upper_limit=float("inf"),
+            id_=None,
         )
 
     def _new_for_base_message(
@@ -331,7 +337,7 @@ class LogGaussianPrior(WrappedInstance):
         )
 
     # @assert_within_limits
-    def value_for(self, unit):
+    def value_for(self, unit, ignore_prior_limits=False):
         """
 
         Parameters
@@ -344,4 +350,4 @@ class LogGaussianPrior(WrappedInstance):
         value: Float
             A value for the attribute biased to the gaussian distribution
         """
-        return super().value_for(unit)
+        return super().value_for(unit, ignore_prior_limits=ignore_prior_limits)
