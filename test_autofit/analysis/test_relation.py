@@ -126,10 +126,8 @@ def test_embedded_model():
 def test_names():
     one = 1
     two = af.UniformPrior()
-    add = af.Add(
-        one, two
-    )
-    assert add.paths == [("two",)]
+    assert (one + two).paths == [("two",)]
+    assert af.Add(one, two).paths == [("two",)]
 
 
 def data(x):

@@ -11,8 +11,15 @@ logger = logging.getLogger(
 
 
 def retrieve_name(var):
-    callers_local_vars = inspect.currentframe().f_back.f_back.f_locals.items()
-    return [var_name for var_name, var_val in callers_local_vars if var_val is var][0]
+    first_name = None
+    frame = inspect.currentframe()
+    while frame is not None:
+        for name, value in frame.f_locals.items():
+            if var is value:
+                first_name = name
+        frame = frame.f_back
+
+    return first_name
 
 
 class CompoundPrior(
@@ -35,23 +42,9 @@ class CompoundPrior(
             A prior, promise or float
         """
         super().__init__()
-        left_name = None
-        try:
-            left_name = retrieve_name(left)
-        except Exception as e:
-            logger.info(e)
 
-        if left_name in (None, "self"):
-            left_name = "left"
-
-        right_name = None
-        try:
-            right_name = retrieve_name(right)
-        except Exception as e:
-            logger.info(e)
-
-        if right_name in (None, "right"):
-            right_name = "right"
+        left_name = retrieve_name(left) or "left"
+        right_name = retrieve_name(right) or "right"
 
         setattr(self, left_name, left)
         setattr(self, right_name, right)
