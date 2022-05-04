@@ -29,10 +29,10 @@ class AbstractFactorOptimiser(ABC):
     """
     logger = logger.debug
 
-    def __init__(self, initial_values=None, deltas=None, inplace=False):
+    def __init__(self, initial_values=None, deltas=None, inplace=False, delta=1):
         self.initial_values = initial_values or {}
         self.inplace = inplace
-        self.deltas = defaultdict(lambda: 1)
+        self.deltas = defaultdict(lambda: delta)
         if deltas:
             self.deltas.update(deltas)
 
