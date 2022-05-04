@@ -165,7 +165,7 @@ gaussian features.
         print(instance.perturbation.normalization)
         print(instance.perturbation.sigma)
 
-        model_line = instance.gaussian_main.profile_1d_via_xvalues_from(xvalues=xvalues) + instance.perturbation.profile_1d_via_xvalues_from(xvalues=xvalues)
+        model_line = instance.gaussian_main.model_data_1d_via_xvalues_from(xvalues=xvalues) + instance.perturbation.model_data_1d_via_xvalues_from(xvalues=xvalues)
 
         """Determine the noise (at a specified signal to noise level) in every pixel of our model profile."""
         signal_to_noise_ratio = 25.0

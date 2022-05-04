@@ -5,7 +5,7 @@ Results & Samples
 
 A non-linear search's fit function returns a ``Result`` object:
 
-.. code-block:: bash
+.. code-block:: python
 
    analysis = Analysis(data=data, noise_map=noise_map)
 
@@ -22,7 +22,7 @@ A result contains a ``Samples`` object, which contains information on the non-li
 The parameters are stored as a list of lists, where the first entry corresponds to the sample index and second entry
 the parameter index.
 
-.. code-block:: bash
+.. code-block:: python
 
     samples = result.samples
 
@@ -45,7 +45,7 @@ where:
 
 Lets inspect the last 10 values of each for the analysis.
 
-.. code-block:: bash
+.. code-block:: python
 
     print("Final 10 Log Likelihoods:")
     print(samples.log_likelihood_list[-10:])
@@ -66,14 +66,14 @@ The ``Result`` object therefore contains the full posterior information of our n
 parameter estimation. The median pdf vector is readily available from the ``Samples`` object, which estimates the every
 parameter via 1D marginalization of their PDFs.
 
-.. code-block:: bash
+.. code-block:: python
 
     median_pdf_vector = samples.median_pdf_vector
 
 The samples include methods for computing the error estimates of all parameters via 1D marginalization at an input sigma
 confidence limit. This can be returned as the size of each parameter error:
 
-.. code-block:: bash
+.. code-block:: python
 
     error_vector_at_upper_sigma = samples.error_vector_at_upper_sigma(sigma=3.0)
     error_vector_at_lower_sigma = samples.error_vector_at_lower_sigma(sigma=3.0)
@@ -86,7 +86,7 @@ confidence limit. This can be returned as the size of each parameter error:
 
 They can also be returned at the values of the parameters at their error values:
 
-.. code-block:: bash
+.. code-block:: python
 
     vector_at_upper_sigma = samples.vector_at_upper_sigma(sigma=3.0)
     vector_at_lower_sigma = samples.vector_at_lower_sigma(sigma=3.0)
@@ -99,14 +99,14 @@ They can also be returned at the values of the parameters at their error values:
 **PyAutoFit** includes many visualization tools for plotting the results of a non-linear search, for example we can
 make a corner plot of the probability density function (PDF):
 
-.. code-block:: bash
+.. code-block:: python
 
     emcee_plotter = aplt.EmceePlotter(samples=result.samples)
     emcee_plotter.corner()
 
-Here is an example of how a PDF estimated for a lens model appears:
+Here is an example of how a PDF estimated for a model appears:
 
-.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/master/docs/images/corner.png
+.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/master/docs/images/cornerplot.png
   :width: 600
   :alt: Alternative text
 
@@ -115,7 +115,7 @@ Other Vectors
 
 The samples contain many useful vectors, including the samples with the highest likelihood and posterior values:
 
-.. code-block:: bash
+.. code-block:: python
 
     max_log_likelihood_vector = samples.max_log_likelihood_vector
     max_log_posterior_vector = samples.max_log_posterior_vector
@@ -134,7 +134,7 @@ These vectors return the results as a list, which means you need to know the par
 list of ``parameter_names`` are available as a property of the ``Samples``, as are ``parameter_labels``
 which can be used for labeling figures:
 
-.. code-block:: bash
+.. code-block:: python
 
     samples.model.parameter_names
     samples.model.parameter_labels
@@ -145,7 +145,7 @@ Instances
 ``Result``'s can instead be returned as an ``instance``, which is an instance of the model using the Python
 classes used to compose it:
 
-.. code-block:: bash
+.. code-block:: python
 
     max_log_likelihood_instance = samples.max_log_likelihood_instance
 
@@ -158,23 +158,23 @@ classes used to compose it:
 For our example problem of fitting a 1D ``Gaussian`` profile, this makes it straight forward to plot
 the maximum likelihood model:
 
-.. code-block:: bash
+.. code-block:: python
 
-    model_data = samples.max_log_likelihood_instance.profile_1d_via_xvalues_from(
+    model_data_1d = samples.max_log_likelihood_instance.model_data_1d_via_xvalues_from(
         xvalues=np.arange(data.shape[0])
     )
 
     plt.plot(range(data.shape[0]), data)
-    plt.plot(range(data.shape[0]), model_data)
-    plt.title("Illustrative toy model fit to 1D Gaussian line profile data.")
-    plt.xlabel("x values of line profile")
-    plt.ylabel("Line profile normalization")
+    plt.plot(range(data.shape[0]), model_data_1d)
+    plt.title("Illustrative toy model fit to 1D Gaussian model data.")
+    plt.xlabel("x values of 1D profile")
+    plt.ylabel("Model data normalization")
     plt.show()
     plt.close()
 
 All methods above are available as an ``instance``:
 
-.. code-block:: bash
+.. code-block:: python
 
     median_pdf_instance = samples.median_pdf_instance
     instance_at_upper_sigma = samples.instance_at_upper_sigma
@@ -184,7 +184,7 @@ All methods above are available as an ``instance``:
 
 An ``instance`` of any accepted sample can be created:
 
-.. code-block:: bash
+.. code-block:: python
 
     instance = samples.instance_from_sample_index(sample_index=500)
 
@@ -194,7 +194,7 @@ Bayesian Evidence
 If a nested sampling non-linear search is used, the Bayesian evidence of the model is also
 available which enables model comparison to be performed:
 
-.. code-block:: bash
+.. code-block:: python
 
     log_evidence = samples.log_evidence
 
@@ -208,7 +208,7 @@ your project.
 We detail how to do this in the **HowToFit** lectures, but for the example of fitting a 1D Gaussian we could extend
 the result to include the maximum log likelihood profile:
 
-.. code-block:: bash
+.. code-block:: python
 
     max_log_likelihood_profile = samples.max_log_likelihood_profile
 

@@ -7,7 +7,7 @@ To illustrate **PyAutoFit** we'll use the example modeling problem of fitting a 
 
 To begin, lets import ``autofit`` (and ``numpy``) using the convention below:
 
-.. code-block:: bash
+.. code-block:: python
 
     import autofit as af
     import numpy as np
@@ -31,7 +31,7 @@ during a *model-fit*, which is performed using a *non-linear search*.
 *Model components* are defined using Python classes using the format below, where the class name is
 the *model component* name and the constructor arguments are its *parameters*.
 
-.. code-block:: bash
+.. code-block:: python
 
     class Gaussian:
 
@@ -53,10 +53,10 @@ When we fit the model to ``data`` and compute a likelihood an instance of the cl
 values of ``centre``, ``normalization`` and ``sigma`` chosen by the non-linear search algorithm that fits the model to
 the data.
 
-This means that the class's functions are available to compute the likelihood, so lets add a ``profile_1d_via_xvalues_from``
+This means that the class's functions are available to compute the likelihood, so lets add a ``model_data_1d_via_xvalues_from``
 function that generates the 1D profile from the ``Gaussian``.
 
-.. code-block:: bash
+.. code-block:: python
 
     class Gaussian:
         def __init__(
@@ -70,7 +70,7 @@ function that generates the 1D profile from the ``Gaussian``.
             self.normalization = normalization
             self.sigma = sigma
 
-        def profile_1d_via_xvalues_from(self, xvalues):
+        def model_data_1d_via_xvalues_from(self, xvalues):
 
             transformed_xvalues = xvalues - self.centre
 
@@ -82,7 +82,7 @@ function that generates the 1D profile from the ``Gaussian``.
 We use the ``Model`` object to compose the model, which in this case is a single ``Gaussian``.  The model is
 defined with 3 free parameters, thus the dimensionality of non-linear parameter space is 3.
 
-.. code-block:: bash
+.. code-block:: python
 
     model = af.Model(Gaussian)
 
@@ -95,7 +95,7 @@ Analysis
 Now we've defined our model, we need to tell **PyAutoFit** how to fit the model to data. This requires us to
 define a **PyAutoFit** ``Analysis`` class:
 
-.. code-block:: bash
+.. code-block:: python
 
     class Analysis(af.Analysis):
 
@@ -128,17 +128,17 @@ define a **PyAutoFit** ``Analysis`` class:
             xvalues = np.arange(self.data.shape[0])
 
             """
-            Use these xvalues to create model_data of our Gaussian.
+            Use these xvalues to create the 1D model data of our Gaussian.
             """
 
-            model_data = instance.profile_1d_via_xvalues_from(xvalues=xvalues)
+            model_data_1d = instance.model_data_1d_via_xvalues_from(xvalues=xvalues)
 
             """
             Fit the model gaussian to the data, computing the residuals, chi-squareds
             and returning the log likelihood value to the non-linear search.
             """
 
-            residual_map = self.data - model_data
+            residual_map = self.data - model_data_1d
             chi_squared_map = (residual_map / self.noise_map) ** 2.0
             log_likelihood = -0.5 * sum(chi_squared_map)
 
@@ -161,7 +161,7 @@ Non-Linear Search
 
 Next, we *compose* our model, set up our ``Analysis`` and fit the model to the ``data`` using a non-linear search:
 
-.. code-block:: bash
+.. code-block:: python
 
     model = af.Model(Gaussian)
     analysis = Analysis(data=data, noise_map=noise_map)
@@ -180,7 +180,7 @@ By running the code above **PyAutoFit** performs the model-fit, outputting all r
 hard-disk. It also returns a ``Result`` object in Python, which includes lists containing the non-linear search's
 parameter samples, the maximum likelihood model, marginalized parameters estimates, errors are so on:
 
-.. code-block:: bash
+.. code-block:: python
 
     print(result.samples.parameter_lists)
     print(result.samples.max_log_likelihood_vector)
@@ -189,7 +189,7 @@ parameter samples, the maximum likelihood model, marginalized parameters estimat
 
 It can even return *instances* of the ``Gaussian`` class using the values of the model results:
 
-.. code-block:: bash
+.. code-block:: python
 
     instance = result.max_log_likelihood_instance
 
@@ -200,14 +200,14 @@ It can even return *instances* of the ``Gaussian`` class using the values of the
 
 This can be used to straight forwardly plot the model fit to the data:
 
-.. code-block:: bash
+.. code-block:: python
 
     instance = result.max_log_likelihood_instance
 
-    model_data = instance.profile_1d_via_xvalues_from(xvalues=np.arange(data.shape[0]))
+    model_data_1d = instance.model_data_1d_via_xvalues_from(xvalues=np.arange(data.shape[0]))
 
     plt.plot(range(data.shape[0]), data)
-    plt.plot(range(data.shape[0]), model_data)
+    plt.plot(range(data.shape[0]), model_data_1d)
 
 Results are covered in more detail in the `result overview page <https://pyautofit.readthedocs.io/en/latest/overview/result.html>`_.
 
