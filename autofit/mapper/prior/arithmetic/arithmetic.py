@@ -13,45 +13,45 @@ class ArithmeticMixin:
         An object comprising two objects to be summed after
         realisation
         """
-        from autofit.mapper.prior.compound import SumPrior
+        from autofit.mapper.prior.arithmetic.compound import SumPrior
         return SumPrior(
             self, other
         )
 
     def __floordiv__(self, other):
-        from autofit.mapper.prior.compound import FloorDivPrior
+        from autofit.mapper.prior.arithmetic.compound import FloorDivPrior
         return FloorDivPrior(self, other)
 
     def __rfloordiv__(self, other):
-        from autofit.mapper.prior.compound import FloorDivPrior
+        from autofit.mapper.prior.arithmetic.compound import FloorDivPrior
         return FloorDivPrior(other, self)
 
     def __abs__(self):
-        from autofit.mapper.prior.compound import AbsolutePrior
+        from autofit.mapper.prior.arithmetic.compound import AbsolutePrior
         return AbsolutePrior(self)
 
     def __truediv__(self, other):
-        from autofit.mapper.prior.compound import DivisionPrior
+        from autofit.mapper.prior.arithmetic.compound import DivisionPrior
         return DivisionPrior(self, other)
 
     def __rtruediv__(self, other):
-        from autofit.mapper.prior.compound import DivisionPrior
+        from autofit.mapper.prior.arithmetic.compound import DivisionPrior
         return DivisionPrior(other, self)
 
     def __pow__(self, other):
-        from autofit.mapper.prior.compound import PowerPrior
+        from autofit.mapper.prior.arithmetic.compound import PowerPrior
         return PowerPrior(self, other)
 
     def __rpow__(self, other):
-        from autofit.mapper.prior.compound import PowerPrior
+        from autofit.mapper.prior.arithmetic.compound import PowerPrior
         return PowerPrior(other, self)
 
     def __mod__(self, other):
-        from autofit.mapper.prior.compound import ModPrior
+        from autofit.mapper.prior.arithmetic.compound import ModPrior
         return ModPrior(self, other)
 
     def __rmod__(self, other):
-        from autofit.mapper.prior.compound import ModPrior
+        from autofit.mapper.prior.arithmetic.compound import ModPrior
         return ModPrior(other, self)
 
     def __radd__(self, other):
@@ -68,7 +68,7 @@ class ArithmeticMixin:
         An object comprising two objects to be summed after
         realisation
         """
-        from autofit.mapper.prior.compound import SumPrior
+        from autofit.mapper.prior.arithmetic.compound import SumPrior
         return SumPrior(
             other, self
         )
@@ -94,7 +94,7 @@ class ArithmeticMixin:
         Returns an object representing the negation of this
         object.
         """
-        from autofit.mapper.prior.compound import NegativePrior
+        from autofit.mapper.prior.arithmetic.compound import NegativePrior
         return NegativePrior(
             self
         )
@@ -113,13 +113,13 @@ class ArithmeticMixin:
         An object comprising two objects to be multiplied after
         realisation
         """
-        from autofit.mapper.prior.compound import MultiplePrior
+        from autofit.mapper.prior.arithmetic.compound import MultiplePrior
         return MultiplePrior(
             self, other
         )
 
     def __rmul__(self, other):
-        from autofit.mapper.prior.compound import MultiplePrior
+        from autofit.mapper.prior.arithmetic.compound import MultiplePrior
         return MultiplePrior(
             other, self
         )
@@ -138,7 +138,7 @@ class ArithmeticMixin:
         -------
         An assertion object
         """
-        from autofit.mapper.prior.assertion import GreaterThanLessThanAssertion, unwrap
+        from autofit.mapper.prior.arithmetic.assertion import GreaterThanLessThanAssertion, unwrap
         # noinspection PyTypeChecker
         return GreaterThanLessThanAssertion(
             greater=unwrap(self),
@@ -159,7 +159,7 @@ class ArithmeticMixin:
         -------
         An assertion object
         """
-        from autofit.mapper.prior.assertion import GreaterThanLessThanAssertion, unwrap
+        from autofit.mapper.prior.arithmetic.assertion import GreaterThanLessThanAssertion, unwrap
         # noinspection PyTypeChecker
         return GreaterThanLessThanAssertion(
             lower=unwrap(self),
@@ -180,7 +180,7 @@ class ArithmeticMixin:
         -------
         An assertion object
         """
-        from autofit.mapper.prior.assertion import GreaterThanLessThanEqualAssertion, unwrap
+        from autofit.mapper.prior.arithmetic.assertion import GreaterThanLessThanEqualAssertion, unwrap
         # noinspection PyTypeChecker
         return GreaterThanLessThanEqualAssertion(
             greater=unwrap(self),
@@ -201,7 +201,7 @@ class ArithmeticMixin:
         -------
         An assertion object
         """
-        from autofit.mapper.prior.assertion import GreaterThanLessThanEqualAssertion, unwrap
+        from autofit.mapper.prior.arithmetic.assertion import GreaterThanLessThanEqualAssertion, unwrap
         # noinspection PyTypeChecker
         return GreaterThanLessThanEqualAssertion(
             lower=unwrap(self),
