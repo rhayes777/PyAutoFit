@@ -27,6 +27,7 @@ from autofit.mapper.variable import (
 from autofit.mapper.variable_operator import VariableFullOperator
 from autofit.messages.abstract import AbstractMessage
 from autofit.messages.fixed import FixedMessage
+from autofit.messages.transform_wrapper import TransformedWrapperInstance
 
 VariableFactorDist = Dict[str, Dict[Factor, AbstractMessage]]
 Projection = Dict[str, AbstractMessage]
@@ -104,7 +105,7 @@ class MeanField(CollectionPriorModel, Dict[Variable, AbstractMessage], Factor):
         -------
         A mean field
         """
-        return MeanField({prior: prior for prior in priors})
+        return MeanField({prior: prior.message for prior in priors})
 
     pop = dict.pop
     values = dict.values
@@ -263,7 +264,7 @@ class MeanField(CollectionPriorModel, Dict[Variable, AbstractMessage], Factor):
         dists = list(
             (k, prod((m.get(k, 1.0) for m in approxs), m)) for k, m in self.items()
         )
-        return MeanField({k: m for k, m in dists if isinstance(m, Prior)})
+        return MeanField({k: m for k, m in dists if isinstance(m, (AbstractMessage, TransformedWrapperInstance))})
 
     __mul__ = prod
 

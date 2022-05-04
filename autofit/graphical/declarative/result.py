@@ -41,9 +41,11 @@ class EPResult:
             in self.declarative_factor.model_factors
         })
         arguments = {
-            prior: self.updated_ep_mean_field.mean_field[
-                prior
-            ]
+            prior: prior.with_message(
+                self.updated_ep_mean_field.mean_field[
+                    prior
+                ]
+            )
             for prior
             in collection.priors
         }

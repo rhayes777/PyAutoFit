@@ -1,7 +1,25 @@
+import inspect
+import logging
 from abc import ABC
 
 from autofit.mapper.prior.arithmetic import ArithmeticMixin
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
+
+logger = logging.getLogger(
+    __name__
+)
+
+
+def retrieve_name(var):
+    first_name = None
+    frame = inspect.currentframe()
+    while frame is not None:
+        for name, value in frame.f_locals.items():
+            if var is value:
+                first_name = name
+        frame = frame.f_back
+
+    return first_name
 
 
 class CompoundPrior(
@@ -24,11 +42,14 @@ class CompoundPrior(
             A prior, promise or float
         """
         super().__init__()
-        self.left = left
-        self.right = right
 
-    def __repr__(self):
-        return str(self)
+        left_name = retrieve_name(left) or "left"
+        right_name = retrieve_name(right) or "right"
+
+        setattr(self, left_name, left)
+        setattr(self, right_name, right)
+        self._left = left
+        self._right = right
 
     def left_for_arguments(
             self,
@@ -47,9 +68,9 @@ class CompoundPrior(
         A value for the left object
         """
         try:
-            return self.left.instance_for_arguments(arguments, )
+            return self._left.instance_for_arguments(arguments, )
         except AttributeError:
-            return self.left
+            return self._left
 
     def right_for_arguments(
             self,
@@ -68,9 +89,9 @@ class CompoundPrior(
         A value for the right object
         """
         try:
-            return self.right.instance_for_arguments(arguments, )
+            return self._right.instance_for_arguments(arguments, )
         except AttributeError:
-            return self.right
+            return self._right
 
 
 class SumPrior(CompoundPrior):
@@ -86,7 +107,7 @@ class SumPrior(CompoundPrior):
         )
 
     def __str__(self):
-        return f"{self.left} + {self.right}"
+        return f"{self._left} + {self._right}"
 
 
 class MultiplePrior(CompoundPrior):
@@ -95,7 +116,7 @@ class MultiplePrior(CompoundPrior):
     """
 
     def __str__(self):
-        return f"{self.left} * {self.right}"
+        return f"{self._left} * {self._right}"
 
     def _instance_for_arguments(self, arguments):
         return self.left_for_arguments(

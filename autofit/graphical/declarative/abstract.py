@@ -66,7 +66,7 @@ class AbstractDeclarativeFactor(Analysis, ABC):
         Dictionary mapping priors to messages.
         """
         return {
-            prior: prior
+            prior: prior.message
             for prior
             in self.priors
         }

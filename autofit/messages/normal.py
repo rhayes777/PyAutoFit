@@ -45,6 +45,15 @@ class NormalMessage(AbstractMessage):
     ):
         if (np.array(sigma) < 0).any():
             raise exc.MessageException("Sigma cannot be negative")
+
+        # _is_nan = np.isnan(sigma)
+        # if isinstance(_is_nan, np.ndarray):
+        #     _is_nan = _is_nan.all()
+        # if _is_nan:
+        #     raise exc.MessageException(
+        #         "nan parameter passed to NormalMessage"
+        #     )
+
         super().__init__(
             mean,
             sigma,
@@ -54,8 +63,6 @@ class NormalMessage(AbstractMessage):
             id_=id_,
         )
         self.mean, self.sigma = self.parameters
-
-    # self.mean = self.mu
 
     def cdf(self, x):
         return norm.cdf(x, loc=self.mean, scale=self.sigma)
@@ -196,13 +203,6 @@ class NormalMessage(AbstractMessage):
             )
         )
 
-    def dict(self) -> dict:
-        """
-        A dictionary representation of this prior
-        """
-        prior_dict = super().dict()
-        return {**prior_dict, "mean": self.mean, "sigma": self.sigma}
-
 
 class NaturalNormal(NormalMessage):
     """Identical to the NormalMessage but allows non-normalised values,
@@ -249,7 +249,7 @@ class NaturalNormal(NormalMessage):
     @classmethod
     def invert_sufficient_statistics(cls, suff_stats):
         m1, m2 = suff_stats
-        precision = 1/(m2 - m1 ** 2)
+        precision = 1 / (m2 - m1 ** 2)
         return cls.calc_natural_parameters(m1 * precision, - precision / 2)
 
     @staticmethod

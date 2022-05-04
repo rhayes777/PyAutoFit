@@ -250,16 +250,19 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                 (AnalysisFactor, PriorFactor, _HierarchicalFactor)
         ):
             raise NotImplementedError(
-                f"Optimizer {self.__class__.__name__} can only be applied to AnalysisFactors and PriorFactors"
+                f"Optimizer {self.__class__.__name__} can only be applied to"
+                f" AnalysisFactors, HierarchicalFactors and PriorFactors"
             )
 
         factor_approx = model_approx.factor_approximation(
             factor
         )
 
-        model = factor.prior_model.mapper_from_prior_arguments(
-            factor_approx.cavity_dist.arguments
-        )
+        model = factor.prior_model.mapper_from_prior_arguments({
+            prior: prior.with_message(message)
+            for prior, message
+            in factor_approx.cavity_dist.arguments.items()
+        })
 
         analysis = factor.analysis
 
@@ -486,7 +489,9 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
             self.timer.start()
 
+            model.freeze()
             self._fit(model=model, analysis=analysis, log_likelihood_cap=log_likelihood_cap)
+            model.unfreeze()
 
             self.paths.completed()
 

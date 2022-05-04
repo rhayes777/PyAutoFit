@@ -1,14 +1,13 @@
 from copy import copy
-from typing import Union, Type, Optional, Tuple
+from typing import Union, Type, Optional, Tuple, Iterator
 
 import numpy as np
 
-from autofit.mapper.prior.abstract import Prior
 from autofit.messages.transform import AbstractDensityTransform, LinearShiftTransform
 from .abstract import AbstractMessage
 
 
-class TransformedWrapperInstance(Prior):
+class TransformedWrapperInstance:
     """
     An instance of a transformed message. e.g. a UniformNormal message.
 
@@ -38,14 +37,15 @@ class TransformedWrapperInstance(Prior):
             Keyword arguments required to instantiate the underlying message
             class
         """
-        super().__init__(
-            id_=kwargs.get("id_")
-        )
+        self.id = kwargs.get("id_")
         self.transformed_wrapper = transformed_wrapper
         self.args = args
         self.kwargs = kwargs
 
         self._instance = None
+
+    def as_message(self):
+        return self._new_for_base_message(self)
 
     def project(
             self,
@@ -76,7 +76,7 @@ class TransformedWrapperInstance(Prior):
             *message.parameters,
             lower_limit=self.lower_limit,
             upper_limit=self.upper_limit,
-            id_=self.instance().id
+            id_=self.instance().id,
         )
 
     def __mul__(self, other):
@@ -130,6 +130,24 @@ class TransformedWrapperInstance(Prior):
             self.instance(),
             item
         )
+
+    def update_invalid(self, other: "AbstractMessage") -> "TransformedWrapperInstance":
+        valid = self.check_valid()
+        if self.ndim:
+            valid_parameters: Iterator[np.ndarray] = (
+                np.where(valid, p, p_safe) for p, p_safe in zip(self, other)
+            )
+        else:
+            # TODO: Fairly certain this would not work
+            valid_parameters = iter(self if valid else other)
+        return TransformedWrapperInstance(
+            self.transformed_wrapper,
+            *valid_parameters,
+            **self.kwargs,
+        )
+
+    def __iter__(self):
+        return iter(self.instance())
 
     def copy(self):
         copied = copy(self)

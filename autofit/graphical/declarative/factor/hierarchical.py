@@ -16,7 +16,7 @@ class HierarchicalFactor(PriorModel):
 
     def __init__(
             self,
-            distribution: Type[AbstractMessage],
+            distribution: Type[Prior],
             optimiser=None,
             name: Optional[str] = None,
             **kwargs,
@@ -131,7 +131,7 @@ class _HierarchicalFactor(AbstractModelFactor):
                 prior_id = int(name_.split("_")[1])
                 prior = distribution_model.prior_with_id(prior_id)
                 arguments[prior] = array
-            result = distribution_model.instance_for_arguments(arguments)(argument)
+            result = distribution_model.instance_for_arguments(arguments).message(argument)
             return result
 
         prior_variable_dict = {prior.name: prior for prior in distribution_model.priors}
@@ -153,7 +153,7 @@ class _HierarchicalFactor(AbstractModelFactor):
         return self.drawn_prior
 
     def log_likelihood_function(self, instance):
-        return instance.distribution_model(instance.drawn_prior)
+        return instance.distribution_model.message(instance.drawn_prior)
 
     @property
     def priors(self) -> Set[Prior]:

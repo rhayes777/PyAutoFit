@@ -17,7 +17,7 @@ from autofit.mapper import model
 from autofit.mapper.model import AbstractModel, frozen_cache
 from autofit.mapper.prior.abstract import Prior
 from autofit.mapper.prior.deferred import DeferredArgument
-from autofit.mapper.prior.prior import Limits, GaussianPrior
+from autofit.mapper.prior import GaussianPrior
 from autofit.mapper.prior.tuple_prior import TuplePrior
 from autofit.mapper.prior.width_modifier import WidthModifier
 from autofit.mapper.prior_model.attribute_pair import DeferredNameValue
@@ -31,6 +31,15 @@ from autofit.tools.util import split_paths
 logger = logging.getLogger(
     __name__
 )
+
+
+class Limits:
+    @staticmethod
+    def for_class_and_attributes_name(cls, attribute_name):
+        limit_dict = conf.instance.prior_config.for_class_and_suffix_path(
+            cls, [attribute_name, "gaussian_limits"]
+        )
+        return limit_dict["lower"], limit_dict["upper"]
 
 
 def check_assertions(func):
@@ -558,6 +567,7 @@ class AbstractPriorModel(AbstractModel):
 
     @property
     @cast_collection(PriorNameValue)
+    @frozen_cache
     def prior_tuples_ordered_by_id(self):
         """
         Returns
@@ -1286,6 +1296,9 @@ class AbstractPriorModel(AbstractModel):
         return self.id
 
     def __add__(self, other):
+        if isinstance(other, Prior):
+            return other + self
+
         result = copy.deepcopy(self)
 
         for key, value in other.__dict__.items():

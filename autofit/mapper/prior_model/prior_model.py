@@ -219,7 +219,8 @@ class PriorModel(AbstractPriorModel):
                 "phase_property_position",
                 "mapping_name",
                 "id",
-                "_is_frozen"
+                "_is_frozen",
+                "_frozen_cache"
         ):
             try:
                 if "_" in key:
@@ -242,7 +243,7 @@ class PriorModel(AbstractPriorModel):
             if "_" in item and item not in (
                     "_is_frozen",
                     "tuple_prior_tuples"
-            ):
+            ) and not item.startswith("_"):
                 return getattr(
                     [v for k, v in self.tuple_prior_tuples if item.split("_")[0] == k][
                         0
@@ -252,6 +253,7 @@ class PriorModel(AbstractPriorModel):
 
         except IndexError:
             pass
+
         self.__getattribute__(item)
 
     @property

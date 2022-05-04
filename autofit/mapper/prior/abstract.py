@@ -1,5 +1,5 @@
 import random
-from abc import ABC, abstractmethod
+from abc import ABC
 from copy import copy
 from typing import Union, Tuple
 
@@ -12,26 +12,6 @@ from autofit.mapper.variable import Variable
 epsilon = 1e-14
 
 
-def assert_within_limits(
-        func,
-):
-    # noinspection PyShadowingNames
-    def wrapper(
-            self,
-            *args,
-            ignore_prior_limits=False,
-            **kwargs,
-    ):
-        value = func(
-            self, *args, **kwargs
-        )
-        if not ignore_prior_limits:
-            self.assert_within_limits(value)
-        return value
-
-    return wrapper
-
-
 class Prior(Variable, ABC, ArithmeticMixin):
     __database_args__ = (
         "lower_limit",
@@ -41,6 +21,7 @@ class Prior(Variable, ABC, ArithmeticMixin):
 
     def __init__(
             self,
+            message,
             lower_limit=0.0,
             upper_limit=1.0,
             id_=None
@@ -59,12 +40,19 @@ class Prior(Variable, ABC, ArithmeticMixin):
         super().__init__(
             id_=id_
         )
+        self.message = message
+
         self.lower_limit = float(lower_limit)
         self.upper_limit = float(upper_limit)
         if self.lower_limit >= self.upper_limit:
             raise exc.PriorException(
                 "The upper limit of a prior must be greater than its lower limit"
             )
+
+    def with_message(self, message):
+        new = copy(self)
+        new.message = message
+        return new
 
     def new(self):
         """
@@ -82,17 +70,19 @@ class Prior(Variable, ABC, ArithmeticMixin):
         """
         Create a new instance of the same prior class with the passed limits.
         """
-        return self.__class__(
+        new = self.__class__(
             lower_limit=max(lower_limit, self.lower_limit),
             upper_limit=min(upper_limit, self.upper_limit),
         )
+        new.message = self.message
+        return new
 
     @property
-    @abstractmethod
     def factor(self):
         """
         A callable PDF used as a factor in factor graphs
         """
+        return self.message.factor
 
     def assert_within_limits(self, value):
         if conf.instance["general"]["model"]["ignore_prior_limits"]:
@@ -126,8 +116,7 @@ class Prior(Variable, ABC, ArithmeticMixin):
             random.random()
         )
 
-    @abstractmethod
-    def value_for(self, unit: float) -> float:
+    def value_for(self, unit: float, ignore_prior_limits=False) -> float:
         """
         Return a physical value for a value between 0 and 1 with the transformation
         described by this prior.
@@ -141,9 +130,32 @@ class Prior(Variable, ABC, ArithmeticMixin):
         -------
         A physical value.
         """
+        result = self.message.value_for(unit)
+        if not ignore_prior_limits:
+            self.assert_within_limits(result)
+        return result
 
     def instance_for_arguments(self, arguments):
         return arguments[self]
+
+    def project(self, samples, weights):
+        result = copy(self)
+        result.message = self.message.project(
+            samples=samples,
+            log_weight_list=weights,
+            id_=self.id,
+            lower_limit=self.lower_limit,
+            upper_limit=self.upper_limit,
+        )
+        return result
+
+    def __getattr__(self, item):
+        if item in ('__setstate__', '__getstate__'):
+            raise AttributeError(item)
+        return getattr(
+            self.message,
+            item
+        )
 
     def __eq__(self, other):
         try:
@@ -184,14 +196,16 @@ class Prior(Variable, ABC, ArithmeticMixin):
         if prior_dict["type"] == "Deferred":
             return DeferredArgument()
 
-        from .prior import UniformPrior
-        from .prior import LogUniformPrior
-        from .prior import GaussianPrior
+        from .uniform import UniformPrior
+        from .log_uniform import LogUniformPrior
+        from .gaussian import GaussianPrior
+        from .log_gaussian import LogGaussianPrior
 
         prior_type_dict = {
             "Uniform": UniformPrior,
             "LogUniform": LogUniformPrior,
             "Gaussian": GaussianPrior,
+            "LogGaussian": LogGaussianPrior,
         }
 
         # noinspection PyProtectedMember
