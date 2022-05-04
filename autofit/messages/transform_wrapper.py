@@ -1,5 +1,5 @@
 from copy import copy
-from typing import Union, Type, Optional, Tuple
+from typing import Union, Type, Optional, Tuple, Iterator
 
 import numpy as np
 
@@ -130,6 +130,24 @@ class TransformedWrapperInstance:
             self.instance(),
             item
         )
+
+    def update_invalid(self, other: "AbstractMessage") -> "TransformedWrapperInstance":
+        valid = self.check_valid()
+        if self.ndim:
+            valid_parameters: Iterator[np.ndarray] = (
+                np.where(valid, p, p_safe) for p, p_safe in zip(self, other)
+            )
+        else:
+            # TODO: Fairly certain this would not work
+            valid_parameters = iter(self if valid else other)
+        return TransformedWrapperInstance(
+            self.transformed_wrapper,
+            *valid_parameters,
+            **self.kwargs,
+        )
+
+    def __iter__(self):
+        return iter(self.instance())
 
     def copy(self):
         copied = copy(self)

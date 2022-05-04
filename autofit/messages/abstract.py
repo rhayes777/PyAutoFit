@@ -464,6 +464,9 @@ class AbstractMessage(ABC):
 
         return log_norm
 
+    def instance(self):
+        return self
+
     @staticmethod
     def _iter_dists(dists) -> Iterator[Union["AbstractMessage", float]]:
         for elem in dists:
