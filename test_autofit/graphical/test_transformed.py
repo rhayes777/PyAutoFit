@@ -1,4 +1,5 @@
 import functools
+import math
 from typing import Tuple, Optional
 
 import numpy as np
@@ -74,3 +75,7 @@ def _test_transform():
         sigma=1.0,
     )
     assert uniform_normal_message.factor(0.5) == transformed_message.factor(0.5)
+
+
+def test_phi_transform_limits():
+    assert phi_transform.transform(0) != -math.inf
