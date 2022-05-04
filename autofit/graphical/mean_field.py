@@ -353,13 +353,10 @@ class MeanField(CollectionPriorModel, Dict[Variable, AbstractMessage], Factor):
         updated = False
         try:
             with LogWarnings(logger=_log_projection_warnings, action='always') as caught_warnings:
-                factor_dist = self / cavity_dist
                 if delta < 1:
-                    log_norm = factor_dist.log_norm
-                    factor_dist = factor_dist ** delta * last_dist ** (1 - delta)
-                    factor_dist.log_norm = (
-                            delta * log_norm + (1 - delta) * last_dist.log_norm
-                    )
+                    factor_dist = (self ** delta * last_dist ** (1 - delta)) / cavity_dist**delta
+                else:
+                    factor_dist = self / cavity_dist
 
             for m in caught_warnings.messages:
                 messages += (f"project_mean_field warning: {m}",)

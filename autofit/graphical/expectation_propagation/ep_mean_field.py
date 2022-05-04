@@ -93,10 +93,10 @@ class EPMeanField(FactorGraph):
             mean_field_size = VariableData.prod(plate_sizes)
             subset_size = VariableData.prod(VariableData.plate_sizes(mean_field_subset))
             scale_factor = subset_size / mean_field_size
-            factor_mean_field_rescale[subset_factor] = {
+            factor_mean_field_rescale[subset_factor] = VariableData({
                 v: scale_factor * mean_field[v].size / message.size
                 for v, message in mean_field_subset.items()
-            }
+            })
 
         subset_factor_graph = FactorGraph(factor_subset_factor.values())
         return EPMeanFieldSubset(
@@ -416,7 +416,7 @@ class EPMeanFieldSubset(EPMeanField):
 
     def project_mean_field(
         self,
-        new_dist: MeanField,
+        new_model_dist: MeanField,
         factor_approx: FactorApproximation,
         delta: float = 1.0,
         status: Status = Status(),
@@ -432,14 +432,27 @@ class EPMeanFieldSubset(EPMeanField):
         last_factor_dist = factor_mean_field.pop(factor_approx.factor)
         subset_cavity_dist = last_factor_dist.rescale(rescale1)
         
-        new_factor_dist, status = new_dist.update_factor_mean_field(
-            factor_approx.cavity_dist,
-            factor_approx.factor_dist,
-            delta=delta,
-            status=status,
-        )
-        factor_mean_field[factor_approx.factor] = new_factor_dist  * subset_cavity_dist
-
+        if delta < 1:
+            # This is a more stable update that effectively performs an
+            # Exponential moving average of the natural parameters of the
+            # factor message with delta as the EMA coefficient
+            factor_mean_field[factor_approx.factor], status = (
+                new_model_dist * subset_cavity_dist
+            ).update_factor_mean_field(
+                factor_approx.cavity_dist,
+                factor_approx.factor_dist * subset_cavity_dist,
+                delta=delta,
+                status=status,
+            )
+        else:
+            new_factor_dist, status = new_model_dist.update_factor_mean_field(
+                factor_approx.cavity_dist,
+                factor_approx.factor_dist,
+                delta=delta,
+                status=status,
+            )
+            factor_mean_field[factor_approx.factor] = new_factor_dist  * subset_cavity_dist
+            
         new_approx = type(self)(
             factor_graph=self._factor_graph,
             factor_mean_field=factor_mean_field,
@@ -472,6 +485,8 @@ class EPMeanFieldSubset(EPMeanField):
         An object comprising distributions with a specific distribution excluding
         that factor
         """
+        factor = self._factor_subset_factor.get(factor, factor)
+
         factor_mean_field = self._factor_mean_field.copy()
 
         factor_dist = factor_mean_field.pop(factor)
@@ -485,8 +500,8 @@ class EPMeanFieldSubset(EPMeanField):
         factor_dist = dict(factor_dist)
         for v, scale in self._factor_rescale[factor].items():
             if scale < 1:
-                factor_dist[v] = factor_dist[v] ** scale
                 cavity_dist[v] = cavity_dist[v] * factor_dist[v] ** (1 - scale)
+                factor_dist[v] = factor_dist[v] ** scale
 
         return FactorApproximation(
             factor, MeanField(cavity_dist), MeanField(factor_dist), model_dist
