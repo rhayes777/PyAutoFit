@@ -13,8 +13,8 @@ epsilon = 1e-14
 
 def ndtri(x):
     x = np.array(x, dtype=np.float)
-    x[x <= 0] = epsilon
-    x[x >= 1] = 1 - epsilon
+    x[(x <= 0) & (x >= -epsilon)] = epsilon
+    x[(x >= 1) & (x <= 1 + epsilon)] = 1 - epsilon
     return ndtri_(x)
 
 

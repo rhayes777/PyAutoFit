@@ -89,7 +89,7 @@ def test_uniform_normal(x):
 
     assert message.pdf(0.9) == pytest.approx(0)
     assert message.pdf(3.2) == pytest.approx(0)
-    assert message.pdf(1.5) > pytest.approx(0)
+    assert message.pdf(1.5) > 0
 
 
 @pytest.mark.parametrize(
