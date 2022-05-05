@@ -73,7 +73,7 @@ def test_stochastic_linear_regression():
     np.random.seed(2)
     params = [
         (50, 10, False, 1), 
-        (20, 50, True, 1), 
+        (30, 50, True, 1), 
         (5, 50, False, 0.5), 
     ]
     for n_batch, n_iters, inplace, delta in params:
