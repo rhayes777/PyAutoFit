@@ -28,7 +28,7 @@ def make_dynesty():
 
 
 def test_default(factor_model, laplace):
-    model = factor_model.optimise(laplace)
+    model = factor_model.optimise(laplace).model[0]
 
     assert model.centre.mean == pytest.approx(50, rel=0.1)
     assert model.normalization.mean == pytest.approx(25, rel=0.1)

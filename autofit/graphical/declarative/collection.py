@@ -24,6 +24,7 @@ class FactorGraphModel(AbstractDeclarativeFactor):
         Parameters
         ----------
         model_factors
+            Factors which are hierarchical or associated with a specific analysis
         """
         self._model_factors = list(model_factors)
         self._name = name or namer(self.__class__.__name__)

@@ -3,7 +3,7 @@ from typing import Optional
 
 from autofit.graphical.expectation_propagation import AbstractFactorOptimiser
 from autofit.graphical.factor_graphs.factor import FactorKW
-from autofit.mapper.prior_model.prior_model import PriorModel, AbstractPriorModel
+from autofit.mapper.prior_model.prior_model import AbstractPriorModel
 from autofit.text.formatter import TextFormatter
 from autofit.tools.namer import namer
 from ..abstract import AbstractDeclarativeFactor
@@ -74,18 +74,3 @@ class AbstractModelFactor(FactorKW, AbstractDeclarativeFactor, ABC):
         for path, prior in updated_model.path_priors_tuples:
             formatter.add(path, prior.mean)
         return f"{self.name}\n\n{formatter.text}"
-
-    def optimise(self, optimiser, **kwargs) -> PriorModel:
-        """
-        Optimise this factor on its own returning a PriorModel
-        representing the final state of the messages.
-
-        Parameters
-        ----------
-        optimiser
-
-        Returns
-        -------
-        A PriorModel representing the optimised factor
-        """
-        return super().optimise(optimiser, **kwargs).model[0]

@@ -1,18 +1,19 @@
-import collections
+import logging
+import warnings
+from collections import abc
 from enum import Enum
 from functools import reduce
 from operator import mul
 from typing import Iterable, Tuple, TypeVar, Dict, NamedTuple, Optional, Union
-import warnings
-import logging
 
 import numpy as np
 import six
 from scipy.linalg import block_diag
 from scipy.optimize import OptimizeResult
-from collections import abc
 
 from autofit.mapper.variable import Variable, VariableData
+from autofit.non_linear.result import Result
+
 
 def try_getitem(value, index, default=None):
     try:
@@ -20,12 +21,13 @@ def try_getitem(value, index, default=None):
     except TypeError:
         return default
 
+
 class LogWarnings(warnings.catch_warnings):
     def __init__(self, *, module=None, messages=None, action=None, logger=logging.warning):
         super().__init__(record=True, module=module)
         self.messages = [] if messages is None else messages
         self.log = []
-        self.action = action 
+        self.action = action
         self.logger = logger
 
     def log_warning(self, warn):
@@ -41,7 +43,7 @@ class LogWarnings(warnings.catch_warnings):
             warnings.simplefilter(self.action)
 
         return self
-        
+
 
 def is_variable(v, *args):
     return isinstance(v, Variable)
@@ -144,11 +146,29 @@ class StatusFlag(Enum):
         return cls.FAILURE
 
 
-class Status(NamedTuple):
+class Status:
     success: bool = True
     messages: Tuple[str, ...] = ()
     updated: bool = True
     flag: StatusFlag = StatusFlag.SUCCESS
+    result: Optional[Result] = None
+
+    def __init__(
+            self,
+            success: bool = True,
+            messages: Tuple[str, ...] = (),
+            updated: bool = True,
+            flag: StatusFlag = StatusFlag.SUCCESS,
+            result: Optional[Result] = None,
+    ):
+        self.success = success
+        self.messages = messages
+        self.updated = updated
+        self.flag = flag
+        self.result = result
+
+    def __iter__(self):
+        return iter((self.success, self.messages, self.updated, self.flag))
 
     def __bool__(self):
         return self.success
@@ -157,6 +177,14 @@ class Status(NamedTuple):
         if self.success:
             return "Optimisation succeeded"
         return f"Optimisation failed: {self.messages}"
+
+    def _asdict(self):
+        return dict(
+            success=self.success,
+            messages=self.messages,
+            updated=self.updated,
+            flag=self.flag,
+        )
 
 
 class FlattenArrays(dict):
@@ -270,17 +298,18 @@ first index.
     x_shuffled = rng.permutation(x)
     tot = len(x_shuffled)
 
-    i = 0 
+    i = 0
     stop = tot - n + 1
     iters = iter(int, 1) if n_iters is None else range(n_iters)
     for j in iters:
         if i < stop:
-            yield x_shuffled[i : i + n]
+            yield x_shuffled[i: i + n]
             i += n
         else:
             x_shuffled = np.r_[x_shuffled[i:], rng.permutation(x_shuffled[:i])]
             yield x_shuffled[:n]
             i = n
+
 
 def gen_dict(dict_gen):
     """
@@ -415,7 +444,7 @@ def aggregate(array: np.ndarray, axis: Axis = None, **kwargs) -> np.ndarray:
     """
     if axis is False:
         return array
-        
+
     return np.sum(array, axis=axis, **kwargs)
 
 

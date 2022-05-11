@@ -1,3 +1,4 @@
+import functools
 import logging
 from functools import wraps
 from itertools import repeat
@@ -7,6 +8,7 @@ import numpy as np
 
 from autofit.graphical.factor_graphs.factor import Factor
 from autofit.graphical.utils import Status
+from autofit.non_linear.result import Result
 from .ep_mean_field import EPMeanField
 from ... import exc
 
@@ -31,6 +33,19 @@ def default_inf(func):
             return float("inf")
 
     return wrapper
+
+
+def history_exception(func):
+    @functools.wraps(func)
+    def decorator(self):
+        try:
+            return func(self)
+        except IndexError as e:
+            raise exc.HistoryException(
+                f"There have been no successful optimisations for factor {self.factor}"
+            ) from e
+
+    return decorator
 
 
 class FactorHistory:
@@ -67,28 +82,28 @@ class FactorHistory:
         return [approx for approx, success in self.history if success]
 
     @property
+    @history_exception
+    def latest_result(self) -> Result:
+        """
+        The latest successful optimisation result for the factor.
+        """
+        return [status.result for _, status in self.history if status][0]
+
+    @property
+    @history_exception
     def latest_successful(self) -> EPMeanField:
         """
         A mean field for the last successful optimisation
         """
-        try:
-            return self.successes[-1]
-        except IndexError as e:
-            raise exc.HistoryException(
-                f"There have been no successful optimisations for factor {self.factor}"
-            ) from e
+        return self.successes[-1]
 
     @property
+    @history_exception
     def previous_successful(self) -> EPMeanField:
         """
         A mean field for the last-but-one successful optimisation
         """
-        try:
-            return self.successes[-2]
-        except IndexError:
-            raise exc.HistoryException(
-                f"There have been one or no successful optimisations for factor {self.factor}"
-            )
+        return self.successes[-2]
 
     @property
     def updates(self) -> List[EPMeanField]:
@@ -98,28 +113,20 @@ class FactorHistory:
         return [approx for approx, status in self.history if status.updated]
 
     @property
+    @history_exception
     def latest_update(self) -> EPMeanField:
         """
         Last updated mean field
         """
-        try:
-            return self.updates[-1]
-        except IndexError as e:
-            raise exc.HistoryException(
-                f"There have been no successful optimisations for factor {self.factor}"
-            ) from e
+        return self.updates[-1]
 
     @property
+    @history_exception
     def previous_update(self) -> EPMeanField:
         """
         Last-but-one updated mean field
         """
-        try:
-            return self.updates[-2]
-        except IndexError:
-            raise exc.HistoryException(
-                f"There have been one or no successful optimisations for factor {self.factor}"
-            )
+        return self.updates[-2]
 
     @default_inf
     def kl_divergence(self) -> Union[float, np.ndarray]:
