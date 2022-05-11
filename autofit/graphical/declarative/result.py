@@ -55,6 +55,14 @@ class EPResult:
         )
 
     @property
+    def latest_results(self):
+        return [
+            self.ep_history[factor].latest_result
+            for factor
+            in self.declarative_factor.model_factors
+        ]
+
+    @property
     def instance(self):
         """
         The median instance taken from the updated model
