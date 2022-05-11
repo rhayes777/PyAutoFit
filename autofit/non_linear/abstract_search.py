@@ -738,8 +738,8 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         An implementation of a multiprocessing pool
         """
         self.logger.warning(
-            "...using SneakyPool. This copies the likelihood function"
-            "to each process on instantiation to avoid copying multiple"
+            "...using SneakyPool. This copies the likelihood function "
+            "to each process on instantiation to avoid copying multiple "
             "times."
         )
         return SneakyPool(
