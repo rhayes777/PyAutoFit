@@ -233,6 +233,7 @@ class Factor(AbstractFactor):
         kws["eps"] = self.eps
         kws["factor_out"] = self.factor_out
         kws["plates"] = self.plates
+        kws["arg_names"] = self.arg_names
 
         return Factor(subset_factor, *self.args, **kws)
 

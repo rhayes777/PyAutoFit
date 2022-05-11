@@ -32,6 +32,7 @@ class LaplaceOptimiser(AbstractFactorOptimiser):
             line_search_kws: Optional[Dict[str, Any]] = None,
             quasi_newton_kws: Optional[Dict[str, Any]] = None,
             stop_kws: Optional[Dict[str, Any]] = None,
+            check_limits=True, 
             **kwargs
     ):
         super().__init__(**kwargs)
@@ -52,6 +53,7 @@ class LaplaceOptimiser(AbstractFactorOptimiser):
         self.line_search_kws = line_search_kws or {}
         self.quasi_newton_kws = quasi_newton_kws or {}
         self.stop_kws = stop_kws or {}
+        self.check_limits = check_limits
 
     @property
     def default_kws(self):
@@ -90,14 +92,18 @@ class LaplaceOptimiser(AbstractFactorOptimiser):
         else:
             det_hessian = None
 
+        kws = {}
+        if self.check_limits:
+            kws['upper_limit'] = MeanField.upper_limit.fget(mean_field)
+            kws['lower_limit'] = MeanField.lower_limit.fget(mean_field)
+
         return newton.OptimisationState(
             factor_approx,
             factor_approx.func_gradient,
             parameters.subset(free_variables),
             hessian,
             det_hessian,
-            lower_limit=MeanField.lower_limit.fget(mean_field),
-            upper_limit=MeanField.upper_limit.fget(mean_field),
+            **kws
         )
 
     def optimise_state(
