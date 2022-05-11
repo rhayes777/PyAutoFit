@@ -53,6 +53,22 @@ class CombinedAnalysis(Analysis):
             "n_cores"
         ]
 
+    def __getstate__(self):
+        return {
+            "analyses": self.analyses,
+            "_n_cores": self._n_cores,
+            "_log_likelihood_function": self._log_likelihood_function,
+        }
+
+    def __setstate__(self, state):
+        n_cores = state.pop(
+            "_n_cores"
+        )
+        self.__dict__.update(
+            state
+        )
+        self.n_cores = n_cores
+
     @property
     def n_cores(self):
         return self._n_cores
