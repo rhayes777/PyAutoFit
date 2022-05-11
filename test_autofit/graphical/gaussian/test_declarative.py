@@ -132,7 +132,7 @@ def test_gaussian():
     factor_model = ep.AnalysisFactor(prior_model, analysis=Analysis(x=x, y=y))
 
     laplace = ep.LaplaceOptimiser()
-    model = factor_model.optimise(laplace)
+    model = factor_model.optimise(laplace).model[0]
 
     assert model.centre.mean == pytest.approx(50, rel=0.1)
     assert model.normalization.mean == pytest.approx(25, rel=0.1)

@@ -35,7 +35,7 @@ def test_hierarchical_factor(centre_model):
 
     laplace = g.LaplaceOptimiser()
 
-    gaussian = factor.optimise(laplace, max_steps=10)
+    gaussian = factor.optimise(laplace, max_steps=10).model[0]
     assert gaussian.instance_from_prior_medians().drawn_prior.mean() == pytest.approx(
         100, abs=1
     )
@@ -80,7 +80,7 @@ def test_model_factor(data, centres):
     factor = g.AnalysisFactor(prior_model, analysis=Analysis(x=x, y=y))
     laplace = g.LaplaceOptimiser()
 
-    gaussian = factor.optimise(laplace, max_steps=10)
+    gaussian = factor.optimise(laplace, max_steps=10).model[0]
     assert gaussian.centre.mean == pytest.approx(centres[0], abs=0.1)
 
 

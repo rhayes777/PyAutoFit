@@ -75,7 +75,7 @@ def test_trivial():
 
     optimiser = ep.LaplaceOptimiser()
     # optimiser = af.DynestyStatic()
-    model = factor_model.optimise(optimiser)
+    model = factor_model.optimise(optimiser).model[0]
 
     assert model.value.mean == pytest.approx(14, rel=0.1)
 
