@@ -84,6 +84,9 @@ class FactorHistory:
     @property
     @history_exception
     def latest_result(self) -> Result:
+        """
+        The latest successful optimisation result for the factor.
+        """
         return [status.result for _, status in self.history if status][0]
 
     @property

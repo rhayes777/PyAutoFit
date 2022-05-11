@@ -1,6 +1,9 @@
+from typing import List
+
 from autofit.graphical.expectation_propagation import EPHistory
 from autofit.graphical.expectation_propagation.ep_mean_field import EPMeanField
 from autofit.mapper.prior_model.collection import CollectionPriorModel
+from autofit.non_linear.result import Result
 
 
 class EPResult:
@@ -55,7 +58,10 @@ class EPResult:
         )
 
     @property
-    def latest_results(self):
+    def latest_results(self) -> List[Result]:
+        """
+        A list of results for all analysis and hierarchical factors.
+        """
         return [
             self.ep_history[factor].latest_result
             for factor
