@@ -12,7 +12,7 @@ the installation has clean dependencies):
 
 .. code-block:: bash
 
-    pip install autofit==2022.03.30.1
+    pip install autofit==2022.05.02.1
 
 If this raises no errors **PyAutoFit** is installed! If there is an error check out
 the `troubleshooting section <https://pyautofit.readthedocs.io/en/latest/installation/troubleshooting.html>`_.

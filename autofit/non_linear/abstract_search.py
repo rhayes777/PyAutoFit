@@ -250,16 +250,19 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                 (AnalysisFactor, PriorFactor, _HierarchicalFactor)
         ):
             raise NotImplementedError(
-                f"Optimizer {self.__class__.__name__} can only be applied to AnalysisFactors and PriorFactors"
+                f"Optimizer {self.__class__.__name__} can only be applied to"
+                f" AnalysisFactors, HierarchicalFactors and PriorFactors"
             )
 
         factor_approx = model_approx.factor_approximation(
             factor
         )
 
-        model = factor.prior_model.mapper_from_prior_arguments(
-            factor_approx.cavity_dist.arguments
-        )
+        model = factor.prior_model.mapper_from_prior_arguments({
+            prior: prior.with_message(message)
+            for prior, message
+            in factor_approx.cavity_dist.arguments.items()
+        })
 
         analysis = factor.analysis
 
@@ -381,7 +384,8 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             return log_likelihood + sum(log_prior_list)
 
         def figure_of_merit_from(self, parameter_list):
-            """The figure of merit is the value that the `NonLinearSearch` uses to sample parameter space. This varies
+            """
+            The figure of merit is the value that the `NonLinearSearch` uses to sample parameter space. This varies
             between different `NonLinearSearch`s, for example:
 
                 - The *Optimizer* *PySwarms* uses the chi-squared value, which is the -2.0*log_posterior.
@@ -485,7 +489,9 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
             self.timer.start()
 
+            model.freeze()
             self._fit(model=model, analysis=analysis, log_likelihood_cap=log_likelihood_cap)
+            model.unfreeze()
 
             self.paths.completed()
 

@@ -14,4 +14,10 @@ SQLAlchemy==1.3.20
 scipy>=1.5.1
 zeus-mcmc==2.3.0
 astunparse==1.6.3
-autoconf==2022.03.30.1
+autoconf==2022.05.02.1
+sphinx==4.0.0
+furo
+myst-parser
+sphinx_copybutton
+sphinx_design
+sphinx_inline_tabs

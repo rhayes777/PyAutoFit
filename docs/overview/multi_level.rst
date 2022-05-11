@@ -53,7 +53,7 @@ Model Example
 To model the light of a galaxy, we define a ``LightProfile`` as a Python class, which behaves in the same way as
 the ``Gaussian`` used in other **PyAutoFit** tutorials:
 
-.. code-block:: bash
+.. code-block:: python
 
     class LightProfile:
 
@@ -89,7 +89,7 @@ composition with **PyAutoFit**.
 
 We also define a ``MassProfile``:
 
-.. code-block:: bash
+.. code-block:: python
 
     class MassProfile:
         def __init__(
@@ -120,7 +120,7 @@ We have again omitted the code which computes how this mass profile deflects the
 We now define a ``Galaxy`` object, which contains instances of light and mass profiles and its redshift (e.g. distance 
 from Earth):
 
-.. code-block:: bash
+.. code-block:: python
 
     class Galaxy:
 
@@ -158,7 +158,7 @@ from Earth):
 If we were not composing a model, the code below shows how one would create an instance of the foreground lens galaxy,
 which in the image above contains a light and mass profile:
 
-.. code-block:: bash
+.. code-block:: python
 
     light = LightProfile(centre=(0.0, 0.0), normalization=10.0, radius=2.0)
     mass = MassProfile(centre=(0.0, 0.0), mass=0.5)
@@ -175,7 +175,7 @@ We can compose a multi-level model using this same hierarchy of classes, using t
 
 Lets first create a model of the lens galaxy:
 
-.. code-block:: bash
+.. code-block:: python
 
     light = af.Model(LightProfile)
     mass = af.Model(MassProfile)
@@ -200,7 +200,7 @@ Lets consider what the code above is doing:
 We can confirm this by printing the ``prior_count`` of the lens, and noting it is 7 (4 parameters for
 the ``LightProfile`` and 3 for the ``MassProfile``).
 
-.. code-block:: bash
+.. code-block:: python
 
     print(lens.prior_count)
     print(lens.light_profile_list[0].prior_count)
@@ -213,7 +213,7 @@ individual parameters to customize the model, where below we:
  2) Customize the prior on the light profile ``one``.
  3) Fix the ``one`` of the mass profile to 0.8.
 
-.. code-block:: bash
+.. code-block:: python
 
     lens.light_profile_list[0].centre = lens.mass_profile_list[0].centre
     lens.light_profile_list[0].one = af.UniformPrior(lower_limit=0.7, upper_limit=0.9)
@@ -221,7 +221,7 @@ individual parameters to customize the model, where below we:
 
 We can now create a model of our source galaxy using the same API.
 
-.. code-block:: bash
+.. code-block:: python
 
     source = af.Model(
         astro.Galaxy,
@@ -231,7 +231,7 @@ We can now create a model of our source galaxy using the same API.
 
 We can now create our overall strong lens model, using a ``Collection`` in the same way we have seen previously. 
 
-.. code-block:: bash
+.. code-block:: python
 
     model = af.Collection(galaxies=af.Collection(lens=lens, source=source))
 
@@ -242,7 +242,7 @@ For every iteration of the non-linear search **PyAutoFit** generates an instance
 
 An example instance is show below:
 
-.. code-block:: bash
+.. code-block:: python
 
     instance = model.instance_from_prior_medians()
 
@@ -281,7 +281,7 @@ However, despite it being a significantly more complex system than the single-ga
 our use of graphical models ensures that we can model such datasets without any additional code development, for
 example:
 
-.. code-block:: bash
+.. code-block:: python
 
     lens_0 = af.Model(
         Galaxy,

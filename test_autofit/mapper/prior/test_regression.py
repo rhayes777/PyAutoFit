@@ -12,7 +12,7 @@ def make_prior():
         sigma=2,
         lower_limit=3,
         upper_limit=4
-    )
+    ).message
 
 
 def test_copy_limits(prior):
@@ -29,9 +29,3 @@ def test_multiply_limits(prior):
     multiplied = 1 * prior
     assert prior.lower_limit == multiplied.lower_limit
     assert prior.upper_limit == multiplied.upper_limit
-
-
-def test_divide_prior(prior):
-    divided = prior / prior
-    assert prior.lower_limit == divided.lower_limit
-    assert prior.upper_limit == divided.upper_limit

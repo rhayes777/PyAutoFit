@@ -16,8 +16,8 @@ from autofit.messages.transform import log_10_transform
 def make_prior():
     return af.GaussianPrior(
         mean=1,
-        sigma=2
-    )
+        sigma=2,
+    ).message
 
 
 def test():
@@ -87,8 +87,8 @@ def test_uniform_normal(x):
         sigma=1.0
     )
 
-    assert message.pdf(0.9) == 0
-    assert message.pdf(3.2) == 0
+    assert message.pdf(0.9) == pytest.approx(0)
+    assert message.pdf(3.2) == pytest.approx(0)
     assert message.pdf(1.5) > 0
 
 
@@ -116,7 +116,8 @@ def test_uniform_prior(
         lower_limit=lower_limit,
         upper_limit=upper_limit,
     ).value_for(
-        unit_value
+        unit_value,
+        ignore_prior_limits=True
     ) == pytest.approx(
         physical_value
     )
@@ -175,8 +176,8 @@ def make_uniform_prior():
     return af.UniformPrior(
         lower_limit=10,
         upper_limit=20,
-        id_=1
-    )
+        id_=1,
+    ).message
 
 
 def test_prior_arithmetic(
@@ -189,6 +190,7 @@ def test_prior_arithmetic(
     divided_value = divided.value_for(0.3)
     uniform_prior_value = uniform_prior.value_for(0.3)
 
+    assert multiplied_value != uniform_prior_value
     assert multiplied_value != divided_value
     assert divided_value == uniform_prior_value
 

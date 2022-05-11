@@ -17,7 +17,7 @@ from autofit.mapper import model
 from autofit.mapper.model import AbstractModel, frozen_cache
 from autofit.mapper.prior.abstract import Prior
 from autofit.mapper.prior.deferred import DeferredArgument
-from autofit.mapper.prior.prior import Limits, GaussianPrior
+from autofit.mapper.prior import GaussianPrior
 from autofit.mapper.prior.tuple_prior import TuplePrior
 from autofit.mapper.prior.width_modifier import WidthModifier
 from autofit.mapper.prior_model.attribute_pair import DeferredNameValue
@@ -31,6 +31,15 @@ from autofit.tools.util import split_paths
 logger = logging.getLogger(
     __name__
 )
+
+
+class Limits:
+    @staticmethod
+    def for_class_and_attributes_name(cls, attribute_name):
+        limit_dict = conf.instance.prior_config.for_class_and_suffix_path(
+            cls, [attribute_name, "gaussian_limits"]
+        )
+        return limit_dict["lower"], limit_dict["upper"]
 
 
 def check_assertions(func):
@@ -51,9 +60,10 @@ def check_assertions(func):
                 in failed_assertions
                 if hasattr(assertion, "name") and assertion.name is not None
             ])
-            raise exc.FitException(
-                f"{number_of_failed_assertions} assertions failed!\n{name_string}"
-            )
+            if not conf.instance["general"]["test"]["exception_override"]:
+                raise exc.FitException(
+                    f"{number_of_failed_assertions} assertions failed!\n{name_string}"
+                )
 
         return func(s, arguments)
 
@@ -486,7 +496,7 @@ class AbstractPriorModel(AbstractModel):
             except AttributeError:
                 pass
 
-    def instance_from_unit_vector(self, unit_vector, assert_priors_in_limits=True):
+    def instance_from_unit_vector(self, unit_vector, ignore_prior_limits=False):
         """
         Returns a ModelInstance, which has an attribute and class instance corresponding
         to every `PriorModel` attributed to this instance.
@@ -494,8 +504,8 @@ class AbstractPriorModel(AbstractModel):
         physical values via their priors.
         Parameters
         ----------
-        assert_priors_in_limits
-            If true then an exception is thrown if priors fall outside defined limits
+        ignore_prior_limits
+            If true then no exception is thrown if priors fall outside defined limits
         unit_vector: [float]
             A unit hypercube vector that is mapped to an instance of physical values via the priors.
         Returns
@@ -529,7 +539,10 @@ class AbstractPriorModel(AbstractModel):
             map(
                 lambda prior_tuple, unit: (
                     prior_tuple.prior,
-                    prior_tuple.prior.value_for(unit),
+                    prior_tuple.prior.value_for(
+                        unit,
+                        ignore_prior_limits=ignore_prior_limits,
+                    ),
                 ),
                 self.prior_tuples_ordered_by_id,
                 unit_vector,
@@ -557,6 +570,7 @@ class AbstractPriorModel(AbstractModel):
 
     @property
     @cast_collection(PriorNameValue)
+    @frozen_cache
     def prior_tuples_ordered_by_id(self):
         """
         Returns
@@ -1285,6 +1299,9 @@ class AbstractPriorModel(AbstractModel):
         return self.id
 
     def __add__(self, other):
+        if isinstance(other, Prior):
+            return other + self
+
         result = copy.deepcopy(self)
 
         for key, value in other.__dict__.items():

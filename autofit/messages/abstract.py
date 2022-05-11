@@ -1,7 +1,9 @@
+import math
 from abc import ABC, abstractmethod
 from copy import copy
 from functools import reduce
 from inspect import getfullargspec
+from itertools import count
 from numbers import Real
 from operator import and_
 from typing import Dict, Tuple, Iterator
@@ -10,7 +12,6 @@ from typing import Optional, Union, Type, List
 import numpy as np
 
 from autoconf import cached_property
-from autofit.mapper.prior.abstract import Prior
 from .transform import AbstractDensityTransform, LinearShiftTransform
 from ..mapper.variable import Variable
 
@@ -26,7 +27,7 @@ def update_array(arr1, ind, arr2):
     return arr2
 
 
-class AbstractMessage(Prior, ABC):
+class AbstractMessage(ABC):
     log_base_measure: float
     _Base_class: Optional[Type["AbstractMessage"]] = None
     _projection_class: Optional[Type["AbstractMessage"]] = None
@@ -34,8 +35,19 @@ class AbstractMessage(Prior, ABC):
     _parameter_support: Optional[Tuple[Tuple[float, float], ...]] = None
     _support: Optional[Tuple[Tuple[float, float], ...]] = None
 
-    def __init__(self, *parameters: Union[np.ndarray, float], log_norm=0.0, **kwargs):
-        super().__init__(**kwargs)
+    ids = count()
+
+    def __init__(
+            self,
+            *parameters: Union[np.ndarray, float],
+            log_norm=0.0,
+            lower_limit=-math.inf,
+            upper_limit=math.inf,
+            id_=None
+    ):
+        self.lower_limit = lower_limit
+        self.upper_limit = upper_limit
+        self.id = next(self.ids) if id_ is None else id_
         self.log_norm = log_norm
         self._broadcast = np.broadcast(*parameters)
 
@@ -43,6 +55,9 @@ class AbstractMessage(Prior, ABC):
             self.parameters = tuple(np.asanyarray(p) for p in parameters)
         else:
             self.parameters = tuple(parameters)
+
+    def __eq__(self, other):
+        return self.id == other.id
 
     def copy(self):
         cls = self._Base_class or type(self)
@@ -212,7 +227,7 @@ class AbstractMessage(Prior, ABC):
     _divide = sub_natural_parameters
 
     def __mul__(self, other: Union["AbstractMessage", Real]) -> "AbstractMessage":
-        if isinstance(other, Prior):
+        if isinstance(other, AbstractMessage):
             return self._multiply(other)
         else:
             cls = self._Base_class or type(self)
@@ -229,7 +244,7 @@ class AbstractMessage(Prior, ABC):
         return self * other
 
     def __truediv__(self, other: Union["AbstractMessage", Real]) -> "AbstractMessage":
-        if isinstance(other, Prior):
+        if isinstance(other, AbstractMessage):
             return self._divide(other)
         else:
             cls = self._Base_class or type(self)
@@ -449,10 +464,14 @@ class AbstractMessage(Prior, ABC):
 
         return log_norm
 
+    def instance(self):
+        return self
+
     @staticmethod
     def _iter_dists(dists) -> Iterator[Union["AbstractMessage", float]]:
         for elem in dists:
-            if isinstance(elem, Prior):
+            from autofit.mapper.prior.wrapped_instance import WrappedInstance
+            if isinstance(elem, (AbstractMessage, WrappedInstance)):
                 yield elem
             elif np.isscalar(elem):
                 yield elem

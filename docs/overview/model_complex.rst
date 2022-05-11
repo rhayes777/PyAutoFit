@@ -21,7 +21,7 @@ Model Composition
 
 we again define our 1D ``Gaussian`` profile as a *model component* in **PyAutoFit**:
 
-.. code-block:: bash
+.. code-block:: python
 
     class Gaussian:
         def __init__(
@@ -35,7 +35,7 @@ we again define our 1D ``Gaussian`` profile as a *model component* in **PyAutoFi
             self.normalization = normalization
             self.sigma = sigma
 
-        def profile_1d_via_xvalues_from(self, xvalues):
+        def model_data_1d_via_xvalues_from(self, xvalues):
 
             transformed_xvalues = xvalues - self.centre
 
@@ -46,7 +46,7 @@ we again define our 1D ``Gaussian`` profile as a *model component* in **PyAutoFi
 
 Now lets define a new *model component*, a 1D ``Exponential``, using the same Python class format:
 
-.. code-block:: bash
+.. code-block:: python
 
     class Exponential:
         def __init__(
@@ -60,7 +60,7 @@ Now lets define a new *model component*, a 1D ``Exponential``, using the same Py
             self.normalization = normalization
             self.rate = rate
 
-        def profile_1d_via_xvalues_from(self, xvalues):
+        def model_data_1d_via_xvalues_from(self, xvalues):
 
             transformed_xvalues = xvalues - self.centre
 
@@ -71,7 +71,7 @@ Now lets define a new *model component*, a 1D ``Exponential``, using the same Py
 We are now fitting multiple *model components*, therefore we create each component using the ``Model`` object we
 used in the previous tutorial and put them together in a ``Collection`` to build the overall model.
 
-.. code-block:: bash
+.. code-block:: python
 
     gaussian = af.Model(Gaussian)
     exponential = af.Model(Exponential)
@@ -90,7 +90,7 @@ The *model components* given to the ``Collection`` were also given names, in thi
 
 You are free to choose whichever names you want;  the names are used to pass the ``instance`` to the ``Analysis`` class:
 
-.. code-block:: bash
+.. code-block:: python
 
     class Analysis(af.Analysis):
 
@@ -122,25 +122,27 @@ You are free to choose whichever names you want;  the names are used to pass the
 
             """
             Get the range of x-values the data is defined on, to evaluate the model of the
-            line profiles.
+            1D profiles.
             """
 
             xvalues = np.arange(self.data.shape[0])
 
             """
             The instance variable is a list of our model components. We can iterate over
-            this list, calling their profile_1d_via_xvalues_from and summing the result to compute
-            the summed line profile of our model.
+            this list, calling their model_data_1d_via_xvalues_from and summing the result to compute
+            the summed 1D model data of the 1D profiles in our model.
             """
 
-            model_data = sum([line.profile_1d_via_xvalues_from(xvalues=xvalues) for line in instance])
+            model_data_1d = sum([
+                profile_1d.model_data_1d_via_xvalues_from(xvalues=xvalues) for profile_1d in instance
+            ])
 
             """
-            Fit the model line profile data to the observed data, computing the residuals and
+            Fit the 1D model data to the observed data, computing the residuals and
             chi-squared.
             """
 
-            residual_map = self.data - model_data
+            residual_map = self.data - model_data_1d
             chi_squared_map = (residual_map / self.noise_map) ** 2.0
             log_likelihood = -0.5 * sum(chi_squared_map)
 
@@ -153,7 +155,7 @@ Performing the *model-fit* uses the same steps as the previous example, whereby 
 ``Collection``), instantiate the ``Analysis`` and pass them a non-linear search. In this example, we'll use
 the nested sampling algorithm ``dynesty``, using the ``DynestyStatic`` sampler.
 
-.. code-block:: bash
+.. code-block:: python
 
     model = af.Collection(gaussian=Gaussian, exponential=Exponential)
 
@@ -169,7 +171,7 @@ Model Priors
 Now, lets consider how we *customize* the models that we *compose*. To begin, lets *compose* a model using a single
 ``Gaussian`` with the ``Model`` object:
 
-.. code-block:: bash
+.. code-block:: python
 
     gaussian = af.Model(Gaussian)
 
@@ -179,7 +181,7 @@ you can check them out at this `link <https://github.com/Jammy2211/autofit_works
 
 Priors can be manually specified as follows:
 
-.. code-block:: bash
+.. code-block:: python
 
     gaussian.centre = af.UniformPrior(lower_limit=0.0, upper_limit=100.0)
     gaussian.normalization = af.LogUniformPrior(lower_limit=0.0, upper_limit=1e2)
@@ -191,7 +193,7 @@ and ``upper_limit`` on the ``GaussianPrior`` set the physical limits of values o
 
 We can fit this model, with all new priors, using a non-linear search as we did before:
 
-.. code-block:: bash
+.. code-block:: python
 
     analysis = Analysis(data=data, noise_map=noise_map)
 
@@ -203,7 +205,7 @@ We can fit this model, with all new priors, using a non-linear search as we did 
 
 We can *compose* and *customize* the priors of multiple model components as follows:
 
-.. code-block:: bash
+.. code-block:: python
 
     gaussian = af.Model(Gaussian)
     gaussian.normalization = af.UniformPrior(lower_limit=0.0, upper_limit=1e2)
@@ -220,7 +222,7 @@ Model Customization
 
 The model can be *customized* to fix any *parameter* of the model to an input value:
 
-.. code-block:: bash
+.. code-block:: python
 
     gaussian.sigma = 0.5
 
@@ -229,7 +231,7 @@ dimensionality of *non-linear parameter space* by 1.
 
 We can also link two parameters, such that they always share the same value:
 
-.. code-block:: bash
+.. code-block:: python
 
     model.gaussian.centre = model.exponential.centre
 
@@ -239,7 +241,7 @@ the number of free *parameters* by 1.
 Finally, assertions can be made on parameters that remove values that do not meet those assertions
 from *non-linear parameter space*:
 
-.. code-block:: bash
+.. code-block:: python
 
     gaussian.add_assertion(gaussian.sigma > 5.0)
     gaussian.add_assertion(gaussian.normalization > exponential.normalization)

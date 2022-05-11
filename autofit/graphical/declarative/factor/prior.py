@@ -25,6 +25,15 @@ class PriorFactor(FactorKW, Analysis):
         self.label = f"PriorFactor({prior.label})"
 
     @property
+    def _unique_representation(self):
+        return (
+            self.prior,
+            self.arg_names,
+            self.args,
+            self.deterministic_variables,
+        )
+
+    @property
     def prior_model(self) -> CollectionPriorModel:
         """
         A trivial prior model to conform to the expected interface.

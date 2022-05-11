@@ -3,10 +3,19 @@ from functools import wraps
 from typing import Tuple
 
 import numpy as np
-from scipy.special import ndtr, ndtri
+from scipy.special import ndtr, ndtri as ndtri_
 from scipy.stats._continuous_distns import _norm_pdf
 
 from ..mapper.operator import DiagonalMatrix, LinearOperator, ShermanMorrison
+
+epsilon = 1e-14
+
+
+def ndtri(x):
+    x = np.array(x, dtype=np.float)
+    x[(x <= 0) & (x >= -epsilon)] = epsilon
+    x[(x >= 1) & (x <= 1 + epsilon)] = 1 - epsilon
+    return ndtri_(x)
 
 
 def numerical_jacobian(x, func, eps=1e-8, args=(), **kwargs):

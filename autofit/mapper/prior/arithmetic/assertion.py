@@ -1,6 +1,6 @@
 from abc import ABC
 
-from autofit.mapper.prior.compound import CompoundPrior
+from autofit.mapper.prior.arithmetic.compound import CompoundPrior
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 
 
@@ -15,16 +15,16 @@ class ComparisonAssertion(CompoundPrior, ABC):
         self._name = name
 
     def __gt__(self, other):
-        return CompoundAssertion(self, self.left > other)
+        return CompoundAssertion(self, self._left > other)
 
     def __lt__(self, other):
-        return CompoundAssertion(self, self.right < other)
+        return CompoundAssertion(self, self._right < other)
 
     def __ge__(self, other):
-        return CompoundAssertion(self, self.left >= other)
+        return CompoundAssertion(self, self._left >= other)
 
     def __le__(self, other):
-        return CompoundAssertion(self, self.right <= other)
+        return CompoundAssertion(self, self._right <= other)
 
 
 class GreaterThanLessThanAssertion(ComparisonAssertion):

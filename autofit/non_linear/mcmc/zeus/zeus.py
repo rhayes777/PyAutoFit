@@ -109,7 +109,12 @@ class Zeus(AbstractMCMC):
             
             `Zeus` uses the log posterior.
             """
-            return self.log_posterior_from(parameter_list=parameter_list)
+            log_posterior = self.log_posterior_from(parameter_list=parameter_list)
+
+            if np.isnan(log_posterior):
+                return self.resample_figure_of_merit
+
+            return log_posterior
 
     def _fit(self, model: AbstractPriorModel, analysis, log_likelihood_cap=None):
         """

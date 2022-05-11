@@ -115,9 +115,9 @@ class CombinedAnalysis(Analysis):
     ):
         def func(child_paths, analysis):
             analysis.save_results_for_aggregator(
-                child_paths,
-                model,
-                samples
+                paths=child_paths,
+                model=model,
+                samples=samples
             )
 
         self._for_each_analysis(

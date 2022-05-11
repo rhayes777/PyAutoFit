@@ -1,8 +1,5 @@
-import pickle
-import shutil
 from os import path
 
-import numpy as np
 import pytest
 
 import autofit as af
@@ -82,44 +79,3 @@ class TestLabels:
 test_path = path.join(
     "{}".format(path.dirname(path.realpath(__file__))), "files", "phase"
 )
-
-
-class TestMovePickleFiles:
-    def test__move_pickle_files(self):
-
-        search = af.m.MockSearch()
-        search.paths = af.DirectoryPaths(
-            name="pickles",
-            path_prefix=path.join("non_linear", "abstract_search")
-        )
-
-        pickle_paths = [
-            path.join(
-                conf.instance.output_path, "non_linear", "abstract_search", "pickles"
-            )
-        ]
-
-        arr = np.ones((3, 3))
-
-        with open(path.join(pickle_paths[0], "test.pickle"), "wb") as f:
-            pickle.dump(arr, f)
-
-        pickle_paths = [
-            path.join(
-                conf.instance.output_path,
-                "non_linear",
-                "abstract_search",
-                "pickles",
-                "test.pickle",
-            )
-        ]
-
-        search.paths._move_pickle_files(pickle_files=pickle_paths)
-
-        with open(path.join(pickle_paths[0]), "rb") as f:
-            arr_load = pickle.load(f)
-
-        assert (arr == arr_load).all()
-
-        if path.exists(test_path):
-            shutil.rmtree(test_path)

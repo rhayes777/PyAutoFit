@@ -30,21 +30,21 @@ from .mapper.model_mapper import ModelMapper
 from .mapper.model_mapper import ModelMapper as Mapper
 from .mapper.model_object import ModelObject
 from .mapper.operator import DiagonalMatrix
-from .mapper.prior.assertion import ComparisonAssertion
-from .mapper.prior.assertion import ComparisonAssertion
-from .mapper.prior.assertion import GreaterThanLessThanAssertion
-from .mapper.prior.assertion import GreaterThanLessThanEqualAssertion
+from .mapper.prior.arithmetic.assertion import ComparisonAssertion
+from .mapper.prior.arithmetic.assertion import ComparisonAssertion
+from .mapper.prior.arithmetic.assertion import GreaterThanLessThanAssertion
+from .mapper.prior.arithmetic.assertion import GreaterThanLessThanEqualAssertion
 from .mapper.prior.deferred import DeferredArgument
 from .mapper.prior.deferred import DeferredInstance
 from .mapper.prior.width_modifier import AbsoluteWidthModifier
 from .mapper.prior.width_modifier import RelativeWidthModifier
 from .mapper.prior.width_modifier import WidthModifier
-from .mapper.prior.prior import GaussianPrior
-from .mapper.prior.prior import LogGaussianPrior
-from .mapper.prior.prior import LogUniformPrior
+from .mapper.prior import GaussianPrior
+from .mapper.prior import LogGaussianPrior
+from .mapper.prior import LogUniformPrior
 from .mapper.prior.abstract import Prior
 from .mapper.prior.tuple_prior import TuplePrior
-from .mapper.prior.prior import UniformPrior
+from .mapper.prior import UniformPrior
 from .mapper.prior_model.abstract import AbstractPriorModel
 from .mapper.prior_model.annotation import AnnotationPriorModel
 from .mapper.prior_model.attribute_pair import AttributeNameValue
@@ -84,16 +84,16 @@ from .text import samples_text
 from .tools import util
 
 
-from autofit.mapper.prior.compound import SumPrior as Add
-from autofit.mapper.prior.compound import MultiplePrior as Multiply
-from autofit.mapper.prior.compound import DivisionPrior as Divide
-from autofit.mapper.prior.compound import ModPrior as Mod
-from autofit.mapper.prior.compound import PowerPrior as Power
-from autofit.mapper.prior.compound import AbsolutePrior as Abs
+from autofit.mapper.prior.arithmetic.compound import SumPrior as Add
+from autofit.mapper.prior.arithmetic.compound import MultiplePrior as Multiply
+from autofit.mapper.prior.arithmetic.compound import DivisionPrior as Divide
+from autofit.mapper.prior.arithmetic.compound import ModPrior as Mod
+from autofit.mapper.prior.arithmetic.compound import PowerPrior as Power
+from autofit.mapper.prior.arithmetic.compound import AbsolutePrior as Abs
 
 from . import example as ex
 from . import database as db
 
 conf.instance.register(__file__)
 
-__version__ = '2022.03.30.1'
+__version__ = '2022.05.02.1'

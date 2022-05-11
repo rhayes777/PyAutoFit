@@ -2,7 +2,7 @@ import numpy as np
 
 from autofit import exc
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
-from autofit.non_linear.samples import PDFSamples
+from autofit.non_linear.samples import Samples
 
 
 class Placeholder:
@@ -34,7 +34,7 @@ class Result:
     @DynamicAttrs
     """
 
-    def __init__(self, samples: PDFSamples, model, search=None):
+    def __init__(self, samples: Samples, model, search=None):
         """
         The result of a non-linear search, which includes:
 
@@ -113,10 +113,7 @@ class Result:
                         path
                     )
                 ),
-                log_weight_list=weights,
-                id_=prior.id,
-                lower_limit=prior.lower_limit,
-                upper_limit=prior.upper_limit,
+                weights=weights,
             )
             for path, prior
             in self._model.path_priors_tuples
@@ -182,7 +179,7 @@ class Result:
         )
 
     def __getitem__(self, item):
-            return self.child_results[item]
+        return self.child_results[item]
 
     def __iter__(self):
         return iter(self.child_results)

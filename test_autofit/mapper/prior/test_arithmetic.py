@@ -30,7 +30,7 @@ class TestAddition:
         assert sum_prior.instance_from_unit_vector([1.0]) == 2.0
 
 
-class _TestMultiplication:
+class TestMultiplication:
     def test_prior_times_prior(self, prior):
         multiple_prior = (prior + prior) * (prior + prior)
         assert multiple_prior.instance_from_unit_vector([1.0]) == 4
@@ -44,14 +44,14 @@ class _TestMultiplication:
         assert multiple_prior.instance_from_unit_vector([1.0]) == 2.0
 
 
-class _TestDivision:
+class TestDivision:
     def test_prior_over_prior(self, prior):
         division_prior = prior / prior
         assert (
-            division_prior.instance_from_unit_vector(
-                [10.0], assert_priors_in_limits=False
-            )
-            == 1
+                division_prior.instance_from_unit_vector(
+                    [0.5], ignore_prior_limits=True
+                )
+                == 1
         )
 
     def test_prior_over_float(self, prior):
@@ -63,39 +63,49 @@ class _TestDivision:
         assert division_prior.instance_from_unit_vector([0.5]) == 8.0
 
 
-class _TestFloorDiv:
-    def test_prior_over_int(self, prior):
-        division_prior = prior // 2
+@pytest.fixture(
+    name="ten_prior"
+)
+def make_ten_prior():
+    return af.UniformPrior(
+        lower_limit=0.0,
+        upper_limit=10.0
+    )
+
+
+class TestFloorDiv:
+    def test_prior_over_int(self, ten_prior):
+        division_prior = ten_prior // 2
         assert (
-            division_prior.instance_from_unit_vector(
-                [3.0], assert_priors_in_limits=False
-            )
-            == 1.0
+                division_prior.instance_from_unit_vector(
+                    [0.5], ignore_prior_limits=True
+                )
+                == 2.0
         )
 
-    def test_int_over_prior(self, prior):
-        division_prior = 3 // prior
+    def test_int_over_prior(self, ten_prior):
+        division_prior = 3 // ten_prior
         assert (
-            division_prior.instance_from_unit_vector(
-                [2.0], assert_priors_in_limits=False
-            )
-            == 1.0
+                division_prior.instance_from_unit_vector(
+                    [0.2], ignore_prior_limits=True
+                )
+                == 1.0
         )
 
 
-class _TestMod:
-    def test_prior_mod_int(self, prior):
-        mod_prior = prior % 3
+class TestMod:
+    def test_prior_mod_int(self, ten_prior):
+        mod_prior = ten_prior % 3
         assert (
-            mod_prior.instance_from_unit_vector([5.0], assert_priors_in_limits=False)
-            == 2.0
+                mod_prior.instance_from_unit_vector([0.5], ignore_prior_limits=True)
+                == 2.0
         )
 
-    def test_int_mod_prior(self, prior):
-        mod_prior = 5.0 % prior
+    def test_int_mod_prior(self, ten_prior):
+        mod_prior = 5.0 % ten_prior
         assert (
-            mod_prior.instance_from_unit_vector([3.0], assert_priors_in_limits=False)
-            == 2.0
+                mod_prior.instance_from_unit_vector([0.3], ignore_prior_limits=True)
+                == 2.0
         )
 
 
@@ -106,42 +116,39 @@ def test_abs(prior):
     assert prior.instance_from_unit_vector([0.0]) == 1.0
 
 
-class _TestPowers:
-    def test_prior_to_prior(self, prior):
-        power_prior = prior ** prior
+class TestPowers:
+    def test_prior_to_prior(self, ten_prior):
+        power_prior = ten_prior ** ten_prior
         assert (
-            power_prior.instance_from_unit_vector([2.0], assert_priors_in_limits=False)
-            == 4.0
+                power_prior.instance_from_unit_vector([0.2], ignore_prior_limits=True)
+                == 4.0
         )
 
-    def test_prior_to_float(self, prior):
-        power_prior = prior ** 3
+    def test_prior_to_float(self, ten_prior):
+        power_prior = ten_prior ** 3
         assert (
-            power_prior.instance_from_unit_vector([2.0], assert_priors_in_limits=False)
-            == 8.0
+                power_prior.instance_from_unit_vector([0.2], ignore_prior_limits=True)
+                == 8.0
         )
 
-    def test_float_to_prior(self, prior):
-        power_prior = 3.0 ** prior
+    def test_float_to_prior(self, ten_prior):
+        power_prior = 3.0 ** ten_prior
         assert (
-            power_prior.instance_from_unit_vector([2.0], assert_priors_in_limits=False)
-            == 9.0
+                power_prior.instance_from_unit_vector([0.2], ignore_prior_limits=True)
+                == 9.0
         )
 
 
-class _TestInequality:
+class TestInequality:
     def test_prior_lt_prior(self, prior):
         inequality_prior = (prior * prior) < prior
-        assert (
-            inequality_prior.instance_from_unit_vector(
-                [0.5], assert_priors_in_limits=False
-            )
-            is True
+        result = inequality_prior.instance_from_unit_vector(
+            [0.5], ignore_prior_limits=True
         )
+        assert result
         inequality_prior = (prior * prior) > prior
-        assert (
+        assert not (
             inequality_prior.instance_from_unit_vector(
-                [0.5], assert_priors_in_limits=False
+                [0.5], ignore_prior_limits=True
             )
-            is False
         )
