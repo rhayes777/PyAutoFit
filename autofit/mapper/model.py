@@ -394,6 +394,9 @@ class ModelInstance(AbstractModel):
     def items(self):
         return self.dict.items()
 
+    def __hash__(self):
+        return self.id
+
     @property
     def dict(self):
         return {
