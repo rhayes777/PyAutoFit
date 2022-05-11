@@ -6,6 +6,13 @@ import pytest
 import autofit as af
 
 
+def test_no_priors():
+    search = af.DynestyStatic()
+    model = af.Collection()
+    with pytest.raises(AssertionError):
+        search.fit(model, af.Analysis())
+
+
 @pytest.fixture(
     name="optimizer"
 )
