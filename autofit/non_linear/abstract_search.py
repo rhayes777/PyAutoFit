@@ -290,6 +290,8 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             delta=1
         )
 
+        status.result = result
+
         return model_approx.project(projection, status)
 
     @property
