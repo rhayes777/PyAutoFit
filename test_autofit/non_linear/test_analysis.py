@@ -1,6 +1,5 @@
 import os
 from pathlib import Path
-from types import LambdaType
 
 import pytest
 
@@ -212,17 +211,12 @@ def test_set_number_of_cores(
         multi_analysis
 ):
     multi_analysis.n_cores = 1
-    assert isinstance(
-        multi_analysis._log_likelihood_function,
-        LambdaType
-    )
+    assert multi_analysis._log_likelihood_function.__name__ == "_summed_log_likelihood"
+
     multi_analysis.n_cores = 2
     assert isinstance(
         multi_analysis._log_likelihood_function,
         AnalysisPool
     )
     multi_analysis.n_cores = 1
-    assert isinstance(
-        multi_analysis._log_likelihood_function,
-        LambdaType
-    )
+    assert multi_analysis._log_likelihood_function.__name__ == "_summed_log_likelihood"
