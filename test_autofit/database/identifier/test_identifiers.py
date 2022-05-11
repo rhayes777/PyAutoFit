@@ -224,7 +224,9 @@ def test_unique_tag():
     search = af.m.MockSearch()
 
     search.fit(
-        model=af.Collection(),
+        model=af.Model(
+            af.Gaussian
+        ),
         analysis=af.m.MockAnalysis()
     )
 
@@ -233,7 +235,9 @@ def test_unique_tag():
     search = af.m.MockSearch(unique_tag="dataset")
 
     search.fit(
-        model=af.Collection(),
+        model=af.Model(
+            af.Gaussian
+        ),
         analysis=af.m.MockAnalysis(),
     )
 
