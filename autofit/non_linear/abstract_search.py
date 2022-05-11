@@ -458,7 +458,17 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         An object encapsulating how well the model fit the data, the best fit instance
         and an updated model with free parameters updated to represent beliefs
         produced by this fit.
+
+        Raises
+        ------
+        AssertionError
+            If the model has 0 dimensions.
         """
+        if model.prior_count == 0:
+            raise AssertionError(
+                "Model has no priors! Cannot fit a 0 dimension model."
+            )
+
         self.logger.info(
             "Starting search"
         )
