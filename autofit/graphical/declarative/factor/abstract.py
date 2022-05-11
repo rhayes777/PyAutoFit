@@ -3,7 +3,7 @@ from typing import Optional
 
 from autofit.graphical.expectation_propagation import AbstractFactorOptimiser
 from autofit.graphical.factor_graphs.factor import FactorKW
-from autofit.mapper.prior_model.prior_model import PriorModel, AbstractPriorModel
+from autofit.mapper.prior_model.prior_model import AbstractPriorModel
 from autofit.text.formatter import TextFormatter
 from autofit.tools.namer import namer
 from ..abstract import AbstractDeclarativeFactor

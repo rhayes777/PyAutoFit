@@ -21,12 +21,13 @@ def try_getitem(value, index, default=None):
     except TypeError:
         return default
 
+
 class LogWarnings(warnings.catch_warnings):
     def __init__(self, *, module=None, messages=None, action=None, logger=logging.warning):
         super().__init__(record=True, module=module)
         self.messages = [] if messages is None else messages
         self.log = []
-        self.action = action 
+        self.action = action
         self.logger = logger
 
     def log_warning(self, warn):
@@ -42,7 +43,7 @@ class LogWarnings(warnings.catch_warnings):
             warnings.simplefilter(self.action)
 
         return self
-        
+
 
 def is_variable(v, *args):
     return isinstance(v, Variable)
@@ -297,17 +298,18 @@ first index.
     x_shuffled = rng.permutation(x)
     tot = len(x_shuffled)
 
-    i = 0 
+    i = 0
     stop = tot - n + 1
     iters = iter(int, 1) if n_iters is None else range(n_iters)
     for j in iters:
         if i < stop:
-            yield x_shuffled[i : i + n]
+            yield x_shuffled[i: i + n]
             i += n
         else:
             x_shuffled = np.r_[x_shuffled[i:], rng.permutation(x_shuffled[:i])]
             yield x_shuffled[:n]
             i = n
+
 
 def gen_dict(dict_gen):
     """
@@ -442,7 +444,7 @@ def aggregate(array: np.ndarray, axis: Axis = None, **kwargs) -> np.ndarray:
     """
     if axis is False:
         return array
-        
+
     return np.sum(array, axis=axis, **kwargs)
 
 
