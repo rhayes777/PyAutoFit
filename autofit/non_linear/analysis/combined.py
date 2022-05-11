@@ -53,28 +53,18 @@ class CombinedAnalysis(Analysis):
             "n_cores"
         ]
 
-    def __getstate__(self):
-        return {
-            "analyses": self.analyses,
-            "_n_cores": self._n_cores,
-            "_log_likelihood_function": self._log_likelihood_function,
-        }
-
-    def __setstate__(self, state):
-        n_cores = state.pop(
-            "_n_cores"
-        )
-        self.__dict__.update(
-            state
-        )
-        self.n_cores = n_cores
-
     @property
     def n_cores(self):
         return self._n_cores
 
     @n_cores.setter
-    def n_cores(self, n_cores):
+    def n_cores(self, n_cores: int):
+        """
+        Set the number of cores this analysis should use.
+
+        If the number of cores is greater than 1 then log likelihood
+        computations are distributed across multiple processes.
+        """
         self._n_cores = n_cores
         if self.n_cores > 1:
             analysis_pool = AnalysisPool(
@@ -83,12 +73,28 @@ class CombinedAnalysis(Analysis):
             )
             self._log_likelihood_function = analysis_pool
         else:
-            self._log_likelihood_function = lambda instance: sum(
-                analysis.log_likelihood_function(
-                    instance
-                )
-                for analysis in self.analyses
+            self._log_likelihood_function = self._summed_log_likelihood
+
+    def _summed_log_likelihood(self, instance) -> float:
+        """
+        Compute a log likelihood by simply summing the log likelihood
+        of each individual analysis computed for some instance.
+
+        Parameters
+        ----------
+        instance
+            An instance of a model
+
+        Returns
+        -------
+        A combined log likelihood
+        """
+        return sum(
+            analysis.log_likelihood_function(
+                instance
             )
+            for analysis in self.analyses
+        )
 
     def log_likelihood_function(self, instance):
         return self._log_likelihood_function(instance)
