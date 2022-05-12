@@ -4,7 +4,6 @@ from typing import Tuple
 
 from autofit.graphical.declarative.factor.prior import PriorFactor
 from autofit.graphical.declarative.graph import DeclarativeFactorGraph
-from autofit.graphical.declarative.result import EPResult
 from autofit.graphical.expectation_propagation import AbstractFactorOptimiser
 from autofit.graphical.expectation_propagation import EPMeanField, EPOptimiser
 from autofit.mapper.model import ModelInstance
@@ -164,7 +163,7 @@ class AbstractDeclarativeFactor(Analysis, ABC):
             paths: Optional[AbstractPaths] = None,
             ep_history: Optional = None,
             **kwargs
-    ) -> EPResult:
+    ):
         """
         Use an EP Optimiser to optimise the graph associated with this collection
         of factors and create a Collection to represent the results.
@@ -179,8 +178,10 @@ class AbstractDeclarativeFactor(Analysis, ABC):
 
         Returns
         -------
-        A collection of prior models
+        ep_result: EPResult
+            A collection of prior models
         """
+        from autofit.graphical.declarative.result import EPResult
         opt = self._make_ep_optimiser(
             optimiser,
             paths=paths,

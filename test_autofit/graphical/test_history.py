@@ -91,19 +91,20 @@ def test_latest_results(
         updated_ep_mean_field=None,
     )
     assert ep_result.latest_results == {factor: result}
+    assert ep_result.latest_for(factor) == result
 
 
 def test_hierarchical_results(
         good_history,
         result,
 ):
-    factor = g.HierarchicalFactor(
+    hierarchical_factor = g.HierarchicalFactor(
         af.GaussianPrior
     )
-    factor.add_drawn_variable(
+    hierarchical_factor.add_drawn_variable(
         af.UniformPrior()
     )
-    factor, = factor.factors
+    factor, = hierarchical_factor.factors
 
     history = EPHistory()
     history.history[factor] = good_history
@@ -115,3 +116,5 @@ def test_hierarchical_results(
         updated_ep_mean_field=None,
     )
     assert ep_result.latest_results == {factor: result}
+    assert ep_result.latest_for(factor) == result
+    assert ep_result.latest_for(hierarchical_factor) == result

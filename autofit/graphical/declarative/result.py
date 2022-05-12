@@ -1,5 +1,6 @@
-from typing import Dict
+from typing import Dict, Union
 
+from autofit.graphical.declarative.factor.hierarchical import HierarchicalFactor
 from autofit.graphical.expectation_propagation import EPHistory
 from autofit.graphical.expectation_propagation.ep_mean_field import EPMeanField
 from autofit.graphical.factor_graphs import AbstractFactor
@@ -74,3 +75,13 @@ class EPResult:
         The median instance taken from the updated model
         """
         return self.model.instance_from_prior_medians()
+
+    def latest_for(
+            self,
+            factor: Union[AbstractFactor, HierarchicalFactor]
+    ) -> Result:
+        if isinstance(factor, HierarchicalFactor):
+            return self.latest_results[
+                factor.factors[0]
+            ]
+        return self.latest_results[factor]
