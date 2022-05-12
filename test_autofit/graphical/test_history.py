@@ -27,18 +27,18 @@ def make_model():
 
 
 @pytest.fixture(
-    name="factor_model"
+    name="factor"
 )
-def make_factor_model(model):
+def make_factor(model):
     return g.AnalysisFactor(model, analysis=Analysis())
 
 
 @pytest.fixture(
     name="factor_history"
 )
-def make_history(factor_model):
+def make_history(factor):
     return FactorHistory(
-        factor_model.model_factors[0]
+        factor.model_factors[0]
     )
 
 
@@ -79,15 +79,39 @@ def test_bad_history(factor_history):
 def test_latest_results(
         good_history,
         result,
-        factor_model,
+        factor,
 ):
     history = EPHistory()
-    history.history[factor_model] = good_history
+    history.history[factor] = good_history
 
     # noinspection PyTypeChecker
     ep_result = EPResult(
         ep_history=history,
-        declarative_factor=factor_model,
+        declarative_factor=factor,
         updated_ep_mean_field=None,
     )
-    assert ep_result.latest_results == [result]
+    assert ep_result.latest_results == {factor: result}
+
+
+def test_hierarchical_results(
+        good_history,
+        result,
+):
+    factor = g.HierarchicalFactor(
+        af.GaussianPrior
+    )
+    factor.add_drawn_variable(
+        af.UniformPrior()
+    )
+    factor, = factor.factors
+
+    history = EPHistory()
+    history.history[factor] = good_history
+
+    # noinspection PyTypeChecker
+    ep_result = EPResult(
+        ep_history=history,
+        declarative_factor=factor,
+        updated_ep_mean_field=None,
+    )
+    assert ep_result.latest_results == {factor: result}

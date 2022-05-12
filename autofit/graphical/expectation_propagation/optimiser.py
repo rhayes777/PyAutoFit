@@ -170,7 +170,7 @@ class EPOptimiser:
 
             messages = status.messages + tuple(caught_warnings.messages)
 
-            status = Status(status.success, messages, status.flag)
+            status = Status(status.success, messages, status.flag, result=status.result)
 
         except (ValueError, ArithmeticError, RuntimeError) as e:
             logger.exception(e)
