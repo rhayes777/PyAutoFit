@@ -15,9 +15,9 @@ from autoconf.exc import ConfigException
 from autofit import exc
 from autofit.mapper import model
 from autofit.mapper.model import AbstractModel, frozen_cache
+from autofit.mapper.prior import GaussianPrior
 from autofit.mapper.prior.abstract import Prior
 from autofit.mapper.prior.deferred import DeferredArgument
-from autofit.mapper.prior import GaussianPrior
 from autofit.mapper.prior.tuple_prior import TuplePrior
 from autofit.mapper.prior.width_modifier import WidthModifier
 from autofit.mapper.prior_model.attribute_pair import DeferredNameValue
@@ -692,6 +692,10 @@ class AbstractPriorModel(AbstractModel):
         model_instance : autofit.mapper.model.ModelInstance
             An object containing reconstructed model_mapper instances
         """
+        if len(vector) != self.prior_count:
+            raise AssertionError(
+                f"Vector length {len(vector)} != prior count {self.prior_count}"
+            )
         arguments = dict(
             map(
                 lambda prior_tuple, physical_unit: (prior_tuple.prior, physical_unit),
