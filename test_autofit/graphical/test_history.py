@@ -6,6 +6,7 @@ import autofit as af
 from autofit import graphical as g, EPHistory
 from autofit.graphical.declarative.result import EPResult
 from autofit.graphical.expectation_propagation import FactorHistory
+from autofit.non_linear.result import AbstractResult
 
 
 class Analysis(af.Analysis):
@@ -120,9 +121,20 @@ def test_hierarchical_results(
     assert ep_result.latest_for(hierarchical_factor) == result
 
 
-def test_hierarchical_result():
+@pytest.fixture(
+    name="triple_factor"
+)
+def make_triple_factor():
     hierarchical_factor = g.HierarchicalFactor(
-        af.GaussianPrior
+        af.GaussianPrior,
+        mean=af.GaussianPrior(
+            mean=0.0,
+            sigma=1.0
+        ),
+        sigma=af.GaussianPrior(
+            mean=1.0,
+            sigma=0.01,
+        ),
     )
 
     hierarchical_factor.add_drawn_variable(
@@ -134,7 +146,70 @@ def test_hierarchical_result():
     hierarchical_factor.add_drawn_variable(
         af.UniformPrior()
     )
+    return hierarchical_factor
 
-    factor, *_ = hierarchical_factor.factors
+
+def test_hierarchical_result(
+        triple_factor
+):
+    factor, *_ = triple_factor.factors
 
     # TODO: decide on best behaviour here
+
+
+def generate_samples(model):
+    parameters = [
+        [0.0, 1.0, 2.0, ],
+        [0.0, 1.0, 2.0, ],
+        [0.0, 1.0, 2.0, ],
+        [21.0, 22.0, 23.0, ],
+        [0.0, 1.0, 2.0, ],
+    ]
+
+    return af.Samples(
+        model=model,
+        sample_list=af.Sample.from_lists(
+            model=model,
+            parameter_lists=parameters,
+            log_likelihood_list=[1.0, 2.0, 3.0, 10.0, 5.0],
+            log_prior_list=[0.0, 0.0, 0.0, 0.0, 0.0],
+            weight_list=[1.0, 1.0, 1.0, 1.0, 1.0],
+        ),
+    )
+
+
+class HierarchicalResult(AbstractResult):
+    def __init__(self, results):
+        super().__init__(
+            results[0].sigma
+        )
+        self.results = results
+
+    @property
+    def samples(self):
+        return sum(
+            result.samples
+            for result
+            in self.results
+        )
+
+    @property
+    def model(self):
+        pass
+
+
+def test_combine_samples(triple_factor):
+    results = [
+        af.Result(
+            samples=generate_samples(factor.prior_model),
+            model=factor.prior_model,
+        )
+        for factor in triple_factor.factors
+    ]
+
+    result = results[0]
+    hierarchical_result = HierarchicalResult(results)
+
+    assert len(hierarchical_result.samples) == 3 * len(result.samples)
+    print(results[0].max_log_likelihood_instance)
+    print(results[0].model_absolute(1.0))

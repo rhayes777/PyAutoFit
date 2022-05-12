@@ -214,6 +214,9 @@ class Samples:
     def total_samples(self):
         return len(self.sample_list)
 
+    def __len__(self):
+        return len(self.sample_list)
+
     @property
     def weight_list(self):
         return [
