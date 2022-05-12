@@ -89,27 +89,44 @@ def test_full_fit(centre_model, data, centres):
     for i, y in enumerate(data):
         prior_model = af.PriorModel(
             af.Gaussian,
-            centre=af.GaussianPrior(mean=100, sigma=20),
+            centre=af.GaussianPrior(
+                mean=100,
+                sigma=1
+            ),
+            intensity=20,
             normalization=20,
-            sigma=5,
+            sigma=5
         )
-        graph.add(g.AnalysisFactor(prior_model, analysis=Analysis(x=x, y=y)))
-        centre_model.add_drawn_variable(prior_model.centre)
+        graph.add(
+            g.AnalysisFactor(
+                prior_model,
+                analysis=Analysis(
+                    x=x,
+                    y=y
+                )
+            )
+        )
+        centre_model.add_drawn_variable(
+            prior_model.centre
+        )
 
     graph.add(centre_model)
 
     optimiser = g.LaplaceOptimiser()
 
-    collection = graph.optimise(optimiser, max_steps=10).model
+    collection = graph.optimise(
+        optimiser,
+        max_steps=10
+    ).model
 
-    # TODO I don't know what's going on here?
-    # pred_centre = (
-    #     collection.HierarchicalFactor0.distribution_model.instance_from_prior_medians().mean
-    # )
-    # (centre,) = centres
-    # pred_centre == pytest.approx(centre, rel=0.1)
+    for gaussian, centre in zip(
+            collection.with_prefix(
+                "AnalysisFactor"
+            ),
+            centres
+    ):
+        assert gaussian.instance_from_prior_medians().centre == pytest.approx(
+            centre,
+            abs=0.1
+        )
 
-    # for gaussian, centre in zip(collection.with_prefix("AnalysisFactor"), centres):
-    #     assert gaussian.instance_from_prior_medians().centre == pytest.approx(
-    #         centre, abs=0.1
-    #     )
