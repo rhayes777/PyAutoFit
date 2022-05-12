@@ -14,14 +14,20 @@ class Analysis(af.Analysis):
             af.Gaussian
         ) else 0.0
 
-    def make_result(self, samples, model, search):
-        prior_passer = search.prior_passer
+    def make_result(
+            self,
+            samples,
+            model,
+            sigma=3.0,
+            use_errors=True,
+            use_widths=True
+    ):
         return Result(
             samples=samples,
             model=model,
-            sigma=prior_passer.sigma,
-            use_errors=prior_passer.use_errors,
-            use_widths=prior_passer.use_widths,
+            sigma=sigma,
+            use_errors=use_errors,
+            use_widths=use_widths,
         )
 
 
