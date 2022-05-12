@@ -15,10 +15,13 @@ class Analysis(af.Analysis):
         ) else 0.0
 
     def make_result(self, samples, model, search):
+        prior_passer = search.prior_passer
         return Result(
             samples=samples,
             model=model,
-            search=search
+            sigma=prior_passer.sigma,
+            use_errors=prior_passer.use_errors,
+            use_widths=prior_passer.use_widths,
         )
 
 

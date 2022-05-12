@@ -42,18 +42,6 @@ def make_add_results(
     return add_results
 
 
-def test_ordering(
-        result_builder,
-        add_results
-):
-    add_results(0, 1, 2)
-    result = result_builder()
-    assert [
-               result.search.name
-               for result in result.results
-           ] == ['0', '1', '2']
-
-
 @pytest.mark.parametrize(
     "numbers, t1, t2, t3",
     [

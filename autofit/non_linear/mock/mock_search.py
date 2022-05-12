@@ -141,7 +141,6 @@ class MockSearch(NonLinearSearch):
         return analysis.make_result(
             model=model,
             samples=samples,
-            search=self
         )
 
     def perform_update(self, model, analysis, during_analysis):

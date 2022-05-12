@@ -67,7 +67,7 @@ def test_make_result():
     analysis_2 = Analysis()
 
     result = (analysis_1 + analysis_2).make_result(
-        samples=None, model=None, search=None
+        samples=None, model=None
     )
 
     assert len(result) == 2

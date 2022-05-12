@@ -34,7 +34,14 @@ class Result:
     @DynamicAttrs
     """
 
-    def __init__(self, samples: Samples, model, search=None):
+    def __init__(
+            self,
+            samples: Samples,
+            model,
+            sigma=3.0,
+            use_errors=True,
+            use_widths=True
+    ):
         """
         The result of a non-linear search, which includes:
 
@@ -55,7 +62,10 @@ class Result:
             samples.model = model
 
         self.samples = samples
-        self.search = search
+
+        self.sigma = sigma
+        self.use_errors = use_errors
+        self.use_widths = use_widths
 
         self._model = model
         self.__model = None
@@ -126,12 +136,12 @@ class Result:
     def model(self):
         if self.__model is None:
             tuples = self.samples.gaussian_priors_at_sigma(
-                sigma=self.search.prior_passer.sigma
+                sigma=self.sigma
             )
             self.__model = self._model.mapper_from_gaussian_tuples(
                 tuples,
-                use_errors=self.search.prior_passer.use_errors,
-                use_widths=self.search.prior_passer.use_widths
+                use_errors=self.use_errors,
+                use_widths=self.use_widths
             )
         return self.__model
 
@@ -159,7 +169,7 @@ class Result:
         width.
         """
         return self.model.mapper_from_gaussian_tuples(
-            self.samples.gaussian_priors_at_sigma(sigma=self.search.prior_passer.sigma), a=a
+            self.samples.gaussian_priors_at_sigma(sigma=self.sigma), a=a
         )
 
     def model_relative(self, r: float) -> AbstractPriorModel:
@@ -175,7 +185,7 @@ class Result:
         width.
         """
         return self.model.mapper_from_gaussian_tuples(
-            self.samples.gaussian_priors_at_sigma(sigma=self.search.prior_passer.sigma), r=r
+            self.samples.gaussian_priors_at_sigma(sigma=self.sigma), r=r
         )
 
     def __getitem__(self, item):

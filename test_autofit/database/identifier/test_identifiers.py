@@ -401,9 +401,14 @@ def test__identifier_description__after_model_and_instance():
         max_log_likelihood_instance=max_log_likelihood_instance,
         gaussian_tuples=[(1.0, 2.0), (3.0, 4.0), (5.0, 6.0)]
     )
-    search = af.m.MockSearch(prior_passer=af.PriorPasser(sigma=1.0, use_errors=True, use_widths=False))
 
-    result = af.Result(samples=samples, model=model, search=search)
+    result = af.Result(
+        samples=samples,
+        model=model,
+        sigma=1.0,
+        use_errors=True,
+        use_widths=False
+    )
 
     model.gaussian.centre = result.model.gaussian.centre
     model.gaussian.normalization = result.instance.gaussian.normalization
