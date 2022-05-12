@@ -80,6 +80,21 @@ class EPResult:
             self,
             factor: Union[AbstractFactor, HierarchicalFactor]
     ) -> Result:
+        """
+        Return the latest result for a factor.
+
+        If the factor is hierarchical return the latest result for
+        the first true factor (i.e. for one of the drawn variable)
+
+        Parameters
+        ----------
+        factor
+            A factor from the graph
+
+        Returns
+        -------
+        The latest result for that factor
+        """
         if isinstance(factor, HierarchicalFactor):
             return self.latest_results[
                 factor.factors[0]

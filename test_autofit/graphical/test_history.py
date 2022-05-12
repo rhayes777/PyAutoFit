@@ -118,3 +118,23 @@ def test_hierarchical_results(
     assert ep_result.latest_results == {factor: result}
     assert ep_result.latest_for(factor) == result
     assert ep_result.latest_for(hierarchical_factor) == result
+
+
+def test_hierarchical_result():
+    hierarchical_factor = g.HierarchicalFactor(
+        af.GaussianPrior
+    )
+
+    hierarchical_factor.add_drawn_variable(
+        af.UniformPrior()
+    )
+    hierarchical_factor.add_drawn_variable(
+        af.UniformPrior()
+    )
+    hierarchical_factor.add_drawn_variable(
+        af.UniformPrior()
+    )
+
+    factor, *_ = hierarchical_factor.factors
+
+    # TODO: decide on best behaviour here
