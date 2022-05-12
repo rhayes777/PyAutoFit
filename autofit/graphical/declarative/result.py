@@ -1,9 +1,9 @@
-from typing import Dict, Union, List
+from typing import Union, List
 
 from autofit.graphical.declarative.factor.hierarchical import HierarchicalFactor
 from autofit.graphical.expectation_propagation import EPHistory
 from autofit.graphical.expectation_propagation.ep_mean_field import EPMeanField
-from autofit.graphical.factor_graphs import AbstractFactor
+from autofit.graphical.factor_graphs.factor import Factor
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.mapper.prior_model.collection import CollectionPriorModel
 from autofit.non_linear.result import Result, AbstractResult
@@ -117,14 +117,14 @@ class EPResult:
         )
 
     @property
-    def latest_results(self) -> Dict[AbstractFactor, Result]:
+    def latest_results(self) -> List[Result]:
         """
         A list of results for all analysis and hierarchical factors.
         """
-        return {
-            factor: self.ep_history[factor].latest_result
+        return [
+            self.ep_history[factor].latest_result
             for factor in self.declarative_factor.model_factors
-        }
+        ]
 
     @property
     def instance(self):
@@ -135,7 +135,7 @@ class EPResult:
 
     def latest_for(
             self,
-            factor: Union[AbstractFactor, HierarchicalFactor]
+            factor: Union[Factor, HierarchicalFactor]
     ) -> AbstractResult:
         """
         Return the latest result for a factor.
@@ -159,4 +159,4 @@ class EPResult:
                 in factor.factors
             ]
             return HierarchicalResult(results)
-        return self.latest_results[factor]
+        return self.ep_history[factor].latest_result

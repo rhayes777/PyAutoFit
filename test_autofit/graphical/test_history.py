@@ -90,7 +90,7 @@ def test_latest_results(
         declarative_factor=factor,
         updated_ep_mean_field=None,
     )
-    assert ep_result.latest_results == {factor: result}
+    assert ep_result.latest_results == [result]
     assert ep_result.latest_for(factor) == result
 
 
@@ -111,7 +111,7 @@ def test_hierarchical_results(
         updated_ep_mean_field=None,
     )
 
-    assert ep_result.latest_results == {factor: result}
+    assert ep_result.latest_results == [result]
     assert ep_result.latest_for(factor) == result
     assert isinstance(
         ep_result.latest_for(hierarchical_factor),
