@@ -4,9 +4,14 @@ __Documentation__
 illustrating the use of lists, dicts and multi-level models. Make it clear they are "dumb" examples for illustration.
 Make it clear that the model composed links to the results allowing API design.
 
+- Link to this from model composition overview with bullet points describing each.
+
 - Cookbook on prior passing, search chaining.
 
 - Implement starting point API and write docs on this.
+
+- Multiple datasets sectgion in overview to show analysis summing (same data, different data wiuth different LH functions
+and therefore model links), link to graphical models at end.
 
 - In this section, include docs on writing and loading models / collections with jsons and adding them together. Include
 the Dictable object from autoconf.
@@ -17,6 +22,8 @@ and test adding parameters, divisionm, etcx. Can we do this before we introduce 
 - Docs on turning analysis summing and addition features into multiple likelihood functions, write general doc, write howtolens chapter
 (c1 same datasets, c2 multi dataset with different parameters, c3 writing function for parameter variation, c4 different LH functions).
 
+
+- Animation of 1D Gaussian fitting.
 
 
 - Explicit exampels of how to extend Analsyis (e.g. putting extra data in c0nstructor) for Python beginners.

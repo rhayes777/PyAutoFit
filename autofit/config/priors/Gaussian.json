@@ -37,5 +37,15 @@
             "lower": 0.0,
             "upper": "inf"
         }
+    },
+    "GaussianPrior": {
+    "lower_limit": {
+      "type": "Constant",
+      "value": "-inf"
+    },
+    "upper_limit": {
+      "type": "Constant",
+      "value": "inf"
     }
+  }
 }

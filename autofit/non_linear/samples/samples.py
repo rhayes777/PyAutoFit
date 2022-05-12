@@ -502,3 +502,50 @@ class Samples:
             for sample in self.sample_list
         ]
         return copied
+
+    @property
+    def median_pdf_vector(self) -> ModelInstance:
+        raise NotImplementedError
+
+    @property
+    def median_pdf_instance(self) -> ModelInstance:
+        raise NotImplementedError
+
+    def vector_at_sigma(self, sigma: float) -> [(float, float)]:
+        raise NotImplementedError
+
+    def vector_at_upper_sigma(self, sigma: float) -> [float]:
+        raise NotImplementedError
+
+    def vector_at_lower_sigma(self, sigma: float) -> [float]:
+        raise NotImplementedError
+
+    def instance_at_sigma(self, sigma: float) -> ModelInstance:
+        raise NotImplementedError
+
+    def instance_at_upper_sigma(self, sigma: float) -> ModelInstance:
+        raise NotImplementedError
+
+    def instance_at_lower_sigma(self, sigma: float) -> ModelInstance:
+        raise NotImplementedError
+
+    def error_vector_at_sigma(self, sigma: float) -> [(float, float)]:
+        raise NotImplementedError
+
+    def error_vector_at_upper_sigma(self, sigma: float) -> [float]:
+        raise NotImplementedError
+
+    def error_vector_at_lower_sigma(self, sigma: float) -> [float]:
+        raise NotImplementedError
+
+    def error_magnitude_vector_at_sigma(self, sigma: float) -> [float]:
+        raise NotImplementedError
+
+    def error_instance_at_sigma(self, sigma: float) -> ModelInstance:
+        raise NotImplementedError
+
+    def error_instance_at_upper_sigma(self, sigma: float) -> ModelInstance:
+        raise NotImplementedError
+
+    def error_instance_at_lower_sigma(self, sigma: float) -> ModelInstance:
+        raise NotImplementedError
