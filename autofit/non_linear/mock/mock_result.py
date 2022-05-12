@@ -19,7 +19,7 @@ class MockResult(Result):
 
         self._instance = instance or ModelInstance()
         self.model = model or ModelMapper()
-        self.samples = samples or MockSamples(max_log_likelihood_instance=self.instance)
+        self._samples = samples or MockSamples(max_log_likelihood_instance=self.instance)
 
         self.gaussian_tuples = None
         self.analysis = analysis
