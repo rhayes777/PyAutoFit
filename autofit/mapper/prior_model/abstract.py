@@ -750,7 +750,7 @@ class AbstractPriorModel(AbstractModel):
         return self.mapper_from_partial_prior_arguments(arguments)
 
     @classmethod
-    def product(cls, models: List["AbstractPriorModel"]) -> "AbstractPriorModel":
+    def product(cls, models: Iterable["AbstractPriorModel"]) -> "AbstractPriorModel":
         """
         Combine multiple models with the same structure by replacing priors with
         priors that contain a message which is the product of the messages of the

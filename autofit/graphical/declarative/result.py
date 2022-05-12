@@ -47,12 +47,22 @@ class HierarchicalResult(AbstractResult):
         Priors with the same path in the model are combined by taking the
         product of their underlying messages. i.e. the product of the
         posteriors.
+
+        The distribution model is returned.
         """
         return AbstractPriorModel.product(
             result.model
             for result
             in self.results
-        )
+        ).distribution_model
+
+    @property
+    def instance(self):
+        """
+        Return the instance (e.g. prior) describing the distribution
+        from which samples are drawn.
+        """
+        return super().instance.distribution_model
 
 
 class EPResult:

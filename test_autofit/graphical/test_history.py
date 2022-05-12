@@ -199,7 +199,19 @@ def test_combine_samples(
 def test_model(
         hierarchical_result
 ):
+    model = hierarchical_result.model
     assert isinstance(
-        hierarchical_result.model,
+        model,
         af.AbstractPriorModel
+    )
+    assert model.cls == af.GaussianPrior
+
+
+def test_instance(
+        hierarchical_result
+):
+    instance = hierarchical_result.instance
+    assert isinstance(
+        instance,
+        af.GaussianPrior
     )
