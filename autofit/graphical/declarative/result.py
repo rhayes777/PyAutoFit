@@ -1,4 +1,4 @@
-from typing import Dict, Union
+from typing import Dict, Union, List
 
 from autofit.graphical.declarative.factor.hierarchical import HierarchicalFactor
 from autofit.graphical.expectation_propagation import EPHistory
@@ -7,17 +7,34 @@ from autofit.graphical.factor_graphs import AbstractFactor
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.mapper.prior_model.collection import CollectionPriorModel
 from autofit.non_linear.result import Result, AbstractResult
+from autofit.non_linear.samples.samples import Samples
 
 
 class HierarchicalResult(AbstractResult):
-    def __init__(self, results):
+    def __init__(
+            self,
+            results: List[AbstractResult]
+    ):
+        """
+        One true factor is created per each variable drawn from the declarative
+        hierarchical factor. One result for each of those factors is in this
+        collection.
+
+        Parameters
+        ----------
+        results
+            Results from hierarchical factor optimisations
+        """
         super().__init__(
             results[0].sigma
         )
         self.results = results
 
     @property
-    def samples(self):
+    def samples(self) -> Samples:
+        """
+        All samples from all underlying optimisations are summed together.
+        """
         return sum(
             result.samples
             for result
@@ -25,7 +42,12 @@ class HierarchicalResult(AbstractResult):
         )
 
     @property
-    def model(self):
+    def model(self) -> AbstractPriorModel:
+        """
+        Priors with the same path in the model are combined by taking the
+        product of their underlying messages. i.e. the product of the
+        posteriors.
+        """
         return AbstractPriorModel.product(
             result.model
             for result

@@ -750,7 +750,22 @@ class AbstractPriorModel(AbstractModel):
         return self.mapper_from_partial_prior_arguments(arguments)
 
     @classmethod
-    def product(cls, models):
+    def product(cls, models: List["AbstractPriorModel"]) -> "AbstractPriorModel":
+        """
+        Combine multiple models with the same structure by replacing priors with
+        priors that contain a message which is the product of the messages of the
+        priors with the same path in each model.
+
+        Parameters
+        ----------
+        models
+            A list of models to be combined
+
+        Returns
+        -------
+        A model where each prior has a message which is the product of the messages
+        associated with that prior across the models.
+        """
         first, *rest = models
 
         arguments = dict()
