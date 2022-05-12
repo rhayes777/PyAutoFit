@@ -749,6 +749,20 @@ class AbstractPriorModel(AbstractModel):
     def replacing(self, arguments):
         return self.mapper_from_partial_prior_arguments(arguments)
 
+    @classmethod
+    def product(cls, models):
+        first, *rest = models
+
+        arguments = dict()
+
+        for path, prior in first.path_priors_tuples:
+            for other in rest:
+                prior = prior.with_message(
+                    prior.message * other.object_for_path(path).message
+                )
+            arguments[prior] = prior
+        return first.mapper_from_prior_arguments(arguments)
+
     def mapper_from_partial_prior_arguments(self, arguments):
         """
         Returns a new model mapper from a dictionary mapping existing priors to

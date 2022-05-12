@@ -4,8 +4,33 @@ from autofit.graphical.declarative.factor.hierarchical import HierarchicalFactor
 from autofit.graphical.expectation_propagation import EPHistory
 from autofit.graphical.expectation_propagation.ep_mean_field import EPMeanField
 from autofit.graphical.factor_graphs import AbstractFactor
+from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.mapper.prior_model.collection import CollectionPriorModel
-from autofit.non_linear.result import Result
+from autofit.non_linear.result import Result, AbstractResult
+
+
+class HierarchicalResult(AbstractResult):
+    def __init__(self, results):
+        super().__init__(
+            results[0].sigma
+        )
+        self.results = results
+
+    @property
+    def samples(self):
+        return sum(
+            result.samples
+            for result
+            in self.results
+        )
+
+    @property
+    def model(self):
+        return AbstractPriorModel.product(
+            result.model
+            for result
+            in self.results
+        )
 
 
 class EPResult:
@@ -79,7 +104,7 @@ class EPResult:
     def latest_for(
             self,
             factor: Union[AbstractFactor, HierarchicalFactor]
-    ) -> Result:
+    ) -> AbstractResult:
         """
         Return the latest result for a factor.
 
@@ -96,7 +121,10 @@ class EPResult:
         The latest result for that factor
         """
         if isinstance(factor, HierarchicalFactor):
-            return self.latest_results[
-                factor.factors[0]
+            results = [
+                self.ep_history[child_factor].latest_result
+                for child_factor
+                in factor.factors
             ]
+            return HierarchicalResult(results)
         return self.latest_results[factor]

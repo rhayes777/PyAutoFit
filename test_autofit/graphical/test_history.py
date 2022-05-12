@@ -4,9 +4,8 @@ import pytest
 
 import autofit as af
 from autofit import graphical as g, EPHistory
-from autofit.graphical.declarative.result import EPResult
+from autofit.graphical.declarative.result import EPResult, HierarchicalResult
 from autofit.graphical.expectation_propagation import FactorHistory
-from autofit.non_linear.result import AbstractResult
 
 
 class Analysis(af.Analysis):
@@ -98,33 +97,32 @@ def test_latest_results(
 def test_hierarchical_results(
         good_history,
         result,
+        hierarchical_factor
 ):
-    hierarchical_factor = g.HierarchicalFactor(
-        af.GaussianPrior
-    )
-    hierarchical_factor.add_drawn_variable(
-        af.UniformPrior()
-    )
-    factor, = hierarchical_factor.factors
-
     history = EPHistory()
-    history.history[factor] = good_history
+    for factor in hierarchical_factor.factors:
+        history.history[factor] = good_history
 
+    factor = hierarchical_factor.factors[0]
     # noinspection PyTypeChecker
     ep_result = EPResult(
         ep_history=history,
         declarative_factor=factor,
         updated_ep_mean_field=None,
     )
+
     assert ep_result.latest_results == {factor: result}
     assert ep_result.latest_for(factor) == result
-    assert ep_result.latest_for(hierarchical_factor) == result
+    assert isinstance(
+        ep_result.latest_for(hierarchical_factor),
+        HierarchicalResult
+    )
 
 
 @pytest.fixture(
-    name="triple_factor"
+    name="hierarchical_factor"
 )
-def make_triple_factor():
+def make_hierarchical_factor():
     hierarchical_factor = g.HierarchicalFactor(
         af.GaussianPrior,
         mean=af.GaussianPrior(
@@ -149,14 +147,6 @@ def make_triple_factor():
     return hierarchical_factor
 
 
-def test_hierarchical_result(
-        triple_factor
-):
-    factor, *_ = triple_factor.factors
-
-    # TODO: decide on best behaviour here
-
-
 def generate_samples(model):
     parameters = [
         [0.0, 1.0, 2.0, ],
@@ -178,38 +168,38 @@ def generate_samples(model):
     )
 
 
-class HierarchicalResult(AbstractResult):
-    def __init__(self, results):
-        super().__init__(
-            results[0].sigma
-        )
-        self.results = results
-
-    @property
-    def samples(self):
-        return sum(
-            result.samples
-            for result
-            in self.results
-        )
-
-    @property
-    def model(self):
-        pass
-
-
-def test_combine_samples(triple_factor):
-    results = [
+@pytest.fixture(
+    name="results"
+)
+def make_results(hierarchical_factor):
+    return [
         af.Result(
             samples=generate_samples(factor.prior_model),
             model=factor.prior_model,
         )
-        for factor in triple_factor.factors
+        for factor in hierarchical_factor.factors
     ]
 
-    result = results[0]
-    hierarchical_result = HierarchicalResult(results)
 
+@pytest.fixture(
+    name="hierarchical_result"
+)
+def make_hierarchical_result(results):
+    return HierarchicalResult(results)
+
+
+def test_combine_samples(
+        hierarchical_result,
+        results
+):
+    result = results[0]
     assert len(hierarchical_result.samples) == 3 * len(result.samples)
-    print(results[0].max_log_likelihood_instance)
-    print(results[0].model_absolute(1.0))
+
+
+def test_model(
+        hierarchical_result
+):
+    assert isinstance(
+        hierarchical_result.model,
+        af.AbstractPriorModel
+    )
