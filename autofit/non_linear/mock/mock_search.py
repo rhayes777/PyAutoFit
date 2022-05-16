@@ -67,6 +67,9 @@ class MockSearch(NonLinearSearch):
         self.save_for_aggregator = save_for_aggregator
         self.return_sensitivity_results = return_sensitivity_results
 
+    def check_model(self, model):
+        pass
+
     @property
     def config_type(self):
         return conf.instance["non_linear"]["mock"]

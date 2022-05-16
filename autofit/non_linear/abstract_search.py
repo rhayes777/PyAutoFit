@@ -466,10 +466,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         AssertionError
             If the model has 0 dimensions.
         """
-        if model.prior_count == 0:
-            raise AssertionError(
-                "Model has no priors! Cannot fit a 0 dimension model."
-            )
+        self.check_model(model=model)
 
         self.logger.info(
             "Starting search"
@@ -547,6 +544,12 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
     @abstractmethod
     def _fit(self, model, analysis, log_likelihood_cap=None):
         pass
+
+    def check_model(self, model):
+        if model.prior_count == 0:
+            raise AssertionError(
+                "Model has no priors! Cannot fit a 0 dimension model."
+            )
 
     @property
     def _class_config(self):
