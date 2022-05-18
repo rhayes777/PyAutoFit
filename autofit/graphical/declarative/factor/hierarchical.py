@@ -5,7 +5,6 @@ from autofit.mapper.prior.abstract import Prior
 from autofit.mapper.prior_model.collection import CollectionPriorModel
 from autofit.mapper.prior_model.prior_model import PriorModel
 from autofit.mapper.variable import Plate
-from autofit.messages.abstract import AbstractMessage
 from autofit.non_linear.paths.abstract import AbstractPaths
 from autofit.tools.namer import namer
 from .abstract import AbstractModelFactor

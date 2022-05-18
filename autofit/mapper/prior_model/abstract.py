@@ -15,9 +15,9 @@ from autoconf.exc import ConfigException
 from autofit import exc
 from autofit.mapper import model
 from autofit.mapper.model import AbstractModel, frozen_cache
+from autofit.mapper.prior import GaussianPrior
 from autofit.mapper.prior.abstract import Prior
 from autofit.mapper.prior.deferred import DeferredArgument
-from autofit.mapper.prior import GaussianPrior
 from autofit.mapper.prior.tuple_prior import TuplePrior
 from autofit.mapper.prior.width_modifier import WidthModifier
 from autofit.mapper.prior_model.attribute_pair import DeferredNameValue
@@ -692,6 +692,10 @@ class AbstractPriorModel(AbstractModel):
         model_instance : autofit.mapper.model.ModelInstance
             An object containing reconstructed model_mapper instances
         """
+        if len(vector) != self.prior_count:
+            raise AssertionError(
+                f"Vector length {len(vector)} != prior count {self.prior_count}"
+            )
         arguments = dict(
             map(
                 lambda prior_tuple, physical_unit: (prior_tuple.prior, physical_unit),
@@ -744,6 +748,35 @@ class AbstractPriorModel(AbstractModel):
 
     def replacing(self, arguments):
         return self.mapper_from_partial_prior_arguments(arguments)
+
+    @classmethod
+    def product(cls, models: Iterable["AbstractPriorModel"]) -> "AbstractPriorModel":
+        """
+        Combine multiple models with the same structure by replacing priors with
+        priors that contain a message which is the product of the messages of the
+        priors with the same path in each model.
+
+        Parameters
+        ----------
+        models
+            A list of models to be combined
+
+        Returns
+        -------
+        A model where each prior has a message which is the product of the messages
+        associated with that prior across the models.
+        """
+        first, *rest = models
+
+        arguments = dict()
+
+        for path, prior in first.path_priors_tuples:
+            for other in rest:
+                prior = prior.with_message(
+                    prior.message * other.object_for_path(path).message
+                )
+            arguments[prior] = prior
+        return first.mapper_from_prior_arguments(arguments)
 
     def mapper_from_partial_prior_arguments(self, arguments):
         """

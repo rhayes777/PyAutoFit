@@ -211,19 +211,24 @@ class CombinedAnalysis(Analysis):
         )
 
     def make_result(
-            self, samples, model, search
+            self,
+            samples,
+            model,
+            sigma=1.0,
+            use_errors=True,
+            use_widths=False
     ):
         child_results = [
             analysis.make_result(
                 samples,
                 model,
-                search
+                sigma=1.0, use_errors=True, use_widths=False
             ) for analysis in self.analyses
         ]
         result = self.analyses[0].make_result(
             samples=samples,
             model=model,
-            search=search,
+            sigma=1.0, use_errors=True, use_widths=False
 
         )
         result.child_results = child_results

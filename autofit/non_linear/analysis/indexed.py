@@ -51,8 +51,21 @@ class IndexedAnalysis:
             item
         )
 
-    def make_result(self, samples, model, search):
-        return self.analysis.make_result(samples, model, search)
+    def make_result(
+            self,
+            samples,
+            model,
+            sigma=3.0,
+            use_errors=True,
+            use_widths=True
+    ):
+        return self.analysis.make_result(
+            samples,
+            model,
+            sigma=sigma,
+            use_errors=use_errors,
+            use_widths=use_widths,
+        )
 
 
 class IndexCollectionAnalysis(CombinedAnalysis):
@@ -79,7 +92,9 @@ class IndexCollectionAnalysis(CombinedAnalysis):
             self,
             samples,
             model,
-            search
+            sigma=1.0,
+            use_errors=True,
+            use_widths=False
     ):
         """
         Associate each model with an analysis when creating the result.
@@ -88,15 +103,18 @@ class IndexCollectionAnalysis(CombinedAnalysis):
             analysis.make_result(
                 samples.subsamples(model),
                 model,
-                search
+                sigma=sigma,
+                use_errors=use_errors,
+                use_widths=use_widths,
             )
             for model, analysis in zip(model, self.analyses)
         ]
         result = self.analyses[0].make_result(
             samples=samples,
             model=model,
-            search=search,
-
+            sigma=sigma,
+            use_errors=use_errors,
+            use_widths=use_widths,
         )
         result.child_results = child_results
         return result

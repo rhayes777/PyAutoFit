@@ -6,6 +6,7 @@ from autofit.non_linear.grid.grid_search import ResultBuilder
 from autofit.non_linear.grid.grid_search.job import JobResult
 from autofit.non_linear.grid.grid_search.result_builder import Placeholder
 
+
 @pytest.fixture(
     name="result_builder"
 )
@@ -40,18 +41,6 @@ def make_add_results(
             )
 
     return add_results
-
-
-def test_ordering(
-        result_builder,
-        add_results
-):
-    add_results(0, 1, 2)
-    result = result_builder()
-    assert [
-               result.search.name
-               for result in result.results
-           ] == ['0', '1', '2']
 
 
 @pytest.mark.parametrize(

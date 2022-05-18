@@ -7,11 +7,11 @@ from pathlib import Path
 
 import pytest
 from matplotlib import pyplot
-from autofit.database.model import sa
 
 from autoconf import conf
 from autofit import database as db
 from autofit import fixtures
+from autofit.database.model import sa
 
 if sys.platform == 'darwin':
     multiprocessing.set_start_method('forkserver')
@@ -50,7 +50,8 @@ def remove_output(
             item_path = output_directory / item
             if item_path.is_dir():
                 shutil.rmtree(
-                    item_path
+                    item_path,
+                    ignore_errors=True,
                 )
             else:
                 os.remove(
@@ -109,7 +110,7 @@ def set_config_path():
 def make_model_gaussian_x1():
     return fixtures.make_model_gaussian_x1()
 
+
 @pytest.fixture(name="samples_x5")
 def make_samples_x5():
     return fixtures.make_samples_x5()
-

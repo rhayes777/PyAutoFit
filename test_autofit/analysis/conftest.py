@@ -14,11 +14,20 @@ class Analysis(af.Analysis):
             af.Gaussian
         ) else 0.0
 
-    def make_result(self, samples, model, search):
+    def make_result(
+            self,
+            samples,
+            model,
+            sigma=3.0,
+            use_errors=True,
+            use_widths=True
+    ):
         return Result(
             samples=samples,
             model=model,
-            search=search
+            sigma=sigma,
+            use_errors=use_errors,
+            use_widths=use_widths,
         )
 
 

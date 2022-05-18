@@ -531,7 +531,13 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         self.paths.samples_to_csv(samples=samples)
 
-        result = analysis.make_result(samples=samples, model=model, search=self)
+        result = analysis.make_result(
+            samples=samples,
+            model=model,
+            sigma=self.prior_passer.sigma,
+            use_errors=self.prior_passer.use_errors,
+            use_widths=self.prior_passer.use_widths,
+        )
 
         analysis = analysis.modify_after_fit(paths=self.paths, model=model, result=result)
 

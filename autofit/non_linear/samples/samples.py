@@ -170,7 +170,7 @@ class Samples:
         ]
 
     @property
-    def log_evidence(self) -> float:
+    def log_evidence(self) -> Optional[float]:
         return None
 
     @property
@@ -212,6 +212,9 @@ class Samples:
 
     @property
     def total_samples(self):
+        return len(self.sample_list)
+
+    def __len__(self):
         return len(self.sample_list)
 
     @property
@@ -324,7 +327,7 @@ class Samples:
         ]
 
     @property
-    def max_log_likelihood_vector(self) -> [float]:
+    def max_log_likelihood_vector(self) -> List[float]:
         """
         The parameters of the maximum log likelihood sample of the `NonLinearSearch` returned as a list of values.
         """
@@ -350,7 +353,7 @@ class Samples:
         return int(np.argmax(self.log_posterior_list))
 
     @property
-    def max_log_posterior_vector(self) -> [float]:
+    def max_log_posterior_vector(self) -> List[float]:
         """
         The parameters of the maximum log posterior sample of the `NonLinearSearch` returned as a list of values.
         """

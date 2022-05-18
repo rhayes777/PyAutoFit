@@ -1,3 +1,5 @@
+from abc import ABC, abstractmethod
+
 import numpy as np
 
 from autofit import exc
@@ -29,42 +31,20 @@ class Placeholder:
         return self
 
 
-class Result:
-    """
-    @DynamicAttrs
-    """
+class AbstractResult(ABC):
+    def __init__(self, sigma):
+        self._instance = None
+        self.sigma = sigma
 
-    def __init__(self, samples: Samples, model, search=None):
-        """
-        The result of a non-linear search, which includes:
+    @property
+    @abstractmethod
+    def samples(self):
+        pass
 
-        - The samples of the non-linear search (E.g. MCMC chains, nested sampling samples) which are used to compute
-        the maximum likelihood model, posteriors and other properties.
-
-        - The model used to fit the data, which uses the samples to create specific instances of the model (e.g.
-        an instance of the maximum log likelihood model).
-
-        - The non-linear search used to perform the model fit.
-
-        Parameters
-        ----------
-        model
-            The model mapper from the stage that produced this result
-        """
-        if samples is not None:
-            samples.model = model
-
-        self.samples = samples
-        self.search = search
-
-        self._model = model
-        self.__model = None
-
-        self.child_results = None
-
-        self._instance = (
-            samples.max_log_likelihood_instance if samples is not None else None
-        )
+    @property
+    @abstractmethod
+    def model(self):
+        pass
 
     def __gt__(self, other):
         """
@@ -92,11 +72,89 @@ class Result:
 
     @property
     def instance(self):
+        if self._instance is None:
+            self._instance = self.samples.max_log_likelihood_instance
         return self._instance
 
     @property
     def max_log_likelihood_instance(self):
-        return self._instance
+        return self.instance
+
+    def model_absolute(self, a: float) -> AbstractPriorModel:
+        """
+        Parameters
+        ----------
+        a
+            The absolute width of gaussian priors
+
+        Returns
+        -------
+        A model mapper created by taking results from this search and creating priors with the defined absolute
+        width.
+        """
+        return self.model.mapper_from_gaussian_tuples(
+            self.samples.gaussian_priors_at_sigma(sigma=self.sigma), a=a
+        )
+
+    def model_relative(self, r: float) -> AbstractPriorModel:
+        """
+        Parameters
+        ----------
+        r
+            The relative width of gaussian priors
+
+        Returns
+        -------
+        A model mapper created by taking results from this search and creating priors with the defined relative
+        width.
+        """
+        return self.model.mapper_from_gaussian_tuples(
+            self.samples.gaussian_priors_at_sigma(sigma=self.sigma), r=r
+        )
+
+
+class Result(AbstractResult):
+    def __init__(
+            self,
+            samples: Samples,
+            model,
+            sigma=3.0,
+            use_errors=True,
+            use_widths=True
+    ):
+        """
+        The result of a non-linear search, which includes:
+
+        - The samples of the non-linear search (E.g. MCMC chains, nested sampling samples) which are used to compute
+        the maximum likelihood model, posteriors and other properties.
+
+        - The model used to fit the data, which uses the samples to create specific instances of the model (e.g.
+        an instance of the maximum log likelihood model).
+
+        - The non-linear search used to perform the model fit.
+
+        Parameters
+        ----------
+        model
+            The model mapper from the stage that produced this result
+        """
+        super().__init__(sigma)
+        if samples is not None:
+            samples.model = model
+
+        self._samples = samples
+
+        self.use_errors = use_errors
+        self.use_widths = use_widths
+
+        self._model = model
+        self.__model = None
+
+        self.child_results = None
+
+    @property
+    def samples(self):
+        return self._samples
 
     @property
     def projected_model(self) -> AbstractPriorModel:
@@ -126,12 +184,12 @@ class Result:
     def model(self):
         if self.__model is None:
             tuples = self.samples.gaussian_priors_at_sigma(
-                sigma=self.search.prior_passer.sigma
+                sigma=self.sigma
             )
             self.__model = self._model.mapper_from_gaussian_tuples(
                 tuples,
-                use_errors=self.search.prior_passer.use_errors,
-                use_widths=self.search.prior_passer.use_widths
+                use_errors=self.use_errors,
+                use_widths=self.use_widths
             )
         return self.__model
 
@@ -144,38 +202,6 @@ class Result:
             "\n".join(
                 ["{}: {}".format(key, value) for key, value in self.__dict__.items()]
             )
-        )
-
-    def model_absolute(self, a: float) -> AbstractPriorModel:
-        """
-        Parameters
-        ----------
-        a
-            The absolute width of gaussian priors
-
-        Returns
-        -------
-        A model mapper created by taking results from this search and creating priors with the defined absolute
-        width.
-        """
-        return self.model.mapper_from_gaussian_tuples(
-            self.samples.gaussian_priors_at_sigma(sigma=self.search.prior_passer.sigma), a=a
-        )
-
-    def model_relative(self, r: float) -> AbstractPriorModel:
-        """
-        Parameters
-        ----------
-        r
-            The relative width of gaussian priors
-
-        Returns
-        -------
-        A model mapper created by taking results from this search and creating priors with the defined relative
-        width.
-        """
-        return self.model.mapper_from_gaussian_tuples(
-            self.samples.gaussian_priors_at_sigma(sigma=self.search.prior_passer.sigma), r=r
         )
 
     def __getitem__(self, item):

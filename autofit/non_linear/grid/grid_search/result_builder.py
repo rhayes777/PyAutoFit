@@ -51,11 +51,14 @@ class ResultBuilder:
                 job_result = self._job_result_dict[
                     number
                 ]
+                result = job_result.result
                 results.append(
                     Result(
                         samples=job_result.result.samples,
                         model=job_result.result.model,
-                        search=job_result.result.search
+                        sigma=result.sigma,
+                        use_errors=result.use_errors,
+                        use_widths=result.use_widths,
                     )
                 )
             except KeyError:

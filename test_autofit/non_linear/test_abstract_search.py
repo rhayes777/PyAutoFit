@@ -26,7 +26,6 @@ def make_result():
     return af.Result(
         samples=af.m.MockSamples(gaussian_tuples=[(0, 0), (1, 0)]),
         model=mapper,
-        search=af.m.MockSearch(),
     )
 
 
