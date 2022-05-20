@@ -508,7 +508,16 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                 model=model, analysis=analysis, during_analysis=False
             )
 
-            analysis.save_results_for_aggregator(paths=self.paths, model=model, samples=samples)
+            result = analysis.make_result(
+                samples=samples,
+                model=model,
+                sigma=self.prior_passer.sigma,
+                use_errors=self.prior_passer.use_errors,
+                use_widths=self.prior_passer.use_widths,
+            )
+
+            analysis.save_results_for_aggregator(paths=self.paths, result=result)
+
             self.paths.save_object("samples", samples)
 
         else:
@@ -517,6 +526,14 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                 samples = self.paths.load_object("samples")
             except Exception:
                 samples = self.samples_via_results_from(model=model)
+
+            result = analysis.make_result(
+                samples=samples,
+                model=model,
+                sigma=self.prior_passer.sigma,
+                use_errors=self.prior_passer.use_errors,
+                use_widths=self.prior_passer.use_widths,
+            )
 
             if self.force_pickle_overwrite:
                 self.logger.info(
@@ -527,17 +544,10 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                     self.paths.save_object("results", samples.results)
                 except AttributeError:
                     self.paths.save_object("results", samples.results_internal)
-                analysis.save_results_for_aggregator(paths=self.paths, model=model, samples=samples)
+
+                analysis.save_results_for_aggregator(paths=self.paths, result=result)
 
         self.paths.samples_to_csv(samples=samples)
-
-        result = analysis.make_result(
-            samples=samples,
-            model=model,
-            sigma=self.prior_passer.sigma,
-            use_errors=self.prior_passer.use_errors,
-            use_widths=self.prior_passer.use_widths,
-        )
 
         analysis = analysis.modify_after_fit(paths=self.paths, model=model, result=result)
 

@@ -5,10 +5,9 @@ from autoconf import conf
 from autofit.mapper.prior.abstract import Prior
 from autofit.mapper.prior.tuple_prior import TuplePrior
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
-from autofit.mapper.prior_model.collection import CollectionPriorModel
 from autofit.non_linear.analysis.multiprocessing import AnalysisPool
 from autofit.non_linear.paths.abstract import AbstractPaths
-from autofit.non_linear.samples import Samples
+from autofit.non_linear.result import Result
 from .analysis import Analysis
 
 logger = logging.getLogger(
@@ -132,14 +131,12 @@ class CombinedAnalysis(Analysis):
     def save_results_for_aggregator(
             self,
             paths: AbstractPaths,
-            model: CollectionPriorModel,
-            samples: Samples
+            result:Result
     ):
         def func(child_paths, analysis):
             analysis.save_results_for_aggregator(
                 paths=child_paths,
-                model=model,
-                samples=samples
+                result=result
             )
 
         self._for_each_analysis(
