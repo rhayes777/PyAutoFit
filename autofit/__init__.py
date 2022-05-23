@@ -1,3 +1,8 @@
+import abc
+import pickle
+
+from dill import register
+
 from .non_linear.grid.grid_search import GridSearch as SearchGridSearch
 from . import conf
 from . import exc
@@ -93,6 +98,12 @@ from autofit.mapper.prior.arithmetic.compound import AbsolutePrior as Abs
 
 from . import example as ex
 from . import database as db
+
+
+@register(abc.ABCMeta)
+def save_abc(pickler, obj):
+    pickle._Pickler.save_type(pickler, obj)
+    
 
 conf.instance.register(__file__)
 
