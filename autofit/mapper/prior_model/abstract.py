@@ -1639,10 +1639,13 @@ class AbstractPriorModel(AbstractModel):
 
     @property
     def parameter_names(self) -> List[str]:
-        """The param_names vector is a list each parameter's analysis_path, and is used
+        """
+        The param_names vector is a list each parameter's analysis_path, and is used
         for *corner.py* visualization.
+
         The parameter names are determined from the class instance names of the
-        model_mapper. Latex tags are properties of each model class."""
+        model_mapper. Latex tags are properties of each model class.
+        """
         return [parameter_name[-1] for parameter_name in self.unique_prior_paths]
 
     @property
@@ -1663,24 +1666,6 @@ class AbstractPriorModel(AbstractModel):
             parameter_labels.append(parameter_label)
 
         return parameter_labels
-
-    @property
-    def parameter_labels_with_superscripts_latex(self) -> List[str]:
-        """
-        Returns a list of the latex parameter label and superscript of every parameter in a model.
-
-        The parameter labels are defined for every parameter of every model component in the config file `label.ini`.
-        This file can also be used to overwrite superscripts, that are assigned based on the model component name.
-
-        This is used for displaying model results as text and for visualization, for example labelling parameters on a
-        cornerplot.
-        """
-
-        return [
-            f"${label}^{{\\rm {superscript}}}$"
-            for label, superscript in
-            zip(self.parameter_labels, self.superscripts)
-        ]
 
     @property
     def superscripts(self) -> List[str]:
@@ -1768,6 +1753,41 @@ class AbstractPriorModel(AbstractModel):
 
         return superscripts
 
+    @property
+    def parameter_labels_with_superscripts(self) -> List[str]:
+        """
+        Returns a list of the latex parameter label and superscript of every parameter in a model.
+
+        The parameter labels are defined for every parameter of every model component in the config file `label.ini`.
+        This file can also be used to overwrite superscripts, that are assigned based on the model component name.
+
+        This is used for displaying model results as text and for visualization, for example labelling parameters on a
+        cornerplot.
+        """
+
+        return [
+            f"{label}^{{\\rm {superscript}}}"
+            for label, superscript in
+            zip(self.parameter_labels, self.superscripts)
+        ]
+
+    @property
+    def parameter_labels_with_superscripts_latex(self) -> List[str]:
+        """
+        Returns a list of the latex parameter label and superscript of every parameter in a model.
+
+        The parameter labels are defined for every parameter of every model component in the config file `label.ini`.
+        This file can also be used to overwrite superscripts, that are assigned based on the model component name.
+
+        This is used for displaying model results as text and for visualization, for example labelling parameters on a
+        cornerplot.
+        """
+
+        return [
+            f"${label}$"
+            for label in
+            self.parameter_labels_with_superscripts
+        ]
 
 def transfer_classes(instance, mapper, model_classes=None):
     """

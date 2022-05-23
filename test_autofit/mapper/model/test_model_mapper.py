@@ -129,6 +129,14 @@ class TestRegression:
         mm.one = af.m.MockClassRelativeWidth
         mm.two = af.m.MockClassx2NoSuperScript
 
+        assert mm.parameter_labels_with_superscripts == [
+            r"one_label^{\rm r}",
+            r"two_label^{\rm r}",
+            r"three_label^{\rm r}",
+            r"one_label^{\rm two}",
+            r"two_label^{\rm two}",
+        ]
+
         assert mm.parameter_labels_with_superscripts_latex == [
             r"$one_label^{\rm r}$",
             r"$two_label^{\rm r}$",
