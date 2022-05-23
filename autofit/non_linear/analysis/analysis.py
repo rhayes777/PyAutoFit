@@ -2,10 +2,8 @@ import logging
 from abc import ABC
 
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
-from autofit.mapper.prior_model.collection import CollectionPriorModel
 from autofit.non_linear.paths.abstract import AbstractPaths
 from autofit.non_linear.result import Result
-from autofit.non_linear.samples import Samples
 
 logger = logging.getLogger(
     __name__
@@ -49,8 +47,7 @@ class Analysis(ABC):
     def save_attributes_for_aggregator(self, paths: AbstractPaths):
         pass
 
-    def save_results_for_aggregator(self, paths: AbstractPaths, model: CollectionPriorModel,
-                                    samples: Samples):
+    def save_results_for_aggregator(self, paths: AbstractPaths, result:Result):
         pass
 
     def modify_before_fit(self, paths: AbstractPaths, model: AbstractPriorModel):

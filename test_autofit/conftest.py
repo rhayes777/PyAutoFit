@@ -38,25 +38,42 @@ def make_output_directory(
 
 
 @pytest.fixture(
+    name="remove_output",
+    scope="session"
+)
+def make_remove_output(
+        output_directory
+):
+    def remove_output():
+        try:
+            for item in os.listdir(output_directory):
+                if item != "non_linear":
+                    item_path = output_directory / item
+                    if item_path.is_dir():
+                        shutil.rmtree(
+                            item_path,
+                            ignore_errors=True,
+                        )
+                    else:
+                        os.remove(
+                            item_path
+                        )
+        except FileExistsError:
+            pass
+
+    return remove_output
+
+
+@pytest.fixture(
     autouse=True,
     scope="session"
 )
-def remove_output(
-        output_directory
+def do_remove_output(
+        output_directory,
+        remove_output
 ):
     yield
-    for item in os.listdir(output_directory):
-        if item != "non_linear":
-            item_path = output_directory / item
-            if item_path.is_dir():
-                shutil.rmtree(
-                    item_path,
-                    ignore_errors=True,
-                )
-            else:
-                os.remove(
-                    item_path
-                )
+    remove_output()
 
 
 class PlotPatch:
