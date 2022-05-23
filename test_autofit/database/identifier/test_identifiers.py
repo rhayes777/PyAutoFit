@@ -525,3 +525,31 @@ def test__identifier_description__after_take_attributes():
     i += 1
     assert description[i] == "2.0";
     i += 1
+
+
+def test_dynesty_static():
+    assert Identifier(
+        af.DynestyStatic()
+    ).hash_list == [
+               'DynestyStatic',
+               'nlive',
+               '150',
+               'bound',
+               'multi',
+               'sample',
+               'auto',
+               'bootstrap',
+               'enlarge',
+               'vol_dec',
+               '0.5',
+               'walks',
+               '5',
+               'facc',
+               '0.5',
+               'slices',
+               '5',
+               'fmove',
+               '0.9',
+               'max_move',
+               '100'
+           ]
