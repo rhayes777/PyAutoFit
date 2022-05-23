@@ -1,3 +1,5 @@
+import math
+
 import pytest
 
 import autofit as af
@@ -152,3 +154,44 @@ class TestInequality:
                 [0.5], ignore_prior_limits=True
             )
         )
+
+
+@pytest.mark.parametrize(
+    "multiplier, value",
+    [
+        (math.e, 1),
+        (math.e ** 2, 2),
+        (1, 0)
+    ]
+)
+def test_log(
+        multiplier,
+        value,
+        prior
+):
+    assert af.Log(
+        multiplier * prior
+    ).instance_from_unit_vector(
+        [1.0]
+    ) == value
+
+
+@pytest.mark.parametrize(
+    "multiplier, value",
+    [
+        (10, 1),
+        (1, 0),
+        (100, 2),
+        (1000, 3),
+    ]
+)
+def test_log_10(
+        multiplier,
+        value,
+        prior
+):
+    assert af.Log10(
+        multiplier * prior
+    ).instance_from_unit_vector(
+        [1.0]
+    ) == value

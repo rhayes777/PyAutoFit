@@ -95,6 +95,8 @@ from autofit.mapper.prior.arithmetic.compound import DivisionPrior as Divide
 from autofit.mapper.prior.arithmetic.compound import ModPrior as Mod
 from autofit.mapper.prior.arithmetic.compound import PowerPrior as Power
 from autofit.mapper.prior.arithmetic.compound import AbsolutePrior as Abs
+from autofit.mapper.prior.arithmetic.compound import Log
+from autofit.mapper.prior.arithmetic.compound import Log10
 
 from . import example as ex
 from . import database as db

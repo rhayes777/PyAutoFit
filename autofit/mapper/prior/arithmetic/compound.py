@@ -2,6 +2,8 @@ import inspect
 import logging
 from abc import ABC
 
+import numpy as np
+
 from autofit.mapper.prior.arithmetic import ArithmeticMixin
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 
@@ -204,3 +206,27 @@ class AbsolutePrior(ModifiedPrior):
 
     def _instance_for_arguments(self, arguments):
         return abs(self.prior.instance_for_arguments(arguments, ))
+
+
+class Log(ModifiedPrior):
+    """
+    The natural logarithm of an object, computed after realisation.
+    """
+
+    def _instance_for_arguments(
+            self,
+            arguments
+    ):
+        return np.log(self.prior.instance_for_arguments(arguments, ))
+
+
+class Log10(ModifiedPrior):
+    """
+    The base10 logarithm of an object, computed after realisation.
+    """
+
+    def _instance_for_arguments(
+            self,
+            arguments
+    ):
+        return np.log10(self.prior.instance_for_arguments(arguments, ))
