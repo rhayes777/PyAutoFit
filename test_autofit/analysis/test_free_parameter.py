@@ -110,6 +110,14 @@ def make_result(
     )
 
 
+@pytest.fixture(
+    autouse=True
+)
+def do_remove_output(remove_output):
+    yield
+    remove_output()
+
+
 def test_result_type(result, Result):
     assert isinstance(result, Result)
 
