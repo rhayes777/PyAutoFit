@@ -812,7 +812,7 @@ class AbstractPriorModel(AbstractModel):
         return self.gaussian_prior_model_for_arguments(arguments)
 
     def gaussian_prior_model_for_arguments(self, arguments):
-        raise NotImplemented()
+        raise NotImplementedError()
 
     def mapper_from_gaussian_tuples(
             self,

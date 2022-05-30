@@ -1,6 +1,7 @@
 import inspect
 import logging
 from abc import ABC
+from copy import copy
 
 import numpy as np
 
@@ -45,13 +46,39 @@ class CompoundPrior(
         """
         super().__init__()
 
-        left_name = retrieve_name(left) or "left"
-        right_name = retrieve_name(right) or "right"
+        self._left_name = retrieve_name(left) or "left"
+        self._right_name = retrieve_name(right) or "right"
 
-        setattr(self, left_name, left)
-        setattr(self, right_name, right)
+        self.left = left
+        self.right = right
+
+    @property
+    def left(self):
+        return self._left
+
+    @property
+    def right(self):
+        return self._right
+
+    @left.setter
+    def left(self, left):
         self._left = left
+        setattr(self, self._left_name, left)
+
+    @right.setter
+    def right(self, right):
         self._right = right
+        setattr(self, self._right_name, right)
+
+    def gaussian_prior_model_for_arguments(self, arguments):
+        new = copy(self)
+        new.left = new.left.gaussian_prior_model_for_arguments(
+            arguments
+        )
+        new.right = new.right.gaussian_prior_model_for_arguments(
+            arguments
+        )
+        return new
 
     def left_for_arguments(
             self,
