@@ -677,6 +677,7 @@ class AbstractPriorModel(AbstractModel):
     def instance_from_vector(
             self,
             vector,
+            ignore_prior_limits=False
     ):
         """
         Returns a ModelInstance, which has an attribute and class instance corresponding
@@ -687,6 +688,9 @@ class AbstractPriorModel(AbstractModel):
         ----------
         vector: [float]
             A vector of physical parameter values that is mapped to an instance.
+        ignore_prior_limits
+            If True don't check that physical values are within expected limits.
+
         Returns
         -------
         model_instance : autofit.mapper.model.ModelInstance
@@ -704,8 +708,9 @@ class AbstractPriorModel(AbstractModel):
             )
         )
 
-        for prior, value in arguments.items():
-            prior.assert_within_limits(value)
+        if not ignore_prior_limits:
+            for prior, value in arguments.items():
+                prior.assert_within_limits(value)
 
         return self.instance_for_arguments(
             arguments,

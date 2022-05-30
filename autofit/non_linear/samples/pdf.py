@@ -110,7 +110,7 @@ class PDFSamples(Samples):
         return True
 
     @property
-    def median_pdf_vector(self) -> [float]:
+    def median_pdf_vector(self) -> List[float]:
         """
         The median of the probability density function (PDF) of every parameter marginalized in 1D, returned
         as a list of values.
@@ -128,7 +128,10 @@ class PDFSamples(Samples):
         The median of the probability density function (PDF) of every parameter marginalized in 1D, returned
         as a model instance.
         """
-        return self.model.instance_from_vector(vector=self.median_pdf_vector)
+        return self.model.instance_from_vector(
+            vector=self.median_pdf_vector,
+            ignore_prior_limits=True
+        )
 
     def vector_at_sigma(self, sigma: float) -> [(float, float)]:
         """
@@ -221,6 +224,7 @@ class PDFSamples(Samples):
         """
         return self.model.instance_from_vector(
             vector=self.vector_at_sigma(sigma=sigma),
+            ignore_prior_limits=True
         )
 
     def instance_at_upper_sigma(self, sigma: float) -> ModelInstance:
@@ -237,6 +241,7 @@ class PDFSamples(Samples):
         """
         return self.model.instance_from_vector(
             vector=self.vector_at_upper_sigma(sigma=sigma),
+            ignore_prior_limits=True
         )
 
     def instance_at_lower_sigma(self, sigma: float) -> ModelInstance:
@@ -253,6 +258,7 @@ class PDFSamples(Samples):
         """
         return self.model.instance_from_vector(
             vector=self.vector_at_lower_sigma(sigma=sigma),
+            ignore_prior_limits=True
         )
 
     def error_vector_at_sigma(self, sigma: float) -> [(float, float)]:
@@ -344,6 +350,7 @@ class PDFSamples(Samples):
         """
         return self.model.instance_from_vector(
             vector=self.error_magnitude_vector_at_sigma(sigma=sigma),
+            ignore_prior_limits=True
         )
 
     def error_instance_at_upper_sigma(self, sigma: float) -> ModelInstance:
@@ -360,6 +367,7 @@ class PDFSamples(Samples):
         """
         return self.model.instance_from_vector(
             vector=self.error_vector_at_upper_sigma(sigma=sigma),
+            ignore_prior_limits=True
         )
 
     def error_instance_at_lower_sigma(self, sigma: float) -> ModelInstance:
@@ -376,6 +384,7 @@ class PDFSamples(Samples):
         """
         return self.model.instance_from_vector(
             vector=self.error_vector_at_lower_sigma(sigma=sigma),
+            ignore_prior_limits=True
         )
 
     def gaussian_priors_at_sigma(self, sigma: float) -> [List]:
@@ -440,7 +449,10 @@ class PDFSamples(Samples):
         The draw is weighted by the sample weights to ensure that the sample is drawn from the PDF (which is important
         for non-linear searches like nested sampling).
         """
-        return self.model.instance_from_vector(vector=self.vector_drawn_randomly_from_pdf())
+        return self.model.instance_from_vector(
+            vector=self.vector_drawn_randomly_from_pdf(),
+            ignore_prior_limits=True
+        )
 
     def vector_from_sample_index(self, sample_index: int) -> [float]:
         """
