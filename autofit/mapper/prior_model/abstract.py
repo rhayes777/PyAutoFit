@@ -972,13 +972,14 @@ class AbstractPriorModel(AbstractModel):
             )
         )
 
-    def random_instance(self):
+    def random_instance(self, ignore_prior_limits=False):
         """
         Returns a random instance of the model.
         """
         logger.debug(f"Creating a random instance")
         return self.instance_from_unit_vector(
-            unit_vector=[random() for _ in self.prior_tuples]
+            unit_vector=[random() for _ in self.prior_tuples],
+            ignore_prior_limits=ignore_prior_limits
         )
 
     @staticmethod
@@ -1788,6 +1789,7 @@ class AbstractPriorModel(AbstractModel):
             for label in
             self.parameter_labels_with_superscripts
         ]
+
 
 def transfer_classes(instance, mapper, model_classes=None):
     """
