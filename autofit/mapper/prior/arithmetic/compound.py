@@ -48,13 +48,13 @@ class CompoundPrior(
 
         self._left_name = retrieve_name(left) or "left"
         self._right_name = retrieve_name(right) or "right"
-        
+
         if self._left_name == "left":
             self._left_name = "left_"
 
         if self._right_name == "right":
             self._right_name = "right_"
-        
+
         self._left = None
         self._right = None
 
@@ -81,12 +81,18 @@ class CompoundPrior(
 
     def gaussian_prior_model_for_arguments(self, arguments):
         new = copy(self)
-        new.left = new.left.gaussian_prior_model_for_arguments(
-            arguments
-        )
-        new.right = new.right.gaussian_prior_model_for_arguments(
-            arguments
-        )
+        try:
+            new.left = new.left.gaussian_prior_model_for_arguments(
+                arguments
+            )
+        except AttributeError:
+            pass
+        try:
+            new.right = new.right.gaussian_prior_model_for_arguments(
+                arguments
+            )
+        except AttributeError:
+            pass
         return new
 
     def left_for_arguments(
@@ -240,9 +246,12 @@ class ModifiedPrior(
 
     def gaussian_prior_model_for_arguments(self, arguments):
         new = copy(self)
-        new.prior = new.prior.gaussian_prior_model_for_arguments(
-            arguments
-        )
+        try:
+            new.prior = new.prior.gaussian_prior_model_for_arguments(
+                arguments
+            )
+        except AttributeError:
+            pass
         return new
 
 
