@@ -364,7 +364,9 @@ class Samples:
         """
         The parameters of the maximum log posterior sample of the `NonLinearSearch` returned as a model instance.
         """
-        return self.model.instance_from_vector(vector=self.max_log_posterior_vector)
+        return self.model.instance_from_vector(
+            vector=self.max_log_posterior_vector,
+        )
 
     def gaussian_priors_at_sigma(self, sigma: float) -> [List]:
         """
