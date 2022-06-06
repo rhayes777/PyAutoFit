@@ -448,10 +448,11 @@ class AbstractMessage(ABC):
         NOTE: ignores log normalisation
         """
         # Remove floats from messages passed
+        from autofit.messages.transform_wrapper import TransformedWrapperInstance
         dists: List[AbstractMessage] = [
             dist
             for dist in self._iter_dists(elems)
-            if isinstance(dist, AbstractMessage)
+            if isinstance(dist, (AbstractMessage, TransformedWrapperInstance))
         ]
 
         # Calculate log product of message normalisation
