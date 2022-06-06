@@ -41,6 +41,7 @@ class Prior(Variable, ABC, ArithmeticMixin):
             id_=id_
         )
         self.message = message
+        self.message.id = self.id
 
         self.lower_limit = float(lower_limit)
         self.upper_limit = float(upper_limit)
