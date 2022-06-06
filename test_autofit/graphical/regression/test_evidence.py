@@ -40,3 +40,11 @@ def test_identity(message):
     assert message == message
     assert hash(message) == hash(message)
     assert {message, message} == {message}
+
+
+def test_hash_transformed():
+    message = af.UniformPrior().message
+    assert isinstance(
+        hash(message),
+        int
+    )

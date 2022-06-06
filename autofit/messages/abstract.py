@@ -6,7 +6,7 @@ from inspect import getfullargspec
 from itertools import count
 from numbers import Real
 from operator import and_
-from typing import Dict, Tuple, Iterator
+from typing import Dict, Tuple, Iterator, Set
 from typing import Optional, Union, Type, List
 
 import numpy as np
@@ -448,11 +448,11 @@ class AbstractMessage(ABC):
         NOTE: ignores log normalisation
         """
         # Remove floats from messages passed
-        dists: List[AbstractMessage] = [
+        dists: Set[AbstractMessage] = {
             dist
             for dist in self._iter_dists(elems)
             if isinstance(dist, AbstractMessage)
-        ]
+        } | {self}
 
         # Calculate log product of message normalisation
         log_norm = self.log_base_measure - self.log_partition
