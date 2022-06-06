@@ -563,10 +563,10 @@ class AbstractPriorModel(AbstractModel):
         prior_tuple_dict: [(Prior, PriorTuple)]
             The set of all priors associated with this mapper
         """
-        return {
+        return list({
             prior_tuple[1]: prior_tuple
             for prior_tuple in self.attribute_tuples_with_type(Prior)
-        }.values()
+        }.values())
 
     @property
     @cast_collection(PriorNameValue)
