@@ -19,4 +19,24 @@ from autofit import messages as m
     ]
 )
 def test_log_normalisation(message):
-    assert m.AbstractMessage.log_normalisation(message) > 0.0
+    assert message.log_normalisation() != 0.0
+
+
+@pytest.fixture(
+    name="message"
+)
+def make_message():
+    return m.NormalMessage(
+        mean=0.0,
+        sigma=1.0,
+    )
+
+
+def test_multi_evidence(message):
+    assert message.log_normalisation(message) != 0.0
+
+
+def test_identity(message):
+    assert message == message
+    assert hash(message) == hash(message)
+    assert {message, message} == {message}
