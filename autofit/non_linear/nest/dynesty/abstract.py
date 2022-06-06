@@ -141,7 +141,7 @@ class AbstractDynesty(AbstractNest, ABC):
             self.logger.info("Existing Dynesty samples found, resuming non-linear search.")
 
         else:
-            if self.number_of_cores >= 1:
+            if self.number_of_cores > 1:
                 pool = self.make_sneaky_pool(
                     fitness_function
                 )
