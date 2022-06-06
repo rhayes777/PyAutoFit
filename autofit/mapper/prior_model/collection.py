@@ -172,6 +172,8 @@ class CollectionPriorModel(AbstractPriorModel):
         """
         result = ModelInstance()
         for key, value in self.__dict__.items():
+            if key.startswith("_"):
+                continue
             if isinstance(value, AbstractPriorModel):
                 value = value.instance_for_arguments(arguments)
             elif isinstance(value, Prior):

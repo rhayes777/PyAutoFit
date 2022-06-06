@@ -81,3 +81,11 @@ def test_unfreeze(
     frozen_collection.unfreeze()
     frozen_collection["key"] = "value"
     frozen_collection[0].key = "value"
+
+
+def test_unfrozen_instance(
+        frozen_collection
+):
+    instance = frozen_collection.instance_from_prior_medians()
+    assert instance._frozen_cache == {}
+    assert instance._is_frozen is False
