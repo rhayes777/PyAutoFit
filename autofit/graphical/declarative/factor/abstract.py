@@ -38,7 +38,8 @@ class AbstractModelFactor(FactorKW, AbstractDeclarativeFactor, ABC):
         self.optimiser = optimiser
 
         super().__init__(
-            factor, **prior_variable_dict, name=name or namer(self.__class__.__name__)
+            factor, **prior_variable_dict,
+            name=name or namer(self.__class__.__name__),
         )
 
     @property
