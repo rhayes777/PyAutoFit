@@ -19,6 +19,9 @@ class AbstractDeclarativeFactor(Analysis, ABC):
     optimiser: AbstractFactorOptimiser
     _plates: Tuple[Plate, ...] = ()
 
+    def __init__(self, include_prior_factors=False):
+        self.include_prior_factors = include_prior_factors
+
     @property
     @abstractmethod
     def name(self):
@@ -75,14 +78,15 @@ class AbstractDeclarativeFactor(Analysis, ABC):
         """
         The complete graph made by combining all factors and priors
         """
+        factors = [
+            model
+            for model
+            in self.model_factors
+        ]
+        if self.include_prior_factors:
+            factors += self.prior_factors
         # noinspection PyTypeChecker
-        return DeclarativeFactorGraph(
-            [
-                model
-                for model
-                in self.model_factors
-            ] + self.prior_factors
-        )
+        return DeclarativeFactorGraph(factors)
 
     def draw_graph(
             self,

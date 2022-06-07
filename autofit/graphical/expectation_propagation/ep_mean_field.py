@@ -144,7 +144,6 @@ class EPMeanField(FactorGraph):
         else:
             self._factor_mean_field[factor] = new_dist
 
-
     @property
     def name(self):
         return f"EP_{self.factor_graph.name}"

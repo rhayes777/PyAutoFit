@@ -21,6 +21,7 @@ class AbstractModelFactor(FactorKW, AbstractDeclarativeFactor, ABC):
             optimiser: Optional[AbstractFactorOptimiser],
             prior_variable_dict,
             name=None,
+            include_prior_factors=True
     ):
         """
         A factor in the graph that actually computes the likelihood of a model
@@ -38,8 +39,10 @@ class AbstractModelFactor(FactorKW, AbstractDeclarativeFactor, ABC):
         self.optimiser = optimiser
 
         super().__init__(
-            factor, **prior_variable_dict, name=name or namer(self.__class__.__name__)
+            factor, **prior_variable_dict,
+            name=name or namer(self.__class__.__name__),
         )
+        self.include_prior_factors = include_prior_factors
 
     @property
     def info(self) -> str:
