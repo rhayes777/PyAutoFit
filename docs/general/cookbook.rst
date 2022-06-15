@@ -171,7 +171,7 @@ A multi-level model component is written as a Python class using the following f
 
 - The input arguments include one or more optional lists of Python classes that themselves are instantiated as model components.
 
-- Addition parameters specific to the higher level of the model can be included in the constructor (in this example a parameter called the ``higher_level_parameter`` is used).
+- Addition parameters specific to the higher level of the model can be included in the constructor (in this example a parameter called the ``higher_level_centre`` is used).
 
 Like a normal model component, the name of the Python class is the name of the model component, input arguments are
 the parameters of the model and default values tell **PyAutoFit** whether a parameter is a single-valued ``float`` or a
@@ -183,11 +183,11 @@ multi-valued ``tuple``.
 
         def __init__(
             self,
-            higher_level_parameter=1.0,
+            higher_level_centre=1.0,
             gaussian_list=None,  # This will optionally contain a list of ``af.Model(Gaussian)``'s
         ):
 
-            self.higher_level_parameter = higher_level_parameter
+            self.higher_level_centre = higher_level_centre
 
             self.gaussian_list = gaussian_list
 
@@ -211,7 +211,7 @@ To customize the higher level parameters of a multi-level the usual ``Model`` AP
 
     multi_level = af.Model(MultiLevelGaussians, gaussian_list=[Gaussian, Gaussian])
 
-    multi_level.higher_level_parameter = af.UniformPrior(lower_limit=0.0, upper_limit=1.0)
+    multi_level.higher_level_centre = af.UniformPrior(lower_limit=0.0, upper_limit=1.0)
 
 To customize a multi-level model instantiated via lists, each model component is accessed via its index:
 
@@ -234,7 +234,7 @@ Any combination of the API's shown above can be used for customizing this model:
         MultiLevelGaussians, gaussian_list=[gaussian_0, gaussian_1, af.Model(Gaussian)]
     )
 
-    multi_level.higher_level_parameter = 1.0
+    multi_level.higher_level_centre = 1.0
     multi_level.gaussian_list[2].centre = multi_level.gaussian_list[1].centre
 
 Multi-level Models (Alternative API)
@@ -248,9 +248,9 @@ This means no list input parameter is required in the Python class of the model 
 
     class MultiLevelGaussians:
 
-        def __init__(self, higher_level_parameter=1.0):
+        def __init__(self, higher_level_centre=1.0):
 
-            self.higher_level_parameter = higher_level_parameter
+            self.higher_level_centre = higher_level_centre
 
         multi_level = af.Model(MultiLevelGaussians, gaussian_0=Gaussian, gaussian_1=Gaussian)
 
@@ -278,7 +278,7 @@ Models, multi-level models and collections can be combined to compose models of 
     model = af.Collection(multi_level_0=multi_level_0, multi_level_1=multi_level_1)
 
     print(model.multi_level_0.gaussian_1.centre)
-    print(model.multi_level_1.higher_level_parameter)
+    print(model.multi_level_1.higher_level_centre)
 
 Wrap Up
 -------

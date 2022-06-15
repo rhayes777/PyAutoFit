@@ -1,5 +1,5 @@
 {
-    "higher_level_parameter": {
+    "higher_level_centre": {
         "type": "Uniform",
         "lower_limit": 0.0,
         "upper_limit": 100.0,

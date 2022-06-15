@@ -116,7 +116,8 @@ class SearchOutput:
             try:
                 with open(os.path.join(self.pickle_path, "search.pickle"), "r+b") as f:
                     self.__search = pickle.loads(f.read())
-            except FileNotFoundError as e:
+            except (FileNotFoundError, ModuleNotFoundError) as e:
+                print(self.pickle_path)
                 logging.exception(e)
         return self.__search
 
@@ -126,8 +127,12 @@ class SearchOutput:
         The model that was used in this phase
         """
         if self.__model is None:
-            with open(os.path.join(self.pickle_path, "model.pickle"), "r+b") as f:
-                self.__model = pickle.loads(f.read())
+            try:
+                with open(os.path.join(self.pickle_path, "model.pickle"), "r+b") as f:
+                    self.__model = pickle.loads(f.read())
+            except (FileNotFoundError, ModuleNotFoundError) as e:
+                print(self.pickle_path)
+                logging.exception(e)
         return self.__model
 
     def __str__(self):

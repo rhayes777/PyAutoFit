@@ -82,6 +82,7 @@ class Scraper:
             f"{len(aggregator)} searches found"
         )
         for item in aggregator:
+
             is_complete = os.path.exists(
                 f"{item.directory}/.completed"
             )
@@ -93,11 +94,6 @@ class Scraper:
             model = item.model
             samples = item.samples
 
-            try:
-                instance = samples.max_log_likelihood_instance
-            except (AttributeError, NotImplementedError):
-                instance = None
-
             identifier = _make_identifier(item)
 
             logger.info(
@@ -106,6 +102,11 @@ class Scraper:
                 f"{item.search.unique_tag} "
                 f"{item.search.name} "
                 f"{identifier} ")
+
+            try:
+                instance = samples.max_log_likelihood_instance
+            except (AttributeError, NotImplementedError):
+                instance = None
 
             try:
                 fit = self._retrieve_model_fit(
