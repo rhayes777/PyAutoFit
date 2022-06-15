@@ -13,7 +13,8 @@ class FactorGraphModel(AbstractDeclarativeFactor):
                 AbstractDeclarativeFactor,
                 HierarchicalFactor
             ],
-            name=None
+            name=None,
+            include_prior_factors=True,
     ):
         """
         A collection of factors that describe models, which can be
@@ -26,6 +27,9 @@ class FactorGraphModel(AbstractDeclarativeFactor):
         model_factors
             Factors which are hierarchical or associated with a specific analysis
         """
+        super().__init__(
+            include_prior_factors=include_prior_factors,
+        )
         self._model_factors = list(model_factors)
         self._name = name or namer(self.__class__.__name__)
 
