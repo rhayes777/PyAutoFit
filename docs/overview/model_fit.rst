@@ -1,7 +1,7 @@
 .. _model_fit:
 
-Fitting a Model
-===============
+Model Fitting Basics
+====================
 
 To illustrate **PyAutoFit** we'll use the example modeling problem of fitting a 1D Gaussian profile to noisy data.
 
@@ -85,6 +85,21 @@ defined with 3 free parameters, thus the dimensionality of non-linear parameter 
 .. code-block:: python
 
     model = af.Model(Gaussian)
+
+Printing the ``info`` attribute of the model shows us we its free parameters and their priors:
+
+.. code-block:: python
+
+    print(model.info)
+
+This gives the following output:
+
+.. code-block:: bash
+
+    Model Prior Count = 3
+    centre                                                                                    UniformPrior, lower_limit = 0.0, upper_limit = 100.0
+    normalization                                                                             LogUniformPrior, lower_limit = 1e-06, upper_limit = 1000000.0
+    sigma                                                                                     UniformPrior, lower_limit = 0.0, upper_limit = 25.0
 
 Complex high dimensional models can be built from these individual model components, as described in
 the `model composition overview page <https://pyautofit.readthedocs.io/en/latest/overview/model_complex.html>`_
@@ -219,5 +234,6 @@ models using multiple *model components* and *customize* the model parameterizat
 
 If you'd like to perform the fit shown in this script, checkout the
 `simple examples <https://github.com/Jammy2211/autofit_workspace/tree/master/notebooks/overview/simplee>`_ on the
-``autofit_workspace``. We detail how **PyAutoFit** works in the first 3 tutorials of
-the `HowToFit lecture series <https://pyautofit.readthedocs.io/en/latest/howtofit/howtofit.html>`_.
+``autofit_workspace``.
+
+We detail how **PyAutoFit** works in the first 3 tutorials of the `HowToFit lecture series <https://pyautofit.readthedocs.io/en/latest/howtofit/howtofit.html>`_.

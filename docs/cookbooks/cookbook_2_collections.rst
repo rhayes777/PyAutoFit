@@ -303,6 +303,11 @@ By printing this dictionary we can therefore get a concise summary of the model.
 
     print(model.dict())
 
+Model Addition
+--------------
+
+If we have two `Collection()
+
 JSon Outputs
 ------------
 

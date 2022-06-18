@@ -82,6 +82,26 @@ The ``Collection`` allows us to *compose* models using multiple classes. This mo
 parameters (3 for the ``Gaussian``, 3 for the ``Exponential``), thus the dimensionality of non-linear parameter space
 is 6.
 
+We can confirm this by printing ``info`` attribute of the model:
+
+.. code-block:: python
+
+    print(model.info)
+
+This gives the following output:
+
+.. code-block:: bash
+
+    Model Prior Count = 6
+    gaussian
+        centre                                                                                UniformPrior, lower_limit = 0.0, upper_limit = 100.0
+        normalization                                                                         LogUniformPrior, lower_limit = 1e-06, upper_limit = 1000000.0
+        sigma                                                                                 UniformPrior, lower_limit = 0.0, upper_limit = 25.0
+    exponential
+        centre                                                                                UniformPrior, lower_limit = 0.0, upper_limit = 100.0
+        normalization                                                                         LogUniformPrior, lower_limit = 1e-06, upper_limit = 1000000.0
+        rate                                                                                  UniformPrior, lower_limit = 0.0, upper_limit = 1.0
+
 Analysis
 --------
 
@@ -152,8 +172,9 @@ Model Fit
 ---------
 
 Performing the *model-fit* uses the same steps as the previous example, whereby we  *compose* our *model* (now using a
-``Collection``), instantiate the ``Analysis`` and pass them a non-linear search. In this example, we'll use
-the nested sampling algorithm ``dynesty``, using the ``DynestyStatic`` sampler.
+``Collection``), instantiate the ``Analysis`` and pass them a non-linear search.
+
+In this example, we'll use the nested sampling algorithm ``dynesty``, using the ``DynestyStatic`` sampler.
 
 .. code-block:: python
 
@@ -175,9 +196,10 @@ Now, lets consider how we *customize* the models that we *compose*. To begin, le
 
     gaussian = af.Model(Gaussian)
 
-By default, the priors on the ``Gaussian``'s parameters are loaded from configuration files. If you have downloaded the
-``autofit_workspace`` you can find these files at the path ``autofit_workspace/config/priors``. Alternatively,
-you can check them out at this `link <https://github.com/Jammy2211/autofit_workspace/tree/master/config>`_.
+By default, the priors on the ``Gaussian``'s parameters (which are printed above) are loaded from configuration files.
+
+If you have downloaded the ``autofit_workspace`` you can find these files at the path ``autofit_workspace/config/priors``.
+Alternatively, you can check them out at this `link <https://github.com/Jammy2211/autofit_workspace/tree/master/config>`_.
 
 Priors can be manually specified as follows:
 
@@ -190,6 +212,20 @@ Priors can be manually specified as follows:
 These priors will be used by the non-linear search to determine how it samples parameter space. The ``lower_limit``
 and ``upper_limit`` on the ``GaussianPrior`` set the physical limits of values of the parameter, specifying that the
 ``sigma`` value of the ``Gaussian`` cannot be negative.
+
+Printing the `model.info` attribute shows the priors have been updated:
+
+.. code-block:: python
+
+    print(model.info)
+
+This gives the following output:
+
+.. code-block:: bash
+
+    centre                                                                                    UniformPrior, lower_limit = 0.0, upper_limit = 100.0
+    normalization                                                                             LogUniformPrior, lower_limit = 0.01, upper_limit = 100.0
+    sigma                                                                                     GaussianPrior, mean = 10.0, sigma = 5.0
 
 We can fit this model, with all new priors, using a non-linear search as we did before:
 
@@ -253,20 +289,20 @@ Cookbooks
 ---------
 
 The model cookbook section provides a concise API reference to all of the model composition tools above, as well
-as illustrating other features and alternative ways to compose a model:
+as illustrating other features and alternative ways to compose a model.
 
- - `cookbook 1: Basics  <https://pyautofit.readthedocs.io/en/latest/model_cookbooks/basics.html>`_
+ - `cookbook 1: Basics  <https://pyautofit.readthedocs.io/en/latest/cookbooks/cookbook_1_basics.html>`_
 
- - `cookbook 2: Collections  <https://pyautofit.readthedocs.io/en/latest/model_cookbooks/collection.html>`_
+ - `cookbook 2: Collections  <https://pyautofit.readthedocs.io/en/latest/cookbooks/cookbook_2_collections.html>`_
 
 Advanced Model Composition And Cookbooks
 ----------------------------------------
 
 Advanced model component in **PyAutoFit** includes:
 
-- Multi-level models which compose models via hierarchies of Python classes (see `cookbook 3 <https://pyautofit.readthedocs.io/en/latest/model_cookbooks/multi_level.html>`_).
-
 - Models which fit multiple datasets where specific parameters vary across the datasets (see `cookbook 4 <https://pyautofit.readthedocs.io/en/latest/model_cookbooks/variable_across_data.html>`_).
+
+- Multi-level models which compose models via hierarchies of Python classes (see `cookbook 3 <https://pyautofit.readthedocs.io/en/latest/model_cookbooks/multi_level.html>`_).
 
 - Models which are composed from the previous of previous model fits, to build automated model-fitting pipelines (see `cookbook 6 <https://pyautofit.readthedocs.io/en/latest/model_cookbooks/model_linking.html>`_).
 

@@ -1,53 +1,18 @@
 __Documentation__
 
-- Cookbooks -- have a dedicated "model composition" section in the docs / workspace which using trivial examples
-illustrating the use of lists, dicts and multi-level models. Make it clear they are "dumb" examples for illustration.
-Make it clear that the model composed links to the results allowing API design.
-
-- Link to this from model composition overview with bullet points describing each.
-
-- Cookbook on prior passing, search chaining.
-
 - Implement starting point API and write docs on this.
 
-- Multiple datasets sectgion in overview to show analysis summing (same data, different data wiuth different LH functions
-and therefore model links), link to graphical models at end.
 
-- In this section, include docs on writing and loading models / collections with jsons and adding them together. Include
-the Dictable object from autoconf.
-
-- Prior arithmatic - based on multiwavelenght models show how we compose models with relations. Also document
-and test adding parameters, divisionm, etcx. Can we do this before we introduce summing analysis objects?
-
-- Docs on turning analysis summing and addition features into multiple likelihood functions, write general doc, write howtolens chapter
-(c1 same datasets, c2 multi dataset with different parameters, c3 writing function for parameter variation, c4 different LH functions).
-
-
+- In this section, include docs on writing and loading models / collections with jsons and adding them together.
+- Include docs on the Dictable object from autoconf.
+- Model COllection addition not working?
 - Animation of 1D Gaussian fitting.
 
+__Complaints__
 
 - Explicit exampels of how to extend Analsyis (e.g. putting extra data in c0nstructor) for Python beginners.
 
 - Amy was unsure how to use an instance to plot a new component. Show an example where an instance is used
-
-```
-class LinearFit:
-    def __init__(self, gradient=0.01, intercept=1.0, scatter=0.1):
-
-        self.intercept = intercept
-        self.gradient = gradient
-        self.scatter = scatter
-
-    def profile_from_xvalues(self, xvalues):
-
-        return np.multiply(self.gradient, xvalues) + self.intercept
-
-instance = result.samples.max_log_likelihood_instance
-
-instance.profile_from_xvalues(xvalues=hi)
-
-matplotlib stuff.
-```
 
 __Samples__
 
