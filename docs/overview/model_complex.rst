@@ -249,6 +249,27 @@ from *non-linear parameter space*:
 Here, the ``Gaussian``'s ``sigma`` value must always be greater than 5.0 and its ``normalization`` is greater
 than that of the ``Exponential``.
 
+Cookbooks
+---------
+
+The model cookbook section provides a concise API reference to all of the model composition tools above, as well
+as illustrating other features and alternative ways to compose a model:
+
+ - `cookbook 1: Basics  <https://pyautofit.readthedocs.io/en/latest/model_cookbooks/basics.html>`_
+
+ - `cookbook 2: Collections  <https://pyautofit.readthedocs.io/en/latest/model_cookbooks/collection.html>`_
+
+Advanced Model Composition And Cookbooks
+----------------------------------------
+
+Advanced model component in **PyAutoFit** includes:
+
+- Multi-level models which compose models via hierarchies of Python classes (see `cookbook 3 <https://pyautofit.readthedocs.io/en/latest/model_cookbooks/multi_level.html>`_).
+
+- Models which fit multiple datasets where specific parameters vary across the datasets (see `cookbook 4 <https://pyautofit.readthedocs.io/en/latest/model_cookbooks/variable_across_data.html>`_).
+
+- Models which are composed from the previous of previous model fits, to build automated model-fitting pipelines (see `cookbook 6 <https://pyautofit.readthedocs.io/en/latest/model_cookbooks/model_linking.html>`_).
+
 Wrap Up
 -------
 

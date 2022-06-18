@@ -160,7 +160,7 @@ provides new users with a more detailed introduction to **PyAutoFit**.
    overview/model_complex
    overview/non_linear_search
    overview/result
-   overview/multi_level
+   overview/multi_datasets
 
 .. toctree::
    :caption: Installation:
@@ -179,13 +179,23 @@ provides new users with a more detailed introduction to **PyAutoFit**.
    :hidden:
 
    general/workspace
-   general/cookbook
    general/adding_a_model_component
    general/configs
    general/roadmap
    general/software
    general/citations
    general/credits
+
+.. toctree::
+   :caption: Model API Cookbooks:
+   :maxdepth: 1
+   :hidden:
+
+   cookbooks/cookbook_1_basics
+   cookbooks/cookbook_2_collections
+   cookbooks/cookbook_3_multiple_datasets
+   cookbooks/cookbook_4_multi_level
+   cookbooks/cookbook_5_model_linking
 
 .. toctree::
    :caption: Tutorials:
@@ -196,6 +206,13 @@ provides new users with a more detailed introduction to **PyAutoFit**.
    howtofit/chapter_1_introduction
    howtofit/chapter_database
    howtofit/chapter_graphical_models
+
+.. toctree::
+   :caption: Science Examples:
+   :maxdepth: 1
+   :hidden:
+
+   science_examples/astronomy
 
 .. toctree::
    :caption: API Reference:

@@ -1,20 +1,11 @@
-.. _composition:
+.. _astronomy:
 
-Multi-level Models
-==================
+Astronomy
+=========
 
-A **multi-level model** is a hierarchy of model components, where the different levels express the conditional
-dependence between different parameters and model-components. Using hierarchies of Python classes **PyAutoFit** can
-construct **multi-level models** via the ``Model`` and ``Collection`` objects, and these can be linked together to form
-one over-arching model.
-
-Astronomy Use Case
-------------------
-
-Multi-level models are a fairly abstract concept, and so to describe them we are going to introduce a real-world
-model-fitting example. We will use an example from Astronomy; fitting images of gravitationally lensed galaxies.
-This is the science case that sparked the development of **PyAutoFit** as a spin off of our astronomy software
-`PyAutoLens <https://github.com/Jammy2211/PyAutoLens>`_.
+This example illustrates model-component and fitting for an Astronomy science case, based are the phenomena
+of strong gravitational lensing. This is the science case that sparked the development of **PyAutoFit** as a spin
+off of our astronomy software `PyAutoLens <https://github.com/Jammy2211/PyAutoLens>`_.
 
 The schematic below depicts a strong gravitational lens:
 
@@ -29,8 +20,8 @@ A strong gravitational lens is a system consisting of multiple galaxy's down the
 a strong lens, we ray-trace the traversal of light throughout the Universe so as to fit it to imaging data of a strong
 lens. The amount light is deflected by is defined by the distances between each galaxy, which is called their redshift.
 
-Model Overview
---------------
+Multi-Level Models
+------------------
 
 We therefore need a model which contains separate model-components for every galaxy, and where each galaxy contains
 separate model-components describing its light and mass. A multi-level representation of this model is as follows:
@@ -117,7 +108,7 @@ We also define a ``MassProfile``:
 
 We have again omitted the code which computes how this mass profile deflects the path of light.
 
-We now define a ``Galaxy`` object, which contains instances of light and mass profiles and its redshift (e.g. distance 
+We now define a ``Galaxy`` object, which contains instances of light and mass profiles and its redshift (e.g. distance
 from Earth):
 
 .. code-block:: python
@@ -229,7 +220,7 @@ We can now create a model of our source galaxy using the same API.
         light_profile_list=[af.Model(astro.lp.LightProfile)]
     )
 
-We can now create our overall strong lens model, using a ``Collection`` in the same way we have seen previously. 
+We can now create our overall strong lens model, using a ``Collection`` in the same way we have seen previously.
 
 .. code-block:: python
 
@@ -260,7 +251,7 @@ Extensibility
 
 This example highlights how multi-level models can make certain model-fitting problem fully extensible. For example:
 
- 1) A ``Galaxy`` class can be created using any combination of light and mass profiles. Although this was not shown 
+ 1) A ``Galaxy`` class can be created using any combination of light and mass profiles. Although this was not shown
 explicitly in this example, this is because it implements their ``image_from_grid`` and ``deflections_from_grid`` methods
 as the sum of individual profiles.
 
