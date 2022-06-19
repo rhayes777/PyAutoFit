@@ -34,7 +34,7 @@ def make_samples(model):
 def test__results_to_file(samples):
     file_results = path.join(text_path, "model.results")
 
-    text_util.results_to_file(
+    text_util.result_info_from(
         samples=samples, filename=file_results
     )
 
