@@ -61,9 +61,9 @@ This gives the following output:
 .. code-block:: bash
 
     Model Prior Count = 3
-    centre                                                                                    UniformPrior, lower_limit = 0.0, upper_limit = 100.0
-    normalization                                                                             LogUniformPrior, lower_limit = 1e-06, upper_limit = 1000000.0
-    sigma                                                                                     UniformPrior, lower_limit = 0.0, upper_limit = 25.0
+    centre                             UniformPrior, lower_limit = 0.0, upper_limit = 100.0
+    normalization                      LogUniformPrior, lower_limit = 1e-06, upper_limit = 1000000.0
+    sigma                              UniformPrior, lower_limit = 0.0, upper_limit = 25.0
 
 Instances
 ---------

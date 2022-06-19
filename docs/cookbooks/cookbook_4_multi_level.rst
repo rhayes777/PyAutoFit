@@ -60,14 +60,14 @@ This gives the following output:
 .. code-block:: bash
 
     Multi-level Model Prior Count = 5
-    higher_level_centre                                                                       UniformPrior, lower_limit = 0.0, upper_limit = 100.0
+    higher_level_centre                UniformPrior, lower_limit = 0.0, upper_limit = 100.0
     gaussian_list
         0
-            normalization                                                                     LogUniformPrior, lower_limit = 1e-06, upper_limit = 1000000.0
-            sigma                                                                             UniformPrior, lower_limit = 0.0, upper_limit = 25.0
+            normalization              LogUniformPrior, lower_limit = 1e-06, upper_limit = 1000000.0
+            sigma                      UniformPrior, lower_limit = 0.0, upper_limit = 25.0
         1
-            normalization                                                                     LogUniformPrior, lower_limit = 1e-06, upper_limit = 1000000.0
-            sigma                                                                             UniformPrior, lower_limit = 0.0, upper_limit = 25.0
+            normalization              LogUniformPrior, lower_limit = 1e-06, upper_limit = 1000000.0
+            sigma                      UniformPrior, lower_limit = 0.0, upper_limit = 25.0
 
 Instances
 ---------

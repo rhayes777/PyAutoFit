@@ -82,13 +82,13 @@ This gives the following output:
 .. code-block:: bash
 
     gaussian
-        centre                                                                                49.62558008533755
-        normalization                                                                         27.75178980320016
-        sigma                                                                                 10.13156736768096
+        centre                         49.62558008533755
+        normalization                  27.75178980320016
+        sigma                          10.13156736768096
     exponential
-        centre                                                                                GaussianPrior, mean = 50.31368408748868, sigma = 20.0
-        normalization                                                                         GaussianPrior, mean = 38.46597213618446, sigma = 19.23298606809223
-        rate                                                                                  GaussianPrior, mean = 0.04924782286498935, sigma = 0.024623911432494674
+        centre                         GaussianPrior, mean = 50.31368408748868, sigma = 20.0
+        normalization                  GaussianPrior, mean = 38.46597213618446, sigma = 19.23298606809223
+        rate                           GaussianPrior, mean = 0.04924782286498935, sigma = 0.024623911432494674
 
 
 We can print the priors of the exponenital:
@@ -144,13 +144,13 @@ This gives the following output:
 .. code-block:: bash
 
     gaussian
-        centre                                                                                49.62558008533755
-        normalization                                                                         GaussianPrior, mean = 27.696267287676186, sigma = 13.848133643838093
-        sigma                                                                                 10.13156736768096
+        centre                         49.62558008533755
+        normalization                  GaussianPrior, mean = 27.696267287676186, sigma = 13.848133643838093
+        sigma                          10.13156736768096
     exponential
-        centre                                                                                GaussianPrior, mean = 50.31368408748868, sigma = 20.0
-        normalization                                                                         GaussianPrior, mean = 38.46597213618446, sigma = 19.23298606809223
-        rate                                                                                  0.04928930602303
+        centre                         GaussianPrior, mean = 50.31368408748868, sigma = 20.0
+        normalization                  GaussianPrior, mean = 38.46597213618446, sigma = 19.23298606809223
+        rate                           0.04928930602303
 
 Take Attributes
 ---------------

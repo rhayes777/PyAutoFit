@@ -118,19 +118,19 @@ This gives the following output:
     Model Prior Count = 5
     0
         gaussian
-            centre                                                                            UniformPrior, lower_limit = 0.0, upper_limit = 100.0
-            normalization                                                                     LogUniformPrior, lower_limit = 1e-06, upper_limit = 1000000.0
-            sigma                                                                             UniformPrior, lower_limit = 0.0, upper_limit = 25.0
+            centre                     UniformPrior, lower_limit = 0.0, upper_limit = 100.0
+            normalization              LogUniformPrior, lower_limit = 1e-06, upper_limit = 1000000.0
+            sigma                      UniformPrior, lower_limit = 0.0, upper_limit = 25.0
     1
         gaussian
-            centre                                                                            UniformPrior, lower_limit = 0.0, upper_limit = 100.0
-            normalization                                                                     LogUniformPrior, lower_limit = 1e-06, upper_limit = 1000000.0
-            sigma                                                                             UniformPrior, lower_limit = 0.0, upper_limit = 25.0
+            centre                     UniformPrior, lower_limit = 0.0, upper_limit = 100.0
+            normalization              LogUniformPrior, lower_limit = 1e-06, upper_limit = 1000000.0
+            sigma                      UniformPrior, lower_limit = 0.0, upper_limit = 25.0
     2
         gaussian
-            centre                                                                            UniformPrior, lower_limit = 0.0, upper_limit = 100.0
-            normalization                                                                     LogUniformPrior, lower_limit = 1e-06, upper_limit = 1000000.0
-            sigma                                                                             UniformPrior, lower_limit = 0.0, upper_limit = 25.0
+            centre                     UniformPrior, lower_limit = 0.0, upper_limit = 100.0
+            normalization              LogUniformPrior, lower_limit = 1e-06, upper_limit = 1000000.0
+            sigma                      UniformPrior, lower_limit = 0.0, upper_limit = 25.0
 
 We can make multiple parameters free by simply adding them to the input list above.
 
@@ -204,46 +204,46 @@ This gives the following output:
 
     0
         gaussian
-            centre                                                                            UniformPrior, lower_limit = 0.0, upper_limit = 100.0
-            normalization                                                                     LogUniformPrior, lower_limit = 1e-06, upper_limit = 1000000.0
-            sigma                                                                             UniformPrior, lower_limit = 0.0, upper_limit = 25.0
+            centre                     UniformPrior, lower_limit = 0.0, upper_limit = 100.0
+            normalization              LogUniformPrior, lower_limit = 1e-06, upper_limit = 1000000.0
+            sigma                      UniformPrior, lower_limit = 0.0, upper_limit = 25.0
     1
         gaussian
-            centre                                                                            UniformPrior, lower_limit = 0.0, upper_limit = 100.0
-            normalization                                                                     LogUniformPrior, lower_limit = 1e-06, upper_limit = 1000000.0
-            sigma                                                                             UniformPrior, lower_limit = 0.0, upper_limit = 25.0
+            centre                     UniformPrior, lower_limit = 0.0, upper_limit = 100.0
+            normalization              LogUniformPrior, lower_limit = 1e-06, upper_limit = 1000000.0
+            sigma                      UniformPrior, lower_limit = 0.0, upper_limit = 25.0
     2
         gaussian
-            centre                                                                            UniformPrior, lower_limit = 0.0, upper_limit = 100.0
-            normalization                                                                     LogUniformPrior, lower_limit = 1e-06, upper_limit = 1000000.0
-            sigma                                                                             UniformPrior, lower_limit = 0.0, upper_limit = 25.0
+            centre                     UniformPrior, lower_limit = 0.0, upper_limit = 100.0
+            normalization              LogUniformPrior, lower_limit = 1e-06, upper_limit = 1000000.0
+            sigma                      UniformPrior, lower_limit = 0.0, upper_limit = 25.0
     0
         gaussian
-            centre                                                                            UniformPrior, lower_limit = 0.0, upper_limit = 100.0
-            normalization                                                                     LogUniformPrior, lower_limit = 1e-06, upper_limit = 1000000.0
+            centre                     UniformPrior, lower_limit = 0.0, upper_limit = 100.0
+            normalization              LogUniformPrior, lower_limit = 1e-06, upper_limit = 1000000.0
             sigma
-                sigma_c                                                                       UniformPrior, lower_limit = -10.0, upper_limit = 10.0
+                sigma_c                UniformPrior, lower_limit = -10.0, upper_limit = 10.0
                 self
-                    sigma_m                                                                   UniformPrior, lower_limit = -0.1, upper_limit = 0.1
-                    x                                                                         1.0
+                    sigma_m            UniformPrior, lower_limit = -0.1, upper_limit = 0.1
+                    x                  1.0
     1
         gaussian
-            centre                                                                            UniformPrior, lower_limit = 0.0, upper_limit = 100.0
-            normalization                                                                     LogUniformPrior, lower_limit = 1e-06, upper_limit = 1000000.0
+            centre                     UniformPrior, lower_limit = 0.0, upper_limit = 100.0
+            normalization              LogUniformPrior, lower_limit = 1e-06, upper_limit = 1000000.0
             sigma
-                sigma_c                                                                       UniformPrior, lower_limit = -10.0, upper_limit = 10.0
+                sigma_c                UniformPrior, lower_limit = -10.0, upper_limit = 10.0
                 self
-                    sigma_m                                                                   UniformPrior, lower_limit = -0.1, upper_limit = 0.1
-                    x                                                                         2.0
+                    sigma_m            UniformPrior, lower_limit = -0.1, upper_limit = 0.1
+                    x                  2.0
     2
         gaussian
-            centre                                                                            UniformPrior, lower_limit = 0.0, upper_limit = 100.0
-            normalization                                                                     LogUniformPrior, lower_limit = 1e-06, upper_limit = 1000000.0
+            centre                     UniformPrior, lower_limit = 0.0, upper_limit = 100.0
+            normalization              LogUniformPrior, lower_limit = 1e-06, upper_limit = 1000000.0
             sigma
-                sigma_c                                                                       UniformPrior, lower_limit = -10.0, upper_limit = 10.0
+                sigma_c                UniformPrior, lower_limit = -10.0, upper_limit = 10.0
                 self
-                    sigma_m                                                                   UniformPrior, lower_limit = -0.1, upper_limit = 0.1
-                    x                                                                         3.0
+                    sigma_m            UniformPrior, lower_limit = -0.1, upper_limit = 0.1
+                    x                  3.0
 
 
 We can use division, subtraction and logorithms to create more complex relations and apply them to different parameters,
@@ -251,8 +251,8 @@ for example:
 
 .. code-block:: python
 
-     ``y = m * log10(x) - log(z) + c`` : ``sigma`` = sigma_m * log10(x) - log(z) + sigma_c``
-     ``y = m * (x / z)`` : ``centre`` = centre_m * (x / z)``
+    # ``y = m * log10(x) - log(z) + c`` : ``sigma`` = sigma_m * log10(x) - log(z) + sigma_c``
+    # ``y = m * (x / z)`` : ``centre`` = centre_m * (x / z)``
 
     model = af.Collection(gaussian=af.Model(Gaussian))
 
@@ -291,4 +291,4 @@ An example use-case of such a model is time-varying data, whereby each dataset i
 We may have knowledge that certain parameters do vary as a function of time, whereas others do not. We can therefore
 parameterize a model which varies as a function of ``time=t`` of the form:
 
-`` ``y = m * y + c`` : ``sigma`` = sigma_m * y + sigma_c``
+`` ``y = m * t + c`` : ``sigma`` = sigma_m * t + sigma_c``

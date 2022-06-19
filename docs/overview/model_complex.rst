@@ -94,13 +94,13 @@ This gives the following output:
 
     Model Prior Count = 6
     gaussian
-        centre                                                                                UniformPrior, lower_limit = 0.0, upper_limit = 100.0
-        normalization                                                                         LogUniformPrior, lower_limit = 1e-06, upper_limit = 1000000.0
-        sigma                                                                                 UniformPrior, lower_limit = 0.0, upper_limit = 25.0
+        centre                         UniformPrior, lower_limit = 0.0, upper_limit = 100.0
+        normalization                  LogUniformPrior, lower_limit = 1e-06, upper_limit = 1000000.0
+        sigma                          UniformPrior, lower_limit = 0.0, upper_limit = 25.0
     exponential
-        centre                                                                                UniformPrior, lower_limit = 0.0, upper_limit = 100.0
-        normalization                                                                         LogUniformPrior, lower_limit = 1e-06, upper_limit = 1000000.0
-        rate                                                                                  UniformPrior, lower_limit = 0.0, upper_limit = 1.0
+        centre                         UniformPrior, lower_limit = 0.0, upper_limit = 100.0
+        normalization                  LogUniformPrior, lower_limit = 1e-06, upper_limit = 1000000.0
+        rate                           UniformPrior, lower_limit = 0.0, upper_limit = 1.0
 
 Analysis
 --------
@@ -223,9 +223,9 @@ This gives the following output:
 
 .. code-block:: bash
 
-    centre                                                                                    UniformPrior, lower_limit = 0.0, upper_limit = 100.0
-    normalization                                                                             LogUniformPrior, lower_limit = 0.01, upper_limit = 100.0
-    sigma                                                                                     GaussianPrior, mean = 10.0, sigma = 5.0
+    centre                             UniformPrior, lower_limit = 0.0, upper_limit = 100.0
+    normalization                      LogUniformPrior, lower_limit = 0.01, upper_limit = 100.0
+    sigma                              GaussianPrior, mean = 10.0, sigma = 5.0
 
 We can fit this model, with all new priors, using a non-linear search as we did before:
 
