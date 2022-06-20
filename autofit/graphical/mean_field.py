@@ -261,13 +261,17 @@ class MeanField(CollectionPriorModel, Dict[Variable, AbstractMessage], Factor):
         return all(d.is_valid for d in self.values())
 
     def prod(self, *approxs: "MeanField", default=None) -> "MeanField":
-        default = default or defaultdict(lambda: 1.0)
         dists = [
             (key, prod(
-                (other_mean_field.get(key, default[key]) for other_mean_field in approxs),
+                (other_mean_field.get(key, 1.0) for other_mean_field in approxs),
                 message)
              ) for key, message in self.items()
         ]
+        if default is not None:
+            dists = [
+                (key, message if isinstance(message, (AbstractMessage, TransformedWrapperInstance)) else default[key])
+                for key, message in dists
+            ]
         return MeanField({k: m for k, m in dists if isinstance(m, (AbstractMessage, TransformedWrapperInstance))})
 
     __mul__ = prod
