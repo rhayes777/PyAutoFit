@@ -1,5 +1,6 @@
 import logging
 from collections import ChainMap, defaultdict
+from copy import copy
 from typing import Dict, Tuple, Optional, Union, Iterable
 
 import numpy as np
@@ -277,8 +278,20 @@ class MeanField(CollectionPriorModel, Dict[Variable, AbstractMessage], Factor):
     __mul__ = prod
 
     def __truediv__(self, other: "MeanField") -> "MeanField":
+        updated_dict = {}
+
+        for key, message in self.items():
+            try:
+                new_message = message / other.get(key, 1.0)
+            except exc.MessageException:
+                logger.exception(
+                    "Posterior wider than prior. Replacing prior with posterior."
+                )
+                new_message = copy(message)
+            updated_dict[key] = new_message
+
         return type(self)(
-            {k: m / other.get(k, 1.0) for k, m in self.items()},
+            updated_dict,
             self.log_norm - other.log_norm,
         )
 
