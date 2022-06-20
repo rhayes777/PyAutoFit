@@ -56,19 +56,41 @@ this give a speed-up in log likelihood evaluation.
   :width: 600
   :alt: Alternative text
 
-We now create a search to fit this data. Given the simplicity of the model, we can use a low number of live points
-to achieve a fast model-fit (had we fitted the more complex model right away we could not of done this).
+We first compose the model, which only represents the left hand `Gaussian`.
+
+.. code-block:: python
+
+    model_1 = af.Collection(gaussian_left=af.ex.Gaussian)
+
+.. code-block:: python
+
+    print(model_1.info)
+
+The `info` attribute shows the model in a readable format.
+
+This gives the following output:
 
 .. code-block:: bash
 
-    model = af.Collection(gaussian_left=m.Gaussian)
+    gaussian_left
+        centre                         UniformPrior, lower_limit = 0.0, upper_limit = 100.0
+        normalization                  LogUniformPrior, lower_limit = 1e-06, upper_limit = 1000000.0
+        sigma                          UniformPrior, lower_limit = 0.0, upper_limit = 25.0
 
-    dynesty = af.DynestyStatic(
-        name=("search[1]__left_gaussian"),
+We now create a search to fit this data. Given the simplicity of the model, we can use a low number of live points
+to achieve a fast model-fit (had we fitted the more complex model right away we could not of done this).
+
+.. code-block:: python
+
+    analysis_1 = af.ex.Analysis(data=data[0:50], noise_map=noise_map[0:50])
+
+    search_1 = af.DynestyStatic(
+        name="search[1]__left_gaussian",
+        path_prefix=path.join("features", "search_chaining"),
         nlive=30,
     )
 
-    search_2_result = dynesty.fit(model=model, analysis=analysis)
+    result_1 = search_1.fit(model=model_1, analysis=analysis_1)
 
 By plotting the result we can see we have fitted the left ``Gaussian`` reasonably well.
 
@@ -87,26 +109,45 @@ dataset. To fit the left Gaussian we use the maximum log likelihood model of the
 For search chaining, **PyAutoFit** has many convenient methods for passing the results of a search to a subsequence
 search. Below, we achieve this by passing the result of the search above as an ``instance``.
 
+.. code-block:: python
+
+    model_2 = af.Collection(
+        gaussian_left=result_1.instance.gaussian_left, gaussian_right=af.ex.Gaussian
+    )
+
+The `info` attribute shows the model, including how parameters and priors were passed from `result_1`.
+
+.. code-block:: python
+
+    print(model_2.info)
+
+This gives the following output:
+
 .. code-block:: bash
 
-    model = af.Collection(
-        gaussian_left=search_1_result.instance.gaussian_left,
-        gaussian_right=m.Gaussian
-    )
+    gaussian_left
+        centre                         25.43766022973362
+        normalization                  51.98717889043411
+        sigma                          12.99331932996352
+    gaussian_right
+        centre                         UniformPrior, lower_limit = 0.0, upper_limit = 100.0
+        normalization                  LogUniformPrior, lower_limit = 1e-06, upper_limit = 1000000.0
+        sigma                          UniformPrior, lower_limit = 0.0, upper_limit = 25.0
 
 We now run our second Dynesty search to fit the right ``Gaussian``. We can again exploit the simplicity of the model
 and use a low number of live points to achieve a fast model-fit.
 
-.. code-block:: bash
+.. code-block:: python
 
-    dynesty = af.DynestyStatic(
-        name=("search[2]__right_gaussian"),
+    analysis_2 = af.ex.Analysis(data=data, noise_map=noise_map)
+
+    search_2 = af.DynestyStatic(
+        name="search[2]__right_gaussian",
         path_prefix=path.join("features", "search_chaining"),
         nlive=30,
-        iterations_per_update=500,
     )
 
-    search_2_result = dynesty.fit(model=model, analysis=analysis)
+    result_2 = search_2.fit(model=model_2, analysis=analysis_2)
 
 We can now see our model has successfully fitted both Gaussian's:
 
@@ -127,21 +168,45 @@ non-linear search.
 The ``mean`` and ``sigma`` value of each parmeter's ``GaussianPrior`` are set using the results of searches 1 and
 2 to ensure our model-fit only searches the high likelihood regions of parameter space.
 
+.. code-block:: python
+
+    model_3 = af.Collection(
+        gaussian_left=result_1.model.gaussian_left,
+        gaussian_right=result_2.model.gaussian_right,
+    )
+
+The `info` attribute shows the model, including how parameters and priors were passed from `result_1` and `result_2`.
+
+.. code-block:: python
+
+    print(model_3.info)
+
+
+This gives the following output:
+
 .. code-block:: bash
 
-    model = af.Collection(
-        gaussian_left=search_1_result.model.gaussian_left,
-        gaussian_right=search_2_result.model.gaussian_right
-    )
+    gaussian_left
+        centre                         GaussianPrior, mean = 25.442897208320307, sigma = 20.0
+        normalization                  GaussianPrior, mean = 51.98379634356712, sigma = 25.99189817178356
+        sigma                          GaussianPrior, mean = 12.990448834848394, sigma = 6.495224417424197
+    gaussian_right
+        centre                         GaussianPrior, mean = 75.052492251368, sigma = 20.0
+        normalization                  GaussianPrior, mean = 48.757265879772476, sigma = 24.378632939886238
+        sigma                          GaussianPrior, mean = 12.167662812557307, sigma = 6.083831406278653
 
-    dynesty = af.DynestyStatic(
-        name=("search[3]__both_gaussians"),
+
+.. code-block:: python
+
+    analysis_3 = af.ex.Analysis(data=data, noise_map=noise_map)
+
+    search_3 = af.DynestyStatic(
+        name="search[3]__both_gaussians",
         path_prefix=path.join("features", "search_chaining"),
         nlive=100,
-        iterations_per_update=500,
     )
 
-    search_3_result = dynesty.fit(model=model, analysis=analysis)
+    result_3 = search_3.fit(model=model_3, analysis=analysis_3)
 
 We can now see our model has successfully fitted both Gaussians simultaneously:
 

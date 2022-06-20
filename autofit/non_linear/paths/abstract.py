@@ -417,10 +417,6 @@ class AbstractPaths(ABC):
 
         result_info = text_util.result_info_from(
             samples=samples,
-            filename=path.join(
-                self.output_path,
-                "model.results"
-            )
         )
 
         filename = path.join(self.output_path, "model.results")

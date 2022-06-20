@@ -9,8 +9,9 @@ def padding(item, target=6):
     return f"{prefix}{string}"
 
 
-def result_info_from(samples, filename):
-    """Output the full model.results file, which include the most-likely model, most-probable model at 1 and 3
+def result_info_from(samples) -> str:
+    """
+    Output the full model.results file, which include the most-likely model, most-probable model at 1 and 3
     sigma confidence and information on the maximum log likelihood.
     """
 
