@@ -1,6 +1,5 @@
 import logging
 from abc import ABC, abstractmethod
-from collections import defaultdict
 from typing import Tuple, Optional
 
 from autofit.graphical.expectation_propagation.ep_mean_field import EPMeanField
@@ -20,9 +19,8 @@ class AbstractFactorOptimiser(ABC):
     def __init__(self, initial_values=None, deltas=None, inplace=False, delta=1):
         self.initial_values = initial_values or {}
         self.inplace = inplace
-        self.deltas = defaultdict(lambda: delta)
-        if deltas:
-            self.deltas.update(deltas)
+        self.delta = delta
+        self.deltas = deltas or {}
 
     def update_model_approx(
             self,
@@ -32,7 +30,7 @@ class AbstractFactorOptimiser(ABC):
             status: Optional[Status] = Status(),
             delta: Optional[float] = None,
     ) -> Tuple[EPMeanField, Status]:
-        delta = delta or self.deltas[factor_approx.factor]
+        delta = delta or self.deltas.get(factor_approx.factor) or self.delta
         new_approx, status = model_approx.project_mean_field(
             new_model_dist,
             factor_approx,

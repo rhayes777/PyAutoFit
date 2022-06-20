@@ -243,3 +243,10 @@ def test_pickle_transformed_instantiated(
     dill.loads(
         dill.dumps(instance)
     )
+
+
+def test_set_delta():
+    dynesty = af.DynestyStatic(
+        delta=1.23
+    )
+    assert dynesty.delta == 1.23
