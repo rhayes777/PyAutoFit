@@ -133,6 +133,12 @@ class TestPriors:
         )
 
 
+def test_none_id(model):
+    model.id = None
+    model = db.Object.from_object(model)()
+    assert model.id is not None
+
+
 class TestCollection:
     def test_serialize(
             self,

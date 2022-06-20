@@ -191,6 +191,17 @@ class Object(Base):
                     child.name,
                     child()
                 )
+        from autofit import ModelObject
+        if isinstance(
+                instance,
+                ModelObject
+        ) and (
+                not hasattr(
+                    instance, "id"
+                ) or instance.id is None
+        ):
+            instance.id = instance.next_id()
+
         return instance
 
     def _add_children(

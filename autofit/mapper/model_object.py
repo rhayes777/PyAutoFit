@@ -7,6 +7,10 @@ from .identifier import Identifier
 class ModelObject:
     _ids = itertools.count()
 
+    @classmethod
+    def next_id(cls):
+        return next(cls._ids)
+
     def __init__(
             self,
             id_=None,
@@ -23,7 +27,7 @@ class ModelObject:
             A label which can optionally be set for visualising this object in a
             graph.
         """
-        self.id = next(self._ids) if id_ is None else id_
+        self.id = id_ or self.next_id()
         self._label = label
 
     @property
