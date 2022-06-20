@@ -46,13 +46,13 @@ class NormalMessage(AbstractMessage):
         if (np.array(sigma) < 0).any():
             raise exc.MessageException("Sigma cannot be negative")
 
-        _is_nan = np.isnan(sigma)
-        if isinstance(_is_nan, np.ndarray):
-            _is_nan = _is_nan.all()
-        if _is_nan:
-            raise exc.MessageException(
-                "nan parameter passed to NormalMessage"
-            )
+        # _is_nan = np.isnan(sigma)
+        # if isinstance(_is_nan, np.ndarray):
+        #     _is_nan = _is_nan.all()
+        # if _is_nan:
+        #     raise exc.MessageException(
+        #         "nan parameter passed to NormalMessage"
+        #     )
 
         super().__init__(
             mean,
