@@ -32,28 +32,12 @@ def make_samples(model):
 
 
 def test__results_to_file(samples):
-    file_results = path.join(text_path, "model.results")
 
-    text_util.results_to_file(
-        samples=samples, filename=file_results
+    result_info =text_util.result_info_from(
+        samples=samples,
     )
 
-    results = open(file_results)
-
-    line = results.readline()
-
-    assert (
-            line
-            == "Maximum Log Likelihood                                                                    1.00000000\n"
-    )
-
-    line = results.readline()
-
-    assert (
-            line
-            == "Maximum Log Posterior                                                                     1.00000000\n"
-    )
-
+    assert  "Maximum Log Likelihood                                                                    1.00000000\n" in result_info
 
 def test__search_summary_to_file(model):
     file_search_summary = path.join(text_path, "search.summary")

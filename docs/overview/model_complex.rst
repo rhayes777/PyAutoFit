@@ -182,9 +182,62 @@ In this example, we'll use the nested sampling algorithm ``dynesty``, using the 
 
     analysis = Analysis(data=data, noise_map=noise_map)
 
-    dynesty = af.DynestyStatic(name="example_search")
+    search = af.DynestyStatic(name="example_search")
 
-    result = dynesty.fit(model=model, analysis=analysis)
+    result = search.fit(model=model, analysis=analysis)
+
+The ``Result`` object's ``info`` attribute confirms that a model with 6 parameters was fitted successfully:
+
+.. code-block:: python
+
+    print(result.info)
+
+This gives the following output:
+
+.. code-block:: bash
+
+    Bayesian Evidence                  -89.59876054
+    Maximum Log Likelihood             -38.90532783
+    Maximum Log Posterior              -38.90532783
+    
+    model                              CollectionPriorModel (N=6)
+        gaussian                       Gaussian (N=3)
+        exponential                    Exponential (N=3)
+    
+    Maximum Log Likelihood Model:
+    
+    gaussian
+        centre                         49.682
+        normalization                  27.690
+        sigma                          10.174
+    exponential
+        centre                         50.360
+        normalization                  38.395
+        rate                           0.049
+    
+    
+    Summary (3.0 sigma limits):
+    
+    gaussian
+        centre                         49.70 (48.85, 50.70)
+        normalization                  27.55 (22.07, 33.23)
+        sigma                          10.16 (9.65, 10.63)
+    exponential
+        centre                         50.30 (49.55, 50.84)
+        normalization                  38.51 (35.59, 41.13)
+        rate                           0.05 (0.04, 0.05)
+    
+    
+    Summary (1.0 sigma limits):
+    
+    gaussian
+        centre                         49.70 (49.45, 49.93)
+        normalization                  27.55 (25.76, 29.44)
+        sigma                          10.16 (9.98, 10.35)
+    exponential
+        centre                         50.30 (50.11, 50.47)
+        normalization                  38.51 (37.65, 39.35)
+        rate                           0.05 (0.05, 0.05)
 
 Model Priors
 ------------

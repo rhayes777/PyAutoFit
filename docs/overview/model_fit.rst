@@ -192,8 +192,47 @@ Result
 ------
 
 By running the code above **PyAutoFit** performs the model-fit, outputting all results into structured paths on you
-hard-disk. It also returns a ``Result`` object in Python, which includes lists containing the non-linear search's
-parameter samples, the maximum likelihood model, marginalized parameters estimates, errors are so on:
+hard-disk.
+
+It also returns a ``Result`` object in Python, whose ``info`` attribute can be printed to give the results in a
+readable format:
+
+.. code-block:: python
+
+    print(result.info)
+
+This gives the following output:
+
+.. code-block:: bash
+
+    Bayesian Evidence                  -58.49183930
+    Maximum Log Likelihood             -43.89597618
+    Maximum Log Posterior              -43.85625735
+    
+    model                              Gaussian (N=3)
+    
+    Maximum Log Likelihood Model:
+    
+    centre                             49.951
+    normalization                      25.287
+    sigma                              10.093
+    
+    
+    Summary (3.0 sigma limits):
+    
+    centre                             49.97 (49.59, 50.38)
+    normalization                      25.33 (24.47, 26.25)
+    sigma                              10.11 (9.70, 10.48)
+    
+    
+    Summary (1.0 sigma limits):
+    
+    centre                             49.97 (49.83, 50.10)
+    normalization                      25.33 (25.02, 25.63)
+    sigma                              10.11 (9.98, 10.24)
+
+The ``Result`` also includes lists containing the non-linear search's parameter samples, the maximum likelihood model,
+marginalized parameters estimates, errors are so on:
 
 .. code-block:: python
 

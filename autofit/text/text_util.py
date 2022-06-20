@@ -9,8 +9,9 @@ def padding(item, target=6):
     return f"{prefix}{string}"
 
 
-def results_to_file(samples, filename):
-    """Output the full model.results file, which include the most-likely model, most-probable model at 1 and 3
+def result_info_from(samples) -> str:
+    """
+    Output the full model.results file, which include the most-likely model, most-probable model at 1 and 3
     sigma confidence and information on the maximum log likelihood.
     """
 
@@ -82,7 +83,7 @@ def results_to_file(samples, filename):
 
     results += ["\n" + formatter.text]
 
-    frm.output_list_of_strings_to_file(file=filename, list_of_strings=results)
+    return "".join(results)
 
 
 def search_summary_from_samples(samples) -> [str]:

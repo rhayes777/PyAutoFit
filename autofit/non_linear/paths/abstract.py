@@ -414,13 +414,15 @@ class AbstractPaths(ABC):
             json.dump(config_dict, f, indent=4)
 
     def save_summary(self, samples, log_likelihood_function_time):
-        text_util.results_to_file(
+
+        result_info = text_util.result_info_from(
             samples=samples,
-            filename=path.join(
-                self.output_path,
-                "model.results"
-            )
         )
+
+        filename = path.join(self.output_path, "model.results")
+
+        with open_(filename, "w") as f:
+            f.write(result_info)
 
         text_util.search_summary_to_file(
             samples=samples,

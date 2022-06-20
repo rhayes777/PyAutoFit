@@ -1,11 +1,11 @@
 from abc import ABC, abstractmethod
-
 import numpy as np
+from os import path
 
 from autofit import exc
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.samples import Samples
-
+from autofit.text import text_util
 
 class Placeholder:
     def __getattr__(self, item):
@@ -45,6 +45,12 @@ class AbstractResult(ABC):
     @abstractmethod
     def model(self):
         pass
+
+    @property
+    def info(self) -> str:
+        return text_util.result_info_from(
+            samples=self.samples,
+        )
 
     def __gt__(self, other):
         """

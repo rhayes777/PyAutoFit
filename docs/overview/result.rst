@@ -15,6 +15,46 @@ A non-linear search's fit function returns a ``Result`` object:
 
 Here, we'll look in detail at what information is contained in the ``Result``.
 
+Info
+----
+
+As shown in previous examples, the ``Result`` has an ``info`` attribute which can be printed to get a readable
+overview of the results.
+
+.. code-block:: python
+
+    print(result.info)
+
+This gives the following output:
+
+.. code-block:: bash
+
+    Bayesian Evidence                  -58.49183930
+    Maximum Log Likelihood             -43.89597618
+    Maximum Log Posterior              -43.85625735
+
+    model                              Gaussian (N=3)
+
+    Maximum Log Likelihood Model:
+
+    centre                             49.951
+    normalization                      25.287
+    sigma                              10.093
+
+
+    Summary (3.0 sigma limits):
+
+    centre                             49.97 (49.59, 50.38)
+    normalization                      25.33 (24.47, 26.25)
+    sigma                              10.11 (9.70, 10.48)
+
+
+    Summary (1.0 sigma limits):
+
+    centre                             49.97 (49.83, 50.10)
+    normalization                      25.33 (25.02, 25.63)
+    sigma                              10.11 (9.98, 10.24)
+
 Samples
 -------
 
