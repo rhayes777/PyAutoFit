@@ -1,5 +1,5 @@
 import logging
-from collections import ChainMap
+from collections import ChainMap, defaultdict
 from typing import Dict, Tuple, Optional, Union, Iterable
 
 import numpy as np
@@ -260,10 +260,14 @@ class MeanField(CollectionPriorModel, Dict[Variable, AbstractMessage], Factor):
     def is_valid(self):
         return all(d.is_valid for d in self.values())
 
-    def prod(self, *approxs: "MeanField") -> "MeanField":
-        dists = list(
-            (k, prod((m.get(k, 1.0) for m in approxs), m)) for k, m in self.items()
-        )
+    def prod(self, *approxs: "MeanField", default=None) -> "MeanField":
+        default = default or defaultdict(lambda: 1.0)
+        dists = [
+            (key, prod(
+                (other_mean_field.get(key, default[key]) for other_mean_field in approxs),
+                message)
+             ) for key, message in self.items()
+        ]
         return MeanField({k: m for k, m in dists if isinstance(m, (AbstractMessage, TransformedWrapperInstance))})
 
     __mul__ = prod
