@@ -1,5 +1,5 @@
 import logging
-from collections import ChainMap, defaultdict
+from collections import ChainMap
 from typing import Dict, Tuple, Optional, Union, Iterable
 
 import numpy as np
@@ -35,6 +35,10 @@ Projection = Dict[str, AbstractMessage]
 logger = logging.getLogger(__name__)
 
 _log_projection_warnings = logger.debug
+
+
+def is_message(message):
+    return isinstance(message, (AbstractMessage, TransformedWrapperInstance))
 
 
 # Does this need to be a Factor?
@@ -269,10 +273,10 @@ class MeanField(CollectionPriorModel, Dict[Variable, AbstractMessage], Factor):
         ]
         if default is not None:
             dists = [
-                (key, message if isinstance(message, (AbstractMessage, TransformedWrapperInstance)) else default[key])
+                (key, message if is_message(message) else default[key])
                 for key, message in dists
             ]
-        return MeanField({k: m for k, m in dists if isinstance(m, (AbstractMessage, TransformedWrapperInstance))})
+        return MeanField({k: m for k, m in dists if is_message(m)})
 
     __mul__ = prod
 
