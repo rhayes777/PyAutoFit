@@ -73,6 +73,47 @@ class TestModel:
         assert serialized_model().cls is af.Gaussian
 
 
+@pytest.fixture(name="collection_with_cache")
+def make_collection_with_cache():
+    model = af.Collection(gaussian=af.Gaussian)
+    model.freeze()
+    _ = model.unique_prior_tuples
+    return model
+
+
+class TestFrozenCache:
+    def test_model_with_cache(self):
+        gaussian = af.Model(af.Gaussian)
+        gaussian.freeze()
+        _ = gaussian.unique_prior_tuples
+        serialized = db.Object.from_object(
+            gaussian
+        )
+        deserialized = serialized()
+        assert deserialized._frozen_cache == {}
+
+    def test_collection_with_cache(self, collection_with_cache):
+        serialized = db.Object.from_object(
+            collection_with_cache
+        )
+        deserialized = serialized()
+        assert deserialized._frozen_cache == {}
+
+    def test_instance_with_cache(self, collection_with_cache):
+        instance = collection_with_cache.instance_from_prior_medians()
+        serialized = db.Object.from_object(instance)
+        deserialized = serialized()
+        assert deserialized._frozen_cache == {}
+
+    def test_instance_no_frozen_cache(self, collection_with_cache):
+        instance = collection_with_cache.instance_from_prior_medians()
+        assert instance._frozen_cache == {}
+        assert not hasattr(
+            instance.gaussian,
+            "_frozen_cache",
+        )
+
+
 class TestPriors:
     def test_serialize(
             self,

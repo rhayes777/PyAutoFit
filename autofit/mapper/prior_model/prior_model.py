@@ -323,6 +323,7 @@ class PriorModel(AbstractPriorModel):
                     not hasattr(result, key)
                     and not isinstance(value, Prior)
                     and not key == "cls"
+                    and not key.startswith("_")
             ):
                 if isinstance(value, PriorModel):
                     value = value.instance_for_arguments(arguments)
