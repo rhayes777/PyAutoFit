@@ -290,13 +290,13 @@ class AbstractPriorModel(AbstractModel):
         """
         Recursively generate a copy of this model removing objects
         specified by the tree.
-    
+
         Parameters
         ----------
         tree
             A tree formed of dictionaries describing which components of the
             model should be removed.
-    
+
         Returns
         -------
         A copy of this model with a subset of attributes
@@ -564,9 +564,9 @@ class AbstractPriorModel(AbstractModel):
             The set of all priors associated with this mapper
         """
         return list({
-            prior_tuple[1]: prior_tuple
-            for prior_tuple in self.attribute_tuples_with_type(Prior)
-        }.values())
+                        prior_tuple[1]: prior_tuple
+                        for prior_tuple in self.attribute_tuples_with_type(Prior)
+                    }.values())
 
     @property
     @cast_collection(PriorNameValue)
@@ -619,38 +619,95 @@ class AbstractPriorModel(AbstractModel):
             )
         )
 
-    def random_unit_vector_within_limits(self, lower_limit=0.0, upper_limit=1.0):
-        """ Generate a random vector of unit values by drawing uniform random values between 0 and 1.
+    def random_unit_vector_within_limits(self, lower_limit: float = 0.0, upper_limit: float = 1.0) -> List[float]:
+        """
+        Generate a random vector of unit values by drawing uniform random values between 0 and 1.
+
         Returns
         -------
-        unit_values: [float]
+        unit_values
             A list of unit values constructed by taking random values from each prior.
         """
         return list(np.random.uniform(low=lower_limit, high=upper_limit, size=self.prior_count))
 
-    def random_vector_from_priors_within_limits(self, lower_limit, upper_limit):
-        """ Generate a random vector of physical values by drawing uniform random values between an input lower and
-        upper limit and using the model priors to map them from unit values to physical values.
-        This is used for MCMC initialization, whereby the starting points of a walker(s) is confined to a restricted
+    def random_vector_from_priors_within_limits(
+            self,
+            lower_limit: float = 0.0,
+            upper_limit: float = 1.0
+    ) -> List[float]:
+        """
+        Returns a random vector of physical values by drawing uniform random values between lower and upper limits
+        defined as unit values, using the model priors to map them from unit values to physical values.
+
+        This function guesses infinite unit vectors, until one is randomly sampled whose physical parameters are within
+        the model's phyiscal limits.
+
+        This is used for MCMC initialization, whereby the starting points of a walker(s) are confined to a restricted
         range of prior space. In particular, it is used for generate the "ball" initialization of Emcee.
+
+        Parameters
+        ----------
+        lower_limit
+            The lower limit as a unit value within which unit values (which are converted to physical values via the
+            priors) are generated.
+        upper_limit
+            The upper limit as a unit value within which unit values (which are converted to physical values via the
+            priors) are generated.
+
         Returns
         -------
-        physical_values: [float]
+        physical_values
             A list of physical values constructed by taking the mean possible value from
             each prior.
         """
 
         while True:
 
-            vector = self.vector_from_unit_vector(
-                list(np.random.uniform(low=lower_limit, high=upper_limit, size=self.prior_count))
-            )
-
             try:
+
+                vector = self.vector_from_unit_vector(
+                    list(np.random.uniform(low=lower_limit, high=upper_limit, size=self.prior_count))
+                )
+
                 self.instance_from_vector(vector=vector)
                 return vector
             except exc.PriorLimitException:
                 pass
+
+    def random_instance_from_priors_within_limits(
+            self,
+            lower_limit: float = 0.0,
+            upper_limit: float = 1.0
+    ):
+        """
+        Returns a random instance of physical values by drawing uniform random values between lower and upper limits
+        defined as unit values, using the model priors to map them from unit values to physical values.
+
+        This function guesses infinite unit vectors, until one is randomly sampled whose physical parameters are within
+        the model's phyiscal limits. The final unit vector is then mapped to an instance.
+
+        Parameters
+        ----------
+        lower_limit
+            The lower limit as a unit value within which unit values (which are converted to physical values via the
+            priors) are generated.
+        upper_limit
+            The upper limit as a unit value within which unit values (which are converted to physical values via the
+            priors) are generated.
+
+        Returns
+        -------
+        physical_values
+            A list of physical values constructed by taking the mean possible value from
+            each prior.
+        """
+
+        vector = self.random_vector_from_priors_within_limits(
+            lower_limit=lower_limit,
+            upper_limit=upper_limit
+        )
+
+        return self.instance_from_vector(vector=vector)
 
     @property
     def random_vector_from_priors(self):
