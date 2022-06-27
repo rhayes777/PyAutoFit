@@ -662,8 +662,8 @@ class AbstractPriorModel(AbstractModel):
         """
         vector = []
 
-        for prior in self.priors_ordered_by_id:
-            while True:
+        while len(vector) < self.prior_count:
+            for prior in self.priors_ordered_by_id:
                 try:
                     vector.append(prior.random(
                         lower_limit=lower_limit,
