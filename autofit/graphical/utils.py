@@ -178,6 +178,9 @@ class Status:
             return "Optimisation succeeded"
         return f"Optimisation failed: {self.messages}"
 
+    def __repr__(self):
+        return str(self)
+
     def _asdict(self):
         return dict(
             success=self.success,
