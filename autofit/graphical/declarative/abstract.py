@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from collections import Counter
 from typing import Set, List, Dict, Optional
 from typing import Tuple
 
@@ -55,6 +56,18 @@ class AbstractDeclarativeFactor(Analysis, ABC):
         }
 
     @property
+    def prior_counts(self) -> List[Tuple[Prior, int]]:
+        counter = Counter()
+        for factor in self.model_factors:
+            for prior in factor.prior_model.priors:
+                counter[prior] += 1
+        return [
+            (prior, count + 1 if self.include_prior_factors else count)
+            for prior, count
+            in counter.items()
+        ]
+
+    @property
     def prior_factors(self) -> List[PriorFactor]:
         """
         A list of factors that act as priors on latent variables. One factor exists
@@ -68,9 +81,9 @@ class AbstractDeclarativeFactor(Analysis, ABC):
         Dictionary mapping priors to messages.
         """
         return {
-            prior: prior.message
-            for prior
-            in self.priors
+            prior: prior.message ** (1 / count)
+            for prior, count
+            in self.prior_counts
         }
 
     @property

@@ -1,5 +1,7 @@
 from collections import Counter
 
+import pytest
+
 import autofit as af
 
 
@@ -42,19 +44,35 @@ class StaticResult:
         self.projected_model = model
 
 
-def test_static():
+@pytest.fixture(name="centre")
+def make_centre():
+    return af.GaussianPrior(mean=1.0, sigma=2.0)
+
+
+@pytest.fixture(name="factor_graph_model")
+def make_factor_graph_model(centre):
     analysis = af.mock.MockAnalysis()
-    factor_graph_model = af.FactorGraphModel(
+    return af.FactorGraphModel(
         af.AnalysisFactor(
             prior_model=af.Model(
                 af.Gaussian,
-                centre=af.GaussianPrior(mean=1.0, sigma=2.0),
+                centre=centre,
                 normalization=af.GaussianPrior(mean=1.0, sigma=2.0),
                 sigma=af.GaussianPrior(mean=1.0, sigma=2.0),
             ),
             analysis=analysis
         )
     )
+
+
+def test_initial_message(factor_graph_model, centre):
+    message = factor_graph_model.mean_field_approximation().mean_field[centre]
+    assert message.sigma == centre.sigma
+
+
+def test_static(
+        factor_graph_model
+):
     original_mean_field = factor_graph_model.mean_field_approximation()
     factor = factor_graph_model.graph.factors[0]
 
