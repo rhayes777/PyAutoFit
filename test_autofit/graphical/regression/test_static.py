@@ -49,11 +49,12 @@ def make_centre():
     return af.GaussianPrior(mean=1.0, sigma=2.0)
 
 
-@pytest.fixture(name="factor_graph_model")
-def make_factor_graph_model(centre):
+@pytest.fixture(name="analysis_factor_factory")
+def make_analysis_factor_factory(centre):
     analysis = af.mock.MockAnalysis()
-    return af.FactorGraphModel(
-        af.AnalysisFactor(
+
+    def factory():
+        return af.AnalysisFactor(
             prior_model=af.Model(
                 af.Gaussian,
                 centre=centre,
@@ -62,10 +63,29 @@ def make_factor_graph_model(centre):
             ),
             analysis=analysis
         )
+
+    return factory
+
+
+@pytest.fixture(name="factor_graph_model")
+def make_factor_graph_model(analysis_factor_factory):
+    return af.FactorGraphModel(
+        analysis_factor_factory()
     )
 
 
 def test_initial_message(factor_graph_model, centre):
+    message = factor_graph_model.mean_field_approximation().mean_field[centre]
+    assert message.sigma == centre.sigma
+
+
+def test_initial_message_multiple(analysis_factor_factory, centre):
+    factor_graph_model = af.FactorGraphModel(
+        *(
+            analysis_factor_factory()
+            for _ in range(3)
+        )
+    )
     message = factor_graph_model.mean_field_approximation().mean_field[centre]
     assert message.sigma == centre.sigma
 
