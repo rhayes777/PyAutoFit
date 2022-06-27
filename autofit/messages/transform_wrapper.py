@@ -93,6 +93,19 @@ class TransformedWrapperInstance:
             self.instance() * other
         )
 
+    def __pow__(self, other):
+        """
+        Compute this message to the power of some value/
+        """
+        if isinstance(
+                other,
+                TransformedWrapperInstance
+        ):
+            other = other.instance()
+        return self._new_for_base_message(
+            self.instance() * other
+        )
+
     def __rmul__(self, other):
         return self * other
 

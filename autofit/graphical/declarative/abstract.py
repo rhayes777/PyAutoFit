@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from collections import Counter
 from typing import Set, List, Dict, Optional
 from typing import Tuple
 
@@ -55,6 +56,22 @@ class AbstractDeclarativeFactor(Analysis, ABC):
         }
 
     @property
+    def prior_counts(self) -> List[Tuple[Prior, int]]:
+        """
+        A dictionary mapping unique priors in the graph to the number of factors
+        in which each prior occurs.
+        """
+        counter = Counter()
+        for factor in self.model_factors:
+            for prior in factor.prior_model.priors:
+                counter[prior] += 1
+        return [
+            (prior, count + 1 if self.include_prior_factors else count)
+            for prior, count
+            in counter.items()
+        ]
+
+    @property
     def prior_factors(self) -> List[PriorFactor]:
         """
         A list of factors that act as priors on latent variables. One factor exists
@@ -66,11 +83,16 @@ class AbstractDeclarativeFactor(Analysis, ABC):
     def message_dict(self) -> Dict[Prior, NormalMessage]:
         """
         Dictionary mapping priors to messages.
+
+        Messages are computed to the power of one over the number of factors
+        a prior is shared by. This means that when the cavity distribution
+        is computed for the first optimisation the message has the same sigma
+        as the user defined prior.
         """
         return {
-            prior: prior.message
-            for prior
-            in self.priors
+            prior: prior.message ** (1 / count)
+            for prior, count
+            in self.prior_counts
         }
 
     @property

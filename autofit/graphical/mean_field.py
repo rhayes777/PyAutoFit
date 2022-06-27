@@ -37,6 +37,10 @@ logger = logging.getLogger(__name__)
 _log_projection_warnings = logger.debug
 
 
+def is_message(message):
+    return isinstance(message, (AbstractMessage, TransformedWrapperInstance))
+
+
 # Does this need to be a Factor?
 class MeanField(CollectionPriorModel, Dict[Variable, AbstractMessage], Factor):
     """For a factor with multiple variables, this class represents the
@@ -260,11 +264,19 @@ class MeanField(CollectionPriorModel, Dict[Variable, AbstractMessage], Factor):
     def is_valid(self):
         return all(d.is_valid for d in self.values())
 
-    def prod(self, *approxs: "MeanField") -> "MeanField":
-        dists = list(
-            (k, prod((m.get(k, 1.0) for m in approxs), m)) for k, m in self.items()
-        )
-        return MeanField({k: m for k, m in dists if isinstance(m, (AbstractMessage, TransformedWrapperInstance))})
+    def prod(self, *approxs: "MeanField", default=None) -> "MeanField":
+        dists = [
+            (key, prod(
+                (other_mean_field.get(key, 1.0) for other_mean_field in approxs),
+                message)
+             ) for key, message in self.items()
+        ]
+        if default is not None:
+            dists = [
+                (key, message if is_message(message) else default[key])
+                for key, message in dists
+            ]
+        return MeanField({k: m for k, m in dists if is_message(m)})
 
     __mul__ = prod
 

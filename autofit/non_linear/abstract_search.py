@@ -101,6 +101,8 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         session
             An SQLAlchemy session instance so the results of the model-fit are written to an SQLite database.
         """
+        super().__init__(delta=kwargs.get("delta", 1.0))
+
         from autofit.non_linear.paths.database import DatabasePaths
 
         path_prefix = path_prefix or ""
@@ -287,7 +289,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         projection, status = factor_approx.project(
             new_model_dist,
-            delta=1
+            delta=self.delta
         )
 
         status.result = result

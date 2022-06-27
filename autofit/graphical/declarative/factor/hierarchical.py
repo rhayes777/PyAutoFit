@@ -1,10 +1,11 @@
-from typing import Set, Optional, Type, List, Tuple
+from typing import Set, Optional, Type, List, Tuple, Dict
 
 from autofit.mapper.model import ModelInstance
 from autofit.mapper.prior.abstract import Prior
 from autofit.mapper.prior_model.collection import CollectionPriorModel
 from autofit.mapper.prior_model.prior_model import PriorModel
 from autofit.mapper.variable import Plate
+from autofit.messages import NormalMessage
 from autofit.non_linear.paths.abstract import AbstractPaths
 from autofit.tools.namer import namer
 from .abstract import AbstractModelFactor
@@ -130,8 +131,7 @@ class _HierarchicalFactor(AbstractModelFactor):
                 prior_id = int(name_.split("_")[1])
                 prior = distribution_model.prior_with_id(prior_id)
                 arguments[prior] = array
-            result = distribution_model.instance_for_arguments(arguments).message(argument)
-            return result
+            return distribution_model.instance_for_arguments(arguments).message(argument)
 
         prior_variable_dict = {prior.name: prior for prior in distribution_model.priors}
 
@@ -146,6 +146,18 @@ class _HierarchicalFactor(AbstractModelFactor):
             prior_variable_dict=prior_variable_dict,
             name=distribution_model.name,
         )
+
+    @property
+    def message_dict(self) -> Dict[Prior, NormalMessage]:
+        """
+        Dictionary mapping priors to messages. Does not account for inverse cavity
+        behaviour as this caused bugs for hierarchical factors.
+        """
+        return {
+            prior: prior.message
+            for prior
+            in self.priors
+        }
 
     @property
     def variable(self):
