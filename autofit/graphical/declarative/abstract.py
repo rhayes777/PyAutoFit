@@ -79,6 +79,11 @@ class AbstractDeclarativeFactor(Analysis, ABC):
     def message_dict(self) -> Dict[Prior, NormalMessage]:
         """
         Dictionary mapping priors to messages.
+
+        Messages are computed to the power of one over the number of factors
+        a prior is shared by. This means that when the cavity distribution
+        is computed for the first optimisation the message has the same sigma
+        as the user defined prior.
         """
         return {
             prior: prior.message ** (1 / count)
