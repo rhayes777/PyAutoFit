@@ -57,6 +57,10 @@ class AbstractDeclarativeFactor(Analysis, ABC):
 
     @property
     def prior_counts(self) -> List[Tuple[Prior, int]]:
+        """
+        A dictionary mapping unique priors in the graph to the number of factors
+        in which each prior occurs.
+        """
         counter = Counter()
         for factor in self.model_factors:
             for prior in factor.prior_model.priors:
