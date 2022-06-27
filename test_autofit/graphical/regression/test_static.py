@@ -55,13 +55,17 @@ def test_static():
             analysis=analysis
         )
     )
-    mean_field = factor_graph_model.mean_field_approximation()
+    original_mean_field = factor_graph_model.mean_field_approximation()
     factor = factor_graph_model.graph.factors[0]
 
-    search = StaticSearch()
-    updated_mean_field, _ = search.optimise(
-        model_approx=mean_field,
-        factor=factor,
-    )
+    mean_field = original_mean_field
 
-    assert mean_field.mean_field.values() == updated_mean_field.mean_field.values()
+    search = StaticSearch()
+
+    for i in range(3):
+        mean_field, _ = search.optimise(
+            model_approx=mean_field,
+            factor=factor,
+        )
+
+        assert list(original_mean_field.mean_field.values()) == list(mean_field.mean_field.values())
