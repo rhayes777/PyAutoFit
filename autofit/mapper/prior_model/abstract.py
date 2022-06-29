@@ -660,20 +660,19 @@ class AbstractPriorModel(AbstractModel):
             A list of physical values constructed by taking the mean possible value from
             each prior.
         """
+        vector = []
 
-        while True:
-
-            try:
-
-                vector = self.vector_from_unit_vector(
-                    list(np.random.uniform(low=lower_limit, high=upper_limit, size=self.prior_count))
-                )
-
-                self.instance_from_vector(vector=vector)
-                return vector
-            except exc.PriorLimitException:
-                pass
-
+        while len(vector) < self.prior_count:
+            for prior in self.priors_ordered_by_id:
+                try:
+                    vector.append(prior.random(
+                        lower_limit=lower_limit,
+                        upper_limit=upper_limit,
+                    ))
+                except exc.PriorLimitException:
+                    pass
+        return vector
+    
     def random_instance_from_priors_within_limits(
             self,
             lower_limit: float = 0.0,

@@ -108,12 +108,14 @@ class Prior(Variable, ABC, ArithmeticMixin):
     def width(self):
         return self.upper_limit - self.lower_limit
 
-    def random(self) -> float:
+    def random(self, lower_limit=0.0, upper_limit=1.0, ) -> float:
         """
         A random value sampled from this prior
         """
         return self.value_for(
-            random.random()
+            random.uniform(
+                lower_limit, upper_limit
+            )
         )
 
     def value_for(self, unit: float, ignore_prior_limits=False) -> float:
