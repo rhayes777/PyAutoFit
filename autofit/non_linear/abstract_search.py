@@ -290,7 +290,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         )
 
         variable_message_count = model_approx.variable_message_count
-        min_value = max(variable_message_count.values())
+        min_value = min(variable_message_count.values())
 
         if self.dynamic_delta:
             delta = MeanField({
