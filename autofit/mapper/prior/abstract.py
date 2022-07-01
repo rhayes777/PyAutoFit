@@ -128,7 +128,8 @@ class Prior(Variable, ABC, ArithmeticMixin):
         """
         return self.value_for(
             random.uniform(
-                lower_limit, upper_limit
+                max(lower_limit, self.lower_unit_limit),
+                min(upper_limit, self.upper_unit_limit),
             )
         )
 
