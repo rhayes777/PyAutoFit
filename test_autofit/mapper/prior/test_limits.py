@@ -1,5 +1,7 @@
 import pytest
 
+import numpy as np
+
 import autofit as af
 from autofit.exc import PriorLimitException
 
@@ -85,3 +87,43 @@ def test_all_priors(
         value,
         ignore_prior_limits=True
     )
+
+
+@pytest.mark.parametrize(
+    "value",
+    np.arange(0, 1, 0.1)
+)
+def test_invert_limits(value):
+    value = float(value)
+    prior = af.GaussianPrior(
+        mean=1.0,
+        sigma=2.0,
+    )
+    assert prior.message.cdf(
+        prior.value_for(value)
+    ) == pytest.approx(value)
+
+
+def test_unit_limits():
+    prior = af.GaussianPrior(
+        mean=1.0,
+        sigma=2.0,
+        lower_limit=-10,
+        upper_limit=5,
+    )
+    EPSILON = 0.00001
+    assert prior.value_for(
+        prior.lower_unit_limit
+    )
+    assert prior.value_for(
+        prior.upper_unit_limit - EPSILON
+    )
+
+    with pytest.raises(PriorLimitException):
+        prior.value_for(
+            prior.lower_unit_limit - EPSILON
+        )
+    with pytest.raises(PriorLimitException):
+        prior.value_for(
+            prior.upper_unit_limit + EPSILON
+        )
