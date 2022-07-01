@@ -375,7 +375,7 @@ class MeanField(CollectionPriorModel, Dict[Variable, AbstractMessage], Factor):
         updated = False
         try:
             with LogWarnings(logger=_log_projection_warnings, action='always') as caught_warnings:
-                if delta < 1:
+                if isinstance(delta, MeanField) or delta < 1:
                     factor_dist = (self ** delta * last_dist ** (1 - delta)) / cavity_dist ** delta
                 else:
                     factor_dist = self / cavity_dist
@@ -548,6 +548,7 @@ class FactorApproximation(AbstractNode):
             delta: Delta = 1.0,
             status: Status = Status(),
     ) -> Tuple["FactorApproximation", Status]:
+
         factor_dist, status = model_dist.update_factor_mean_field(
             self.cavity_dist,
             last_dist=self.factor_dist,
