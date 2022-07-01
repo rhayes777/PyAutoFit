@@ -91,9 +91,29 @@ class MeanField(CollectionPriorModel, Dict[Variable, AbstractMessage], Factor):
             self._plates = self.sorted_plates if plates is None else plates
 
     def __radd__(self, other):
+        return self + other
+
+    def __add__(self, other):
         return type(self)(
             {
                 variable: message + other
+                for variable, message
+                in self.items()
+            },
+            plates=self.plates,
+            log_norm=self.log_norm,
+        )
+
+    def __rsub__(self, other):
+        return (-self) + other
+
+    def __sub__(self, other):
+        return self + (-other)
+
+    def __neg__(self):
+        return type(self)(
+            {
+                variable: -message
                 for variable, message
                 in self.items()
             },
