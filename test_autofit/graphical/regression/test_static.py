@@ -10,6 +10,7 @@ class StaticSearch(af.NonLinearSearch):
         self.optimisation_counter = Counter()
         self._paths = af.DirectoryPaths()
         self.delta = 1.0
+        self.dynamic_delta = False
 
     def fit(
             self,
