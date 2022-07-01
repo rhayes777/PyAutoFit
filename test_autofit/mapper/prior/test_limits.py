@@ -1,6 +1,5 @@
-import pytest
-
 import numpy as np
+import pytest
 
 import autofit as af
 from autofit.exc import PriorLimitException
@@ -89,18 +88,22 @@ def test_all_priors(
     )
 
 
+@pytest.fixture(name="limitless_prior")
+def make_limitless_prior():
+    return af.GaussianPrior(
+        mean=1.0,
+        sigma=2.0,
+    )
+
+
 @pytest.mark.parametrize(
     "value",
     np.arange(0, 1, 0.1)
 )
-def test_invert_limits(value):
+def test_invert_limits(value, limitless_prior):
     value = float(value)
-    prior = af.GaussianPrior(
-        mean=1.0,
-        sigma=2.0,
-    )
-    assert prior.message.cdf(
-        prior.value_for(value)
+    assert limitless_prior.message.cdf(
+        limitless_prior.value_for(value)
     ) == pytest.approx(value)
 
 
@@ -127,3 +130,8 @@ def test_unit_limits():
         prior.value_for(
             prior.upper_unit_limit + EPSILON
         )
+
+
+def test_infinite_limits(limitless_prior):
+    assert limitless_prior.lower_unit_limit == 0.0
+    assert limitless_prior.upper_unit_limit == 1.0
