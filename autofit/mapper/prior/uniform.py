@@ -33,6 +33,14 @@ class UniformPrior(Prior):
             id_=id_,
         )
 
+    @property
+    def lower_unit_limit(self):
+        return 0.0
+
+    @property
+    def upper_unit_limit(self):
+        return 1.0
+
     def logpdf(self, x):
         # TODO: handle x as a numpy array
         if x == self.lower_limit:

@@ -49,6 +49,14 @@ class Prior(Variable, ABC, ArithmeticMixin):
                 "The upper limit of a prior must be greater than its lower limit"
             )
 
+    @property
+    def lower_unit_limit(self):
+        return self.message.cdf(self.lower_limit)
+
+    @property
+    def upper_unit_limit(self):
+        return self.message.cdf(self.upper_limit)
+
     def with_message(self, message):
         new = copy(self)
         new.message = message

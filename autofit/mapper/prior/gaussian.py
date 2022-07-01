@@ -31,14 +31,6 @@ class GaussianPrior(Prior):
             )
         )
 
-    @property
-    def lower_unit_limit(self):
-        return self.message.cdf(self.lower_limit)
-
-    @property
-    def upper_unit_limit(self):
-        return self.message.cdf(self.upper_limit)
-
     @classmethod
     def with_limits(
             cls,

@@ -135,3 +135,12 @@ def test_unit_limits():
 def test_infinite_limits(limitless_prior):
     assert limitless_prior.lower_unit_limit == 0.0
     assert limitless_prior.upper_unit_limit == 1.0
+
+
+def test_uniform_prior():
+    uniform_prior = af.UniformPrior(
+        lower_limit=1.0,
+        upper_limit=2.0,
+    )
+    assert uniform_prior.lower_unit_limit == 0.0
+    assert uniform_prior.upper_unit_limit == 1.0
