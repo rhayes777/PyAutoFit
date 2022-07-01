@@ -90,6 +90,17 @@ class MeanField(CollectionPriorModel, Dict[Variable, AbstractMessage], Factor):
             self.log_norm = log_norm
             self._plates = self.sorted_plates if plates is None else plates
 
+    def __radd__(self, other):
+        return type(self)(
+            {
+                variable: message + other
+                for variable, message
+                in self.items()
+            },
+            plates=self.plates,
+            log_norm=self.log_norm,
+        )
+
     @cached_property
     def fixed_values(self):
         return VariableData(
