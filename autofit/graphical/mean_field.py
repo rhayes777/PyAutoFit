@@ -1,5 +1,6 @@
 import logging
 from collections import ChainMap
+from numbers import Real
 from typing import Dict, Tuple, Optional, Union, Iterable
 
 import numpy as np
@@ -71,7 +72,7 @@ class MeanField(CollectionPriorModel, Dict[Variable, AbstractMessage], Factor):
 
     def __init__(
             self,
-            dists: Dict[Variable, AbstractMessage],
+            dists: Dict[Variable, Union[AbstractMessage, float]],
             plates: Optional[Tuple[Plate, ...]] = None,
             log_norm: np.ndarray = 0.0,
     ):
@@ -286,9 +287,14 @@ class MeanField(CollectionPriorModel, Dict[Variable, AbstractMessage], Factor):
             self.log_norm - other.log_norm,
         )
 
-    def __pow__(self, other: float) -> "MeanField":
+    def __pow__(self, other: Union[float, "MeanField"]) -> "MeanField":
+        if isinstance(other, Real):
+            return type(self)(
+                {k: m ** other for k, m in self.items()}, self.log_norm * other
+            )
         return type(self)(
-            {k: m ** other for k, m in self.items()}, self.log_norm * other
+            {key: self[key] ** value for key, value in other.items()},
+            self.log_norm * other.log_norm,
         )
 
     def log_normalisation(self, other: "MeanField") -> float:
