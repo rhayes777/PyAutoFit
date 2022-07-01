@@ -9,7 +9,10 @@ def make_factor(hierarchical_factor):
 
 
 def test_optimise(factor):
-    optimizer = af.DynestyStatic(maxcall=100)
+    optimizer = af.DynestyStatic(
+        maxcall=100,
+        dynamic_delta=False,
+    )
 
     _, status = optimizer.optimise(factor, factor.mean_field_approximation())
     assert status

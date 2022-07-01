@@ -204,6 +204,8 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         self.optimisation_counter = Counter()
 
+        self.dynamic_delta = kwargs.get("dynamic_delta", True)
+
     __identifier_fields__ = tuple()
 
     def optimise(
@@ -290,10 +292,13 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         variable_message_count = model_approx.variable_message_count
         min_value = max(variable_message_count.values())
 
-        delta = MeanField({
-            variable: self.delta * (min_value / message_count)
-            for variable, message_count in variable_message_count.items()
-        })
+        if self.dynamic_delta:
+            delta = MeanField({
+                variable: self.delta * (min_value / message_count)
+                for variable, message_count in variable_message_count.items()
+            })
+        else:
+            delta = self.delta
 
         projection, status = factor_approx.project(
             new_model_dist,
