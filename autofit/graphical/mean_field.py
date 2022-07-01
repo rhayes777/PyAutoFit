@@ -296,7 +296,7 @@ class MeanField(CollectionPriorModel, Dict[Variable, AbstractMessage], Factor):
                 {k: m ** other for k, m in self.items()}, self.log_norm * other
             )
         return type(self)(
-            {key: self[key] ** value for key, value in other.items()},
+            {key: value ** other[key] for key, value in self.items()},
             self.log_norm * other.log_norm,
         )
 
