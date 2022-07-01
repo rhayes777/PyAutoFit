@@ -38,6 +38,9 @@ logger = logging.getLogger(__name__)
 _log_projection_warnings = logger.debug
 
 
+Delta = Union[float, "MeanField"]
+
+
 def is_message(message):
     return isinstance(message, (AbstractMessage, TransformedWrapperInstance))
 
@@ -364,7 +367,7 @@ class MeanField(CollectionPriorModel, Dict[Variable, AbstractMessage], Factor):
             self,
             cavity_dist: "MeanField",
             last_dist: Optional["MeanField"] = None,
-            delta: float = 1.0,
+            delta: Delta = 1.0,
             status: Status = Status(),
     ) -> Tuple["MeanField", Status]:
 
@@ -542,7 +545,7 @@ class FactorApproximation(AbstractNode):
     def project_mean_field(
             self,
             model_dist: MeanField,
-            delta: float = 1.0,
+            delta: Delta = 1.0,
             status: Status = Status(),
     ) -> Tuple["FactorApproximation", Status]:
         factor_dist, status = model_dist.update_factor_mean_field(
