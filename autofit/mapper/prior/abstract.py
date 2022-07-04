@@ -49,6 +49,20 @@ class Prior(Variable, ABC, ArithmeticMixin):
                 "The upper limit of a prior must be greater than its lower limit"
             )
 
+    @property
+    def lower_unit_limit(self) -> float:
+        """
+        The lower limit for this prior in unit vector space
+        """
+        return self.message.cdf(self.lower_limit)
+
+    @property
+    def upper_unit_limit(self) -> float:
+        """
+        The upper limit for this prior in unit vector space
+        """
+        return self.message.cdf(self.upper_limit)
+
     def with_message(self, message):
         new = copy(self)
         new.message = message
@@ -114,7 +128,8 @@ class Prior(Variable, ABC, ArithmeticMixin):
         """
         return self.value_for(
             random.uniform(
-                lower_limit, upper_limit
+                max(lower_limit, self.lower_unit_limit),
+                min(upper_limit, self.upper_unit_limit),
             )
         )
 

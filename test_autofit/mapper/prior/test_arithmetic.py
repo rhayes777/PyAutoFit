@@ -173,7 +173,7 @@ def test_log(
         multiplier * prior
     ).instance_from_unit_vector(
         [1.0]
-    ) == value
+    ) == pytest.approx(value)
 
 
 @pytest.mark.parametrize(
