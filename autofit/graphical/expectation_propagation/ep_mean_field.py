@@ -282,6 +282,18 @@ class EPMeanField(FactorGraph):
         return variable_messages
 
     @property
+    def variable_message_count(self) -> Dict[Variable, int]:
+        """
+        The number of messages (i.e. the number of factors) associated with each
+        variable
+        """
+        return {
+            variable: len(messages)
+            for variable, messages
+            in self.variable_messages.items()
+        }
+
+    @property
     def variable_evidence(self) -> Dict[Variable, np.ndarray]:
         return {
             v: AbstractMessage.log_normalisation(*ms)

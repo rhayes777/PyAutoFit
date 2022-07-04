@@ -1,5 +1,6 @@
 import logging
 from collections import ChainMap
+from numbers import Real
 from typing import Dict, Tuple, Optional, Union, Iterable
 
 import numpy as np
@@ -37,6 +38,9 @@ logger = logging.getLogger(__name__)
 _log_projection_warnings = logger.debug
 
 
+Delta = Union[float, "MeanField"]
+
+
 def is_message(message):
     return isinstance(message, (AbstractMessage, TransformedWrapperInstance))
 
@@ -71,7 +75,7 @@ class MeanField(CollectionPriorModel, Dict[Variable, AbstractMessage], Factor):
 
     def __init__(
             self,
-            dists: Dict[Variable, AbstractMessage],
+            dists: Dict[Variable, Union[AbstractMessage, float]],
             plates: Optional[Tuple[Plate, ...]] = None,
             log_norm: np.ndarray = 0.0,
     ):
@@ -85,6 +89,37 @@ class MeanField(CollectionPriorModel, Dict[Variable, AbstractMessage], Factor):
         else:
             self.log_norm = log_norm
             self._plates = self.sorted_plates if plates is None else plates
+
+    def __radd__(self, other):
+        return self + other
+
+    def __add__(self, other):
+        return type(self)(
+            {
+                variable: message + other
+                for variable, message
+                in self.items()
+            },
+            plates=self.plates,
+            log_norm=self.log_norm,
+        )
+
+    def __rsub__(self, other):
+        return (-self) + other
+
+    def __sub__(self, other):
+        return self + (-other)
+
+    def __neg__(self):
+        return type(self)(
+            {
+                variable: -message
+                for variable, message
+                in self.items()
+            },
+            plates=self.plates,
+            log_norm=self.log_norm,
+        )
 
     @cached_property
     def fixed_values(self):
@@ -286,9 +321,14 @@ class MeanField(CollectionPriorModel, Dict[Variable, AbstractMessage], Factor):
             self.log_norm - other.log_norm,
         )
 
-    def __pow__(self, other: float) -> "MeanField":
+    def __pow__(self, other: Union[float, "MeanField"]) -> "MeanField":
+        if isinstance(other, Real):
+            return type(self)(
+                {k: m ** other for k, m in self.items()}, self.log_norm * other
+            )
         return type(self)(
-            {k: m ** other for k, m in self.items()}, self.log_norm * other
+            {key: value ** other[key] for key, value in self.items()},
+            self.log_norm * other.log_norm,
         )
 
     def log_normalisation(self, other: "MeanField") -> float:
@@ -358,7 +398,7 @@ class MeanField(CollectionPriorModel, Dict[Variable, AbstractMessage], Factor):
             self,
             cavity_dist: "MeanField",
             last_dist: Optional["MeanField"] = None,
-            delta: float = 1.0,
+            delta: Delta = 1.0,
             status: Status = Status(),
     ) -> Tuple["MeanField", Status]:
 
@@ -366,7 +406,7 @@ class MeanField(CollectionPriorModel, Dict[Variable, AbstractMessage], Factor):
         updated = False
         try:
             with LogWarnings(logger=_log_projection_warnings, action='always') as caught_warnings:
-                if delta < 1:
+                if isinstance(delta, MeanField) or delta < 1:
                     factor_dist = (self ** delta * last_dist ** (1 - delta)) / cavity_dist ** delta
                 else:
                     factor_dist = self / cavity_dist
@@ -536,9 +576,10 @@ class FactorApproximation(AbstractNode):
     def project_mean_field(
             self,
             model_dist: MeanField,
-            delta: float = 1.0,
+            delta: Delta = 1.0,
             status: Status = Status(),
     ) -> Tuple["FactorApproximation", Status]:
+
         factor_dist, status = model_dist.update_factor_mean_field(
             self.cavity_dist,
             last_dist=self.factor_dist,
