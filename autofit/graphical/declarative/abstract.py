@@ -90,7 +90,7 @@ class AbstractDeclarativeFactor(Analysis, ABC):
         as the user defined prior.
         """
         return {
-            prior: prior.message ** (1 / count)
+            prior: prior.message ** (1 / (count - 1)) if count > 1 else prior.message
             for prior, count
             in self.prior_counts
         }
