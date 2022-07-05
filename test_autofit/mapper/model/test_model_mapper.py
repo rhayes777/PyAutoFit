@@ -1,8 +1,10 @@
 import random
 
-import autofit as af
 import numpy as np
 import pytest
+
+import autofit as af
+
 
 @pytest.fixture(name="initial_model")
 def make_initial_model():
@@ -13,9 +15,6 @@ class TestParamNames:
     def test_has_prior(self):
         prior_model = af.PriorModel(af.m.MockClassx2)
         assert "one" == prior_model.name_for_prior(prior_model.one)
-
-
-
 
 
 class ExtendedMockClass(af.m.MockClassx2):
@@ -229,7 +228,6 @@ class TestInstances:
         assert model_map.mock_cls.tup == (1.0, 1.0)
 
     def test__multiple_classes(self):
-
         mapper = af.ModelMapper(
             mock_child_cls_0=af.m.MockChildTuplex3,
             mock_child_cls_1=af.m.MockChildTuplex2,
@@ -281,7 +279,6 @@ class TestInstances:
         assert model_map.mock_cls_2.two == 2.0
 
     def test__check_order_for_different_unit_values(self):
-
         mapper = af.ModelMapper(
             mock_cls_0=af.m.MockChildTuplex2,
             mock_cls_1=af.m.MockChildTuple,
