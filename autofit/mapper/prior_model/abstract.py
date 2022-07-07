@@ -994,7 +994,7 @@ class AbstractPriorModel(AbstractModel):
             )
         })
 
-    def instance_from_prior_medians(self):
+    def instance_from_prior_medians(self, ignore_prior_limits=False):
         """
         Returns a list of physical values from the median values of the priors.
         Returns
@@ -1003,7 +1003,7 @@ class AbstractPriorModel(AbstractModel):
             A list of physical values
         """
         return self.instance_from_unit_vector(
-            unit_vector=[0.5] * self.prior_count
+            unit_vector=[0.5] * self.prior_count, ignore_prior_limits=ignore_prior_limits
         )
 
     def log_prior_list_from_vector(
