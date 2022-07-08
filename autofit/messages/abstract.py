@@ -315,7 +315,7 @@ class AbstractMessage(ABC):
         # self.assert_within_limits(x)
         return self.logpdf(x)
 
-    def logpdf(self, x: np.ndarray) -> np.ndarray:
+    def logpdf(self, x: Union[np.ndarray, float]) -> np.ndarray:
         eta = self._broadcast_natural_parameters(x)
         t = self.to_canonical_form(x)
         log_base = self.calc_log_base_measure(x)
