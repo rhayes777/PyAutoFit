@@ -125,3 +125,23 @@ class TestInitializeBall:
         assert 3.199 < parameter_lists[1][3] < 3.201
 
         assert figure_of_merit_list == 2 * [1.0]
+
+
+def test_starting_point_initializer():
+    model = af.Model(
+        af.Gaussian,
+        centre=af.UniformPrior(1.0, 2.0),
+        normalization=af.UniformPrior(2.0, 3.0),
+        sigma=af.UniformPrior(-2.0, -1.0),
+    )
+    initializer = af.StartingPointInitializer({
+        model.centre: (1.0, 2.0),
+        model.normalization: (2.0, 3.0),
+        model.sigma: (-2.0, -1.0),
+    })
+
+    parameter_list = initializer._generate_unit_parameter_list(model)
+    assert len(parameter_list) == 3
+    for parameter in parameter_list:
+        assert 0.0 <= parameter <= 1.0
+

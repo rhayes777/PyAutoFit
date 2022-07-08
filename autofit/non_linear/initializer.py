@@ -1,18 +1,41 @@
 import configparser
 import logging
+import random
+from abc import ABC, abstractmethod
+from typing import Dict, Tuple
 
 import numpy as np
 
 from autoconf import conf
 from autofit import exc
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
+from autofit.mapper.prior.abstract import Prior
 
 logger = logging.getLogger(
     __name__
 )
 
 
-class Initializer:
+class AbstractInitializer(ABC):
+    @abstractmethod
+    def _generate_unit_parameter_list(self, model):
+        pass
+
+
+class StartingPointInitializer(AbstractInitializer):
+    def __init__(self, parameter_dict: Dict[Prior, Tuple[float, float]]):
+        self.parameter_dict = parameter_dict
+
+    def _generate_unit_parameter_list(self, model):
+        unit_parameter_list = []
+        for prior in model.priors_ordered_by_id:
+            lower, upper = map(prior.unit_value_for, self.parameter_dict[prior])
+            unit_parameter_list.append(random.uniform(lower, upper))
+
+        return unit_parameter_list
+
+
+class Initializer(AbstractInitializer):
     def __init__(
             self,
             lower_limit: float,
@@ -87,19 +110,12 @@ class Initializer:
         point_index = 0
 
         while point_index < total_points:
-
             if not use_prior_medians:
-
-                unit_parameter_list = model.random_unit_vector_within_limits(
-                    lower_limit=self.lower_limit, upper_limit=self.upper_limit
-                )
-
-                parameter_list = model.vector_from_unit_vector(unit_vector=unit_parameter_list)
-
+                unit_parameter_list = self._generate_unit_parameter_list(model)
             else:
-
                 unit_parameter_list = [0.5] * model.prior_count
-                parameter_list = model.vector_from_unit_vector(unit_vector=unit_parameter_list)
+
+            parameter_list = model.vector_from_unit_vector(unit_vector=unit_parameter_list)
 
             try:
                 figure_of_merit = fitness_function.figure_of_merit_from(
@@ -159,6 +175,11 @@ class Initializer:
             point_index += 1
 
         return unit_parameter_lists, parameter_lists, figure_of_merit_list
+
+    def _generate_unit_parameter_list(self, model):
+        return model.random_unit_vector_within_limits(
+            lower_limit=self.lower_limit, upper_limit=self.upper_limit
+        )
 
 
 class InitializerPrior(Initializer):

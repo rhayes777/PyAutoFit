@@ -1,7 +1,5 @@
 from typing import Optional
 
-import numpy as np
-
 from autoconf import conf
 from autofit import exc
 from autofit.database.sqlalchemy_ import sa
@@ -39,7 +37,7 @@ class AbstractNest(NonLinearSearch):
         prior_passer
             Controls how priors are passed from the results of this `NonLinearSearch` to a subsequent non-linear search.
         session
-            An SQLalchemy session instance so the results of the model-fit are written to an SQLite database.
+            An SQLAlchemy session instance so the results of the model-fit are written to an SQLite database.
         """
         super().__init__(
             name=name,

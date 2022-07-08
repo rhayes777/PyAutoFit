@@ -54,13 +54,16 @@ class Prior(Variable, ABC, ArithmeticMixin):
         """
         The lower limit for this prior in unit vector space
         """
-        return self.message.cdf(self.lower_limit)
+        return self.unit_value_for(self.lower_limit)
 
     @property
     def upper_unit_limit(self) -> float:
         """
         The upper limit for this prior in unit vector space
         """
+        return self.unit_value_for(self.upper_limit)
+
+    def unit_value_for(self, physical_value):
         return self.message.cdf(self.upper_limit)
 
     def with_message(self, message):
