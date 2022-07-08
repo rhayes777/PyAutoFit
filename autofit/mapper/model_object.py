@@ -1,4 +1,5 @@
 import itertools
+from typing import Type
 
 from autoconf.class_path import get_class
 from .identifier import Identifier
@@ -30,7 +31,10 @@ class ModelObject:
         self.id = id_ or self.next_id()
         self._label = label
 
-    def has(self, cls):
+    def has(self, cls: Type) -> bool:
+        """
+        Does this instance have an attribute which is of type cls?
+        """
         for value in self.__dict__.values():
             if isinstance(value, cls):
                 return True
