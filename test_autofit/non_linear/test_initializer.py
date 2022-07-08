@@ -211,9 +211,18 @@ def test_offset(model):
 
 
 def test_missing_parameter(model):
-    initializer = af.SpecificRangeInitializer({
-        model.centre: (1.5, 2.0),
-        model.normalization: (2.5, 3.0),
-    })
-    with pytest.raises(KeyError):
-        initializer._generate_unit_parameter_list(model)
+    initializer = af.SpecificRangeInitializer(
+        {
+            model.centre: (1.5, 2.0),
+            model.normalization: (2.5, 3.0),
+        },
+        lower_limit=0.5,
+        upper_limit=0.5,
+    )
+    parameter_list = initializer._generate_unit_parameter_list(model)
+
+    assert len(parameter_list) == 3
+    for parameter in parameter_list:
+        assert 0.5 <= parameter <= 1.0
+
+    assert 0.5 in parameter_list

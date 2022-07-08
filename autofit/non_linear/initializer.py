@@ -2,7 +2,7 @@ import configparser
 import logging
 import random
 from abc import ABC, abstractmethod
-from typing import Dict, Tuple
+from typing import Dict, Tuple, List
 
 import numpy as np
 
@@ -17,6 +17,10 @@ logger = logging.getLogger(
 
 
 class AbstractInitializer(ABC):
+    """
+    Family of classes used to provide initial points for non-linear search
+    """
+
     @abstractmethod
     def _generate_unit_parameter_list(self, model):
         pass
@@ -118,19 +122,57 @@ class AbstractInitializer(ABC):
 
 
 class SpecificRangeInitializer(AbstractInitializer):
-    def __init__(self, parameter_dict: Dict[Prior, Tuple[float, float]]):
-        self.parameter_dict = parameter_dict
+    def __init__(
+            self,
+            parameter_dict: Dict[Prior, Tuple[float, float]],
+            lower_limit=0.0,
+            upper_limit=1.0
+    ):
+        """
+        Initializer that allows the range of possible starting points for each prior
+        to be specified explicitly.
 
-    def _generate_unit_parameter_list(self, model):
+        Parameters
+        ----------
+        parameter_dict
+            A dictionary mapping priors to inclusive ranges of physical values that
+            the initial values for that dimension in the search may take
+        lower_limit
+            A default, unit lower limit used when a prior is not specified
+        upper_limit
+            A default, unit upper limit used when a prior is not specified
+        """
+        self.parameter_dict = parameter_dict
+        self.lower_limit = lower_limit
+        self.upper_limit = upper_limit
+
+    def _generate_unit_parameter_list(self, model: AbstractPriorModel) -> List[float]:
+        """
+        Generate a unit vector for the model. The default limits are used for any
+        priors which the model has but are not found in the parameter dict.
+
+        Parameters
+        ----------
+        model
+            A model for which initial points are required
+
+        Returns
+        -------
+        A unit vector
+        """
         unit_parameter_list = []
         for prior in model.priors_ordered_by_id:
             try:
                 lower, upper = map(prior.unit_value_for, self.parameter_dict[prior])
-                unit_parameter_list.append(random.uniform(lower, upper))
-            except KeyError as e:
-                raise KeyError(
-                    f"Range for {'.'.join(model.path_for_prior(prior))} not set in the SpecificRangeInitializer"
-                ) from e
+            except KeyError:
+                logger.debug(
+                    f"Range for {'.'.join(model.path_for_prior(prior))} not set in the SpecificRangeInitializer. "
+                    f"Using defaults."
+                )
+                lower = self.lower_limit
+                upper = self.upper_limit
+                
+            unit_parameter_list.append(random.uniform(lower, upper))
 
         return unit_parameter_list
 
