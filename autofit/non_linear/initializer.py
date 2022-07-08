@@ -165,13 +165,13 @@ class SpecificRangeInitializer(AbstractInitializer):
             try:
                 lower, upper = map(prior.unit_value_for, self.parameter_dict[prior])
             except KeyError:
-                logger.debug(
+                logger.warning(
                     f"Range for {'.'.join(model.path_for_prior(prior))} not set in the SpecificRangeInitializer. "
                     f"Using defaults."
                 )
                 lower = self.lower_limit
                 upper = self.upper_limit
-                
+
             unit_parameter_list.append(random.uniform(lower, upper))
 
         return unit_parameter_list
