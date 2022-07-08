@@ -89,8 +89,10 @@ def test_initial_message_multiple(analysis_factor_factory, centre):
             for _ in range(3)
         )
     )
-    message = factor_graph_model.mean_field_approximation().mean_field[centre]
-    assert message.sigma == centre.sigma
+    mean_field_approximation = factor_graph_model.mean_field_approximation()
+    assert mean_field_approximation.factor_approximation(
+        mean_field_approximation.factors[0]
+    ).cavity_dist[centre].sigma == centre.sigma
 
 
 def test_static(
