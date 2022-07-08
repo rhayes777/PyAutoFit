@@ -6,7 +6,7 @@ from autofit.database.sqlalchemy_ import sa
 from autofit.non_linear.abstract_search import IntervalCounter
 from autofit.non_linear.abstract_search import NonLinearSearch
 from autofit.non_linear.abstract_search import PriorPasser
-from autofit.non_linear.initializer import InitializerPrior
+from autofit.non_linear.initializer import InitializerPrior, AbstractInitializer, SpecificRangeInitializer
 
 
 class AbstractNest(NonLinearSearch):
@@ -18,6 +18,7 @@ class AbstractNest(NonLinearSearch):
             prior_passer: Optional[PriorPasser] = None,
             iterations_per_update: Optional[int] = None,
             session: Optional[sa.orm.Session] = None,
+            initializer: Optional[AbstractInitializer] = None,
             **kwargs
     ):
         """
@@ -39,12 +40,15 @@ class AbstractNest(NonLinearSearch):
         session
             An SQLAlchemy session instance so the results of the model-fit are written to an SQLite database.
         """
+        if isinstance(initializer, SpecificRangeInitializer):
+            raise ValueError("SpecificRangeInitializer cannot be used for nested sampling")
+
         super().__init__(
             name=name,
             path_prefix=path_prefix,
             unique_tag=unique_tag,
             prior_passer=prior_passer,
-            initializer=InitializerPrior(),
+            initializer=initializer or InitializerPrior(),
             iterations_per_update=iterations_per_update,
             session=session,
             **kwargs

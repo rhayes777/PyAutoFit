@@ -117,7 +117,7 @@ class AbstractInitializer(ABC):
         return unit_parameter_lists, parameter_lists, figure_of_merit_list
 
 
-class StartingPointInitializer(AbstractInitializer):
+class SpecificRangeInitializer(AbstractInitializer):
     def __init__(self, parameter_dict: Dict[Prior, Tuple[float, float]]):
         self.parameter_dict = parameter_dict
 
@@ -129,7 +129,7 @@ class StartingPointInitializer(AbstractInitializer):
                 unit_parameter_list.append(random.uniform(lower, upper))
             except KeyError as e:
                 raise KeyError(
-                    f"Range for {'.'.join(model.path_for_prior(prior))} not set in the StartingPointInitializer"
+                    f"Range for {'.'.join(model.path_for_prior(prior))} not set in the SpecificRangeInitializer"
                 ) from e
 
         return unit_parameter_list
