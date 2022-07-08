@@ -1035,10 +1035,15 @@ class AbstractPriorModel(AbstractModel):
         Returns a random instance of the model.
         """
         logger.debug(f"Creating a random instance")
-        return self.instance_from_unit_vector(
-            unit_vector=[random() for _ in range(self.prior_count)],
-            ignore_prior_limits=ignore_prior_limits
-        )
+        if ignore_prior_limits:
+            return self.instance_from_unit_vector(
+                unit_vector=[random() for _ in range(self.prior_count)],
+                ignore_prior_limits=ignore_prior_limits
+            )
+        return self.instance_for_arguments({
+            prior: prior.random()
+            for prior in self.priors
+        })
 
     @staticmethod
     @DynamicRecursionCache()
