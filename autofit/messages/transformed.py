@@ -22,6 +22,11 @@ class TransformedMessage(AbstractMessage):
             id_=self.instance.id
         )
 
+    def cdf(self, x):
+        return self.instance.cdf(
+            self._transform.transform(x)
+        )
+
     @property
     def natural_parameters(self):
         return self.instance.natural_parameters

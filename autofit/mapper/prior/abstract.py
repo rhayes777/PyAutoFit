@@ -67,7 +67,7 @@ class Prior(Variable, ABC, ArithmeticMixin):
         """
         Compute the unit value between 0 and 1 for the physical value.
         """
-        return self.message.cdf(self.upper_limit)
+        return self.message.cdf(physical_value)
 
     def with_message(self, message):
         new = copy(self)

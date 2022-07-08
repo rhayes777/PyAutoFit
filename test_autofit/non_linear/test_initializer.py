@@ -142,7 +142,7 @@ def test_invert_physical(unit_value, physical_value):
         lower_limit=0.0,
         upper_limit=1.0,
     )
-    assert prior.unit_value_for(unit_value) == physical_value
+    assert prior.unit_value_for(unit_value) == pytest.approx(physical_value)
 
 
 @pytest.mark.parametrize(
@@ -157,6 +157,22 @@ def test_invert_physical_offset(unit_value, physical_value):
     prior = af.UniformPrior(
         lower_limit=1.0,
         upper_limit=3.0,
+    )
+    assert prior.unit_value_for(unit_value) == pytest.approx(physical_value)
+
+
+@pytest.mark.parametrize(
+    "unit_value, physical_value",
+    [
+        (-float("inf"), 0.0),
+        (0.0, 0.5),
+        (float("inf"), 1.0),
+    ]
+)
+def test_invert_gaussian(unit_value, physical_value):
+    prior = af.GaussianPrior(
+        mean=0.0,
+        sigma=3.0,
     )
     assert prior.unit_value_for(unit_value) == physical_value
 
