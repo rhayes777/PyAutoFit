@@ -352,6 +352,7 @@ class AbstractMessage(ABC):
                         grad_logl[it.multi_index] = (logl - l0) / eps
                         xv -= eps
         else:
+            x = float(x)
             logl0 = self.logpdf(x)
             grad_logl = (self.logpdf(x + eps) - logl0) / eps
 
