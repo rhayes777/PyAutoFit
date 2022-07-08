@@ -432,15 +432,15 @@ class TestInstances:
         mapper = af.ModelMapper()
         mapper.mock_class = af.PriorModel(af.m.MockClassx2)
 
-        np.random.seed(1)
+        random.seed(1)
 
         assert mapper.random_unit_vector_within_limits(
             lower_limit=0.0, upper_limit=1.0
-        ) == pytest.approx([0.41702, 0.720324], 1.0e-4)
+        ) == pytest.approx([0.13436, 0.84743], 1.0e-4)
 
         assert mapper.random_unit_vector_within_limits(
             lower_limit=0.2, upper_limit=0.8
-        ) == pytest.approx([0.200068, 0.38140], 1.0e-4)
+        ) == pytest.approx([0.65826, 0.35304], 1.0e-4)
 
     def test_random_vector_from_prior_within_limits(self):
         random.seed(1)
