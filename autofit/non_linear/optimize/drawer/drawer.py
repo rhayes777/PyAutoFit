@@ -7,7 +7,7 @@ from autoconf import conf
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.optimize.abstract_optimize import AbstractOptimizer
 from autofit.non_linear.abstract_search import PriorPasser
-from autofit.non_linear.initializer import Initializer
+from autofit.non_linear.initializer import AbstractInitializer
 from autofit.non_linear.optimize.drawer.plotter import DrawerPlotter
 from autofit.non_linear.samples import Samples, Sample
 from autofit.plot.output import Output
@@ -25,7 +25,7 @@ class Drawer(AbstractOptimizer):
             path_prefix: Optional[str] = None,
             unique_tag: Optional[str] = None,
             prior_passer: Optional[PriorPasser] = None,
-            initializer: Optional[Initializer] = None,
+            initializer: Optional[AbstractInitializer] = None,
             iterations_per_update: int = None,
             session: Optional[sa.orm.Session] = None,
             **kwargs
@@ -51,7 +51,7 @@ class Drawer(AbstractOptimizer):
         the `Drawer` search may be sufficient to perform the overall modeling task, without the need of performing
         an actual parameter space search.
 
-        The drawer search itself is performed by simply reusing the functionality of the `Initializer` object.
+        The drawer search itself is performed by simply reusing the functionality of the `AbstractInitializer` object.
         Whereas this is normally used to initialize a non-linear search, for the drawer it performed all log
         likelihood evluations.
 

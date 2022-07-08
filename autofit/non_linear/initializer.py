@@ -21,68 +21,6 @@ class AbstractInitializer(ABC):
     def _generate_unit_parameter_list(self, model):
         pass
 
-
-class StartingPointInitializer(AbstractInitializer):
-    def __init__(self, parameter_dict: Dict[Prior, Tuple[float, float]]):
-        self.parameter_dict = parameter_dict
-
-    def _generate_unit_parameter_list(self, model):
-        unit_parameter_list = []
-        for prior in model.priors_ordered_by_id:
-            try:
-                lower, upper = map(prior.unit_value_for, self.parameter_dict[prior])
-                unit_parameter_list.append(random.uniform(lower, upper))
-            except KeyError as e:
-                raise KeyError(
-                    f"Range for {'.'.join(model.path_for_prior(prior))} not set in the StartingPointInitializer"
-                ) from e
-
-        return unit_parameter_list
-
-
-class Initializer(AbstractInitializer):
-    def __init__(
-            self,
-            lower_limit: float,
-            upper_limit: float
-    ):
-        """
-        The Initializer creates the initial set of samples in non-linear parameter space that can be passed into a
-        `NonLinearSearch` to define where to begin sampling.
-
-        Although most non-linear searches have in-built functionality to do this, some do not cope well with parameter
-        resamples that are raised as FitException's. Thus, PyAutoFit uses its own initializer to bypass these problems.
-        """
-        self.lower_limit = lower_limit
-        self.upper_limit = upper_limit
-
-    @classmethod
-    def from_config(cls, config):
-        """
-        Load the Initializer from a non_linear config file.
-        """
-
-        try:
-
-            initializer = config("initialize", "method")
-
-        except configparser.NoSectionError:
-
-            return None
-
-        if initializer in "prior":
-
-            return InitializerPrior()
-
-        elif initializer in "ball":
-
-            ball_lower_limit = config("initialize", "ball_lower_limit")
-            ball_upper_limit = config("initialize", "ball_upper_limit")
-
-            return InitializerBall(
-                lower_limit=ball_lower_limit, upper_limit=ball_upper_limit
-            )
-
     def samples_from_model(
             self,
             total_points: int,
@@ -169,10 +107,7 @@ class Initializer(AbstractInitializer):
         point_index = 0
 
         while point_index < total_points:
-
-            unit_parameter_list = model.random_unit_vector_within_limits(
-                lower_limit=self.lower_limit, upper_limit=self.upper_limit
-            )
+            unit_parameter_list = self._generate_unit_parameter_list(model)
             parameter_list = model.vector_from_unit_vector(unit_vector=unit_parameter_list)
             unit_parameter_lists.append(unit_parameter_list)
             parameter_lists.append(parameter_list)
@@ -180,6 +115,68 @@ class Initializer(AbstractInitializer):
             point_index += 1
 
         return unit_parameter_lists, parameter_lists, figure_of_merit_list
+
+
+class StartingPointInitializer(AbstractInitializer):
+    def __init__(self, parameter_dict: Dict[Prior, Tuple[float, float]]):
+        self.parameter_dict = parameter_dict
+
+    def _generate_unit_parameter_list(self, model):
+        unit_parameter_list = []
+        for prior in model.priors_ordered_by_id:
+            try:
+                lower, upper = map(prior.unit_value_for, self.parameter_dict[prior])
+                unit_parameter_list.append(random.uniform(lower, upper))
+            except KeyError as e:
+                raise KeyError(
+                    f"Range for {'.'.join(model.path_for_prior(prior))} not set in the StartingPointInitializer"
+                ) from e
+
+        return unit_parameter_list
+
+
+class Initializer(AbstractInitializer):
+    def __init__(
+            self,
+            lower_limit: float,
+            upper_limit: float
+    ):
+        """
+        The Initializer creates the initial set of samples in non-linear parameter space that can be passed into a
+        `NonLinearSearch` to define where to begin sampling.
+
+        Although most non-linear searches have in-built functionality to do this, some do not cope well with parameter
+        resamples that are raised as FitException's. Thus, PyAutoFit uses its own initializer to bypass these problems.
+        """
+        self.lower_limit = lower_limit
+        self.upper_limit = upper_limit
+
+    @classmethod
+    def from_config(cls, config):
+        """
+        Load the Initializer from a non_linear config file.
+        """
+
+        try:
+
+            initializer = config("initialize", "method")
+
+        except configparser.NoSectionError:
+
+            return None
+
+        if initializer in "prior":
+
+            return InitializerPrior()
+
+        elif initializer in "ball":
+
+            ball_lower_limit = config("initialize", "ball_lower_limit")
+            ball_upper_limit = config("initialize", "ball_upper_limit")
+
+            return InitializerBall(
+                lower_limit=ball_lower_limit, upper_limit=ball_upper_limit
+            )
 
     def _generate_unit_parameter_list(self, model):
         return model.random_unit_vector_within_limits(

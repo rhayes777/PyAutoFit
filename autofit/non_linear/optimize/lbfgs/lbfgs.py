@@ -6,7 +6,7 @@ from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.optimize.abstract_optimize import AbstractOptimizer
 from autofit.non_linear.abstract_search import Analysis
 from autofit.non_linear.abstract_search import PriorPasser
-from autofit.non_linear.initializer import Initializer
+from autofit.non_linear.initializer import AbstractInitializer
 from autofit.non_linear.optimize.lbfgs.samples import LBFGSSamples
 
 import copy
@@ -24,7 +24,7 @@ class LBFGS(AbstractOptimizer):
             path_prefix: Optional[str] = None,
             unique_tag: Optional[str] = None,
             prior_passer: Optional[PriorPasser] = None,
-            initializer: Optional[Initializer] = None,
+            initializer: Optional[AbstractInitializer] = None,
             iterations_per_update: int = None,
             session: Optional[sa.orm.Session] = None,
             **kwargs
