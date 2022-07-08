@@ -63,7 +63,10 @@ class Prior(Variable, ABC, ArithmeticMixin):
         """
         return self.unit_value_for(self.upper_limit)
 
-    def unit_value_for(self, physical_value):
+    def unit_value_for(self, physical_value: float) -> float:
+        """
+        Compute the unit value between 0 and 1 for the physical value.
+        """
         return self.message.cdf(self.upper_limit)
 
     def with_message(self, message):

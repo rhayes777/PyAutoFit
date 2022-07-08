@@ -1,3 +1,5 @@
+import pytest
+
 import autofit as af
 
 
@@ -125,6 +127,38 @@ class TestInitializeBall:
         assert 3.199 < parameter_lists[1][3] < 3.201
 
         assert figure_of_merit_list == 2 * [1.0]
+
+
+@pytest.mark.parametrize(
+    "unit_value, physical_value",
+    [
+        (0.0, 0.0),
+        (0.5, 0.5),
+        (1.0, 1.0),
+    ]
+)
+def test_invert_physical(unit_value, physical_value):
+    prior = af.UniformPrior(
+        lower_limit=0.0,
+        upper_limit=1.0,
+    )
+    assert prior.unit_value_for(unit_value) == physical_value
+
+
+@pytest.mark.parametrize(
+    "unit_value, physical_value",
+    [
+        (1.0, 0.0),
+        (2.0, 0.5),
+        (3.0, 1.0),
+    ]
+)
+def test_invert_physical_offset(unit_value, physical_value):
+    prior = af.UniformPrior(
+        lower_limit=1.0,
+        upper_limit=3.0,
+    )
+    assert prior.unit_value_for(unit_value) == physical_value
 
 
 def test_starting_point_initializer():

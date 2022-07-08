@@ -73,6 +73,13 @@ class UniformPrior(Prior):
         """
         return round(super().value_for(unit, ignore_prior_limits=ignore_prior_limits), 14)
 
+    def unit_value_for(self, physical_value: float) -> float:
+        """
+        Compute the unit value between 0 and 1 for the physical value between
+        the lower and upper limits.
+        """
+        return (physical_value - self.lower_limit) / (self.upper_limit - self.lower_limit)
+
     # noinspection PyUnusedLocal
     @staticmethod
     def log_prior_from_value(value):
