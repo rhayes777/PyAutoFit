@@ -12,6 +12,7 @@ def test_optimise(factor):
     optimizer = af.DynestyStatic(
         maxcall=100,
         dynamic_delta=False,
+        delta=0.1,
     )
 
     _, status = optimizer.optimise(factor, factor.mean_field_approximation())
