@@ -8,8 +8,8 @@ import numpy as np
 
 from autoconf import conf
 from autofit import exc
-from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.mapper.prior.abstract import Prior
+from autofit.mapper.prior_model.abstract import AbstractPriorModel
 
 logger = logging.getLogger(
     __name__
@@ -29,8 +29,13 @@ class StartingPointInitializer(AbstractInitializer):
     def _generate_unit_parameter_list(self, model):
         unit_parameter_list = []
         for prior in model.priors_ordered_by_id:
-            lower, upper = map(prior.unit_value_for, self.parameter_dict[prior])
-            unit_parameter_list.append(random.uniform(lower, upper))
+            try:
+                lower, upper = map(prior.unit_value_for, self.parameter_dict[prior])
+                unit_parameter_list.append(random.uniform(lower, upper))
+            except KeyError as e:
+                raise KeyError(
+                    f"Range for {'.'.join(model.path_for_prior(prior))} not set in the StartingPointInitializer"
+                ) from e
 
         return unit_parameter_list
 
