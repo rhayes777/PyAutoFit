@@ -8,7 +8,7 @@ from autofit import graphical as g
     name="prior"
 )
 def make_prior():
-    return af.GaussianPrior(100, 30)
+    return af.GaussianPrior(100, 20)
 
 
 @pytest.fixture(
