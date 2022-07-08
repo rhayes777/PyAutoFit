@@ -5,7 +5,7 @@ import logging
 import types
 from collections import defaultdict
 from functools import wraps
-from random import random
+import random
 from typing import Tuple, Optional, Dict, List, Iterable, Generator
 
 import numpy as np
@@ -628,7 +628,12 @@ class AbstractPriorModel(AbstractModel):
         unit_values
             A list of unit values constructed by taking random values from each prior.
         """
-        return list(np.random.uniform(low=lower_limit, high=upper_limit, size=self.prior_count))
+        return [
+            random.uniform(
+                max(lower_limit, prior.lower_unit_limit),
+                min(upper_limit, prior.upper_unit_limit))
+            for prior in self.priors_ordered_by_id
+        ]
 
     def random_vector_from_priors_within_limits(
             self,
@@ -1037,11 +1042,11 @@ class AbstractPriorModel(AbstractModel):
         logger.debug(f"Creating a random instance")
         if ignore_prior_limits:
             return self.instance_from_unit_vector(
-                unit_vector=[random() for _ in range(self.prior_count)],
+                unit_vector=[random.random() for _ in range(self.prior_count)],
                 ignore_prior_limits=ignore_prior_limits
             )
         return self.instance_for_arguments({
-            prior: prior.random()
+            prior: prior.random.random()
             for prior in self.priors
         })
 
