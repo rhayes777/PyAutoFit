@@ -4,8 +4,8 @@ import logging
 import numpy as np
 
 from autoconf import conf
-from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit import exc
+from autofit.mapper.prior_model.abstract import AbstractPriorModel
 
 logger = logging.getLogger(
     __name__
@@ -60,7 +60,7 @@ class Initializer:
             total_points: int,
             model: AbstractPriorModel,
             fitness_function,
-            use_prior_medians:bool=False
+            use_prior_medians: bool = False
     ):
         """
         Generate the initial points of the non-linear search, by randomly drawing unit values from a uniform
@@ -94,14 +94,11 @@ class Initializer:
                     lower_limit=self.lower_limit, upper_limit=self.upper_limit
                 )
 
-                try:
-                    parameter_list = model.vector_from_unit_vector(unit_vector=unit_parameter_list)
-                except exc.PriorLimitException:
-                    continue
-
+                parameter_list = model.vector_from_unit_vector(unit_vector=unit_parameter_list)
+                
             else:
 
-                unit_parameter_list = [0.5]*model.prior_count
+                unit_parameter_list = [0.5] * model.prior_count
                 parameter_list = model.vector_from_unit_vector(unit_vector=unit_parameter_list)
 
             try:
