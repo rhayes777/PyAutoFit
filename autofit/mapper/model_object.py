@@ -30,6 +30,12 @@ class ModelObject:
         self.id = id_ or self.next_id()
         self._label = label
 
+    def has(self, cls):
+        for value in self.__dict__.values():
+            if isinstance(value, cls):
+                return True
+        return False
+
     @property
     def label(self):
         return self._label
