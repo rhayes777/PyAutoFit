@@ -1046,7 +1046,7 @@ class AbstractPriorModel(AbstractModel):
                 ignore_prior_limits=ignore_prior_limits
             )
         return self.instance_for_arguments({
-            prior: prior.random.random()
+            prior: prior.random()
             for prior in self.priors
         })
 
