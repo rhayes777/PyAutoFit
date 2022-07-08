@@ -10,7 +10,6 @@ class MockFitness:
 
 class TestInitializePrior:
     def test__prior__samples_sample_priors(self):
-
         model = af.PriorModel(af.m.MockClassx4)
         model.one = af.UniformPrior(lower_limit=0.099, upper_limit=0.101)
         model.two = af.UniformPrior(lower_limit=0.199, upper_limit=0.201)
@@ -44,7 +43,6 @@ class TestInitializePrior:
         assert figure_of_merit_list == [1.0, 1.0]
 
     def test__samples_in_test_model(self):
-
         model = af.PriorModel(af.m.MockClassx4)
         model.one = af.UniformPrior(lower_limit=0.099, upper_limit=0.101)
         model.two = af.UniformPrior(lower_limit=0.199, upper_limit=0.201)
@@ -80,7 +78,6 @@ class TestInitializePrior:
 
 class TestInitializeBall:
     def test__ball__samples_sample_centre_of_priors(self):
-
         model = af.PriorModel(af.m.MockClassx4)
         model.one = af.UniformPrior(lower_limit=0.0, upper_limit=1.0)
         model.two = af.UniformPrior(lower_limit=0.0, upper_limit=2.0)
@@ -177,13 +174,17 @@ def test_invert_gaussian(unit_value, physical_value):
     assert prior.unit_value_for(unit_value) == physical_value
 
 
-def test_starting_point_initializer():
-    model = af.Model(
+@pytest.fixture(name="model")
+def make_model():
+    return af.Model(
         af.Gaussian,
         centre=af.UniformPrior(1.0, 2.0),
         normalization=af.UniformPrior(2.0, 3.0),
         sigma=af.UniformPrior(-2.0, -1.0),
     )
+
+
+def test_starting_point_initializer(model):
     initializer = af.StartingPointInitializer({
         model.centre: (1.0, 2.0),
         model.normalization: (2.0, 3.0),
@@ -195,3 +196,15 @@ def test_starting_point_initializer():
     for parameter in parameter_list:
         assert 0.0 <= parameter <= 1.0
 
+
+def test_offset(model):
+    initializer = af.StartingPointInitializer({
+        model.centre: (1.5, 2.0),
+        model.normalization: (2.5, 3.0),
+        model.sigma: (-1.5, -1.0),
+    })
+
+    parameter_list = initializer._generate_unit_parameter_list(model)
+    assert len(parameter_list) == 3
+    for parameter in parameter_list:
+        assert 0.5 <= parameter <= 1.0
