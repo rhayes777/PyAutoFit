@@ -95,7 +95,7 @@ class Initializer:
                 )
 
                 parameter_list = model.vector_from_unit_vector(unit_vector=unit_parameter_list)
-                
+
             else:
 
                 unit_parameter_list = [0.5] * model.prior_count
