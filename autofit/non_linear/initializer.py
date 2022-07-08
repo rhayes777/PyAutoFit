@@ -164,6 +164,7 @@ class SpecificRangeInitializer(AbstractInitializer):
         for prior in model.priors_ordered_by_id:
             try:
                 lower, upper = map(prior.unit_value_for, self.parameter_dict[prior])
+                value = random.uniform(lower, upper)
             except KeyError:
                 logger.warning(
                     f"Range for {'.'.join(model.path_for_prior(prior))} not set in the SpecificRangeInitializer. "
@@ -172,7 +173,11 @@ class SpecificRangeInitializer(AbstractInitializer):
                 lower = self.lower_limit
                 upper = self.upper_limit
 
-            unit_parameter_list.append(random.uniform(lower, upper))
+                value = prior.unit_value_for(
+                    prior.random(lower, upper)
+                )
+
+            unit_parameter_list.append(value)
 
         return unit_parameter_list
 
