@@ -61,8 +61,12 @@ class FixedMessage(AbstractMessage):
             return self.value
         return np.array([self.value])
 
+    logpdf_cache = {}
+
     def logpdf(self, x: np.ndarray) -> np.ndarray:
-        return np.zeros_like(x)
+        if x.shape not in FixedMessage.logpdf_cache:
+            FixedMessage.logpdf_cache[x.shape] = np.zeros_like(x)
+        return FixedMessage.logpdf_cache[x.shape]
 
     @cached_property
     def mean(self) -> np.ndarray:
