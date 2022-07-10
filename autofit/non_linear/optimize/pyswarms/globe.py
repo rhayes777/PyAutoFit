@@ -2,7 +2,7 @@ from typing import Optional
 
 from autofit.database.sqlalchemy_ import sa
 from autofit.non_linear.abstract_search import PriorPasser
-from autofit.non_linear.initializer import Initializer
+from autofit.non_linear.initializer import AbstractInitializer
 from autofit.non_linear.optimize.pyswarms.abstract import AbstractPySwarms
 
 
@@ -20,7 +20,7 @@ class PySwarmsGlobal(AbstractPySwarms):
             path_prefix: Optional[str] = None,
             unique_tag: Optional[str] = None,
             prior_passer: Optional[PriorPasser] = None,
-            initializer: Optional[Initializer] = None,
+            initializer: Optional[AbstractInitializer] = None,
             iterations_per_update: int = None,
             number_of_cores: int = None,
             session: Optional[sa.orm.Session] = None,

@@ -67,6 +67,7 @@ from .non_linear.analysis.analysis import Analysis
 from .non_linear.grid.grid_search import GridSearchResult
 from .non_linear.initializer import InitializerBall
 from .non_linear.initializer import InitializerPrior
+from .non_linear.initializer import SpecificRangeInitializer
 from .non_linear.mcmc.auto_correlations import AutoCorrelationsSettings
 from .non_linear.mcmc.emcee.emcee import Emcee
 from .non_linear.mcmc.zeus.zeus import Zeus

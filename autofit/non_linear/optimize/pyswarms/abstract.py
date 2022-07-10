@@ -8,7 +8,7 @@ from autofit import exc
 from autofit.database.sqlalchemy_ import sa
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.abstract_search import PriorPasser
-from autofit.non_linear.initializer import Initializer
+from autofit.non_linear.initializer import AbstractInitializer
 from autofit.non_linear.optimize.abstract_optimize import AbstractOptimizer
 from autofit.non_linear.optimize.pyswarms.samples import PySwarmsSamples
 from autofit.plot import PySwarmsPlotter
@@ -22,7 +22,7 @@ class AbstractPySwarms(AbstractOptimizer):
             path_prefix: Optional[str] = None,
             unique_tag: Optional[str] = None,
             prior_passer: Optional[PriorPasser] = None,
-            initializer: Optional[Initializer] = None,
+            initializer: Optional[AbstractInitializer] = None,
             iterations_per_update: int = None,
             number_of_cores: int = None,
             session: Optional[sa.orm.Session] = None,
