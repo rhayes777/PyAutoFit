@@ -2,10 +2,10 @@ import copy
 import inspect
 import json
 import logging
+import random
 import types
 from collections import defaultdict
 from functools import wraps
-import random
 from typing import Tuple, Optional, Dict, List, Iterable, Generator
 
 import numpy as np
@@ -31,6 +31,8 @@ from autofit.tools.util import split_paths
 logger = logging.getLogger(
     __name__
 )
+
+LINE_LENGTH = 80
 
 
 class Limits:
@@ -1552,7 +1554,9 @@ class AbstractPriorModel(AbstractModel):
         parameter of the overall model.
         This information is extracted from each priors *model_info* property.
         """
-        formatter = TextFormatter()
+        formatter = TextFormatter(
+            line_length=LINE_LENGTH
+        )
 
         for t in self.path_instance_tuples_for_class(
                 (
@@ -1562,7 +1566,11 @@ class AbstractPriorModel(AbstractModel):
         ):
             formatter.add(*t)
 
-        return formatter.text
+        return '\n\n'.join([
+            f"Total Free Parameters = {self.prior_count}",
+            f"{self.parameterization}",
+            formatter.text
+        ])
 
     @property
     def order_no(self) -> str:
@@ -1594,7 +1602,9 @@ class AbstractPriorModel(AbstractModel):
         """
         from .prior_model import PriorModel
 
-        formatter = TextFormatter()
+        formatter = TextFormatter(
+            line_length=LINE_LENGTH
+        )
 
         for t in self.path_instance_tuples_for_class(
                 (

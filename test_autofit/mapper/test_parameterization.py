@@ -14,9 +14,9 @@ def test_parameterization():
 
     parameterization = model.parameterization
     assert parameterization == (
-        """model                                                                                     CollectionPriorModel (N=3)
-    collection                                                                            CollectionPriorModel (N=3)
-        gaussian                                                                          Gaussian (N=3)"""
+        """model                                                                           CollectionPriorModel (N=3)
+    collection                                                                  CollectionPriorModel (N=3)
+        gaussian                                                                Gaussian (N=3)"""
     )
 
 
@@ -24,7 +24,7 @@ def test_root():
     model = af.Model(af.Gaussian)
     parameterization = model.parameterization
     assert parameterization == (
-        'model                                                                                     Gaussian (N=3)'
+        'model                                                                           Gaussian (N=3)'
     )
 
 
@@ -37,9 +37,9 @@ def test_instance():
 
     parameterization = model.parameterization
     assert parameterization == (
-        """model                                                                                     CollectionPriorModel (N=0)
-    collection                                                                            CollectionPriorModel (N=0)
-        gaussian                                                                          Gaussian (N=0)"""
+        """model                                                                           CollectionPriorModel (N=0)
+    collection                                                                  CollectionPriorModel (N=0)
+        gaussian                                                                Gaussian (N=0)"""
     )
 
 
@@ -54,7 +54,7 @@ def test_tuple_prior():
     )
     parameterization = model.parameterization
     assert parameterization == (
-        'model                                                                                     Gaussian (N=4)'
+        'model                                                                           Gaussian (N=4)'
     )
 
 
@@ -89,9 +89,14 @@ class TestGenerateModelInfo:
 
         assert (
                 model_info
-                == """mock_class
-    one                                                                                   UniformPrior, lower_limit = 0.0, upper_limit = 1.0
-    two                                                                                   UniformPrior, lower_limit = 0.0, upper_limit = 2.0"""
+                == """Total Free Parameters = 2
+
+model                                                                           ModelMapper (N=2)
+    mock_class                                                                  MockClassx2 (N=2)
+
+mock_class
+    one                                                                         UniformPrior, lower_limit = 0.0, upper_limit = 1.0
+    two                                                                         UniformPrior, lower_limit = 0.0, upper_limit = 2.0"""
         )
 
     def test_with_instance(self):
@@ -104,9 +109,14 @@ class TestGenerateModelInfo:
 
         assert (
                 model_info
-                == """mock_class
-    one                                                                                   UniformPrior, lower_limit = 0.0, upper_limit = 1.0
-    two                                                                                   1.0"""
+                == """Total Free Parameters = 1
+
+model                                                                           ModelMapper (N=1)
+    mock_class                                                                  MockClassx2 (N=1)
+
+mock_class
+    one                                                                         UniformPrior, lower_limit = 0.0, upper_limit = 1.0
+    two                                                                         1.0"""
         )
 
     def test_with_tuple(self):
@@ -115,7 +125,11 @@ class TestGenerateModelInfo:
 
         assert (
                 mm.info
-                == "tuple                                                                                     (0, 1)"
+                == """Total Free Parameters = 0
+
+model                                                                           ModelMapper (N=0)
+
+tuple                                                                           (0, 1)"""
         )
 
     # noinspection PyUnresolvedReferences

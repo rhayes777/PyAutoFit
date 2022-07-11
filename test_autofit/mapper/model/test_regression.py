@@ -78,7 +78,12 @@ def test_as_model_tuples():
         instance
     )
     assert model.tup == (0.5, 0.5)
-    assert model.info == """tup                                                                                       (0.5, 0.5)"""
+    assert """tup                                                                             (0.5, 0.5)""" in model.info
+
+
+def test_info_prints_number_of_parameters():
+    model = af.Model(af.Gaussian)
+    assert "Total Free Parameters" in model.info
 
 
 def test_set_centre():
