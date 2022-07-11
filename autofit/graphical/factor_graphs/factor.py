@@ -1,4 +1,4 @@
-from functools import lru_cache
+from copy import deepcopy
 from inspect import getfullargspec
 from typing import Tuple, Dict, Any, Callable, Union, List, Optional, TYPE_CHECKING
 
@@ -206,6 +206,16 @@ class Factor(AbstractFactor):
 
         self._cache = {}
 
+    def __deepcopy__(self, memodict={}):
+        cls = self.__class__
+        result = cls.__new__(cls)
+        memodict[id(self)] = result
+        for k, v in self.__dict__.items():
+            if k == "_cache":
+                v = {}
+            setattr(result, k, deepcopy(v, memodict))
+        return result
+
     @property
     def shape(self) -> Tuple[int, ...]:
         if self.plates:
@@ -358,7 +368,10 @@ class Factor(AbstractFactor):
         h = xxhash.xxh64()
 
         for arg in args:
-            h.update(arg)
+            try:
+                h.update(arg)
+            except TypeError:
+                h.update(np.array(arg))
 
         return h.intdigest()
 
