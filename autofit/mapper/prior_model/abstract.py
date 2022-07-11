@@ -1552,7 +1552,9 @@ class AbstractPriorModel(AbstractModel):
         parameter of the overall model.
         This information is extracted from each priors *model_info* property.
         """
-        formatter = TextFormatter()
+        formatter = TextFormatter(
+            line_length=80
+        )
 
         for t in self.path_instance_tuples_for_class(
                 (
