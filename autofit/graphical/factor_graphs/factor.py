@@ -1,3 +1,4 @@
+from functools import lru_cache
 from inspect import getfullargspec
 from typing import Tuple, Dict, Any, Callable, Union, List, Optional, TYPE_CHECKING
 
@@ -317,8 +318,13 @@ class Factor(AbstractFactor):
         """Calls the factor with the values specified by the dictionary of
         values passed, returns a FactorValue with the value returned by the
         factor, and any deterministic factors"""
-        raw_fval = self._factor_args(*(values[v] for v in self.args))
-        return self._factor_value(raw_fval)
+        args = [values[v] for v in self.args]
+        key = self._key("__call__", *args)
+
+        if key not in self._cache:
+            raw_fval = self._factor_args(*args)
+            self._cache[key] = self._factor_value(raw_fval)
+        return self._cache[key]
 
     def _jax_factor_vjp(self, *args) -> Tuple[Any, Callable]:
         return jax.vjp(self._factor, *args)
@@ -347,16 +353,20 @@ class Factor(AbstractFactor):
         )
         return fval, fvjp_op
 
-    def _jvp_func_jacobian(
-            self, values: VariableData, **kwargs
-    ) -> Tuple[FactorValue, "JacobianVectorProduct"]:
-        args = list(values[k] for k in self.args)
+    @staticmethod
+    def _key(*args):
         h = xxhash.xxh64()
 
         for arg in args:
             h.update(arg)
 
-        key = h.intdigest()
+        return h.intdigest()
+
+    def _jvp_func_jacobian(
+            self, values: VariableData, **kwargs
+    ) -> Tuple[FactorValue, "JacobianVectorProduct"]:
+        args = list(values[k] for k in self.args)
+        key = self._key("_jvp_func_jacobian", *args)
 
         if key not in self._cache:
             raw_fval, raw_jac = self._factor_jacobian(*args, **kwargs)
