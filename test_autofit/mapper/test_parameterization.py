@@ -89,7 +89,12 @@ class TestGenerateModelInfo:
 
         assert (
                 model_info
-                == """mock_class
+                == """Total Free Parameters = 2
+
+model                                                                                     ModelMapper (N=2)
+    mock_class                                                                            MockClassx2 (N=2)
+
+mock_class
     one                                                                                   UniformPrior, lower_limit = 0.0, upper_limit = 1.0
     two                                                                                   UniformPrior, lower_limit = 0.0, upper_limit = 2.0"""
         )
@@ -104,7 +109,12 @@ class TestGenerateModelInfo:
 
         assert (
                 model_info
-                == """mock_class
+                == """Total Free Parameters = 1
+
+model                                                                                     ModelMapper (N=1)
+    mock_class                                                                            MockClassx2 (N=1)
+
+mock_class
     one                                                                                   UniformPrior, lower_limit = 0.0, upper_limit = 1.0
     two                                                                                   1.0"""
         )
@@ -115,7 +125,11 @@ class TestGenerateModelInfo:
 
         assert (
                 mm.info
-                == "tuple                                                                                     (0, 1)"
+                == """Total Free Parameters = 0
+
+model                                                                                     ModelMapper (N=0)
+
+tuple                                                                                     (0, 1)"""
         )
 
     # noinspection PyUnresolvedReferences

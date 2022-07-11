@@ -317,8 +317,6 @@ class DirectoryPaths(AbstractPaths):
                 self.output_path,
                 "model.info"
         ), "w+") as f:
-            f.write(f"Total Free Parameters = {model.prior_count} \n\n")
-            f.write(f"{model.parameterization} \n\n")
             f.write(model.info)
 
     def _save_parameter_names_file(self, model):

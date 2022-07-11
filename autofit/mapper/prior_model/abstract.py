@@ -2,10 +2,10 @@ import copy
 import inspect
 import json
 import logging
+import random
 import types
 from collections import defaultdict
 from functools import wraps
-import random
 from typing import Tuple, Optional, Dict, List, Iterable, Generator
 
 import numpy as np
@@ -1562,7 +1562,11 @@ class AbstractPriorModel(AbstractModel):
         ):
             formatter.add(*t)
 
-        return formatter.text
+        return '\n\n'.join([
+            f"Total Free Parameters = {self.prior_count}",
+            f"{self.parameterization}",
+            formatter.text
+        ])
 
     @property
     def order_no(self) -> str:
