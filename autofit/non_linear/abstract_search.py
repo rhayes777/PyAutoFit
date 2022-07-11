@@ -210,7 +210,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             self,
             factor: Factor,
             model_approx: EPMeanField,
-            status: Optional[Status] = None
+            status: Status = Status(),
     ) -> Tuple[EPMeanField, Status]:
         """
         Perform optimisation for expectation propagation. Currently only
