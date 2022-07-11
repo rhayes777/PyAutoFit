@@ -45,13 +45,12 @@ class AbstractFactorOptimiser(ABC):
                 for variable, message_count in variable_message_count.items()
             })
 
-        new_approx, status = model_approx.project_mean_field(
+        return model_approx.project_mean_field(
             new_model_dist,
             factor_approx,
             delta=delta,
             status=status,
         )
-        return new_approx, status
 
     @abstractmethod
     def optimise(
