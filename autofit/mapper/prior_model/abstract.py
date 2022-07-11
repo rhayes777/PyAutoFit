@@ -32,6 +32,8 @@ logger = logging.getLogger(
     __name__
 )
 
+LINE_LENGTH = 80
+
 
 class Limits:
     @staticmethod
@@ -1553,7 +1555,7 @@ class AbstractPriorModel(AbstractModel):
         This information is extracted from each priors *model_info* property.
         """
         formatter = TextFormatter(
-            line_length=80
+            line_length=LINE_LENGTH
         )
 
         for t in self.path_instance_tuples_for_class(
@@ -1600,7 +1602,9 @@ class AbstractPriorModel(AbstractModel):
         """
         from .prior_model import PriorModel
 
-        formatter = TextFormatter()
+        formatter = TextFormatter(
+            line_length=LINE_LENGTH
+        )
 
         for t in self.path_instance_tuples_for_class(
                 (

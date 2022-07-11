@@ -25,11 +25,11 @@ def make_info():
 
 Total Free Parameters = 3
 
-model                                                                                     Gaussian (N=3)
+model                                                                           Gaussian (N=3)
 
-centre                                                                                    UniformPrior, lower_limit = 0.0, upper_limit = 1.0
-normalization                                                                             UniformPrior, lower_limit = 0.0, upper_limit = 1.0
-sigma                                                                                     UniformPrior, lower_limit = 0.0, upper_limit = 1.0"""
+centre                                                                          UniformPrior, lower_limit = 0.0, upper_limit = 1.0
+normalization                                                                   UniformPrior, lower_limit = 0.0, upper_limit = 1.0
+sigma                                                                           UniformPrior, lower_limit = 0.0, upper_limit = 1.0"""
 
 
 def test_analysis_factor(

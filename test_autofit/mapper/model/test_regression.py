@@ -78,7 +78,7 @@ def test_as_model_tuples():
         instance
     )
     assert model.tup == (0.5, 0.5)
-    assert """tup                                                                                       (0.5, 0.5)""" in model.info
+    assert """tup                                                                             (0.5, 0.5)""" in model.info
 
 
 def test_info_prints_number_of_parameters():
