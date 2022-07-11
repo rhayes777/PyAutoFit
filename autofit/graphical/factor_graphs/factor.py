@@ -355,7 +355,6 @@ class Factor(AbstractFactor):
 
         for arg in args:
             h.update(arg)
-            print(h)
 
         key = h.intdigest()
 
