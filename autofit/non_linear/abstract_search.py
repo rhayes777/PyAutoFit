@@ -101,7 +101,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         session
             An SQLAlchemy session instance so the results of the model-fit are written to an SQLite database.
         """
-        super().__init__(delta=kwargs.get("delta", 1.0))
+        super().__init__(delta=kwargs.get("delta", 1.0), dynamic_delta=kwargs.get("dynamic_delta", True))
 
         from autofit.non_linear.paths.database import DatabasePaths
 
@@ -204,8 +204,6 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         self.optimisation_counter = Counter()
 
-        self.dynamic_delta = kwargs.get("dynamic_delta", True)
-
     __identifier_fields__ = tuple()
 
     def optimise(
@@ -289,25 +287,12 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             result.projected_model.priors
         )
 
-        variable_message_count = model_approx.variable_message_count
-        min_value = min(variable_message_count.values())
-
-        if self.dynamic_delta:
-            delta = MeanField({
-                variable: self.delta * (min_value / message_count)
-                for variable, message_count in variable_message_count.items()
-            })
-        else:
-            delta = self.delta
-
-        projection, status = factor_approx.project(
-            new_model_dist,
-            delta=delta
+        model_approx, status = self.update_model_approx(
+            new_model_dist, factor_approx, model_approx, status
         )
-
         status.result = result
 
-        return model_approx.project(projection, status)
+        return model_approx, status
 
     @property
     def name(self):

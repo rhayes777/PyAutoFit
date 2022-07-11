@@ -16,11 +16,12 @@ class AbstractFactorOptimiser(ABC):
     """
     logger = logger.debug
 
-    def __init__(self, initial_values=None, deltas=None, inplace=False, delta=1):
+    def __init__(self, initial_values=None, deltas=None, inplace=False, delta=1, dynamic_delta=False):
         self.initial_values = initial_values or {}
         self.inplace = inplace
         self.delta = delta
         self.deltas = deltas or {}
+        self.dynamic_delta = dynamic_delta
 
     def update_model_approx(
             self,
@@ -30,7 +31,20 @@ class AbstractFactorOptimiser(ABC):
             status: Optional[Status] = Status(),
             delta: Optional[float] = None,
     ) -> Tuple[EPMeanField, Status]:
-        delta = delta or self.deltas.get(factor_approx.factor) or self.delta
+
+        variable_message_count = model_approx.variable_message_count
+        min_value = min(variable_message_count.values())
+
+        delta = delta or self.delta
+
+        if factor_approx.factor in self.deltas:
+            delta = self.deltas[factor_approx.factor]
+        elif self.dynamic_delta:
+            delta = MeanField({
+                variable: self.delta * (min_value / message_count)
+                for variable, message_count in variable_message_count.items()
+            })
+
         new_approx, status = model_approx.project_mean_field(
             new_model_dist,
             factor_approx,
