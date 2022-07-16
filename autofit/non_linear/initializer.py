@@ -160,6 +160,7 @@ class SpecificRangeInitializer(AbstractInitializer):
         -------
         A unit vector
         """
+
         unit_parameter_list = []
         for prior in model.priors_ordered_by_id:
             try:

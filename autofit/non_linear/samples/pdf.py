@@ -505,7 +505,11 @@ class PDFSamples(Samples):
         return np.cov(m=self.parameter_lists, rowvar=False, aweights=self.weight_list)
 
 
-def marginalize(parameter_list: List, sigma: float, weight_list:Optional[List]=None) -> Tuple[float, float, float]:
+def marginalize(
+        parameter_list: List,
+        sigma: float,
+        weight_list : Optional[List] = None
+) -> Tuple[float, float, float]:
 
     low_limit = (1 - math.erf(sigma / math.sqrt(2))) / 2
 
