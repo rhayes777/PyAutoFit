@@ -14,7 +14,7 @@ def result_info_from(samples) -> str:
     sigma confidence and information on the maximum log likelihood.
     """
 
-    LINE_LENGTH = conf.instance["general"]["output"]["info_line_length"]
+    LINE_LENGTH = conf.instance["general"]["output"]["info_whitespace_length"]
 
     results = []
 

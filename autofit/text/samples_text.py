@@ -26,7 +26,7 @@ def summary(
     sigma
         The sigma within which the PDF is used to estimate errors (e.g. sigma = 1.0 uses 0.6826 of the PDF)."""
 
-    LINE_LENGTH = conf.instance["general"]["output"]["info_line_length"]
+    LINE_LENGTH = conf.instance["general"]["output"]["info_whitespace_length"]
 
     values = values_from_samples(samples=samples, median_pdf_model=median_pdf_model)
     values_at_sigma = samples.vector_at_sigma(sigma=sigma)

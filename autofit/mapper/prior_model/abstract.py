@@ -1552,7 +1552,7 @@ class AbstractPriorModel(AbstractModel):
         parameter of the overall model.
         This information is extracted from each priors *model_info* property.
         """
-        LINE_LENGTH = conf.instance["general"]["output"]["info_line_length"]
+        LINE_LENGTH = conf.instance["general"]["output"]["info_whitespace_length"]
 
         formatter = TextFormatter(
             line_length=LINE_LENGTH
@@ -1602,7 +1602,7 @@ class AbstractPriorModel(AbstractModel):
         """
         from .prior_model import PriorModel
 
-        LINE_LENGTH = conf.instance["general"]["output"]["info_line_length"]
+        LINE_LENGTH = conf.instance["general"]["output"]["info_whitespace_length"]
 
         formatter = TextFormatter(
             line_length=LINE_LENGTH
