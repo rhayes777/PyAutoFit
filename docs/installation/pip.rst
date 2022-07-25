@@ -5,7 +5,7 @@ Installation with pip
 
 We strongly recommend that you install **PyAutoFit** in a
 `Python virtual environment <https://www.geeksforgeeks.org/python-virtual-environment/>`_, with the link attached
-describing what a virtual enviroment is and how to create one.
+describing what a virtual environment is and how to create one.
 
 The latest version of **PyAutoFit** is installed via pip as follows (specifying the version as shown below ensures
 the installation has clean dependencies):
