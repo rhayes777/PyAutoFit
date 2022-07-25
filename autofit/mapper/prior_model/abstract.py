@@ -32,8 +32,6 @@ logger = logging.getLogger(
     __name__
 )
 
-LINE_LENGTH = 80
-
 
 class Limits:
     @staticmethod
@@ -1554,6 +1552,8 @@ class AbstractPriorModel(AbstractModel):
         parameter of the overall model.
         This information is extracted from each priors *model_info* property.
         """
+        LINE_LENGTH = conf.instance["general"]["output"]["info_line_length"]
+
         formatter = TextFormatter(
             line_length=LINE_LENGTH
         )
@@ -1601,6 +1601,8 @@ class AbstractPriorModel(AbstractModel):
         and its number of free parameters
         """
         from .prior_model import PriorModel
+
+        LINE_LENGTH = conf.instance["general"]["output"]["info_line_length"]
 
         formatter = TextFormatter(
             line_length=LINE_LENGTH

@@ -1,9 +1,10 @@
 import logging
 
+from autoconf import conf
+
 from autofit.text import formatter as frm
 
 logger = logging.getLogger(__name__)
-
 
 def values_from_samples(samples, median_pdf_model):
 
@@ -15,7 +16,8 @@ def values_from_samples(samples, median_pdf_model):
 def summary(
     samples, sigma=3.0, median_pdf_model=True, indent=1, line_length=None
 ) -> str:
-    """ Create a string summarizing the results of the `NonLinearSearch` at an input sigma value.
+    """
+    Create a string summarizing the results of the `NonLinearSearch` at an input sigma value.
 
     This function is used for creating the model.results files of a non-linear search.
 
@@ -24,6 +26,8 @@ def summary(
     sigma
         The sigma within which the PDF is used to estimate errors (e.g. sigma = 1.0 uses 0.6826 of the PDF)."""
 
+    LINE_LENGTH = conf.instance["general"]["output"]["info_line_length"]
+
     values = values_from_samples(samples=samples, median_pdf_model=median_pdf_model)
     values_at_sigma = samples.vector_at_sigma(sigma=sigma)
 
@@ -31,6 +35,8 @@ def summary(
 
     if line_length is None:
         line_length = len(max(parameter_names, key=len)) + 8
+
+    line_length = line_length or LINE_LENGTH
 
     sigma_formatter = frm.TextFormatter(indent=indent, line_length=line_length)
 
