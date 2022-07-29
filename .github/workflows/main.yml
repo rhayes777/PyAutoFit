@@ -69,7 +69,7 @@ jobs:
         export PYTHONPATH=$PYTHONPATH:$ROOT_DIR/PyAutoFit
         pushd PyAutoFit
         pytest
-  unittest:
+  finally:
     runs-on: ubuntu-latest
     steps:
     - name: Failure
