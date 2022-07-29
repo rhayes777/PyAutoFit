@@ -68,8 +68,8 @@ jobs:
         export PYTHONPATH=$PYTHONPATH:$ROOT_DIR/PyAutoFit
         pushd PyAutoFit
         pytest
-  slack:
-    - name: Post to a Slack channel
+    - name: Step To run on failure
+      if: ${{ failure() }}
       id: slack
       uses: slackapi/slack-github-action@v1.21.0
       env:
