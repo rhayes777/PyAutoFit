@@ -1,7 +1,10 @@
+from copy import deepcopy
 from inspect import getfullargspec
 from typing import Tuple, Dict, Any, Callable, Union, List, Optional, TYPE_CHECKING
 
 import numpy as np
+import xxhash as xxhash
+
 try:
     import jax
 
@@ -12,13 +15,11 @@ except ImportError:
 from autofit.graphical.utils import (
     nested_filter,
     is_variable,
-    try_getitem, 
+    try_getitem,
 )
 from autofit.mapper.variable import Variable, Plate, VariableData
 
-
 from autofit.graphical.factor_graphs.abstract import FactorValue, AbstractFactor
-
 
 if TYPE_CHECKING:
     from autofit.graphical.factor_graphs.jacobians import (
@@ -203,6 +204,18 @@ class Factor(AbstractFactor):
             jacfwd=jacfwd,
         )
 
+        self._cache = {}
+
+    def __deepcopy__(self, memodict={}):
+        cls = self.__class__
+        result = cls.__new__(cls)
+        memodict[id(self)] = result
+        for k, v in self.__dict__.items():
+            if k == "_cache":
+                v = {}
+            setattr(result, k, deepcopy(v, memodict))
+        return result
+
     @property
     def shape(self) -> Tuple[int, ...]:
         if self.plates:
@@ -211,14 +224,14 @@ class Factor(AbstractFactor):
         return ()
 
     def __getitem__(
-        self, plates_index: Dict[Plate, Union[List[int], range, slice]]
+            self, plates_index: Dict[Plate, Union[List[int], range, slice]]
     ) -> "Factor":
         return self.subset(plates_index)
 
     def subset(
-        self,
-        plates_index: Dict[Plate, Union[List[int], range, slice]],
-        plate_sizes: Optional[Dict[Plate, int]] = None,
+            self,
+            plates_index: Dict[Plate, Union[List[int], range, slice]],
+            plate_sizes: Optional[Dict[Plate, int]] = None,
     ) -> "Factor":
         if not self.plates:
             return self
@@ -315,8 +328,13 @@ class Factor(AbstractFactor):
         """Calls the factor with the values specified by the dictionary of
         values passed, returns a FactorValue with the value returned by the
         factor, and any deterministic factors"""
-        raw_fval = self._factor_args(*(values[v] for v in self.args))
-        return self._factor_value(raw_fval)
+        args = [values[v] for v in self.args]
+        key = self._key("__call__", *args)
+
+        if key not in self._cache:
+            raw_fval = self._factor_args(*args)
+            self._cache[key] = self._factor_value(raw_fval)
+        return self._cache[key]
 
     def _jax_factor_vjp(self, *args) -> Tuple[Any, Callable]:
         return jax.vjp(self._factor, *args)
@@ -345,14 +363,30 @@ class Factor(AbstractFactor):
         )
         return fval, fvjp_op
 
+    @staticmethod
+    def _key(*args):
+        h = xxhash.xxh64()
+
+        for arg in args:
+            try:
+                h.update(arg)
+            except TypeError:
+                h.update(np.array(arg))
+
+        return h.intdigest()
+
     def _jvp_func_jacobian(
             self, values: VariableData, **kwargs
-    ) ->  Tuple[FactorValue, "JacobianVectorProduct"]:
-        args = (values[k] for k in self.args)
-        raw_fval, raw_jac = self._factor_jacobian(*args, **kwargs)
-        fval = self._factor_value(raw_fval)
-        jvp = self._jac_out_to_jvp(raw_jac, values=fval.to_dict().merge(values))
-        return fval, jvp
+    ) -> Tuple[FactorValue, "JacobianVectorProduct"]:
+        args = list(values[k] for k in self.args)
+        key = self._key("_jvp_func_jacobian", *args)
+
+        if key not in self._cache:
+            raw_fval, raw_jac = self._factor_jacobian(*args, **kwargs)
+            fval = self._factor_value(raw_fval)
+            jvp = self._jac_out_to_jvp(raw_jac, values=fval.to_dict().merge(values))
+            self._cache[key] = (fval, jvp)
+        return self._cache[key]
 
     func_jacobian = _jvp_func_jacobian
 
