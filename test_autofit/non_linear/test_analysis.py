@@ -213,7 +213,7 @@ def test_set_number_of_cores(
     multi_analysis.n_cores = 1
     assert multi_analysis._log_likelihood_function.__name__ == "_summed_log_likelihood"
 
-    multi_analysis.n_cores = 1
+    multi_analysis.n_cores = 2
     assert isinstance(
         multi_analysis._log_likelihood_function,
         AnalysisPool
