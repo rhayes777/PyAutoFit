@@ -38,7 +38,6 @@ jobs:
     - name: Change to same branch if exists in deps
       shell: bash
       run: |
-        exit 1
         export PACKAGES=("PyAutoConf")
         export BRANCH="${{ steps.extract_branch.outputs.branch }}"
         for PACKAGE in ${PACKAGES[@]}; do
@@ -69,8 +68,8 @@ jobs:
         export PYTHONPATH=$PYTHONPATH:$ROOT_DIR/PyAutoFit
         pushd PyAutoFit
         pytest
-    - name: Failure
-      if: ${{ failure() }}
+    - name: Slack send
+      if: ${{ failure() }} || ${{ env.GITHUB_REF_NAME == 'master' }}
       id: slack
       uses: slackapi/slack-github-action@v1.21.0
       env:
