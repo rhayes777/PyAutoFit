@@ -1,5 +1,5 @@
 import itertools
-from typing import Type
+from typing import Type, Union, Tuple
 
 from autoconf.class_path import get_class
 from .identifier import Identifier
@@ -31,7 +31,7 @@ class ModelObject:
         self.id = id_ or self.next_id()
         self._label = label
 
-    def has(self, cls: Type) -> bool:
+    def has(self, cls: Union[Type, Tuple[Type, ...]]) -> bool:
         """
         Does this instance have an attribute which is of type cls?
         """
