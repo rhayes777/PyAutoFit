@@ -1,3 +1,5 @@
+from collections import Iterable
+
 from autofit.mapper.model import ModelInstance, assert_not_frozen
 from autofit.mapper.prior.abstract import Prior
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
@@ -101,11 +103,11 @@ class CollectionPriorModel(AbstractPriorModel):
         elif len(arguments) == 1:
             arguments = arguments[0]
 
-            if isinstance(arguments, list):
+            if isinstance(arguments, dict):
+                self.add_dict_items(arguments)
+            elif isinstance(arguments, Iterable):
                 for argument in arguments:
                     self.append(argument)
-            elif isinstance(arguments, dict):
-                self.add_dict_items(arguments)
             else:
                 self.append(arguments)
         else:
