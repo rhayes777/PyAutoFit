@@ -69,7 +69,10 @@ jobs:
         export PYTHONPATH=$PYTHONPATH:$ROOT_DIR/PyAutoFit
         pushd PyAutoFit
         pytest
-    - name: Step To run on failure
+  unittest:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Failure
       if: ${{ failure() }}
       id: slack
       uses: slackapi/slack-github-action@v1.21.0
