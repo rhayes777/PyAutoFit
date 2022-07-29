@@ -70,13 +70,13 @@ jobs:
         pytest
   slack:
     - name: Post to a Slack channel
-          id: slack
-          uses: slackapi/slack-github-action@v1.21.0
-          env:
-             SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-          with:
-            channel-id: C03S98FEDK2
-            payload: |
+        id: slack
+        uses: slackapi/slack-github-action@v1.21.0
+        env:
+          SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+        with:
+          channel-id: C03S98FEDK2
+          payload: |
                   {
                     "text": "GitHub Action build result: ${{ job.status }}\n${{ github.event.pull_request.html_url || github.event.head_commit.url }}"
                   }
