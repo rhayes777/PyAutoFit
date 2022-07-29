@@ -27,6 +27,7 @@ from autofit.mapper.prior_model.util import PriorModelNameValue
 from autofit.text import formatter as frm
 from autofit.text.formatter import TextFormatter
 from autofit.tools.util import split_paths
+from autofit.tools.util import info_whitespace
 
 logger = logging.getLogger(
     __name__
@@ -1552,10 +1553,9 @@ class AbstractPriorModel(AbstractModel):
         parameter of the overall model.
         This information is extracted from each priors *model_info* property.
         """
-        LINE_LENGTH = conf.instance["general"]["output"]["info_whitespace_length"]
 
         formatter = TextFormatter(
-            line_length=LINE_LENGTH
+            line_length=info_whitespace()
         )
 
         for t in self.path_instance_tuples_for_class(
@@ -1602,10 +1602,8 @@ class AbstractPriorModel(AbstractModel):
         """
         from .prior_model import PriorModel
 
-        LINE_LENGTH = conf.instance["general"]["output"]["info_whitespace_length"]
-
         formatter = TextFormatter(
-            line_length=LINE_LENGTH
+            line_length=info_whitespace()
         )
 
         for t in self.path_instance_tuples_for_class(
