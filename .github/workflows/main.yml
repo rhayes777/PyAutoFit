@@ -78,5 +78,5 @@ jobs:
         channel-id: C03S98FEDK2
         payload: |
                 {
-                  "text": "${{ env.GITHUB_REPOSITORY }}/${{ env.GITHUB_REF_NAME }} (Python ${{ matrix.python-version }}) build result: ${{ job.status }}\n${{ github.event.pull_request.html_url || github.event.head_commit.url }}"
+                  "text": "${{ GITHUB_REPOSITORY }}/${{ GITHUB_REF_NAME }} (Python ${{ matrix.python-version }}) build result: ${{ job.status }}\n${{ github.event.pull_request.html_url || github.event.head_commit.url }}"
                 }
