@@ -37,7 +37,7 @@ def test__results_to_file(samples):
         samples=samples,
     )
 
-    assert  "Maximum Log Likelihood                                                                    1.00000000\n" in result_info
+    assert  "Maximum Log Likelihood                                                          1.00000000\n" in result_info
 
 def test__search_summary_to_file(model):
     file_search_summary = path.join(text_path, "search.summary")

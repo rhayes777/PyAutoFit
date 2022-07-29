@@ -7,3 +7,5 @@ def test_has():
 
     model_object.gaussian = af.Gaussian()
     assert model_object.has(af.Gaussian)
+
+    assert model_object.has((af.Gaussian, str))
