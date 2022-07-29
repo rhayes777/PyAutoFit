@@ -9,17 +9,6 @@ jobs:
       matrix:
         python-version: [3.7, 3.8, 3.9, '3.10']  # 3.9 not supported on numba as of 2020-02-11
     steps:
-    - name: Post to a Slack channel
-      id: slack
-      uses: slackapi/slack-github-action@v1.21.0
-      env:
-         SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
-      with:
-        channel-id: C03S98FEDK2
-        payload: |
-              {
-                "text": "GitHub Action build result: ${{ job.status }}\n${{ github.event.pull_request.html_url || github.event.head_commit.url }}"
-              }
     - name: Checkout PyAutoConf
       uses: actions/checkout@v2
       with:
@@ -79,3 +68,15 @@ jobs:
         export PYTHONPATH=$PYTHONPATH:$ROOT_DIR/PyAutoFit
         pushd PyAutoFit
         pytest
+  slack:
+    - name: Post to a Slack channel
+          id: slack
+          uses: slackapi/slack-github-action@v1.21.0
+          env:
+             SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
+          with:
+            channel-id: C03S98FEDK2
+            payload: |
+                  {
+                    "text": "GitHub Action build result: ${{ job.status }}\n${{ github.event.pull_request.html_url || github.event.head_commit.url }}"
+                  }
