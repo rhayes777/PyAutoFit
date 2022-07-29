@@ -8,6 +8,7 @@ from pathlib import Path
 
 import numpy as np
 
+from autoconf import conf
 
 def split_paths(func):
     """
@@ -141,3 +142,7 @@ def numpy_array_from_json(file_path: str):
     """
     with open(file_path, "r") as f:
         return np.asarray(json.load(f))
+
+
+def info_whitespace():
+    return conf.instance["general"]["output"]["info_whitespace_length"]

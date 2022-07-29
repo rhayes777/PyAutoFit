@@ -1,6 +1,6 @@
 from autoconf import conf
 from autofit.text import formatter as frm, samples_text
-
+from autofit.tools.util import info_whitespace
 
 def padding(item, target=6):
     string = str(item)
@@ -14,7 +14,6 @@ def result_info_from(samples) -> str:
     Output the full model.results file, which include the most-likely model, most-probable model at 1 and 3
     sigma confidence and information on the maximum log likelihood.
     """
-
     results = []
 
     if hasattr(samples, "log_evidence"):
@@ -24,7 +23,7 @@ def result_info_from(samples) -> str:
                 frm.add_whitespace(
                     str0="Bayesian Evidence ",
                     str1="{:.8f}".format(samples.log_evidence),
-                    whitespace=90
+                    whitespace=info_whitespace()
                 )
             ]
             results += ["\n"]
@@ -33,7 +32,7 @@ def result_info_from(samples) -> str:
         frm.add_whitespace(
             str0="Maximum Log Likelihood ",
             str1="{:.8f}".format(max(samples.log_likelihood_list)),
-            whitespace=90
+            whitespace=info_whitespace()
         )
     ]
     results += ["\n"]
@@ -41,7 +40,7 @@ def result_info_from(samples) -> str:
         frm.add_whitespace(
             str0="Maximum Log Posterior ",
             str1="{:.8f}".format(max(samples.log_posterior_list)),
-            whitespace=90
+            whitespace=info_whitespace()
         )
     ]
     results += ["\n"]
@@ -50,7 +49,7 @@ def result_info_from(samples) -> str:
 
     results += ["Maximum Log Likelihood Model:\n\n"]
 
-    formatter = frm.TextFormatter()
+    formatter = frm.TextFormatter(line_length=info_whitespace())
 
     for i, prior_path in enumerate(samples.model.unique_prior_paths):
         formatter.add(
@@ -62,9 +61,9 @@ def result_info_from(samples) -> str:
 
         if samples.pdf_converged:
 
-            results += samples_text.summary(samples=samples, sigma=3.0, indent=4, line_length=90)
+            results += samples_text.summary(samples=samples, sigma=3.0, indent=4, line_length=info_whitespace())
             results += ["\n"]
-            results += samples_text.summary(samples=samples, sigma=1.0, indent=4, line_length=90)
+            results += samples_text.summary(samples=samples, sigma=1.0, indent=4, line_length=info_whitespace())
 
         else:
 
@@ -72,11 +71,11 @@ def result_info_from(samples) -> str:
                 "\n WARNING: The samples have not converged enough to compute a PDF and model errors. \n "
                 "The model below over estimates errors. \n\n"
             ]
-            results += samples_text.summary(samples=samples, sigma=1.0, indent=4, line_length=90)
+            results += samples_text.summary(samples=samples, sigma=1.0, indent=4, line_length=info_whitespace())
 
         results += ["\n\ninstances\n"]
 
-    formatter = frm.TextFormatter()
+    formatter = frm.TextFormatter(line_length=info_whitespace())
 
     for t in samples.model.path_float_tuples:
         formatter.add(*t)

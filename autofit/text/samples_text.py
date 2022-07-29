@@ -4,7 +4,6 @@ from autofit.text import formatter as frm
 
 logger = logging.getLogger(__name__)
 
-
 def values_from_samples(samples, median_pdf_model):
 
     if median_pdf_model:
@@ -15,7 +14,8 @@ def values_from_samples(samples, median_pdf_model):
 def summary(
     samples, sigma=3.0, median_pdf_model=True, indent=1, line_length=None
 ) -> str:
-    """ Create a string summarizing the results of the `NonLinearSearch` at an input sigma value.
+    """
+    Create a string summarizing the results of the `NonLinearSearch` at an input sigma value.
 
     This function is used for creating the model.results files of a non-linear search.
 
