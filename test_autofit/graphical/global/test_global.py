@@ -1,7 +1,16 @@
+import itertools
+
 import pytest
 
 import autofit as af
 import autofit.graphical as g
+
+
+@pytest.fixture(
+    autouse=True
+)
+def reset_ids():
+    af.ModelObject._ids = itertools.count()
 
 
 def test_info(
@@ -9,13 +18,13 @@ def test_info(
 ):
     assert model_factor.global_prior_model.info == """PriorFactors
 
-PriorFactor0 (AnalysisFactor0.one)                                                        UniformPrior, lower_limit = 0.0, upper_limit = 1.0
+PriorFactor0 (AnalysisFactor0.one)                                                        UniformPrior [0], lower_limit = 0.0, upper_limit = 1.0
 
 AnalysisFactors
 
 AnalysisFactor0
 
-one (PriorFactor0)                                                                        UniformPrior, lower_limit = 0.0, upper_limit = 1.0"""
+one (PriorFactor0)                                                                        UniformPrior [0], lower_limit = 0.0, upper_limit = 1.0"""
 
 
 def test_results(
