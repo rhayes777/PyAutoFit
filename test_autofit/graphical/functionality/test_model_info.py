@@ -1,3 +1,5 @@
+import itertools
+
 import pytest
 
 import autofit as af
@@ -18,6 +20,13 @@ def make_analysis_factor():
 
 
 @pytest.fixture(
+    autouse=True
+)
+def reset_ids():
+    af.ModelObject._ids = itertools.count()
+
+
+@pytest.fixture(
     name="info"
 )
 def make_info():
@@ -27,9 +36,9 @@ Total Free Parameters = 3
 
 model                                                                           Gaussian (N=3)
 
-centre                                                                          UniformPrior, lower_limit = 0.0, upper_limit = 1.0
-normalization                                                                   UniformPrior, lower_limit = 0.0, upper_limit = 1.0
-sigma                                                                           UniformPrior, lower_limit = 0.0, upper_limit = 1.0"""
+centre                                                                          UniformPrior [1], lower_limit = 0.0, upper_limit = 1.0
+normalization                                                                   UniformPrior [2], lower_limit = 0.0, upper_limit = 1.0
+sigma                                                                           UniformPrior [3], lower_limit = 0.0, upper_limit = 1.0"""
 
 
 def test_analysis_factor(
