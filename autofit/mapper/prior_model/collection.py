@@ -1,4 +1,4 @@
-from collections import Iterable
+from collections.abc import Iterable
 
 from autofit.mapper.model import ModelInstance, assert_not_frozen
 from autofit.mapper.prior.abstract import Prior

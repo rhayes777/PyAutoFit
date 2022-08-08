@@ -1,5 +1,5 @@
 import random
-from abc import ABC
+from abc import ABC, abstractmethod
 from copy import copy
 from typing import Union, Tuple
 
@@ -196,6 +196,15 @@ class Prior(Variable, ABC, ArithmeticMixin):
         return "<{} id={} lower_limit={} upper_limit={}>".format(
             self.__class__.__name__, self.id, self.lower_limit, self.upper_limit
         )
+
+    def __str__(self):
+        """The line of text describing this prior for the model_mapper.info file"""
+        return f"{self.__class__.__name__} [{self.id}], {self.parameter_string}"
+
+    @property
+    @abstractmethod
+    def parameter_string(self) -> str:
+        pass
 
     def __float__(self):
         return self.value_for(0.5)

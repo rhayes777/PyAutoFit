@@ -59,7 +59,6 @@ class LogGaussianPrior(Prior):
             id_=self.instance().id
         )
 
-    # @assert_within_limits
     def value_for(self, unit, ignore_prior_limits=False):
         """
 
@@ -74,3 +73,7 @@ class LogGaussianPrior(Prior):
             A value for the attribute biased to the gaussian distribution
         """
         return super().value_for(unit, ignore_prior_limits=ignore_prior_limits)
+
+    @property
+    def parameter_string(self):
+        return f"mean = {self.mean}, sigma = {self.sigma}"

@@ -1,8 +1,17 @@
+import itertools
+
 import pytest
 
 import autofit as af
 
 from autofit.text import formatter as frm
+
+
+@pytest.fixture(
+    autouse=True
+)
+def reset_ids():
+    af.ModelObject._ids = itertools.count()
 
 
 def test_parameterization():
@@ -95,8 +104,8 @@ model                                                                           
     mock_class                                                                  MockClassx2 (N=2)
 
 mock_class
-    one                                                                         UniformPrior, lower_limit = 0.0, upper_limit = 1.0
-    two                                                                         UniformPrior, lower_limit = 0.0, upper_limit = 2.0"""
+    one                                                                         UniformPrior [2], lower_limit = 0.0, upper_limit = 1.0
+    two                                                                         UniformPrior [3], lower_limit = 0.0, upper_limit = 2.0"""
         )
 
     def test_with_instance(self):
@@ -115,7 +124,7 @@ model                                                                           
     mock_class                                                                  MockClassx2 (N=1)
 
 mock_class
-    one                                                                         UniformPrior, lower_limit = 0.0, upper_limit = 1.0
+    one                                                                         UniformPrior [2], lower_limit = 0.0, upper_limit = 1.0
     two                                                                         1.0"""
         )
 

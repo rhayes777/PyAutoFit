@@ -77,6 +77,6 @@ class LogUniformPrior(Prior):
     def value_for(self, unit: float, ignore_prior_limits=False) -> float:
         return super().value_for(unit, ignore_prior_limits=ignore_prior_limits)
 
-    def __str__(self):
-        """The line of text describing this prior for the model_mapper.info file"""
-        return f"LogUniformPrior, lower_limit = {self.lower_limit}, upper_limit = {self.upper_limit}"
+    @property
+    def parameter_string(self) -> str:
+        return f"lower_limit = {self.lower_limit}, upper_limit = {self.upper_limit}"
