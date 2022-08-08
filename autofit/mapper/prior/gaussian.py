@@ -65,6 +65,6 @@ class GaussianPrior(Prior):
         prior_dict = super().dict()
         return {**prior_dict, "mean": self.mean, "sigma": self.sigma}
 
-    def __str__(self):
-        """The line of text describing this prior for the model_mapper.info file"""
-        return f"GaussianPrior, mean = {self.mean}, sigma = {self.sigma}"
+    @property
+    def parameter_string(self):
+        return f"mean = {self.mean}, sigma = {self.sigma}"

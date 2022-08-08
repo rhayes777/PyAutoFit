@@ -55,9 +55,9 @@ class UniformPrior(Prior):
             x -= epsilon
         return self.instance().logpdf(x)
 
-    def __str__(self):
-        """The line of text describing this prior for the model_mapper.info file"""
-        return f"UniformPrior, lower_limit = {self.lower_limit}, upper_limit = {self.upper_limit}"
+    @property
+    def parameter_string(self) -> str:
+        return f"lower_limit = {self.lower_limit}, upper_limit = {self.upper_limit}"
 
     def value_for(self, unit, ignore_prior_limits=False):
         """
