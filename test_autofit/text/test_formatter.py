@@ -1,25 +1,13 @@
 import os
-from os import path
 import shutil
+from os import path
 
-import pytest
-
-import autofit as af
 from autofit.text import formatter as frm
-from autoconf import conf
-
-directory = path.dirname(path.realpath(__file__))
 
 text_path = path.join("{}".format(path.dirname(path.realpath(__file__))), "files", "text")
 
 
-@pytest.fixture(scope="session", autouse=True)
-def do_something():
-    conf.instance.push(path.join("{}".format(directory), "files", "config", "text"))
-
-
 def test__value_result_string():
-
     str0 = frm.value_result_string_from(parameter_name="param0", value=2.0)
     assert str0 == "2.00"
 
@@ -40,7 +28,6 @@ def test__value_result_string():
 
 
 def test__parameter_result_latex():
-
     str0 = frm.parameter_result_latex_from(parameter_name="param0", value=2.0)
     assert str0 == r"param0 = 2.00 & "
 
