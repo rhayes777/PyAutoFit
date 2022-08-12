@@ -9,4 +9,4 @@ def test_import():
     # noinspection PyUnresolvedReferences
     import autofit
     difference = (dt.datetime.now() - tic).microseconds
-    assert difference < 100
+    assert difference < 150
