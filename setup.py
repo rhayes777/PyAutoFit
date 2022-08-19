@@ -18,16 +18,13 @@ requirements.extend([
 ])
 
 
-def package_files(directory):
+def config_packages(directory):
     paths = [directory.replace("/", ".")]
     for (path, directories, filenames) in os.walk(directory):
         for directory in directories:
             paths.append(f'{path}/{directory}'.replace("/", "."))
     return paths
 
-
-extra_files = package_files('autofit/config')
-print(extra_files)
 
 setup(
     name="autofit",
@@ -56,7 +53,7 @@ setup(
         "Programming Language :: Python :: 3.8",
     ],
     keywords="cli",
-    packages=find_packages(exclude=["docs", "test_autofit", "test_autofit*"]) + extra_files,
+    packages=find_packages(exclude=["docs", "test_autofit", "test_autofit*"]) + config_packages('autofit/config'),
     install_requires=requirements,
     setup_requires=["pytest-runner"],
     tests_require=["pytest"],
