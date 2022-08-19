@@ -59,5 +59,5 @@ setup(
     install_requires=requirements,
     setup_requires=["pytest-runner"],
     tests_require=["pytest"],
-    package_data=extra_files,
+    package_data={'': extra_files},
 )
