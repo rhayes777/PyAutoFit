@@ -19,7 +19,7 @@ requirements.extend([
 
 
 def package_files(directory):
-    paths = []
+    paths = [directory.replace("/", ".")]
     for (path, directories, filenames) in os.walk(directory):
         for directory in directories:
             paths.append(f'{path}/{directory}'.replace("/", "."))
