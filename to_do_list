@@ -1,26 +1,36 @@
 __Documentation__
 
-- Implement starting point API and write docs on this.
-
-
 - In this section, include docs on writing and loading models / collections with jsons and adding them together.
 - Include docs on the Dictable object from autoconf.
-- Model COllection addition not working?
+- Model Collection addition not working?
 - Animation of 1D Gaussian fitting.
+
 
 __Complaints__
 
 - Explicit exampels of how to extend Analsyis (e.g. putting extra data in c0nstructor) for Python beginners.
-
 - Amy was unsure how to use an instance to plot a new component. Show an example where an instance is used
+
 
 __Samples__
 
  - Have as_instance=True default argument in all Samples objects. Use decorator to implement the output.
 
+
 __Searches__
 
+- optimize -> mle.
+- New MLE fits with eye on sensitivity mapping.
 - LBFGS: Limits on parameters, callback history.
+- New nested / MCMC routines.
+
+
+__Output Customization__
+
+- Rich: Customize how output results are, interface with database (e.g ML only, sigma values only).
+- Mass visualization for database runs in single folder.
+- Pickle customization.
+- Database tutorials.
 
 
 __Database__
