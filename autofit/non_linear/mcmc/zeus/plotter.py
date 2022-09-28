@@ -1,10 +1,11 @@
 from autofit.plot.samples_plotters import MCMCPlotter
 
-import zeus
 
 class ZeusPlotter(MCMCPlotter):
 
     def corner(self, **kwargs):
+
+        import zeus
 
         try:
             zeus.cornerplot(

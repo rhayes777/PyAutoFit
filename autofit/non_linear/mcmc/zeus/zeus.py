@@ -2,7 +2,6 @@ from os import path
 from typing import Optional
 
 import numpy as np
-import zeus
 from autofit.database.sqlalchemy_ import sa
 
 from autoconf import conf
@@ -134,6 +133,18 @@ class Zeus(AbstractMCMC):
         A result object comprising the Samples object that inclues the maximum log likelihood instance and full
         chains used by the fit.
         """
+
+        try:
+            import zeus
+        except ModuleNotFoundError:
+            raise ModuleNotFoundError(
+                "\n--------------------\n"
+                "You are attempting to perform a model-fit using Zeus. \n\n"
+                "However, the optional library Zeus (https://zeus-mcmc.readthedocs.io/en/latest/) is "
+                "not installed.\n\n"
+                "Install it via the command `pip install zeus==3.5.5`.\n\n"
+                "----------------------"
+            )
 
         pool = self.make_pool()
 

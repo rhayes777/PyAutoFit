@@ -1,3 +1,4 @@
-ultranest==3.5.5
 jax==0.3.1
 jaxlib==0.3.0
+ultranest==3.5.5
+zeus-mcmc==2.4.1
