@@ -96,6 +96,9 @@ class AbstractDynesty(AbstractNest, ABC):
              -np.inf is an invalid sample value for Dynesty, so we instead use a large negative number."""
             return -1.0e99
 
+        def history_save(self):
+            pass
+
     def _fit(self, model: AbstractPriorModel, analysis, log_likelihood_cap=None):
         """
         Fit a model using Dynesty and the Analysis class which contains the data and returns the log likelihood from
@@ -125,8 +128,6 @@ class AbstractDynesty(AbstractNest, ABC):
                 "dynesty"
             )
             sampler.loglikelihood = fitness_function
-
-            sampler.rstate = np.random
 
             if self.number_of_cores == 1:
                 sampler.M = map
@@ -175,36 +176,19 @@ class AbstractDynesty(AbstractNest, ABC):
 
             if iterations > 0:
 
-                for i in range(10):
+                config_dict_run = self.config_dict_run
+                config_dict_run.pop("maxcall")
 
-                    try:
-
-                        config_dict_run = self.config_dict_run
-                        config_dict_run.pop("maxcall")
-
-                        sampler.run_nested(
-                            maxcall=iterations,
-                            print_progress=not self.silence,
-                            **config_dict_run
-                        )
-
-                        if i == 9:
-                            raise ValueError("Dynesty crashed due to repeated bounding errors")
-
-                        break
-
-                    except (ValueError, np.linalg.LinAlgError):
-
-                        continue
-
-            sampler.loglikelihood = None
+                sampler.run_nested(
+                    maxcall=iterations,
+                    print_progress=not self.silence,
+                    **config_dict_run
+                )
 
             self.paths.save_object(
                 "dynesty",
                 sampler
             )
-
-            sampler.loglikelihood = fitness_function
 
             self.perform_update(model=model, analysis=analysis, during_analysis=True)
 

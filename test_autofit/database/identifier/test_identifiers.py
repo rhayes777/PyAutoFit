@@ -540,8 +540,6 @@ def test_dynesty_static():
                'auto',
                'bootstrap',
                'enlarge',
-               'vol_dec',
-               '0.5',
                'walks',
                '5',
                'facc',

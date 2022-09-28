@@ -13,7 +13,6 @@ class DynestyStatic(AbstractDynesty):
         "sample",
         "bootstrap",
         "enlarge",
-        "vol_dec",
         "walks",
         "facc",
         "slices",
