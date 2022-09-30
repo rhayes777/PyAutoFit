@@ -17,7 +17,7 @@ PyAutoFit: Classy Probabilistic Programming
 PyAutoFit is a Python based probabilistic programming language for the fully Bayesian analysis of extremely large
 datasets which:
 
-- Makes it simple to compose and fit mult-level models using a range of Bayesian inference libraries, such as `emcee <https://github.com/dfm/emcee>`_ and `dynesty <https://github.com/joshspeagle/dynesty>`_.
+- Makes it simple to compose and fit multi-level models using a range of Bayesian inference libraries, such as `emcee <https://github.com/dfm/emcee>`_ and `dynesty <https://github.com/joshspeagle/dynesty>`_.
 
 - Handles the 'heavy lifting' that comes with model-fitting, including model composition & customization, outputting results, model-specific visualization and posterior analysis.
 
