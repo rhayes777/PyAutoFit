@@ -1,17 +1,16 @@
 corner==2.2.1
 decorator>=4.2.1
 dill>=0.3.1.1
-dynesty==1.0.1
+dynesty==1.2.3
 typing-inspect>=0.4.0
-emcee>=3.0.2
-gprof2dot==2021.2.21
+emcee>=3.1.3
+# gprof2dot==2021.2.21
 matplotlib
 numpydoc>=1.0.0
 pyprojroot==0.2.0
-pyswarms==1.1.0
+pyswarms==1.3.0
 h5py>=2.10.0
 SQLAlchemy==1.3.20
 scipy>=1.5.1
-zeus-mcmc==2.3.0
 astunparse==1.6.3
 xxhash==3.0.0

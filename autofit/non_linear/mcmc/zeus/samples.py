@@ -1,7 +1,6 @@
 import logging
 import numpy as np
 from typing import List, Optional
-import zeus
 
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.samples.mcmc import MCMCSamples
@@ -100,6 +99,8 @@ class ZeusSamples(MCMCSamples):
 
     @property
     def auto_correlations(self):
+
+        import zeus
 
         times = zeus.AutoCorrTime(samples=self.results_internal.get_chain())
         try:

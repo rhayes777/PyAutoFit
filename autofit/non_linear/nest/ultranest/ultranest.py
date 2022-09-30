@@ -157,7 +157,17 @@ class UltraNest(abstract_nest.AbstractNest):
         set of accepted ssamples of the fit.
         """
 
-        import ultranest
+        try:
+            import ultranest
+        except ModuleNotFoundError:
+            raise ModuleNotFoundError(
+                "\n--------------------\n"
+                "You are attempting to perform a model-fit using UltraNest. \n\n"
+                "However, the optional library UltraNest (https://johannesbuchner.github.io/UltraNest/index.html) is "
+                "not installed.\n\n"
+                "Install it via the command `pip install ultranest==3.5.5`.\n\n"
+                "----------------------"
+            )
 
         fitness_function = self.fitness_function_from_model_and_analysis(
             model=model, analysis=analysis, log_likelihood_cap=log_likelihood_cap,
