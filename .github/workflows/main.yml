@@ -1,7 +1,7 @@
 name: Run unittests
 
 on: [push]
- 
+
 jobs:
   unittest:
     runs-on: ubuntu-latest

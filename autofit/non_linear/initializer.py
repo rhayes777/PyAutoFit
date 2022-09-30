@@ -110,12 +110,15 @@ class AbstractInitializer(ABC):
 
         point_index = 0
 
+        figure_of_merit = -1.0e99
+
         while point_index < total_points:
             unit_parameter_list = self._generate_unit_parameter_list(model)
             parameter_list = model.vector_from_unit_vector(unit_vector=unit_parameter_list)
             unit_parameter_lists.append(unit_parameter_list)
             parameter_lists.append(parameter_list)
-            figure_of_merit_list.append(-1.0e99)
+            figure_of_merit_list.append(figure_of_merit)
+            figure_of_merit *= 10.0
             point_index += 1
 
         return unit_parameter_lists, parameter_lists, figure_of_merit_list
