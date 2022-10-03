@@ -600,7 +600,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             except KeyError:
                 pass
 
-        if os.environ["PYAUTOFIT_TEST_MODE"] == "1":
+        if "PYAUTOFIT_TEST_MODE" in os.environ:
             config_dict = self.config_dict_with_test_mode_settings_from(config_dict=config_dict)
 
         return config_dict

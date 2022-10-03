@@ -47,7 +47,7 @@ class AutoCorrelationsSettings:
         self.check_for_convergence = self.check_for_convergence if self.check_for_convergence is not None else config_dict["check_for_convergence"]
         self.check_size = self.check_size or config_dict["check_size"]
 
-        if os.environ["PYAUTOFIT_TEST_MODE"] == "1":
+        if "PYAUTOFIT_TEST_MODE" in os.environ:
             self.check_size = 1
 
         self.required_length = self.required_length or config_dict["required_length"]

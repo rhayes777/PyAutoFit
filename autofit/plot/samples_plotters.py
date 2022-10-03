@@ -38,7 +38,7 @@ def skip_plot_in_test_mode(func):
             A function that plots a visual, or None if test mode is on.
         """
 
-        if os.environ["PYAUTOFIT_TEST_MODE"] == "1":
+        if "PYAUTOFIT_TEST_MODE" in os.environ:
             return
 
         return func(obj, *args, **kwargs)

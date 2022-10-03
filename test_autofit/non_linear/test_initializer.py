@@ -79,6 +79,7 @@ class TestInitializePrior:
 
         assert figure_of_merit_list == [-1.0e99, -1.0e100]
 
+        del os.environ["PYAUTOFIT_TEST_MODE"]
 
 class TestInitializeBall:
     def test__ball__samples_sample_centre_of_priors(self):
