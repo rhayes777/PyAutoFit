@@ -185,6 +185,8 @@ class AbstractDynesty(AbstractNest, ABC):
                     **config_dict_run
                 )
 
+            sampler.loglikelihood = None
+
             self.paths.save_object(
                 "dynesty",
                 sampler
