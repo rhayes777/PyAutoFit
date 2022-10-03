@@ -570,6 +570,10 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             )
 
     @property
+    def config_dict_with_test_mode_settings_from(self, config_dict):
+        return config_dict
+
+    @property
     def _class_config(self):
         return self.config_type[self.__class__.__name__]
 
@@ -596,6 +600,9 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                 config_dict[key] = self.kwargs[key]
             except KeyError:
                 pass
+
+        if os.environ["PYAUTOFIT_TEST_MODE"] == "1":
+            config_dict = self.config_dict_with_test_mode_settings_from(config_dict=config_dict)
 
         return config_dict
 

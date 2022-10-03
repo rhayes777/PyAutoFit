@@ -200,15 +200,10 @@ class AbstractDynesty(AbstractNest, ABC):
             ):
                 finished = True
 
-    @property
-    def config_dict_run(self):
+    def config_dict_with_test_mode_settings_from(self, config_dict):
 
-        config_dict = super().config_dict_run
-
-        if os.environ["PYAUTOFIT_TEST_MODE"] == "1":
-
-            config_dict["maxiter"] = 1
-            config_dict["maxcall"] = 1
+        config_dict["maxiter"] = 1
+        config_dict["maxcall"] = 1
 
         return config_dict
 
