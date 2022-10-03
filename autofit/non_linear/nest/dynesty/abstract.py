@@ -1,8 +1,8 @@
 from abc import ABC
-from os import path
-from typing import Optional
-
 import numpy as np
+from os import path
+import os
+from typing import Optional
 
 from autoconf import conf
 from autofit.database.sqlalchemy_ import sa
@@ -201,6 +201,14 @@ class AbstractDynesty(AbstractNest, ABC):
                     or total_iterations == self.config_dict_run["maxcall"]
             ):
                 finished = True
+
+    def config_dict_with_test_mode_settings_from(self, config_dict):
+
+        return {
+            **config_dict,
+            "maxiter": 1,
+            "maxcall": 1,
+        }
 
     def sampler_from(
             self,

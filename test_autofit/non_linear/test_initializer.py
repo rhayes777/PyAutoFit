@@ -1,3 +1,4 @@
+import os
 import pytest
 
 import autofit as af
@@ -42,7 +43,10 @@ class TestInitializePrior:
 
         assert figure_of_merit_list == [1.0, 1.0]
 
-    def test__samples_in_test_model(self):
+    def test__samples_in_test_mode(self):
+
+        os.environ["PYAUTOFIT_TEST_MODE"] = "1"
+
         model = af.PriorModel(af.m.MockClassx4)
         model.one = af.UniformPrior(lower_limit=0.099, upper_limit=0.101)
         model.two = af.UniformPrior(lower_limit=0.199, upper_limit=0.201)
@@ -51,8 +55,8 @@ class TestInitializePrior:
 
         initializer = af.InitializerPrior()
 
-        unit_parameter_lists, parameter_lists, figure_of_merit_list = initializer.samples_in_test_mode(
-            total_points=2, model=model,
+        unit_parameter_lists, parameter_lists, figure_of_merit_list = initializer.samples_from_model(
+            total_points=2, model=model, fitness_function=None
         )
 
         assert 0.0 < unit_parameter_lists[0][0] < 1.0
@@ -73,8 +77,9 @@ class TestInitializePrior:
         assert 0.399 < parameter_lists[0][3] < 0.401
         assert 0.399 < parameter_lists[1][3] < 0.401
 
-        assert figure_of_merit_list == [-1.0e99, -1.0e99]
+        assert figure_of_merit_list == [-1.0e99, -1.0e100]
 
+        os.environ["PYAUTOFIT_TEST_MODE"] = "0"
 
 class TestInitializeBall:
     def test__ball__samples_sample_centre_of_priors(self):

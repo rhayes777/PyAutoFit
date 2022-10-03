@@ -1,16 +1,13 @@
 from dynesty import plotting as dyplot
 
-from autoconf import conf
 from autofit.plot import SamplesPlotter
-
+from autofit.plot.samples_plotters import skip_plot_in_test_mode
 
 
 class DynestyPlotter(SamplesPlotter):
 
+    @skip_plot_in_test_mode
     def boundplot(self, **kwargs):
-
-        if conf.instance["general"]["test"]["test_mode"]:
-            return None
 
         dyplot.boundplot(
             results=self.samples.results_internal,
@@ -21,10 +18,8 @@ class DynestyPlotter(SamplesPlotter):
         self.output.to_figure(structure=None, auto_filename="boundplot")
         self.close()
 
+    @skip_plot_in_test_mode
     def cornerbound(self, **kwargs):
-
-        if conf.instance["general"]["test"]["test_mode"]:
-            return None
 
         dyplot.cornerbound(
             results=self.samples.results_internal,
@@ -35,10 +30,8 @@ class DynestyPlotter(SamplesPlotter):
         self.output.to_figure(structure=None, auto_filename="cornerbound")
         self.close()
 
+    @skip_plot_in_test_mode
     def cornerplot(self, **kwargs):
-
-        if conf.instance["general"]["test"]["test_mode"]:
-            return None
 
         dyplot.cornerplot(
             results=self.samples.results_internal,
@@ -49,10 +42,8 @@ class DynestyPlotter(SamplesPlotter):
         self.output.to_figure(structure=None, auto_filename="cornerplot")
         self.close()
 
+    @skip_plot_in_test_mode
     def cornerpoints(self, **kwargs):
-
-        if conf.instance["general"]["test"]["test_mode"]:
-            return None
 
         try:
             dyplot.cornerpoints(
@@ -67,10 +58,8 @@ class DynestyPlotter(SamplesPlotter):
 
         self.close()
 
+    @skip_plot_in_test_mode
     def runplot(self, **kwargs):
-
-        if conf.instance["general"]["test"]["test_mode"]:
-            return None
 
         try:
             dyplot.runplot(
@@ -83,10 +72,8 @@ class DynestyPlotter(SamplesPlotter):
         self.output.to_figure(structure=None, auto_filename="runplot")
         self.close()
 
+    @skip_plot_in_test_mode
     def traceplot(self, **kwargs):
-
-        if conf.instance["general"]["test"]["test_mode"]:
-            return None
 
         dyplot.traceplot(
             results=self.samples.results_internal,

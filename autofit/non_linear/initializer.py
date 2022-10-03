@@ -3,10 +3,9 @@ import logging
 import random
 from abc import ABC, abstractmethod
 from typing import Dict, Tuple, List
-
+import os
 import numpy as np
 
-from autoconf import conf
 from autofit import exc
 from autofit.mapper.prior.abstract import Prior
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
@@ -45,7 +44,7 @@ class AbstractInitializer(ABC):
             of free dimensions of the model.
         """
 
-        if conf.instance["general"]["test"]["test_mode"]:
+        if os.environ.get("PYAUTOFIT_TEST_MODE") == "1":
             return self.samples_in_test_mode(total_points=total_points, model=model)
 
         logger.info("Generating initial samples of model, which are subject to prior limits and other constraints.")
@@ -103,6 +102,8 @@ class AbstractInitializer(ABC):
             An object that represents possible instances of some model with a given dimensionality which is the number
             of free dimensions of the model.
         """
+
+        logger.warning(f"TEST MODE ON: SAMPLES BEING ASSIGNED ABRITRARY LARGE LIKELIHOODS")
 
         unit_parameter_lists = []
         parameter_lists = []

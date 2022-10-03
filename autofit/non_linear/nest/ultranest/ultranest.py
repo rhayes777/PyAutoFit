@@ -1,5 +1,6 @@
 import copy
 from os import path
+import os
 from typing import Optional
 
 from autofit.database.sqlalchemy_ import sa
@@ -92,6 +93,14 @@ class UltraNest(abstract_nest.AbstractNest):
                 self.nsteps = None
 
         self.logger.debug("Creating UltraNest Search")
+
+    def config_dict_with_test_mode_settings_from(self, config_dict):
+
+        return {
+            **config_dict,
+            "max_iters": 1,
+            "max_ncalls": 1,
+        }
 
     @property
     def config_dict_stepsampler(self):

@@ -1,5 +1,51 @@
 import matplotlib.pyplot as plt
+from functools import wraps
+import os
+
 from autofit.plot.output import Output
+
+
+def skip_plot_in_test_mode(func):
+    """
+    Skips visualization plots of non-linear searches if test mode is on.
+
+    Parameters
+    ----------
+    func
+        A function which plots a result of a non-linear search.
+
+    Returns
+    -------
+        A function that plots a visual, or None if test mode is on.
+    """
+
+    @wraps(func)
+    def wrapper(
+        obj: object,
+        *args,
+        **kwargs
+    ):
+        """
+        Skips visualization plots of non-linear searches if test mode is on.
+
+        Parameters
+        ----------
+        obj
+            An plotter object which performs visualization of a non-linear search.
+
+        Returns
+        -------
+            A function that plots a visual, or None if test mode is on.
+        """
+
+        if os.environ.get("PYAUTOFIT_TEST_MODE") == "1":
+            return
+
+        return func(obj, *args, **kwargs)
+
+    return wrapper
+
+
 
 class SamplesPlotter:
     def __init__(
@@ -18,6 +64,7 @@ class SamplesPlotter:
     def close(self):
         if plt.fignum_exists(num=1):
             plt.close()
+
 
 class MCMCPlotter(SamplesPlotter):
 

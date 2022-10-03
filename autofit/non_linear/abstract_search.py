@@ -2,11 +2,12 @@ import copy
 import logging
 import multiprocessing as mp
 import time
+import os
 from abc import ABC, abstractmethod
 from collections import Counter
 from functools import wraps
 from os import path
-from typing import Optional, Union, Tuple, List
+from typing import Dict, Optional, Union, Tuple, List
 
 import numpy as np
 
@@ -568,12 +569,15 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                 "Model has no priors! Cannot fit a 0 dimension model."
             )
 
+    def config_dict_with_test_mode_settings_from(self, config_dict : Dict) -> Dict:
+        return config_dict
+
     @property
-    def _class_config(self):
+    def _class_config(self) -> Dict:
         return self.config_type[self.__class__.__name__]
 
     @property
-    def config_dict_search(self):
+    def config_dict_search(self) -> Dict:
 
         config_dict = copy.copy(self._class_config["search"]._dict)
 
@@ -586,7 +590,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         return config_dict
 
     @property
-    def config_dict_run(self):
+    def config_dict_run(self) -> Dict:
 
         config_dict = copy.copy(self._class_config["run"]._dict)
 
@@ -596,10 +600,16 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             except KeyError:
                 pass
 
+        if os.environ.get("PYAUTOFIT_TEST_MODE") == "1":
+
+            logger.warning(f"TEST MODE ON: SEARCH WILL SKIP SAMPLING\n\n")
+
+            config_dict = self.config_dict_with_test_mode_settings_from(config_dict=config_dict)
+
         return config_dict
 
     @property
-    def config_dict_settings(self):
+    def config_dict_settings(self) -> Dict:
         return self._class_config["settings"]._dict
 
     @property
