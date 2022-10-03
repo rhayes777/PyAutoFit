@@ -248,6 +248,13 @@ class Zeus(AbstractMCMC):
 
         self.logger.info("Zeus sampling complete.")
 
+    def config_dict_with_test_mode_settings_from(self, config_dict):
+
+        config_dict["nwalkers"] = 50
+        config_dict["nsteps"] = 2
+
+        return config_dict
+
     def fitness_function_from_model_and_analysis(self, model, analysis, log_likelihood_cap=None):
 
         return Zeus.Fitness(
