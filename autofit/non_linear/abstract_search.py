@@ -601,6 +601,9 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                 pass
 
         if os.environ.get("PYAUTOFIT_TEST_MODE") == "1":
+
+            logger.warning(f"TEST MODE ON: SEARCH WILL SKIP SAMPLING\n\n")
+
             config_dict = self.config_dict_with_test_mode_settings_from(config_dict=config_dict)
 
         return config_dict

@@ -204,10 +204,11 @@ class AbstractDynesty(AbstractNest, ABC):
 
     def config_dict_with_test_mode_settings_from(self, config_dict):
 
-        config_dict["maxiter"] = 1
-        config_dict["maxcall"] = 1
-
-        return config_dict
+        return {
+            **config_dict,
+            "maxiter": 1,
+            "maxcall": 1,
+        }
 
     def sampler_from(
             self,

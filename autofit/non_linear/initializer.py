@@ -103,6 +103,8 @@ class AbstractInitializer(ABC):
             of free dimensions of the model.
         """
 
+        logger.warning(f"TEST MODE ON: SAMPLES BEING ASSIGNED ABRITRARY LARGE LIKELIHOODS")
+
         unit_parameter_lists = []
         parameter_lists = []
         figure_of_merit_list = []

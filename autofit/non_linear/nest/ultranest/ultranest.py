@@ -96,10 +96,11 @@ class UltraNest(abstract_nest.AbstractNest):
 
     def config_dict_with_test_mode_settings_from(self, config_dict):
 
-        config_dict["max_iters"] = 1
-        config_dict["max_ncalls"] = 1
-
-        return config_dict
+        return {
+            **config_dict,
+            "max_iters": 1,
+            "max_ncalls": 1,
+        }
 
     @property
     def config_dict_stepsampler(self):
