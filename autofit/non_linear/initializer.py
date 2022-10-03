@@ -44,7 +44,7 @@ class AbstractInitializer(ABC):
             of free dimensions of the model.
         """
 
-        if "PYAUTOFIT_TEST_MODE" in os.environ:
+        if os.environ.get("PYAUTOFIT_TEST_MODE") == "1":
             return self.samples_in_test_mode(total_points=total_points, model=model)
 
         logger.info("Generating initial samples of model, which are subject to prior limits and other constraints.")
