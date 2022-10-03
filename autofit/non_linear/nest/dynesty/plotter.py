@@ -1,16 +1,57 @@
 from dynesty import plotting as dyplot
+from functools import wraps
+import os
 
 from autoconf import conf
 from autofit.plot import SamplesPlotter
 
 
 
+def skip_plot_in_test_mode(func):
+    """
+    Skips visualization plots of non-linear searches if test mode is on.
+
+    Parameters
+    ----------
+    func
+        A function which plots a result of a non-linear search.
+
+    Returns
+    -------
+        A function that plots a visual, or None if test mode is on.
+    """
+
+    @wraps(func)
+    def wrapper(
+        obj: object,
+        *args,
+        **kwargs
+    ):
+        """
+        Skips visualization plots of non-linear searches if test mode is on.
+
+        Parameters
+        ----------
+        obj
+            An plotter object which performs visualization of a non-linear search.
+
+        Returns
+        -------
+            A function that plots a visual, or None if test mode is on.
+        """
+
+        if "PYAUTOFIT_TEST_MODE" in os.environ:
+            return
+
+        return func(obj, *args, **kwargs)
+
+    return wrapper
+
+
 class DynestyPlotter(SamplesPlotter):
 
+    @skip_plot_in_test_mode
     def boundplot(self, **kwargs):
-
-        if conf.instance["general"]["test"]["test_mode"]:
-            return None
 
         dyplot.boundplot(
             results=self.samples.results_internal,
@@ -21,10 +62,8 @@ class DynestyPlotter(SamplesPlotter):
         self.output.to_figure(structure=None, auto_filename="boundplot")
         self.close()
 
+    @skip_plot_in_test_mode
     def cornerbound(self, **kwargs):
-
-        if conf.instance["general"]["test"]["test_mode"]:
-            return None
 
         dyplot.cornerbound(
             results=self.samples.results_internal,
@@ -35,10 +74,8 @@ class DynestyPlotter(SamplesPlotter):
         self.output.to_figure(structure=None, auto_filename="cornerbound")
         self.close()
 
+    @skip_plot_in_test_mode
     def cornerplot(self, **kwargs):
-
-        if conf.instance["general"]["test"]["test_mode"]:
-            return None
 
         dyplot.cornerplot(
             results=self.samples.results_internal,
@@ -49,10 +86,8 @@ class DynestyPlotter(SamplesPlotter):
         self.output.to_figure(structure=None, auto_filename="cornerplot")
         self.close()
 
+    @skip_plot_in_test_mode
     def cornerpoints(self, **kwargs):
-
-        if conf.instance["general"]["test"]["test_mode"]:
-            return None
 
         try:
             dyplot.cornerpoints(
@@ -67,10 +102,8 @@ class DynestyPlotter(SamplesPlotter):
 
         self.close()
 
+    @skip_plot_in_test_mode
     def runplot(self, **kwargs):
-
-        if conf.instance["general"]["test"]["test_mode"]:
-            return None
 
         try:
             dyplot.runplot(
@@ -83,10 +116,8 @@ class DynestyPlotter(SamplesPlotter):
         self.output.to_figure(structure=None, auto_filename="runplot")
         self.close()
 
+    @skip_plot_in_test_mode
     def traceplot(self, **kwargs):
-
-        if conf.instance["general"]["test"]["test_mode"]:
-            return None
 
         dyplot.traceplot(
             results=self.samples.results_internal,
