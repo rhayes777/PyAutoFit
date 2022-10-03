@@ -207,6 +207,12 @@ class AbstractPySwarms(AbstractOptimizer):
 
         self.logger.info("PySwarmsGlobal complete")
 
+    def config_dict_with_test_mode_settings_from(self, config_dict):
+
+        config_dict["iters"] = 1
+
+        return config_dict
+
     def fitness_function_from_model_and_analysis(self, model, analysis, log_likelihood_cap=None):
 
         return AbstractPySwarms.Fitness(
