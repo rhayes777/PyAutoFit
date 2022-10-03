@@ -73,7 +73,7 @@ class TestInitializePrior:
         assert 0.399 < parameter_lists[0][3] < 0.401
         assert 0.399 < parameter_lists[1][3] < 0.401
 
-        assert figure_of_merit_list == [-1.0e99, -1.0e99]
+        assert figure_of_merit_list == [-1.0e99, -1.0e100]
 
 
 class TestInitializeBall:
