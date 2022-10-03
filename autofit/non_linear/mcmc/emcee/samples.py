@@ -1,5 +1,6 @@
 import emcee
 import numpy as np
+import os
 from typing import List, Optional
 
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
@@ -88,6 +89,7 @@ class EmceeSamples(MCMCSamples):
 
         The burn-in period is estimated using the auto-correlation times of the parameters.
         """
+
         discard = int(3.0 * np.max(self.auto_correlations.times))
         thin = int(np.max(self.auto_correlations.times) / 2.0)
         return self.results_internal.get_chain(discard=discard, thin=thin, flat=True)
