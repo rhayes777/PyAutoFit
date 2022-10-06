@@ -192,6 +192,8 @@ class AbstractDynesty(AbstractNest, ABC):
                 sampler
             )
 
+            sampler.loglikelihood = fitness_function
+
             self.perform_update(model=model, analysis=analysis, during_analysis=True)
 
             iterations_after_run = np.sum(sampler.results.ncall)
