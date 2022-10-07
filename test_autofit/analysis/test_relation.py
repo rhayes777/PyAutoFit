@@ -97,19 +97,6 @@ def test_prior_arithmetic():
     assert y.instance_from_prior_medians() == 5.5
 
 
-def test_abc():
-    a = af.UniformPrior(
-        lower_limit=0.0,
-        upper_limit=1.0,
-    )
-    b = af.UniformPrior(
-        lower_limit=0.0,
-        upper_limit=1.0,
-    )
-    c = 1 - (a + b)
-    assert isinstance(c, SumPrior)
-
-
 class LinearAnalysis(af.Analysis):
     def __init__(self, value):
         self.value = value
