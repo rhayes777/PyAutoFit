@@ -99,14 +99,14 @@ def test_initial_message_multiple(analysis_factor_factory, centre):
 def test_static(
         factor_graph_model
 ):
-    original_mean_field = factor_graph_model.mean_field_approximation()
     factor = factor_graph_model.graph.factors[0]
+    original_mean_field = factor_graph_model.mean_field_approximation().factor_approximation(factor)
 
     mean_field = original_mean_field
 
     search = StaticSearch()
 
     for i in range(3):
-        mean_field, _ = search.optimise(factor=factor, factor_approx=mean_field)
+        mean_field, _ = search.optimise(factor_approx=mean_field.factor_approximation(factor))
 
-        assert list(original_mean_field.mean_field.values()) == list(mean_field.mean_field.values())
+        assert list(original_mean_field.values()) == list(mean_field.values())
