@@ -1,6 +1,7 @@
 import pytest
 
 import autofit as af
+from autofit.mapper.prior.arithmetic.compound import SumPrior
 from autofit.non_linear.analysis.indexed import IndexedAnalysis
 from autofit.non_linear.analysis.model_analysis import CombinedModelAnalysis, ModelAnalysis
 

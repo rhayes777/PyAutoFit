@@ -3,6 +3,7 @@ import math
 import pytest
 
 import autofit as af
+from autofit.mapper.prior.arithmetic.compound import SumPrior
 
 
 @pytest.fixture(name="prior")
@@ -195,3 +196,29 @@ def test_log_10(
     ).instance_from_unit_vector(
         [1.0]
     ) == pytest.approx(value)
+
+
+@pytest.fixture(name="sum_prior")
+def make_sum_prior(prior):
+    return prior + prior
+
+
+@pytest.fixture(name="int_minus_prior")
+def make_int_minus_prior(sum_prior):
+    return 2 - sum_prior
+
+
+def test_int_minus(int_minus_prior):
+    assert isinstance(int_minus_prior, SumPrior)
+    assert int_minus_prior.instance_from_prior_medians() == 1.0
+
+
+def test_class_prior_dict(int_minus_prior, prior):
+    collection = af.Collection(int_minus_prior)
+    assert collection.prior_class_dict == {
+        prior: float
+    }
+
+
+def test_int_divide(sum_prior):
+    assert (2 / sum_prior).instance_from_prior_medians() == 2.

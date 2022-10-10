@@ -1,8 +1,8 @@
 import copy
 import logging
 import multiprocessing as mp
-import time
 import os
+import time
 from abc import ABC, abstractmethod
 from collections import Counter
 from functools import wraps
@@ -10,8 +10,8 @@ from os import path
 from typing import Dict, Optional, Union, Tuple, List
 
 import numpy as np
-
 from autoconf import conf
+
 from autofit import exc
 from autofit.database.sqlalchemy_ import sa
 from autofit.graphical import EPMeanField, MeanField, AnalysisFactor, _HierarchicalFactor
@@ -564,12 +564,12 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         pass
 
     def check_model(self, model):
-        if model.prior_count == 0:
+        if model is not None and model.prior_count == 0:
             raise AssertionError(
                 "Model has no priors! Cannot fit a 0 dimension model."
             )
 
-    def config_dict_with_test_mode_settings_from(self, config_dict : Dict) -> Dict:
+    def config_dict_with_test_mode_settings_from(self, config_dict: Dict) -> Dict:
         return config_dict
 
     @property

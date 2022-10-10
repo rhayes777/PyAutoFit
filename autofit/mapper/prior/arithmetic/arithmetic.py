@@ -89,6 +89,9 @@ class ArithmeticMixin:
         """
         return self + (-other)
 
+    def __rsub__(self, other):
+        return (-self) + other
+
     def __neg__(self):
         """
         Returns an object representing the negation of this

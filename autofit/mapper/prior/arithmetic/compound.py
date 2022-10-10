@@ -236,6 +236,13 @@ class ModifiedPrior(
 
         self.prior = prior
 
+    def __add__(self, other):
+        return ArithmeticMixin.__add__(self, other)
+
+    @property
+    def cls(self):
+        return self.prior.cls
+
     @property
     def prior(self):
         return getattr(self, self._prior_name)
