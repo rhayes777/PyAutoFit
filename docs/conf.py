@@ -21,6 +21,16 @@ import sys
 
 sys.path.insert(0, os.path.abspath("."))
 
+clone_path = str(here())
+clone_path = os.path.split(clone_path)[0]
+
+sys.path.insert(
+    0,
+    os.path.abspath(clone_path),
+)
+
+import autofit
+
 # -- Project information -----------------------------------------------------
 
 year = datetime.date.today().year
@@ -29,7 +39,7 @@ copyright = "2022, James Nightingale, Richard Hayes"
 author = "James Nightingale, Richard Hayes"
 
 # The full version, including alpha/beta/rc tags
-release = "2022.05.02.1"
+release = autofit.__version__
 master_doc = "index"
 
 
