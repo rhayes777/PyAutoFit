@@ -54,8 +54,8 @@ class AbstractFactorOptimiser(ABC):
 
     @abstractmethod
     def optimise(
-            self, factor: Factor, model_approx: EPMeanField, status: Status = Status()
-    ) -> Tuple[EPMeanField, Status]:
+            self,  factor_approx: FactorApproximation, status: Status = Status()
+    ) -> Tuple[MeanField, Status]:
         pass
 
     def exact_fit(
