@@ -59,7 +59,7 @@ class TestDynesty:
             factor_model.mean_field_approximation().factor_approximation(factor_model)
         )
 
-        assert isinstance(result, g.EPMeanField)
+        assert isinstance(result, g.MeanField)
         assert isinstance(status, Status)
 
     @output_path_for_test()

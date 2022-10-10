@@ -55,7 +55,7 @@ def test_optimise(model_gaussian_x1, prior):
 
     assert status
 
-    optimized_mean = list(result.mean_field.values())[0].mean
+    optimized_mean = list(result.values())[0].mean
     assert optimized_mean == pytest.approx(
         prior.mean,
         rel=0.1
