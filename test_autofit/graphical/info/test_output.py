@@ -32,7 +32,17 @@ class MockSearch(af.m.MockSearch):
 
 def _run_optimisation(factor_graph_model, paths=None):
     search = MockSearch()
-    factor_graph_model.optimise(search, )
+    factor_graph_model.optimise(
+        search,
+        max_steps=MAX_STEPS,
+        log_interval=1,
+        visualise_interval=1,
+        output_interval=1,
+        paths=paths or DirectoryPaths(
+            name="name",
+            is_identifier_in_paths=False,
+        ),
+    )
 
 
 @with_config("general", "output", "remove_files", value=False)
