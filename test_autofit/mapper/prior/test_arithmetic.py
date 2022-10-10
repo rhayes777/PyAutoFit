@@ -203,10 +203,21 @@ def make_sum_prior(prior):
     return prior + prior
 
 
-def test_int_minus(sum_prior):
-    c = 2 - sum_prior
-    assert isinstance(c, SumPrior)
-    assert c.instance_from_prior_medians() == 1.0
+@pytest.fixture(name="int_minus_prior")
+def make_int_minus_prior(sum_prior):
+    return 2 - sum_prior
+
+
+def test_int_minus(int_minus_prior):
+    assert isinstance(int_minus_prior, SumPrior)
+    assert int_minus_prior.instance_from_prior_medians() == 1.0
+
+
+def test_class_prior_dict(int_minus_prior, prior):
+    collection = af.Collection(int_minus_prior)
+    assert collection.prior_class_dict == {
+        prior: float
+    }
 
 
 def test_int_divide(sum_prior):
