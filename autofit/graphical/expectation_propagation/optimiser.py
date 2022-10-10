@@ -166,9 +166,9 @@ class EPOptimiser:
                 factor_approx = model_approx.factor_approximation(
                     factor
                 )
-                new_model_dist, status = optimiser.optimise(factor, factor_approx)
+                new_model_dist, status = optimiser.optimise(factor_approx)
                 model_approx, status = optimiser.update_model_approx(
-                    new_model_dist, factor_approx, factor_approx, status
+                    new_model_dist, factor_approx, model_approx, status
                 )
 
             messages = status.messages + tuple(caught_warnings.messages)

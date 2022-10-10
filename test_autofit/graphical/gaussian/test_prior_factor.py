@@ -51,7 +51,7 @@ def test_optimise(model_gaussian_x1, prior):
         analysis
     )
     prior_factor = factor.prior_factors[0]
-    result, status = optimizer.optimise(prior_factor, factor.mean_field_approximation())
+    result, status = optimizer.optimise(factor.mean_field_approximation().factor_approximation(prior_factor))
 
     assert status
 

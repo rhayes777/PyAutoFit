@@ -15,7 +15,7 @@ def test_optimise(factor):
         delta=0.1,
     )
 
-    _, status = optimizer.optimise(factor, factor.mean_field_approximation())
+    _, status = optimizer.optimise(factor.mean_field_approximation().factor_approximation(factor))
     assert status
 
 
