@@ -179,6 +179,9 @@ class AbstractDynesty(AbstractNest, ABC):
                 config_dict_run = self.config_dict_run
                 config_dict_run.pop("maxcall")
 
+                if not hasattr(sampler, "rstate"):
+                    sampler.rstate = np.random
+
                 sampler.run_nested(
                     maxcall=iterations,
                     print_progress=not self.silence,
