@@ -123,36 +123,21 @@ class AbstractDynesty(AbstractNest, ABC):
         )
 
         if os.path.exists(self.checkpoint_file):
-
-            # if self.number_of_cores == 1:
-            #     sampler.M = map
-            # else:
-            #     pool = self.make_sneaky_pool(
-            #         fitness_function
-            #     )
-            #
-            #     sampler.M = pool.map
-            #     sampler.pool = pool
-
             self.logger.info("Existing Dynesty samples found, resuming non-linear search.")
-
         else:
-            # if self.number_of_cores > 1:
-            #     pool = self.make_sneaky_pool(
-            #         fitness_function
-            #     )
-            # else:
-            #     pool = None
-
             self.logger.info("No Dynesty samples found, beginning new non-linear search. ")
 
-        # if not hasattr(sampler, "pool"):
-        #     sampler.pool = None
+        if self.number_of_cores > 1:
+            pool = self.make_sneaky_pool(
+                fitness_function
+            )
+        else:
+            pool = None
 
         sampler = self.sampler_from(
             model=model,
             fitness_function=fitness_function,
-       #     pool=pool
+            pool=pool
         )
 
         finished = False
@@ -214,7 +199,7 @@ class AbstractDynesty(AbstractNest, ABC):
             live_points = self.live_points_from_model_and_fitness_function(
                 model=model, fitness_function=fitness_function
             )
-                        
+
             blobs = np.asarray(self.total_live_points*[False])
 
             live_points.append(blobs)

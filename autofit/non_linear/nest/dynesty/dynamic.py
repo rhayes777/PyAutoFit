@@ -104,7 +104,7 @@ class DynestyDynamic(AbstractDynesty):
         """
 
         try:
-            return DynamicNestedSampler.restore(self.checkpoint_file)
+            return DynamicNestedSampler.restore(fname=self.checkpoint_file, pool=pool)
         except FileNotFoundError:
             return DynamicNestedSampler(
                 loglikelihood=fitness_function,

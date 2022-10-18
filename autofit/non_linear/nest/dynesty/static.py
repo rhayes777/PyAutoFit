@@ -109,7 +109,10 @@ class DynestyStatic(AbstractDynesty):
         """
 
         try:
-            return StaticSampler.restore(self.checkpoint_file)
+            return StaticSampler.restore(
+                fname=self.checkpoint_file,
+                pool=pool
+            )
         except FileNotFoundError:
             live_points = self.live_points_init_from(model=model, fitness_function=fitness_function)
             return StaticSampler(
