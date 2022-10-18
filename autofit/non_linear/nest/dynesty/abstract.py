@@ -211,9 +211,13 @@ class AbstractDynesty(AbstractNest, ABC):
 
         if os.environ.get("PYAUTOFIT_TEST_MODE") == "1":
 
-            return self.live_points_from_model_and_fitness_function(
+            live_points = self.live_points_from_model_and_fitness_function(
                 model=model, fitness_function=fitness_function
             )
+                        
+            blobs = np.asarray(self.total_live_points*[False])
+
+            live_points.append(blobs)
 
 
 
