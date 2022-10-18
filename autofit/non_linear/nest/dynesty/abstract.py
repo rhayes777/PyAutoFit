@@ -122,43 +122,38 @@ class AbstractDynesty(AbstractNest, ABC):
             model=model, analysis=analysis, log_likelihood_cap=log_likelihood_cap,
         )
 
-        if self.paths.is_object("dynesty"):
+        if os.path.exists(self.checkpoint_file):
 
-            sampler = self.paths.load_object(
-                "dynesty"
-            )
-            sampler.loglikelihood = fitness_function
-
-            if self.number_of_cores == 1:
-                sampler.M = map
-            else:
-                pool = self.make_sneaky_pool(
-                    fitness_function
-                )
-
-                sampler.M = pool.map
-                sampler.pool = pool
+            # if self.number_of_cores == 1:
+            #     sampler.M = map
+            # else:
+            #     pool = self.make_sneaky_pool(
+            #         fitness_function
+            #     )
+            #
+            #     sampler.M = pool.map
+            #     sampler.pool = pool
 
             self.logger.info("Existing Dynesty samples found, resuming non-linear search.")
 
         else:
-            if self.number_of_cores > 1:
-                pool = self.make_sneaky_pool(
-                    fitness_function
-                )
-            else:
-                pool = None
-
-            sampler = self.sampler_from(
-                model=model,
-                fitness_function=fitness_function,
-                pool=pool
-            )
+            # if self.number_of_cores > 1:
+            #     pool = self.make_sneaky_pool(
+            #         fitness_function
+            #     )
+            # else:
+            #     pool = None
 
             self.logger.info("No Dynesty samples found, beginning new non-linear search. ")
 
-        if not hasattr(sampler, "pool"):
-            sampler.pool = None
+        # if not hasattr(sampler, "pool"):
+        #     sampler.pool = None
+
+        sampler = self.sampler_from(
+            model=model,
+            fitness_function=fitness_function,
+       #     pool=pool
+        )
 
         finished = False
 
@@ -179,23 +174,12 @@ class AbstractDynesty(AbstractNest, ABC):
                 config_dict_run = self.config_dict_run
                 config_dict_run.pop("maxcall")
 
-                if not hasattr(sampler, "rstate"):
-                    sampler.rstate = np.random
-
                 sampler.run_nested(
                     maxcall=iterations,
                     print_progress=not self.silence,
+                    checkpoint_file=self.checkpoint_file,
                     **config_dict_run
                 )
-
-            sampler.loglikelihood = None
-
-            self.paths.save_object(
-                "dynesty",
-                sampler
-            )
-
-            sampler.loglikelihood = fitness_function
 
             self.perform_update(model=model, analysis=analysis, during_analysis=True)
 
@@ -207,6 +191,10 @@ class AbstractDynesty(AbstractNest, ABC):
             ):
                 finished = True
 
+    @property
+    def checkpoint_file(self):
+        return path.join(self.paths.samples_path, "savestate.save")
+
     def config_dict_with_test_mode_settings_from(self, config_dict):
 
         return {
@@ -215,13 +203,27 @@ class AbstractDynesty(AbstractNest, ABC):
             "maxcall": 1,
         }
 
+    def live_points_init_from(
+            self,
+            model,
+            fitness_function
+    ):
+
+        if os.environ.get("PYAUTOFIT_TEST_MODE") == "1":
+
+            return self.live_points_from_model_and_fitness_function(
+                model=model, fitness_function=fitness_function
+            )
+
+
+
     def sampler_from(
             self,
             model,
             fitness_function,
             pool=None
     ):
-        return NotImplementedError()
+        raise NotImplementedError()
 
     def samples_from(self, model):
         """
@@ -235,17 +237,7 @@ class AbstractDynesty(AbstractNest, ABC):
             The model which generates instances for different points in parameter space. This maps the points from unit
             cube values to physical values via the priors.
         """
-        sampler = self.paths.load_object(
-            "dynesty"
-        )
-
-        return DynestySamples.from_results_internal(
-            model=model,
-            results_internal=sampler.results,
-            number_live_points=self.total_live_points,
-            unconverged_sample_size=1,
-            time=self.timer.time,
-        )
+        raise NotImplementedError()
 
     def samples_via_results_from(self, model):
         """
@@ -291,9 +283,6 @@ class AbstractDynesty(AbstractNest, ABC):
             init_log_likelihood_list[index] = np.asarray(log_likelihood_list[index])
 
         return [init_unit_parameters, init_parameters, init_log_likelihood_list]
-
-    def remove_state_files(self):
-        self.paths.remove_object("dynesty")
 
     @property
     def total_live_points(self):

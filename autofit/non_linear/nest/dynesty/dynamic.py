@@ -1,6 +1,7 @@
 from typing import Optional
 
 from dynesty.dynesty import DynamicNestedSampler
+from autofit.non_linear.nest.dynesty.samples import DynestySamples
 
 from .abstract import AbstractDynesty, prior_transform
 
@@ -69,6 +70,28 @@ class DynestyDynamic(AbstractDynesty):
 
         self.logger.debug("Creating DynestyDynamic Search")
 
+    def samples_from(self, model):
+        """
+        Create a `Samples` object from this non-linear search's output files on the hard-disk and model.
+
+        For Dynesty, all information that we need is available from the instance of the dynesty sampler.
+
+        Parameters
+        ----------
+        model
+            The model which generates instances for different points in parameter space. This maps the points from unit
+            cube values to physical values via the priors.
+        """
+        sampler = DynamicNestedSampler.restore(self.checkpoint_file)
+
+        return DynestySamples.from_results_internal(
+            model=model,
+            results_internal=sampler.results,
+            number_live_points=self.total_live_points,
+            unconverged_sample_size=1,
+            time=self.timer.time,
+        )
+
     def sampler_from(
             self,
             model,
@@ -80,16 +103,19 @@ class DynestyDynamic(AbstractDynesty):
         variables.
         """
 
-        return DynamicNestedSampler(
-            loglikelihood=fitness_function,
-            prior_transform=prior_transform,
-            ndim=model.prior_count,
-            logl_args=[model, fitness_function],
-            ptform_args=[model],
-            queue_size=self.number_of_cores,
-            pool=pool,
-            **self.config_dict_search
-        )
+        try:
+            return DynamicNestedSampler.restore(self.checkpoint_file)
+        except FileNotFoundError:
+            return DynamicNestedSampler(
+                loglikelihood=fitness_function,
+                prior_transform=prior_transform,
+                ndim=model.prior_count,
+                logl_args=[model, fitness_function],
+                ptform_args=[model],
+                queue_size=self.number_of_cores,
+                pool=pool,
+                **self.config_dict_search
+            )
 
     @property
     def total_live_points(self):
