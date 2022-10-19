@@ -196,9 +196,22 @@ class AbstractDynesty(AbstractNest, ABC):
 
         if os.environ.get("PYAUTOFIT_TEST_MODE") == "1":
 
-            live_points = self.live_points_from_model_and_fitness_function(
-                model=model, fitness_function=fitness_function
+            unit_parameters, parameters, log_likelihood_list = self.initializer.samples_from_model(
+                total_points=self.total_live_points,
+                model=model,
+                fitness_function=fitness_function,
             )
+
+            init_unit_parameters = np.zeros(shape=(self.total_live_points, model.prior_count))
+            init_parameters = np.zeros(shape=(self.total_live_points, model.prior_count))
+            init_log_likelihood_list = np.zeros(shape=(self.total_live_points))
+
+            for index in range(len(parameters)):
+                init_unit_parameters[index, :] = np.asarray(unit_parameters[index])
+                init_parameters[index, :] = np.asarray(parameters[index])
+                init_log_likelihood_list[index] = np.asarray(log_likelihood_list[index])
+
+            live_points = [init_unit_parameters, init_parameters, init_log_likelihood_list]
 
             blobs = np.asarray(self.total_live_points*[False])
 
@@ -229,27 +242,6 @@ class AbstractDynesty(AbstractNest, ABC):
     def remove_state_files(self):
 
         os.remove(self.checkpoint_file)
-
-    def live_points_from_model_and_fitness_function(
-            self, model, fitness_function
-    ):
-
-        unit_parameters, parameters, log_likelihood_list = self.initializer.samples_from_model(
-            total_points=self.total_live_points,
-            model=model,
-            fitness_function=fitness_function,
-        )
-
-        init_unit_parameters = np.zeros(shape=(self.total_live_points, model.prior_count))
-        init_parameters = np.zeros(shape=(self.total_live_points, model.prior_count))
-        init_log_likelihood_list = np.zeros(shape=(self.total_live_points))
-
-        for index in range(len(parameters)):
-            init_unit_parameters[index, :] = np.asarray(unit_parameters[index])
-            init_parameters[index, :] = np.asarray(parameters[index])
-            init_log_likelihood_list[index] = np.asarray(log_likelihood_list[index])
-
-        return [init_unit_parameters, init_parameters, init_log_likelihood_list]
 
     @property
     def total_live_points(self):
