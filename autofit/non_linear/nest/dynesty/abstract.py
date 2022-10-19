@@ -204,8 +204,6 @@ class AbstractDynesty(AbstractNest, ABC):
 
             live_points.append(blobs)
 
-
-
     def sampler_from(
             self,
             model,
