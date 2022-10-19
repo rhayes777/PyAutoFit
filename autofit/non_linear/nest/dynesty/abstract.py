@@ -226,6 +226,10 @@ class AbstractDynesty(AbstractNest, ABC):
         """
         raise NotImplementedError()
 
+    def remove_state_files(self):
+
+        os.remove(self.checkpoint_file)
+
     def live_points_from_model_and_fitness_function(
             self, model, fitness_function
     ):
