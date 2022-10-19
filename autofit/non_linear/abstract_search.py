@@ -524,10 +524,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         else:
             self.logger.info(f"Already completed, skipping non-linear search.")
 
-            try:
-                samples = self.paths.load_object("samples")
-            except Exception:
-                samples = self.samples_via_results_from(model=model)
+            samples = self.paths.load_object("samples")
 
             result = analysis.make_result(
                 samples=samples,
@@ -726,9 +723,6 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         pass
 
     def samples_from(self, model):
-        raise NotImplementedError()
-
-    def samples_via_results_from(self, model):
         raise NotImplementedError()
 
     @check_cores
