@@ -95,7 +95,6 @@ class AbstractDynesty(AbstractNest, ABC):
 
             -np.inf is an invalid sample value for Dynesty, so we instead use a large negative number.
             """
-            stop
             return -1.0e99
 
         def history_save(self):
