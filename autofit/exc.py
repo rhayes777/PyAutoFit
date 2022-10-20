@@ -49,6 +49,15 @@ class HistoryException(Exception):
     Thrown when insufficient factor history is present for a given operation
     """
 
+
+class InitializerException(Exception):
+    """
+    Raises exceptions associated with the `non_linear.initializer` module and `Initializer` classes.
+
+    For example if all initial samples have identical figures of merit.
+    """
+
+
 class SamplesException(Exception):
     pass
 

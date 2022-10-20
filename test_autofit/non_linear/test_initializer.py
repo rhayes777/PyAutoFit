@@ -53,6 +53,17 @@ class TestInitializePrior:
 
         assert figure_of_merit_list == [1.0, 2.0]
 
+    def test__samples_from_model__raise_exception_if_all_likelihoods_identical(self):
+        model = af.PriorModel(af.m.MockClassx4)
+
+        initializer = af.InitializerPrior()
+
+        with pytest.raises(af.exc.InitializerException):
+
+            initializer.samples_from_model(
+                total_points=2, model=model, fitness_function=MockFitness(increase_figure_of_merit=False)
+            )
+
     def test__samples_in_test_mode(self):
 
         os.environ["PYAUTOFIT_TEST_MODE"] = "1"
