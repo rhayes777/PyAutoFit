@@ -88,11 +88,6 @@ class Emcee(AbstractMCMC):
         self.logger.debug("Creating Emcee Search")
 
     class Fitness(AbstractMCMC.Fitness):
-        def __call__(self, parameters):
-            try:
-                return self.figure_of_merit_from(parameter_list=parameters)
-            except exc.FitException:
-                return self.resample_figure_of_merit
 
         def figure_of_merit_from(self, parameter_list):
             """

@@ -43,6 +43,8 @@ class Analysis(af.Analysis):
         The log likelihood value indicating how well this model fit the dataset.
         """
 
+       # return np.nan
+
         xvalues = np.arange(self.data.shape[0])
 
         try:

@@ -91,9 +91,11 @@ class AbstractDynesty(AbstractNest, ABC):
         def resample_figure_of_merit(self):
             """
             If a sample raises a FitException, this value is returned to signify that the point requires resampling or
-             should be given a likelihood so low that it is discard.
+            should be given a likelihood so low that it is discard.
 
-             -np.inf is an invalid sample value for Dynesty, so we instead use a large negative number."""
+            -np.inf is an invalid sample value for Dynesty, so we instead use a large negative number.
+            """
+            stop
             return -1.0e99
 
         def history_save(self):
@@ -216,6 +218,8 @@ class AbstractDynesty(AbstractNest, ABC):
             blobs = np.asarray(self.total_live_points*[False])
 
             live_points.append(blobs)
+
+            return live_points
 
     def sampler_from(
             self,

@@ -363,6 +363,19 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
             self.log_likelihood_cap = log_likelihood_cap
 
+        def __call__(self, parameters, *kwargs):
+
+            try:
+                figure_of_merit = self.figure_of_merit_from(parameter_list=parameters)
+
+                if np.isnan(figure_of_merit):
+                    return self.resample_figure_of_merit
+
+                return figure_of_merit
+
+            except exc.FitException:
+                return self.resample_figure_of_merit
+
         def fit_instance(self, instance):
             log_likelihood = self.analysis.log_likelihood_function(instance=instance)
 
@@ -419,8 +432,10 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         @property
         def resample_figure_of_merit(self):
-            """If a sample raises a FitException, this value is returned to signify that the point requires resampling or
-             should be given a likelihood so low that it is discard."""
+            """
+            If a sample raises a FitException, this value is returned to signify that the point requires resampling or
+             should be given a likelihood so low that it is discard.
+             """
             return -np.inf
 
     def fit(
