@@ -78,6 +78,21 @@ class AbstractInitializer(ABC):
             except exc.FitException:
                 pass
 
+        if np.allclose(a=figures_of_merit_list[0],b=figures_of_merit_list[1:]):
+            raise exc.InitializerException(
+                """
+                The initial samples all have the same figure of merit (e.g. log likelihood values).
+                
+                The non-linear search will therefore not progress correctly.
+                
+                Possible causes for this behaviour are:
+                
+                - The `log_likelihood_function` of the analysis class is defined incorrectly.
+                - The model parameterization creates numerically inaccurate log likelihoods.
+                - The`log_likelihood_function`  is always returning `nan` values.            
+                """
+            )
+
         return unit_parameter_lists, parameter_lists, figures_of_merit_list
 
     def samples_in_test_mode(

@@ -76,7 +76,7 @@ class AbstractPySwarms(AbstractOptimizer):
         self.logger.debug("Creating PySwarms Search")
 
     class Fitness(AbstractOptimizer.Fitness):
-        def __call__(self, parameters):
+        def __call__(self, parameters, *kwargs):
 
             figures_of_merit = []
 
@@ -87,6 +87,9 @@ class AbstractPySwarms(AbstractOptimizer):
                         parameter_list=params_of_particle
                     )
                 except exc.FitException:
+                    figure_of_merit = -2.0 * self.resample_figure_of_merit
+
+                if np.isnan(figure_of_merit):
                     figure_of_merit = -2.0 * self.resample_figure_of_merit
 
                 figures_of_merit.append(figure_of_merit)

@@ -77,13 +77,6 @@ class AbstractNest(NonLinearSearch):
 
             self.should_check_terminate = IntervalCounter(1000)
 
-        def __call__(self, parameters, *kwargs):
-
-            try:
-                return self.figure_of_merit_from(parameter_list=parameters)
-            except exc.FitException:
-                return self.resample_figure_of_merit
-
         def figure_of_merit_from(self, parameter_list):
             """The figure of merit is the value that the `NonLinearSearch` uses to sample parameter space. All Nested
             samplers use the log likelihood.
