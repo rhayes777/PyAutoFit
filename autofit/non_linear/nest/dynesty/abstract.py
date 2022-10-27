@@ -1,4 +1,5 @@
 from abc import ABC
+from dynesty.pool import Pool
 import numpy as np
 from os import path
 import os
@@ -10,11 +11,11 @@ from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.abstract_search import PriorPasser
 from autofit.non_linear.nest.abstract_nest import AbstractNest
 from autofit.non_linear.nest.dynesty.plotter import DynestyPlotter
-from autofit.non_linear.nest.dynesty.samples import DynestySamples
 from autofit.plot.output import Output
 
 
 def prior_transform(cube, model):
+
     phys_cube = model.vector_from_unit_vector(
         unit_vector=cube,
         ignore_prior_limits=True
@@ -100,6 +101,20 @@ class AbstractDynesty(AbstractNest, ABC):
         def history_save(self):
             pass
 
+    def iterations_from(self, sampler):
+
+        try:
+            total_iterations = np.sum(sampler.results.ncall)
+        except AttributeError:
+            total_iterations = 0
+
+        if self.config_dict_run["maxcall"] is not None:
+
+            iterations = self.config_dict_run["maxcall"] - total_iterations
+
+            return iterations, total_iterations
+        return self.iterations_per_update, total_iterations
+
     def _fit(self, model: AbstractPriorModel, analysis, log_likelihood_cap=None):
         """
         Fit a model using Dynesty and the Analysis class which contains the data and returns the log likelihood from
@@ -128,44 +143,49 @@ class AbstractDynesty(AbstractNest, ABC):
         else:
             self.logger.info("No Dynesty samples found, beginning new non-linear search. ")
 
-        if self.number_of_cores > 1:
-            pool = self.make_sneaky_pool(
-                fitness_function
-            )
-        else:
-            pool = None
-
-        sampler = self.sampler_from(
-            model=model,
-            fitness_function=fitness_function,
-            pool=pool
-        )
-
         finished = False
 
         while not finished:
 
-            try:
-                total_iterations = np.sum(sampler.results.ncall)
-            except AttributeError:
-                total_iterations = 0
+            config_dict_run = self.config_dict_run
+            config_dict_run.pop("maxcall")
 
-            if self.config_dict_run["maxcall"] is not None:
-                iterations = self.config_dict_run["maxcall"] - total_iterations
+            if self.number_of_cores == 1:
+
+                sampler = self.sampler_from(model=model, fitness_function=fitness_function)
+
+                iterations, total_iterations = self.iterations_from(sampler=sampler)
+
+                if iterations > 0:
+
+                    sampler.run_nested(
+                        maxcall=iterations,
+                        print_progress=not self.silence,
+                        checkpoint_file=self.checkpoint_file,
+                        **config_dict_run
+                    )
+
             else:
-                iterations = self.iterations_per_update
 
-            if iterations > 0:
+                with Pool(njobs=self.number_of_cores,
+                          loglike=fitness_function,
+                          prior_transform=prior_transform,
+                          logl_args=(model, fitness_function),
+                          ptform_args=(model,)
+                          ) as pool:
 
-                config_dict_run = self.config_dict_run
-                config_dict_run.pop("maxcall")
+                    sampler = self.sampler_from(model=model, fitness_function=fitness_function, pool=pool)
 
-                sampler.run_nested(
-                    maxcall=iterations,
-                    print_progress=not self.silence,
-                    checkpoint_file=self.checkpoint_file,
-                    **config_dict_run
-                )
+                    iterations, total_iterations = self.iterations_from(sampler=sampler)
+
+                    if iterations > 0:
+
+                        sampler.run_nested(
+                            maxcall=iterations,
+                            print_progress=not self.silence,
+                            checkpoint_file=self.checkpoint_file,
+                            **config_dict_run
+                        )
 
             self.perform_update(model=model, analysis=analysis, during_analysis=True)
 
@@ -207,10 +227,10 @@ class AbstractDynesty(AbstractNest, ABC):
             init_parameters = np.zeros(shape=(self.total_live_points, model.prior_count))
             init_log_likelihood_list = np.zeros(shape=(self.total_live_points))
 
-            for index in range(len(parameters)):
-                init_unit_parameters[index, :] = np.asarray(unit_parameters[index])
-                init_parameters[index, :] = np.asarray(parameters[index])
-                init_log_likelihood_list[index] = np.asarray(log_likelihood_list[index])
+            for i in range(len(parameters)):
+                init_unit_parameters[i, :] = np.asarray(unit_parameters[i])
+                init_parameters[i, :] = np.asarray(parameters[i])
+                init_log_likelihood_list[i] = np.asarray(log_likelihood_list[i])
 
             live_points = [init_unit_parameters, init_parameters, init_log_likelihood_list]
 

@@ -708,13 +708,14 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                 "Outputting model result"
             )
             try:
+
                 start = time.time()
                 analysis.log_likelihood_function(instance=instance)
                 log_likelihood_function_time = (time.time() - start)
 
                 self.paths.save_summary(
                     samples=samples,
-                    log_likelihood_function_time=log_likelihood_function_time
+                    log_likelihood_function_time=log_likelihood_function_time,
                 )
             except exc.FitException:
                 pass

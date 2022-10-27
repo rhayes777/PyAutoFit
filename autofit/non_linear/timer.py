@@ -27,8 +27,6 @@ class Timer:
         Record the start time of a `NonLinearSearch` as universal date time, so that the run-time of the search can be
         recorded.
         """
-        if self.start_time is None:
-            return
 
         start_time_path = path.join(
             self.samples_path,
@@ -59,7 +57,9 @@ class Timer:
 
     @property
     def start_time(self):
-        """Load the start time written to hard disk from the .start_time file."""
+        """
+        Load the start time written to hard disk from the .start_time file.
+        """
         try:
             with open(
                     path.join(self.samples_path, ".start_time"), "r"
@@ -70,7 +70,9 @@ class Timer:
 
     @property
     def time(self):
-        """Load the total time of the `NonLinearSearch` written to hard disk fom the .start_time file."""
+        """
+        Load the total time of the `NonLinearSearch` written to hard disk fom the .start_time file.
+        """
         try:
             with open(
                     path.join(self.samples_path, ".time"), "r"
