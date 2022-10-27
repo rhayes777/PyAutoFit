@@ -111,18 +111,18 @@ class DynestyDynamic(AbstractDynesty):
             )
         except FileNotFoundError:
 
-            if self.number_of_cores == 1:
-
-                return DynamicNestedSampler(
-                    loglikelihood=fitness_function,
-                    prior_transform=prior_transform,
-                    ndim=model.prior_count,
-                    logl_args=[model, fitness_function],
-                    ptform_args=[model],
-                    queue_size=self.number_of_cores,
-                    pool=pool,
-                    **self.config_dict_search
-                )
+            # if self.number_of_cores == 1:
+            #
+            #     return DynamicNestedSampler(
+            #         loglikelihood=fitness_function,
+            #         prior_transform=prior_transform,
+            #         ndim=model.prior_count,
+            #         logl_args=[model, fitness_function],
+            #         ptform_args=[model],
+            #         queue_size=self.number_of_cores,
+            #         pool=pool,
+            #         **self.config_dict_search
+            #     )
 
             return DynamicNestedSampler(
                 loglikelihood=pool.loglike,

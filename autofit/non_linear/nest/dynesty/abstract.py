@@ -150,9 +150,31 @@ class AbstractDynesty(AbstractNest, ABC):
             config_dict_run = self.config_dict_run
             config_dict_run.pop("maxcall")
 
-            if self.number_of_cores == 1:
+            # if self.number_of_cores == 1:
+            #
+            #     sampler = self.sampler_from(model=model, fitness_function=fitness_function)
+            #
+            #     iterations, total_iterations = self.iterations_from(sampler=sampler)
+            #
+            #     if iterations > 0:
+            #
+            #         sampler.run_nested(
+            #             maxcall=iterations,
+            #             print_progress=not self.silence,
+            #             checkpoint_file=self.checkpoint_file,
+            #             **config_dict_run
+            #         )
+            #
+            # else:
 
-                sampler = self.sampler_from(model=model, fitness_function=fitness_function)
+            with Pool(njobs=self.number_of_cores,
+                      loglike=fitness_function,
+                      prior_transform=prior_transform,
+                      logl_args=(model, fitness_function),
+                      ptform_args=(model,)
+                      ) as pool:
+
+                sampler = self.sampler_from(model=model, fitness_function=fitness_function, pool=pool)
 
                 iterations, total_iterations = self.iterations_from(sampler=sampler)
 
@@ -164,28 +186,6 @@ class AbstractDynesty(AbstractNest, ABC):
                         checkpoint_file=self.checkpoint_file,
                         **config_dict_run
                     )
-
-            else:
-
-                with Pool(njobs=self.number_of_cores,
-                          loglike=fitness_function,
-                          prior_transform=prior_transform,
-                          logl_args=(model, fitness_function),
-                          ptform_args=(model,)
-                          ) as pool:
-
-                    sampler = self.sampler_from(model=model, fitness_function=fitness_function, pool=pool)
-
-                    iterations, total_iterations = self.iterations_from(sampler=sampler)
-
-                    if iterations > 0:
-
-                        sampler.run_nested(
-                            maxcall=iterations,
-                            print_progress=not self.silence,
-                            checkpoint_file=self.checkpoint_file,
-                            **config_dict_run
-                        )
 
             self.perform_update(model=model, analysis=analysis, during_analysis=True)
 

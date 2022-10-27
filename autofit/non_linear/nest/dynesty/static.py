@@ -118,19 +118,19 @@ class DynestyStatic(AbstractDynesty):
 
             live_points = self.live_points_init_from(model=model, fitness_function=fitness_function)
 
-            if self.number_of_cores == 1:
-
-                return StaticSampler(
-                    loglikelihood=fitness_function,
-                    prior_transform=prior_transform,
-                    ndim=model.prior_count,
-                    logl_args=[model, fitness_function],
-                    ptform_args=[model],
-                    live_points=live_points,
-                    queue_size=self.number_of_cores,
-                    pool=pool,
-                    **self.config_dict_search
-                )
+            # if self.number_of_cores == 1:
+            #
+            #     return StaticSampler(
+            #         loglikelihood=fitness_function,
+            #         prior_transform=prior_transform,
+            #         ndim=model.prior_count,
+            #         logl_args=[model, fitness_function],
+            #         ptform_args=[model],
+            #         live_points=live_points,
+            #         queue_size=self.number_of_cores,
+            #         pool=pool,
+            #         **self.config_dict_search
+            #     )
 
             return StaticSampler(
                 loglikelihood=pool.loglike,
