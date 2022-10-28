@@ -46,10 +46,7 @@ class TestGridSearchablePriors:
     def test_non_grid_searched_dimensions(self, mapper):
         search = af.m.MockSearch()
         search.paths = af.DirectoryPaths(name="")
-        grid_search = af.SearchGridSearch(
-            number_of_steps=10,
-            search=search
-        )
+        grid_search = af.SearchGridSearch(number_of_steps=10, search=search)
 
         mappers = list(
             grid_search.model_mappers(
@@ -96,8 +93,8 @@ class TestGridSearchablePriors:
 
         for mapper in mappers:
             assert (
-                    mapper.component.one_tuple.one_tuple_0
-                    == mapper.component.one_tuple.one_tuple_1
+                mapper.component.one_tuple.one_tuple_0
+                == mapper.component.one_tuple.one_tuple_1
             )
 
     def test_different_prior_width(self, grid_search, mapper):
@@ -145,9 +142,7 @@ class TestGridSearchablePriors:
 
 @pytest.fixture(name="grid_search_05")
 def make_grid_search_05():
-    search = af.SearchGridSearch(
-        search=af.m.MockOptimizer(), number_of_steps=2
-    )
+    search = af.SearchGridSearch(search=af.m.MockOptimizer(), number_of_steps=2)
     search.search.paths = af.DirectoryPaths(name="sample_name")
     return search
 
@@ -172,8 +167,7 @@ class TestGridNLOBehaviour:
         assert result.no_dimensions == 2
 
         grid_search = af.SearchGridSearch(
-            search=af.m.MockOptimizer(),
-            number_of_steps=10,
+            search=af.m.MockOptimizer(), number_of_steps=10,
         )
         grid_search.search.paths = af.DirectoryPaths(name="sample_name")
         result = grid_search.fit(
@@ -238,10 +232,7 @@ class TestGridNLOBehaviour:
     def test_passes_attributes(self):
         search = af.DynestyStatic()
         search.paths = af.DirectoryPaths(name="")
-        grid_search = af.SearchGridSearch(
-            number_of_steps=10,
-            search=search
-        )
+        grid_search = af.SearchGridSearch(number_of_steps=10, search=search)
 
         grid_search.nlive = 20
         grid_search.facc = 0.3
@@ -249,7 +240,6 @@ class TestGridNLOBehaviour:
         search = grid_search.search_instance("name_path")
 
         assert search.nlive is grid_search.nlive
-        assert grid_search.paths.path != search.paths.path
         assert grid_search.paths.output_path != search.paths.output_path
 
 
@@ -260,14 +250,11 @@ def make_grid_search_result():
 
     # noinspection PyTypeChecker
     return af.GridSearchResult(
-        results=[one, two],
-        lower_limits_lists=[[1], [2]],
-        grid_priors=[[1], [2]]
+        results=[one, two], lower_limits_lists=[[1], [2]], grid_priors=[[1], [2]]
     )
 
 
 class TestGridSearchResult:
-
     def test_best_result(self, grid_search_result):
         assert grid_search_result.best_result.log_likelihood == 2
 
@@ -287,14 +274,8 @@ class TestGridSearchResult:
         grid_search_result = af.GridSearchResult(
             results=None,
             grid_priors=[
-                af.UniformPrior(
-                    lower_limit=-2.0,
-                    upper_limit=2.0
-                ),
-                af.UniformPrior(
-                    lower_limit=-3.0,
-                    upper_limit=3.0
-                )
+                af.UniformPrior(lower_limit=-2.0, upper_limit=2.0),
+                af.UniformPrior(lower_limit=-3.0, upper_limit=3.0),
             ],
             lower_limits_lists=lower_limit_lists,
         )
@@ -315,36 +296,26 @@ class TestGridSearchResult:
         ]
 
     def test__results_on_native_grid(self, grid_search_result):
-        assert (grid_search_result.results_native == np.array([
-            [grid_search_result.results[0], grid_search_result.results[1]],
-        ])).all()
+        assert (
+            grid_search_result.results_native
+            == np.array(
+                [[grid_search_result.results[0], grid_search_result.results[1]],]
+            )
+        ).all()
 
-        assert (grid_search_result.log_likelihoods_native == np.array([
-            [1, 2],
-        ])).all()
+        assert (grid_search_result.log_likelihoods_native == np.array([[1, 2],])).all()
 
 
 @pytest.mark.parametrize(
-    "n_dimensions, n_steps",
-    [
-        (2, 2),
-        (3, 3),
-        (2, 3),
-        (3, 2),
-        (4, 4),
-    ]
+    "n_dimensions, n_steps", [(2, 2), (3, 3), (2, 3), (3, 2), (4, 4),]
 )
-def test_higher_dimensions(
-        n_dimensions,
-        n_steps
-):
+def test_higher_dimensions(n_dimensions, n_steps):
     shape = n_dimensions * (n_steps,)
     total = n_steps ** n_dimensions
-    model = af.Model(
-        af.Gaussian
-    )
+    model = af.Model(af.Gaussian)
     result = af.GridSearchResult(
-        results=total * [
+        results=total
+        * [
             af.Result(
                 af.NestSamples(
                     model,
@@ -353,21 +324,15 @@ def test_higher_dimensions(
                             1.0,
                             1.0,
                             1.0,
-                            {
-                                "centre": 1.0,
-                                "sigma": 1.0,
-                                "normalization": 1.0
-                            }
+                            {"centre": 1.0, "sigma": 1.0, "normalization": 1.0},
                         )
-                    ]
+                    ],
                 ),
-                model=model
+                model=model,
             )
         ],
         grid_priors=[],
-        lower_limits_lists=total * [
-            n_dimensions * [0.0]
-        ]
+        lower_limits_lists=total * [n_dimensions * [0.0]],
     )
     assert result.shape == shape
     assert result.results_native.shape == shape

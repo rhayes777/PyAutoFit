@@ -14,7 +14,12 @@ from autoconf import conf
 
 from autofit import exc
 from autofit.database.sqlalchemy_ import sa
-from autofit.graphical import EPMeanField, MeanField, AnalysisFactor, _HierarchicalFactor
+from autofit.graphical import (
+    EPMeanField,
+    MeanField,
+    AnalysisFactor,
+    _HierarchicalFactor,
+)
 from autofit.graphical.factor_graphs.factor import Factor
 from autofit.graphical.utils import Status
 from autofit.non_linear.initializer import Initializer
@@ -30,9 +35,7 @@ from ..graphical.declarative.abstract import PriorFactor
 from ..graphical.expectation_propagation import AbstractFactorOptimiser
 from ..tools.util import IntervalCounter
 
-logger = logging.getLogger(
-    __name__
-)
+logger = logging.getLogger(__name__)
 
 
 def check_cores(func):
@@ -54,13 +57,9 @@ def check_cores(func):
 
     @wraps(func)
     def wrapper(self, *args, **kwargs):
-        self.logger.info(
-            f"number_of_cores == {self.number_of_cores}..."
-        )
+        self.logger.info(f"number_of_cores == {self.number_of_cores}...")
         if self.number_of_cores == 1:
-            self.logger.info(
-                "...not using pool"
-            )
+            self.logger.info("...not using pool")
             return None
         return func(self, *args, **kwargs)
 
@@ -69,16 +68,16 @@ def check_cores(func):
 
 class NonLinearSearch(AbstractFactorOptimiser, ABC):
     def __init__(
-            self,
-            name: Optional[str] = None,
-            path_prefix: Optional[str] = None,
-            unique_tag: Optional[str] = None,
-            prior_passer: "PriorPasser" = None,
-            initializer: Initializer = None,
-            iterations_per_update: int = None,
-            number_of_cores: int = 1,
-            session: Optional[sa.orm.Session] = None,
-            **kwargs
+        self,
+        name: Optional[str] = None,
+        path_prefix: Optional[str] = None,
+        unique_tag: Optional[str] = None,
+        prior_passer: "PriorPasser" = None,
+        initializer: Initializer = None,
+        iterations_per_update: int = None,
+        number_of_cores: int = 1,
+        session: Optional[sa.orm.Session] = None,
+        **kwargs,
     ):
         """
         Abstract base class for non-linear searches.L
@@ -102,7 +101,10 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         session
             An SQLAlchemy session instance so the results of the model-fit are written to an SQLite database.
         """
-        super().__init__(delta=kwargs.get("delta", 1.0), dynamic_delta=kwargs.get("dynamic_delta", True))
+        super().__init__(
+            delta=kwargs.get("delta", 1.0),
+            dynamic_delta=kwargs.get("dynamic_delta", True),
+        )
 
         from autofit.non_linear.paths.database import DatabasePaths
 
@@ -111,11 +113,8 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         self.path_prefix_no_unique_tag = path_prefix
 
         self._logger = None
-        # self._paths = None
 
-        logger.info(
-            f"Creating search"
-        )
+        logger.info(f"Creating search")
 
         if unique_tag is not None:
             path_prefix = path.join(path_prefix, unique_tag)
@@ -123,38 +122,29 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         self.unique_tag = unique_tag
 
         if session is not None:
-            logger.debug(
-                "Session found. Using database."
-            )
+            logger.debug("Session found. Using database.")
             paths = DatabasePaths(
                 name=name,
                 path_prefix=path_prefix,
                 session=session,
-                save_all_samples=kwargs.get(
-                    "save_all_samples",
-                    False
-                ),
-                unique_tag=unique_tag
+                save_all_samples=kwargs.get("save_all_samples", False),
+                unique_tag=unique_tag,
             )
         elif name is not None:
-            logger.debug(
-                "Session not found. Using directory output."
-            )
+            logger.debug("Session not found. Using directory output.")
             paths = DirectoryPaths(
-                name=name,
-                path_prefix=path_prefix,
-                unique_tag=unique_tag
+                name=name, path_prefix=path_prefix, unique_tag=unique_tag
             )
         else:
             paths = NullPaths()
 
         self.paths: AbstractPaths = paths
 
-        self.prior_passer = prior_passer or PriorPasser.from_config(
-            config=self._config
-        )
+        self.prior_passer = prior_passer or PriorPasser.from_config(config=self._config)
 
-        self.force_pickle_overwrite = conf.instance["general"]["output"]["force_pickle_overwrite"]
+        self.force_pickle_overwrite = conf.instance["general"]["output"][
+            "force_pickle_overwrite"
+        ]
 
         if initializer is None:
             self.logger.debug("Creating initializer ")
@@ -162,15 +152,17 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         else:
             self.initializer = initializer
 
-        self.iterations_per_update = iterations_per_update or self._config("updates", "iterations_per_update")
+        self.iterations_per_update = iterations_per_update or self._config(
+            "updates", "iterations_per_update"
+        )
 
         if conf.instance["general"]["hpc"]["hpc_mode"]:
-            self.iterations_per_update = conf.instance["general"]["hpc"]["iterations_per_update"]
+            self.iterations_per_update = conf.instance["general"]["hpc"][
+                "iterations_per_update"
+            ]
 
         self.log_every_update = self._config("updates", "log_every_update")
-        self.visualize_every_update = self._config(
-            "updates", "visualize_every_update",
-        )
+        self.visualize_every_update = self._config("updates", "visualize_every_update",)
         self.model_results_every_update = self._config(
             "updates", "model_results_every_update",
         )
@@ -208,10 +200,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
     __identifier_fields__ = tuple()
 
     def optimise(
-            self,
-            factor: Factor,
-            model_approx: EPMeanField,
-            status: Status = Status(),
+        self, factor: Factor, model_approx: EPMeanField, status: Status = Status(),
     ) -> Tuple[EPMeanField, Status]:
         """
         Perform optimisation for expectation propagation. Currently only
@@ -248,24 +237,20 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         """
 
         _ = status
-        if not isinstance(
-                factor,
-                (AnalysisFactor, PriorFactor, _HierarchicalFactor)
-        ):
+        if not isinstance(factor, (AnalysisFactor, PriorFactor, _HierarchicalFactor)):
             raise NotImplementedError(
                 f"Optimizer {self.__class__.__name__} can only be applied to"
                 f" AnalysisFactors, HierarchicalFactors and PriorFactors"
             )
 
-        factor_approx = model_approx.factor_approximation(
-            factor
-        )
+        factor_approx = model_approx.factor_approximation(factor)
 
-        model = factor.prior_model.mapper_from_prior_arguments({
-            prior: prior.with_message(message)
-            for prior, message
-            in factor_approx.cavity_dist.arguments.items()
-        })
+        model = factor.prior_model.mapper_from_prior_arguments(
+            {
+                prior: prior.with_message(message)
+                for prior, message in factor_approx.cavity_dist.arguments.items()
+            }
+        )
 
         analysis = factor.analysis
 
@@ -279,14 +264,9 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             is_flat=True,
         )
 
-        result = self.fit(
-            model=model,
-            analysis=analysis
-        )
+        result = self.fit(model=model, analysis=analysis)
 
-        new_model_dist = MeanField.from_priors(
-            result.projected_model.priors
-        )
+        new_model_dist = MeanField.from_priors(result.projected_model.priors)
 
         model_approx, status = self.update_model_approx(
             new_model_dist, factor_approx, model_approx, status
@@ -315,17 +295,13 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         if not hasattr(self, "_logger"):
             self._logger = None
         if self._logger is None:
-            logger_ = logging.getLogger(
-                self.name
-            )
+            logger_ = logging.getLogger(self.name)
             self._logger = logger_
         return self._logger
 
     @property
     def timer(self):
-        return Timer(
-            self.paths.samples_path
-        )
+        return Timer(self.paths.samples_path)
 
     @property
     def paths(self) -> Optional[AbstractPaths]:
@@ -337,13 +313,8 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             paths.search = self
         self._paths = paths
 
-    def copy_with_paths(
-            self,
-            paths
-    ):
-        self.logger.debug(
-            f"Creating a copy of {self._paths.name}"
-        )
+    def copy_with_paths(self, paths):
+        self.logger.debug(f"Creating a copy of {self._paths.name}")
         search_instance = copy.copy(self)
         search_instance.paths = paths
         search_instance._logger = None
@@ -351,7 +322,9 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         return search_instance
 
     class Fitness:
-        def __init__(self, paths, model, analysis, samples_from_model, log_likelihood_cap=None):
+        def __init__(
+            self, paths, model, analysis, samples_from_model, log_likelihood_cap=None
+        ):
 
             self.i = 0
 
@@ -395,7 +368,9 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         def log_posterior_from(self, parameter_list):
 
             log_likelihood = self.log_likelihood_from(parameter_list=parameter_list)
-            log_prior_list = self.model.log_prior_list_from_vector(vector=parameter_list)
+            log_prior_list = self.model.log_prior_list_from_vector(
+                vector=parameter_list
+            )
 
             return log_likelihood + sum(log_prior_list)
 
@@ -439,12 +414,12 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             return -np.inf
 
     def fit(
-            self,
-            model,
-            analysis: "Analysis",
-            info=None,
-            pickle_files=None,
-            log_likelihood_cap=None
+        self,
+        model,
+        analysis: "Analysis",
+        info=None,
+        pickle_files=None,
+        log_likelihood_cap=None,
     ) -> Union["Result", List["Result"]]:
         """
         Fit a model, M with some function f that takes instances of the
@@ -484,9 +459,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         """
         self.check_model(model=model)
 
-        self.logger.info(
-            "Starting search"
-        )
+        self.logger.info("Starting search")
 
         model = analysis.modify_model(model)
         self.paths.model = model
@@ -496,26 +469,24 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         analysis = analysis.modify_before_fit(paths=self.paths, model=model)
 
         if not self.paths.is_complete or self.force_pickle_overwrite:
-            self.logger.info(
-                "Saving path info"
-            )
+            self.logger.info("Saving path info")
 
             self.paths.save_all(
                 search_config_dict=self.config_dict_search,
                 info=info,
-                pickle_files=pickle_files
+                pickle_files=pickle_files,
             )
             analysis.save_attributes_for_aggregator(paths=self.paths)
 
         if not self.paths.is_complete:
-            self.logger.info(
-                "Not complete. Starting non-linear search."
-            )
+            self.logger.info("Not complete. Starting non-linear search.")
 
             self.timer.start()
 
             model.freeze()
-            self._fit(model=model, analysis=analysis, log_likelihood_cap=log_likelihood_cap)
+            self._fit(
+                model=model, analysis=analysis, log_likelihood_cap=log_likelihood_cap
+            )
             model.unfreeze()
 
             self.paths.completed()
@@ -550,9 +521,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             )
 
             if self.force_pickle_overwrite:
-                self.logger.info(
-                    "Forcing pickle overwrite"
-                )
+                self.logger.info("Forcing pickle overwrite")
                 self.paths.save_object("samples", samples)
                 try:
                     self.paths.save_object("results", samples.results)
@@ -563,11 +532,11 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         self.paths.samples_to_csv(samples=samples)
 
-        analysis = analysis.modify_after_fit(paths=self.paths, model=model, result=result)
-
-        self.logger.info(
-            "Removing zip file"
+        analysis = analysis.modify_after_fit(
+            paths=self.paths, model=model, result=result
         )
+
+        self.logger.info("Removing zip file")
         self.paths.zip_remove()
         return result
 
@@ -577,9 +546,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
     def check_model(self, model):
         if model is not None and model.prior_count == 0:
-            raise AssertionError(
-                "Model has no priors! Cannot fit a 0 dimension model."
-            )
+            raise AssertionError("Model has no priors! Cannot fit a 0 dimension model.")
 
     def config_dict_with_test_mode_settings_from(self, config_dict: Dict) -> Dict:
         return config_dict
@@ -616,7 +583,9 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
             logger.warning(f"TEST MODE ON: SEARCH WILL SKIP SAMPLING\n\n")
 
-            config_dict = self.config_dict_with_test_mode_settings_from(config_dict=config_dict)
+            config_dict = self.config_dict_with_test_mode_settings_from(
+                config_dict=config_dict
+            )
 
         return config_dict
 
@@ -676,9 +645,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         samples = self.samples_from(model=model)
 
-        self.paths.save_object(
-            "samples", samples
-        )
+        self.paths.save_object("samples", samples)
 
         if not during_analysis:
             self.plot_results(samples=samples)
@@ -691,38 +658,31 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         if self.should_visualize() or not during_analysis:
             self.logger.debug("Visualizing")
             analysis.visualize(
-                paths=self.paths,
-                instance=instance,
-                during_analysis=during_analysis
+                paths=self.paths, instance=instance, during_analysis=during_analysis
             )
 
         if self.should_profile:
             self.logger.debug("Profiling Maximum Likelihood Model")
             analysis.profile_log_likelihood_function(
-                paths=self.paths,
-                instance=instance,
+                paths=self.paths, instance=instance,
             )
 
         if self.should_output_model_results() or not during_analysis:
-            self.logger.debug(
-                "Outputting model result"
-            )
+            self.logger.debug("Outputting model result")
             try:
                 start = time.time()
                 analysis.log_likelihood_function(instance=instance)
-                log_likelihood_function_time = (time.time() - start)
+                log_likelihood_function_time = time.time() - start
 
                 self.paths.save_summary(
                     samples=samples,
-                    log_likelihood_function_time=log_likelihood_function_time
+                    log_likelihood_function_time=log_likelihood_function_time,
                 )
             except exc.FitException:
                 pass
 
         if not during_analysis and self.remove_state_files_at_end:
-            self.logger.debug(
-                "Removing state files"
-            )
+            self.logger.debug("Removing state files")
             try:
                 self.remove_state_files()
             except FileNotFoundError:
@@ -751,18 +711,11 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         The pool instance is also set up with a list of unique pool ids, which are used during model-fitting to
         identify a 'master core' (the one whose id value is lowest) which handles model result output, visualization,
         etc."""
-        self.logger.info(
-            "...using pool"
-        )
-        return mp.Pool(
-            processes=self.number_of_cores
-        )
+        self.logger.info("...using pool")
+        return mp.Pool(processes=self.number_of_cores)
 
     @check_cores
-    def make_sneaky_pool(
-            self,
-            fitness_function: Fitness
-    ) -> Optional[SneakyPool]:
+    def make_sneaky_pool(self, fitness_function: Fitness) -> Optional[SneakyPool]:
         """
         Create a pool for multiprocessing that uses slight-of-hand
         to avoid copying the fitness function between processes
@@ -784,9 +737,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             "times."
         )
         return SneakyPool(
-            processes=self.number_of_cores,
-            paths=self.paths,
-            fitness=fitness_function
+            processes=self.number_of_cores, paths=self.paths, fitness=fitness_function
         )
 
     def __eq__(self, other):
@@ -797,7 +748,6 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
 
 class PriorPasser:
-
     def __init__(self, sigma, use_errors, use_widths):
         """
         Class to package the API for prior passing.
