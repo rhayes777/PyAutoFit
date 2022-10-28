@@ -10,7 +10,6 @@ from os import path
 from typing import Optional
 
 from autoconf import conf
-from autofit.mapper import link
 from autofit.mapper.identifier import Identifier, IdentifierField
 from autofit.text import text_util
 from autofit.tools.util import open_, zip_directory
@@ -187,13 +186,8 @@ class AbstractPaths(ABC):
         return str(self._identifier)
 
     def save_identifier(self):
-        with open_(f"{self._sym_path}/.identifier", "w+") as f:
+        with open_(f"{self.output_path}/.identifier", "w+") as f:
             f.write(self._identifier.description)
-
-    @property
-    def path(self):
-        os.makedirs(self._sym_path, exist_ok=True)
-        return link.make_linked_folder(self._sym_path)
 
     @property
     def samples_path(self) -> str:
@@ -267,10 +261,6 @@ class AbstractPaths(ABC):
                 ) from e
 
             os.remove(self._zip_path)
-
-    @property
-    def _sym_path(self) -> str:
-        return self.output_path
 
     def __eq__(self, other):
         return isinstance(other, AbstractPaths) and all(
@@ -362,14 +352,3 @@ class AbstractPaths(ABC):
     @property
     def _info_file(self) -> str:
         return path.join(self.samples_path, "info.json")
-
-    def copy_from_sym(self):
-        """
-        Copy files from the sym-linked search folder to the samples folder.
-        """
-
-        src_files = os.listdir(self.path)
-        for file_name in src_files:
-            full_file_name = path.join(self.path, file_name)
-            if path.isfile(full_file_name):
-                shutil.copy(full_file_name, self.samples_path)

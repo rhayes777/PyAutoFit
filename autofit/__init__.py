@@ -25,7 +25,6 @@ from .database.model import Fit
 from .database.aggregator import Query
 from .database.model.fit import Fit
 from .aggregator.search_output import SearchOutput
-from .mapper import link
 from .mapper import prior
 from .mapper.model import AbstractModel
 from .mapper.model import ModelInstance
@@ -106,8 +105,8 @@ from . import database as db
 @register(abc.ABCMeta)
 def save_abc(pickler, obj):
     pickle._Pickler.save_type(pickler, obj)
-    
+
 
 conf.instance.register(__file__)
 
-__version__ = '2022.07.11.1'
+__version__ = "2022.07.11.1"
