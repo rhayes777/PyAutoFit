@@ -29,6 +29,9 @@ from autofit.non_linear.paths.directory import DirectoryPaths
 from autofit.non_linear.paths.sub_directory_paths import SubDirectoryPaths
 from autofit.non_linear.result import Result
 from autofit.non_linear.timer import Timer
+
+from autofit import exc
+
 from .analysis import Analysis
 from .paths.null import NullPaths
 from ..graphical.declarative.abstract import PriorFactor
@@ -670,6 +673,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         if self.should_output_model_results() or not during_analysis:
             self.logger.debug("Outputting model result")
             try:
+
                 start = time.time()
                 analysis.log_likelihood_function(instance=instance)
                 log_likelihood_function_time = time.time() - start

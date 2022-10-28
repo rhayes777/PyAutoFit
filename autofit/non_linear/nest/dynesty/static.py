@@ -1,8 +1,9 @@
-import os
+from dynesty.pool import Pool
 from typing import Optional
 
 from dynesty import NestedSampler as StaticSampler
 from autofit.database.sqlalchemy_ import sa
+from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.nest.dynesty.samples import DynestySamples
 
 from .abstract import AbstractDynesty, prior_transform
@@ -99,22 +100,67 @@ class DynestyStatic(AbstractDynesty):
 
     def sampler_from(
             self,
-            model,
+            model: AbstractPriorModel,
             fitness_function,
-            pool=None
+            pool: Optional[Pool],
+            queue_size: Optional[int]
     ):
         """
-        Get the static Dynesty sampler which performs the non-linear search, passing it all associated input Dynesty
-        variables.
+        Returns an instance of the Dynesty static sampler set up using the input variables of this class.
+
+        If no existing dynesty sampler exist on hard-disk (located via a `checkpoint_file`) a new instance is
+        created with which sampler is performed. If one does exist, the dynesty `restore()` function is used to
+        create the instance of the sampler.
+
+        Dynesty samplers with a multiprocessing pool may be created by inputting a dynesty `Pool` object, however
+        non pooled instances can also be created by passing `pool=None` and `queue_size=None`.
+
+        Parameters
+        ----------
+        model
+            The model which generates instances for different points in parameter space.
+        fitness_function
+            An instance of the fitness class used to evaluate the likelihood of each model.
+        pool
+            A dynesty Pool object which performs likelihood evaluations over multiple CPUs.
+        queue_size
+            The number of CPU's over which multiprocessing is performed, determining how many samples are stored
+            in the dynesty queue for samples.
         """
 
         try:
-            return StaticSampler.restore(
+
+            sampler = StaticSampler.restore(
                 fname=self.checkpoint_file,
                 pool=pool
             )
+
+            uses_pool = self.read_uses_pool()
+
+            self.check_pool(uses_pool=uses_pool, pool=pool)
+
+            return sampler
+
         except FileNotFoundError:
+
             live_points = self.live_points_init_from(model=model, fitness_function=fitness_function)
+
+            if pool is not None:
+
+                self.write_uses_pool(uses_pool=True)
+
+                return StaticSampler(
+                    loglikelihood=pool.loglike,
+                    prior_transform=pool.prior_transform,
+                    ndim=model.prior_count,
+                    live_points=live_points,
+                    queue_size=queue_size,
+                    pool=pool,
+                    **self.config_dict_search
+                )
+
+            self.write_uses_pool(uses_pool=False)
+
             return StaticSampler(
                 loglikelihood=fitness_function,
                 prior_transform=prior_transform,
@@ -122,8 +168,6 @@ class DynestyStatic(AbstractDynesty):
                 logl_args=[model, fitness_function],
                 ptform_args=[model],
                 live_points=live_points,
-                queue_size=self.number_of_cores,
-                pool=pool,
                 **self.config_dict_search
             )
 

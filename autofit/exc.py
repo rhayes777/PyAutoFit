@@ -62,5 +62,11 @@ class SamplesException(Exception):
     pass
 
 
+class SearchException(Exception):
+    pass
+
+
 class SamplesWarning(Warning):
     pass
+
+
