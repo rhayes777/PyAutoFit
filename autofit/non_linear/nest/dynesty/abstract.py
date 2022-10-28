@@ -1,9 +1,10 @@
 from abc import ABC
 from dynesty.pool import Pool
+from dynesty import NestedSampler, DynamicNestedSampler
 import numpy as np
 from os import path
 import os
-from typing import Optional
+from typing import Optional, Tuple, Union
 
 from autoconf import conf
 from autofit.database.sqlalchemy_ import sa
@@ -101,32 +102,29 @@ class AbstractDynesty(AbstractNest, ABC):
         def history_save(self):
             pass
 
-    def iterations_from(self, sampler):
-
-        try:
-            total_iterations = np.sum(sampler.results.ncall)
-        except AttributeError:
-            total_iterations = 0
-
-        if self.config_dict_run["maxcall"] is not None:
-
-            iterations = self.config_dict_run["maxcall"] - total_iterations
-
-            return iterations, total_iterations
-        return self.iterations_per_update, total_iterations
-
-    def _fit(self, model: AbstractPriorModel, analysis, log_likelihood_cap=None):
+    def _fit(self, model: AbstractPriorModel, analysis, log_likelihood_cap:Optional[float]=None):
         """
         Fit a model using Dynesty and the Analysis class which contains the data and returns the log likelihood from
         instances of the model, which the `NonLinearSearch` seeks to maximize.
 
+        By default, Dynesty runs using an in-built multiprocessing Pool option. This occurs even
+        if `number_of_cores=1`, because the dynesty savestate includes this pool, meaning that a resumed run can
+        then increase the `number_of_cores`.
+
+        However, certain operating systems (e.g. Windows) do not support Python multiprocessing particularly well.
+        This can cause Dynesty to crash when a pool is included. If this occurs (raising a `RunTimeException`)
+        a Dynesty object without a pool is created and used instead.
+
         Parameters
         ----------
-        model : ModelMapper
+        model
             The model which generates instances for different points in parameter space.
-        analysis : Analysis
-            Contains the data and the log likelihood function which fits an instance of the model to the data, returning
-            the log likelihood the `NonLinearSearch` maximizes.
+        analysis
+            Contains the data and the log likelihood function which fits an instance of the model to the data,
+            returning the log likelihood dynesty maximizes.
+        log_likelihood_cap
+            An optional cap to the log likelihood values, which means all likelihood evaluations above this value
+            are rounded down to it. This is used to remove numerical instability in an Astronomy based project.
 
         Returns
         -------
@@ -147,58 +145,117 @@ class AbstractDynesty(AbstractNest, ABC):
 
         while not finished:
 
-            config_dict_run = self.config_dict_run
-            config_dict_run.pop("maxcall")
+            try:
 
-            # if self.number_of_cores == 1:
-            #
-            #     sampler = self.sampler_from(model=model, fitness_function=fitness_function)
-            #
-            #     iterations, total_iterations = self.iterations_from(sampler=sampler)
-            #
-            #     if iterations > 0:
-            #
-            #         sampler.run_nested(
-            #             maxcall=iterations,
-            #             print_progress=not self.silence,
-            #             checkpoint_file=self.checkpoint_file,
-            #             **config_dict_run
-            #         )
-            #
-            # else:
+                with Pool(
+                        njobs=self.number_of_cores,
+                        loglike=fitness_function,
+                        prior_transform=prior_transform,
+                        logl_args=(model, fitness_function),
+                        ptform_args=(model,)
+                ) as pool:
 
-            with Pool(njobs=self.number_of_cores,
-                      loglike=fitness_function,
-                      prior_transform=prior_transform,
-                      logl_args=(model, fitness_function),
-                      ptform_args=(model,)
-                      ) as pool:
-
-                sampler = self.sampler_from(model=model, fitness_function=fitness_function, pool=pool)
-
-                iterations, total_iterations = self.iterations_from(sampler=sampler)
-
-                if iterations > 0:
-
-                    sampler.run_nested(
-                        maxcall=iterations,
-                        print_progress=not self.silence,
-                        checkpoint_file=self.checkpoint_file,
-                        **config_dict_run
+                    sampler = self.sampler_from(
+                        model=model,
+                        fitness_function=fitness_function,
+                        pool=pool,
+                        queue_size=self.number_of_cores
                     )
+
+                    finished = self.run_sampler(sampler=sampler)
+
+            except RuntimeError:
+
+                sampler = self.sampler_from(
+                    model=model,
+                    fitness_function=fitness_function,
+                    pool=None,
+                    queue_size=None
+                )
+
+                finished = self.run_sampler(sampler=sampler)
 
             self.perform_update(model=model, analysis=analysis, during_analysis=True)
 
-            iterations_after_run = np.sum(sampler.results.ncall)
+    def iterations_from(self, sampler: Union[NestedSampler, DynamicNestedSampler]) -> Tuple[int, int]:
+        """
+        Returns the next number of iterations that a dynesty call will use and the total number of iterations
+        that have been performed so far.
 
-            if (
-                    total_iterations == iterations_after_run
-                    or total_iterations == self.config_dict_run["maxcall"]
-            ):
-                finished = True
+        This is used so that the `iterations_per_update` input leads to on-the-fly output of dynesty results.
+
+        It also ensures dynesty does not perform more samples than the `maxcall` input variable.
+
+        Parameters
+        ----------
+        sampler
+            The Dynesty sampler (static or dynamic) which is run and performs nested sampling.
+
+        Returns
+        -------
+        The next number of iterations that a dynesty run sampling will perform and the total number of iterations
+        it has performed so far.
+        """
+        try:
+            total_iterations = np.sum(sampler.results.ncall)
+        except AttributeError:
+            total_iterations = 0
+
+        if self.config_dict_run["maxcall"] is not None:
+
+            iterations = self.config_dict_run["maxcall"] - total_iterations
+
+            return iterations, total_iterations
+        return self.iterations_per_update, total_iterations
+
+    def run_sampler(self, sampler: Union[NestedSampler, DynamicNestedSampler]):
+        """
+        Run the Dynesty sampler, which could be either the static of dynamic sampler.
+
+        The number of iterations which the sampler runs from depends on the `maxcall` input. Due to on-to-fly updates
+        via `perform_update` the number of remaining iterations compared to `maxcall` is tracked between every
+        `run_nested` call, and whether or not the sampler is finished is returned at the end of this function.
+
+        A second finish criteria is used, which occurs when the dynesty run performs zero likelihood updates (because
+        the sampling accrording to Dynesty's termination criteria is complete).
+
+        Parameters
+        ----------
+        sampler
+            The Dynesty sampler (static or dynamic) which is run and performs nested sampling.
+
+        Returns
+        -------
+
+        """
+        config_dict_run = self.config_dict_run
+        config_dict_run.pop("maxcall")
+
+        iterations, total_iterations = self.iterations_from(sampler=sampler)
+
+        if iterations > 0:
+
+            sampler.run_nested(
+                maxcall=iterations,
+                print_progress=not self.silence,
+                checkpoint_file=self.checkpoint_file,
+                **config_dict_run
+            )
+
+        iterations_after_run = np.sum(sampler.results.ncall)
+
+        if (
+                total_iterations == iterations_after_run
+                or total_iterations == self.config_dict_run["maxcall"]
+        ):
+            return True
+        return False
 
     @property
-    def checkpoint_file(self):
+    def checkpoint_file(self) -> str:
+        """
+        The path to the file used by dynesty for checkpointing.
+        """
         return path.join(self.paths.samples_path, "savestate.save")
 
     def config_dict_with_test_mode_settings_from(self, config_dict):
@@ -214,7 +271,21 @@ class AbstractDynesty(AbstractNest, ABC):
             model,
             fitness_function
     ):
+        """
+        By default, dynesty live points are generated via the sampler's in-built initialization.
 
+        However, in test-mode this would take a long time to run, thus we overwrite the initial live points
+        with quickly generated samplers from the initializer.
+
+        Parameters
+        ----------
+        model
+        fitness_function
+
+        Returns
+        -------
+
+        """
         if os.environ.get("PYAUTOFIT_TEST_MODE") == "1":
 
             unit_parameters, parameters, log_likelihood_list = self.initializer.samples_from_model(
@@ -244,7 +315,8 @@ class AbstractDynesty(AbstractNest, ABC):
             self,
             model,
             fitness_function,
-            pool=None
+            pool,
+            queue_size
     ):
         raise NotImplementedError()
 
