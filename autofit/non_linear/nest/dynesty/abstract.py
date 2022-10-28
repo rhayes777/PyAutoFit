@@ -1,11 +1,11 @@
-from abc import ABC
-from dynesty.pool import Pool
-from dynesty import NestedSampler, DynamicNestedSampler
-import numpy as np
-from os import path
 import os
+from abc import ABC
+from dynesty import NestedSampler, DynamicNestedSampler
+from dynesty.pool import Pool
+from os import path
 from typing import Optional, Tuple, Union
 
+import numpy as np
 from autoconf import conf
 from autofit.database.sqlalchemy_ import sa
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
@@ -14,9 +14,10 @@ from autofit.non_linear.nest.abstract_nest import AbstractNest
 from autofit.non_linear.nest.dynesty.plotter import DynestyPlotter
 from autofit.plot.output import Output
 
+from autofit import exc
+
 
 def prior_transform(cube, model):
-
     phys_cube = model.vector_from_unit_vector(
         unit_vector=cube,
         ignore_prior_limits=True
@@ -102,7 +103,12 @@ class AbstractDynesty(AbstractNest, ABC):
         def history_save(self):
             pass
 
-    def _fit(self, model: AbstractPriorModel, analysis, log_likelihood_cap:Optional[float]=None):
+    def _fit(
+            self,
+            model: AbstractPriorModel,
+            analysis,
+            log_likelihood_cap: Optional[float] = None
+    ):
         """
         Fit a model using Dynesty and the Analysis class which contains the data and returns the log likelihood from
         instances of the model, which the `NonLinearSearch` seeks to maximize.
@@ -133,7 +139,9 @@ class AbstractDynesty(AbstractNest, ABC):
         """
 
         fitness_function = self.fitness_function_from_model_and_analysis(
-            model=model, analysis=analysis, log_likelihood_cap=log_likelihood_cap,
+            model=model,
+            analysis=analysis,
+            log_likelihood_cap=log_likelihood_cap,
         )
 
         if os.path.exists(self.checkpoint_file):
@@ -165,6 +173,14 @@ class AbstractDynesty(AbstractNest, ABC):
                     finished = self.run_sampler(sampler=sampler)
 
             except RuntimeError:
+
+                self.logger.info(
+                    """
+                    Your operating system does not support Python multiprocessing.
+                    
+                    A single CPU non-multiprocessing Dynesty run is being performed.
+                    """
+                )
 
                 sampler = self.sampler_from(
                     model=model,
@@ -202,7 +218,6 @@ class AbstractDynesty(AbstractNest, ABC):
             total_iterations = 0
 
         if self.config_dict_run["maxcall"] is not None:
-
             iterations = self.config_dict_run["maxcall"] - total_iterations
 
             return iterations, total_iterations
@@ -234,7 +249,6 @@ class AbstractDynesty(AbstractNest, ABC):
         iterations, total_iterations = self.iterations_from(sampler=sampler)
 
         if iterations > 0:
-
             sampler.run_nested(
                 maxcall=iterations,
                 print_progress=not self.silence,
@@ -244,12 +258,30 @@ class AbstractDynesty(AbstractNest, ABC):
 
         iterations_after_run = np.sum(sampler.results.ncall)
 
-        if (
-                total_iterations == iterations_after_run
-                or total_iterations == self.config_dict_run["maxcall"]
-        ):
-            return True
-        return False
+        return total_iterations == iterations_after_run or total_iterations == self.config_dict_run["maxcall"]
+
+    def write_uses_pool(self, uses_pool : bool) -> str:
+        """
+        If a Dynesty fit does not use a parallel pool, and is then resumed using one,
+        this causes significant slow down.
+
+        This file checks the original pool use so an exception can be raised to avoid this.
+        """
+        with open(path.join(self.paths.samples_path, "uses_pool.save"), "w+") as f:
+            if uses_pool:
+                f.write("True")
+            else:
+                f.write("")
+
+    def read_uses_pool(self) -> str:
+        """
+        If a Dynesty fit does not use a parallel pool, and is then resumed using one,
+        this causes significant slow down.
+
+        This file checks the original pool use so an exception can be raised to avoid this.
+        """
+        with open(path.join(self.paths.samples_path, "uses_pool.save"), "r+") as f:
+            return bool(f.read())
 
     @property
     def checkpoint_file(self) -> str:
@@ -305,7 +337,7 @@ class AbstractDynesty(AbstractNest, ABC):
 
             live_points = [init_unit_parameters, init_parameters, init_log_likelihood_list]
 
-            blobs = np.asarray(self.total_live_points*[False])
+            blobs = np.asarray(self.total_live_points * [False])
 
             live_points.append(blobs)
 
@@ -319,6 +351,21 @@ class AbstractDynesty(AbstractNest, ABC):
             queue_size
     ):
         raise NotImplementedError()
+
+    def check_pool(self, uses_pool : bool, pool: Pool):
+
+        if (uses_pool and pool is None) or (not uses_pool and pool is not None):
+            raise exc.SearchException(
+                """
+                A Dynesty sampler has been loaded and its pool type is not the same as the input pool type.
+
+                This means that the original samples in dynesty were computed with or without a 
+                multiprocessing pool, whereas the run is now trying to use a multiprocessing pool.
+
+                This could indiciate the number of cores have change values or Python multiprocessing
+                has been disabled and then enabled.
+                """
+            )
 
     def samples_from(self, model):
         """

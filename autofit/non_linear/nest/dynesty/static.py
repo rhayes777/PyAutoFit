@@ -130,22 +130,44 @@ class DynestyStatic(AbstractDynesty):
 
         try:
 
-            return StaticSampler.restore(
+            sampler = StaticSampler.restore(
                 fname=self.checkpoint_file,
                 pool=pool
             )
+
+            uses_pool = self.read_uses_pool()
+
+            self.check_pool(uses_pool=uses_pool, pool=pool)
+
+            return sampler
 
         except FileNotFoundError:
 
             live_points = self.live_points_init_from(model=model, fitness_function=fitness_function)
 
+            if pool is not None:
+
+                self.write_uses_pool(uses_pool=True)
+
+                return StaticSampler(
+                    loglikelihood=pool.loglike,
+                    prior_transform=pool.prior_transform,
+                    ndim=model.prior_count,
+                    live_points=live_points,
+                    queue_size=queue_size,
+                    pool=pool,
+                    **self.config_dict_search
+                )
+
+            self.write_uses_pool(uses_pool=False)
+
             return StaticSampler(
-                loglikelihood=pool.loglike,
-                prior_transform=pool.prior_transform,
+                loglikelihood=fitness_function,
+                prior_transform=prior_transform,
                 ndim=model.prior_count,
+                logl_args=[model, fitness_function],
+                ptform_args=[model],
                 live_points=live_points,
-                queue_size=queue_size,
-                pool=pool,
                 **self.config_dict_search
             )
 

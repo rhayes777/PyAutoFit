@@ -124,19 +124,34 @@ class DynestyDynamic(AbstractDynesty):
 
         try:
 
-            return DynamicNestedSampler.restore(
+            sampler = DynamicNestedSampler.restore(
                 fname=self.checkpoint_file,
                 pool=pool
             )
 
+            self.check_pool(sampler=sampler, pool=pool)
+
+            return sampler
+
         except FileNotFoundError:
 
+            if pool is not None:
+
+                return DynamicNestedSampler(
+                    loglikelihood=pool.loglike,
+                    prior_transform=pool.prior_transform,
+                    ndim=model.prior_count,
+                    queue_size=queue_size,
+                    pool=pool,
+                    **self.config_dict_search
+                )
+
             return DynamicNestedSampler(
-                loglikelihood=pool.loglike,
-                prior_transform=pool.prior_transform,
+                loglikelihood=fitness_function,
+                prior_transform=prior_transform,
                 ndim=model.prior_count,
-                queue_size=queue_size,
-                pool=pool,
+                logl_args=[model, fitness_function],
+                ptform_args=[model],
                 **self.config_dict_search
             )
 
