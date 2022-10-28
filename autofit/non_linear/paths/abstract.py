@@ -15,22 +15,20 @@ from autofit.mapper.identifier import Identifier, IdentifierField
 from autofit.text import text_util
 from autofit.tools.util import open_, zip_directory
 
-logger = logging.getLogger(
-    __name__
-)
+logger = logging.getLogger(__name__)
 
-pattern = re.compile(r'(?<!^)(?=[A-Z])')
+pattern = re.compile(r"(?<!^)(?=[A-Z])")
 
 
 class AbstractPaths(ABC):
     def __init__(
-            self,
-            name: Optional[str] = None,
-            path_prefix: Optional[str] = None,
-            is_identifier_in_paths=True,
-            parent: Optional["AbstractPaths"] = None,
-            unique_tag: Optional[str] = None,
-            identifier: str = None,
+        self,
+        name: Optional[str] = None,
+        path_prefix: Optional[str] = None,
+        is_identifier_in_paths=True,
+        parent: Optional["AbstractPaths"] = None,
+        unique_tag: Optional[str] = None,
+        identifier: str = None,
     ):
         """
         Manages the path structure for `NonLinearSearch` output, for analyses both not using and using the search
@@ -88,10 +86,7 @@ class AbstractPaths(ABC):
     def save_parent_identifier(self):
         pass
 
-    def save_unique_tag(
-            self,
-            is_grid_search=False
-    ):
+    def save_unique_tag(self, is_grid_search=False):
         pass
 
     def __str__(self):
@@ -110,10 +105,7 @@ class AbstractPaths(ABC):
 
     @parent.setter
     @abstractmethod
-    def parent(
-            self,
-            parent: "AbstractPaths"
-    ):
+    def parent(self, parent: "AbstractPaths"):
         pass
 
     @property
@@ -121,21 +113,16 @@ class AbstractPaths(ABC):
     def is_grid_search(self) -> bool:
         pass
 
-    def for_sub_analysis(
-            self,
-            analysis_name: str
-    ):
-        return self.create_child(
-            name=analysis_name
-        )
+    def for_sub_analysis(self, analysis_name: str):
+        return self.create_child(name=analysis_name)
 
     @abstractmethod
     def create_child(
-            self,
-            name: Optional[str] = None,
-            path_prefix: Optional[str] = None,
-            is_identifier_in_paths: Optional[bool] = None,
-            identifier: Optional[str] = None
+        self,
+        name: Optional[str] = None,
+        path_prefix: Optional[str] = None,
+        is_identifier_in_paths: Optional[bool] = None,
+        identifier: Optional[str] = None,
     ) -> "AbstractPaths":
         """
         Create a paths object which is the child of some parent
@@ -161,11 +148,7 @@ class AbstractPaths(ABC):
     unique_tag = IdentifierField()
 
     @abstractmethod
-    def save_named_instance(
-            self,
-            name: str,
-            instance
-    ):
+    def save_named_instance(self, name: str, instance):
         """
         Save an instance, such as that at a given sigma
         """
@@ -175,9 +158,7 @@ class AbstractPaths(ABC):
         if self._non_linear_name is None:
             if self.search is not None:
                 self._non_linear_name = pattern.sub(
-                    '_', type(
-                        self.search
-                    ).__name__
+                    "_", type(self.search).__name__
                 ).lower()
         return self._non_linear_name
 
@@ -189,15 +170,10 @@ class AbstractPaths(ABC):
                     "Generating identifier without both model and search having been set."
                 )
 
-            identifier_list = [
-                self.search,
-                self.model
-            ]
+            identifier_list = [self.search, self.model]
 
             if self.unique_tag is not None:
-                identifier_list.append(
-                    self.unique_tag
-                )
+                identifier_list.append(self.unique_tag)
             self.__identifier = Identifier(identifier_list)
 
         return self.__identifier
@@ -212,16 +188,11 @@ class AbstractPaths(ABC):
 
     def save_identifier(self):
         with open_(f"{self._sym_path}/.identifier", "w+") as f:
-            f.write(
-                self._identifier.description
-            )
+            f.write(self._identifier.description)
 
     @property
     def path(self):
-        os.makedirs(
-            self._sym_path,
-            exist_ok=True
-        )
+        os.makedirs(self._sym_path, exist_ok=True)
         return link.make_linked_folder(self._sym_path)
 
     @property
@@ -250,22 +221,12 @@ class AbstractPaths(ABC):
         """
         The path to the output information for a search.
         """
-        strings = (
-            list(filter(
-                len,
-                [
-                    str(conf.instance.output_path),
-                    self.path_prefix,
-                    self.name,
-                ],
-            )
-            )
+        strings = list(
+            filter(len, [str(conf.instance.output_path), self.path_prefix, self.name,],)
         )
 
         if self.is_identifier_in_paths:
-            strings.append(
-                self.identifier
-            )
+            strings.append(self.identifier)
 
         return path.join("", *strings)
 
@@ -279,25 +240,12 @@ class AbstractPaths(ABC):
     def _zip(self):
 
         try:
-            zip_directory(
-                self.output_path,
-                self._zip_path
-            )
+            zip_directory(self.output_path, self._zip_path)
 
             if self.remove_files:
-                if os.path.exists(
-                        self.path
-                ):
-                    shutil.rmtree(
-                        self.path,
-                        ignore_errors=True
-                    )
-                if os.path.exists(
-                        self.output_path
-                ):
-                    shutil.rmtree(
-                        self.output_path
-                    )
+                shutil.rmtree(
+                    self.output_path, ignore_errors=True,
+                )
 
         except FileNotFoundError:
             pass
@@ -308,10 +256,7 @@ class AbstractPaths(ABC):
         """
 
         if path.exists(self._zip_path):
-            shutil.rmtree(
-                self.output_path,
-                ignore_errors=True
-            )
+            shutil.rmtree(self.output_path, ignore_errors=True)
 
             try:
                 with zipfile.ZipFile(self._zip_path, "r") as f:
@@ -341,32 +286,19 @@ class AbstractPaths(ABC):
         return f"{self.output_path}.zip"
 
     @abstractmethod
-    def save_object(
-            self,
-            name: str,
-            obj: object
-    ):
+    def save_object(self, name: str, obj: object):
         pass
 
     @abstractmethod
-    def load_object(
-            self,
-            name: str
-    ):
+    def load_object(self, name: str):
         pass
 
     @abstractmethod
-    def remove_object(
-            self,
-            name: str
-    ):
+    def remove_object(self, name: str):
         pass
 
     @abstractmethod
-    def is_object(
-            self,
-            name: str
-    ) -> bool:
+    def is_object(self, name: str) -> bool:
         pass
 
     @property
@@ -379,12 +311,7 @@ class AbstractPaths(ABC):
         pass
 
     @abstractmethod
-    def save_all(
-            self,
-            search_config_dict=None,
-            info=None,
-            pickle_files=None
-    ):
+    def save_all(self, search_config_dict=None, info=None, pickle_files=None):
         pass
 
     @abstractmethod
@@ -415,9 +342,7 @@ class AbstractPaths(ABC):
 
     def save_summary(self, samples, log_likelihood_function_time):
 
-        result_info = text_util.result_info_from(
-            samples=samples,
-        )
+        result_info = text_util.result_info_from(samples=samples,)
 
         filename = path.join(self.output_path, "model.results")
 
@@ -427,10 +352,7 @@ class AbstractPaths(ABC):
         text_util.search_summary_to_file(
             samples=samples,
             log_likelihood_function_time=log_likelihood_function_time,
-            filename=path.join(
-                self.output_path,
-                "search.summary"
-            )
+            filename=path.join(self.output_path, "search.summary"),
         )
 
     @property
