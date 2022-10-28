@@ -21,8 +21,7 @@ class PatchPaths(af.DirectoryPaths):
 
 @pytest.fixture(name="paths")
 def make_paths():
-    paths = PatchPaths()
-    return paths
+    return PatchPaths()
 
 
 def test_restore(paths):
