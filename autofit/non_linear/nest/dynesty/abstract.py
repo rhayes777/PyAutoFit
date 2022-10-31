@@ -318,7 +318,6 @@ class AbstractDynesty(AbstractNest, ABC):
         -------
 
         """
-      #  if os.environ.get("PYAUTOFIT_TEST_MODE") == "1":
 
         unit_parameters, parameters, log_likelihood_list = self.initializer.samples_from_model(
             total_points=self.total_live_points,
@@ -337,7 +336,7 @@ class AbstractDynesty(AbstractNest, ABC):
 
         live_points = [init_unit_parameters, init_parameters, init_log_likelihood_list]
 
-        blobs = np.asarray(self.total_live_points * [False])
+        blobs = np.asarray(self.total_live_points * [None])
 
         live_points.append(blobs)
 
