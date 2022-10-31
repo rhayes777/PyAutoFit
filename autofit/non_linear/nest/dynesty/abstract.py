@@ -153,6 +153,11 @@ class AbstractDynesty(AbstractNest, ABC):
 
         while not finished:
 
+            if os.path.exists(self.checkpoint_file):
+                checkpoint_exists = True
+            else:
+                checkpoint_exists = False
+
             try:
 
                 with Pool(
@@ -166,8 +171,9 @@ class AbstractDynesty(AbstractNest, ABC):
                     sampler = self.sampler_from(
                         model=model,
                         fitness_function=fitness_function,
+                        checkpoint_exists=checkpoint_exists,
                         pool=pool,
-                        queue_size=self.number_of_cores
+                        queue_size=self.number_of_cores,
                     )
 
                     finished = self.run_sampler(sampler=sampler)
@@ -185,6 +191,7 @@ class AbstractDynesty(AbstractNest, ABC):
                 sampler = self.sampler_from(
                     model=model,
                     fitness_function=fitness_function,
+                    checkpoint_exists=checkpoint_exists,
                     pool=None,
                     queue_size=None
                 )
@@ -318,34 +325,36 @@ class AbstractDynesty(AbstractNest, ABC):
         -------
 
         """
+        if os.environ.get("PYAUTOFIT_TEST_MODE") == "1":
 
-        unit_parameters, parameters, log_likelihood_list = self.initializer.samples_from_model(
-            total_points=self.total_live_points,
-            model=model,
-            fitness_function=fitness_function,
-        )
+            unit_parameters, parameters, log_likelihood_list = self.initializer.samples_from_model(
+                total_points=self.total_live_points,
+                model=model,
+                fitness_function=fitness_function,
+            )
 
-        init_unit_parameters = np.zeros(shape=(self.total_live_points, model.prior_count))
-        init_parameters = np.zeros(shape=(self.total_live_points, model.prior_count))
-        init_log_likelihood_list = np.zeros(shape=(self.total_live_points))
+            init_unit_parameters = np.zeros(shape=(self.total_live_points, model.prior_count))
+            init_parameters = np.zeros(shape=(self.total_live_points, model.prior_count))
+            init_log_likelihood_list = np.zeros(shape=(self.total_live_points))
 
-        for i in range(len(parameters)):
-            init_unit_parameters[i, :] = np.asarray(unit_parameters[i])
-            init_parameters[i, :] = np.asarray(parameters[i])
-            init_log_likelihood_list[i] = np.asarray(log_likelihood_list[i])
+            for i in range(len(parameters)):
+                init_unit_parameters[i, :] = np.asarray(unit_parameters[i])
+                init_parameters[i, :] = np.asarray(parameters[i])
+                init_log_likelihood_list[i] = np.asarray(log_likelihood_list[i])
 
-        live_points = [init_unit_parameters, init_parameters, init_log_likelihood_list]
+            live_points = [init_unit_parameters, init_parameters, init_log_likelihood_list]
 
-        blobs = np.asarray(self.total_live_points * [None])
+            blobs = np.asarray(self.total_live_points * [False])
 
-        live_points.append(blobs)
+            live_points.append(blobs)
 
-        return live_points
+            return live_points
 
     def sampler_from(
             self,
             model,
             fitness_function,
+            checkpoint_exists,
             pool,
             queue_size
     ):

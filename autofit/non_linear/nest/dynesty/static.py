@@ -102,6 +102,7 @@ class DynestyStatic(AbstractDynesty):
             self,
             model: AbstractPriorModel,
             fitness_function,
+            checkpoint_exists : bool,
             pool: Optional[Pool],
             queue_size: Optional[int]
     ):
@@ -128,7 +129,7 @@ class DynestyStatic(AbstractDynesty):
             in the dynesty queue for samples.
         """
 
-        try:
+        if checkpoint_exists:
 
             sampler = StaticSampler.restore(
                 fname=self.checkpoint_file,
@@ -141,11 +142,9 @@ class DynestyStatic(AbstractDynesty):
 
             return sampler
 
-        except FileNotFoundError:
+        else:
 
             live_points = self.live_points_init_from(model=model, fitness_function=fitness_function)
-
-            print(live_points)
 
             if pool is not None:
 
