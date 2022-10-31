@@ -145,6 +145,8 @@ class DynestyStatic(AbstractDynesty):
 
             live_points = self.live_points_init_from(model=model, fitness_function=fitness_function)
 
+            print(live_points)
+
             if pool is not None:
 
                 self.write_uses_pool(uses_pool=True)
