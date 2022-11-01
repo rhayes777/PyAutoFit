@@ -70,3 +70,5 @@ class SamplesWarning(Warning):
     pass
 
 
+class SearchWarning(Warning):
+    pass

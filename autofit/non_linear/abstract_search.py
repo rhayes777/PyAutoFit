@@ -8,8 +8,9 @@ from collections import Counter
 from functools import wraps
 from os import path
 from typing import Dict, Optional, Union, Tuple, List
-
 import numpy as np
+import warnings
+
 from autoconf import conf
 
 from autofit import exc
@@ -198,7 +199,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         self.number_of_cores = number_of_cores
 
-        if number_of_cores > 1 and conf.instance["general"]["parallel"]["override_environment_variables"]:
+        if number_of_cores > 1 and conf.instance["general"]["parallel"]["warn_environment_variables"]:
 
             if os.environ.get("OPENBLAS_NUM_THREADS") != "1" or \
                 os.environ.get("MKL_NUM_THREADS") != "1" or \
@@ -206,17 +207,14 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                 os.environ.get("VECLIB_MAXIMUM_THREADS") != "1" or \
                 os.environ.get("NUMEXPR_NUM_THREADS") != "1":
 
-                os.environ["OPENBLAS_NUM_THREADS"] = "1"
-                os.environ["MKL_NUM_THREADS"] = "1"
-                os.environ["OMP_NUM_THREADS"] = "1"
-                os.environ["VECLIB_MAXIMUM_THREADS"] = "1"
-                os.environ["NUMEXPR_NUM_THREADS"] = "1"
-
-                self.logger.info(
+                warnings.warn(
+                    exc.SearchWarning(
                     """
+                    ***WARNING**
+                    
                     The non-linear search is using multiprocessing (number_of_cores>1). 
                     
-                    However, the following enviromental variables have not been set to 1:
+                    However, the following environment variables have not been set to 1:
                     
                     OPENBLAS_NUM_THREADS
                     MKL_NUM_THREADS
@@ -230,17 +228,23 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                     
                     This will lead to slow-down, due to overallocation of tasks over the CPUs.
                     
-                    To mitigate this, the environmental variables above have all been set to 1, to ensure that liberaries
-                    like NumPy, Scipy, scikit-learn etc., do not perform parallelization over multiple cores. 
+                    To mitigate this, set the environment variables to 1 via the following command on your
+                    bash terminal / command line:
                     
+                    export OPENBLAS_NUM_THREADS=1
+                    export MKL_NUM_THREADS=1
+                    export OMP_NUM_THREADS=1
+                    export VECLIB_MAXIMUM_THREADS=1
+                    export NUMEXPR_NUM_THREADS=1
+                 
                     This means only the non-linear search is parallelized over multiple cores.
                     
-                    If you "know what you are doing" and do not want these enviromental variables to be set to one, you 
-                    can disable the enviromental variable override by changing the following entry in the config
-                    files:
+                    If you "know what you are doing" and do not want these environment variables to be set to one, you 
+                    can disable this warning by changing the following entry in the config files:
                     
-                    `config -> general.ini -> [parallel] -> environment_variable_overrride=False`
+                    `config -> general.ini -> [parallel] -> warn_environment_variable=False`
                     """
+                    )
                 )
 
         self.optimisation_counter = Counter()
