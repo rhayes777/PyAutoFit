@@ -1,3 +1,4 @@
+import os
 from os import path
 
 import pytest
@@ -28,6 +29,42 @@ def make_result():
         model=mapper,
     )
 
+
+def test__environment_variable_override():
+
+    os.environ["OPENBLAS_NUM_THREADS"] = "2"
+    os.environ["MKL_NUM_THREADS"] = "2"
+    os.environ["OMP_NUM_THREADS"] = "2"
+    os.environ["VECLIB_MAXIMUM_THREADS"] = "2"
+    os.environ["NUMEXPR_NUM_THREADS"] = "2"
+
+    conf.instance["general"]["parallel"]["override_environment_variables"] = False
+
+    af.mock.MockSearch(number_of_cores=1)
+
+    assert os.environ.get("OPENBLAS_NUM_THREADS") == "2"
+    assert os.environ.get("MKL_NUM_THREADS") == "2"
+    assert os.environ.get("OMP_NUM_THREADS") == "2"
+    assert os.environ.get("VECLIB_MAXIMUM_THREADS") == "2"
+    assert os.environ.get("NUMEXPR_NUM_THREADS") == "2"
+
+    af.mock.MockSearch(number_of_cores=2)
+
+    assert os.environ.get("OPENBLAS_NUM_THREADS") == "2"
+    assert os.environ.get("MKL_NUM_THREADS") == "2"
+    assert os.environ.get("OMP_NUM_THREADS") == "2"
+    assert os.environ.get("VECLIB_MAXIMUM_THREADS") == "2"
+    assert os.environ.get("NUMEXPR_NUM_THREADS") == "2"
+
+    conf.instance["general"]["parallel"]["override_environment_variables"] = True
+
+    af.mock.MockSearch(number_of_cores=2)
+
+    assert os.environ.get("OPENBLAS_NUM_THREADS") == "1"
+    assert os.environ.get("MKL_NUM_THREADS") == "1"
+    assert os.environ.get("OMP_NUM_THREADS") == "1"
+    assert os.environ.get("VECLIB_MAXIMUM_THREADS") == "1"
+    assert os.environ.get("NUMEXPR_NUM_THREADS") == "1"
 
 class TestResult:
     def test_model(self, result):

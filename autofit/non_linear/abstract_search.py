@@ -198,6 +198,45 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         self.number_of_cores = number_of_cores
 
+        if number_of_cores > 1 and conf.instance["general"]["parallel"]["override_environment_variables"]:
+
+            os.environ["OPENBLAS_NUM_THREADS"] = "1"
+            os.environ["MKL_NUM_THREADS"] = "1"
+            os.environ["OMP_NUM_THREADS"] = "1"
+            os.environ["VECLIB_MAXIMUM_THREADS"] = "1"
+            os.environ["NUMEXPR_NUM_THREADS"] = "1"
+
+            self.logger.info(
+                """
+                The non-linear search is using multiprocessing (number_of_cores>1). 
+                
+                However, the following enviromental variables have not been set to 1:
+                
+                OPENBLAS_NUM_THREADS
+                MKL_NUM_THREADS
+                OMP_NUM_THREADS
+                VECLIB_MAXIMUM_THREADS
+                NUMEXPR_NUM_THREADS
+                
+                This can lead to performance issues, because both the non-linear search and libraries that may be
+                used in your `log_likelihood_function` evaluation (e.g. NumPy, SciPy, scikit-learn) may attempt to
+                parallelize over all cores available.
+                
+                This will lead to slow-down, due to overallocation of tasks over the CPUs.
+                
+                To mitigate this, the environmental variables above have all been set to 1, to ensure that liberaries
+                like NumPy, Scipy, scikit-learn etc., do not perform parallelization over multiple cores. 
+                
+                This means only the non-linear search is parallelized over multiple cores.
+                
+                If you "know what you are doing" and do not want these enviromental variables to be set to one, you 
+                can disable the enviromental variable override by changing the following entry in the config
+                files:
+                
+                `config -> general.ini -> [parallel] -> environment_variable_overrride=False`
+                """
+            )
+
         self.optimisation_counter = Counter()
 
     __identifier_fields__ = tuple()
