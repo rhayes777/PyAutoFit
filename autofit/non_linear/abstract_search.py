@@ -210,8 +210,6 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                 warnings.warn(
                     exc.SearchWarning(
                     """
-                    ***WARNING**
-                    
                     The non-linear search is using multiprocessing (number_of_cores>1). 
                     
                     However, the following environment variables have not been set to 1:
