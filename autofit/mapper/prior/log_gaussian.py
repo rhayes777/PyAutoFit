@@ -1,7 +1,7 @@
 from autofit.messages.normal import NormalMessage
 from .abstract import Prior
 from ...messages.composed_transform import TransformedMessage
-from ...messages.transform import phi_transform, LinearShiftTransform
+from ...messages.transform import phi_transform, LinearShiftTransform, log_transform
 
 
 class LogGaussianPrior(Prior):
@@ -18,7 +18,7 @@ class LogGaussianPrior(Prior):
         self.mean = mean
         self.sigma = sigma
 
-        message = TransformedMessage(NormalMessage(mean, sigma), phi_transform,)
+        message = TransformedMessage(NormalMessage(mean, sigma), log_transform,)
 
         super().__init__(
             message=message, lower_limit=0.0, upper_limit=float("inf"), id_=None,
