@@ -23,6 +23,15 @@ class TransformedMessage:
         self.base_message = base_message
         self.id_ = id_
 
+    def project(
+        self, samples, log_weight_list, **_,
+    ):
+        return TransformedMessage(
+            self.base_message.project(samples, log_weight_list),
+            *self.transforms,
+            id_=self.id_,
+        )
+
     @property
     def natural_parameters(self):
         return self.base_message.natural_parameters
