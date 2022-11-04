@@ -27,8 +27,62 @@ def update_array(arr1, ind, arr2):
     return arr2
 
 
-class AbstractMessage(ABC):
+class MessageInterface(ABC):
     log_base_measure: float
+
+    def pdf(self, x: np.ndarray) -> np.ndarray:
+        return np.exp(self.logpdf(x))
+
+    def logpdf(self, x: Union[np.ndarray, float]) -> np.ndarray:
+        eta = self._broadcast_natural_parameters(x)
+        t = self.to_canonical_form(x)
+        log_base = self.calc_log_base_measure(x)
+        return self.natural_logpdf(eta, t, log_base, self.log_partition)
+
+    def _broadcast_natural_parameters(self, x):
+        shape = np.shape(x)
+        if shape == self.shape:
+            return self.natural_parameters
+        elif shape[1:] == self.shape:
+            return self.natural_parameters[:, None, ...]
+        else:
+            raise ValueError(
+                f"shape of passed value {shape} does not "
+                f"match message shape {self.shape}"
+            )
+
+    @property
+    @abstractmethod
+    def shape(self):
+        pass
+
+    @cached_property
+    @abstractmethod
+    def natural_parameters(self):
+        pass
+
+    @staticmethod
+    @abstractmethod
+    def to_canonical_form(x: np.ndarray) -> np.ndarray:
+        pass
+
+    @classmethod
+    def calc_log_base_measure(cls, x):
+        return cls.log_base_measure
+
+    @cached_property
+    @abstractmethod
+    def log_partition(self) -> np.ndarray:
+        pass
+
+    @classmethod
+    def natural_logpdf(cls, eta, t, log_base, log_partition):
+        eta_t = np.multiply(eta, t).sum(0)
+        return np.nan_to_num(log_base + eta_t - log_partition, nan=-np.inf)
+
+
+class AbstractMessage(MessageInterface, ABC):
+
     _Base_class: Optional[Type["AbstractMessage"]] = None
     _projection_class: Optional[Type["AbstractMessage"]] = None
     _multivariate: bool = False
@@ -73,11 +127,6 @@ class AbstractMessage(ABC):
     def __bool__(self):
         return True
 
-    @cached_property
-    @abstractmethod
-    def natural_parameters(self):
-        pass
-
     @abstractmethod
     def sample(self, n_samples: Optional[int] = None):
         pass
@@ -87,16 +136,6 @@ class AbstractMessage(ABC):
     def invert_natural_parameters(
         natural_parameters: np.ndarray,
     ) -> Tuple[np.ndarray, ...]:
-        pass
-
-    @staticmethod
-    @abstractmethod
-    def to_canonical_form(x: np.ndarray) -> np.ndarray:
-        pass
-
-    @cached_property
-    @abstractmethod
-    def log_partition(self) -> np.ndarray:
         pass
 
     @cached_property
@@ -114,10 +153,6 @@ class AbstractMessage(ABC):
 
     def __hash__(self):
         return self.id
-
-    @classmethod
-    def calc_log_base_measure(cls, x):
-        return cls.log_base_measure
 
     def __iter__(self) -> Iterator[np.ndarray]:
         return iter(self.parameters)
@@ -296,35 +331,9 @@ class AbstractMessage(ABC):
 
     __repr__ = __str__
 
-    def pdf(self, x: np.ndarray) -> np.ndarray:
-        return np.exp(self.logpdf(x))
-
-    def _broadcast_natural_parameters(self, x):
-        shape = np.shape(x)
-        if shape == self.shape:
-            return self.natural_parameters
-        elif shape[1:] == self.shape:
-            return self.natural_parameters[:, None, ...]
-        else:
-            raise ValueError(
-                f"shape of passed value {shape} does not "
-                f"match message shape {self.shape}"
-            )
-
     def factor(self, x):
         # self.assert_within_limits(x)
         return self.logpdf(x)
-
-    def logpdf(self, x: Union[np.ndarray, float]) -> np.ndarray:
-        eta = self._broadcast_natural_parameters(x)
-        t = self.to_canonical_form(x)
-        log_base = self.calc_log_base_measure(x)
-        return self.natural_logpdf(eta, t, log_base, self.log_partition)
-
-    @classmethod
-    def natural_logpdf(cls, eta, t, log_base, log_partition):
-        eta_t = np.multiply(eta, t).sum(0)
-        return np.nan_to_num(log_base + eta_t - log_partition, nan=-np.inf)
 
     def numerical_logpdf_gradient(
         self, x: np.ndarray, eps: float = 1e-6
