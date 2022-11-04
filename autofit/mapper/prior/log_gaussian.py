@@ -21,7 +21,7 @@ class LogGaussianPrior(Prior):
         message = TransformedMessage(NormalMessage(mean, sigma), log_transform,)
 
         super().__init__(
-            message=message, lower_limit=0.0, upper_limit=float("inf"), id_=None,
+            message=message, lower_limit=lower_limit, upper_limit=upper_limit, id_=None,
         )
 
     def _new_for_base_message(self, message):
