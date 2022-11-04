@@ -3,10 +3,15 @@ from typing import Tuple, Optional
 import numpy as np
 
 from autoconf import cached_property
+from autofit.messages.abstract import MessageInterface
 from autofit.messages.transform import AbstractDensityTransform
 
 
-class TransformedMessage:
+class TransformedMessage(MessageInterface):
+    @property
+    def shape(self):
+        return self.base_message.shape
+
     def __new__(
         cls, base_message=None, *transforms: AbstractDensityTransform, id_=None
     ):
