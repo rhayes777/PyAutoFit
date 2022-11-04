@@ -38,6 +38,9 @@ class TransformedMessage(MessageInterface):
         kwargs["id_"] = kwargs.get("id_") or self.id
         return self.with_base(type(self.base_message)(*args, **kwargs))
 
+    def copy(self):
+        return TransformedMessage(self.base_message, *self.transforms, id_=self.id)
+
     def with_base(self, message):
         return TransformedMessage(message, *self.transforms, id_=self.id)
 

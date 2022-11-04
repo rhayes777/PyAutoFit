@@ -42,7 +42,7 @@ class UniformPrior(Prior):
             x += epsilon
         elif x == self.upper_limit:
             x -= epsilon
-        return self.instance().logpdf(x)
+        return self.message.logpdf(x)
 
     @property
     def parameter_string(self) -> str:
