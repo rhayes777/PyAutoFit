@@ -1,5 +1,4 @@
-import math
-from typing import Tuple, Optional, Union
+from typing import Tuple, Optional
 
 import numpy as np
 
@@ -33,6 +32,11 @@ class TransformedMessage:
             x = transform.inv_transform(x)
         return x
 
+    def transform_det(self, x):
+        for transform in self.transforms:
+            x = transform.log_det(x)
+        return x
+
     def invert_natural_parameters(
         self, natural_parameters: np.ndarray,
     ) -> Tuple[np.ndarray, ...]:
@@ -64,46 +68,41 @@ class TransformedMessage:
         return self.inverse_transform(self.base_message.mean)
 
     # @cached_property
-    @property
-    def variance(self) -> np.ndarray:
-        # noinspection PyUnresolvedReferences
-        jac = self._transform.jacobian(self.mean)
-        return jac.quad(self._Message.variance.func(self))
+    # @property
+    # def variance(self) -> np.ndarray:
+    #     # noinspection PyUnresolvedReferences
+    #     jac = self._transform.jacobian(self.mean)
+    #     return jac.quad(self._Message.variance.func(self))
 
     def _sample(self, n_samples) -> np.ndarray:
-        x = self.instance._sample(n_samples)
-        return self._transform.inv_transform(x)
+        x = self.base_message._sample(n_samples)
+        return self.inverse_transform(x)
 
-    @classmethod
-    def _factor(cls, self, x: np.ndarray,) -> np.ndarray:
-        x, log_det = cls._transform.transform_det(x)
-        eta = self._broadcast_natural_parameters(x)
-        t = cls._Message.to_canonical_form(x)
+    def _factor(self, _, x: np.ndarray,) -> np.ndarray:
+        x, log_det = self.transform_det(x)
+        eta = self.base_message._broadcast_natural_parameters(x)
+        t = self.base_message.to_canonical_form(x)
         log_base = self.calc_log_base_measure(x) + log_det
-        return self.natural_logpdf(eta, t, log_base, self.log_partition)
+        return self.base_message.natural_logpdf(eta, t, log_base, self.log_partition)
 
-    @classmethod
-    def _factor_gradient(cls, self, x: np.ndarray,) -> np.ndarray:
-        x, logd, logd_grad, jac = cls._transform.transform_det_jac(x)
-        logl, grad = cls._Message._logpdf_gradient(self, x)
-        return logl + logd, grad * jac + logd_grad
+    # def _factor_gradient(self, _, x: np.ndarray,) -> np.ndarray:
+    #     x, logd, logd_grad, jac = cls._transform.transform_det_jac(x)
+    #     logl, grad = cls._Message._logpdf_gradient(self, x)
+    #     return logl + logd, grad * jac + logd_grad
 
     def factor(self, x):
         return self._factor(self, x)
 
-    def factor_gradient(self, x):
-        return self._factor_gradient(self, x)
+    # def factor_gradient(self, x):
+    #     return self._factor_gradient(self, x)
 
-    @classmethod
-    def _logpdf_gradient(  # type: ignore
-        cls, self, x: np.ndarray,
-    ) -> Tuple[np.ndarray, np.ndarray]:
-        x, jac = cls._transform.transform_jac(x)
-        logl, grad = cls._Message._logpdf_gradient(self, x)
-        return logl, grad * jac
+    # @classmethod
+    # def _logpdf_gradient(  # type: ignore
+    #     cls, self, x: np.ndarray,
+    # ) -> Tuple[np.ndarray, np.ndarray]:
+    #     x, jac = cls._transform.transform_jac(x)
+    #     logl, grad = cls._Message._logpdf_gradient(self, x)
+    #     return logl, grad * jac
 
-    def sample(self, n_samples=None) -> np.ndarray:
-        return self._sample(n_samples)
-
-    def logpdf_gradient(self, x: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
-        return self._logpdf_gradient(self, x)
+    # def logpdf_gradient(self, x: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
+    #     return self._logpdf_gradient(self, x)
