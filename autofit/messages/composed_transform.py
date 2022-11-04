@@ -7,7 +7,9 @@ from autofit.messages.transform import AbstractDensityTransform
 
 
 class TransformedMessage:
-    def __new__(cls, base_message=None, *transforms: AbstractDensityTransform):
+    def __new__(
+        cls, base_message=None, *transforms: AbstractDensityTransform, id_=None
+    ):
         if isinstance(base_message, TransformedMessage):
             return TransformedMessage(
                 base_message.base_message, *(base_message.transforms + transforms)
@@ -15,10 +17,11 @@ class TransformedMessage:
         return object.__new__(TransformedMessage)
 
     def __init__(
-        self, base_message, *transforms: AbstractDensityTransform,
+        self, base_message, *transforms: AbstractDensityTransform, id_=None,
     ):
         self.transforms = transforms
         self.base_message = base_message
+        self.id_ = id_
 
     @property
     def natural_parameters(self):
