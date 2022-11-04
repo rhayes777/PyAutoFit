@@ -13,19 +13,9 @@ epsilon = 1e-14
 
 
 class Prior(Variable, ABC, ArithmeticMixin):
-    __database_args__ = (
-        "lower_limit",
-        "upper_limit",
-        "id_"
-    )
+    __database_args__ = ("lower_limit", "upper_limit", "id_")
 
-    def __init__(
-            self,
-            message,
-            lower_limit=0.0,
-            upper_limit=1.0,
-            id_=None
-    ):
+    def __init__(self, message, lower_limit=0.0, upper_limit=1.0, id_=None):
         """
         An object used to mappers a unit value to an attribute value for a specific
         class attribute.
@@ -37,10 +27,9 @@ class Prior(Variable, ABC, ArithmeticMixin):
         upper_limit: Float
             The highest value this prior can return
         """
-        super().__init__(
-            id_=id_
-        )
+        super().__init__(id_=id_)
         self.message = message
+        message.id_ = id_
 
         self.lower_limit = float(lower_limit)
         self.upper_limit = float(upper_limit)
@@ -82,11 +71,7 @@ class Prior(Variable, ABC, ArithmeticMixin):
         new.id = next(self._ids)
         return new
 
-    def with_limits(
-            self,
-            lower_limit: float,
-            upper_limit: float
-    ) -> "Prior":
+    def with_limits(self, lower_limit: float, upper_limit: float) -> "Prior":
         """
         Create a new instance of the same prior class with the passed limits.
         """
@@ -107,9 +92,7 @@ class Prior(Variable, ABC, ArithmeticMixin):
     def assert_within_limits(self, value):
         if conf.instance["general"]["model"]["ignore_prior_limits"]:
             return
-        if not (
-                self.lower_limit <= value <= self.upper_limit
-        ):
+        if not (self.lower_limit <= value <= self.upper_limit):
             raise exc.PriorLimitException(
                 "The physical value {} for a prior "
                 "was not within its limits {}, {}".format(
@@ -128,7 +111,7 @@ class Prior(Variable, ABC, ArithmeticMixin):
     def width(self):
         return self.upper_limit - self.lower_limit
 
-    def random(self, lower_limit=0.0, upper_limit=1.0, ) -> float:
+    def random(self, lower_limit=0.0, upper_limit=1.0,) -> float:
         """
         A random value sampled from this prior
         """
@@ -173,12 +156,9 @@ class Prior(Variable, ABC, ArithmeticMixin):
         return result
 
     def __getattr__(self, item):
-        if item in ('__setstate__', '__getstate__'):
+        if item in ("__setstate__", "__getstate__"):
             raise AttributeError(item)
-        return getattr(
-            self.message,
-            item
-        )
+        return getattr(self.message, item)
 
     def __eq__(self, other):
         try:
