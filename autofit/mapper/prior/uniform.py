@@ -2,35 +2,25 @@ from autofit.messages.normal import UniformNormalMessage
 from .abstract import Prior
 from .abstract import epsilon
 from .wrapped_instance import WrappedInstance
+from ...messages.composed_transform import TransformedMessage
+from ...messages.transform import LinearShiftTransform
 
 
 class UniformPrior(Prior):
     """A prior with a uniform distribution between a lower and upper limit"""
 
     def __init__(
-            self,
-            lower_limit=0.0,
-            upper_limit=1.0,
-            id_=None,
+        self, lower_limit=0.0, upper_limit=1.0, id_=None,
     ):
         lower_limit = float(lower_limit)
         upper_limit = float(upper_limit)
 
-        Message = UniformNormalMessage.shifted(
-            shift=lower_limit,
-            scale=upper_limit - lower_limit,
+        message = TransformedMessage(
+            UniformNormalMessage,
+            LinearShiftTransform(shift=lower_limit, scale=upper_limit - lower_limit),
         )
         super().__init__(
-            WrappedInstance(
-                Message,
-                0, 1,
-                lower_limit=lower_limit,
-                upper_limit=upper_limit,
-                id_=id_,
-            ),
-            lower_limit=lower_limit,
-            upper_limit=upper_limit,
-            id_=id_,
+            message, lower_limit=lower_limit, upper_limit=upper_limit, id_=id_,
         )
 
     @property
@@ -71,7 +61,9 @@ class UniformPrior(Prior):
         value: Float
             A value for the attribute between the upper and lower limits
         """
-        return round(super().value_for(unit, ignore_prior_limits=ignore_prior_limits), 14)
+        return round(
+            super().value_for(unit, ignore_prior_limits=ignore_prior_limits), 14
+        )
 
     # noinspection PyUnusedLocal
     @staticmethod

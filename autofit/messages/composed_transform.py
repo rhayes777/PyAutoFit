@@ -3,13 +3,19 @@ from typing import Tuple, Optional
 import numpy as np
 
 from autoconf import cached_property
-from autofit.messages import AbstractMessage
 from autofit.messages.transform import AbstractDensityTransform
 
 
 class TransformedMessage:
+    def __new__(cls, base_message, *transforms: AbstractDensityTransform):
+        if isinstance(base_message, TransformedMessage):
+            return TransformedMessage(
+                base_message.base_message, *(base_message.transforms + transforms)
+            )
+        return object.__new__(TransformedMessage)
+
     def __init__(
-        self, base_message: AbstractMessage, *transforms: AbstractDensityTransform,
+        self, base_message, *transforms: AbstractDensityTransform,
     ):
         self.transforms = transforms
         self.base_message = base_message

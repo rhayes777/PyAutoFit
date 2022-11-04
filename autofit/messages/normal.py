@@ -8,6 +8,7 @@ from scipy.stats import norm
 from autoconf import cached_property
 from autofit.mapper.operator import LinearOperator
 from autofit.messages.abstract import AbstractMessage
+from .composed_transform import TransformedMessage
 from .transform import (
     phi_transform,
     log_transform,
@@ -35,13 +36,13 @@ class NormalMessage(AbstractMessage):
     _parameter_support = ((-np.inf, np.inf), (0, np.inf))
 
     def __init__(
-            self,
-            mean,
-            sigma,
-            lower_limit=-math.inf,
-            upper_limit=math.inf,
-            log_norm=0.0,
-            id_=None,
+        self,
+        mean,
+        sigma,
+        lower_limit=-math.inf,
+        upper_limit=math.inf,
+        log_norm=0.0,
+        id_=None,
     ):
         if (np.array(sigma) < 0).any():
             raise exc.MessageException("Sigma cannot be negative")
@@ -104,14 +105,14 @@ class NormalMessage(AbstractMessage):
 
     def kl(self, dist):
         return (
-                np.log(dist.sigma / self.sigma)
-                + (self.sigma ** 2 + (self.mean - dist.mean) ** 2) / 2 / dist.sigma ** 2
-                - 1 / 2
+            np.log(dist.sigma / self.sigma)
+            + (self.sigma ** 2 + (self.mean - dist.mean) ** 2) / 2 / dist.sigma ** 2
+            - 1 / 2
         )
 
     @classmethod
     def from_mode(
-            cls, mode: np.ndarray, covariance: Union[float, LinearOperator] = 1.0, **kwargs
+        cls, mode: np.ndarray, covariance: Union[float, LinearOperator] = 1.0, **kwargs
     ):
         if isinstance(covariance, LinearOperator):
             variance = covariance.diagonal()
@@ -120,7 +121,7 @@ class NormalMessage(AbstractMessage):
         return cls(mode, np.abs(variance) ** 0.5, **kwargs)
 
     def _normal_gradient_hessian(
-            self, x: np.ndarray
+        self, x: np.ndarray
     ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         # raise Exception
         shape = np.shape(x)
@@ -200,16 +201,17 @@ class NaturalNormal(NormalMessage):
     """Identical to the NormalMessage but allows non-normalised values,
     e.g negative or infinite variances
     """
+
     _parameter_support = ((-np.inf, np.inf), (-np.inf, 0))
 
     def __init__(
-            self,
-            eta1,
-            eta2,
-            lower_limit=-math.inf,
-            upper_limit=math.inf,
-            log_norm=0.0,
-            id_=None,
+        self,
+        eta1,
+        eta2,
+        lower_limit=-math.inf,
+        upper_limit=math.inf,
+        log_norm=0.0,
+        id_=None,
     ):
         AbstractMessage.__init__(
             self,
@@ -228,7 +230,7 @@ class NaturalNormal(NormalMessage):
 
     @cached_property
     def mean(self):
-        return np.nan_to_num(- self.parameters[0] / self.parameters[1] / 2)
+        return np.nan_to_num(-self.parameters[0] / self.parameters[1] / 2)
 
     @staticmethod
     def calc_natural_parameters(eta1, eta2):
@@ -242,7 +244,7 @@ class NaturalNormal(NormalMessage):
     def invert_sufficient_statistics(cls, suff_stats):
         m1, m2 = suff_stats
         precision = 1 / (m2 - m1 ** 2)
-        return cls.calc_natural_parameters(m1 * precision, - precision / 2)
+        return cls.calc_natural_parameters(m1 * precision, -precision / 2)
 
     @staticmethod
     def invert_natural_parameters(natural_parameters):
@@ -250,7 +252,7 @@ class NaturalNormal(NormalMessage):
 
     @classmethod
     def from_mode(
-            cls, mode: np.ndarray, covariance: Union[float, LinearOperator] = 1.0, **kwargs
+        cls, mode: np.ndarray, covariance: Union[float, LinearOperator] = 1.0, **kwargs
     ):
         if isinstance(covariance, LinearOperator):
             precision = covariance.inv().diagonal()
@@ -258,13 +260,12 @@ class NaturalNormal(NormalMessage):
             mode, variance = cls._get_mean_variance(mode, covariance)
             precision = 1 / variance
 
-        return cls(mode * precision, - precision / 2, **kwargs)
+        return cls(mode * precision, -precision / 2, **kwargs)
 
 
-UniformNormalMessage = NormalMessage.transformed(phi_transform, "UniformNormalMessage")
-UniformNormalMessage.__module__ = __name__
+UniformNormalMessage = TransformedMessage(NormalMessage(0, 1), phi_transform)
 
-Log10UniformNormalMessage = UniformNormalMessage.transformed(log_10_transform)
+Log10UniformNormalMessage = TransformedMessage(UniformNormalMessage, log_10_transform)
 
 LogNormalMessage = NormalMessage.transformed(log_transform, "LogNormalMessage")
 
