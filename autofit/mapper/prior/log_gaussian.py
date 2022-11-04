@@ -1,25 +1,16 @@
-from autofit.messages.normal import LogNormalMessage
+from autofit.messages.normal import NormalMessage
 from .abstract import Prior
-from .wrapped_instance import WrappedInstance
+from ...messages.composed_transform import TransformedMessage
+from ...messages.transform import phi_transform, LinearShiftTransform
 
 
 class LogGaussianPrior(Prior):
     """A prior with a log gaussian distribution"""
 
-    __identifier_fields__ = (
-        "lower_limit",
-        "upper_limit",
-        "mean",
-        "sigma"
-    )
+    __identifier_fields__ = ("lower_limit", "upper_limit", "mean", "sigma")
 
     def __init__(
-            self,
-            mean,
-            sigma,
-            lower_limit=0.0,
-            upper_limit=float("inf"),
-            id_=None,
+        self, mean, sigma, lower_limit=0.0, upper_limit=float("inf"), id_=None,
     ):
         lower_limit = float(lower_limit)
         upper_limit = float(upper_limit)
@@ -27,25 +18,17 @@ class LogGaussianPrior(Prior):
         self.mean = mean
         self.sigma = sigma
 
-        message = WrappedInstance(
-            LogNormalMessage,
-            mean=mean,
-            sigma=sigma,
-            id_=id_,
-            lower_limit=lower_limit,
-            upper_limit=upper_limit,
-        )
-        super().__init__(
-            message=message,
-            lower_limit=0.0,
-            upper_limit=float("inf"),
-            id_=None,
+        message = TransformedMessage(
+            NormalMessage(mean, sigma),
+            phi_transform,
+            LinearShiftTransform(shift=lower_limit, scale=upper_limit - lower_limit),
         )
 
-    def _new_for_base_message(
-            self,
-            message
-    ):
+        super().__init__(
+            message=message, lower_limit=0.0, upper_limit=float("inf"), id_=None,
+        )
+
+    def _new_for_base_message(self, message):
         """
         Create a new instance of this wrapper but change the parameters used
         to instantiate the underlying message. This is useful for retaining
@@ -56,7 +39,7 @@ class LogGaussianPrior(Prior):
             *message.parameters,
             lower_limit=self.lower_limit,
             upper_limit=self.upper_limit,
-            id_=self.instance().id
+            id_=self.instance().id,
         )
 
     def value_for(self, unit, ignore_prior_limits=False):
