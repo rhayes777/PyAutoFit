@@ -7,7 +7,7 @@ from autofit.messages.transform import AbstractDensityTransform
 
 
 class TransformedMessage:
-    def __new__(cls, base_message, *transforms: AbstractDensityTransform):
+    def __new__(cls, base_message=None, *transforms: AbstractDensityTransform):
         if isinstance(base_message, TransformedMessage):
             return TransformedMessage(
                 base_message.base_message, *(base_message.transforms + transforms)
