@@ -4,6 +4,7 @@ from scipy import integrate
 
 from autofit.messages import transform
 from autofit.messages.beta import BetaMessage
+from autofit.messages.composed_transform import TransformedMessage
 from autofit.messages.gamma import GammaMessage
 from autofit.messages.normal import (
     NormalMessage,
@@ -11,7 +12,7 @@ from autofit.messages.normal import (
     LogNormalMessage,
     MultiLogitNormalMessage,
 )
-from autofit.messages.transform import numerical_jacobian
+from autofit.messages.transform import numerical_jacobian, LinearShiftTransform
 
 
 def check_dist_norm(dist):
@@ -70,7 +71,7 @@ def test_message_norm():
 
 N = NormalMessage
 UN = UniformNormalMessage
-SUN = UN.shifted(shift=0.3, scale=0.8)
+SUN = TransformedMessage(UN, LinearShiftTransform(shift=0.3, scale=0.8))
 LN = LogNormalMessage
 MLN = MultiLogitNormalMessage
 # test doubly transformed distributions
