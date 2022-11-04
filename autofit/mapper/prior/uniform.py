@@ -1,7 +1,6 @@
 from autofit.messages.normal import UniformNormalMessage
 from .abstract import Prior
 from .abstract import epsilon
-from .wrapped_instance import WrappedInstance
 from ...messages.composed_transform import TransformedMessage
 from ...messages.transform import LinearShiftTransform
 

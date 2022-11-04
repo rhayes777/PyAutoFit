@@ -29,6 +29,10 @@ def update_array(arr1, ind, arr2):
 
 class MessageInterface(ABC):
     log_base_measure: float
+    id: float
+
+    def __eq__(self, other):
+        return self.id == other.id
 
     def pdf(self, x: np.ndarray) -> np.ndarray:
         return np.exp(self.logpdf(x))
@@ -109,9 +113,6 @@ class AbstractMessage(MessageInterface, ABC):
             self.parameters = tuple(np.asanyarray(p) for p in parameters)
         else:
             self.parameters = tuple(parameters)
-
-    def __eq__(self, other):
-        return self.id == other.id
 
     def copy(self):
         cls = self._Base_class or type(self)

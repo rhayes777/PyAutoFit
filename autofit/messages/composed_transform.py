@@ -1,3 +1,4 @@
+import functools
 from typing import Tuple, Optional
 
 import numpy as np
@@ -5,6 +6,16 @@ import numpy as np
 from autoconf import cached_property
 from autofit.messages.abstract import MessageInterface
 from autofit.messages.transform import AbstractDensityTransform
+
+
+def arithmetic(func):
+    @functools.wraps(func)
+    def wrapper(self, other):
+        if isinstance(other, TransformedMessage):
+            other = other.base_message
+        return self.with_base(func(self, other))
+
+    return wrapper
 
 
 class TransformedMessage(MessageInterface):
@@ -26,7 +37,29 @@ class TransformedMessage(MessageInterface):
     ):
         self.transforms = transforms
         self.base_message = base_message
-        self.id_ = id_
+        self.id = id_
+
+    def with_base(self, message):
+        return TransformedMessage(message, *self.transforms, id_=self.id)
+
+    @arithmetic
+    def __mul__(self, other):
+        return self.base_message * other
+
+    @arithmetic
+    def __pow__(self, other):
+        return self.base_message ** other
+
+    def __rmul__(self, other):
+        return self.base_message * other
+
+    @arithmetic
+    def __truediv__(self, other):
+        return self.base_message / other
+
+    @arithmetic
+    def __sub__(self, other):
+        return self.base_message - other
 
     def project(
         self, samples, log_weight_list, **_,
@@ -34,7 +67,7 @@ class TransformedMessage(MessageInterface):
         return TransformedMessage(
             self.base_message.project(samples, log_weight_list),
             *self.transforms,
-            id_=self.id_,
+            id_=self.id,
         )
 
     @property

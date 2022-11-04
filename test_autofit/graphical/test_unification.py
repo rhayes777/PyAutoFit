@@ -136,7 +136,9 @@ def test_pickle_log_uniform_prior():
 
 @pytest.fixture(name="LogMessage")
 def make_log_message():
-    return UniformNormalMessage.shifted(shift=1, scale=2,).transformed(log_10_transform)
+    return TransformedMessage(
+        UniformNormalMessage, log_10_transform, LinearShiftTransform(shift=1, scale=2,),
+    )
 
 
 def test_pickle_transformed(LogMessage):

@@ -19,12 +19,7 @@ class TransformedWrapperInstance:
     def value_for(self, unit: float) -> float:
         return self.instance().value_for(unit)
 
-    def __init__(
-            self,
-            transformed_wrapper: "TransformedWrapper",
-            *args,
-            **kwargs
-    ):
+    def __init__(self, transformed_wrapper: "TransformedWrapper", *args, **kwargs):
         """
         Parameters
         ----------
@@ -48,23 +43,18 @@ class TransformedWrapperInstance:
         return self._new_for_base_message(self)
 
     def project(
-            self,
-            samples: np.ndarray,
-            log_weight_list: Optional[np.ndarray] = None,
-            **kwargs,
+        self,
+        samples: np.ndarray,
+        log_weight_list: Optional[np.ndarray] = None,
+        **kwargs,
     ):
         return self._new_for_base_message(
             self.transformed_wrapper.project(
-                samples=samples,
-                log_weight_list=log_weight_list,
-                **kwargs,
+                samples=samples, log_weight_list=log_weight_list, **kwargs,
             )
         )
 
-    def _new_for_base_message(
-            self,
-            message
-    ):
+    def _new_for_base_message(self, message):
         """
         Create a new instance of this wrapper but change the parameters used
         to instantiate the underlying message. This is useful for retaining
@@ -84,27 +74,17 @@ class TransformedWrapperInstance:
         Multiply this message by some other message. Effectively multiplies the
         underlying message whilst retaining the same transform stack.
         """
-        if isinstance(
-                other,
-                TransformedWrapperInstance
-        ):
+        if isinstance(other, TransformedWrapperInstance):
             other = other.instance()
-        return self._new_for_base_message(
-            self.instance() * other
-        )
+        return self._new_for_base_message(self.instance() * other)
 
     def __pow__(self, other):
         """
         Compute this message to the power of some value/
         """
-        if isinstance(
-                other,
-                TransformedWrapperInstance
-        ):
+        if isinstance(other, TransformedWrapperInstance):
             other = other.instance()
-        return self._new_for_base_message(
-            self.instance() * other
-        )
+        return self._new_for_base_message(self.instance() ** other)
 
     def __rmul__(self, other):
         return self * other
@@ -114,24 +94,16 @@ class TransformedWrapperInstance:
         Divide this message by some other message. Effectively divides the
         underlying message whilst retaining the same transform stack.
         """
-        return self._new_for_base_message(
-            self.instance() / other.instance()
-        )
+        return self._new_for_base_message(self.instance() / other.instance())
 
     def __sub__(self, other):
         instance = self.instance()
-        if isinstance(
-                other,
-                TransformedWrapperInstance
-        ):
+        if isinstance(other, TransformedWrapperInstance):
             other = other.instance()
         return instance - other
 
     def __eq__(self, other):
-        if not isinstance(
-                other,
-                TransformedWrapperInstance
-        ):
+        if not isinstance(other, TransformedWrapperInstance):
             return False
         return other.instance() == self.instance()
 
@@ -139,10 +111,7 @@ class TransformedWrapperInstance:
         """
         By default attributes are taken from the underlying message instance
         """
-        return getattr(
-            self.instance(),
-            item
-        )
+        return getattr(self.instance(), item)
 
     def update_invalid(self, other: "AbstractMessage") -> "TransformedWrapperInstance":
         valid = self.check_valid()
@@ -154,9 +123,7 @@ class TransformedWrapperInstance:
             # TODO: Fairly certain this would not work
             valid_parameters = iter(self if valid else other)
         return TransformedWrapperInstance(
-            self.transformed_wrapper,
-            *valid_parameters,
-            **self.kwargs,
+            self.transformed_wrapper, *valid_parameters, **self.kwargs,
         )
 
     def __iter__(self):
@@ -184,10 +151,7 @@ class TransformedWrapperInstance:
         underlying instance as this can be reconstructed.
         """
         return {
-            key: value
-            for key, value
-            in self.__dict__.items()
-            if "_instance" != key
+            key: value for key, value in self.__dict__.items() if "_instance" != key
         }
 
     def instance(self):
@@ -196,10 +160,7 @@ class TransformedWrapperInstance:
         """
         if self._instance is None:
             cls = self.transformed_wrapper.transformed_class()
-            self._instance = cls(
-                *self.args,
-                **self.kwargs,
-            )
+            self._instance = cls(*self.args, **self.kwargs,)
             self._instance.id = self.id
         return self._instance
 
@@ -207,18 +168,9 @@ class TransformedWrapperInstance:
     def factor(self):
         return self.instance().factor
 
-    def from_mode(
-            self,
-            mode: np.ndarray,
-            covariance: np.ndarray,
-            **kwargs
-    ):
+    def from_mode(self, mode: np.ndarray, covariance: np.ndarray, **kwargs):
         return self._new_for_base_message(
-            self.transformed_wrapper.from_mode(
-                mode,
-                covariance,
-                **kwargs
-            )
+            self.transformed_wrapper.from_mode(mode, covariance, **kwargs)
         )
 
 
@@ -231,11 +183,11 @@ class TransformedWrapper:
     InstanceWrapper = TransformedWrapperInstance
 
     def __init__(
-            self,
-            cls: Union[Type[AbstractMessage], "TransformedWrapper"],
-            transform: AbstractDensityTransform,
-            clsname: Optional[str] = None,
-            support: Optional[Tuple[Tuple[float, float], ...]] = None,
+        self,
+        cls: Union[Type[AbstractMessage], "TransformedWrapper"],
+        transform: AbstractDensityTransform,
+        clsname: Optional[str] = None,
+        support: Optional[Tuple[Tuple[float, float], ...]] = None,
     ):
         """
         Parameters
@@ -260,10 +212,7 @@ class TransformedWrapper:
         """
         By default attributes values are taken from the underlying message class
         """
-        return getattr(
-            self.transformed_class(),
-            item
-        )
+        return getattr(self.transformed_class(), item)
 
     def __call__(self, *args, **kwargs):
         """
@@ -271,43 +220,30 @@ class TransformedWrapper:
         passes arguments and keyword arguments to it for lazy instantiation
         of the underlying message.
         """
-        return self.InstanceWrapper(
-            self,
-            *args,
-            **kwargs
-        )
+        return self.InstanceWrapper(self, *args, **kwargs)
 
     def transformed(
-            self,
-            transform: Union[
-                AbstractDensityTransform,
-                Type[AbstractDensityTransform]
-            ],
-            clsname: Optional[str] = None,
-            support: Optional[Tuple[Tuple[float, float], ...]] = None,
-            wrapper_cls=None
+        self,
+        transform: Union[AbstractDensityTransform, Type[AbstractDensityTransform]],
+        clsname: Optional[str] = None,
+        support: Optional[Tuple[Tuple[float, float], ...]] = None,
+        wrapper_cls=None,
     ) -> "TransformedWrapper":
         """
         Apply a further transformation to an already transformed message
         """
         wrapper_cls = wrapper_cls or TransformedWrapper
         return wrapper_cls(
-            cls=self,
-            transform=transform,
-            clsname=clsname,
-            support=support,
+            cls=self, transform=transform, clsname=clsname, support=support,
         )
 
     def shifted(
-            self,
-            shift: float = 0,
-            scale: float = 1,
-            wrapper_cls=None,
+        self, shift: float = 0, scale: float = 1, wrapper_cls=None,
     ):
         return self.transformed(
             LinearShiftTransform(shift=shift, scale=scale),
             clsname=f"Shifted{self.transformed_class().__name__}",
-            wrapper_cls=wrapper_cls
+            wrapper_cls=wrapper_cls,
         )
 
     def __getstate__(self):
@@ -321,8 +257,7 @@ class TransformedWrapper:
         """
         return {
             key: value
-            for key, value
-            in self.__dict__.items()
+            for key, value in self.__dict__.items()
             if "__transformed_class" not in key
         }
 
@@ -352,6 +287,7 @@ class TransformedWrapper:
                 __qualname__ = clsname
                 _depth = depth
                 _Message = cls
+
         else:
             cls = self.cls
             clsname = self.clsname or f"Transformed{self.cls.__name__}"
@@ -362,13 +298,23 @@ class TransformedWrapper:
                 _depth = 1
 
         projectionClass = (
-            None if cls._projection_class is None
+            None
+            if cls._projection_class is None
             else cls._projection_class.transformed(self.transform)
         )
 
-        support = self.support or tuple(zip(*map(
-            self.transform.inv_transform, map(np.array, zip(*cls._support))
-        ))) if cls._support else cls._support
+        support = (
+            self.support
+            or tuple(
+                zip(
+                    *map(
+                        self.transform.inv_transform, map(np.array, zip(*cls._support))
+                    )
+                )
+            )
+            if cls._support
+            else cls._support
+        )
 
         Transformed._transform = self.transform
         Transformed._support = support
@@ -382,12 +328,7 @@ class TransformedWrapper:
         self.__transformed_class = None
         self.__dict__.update(state)
 
-    def from_mode(
-            self,
-            mode: np.ndarray,
-            covariance: np.ndarray,
-            **kwargs
-    ):
+    def from_mode(self, mode: np.ndarray, covariance: np.ndarray, **kwargs):
         mode, jac = self._transform.transform_jac(mode)
         if covariance.shape != ():
             covariance = jac.quad(covariance)
