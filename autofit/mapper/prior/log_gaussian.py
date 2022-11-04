@@ -18,11 +18,7 @@ class LogGaussianPrior(Prior):
         self.mean = mean
         self.sigma = sigma
 
-        message = TransformedMessage(
-            NormalMessage(mean, sigma),
-            phi_transform,
-            LinearShiftTransform(shift=lower_limit, scale=upper_limit - lower_limit),
-        )
+        message = TransformedMessage(NormalMessage(mean, sigma), phi_transform,)
 
         super().__init__(
             message=message, lower_limit=0.0, upper_limit=float("inf"), id_=None,
