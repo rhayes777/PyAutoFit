@@ -27,6 +27,7 @@ from autofit.mapper.variable import (
 )
 from autofit.mapper.variable_operator import VariableFullOperator
 from autofit.messages.abstract import AbstractMessage
+from autofit.messages.composed_transform import TransformedMessage
 from autofit.messages.fixed import FixedMessage
 from autofit.messages.transform_wrapper import TransformedWrapperInstance
 
@@ -42,7 +43,9 @@ Delta = Union[float, "MeanField"]
 
 
 def is_message(message):
-    return isinstance(message, (AbstractMessage, TransformedWrapperInstance))
+    return isinstance(
+        message, (AbstractMessage, TransformedWrapperInstance, TransformedMessage)
+    )
 
 
 # Does this need to be a Factor?
@@ -74,10 +77,10 @@ class MeanField(CollectionPriorModel, Dict[Variable, AbstractMessage], Factor):
     """
 
     def __init__(
-            self,
-            dists: Dict[Variable, Union[AbstractMessage, float]],
-            plates: Optional[Tuple[Plate, ...]] = None,
-            log_norm: np.ndarray = 0.0,
+        self,
+        dists: Dict[Variable, Union[AbstractMessage, float]],
+        plates: Optional[Tuple[Plate, ...]] = None,
+        log_norm: np.ndarray = 0.0,
     ):
         dict.__init__(self, dists)
         Factor.__init__(self, self._logpdf, *self, arg_names=[])
@@ -95,11 +98,7 @@ class MeanField(CollectionPriorModel, Dict[Variable, AbstractMessage], Factor):
 
     def __add__(self, other):
         return type(self)(
-            {
-                variable: message + other
-                for variable, message
-                in self.items()
-            },
+            {variable: message + other for variable, message in self.items()},
             plates=self.plates,
             log_norm=self.log_norm,
         )
@@ -112,11 +111,7 @@ class MeanField(CollectionPriorModel, Dict[Variable, AbstractMessage], Factor):
 
     def __neg__(self):
         return type(self)(
-            {
-                variable: -message
-                for variable, message
-                in self.items()
-            },
+            {variable: -message for variable, message in self.items()},
             plates=self.plates,
             log_norm=self.log_norm,
         )
@@ -216,7 +211,7 @@ class MeanField(CollectionPriorModel, Dict[Variable, AbstractMessage], Factor):
             if scale == 1:
                 rescaled[v] = message
             elif scale == 0:
-                rescaled[v] = 1.
+                rescaled[v] = 1.0
             else:
                 rescaled[v] = message ** scale
 
@@ -240,17 +235,21 @@ class MeanField(CollectionPriorModel, Dict[Variable, AbstractMessage], Factor):
 
     @property
     def lower_limit(self):
-        return VariableData({
-            v: np.full(m.shape, m.lower_limit) if m.shape else m.lower_limit
-            for v, m in self.items()
-        })
+        return VariableData(
+            {
+                v: np.full(m.shape, m.lower_limit) if m.shape else m.lower_limit
+                for v, m in self.items()
+            }
+        )
 
     @property
     def upper_limit(self):
-        return VariableData({
-            v: np.full(m.shape, m.upper_limit) if m.shape else m.upper_limit
-            for v, m in self.items()
-        })
+        return VariableData(
+            {
+                v: np.full(m.shape, m.upper_limit) if m.shape else m.upper_limit
+                for v, m in self.items()
+            }
+        )
 
     def precision(self, variables=None):
         variables = variables or self.all_variables
@@ -268,10 +267,7 @@ class MeanField(CollectionPriorModel, Dict[Variable, AbstractMessage], Factor):
         var_names = self.name_variable_dict
         return self.logpdf(dict(zip(self.args, args)))
 
-    def logpdf(
-            self,
-            values: Dict[Variable, np.ndarray],
-    ) -> np.ndarray:
+    def logpdf(self, values: Dict[Variable, np.ndarray],) -> np.ndarray:
         """Calculates the logpdf of the passed values for messages
 
         the result is broadcast to the appropriate shape given the variable
@@ -289,9 +285,7 @@ class MeanField(CollectionPriorModel, Dict[Variable, AbstractMessage], Factor):
         return logl, gradl
 
     def __repr__(self):
-        reprdict = (
-                "{\n" + "\n".join(f"  {k}: {v}" for k, v in self.items()) + "\n  }"
-        )
+        reprdict = "{\n" + "\n".join(f"  {k}: {v}" for k, v in self.items()) + "\n  }"
         classname = type(self).__name__
         return f"{classname}({reprdict}, log_norm={self.log_norm})"
 
@@ -301,10 +295,14 @@ class MeanField(CollectionPriorModel, Dict[Variable, AbstractMessage], Factor):
 
     def prod(self, *approxs: "MeanField", default=None) -> "MeanField":
         dists = [
-            (key, prod(
-                (other_mean_field.get(key, 1.0) for other_mean_field in approxs),
-                message)
-             ) for key, message in self.items()
+            (
+                key,
+                prod(
+                    (other_mean_field.get(key, 1.0) for other_mean_field in approxs),
+                    message,
+                ),
+            )
+            for key, message in self.items()
         ]
         if default is not None:
             dists = [
@@ -354,10 +352,10 @@ class MeanField(CollectionPriorModel, Dict[Variable, AbstractMessage], Factor):
         )
 
     def from_mode_covariance(
-            self,
-            mode: Dict[Variable, np.ndarray],
-            covar: Dict[Variable, np.ndarray],
-            fun: Optional[float] = None,
+        self,
+        mode: Dict[Variable, np.ndarray],
+        covar: Dict[Variable, np.ndarray],
+        fun: Optional[float] = None,
     ):
         """
         Projects the mode and covariance
@@ -390,24 +388,28 @@ class MeanField(CollectionPriorModel, Dict[Variable, AbstractMessage], Factor):
 
     @classmethod
     def from_dist(
-            cls, dist: Union[Dict[Variable, AbstractMessage], "MeanField"]
+        cls, dist: Union[Dict[Variable, AbstractMessage], "MeanField"]
     ) -> "MeanField":
         return dist if isinstance(dist, cls) else MeanField(dist)
 
     def update_factor_mean_field(
-            self,
-            cavity_dist: "MeanField",
-            last_dist: Optional["MeanField"] = None,
-            delta: Delta = 1.0,
-            status: Status = Status(),
+        self,
+        cavity_dist: "MeanField",
+        last_dist: Optional["MeanField"] = None,
+        delta: Delta = 1.0,
+        status: Status = Status(),
     ) -> Tuple["MeanField", Status]:
 
         success, messages, _, flag = status
         updated = False
         try:
-            with LogWarnings(logger=_log_projection_warnings, action='always') as caught_warnings:
+            with LogWarnings(
+                logger=_log_projection_warnings, action="always"
+            ) as caught_warnings:
                 if isinstance(delta, MeanField) or delta < 1:
-                    factor_dist = (self ** delta * last_dist ** (1 - delta)) / cavity_dist ** delta
+                    factor_dist = (
+                        self ** delta * last_dist ** (1 - delta)
+                    ) / cavity_dist ** delta
                 else:
                     factor_dist = self / cavity_dist
 
@@ -443,8 +445,15 @@ class MeanField(CollectionPriorModel, Dict[Variable, AbstractMessage], Factor):
             logger.exception(e)
             factor_dist = last_dist
 
-        return factor_dist, Status(
-            success=success, messages=messages, updated=updated, flag=flag, result=status.result,
+        return (
+            factor_dist,
+            Status(
+                success=success,
+                messages=messages,
+                updated=updated,
+                flag=flag,
+                result=status.result,
+            ),
         )
 
 
@@ -498,11 +507,11 @@ class FactorApproximation(AbstractNode):
     """
 
     def __init__(
-            self,
-            factor: Factor,
-            cavity_dist: MeanField,
-            factor_dist: MeanField,
-            model_dist: MeanField,
+        self,
+        factor: Factor,
+        cavity_dist: MeanField,
+        factor_dist: MeanField,
+        model_dist: MeanField,
     ):
         # Have to seperate FactorApproximation into two classes
         # in order to be able to redefine __new__
@@ -542,23 +551,19 @@ class FactorApproximation(AbstractNode):
         """
         return MeanField({v: self.cavity_dist[v] for v in self.deterministic_variables})
 
-    def __call__(
-            self,
-            values: Dict[Variable, np.ndarray],
-    ) -> FactorValue:
+    def __call__(self, values: Dict[Variable, np.ndarray],) -> FactorValue:
         variable_dict = {**self.fixed_values, **values}
         fval = self.factor(variable_dict)
         log_meanfield = self.cavity_dist({**variable_dict, **fval.deterministic_values})
         return np.sum(fval) + np.sum(log_meanfield)
 
     def func_jacobian(
-            self, values: Dict[Variable, np.ndarray]
+        self, values: Dict[Variable, np.ndarray]
     ) -> Tuple[FactorValue, AbstractJacobian]:
         raise NotImplementedError()
 
     def func_gradient(
-            self,
-            values: Dict[Variable, np.ndarray],
+        self, values: Dict[Variable, np.ndarray],
     ) -> Tuple[FactorValue, VariableData]:
         variable_dict = {**self.fixed_values, **values}
         fval, fjac = self.factor.func_jacobian(variable_dict)
@@ -574,17 +579,11 @@ class FactorApproximation(AbstractNode):
         return logl, grad
 
     def project_mean_field(
-            self,
-            model_dist: MeanField,
-            delta: Delta = 1.0,
-            status: Status = Status(),
+        self, model_dist: MeanField, delta: Delta = 1.0, status: Status = Status(),
     ) -> Tuple["FactorApproximation", Status]:
 
         factor_dist, status = model_dist.update_factor_mean_field(
-            self.cavity_dist,
-            last_dist=self.factor_dist,
-            delta=delta,
-            status=status,
+            self.cavity_dist, last_dist=self.factor_dist, delta=delta, status=status,
         )
         new_approx = FactorApproximation(
             self.factor,
