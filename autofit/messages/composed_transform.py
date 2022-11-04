@@ -23,21 +23,20 @@ class TransformedMessage(MessageInterface):
     def shape(self):
         return self.base_message.shape
 
-    def __new__(
-        cls, base_message=None, *transforms: AbstractDensityTransform, id_=None
-    ):
-        if isinstance(base_message, TransformedMessage):
-            return TransformedMessage(
-                base_message.base_message, *(base_message.transforms + transforms)
-            )
-        return object.__new__(TransformedMessage)
-
     def __init__(
         self, base_message, *transforms: AbstractDensityTransform, id_=None,
     ):
+        while isinstance(base_message, TransformedMessage):
+            transforms += base_message.transforms
+            base_message = base_message.base_message
+
         self.transforms = transforms
         self.base_message = base_message
         self.id = id_
+
+    def __call__(self, *args, **kwargs):
+        kwargs["id_"] = kwargs.get("id_") or self.id
+        return self.with_base(type(self.base_message)(*args, **kwargs))
 
     def with_base(self, message):
         return TransformedMessage(message, *self.transforms, id_=self.id)

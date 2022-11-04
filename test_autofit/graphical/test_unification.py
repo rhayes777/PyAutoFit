@@ -7,7 +7,7 @@ import pytest
 import autofit as af
 from autofit import graphical as g
 from autofit.messages.composed_transform import TransformedMessage
-from autofit.messages.normal import UniformNormalMessage
+from autofit.messages.normal import UniformNormalMessage, NormalMessage
 from autofit.messages.transform import log_10_transform, LinearShiftTransform
 
 
@@ -139,6 +139,14 @@ def make_log_message():
     return TransformedMessage(
         UniformNormalMessage, log_10_transform, LinearShiftTransform(shift=1, scale=2,),
     )
+
+
+def test_double_transform():
+    transformed = TransformedMessage(NormalMessage(0, 1), log_10_transform)
+    assert isinstance(transformed.base_message, NormalMessage)
+
+    transformed = TransformedMessage(transformed, log_10_transform)
+    assert isinstance(transformed.base_message, NormalMessage)
 
 
 def test_pickle_transformed(LogMessage):
