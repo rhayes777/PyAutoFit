@@ -67,6 +67,13 @@ class SearchException(Exception):
 
 
 class SamplesWarning(Warning):
+    """
+    Raises warnings associated with the `non_linear` module and `NonLinearSearch` classes.
+
+    For example if the search is parallel but enviromental variables controlling multithreading are sub-optimal.
+    """
     pass
 
 
+class SearchWarning(Warning):
+    pass

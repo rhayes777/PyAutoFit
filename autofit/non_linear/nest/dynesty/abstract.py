@@ -71,20 +71,21 @@ class AbstractDynesty(AbstractNest, ABC):
             An SQLalchemy session instance so the results of the model-fit are written to an SQLite database.
         """
 
+        number_of_cores = (
+            self._config("parallel", "number_of_cores")
+            if number_of_cores is None
+            else number_of_cores
+        )
+
         super().__init__(
             name=name,
             path_prefix=path_prefix,
             unique_tag=unique_tag,
             prior_passer=prior_passer,
             iterations_per_update=iterations_per_update,
+            number_of_cores=number_of_cores,
             session=session,
             **kwargs
-        )
-
-        self.number_of_cores = (
-            self._config("parallel", "number_of_cores")
-            if number_of_cores is None
-            else number_of_cores
         )
 
         self.logger.debug("Creating DynestyStatic Search")
@@ -153,6 +154,8 @@ class AbstractDynesty(AbstractNest, ABC):
 
         while not finished:
 
+            checkpoint_exists = os.path.exists(self.checkpoint_file)
+
             try:
 
                 with Pool(
@@ -166,8 +169,9 @@ class AbstractDynesty(AbstractNest, ABC):
                     sampler = self.sampler_from(
                         model=model,
                         fitness_function=fitness_function,
+                        checkpoint_exists=checkpoint_exists,
                         pool=pool,
-                        queue_size=self.number_of_cores
+                        queue_size=self.number_of_cores,
                     )
 
                     finished = self.run_sampler(sampler=sampler)
@@ -185,6 +189,7 @@ class AbstractDynesty(AbstractNest, ABC):
                 sampler = self.sampler_from(
                     model=model,
                     fitness_function=fitness_function,
+                    checkpoint_exists=checkpoint_exists,
                     pool=None,
                     queue_size=None
                 )
@@ -347,6 +352,7 @@ class AbstractDynesty(AbstractNest, ABC):
             self,
             model,
             fitness_function,
+            checkpoint_exists,
             pool,
             queue_size
     ):

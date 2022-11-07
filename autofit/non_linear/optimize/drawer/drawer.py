@@ -72,6 +72,8 @@ class Drawer(AbstractOptimizer):
             An SQLalchemy session instance so the results of the model-fit are written to an SQLite database.
         """
 
+        number_of_cores = 1
+
         super().__init__(
             name=name,
             path_prefix=path_prefix,
@@ -79,11 +81,10 @@ class Drawer(AbstractOptimizer):
             prior_passer=prior_passer,
             initializer=initializer,
             iterations_per_update=iterations_per_update,
+            number_of_cores=number_of_cores,
             session=session,
             **kwargs
         )
-
-        self.number_of_cores = 1
 
         self.logger.debug("Creating Drawer Search")
 

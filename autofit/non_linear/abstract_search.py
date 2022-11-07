@@ -8,8 +8,9 @@ from collections import Counter
 from functools import wraps
 from os import path
 from typing import Dict, Optional, Union, Tuple, List
-
 import numpy as np
+import warnings
+
 from autoconf import conf
 
 from autofit import exc
@@ -197,6 +198,52 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             pass
 
         self.number_of_cores = number_of_cores
+
+        if any(os.environ.get(key) != "1" for key in (
+                "OPENBLAS_NUM_THREADS",
+                "MKL_NUM_THREADS",
+                "OMP_NUM_THREADS",
+                "VECLIB_MAXIMUM_THREADS",
+                "NUMEXPR_NUM_THREADS"
+        )):
+
+            warnings.warn(
+                exc.SearchWarning(
+                """
+                The non-linear search is using multiprocessing (number_of_cores>1). 
+                
+                However, the following environment variables have not been set to 1:
+                
+                OPENBLAS_NUM_THREADS
+                MKL_NUM_THREADS
+                OMP_NUM_THREADS
+                VECLIB_MAXIMUM_THREADS
+                NUMEXPR_NUM_THREADS
+                
+                This can lead to performance issues, because both the non-linear search and libraries that may be
+                used in your `log_likelihood_function` evaluation (e.g. NumPy, SciPy, scikit-learn) may attempt to
+                parallelize over all cores available.
+                
+                This will lead to slow-down, due to overallocation of tasks over the CPUs.
+                
+                To mitigate this, set the environment variables to 1 via the following command on your
+                bash terminal / command line:
+                
+                export OPENBLAS_NUM_THREADS=1
+                export MKL_NUM_THREADS=1
+                export OMP_NUM_THREADS=1
+                export VECLIB_MAXIMUM_THREADS=1
+                export NUMEXPR_NUM_THREADS=1
+             
+                This means only the non-linear search is parallelized over multiple cores.
+                
+                If you "know what you are doing" and do not want these environment variables to be set to one, you 
+                can disable this warning by changing the following entry in the config files:
+                
+                `config -> general.ini -> [parallel] -> warn_environment_variable=False`
+                """
+                )
+            )
 
         self.optimisation_counter = Counter()
 

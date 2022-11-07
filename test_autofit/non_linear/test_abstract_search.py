@@ -1,6 +1,7 @@
+import os
 from os import path
-
 import pytest
+import warnings
 
 import autofit as af
 from autoconf import conf
@@ -28,6 +29,17 @@ def make_result():
         model=mapper,
     )
 
+
+def test__environment_variable_override():
+
+    os.environ["OPENBLAS_NUM_THREADS"] = "2"
+    os.environ["MKL_NUM_THREADS"] = "2"
+    os.environ["OMP_NUM_THREADS"] = "2"
+    os.environ["VECLIB_MAXIMUM_THREADS"] = "2"
+    os.environ["NUMEXPR_NUM_THREADS"] = "2"
+
+    with pytest.warns(af.exc.SearchWarning):
+        af.mock.MockSearch(number_of_cores=2)
 
 class TestResult:
     def test_model(self, result):
