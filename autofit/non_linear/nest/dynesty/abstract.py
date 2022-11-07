@@ -154,10 +154,7 @@ class AbstractDynesty(AbstractNest, ABC):
 
         while not finished:
 
-            if os.path.exists(self.checkpoint_file):
-                checkpoint_exists = True
-            else:
-                checkpoint_exists = False
+            checkpoint_exists = os.path.exists(self.checkpoint_file)
 
             try:
 
