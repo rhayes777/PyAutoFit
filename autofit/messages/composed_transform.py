@@ -154,13 +154,9 @@ class TransformedMessage(MessageInterface):
     # def factor_gradient(self, x):
     #     return self._factor_gradient(self, x)
 
-    @classmethod
-    def _logpdf_gradient(  # type: ignore
-        cls, self, x: np.ndarray,
-    ) -> Tuple[np.ndarray, np.ndarray]:
-        x, jac = cls._transform.transform_jac(x)
-        logl, grad = cls._Message._logpdf_gradient(self, x)
-        return logl, grad * jac
+    @property
+    def multivariate(self):
+        return self.base_message.multivariate
 
     def logpdf_gradient(self, x: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
         jacobians = []

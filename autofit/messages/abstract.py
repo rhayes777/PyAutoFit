@@ -84,6 +84,44 @@ class MessageInterface(ABC):
         eta_t = np.multiply(eta, t).sum(0)
         return np.nan_to_num(log_base + eta_t - log_partition, nan=-np.inf)
 
+    def numerical_logpdf_gradient(
+        self, x: np.ndarray, eps: float = 1e-6
+    ) -> Tuple[np.ndarray, np.ndarray]:
+        shape = np.shape(x)
+        if shape:
+            x0 = np.array(x, dtype=np.float64)
+            logl0 = self.logpdf(x0)
+            if self.multivariate:
+                grad_logl = np.empty(logl0.shape + x0.shape)
+                sl = tuple(slice(None) for _ in range(logl0.ndim))
+                with np.nditer(x0, flags=["multi_index"], op_flags=["readwrite"]) as it:
+                    for xv in it:
+                        xv += eps
+                        logl = self.logpdf(x0)
+                        grad_logl[sl + it.multi_index] = (logl - logl0) / eps
+                        xv -= eps
+            else:
+                l0 = logl0.sum()
+                grad_logl = np.empty_like(x0)
+                with np.nditer(x0, flags=["multi_index"], op_flags=["readwrite"]) as it:
+                    for xv in it:
+                        xv += eps
+                        logl = self.logpdf(x0).sum()  # type: ignore
+                        grad_logl[it.multi_index] = (logl - l0) / eps
+                        xv -= eps
+        else:
+            logl0 = self.logpdf(x)
+            grad_logl = (self.logpdf(x + eps) - logl0) / eps
+
+        return logl0, grad_logl
+
+    logpdf_gradient = numerical_logpdf_gradient
+
+    @property
+    @abstractmethod
+    def multivariate(self):
+        pass
+
 
 class AbstractMessage(MessageInterface, ABC):
 
@@ -113,6 +151,9 @@ class AbstractMessage(MessageInterface, ABC):
             self.parameters = tuple(np.asanyarray(p) for p in parameters)
         else:
             self.parameters = tuple(parameters)
+
+    def multivariate(self):
+        return self._multivariate
 
     def copy(self):
         cls = self._Base_class or type(self)
@@ -336,37 +377,6 @@ class AbstractMessage(MessageInterface, ABC):
         # self.assert_within_limits(x)
         return self.logpdf(x)
 
-    def numerical_logpdf_gradient(
-        self, x: np.ndarray, eps: float = 1e-6
-    ) -> Tuple[np.ndarray, np.ndarray]:
-        shape = np.shape(x)
-        if shape:
-            x0 = np.array(x, dtype=np.float64)
-            logl0 = self.logpdf(x0)
-            if self._multivariate:
-                grad_logl = np.empty(logl0.shape + x0.shape)
-                sl = tuple(slice(None) for _ in range(logl0.ndim))
-                with np.nditer(x0, flags=["multi_index"], op_flags=["readwrite"]) as it:
-                    for xv in it:
-                        xv += eps
-                        logl = self.logpdf(x0)
-                        grad_logl[sl + it.multi_index] = (logl - logl0) / eps
-                        xv -= eps
-            else:
-                l0 = logl0.sum()
-                grad_logl = np.empty_like(x0)
-                with np.nditer(x0, flags=["multi_index"], op_flags=["readwrite"]) as it:
-                    for xv in it:
-                        xv += eps
-                        logl = self.logpdf(x0).sum()  # type: ignore
-                        grad_logl[it.multi_index] = (logl - l0) / eps
-                        xv -= eps
-        else:
-            logl0 = self.logpdf(x)
-            grad_logl = (self.logpdf(x + eps) - logl0) / eps
-
-        return logl0, grad_logl
-
     def numerical_logpdf_gradient_hessian(
         self, x: np.ndarray, eps: float = 1e-6
     ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
@@ -411,7 +421,6 @@ class AbstractMessage(MessageInterface, ABC):
 
         return logl0, gradl0, hess_logl
 
-    logpdf_gradient = numerical_logpdf_gradient
     logpdf_gradient_hessian = numerical_logpdf_gradient_hessian
 
     @classmethod
