@@ -29,7 +29,12 @@ class TransformedMessage(MessageInterface):
         return self.base_message.shape
 
     def __init__(
-        self, base_message, *transforms: AbstractDensityTransform, id_=None,
+        self,
+        base_message,
+        *transforms: AbstractDensityTransform,
+        id_=None,
+        lower_limit=float("-inf"),
+        upper_limit=float("inf"),
     ):
         while isinstance(base_message, TransformedMessage):
             transforms += base_message.transforms
@@ -39,16 +44,11 @@ class TransformedMessage(MessageInterface):
         self.base_message = base_message
         self.id = id_
 
+        self.lower_limit = lower_limit
+        self.upper_limit = upper_limit
+
     def check_support(self) -> np.ndarray:
         return self.base_message.check_support()
-
-    @property
-    def upper_limit(self):
-        return self.base_message.upper_limit
-
-    @property
-    def lower_limit(self):
-        return self.base_message.lower_limit
 
     def __call__(self, *args, **kwargs):
         kwargs["id_"] = kwargs.get("id_") or self.id
@@ -197,6 +197,7 @@ class TransformedMessage(MessageInterface):
 
         if covariance.shape != ():
             covariance = jac.quad(covariance)
+
         return self.with_base(self.base_message.from_mode(mode, covariance, **kwargs))
 
     def update_invalid(self, other: "TransformedMessage") -> "MessageInterface":
