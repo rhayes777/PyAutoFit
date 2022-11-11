@@ -137,7 +137,7 @@ class TransformedMessage(MessageInterface):
         x = self.transform(x)
         return self.base_message.to_canonical_form(x)
 
-    @cached_property
+    @property
     def mean(self) -> np.ndarray:
         return self.inverse_transform(self.base_message.mean)
 
