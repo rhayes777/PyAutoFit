@@ -1,5 +1,7 @@
 from abc import ABC, abstractmethod
-from typing import Tuple
+from functools import reduce
+from operator import and_
+from typing import Tuple, Iterator
 from typing import Union
 
 import numpy as np
@@ -147,3 +149,30 @@ class MessageInterface(ABC):
         return logl0, gradl0, hess_logl
 
     logpdf_gradient_hessian = numerical_logpdf_gradient_hessian
+
+    @staticmethod
+    def _iter_dists(dists) -> Iterator[Union["MessageInterface", float]]:
+        for elem in dists:
+            from autofit.mapper.prior.wrapped_instance import WrappedInstance
+
+            if isinstance(elem, (WrappedInstance, MessageInterface)):
+                yield elem
+            elif np.isscalar(elem):
+                yield elem
+            else:
+                for dist in elem:
+                    yield dist
+
+    @abstractmethod
+    def check_support(self) -> np.ndarray:
+        pass
+
+    def check_finite(self) -> np.ndarray:
+        return np.isfinite(self.natural_parameters).all(0)
+
+    def check_valid(self) -> np.ndarray:
+        return self.check_finite() & self.check_support()
+
+    @cached_property
+    def is_valid(self) -> Union[np.ndarray, np.bool_]:
+        return np.all(self.check_finite()) and np.all(self.check_support())

@@ -58,6 +58,19 @@ class AbstractMessage(MessageInterface, ABC):
         else:
             self.parameters = tuple(parameters)
 
+    def check_support(self) -> np.ndarray:
+        if self._parameter_support is not None:
+            return reduce(
+                and_,
+                (
+                    (p >= support[0]) & (p <= support[1])
+                    for p, support in zip(self.parameters, self._parameter_support)
+                ),
+            )
+        elif self.ndim:
+            return np.array(True, dtype=bool, ndmin=self.ndim)
+        return np.array([True])
+
     @property
     def multivariate(self):
         return self._multivariate
@@ -358,19 +371,6 @@ class AbstractMessage(MessageInterface, ABC):
     def instance(self):
         return self
 
-    @staticmethod
-    def _iter_dists(dists) -> Iterator[Union["AbstractMessage", float]]:
-        for elem in dists:
-            from autofit.mapper.prior.wrapped_instance import WrappedInstance
-
-            if isinstance(elem, (AbstractMessage, WrappedInstance, MessageInterface)):
-                yield elem
-            elif np.isscalar(elem):
-                yield elem
-            else:
-                for dist in elem:
-                    yield dist
-
     def update_invalid(self, other: "AbstractMessage") -> "AbstractMessage":
         valid = self.check_valid()
         if self.ndim:
@@ -389,29 +389,6 @@ class AbstractMessage(MessageInterface, ABC):
             upper_limit=self.upper_limit,
         )
         return new
-
-    def check_support(self) -> np.ndarray:
-        if self._parameter_support is not None:
-            return reduce(
-                and_,
-                (
-                    (p >= support[0]) & (p <= support[1])
-                    for p, support in zip(self.parameters, self._parameter_support)
-                ),
-            )
-        elif self.ndim:
-            return np.array(True, dtype=bool, ndmin=self.ndim)
-        return np.array([True])
-
-    def check_finite(self) -> np.ndarray:
-        return np.isfinite(self.natural_parameters).all(0)
-
-    def check_valid(self) -> np.ndarray:
-        return self.check_finite() & self.check_support()
-
-    @cached_property
-    def is_valid(self) -> Union[np.ndarray, np.bool_]:
-        return np.all(self.check_finite()) and np.all(self.check_support())
 
     @staticmethod
     def _get_mean_variance(

@@ -34,6 +34,9 @@ class TransformedMessage(MessageInterface):
         self.base_message = base_message
         self.id = id_
 
+    def check_support(self) -> np.ndarray:
+        return self.base_message.check_support()
+
     @property
     def upper_limit(self):
         return self.base_message.upper_limit
