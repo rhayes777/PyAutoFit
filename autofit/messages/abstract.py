@@ -322,7 +322,7 @@ class AbstractMessage(MessageInterface, ABC):
             (
                 dist.natural_parameters
                 for dist in self._iter_dists(dists)
-                if isinstance(dist, AbstractMessage)
+                if isinstance(dist, MessageInterface)
             ),
             self.natural_parameters,
         )
@@ -351,7 +351,7 @@ class AbstractMessage(MessageInterface, ABC):
     _divide = sub_natural_parameters
 
     def __mul__(self, other: Union["AbstractMessage", Real]) -> "AbstractMessage":
-        if isinstance(other, AbstractMessage):
+        if isinstance(other, MessageInterface):
             return self._multiply(other)
         else:
             cls = self._Base_class or type(self)
@@ -368,7 +368,7 @@ class AbstractMessage(MessageInterface, ABC):
         return self * other
 
     def __truediv__(self, other: Union["AbstractMessage", Real]) -> "AbstractMessage":
-        if isinstance(other, AbstractMessage):
+        if isinstance(other, MessageInterface):
             return self._divide(other)
         else:
             cls = self._Base_class or type(self)
@@ -475,7 +475,13 @@ class AbstractMessage(MessageInterface, ABC):
             dist
             for dist in self._iter_dists(elems)
             if isinstance(
-                dist, (AbstractMessage, TransformedWrapperInstance, TransformedMessage)
+                dist,
+                (
+                    AbstractMessage,
+                    TransformedWrapperInstance,
+                    TransformedMessage,
+                    MessageInterface,
+                ),
             )
         ]
 
@@ -497,7 +503,7 @@ class AbstractMessage(MessageInterface, ABC):
         for elem in dists:
             from autofit.mapper.prior.wrapped_instance import WrappedInstance
 
-            if isinstance(elem, (AbstractMessage, WrappedInstance)):
+            if isinstance(elem, (AbstractMessage, WrappedInstance, MessageInterface)):
                 yield elem
             elif np.isscalar(elem):
                 yield elem
@@ -761,5 +767,5 @@ def map_dists(
     """
     for v in dists.keys() & values.keys():
         dist = dists[v]
-        if isinstance(dist, AbstractMessage):
+        if isinstance(dist, AbstractMessage, MessageInterface):
             yield v, getattr(dist, _call)(values[v])
