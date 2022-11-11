@@ -1,6 +1,4 @@
 from abc import ABC, abstractmethod
-from functools import reduce
-from operator import and_
 from typing import Tuple, Iterator
 from typing import Union
 
@@ -176,3 +174,7 @@ class MessageInterface(ABC):
     @cached_property
     def is_valid(self) -> Union[np.ndarray, np.bool_]:
         return np.all(self.check_finite()) and np.all(self.check_support())
+
+    @abstractmethod
+    def update_invalid(self, other: "MessageInterface") -> "MessageInterface":
+        pass

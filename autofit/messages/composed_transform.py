@@ -193,3 +193,6 @@ class TransformedMessage(MessageInterface):
         if covariance.shape != ():
             covariance = jac.quad(covariance)
         return self.with_base(self.base_message.from_mode(mode, covariance, **kwargs))
+
+    def update_invalid(self, other: "TransformedMessage") -> "MessageInterface":
+        return self.with_base(self.base_message.update_invalid(other.base_message))
