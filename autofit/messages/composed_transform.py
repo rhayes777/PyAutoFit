@@ -19,6 +19,11 @@ def arithmetic(func):
 
 
 class TransformedMessage(MessageInterface):
+    def from_natural_parameters(self, new_params, **kwargs):
+        return self.with_base(
+            self.base_message.from_natural_parameters(new_params, **kwargs,)
+        )
+
     @property
     def shape(self):
         return self.base_message.shape
@@ -196,3 +201,7 @@ class TransformedMessage(MessageInterface):
 
     def update_invalid(self, other: "TransformedMessage") -> "MessageInterface":
         return self.with_base(self.base_message.update_invalid(other.base_message))
+
+    @property
+    def log_base_measure(self):
+        return self.base_message.log_base_measure

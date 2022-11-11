@@ -186,43 +186,6 @@ class AbstractMessage(MessageInterface, ABC):
         cls_ = cls._projection_class or cls._Base_class or cls
         return cls_.from_natural_parameters(natural_params, **kwargs)
 
-    def sum_natural_parameters(self, *dists: "AbstractMessage") -> "AbstractMessage":
-        """return the unnormalised result of multiplying the pdf
-        of this distribution with another distribution of the same
-        type
-        """
-        new_params = sum(
-            (
-                dist.natural_parameters
-                for dist in self._iter_dists(dists)
-                if isinstance(dist, MessageInterface)
-            ),
-            self.natural_parameters,
-        )
-        return self.from_natural_parameters(
-            new_params,
-            id_=self.id,
-            lower_limit=self.lower_limit,
-            upper_limit=self.upper_limit,
-        )
-
-    def sub_natural_parameters(self, other: "AbstractMessage") -> "AbstractMessage":
-        """return the unnormalised result of dividing the pdf
-        of this distribution with another distribution of the same
-        type"""
-        log_norm = self.log_norm - other.log_norm
-        new_params = self.natural_parameters - other.natural_parameters
-        return self.from_natural_parameters(
-            new_params,
-            log_norm=log_norm,
-            id_=self.id,
-            lower_limit=self.lower_limit,
-            upper_limit=self.upper_limit,
-        )
-
-    _multiply = sum_natural_parameters
-    _divide = sub_natural_parameters
-
     def __mul__(self, other: Union["AbstractMessage", Real]) -> "AbstractMessage":
         if isinstance(other, MessageInterface):
             return self._multiply(other)
