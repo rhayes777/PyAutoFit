@@ -47,3 +47,19 @@ def test_factor(message, old_message, x):
 
 def test_variance(message, old_message):
     assert message.variance == old_message.variance
+
+
+def test_value_for(message, old_message, x):
+    assert message.value_for(x) == old_message.value_for(x)
+
+
+# from_natural_parameters
+# check_support
+# project
+# invert_natural_parameters
+# cdf
+# invert_sufficient_statistics
+# _sample
+# from_mode
+# update_invalid
+# log_base_measure
