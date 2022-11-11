@@ -65,6 +65,7 @@ def test_trivial():
     prior = af.UniformPrior(lower_limit=10, upper_limit=20)
 
     assert prior.mean == 15
+    assert not np.isnan(prior.variance)
 
     prior_model = af.Collection(value=prior)
 

@@ -141,7 +141,7 @@ class TransformedMessage(MessageInterface):
     def mean(self) -> np.ndarray:
         return self.inverse_transform(self.base_message.mean)
 
-    @cached_property
+    @property
     def variance(self) -> np.ndarray:
         # noinspection PyUnresolvedReferences
         variance = self.base_message.variance

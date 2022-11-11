@@ -1,5 +1,6 @@
 import pytest
 
+from autofit import UniformPrior
 from autofit.messages import UniformNormalMessage, NormalMessage
 from autofit.messages.transform import phi_transform
 
@@ -51,6 +52,13 @@ def test_variance(message, old_message):
 
 def test_value_for(message, old_message, x):
     assert message.value_for(x) == old_message.value_for(x)
+
+
+def test_variance_2():
+    old_message = OldUniformNormalMessage.shifted(shift=10, scale=20)(0, 1)
+    message = UniformPrior(lower_limit=10, upper_limit=20).message
+
+    assert old_message.variance == message.variance
 
 
 # from_natural_parameters
