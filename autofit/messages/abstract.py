@@ -15,6 +15,8 @@ from autoconf import cached_property
 from .transform import AbstractDensityTransform, LinearShiftTransform
 from ..mapper.variable import Variable
 
+from .interface import MessageInterface
+
 enforce_id_match = True
 
 
@@ -25,148 +27,6 @@ def update_array(arr1, ind, arr2):
         return out
 
     return arr2
-
-
-class MessageInterface(ABC):
-    log_base_measure: float
-    id: float
-
-    def __eq__(self, other):
-        return self.id == other.id
-
-    def pdf(self, x: np.ndarray) -> np.ndarray:
-        return np.exp(self.logpdf(x))
-
-    def logpdf(self, x: Union[np.ndarray, float]) -> np.ndarray:
-        eta = self._broadcast_natural_parameters(x)
-        t = self.to_canonical_form(x)
-        log_base = self.calc_log_base_measure(x)
-        return self.natural_logpdf(eta, t, log_base, self.log_partition)
-
-    def _broadcast_natural_parameters(self, x):
-        shape = np.shape(x)
-        if shape == self.shape:
-            return self.natural_parameters
-        elif shape[1:] == self.shape:
-            return self.natural_parameters[:, None, ...]
-        else:
-            raise ValueError(
-                f"shape of passed value {shape} does not "
-                f"match message shape {self.shape}"
-            )
-
-    @property
-    @abstractmethod
-    def shape(self):
-        pass
-
-    @cached_property
-    @abstractmethod
-    def natural_parameters(self):
-        pass
-
-    @staticmethod
-    @abstractmethod
-    def to_canonical_form(x: np.ndarray) -> np.ndarray:
-        pass
-
-    @classmethod
-    def calc_log_base_measure(cls, x):
-        return cls.log_base_measure
-
-    @cached_property
-    @abstractmethod
-    def log_partition(self) -> np.ndarray:
-        pass
-
-    @classmethod
-    def natural_logpdf(cls, eta, t, log_base, log_partition):
-        eta_t = np.multiply(eta, t).sum(0)
-        return np.nan_to_num(log_base + eta_t - log_partition, nan=-np.inf)
-
-    def numerical_logpdf_gradient(
-        self, x: np.ndarray, eps: float = 1e-6
-    ) -> Tuple[np.ndarray, np.ndarray]:
-        shape = np.shape(x)
-        if shape:
-            x0 = np.array(x, dtype=np.float64)
-            logl0 = self.logpdf(x0)
-            if self.multivariate:
-                grad_logl = np.empty(logl0.shape + x0.shape)
-                sl = tuple(slice(None) for _ in range(logl0.ndim))
-                with np.nditer(x0, flags=["multi_index"], op_flags=["readwrite"]) as it:
-                    for xv in it:
-                        xv += eps
-                        logl = self.logpdf(x0)
-                        grad_logl[sl + it.multi_index] = (logl - logl0) / eps
-                        xv -= eps
-            else:
-                l0 = logl0.sum()
-                grad_logl = np.empty_like(x0)
-                with np.nditer(x0, flags=["multi_index"], op_flags=["readwrite"]) as it:
-                    for xv in it:
-                        xv += eps
-                        logl = self.logpdf(x0).sum()  # type: ignore
-                        grad_logl[it.multi_index] = (logl - l0) / eps
-                        xv -= eps
-        else:
-            logl0 = self.logpdf(x)
-            grad_logl = (self.logpdf(x + eps) - logl0) / eps
-
-        return logl0, grad_logl
-
-    logpdf_gradient = numerical_logpdf_gradient
-
-    @property
-    @abstractmethod
-    def multivariate(self):
-        pass
-
-    def numerical_logpdf_gradient_hessian(
-        self, x: np.ndarray, eps: float = 1e-6
-    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
-        shape = np.shape(x)
-        if shape:
-            x0 = np.array(x, dtype=np.float64)
-            if self.multivariate:
-                logl0, gradl0 = self.numerical_logpdf_gradient(x0)
-                hess_logl = np.empty(gradl0.shape + x0.shape)
-                sl = tuple(slice(None) for _ in range(gradl0.ndim))
-                with np.nditer(x0, flags=["multi_index"], op_flags=["readwrite"]) as it:
-                    for xv in it:
-                        xv += eps
-                        _, gradl = self.numerical_logpdf_gradient(x0)
-                        hess_logl[sl + it.multi_index] = (gradl - gradl0) / eps
-                        xv -= eps
-            else:
-                logl0 = self.logpdf(x0)
-                l0 = logl0.sum()
-                grad_logl = np.empty_like(x0)
-                hess_logl = np.empty_like(x0)
-                with np.nditer(x0, flags=["multi_index"], op_flags=["readwrite"]) as it:
-                    for xv in it:
-                        xv += eps
-                        l1 = self.logpdf(x0).sum()
-                        xv -= 2 * eps
-                        l2 = self.logpdf(x0).sum()
-                        g1 = (l1 - l0) / eps
-                        g2 = (l0 - l2) / eps
-                        grad_logl[it.multi_index] = g1
-                        hess_logl[it.multi_index] = (g1 - g2) / eps
-                        xv += eps
-
-                gradl0 = grad_logl
-        else:
-            logl0 = self.logpdf(x)
-            logl1 = self.logpdf(x + eps)
-            logl2 = self.logpdf(x - eps)
-            gradl0 = (logl1 - logl0) / eps
-            gradl1 = (logl0 - logl2) / eps
-            hess_logl = (gradl0 - gradl1) / eps
-
-        return logl0, gradl0, hess_logl
-
-    logpdf_gradient_hessian = numerical_logpdf_gradient_hessian
 
 
 class AbstractMessage(MessageInterface, ABC):
