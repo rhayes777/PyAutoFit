@@ -152,6 +152,7 @@ class AbstractMessage(MessageInterface, ABC):
         else:
             self.parameters = tuple(parameters)
 
+    @property
     def multivariate(self):
         return self._multivariate
 
