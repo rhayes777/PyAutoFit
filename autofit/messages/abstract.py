@@ -122,6 +122,52 @@ class MessageInterface(ABC):
     def multivariate(self):
         pass
 
+    def numerical_logpdf_gradient_hessian(
+        self, x: np.ndarray, eps: float = 1e-6
+    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+        shape = np.shape(x)
+        if shape:
+            x0 = np.array(x, dtype=np.float64)
+            if self.multivariate:
+                logl0, gradl0 = self.numerical_logpdf_gradient(x0)
+                hess_logl = np.empty(gradl0.shape + x0.shape)
+                sl = tuple(slice(None) for _ in range(gradl0.ndim))
+                with np.nditer(x0, flags=["multi_index"], op_flags=["readwrite"]) as it:
+                    for xv in it:
+                        xv += eps
+                        _, gradl = self.numerical_logpdf_gradient(x0)
+                        hess_logl[sl + it.multi_index] = (gradl - gradl0) / eps
+                        xv -= eps
+            else:
+                logl0 = self.logpdf(x0)
+                l0 = logl0.sum()
+                grad_logl = np.empty_like(x0)
+                hess_logl = np.empty_like(x0)
+                with np.nditer(x0, flags=["multi_index"], op_flags=["readwrite"]) as it:
+                    for xv in it:
+                        xv += eps
+                        l1 = self.logpdf(x0).sum()
+                        xv -= 2 * eps
+                        l2 = self.logpdf(x0).sum()
+                        g1 = (l1 - l0) / eps
+                        g2 = (l0 - l2) / eps
+                        grad_logl[it.multi_index] = g1
+                        hess_logl[it.multi_index] = (g1 - g2) / eps
+                        xv += eps
+
+                gradl0 = grad_logl
+        else:
+            logl0 = self.logpdf(x)
+            logl1 = self.logpdf(x + eps)
+            logl2 = self.logpdf(x - eps)
+            gradl0 = (logl1 - logl0) / eps
+            gradl1 = (logl0 - logl2) / eps
+            hess_logl = (gradl0 - gradl1) / eps
+
+        return logl0, gradl0, hess_logl
+
+    logpdf_gradient_hessian = numerical_logpdf_gradient_hessian
+
 
 class AbstractMessage(MessageInterface, ABC):
 
@@ -377,52 +423,6 @@ class AbstractMessage(MessageInterface, ABC):
     def factor(self, x):
         # self.assert_within_limits(x)
         return self.logpdf(x)
-
-    def numerical_logpdf_gradient_hessian(
-        self, x: np.ndarray, eps: float = 1e-6
-    ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
-        shape = np.shape(x)
-        if shape:
-            x0 = np.array(x, dtype=np.float64)
-            if self._multivariate:
-                logl0, gradl0 = self.numerical_logpdf_gradient(x0)
-                hess_logl = np.empty(gradl0.shape + x0.shape)
-                sl = tuple(slice(None) for _ in range(gradl0.ndim))
-                with np.nditer(x0, flags=["multi_index"], op_flags=["readwrite"]) as it:
-                    for xv in it:
-                        xv += eps
-                        _, gradl = self.numerical_logpdf_gradient(x0)
-                        hess_logl[sl + it.multi_index] = (gradl - gradl0) / eps
-                        xv -= eps
-            else:
-                logl0 = self.logpdf(x0)
-                l0 = logl0.sum()
-                grad_logl = np.empty_like(x0)
-                hess_logl = np.empty_like(x0)
-                with np.nditer(x0, flags=["multi_index"], op_flags=["readwrite"]) as it:
-                    for xv in it:
-                        xv += eps
-                        l1 = self.logpdf(x0).sum()
-                        xv -= 2 * eps
-                        l2 = self.logpdf(x0).sum()
-                        g1 = (l1 - l0) / eps
-                        g2 = (l0 - l2) / eps
-                        grad_logl[it.multi_index] = g1
-                        hess_logl[it.multi_index] = (g1 - g2) / eps
-                        xv += eps
-
-                gradl0 = grad_logl
-        else:
-            logl0 = self.logpdf(x)
-            logl1 = self.logpdf(x + eps)
-            logl2 = self.logpdf(x - eps)
-            gradl0 = (logl1 - logl0) / eps
-            gradl1 = (logl0 - logl2) / eps
-            hess_logl = (gradl0 - gradl1) / eps
-
-        return logl0, gradl0, hess_logl
-
-    logpdf_gradient_hessian = numerical_logpdf_gradient_hessian
 
     @classmethod
     def project(
