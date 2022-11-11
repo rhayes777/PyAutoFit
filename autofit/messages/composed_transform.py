@@ -34,6 +34,14 @@ class TransformedMessage(MessageInterface):
         self.base_message = base_message
         self.id = id_
 
+    @property
+    def upper_limit(self):
+        return self.base_message.upper_limit
+
+    @property
+    def lower_limit(self):
+        return self.base_message.lower_limit
+
     def __call__(self, *args, **kwargs):
         kwargs["id_"] = kwargs.get("id_") or self.id
         return self.with_base(type(self.base_message)(*args, **kwargs))
@@ -173,3 +181,12 @@ class TransformedMessage(MessageInterface):
             gradient = gradient * jacobian
 
         return log_likelihood, gradient
+
+    def from_mode(self, mode: np.ndarray, covariance: np.ndarray, **kwargs):
+        jac = None
+        for transform in self.transforms:
+            mode, jac = transform.transform_jac(mode)
+
+        if covariance.shape != ():
+            covariance = jac.quad(covariance)
+        return self.with_base(self.base_message.from_mode(mode, covariance, **kwargs))
