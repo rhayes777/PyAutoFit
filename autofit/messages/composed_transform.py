@@ -125,12 +125,14 @@ class TransformedMessage(MessageInterface):
     def mean(self) -> np.ndarray:
         return self.inverse_transform(self.base_message.mean)
 
-    # @cached_property
-    # @property
-    # def variance(self) -> np.ndarray:
-    #     # noinspection PyUnresolvedReferences
-    #     jac = self._transform.jacobian(self.mean)
-    #     return jac.quad(self._Message.variance.func(self))
+    @cached_property
+    def variance(self) -> np.ndarray:
+        # noinspection PyUnresolvedReferences
+        variance = self.base_message.variance
+        for transform in reversed(self.transforms):
+            jacobian = transform.jacobian(self.mean)
+            variance = jacobian.quad(variance)
+        return variance
 
     def _sample(self, n_samples) -> np.ndarray:
         x = self.base_message._sample(n_samples)
