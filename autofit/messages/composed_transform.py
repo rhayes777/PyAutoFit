@@ -137,7 +137,8 @@ class TransformedMessage(MessageInterface):
         return self.inverse_transform(x)
 
     def _factor(self, _, x: np.ndarray,) -> np.ndarray:
-        x, log_det = self.transform_det(x)
+        log_det = self.transform_det(x)
+        x = self.transform(x)
         eta = self.base_message._broadcast_natural_parameters(x)
         t = self.base_message.to_canonical_form(x)
         log_base = self.calc_log_base_measure(x) + log_det

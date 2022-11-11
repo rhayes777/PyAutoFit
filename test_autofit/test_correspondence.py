@@ -39,3 +39,7 @@ def test_numerical_logpdf_gradient(message, old_message, x):
 
 def test_logpdf_gradient_hessian(message, old_message, x):
     assert message.logpdf_gradient_hessian(x) == old_message.logpdf_gradient_hessian(x)
+
+
+def test_factor(message, old_message, x):
+    assert message.factor(x) == old_message.factor(x)
