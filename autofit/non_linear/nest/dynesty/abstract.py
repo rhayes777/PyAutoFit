@@ -186,6 +186,8 @@ class AbstractDynesty(AbstractNest, ABC):
                     """
                 )
 
+                checkpoint_exists = os.path.exists(self.checkpoint_file)
+
                 sampler = self.sampler_from(
                     model=model,
                     fitness_function=fitness_function,
