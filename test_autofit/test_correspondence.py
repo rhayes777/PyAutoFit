@@ -111,6 +111,20 @@ def test_log_pdf_gradient(message):
     assert logl == pytest.approx(-1.1464067)
 
 
+def test_regression_old():
+    message = OldUniformNormalMessage.shifted(shift=0.3, scale=0.8)(0, 1)
+    x = 1.076
+
+    assert message.logpdf_gradient(x) == message.numerical_logpdf_gradient(x)
+
+
+def test_regression():
+    message = UniformPrior(lower_limit=0.3, upper_limit=1.1).message
+    x = 1.076
+
+    assert message.logpdf_gradient(x) == message.numerical_logpdf_gradient(x)
+
+
 # from_natural_parameters
 # check_support
 # project

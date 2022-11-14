@@ -46,7 +46,8 @@ def check_numerical_gradient_hessians(message, x=None):
     res = message.logpdf_gradient(x)
     nres = message.numerical_logpdf_gradient(x)
     for i, (x1, x2) in enumerate(zip(res, nres)):
-        assert np.allclose(x1, x2, rtol=1e-3, atol=1e-2), (i, x1, x2, message)
+        if not np.allclose(x1, x2, rtol=1e-3, atol=1e-2):
+            assert False
 
     res = message.logpdf_gradient_hessian(x)
     nres = message.numerical_logpdf_gradient_hessian(x)
