@@ -66,11 +66,13 @@ def test_transform_variance():
     assert shifted.variance == 400
 
     assert shifted.variance != normal.variance
-    assert reverted.variance == normal.variance
+    assert reverted.variance == pytest.approx(normal.variance)
 
 
 def test_transform_uniform():
     normal = NormalMessage(0, 1)
+
+    print(TransformedMessage(normal, phi_transform,).variance)
 
     transformed = TransformedMessage(
         normal, phi_transform, LinearShiftTransform(shift=10, scale=20),

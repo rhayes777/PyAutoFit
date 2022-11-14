@@ -37,7 +37,7 @@ class TransformedMessage(MessageInterface):
         upper_limit=float("inf"),
     ):
         while isinstance(base_message, TransformedMessage):
-            transforms += base_message.transforms
+            transforms = base_message.transforms + transforms
             base_message = base_message.base_message
 
         self.transforms = transforms
@@ -146,7 +146,7 @@ class TransformedMessage(MessageInterface):
         # noinspection PyUnresolvedReferences
         variance = self.base_message.variance
         mean = self.base_message.mean
-        for transform in reversed(self.transforms):
+        for transform in self.transforms:
             mean = transform.inv_transform(mean)
             jacobian = transform.jacobian(mean)
             variance = jacobian.quad(variance)
