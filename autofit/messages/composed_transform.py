@@ -145,9 +145,12 @@ class TransformedMessage(MessageInterface):
     def variance(self) -> np.ndarray:
         # noinspection PyUnresolvedReferences
         variance = self.base_message.variance
-        for transform in reversed(self.transforms):
-            jacobian = transform.jacobian(self.mean)
+        mean = self.base_message.mean
+        for transform in reversed(self.transforms[-1:]):
+            mean = transform.inv_transform(mean)
+            jacobian = transform.jacobian(mean)
             variance = jacobian.quad(variance)
+
         return variance
 
     def _sample(self, n_samples) -> np.ndarray:
