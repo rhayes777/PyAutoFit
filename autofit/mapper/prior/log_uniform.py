@@ -23,10 +23,10 @@ class LogUniformPrior(Prior):
 
         message = TransformedMessage(
             UniformNormalMessage,
-            log_10_transform,
             LinearShiftTransform(
                 shift=np.log10(lower_limit), scale=np.log10(upper_limit / lower_limit),
             ),
+            log_10_transform,
         )
 
         super().__init__(
