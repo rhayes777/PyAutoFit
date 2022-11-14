@@ -126,9 +126,11 @@ def test_regression():
     message = UniformPrior(lower_limit=0.3, upper_limit=1.1).message
     x = 1.076
 
-    assert message.logpdf_gradient(x) == pytest.approx(
-        message.numerical_logpdf_gradient(x)
-    )
+    log_likelihood, gradient = message.logpdf_gradient(x)
+    numerical_log_likelihood, numerical_gradient = message.numerical_logpdf_gradient(x)
+
+    assert log_likelihood == numerical_log_likelihood
+    assert float(gradient) == pytest.approx(numerical_gradient, rel=0.001)
 
 
 # from_natural_parameters
