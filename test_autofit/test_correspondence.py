@@ -69,6 +69,16 @@ def test_transform_variance():
     assert reverted.variance == normal.variance
 
 
+def test_transform_uniform():
+    normal = NormalMessage(0, 1)
+
+    transformed = TransformedMessage(
+        normal, phi_transform, LinearShiftTransform(shift=10, scale=20),
+    )
+    print(transformed.variance)
+    assert transformed.variance
+
+
 # from_natural_parameters
 # check_support
 # project
