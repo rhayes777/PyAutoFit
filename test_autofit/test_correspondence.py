@@ -1,3 +1,4 @@
+import numpy as np
 import pytest
 
 from autofit import UniformPrior
@@ -90,9 +91,10 @@ def test_transform_uniform():
     assert transformed.variance
 
 
-def test_from_mode(old_message, message):
-    from_mode = old_message.from_mode(1.0)
-    print(from_mode.mean)
+def test_from_mode():
+    message = UniformPrior(lower_limit=10, upper_limit=20).message
+    mean = message.from_mode(14.03, covariance=np.zeros(())).mean
+    assert mean == 14.03
 
 
 # from_natural_parameters
