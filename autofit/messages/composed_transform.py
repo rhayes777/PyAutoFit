@@ -97,12 +97,12 @@ class TransformedMessage(MessageInterface):
         return self.inverse_transform(x)
 
     def transform(self, x):
-        for transform in self.transforms:
+        for transform in reversed(self.transforms):
             x = transform.transform(x)
         return x
 
     def inverse_transform(self, x):
-        for transform in reversed(self.transforms):
+        for transform in self.transforms:
             x = transform.inv_transform(x)
         return x
 
