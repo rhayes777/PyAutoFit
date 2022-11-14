@@ -26,7 +26,8 @@ def make_old_message():
     return OldUniformNormalMessage.shifted(shift=10, scale=20)(0, 1)
 
 
-def test_logpdf_gradient(message, old_message, x):
+def test_logpdf_gradient(message, old_message):
+    x = 15
     assert message.logpdf_gradient(x) == old_message.logpdf_gradient(x)
 
 
@@ -34,7 +35,8 @@ def test_log_pdf(message, old_message, x):
     assert message.logpdf(x) == old_message.logpdf(x)
 
 
-def test_logpdf_gradient_hessian(message, old_message, x):
+def test_logpdf_gradient_hessian(message, old_message):
+    x = 15
     assert message.logpdf_gradient_hessian(x) == old_message.logpdf_gradient_hessian(x)
 
 
