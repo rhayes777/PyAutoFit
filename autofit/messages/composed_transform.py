@@ -146,7 +146,7 @@ class TransformedMessage(MessageInterface):
         # noinspection PyUnresolvedReferences
         variance = self.base_message.variance
         mean = self.base_message.mean
-        for transform in reversed(self.transforms[-1:]):
+        for transform in reversed(self.transforms):
             mean = transform.inv_transform(mean)
             jacobian = transform.jacobian(mean)
             variance = jacobian.quad(variance)

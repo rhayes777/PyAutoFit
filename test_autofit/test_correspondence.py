@@ -1,8 +1,9 @@
 import pytest
 
 from autofit import UniformPrior
-from autofit.messages import NormalMessage
-from autofit.messages.transform import phi_transform
+from autofit.messages import NormalMessage, UniformNormalMessage
+from autofit.messages.composed_transform import TransformedMessage
+from autofit.messages.transform import phi_transform, LinearShiftTransform
 
 OldUniformNormalMessage = NormalMessage.transformed(
     phi_transform, "UniformNormalMessage"
@@ -55,13 +56,17 @@ def test_value_for(message, old_message, x):
 
 
 def test_transform_variance():
-    shifted = NormalMessage.shifted(shift=10, scale=20)
-    reverted = shifted.shifted(shift=-10, scale=1 / 20)
+    normal = NormalMessage(0, 1)
 
-    assert shifted(0, 1).variance == 400
+    shifted = TransformedMessage(normal, LinearShiftTransform(shift=10, scale=20),)
+    reverted = TransformedMessage(
+        shifted, LinearShiftTransform(shift=-10, scale=1 / 20),
+    )
 
-    assert shifted(0, 1).variance != NormalMessage(0, 1).variance
-    assert reverted(0, 1).variance == NormalMessage(0, 1).variance
+    assert shifted.variance == 400
+
+    assert shifted.variance != normal.variance
+    assert reverted.variance == normal.variance
 
 
 # from_natural_parameters
