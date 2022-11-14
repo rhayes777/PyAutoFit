@@ -172,6 +172,9 @@ class LinearShiftTransform(LinearTransform):
         self.scale = scale
         super().__init__(DiagonalMatrix(self.scale))
 
+    def __repr__(self):
+        return f"<LinearShiftTransform {self.scale} * x + {self.shift}"
+
     def inv_transform(self, x: np.ndarray) -> np.ndarray:
         return x * self.scale + self.shift
 
