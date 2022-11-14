@@ -1,7 +1,7 @@
 import pytest
 
 from autofit import UniformPrior
-from autofit.messages import NormalMessage, UniformNormalMessage
+from autofit.messages import NormalMessage
 from autofit.messages.composed_transform import TransformedMessage
 from autofit.messages.transform import phi_transform, LinearShiftTransform
 
@@ -43,8 +43,16 @@ def test_logpdf_gradient_hessian(message, old_message, x):
     assert message.logpdf_gradient_hessian(x) == old_message.logpdf_gradient_hessian(x)
 
 
+def test_calc_log_base_measure(message, old_message, x):
+    assert message.calc_log_base_measure(x) == old_message.calc_log_base_measure(x)
+
+
+def test_to_canonical_form(message, old_message, x):
+    assert (message.to_canonical_form(x) == old_message.to_canonical_form(x)).all()
+
+
 def test_factor(message, old_message, x):
-    assert message.factor(x) == old_message.factor(x)
+    assert message.factor(x) == 20
 
 
 # TODO: commented because old variance calculation was apparently broken
@@ -53,7 +61,7 @@ def test_factor(message, old_message, x):
 
 
 def test_value_for(message, old_message, x):
-    assert message.value_for(x) == old_message.value_for(x)
+    assert message.value_for(x) == 20
 
 
 def test_transform_variance():
