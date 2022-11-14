@@ -11,7 +11,7 @@ OldUniformNormalMessage = NormalMessage.transformed(
 
 @pytest.fixture(name="message")
 def make_message():
-    return UniformNormalMessage(1.0, 0.5)
+    return UniformPrior(lower_limit=10, upper_limit=20).message
 
 
 @pytest.fixture(name="x")
@@ -21,7 +21,7 @@ def make_x(message):
 
 @pytest.fixture(name="old_message")
 def make_old_message():
-    return OldUniformNormalMessage(1.0, 0.5)
+    return OldUniformNormalMessage.shifted(shift=10, scale=20)(0, 1)
 
 
 def test_logpdf_gradient(message, old_message, x):
@@ -52,13 +52,6 @@ def test_variance(message, old_message):
 
 def test_value_for(message, old_message, x):
     assert message.value_for(x) == old_message.value_for(x)
-
-
-def test_variance_2():
-    old_message = OldUniformNormalMessage.shifted(shift=10, scale=20)(0, 1)
-    message = UniformPrior(lower_limit=10, upper_limit=20).message
-
-    assert old_message.variance == message.variance
 
 
 # from_natural_parameters
