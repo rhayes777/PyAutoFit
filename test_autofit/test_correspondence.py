@@ -47,12 +47,12 @@ def test_calc_log_base_measure(message, old_message, x):
     assert message.calc_log_base_measure(x) == old_message.calc_log_base_measure(x)
 
 
-def test_to_canonical_form(message, old_message, x):
-    assert (message.to_canonical_form(x) == old_message.to_canonical_form(x)).all()
+# def test_to_canonical_form(message, old_message, x):
+#     assert (message.to_canonical_form(x) == old_message.to_canonical_form(x)).all()
 
 
-def test_factor(message, old_message, x):
-    assert message.factor(x) == 20
+# def test_factor(message, old_message, x):
+#     assert message.factor(x) == 20
 
 
 # TODO: commented because old variance calculation was apparently broken
