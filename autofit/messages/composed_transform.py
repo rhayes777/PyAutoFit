@@ -195,7 +195,7 @@ class TransformedMessage(MessageInterface):
 
     def from_mode(self, mode: np.ndarray, covariance: np.ndarray, **kwargs):
         jac = None
-        for transform in self.transforms:
+        for transform in reversed(self.transforms):
             mode, jac = transform.transform_jac(mode)
 
         if covariance.shape != ():

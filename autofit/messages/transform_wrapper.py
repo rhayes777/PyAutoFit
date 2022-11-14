@@ -168,7 +168,9 @@ class TransformedWrapperInstance:
     def factor(self):
         return self.instance().factor
 
-    def from_mode(self, mode: np.ndarray, covariance: np.ndarray, **kwargs):
+    def from_mode(
+        self, mode: np.ndarray, covariance: np.ndarray = np.zeros(()), **kwargs,
+    ):
         return self._new_for_base_message(
             self.transformed_wrapper.from_mode(mode, covariance, **kwargs)
         )
@@ -328,7 +330,9 @@ class TransformedWrapper:
         self.__transformed_class = None
         self.__dict__.update(state)
 
-    def from_mode(self, mode: np.ndarray, covariance: np.ndarray, **kwargs):
+    def from_mode(
+        self, mode: np.ndarray, covariance: np.ndarray = np.zeros(()), **kwargs
+    ):
         mode, jac = self._transform.transform_jac(mode)
         if covariance.shape != ():
             covariance = jac.quad(covariance)

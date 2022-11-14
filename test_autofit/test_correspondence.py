@@ -90,6 +90,11 @@ def test_transform_uniform():
     assert transformed.variance
 
 
+def test_from_mode(old_message, message):
+    from_mode = old_message.from_mode(1.0)
+    print(from_mode.mean)
+
+
 # from_natural_parameters
 # check_support
 # project
