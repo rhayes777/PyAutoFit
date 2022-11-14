@@ -58,6 +58,8 @@ def test_transform_variance():
     shifted = NormalMessage.shifted(shift=10, scale=20)
     reverted = shifted.shifted(shift=-10, scale=1 / 20)
 
+    assert shifted(0, 1).variance == 400
+
     assert shifted(0, 1).variance != NormalMessage(0, 1).variance
     assert reverted(0, 1).variance == NormalMessage(0, 1).variance
 
