@@ -12,12 +12,12 @@ OldUniformNormalMessage = NormalMessage.transformed(
 
 @pytest.fixture(name="message")
 def make_message():
-    return UniformPrior(lower_limit=10, upper_limit=20).message
+    return UniformPrior(lower_limit=10, upper_limit=30).message
 
 
 @pytest.fixture(name="x")
 def make_x(message):
-    return message.sample()
+    return 0.5
 
 
 @pytest.fixture(name="old_message")
