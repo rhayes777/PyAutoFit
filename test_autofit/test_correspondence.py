@@ -34,12 +34,6 @@ def test_log_pdf(message, old_message, x):
     assert message.logpdf(x) == old_message.logpdf(x)
 
 
-def test_numerical_logpdf_gradient(message, old_message, x):
-    assert message.numerical_logpdf_gradient(
-        x
-    ) == old_message.numerical_logpdf_gradient(x)
-
-
 def test_logpdf_gradient_hessian(message, old_message, x):
     assert message.logpdf_gradient_hessian(x) == old_message.logpdf_gradient_hessian(x)
 
@@ -99,6 +93,16 @@ def test_from_mode():
 
 def test_log_pdf_gradient_old(old_message):
     logl, _ = old_message.logpdf_gradient(15)
+    assert logl == pytest.approx(-1.1464067)
+
+
+def test_numerical_logpdf_gradient_old(old_message):
+    logl, _ = old_message.numerical_logpdf_gradient(15)
+    assert logl == pytest.approx(-1.1464067)
+
+
+def test_numerical_logpdf_gradient(message):
+    logl, _ = message.numerical_logpdf_gradient(15)
     assert logl == pytest.approx(-1.1464067)
 
 
