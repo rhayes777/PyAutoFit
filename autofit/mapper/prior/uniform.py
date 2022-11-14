@@ -8,6 +8,8 @@ from ...messages.transform import LinearShiftTransform
 class UniformPrior(Prior):
     """A prior with a uniform distribution between a lower and upper limit"""
 
+    __identifier_fields__ = ("lower_limit", "upper_limit")
+
     def __init__(
         self, lower_limit=0.0, upper_limit=1.0, id_=None,
     ):
