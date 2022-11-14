@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 
 from autofit import UniformPrior
-from autofit.messages import NormalMessage
+from autofit.messages import NormalMessage, UniformNormalMessage
 from autofit.messages.composed_transform import TransformedMessage
 from autofit.messages.transform import phi_transform, LinearShiftTransform
 
@@ -95,6 +95,16 @@ def test_from_mode():
     message = UniformPrior(lower_limit=10, upper_limit=20).message
     mean = message.from_mode(14.03, covariance=np.zeros(())).mean
     assert mean == 14.03
+
+
+def test_log_pdf_gradient_old(old_message):
+    logl, _ = old_message.logpdf_gradient(15)
+    assert logl == pytest.approx(-1.1464067)
+
+
+def test_log_pdf_gradient(message):
+    logl, _ = message.logpdf_gradient(15)
+    assert logl == pytest.approx(-1.1464067)
 
 
 # from_natural_parameters

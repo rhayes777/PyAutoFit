@@ -182,7 +182,7 @@ class TransformedMessage(MessageInterface):
 
     def logpdf_gradient(self, x: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
         jacobians = []
-        for transform in self.transforms:
+        for transform in reversed(self.transforms):
             x, jacobian = transform.transform_jac(x)
             jacobians.append(jacobian)
 
