@@ -56,6 +56,12 @@ class AbstractPySwarms(AbstractOptimizer):
             An SQLalchemy session instance so the results of the model-fit are written to an SQLite database.
         """
 
+        number_of_cores = (
+            self._config("parallel", "number_of_cores")
+            if number_of_cores is None
+            else number_of_cores
+        )
+
         super().__init__(
             name=name,
             path_prefix=path_prefix,
@@ -63,20 +69,15 @@ class AbstractPySwarms(AbstractOptimizer):
             prior_passer=prior_passer,
             initializer=initializer,
             iterations_per_update=iterations_per_update,
+            number_of_cores=number_of_cores,
             session=session,
             **kwargs
-        )
-
-        self.number_of_cores = (
-            self._config("parallel", "number_of_cores")
-            if number_of_cores is None
-            else number_of_cores
         )
 
         self.logger.debug("Creating PySwarms Search")
 
     class Fitness(AbstractOptimizer.Fitness):
-        def __call__(self, parameters):
+        def __call__(self, parameters, *kwargs):
 
             figures_of_merit = []
 
@@ -87,6 +88,9 @@ class AbstractPySwarms(AbstractOptimizer):
                         parameter_list=params_of_particle
                     )
                 except exc.FitException:
+                    figure_of_merit = -2.0 * self.resample_figure_of_merit
+
+                if np.isnan(figure_of_merit):
                     figure_of_merit = -2.0 * self.resample_figure_of_merit
 
                 figures_of_merit.append(figure_of_merit)

@@ -1,6 +1,7 @@
 from typing import Optional
 
 from dynesty.dynesty import DynamicNestedSampler
+from autofit.non_linear.nest.dynesty.samples import DynestySamples
 
 from .abstract import AbstractDynesty, prior_transform
 
@@ -69,27 +70,90 @@ class DynestyDynamic(AbstractDynesty):
 
         self.logger.debug("Creating DynestyDynamic Search")
 
+    def samples_from(self, model):
+        """
+        Create a `Samples` object from this non-linear search's output files on the hard-disk and model.
+
+        For Dynesty, all information that we need is available from the instance of the dynesty sampler.
+
+        Parameters
+        ----------
+        model
+            The model which generates instances for different points in parameter space. This maps the points from unit
+            cube values to physical values via the priors.
+        """
+        sampler = DynamicNestedSampler.restore(self.checkpoint_file)
+
+        return DynestySamples.from_results_internal(
+            model=model,
+            results_internal=sampler.results,
+            number_live_points=self.total_live_points,
+            unconverged_sample_size=1,
+            time=self.timer.time,
+        )
+
     def sampler_from(
             self,
             model,
             fitness_function,
-            pool=None
+            pool,
+            queue_size
     ):
         """
-        Get the dynamic Dynesty sampler which performs the non-linear search, passing it all associated input Dynesty
-        variables.
+        Returns an instance of the Dynesty dynamic sampler set up using the input variables of this class.
+
+        If no existing dynesty sampler exist on hard-disk (located via a `checkpoint_file`) a new instance is
+        created with which sampler is performed. If one does exist, the dynesty `restore()` function is used to
+        create the instance of the sampler.
+
+        Dynesty samplers with a multiprocessing pool may be created by inputting a dynesty `Pool` object, however
+        non pooled instances can also be created by passing `pool=None` and `queue_size=None`.
+
+        Parameters
+        ----------
+        model
+            The model which generates instances for different points in parameter space.
+        fitness_function
+            An instance of the fitness class used to evaluate the likelihood of each model.
+        pool
+            A dynesty Pool object which performs likelihood evaluations over multiple CPUs.
+        queue_size
+            The number of CPU's over which multiprocessing is performed, determining how many samples are stored
+            in the dynesty queue for samples.
         """
 
-        return DynamicNestedSampler(
-            loglikelihood=fitness_function,
-            prior_transform=prior_transform,
-            ndim=model.prior_count,
-            logl_args=[model, fitness_function],
-            ptform_args=[model],
-            queue_size=self.number_of_cores,
-            pool=pool,
-            **self.config_dict_search
-        )
+        try:
+
+            sampler = DynamicNestedSampler.restore(
+                fname=self.checkpoint_file,
+                pool=pool
+            )
+
+            self.check_pool(sampler=sampler, pool=pool)
+
+            return sampler
+
+        except FileNotFoundError:
+
+            if pool is not None:
+
+                return DynamicNestedSampler(
+                    loglikelihood=pool.loglike,
+                    prior_transform=pool.prior_transform,
+                    ndim=model.prior_count,
+                    queue_size=queue_size,
+                    pool=pool,
+                    **self.config_dict_search
+                )
+
+            return DynamicNestedSampler(
+                loglikelihood=fitness_function,
+                prior_transform=prior_transform,
+                ndim=model.prior_count,
+                logl_args=[model, fitness_function],
+                ptform_args=[model],
+                **self.config_dict_search
+            )
 
     @property
     def total_live_points(self):

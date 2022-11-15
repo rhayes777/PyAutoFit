@@ -8,20 +8,20 @@ from ...database.model import Fit
 
 class DatabasePaths(AbstractPaths):
     def __init__(
-            self,
-            session,
-            name: Optional[str] = None,
-            path_prefix: Optional[str] = None,
-            is_identifier_in_paths=True,
-            parent=None,
-            save_all_samples=False,
-            unique_tag: Optional["str"] = None
+        self,
+        session,
+        name: Optional[str] = None,
+        path_prefix: Optional[str] = None,
+        is_identifier_in_paths=True,
+        parent=None,
+        save_all_samples=False,
+        unique_tag: Optional["str"] = None,
     ):
         super().__init__(
             name=name,
             path_prefix=path_prefix,
             is_identifier_in_paths=is_identifier_in_paths,
-            parent=parent
+            parent=parent,
         )
         self.session = session
         self._fit = None
@@ -31,47 +31,35 @@ class DatabasePaths(AbstractPaths):
     parent: "DatabasePaths"
 
     @AbstractPaths.parent.setter
-    def parent(
-            self,
-            parent: "DatabasePaths"
-    ):
+    def parent(self, parent: "DatabasePaths"):
         """
         The search performed before this search. For example, a search
         that is then compared to searches during a grid search.
 
         For database paths the parent must also be database paths.
         """
-        if not (
-                parent is None or
-                isinstance(parent, DatabasePaths)
-        ):
+        if not (parent is None or isinstance(parent, DatabasePaths)):
             raise TypeError(
                 "The parent of search that uses the database must also use the database"
             )
         self._parent = parent
 
-    def save_named_instance(
-            self,
-            name: str,
-            instance
-    ):
+    def save_named_instance(self, name: str, instance):
         """
         Save an instance, such as that at a given sigma
         """
-        self.fit.named_instances[
-            name
-        ] = instance
+        self.fit.named_instances[name] = instance
 
     @property
     def is_grid_search(self) -> bool:
         return self.fit.is_grid_search
 
     def create_child(
-            self,
-            name: Optional[str] = None,
-            path_prefix: Optional[str] = None,
-            is_identifier_in_paths: Optional[bool] = None,
-            identifier: Optional[str] = None
+        self,
+        name: Optional[str] = None,
+        path_prefix: Optional[str] = None,
+        is_identifier_in_paths: Optional[bool] = None,
+        identifier: Optional[str] = None,
     ) -> "DatabasePaths":
         """
         Create a paths object which is the child of some parent
@@ -107,7 +95,7 @@ class DatabasePaths(AbstractPaths):
                 if is_identifier_in_paths is not None
                 else self.is_identifier_in_paths
             ),
-            parent=self
+            parent=self,
         )
         child.model = self.model
         child.search = self.search
@@ -121,14 +109,7 @@ class DatabasePaths(AbstractPaths):
         self.session.commit()
 
         if self.remove_files:
-            shutil.rmtree(
-                self.path,
-                ignore_errors=True
-            )
-            shutil.rmtree(
-                self.output_path,
-                ignore_errors=True
-            )
+            shutil.rmtree(self.output_path, ignore_errors=True)
 
     def __getstate__(self):
         d = self.__dict__.copy()
@@ -151,22 +132,18 @@ class DatabasePaths(AbstractPaths):
     def fit(self) -> Fit:
         if self._fit is None:
             try:
-                self._fit = self.session.query(
-                    Fit
-                ).filter(
-                    Fit.id == self.identifier
-                ).one()
+                self._fit = (
+                    self.session.query(Fit).filter(Fit.id == self.identifier).one()
+                )
             except sa.orm.exc.NoResultFound:
                 self._fit = Fit(
                     id=self.identifier,
                     is_complete=False,
                     unique_tag=self.unique_tag,
                     path_prefix=self.path_prefix,
-                    name=self.name
+                    name=self.name,
                 )
-                self.session.add(
-                    self._fit
-                )
+                self.session.add(self._fit)
 
         if self.parent is not None:
             self._fit.parent = self.parent.fit
@@ -179,17 +156,10 @@ class DatabasePaths(AbstractPaths):
     def completed(self):
         self.fit.is_complete = True
 
-    def save_summary(
-            self,
-            samples,
-            log_likelihood_function_time
-    ):
+    def save_summary(self, samples, log_likelihood_function_time):
         self.fit.instance = samples.max_log_likelihood_instance
         self.fit.max_log_likelihood = samples.max_log_likelihood_sample.log_likelihood
-        super().save_summary(
-            samples,
-            log_likelihood_function_time
-        )
+        super().save_summary(samples, log_likelihood_function_time)
 
     def save_samples(self, samples):
         if not self.save_all_samples:

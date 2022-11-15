@@ -79,6 +79,8 @@ class Zeus(AbstractMCMC):
             An SQLalchemy session instance so the results of the model-fit are written to an SQLite database.
         """
 
+        number_of_cores = number_of_cores or self._config("parallel", "number_of_cores")
+
         super().__init__(
             name=name,
             path_prefix=path_prefix,
@@ -87,20 +89,14 @@ class Zeus(AbstractMCMC):
             initializer=initializer,
             auto_correlations_settings=auto_correlations_settings,
             iterations_per_update=iterations_per_update,
+            number_of_cores=number_of_cores,
             session=session,
             **kwargs
         )
 
-        self.number_of_cores = number_of_cores or self._config("parallel", "number_of_cores")
-
         self.logger.debug("Creating Zeus Search")
 
     class Fitness(AbstractMCMC.Fitness):
-        def __call__(self, parameters):
-            try:
-                return self.figure_of_merit_from(parameter_list=parameters)
-            except exc.FitException:
-                return self.resample_figure_of_merit
 
         def figure_of_merit_from(self, parameter_list):
             """

@@ -17,6 +17,7 @@ class AbstractNest(NonLinearSearch):
             unique_tag: Optional[str] = None,
             prior_passer: Optional[PriorPasser] = None,
             iterations_per_update: Optional[int] = None,
+            number_of_cores: Optional[int] = None,
             session: Optional[sa.orm.Session] = None,
             initializer: Optional[AbstractInitializer] = None,
             **kwargs
@@ -50,6 +51,7 @@ class AbstractNest(NonLinearSearch):
             prior_passer=prior_passer,
             initializer=initializer or InitializerPrior(),
             iterations_per_update=iterations_per_update,
+            number_of_cores=number_of_cores,
             session=session,
             **kwargs
         )
@@ -76,13 +78,6 @@ class AbstractNest(NonLinearSearch):
             self.resampling_figure_of_merit = -1.0e99
 
             self.should_check_terminate = IntervalCounter(1000)
-
-        def __call__(self, parameters, *kwargs):
-
-            try:
-                return self.figure_of_merit_from(parameter_list=parameters)
-            except exc.FitException:
-                return self.resample_figure_of_merit
 
         def figure_of_merit_from(self, parameter_list):
             """The figure of merit is the value that the `NonLinearSearch` uses to sample parameter space. All Nested

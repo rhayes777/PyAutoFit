@@ -441,14 +441,6 @@ class Samples:
 
         self.__dict__.update(state)
 
-        # This is a hack to fix BC on some results implemented 25/01/22, safe to delete in a month or so...
-
-        try:
-            if "results_internal" not in state:
-                self.results_internal = state["results"]
-        except KeyError:
-            pass
-
     def __copy__(self):
         cls = self.__class__
         result = cls.__new__(cls)

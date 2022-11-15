@@ -5,12 +5,22 @@ import autofit as af
 
 
 class MockFitness:
+
+    def __init__(self, figure_of_merit=0.0, increase_figure_of_merit = True):
+
+        self.figure_of_merit = figure_of_merit
+        self.increase_figure_of_merit = increase_figure_of_merit
+
     def figure_of_merit_from(self, parameter_list):
-        return 1.0
+
+        if self.increase_figure_of_merit:
+            self.figure_of_merit += 1
+
+        return self.figure_of_merit
 
 
 class TestInitializePrior:
-    def test__prior__samples_sample_priors(self):
+    def test__samples_from_model__sample_via_priors(self):
         model = af.PriorModel(af.m.MockClassx4)
         model.one = af.UniformPrior(lower_limit=0.099, upper_limit=0.101)
         model.two = af.UniformPrior(lower_limit=0.199, upper_limit=0.201)
@@ -41,7 +51,18 @@ class TestInitializePrior:
         assert 0.399 < parameter_lists[0][3] < 0.401
         assert 0.399 < parameter_lists[1][3] < 0.401
 
-        assert figure_of_merit_list == [1.0, 1.0]
+        assert figure_of_merit_list == [1.0, 2.0]
+
+    def test__samples_from_model__raise_exception_if_all_likelihoods_identical(self):
+        model = af.PriorModel(af.m.MockClassx4)
+
+        initializer = af.InitializerPrior()
+
+        with pytest.raises(af.exc.InitializerException):
+
+            initializer.samples_from_model(
+                total_points=2, model=model, fitness_function=MockFitness(increase_figure_of_merit=False)
+            )
 
     def test__samples_in_test_mode(self):
 
@@ -128,7 +149,7 @@ class TestInitializeBall:
         assert 3.199 < parameter_lists[0][3] < 3.201
         assert 3.199 < parameter_lists[1][3] < 3.201
 
-        assert figure_of_merit_list == 2 * [1.0]
+        assert figure_of_merit_list == [1.0, 2.0]
 
 
 @pytest.mark.parametrize(
