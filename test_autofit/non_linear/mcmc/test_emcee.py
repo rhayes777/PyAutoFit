@@ -107,11 +107,11 @@ class TestEmceeOutput:
 
         samples = emcee.samples_from(model=model)
 
-        parameters = samples.vector_at_sigma(sigma=3.0)
+        parameters = samples.values_at_sigma(sigma=3.0)
 
         assert parameters[0][0:2] == pytest.approx((-0.003197, 0.019923), 1e-2)
 
-        parameters = samples.vector_at_sigma(sigma=1.0)
+        parameters = samples.values_at_sigma(sigma=1.0)
 
         assert parameters[0][0:2] == pytest.approx((0.0042278, 0.01087681), 1e-2)
 

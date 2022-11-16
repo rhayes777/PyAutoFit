@@ -161,40 +161,40 @@ def test__converged__vector_and_instance_at_upper_and_lower_sigma():
 
     assert samples_x5.pdf_converged is True
 
-    vector_at_sigma = samples_x5.vector_at_sigma(sigma=3.0)
+    values = samples_x5.values_at_sigma(sigma=3.0, as_instance=False)
 
-    assert vector_at_sigma[0] == pytest.approx((0.00121, 0.19878), 1e-1)
-    assert vector_at_sigma[1] == pytest.approx((0.30121, 0.49878), 1e-1)
+    assert values[0] == pytest.approx((0.00121, 0.19878), 1e-1)
+    assert values[1] == pytest.approx((0.30121, 0.49878), 1e-1)
 
-    vector_at_sigma = samples_x5.vector_at_upper_sigma(sigma=3.0)
+    values = samples_x5.values_at_upper_sigma(sigma=3.0, as_instance=False)
 
-    assert vector_at_sigma[0] == pytest.approx(0.19757, 1e-1)
-    assert vector_at_sigma[1] == pytest.approx(0.49757, 1e-1)
+    assert values[0] == pytest.approx(0.19757, 1e-1)
+    assert values[1] == pytest.approx(0.49757, 1e-1)
 
-    vector_at_sigma = samples_x5.vector_at_lower_sigma(sigma=3.0)
+    values = samples_x5.values_at_lower_sigma(sigma=3.0, as_instance=False)
 
-    assert vector_at_sigma[0] == pytest.approx(0.00121, 1e-1)
-    assert vector_at_sigma[1] == pytest.approx(0.30121, 1e-1)
+    assert values[0] == pytest.approx(0.00121, 1e-1)
+    assert values[1] == pytest.approx(0.30121, 1e-1)
 
-    vector_at_sigma = samples_x5.vector_at_sigma(sigma=1.0)
+    values = samples_x5.values_at_sigma(sigma=1.0, as_instance=False)
 
-    assert vector_at_sigma[0] == pytest.approx((0.1, 0.1), 1e-1)
-    assert vector_at_sigma[1] == pytest.approx((0.4, 0.4), 1e-1)
+    assert values[0] == pytest.approx((0.1, 0.1), 1e-1)
+    assert values[1] == pytest.approx((0.4, 0.4), 1e-1)
 
-    instance_at_sigma = samples_x5.instance_at_sigma(sigma=1.0)
+    values = samples_x5.values_at_sigma(sigma=1.0)
 
-    assert instance_at_sigma.mock_class.one == pytest.approx((0.1, 0.1), 1e-1)
-    assert instance_at_sigma.mock_class.two == pytest.approx((0.4, 0.4), 1e-1)
+    assert values.mock_class.one == pytest.approx((0.1, 0.1), 1e-1)
+    assert values.mock_class.two == pytest.approx((0.4, 0.4), 1e-1)
 
-    instance_at_sigma = samples_x5.instance_at_upper_sigma(sigma=3.0)
+    values = samples_x5.values_at_upper_sigma(sigma=3.0)
 
-    assert instance_at_sigma.mock_class.one == pytest.approx(0.19757, 1e-1)
-    assert instance_at_sigma.mock_class.two == pytest.approx(0.49757, 1e-1)
+    assert values.mock_class.one == pytest.approx(0.19757, 1e-1)
+    assert values.mock_class.two == pytest.approx(0.49757, 1e-1)
 
-    instance_at_sigma = samples_x5.instance_at_lower_sigma(sigma=3.0)
+    values = samples_x5.values_at_lower_sigma(sigma=3.0)
 
-    assert instance_at_sigma.mock_class.one == pytest.approx(0.00121, 1e-1)
-    assert instance_at_sigma.mock_class.two == pytest.approx(0.30121, 1e-1)
+    assert values.mock_class.one == pytest.approx(0.00121, 1e-1)
+    assert values.mock_class.two == pytest.approx(0.30121, 1e-1)
 
 
 def test__unconverged_vector_at_lower_and_upper_sigma():
@@ -228,15 +228,15 @@ def test__unconverged_vector_at_lower_and_upper_sigma():
 
     assert samples_x5.pdf_converged is False
 
-    vector_at_sigma = samples_x5.vector_at_sigma(sigma=1.0)
+    values_at_sigma = samples_x5.values_at_sigma(sigma=1.0)
 
-    assert vector_at_sigma[0] == pytest.approx(((0.9, 1.1)), 1e-2)
-    assert vector_at_sigma[1] == pytest.approx(((1.9, 2.1)), 1e-2)
+    assert values_at_sigma[0] == pytest.approx(((0.9, 1.1)), 1e-2)
+    assert values_at_sigma[1] == pytest.approx(((1.9, 2.1)), 1e-2)
 
-    vector_at_sigma = samples_x5.vector_at_sigma(sigma=3.0)
+    values_at_sigma = samples_x5.values_at_sigma(sigma=3.0)
 
-    assert vector_at_sigma[0] == pytest.approx(((0.9, 1.1)), 1e-2)
-    assert vector_at_sigma[1] == pytest.approx(((1.9, 2.1)), 1e-2)
+    assert values_at_sigma[0] == pytest.approx(((0.9, 1.1)), 1e-2)
+    assert values_at_sigma[1] == pytest.approx(((1.9, 2.1)), 1e-2)
 
 
 def test__converged__errors_vector_and_instance_at_upper_and_lower_sigma():
@@ -271,37 +271,37 @@ def test__converged__errors_vector_and_instance_at_upper_and_lower_sigma():
 
     assert samples_x5.pdf_converged is True
 
-    errors = samples_x5.error_magnitude_vector_at_sigma(sigma=3.0)
+    errors = samples_x5.error_magnitudes_at_sigma(sigma=3.0)
 
     assert errors == pytest.approx([0.19514, 0.19514], 1e-1)
 
-    errors = samples_x5.error_vector_at_upper_sigma(sigma=3.0)
+    errors = samples_x5.errors_at_upper_sigma(sigma=3.0)
 
     assert errors == pytest.approx([0.09757, 0.09757], 1e-1)
 
-    errors = samples_x5.error_vector_at_lower_sigma(sigma=3.0)
+    errors = samples_x5.errors_at_lower_sigma(sigma=3.0)
 
     assert errors == pytest.approx([0.09757, 0.09757], 1e-1)
 
-    errors = samples_x5.error_vector_at_sigma(sigma=3.0)
+    errors = samples_x5.errors_at_sigma(sigma=3.0)
     assert errors[0] == pytest.approx((0.09757, 0.09757), 1e-1)
     assert errors[1] == pytest.approx((0.09757, 0.09757), 1e-1)
 
-    errors = samples_x5.error_magnitude_vector_at_sigma(sigma=1.0)
+    errors = samples_x5.error_magnitudes_at_sigma(sigma=1.0)
 
     assert errors == pytest.approx([0.0, 0.0], 1e-1)
 
-    errors_instance = samples_x5.error_instance_at_sigma(sigma=1.0)
+    errors_instance = samples_x5.errors_at_sigma(sigma=1.0)
 
     assert errors_instance.mock_class.one == pytest.approx(0.0, 1e-1)
     assert errors_instance.mock_class.two == pytest.approx(0.0, 1e-1)
 
-    errors_instance = samples_x5.error_instance_at_upper_sigma(sigma=3.0)
+    errors_instance = samples_x5.errors_at_upper_sigma(sigma=3.0)
 
     assert errors_instance.mock_class.one == pytest.approx(0.09757, 1e-1)
     assert errors_instance.mock_class.two == pytest.approx(0.09757, 1e-1)
 
-    errors_instance = samples_x5.error_instance_at_lower_sigma(sigma=3.0)
+    errors_instance = samples_x5.errors_at_lower_sigma(sigma=3.0)
 
     assert errors_instance.mock_class.one == pytest.approx(0.09757, 1e-1)
     assert errors_instance.mock_class.two == pytest.approx(0.09757, 1e-1)

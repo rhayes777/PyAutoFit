@@ -1,4 +1,3 @@
-from dynesty.pool import Pool
 from typing import Optional
 
 from dynesty import NestedSampler as StaticSampler
@@ -103,7 +102,7 @@ class DynestyStatic(AbstractDynesty):
             model: AbstractPriorModel,
             fitness_function,
             checkpoint_exists : bool,
-            pool: Optional[Pool],
+            pool: Optional["Pool"],
             queue_size: Optional[int]
     ):
         """

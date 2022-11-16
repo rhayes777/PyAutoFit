@@ -25,7 +25,7 @@ def summary(
         The sigma within which the PDF is used to estimate errors (e.g. sigma = 1.0 uses 0.6826 of the PDF)."""
 
     values = values_from_samples(samples=samples, median_pdf_model=median_pdf_model)
-    values_at_sigma = samples.vector_at_sigma(sigma=sigma)
+    values_at_sigma = samples.values_at_sigma(sigma=sigma)
 
     parameter_names = samples.model.parameter_names
 
@@ -68,7 +68,7 @@ def latex(
         The sigma within which the PDF is used to estimate errors (e.g. sigma = 1.0 uses 0.6826 of the PDF)."""
 
     values = values_from_samples(samples=samples, median_pdf_model=median_pdf_model)
-    errors_at_sigma = samples.error_vector_at_sigma(sigma=sigma)
+    errors_at_sigma = samples.errors_at_sigma(sigma=sigma)
 
     table = []
 

@@ -309,7 +309,6 @@ class Samples:
         with open(filename, 'w') as outfile:
             json.dump(self.info_json, outfile)
 
-    @property
     def max_log_likelihood_sample(self) -> Sample:
         """
         The index of the sample with the highest log likelihood.
@@ -320,69 +319,42 @@ class Samples:
                 most_likely_sample = sample
         return most_likely_sample
 
-    @property
-    def max_log_posterior_sample(self) -> Sample:
-        return self.sample_list[
-            self.max_log_posterior_index
-        ]
+    def max_log_likelihood(self, as_instance: bool = True) -> List[float]:
+        """
+        The parameters of the maximum log likelihood sample of the `NonLinearSearch` returned as a model instance or 
+        list of values.
+        """
 
-    @property
-    def max_log_likelihood_vector(self) -> List[float]:
-        """
-        The parameters of the maximum log likelihood sample of the `NonLinearSearch` returned as a list of values.
-        """
+        if as_instance:
+            return self.max_log_likelihood_sample.instance_for_model(
+                self.model
+            )
+
         sample = self.max_log_likelihood_sample
         return sample.parameter_lists_for_paths(
             self.paths if sample.is_path_kwargs else self.names
         )
 
-    @property
-    def max_log_likelihood_instance(self) -> ModelInstance:
-        """
-        The parameters of the maximum log likelihood sample of the `NonLinearSearch` returned as a model instance.
-        """
-        return self.max_log_likelihood_sample.instance_for_model(
-            self.model
-        )
+    def max_log_posterior_sample(self) -> Sample:
+        return self.sample_list[
+            self.max_log_posterior_index
+        ]
 
-    @property
     def max_log_posterior_index(self) -> int:
         """
         The index of the sample with the highest log posterior.
         """
         return int(np.argmax(self.log_posterior_list))
 
-    @property
-    def max_log_posterior_vector(self) -> List[float]:
-        """
-        The parameters of the maximum log posterior sample of the `NonLinearSearch` returned as a list of values.
-        """
-        return self.parameter_lists[self.max_log_posterior_index]
-
-    @property
-    def max_log_posterior_instance(self) -> ModelInstance:
+    def max_log_posterior(self, as_instance: bool = True) -> ModelInstance:
         """
         The parameters of the maximum log posterior sample of the `NonLinearSearch` returned as a model instance.
         """
-        return self.model.instance_from_vector(
-            vector=self.max_log_posterior_vector,
-        )
-
-    def gaussian_priors_at_sigma(self, sigma: float) -> [List]:
-        """
-        `GaussianPrior`s of every parameter used to link its inferred values and errors to priors used to sample the
-        same (or similar) parameters in a subsequent search, where:
-
-        - The mean is given by maximum log likelihood model values.
-        - Their errors are omitted, as this information is not available from an search. When these priors are
-        used to link to another search, it will thus automatically use the prior config values.
-
-        Parameters
-        -----------
-        sigma
-            The sigma limit within which the PDF is used to estimate errors (e.g. sigma = 1.0 uses 0.6826 of the PDF).
-        """
-        return list(map(lambda vector: (vector, 0.0), self.max_log_likelihood_vector))
+        if as_instance:
+            return self.model.instance_from_vector(
+                vector=self.max_log_posterior_vector,
+            )
+        return self.parameter_lists[self.max_log_posterior_index]
 
     def instance_from_sample_index(self, sample_index) -> ModelInstance:
         """
@@ -500,49 +472,42 @@ class Samples:
         ]
         return copied
 
-    @property
-    def median_pdf_vector(self) -> ModelInstance:
+    def median_pdf(self) -> ModelInstance:
         raise NotImplementedError
 
-    @property
-    def median_pdf_instance(self) -> ModelInstance:
+    def values_at_sigma(self, sigma: float, as_instance: bool = True) -> [(float, float)]:
         raise NotImplementedError
 
-    def vector_at_sigma(self, sigma: float) -> [(float, float)]:
+    def values_at_upper_sigma(self, sigma: float, as_instance: bool = True) -> [float]:
         raise NotImplementedError
 
-    def vector_at_upper_sigma(self, sigma: float) -> [float]:
+    def values_at_lower_sigma(self, sigma: float, as_instance: bool = True) -> [float]:
         raise NotImplementedError
 
-    def vector_at_lower_sigma(self, sigma: float) -> [float]:
+    def errors_at_sigma(self, sigma: float, as_instance: bool = True) -> [(float, float)]:
         raise NotImplementedError
 
-    def instance_at_sigma(self, sigma: float) -> ModelInstance:
+    def errors_at_upper_sigma(self, sigma: float, as_instance: bool = True) -> [float]:
         raise NotImplementedError
 
-    def instance_at_upper_sigma(self, sigma: float) -> ModelInstance:
+    def errors_at_lower_sigma(self, sigma: float, as_instance: bool = True) -> [float]:
         raise NotImplementedError
 
-    def instance_at_lower_sigma(self, sigma: float) -> ModelInstance:
+    def error_magnitudes_at_sigma(self, sigma: float, as_instance: bool = True) -> [float]:
         raise NotImplementedError
 
-    def error_vector_at_sigma(self, sigma: float) -> [(float, float)]:
-        raise NotImplementedError
+    def gaussian_priors_at_sigma(self, sigma: float) -> [List]:
+        """
+        `GaussianPrior`s of every parameter used to link its inferred values and errors to priors used to sample the
+        same (or similar) parameters in a subsequent search, where:
 
-    def error_vector_at_upper_sigma(self, sigma: float) -> [float]:
-        raise NotImplementedError
+        - The mean is given by maximum log likelihood model values.
+        - Their errors are omitted, as this information is not available from an search. When these priors are
+        used to link to another search, it will thus automatically use the prior config values.
 
-    def error_vector_at_lower_sigma(self, sigma: float) -> [float]:
-        raise NotImplementedError
-
-    def error_magnitude_vector_at_sigma(self, sigma: float) -> [float]:
-        raise NotImplementedError
-
-    def error_instance_at_sigma(self, sigma: float) -> ModelInstance:
-        raise NotImplementedError
-
-    def error_instance_at_upper_sigma(self, sigma: float) -> ModelInstance:
-        raise NotImplementedError
-
-    def error_instance_at_lower_sigma(self, sigma: float) -> ModelInstance:
-        raise NotImplementedError
+        Parameters
+        -----------
+        sigma
+            The sigma limit within which the PDF is used to estimate errors (e.g. sigma = 1.0 uses 0.6826 of the PDF).
+        """
+        return list(map(lambda vector: (vector, 0.0), self.max_log_likelihood(as_instance=False)))

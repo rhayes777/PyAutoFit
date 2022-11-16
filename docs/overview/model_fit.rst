@@ -239,7 +239,7 @@ marginalized parameters estimates, errors are so on:
     print(result.samples.parameter_lists)
     print(result.samples.max_log_likelihood_vector)
     print(result.samples.median_pdf_vector)
-    print(result.samples.error_vector_at_sigma)
+    print(result.samples.errors_at_sigma)
 
 It can even return *instances* of the ``Gaussian`` class using the values of the model results:
 

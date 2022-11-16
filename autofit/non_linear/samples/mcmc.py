@@ -179,8 +179,7 @@ class MCMCSamples(PDFSamples):
             total_samples=self.total_samples
         )
 
-    @property
-    def median_pdf_vector(self) -> [float]:
+    def median_pdf(self) -> [float]:
         """
         The median of the probability density function (PDF) of every parameter marginalized in 1D, returned
         as a list of values.
@@ -196,7 +195,7 @@ class MCMCSamples(PDFSamples):
 
         return self.max_log_likelihood_vector
 
-    def vector_at_sigma(self, sigma: float) -> [float]:
+    def values_at_sigma(self, sigma: float) -> [float]:
         """
         The value of every parameter marginalized in 1D at an input sigma value of its probability density function
         (PDF), returned as two lists of values corresponding to the lower and upper values parameter values.

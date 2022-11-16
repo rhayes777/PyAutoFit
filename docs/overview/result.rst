@@ -115,26 +115,26 @@ confidence limit. This can be returned as the size of each parameter error:
 
 .. code-block:: python
 
-    error_vector_at_upper_sigma = samples.error_vector_at_upper_sigma(sigma=3.0)
-    error_vector_at_lower_sigma = samples.error_vector_at_lower_sigma(sigma=3.0)
+    errors_at_upper_sigma = samples.errors_at_upper_sigma(sigma=3.0)
+    errors_at_lower_sigma = samples.errors_at_lower_sigma(sigma=3.0)
 
     print("Upper Error values (at 3.0 sigma confidence):")
-    print(error_vector_at_upper_sigma)
+    print(errors_at_upper_sigma)
 
     print("lower Error values (at 3.0 sigma confidence):")
-    print(error_vector_at_lower_sigma, "\n")
+    print(errors_at_lower_sigma, "\n")
 
 They can also be returned at the values of the parameters at their error values:
 
 .. code-block:: python
 
-    vector_at_upper_sigma = samples.vector_at_upper_sigma(sigma=3.0)
-    vector_at_lower_sigma = samples.vector_at_lower_sigma(sigma=3.0)
+    values_at_upper_sigma = samples.values_at_upper_sigma(sigma=3.0)
+    values_at_lower_sigma = samples.values_at_lower_sigma(sigma=3.0)
 
     print("Upper Parameter values w/ error (at 3.0 sigma confidence):")
-    print(vector_at_upper_sigma)
+    print(values_at_upper_sigma)
     print("lower Parameter values w/ errors (at 3.0 sigma confidence):")
-    print(vector_at_lower_sigma, "\n")
+    print(values_at_lower_sigma, "\n")
 
 **PyAutoFit** includes many visualization tools for plotting the results of a non-linear search, for example we can
 make a corner plot of the probability density function (PDF):
@@ -217,10 +217,10 @@ All methods above are available as an ``instance``:
 .. code-block:: python
 
     median_pdf_instance = samples.median_pdf_instance
-    instance_at_upper_sigma = samples.instance_at_upper_sigma
-    instance_at_lower_sigma = samples.instance_at_lower_sigma
-    error_instance_at_upper_sigma = samples.error_instance_at_upper_sigma
-    error_instance_at_lower_sigma = samples.error_instance_at_lower_sigma
+    values_at_upper_sigma = samples.values_at_upper_sigma
+    values_at_lower_sigma = samples.values_at_lower_sigma
+    errors_at_upper_sigma = samples.errors_at_upper_sigma
+    errors_at_lower_sigma = samples.errors_at_lower_sigma
 
 An ``instance`` of any accepted sample can be created:
 
