@@ -88,6 +88,9 @@ class TransformedMessage(MessageInterface):
             id_=self.id,
         )
 
+    def kl(self, dist):
+        return self.base_message.kl(dist.base_message)
+
     @property
     def natural_parameters(self):
         return self.base_message.natural_parameters
