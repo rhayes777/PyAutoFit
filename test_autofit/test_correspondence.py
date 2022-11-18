@@ -141,6 +141,7 @@ def test_regression():
 
     assert log_likelihood == numerical_log_likelihood
     assert float(gradient) == pytest.approx(numerical_gradient, rel=0.001)
+    assert float(approx_gradient) == pytest.approx(numerical_gradient, rel=0.001)
 
 
 # from_natural_parameters
