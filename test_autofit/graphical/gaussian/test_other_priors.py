@@ -78,8 +78,8 @@ def test_trivial():
 
     factor_model = ep.AnalysisFactor(prior_model, analysis=TrivialAnalysis())
 
-    # optimiser = ep.LaplaceOptimiser()
-    optimiser = af.DynestyStatic()
+    optimiser = ep.LaplaceOptimiser()
+    # optimiser = af.DynestyStatic()
     model = factor_model.optimise(optimiser).model[0]
 
     assert model.value.mean == pytest.approx(14, rel=0.1)
