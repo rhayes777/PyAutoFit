@@ -149,7 +149,7 @@ class TransformedMessage(MessageInterface):
         for transform in self.transforms:
             mean = transform.inv_transform(mean)
             jacobian = transform.jacobian(mean)
-            variance = jacobian.quad(variance)
+            variance = jacobian.invquad(variance)
 
         return variance
 
