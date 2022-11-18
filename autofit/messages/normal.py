@@ -68,7 +68,7 @@ class NormalMessage(AbstractMessage):
 
     @staticmethod
     def calc_natural_parameters(mu, sigma):
-        precision = sigma ** -2
+        precision =  1 / sigma ** 2
         return np.array([mu * precision, -precision / 2])
 
     @staticmethod
