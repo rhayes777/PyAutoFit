@@ -2,7 +2,6 @@ import pickle
 
 from autofit.messages import UniformNormalMessage
 from autofit.messages.transform import log_10_transform
-from autofit.messages.transform_wrapper import TransformedWrapperInstance
 
 
 def test_pickle_log_10_transform():
