@@ -304,21 +304,11 @@ class AbstractMessage(MessageInterface, ABC):
         NOTE: ignores log normalisation
         """
         # Remove floats from messages passed
-        from autofit.messages.transform_wrapper import TransformedWrapperInstance
-        from autofit.messages.composed_transform import TransformedMessage
 
-        dists: List[AbstractMessage] = [
+        dists: List[MessageInterface] = [
             dist
             for dist in self._iter_dists(elems)
-            if isinstance(
-                dist,
-                (
-                    AbstractMessage,
-                    TransformedWrapperInstance,
-                    TransformedMessage,
-                    MessageInterface,
-                ),
-            )
+            if isinstance(dist, MessageInterface,)
         ]
 
         # Calculate log product of message normalisation
@@ -412,105 +402,6 @@ class AbstractMessage(MessageInterface, ABC):
         return type(self) is type(x)
 
     @classmethod
-    def transformed(
-        cls,
-        transform: Union[AbstractDensityTransform, Type[AbstractDensityTransform]],
-        clsname: Optional[str] = None,
-        support: Optional[Tuple[Tuple[float, float], ...]] = None,
-        wrapper_cls=None,
-    ):
-        # noinspection PyUnresolvedReferences
-        """
-        transforms the distribution according the passed transform,
-        returns a newly created class that encodes the transformation.
-
-        Parameters
-        ----------
-        wrapper_cls
-        transform: AbstractDensityTransform
-            object that transforms the density
-        clsname: str, optional
-            the class name of the newly created class.
-            defaults to "Transformed<OriginalClassName>"
-        support: Tuple[Tuple[float, float], optional
-            the support of the new class. Generally this can be
-            automatically calculated from the parent class
-
-        Examples
-        --------
-        >>> from autofit.messages.normal import NormalMessage
-
-        Normal distributions have infinite univariate support
-        >>> NormalMessage._support
-        ((-inf, inf),)
-
-        We can tranform the NormalMessage to the unit interval
-        using `transform.phi_transform`
-        >>> UnitNormal = NormalMessage.transformed(transform.phi_transform)
-        >>> message = UnitNormal(1.2, 0.8)
-        >>> message._support
-        ((0.0, 1.0),)
-
-        Samples from the UnitNormal will exist in the Unit interval
-        >>> samples = message.sample(1000)
-        >>> samples.min(), samples.mean(), samples.max()
-        (0.06631750944045942, 0.8183189295040845, 0.9999056316923468)
-
-        Projections still work for the transformed class
-        >>> UnitNormal.project(samples, samples*0)
-        TransformedNormalMessage(mu=1.20273342, sigma=0.80929032)
-
-        Can specify the name of the new transformed class
-        >>> NormalMessage.transformed(transform.phi_transform, 'UnitNormal')(0, 1.)
-        UnitNormal(mu=0, sigma=1.)
-
-        The transformed objects are pickleable
-        >>> import pickle
-        >>> pickle.loads(pickle.dumps(message))
-        TransformedNormalMessage(mu=1.2, sigma=0.8)
-
-        The transformed objects also are normalised,
-        >>> from scipy.integrate import quad
-        >>> # noinspection PyTypeChecker
-        >>> quad(message.pdf, 0, 1)
-        (1.0000000000114622, 3.977073226302252e-09)
-
-        Can also nest transforms
-        >>> WeirdNormal = NormalMessage.transformed(
-            transform.log_transform).transformed(
-            transform.exp_transform)
-        This transformation is equivalent to the identity transform!
-        >>> WeirdNormal.project(NormalMessage(0.3, 0.8).sample(1000))
-        Transformed2NormalMessage(mu=0.31663248, sigma=0.79426984)
-
-        This functionality is more useful for applying linear shifts
-        e.g.
-        >>> ShiftedUnitNormal = NormalMessage.transformed(
-            transform.phi_transform
-        ).shifted(shift=0.7, scale=2.3)
-        >>> ShiftedUnitNormal._support
-        ((0.7, 3.0),)
-        >>> samples = ShiftedUnitNormal(0.2, 0.8).sample(1000)
-        >>> samples.min(), samples.mean(), samples.max()
-        """
-        from .transform_wrapper import TransformedWrapper
-
-        wrapper_cls = wrapper_cls or TransformedWrapper
-        return wrapper_cls(
-            cls=cls, transform=transform, clsname=clsname, support=support,
-        )
-
-    @classmethod
-    def shifted(
-        cls, shift: float = 0, scale: float = 1, wrapper_cls=None,
-    ):
-        return cls.transformed(
-            LinearShiftTransform(shift=shift, scale=scale),
-            clsname=f"Shifted{cls.__name__}",
-            wrapper_cls=wrapper_cls,
-        )
-
-    @classmethod
     def _reconstruct(
         cls,
         parameters: Tuple[np.ndarray, ...],
@@ -567,5 +458,5 @@ def map_dists(
     """
     for v in dists.keys() & values.keys():
         dist = dists[v]
-        if isinstance(dist, AbstractMessage, MessageInterface):
+        if isinstance(dist, MessageInterface):
             yield v, getattr(dist, _call)(values[v])

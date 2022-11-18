@@ -106,9 +106,6 @@ def test_regression():
     numerical_log_likelihood, numerical_gradient = message.numerical_logpdf_gradient(x)
     approx_gradient = approx_fprime(x, message.logpdf, epsilon=1e-8)
 
-    print(gradient)
-    print(numerical_gradient)
-
     assert log_likelihood == numerical_log_likelihood
     assert float(gradient) == pytest.approx(numerical_gradient, rel=0.001)
     assert float(approx_gradient) == pytest.approx(numerical_gradient, rel=0.001)

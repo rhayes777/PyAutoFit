@@ -267,9 +267,9 @@ UniformNormalMessage = TransformedMessage(NormalMessage(0, 1), phi_transform)
 
 Log10UniformNormalMessage = TransformedMessage(UniformNormalMessage, log_10_transform)
 
-LogNormalMessage = NormalMessage.transformed(log_transform, "LogNormalMessage")
+LogNormalMessage = TransformedMessage(NormalMessage(0, 1), log_transform)
 
 # Support is the simplex
-MultiLogitNormalMessage = NormalMessage.transformed(
-    multinomial_logit_transform, "MultiLogitNormalMessage", ((0, 1),)
+MultiLogitNormalMessage = TransformedMessage(
+    NormalMessage(0, 1), multinomial_logit_transform
 )

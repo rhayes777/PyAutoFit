@@ -27,9 +27,8 @@ from autofit.mapper.variable import (
 )
 from autofit.mapper.variable_operator import VariableFullOperator
 from autofit.messages.abstract import AbstractMessage
-from autofit.messages.composed_transform import TransformedMessage
 from autofit.messages.fixed import FixedMessage
-from autofit.messages.transform_wrapper import TransformedWrapperInstance
+from autofit.messages.interface import MessageInterface
 
 VariableFactorDist = Dict[str, Dict[Factor, AbstractMessage]]
 Projection = Dict[str, AbstractMessage]
@@ -38,14 +37,11 @@ logger = logging.getLogger(__name__)
 
 _log_projection_warnings = logger.debug
 
-
 Delta = Union[float, "MeanField"]
 
 
 def is_message(message):
-    return isinstance(
-        message, (AbstractMessage, TransformedWrapperInstance, TransformedMessage)
-    )
+    return isinstance(message, MessageInterface)
 
 
 # Does this need to be a Factor?
@@ -581,7 +577,6 @@ class FactorApproximation(AbstractNode):
     def project_mean_field(
         self, model_dist: MeanField, delta: Delta = 1.0, status: Status = Status(),
     ) -> Tuple["FactorApproximation", Status]:
-
         factor_dist, status = model_dist.update_factor_mean_field(
             self.cavity_dist, last_dist=self.factor_dist, delta=delta, status=status,
         )

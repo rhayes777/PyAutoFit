@@ -154,9 +154,7 @@ class MessageInterface(ABC):
     @staticmethod
     def _iter_dists(dists) -> Iterator[Union["MessageInterface", float]]:
         for elem in dists:
-            from autofit.mapper.prior.wrapped_instance import WrappedInstance
-
-            if isinstance(elem, (WrappedInstance, MessageInterface)):
+            if isinstance(elem, MessageInterface):
                 yield elem
             elif np.isscalar(elem):
                 yield elem
