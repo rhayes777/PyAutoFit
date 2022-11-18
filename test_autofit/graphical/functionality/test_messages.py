@@ -76,8 +76,8 @@ SUN = TransformedMessage(UN, LinearShiftTransform(shift=0.3, scale=0.8))
 LN = LogNormalMessage
 MLN = MultiLogitNormalMessage
 # test doubly transformed distributions
-WN = NormalMessage.transformed(transform.log_transform).transformed(
-    transform.exp_transform,
+WN = TransformedMessage(
+    NormalMessage(0, 1), transform.log_transform, transform.exp_transform,
 )
 
 
@@ -179,7 +179,7 @@ def test_multinomial_logit():
 
 def test_normal_simplex():
     mult_logit = transform.MultinomialLogitTransform()
-    NormalSimplex = NormalMessage.transformed(mult_logit)
+    NormalSimplex = TransformedMessage(NormalMessage(0, 1), mult_logit)
 
     message = NormalSimplex([-1, 2], [0.3, 0.3])
 
