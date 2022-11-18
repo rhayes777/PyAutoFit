@@ -3,7 +3,6 @@ from typing import Tuple, Optional
 
 import numpy as np
 
-from autoconf import cached_property
 from autofit.messages.abstract import MessageInterface
 from autofit.messages.transform import AbstractDensityTransform
 
