@@ -13,7 +13,7 @@ OldUniformNormalMessage = NormalMessage.transformed(
 
 @pytest.fixture(name="message")
 def make_message():
-    return UniformPrior(lower_limit=10, upper_limit=30).message
+    return UniformPrior(lower_limit=10.0, upper_limit=30.0).message
 
 
 @pytest.fixture(name="x")
@@ -23,7 +23,7 @@ def make_x(message):
 
 @pytest.fixture(name="old_message")
 def make_old_message():
-    return OldUniformNormalMessage.shifted(shift=10, scale=20)(0, 1)
+    return OldUniformNormalMessage.shifted(shift=10.0, scale=20.0)(0, 1)
 
 
 def test_logpdf_gradient(message, old_message):
@@ -84,7 +84,7 @@ def test_transform_uniform():
     print(TransformedMessage(normal, phi_transform,).variance)
 
     transformed = TransformedMessage(
-        normal, phi_transform, LinearShiftTransform(shift=10, scale=20),
+        normal, phi_transform, LinearShiftTransform(shift=10.0, scale=20.0),
     )
     print(transformed.variance)
     assert transformed.variance
