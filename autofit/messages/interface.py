@@ -10,7 +10,7 @@ from autoconf import cached_property
 class MessageInterface(ABC):
     log_base_measure: float
     log_norm: float
-    id: float
+    id: int
     lower_limit: float
     upper_limit: float
 

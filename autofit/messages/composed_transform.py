@@ -8,6 +8,12 @@ from autofit.messages.transform import AbstractDensityTransform
 
 
 def arithmetic(func):
+    """
+    When arithmetic is performed between a two transformed messages the
+    operation is performed between the base messages and the result it
+    encapsulated in a transformed message with the same set of transforms.
+    """
+
     @functools.wraps(func)
     def wrapper(self, other):
         if isinstance(other, TransformedMessage):
@@ -18,23 +24,31 @@ def arithmetic(func):
 
 
 class TransformedMessage(MessageInterface):
-    def from_natural_parameters(self, new_params, **kwargs):
-        return self.with_base(
-            self.base_message.from_natural_parameters(new_params, **kwargs,)
-        )
-
-    @property
-    def broadcast(self):
-        return self.base_message.broadcast
-
+    # noinspection PyUnresolvedReferences
     def __init__(
         self,
-        base_message,
+        base_message: MessageInterface,
         *transforms: AbstractDensityTransform,
-        id_=None,
+        id_: Optional[int] = None,
         lower_limit=float("-inf"),
         upper_limit=float("inf"),
     ):
+        """
+        Comprises a base message such as a normal message and a list of transforms
+        that transform the message into some new distribution, for example the
+        shifted uniform distribution which underpins a UniformPrior.
+
+        Parameters
+        ----------
+        base_message
+            A message
+        transforms
+            A list of transforms applied left to right. For example, a shifted uniform
+            normal message is first converted to uniform normal then shifted
+        id_
+        lower_limit
+        upper_limit
+        """
         while isinstance(base_message, TransformedMessage):
             transforms = base_message.transforms + transforms
             base_message = base_message.base_message
@@ -46,6 +60,15 @@ class TransformedMessage(MessageInterface):
         self.lower_limit = lower_limit
         self.upper_limit = upper_limit
 
+    def from_natural_parameters(self, new_params, **kwargs):
+        return self.with_base(
+            self.base_message.from_natural_parameters(new_params, **kwargs,)
+        )
+
+    @property
+    def broadcast(self):
+        return self.base_message.broadcast
+
     def check_support(self) -> np.ndarray:
         return self.base_message.check_support()
 
@@ -56,7 +79,11 @@ class TransformedMessage(MessageInterface):
     def copy(self):
         return TransformedMessage(self.base_message, *self.transforms, id_=self.id)
 
-    def with_base(self, message):
+    def with_base(self, message: MessageInterface) -> "TransformedMessage":
+        """
+        Creates a new TransformedMessage with the same id and transforms but a new
+        underlying base message
+        """
         return TransformedMessage(message, *self.transforms, id_=self.id)
 
     @arithmetic
@@ -99,12 +126,35 @@ class TransformedMessage(MessageInterface):
         x = self.base_message.sample(n_samples)
         return self.inverse_transform(x)
 
-    def transform(self, x):
+    def transform(self, x: float) -> float:
+        """
+        Transform some value in the space of the transformed message to
+        the space of the underlying message.
+
+        For example, a UniformPrior with limits 10 and 20 could be passed
+        a value 15. If the underlying message is a NormalMessage with a
+        mean of 0 then the result would be 0.
+
+        Parameters
+        ----------
+        x
+            A value in the space of the transformed message
+
+        Returns
+        -------
+        A value in the space of the base message
+        """
         for transform in reversed(self.transforms):
             x = transform.transform(x)
         return x
 
-    def inverse_transform(self, x):
+    def inverse_transform(self, x: float) -> float:
+        """
+        Transform some value in the space of the base message to a value in
+        the space of the transformed message.
+
+        Inverts transform (above)
+        """
         for transform in self.transforms:
             x = transform.inv_transform(x)
         return x
@@ -168,16 +218,21 @@ class TransformedMessage(MessageInterface):
         log_base = self.calc_log_base_measure(x) + log_det
         return self.base_message.natural_logpdf(eta, t, log_base, self.log_partition)
 
-    # def _factor_gradient(self, _, x: np.ndarray,) -> np.ndarray:
-    #     x, logd, logd_grad, jac = cls._transform.transform_det_jac(x)
-    #     logl, grad = cls._Message._logpdf_gradient(self, x)
-    #     return logl + logd, grad * jac + logd_grad
+    def factor(self, x: float) -> float:
+        """
+        Call the factor. The closer to the mean a given value is the higher
+        the probability returned.
 
-    def factor(self, x):
+        Parameters
+        ----------
+        x
+            A value in the space of the transformed message.
+
+        Returns
+        -------
+        The probability this value is correct
+        """
         return self._factor(self, x)
-
-    # def factor_gradient(self, x):
-    #     return self._factor_gradient(self, x)
 
     @property
     def multivariate(self):
