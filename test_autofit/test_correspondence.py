@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 
 from autofit import UniformPrior
-from autofit.messages import NormalMessage, UniformNormalMessage
+from autofit.messages import NormalMessage
 from autofit.messages.composed_transform import TransformedMessage
 from autofit.messages.transform import phi_transform, LinearShiftTransform
 
@@ -130,6 +130,9 @@ def test_regression():
 
     log_likelihood, gradient = message.logpdf_gradient(x)
     numerical_log_likelihood, numerical_gradient = message.numerical_logpdf_gradient(x)
+
+    print(gradient)
+    print(numerical_gradient)
 
     assert log_likelihood == numerical_log_likelihood
     assert float(gradient) == pytest.approx(numerical_gradient, rel=0.001)
