@@ -14,6 +14,23 @@ class MessageInterface(ABC):
     lower_limit: float
     upper_limit: float
 
+    @property
+    @abstractmethod
+    def broadcast(self):
+        pass
+
+    @property
+    def shape(self) -> Tuple[int, ...]:
+        return self.broadcast.shape
+
+    @property
+    def size(self) -> int:
+        return self.broadcast.size
+
+    @property
+    def ndim(self) -> int:
+        return self.broadcast.ndim
+
     def __eq__(self, other):
         return self.id == other.id
 
@@ -37,11 +54,6 @@ class MessageInterface(ABC):
                 f"shape of passed value {shape} does not "
                 f"match message shape {self.shape}"
             )
-
-    @property
-    @abstractmethod
-    def shape(self):
-        pass
 
     @cached_property
     @abstractmethod

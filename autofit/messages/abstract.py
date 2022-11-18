@@ -12,7 +12,6 @@ from typing import Optional, Union, Type, List
 import numpy as np
 
 from autoconf import cached_property
-from .transform import AbstractDensityTransform, LinearShiftTransform
 from ..mapper.variable import Variable
 
 from .interface import MessageInterface
@@ -57,6 +56,10 @@ class AbstractMessage(MessageInterface, ABC):
             self.parameters = tuple(np.asanyarray(p) for p in parameters)
         else:
             self.parameters = tuple(parameters)
+
+    @property
+    def broadcast(self):
+        return self._broadcast
 
     def check_support(self) -> np.ndarray:
         if self._parameter_support is not None:
@@ -118,18 +121,6 @@ class AbstractMessage(MessageInterface, ABC):
 
     def __iter__(self) -> Iterator[np.ndarray]:
         return iter(self.parameters)
-
-    @property
-    def shape(self) -> Tuple[int, ...]:
-        return self._broadcast.shape
-
-    @property
-    def size(self) -> int:
-        return self._broadcast.size
-
-    @property
-    def ndim(self) -> int:
-        return self._broadcast.ndim
 
     @classmethod
     def _cached_attrs(cls):

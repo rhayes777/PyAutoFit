@@ -24,8 +24,8 @@ class TransformedMessage(MessageInterface):
         )
 
     @property
-    def shape(self):
-        return self.base_message.shape
+    def broadcast(self):
+        return self.base_message.broadcast
 
     def __init__(
         self,
