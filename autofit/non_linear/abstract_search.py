@@ -15,13 +15,7 @@ from autoconf import conf
 
 from autofit import exc
 from autofit.database.sqlalchemy_ import sa
-from autofit.graphical import (
-    EPMeanField,
-    MeanField,
-    AnalysisFactor,
-    _HierarchicalFactor,
-)
-from autofit.graphical.factor_graphs.factor import Factor
+from autofit.graphical import MeanField, AnalysisFactor, _HierarchicalFactor, FactorApproximation
 from autofit.graphical.utils import Status
 from autofit.non_linear.initializer import Initializer
 from autofit.non_linear.parallel import SneakyPool
@@ -250,8 +244,10 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
     __identifier_fields__ = tuple()
 
     def optimise(
-        self, factor: Factor, model_approx: EPMeanField, status: Status = Status(),
-    ) -> Tuple[EPMeanField, Status]:
+            self,
+            factor_approx: FactorApproximation,
+            status: Status = Status(),
+    ) -> Tuple[MeanField, Status]:
         """
         Perform optimisation for expectation propagation. Currently only
         applicable for ModelFactors created by the declarative interface.
@@ -273,9 +269,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         Parameters
         ----------
-        factor
-            A factor comprising a model and an analysis
-        model_approx
+        factor_approx
             A collection of messages defining the current best approximation to
             some global model
         status
@@ -286,14 +280,14 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         a single factor.
         """
 
+        factor = factor_approx.factor
+
         _ = status
         if not isinstance(factor, (AnalysisFactor, PriorFactor, _HierarchicalFactor)):
             raise NotImplementedError(
                 f"Optimizer {self.__class__.__name__} can only be applied to"
                 f" AnalysisFactors, HierarchicalFactors and PriorFactors"
             )
-
-        factor_approx = model_approx.factor_approximation(factor)
 
         model = factor.prior_model.mapper_from_prior_arguments(
             {
@@ -318,12 +312,9 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         new_model_dist = MeanField.from_priors(result.projected_model.priors)
 
-        model_approx, status = self.update_model_approx(
-            new_model_dist, factor_approx, model_approx, status
-        )
         status.result = result
 
-        return model_approx, status
+        return new_model_dist, status
 
     @property
     def name(self):

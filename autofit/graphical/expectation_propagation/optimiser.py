@@ -163,9 +163,10 @@ class EPOptimiser:
         optimiser = optimiser or self.factor_optimisers[factor]
         try:
             with LogWarnings(logger=factor_logger.debug, action='always') as caught_warnings:
-                model_approx, status = optimiser.optimise(
-                    factor,
-                    model_approx,
+                factor_approx = model_approx.factor_approximation(factor)
+                new_model_dist, status = optimiser.optimise(factor_approx)
+                model_approx, status = optimiser.update_model_approx(
+                    new_model_dist, factor_approx, model_approx, status
                 )
 
             messages = status.messages + tuple(caught_warnings.messages)

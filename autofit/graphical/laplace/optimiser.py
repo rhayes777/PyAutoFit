@@ -170,14 +170,8 @@ class LaplaceOptimiser(AbstractFactorOptimiser):
 
     def optimise(
             self,
-            factor: Factor,
-            model_approx: EPMeanField,
+            factor_approx: FactorApproximation,
             status: Optional[Status] = Status(),
             **kwargs
-    ) -> Tuple[EPMeanField, Status]:
-
-        factor_approx = model_approx.factor_approximation(factor)
-        new_model_dist, status = self.optimise_approx(factor_approx, **kwargs)
-        return self.update_model_approx(
-            new_model_dist, factor_approx, model_approx, status
-        )
+    ) -> Tuple[MeanField, Status]:
+        return self.optimise_approx(factor_approx, **kwargs)

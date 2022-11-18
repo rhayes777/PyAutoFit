@@ -107,9 +107,14 @@ def test_static(
     search = StaticSearch()
 
     for i in range(3):
-        mean_field, _ = search.optimise(
-            model_approx=mean_field,
-            factor=factor,
+        factor_approx = mean_field.factor_approximation(factor)
+        new_model_dist, _ = search.optimise(
+            factor_approx=factor_approx,
+        )
+        search.update_model_approx(
+            new_model_dist,
+            factor_approx,
+            mean_field,
         )
 
         assert list(original_mean_field.mean_field.values()) == list(mean_field.mean_field.values())

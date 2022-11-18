@@ -27,16 +27,3 @@ def test_log_likelihood_function(prior_factor):
     assert prior_factor.log_likelihood_function(instance) == pytest.approx(
         -0.9189385332046727, 1.0e-8
     )
-
-
-def test_optimise(model_gaussian_x1, prior):
-    optimizer = af.DynestyStatic(maxcall=10, dynamic_delta=False,)
-    analysis = af.m.MockAnalysis()
-    factor = g.AnalysisFactor(model_gaussian_x1, analysis)
-    prior_factor = factor.prior_factors[0]
-    result, status = optimizer.optimise(prior_factor, factor.mean_field_approximation())
-
-    assert status
-
-    optimized_mean = list(result.mean_field.values())[0].mean
-    assert optimized_mean == pytest.approx(prior.mean, rel=0.1)

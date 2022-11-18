@@ -26,10 +26,10 @@ class StochasticEPOptimiser(EPOptimiser):
         subset_factor = subset_approx._factor_subset_factor[factor]
         try:
             with LogWarnings(logger=factor_logger.debug, action='always') as caught_warnings:
-
-                subset_approx, status = optimiser.optimise(
-                    subset_factor,
-                    subset_approx,
+                factor_approx = subset_approx.factor_approximation(factor)
+                new_model_dist, status = optimiser.optimise(factor_approx)
+                subset_approx, status = optimiser.update_model_approx(
+                    new_model_dist, factor_approx, subset_approx, status
                 )
 
             messages = status.messages + tuple(caught_warnings.messages)

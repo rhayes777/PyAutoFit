@@ -55,7 +55,7 @@ def test_uniform_edge():
 def _test_optimise_factor_model(factor_model):
     laplace = ep.LaplaceOptimiser()
 
-    collection = factor_model.optimise(laplace)
+    collection = factor_model.optimise(laplace, )
 
     assert 25.0 == pytest.approx(collection[0].normalization.mean, rel=0.1)
     assert collection[0].normalization is collection[1].normalization

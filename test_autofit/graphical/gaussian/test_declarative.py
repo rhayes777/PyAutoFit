@@ -108,7 +108,7 @@ def _test_optimise_factor_model(factor_model):
     """
     laplace = ep.LaplaceOptimiser()
 
-    collection = factor_model.optimise(laplace)
+    collection = factor_model.optimise(laplace, )
 
     """
     And what we get back is actually a PriorModelCollection
