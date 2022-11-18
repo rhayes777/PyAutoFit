@@ -100,18 +100,9 @@ class OptimisationState:
 
         self._value = value
         self._gradient = gradient
-        self._search_direction = None
 
         if search_direction is not None:
             self.search_direction = search_direction
-
-    @property
-    def search_direction(self):
-        return self._search_direction
-
-    @search_direction.setter
-    def search_direction(self, search_direction):
-        self._search_direction = search_direction
 
     @property
     def valid(self):
