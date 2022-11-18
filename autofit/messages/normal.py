@@ -46,10 +46,10 @@ class NormalMessage(AbstractMessage):
     ):
         if (np.array(sigma) < 0).any():
             raise exc.MessageException("Sigma cannot be negative")
-        if np.isnan(mean).all():
-            raise exc.MessageException("Mean is nan")
-        if np.isnan(sigma).all():
-            raise exc.MessageException("Sigma is nan")
+        # if np.isnan(mean).all():
+        #     raise exc.MessageException("Mean is nan")
+        # if np.isnan(sigma).all():
+        #     raise exc.MessageException("Sigma is nan")
 
         super().__init__(
             mean,
@@ -190,11 +190,11 @@ class NormalMessage(AbstractMessage):
         """
         The line of text describing this prior for the model_mapper.info file
         """
-        return f"GaussianPrior, mean = {self.mean}, sigma = {self.sigma}"
+        return f"NormalMessage, mean = {self.mean}, sigma = {self.sigma}"
 
     def __repr__(self):
         return (
-            "<GaussianPrior id={} mean={} sigma={} "
+            "<NormalMessage id={} mean={} sigma={} "
             "lower_limit={} upper_limit={}>".format(
                 self.id, self.mean, self.sigma, self.lower_limit, self.upper_limit
             )

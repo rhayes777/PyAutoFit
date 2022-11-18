@@ -67,6 +67,7 @@ class TransformedMessage(MessageInterface):
     def __pow__(self, other):
         return self.base_message ** other
 
+    @arithmetic
     def __rmul__(self, other):
         return self.base_message * other
 

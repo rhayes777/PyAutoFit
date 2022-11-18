@@ -82,6 +82,7 @@ def test_trivial():
     # optimiser = af.DynestyStatic()
     model = factor_model.optimise(optimiser).model[0]
 
+    assert isinstance(model.value, af.UniformPrior)
     assert model.value.mean == pytest.approx(14, rel=0.1)
 
 
