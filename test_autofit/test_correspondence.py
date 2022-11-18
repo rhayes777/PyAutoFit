@@ -1,5 +1,6 @@
 import numpy as np
 import pytest
+from scipy.optimize import approx_fprime
 
 from autofit import UniformPrior
 from autofit.messages import NormalMessage
@@ -133,6 +134,7 @@ def test_regression():
 
     log_likelihood, gradient = message.logpdf_gradient(x)
     numerical_log_likelihood, numerical_gradient = message.numerical_logpdf_gradient(x)
+    approx_gradient = approx_fprime(x, message.logpdf, epsilon=1e-8)
 
     print(gradient)
     print(numerical_gradient)
