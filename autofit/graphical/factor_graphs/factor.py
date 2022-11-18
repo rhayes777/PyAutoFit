@@ -3,7 +3,6 @@ from inspect import getfullargspec
 from typing import Tuple, Dict, Any, Callable, Union, List, Optional, TYPE_CHECKING
 
 import numpy as np
-import xxhash as xxhash
 
 try:
     import jax
@@ -365,6 +364,9 @@ class Factor(AbstractFactor):
 
     @staticmethod
     def _key(*args):
+
+        import xxhash as xxhash
+
         h = xxhash.xxh64()
 
         for arg in args:

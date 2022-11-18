@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Union
 
 from autofit.non_linear.samples import PDFSamples, Sample, NestSamples
 
@@ -101,7 +101,7 @@ class MockNestSamples(NestSamples):
             total_samples=10,
             log_evidence=0.0,
             number_live_points=5,
-            time: Optional[float] = None,
+            time: Optional[Union[str, float]] = None,
     ):
 
         self.model = model
