@@ -15,11 +15,11 @@ class HierarchicalFactor(PriorModel):
     _plates: Tuple[Plate, ...] = ()
 
     def __init__(
-            self,
-            distribution: Type[Prior],
-            optimiser=None,
-            name: Optional[str] = None,
-            **kwargs,
+        self,
+        distribution: Type[Prior],
+        optimiser=None,
+        name: Optional[str] = None,
+        **kwargs,
     ):
         """
         Associates variables in the graph with a distribution. That is,
@@ -104,11 +104,25 @@ class HierarchicalFactor(PriorModel):
         return self._factors
 
 
+class Factor:
+    def __init__(self, distribution_model):
+        self.distribution_model = distribution_model
+
+    def __call__(self, **kwargs):
+        argument = kwargs.pop("argument")
+        arguments = dict()
+        for name_, array in kwargs.items():
+            prior_id = int(name_.split("_")[1])
+            prior = self.distribution_model.prior_with_id(prior_id)
+            arguments[prior] = array
+        return self.distribution_model.instance_for_arguments(arguments).message(
+            argument
+        )
+
+
 class _HierarchicalFactor(AbstractModelFactor):
     def __init__(
-            self,
-            distribution_model: HierarchicalFactor,
-            drawn_prior: Prior,
+        self, distribution_model: HierarchicalFactor, drawn_prior: Prior,
     ):
         """
         A factor that links a variable to a parameterised distribution.
@@ -124,15 +138,6 @@ class _HierarchicalFactor(AbstractModelFactor):
         self.distribution_model = distribution_model
         self.drawn_prior = drawn_prior
 
-        def _factor(**kwargs):
-            argument = kwargs.pop("argument")
-            arguments = dict()
-            for name_, array in kwargs.items():
-                prior_id = int(name_.split("_")[1])
-                prior = distribution_model.prior_with_id(prior_id)
-                arguments[prior] = array
-            return distribution_model.instance_for_arguments(arguments).message(argument)
-
         prior_variable_dict = {prior.name: prior for prior in distribution_model.priors}
 
         prior_variable_dict["argument"] = drawn_prior
@@ -141,7 +146,7 @@ class _HierarchicalFactor(AbstractModelFactor):
             prior_model=CollectionPriorModel(
                 distribution_model=distribution_model, drawn_prior=drawn_prior
             ),
-            factor=_factor,
+            factor=Factor(distribution_model),
             optimiser=distribution_model.optimiser,
             prior_variable_dict=prior_variable_dict,
             name=distribution_model.name,
@@ -153,11 +158,7 @@ class _HierarchicalFactor(AbstractModelFactor):
         Dictionary mapping priors to messages. Does not account for inverse cavity
         behaviour as this caused bugs for hierarchical factors.
         """
-        return {
-            prior: prior.message
-            for prior
-            in self.priors
-        }
+        return {prior: prior.message for prior in self.priors}
 
     @property
     def variable(self):
@@ -182,6 +183,6 @@ class _HierarchicalFactor(AbstractModelFactor):
         return self
 
     def visualize(
-            self, paths: AbstractPaths, instance: ModelInstance, during_analysis: bool
+        self, paths: AbstractPaths, instance: ModelInstance, during_analysis: bool
     ):
         pass
