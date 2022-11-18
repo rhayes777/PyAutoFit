@@ -61,6 +61,13 @@ def _test_optimise_factor_model(factor_model):
     assert collection[0].normalization is collection[1].normalization
 
 
+class TrivialAnalysis(af.Analysis):
+    def log_likelihood_function(self, instance):
+        print(instance.value)
+        result = -((instance.value - 14) ** 2)
+        return result
+
+
 def test_trivial():
     prior = af.UniformPrior(lower_limit=10, upper_limit=20)
 
@@ -69,16 +76,10 @@ def test_trivial():
 
     prior_model = af.Collection(value=prior)
 
-    class TrivialAnalysis(af.Analysis):
-        def log_likelihood_function(self, instance):
-            print(instance.value)
-            result = -((instance.value - 14) ** 2)
-            return result
-
     factor_model = ep.AnalysisFactor(prior_model, analysis=TrivialAnalysis())
 
-    optimiser = ep.LaplaceOptimiser()
-    # optimiser = af.DynestyStatic()
+    # optimiser = ep.LaplaceOptimiser()
+    optimiser = af.DynestyStatic()
     model = factor_model.optimise(optimiser).model[0]
 
     assert model.value.mean == pytest.approx(14, rel=0.1)
