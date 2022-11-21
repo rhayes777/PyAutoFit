@@ -12,11 +12,10 @@ logger = logging.getLogger(__name__)
 
 
 class StochasticEPOptimiser(EPOptimiser):
-    def factor_step(self, factor, subset_approx, optimiser=None):
+    def factor_step(self, factor, subset_approx, optimiser):
         factor_logger = logging.getLogger(factor.name)
         factor_logger.debug("Optimising...")
 
-        optimiser = optimiser or self.factor_optimisers[factor]
         subset_factor = subset_approx._factor_subset_factor[factor]
         try:
             with LogWarnings(
