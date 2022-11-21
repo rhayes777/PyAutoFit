@@ -315,6 +315,37 @@ class ParallelEPOptimiser(EPOptimiser):
         paths: AbstractPaths = None,
         updater: Optional[ApproxUpdater] = None,
     ):
+        """
+        Optimise a factor graph.
+
+        Optimises all factors simultaneously on parallel processes, combines the results
+        and repeats.
+
+        Parameters
+        ----------
+        factor_graph
+            A graph describing the relationships between multiple factors
+        n_cores
+            How many cores are available? The main process takes one core so the
+            multiprocessing pool has n_cores - 1 processes. Should be at least 3
+        default_optimiser
+            An optimiser that is used if no specific optimiser is provided for a factor
+        factor_optimisers
+            Specific optimisers used to optimise each factor
+        ep_history
+            Optionally specify an alternate history
+        factor_order
+            The factors in the graph but placed in the order in which they should
+            be optimised
+        paths
+            Optionally define how data should be output
+        """
+
+        if n_cores < 3:
+            raise AssertionError(
+                "With less than three cores it is better to use EPOptimiser"
+            )
+
         super().__init__(
             factor_graph=factor_graph,
             default_optimiser=default_optimiser,
