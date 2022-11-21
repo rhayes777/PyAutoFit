@@ -23,9 +23,18 @@ logger = logging.getLogger(__name__)
 
 
 class ApproxUpdater(ABC):
+    """
+    Handles updating of the EPMeanField using new model distributions from
+    individual factors
+    """
+
     @abstractmethod
-    def delta(self, factor, model_approx):
-        pass
+    def delta(self, factor: Factor, model_approx: EPMeanField):
+        """
+        Compute a delta for a given factor. This dictates how much the message
+        for that factor is updated. A delta of 0 is no update and a delta of 1
+        is maximum update.
+        """
 
     def update_model_approx(
         self,
@@ -42,7 +51,15 @@ class ApproxUpdater(ABC):
 
 
 class SimplerUpdater(ApproxUpdater):
-    def __init__(self, delta=1.0):
+    def __init__(self, delta: float = 1.0):
+        """
+        Simply set delta to a fixed value
+
+        Parameters
+        ----------
+        delta
+            A fixed rate at which all factors update
+        """
         self._delta = delta
 
     def delta(self, factor, model_approx):
@@ -50,18 +67,33 @@ class SimplerUpdater(ApproxUpdater):
 
 
 class FactorUpdater(SimplerUpdater):
-    def __init__(self, factor_deltas, default=1.0):
+    def __init__(self, factor_deltas: Dict[Factor, float], default=1.0):
+        """
+        Determine how fast factors update on a factor by factor basis.
+
+        Parameters
+        ----------
+        factor_deltas
+            A dictionary dictating how fast each factor should update the mean field.
+        default
+            A default value for when no value is provided.
+        """
         super().__init__(delta=default)
         self.factor_deltas = factor_deltas
 
     def delta(self, factor, model_approx):
-        if factor in self.factor_deltas:
-            return self.factor_deltas[factor]
-        return self._delta
+        return self.factor_deltas.get(factor, self._delta)
 
 
 class DynamicUpdater(SimplerUpdater):
     def delta(self, factor, model_approx):
+        """
+        Variables are updated dynamically. The more factors that share a variable
+        the slower that variable is updated. This accounts for cases when a variable
+        is shared by many more factors than another variable and so shrinks too
+        quickly.
+        """
+
         variable_message_count = model_approx.variable_message_count
         min_value = min(variable_message_count.values())
         return MeanField(
