@@ -12,20 +12,16 @@ logger = logging.getLogger(__name__)
 
 
 class StochasticEPOptimiser(EPOptimiser):
-
-    def factor_step(
-            self,
-            factor,
-            subset_approx,
-            optimiser=None
-    ):
-        factor_logger = self.factor_loggers.get(factor.name, logging.getLogger(factor.name))
+    def factor_step(self, factor, subset_approx, optimiser=None):
+        factor_logger = logging.getLogger(factor.name)
         factor_logger.debug("Optimising...")
 
         optimiser = optimiser or self.factor_optimisers[factor]
         subset_factor = subset_approx._factor_subset_factor[factor]
         try:
-            with LogWarnings(logger=factor_logger.debug, action='always') as caught_warnings:
+            with LogWarnings(
+                logger=factor_logger.debug, action="always"
+            ) as caught_warnings:
                 factor_approx = subset_approx.factor_approximation(factor)
                 new_model_dist, status = optimiser.optimise(factor_approx)
                 subset_approx, status = optimiser.update_model_approx(
@@ -46,13 +42,13 @@ class StochasticEPOptimiser(EPOptimiser):
         return subset_approx, status
 
     def run(
-            self,
-            model_approx: EPMeanField,
-            batches: Generator[Dict[Plate, List[int]], None, None],
-            log_interval: int = 10,
-            visualise_interval: int = 100,
-            output_interval: int = 10,
-            inplace=False,
+        self,
+        model_approx: EPMeanField,
+        batches: Generator[Dict[Plate, List[int]], None, None],
+        log_interval: int = 10,
+        visualise_interval: int = 100,
+        output_interval: int = 10,
+        inplace=False,
     ) -> EPMeanField:
         """
         Run the optimisation on an approximation of the model.
@@ -105,9 +101,7 @@ class StochasticEPOptimiser(EPOptimiser):
                 else:
                     model_approx = model_approx.merge(batch, subset_approx)
 
-                if self.ep_history(
-                        model_approx.factor_graph, model_approx
-                ):
+                if self.ep_history(model_approx.factor_graph, model_approx):
                     logger.info("Terminating optimisation")
                     break  # callback controls convergence
 

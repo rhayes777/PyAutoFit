@@ -22,14 +22,13 @@ logger = logging.getLogger(__name__)
 
 class EPOptimiser:
     def __init__(
-            self,
-            factor_graph: FactorGraph,
-            default_optimiser: Optional[AbstractFactorOptimiser] = None,
-            factor_optimisers: Optional[Dict[Factor, AbstractFactorOptimiser]] = None,
-            ep_history: Optional[EPHistory] = None,
-            factor_order: Optional[List[Factor]] = None,
-            paths: AbstractPaths = None,
-            factor_loggers: Optional[Dict[Factor, logging.Logger]] = None,
+        self,
+        factor_graph: FactorGraph,
+        default_optimiser: Optional[AbstractFactorOptimiser] = None,
+        factor_optimisers: Optional[Dict[Factor, AbstractFactorOptimiser]] = None,
+        ep_history: Optional[EPHistory] = None,
+        factor_order: Optional[List[Factor]] = None,
+        paths: AbstractPaths = None,
     ):
         """
         Optimise a factor graph.
@@ -82,7 +81,6 @@ class EPOptimiser:
             optimiser.paths = self.paths
 
         self.ep_history = ep_history or EPHistory()
-        self.factor_loggers = factor_loggers or {}
 
         with open(self.output_path / "graph.info", "w+") as f:
             f.write(self.factor_graph.info)
@@ -91,15 +89,14 @@ class EPOptimiser:
 
     @classmethod
     def from_meanfield(
-            cls,
-            model_approx: EPMeanField,
-            default_optimiser: Optional[AbstractFactorOptimiser] = None,
-            factor_optimisers: Optional[Dict[Factor, AbstractFactorOptimiser]] = None,
-            ep_history: Optional[EPHistory] = None,
-            factor_order: Optional[List[Factor]] = None,
-            paths: AbstractPaths = None,
-            factor_loggers: Optional[Dict[Factor, logging.Logger]] = None,
-            exact_fit_kws=None,
+        cls,
+        model_approx: EPMeanField,
+        default_optimiser: Optional[AbstractFactorOptimiser] = None,
+        factor_optimisers: Optional[Dict[Factor, AbstractFactorOptimiser]] = None,
+        ep_history: Optional[EPHistory] = None,
+        factor_order: Optional[List[Factor]] = None,
+        paths: AbstractPaths = None,
+        exact_fit_kws=None,
     ):
         factor_graph = model_approx.factor_graph
         factor_order = factor_order or factor_graph.factors
@@ -121,7 +118,6 @@ class EPOptimiser:
             ep_history=ep_history,
             factor_order=factor_order,
             paths=paths,
-            factor_loggers=factor_loggers,
         )
 
     @property
@@ -151,18 +147,17 @@ class EPOptimiser:
         except exc.HistoryException as e:
             factor_logger.exception(e)
 
-    def factor_step(
-            self,
-            factor,
-            model_approx,
-            optimiser=None
-    ):
-        factor_logger = self.factor_loggers.get(factor.name, logging.getLogger(factor.name))
-        factor_logger.debug("Optimising...")
+    #
+    # @staticmethod
+    # def _optimise_factor(optimiser, factor_approx):
 
-        optimiser = optimiser or self.factor_optimisers[factor]
+    def factor_step(self, factor, model_approx, optimiser):
+        factor_logger = logging.getLogger(factor.name)
+        factor_logger.debug("Optimising...")
         try:
-            with LogWarnings(logger=factor_logger.debug, action='always') as caught_warnings:
+            with LogWarnings(
+                logger=factor_logger.debug, action="always"
+            ) as caught_warnings:
                 factor_approx = model_approx.factor_approximation(factor)
                 new_model_dist, status = optimiser.optimise(factor_approx)
                 model_approx, status = optimiser.update_model_approx(
@@ -176,21 +171,19 @@ class EPOptimiser:
         except (ValueError, ArithmeticError, RuntimeError) as e:
             logger.exception(e)
             status = Status(
-                False,
-                (f"Factor: {factor} experienced error {e}",),
-                StatusFlag.FAILURE,
+                False, (f"Factor: {factor} experienced error {e}",), StatusFlag.FAILURE,
             )
 
         factor_logger.debug(status)
         return model_approx, status
 
     def run(
-            self,
-            model_approx: EPMeanField,
-            max_steps: int = 100,
-            log_interval: int = 10,
-            visualise_interval: int = 100,
-            output_interval: int = 10,
+        self,
+        model_approx: EPMeanField,
+        max_steps: int = 100,
+        log_interval: int = 10,
+        visualise_interval: int = 100,
+        output_interval: int = 10,
     ) -> EPMeanField:
         """
         Run the optimisation on an approximation of the model.
@@ -226,9 +219,7 @@ class EPOptimiser:
             _should_visualise = should_visualise()
             _should_output = should_output()
             for factor, optimiser in self.factor_optimisers.items():
-                model_approx, status = self.factor_step(
-                    factor, model_approx, optimiser
-                )
+                model_approx, status = self.factor_step(factor, model_approx, optimiser)
                 if status and _should_log:
                     self._log_factor(factor)
 
