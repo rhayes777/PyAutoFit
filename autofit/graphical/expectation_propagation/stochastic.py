@@ -23,7 +23,7 @@ class StochasticEPOptimiser(EPOptimiser):
             ) as caught_warnings:
                 factor_approx = subset_approx.factor_approximation(factor)
                 new_model_dist, status = optimiser.optimise(factor_approx)
-                subset_approx, status = optimiser.update_model_approx(
+                subset_approx, status = self.updater.update_model_approx(
                     new_model_dist, factor_approx, subset_approx, status
                 )
 

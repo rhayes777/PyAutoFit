@@ -3,19 +3,24 @@ import logging
 import multiprocessing as mp
 import os
 import time
+import warnings
 from abc import ABC, abstractmethod
 from collections import Counter
 from functools import wraps
 from os import path
 from typing import Dict, Optional, Union, Tuple, List
+
 import numpy as np
-import warnings
 
 from autoconf import conf
-
 from autofit import exc
 from autofit.database.sqlalchemy_ import sa
-from autofit.graphical import MeanField, AnalysisFactor, _HierarchicalFactor, FactorApproximation
+from autofit.graphical import (
+    MeanField,
+    AnalysisFactor,
+    _HierarchicalFactor,
+    FactorApproximation,
+)
 from autofit.graphical.utils import Status
 from autofit.non_linear.initializer import Initializer
 from autofit.non_linear.parallel import SneakyPool
@@ -24,9 +29,6 @@ from autofit.non_linear.paths.directory import DirectoryPaths
 from autofit.non_linear.paths.sub_directory_paths import SubDirectoryPaths
 from autofit.non_linear.result import Result
 from autofit.non_linear.timer import Timer
-
-from autofit import exc
-
 from .analysis import Analysis
 from .paths.null import NullPaths
 from ..graphical.declarative.abstract import PriorFactor
@@ -99,10 +101,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         session
             An SQLAlchemy session instance so the results of the model-fit are written to an SQLite database.
         """
-        super().__init__(
-            delta=kwargs.get("delta", 1.0),
-            dynamic_delta=kwargs.get("dynamic_delta", True),
-        )
+        super().__init__()
 
         from autofit.non_linear.paths.database import DatabasePaths
 
@@ -193,49 +192,52 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         self.number_of_cores = number_of_cores
 
-        if any(os.environ.get(key) != "1" for key in (
+        if any(
+            os.environ.get(key) != "1"
+            for key in (
                 "OPENBLAS_NUM_THREADS",
                 "MKL_NUM_THREADS",
                 "OMP_NUM_THREADS",
                 "VECLIB_MAXIMUM_THREADS",
-                "NUMEXPR_NUM_THREADS"
-        )):
+                "NUMEXPR_NUM_THREADS",
+            )
+        ):
 
             warnings.warn(
                 exc.SearchWarning(
-                """
-                The non-linear search is using multiprocessing (number_of_cores>1). 
-                
-                However, the following environment variables have not been set to 1:
-                
-                OPENBLAS_NUM_THREADS
-                MKL_NUM_THREADS
-                OMP_NUM_THREADS
-                VECLIB_MAXIMUM_THREADS
-                NUMEXPR_NUM_THREADS
-                
-                This can lead to performance issues, because both the non-linear search and libraries that may be
-                used in your `log_likelihood_function` evaluation (e.g. NumPy, SciPy, scikit-learn) may attempt to
-                parallelize over all cores available.
-                
-                This will lead to slow-down, due to overallocation of tasks over the CPUs.
-                
-                To mitigate this, set the environment variables to 1 via the following command on your
-                bash terminal / command line:
-                
-                export OPENBLAS_NUM_THREADS=1
-                export MKL_NUM_THREADS=1
-                export OMP_NUM_THREADS=1
-                export VECLIB_MAXIMUM_THREADS=1
-                export NUMEXPR_NUM_THREADS=1
-             
-                This means only the non-linear search is parallelized over multiple cores.
-                
-                If you "know what you are doing" and do not want these environment variables to be set to one, you 
-                can disable this warning by changing the following entry in the config files:
-                
-                `config -> general.ini -> [parallel] -> warn_environment_variable=False`
-                """
+                    """
+                    The non-linear search is using multiprocessing (number_of_cores>1). 
+                    
+                    However, the following environment variables have not been set to 1:
+                    
+                    OPENBLAS_NUM_THREADS
+                    MKL_NUM_THREADS
+                    OMP_NUM_THREADS
+                    VECLIB_MAXIMUM_THREADS
+                    NUMEXPR_NUM_THREADS
+                    
+                    This can lead to performance issues, because both the non-linear search and libraries that may be
+                    used in your `log_likelihood_function` evaluation (e.g. NumPy, SciPy, scikit-learn) may attempt to
+                    parallelize over all cores available.
+                    
+                    This will lead to slow-down, due to overallocation of tasks over the CPUs.
+                    
+                    To mitigate this, set the environment variables to 1 via the following command on your
+                    bash terminal / command line:
+                    
+                    export OPENBLAS_NUM_THREADS=1
+                    export MKL_NUM_THREADS=1
+                    export OMP_NUM_THREADS=1
+                    export VECLIB_MAXIMUM_THREADS=1
+                    export NUMEXPR_NUM_THREADS=1
+                 
+                    This means only the non-linear search is parallelized over multiple cores.
+                    
+                    If you "know what you are doing" and do not want these environment variables to be set to one, you 
+                    can disable this warning by changing the following entry in the config files:
+                    
+                    `config -> general.ini -> [parallel] -> warn_environment_variable=False`
+                    """
                 )
             )
 
@@ -244,9 +246,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
     __identifier_fields__ = tuple()
 
     def optimise(
-            self,
-            factor_approx: FactorApproximation,
-            status: Status = Status(),
+        self, factor_approx: FactorApproximation, status: Status = Status(),
     ) -> Tuple[MeanField, Status]:
         """
         Perform optimisation for expectation propagation. Currently only

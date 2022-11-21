@@ -1,14 +1,15 @@
 import logging
 import os
+from abc import ABC, abstractmethod
 from pathlib import Path
-from typing import Dict, Optional, List
+from typing import Dict, Optional, List, Tuple
 
 from autofit import exc
 from autofit.graphical.expectation_propagation.ep_mean_field import EPMeanField
 from autofit.graphical.expectation_propagation.history import EPHistory
 from autofit.graphical.factor_graphs.factor import Factor
 from autofit.graphical.factor_graphs.graph import FactorGraph
-from autofit.graphical.mean_field import Status
+from autofit.graphical.mean_field import Status, MeanField, FactorApproximation
 from autofit.graphical.utils import StatusFlag, LogWarnings
 from autofit.mapper.identifier import Identifier
 from autofit.non_linear.paths import DirectoryPaths
@@ -20,6 +21,56 @@ from .visualise import Visualise
 logger = logging.getLogger(__name__)
 
 
+class ApproxUpdater(ABC):
+    @abstractmethod
+    def delta(self, factor, model_approx):
+        pass
+
+    def update_model_approx(
+        self,
+        new_model_dist: MeanField,
+        factor_approx: FactorApproximation,
+        model_approx: EPMeanField,
+        status: Status = Status(),
+    ) -> Tuple[EPMeanField, Status]:
+        delta = self.delta(factor=factor_approx.factor, model_approx=model_approx,)
+
+        return model_approx.project_mean_field(
+            new_model_dist, factor_approx, delta=delta, status=status,
+        )
+
+
+class SimplerUpdater(ApproxUpdater):
+    def __init__(self, delta=1.0):
+        self._delta = delta
+
+    def delta(self, factor, model_approx):
+        return self._delta
+
+
+class FactorUpdater(SimplerUpdater):
+    def __init__(self, factor_deltas, default=1.0):
+        super().__init__(delta=default)
+        self.factor_deltas = factor_deltas
+
+    def delta(self, factor, model_approx):
+        if factor in self.factor_deltas:
+            return self.factor_deltas[factor]
+        return self._delta
+
+
+class DynamicUpdater(SimplerUpdater):
+    def delta(self, factor, model_approx):
+        variable_message_count = model_approx.variable_message_count
+        min_value = min(variable_message_count.values())
+        return MeanField(
+            {
+                variable: self._delta * (min_value / message_count)
+                for variable, message_count in variable_message_count.items()
+            }
+        )
+
+
 class EPOptimiser:
     def __init__(
         self,
@@ -29,6 +80,7 @@ class EPOptimiser:
         ep_history: Optional[EPHistory] = None,
         factor_order: Optional[List[Factor]] = None,
         paths: AbstractPaths = None,
+        updater: Optional[ApproxUpdater] = None,
     ):
         """
         Optimise a factor graph.
@@ -60,6 +112,7 @@ class EPOptimiser:
         self.factor_graph = factor_graph
         self.factors = factor_order or self.factor_graph.factors
         self.default_optimiser = default_optimiser
+        self.updater = updater or SimplerUpdater(delta=1.0)
 
         if default_optimiser is None:
             self.factor_optimisers = factor_optimisers
@@ -147,9 +200,8 @@ class EPOptimiser:
         except exc.HistoryException as e:
             factor_logger.exception(e)
 
-    #
     # @staticmethod
-    # def _optimise_factor(optimiser, factor_approx):
+    # def optimise_factor(optimiser, factor_approx):
 
     def factor_step(self, factor, model_approx, optimiser):
         factor_logger = logging.getLogger(factor.name)
@@ -160,7 +212,7 @@ class EPOptimiser:
             ) as caught_warnings:
                 factor_approx = model_approx.factor_approximation(factor)
                 new_model_dist, status = optimiser.optimise(factor_approx)
-                model_approx, status = optimiser.update_model_approx(
+                model_approx, status = self.updater.update_model_approx(
                     new_model_dist, factor_approx, model_approx, status
                 )
 
