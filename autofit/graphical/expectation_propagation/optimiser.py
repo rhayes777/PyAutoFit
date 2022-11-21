@@ -1,4 +1,5 @@
 import logging
+import multiprocessing
 import os
 from abc import ABC, abstractmethod
 from pathlib import Path
@@ -200,18 +201,15 @@ class EPOptimiser:
         except exc.HistoryException as e:
             factor_logger.exception(e)
 
-    def factor_step(self, factor, model_approx, optimiser):
+    def factor_step(self, factor_approx, optimiser):
+        factor = factor_approx.factor
         factor_logger = logging.getLogger(factor.name)
         factor_logger.debug("Optimising...")
         try:
             with LogWarnings(
                 logger=factor_logger.debug, action="always"
             ) as caught_warnings:
-                factor_approx = model_approx.factor_approximation(factor)
                 new_model_dist, status = optimiser.optimise(factor_approx)
-                model_approx, status = self.updater.update_model_approx(
-                    new_model_dist, factor_approx, model_approx, status
-                )
 
             messages = status.messages + tuple(caught_warnings.messages)
 
@@ -224,7 +222,7 @@ class EPOptimiser:
             )
 
         factor_logger.debug(status)
-        return model_approx, status
+        return new_model_dist, status
 
     def run(
         self,
@@ -268,7 +266,11 @@ class EPOptimiser:
             _should_visualise = should_visualise()
             _should_output = should_output()
             for factor, optimiser in self.factor_optimisers.items():
-                model_approx, status = self.factor_step(factor, model_approx, optimiser)
+                factor_approx = model_approx.factor_approximation(factor)
+                new_model_dist, status = self.factor_step(factor_approx, optimiser)
+                model_approx, status = self.updater.update_model_approx(
+                    new_model_dist, factor_approx, model_approx, status
+                )
                 if status and _should_log:
                     self._log_factor(factor)
 
@@ -295,3 +297,105 @@ class EPOptimiser:
         """
         with open(self.output_path / "graph.results", "w+") as f:
             f.write(self.factor_graph.make_results_text(model_approx))
+
+
+class ParallelEPOptimiser(EPOptimiser):
+    def __init__(
+        self,
+        factor_graph: FactorGraph,
+        n_cores: int,
+        default_optimiser: Optional[AbstractFactorOptimiser] = None,
+        factor_optimisers: Optional[Dict[Factor, AbstractFactorOptimiser]] = None,
+        ep_history: Optional[EPHistory] = None,
+        factor_order: Optional[List[Factor]] = None,
+        paths: AbstractPaths = None,
+        updater: Optional[ApproxUpdater] = None,
+    ):
+        super().__init__(
+            factor_graph=factor_graph,
+            default_optimiser=default_optimiser,
+            factor_optimisers=factor_optimisers,
+            ep_history=ep_history,
+            factor_order=factor_order,
+            paths=paths,
+            updater=updater,
+        )
+        self.pool = multiprocessing.Pool(n_cores - 1)
+
+    def run(
+        self,
+        model_approx: EPMeanField,
+        max_steps: int = 100,
+        log_interval: int = 10,
+        visualise_interval: int = 100,
+        output_interval: int = 10,
+    ) -> EPMeanField:
+        """
+        Run the optimisation on an approximation of the model.
+
+        Parameters
+        ----------
+        model_approx
+            A collection of messages describing priors on the model's variables.
+        max_steps
+            The maximum number of steps prior to termination. Termination may also
+            occur when difference in log evidence or KL Divergence drop below a given
+            threshold for two consecutive optimisations of a given factor.
+        log_interval
+            How steps should we wait before logging information?
+        visualise_interval
+            How steps should we wait before visualising information?
+            This includes plots of KL Divergence and Evidence.
+        output_interval
+            How steps should we wait before outputting information?
+            This includes the model.results file which describes the current mean values
+            of each message.
+
+        Returns
+        -------
+        An updated approximation of the model
+        """
+        should_log = IntervalCounter(log_interval)
+        should_visualise = IntervalCounter(visualise_interval)
+        should_output = IntervalCounter(output_interval)
+
+        for _ in range(max_steps):
+            _should_log = should_log()
+            _should_visualise = should_visualise()
+            _should_output = should_output()
+
+            factor_approx_optimisers = [
+                (model_approx.factor_approximation(factor), optimiser)
+                for factor, optimiser in self.factor_optimisers.items()
+            ]
+
+            new_dist_statuses = self.pool.map(
+                self.factor_step, factor_approx_optimisers
+            )
+
+            for (factor_approx, _), (new_model_dist, status) in zip(
+                factor_approx_optimisers, new_dist_statuses
+            ):
+                model_approx, status = self.updater.update_model_approx(
+                    new_model_dist, factor_approx, model_approx, status
+                )
+                factor = factor_approx.factor
+                if status and _should_log:
+                    self._log_factor(factor)
+
+                if self.ep_history(factor, model_approx, status):
+                    logger.info("Terminating optimisation")
+                    break  # callback controls convergence
+
+            else:  # If no break do next iteration
+                if _should_visualise:
+                    self.visualiser()
+                if _should_output:
+                    self._output_results(model_approx)
+                continue
+            break  # stop iterations
+
+        self.visualiser()
+        self._output_results(model_approx)
+
+        return model_approx
