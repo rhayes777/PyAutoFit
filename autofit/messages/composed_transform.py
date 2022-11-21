@@ -24,6 +24,15 @@ def arithmetic(func):
 
 
 def transform(func):
+    """
+    Decorator to transform the function argument in the space of the
+    transformed message to the space of the underlying message.
+
+    For example, a UniformPrior with limits 10 and 20 could be passed
+    a value 15. If the underlying message is a NormalMessage with a
+    mean of 0 then the result would be 0.
+    """
+
     @functools.wraps(func)
     def wrapper(self, x):
         x = self._transform(x)
@@ -33,6 +42,13 @@ def transform(func):
 
 
 def inverse_transform(func):
+    """
+    Decorator to transform the result of a function in the space of
+    the base message to a value in the space of the transformed message.
+
+    Inverts transform (above)
+    """
+
     @functools.wraps(func)
     def wrapper(self, *args, **kwargs):
         result = func(self, *args, **kwargs)
