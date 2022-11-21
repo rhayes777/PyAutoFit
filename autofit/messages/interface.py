@@ -8,6 +8,10 @@ from autoconf import cached_property
 
 
 class MessageInterface(ABC):
+    """
+    Common base class for base and transformed messages
+    """
+
     log_base_measure: float
     log_norm: float
     id: int
