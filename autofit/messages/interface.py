@@ -62,7 +62,7 @@ class MessageInterface(ABC):
 
     @staticmethod
     @abstractmethod
-    def to_canonical_form(x: np.ndarray) -> np.ndarray:
+    def to_canonical_form(x: Union[np.ndarray, float]) -> np.ndarray:
         pass
 
     @classmethod

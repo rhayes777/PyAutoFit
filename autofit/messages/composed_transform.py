@@ -1,5 +1,5 @@
 import functools
-from typing import Tuple, Optional
+from typing import Tuple, Optional, Union
 
 import numpy as np
 
@@ -19,6 +19,24 @@ def arithmetic(func):
         if isinstance(other, TransformedMessage):
             other = other.base_message
         return self.with_base(func(self, other))
+
+    return wrapper
+
+
+def transform(func):
+    @functools.wraps(func)
+    def wrapper(self, x):
+        x = self._transform(x)
+        return func(self, x)
+
+    return wrapper
+
+
+def inverse_transform(func):
+    @functools.wraps(func)
+    def wrapper(self, *args, **kwargs):
+        result = func(self, *args, **kwargs)
+        return self._inverse_transform(result)
 
     return wrapper
 
@@ -122,11 +140,11 @@ class TransformedMessage(MessageInterface):
     def natural_parameters(self):
         return self.base_message.natural_parameters
 
+    @inverse_transform
     def sample(self, n_samples: Optional[int] = None):
-        x = self.base_message.sample(n_samples)
-        return self.inverse_transform(x)
+        return self.base_message.sample(n_samples)
 
-    def transform(self, x: float) -> float:
+    def _transform(self, x: float) -> float:
         """
         Transform some value in the space of the transformed message to
         the space of the underlying message.
@@ -144,24 +162,24 @@ class TransformedMessage(MessageInterface):
         -------
         A value in the space of the base message
         """
-        for transform in reversed(self.transforms):
-            x = transform.transform(x)
+        for _transform in reversed(self.transforms):
+            x = _transform.transform(x)
         return x
 
-    def inverse_transform(self, x: float) -> float:
+    def _inverse_transform(self, x: float) -> float:
         """
         Transform some value in the space of the base message to a value in
         the space of the transformed message.
 
         Inverts transform (above)
         """
-        for transform in self.transforms:
-            x = transform.inv_transform(x)
+        for _transform in self.transforms:
+            x = _transform.inv_transform(x)
         return x
 
     def transform_det(self, x):
-        for transform in self.transforms:
-            x = transform.log_det(x)
+        for _transform in self.transforms:
+            x = _transform.log_det(x)
         return x
 
     def invert_natural_parameters(
@@ -169,8 +187,9 @@ class TransformedMessage(MessageInterface):
     ) -> Tuple[np.ndarray, ...]:
         return self.base_message.invert_natural_parameters(natural_parameters)
 
+    @transform
     def cdf(self, x):
-        return self.base_message.cdf(self.transform(x))
+        return self.base_message.cdf(x)
 
     @property
     def log_partition(self) -> np.ndarray:
@@ -179,46 +198,48 @@ class TransformedMessage(MessageInterface):
     def invert_sufficient_statistics(self, sufficient_statistics):
         return self.base_message.invert_sufficient_statistics(sufficient_statistics)
 
+    @inverse_transform
     def value_for(self, unit):
-        return self.inverse_transform(self.base_message.value_for(unit))
+        return self.base_message.value_for(unit)
 
+    @transform
     def calc_log_base_measure(self, x) -> np.ndarray:
-        x = self.transform(x)
         return self.base_message.calc_log_base_measure(x)
 
+    @transform
     def to_canonical_form(self, x) -> np.ndarray:
-        x = self.transform(x)
         return self.base_message.to_canonical_form(x)
 
     @property
+    @inverse_transform
     def mean(self) -> np.ndarray:
-        return self.inverse_transform(self.base_message.mean)
+        return self.base_message.mean
 
     @property
     def variance(self) -> np.ndarray:
         # noinspection PyUnresolvedReferences
         variance = self.base_message.variance
         mean = self.base_message.mean
-        for transform in self.transforms:
-            mean = transform.inv_transform(mean)
-            jacobian = transform.jacobian(mean)
+        for _transform in self.transforms:
+            mean = _transform.inv_transform(mean)
+            jacobian = _transform.jacobian(mean)
             variance = jacobian.invquad(variance)
 
         return variance
 
+    @inverse_transform
     def _sample(self, n_samples) -> np.ndarray:
-        x = self.base_message._sample(n_samples)
-        return self.inverse_transform(x)
+        return self.base_message._sample(n_samples)
 
-    def _factor(self, _, x: np.ndarray,) -> np.ndarray:
+    def _factor(self, _, x: Union[np.ndarray, float],) -> np.ndarray:
         log_det = self.transform_det(x)
-        x = self.transform(x)
+        x = self._transform(x)
         eta = self.base_message._broadcast_natural_parameters(x)
         t = self.base_message.to_canonical_form(x)
         log_base = self.calc_log_base_measure(x) + log_det
         return self.base_message.natural_logpdf(eta, t, log_base, self.log_partition)
 
-    def factor(self, x: float) -> float:
+    def factor(self, x: Union[float, np.ndarray]) -> Union[np.ndarray, float]:
         """
         Call the factor. The closer to the mean a given value is the higher
         the probability returned.
@@ -240,8 +261,8 @@ class TransformedMessage(MessageInterface):
 
     def logpdf_gradient(self, x: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
         jacobians = []
-        for transform in reversed(self.transforms):
-            x, jacobian = transform.transform_jac(x)
+        for _transform in reversed(self.transforms):
+            x, jacobian = _transform.transform_jac(x)
             jacobians.append(jacobian)
 
         log_likelihood, gradient = self.base_message.logpdf_gradient(x)
@@ -253,8 +274,8 @@ class TransformedMessage(MessageInterface):
 
     def from_mode(self, mode: np.ndarray, covariance: np.ndarray, **kwargs):
         jac = None
-        for transform in reversed(self.transforms):
-            mode, jac = transform.transform_jac(mode)
+        for _transform in reversed(self.transforms):
+            mode, jac = _transform.transform_jac(mode)
 
         if covariance.shape != ():
             covariance = jac.quad(covariance)
