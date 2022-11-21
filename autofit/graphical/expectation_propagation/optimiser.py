@@ -72,6 +72,30 @@ class DynamicUpdater(SimplerUpdater):
         )
 
 
+def factor_step(factor_approx, optimiser):
+    factor = factor_approx.factor
+    factor_logger = logging.getLogger(factor.name)
+    factor_logger.debug("Optimising...")
+    try:
+        with LogWarnings(
+            logger=factor_logger.debug, action="always"
+        ) as caught_warnings:
+            new_model_dist, status = optimiser.optimise(factor_approx)
+
+        messages = status.messages + tuple(caught_warnings.messages)
+
+        status = Status(status.success, messages, status.flag, result=status.result)
+
+    except (ValueError, ArithmeticError, RuntimeError) as e:
+        logger.exception(e)
+        status = Status(
+            False, (f"Factor: {factor} experienced error {e}",), StatusFlag.FAILURE,
+        )
+
+    factor_logger.debug(status)
+    return new_model_dist, status
+
+
 class EPOptimiser:
     def __init__(
         self,
@@ -202,27 +226,7 @@ class EPOptimiser:
             factor_logger.exception(e)
 
     def factor_step(self, factor_approx, optimiser):
-        factor = factor_approx.factor
-        factor_logger = logging.getLogger(factor.name)
-        factor_logger.debug("Optimising...")
-        try:
-            with LogWarnings(
-                logger=factor_logger.debug, action="always"
-            ) as caught_warnings:
-                new_model_dist, status = optimiser.optimise(factor_approx)
-
-            messages = status.messages + tuple(caught_warnings.messages)
-
-            status = Status(status.success, messages, status.flag, result=status.result)
-
-        except (ValueError, ArithmeticError, RuntimeError) as e:
-            logger.exception(e)
-            status = Status(
-                False, (f"Factor: {factor} experienced error {e}",), StatusFlag.FAILURE,
-            )
-
-        factor_logger.debug(status)
-        return new_model_dist, status
+        return factor_step(factor_approx, optimiser)
 
     def run(
         self,
@@ -369,9 +373,7 @@ class ParallelEPOptimiser(EPOptimiser):
                 for factor, optimiser in self.factor_optimisers.items()
             ]
 
-            new_dist_statuses = self.pool.map(
-                self.factor_step, factor_approx_optimisers
-            )
+            new_dist_statuses = self.pool.starmap(factor_step, factor_approx_optimisers)
 
             for (factor_approx, _), (new_model_dist, status) in zip(
                 factor_approx_optimisers, new_dist_statuses

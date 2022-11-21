@@ -1,8 +1,7 @@
 import logging
 from abc import ABC, abstractmethod
-from typing import Tuple, Optional
+from typing import Tuple
 
-from autofit.graphical.expectation_propagation.ep_mean_field import EPMeanField
 from autofit.graphical.mean_field import MeanField, FactorApproximation, Status
 from autofit.graphical.utils import LogWarnings
 
