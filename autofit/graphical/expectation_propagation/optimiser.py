@@ -200,9 +200,6 @@ class EPOptimiser:
         except exc.HistoryException as e:
             factor_logger.exception(e)
 
-    # @staticmethod
-    # def optimise_factor(optimiser, factor_approx):
-
     def factor_step(self, factor, model_approx, optimiser):
         factor_logger = logging.getLogger(factor.name)
         factor_logger.debug("Optimising...")
