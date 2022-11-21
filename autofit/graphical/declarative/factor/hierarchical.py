@@ -105,10 +105,32 @@ class HierarchicalFactor(PriorModel):
 
 
 class Factor:
-    def __init__(self, distribution_model):
+    def __init__(self, distribution_model: HierarchicalFactor):
+        """
+        Provides the function called by the factor in the graph.
+
+        Parameters
+        ----------
+        distribution_model
+            A prior model which parameterizes a distribution from which it
+            is assumed the variable is drawn
+        """
         self.distribution_model = distribution_model
 
     def __call__(self, **kwargs):
+        """
+        Call the factor
+
+        Parameters
+        ----------
+        kwargs
+            Maps names containing prior ids as well as a name 'argument' to values
+            for each priors and the argument with which the distribution is called.
+
+        Returns
+        -------
+        The probability that the argument was drawn from the distribution
+        """
         argument = kwargs.pop("argument")
         arguments = dict()
         for name_, array in kwargs.items():
