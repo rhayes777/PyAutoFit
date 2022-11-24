@@ -181,15 +181,17 @@ class AbstractDynesty(AbstractNest, ABC):
 
             except RuntimeError:
 
-                self.logger.info(
-                    """
-                    Your operating system does not support Python multiprocessing.
-                    
-                    A single CPU non-multiprocessing Dynesty run is being performed.
-                    """
-                )
-
                 checkpoint_exists = os.path.exists(self.checkpoint_file)
+
+                if not checkpoint_exists:
+
+                    self.logger.info(
+                        """
+                        Your operating system does not support Python multiprocessing.
+                        
+                        A single CPU non-multiprocessing Dynesty run is being performed.
+                        """
+                    )
 
                 sampler = self.sampler_from(
                     model=model,
