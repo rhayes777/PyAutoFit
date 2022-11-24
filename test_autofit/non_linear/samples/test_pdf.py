@@ -49,7 +49,7 @@ def test__from_csv_table():
     assert samples_x5.weight_list == [1.0, 1.0, 1.0, 1.0, 1.0]
 
 
-def test__converged__median_pdf_vector_and_instance():
+def test__median_pdf__converged():
     parameters = [
         [1.0, 2.0],
         [1.0, 2.0],
@@ -91,7 +91,7 @@ def test__converged__median_pdf_vector_and_instance():
     assert median_pdf_instance.mock_class.two == pytest.approx(2.0, 1e-1)
 
 
-def test__unconverged__median_pdf_vector():
+def test__median_pdf__unconverged():
     parameters = [
         [1.0, 2.0],
         [1.0, 2.0],
@@ -122,7 +122,7 @@ def test__unconverged__median_pdf_vector():
 
     assert samples_x5.pdf_converged is False
 
-    median_pdf_vector = samples_x5.median_pdf_vector
+    median_pdf_vector = samples_x5.median_pdf(as_instance=False)
 
     assert median_pdf_vector[0] == pytest.approx(0.9, 1.0e-4)
     assert median_pdf_vector[1] == pytest.approx(1.9, 1.0e-4)
@@ -197,7 +197,7 @@ def test__converged__vector_and_instance_at_upper_and_lower_sigma():
     assert values.mock_class.two == pytest.approx(0.30121, 1e-1)
 
 
-def test__unconverged_vector_at_lower_and_upper_sigma():
+def test__values_at_sigma__unconverged():
     parameters = [
         [1.0, 2.0],
         [1.0, 2.0],
@@ -228,12 +228,12 @@ def test__unconverged_vector_at_lower_and_upper_sigma():
 
     assert samples_x5.pdf_converged is False
 
-    values_at_sigma = samples_x5.values_at_sigma(sigma=1.0)
+    values_at_sigma = samples_x5.values_at_sigma(sigma=1.0, as_instance=False)
 
     assert values_at_sigma[0] == pytest.approx(((0.9, 1.1)), 1e-2)
     assert values_at_sigma[1] == pytest.approx(((1.9, 2.1)), 1e-2)
 
-    values_at_sigma = samples_x5.values_at_sigma(sigma=3.0)
+    values_at_sigma = samples_x5.values_at_sigma(sigma=3.0, as_instance=False)
 
     assert values_at_sigma[0] == pytest.approx(((0.9, 1.1)), 1e-2)
     assert values_at_sigma[1] == pytest.approx(((1.9, 2.1)), 1e-2)
