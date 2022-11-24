@@ -158,6 +158,9 @@ class AbstractDynesty(AbstractNest, ABC):
 
             try:
 
+                if conf.instance["non_linear"]["nest"]["DynestyStatic"]["parallel"]["force_x1_cpu"]:
+                    raise RuntimeError
+
                 with Pool(
                         njobs=self.number_of_cores,
                         loglike=fitness_function,

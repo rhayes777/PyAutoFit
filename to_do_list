@@ -12,6 +12,11 @@ __Complaints__
 - Amy was unsure how to use an instance to plot a new component. Show an example where an instance is used
 
 
+__Logging__
+
+- More logging for improved debugging, with customzized level of output.
+- Warning customization.
+
 __Samples__
 
  - Have as_instance=True default argument in all Samples objects. Use decorator to implement the output.
