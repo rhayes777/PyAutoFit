@@ -1,4 +1,3 @@
-from functools import wraps
 import math
 from typing import List, Optional, Tuple, Union
 
@@ -7,65 +6,8 @@ import numpy as np
 from autofit.mapper.model import ModelInstance
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.samples.sample import Sample, load_from_table
+from autofit.non_linear.samples.samples import to_instance, to_instance_sigma
 from .samples import Samples
-
-
-def to_instance(func):
-    """
-
-    Parameters
-    ----------
-    func
-
-    Returns
-    -------
-        A function that returns a 2D image.
-    """
-
-    @wraps(func)
-    def wrapper(
-        obj,
-        sigma,
-        as_instance : bool = True,
-        *args,
-        **kwargs
-    ) -> Union[List, ModelInstance]:
-        """
-        This decorator checks if a light profile is a `LightProfileOperated` class and therefore already has had operations like a
-        PSF convolution performed.
-
-        This is compared to the `only_operated` input to determine if the image of that light profile is returned, or
-        an array of zeros.
-
-        Parameters
-        ----------
-        obj
-            A light profile with an `image_2d_from` function whose class is inspected to determine if the image is
-            operated on.
-        grid
-            A grid_like object of (y,x) coordinates on which the function values are evaluated.
-        operated_only
-            By default this is None and the image is returned irrespecive of light profile class (E.g. it does not matter
-            if it is already operated or not). If this input is included as a bool, the light profile image is only
-            returned if they are or are not already operated.
-
-        Returns
-        -------
-            The 2D image, which is customized depending on whether it has been operated on.
-        """
-
-        vector = func(obj, sigma, as_instance, *args, **kwargs)
-
-        if as_instance:
-
-            return obj.model.instance_from_vector(
-                vector=vector,
-                ignore_prior_limits=True
-            )
-
-        return vector
-
-    return wrapper
 
 
 class PDFSamples(Samples):
@@ -168,30 +110,20 @@ class PDFSamples(Samples):
             return False
         return True
 
-    def median_pdf(self) -> List[float]:
+    @to_instance
+    def median_pdf(self, as_instance: bool = True) -> List[float]:
         """
         The median of the probability density function (PDF) of every parameter marginalized in 1D, returned
-        as a list of values.
+        as a model instance or list of values.
         """
         if self.pdf_converged:
             return [
                 quantile(x=params, q=0.5, weights=self.weight_list)[0]
                 for params in self.parameters_extract
             ]
-        return self.max_log_likelihood_vector
+        return self.max_log_likelihood(as_instance=False)
 
-    @property
-    def median_pdf_instance(self) -> ModelInstance:
-        """
-        The median of the probability density function (PDF) of every parameter marginalized in 1D, returned
-        as a model instance.
-        """
-        return self.model.instance_from_vector(
-            vector=self.median_pdf_vector,
-            ignore_prior_limits=True
-        )
-
-    @to_instance
+    @to_instance_sigma
     def values_at_sigma(self, sigma: float, as_instance: bool = True) -> [Tuple, ModelInstance]:
         """
         The value of every parameter marginalized in 1D at an input sigma value of its probability density function
@@ -241,7 +173,7 @@ class PDFSamples(Samples):
             for index in range(len(parameters_min))
         ]
 
-    @to_instance
+    @to_instance_sigma
     def values_at_upper_sigma(self, sigma: float, as_instance: bool = True) -> Union[List, ModelInstance]:
         """
         The upper value of every parameter marginalized in 1D at an input sigma value of its probability density
@@ -256,7 +188,7 @@ class PDFSamples(Samples):
         """
         return list(map(lambda param: param[1], self.values_at_sigma(sigma, as_instance=False)))
 
-    @to_instance
+    @to_instance_sigma
     def values_at_lower_sigma(self, sigma: float, as_instance: bool = True) -> Union[List, ModelInstance]:
         """
         The lower value of every parameter marginalized in 1D at an input sigma value of its probability density
@@ -271,7 +203,7 @@ class PDFSamples(Samples):
         """
         return list(map(lambda param: param[0], self.values_at_sigma(sigma, as_instance=False)))
 
-    @to_instance
+    @to_instance_sigma
     def errors_at_sigma(self, sigma: float, as_instance: bool = True) -> [Tuple, ModelInstance]:
         """
         The lower and upper error of every parameter marginalized in 1D at an input sigma value of its probability
@@ -288,7 +220,7 @@ class PDFSamples(Samples):
         error_vector_upper = self.errors_at_upper_sigma(sigma=sigma)
         return [(lower, upper) for lower, upper in zip(error_vector_lower, error_vector_upper)]
 
-    @to_instance
+    @to_instance_sigma
     def errors_at_upper_sigma(self, sigma: float, as_instance: bool = True) -> Union[List, ModelInstance]:
         """
         The upper error of every parameter marginalized in 1D at an input sigma value of its probability density
@@ -310,7 +242,7 @@ class PDFSamples(Samples):
             )
         )
 
-    @to_instance
+    @to_instance_sigma
     def errors_at_lower_sigma(self, sigma: float, as_instance: bool = True) -> Union[List, ModelInstance]:
         """
         The lower error of every parameter marginalized in 1D at an input sigma value of its probability density
@@ -332,7 +264,7 @@ class PDFSamples(Samples):
             )
         )
 
-    @to_instance
+    @to_instance_sigma
     def error_magnitudes_at_sigma(self, sigma: float, as_instance: bool = True) -> Union[List, ModelInstance]:
         """
         The magnitude of every error after marginalization in 1D at an input sigma value of the probability density

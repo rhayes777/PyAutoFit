@@ -1,4 +1,5 @@
 import csv
+from functools import wraps
 import json
 import warnings
 from copy import copy
@@ -10,6 +11,123 @@ from autofit import exc
 from autofit.mapper.model import ModelInstance
 from autofit.mapper.prior_model.abstract import AbstractPriorModel, Path
 from autofit.non_linear.samples.sample import Sample
+
+
+### TODO: Rich how do I reduce this to one wrapper sensible?
+
+def to_instance(func):
+    """
+
+    Parameters
+    ----------
+    func
+
+    Returns
+    -------
+        A function that returns a 2D image.
+    """
+
+    @wraps(func)
+    def wrapper(
+        obj,
+        as_instance: bool = True,
+        *args,
+        **kwargs
+    ) -> Union[List, ModelInstance]:
+        """
+        This decorator checks if a light profile is a `LightProfileOperated` class and therefore already has had operations like a
+        PSF convolution performed.
+
+        This is compared to the `only_operated` input to determine if the image of that light profile is returned, or
+        an array of zeros.
+
+        Parameters
+        ----------
+        obj
+            A light profile with an `image_2d_from` function whose class is inspected to determine if the image is
+            operated on.
+        grid
+            A grid_like object of (y,x) coordinates on which the function values are evaluated.
+        operated_only
+            By default this is None and the image is returned irrespecive of light profile class (E.g. it does not matter
+            if it is already operated or not). If this input is included as a bool, the light profile image is only
+            returned if they are or are not already operated.
+
+        Returns
+        -------
+            The 2D image, which is customized depending on whether it has been operated on.
+        """
+
+        vector = func(obj, as_instance, *args, **kwargs)
+
+        if as_instance:
+
+            return obj.model.instance_from_vector(
+                vector=vector,
+                ignore_prior_limits=True
+            )
+
+        return vector
+
+    return wrapper
+
+
+def to_instance_sigma(func):
+    """
+
+    Parameters
+    ----------
+    func
+
+    Returns
+    -------
+        A function that returns a 2D image.
+    """
+
+    @wraps(func)
+    def wrapper(
+        obj,
+        sigma,
+        as_instance : bool = True,
+        *args,
+        **kwargs
+    ) -> Union[List, ModelInstance]:
+        """
+        This decorator checks if a light profile is a `LightProfileOperated` class and therefore already has had operations like a
+        PSF convolution performed.
+
+        This is compared to the `only_operated` input to determine if the image of that light profile is returned, or
+        an array of zeros.
+
+        Parameters
+        ----------
+        obj
+            A light profile with an `image_2d_from` function whose class is inspected to determine if the image is
+            operated on.
+        grid
+            A grid_like object of (y,x) coordinates on which the function values are evaluated.
+        operated_only
+            By default this is None and the image is returned irrespecive of light profile class (E.g. it does not matter
+            if it is already operated or not). If this input is included as a bool, the light profile image is only
+            returned if they are or are not already operated.
+
+        Returns
+        -------
+            The 2D image, which is customized depending on whether it has been operated on.
+        """
+
+        vector = func(obj, sigma, as_instance, *args, **kwargs)
+
+        if as_instance:
+
+            return obj.model.instance_from_vector(
+                vector=vector,
+                ignore_prior_limits=True
+            )
+
+        return vector
+
+    return wrapper
 
 
 class Samples:

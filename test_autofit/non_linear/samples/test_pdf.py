@@ -80,12 +80,12 @@ def test__converged__median_pdf_vector_and_instance():
 
     assert samples_x5.pdf_converged is True
 
-    median_pdf_vector = samples_x5.median_pdf_vector
+    median_pdf_vector = samples_x5.median_pdf(as_instance=False)
 
     assert median_pdf_vector[0] == pytest.approx(1.0, 1.0e-4)
     assert median_pdf_vector[1] == pytest.approx(2.0, 1.0e-4)
 
-    median_pdf_instance = samples_x5.median_pdf_instance
+    median_pdf_instance = samples_x5.median_pdf(as_instance=True)
 
     assert median_pdf_instance.mock_class.one == pytest.approx(1.0, 1e-1)
     assert median_pdf_instance.mock_class.two == pytest.approx(2.0, 1e-1)
