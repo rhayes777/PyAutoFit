@@ -10,6 +10,8 @@ from autofit.non_linear.samples.samples import Samples
 from autofit.non_linear.samples.samples import Sample
 from autofit.non_linear.samples.sample import load_from_table
 
+from autofit.non_linear.samples.samples import to_instance, to_instance_sigma, to_instance_input
+
 from autofit import exc
 
 class MCMCSamples(PDFSamples):
@@ -179,7 +181,8 @@ class MCMCSamples(PDFSamples):
             total_samples=self.total_samples
         )
 
-    def median_pdf(self) -> [float]:
+    @to_instance
+    def median_pdf(self, as_instance: bool = True) -> [float]:
         """
         The median of the probability density function (PDF) of every parameter marginalized in 1D, returned
         as a list of values.
@@ -195,7 +198,8 @@ class MCMCSamples(PDFSamples):
 
         return self.max_log_likelihood(as_instance=False)
 
-    def values_at_sigma(self, sigma: float) -> [float]:
+    @to_instance_sigma
+    def values_at_sigma(self, sigma: float, as_instance: bool = True) -> [float]:
         """
         The value of every parameter marginalized in 1D at an input sigma value of its probability density function
         (PDF), returned as two lists of values corresponding to the lower and upper values parameter values.
