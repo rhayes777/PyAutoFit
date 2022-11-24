@@ -157,7 +157,7 @@ class DatabasePaths(AbstractPaths):
         self.fit.is_complete = True
 
     def save_summary(self, samples, log_likelihood_function_time):
-        self.fit.instance = samples.max_log_likelihood_instance
+        self.fit.instance = samples.max_log_likelihood()
         self.fit.max_log_likelihood = samples.max_log_likelihood_sample.log_likelihood
         super().save_summary(samples, log_likelihood_function_time)
 

@@ -104,7 +104,7 @@ class Scraper:
                 f"{identifier} ")
 
             try:
-                instance = samples.max_log_likelihood_instance
+                instance = samples.max_log_likelihood()
             except (AttributeError, NotImplementedError):
                 instance = None
 

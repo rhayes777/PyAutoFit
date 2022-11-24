@@ -287,7 +287,7 @@ class PDFSamples(Samples):
         `GaussianPrior`s of every parameter used to link its inferred values and errors to priors used to sample the
         same (or similar) parameters in a subsequent search, where:
 
-        - The mean is given by their most-probable values (using median_pdf_vector).
+        - The mean is given by their most-probable values (using median_pdf(as_instance=False)).
         - Their errors are computed at an input sigma value (using errors_at_sigma).
 
         Parameters
@@ -351,7 +351,7 @@ class PDFSamples(Samples):
     @to_instance_input
     def offset_values_via_input_values(self, input_vector: List, as_instance: bool = True) -> Union[List, ModelInstance]:
         """
-        The values of an input_vector offset by the median_pdf_vector (the PDF medians).
+        The values of an input_vector offset by the median_pdf(as_instance=False) (the PDF medians).
 
         If the 'true' values of a model are known and input as the input_vector, this function returns the results
         of the `NonLinearSearch` as values offset from the 'true' model. For example, a value 0.0 means the non-linear

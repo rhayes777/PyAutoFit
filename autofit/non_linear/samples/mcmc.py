@@ -193,7 +193,7 @@ class MCMCSamples(PDFSamples):
                 for i in range(self.model.prior_count)
             ]
 
-        return self.max_log_likelihood_vector
+        return self.max_log_likelihood(as_instance=False)
 
     def values_at_sigma(self, sigma: float) -> [float]:
         """

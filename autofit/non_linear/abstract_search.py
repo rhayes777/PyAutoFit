@@ -701,7 +701,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             self.plot_results(samples=samples)
 
         try:
-            instance = samples.max_log_likelihood_instance
+            instance = samples.max_log_likelihood()
         except exc.FitException:
             return samples
 

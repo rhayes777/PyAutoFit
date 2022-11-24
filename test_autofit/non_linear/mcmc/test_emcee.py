@@ -93,7 +93,7 @@ class TestEmceeOutput:
 
         samples = emcee.samples_from(model=model)
 
-        assert samples.median_pdf_vector == pytest.approx(
+        assert samples.median_pdf(as_instance=False) == pytest.approx(
             [0.008422, -0.026413, 9.9579656, 0.494618], 1.0e-3
         )
 

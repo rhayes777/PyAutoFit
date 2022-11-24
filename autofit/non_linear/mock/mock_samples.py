@@ -69,13 +69,12 @@ class MockSamples(PDFSamples):
 
         return self._log_likelihood_list
 
-    @property
-    def max_log_likelihood_instance(self):
+    def max_log_likelihood(self, as_instance : bool = True):
 
         if self._max_log_likelihood_instance is None:
 
             try:
-                return super().max_log_likelihood_instance
+                return super().max_log_likelihood(as_instance=as_instance)
             except (KeyError, AttributeError):
                 pass
 

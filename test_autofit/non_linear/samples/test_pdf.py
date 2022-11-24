@@ -80,10 +80,10 @@ def test__median_pdf__converged():
 
     assert samples_x5.pdf_converged is True
 
-    median_pdf_vector = samples_x5.median_pdf(as_instance=False)
+    median_pdf = samples_x5.median_pdf(as_instance=False)
 
-    assert median_pdf_vector[0] == pytest.approx(1.0, 1.0e-4)
-    assert median_pdf_vector[1] == pytest.approx(2.0, 1.0e-4)
+    assert median_pdf[0] == pytest.approx(1.0, 1.0e-4)
+    assert median_pdf[1] == pytest.approx(2.0, 1.0e-4)
 
     median_pdf_instance = samples_x5.median_pdf(as_instance=True)
 
@@ -122,10 +122,10 @@ def test__median_pdf__unconverged():
 
     assert samples_x5.pdf_converged is False
 
-    median_pdf_vector = samples_x5.median_pdf(as_instance=False)
+    median_pdf = samples_x5.median_pdf(as_instance=False)
 
-    assert median_pdf_vector[0] == pytest.approx(0.9, 1.0e-4)
-    assert median_pdf_vector[1] == pytest.approx(1.9, 1.0e-4)
+    assert median_pdf[0] == pytest.approx(0.9, 1.0e-4)
+    assert median_pdf[1] == pytest.approx(1.9, 1.0e-4)
 
 
 @with_config("general", "model", "ignore_prior_limits", value=True)

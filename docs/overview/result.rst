@@ -108,7 +108,7 @@ parameter via 1D marginalization of their PDFs.
 
 .. code-block:: python
 
-    median_pdf_vector = samples.median_pdf_vector
+    median_pdf(as_instance=False) = samples.median_pdf(as_instance=False)
 
 The samples include methods for computing the error estimates of all parameters via 1D marginalization at an input sigma
 confidence limit. This can be returned as the size of each parameter error:
@@ -157,11 +157,11 @@ The samples contain many useful vectors, including the samples with the highest 
 
 .. code-block:: python
 
-    max_log_likelihood_vector = samples.max_log_likelihood_vector
+    max_log_likelihood(as_instance=False) = samples.max_log_likelihood(as_instance=False)
     max_log_posterior_vector = samples.max_log_posterior_vector
 
     print("Maximum Log Likelihood Vector:")
-    print(max_log_likelihood_vector)
+    print(max_log_likelihood(as_instance=False))
 
     print("Maximum Log Posterior Vector:")
     print(max_log_posterior_vector, "\n")
