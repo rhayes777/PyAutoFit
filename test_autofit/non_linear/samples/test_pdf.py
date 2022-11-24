@@ -239,7 +239,7 @@ def test__values_at_sigma__unconverged():
     assert values_at_sigma[1] == pytest.approx(((1.9, 2.1)), 1e-2)
 
 
-def test__converged__errors_vector_and_instance_at_upper_and_lower_sigma():
+def test__errors_at__converged():
     parameters = [
         [0.1, 0.4],
         [0.1, 0.4],
@@ -271,37 +271,37 @@ def test__converged__errors_vector_and_instance_at_upper_and_lower_sigma():
 
     assert samples_x5.pdf_converged is True
 
-    errors = samples_x5.error_magnitudes_at_sigma(sigma=3.0)
+    errors = samples_x5.error_magnitudes_at_sigma(sigma=3.0, as_instance=False)
 
     assert errors == pytest.approx([0.19514, 0.19514], 1e-1)
 
-    errors = samples_x5.errors_at_upper_sigma(sigma=3.0)
+    errors = samples_x5.errors_at_upper_sigma(sigma=3.0, as_instance=False)
 
     assert errors == pytest.approx([0.09757, 0.09757], 1e-1)
 
-    errors = samples_x5.errors_at_lower_sigma(sigma=3.0)
+    errors = samples_x5.errors_at_lower_sigma(sigma=3.0, as_instance=False)
 
     assert errors == pytest.approx([0.09757, 0.09757], 1e-1)
 
-    errors = samples_x5.errors_at_sigma(sigma=3.0)
+    errors = samples_x5.errors_at_sigma(sigma=3.0, as_instance=False)
     assert errors[0] == pytest.approx((0.09757, 0.09757), 1e-1)
     assert errors[1] == pytest.approx((0.09757, 0.09757), 1e-1)
 
-    errors = samples_x5.error_magnitudes_at_sigma(sigma=1.0)
+    errors = samples_x5.error_magnitudes_at_sigma(sigma=1.0, as_instance=False)
 
     assert errors == pytest.approx([0.0, 0.0], 1e-1)
 
-    errors_instance = samples_x5.errors_at_sigma(sigma=1.0)
+    errors_instance = samples_x5.errors_at_sigma(sigma=1.0, as_instance=True)
 
-    assert errors_instance.mock_class.one == pytest.approx(0.0, 1e-1)
-    assert errors_instance.mock_class.two == pytest.approx(0.0, 1e-1)
+    assert errors_instance.mock_class.one[0] == pytest.approx(0.0, 1e-1)
+    assert errors_instance.mock_class.two[0] == pytest.approx(0.0, 1e-1)
 
-    errors_instance = samples_x5.errors_at_upper_sigma(sigma=3.0)
+    errors_instance = samples_x5.errors_at_upper_sigma(sigma=3.0, as_instance=True)
 
     assert errors_instance.mock_class.one == pytest.approx(0.09757, 1e-1)
     assert errors_instance.mock_class.two == pytest.approx(0.09757, 1e-1)
 
-    errors_instance = samples_x5.errors_at_lower_sigma(sigma=3.0)
+    errors_instance = samples_x5.errors_at_lower_sigma(sigma=3.0, as_instance=True)
 
     assert errors_instance.mock_class.one == pytest.approx(0.09757, 1e-1)
     assert errors_instance.mock_class.two == pytest.approx(0.09757, 1e-1)

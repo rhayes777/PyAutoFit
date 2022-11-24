@@ -216,8 +216,8 @@ class PDFSamples(Samples):
         sigma
             The sigma within which the PDF is used to estimate errors (e.g. sigma = 1.0 uses 0.6826 of the PDF).
         """
-        error_vector_lower = self.errors_at_lower_sigma(sigma=sigma)
-        error_vector_upper = self.errors_at_upper_sigma(sigma=sigma)
+        error_vector_lower = self.errors_at_lower_sigma(sigma=sigma, as_instance=False)
+        error_vector_upper = self.errors_at_upper_sigma(sigma=sigma, as_instance=False)
         return [(lower, upper) for lower, upper in zip(error_vector_lower, error_vector_upper)]
 
     @to_instance_sigma
@@ -278,8 +278,8 @@ class PDFSamples(Samples):
         sigma
             The sigma within which the PDF is used to estimate errors (e.g. sigma = 1.0 uses 0.6826 of the PDF).
         """
-        uppers = self.values_at_upper_sigma(sigma=sigma)
-        lowers = self.values_at_lower_sigma(sigma=sigma)
+        uppers = self.values_at_upper_sigma(sigma=sigma, as_instance=False)
+        lowers = self.values_at_lower_sigma(sigma=sigma, as_instance=False)
         return list(map(lambda upper, lower: upper - lower, uppers, lowers))
 
     def gaussian_priors_at_sigma(self, sigma: float) -> [List]:
