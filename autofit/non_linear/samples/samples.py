@@ -437,18 +437,15 @@ class Samples:
                 most_likely_sample = sample
         return most_likely_sample
 
+    @to_instance
     def max_log_likelihood(self, as_instance: bool = True) -> List[float]:
         """
-        The parameters of the maximum log likelihood sample of the `NonLinearSearch` returned as a model instance or 
+        The parameters of the maximum log likelihood sample of the `NonLinearSearch` returned as a model instance or
         list of values.
         """
 
-        if as_instance:
-            return self.max_log_likelihood_sample.instance_for_model(
-                self.model
-            )
+        sample = self.max_log_likelihood_sample()
 
-        sample = self.max_log_likelihood_sample
         return sample.parameter_lists_for_paths(
             self.paths if sample.is_path_kwargs else self.names
         )

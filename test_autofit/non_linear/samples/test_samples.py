@@ -60,10 +60,11 @@ def test__table__write_table():
     os.remove(filename)
 
 
-def test__max_log_likelihood_vector_and_instance(samples_x5):
-    assert samples_x5.max_log_likelihood_vector == [21.0, 22.0, 23.0, 24.0]
+def test__max_log_likelihood(samples_x5):
 
-    instance = samples_x5.max_log_likelihood_instance
+    assert samples_x5.max_log_likelihood(as_instance=False) == [21.0, 22.0, 23.0, 24.0]
+
+    instance = samples_x5.max_log_likelihood(as_instance=True)
 
     assert instance.mock_class_1.one == 21.0
     assert instance.mock_class_1.two == 22.0
