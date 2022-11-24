@@ -427,6 +427,7 @@ class Samples:
         with open(filename, 'w') as outfile:
             json.dump(self.info_json, outfile)
 
+    @property
     def max_log_likelihood_sample(self) -> Sample:
         """
         The index of the sample with the highest log likelihood.
@@ -444,31 +445,30 @@ class Samples:
         list of values.
         """
 
-        sample = self.max_log_likelihood_sample()
+        sample = self.max_log_likelihood_sample
 
         return sample.parameter_lists_for_paths(
             self.paths if sample.is_path_kwargs else self.names
         )
 
+    @property
     def max_log_posterior_sample(self) -> Sample:
         return self.sample_list[
             self.max_log_posterior_index
         ]
 
+    @property
     def max_log_posterior_index(self) -> int:
         """
         The index of the sample with the highest log posterior.
         """
         return int(np.argmax(self.log_posterior_list))
 
+    @to_instance
     def max_log_posterior(self, as_instance: bool = True) -> ModelInstance:
         """
         The parameters of the maximum log posterior sample of the `NonLinearSearch` returned as a model instance.
         """
-        if as_instance:
-            return self.model.instance_from_vector(
-                vector=self.max_log_posterior_vector,
-            )
         return self.parameter_lists[self.max_log_posterior_index]
 
     def instance_from_sample_index(self, sample_index) -> ModelInstance:

@@ -72,7 +72,7 @@ def test__max_log_likelihood(samples_x5):
     assert instance.mock_class_1.four == 24.0
 
 
-def test__log_prior_list_and_max_log_posterior_vector_and_instance():
+def test__max_log_posterior():
     model = af.Collection(mock_class_1=af.m.MockClassx4)
 
     parameters = [
@@ -96,9 +96,9 @@ def test__log_prior_list_and_max_log_posterior_vector_and_instance():
 
     assert samples_x5.log_posterior_list == [2.0, 4.0, 6.0, 10.0, 11.0]
 
-    assert samples_x5.max_log_posterior_vector == [21.0, 22.0, 23.0, 24.0]
+    assert samples_x5.max_log_posterior(as_instance=False) == [21.0, 22.0, 23.0, 24.0]
 
-    instance = samples_x5.max_log_posterior_instance
+    instance = samples_x5.max_log_posterior(as_instance=True)
 
     assert instance.mock_class_1.one == 21.0
     assert instance.mock_class_1.two == 22.0
