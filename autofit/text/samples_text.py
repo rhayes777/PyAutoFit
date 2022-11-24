@@ -68,7 +68,7 @@ def latex(
         The sigma within which the PDF is used to estimate errors (e.g. sigma = 1.0 uses 0.6826 of the PDF)."""
 
     values = values_from_samples(samples=samples, median_pdf_model=median_pdf_model)
-    errors_at_sigma = samples.errors_at_sigma(sigma=sigma)
+    errors_at_sigma = samples.errors_at_sigma(sigma=sigma, as_instance=False)
 
     table = []
 
