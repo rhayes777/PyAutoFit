@@ -296,10 +296,10 @@ class PDFSamples(Samples):
             The sigma within which the PDF is used to estimate errors (e.g. sigma = 1.0 uses 0.6826 of the PDF).
         """
 
-        means = self.median_pdf_vector
+        means = self.median_pdf(as_instance=False)
 
-        uppers = self.values_at_upper_sigma(sigma=sigma)
-        lowers = self.values_at_lower_sigma(sigma=sigma)
+        uppers = self.values_at_upper_sigma(sigma=sigma, as_instance=False)
+        lowers = self.values_at_lower_sigma(sigma=sigma, as_instance=False)
 
         # noinspection PyArgumentList
         sigmas = list(
