@@ -307,7 +307,7 @@ def test__errors_at__converged():
     assert errors_instance.mock_class.two == pytest.approx(0.09757, 1e-1)
 
 
-def test__unconverged_sample_size__uses_value_unless_fewer_samples():
+def test__unconverged_sample_size():
     model = af.ModelMapper(mock_class_1=af.m.MockClassx4)
 
     log_likelihood_list = 4 * [0.0] + [1.0]
@@ -344,7 +344,7 @@ def test__unconverged_sample_size__uses_value_unless_fewer_samples():
     assert samples_x5.unconverged_sample_size == 5
 
 
-def test__offset_vector_from_input_vector():
+def test__offset_values_via_input_values():
     model = af.ModelMapper(mock_class_1=af.m.MockClassx4)
 
     parameters = [
@@ -370,8 +370,8 @@ def test__offset_vector_from_input_vector():
         ),
     )
 
-    offset_values = samples_x5.offset_vector_from_input_vector(
-        input_vector=[1.0, 1.0, 2.0, 3.0]
+    offset_values = samples_x5.offset_values_via_input_values(
+        input_vector=[1.0, 1.0, 2.0, 3.0], as_instance=False
     )
 
     assert offset_values == pytest.approx([0.0, 1.0, 1.0, 1.025], 1.0e-4)

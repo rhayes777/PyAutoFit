@@ -6,7 +6,7 @@ import numpy as np
 from autofit.mapper.model import ModelInstance
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.samples.sample import Sample, load_from_table
-from autofit.non_linear.samples.samples import to_instance, to_instance_sigma
+from autofit.non_linear.samples.samples import to_instance, to_instance_sigma, to_instance_input
 from .samples import Samples
 
 
@@ -360,7 +360,8 @@ class PDFSamples(Samples):
         """
         raise NotImplementedError()
 
-    def offset_vector_from_input_vector(self, input_vector: List) -> Union[List, ModelInstance]:
+    @to_instance_input
+    def offset_values_via_input_values(self, input_vector: List, as_instance: bool = True) -> Union[List, ModelInstance]:
         """
         The values of an input_vector offset by the median_pdf_vector (the PDF medians).
 
@@ -378,7 +379,7 @@ class PDFSamples(Samples):
             map(
                 lambda input, median_pdf: median_pdf - input,
                 input_vector,
-                self.median_pdf_vector,
+                self.median_pdf(as_instance=False),
             )
         )
 
