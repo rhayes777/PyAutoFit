@@ -377,7 +377,7 @@ def test__offset_values_via_input_values():
     assert offset_values == pytest.approx([0.0, 1.0, 1.0, 1.025], 1.0e-4)
 
 
-def test__vector_drawn_randomly_from_pdf():
+def test__draw_randomly_via_pdf():
     parameters = [
         [0.0, 1.0, 2.0, 3.0],
         [0.0, 1.0, 2.0, 3.0],
@@ -399,11 +399,11 @@ def test__vector_drawn_randomly_from_pdf():
         ),
     )
 
-    vector = samples_x5.vector_drawn_randomly_from_pdf()
+    vector = samples_x5.draw_randomly_via_pdf(as_instance=False)
 
     assert vector == [21.0, 22.0, 23.0, 24.0]
 
-    instance = samples_x5.instance_drawn_randomly_from_pdf()
+    instance = samples_x5.draw_randomly_via_pdf(as_instance=True)
 
     assert vector == [21.0, 22.0, 23.0, 24.0]
 
