@@ -162,19 +162,12 @@ def test__instance_from_sample_index():
         ),
     )
 
-    instance = samples_x5.instance_from_sample_index(sample_index=0)
+    instance = samples_x5.from_sample_index(sample_index=0, as_instance=True)
 
     assert instance.mock_class.one == 1.0
     assert instance.mock_class.two == 2.0
     assert instance.mock_class.three == 3.0
     assert instance.mock_class.four == 4.0
-
-    instance = samples_x5.instance_from_sample_index(sample_index=1)
-
-    assert instance.mock_class.one == 5.0
-    assert instance.mock_class.two == 6.0
-    assert instance.mock_class.three == 7.0
-    assert instance.mock_class.four == 8.0
 
 
 def test__addition_of_samples(samples_x5):

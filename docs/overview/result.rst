@@ -226,7 +226,7 @@ An ``instance`` of any accepted sample can be created:
 
 .. code-block:: python
 
-    instance = samples.instance_from_sample_index(sample_index=500)
+    instance = samples.from_sample_index(sample_index=500)
 
 Bayesian Evidence
 -----------------
