@@ -4,6 +4,7 @@ from scipy import integrate
 
 from autofit.messages import transform
 from autofit.messages.beta import BetaMessage
+from autofit.messages.composed_transform import TransformedMessage
 from autofit.messages.gamma import GammaMessage
 from autofit.messages.normal import (
     NormalMessage,
@@ -11,7 +12,7 @@ from autofit.messages.normal import (
     LogNormalMessage,
     MultiLogitNormalMessage,
 )
-from autofit.messages.transform import numerical_jacobian
+from autofit.messages.transform import numerical_jacobian, LinearShiftTransform
 
 
 def check_dist_norm(dist):
@@ -45,7 +46,8 @@ def check_numerical_gradient_hessians(message, x=None):
     res = message.logpdf_gradient(x)
     nres = message.numerical_logpdf_gradient(x)
     for i, (x1, x2) in enumerate(zip(res, nres)):
-        assert np.allclose(x1, x2, rtol=1e-3, atol=1e-2), (i, x1, x2, message)
+        if not np.allclose(x1, x2, rtol=1e-3, atol=1e-2):
+            assert False
 
     res = message.logpdf_gradient_hessian(x)
     nres = message.numerical_logpdf_gradient_hessian(x)
@@ -70,12 +72,12 @@ def test_message_norm():
 
 N = NormalMessage
 UN = UniformNormalMessage
-SUN = UN.shifted(shift=0.3, scale=0.8)
+SUN = TransformedMessage(UN, LinearShiftTransform(shift=0.3, scale=0.8))
 LN = LogNormalMessage
 MLN = MultiLogitNormalMessage
 # test doubly transformed distributions
-WN = NormalMessage.transformed(transform.log_transform).transformed(
-    transform.exp_transform,
+WN = TransformedMessage(
+    NormalMessage(0, 1), transform.log_transform, transform.exp_transform,
 )
 
 
@@ -177,7 +179,7 @@ def test_multinomial_logit():
 
 def test_normal_simplex():
     mult_logit = transform.MultinomialLogitTransform()
-    NormalSimplex = NormalMessage.transformed(mult_logit)
+    NormalSimplex = TransformedMessage(NormalMessage(0, 1), mult_logit)
 
     message = NormalSimplex([-1, 2], [0.3, 0.3])
 
