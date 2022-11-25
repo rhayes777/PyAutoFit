@@ -317,7 +317,7 @@ def test_higher_dimensions(n_dimensions, n_steps):
         results=total
         * [
             af.Result(
-                af.NestSamples(
+                af.PDFSamples(
                     model,
                     [
                         af.Sample(

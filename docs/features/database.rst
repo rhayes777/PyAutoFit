@@ -81,7 +81,7 @@ We can iterate over the samples to print the maximum log likelihood model ``Gaus
 
     for samps in agg.values("samples"):
 
-        instance = samps.max_log_likelihood_instance
+        instance = samps.max_log_likelihood()
 
         print("Maximum Likelihood Model-fit \n")
         print("centre = ", instance.centre)

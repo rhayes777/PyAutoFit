@@ -1,3 +1,4 @@
+from abc import abstractmethod
 from typing import List, Optional
 import warnings
 
@@ -99,15 +100,17 @@ class NestSamples(PDFSamples):
 
     @property
     def number_live_points(self):
-        raise NotImplementedError
+        return self._number_live_points
 
     @property
+    @abstractmethod
     def log_evidence(self):
-        raise NotImplementedError
+        pass
 
     @property
+    @abstractmethod
     def total_samples(self):
-        raise NotImplementedError
+        pass
 
     @property
     def info_json(self):

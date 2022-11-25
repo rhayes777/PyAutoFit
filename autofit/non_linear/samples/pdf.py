@@ -313,17 +313,6 @@ class PDFSamples(Samples):
 
         return list(map(lambda mean, sigma: (mean, sigma), means, sigmas))
 
-    def log_likelihood_from_sample_index(self, sample_index: int) -> float:
-        """
-        The log likelihood of an individual sample of the non-linear search.
-
-        Parameters
-        ----------
-        sample_index
-            The index of the sample in the non-linear search, e.g. 0 gives the first sample.
-        """
-        raise NotImplementedError()
-
     @to_instance
     def draw_randomly_via_pdf(self, as_instance: bool = True) -> Union[List, ModelInstance]:
         """
@@ -336,17 +325,6 @@ class PDFSamples(Samples):
         sample_index = np.random.choice(a=range(len(self.sample_list)), p=self.weight_list)
 
         return self.parameter_lists[sample_index][:]
-
-    def vector_from_sample_index(self, sample_index: int) -> Union[List, ModelInstance]:
-        """
-        The parameters of an individual sample of the non-linear search, returned as a 1D list.
-
-        Parameters
-        ----------
-        sample_index
-            The index of the sample in the non-linear search, e.g. 0 gives the first sample.
-        """
-        raise NotImplementedError()
 
     @to_instance_input
     def offset_values_via_input_values(self, input_vector: List, as_instance: bool = True) -> Union[List, ModelInstance]:

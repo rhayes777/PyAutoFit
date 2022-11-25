@@ -1,3 +1,4 @@
+from abc import ABC
 import csv
 from functools import wraps
 import json
@@ -246,7 +247,7 @@ def to_instance_input(func):
     return wrapper
 
 
-class Samples:
+class Samples(ABC):
     def __init__(
             self,
             model: AbstractPriorModel,
@@ -347,6 +348,21 @@ class Samples:
         """
         return self
 
+    def __len__(self):
+        return len(self.sample_list)
+
+    def __setstate__(self, state):
+
+        self.__dict__.update(state)
+
+    def __copy__(self):
+        cls = self.__class__
+        result = cls.__new__(cls)
+        result.__dict__.update(self.__dict__)
+        result._names = None
+        result._paths = None
+        return result
+
     def _check_addition(self, other: "Samples"):
         """
         When adding samples together, perform the following checks to make sure it is valid to add the two objects
@@ -404,10 +420,6 @@ class Samples:
         ]
 
     @property
-    def log_evidence(self) -> Optional[float]:
-        return None
-
-    @property
     def paths(self) -> List[Tuple[Path]]:
         """
         A list of paths to unique priors in the same order as prior
@@ -446,9 +458,6 @@ class Samples:
 
     @property
     def total_samples(self):
-        return len(self.sample_list)
-
-    def __len__(self):
         return len(self.sample_list)
 
     @property
@@ -641,18 +650,6 @@ class Samples:
         ]
         return with_paths
 
-    def __setstate__(self, state):
-
-        self.__dict__.update(state)
-
-    def __copy__(self):
-        cls = self.__class__
-        result = cls.__new__(cls)
-        result.__dict__.update(self.__dict__)
-        result._names = None
-        result._paths = None
-        return result
-
     def without_paths(
             self,
             paths: Union[List[Tuple[str, ...]], List[str]]
@@ -703,30 +700,6 @@ class Samples:
             for sample in self.sample_list
         ]
         return copied
-
-    def median_pdf(self) -> ModelInstance:
-        raise NotImplementedError
-
-    def values_at_sigma(self, sigma: float, as_instance: bool = True) -> [(float, float)]:
-        raise NotImplementedError
-
-    def values_at_upper_sigma(self, sigma: float, as_instance: bool = True) -> [float]:
-        raise NotImplementedError
-
-    def values_at_lower_sigma(self, sigma: float, as_instance: bool = True) -> [float]:
-        raise NotImplementedError
-
-    def errors_at_sigma(self, sigma: float, as_instance: bool = True) -> [(float, float)]:
-        raise NotImplementedError
-
-    def errors_at_upper_sigma(self, sigma: float, as_instance: bool = True) -> [float]:
-        raise NotImplementedError
-
-    def errors_at_lower_sigma(self, sigma: float, as_instance: bool = True) -> [float]:
-        raise NotImplementedError
-
-    def error_magnitudes_at_sigma(self, sigma: float, as_instance: bool = True) -> [float]:
-        raise NotImplementedError
 
     def gaussian_priors_at_sigma(self, sigma: float) -> [List]:
         """
