@@ -2,19 +2,16 @@ import numpy as np
 
 from autofit import exc
 from autofit.messages.normal import UniformNormalMessage
-from autofit.messages.transform import log_10_transform
+from autofit.messages.transform import log_10_transform, LinearShiftTransform
 from .abstract import Prior
-from .wrapped_instance import WrappedInstance
+from ...messages.composed_transform import TransformedMessage
 
 
 class LogUniformPrior(Prior):
     """A prior with a uniform distribution between a lower and upper limit"""
 
     def __init__(
-            self,
-            lower_limit=1e-6,
-            upper_limit=1.0,
-            id_=None,
+        self, lower_limit=1e-6, upper_limit=1.0, id_=None,
     ):
         if lower_limit <= 0.0:
             raise exc.PriorException(
@@ -24,39 +21,21 @@ class LogUniformPrior(Prior):
         lower_limit = float(lower_limit)
         upper_limit = float(upper_limit)
 
-        Message = UniformNormalMessage.shifted(
-            shift=np.log10(lower_limit),
-            scale=np.log10(upper_limit / lower_limit),
-        ).transformed(
-            log_10_transform
+        message = TransformedMessage(
+            UniformNormalMessage,
+            LinearShiftTransform(
+                shift=np.log10(lower_limit), scale=np.log10(upper_limit / lower_limit),
+            ),
+            log_10_transform,
         )
 
         super().__init__(
-            message=WrappedInstance(
-                Message,
-                0.0, 1.0,
-                id_=id_,
-                lower_limit=lower_limit,
-                upper_limit=upper_limit,
-            ),
-            lower_limit=lower_limit,
-            upper_limit=upper_limit,
-            id_=id_,
+            message=message, lower_limit=lower_limit, upper_limit=upper_limit, id_=id_,
         )
 
     @classmethod
-    def with_limits(
-            cls,
-            lower_limit: float,
-            upper_limit: float
-    ):
-        return cls(
-            lower_limit=max(
-                0.000001,
-                lower_limit
-            ),
-            upper_limit=upper_limit,
-        )
+    def with_limits(cls, lower_limit: float, upper_limit: float):
+        return cls(lower_limit=max(0.000001, lower_limit), upper_limit=upper_limit,)
 
     __identifier_fields__ = ("lower_limit", "upper_limit")
 

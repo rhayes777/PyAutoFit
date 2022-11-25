@@ -131,7 +131,7 @@ class LinearOperator(ABC):
 
     @property
     def rshape(self):
-        return self.shape[self.ldim:]
+        return self.shape[self.ldim :]
 
     @cached_property
     @abstractmethod
@@ -180,6 +180,7 @@ class LinearOperator(ABC):
 
     def matrixabs(self):
         raise NotADirectoryError()
+
 
 class InverseOperator(LinearOperator):
     def __init__(self, operator):
@@ -280,7 +281,7 @@ def _wrap_leftop(method):
     @wraps(method)
     def leftmethod(self, x: np.ndarray) -> np.ndarray:
         x = np.asanyarray(x)
-        outshape = self.lshape + x.shape[self.rdim:] if self.ndim else x.shape
+        outshape = self.lshape + x.shape[self.rdim :] if self.ndim else x.shape
         return method(self, x.reshape(self.rsize, -1)).reshape(outshape)
 
     return leftmethod
@@ -308,14 +309,11 @@ class MatrixOperator(LinearOperator):
         return self.from_dense(M, ldim=self.ldim)
 
     def reshape(self, shape):
-        return self.from_dense(
-            self.operator.to_dense().reshape(shape),
-            ldim=self.ldim
-        )
+        return self.from_dense(self.operator.to_dense().reshape(shape), ldim=self.ldim)
 
     @classmethod
     def from_dense(
-            cls, M: np.ndarray, shape: Tuple[int, ...] = None, ldim: int = None
+        cls, M: np.ndarray, shape: Tuple[int, ...] = None, ldim: int = None
     ) -> "MatrixOperator":
         return cls(M, shape, ldim)
 
@@ -353,9 +351,9 @@ class MatrixOperator(LinearOperator):
     def diagonal(self) -> np.ndarray:
         return (
             self.to_dense()
-                .reshape(self.rsize, self.lsize)
-                .diagonal()
-                .reshape(self.rshape)
+            .reshape(self.rsize, self.lsize)
+            .diagonal()
+            .reshape(self.rshape)
         )
 
     def to_diagonal(self):
@@ -392,7 +390,7 @@ class MatrixOperator(LinearOperator):
 
 
 def _mul_triangular(
-        c, b, trans=False, lower=True, overwrite_b=False, check_finite=True
+    c, b, trans=False, lower=True, overwrite_b=False, check_finite=True
 ):
     """wrapper for BLAS function trmv to perform triangular matrix
     multiplications
@@ -578,8 +576,8 @@ class CholeskyOperator(MatrixOperator):
     def to_dense(self):
         return np.tril(self.L) @ np.triu(self.U)
 
-    def matrixabs(self): 
-        return self 
+    def matrixabs(self):
+        return self
 
 
 # This class may no longer be necessary?
@@ -626,16 +624,17 @@ class DiagonalMatrix(MatrixOperator):
 
         self._ldim = self.scale.ndim
 
+    def __repr__(self):
+        return repr(self.scale)
+
     def __getitem__(self, index):
-        if index[:self.ldim] == index[self.ldim:]:
-            return DiagonalMatrix(
-                self.scale[index[:self.ldim]]
-            )
+        if index[: self.ldim] == index[self.ldim :]:
+            return DiagonalMatrix(self.scale[index[: self.ldim]])
         else:
             raise NotImplementedError("Can't get diagonal for non 'square' operators")
 
     def reshape(self, shape):
-        shape = shape[:len(shape) // 2]
+        shape = shape[: len(shape) // 2]
         return DiagonalMatrix(self.scale.reshape(shape))
 
     @cached_property
