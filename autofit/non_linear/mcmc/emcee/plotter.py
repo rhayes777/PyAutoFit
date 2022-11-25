@@ -25,7 +25,6 @@ class EmceePlotter(MCMCPlotter):
             **kwargs
         )
 
-
     def likelihood_series(self, **kwargs):
 
         self._plot_likelihood_series(
