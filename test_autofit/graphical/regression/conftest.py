@@ -21,12 +21,19 @@ def make_prior_norm():
     return stats.norm(loc=0, scale=10.0)
 
 
+class Prior:
+    def __init__(self, prior_norm):
+        self.prior_norm = prior_norm
+
+    def __call__(self, x):
+        return self.prior_norm.logpdf(x).sum()
+
+    __name__ = "prior"
+
+
 @pytest.fixture(name="prior")
 def make_prior(prior_norm):
-    def prior(x):
-        return prior_norm.logpdf(x).sum()
-
-    return prior
+    return Prior(prior_norm)
 
 
 def linear(x, a, b):
@@ -98,10 +105,13 @@ def make_linear_factor(x_, a_, b_, z_):
 @pytest.fixture(name="linear_factor_jac")
 def make_linear_factor_jac(x_, a_, b_, z_):
     return graph.Factor(
-        linear, x_, a_, b_, 
-        vjp=True, 
-        # factor_jacobian=linear_jacobian, 
-        factor_out=z_
+        linear,
+        x_,
+        a_,
+        b_,
+        vjp=True,
+        # factor_jacobian=linear_jacobian,
+        factor_out=z_,
     )
 
 

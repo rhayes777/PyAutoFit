@@ -1,3 +1,5 @@
+import datetime as dt
+
 from autoconf import conf
 from autofit.text import formatter as frm, samples_text
 from autofit.tools.util import info_whitespace
@@ -91,10 +93,8 @@ def search_summary_from_samples(samples) -> [str]:
         line.append(f"Total Accepted Samples = {samples.total_accepted_samples}\n")
         line.append(f"Acceptance Ratio = {samples.acceptance_ratio}\n")
     if samples.time is not None:
-        line.append(f"Time To Run = {samples.time}\n")
-        time_input = samples.time.split(".")[0]
-        time_seconds = sum(x * int(t) for x, t in zip([3600, 60, 1], time_input.split(":")))
-        line.append(f"Time Per Sample (seconds) = {time_seconds / samples.total_samples}\n")
+        line.append(f"Time To Run = {dt.timedelta(seconds=float(samples.time))}\n")
+        line.append(f"Time Per Sample (seconds) = {float(samples.time) / samples.total_samples}\n")
     return line
 
 

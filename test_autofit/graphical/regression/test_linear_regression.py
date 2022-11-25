@@ -5,13 +5,14 @@ from autofit.graphical import (
     EPMeanField,
     LaplaceOptimiser,
     EPOptimiser,
-    Factor, 
+    Factor,
 )
+from autofit.graphical.expectation_propagation.optimiser import ParallelEPOptimiser
 from autofit.messages import FixedMessage, NormalMessage
 
 np.random.seed(1)
-prior_std = 10. 
-error_std = 1.
+prior_std = 10.0
+error_std = 1.0
 a = np.array([[-1.3], [0.7]])
 b = np.array([-0.5])
 
@@ -21,12 +22,19 @@ x = 5 * np.random.randn(n_obs, n_features)
 y = x.dot(a) + b + np.random.randn(n_obs, n_dims)
 
 
+class Likelihood:
+    def __init__(self, norm):
+        self.norm = norm
+
+    def __call__(self, z, y):
+        return self.norm.logpdf(z - y).sum()
+
+    __name__ = "likelihood"
+
+
 @pytest.fixture(name="likelihood")
 def make_likelihood(norm):
-    def likelihood(z, y):
-        return norm.logpdf(z - y).sum()
-
-    return likelihood
+    return Likelihood(norm)
 
 
 @pytest.fixture(name="model")
@@ -52,8 +60,8 @@ def make_model_approx(model, approx0):
 
 def check_model_approx(mean_field, a_, b_, z_, x_, y_):
     X = np.c_[x, np.ones(len(x))]
-    XTX = X.T.dot(X) + np.eye(3) * (error_std / prior_std)**2
-    cov = np.linalg.inv(XTX) * error_std**2
+    XTX = X.T.dot(X) + np.eye(3) * (error_std / prior_std) ** 2
+    cov = np.linalg.inv(XTX) * error_std ** 2
 
     cov_a = cov[:2, :]
     cov_b = cov[2, :]
@@ -70,10 +78,9 @@ def check_model_approx(mean_field, a_, b_, z_, x_, y_):
     assert mean_field[b_].sigma == pytest.approx(b_std, rel=0.5)
 
 
-
 @pytest.fixture(name="model_jac_approx")
 def make_model_jac_approx(
-        model, approx0, likelihood_factor, linear_factor_jac, prior_a, prior_b
+    model, approx0, likelihood_factor, linear_factor_jac, prior_a, prior_b
 ):
     model = likelihood_factor * linear_factor_jac * prior_a * prior_b
     model_jac_approx = EPMeanField.from_approx_dists(model, approx0)
@@ -81,12 +88,7 @@ def make_model_jac_approx(
 
 
 def test_jacobian(
-        a_,
-        b_,
-        x_,
-        z_,
-        linear_factor,
-        linear_factor_jac,
+    a_, b_, x_, z_, linear_factor, linear_factor_jac,
 ):
     n, m, d = 5, 4, 3
     x = np.random.rand(n, d)
@@ -108,12 +110,7 @@ def test_jacobian(
 
 
 def test_laplace(
-        model_approx,
-        a_,
-        b_,
-        x_,
-        y_,
-        z_,
+    model_approx, a_, b_, x_, y_, z_,
 ):
     laplace = LaplaceOptimiser()
     opt = EPOptimiser(model_approx.factor_graph, default_optimiser=laplace)
@@ -122,13 +119,22 @@ def test_laplace(
     check_model_approx(mean_field, a_, b_, z_, x_, y_)
 
 
+def test_parallel_laplace(
+    model_approx, a_, b_, x_, y_, z_,
+):
+    laplace = LaplaceOptimiser()
+    opt = ParallelEPOptimiser(
+        model_approx.factor_graph,
+        n_cores=len(model_approx.factors) + 1,
+        default_optimiser=laplace,
+    )
+    model_approx = opt.run(model_approx)
+    mean_field = model_approx.mean_field
+    check_model_approx(mean_field, a_, b_, z_, x_, y_)
+
+
 def _test_laplace_jac(
-        model_jac_approx,
-        a_,
-        b_,
-        x_,
-        y_,
-        z_,
+    model_jac_approx, a_, b_, x_, y_, z_,
 ):
     laplace = LaplaceOptimiser()
     opt = EPOptimiser(model_jac_approx.factor_graph, default_optimiser=laplace)
@@ -140,28 +146,23 @@ def _test_laplace_jac(
 
 @pytest.fixture(name="normal_model_approx")
 def make_normal_model_approx(
-        model_approx, approx0, linear_factor, a_, b_, y_, z_, 
+    model_approx, approx0, linear_factor, a_, b_, y_, z_,
 ):
     y = model_approx.mean_field[y_].mean
     normal_factor = NormalMessage(y, np.full_like(y, error_std)).as_factor(z_)
-    prior_a = NormalMessage(
-        np.zeros_like(a), np.full_like(a, prior_std)
-    ).as_factor(a_, 'prior_a')
-    prior_b = NormalMessage(
-        np.zeros_like(b), np.full_like(b, prior_std)
-    ).as_factor(b_, 'prior_b')
-    
+    prior_a = NormalMessage(np.zeros_like(a), np.full_like(a, prior_std)).as_factor(
+        a_, "prior_a"
+    )
+    prior_b = NormalMessage(np.zeros_like(b), np.full_like(b, prior_std)).as_factor(
+        b_, "prior_b"
+    )
+
     new_model = normal_factor * linear_factor * prior_a * prior_b
     return EPMeanField.from_approx_dists(new_model, approx0)
 
 
 def test_exact_updates(
-        normal_model_approx,
-        a_,
-        b_,
-        x_,
-        y_,
-        z_,
+    normal_model_approx, a_, b_, x_, y_, z_,
 ):
     laplace = LaplaceOptimiser()
     opt = EPOptimiser.from_meanfield(normal_model_approx, default_optimiser=laplace)

@@ -9,7 +9,7 @@ from test_autofit.graphical.gaussian.model import Gaussian, make_data, Analysis
 @pytest.fixture(name="make_model_factor")
 def make_make_model_factor(normalization, normalization_prior, x):
     def make_factor_model(
-            centre: float, sigma: float, optimiser=None
+        centre: float, sigma: float, optimiser=None
     ) -> ep.AnalysisFactor:
         y = make_data(
             Gaussian(centre=centre, normalization=normalization, sigma=sigma), x
@@ -55,21 +55,26 @@ def test_uniform_edge():
 def _test_optimise_factor_model(factor_model):
     laplace = ep.LaplaceOptimiser()
 
-    collection = factor_model.optimise(laplace)
+    collection = factor_model.optimise(laplace, )
 
     assert 25.0 == pytest.approx(collection[0].normalization.mean, rel=0.1)
     assert collection[0].normalization is collection[1].normalization
 
 
+class TrivialAnalysis(af.Analysis):
+    def log_likelihood_function(self, instance):
+        print(instance.value)
+        result = -((instance.value - 14) ** 2)
+        return result
+
+
 def test_trivial():
     prior = af.UniformPrior(lower_limit=10, upper_limit=20)
 
-    prior_model = af.Collection(value=prior)
+    assert prior.mean == 15
+    assert not np.isnan(prior.variance)
 
-    class TrivialAnalysis(af.Analysis):
-        def log_likelihood_function(self, instance):
-            result = -((instance.value - 14) ** 2)
-            return result
+    prior_model = af.Collection(value=prior)
 
     factor_model = ep.AnalysisFactor(prior_model, analysis=TrivialAnalysis())
 
@@ -77,6 +82,7 @@ def test_trivial():
     # optimiser = af.DynestyStatic()
     model = factor_model.optimise(optimiser).model[0]
 
+    assert isinstance(model.value, af.UniformPrior)
     assert model.value.mean == pytest.approx(14, rel=0.1)
 
 
