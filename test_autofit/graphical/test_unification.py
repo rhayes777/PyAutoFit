@@ -156,8 +156,3 @@ def test_pickle_transformed(LogMessage):
 def test_pickle_transformed_instantiated(LogMessage):
     instance = LogMessage(mean=1, sigma=2)
     dill.loads(dill.dumps(instance))
-
-
-def test_set_delta():
-    dynesty = af.DynestyStatic(delta=1.23)
-    assert dynesty.delta == 1.23
