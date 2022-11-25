@@ -63,21 +63,21 @@ class FlattenedState:
 
 class OptimisationState:
     def __init__(
-            self,
-            factor: FactorInterface,
-            factor_gradient: FactorGradientInterface,
-            parameters: VariableData,
-            hessian: Optional[VariableLinearOperator] = None,
-            det_hessian: Optional[VariableLinearOperator] = None,
-            value: Optional[FactorValue] = None,
-            gradient: Optional[VariableData] = None,
-            search_direction: Optional[VariableData] = None,
-            f_count: int = 0,
-            g_count: int = 0,
-            args=(),
-            next_states: Optional[Dict[float, "OptimisationState"]] = None,
-            lower_limit=None, 
-            upper_limit=None, 
+        self,
+        factor: FactorInterface,
+        factor_gradient: FactorGradientInterface,
+        parameters: VariableData,
+        hessian: Optional[VariableLinearOperator] = None,
+        det_hessian: Optional[VariableLinearOperator] = None,
+        value: Optional[FactorValue] = None,
+        gradient: Optional[VariableData] = None,
+        search_direction: Optional[VariableData] = None,
+        f_count: int = 0,
+        g_count: int = 0,
+        args=(),
+        next_states: Optional[Dict[float, "OptimisationState"]] = None,
+        lower_limit=None,
+        upper_limit=None,
     ):
         self.factor = factor
         self.factor_gradient = factor_gradient
@@ -90,12 +90,12 @@ class OptimisationState:
         self.g_count = np.asanyarray(g_count)
         self.args = args
         self.lower_limit = lower_limit
-        self.upper_limit = upper_limit 
+        self.upper_limit = upper_limit
 
         self.next_states = next_states or {}
 
         if not self.valid:
-            value = - FactorValue(np.inf) 
+            value = -FactorValue(np.inf)
             gradient = self.parameters.full_like(np.inf)
 
         self._value = value
@@ -107,10 +107,10 @@ class OptimisationState:
     @property
     def valid(self):
         if self.lower_limit and (self.parameters < self.lower_limit).any():
-            return False 
-        
+            return False
+
         if self.upper_limit and (self.parameters > self.upper_limit).any():
-            return False 
+            return False
 
         return True
 
@@ -245,15 +245,15 @@ class OptimisationState:
 
 
 def line_search_wolfe1(
-        state: OptimisationState,
-        old_state: Optional[OptimisationState] = None,
-        c1=1e-4,
-        c2=0.9,
-        amax=50,
-        amin=1e-8,
-        xtol=1e-14,
-        extra_condition=None,
-        **kwargs,
+    state: OptimisationState,
+    old_state: Optional[OptimisationState] = None,
+    c1=1e-4,
+    c2=0.9,
+    amax=50,
+    amin=1e-8,
+    xtol=1e-14,
+    extra_condition=None,
+    **kwargs,
 ) -> Tuple[Optional[float], OptimisationState]:
     """
     As `scalar_search_wolfe1` but do a line search to direction `pk`
@@ -305,14 +305,14 @@ def line_search_wolfe1(
 
 
 def line_search_wolfe2(
-        state: OptimisationState,
-        old_state: Optional[OptimisationState] = None,
-        c1=1e-4,
-        c2=0.9,
-        amax=None,
-        extra_condition=None,
-        maxiter=10,
-        **kwargs,
+    state: OptimisationState,
+    old_state: Optional[OptimisationState] = None,
+    c1=1e-4,
+    c2=0.9,
+    amax=None,
+    extra_condition=None,
+    maxiter=10,
+    **kwargs,
 ) -> Tuple[Optional[float], OptimisationState]:
     """
     As `scalar_search_wolfe1` but do a line search to direction `pk`
@@ -363,7 +363,7 @@ def line_search_wolfe2(
 
 
 def line_search(
-        state: OptimisationState, old_state: Optional[FactorValue] = None, **kwargs
+    state: OptimisationState, old_state: Optional[FactorValue] = None, **kwargs
 ) -> Tuple[Optional[float], OptimisationState]:
     stepsize, next_state = line_search_wolfe1(state, old_state, **kwargs)
 

@@ -1,4 +1,5 @@
 import logging
+import os
 from pathlib import Path
 
 import matplotlib.pyplot as plt
@@ -25,6 +26,8 @@ class Visualise:
         """
         self.ep_history = ep_history
         self.output_path = output_path
+
+        os.makedirs(output_path, exist_ok=True)
 
     def __call__(self):
         """

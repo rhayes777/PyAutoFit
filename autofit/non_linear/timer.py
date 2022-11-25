@@ -46,7 +46,7 @@ class Timer:
         """
 
         try:
-            execution_time = str(dt.timedelta(seconds=time.time() - float(self.start_time)).total_seconds())
+            execution_time = str(time.time() - float(self.start_time))
         except TypeError:
             return
 
