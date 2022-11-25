@@ -79,7 +79,7 @@ class AbstractResult(ABC):
     @property
     def instance(self):
         if self._instance is None:
-            self._instance = self.samples.max_log_likelihood_instance
+            self._instance = self.samples.max_log_likelihood()
         return self._instance
 
     @property

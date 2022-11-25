@@ -34,7 +34,7 @@ def test__from_csv_table():
     filename = "samples.csv"
     samples_x5.write_table(filename=filename)
 
-    samples_x5 = af.PDFSamples.from_table(filename=filename, model=samples_x5.model)
+    samples_x5 = af.SamplesPDF.from_table(filename=filename, model=samples_x5.model)
 
     assert samples_x5.parameter_lists == [
         [0.0, 1.0, 2.0, 3.0],
@@ -49,7 +49,7 @@ def test__from_csv_table():
     assert samples_x5.weight_list == [1.0, 1.0, 1.0, 1.0, 1.0]
 
 
-def test__converged__median_pdf_vector_and_instance():
+def test__median_pdf__converged():
     parameters = [
         [1.0, 2.0],
         [1.0, 2.0],
@@ -80,18 +80,18 @@ def test__converged__median_pdf_vector_and_instance():
 
     assert samples_x5.pdf_converged is True
 
-    median_pdf_vector = samples_x5.median_pdf_vector
+    median_pdf = samples_x5.median_pdf(as_instance=False)
 
-    assert median_pdf_vector[0] == pytest.approx(1.0, 1.0e-4)
-    assert median_pdf_vector[1] == pytest.approx(2.0, 1.0e-4)
+    assert median_pdf[0] == pytest.approx(1.0, 1.0e-4)
+    assert median_pdf[1] == pytest.approx(2.0, 1.0e-4)
 
-    median_pdf_instance = samples_x5.median_pdf_instance
+    median_pdf_instance = samples_x5.median_pdf(as_instance=True)
 
     assert median_pdf_instance.mock_class.one == pytest.approx(1.0, 1e-1)
     assert median_pdf_instance.mock_class.two == pytest.approx(2.0, 1e-1)
 
 
-def test__unconverged__median_pdf_vector():
+def test__median_pdf__unconverged():
     parameters = [
         [1.0, 2.0],
         [1.0, 2.0],
@@ -122,10 +122,10 @@ def test__unconverged__median_pdf_vector():
 
     assert samples_x5.pdf_converged is False
 
-    median_pdf_vector = samples_x5.median_pdf_vector
+    median_pdf = samples_x5.median_pdf(as_instance=False)
 
-    assert median_pdf_vector[0] == pytest.approx(0.9, 1.0e-4)
-    assert median_pdf_vector[1] == pytest.approx(1.9, 1.0e-4)
+    assert median_pdf[0] == pytest.approx(0.9, 1.0e-4)
+    assert median_pdf[1] == pytest.approx(1.9, 1.0e-4)
 
 
 @with_config("general", "model", "ignore_prior_limits", value=True)
@@ -161,43 +161,43 @@ def test__converged__vector_and_instance_at_upper_and_lower_sigma():
 
     assert samples_x5.pdf_converged is True
 
-    vector_at_sigma = samples_x5.vector_at_sigma(sigma=3.0)
+    values = samples_x5.values_at_sigma(sigma=3.0, as_instance=False)
 
-    assert vector_at_sigma[0] == pytest.approx((0.00121, 0.19878), 1e-1)
-    assert vector_at_sigma[1] == pytest.approx((0.30121, 0.49878), 1e-1)
+    assert values[0] == pytest.approx((0.00121, 0.19878), 1e-1)
+    assert values[1] == pytest.approx((0.30121, 0.49878), 1e-1)
 
-    vector_at_sigma = samples_x5.vector_at_upper_sigma(sigma=3.0)
+    values = samples_x5.values_at_upper_sigma(sigma=3.0, as_instance=False)
 
-    assert vector_at_sigma[0] == pytest.approx(0.19757, 1e-1)
-    assert vector_at_sigma[1] == pytest.approx(0.49757, 1e-1)
+    assert values[0] == pytest.approx(0.19757, 1e-1)
+    assert values[1] == pytest.approx(0.49757, 1e-1)
 
-    vector_at_sigma = samples_x5.vector_at_lower_sigma(sigma=3.0)
+    values = samples_x5.values_at_lower_sigma(sigma=3.0, as_instance=False)
 
-    assert vector_at_sigma[0] == pytest.approx(0.00121, 1e-1)
-    assert vector_at_sigma[1] == pytest.approx(0.30121, 1e-1)
+    assert values[0] == pytest.approx(0.00121, 1e-1)
+    assert values[1] == pytest.approx(0.30121, 1e-1)
 
-    vector_at_sigma = samples_x5.vector_at_sigma(sigma=1.0)
+    values = samples_x5.values_at_sigma(sigma=1.0, as_instance=False)
 
-    assert vector_at_sigma[0] == pytest.approx((0.1, 0.1), 1e-1)
-    assert vector_at_sigma[1] == pytest.approx((0.4, 0.4), 1e-1)
+    assert values[0] == pytest.approx((0.1, 0.1), 1e-1)
+    assert values[1] == pytest.approx((0.4, 0.4), 1e-1)
 
-    instance_at_sigma = samples_x5.instance_at_sigma(sigma=1.0)
+    values = samples_x5.values_at_sigma(sigma=1.0)
 
-    assert instance_at_sigma.mock_class.one == pytest.approx((0.1, 0.1), 1e-1)
-    assert instance_at_sigma.mock_class.two == pytest.approx((0.4, 0.4), 1e-1)
+    assert values.mock_class.one == pytest.approx((0.1, 0.1), 1e-1)
+    assert values.mock_class.two == pytest.approx((0.4, 0.4), 1e-1)
 
-    instance_at_sigma = samples_x5.instance_at_upper_sigma(sigma=3.0)
+    values = samples_x5.values_at_upper_sigma(sigma=3.0)
 
-    assert instance_at_sigma.mock_class.one == pytest.approx(0.19757, 1e-1)
-    assert instance_at_sigma.mock_class.two == pytest.approx(0.49757, 1e-1)
+    assert values.mock_class.one == pytest.approx(0.19757, 1e-1)
+    assert values.mock_class.two == pytest.approx(0.49757, 1e-1)
 
-    instance_at_sigma = samples_x5.instance_at_lower_sigma(sigma=3.0)
+    values = samples_x5.values_at_lower_sigma(sigma=3.0)
 
-    assert instance_at_sigma.mock_class.one == pytest.approx(0.00121, 1e-1)
-    assert instance_at_sigma.mock_class.two == pytest.approx(0.30121, 1e-1)
+    assert values.mock_class.one == pytest.approx(0.00121, 1e-1)
+    assert values.mock_class.two == pytest.approx(0.30121, 1e-1)
 
 
-def test__unconverged_vector_at_lower_and_upper_sigma():
+def test__values_at_sigma__unconverged():
     parameters = [
         [1.0, 2.0],
         [1.0, 2.0],
@@ -228,18 +228,18 @@ def test__unconverged_vector_at_lower_and_upper_sigma():
 
     assert samples_x5.pdf_converged is False
 
-    vector_at_sigma = samples_x5.vector_at_sigma(sigma=1.0)
+    values_at_sigma = samples_x5.values_at_sigma(sigma=1.0, as_instance=False)
 
-    assert vector_at_sigma[0] == pytest.approx(((0.9, 1.1)), 1e-2)
-    assert vector_at_sigma[1] == pytest.approx(((1.9, 2.1)), 1e-2)
+    assert values_at_sigma[0] == pytest.approx(((0.9, 1.1)), 1e-2)
+    assert values_at_sigma[1] == pytest.approx(((1.9, 2.1)), 1e-2)
 
-    vector_at_sigma = samples_x5.vector_at_sigma(sigma=3.0)
+    values_at_sigma = samples_x5.values_at_sigma(sigma=3.0, as_instance=False)
 
-    assert vector_at_sigma[0] == pytest.approx(((0.9, 1.1)), 1e-2)
-    assert vector_at_sigma[1] == pytest.approx(((1.9, 2.1)), 1e-2)
+    assert values_at_sigma[0] == pytest.approx(((0.9, 1.1)), 1e-2)
+    assert values_at_sigma[1] == pytest.approx(((1.9, 2.1)), 1e-2)
 
 
-def test__converged__errors_vector_and_instance_at_upper_and_lower_sigma():
+def test__errors_at__converged():
     parameters = [
         [0.1, 0.4],
         [0.1, 0.4],
@@ -271,43 +271,43 @@ def test__converged__errors_vector_and_instance_at_upper_and_lower_sigma():
 
     assert samples_x5.pdf_converged is True
 
-    errors = samples_x5.error_magnitude_vector_at_sigma(sigma=3.0)
+    errors = samples_x5.error_magnitudes_at_sigma(sigma=3.0, as_instance=False)
 
     assert errors == pytest.approx([0.19514, 0.19514], 1e-1)
 
-    errors = samples_x5.error_vector_at_upper_sigma(sigma=3.0)
+    errors = samples_x5.errors_at_upper_sigma(sigma=3.0, as_instance=False)
 
     assert errors == pytest.approx([0.09757, 0.09757], 1e-1)
 
-    errors = samples_x5.error_vector_at_lower_sigma(sigma=3.0)
+    errors = samples_x5.errors_at_lower_sigma(sigma=3.0, as_instance=False)
 
     assert errors == pytest.approx([0.09757, 0.09757], 1e-1)
 
-    errors = samples_x5.error_vector_at_sigma(sigma=3.0)
+    errors = samples_x5.errors_at_sigma(sigma=3.0, as_instance=False)
     assert errors[0] == pytest.approx((0.09757, 0.09757), 1e-1)
     assert errors[1] == pytest.approx((0.09757, 0.09757), 1e-1)
 
-    errors = samples_x5.error_magnitude_vector_at_sigma(sigma=1.0)
+    errors = samples_x5.error_magnitudes_at_sigma(sigma=1.0, as_instance=False)
 
     assert errors == pytest.approx([0.0, 0.0], 1e-1)
 
-    errors_instance = samples_x5.error_instance_at_sigma(sigma=1.0)
+    errors_instance = samples_x5.errors_at_sigma(sigma=1.0, as_instance=True)
 
-    assert errors_instance.mock_class.one == pytest.approx(0.0, 1e-1)
-    assert errors_instance.mock_class.two == pytest.approx(0.0, 1e-1)
+    assert errors_instance.mock_class.one[0] == pytest.approx(0.0, 1e-1)
+    assert errors_instance.mock_class.two[0] == pytest.approx(0.0, 1e-1)
 
-    errors_instance = samples_x5.error_instance_at_upper_sigma(sigma=3.0)
-
-    assert errors_instance.mock_class.one == pytest.approx(0.09757, 1e-1)
-    assert errors_instance.mock_class.two == pytest.approx(0.09757, 1e-1)
-
-    errors_instance = samples_x5.error_instance_at_lower_sigma(sigma=3.0)
+    errors_instance = samples_x5.errors_at_upper_sigma(sigma=3.0, as_instance=True)
 
     assert errors_instance.mock_class.one == pytest.approx(0.09757, 1e-1)
     assert errors_instance.mock_class.two == pytest.approx(0.09757, 1e-1)
 
+    errors_instance = samples_x5.errors_at_lower_sigma(sigma=3.0, as_instance=True)
 
-def test__unconverged_sample_size__uses_value_unless_fewer_samples():
+    assert errors_instance.mock_class.one == pytest.approx(0.09757, 1e-1)
+    assert errors_instance.mock_class.two == pytest.approx(0.09757, 1e-1)
+
+
+def test__unconverged_sample_size():
     model = af.ModelMapper(mock_class_1=af.m.MockClassx4)
 
     log_likelihood_list = 4 * [0.0] + [1.0]
@@ -344,7 +344,7 @@ def test__unconverged_sample_size__uses_value_unless_fewer_samples():
     assert samples_x5.unconverged_sample_size == 5
 
 
-def test__offset_vector_from_input_vector():
+def test__offset_values_via_input_values():
     model = af.ModelMapper(mock_class_1=af.m.MockClassx4)
 
     parameters = [
@@ -370,14 +370,14 @@ def test__offset_vector_from_input_vector():
         ),
     )
 
-    offset_values = samples_x5.offset_vector_from_input_vector(
-        input_vector=[1.0, 1.0, 2.0, 3.0]
+    offset_values = samples_x5.offset_values_via_input_values(
+        input_vector=[1.0, 1.0, 2.0, 3.0], as_instance=False
     )
 
     assert offset_values == pytest.approx([0.0, 1.0, 1.0, 1.025], 1.0e-4)
 
 
-def test__vector_drawn_randomly_from_pdf():
+def test__draw_randomly_via_pdf():
     parameters = [
         [0.0, 1.0, 2.0, 3.0],
         [0.0, 1.0, 2.0, 3.0],
@@ -399,11 +399,11 @@ def test__vector_drawn_randomly_from_pdf():
         ),
     )
 
-    vector = samples_x5.vector_drawn_randomly_from_pdf()
+    vector = samples_x5.draw_randomly_via_pdf(as_instance=False)
 
     assert vector == [21.0, 22.0, 23.0, 24.0]
 
-    instance = samples_x5.instance_drawn_randomly_from_pdf()
+    instance = samples_x5.draw_randomly_via_pdf(as_instance=True)
 
     assert vector == [21.0, 22.0, 23.0, 24.0]
 

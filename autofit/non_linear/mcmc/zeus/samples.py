@@ -3,7 +3,7 @@ import numpy as np
 from typing import List, Optional
 
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
-from autofit.non_linear.samples.mcmc import MCMCSamples
+from autofit.non_linear.samples.mcmc import SamplesMCMC
 from autofit.non_linear.mcmc.auto_correlations import AutoCorrelationsSettings, AutoCorrelations
 from autofit.non_linear.samples import Sample
 
@@ -11,7 +11,7 @@ logger = logging.getLogger(
     __name__
 )
 
-class ZeusSamples(MCMCSamples):
+class SamplesZeus(SamplesMCMC):
 
     @classmethod
     def from_results_internal(
@@ -30,7 +30,7 @@ class ZeusSamples(MCMCSamples):
         native format used by `Zeus` (which is a HDFBackend) to lists of values, the format used by the **PyAutoFit**
         `Samples` objects.
 
-        This classmethod performs this conversion before creating a `ZeusSamples` object.
+        This classmethod performs this conversion before creating a `SamplesZeus` object.
 
         Parameters
         ----------
@@ -68,7 +68,7 @@ class ZeusSamples(MCMCSamples):
             weight_list=weight_list
         )
 
-        return ZeusSamples(
+        return SamplesZeus(
             model=model,
             sample_list=sample_list,
             auto_correlation_settings=auto_correlation_settings,

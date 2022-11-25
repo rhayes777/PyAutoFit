@@ -55,7 +55,7 @@ def result_info_from(samples) -> str:
 
     for i, prior_path in enumerate(samples.model.unique_prior_paths):
         formatter.add(
-            prior_path, format_str().format(samples.max_log_likelihood_vector[i])
+            prior_path, format_str().format(samples.max_log_likelihood(as_instance=False)[i])
         )
     results += [formatter.text + "\n"]
 

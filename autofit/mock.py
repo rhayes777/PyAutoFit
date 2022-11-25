@@ -4,7 +4,7 @@ from autofit.non_linear.mock.mock_result import MockResultGrid
 from autofit.non_linear.mock.mock_search import MockSearch
 from autofit.non_linear.mock.mock_search import MockOptimizer
 from autofit.non_linear.mock.mock_samples import MockSamples
-from autofit.non_linear.mock.mock_samples import MockNestSamples
+from autofit.non_linear.mock.mock_samples import MockSamplesNest
 
 from autofit.mapper.mock.mock_model import MockChildTuple
 from autofit.mapper.mock.mock_model import MockClassInf

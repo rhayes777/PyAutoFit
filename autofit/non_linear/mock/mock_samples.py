@@ -1,6 +1,6 @@
 from typing import Optional, Union
 
-from autofit.non_linear.samples import PDFSamples, Sample, NestSamples
+from autofit.non_linear.samples import SamplesPDF, Sample, SamplesNest
 
 
 
@@ -18,7 +18,7 @@ def samples_with_log_likelihood_list(
     ]
 
 
-class MockSamples(PDFSamples):
+class MockSamples(SamplesPDF):
     def __init__(
             self,
             model=None,
@@ -69,13 +69,12 @@ class MockSamples(PDFSamples):
 
         return self._log_likelihood_list
 
-    @property
-    def max_log_likelihood_instance(self):
+    def max_log_likelihood(self, as_instance : bool = True):
 
         if self._max_log_likelihood_instance is None:
 
             try:
-                return super().max_log_likelihood_instance
+                return super().max_log_likelihood(as_instance=as_instance)
             except (KeyError, AttributeError):
                 pass
 
@@ -92,7 +91,7 @@ class MockSamples(PDFSamples):
         pass
 
 
-class MockNestSamples(NestSamples):
+class MockSamplesNest(SamplesNest):
 
     def __init__(
             self,

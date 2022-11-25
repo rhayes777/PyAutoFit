@@ -7,7 +7,7 @@ from autofit.non_linear.optimize.abstract_optimize import AbstractOptimizer
 from autofit.non_linear.abstract_search import Analysis
 from autofit.non_linear.abstract_search import PriorPasser
 from autofit.non_linear.initializer import AbstractInitializer
-from autofit.non_linear.optimize.lbfgs.samples import LBFGSSamples
+from autofit.non_linear.optimize.lbfgs.samples import SamplesLBFGS
 
 import copy
 from scipy import optimize
@@ -185,7 +185,7 @@ class LBFGS(AbstractOptimizer):
             model: AbstractPriorModel
     ):
 
-        return LBFGSSamples.from_results_internal(
+        return SamplesLBFGS.from_results_internal(
             model=model,
             results_internal=self.paths.load_object("x0"),
             log_posterior_list=np.array([self.paths.load_object("log_posterior")]),

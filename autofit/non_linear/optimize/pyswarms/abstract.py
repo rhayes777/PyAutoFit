@@ -10,7 +10,7 @@ from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.abstract_search import PriorPasser
 from autofit.non_linear.initializer import AbstractInitializer
 from autofit.non_linear.optimize.abstract_optimize import AbstractOptimizer
-from autofit.non_linear.optimize.pyswarms.samples import PySwarmsSamples
+from autofit.non_linear.optimize.pyswarms.samples import SamplesPySwarms
 from autofit.plot import PySwarmsPlotter
 from autofit.plot.output import Output
 
@@ -233,7 +233,7 @@ class AbstractPySwarms(AbstractOptimizer):
 
     def samples_from(self, model):
 
-        return PySwarmsSamples.from_results_internal(
+        return SamplesPySwarms.from_results_internal(
             results_internal=self.paths.load_object("points"),
             model=model,
             log_posterior_list=self.paths.load_object("log_posterior_list"),

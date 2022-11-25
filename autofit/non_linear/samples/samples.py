@@ -1,4 +1,6 @@
+from abc import ABC
 import csv
+from functools import wraps
 import json
 import warnings
 from copy import copy
@@ -12,7 +14,240 @@ from autofit.mapper.prior_model.abstract import AbstractPriorModel, Path
 from autofit.non_linear.samples.sample import Sample
 
 
-class Samples:
+### TODO: Rich how do I reduce this to one wrapper sensible?
+
+def to_instance(func):
+    """
+
+    Parameters
+    ----------
+    func
+
+    Returns
+    -------
+        A function that returns a 2D image.
+    """
+
+    @wraps(func)
+    def wrapper(
+        obj,
+        as_instance: bool = True,
+        *args,
+        **kwargs
+    ) -> Union[List, ModelInstance]:
+        """
+        This decorator checks if a light profile is a `LightProfileOperated` class and therefore already has had operations like a
+        PSF convolution performed.
+
+        This is compared to the `only_operated` input to determine if the image of that light profile is returned, or
+        an array of zeros.
+
+        Parameters
+        ----------
+        obj
+            A light profile with an `image_2d_from` function whose class is inspected to determine if the image is
+            operated on.
+        grid
+            A grid_like object of (y,x) coordinates on which the function values are evaluated.
+        operated_only
+            By default this is None and the image is returned irrespecive of light profile class (E.g. it does not matter
+            if it is already operated or not). If this input is included as a bool, the light profile image is only
+            returned if they are or are not already operated.
+
+        Returns
+        -------
+            The 2D image, which is customized depending on whether it has been operated on.
+        """
+
+        vector = func(obj, as_instance, *args, **kwargs)
+
+        if as_instance:
+
+            return obj.model.instance_from_vector(
+                vector=vector,
+                ignore_prior_limits=True
+            )
+
+        return vector
+
+    return wrapper
+
+
+def to_instance_sigma(func):
+    """
+
+    Parameters
+    ----------
+    func
+
+    Returns
+    -------
+        A function that returns a 2D image.
+    """
+
+    @wraps(func)
+    def wrapper(
+        obj,
+        sigma,
+        as_instance : bool = True,
+        *args,
+        **kwargs
+    ) -> Union[List, ModelInstance]:
+        """
+        This decorator checks if a light profile is a `LightProfileOperated` class and therefore already has had operations like a
+        PSF convolution performed.
+
+        This is compared to the `only_operated` input to determine if the image of that light profile is returned, or
+        an array of zeros.
+
+        Parameters
+        ----------
+        obj
+            A light profile with an `image_2d_from` function whose class is inspected to determine if the image is
+            operated on.
+        grid
+            A grid_like object of (y,x) coordinates on which the function values are evaluated.
+        operated_only
+            By default this is None and the image is returned irrespecive of light profile class (E.g. it does not matter
+            if it is already operated or not). If this input is included as a bool, the light profile image is only
+            returned if they are or are not already operated.
+
+        Returns
+        -------
+            The 2D image, which is customized depending on whether it has been operated on.
+        """
+
+        vector = func(obj, sigma, as_instance, *args, **kwargs)
+
+        if as_instance:
+
+            return obj.model.instance_from_vector(
+                vector=vector,
+                ignore_prior_limits=True
+            )
+
+        return vector
+
+    return wrapper
+
+
+def to_instance_samples(func):
+    """
+
+    Parameters
+    ----------
+    func
+
+    Returns
+    -------
+        A function that returns a 2D image.
+    """
+
+    @wraps(func)
+    def wrapper(
+        obj,
+        sample_index,
+        as_instance : bool = True,
+        *args,
+        **kwargs
+    ) -> Union[List, ModelInstance]:
+        """
+        This decorator checks if a light profile is a `LightProfileOperated` class and therefore already has had operations like a
+        PSF convolution performed.
+
+        This is compared to the `only_operated` input to determine if the image of that light profile is returned, or
+        an array of zeros.
+
+        Parameters
+        ----------
+        obj
+            A light profile with an `image_2d_from` function whose class is inspected to determine if the image is
+            operated on.
+        grid
+            A grid_like object of (y,x) coordinates on which the function values are evaluated.
+        operated_only
+            By default this is None and the image is returned irrespecive of light profile class (E.g. it does not matter
+            if it is already operated or not). If this input is included as a bool, the light profile image is only
+            returned if they are or are not already operated.
+
+        Returns
+        -------
+            The 2D image, which is customized depending on whether it has been operated on.
+        """
+
+        vector = func(obj, sample_index, as_instance, *args, **kwargs)
+
+        if as_instance:
+
+            return obj.model.instance_from_vector(
+                vector=vector,
+                ignore_prior_limits=True
+            )
+
+        return vector
+
+    return wrapper
+
+
+def to_instance_input(func):
+    """
+
+    Parameters
+    ----------
+    func
+
+    Returns
+    -------
+        A function that returns a 2D image.
+    """
+
+    @wraps(func)
+    def wrapper(
+        obj,
+        input_vector,
+        as_instance : bool = True,
+        *args,
+        **kwargs
+    ) -> Union[List, ModelInstance]:
+        """
+        This decorator checks if a light profile is a `LightProfileOperated` class and therefore already has had operations like a
+        PSF convolution performed.
+
+        This is compared to the `only_operated` input to determine if the image of that light profile is returned, or
+        an array of zeros.
+
+        Parameters
+        ----------
+        obj
+            A light profile with an `image_2d_from` function whose class is inspected to determine if the image is
+            operated on.
+        grid
+            A grid_like object of (y,x) coordinates on which the function values are evaluated.
+        operated_only
+            By default this is None and the image is returned irrespecive of light profile class (E.g. it does not matter
+            if it is already operated or not). If this input is included as a bool, the light profile image is only
+            returned if they are or are not already operated.
+
+        Returns
+        -------
+            The 2D image, which is customized depending on whether it has been operated on.
+        """
+
+        vector = func(obj, input_vector, as_instance, *args, **kwargs)
+
+        if as_instance:
+
+            return obj.model.instance_from_vector(
+                vector=vector,
+                ignore_prior_limits=True
+            )
+
+        return vector
+
+    return wrapper
+
+
+class Samples(ABC):
     def __init__(
             self,
             model: AbstractPriorModel,
@@ -113,6 +348,21 @@ class Samples:
         """
         return self
 
+    def __len__(self):
+        return len(self.sample_list)
+
+    def __setstate__(self, state):
+
+        self.__dict__.update(state)
+
+    def __copy__(self):
+        cls = self.__class__
+        result = cls.__new__(cls)
+        result.__dict__.update(self.__dict__)
+        result._names = None
+        result._paths = None
+        return result
+
     def _check_addition(self, other: "Samples"):
         """
         When adding samples together, perform the following checks to make sure it is valid to add the two objects
@@ -170,10 +420,6 @@ class Samples:
         ]
 
     @property
-    def log_evidence(self) -> Optional[float]:
-        return None
-
-    @property
     def paths(self) -> List[Tuple[Path]]:
         """
         A list of paths to unique priors in the same order as prior
@@ -212,9 +458,6 @@ class Samples:
 
     @property
     def total_samples(self):
-        return len(self.sample_list)
-
-    def __len__(self):
         return len(self.sample_list)
 
     @property
@@ -320,30 +563,24 @@ class Samples:
                 most_likely_sample = sample
         return most_likely_sample
 
-    @property
-    def max_log_posterior_sample(self) -> Sample:
-        return self.sample_list[
-            self.max_log_posterior_index
-        ]
+    @to_instance
+    def max_log_likelihood(self, as_instance: bool = True) -> List[float]:
+        """
+        The parameters of the maximum log likelihood sample of the `NonLinearSearch` returned as a model instance or
+        list of values.
+        """
 
-    @property
-    def max_log_likelihood_vector(self) -> List[float]:
-        """
-        The parameters of the maximum log likelihood sample of the `NonLinearSearch` returned as a list of values.
-        """
         sample = self.max_log_likelihood_sample
+
         return sample.parameter_lists_for_paths(
             self.paths if sample.is_path_kwargs else self.names
         )
 
     @property
-    def max_log_likelihood_instance(self) -> ModelInstance:
-        """
-        The parameters of the maximum log likelihood sample of the `NonLinearSearch` returned as a model instance.
-        """
-        return self.max_log_likelihood_sample.instance_for_model(
-            self.model
-        )
+    def max_log_posterior_sample(self) -> Sample:
+        return self.sample_list[
+            self.max_log_posterior_index
+        ]
 
     @property
     def max_log_posterior_index(self) -> int:
@@ -352,39 +589,15 @@ class Samples:
         """
         return int(np.argmax(self.log_posterior_list))
 
-    @property
-    def max_log_posterior_vector(self) -> List[float]:
-        """
-        The parameters of the maximum log posterior sample of the `NonLinearSearch` returned as a list of values.
-        """
-        return self.parameter_lists[self.max_log_posterior_index]
-
-    @property
-    def max_log_posterior_instance(self) -> ModelInstance:
+    @to_instance
+    def max_log_posterior(self, as_instance: bool = True) -> ModelInstance:
         """
         The parameters of the maximum log posterior sample of the `NonLinearSearch` returned as a model instance.
         """
-        return self.model.instance_from_vector(
-            vector=self.max_log_posterior_vector,
-        )
+        return self.parameter_lists[self.max_log_posterior_index]
 
-    def gaussian_priors_at_sigma(self, sigma: float) -> [List]:
-        """
-        `GaussianPrior`s of every parameter used to link its inferred values and errors to priors used to sample the
-        same (or similar) parameters in a subsequent search, where:
-
-        - The mean is given by maximum log likelihood model values.
-        - Their errors are omitted, as this information is not available from an search. When these priors are
-        used to link to another search, it will thus automatically use the prior config values.
-
-        Parameters
-        -----------
-        sigma
-            The sigma limit within which the PDF is used to estimate errors (e.g. sigma = 1.0 uses 0.6826 of the PDF).
-        """
-        return list(map(lambda vector: (vector, 0.0), self.max_log_likelihood_vector))
-
-    def instance_from_sample_index(self, sample_index) -> ModelInstance:
+    @to_instance_samples
+    def from_sample_index(self, sample_index : int, as_instance: bool = True) -> ModelInstance:
         """
         The parameters of an individual sample of the non-linear search, returned as a model instance.
 
@@ -393,7 +606,7 @@ class Samples:
         sample_index
             The sample index of the weighted sample to return.
         """
-        return self.model.instance_from_vector(vector=self.parameter_lists[sample_index])
+        return self.parameter_lists[sample_index]
 
     def minimise(self) -> "Samples":
         """
@@ -436,18 +649,6 @@ class Samples:
             for sample in self.sample_list
         ]
         return with_paths
-
-    def __setstate__(self, state):
-
-        self.__dict__.update(state)
-
-    def __copy__(self):
-        cls = self.__class__
-        result = cls.__new__(cls)
-        result.__dict__.update(self.__dict__)
-        result._names = None
-        result._paths = None
-        return result
 
     def without_paths(
             self,
@@ -500,49 +701,18 @@ class Samples:
         ]
         return copied
 
-    @property
-    def median_pdf_vector(self) -> ModelInstance:
-        raise NotImplementedError
+    def gaussian_priors_at_sigma(self, sigma: float) -> [List]:
+        """
+        `GaussianPrior`s of every parameter used to link its inferred values and errors to priors used to sample the
+        same (or similar) parameters in a subsequent search, where:
 
-    @property
-    def median_pdf_instance(self) -> ModelInstance:
-        raise NotImplementedError
+        - The mean is given by maximum log likelihood model values.
+        - Their errors are omitted, as this information is not available from an search. When these priors are
+        used to link to another search, it will thus automatically use the prior config values.
 
-    def vector_at_sigma(self, sigma: float) -> [(float, float)]:
-        raise NotImplementedError
-
-    def vector_at_upper_sigma(self, sigma: float) -> [float]:
-        raise NotImplementedError
-
-    def vector_at_lower_sigma(self, sigma: float) -> [float]:
-        raise NotImplementedError
-
-    def instance_at_sigma(self, sigma: float) -> ModelInstance:
-        raise NotImplementedError
-
-    def instance_at_upper_sigma(self, sigma: float) -> ModelInstance:
-        raise NotImplementedError
-
-    def instance_at_lower_sigma(self, sigma: float) -> ModelInstance:
-        raise NotImplementedError
-
-    def error_vector_at_sigma(self, sigma: float) -> [(float, float)]:
-        raise NotImplementedError
-
-    def error_vector_at_upper_sigma(self, sigma: float) -> [float]:
-        raise NotImplementedError
-
-    def error_vector_at_lower_sigma(self, sigma: float) -> [float]:
-        raise NotImplementedError
-
-    def error_magnitude_vector_at_sigma(self, sigma: float) -> [float]:
-        raise NotImplementedError
-
-    def error_instance_at_sigma(self, sigma: float) -> ModelInstance:
-        raise NotImplementedError
-
-    def error_instance_at_upper_sigma(self, sigma: float) -> ModelInstance:
-        raise NotImplementedError
-
-    def error_instance_at_lower_sigma(self, sigma: float) -> ModelInstance:
-        raise NotImplementedError
+        Parameters
+        -----------
+        sigma
+            The sigma limit within which the PDF is used to estimate errors (e.g. sigma = 1.0 uses 0.6826 of the PDF).
+        """
+        return list(map(lambda vector: (vector, 0.0), self.max_log_likelihood(as_instance=False)))

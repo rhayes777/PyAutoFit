@@ -5,7 +5,7 @@ from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.samples import Samples, Sample
 
 
-class PySwarmsSamples(Samples):
+class SamplesPySwarms(Samples):
 
     @classmethod
     def from_results_internal(
@@ -24,7 +24,7 @@ class PySwarmsSamples(Samples):
         native format used by `pyswarms` (which are numpy ndarrays) to lists of values, the format used by
         the **PyAutoFit** `Samples` objects.
 
-        This classmethod performs this conversion before creating a `PySwarmsSamples` object.
+        This classmethod performs this conversion before creating a `SamplesPySwarms` object.
 
         Parameters
         ----------
@@ -56,7 +56,7 @@ class PySwarmsSamples(Samples):
             weight_list=weight_list
         )
 
-        return PySwarmsSamples(
+        return SamplesPySwarms(
             model=model,
             sample_list=sample_list,
             total_iterations=total_iterations,

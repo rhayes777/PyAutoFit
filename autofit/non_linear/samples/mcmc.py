@@ -5,14 +5,16 @@ import warnings
 
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.mcmc.auto_correlations import AutoCorrelationsSettings
-from autofit.non_linear.samples.pdf import PDFSamples
+from autofit.non_linear.samples.pdf import SamplesPDF
 from autofit.non_linear.samples.samples import Samples
 from autofit.non_linear.samples.samples import Sample
 from autofit.non_linear.samples.sample import load_from_table
 
+from autofit.non_linear.samples.samples import to_instance, to_instance_sigma
+
 from autofit import exc
 
-class MCMCSamples(PDFSamples):
+class SamplesMCMC(SamplesPDF):
 
     def __init__(
             self,
@@ -64,8 +66,8 @@ class MCMCSamples(PDFSamples):
 
     def __add__(
             self,
-            other: "MCMCSamples"
-    ) -> "MCMCSamples":
+            other: "SamplesMCMC"
+    ) -> "SamplesMCMC":
         """
         Samples can be added together, which combines their `sample_list` meaning that inferred parameters are
         computed via their joint PDF.
@@ -179,8 +181,8 @@ class MCMCSamples(PDFSamples):
             total_samples=self.total_samples
         )
 
-    @property
-    def median_pdf_vector(self) -> [float]:
+    @to_instance
+    def median_pdf(self, as_instance: bool = True) -> [float]:
         """
         The median of the probability density function (PDF) of every parameter marginalized in 1D, returned
         as a list of values.
@@ -194,9 +196,10 @@ class MCMCSamples(PDFSamples):
                 for i in range(self.model.prior_count)
             ]
 
-        return self.max_log_likelihood_vector
+        return self.max_log_likelihood(as_instance=False)
 
-    def vector_at_sigma(self, sigma: float) -> [float]:
+    @to_instance_sigma
+    def values_at_sigma(self, sigma: float, as_instance: bool = True) -> [float]:
         """
         The value of every parameter marginalized in 1D at an input sigma value of its probability density function
         (PDF), returned as two lists of values corresponding to the lower and upper values parameter values.

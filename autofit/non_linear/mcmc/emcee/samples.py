@@ -1,14 +1,13 @@
 import emcee
 import numpy as np
-import os
-from typing import List, Optional
+from typing import Optional
 
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
-from autofit.non_linear.samples.mcmc import MCMCSamples
+from autofit.non_linear.samples.mcmc import SamplesMCMC
 from autofit.non_linear.mcmc.auto_correlations import AutoCorrelationsSettings, AutoCorrelations
 from autofit.non_linear.samples import Sample
 
-class EmceeSamples(MCMCSamples):
+class SamplesEmcee(SamplesMCMC):
 
     @classmethod
     def from_results_internal(
@@ -27,7 +26,7 @@ class EmceeSamples(MCMCSamples):
         native format used by `emcee` (which is a HDFBackend) to lists of values, the format used by the **PyAutoFit**
         `Samples` objects.
 
-        This classmethod performs this conversion before creating a `EmceeSamples` object.
+        This classmethod performs this conversion before creating a `SamplesEmcee` object.
 
         Parameters
         ----------
@@ -66,7 +65,7 @@ class EmceeSamples(MCMCSamples):
             weight_list=weight_list
         )
 
-        return EmceeSamples(
+        return SamplesEmcee(
             model=model,
             sample_list=sample_list,
             auto_correlation_settings=auto_correlation_settings,

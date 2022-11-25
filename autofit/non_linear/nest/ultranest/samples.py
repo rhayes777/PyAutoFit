@@ -2,11 +2,11 @@ from typing import Optional
 
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.samples import Sample
-from autofit.non_linear.samples.nest import NestSamples
+from autofit.non_linear.samples.nest import SamplesNest
 
 
 
-class UltraNestSamples(NestSamples):
+class SamplesUltraNest(SamplesNest):
 
     @classmethod
     def from_results_internal(
@@ -56,7 +56,7 @@ class UltraNestSamples(NestSamples):
             weight_list=weight_list
         )
 
-        return UltraNestSamples(
+        return SamplesUltraNest(
             model=model,
             sample_list=sample_list,
             number_live_points=number_live_points,

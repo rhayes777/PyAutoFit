@@ -286,8 +286,8 @@ class Aggregator(AbstractAggregator):
         >>>
         >>> lens = aggregator.galaxies.lens
         >>>
-        >>> aggregator.filter((lens.bulge == EllSersicCore) & (lens.disk == EllSersic))
-        >>> aggregator.filter((lens.bulge == EllSersicCore) | (lens.disk == EllSersic))
+        >>> aggregator.filter((lens.bulge == SersicCore) & (lens.disk == Sersic))
+        >>> aggregator.filter((lens.bulge == SersicCore) | (lens.disk == Sersic))
         """
         return self._new_with(
             predicate=self._predicate & predicate

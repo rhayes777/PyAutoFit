@@ -1,7 +1,7 @@
 import os
 from abc import ABC
-from dynesty import NestedSampler, DynamicNestedSampler
 from dynesty.pool import Pool
+from dynesty import NestedSampler, DynamicNestedSampler
 from os import path
 from typing import Optional, Tuple, Union
 
@@ -359,7 +359,6 @@ class AbstractDynesty(AbstractNest, ABC):
             self,
             model,
             fitness_function,
-            checkpoint_exists,
             pool,
             queue_size
     ):

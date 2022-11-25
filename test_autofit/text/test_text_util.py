@@ -65,7 +65,7 @@ def test__search_summary_to_file(model):
     assert lines[0] == "Total Samples = 2\n"
     results.close()
 
-    samples = af.m.MockNestSamples(
+    samples = af.m.MockSamplesNest(
         model=model,
         sample_list=af.Sample.from_lists(
             parameter_lists=parameters,

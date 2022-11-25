@@ -1,14 +1,15 @@
+from abc import abstractmethod
 from typing import List, Optional
 import warnings
 
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
-from autofit.non_linear.samples.pdf import PDFSamples
+from autofit.non_linear.samples.pdf import SamplesPDF
 from autofit.non_linear.samples.samples import Sample
-from autofit.non_linear.samples.stored import StoredSamples
+from autofit.non_linear.samples.stored import SamplesStored
 
 from autofit import exc
 
-class NestSamples(PDFSamples):
+class SamplesNest(SamplesPDF):
 
     def __init__(
             self,
@@ -61,8 +62,8 @@ class NestSamples(PDFSamples):
 
     def __add__(
             self,
-            other: "NestSamples"
-    ) -> "NestSamples":
+            other: "SamplesNest"
+    ) -> "SamplesNest":
         """
         Samples can be added together, which combines their `sample_list` meaning that inferred parameters are
         computed via their joint PDF.
@@ -99,15 +100,17 @@ class NestSamples(PDFSamples):
 
     @property
     def number_live_points(self):
-        raise NotImplementedError
+        return self._number_live_points
 
     @property
+    @abstractmethod
     def log_evidence(self):
-        raise NotImplementedError
+        pass
 
     @property
+    @abstractmethod
     def total_samples(self):
-        raise NotImplementedError
+        pass
 
     @property
     def info_json(self):
@@ -137,7 +140,7 @@ class NestSamples(PDFSamples):
             self,
             parameter_index: int,
             parameter_range: [float, float]
-    ) -> "StoredSamples":
+    ) -> "SamplesStored":
         """
         Returns a new set of Samples where all points without parameter values inside a specified range removed.
 
@@ -186,7 +189,7 @@ class NestSamples(PDFSamples):
             weight_list=weight_list
         )
 
-        return StoredSamples(
+        return SamplesStored(
             model=self.model,
             sample_list=sample_list,
             unconverged_sample_size=self.unconverged_sample_size,

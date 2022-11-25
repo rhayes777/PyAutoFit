@@ -10,7 +10,7 @@ from autofit.mapper.model_mapper import ModelMapper
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.mcmc.abstract_mcmc import AbstractMCMC
 from autofit.non_linear.mcmc.auto_correlations import AutoCorrelationsSettings
-from autofit.non_linear.mcmc.zeus.samples import ZeusSamples
+from autofit.non_linear.mcmc.zeus.samples import SamplesZeus
 from autofit.non_linear.abstract_search import PriorPasser
 from autofit.non_linear.initializer import Initializer
 from autofit.non_linear.mcmc.zeus.plotter import ZeusPlotter
@@ -275,7 +275,7 @@ class Zeus(AbstractMCMC):
             etc.
         """
 
-        return ZeusSamples.from_results_internal(
+        return SamplesZeus.from_results_internal(
             results_internal=self.zeus_pickled,
             model=model,
             auto_correlation_settings=self.auto_correlations_settings,

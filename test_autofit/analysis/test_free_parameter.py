@@ -170,10 +170,10 @@ def test_split_samples(modified):
         ),
     )
 
-    combined = samples.max_log_likelihood_instance
+    combined = samples.max_log_likelihood()
 
     first = samples.subsamples(modified[0])
     second = samples.subsamples(modified[1])
 
-    assert first.max_log_likelihood_instance.centre == combined[0].centre
-    assert second.max_log_likelihood_instance.centre == combined[1].centre
+    assert first.max_log_likelihood().centre == combined[0].centre
+    assert second.max_log_likelihood().centre == combined[1].centre

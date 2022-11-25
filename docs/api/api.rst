@@ -114,10 +114,10 @@ Samples
    :toctree: generated/
 
    Samples
-   PDFSamples
-   MCMCSamples
-   NestSamples
-   StoredSamples
+   SamplesPDF
+   SamplesMCMC
+   SamplesNest
+   SamplesStored
 
 ----------
 Aggregator

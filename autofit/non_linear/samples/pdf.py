@@ -1,15 +1,16 @@
 import math
-from typing import List, Optional, Tuple
+from typing import List, Optional, Tuple, Union
 
 import numpy as np
 
 from autofit.mapper.model import ModelInstance
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.samples.sample import Sample, load_from_table
+from autofit.non_linear.samples.samples import to_instance, to_instance_sigma, to_instance_input
 from .samples import Samples
 
 
-class PDFSamples(Samples):
+class SamplesPDF(Samples):
     def __init__(
             self,
             model: AbstractPriorModel,
@@ -67,13 +68,13 @@ class PDFSamples(Samples):
         filename
             Where the table is to be written
         """
-        from .stored import StoredSamples
+        from .stored import SamplesStored
 
         sample_list = load_from_table(
             filename=filename
         )
 
-        return StoredSamples(
+        return SamplesStored(
             model=model,
             sample_list=sample_list
         )
@@ -109,31 +110,21 @@ class PDFSamples(Samples):
             return False
         return True
 
-    @property
-    def median_pdf_vector(self) -> List[float]:
+    @to_instance
+    def median_pdf(self, as_instance: bool = True) -> List[float]:
         """
         The median of the probability density function (PDF) of every parameter marginalized in 1D, returned
-        as a list of values.
+        as a model instance or list of values.
         """
         if self.pdf_converged:
             return [
                 quantile(x=params, q=0.5, weights=self.weight_list)[0]
                 for params in self.parameters_extract
             ]
-        return self.max_log_likelihood_vector
+        return self.max_log_likelihood(as_instance=False)
 
-    @property
-    def median_pdf_instance(self) -> ModelInstance:
-        """
-        The median of the probability density function (PDF) of every parameter marginalized in 1D, returned
-        as a model instance.
-        """
-        return self.model.instance_from_vector(
-            vector=self.median_pdf_vector,
-            ignore_prior_limits=True
-        )
-
-    def vector_at_sigma(self, sigma: float) -> [(float, float)]:
+    @to_instance_sigma
+    def values_at_sigma(self, sigma: float, as_instance: bool = True) -> [Tuple, ModelInstance]:
         """
         The value of every parameter marginalized in 1D at an input sigma value of its probability density function
         (PDF), returned as two lists of values corresponding to the lower and upper values parameter values.
@@ -182,144 +173,99 @@ class PDFSamples(Samples):
             for index in range(len(parameters_min))
         ]
 
-    def vector_at_upper_sigma(self, sigma: float) -> [float]:
+    @to_instance_sigma
+    def values_at_upper_sigma(self, sigma: float, as_instance: bool = True) -> Union[List, ModelInstance]:
         """
         The upper value of every parameter marginalized in 1D at an input sigma value of its probability density
         function (PDF), returned as a list.
 
-        See vector_at_sigma for a full description of how the parameters at sigma are computed.
+        See values_at_sigma for a full description of how the parameters at sigma are computed.
 
         Parameters
         -----------
         sigma
             The sigma within which the PDF is used to estimate errors (e.g. sigma = 1.0 uses 0.6826 of the PDF).
         """
-        return list(map(lambda param: param[1], self.vector_at_sigma(sigma)))
+        return list(map(lambda param: param[1], self.values_at_sigma(sigma, as_instance=False)))
 
-    def vector_at_lower_sigma(self, sigma: float) -> [float]:
+    @to_instance_sigma
+    def values_at_lower_sigma(self, sigma: float, as_instance: bool = True) -> Union[List, ModelInstance]:
         """
         The lower value of every parameter marginalized in 1D at an input sigma value of its probability density
         function (PDF), returned as a list.
 
-        See vector_at_sigma for a full description of how the parameters at sigma are computed.
+        See values_at_sigma for a full description of how the parameters at sigma are computed.
 
         Parameters
         -----------
         sigma
             The sigma limit within which the PDF is used to estimate errors (e.g. sigma = 1.0 uses 0.6826 of the PDF).
         """
-        return list(map(lambda param: param[0], self.vector_at_sigma(sigma)))
+        return list(map(lambda param: param[0], self.values_at_sigma(sigma, as_instance=False)))
 
-    def instance_at_sigma(self, sigma: float) -> ModelInstance:
-        """
-        The value of every parameter marginalized in 1D at an input sigma value of its probability density function
-        (PDF), returned as a list of model instances corresponding to the lower and upper values estimated from the PDF.
-
-        See vector_at_sigma for a full description of how the parameters at sigma are computed.
-
-        Parameters
-        ----------
-        sigma
-            The sigma within which the PDF is used to estimate errors (e.g. sigma = 1.0 uses 0.6826 of the PDF).
-        """
-        return self.model.instance_from_vector(
-            vector=self.vector_at_sigma(sigma=sigma),
-            ignore_prior_limits=True
-        )
-
-    def instance_at_upper_sigma(self, sigma: float) -> ModelInstance:
-        """
-        The upper value of every parameter marginalized in 1D at an input sigma value of its probability density
-        function (PDF), returned as a model instance.
-
-        See vector_at_sigma for a full description of how the parameters at sigma are computed.
-
-        Parameters
-        -----------
-        sigma
-            The sigma within which the PDF is used to estimate errors (e.g. sigma = 1.0 uses 0.6826 of the PDF).
-        """
-        return self.model.instance_from_vector(
-            vector=self.vector_at_upper_sigma(sigma=sigma),
-            ignore_prior_limits=True
-        )
-
-    def instance_at_lower_sigma(self, sigma: float) -> ModelInstance:
-        """
-        The lower value of every parameter marginalized in 1D at an input sigma value of its probability density
-        function (PDF), returned as a model instance.
-
-        See vector_at_sigma for a full description of how the parameters at sigma are computed.
-
-        Parameters
-        -----------
-        sigma
-            The sigma within which the PDF is used to estimate errors (e.g. sigma = 1.0 uses 0.6826 of the PDF).
-        """
-        return self.model.instance_from_vector(
-            vector=self.vector_at_lower_sigma(sigma=sigma),
-            ignore_prior_limits=True
-        )
-
-    def error_vector_at_sigma(self, sigma: float) -> [(float, float)]:
+    @to_instance_sigma
+    def errors_at_sigma(self, sigma: float, as_instance: bool = True) -> [Tuple, ModelInstance]:
         """
         The lower and upper error of every parameter marginalized in 1D at an input sigma value of its probability
         density function (PDF), returned as a list.
 
-        See vector_at_sigma for a full description of how the parameters at sigma are computed.
+        See values_at_sigma for a full description of how the parameters at sigma are computed.
 
         Parameters
         -----------
         sigma
             The sigma within which the PDF is used to estimate errors (e.g. sigma = 1.0 uses 0.6826 of the PDF).
         """
-        error_vector_lower = self.error_vector_at_lower_sigma(sigma=sigma)
-        error_vector_upper = self.error_vector_at_upper_sigma(sigma=sigma)
+        error_vector_lower = self.errors_at_lower_sigma(sigma=sigma, as_instance=False)
+        error_vector_upper = self.errors_at_upper_sigma(sigma=sigma, as_instance=False)
         return [(lower, upper) for lower, upper in zip(error_vector_lower, error_vector_upper)]
 
-    def error_vector_at_upper_sigma(self, sigma: float) -> [float]:
+    @to_instance_sigma
+    def errors_at_upper_sigma(self, sigma: float, as_instance: bool = True) -> Union[List, ModelInstance]:
         """
         The upper error of every parameter marginalized in 1D at an input sigma value of its probability density
         function (PDF), returned as a list.
 
-        See vector_at_sigma for a full description of how the parameters at sigma are computed.
+        See values_at_sigma for a full description of how the parameters at sigma are computed.
 
         Parameters
         -----------
         sigma
             The sigma within which the PDF is used to estimate errors (e.g. sigma = 1.0 uses 0.6826 of the PDF).
         """
-        uppers = self.vector_at_upper_sigma(sigma=sigma)
+        uppers = self.values_at_upper_sigma(sigma=sigma, as_instance=False)
         return list(
             map(
                 lambda upper, median_pdf: upper - median_pdf,
                 uppers,
-                self.median_pdf_vector,
+                self.median_pdf(as_instance=False),
             )
         )
 
-    def error_vector_at_lower_sigma(self, sigma: float) -> [float]:
+    @to_instance_sigma
+    def errors_at_lower_sigma(self, sigma: float, as_instance: bool = True) -> Union[List, ModelInstance]:
         """
         The lower error of every parameter marginalized in 1D at an input sigma value of its probability density
         function (PDF), returned as a list.
 
-        See vector_at_sigma for a full description of how the parameters at sigma are computed.
+        See values_at_sigma for a full description of how the parameters at sigma are computed.
 
         Parameters
         -----------
         sigma
             The sigma within which the PDF is used to estimate errors (e.g. sigma = 1.0 uses 0.6826 of the PDF).
         """
-        lowers = self.vector_at_lower_sigma(sigma=sigma)
+        lowers = self.values_at_lower_sigma(sigma=sigma, as_instance=False)
         return list(
             map(
                 lambda lower, median_pdf: median_pdf - lower,
                 lowers,
-                self.median_pdf_vector,
+                self.median_pdf(as_instance=False),
             )
         )
 
-    def error_magnitude_vector_at_sigma(self, sigma: float) -> [float]:
+    @to_instance_sigma
+    def error_magnitudes_at_sigma(self, sigma: float, as_instance: bool = True) -> Union[List, ModelInstance]:
         """
         The magnitude of every error after marginalization in 1D at an input sigma value of the probability density
         function (PDF), returned as two lists of values corresponding to the lower and upper errors.
@@ -332,67 +278,16 @@ class PDFSamples(Samples):
         sigma
             The sigma within which the PDF is used to estimate errors (e.g. sigma = 1.0 uses 0.6826 of the PDF).
         """
-        uppers = self.vector_at_upper_sigma(sigma=sigma)
-        lowers = self.vector_at_lower_sigma(sigma=sigma)
+        uppers = self.values_at_upper_sigma(sigma=sigma, as_instance=False)
+        lowers = self.values_at_lower_sigma(sigma=sigma, as_instance=False)
         return list(map(lambda upper, lower: upper - lower, uppers, lowers))
-
-    def error_instance_at_sigma(self, sigma: float) -> ModelInstance:
-        """
-        The error of every parameter marginalized in 1D at an input sigma value of its probability density function
-        (PDF), returned as a list of model instances corresponding to the lower and upper errors.
-
-        See vector_at_sigma for a full description of how the parameters at sigma are computed.
-
-        Parameters
-        ----------
-        sigma
-            The sigma within which the PDF is used to estimate errors (e.g. sigma = 1.0 uses 0.6826 of the PDF).
-        """
-        return self.model.instance_from_vector(
-            vector=self.error_magnitude_vector_at_sigma(sigma=sigma),
-            ignore_prior_limits=True
-        )
-
-    def error_instance_at_upper_sigma(self, sigma: float) -> ModelInstance:
-        """
-        The upper error of every parameter marginalized in 1D at an input sigma value of its probability density
-        function (PDF), returned as a model instance.
-
-        See vector_at_sigma for a full description of how the parameters at sigma are computed.
-
-        Parameters
-        -----------
-        sigma
-            The sigma within which the PDF is used to estimate errors (e.g. sigma = 1.0 uses 0.6826 of the PDF).
-        """
-        return self.model.instance_from_vector(
-            vector=self.error_vector_at_upper_sigma(sigma=sigma),
-            ignore_prior_limits=True
-        )
-
-    def error_instance_at_lower_sigma(self, sigma: float) -> ModelInstance:
-        """
-        The lower error of every parameter marginalized in 1D at an input sigma value of its probability density
-        function (PDF), returned as a model instance.
-
-        See vector_at_sigma for a full description of how the parameters at sigma are computed.
-
-        Parameters
-        -----------
-        sigma
-            The sigma within which the PDF is used to estimate errors (e.g. sigma = 1.0 uses 0.6826 of the PDF).
-        """
-        return self.model.instance_from_vector(
-            vector=self.error_vector_at_lower_sigma(sigma=sigma),
-            ignore_prior_limits=True
-        )
 
     def gaussian_priors_at_sigma(self, sigma: float) -> [List]:
         """
         `GaussianPrior`s of every parameter used to link its inferred values and errors to priors used to sample the
         same (or similar) parameters in a subsequent search, where:
 
-        - The mean is given by their most-probable values (using median_pdf_vector).
+        - The mean is given by their most-probable values (using median_pdf(as_instance=False)).
         - Their errors are computed at an input sigma value (using errors_at_sigma).
 
         Parameters
@@ -401,10 +296,10 @@ class PDFSamples(Samples):
             The sigma within which the PDF is used to estimate errors (e.g. sigma = 1.0 uses 0.6826 of the PDF).
         """
 
-        means = self.median_pdf_vector
+        means = self.median_pdf(as_instance=False)
 
-        uppers = self.vector_at_upper_sigma(sigma=sigma)
-        lowers = self.vector_at_lower_sigma(sigma=sigma)
+        uppers = self.values_at_upper_sigma(sigma=sigma, as_instance=False)
+        lowers = self.values_at_lower_sigma(sigma=sigma, as_instance=False)
 
         # noinspection PyArgumentList
         sigmas = list(
@@ -418,18 +313,8 @@ class PDFSamples(Samples):
 
         return list(map(lambda mean, sigma: (mean, sigma), means, sigmas))
 
-    def log_likelihood_from_sample_index(self, sample_index: int) -> float:
-        """
-        The log likelihood of an individual sample of the non-linear search.
-
-        Parameters
-        ----------
-        sample_index
-            The index of the sample in the non-linear search, e.g. 0 gives the first sample.
-        """
-        raise NotImplementedError()
-
-    def vector_drawn_randomly_from_pdf(self) -> [float]:
+    @to_instance
+    def draw_randomly_via_pdf(self, as_instance: bool = True) -> Union[List, ModelInstance]:
         """
         The parameter vector of an individual sample of the non-linear search drawn randomly from the PDF, returned as
         a 1D list.
@@ -441,33 +326,10 @@ class PDFSamples(Samples):
 
         return self.parameter_lists[sample_index][:]
 
-    def instance_drawn_randomly_from_pdf(self) -> ModelInstance:
+    @to_instance_input
+    def offset_values_via_input_values(self, input_vector: List, as_instance: bool = True) -> Union[List, ModelInstance]:
         """
-        The parameter instance of an individual sample of the non-linear search drawn randomly from the PDF, returned
-        as a 1D list.
-
-        The draw is weighted by the sample weights to ensure that the sample is drawn from the PDF (which is important
-        for non-linear searches like nested sampling).
-        """
-        return self.model.instance_from_vector(
-            vector=self.vector_drawn_randomly_from_pdf(),
-            ignore_prior_limits=True
-        )
-
-    def vector_from_sample_index(self, sample_index: int) -> [float]:
-        """
-        The parameters of an individual sample of the non-linear search, returned as a 1D list.
-
-        Parameters
-        ----------
-        sample_index
-            The index of the sample in the non-linear search, e.g. 0 gives the first sample.
-        """
-        raise NotImplementedError()
-
-    def offset_vector_from_input_vector(self, input_vector: List) -> [float]:
-        """
-        The values of an input_vector offset by the median_pdf_vector (the PDF medians).
+        The values of an input_vector offset by the median_pdf(as_instance=False) (the PDF medians).
 
         If the 'true' values of a model are known and input as the input_vector, this function returns the results
         of the `NonLinearSearch` as values offset from the 'true' model. For example, a value 0.0 means the non-linear
@@ -483,7 +345,7 @@ class PDFSamples(Samples):
             map(
                 lambda input, median_pdf: median_pdf - input,
                 input_vector,
-                self.median_pdf_vector,
+                self.median_pdf(as_instance=False),
             )
         )
 

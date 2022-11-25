@@ -1,7 +1,7 @@
 from typing import Optional
 
 from dynesty.dynesty import DynamicNestedSampler
-from autofit.non_linear.nest.dynesty.samples import DynestySamples
+from autofit.non_linear.nest.dynesty.samples import SamplesDynesty
 
 from .abstract import AbstractDynesty, prior_transform
 
@@ -84,7 +84,7 @@ class DynestyDynamic(AbstractDynesty):
         """
         sampler = DynamicNestedSampler.restore(self.checkpoint_file)
 
-        return DynestySamples.from_results_internal(
+        return SamplesDynesty.from_results_internal(
             model=model,
             results_internal=sampler.results,
             number_live_points=self.total_live_points,

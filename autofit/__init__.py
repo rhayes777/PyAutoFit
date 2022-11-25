@@ -13,13 +13,13 @@ from .graphical.declarative.factor.analysis import AnalysisFactor
 from .graphical.declarative.collection import FactorGraphModel
 from .graphical.declarative.factor.hierarchical import HierarchicalFactor
 from .graphical.laplace import LaplaceOptimiser
-from .non_linear.samples import MCMCSamples
-from .non_linear.samples import NestSamples
+from .non_linear.samples import SamplesMCMC
+from .non_linear.samples import SamplesNest
 from .non_linear.samples import Samples
-from .non_linear.samples import PDFSamples
+from .non_linear.samples import SamplesPDF
 from .non_linear.samples import Sample
 from .non_linear.samples import load_from_table
-from .non_linear.samples import StoredSamples
+from .non_linear.samples import SamplesStored
 from .database.aggregator import Aggregator
 from .database.model import Fit
 from .database.aggregator import Query
