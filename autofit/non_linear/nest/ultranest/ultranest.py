@@ -10,7 +10,7 @@ from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.abstract_search import PriorPasser
 from autofit.non_linear.nest import abstract_nest
 from autofit.non_linear.nest.abstract_nest import AbstractNest
-from autofit.non_linear.nest.ultranest.samples import UltraNestSamples
+from autofit.non_linear.nest.ultranest.samples import SamplesUltraNest
 from autofit.plot import UltraNestPlotter
 from autofit.plot.output import Output
 
@@ -272,7 +272,7 @@ class UltraNest(abstract_nest.AbstractNest):
             )
             results_internal = samples.results
 
-        return UltraNestSamples.from_results_internal(
+        return SamplesUltraNest.from_results_internal(
             results_internal=results_internal,
             model=model,
             number_live_points=self.config_dict_run["min_num_live_points"],

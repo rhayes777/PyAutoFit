@@ -14,7 +14,7 @@ from autofit.non_linear.abstract_search import PriorPasser
 from autofit.non_linear.initializer import Initializer
 from autofit.non_linear.mcmc.abstract_mcmc import AbstractMCMC
 from autofit.non_linear.mcmc.auto_correlations import AutoCorrelationsSettings
-from autofit.non_linear.mcmc.emcee.samples import EmceeSamples
+from autofit.non_linear.mcmc.emcee.samples import SamplesEmcee
 from autofit.plot import EmceePlotter
 from autofit.plot.output import Output
 
@@ -243,7 +243,7 @@ class Emcee(AbstractMCMC):
 
     def samples_from(self, model):
 
-        return EmceeSamples.from_results_internal(
+        return SamplesEmcee.from_results_internal(
             model=model,
             results_internal=self.backend,
             auto_correlation_settings=self.auto_correlations_settings,

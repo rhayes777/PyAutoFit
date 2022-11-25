@@ -5,15 +5,15 @@ from typing import Optional
 
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.samples import Sample
-from autofit.non_linear.samples.nest import NestSamples
+from autofit.non_linear.samples.nest import SamplesNest
 
 
-class DynestySamples(NestSamples):
+class SamplesDynesty(SamplesNest):
 
     def __add__(
             self,
-            other: "DynestySamples"
-    ) -> "DynestySamples":
+            other: "SamplesDynesty"
+    ) -> "SamplesDynesty":
         """
         Samples can be added together, which combines their `sample_list` meaning that inferred parameters are
         computed via their joint PDF.
@@ -35,7 +35,7 @@ class DynestySamples(NestSamples):
 
         results_internal = dyfunc.merge_runs(res_list=[self.results_internal, other.results_internal])
 
-        return DynestySamples(
+        return SamplesDynesty(
             model=self.model,
             sample_list=self.sample_list + other.sample_list,
             number_live_points=self._number_live_points,
@@ -60,7 +60,7 @@ class DynestySamples(NestSamples):
         To create a `Samples` object after a `dynesty` model-fit the results must be converted from the
         native format used by `dynesty` to lists of values, the format used by the **PyAutoFit** `Samples` objects.
 
-        This classmethod performs this conversion before creating a `DynestySamples` object.
+        This classmethod performs this conversion before creating a `SamplesDynesty` object.
 
         Parameters
         ----------
@@ -96,7 +96,7 @@ class DynestySamples(NestSamples):
             weight_list=weight_list,
         )
 
-        return DynestySamples(
+        return SamplesDynesty(
             model=model,
             sample_list=sample_list,
             number_live_points=number_live_points,

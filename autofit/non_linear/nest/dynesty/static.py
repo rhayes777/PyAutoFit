@@ -3,7 +3,7 @@ from typing import Optional
 from dynesty import NestedSampler as StaticSampler
 from autofit.database.sqlalchemy_ import sa
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
-from autofit.non_linear.nest.dynesty.samples import DynestySamples
+from autofit.non_linear.nest.dynesty.samples import SamplesDynesty
 
 from .abstract import AbstractDynesty, prior_transform
 
@@ -89,7 +89,7 @@ class DynestyStatic(AbstractDynesty):
         """
         sampler = StaticSampler.restore(self.checkpoint_file)
 
-        return DynestySamples.from_results_internal(
+        return SamplesDynesty.from_results_internal(
             model=model,
             results_internal=sampler.results,
             number_live_points=self.total_live_points,

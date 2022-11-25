@@ -5,7 +5,7 @@ import pytest
 import autofit as af
 
 from autofit.non_linear.samples import Sample
-from autofit import StoredSamples
+from autofit import SamplesStored
 from autofit.text import samples_text
 
 text_path = path.join("{}".format(path.dirname(path.realpath(__file__))), "files", "samples")
@@ -22,7 +22,7 @@ def make_samples(model):
 
     log_likelihood_list = [1.0, 0.0]
 
-    return StoredSamples(
+    return SamplesStored(
         model=model,
         sample_list=Sample.from_lists(
             parameter_lists=parameters,

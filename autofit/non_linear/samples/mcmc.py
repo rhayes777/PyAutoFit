@@ -5,16 +5,16 @@ import warnings
 
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.mcmc.auto_correlations import AutoCorrelationsSettings
-from autofit.non_linear.samples.pdf import PDFSamples
+from autofit.non_linear.samples.pdf import SamplesPDF
 from autofit.non_linear.samples.samples import Samples
 from autofit.non_linear.samples.samples import Sample
 from autofit.non_linear.samples.sample import load_from_table
 
-from autofit.non_linear.samples.samples import to_instance, to_instance_sigma, to_instance_input
+from autofit.non_linear.samples.samples import to_instance, to_instance_sigma
 
 from autofit import exc
 
-class MCMCSamples(PDFSamples):
+class SamplesMCMC(SamplesPDF):
 
     def __init__(
             self,
@@ -66,8 +66,8 @@ class MCMCSamples(PDFSamples):
 
     def __add__(
             self,
-            other: "MCMCSamples"
-    ) -> "MCMCSamples":
+            other: "SamplesMCMC"
+    ) -> "SamplesMCMC":
         """
         Samples can be added together, which combines their `sample_list` meaning that inferred parameters are
         computed via their joint PDF.

@@ -1,6 +1,6 @@
 from typing import Optional, Union
 
-from autofit.non_linear.samples import PDFSamples, Sample, NestSamples
+from autofit.non_linear.samples import SamplesPDF, Sample, SamplesNest
 
 
 
@@ -18,7 +18,7 @@ def samples_with_log_likelihood_list(
     ]
 
 
-class MockSamples(PDFSamples):
+class MockSamples(SamplesPDF):
     def __init__(
             self,
             model=None,
@@ -91,7 +91,7 @@ class MockSamples(PDFSamples):
         pass
 
 
-class MockNestSamples(NestSamples):
+class MockSamplesNest(SamplesNest):
 
     def __init__(
             self,

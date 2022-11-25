@@ -6,7 +6,7 @@ from autofit.non_linear.samples import Samples, Sample
 import numpy as np
 
 
-class LBFGSSamples(Samples):
+class SamplesLBFGS(Samples):
 
     @classmethod
     def from_results_internal(
@@ -25,7 +25,7 @@ class LBFGSSamples(Samples):
         native format used by `pyswarms` (which are numpy ndarrays) to lists of values, the format used by
         the **PyAutoFit** `Samples` objects.
 
-        This classmethod performs this conversion before creating a `LBFGSSamples` object.
+        This classmethod performs this conversion before creating a `SamplesLBFGS` object.
 
         Parameters
         ----------
@@ -59,7 +59,7 @@ class LBFGSSamples(Samples):
             weight_list=weight_list
         )
 
-        return LBFGSSamples(
+        return SamplesLBFGS(
             model=model,
             sample_list=sample_list,
             total_iterations=total_iterations,

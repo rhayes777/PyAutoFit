@@ -2,10 +2,10 @@ from typing import List, Optional
 
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.samples.sample import Sample
-from .pdf import PDFSamples
+from .pdf import SamplesPDF
 
 
-class StoredSamples(PDFSamples):
+class SamplesStored(SamplesPDF):
 
     def __init__(
             self,

@@ -34,7 +34,7 @@ def test__from_csv_table():
     filename = "samples.csv"
     samples_x5.write_table(filename=filename)
 
-    samples_x5 = af.PDFSamples.from_table(filename=filename, model=samples_x5.model)
+    samples_x5 = af.SamplesPDF.from_table(filename=filename, model=samples_x5.model)
 
     assert samples_x5.parameter_lists == [
         [0.0, 1.0, 2.0, 3.0],

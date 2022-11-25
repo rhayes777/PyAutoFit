@@ -10,7 +10,7 @@ from autofit.non_linear.samples.samples import to_instance, to_instance_sigma, t
 from .samples import Samples
 
 
-class PDFSamples(Samples):
+class SamplesPDF(Samples):
     def __init__(
             self,
             model: AbstractPriorModel,
@@ -68,13 +68,13 @@ class PDFSamples(Samples):
         filename
             Where the table is to be written
         """
-        from .stored import StoredSamples
+        from .stored import SamplesStored
 
         sample_list = load_from_table(
             filename=filename
         )
 
-        return StoredSamples(
+        return SamplesStored(
             model=model,
             sample_list=sample_list
         )
