@@ -1,5 +1,6 @@
 import os
 from abc import ABC
+from dynesty.pool import Pool
 from dynesty import NestedSampler, DynamicNestedSampler
 from os import path
 from typing import Optional, Tuple, Union
@@ -137,8 +138,6 @@ class AbstractDynesty(AbstractNest, ABC):
         A result object comprising the Samples object that includes the maximum log likelihood instance and full
         set of accepted samples of the fit.
         """
-
-        from dynesty.pool import Pool
 
         fitness_function = self.fitness_function_from_model_and_analysis(
             model=model,
@@ -360,13 +359,12 @@ class AbstractDynesty(AbstractNest, ABC):
             self,
             model,
             fitness_function,
-            checkpoint_exists,
             pool,
             queue_size
     ):
         raise NotImplementedError()
 
-    def check_pool(self, uses_pool : bool, pool: "Pool"):
+    def check_pool(self, uses_pool : bool, pool: Pool):
 
         if (uses_pool and pool is None) or (not uses_pool and pool is not None):
             raise exc.SearchException(
