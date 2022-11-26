@@ -131,13 +131,17 @@ class DynestyDynamic(AbstractDynesty):
                 pool=pool
             )
 
-            self.check_pool(sampler=sampler, pool=pool)
+            uses_pool = self.read_uses_pool()
+
+            self.check_pool(uses_pool=uses_pool, pool=pool)
 
             return sampler
 
         except FileNotFoundError:
 
             if pool is not None:
+
+                self.write_uses_pool(uses_pool=True)
 
                 return DynamicNestedSampler(
                     loglikelihood=pool.loglike,
@@ -147,6 +151,8 @@ class DynestyDynamic(AbstractDynesty):
                     pool=pool,
                     **self.config_dict_search
                 )
+
+            self.write_uses_pool(uses_pool=False)
 
             return DynamicNestedSampler(
                 loglikelihood=fitness_function,
