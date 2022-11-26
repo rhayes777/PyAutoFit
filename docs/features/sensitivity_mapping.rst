@@ -40,13 +40,13 @@ We therefore fit the data using two models, one where the model is a single ``Ga
 
     model = af.Collection(gaussian_main=m.Gaussian)
 
-    dynesty = af.DynestyStatic(
+    search = af.DynestyStatic(
         path_prefix=path.join("features", "sensitivity_mapping", "single_gaussian"),
         nlive=100,
         iterations_per_update=500,
     )
 
-    result_single = dynesty.fit(model=model, analysis=analysis)
+    result_single = search.fit(model=model, analysis=analysis)
 
 For the second model it contains two ``Gaussians``. To avoid slow model-fitting and more clearly pronounce the results of
 model comparison, we restrict the centre of the ``gaussian_feature`` to its true centre of 70 and sigma value of 0.5.
@@ -57,13 +57,13 @@ model comparison, we restrict the centre of the ``gaussian_feature`` to its true
     model.gaussian_feature.centre = 70.0
     model.gaussian_feature.sigma = 0.5
 
-    dynesty = af.DynestyStatic(
+    search = af.DynestyStatic(
         path_prefix=path.join("features", "sensitivity_mapping", "two_gaussians"),
         nlive=100,
         iterations_per_update=500,
     )
 
-    result_multiple = dynesty.fit(model=model, analysis=analysis)
+    result_multiple = search.fit(model=model, analysis=analysis)
 
 We can now print the ``log_evidence`` of each fit and confirm the model with two ``Gaussians`` was preferred to the model
 with just one ``Gaussian``.

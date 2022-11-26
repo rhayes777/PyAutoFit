@@ -44,12 +44,12 @@ containing two ``Gaussians``'s.
 
     analysis = a.Analysis(data=data, noise_map=noise_map)
 
-    dynesty = af.DynestyStatic(
+    search = af.DynestyStatic(
         name="single_fit",
         nlive=100,
     )
 
-    result = dynesty.fit(model=model, analysis=analysis)
+    result = search.fit(model=model, analysis=analysis)
 
 For test runs on my laptop it is 'hit or miss' whether the feature is fitted correctly. This is because although models
 including the feature corresponds to the highest likelihood solutions, they occupy a small volume in parameter space
@@ -68,7 +68,7 @@ Lets now perform the search grid search using the ``SearchGridSearch`` object:
 
 .. code-block:: bash
 
-    dynesty = af.DynestyStatic(
+    search = af.DynestyStatic(
         name="grid_fit",
         nlive=100,
     )

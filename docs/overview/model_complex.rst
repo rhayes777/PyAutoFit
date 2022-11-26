@@ -182,7 +182,7 @@ In this example, we'll use the nested sampling algorithm ``dynesty``, using the 
 
     analysis = Analysis(data=data, noise_map=noise_map)
 
-    search = af.DynestyStatic(name="example_search")
+    search = af.DynestyStatic()
 
     result = search.fit(model=model, analysis=analysis)
 
@@ -286,11 +286,11 @@ We can fit this model, with all new priors, using a non-linear search as we did 
 
     analysis = Analysis(data=data, noise_map=noise_map)
 
-    emcee = af.Emcee(name="another_example_search")
+    search = af.Emcee()
 
     # The model passed here now has updated priors!
 
-    result = emcee.fit(model=gaussian, analysis=analysis)
+    result = search.fit(model=gaussian, analysis=analysis)
 
 We can *compose* and *customize* the priors of multiple model components as follows:
 

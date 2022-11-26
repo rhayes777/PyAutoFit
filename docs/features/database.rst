@@ -23,7 +23,7 @@ to the non-linear search:
 
     session = af.db.open_database("database.sqlite")
 
-    emcee = af.Emcee(
+    search = af.Emcee(
         session=session,  # This instructs the search to write to the .sqlite database.
     )
 
@@ -43,7 +43,7 @@ the model and search to create the unique identifier:
 
     dataset_name = "example_dataset_0"
 
-    emcee = af.Emcee(
+    search = af.Emcee(
         path_prefix=path.join("features", "database"),
         unique_tag=dataset_name,  # This makes the unique identifier use the dataset name
         session=session,  # This instructs the search to write to the .sqlite database.
@@ -136,7 +136,7 @@ creates an ``info`` dictionary which is passed to the model-fit, which is then l
 
     info = {"example_key": "example_value"}
 
-    emcee.fit(model=model, analysis=analysis, info=info)
+    search.fit(model=model, analysis=analysis, info=info)
 
     agg = Aggregator.from_database("path/to/output/database.sqlite")
 
