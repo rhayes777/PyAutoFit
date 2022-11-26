@@ -248,8 +248,8 @@ class Zeus(AbstractMCMC):
 
         return {
             **config_dict,
-            "nwalkers": 50,
-            "nsteps": 2,
+            "nwalkers": 20,
+            "nsteps": 10,
         }
 
     def fitness_function_from_model_and_analysis(self, model, analysis, log_likelihood_cap=None):
