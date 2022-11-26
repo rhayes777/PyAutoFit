@@ -192,7 +192,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         self.number_of_cores = number_of_cores
 
-        if any(
+        if number_of_cores > 1 and any(
             os.environ.get(key) != "1"
             for key in (
                 "OPENBLAS_NUM_THREADS",

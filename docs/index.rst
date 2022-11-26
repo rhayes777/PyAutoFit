@@ -118,9 +118,9 @@ Performing a fit with a non-linear search, for example ``emcee``, is performed a
 
     analysis = Analysis(data=data, noise_map=noise_map)
 
-    emcee = af.Emcee(name="example_search", nwalkers=50, nsteps=2000)
+    search = af.Emcee(name="example_search", nwalkers=50, nsteps=2000)
 
-    result = emcee.fit(model=model, analysis=analysis)
+    result = search.fit(model=model, analysis=analysis)
 
 The ``result`` contains information on the model-fit, for example the parameter samples, maximum log likelihood
 model and marginalized probability density functions.

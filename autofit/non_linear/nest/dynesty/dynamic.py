@@ -2,6 +2,7 @@ from typing import Optional
 
 from dynesty.dynesty import DynamicNestedSampler
 from autofit.non_linear.nest.dynesty.samples import SamplesDynesty
+from autofit.mapper.prior_model.abstract import AbstractPriorModel
 
 from .abstract import AbstractDynesty, prior_transform
 
@@ -94,10 +95,11 @@ class DynestyDynamic(AbstractDynesty):
 
     def sampler_from(
             self,
-            model,
+            model: AbstractPriorModel,
             fitness_function,
-            pool,
-            queue_size
+            checkpoint_exists : bool,
+            pool: Optional["Pool"],
+            queue_size: Optional[int]
     ):
         """
         Returns an instance of the Dynesty dynamic sampler set up using the input variables of this class.
@@ -129,13 +131,17 @@ class DynestyDynamic(AbstractDynesty):
                 pool=pool
             )
 
-            self.check_pool(sampler=sampler, pool=pool)
+            uses_pool = self.read_uses_pool()
+
+            self.check_pool(uses_pool=uses_pool, pool=pool)
 
             return sampler
 
         except FileNotFoundError:
 
             if pool is not None:
+
+                self.write_uses_pool(uses_pool=True)
 
                 return DynamicNestedSampler(
                     loglikelihood=pool.loglike,
@@ -145,6 +151,8 @@ class DynestyDynamic(AbstractDynesty):
                     pool=pool,
                     **self.config_dict_search
                 )
+
+            self.write_uses_pool(uses_pool=False)
 
             return DynamicNestedSampler(
                 loglikelihood=fitness_function,

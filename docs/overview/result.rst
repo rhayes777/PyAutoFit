@@ -9,9 +9,9 @@ A non-linear search's fit function returns a ``Result`` object:
 
    analysis = Analysis(data=data, noise_map=noise_map)
 
-   emcee = af.Emcee(number_of_cores=4)
+   search = af.Emcee()
 
-   result = emcee.fit(model=model, analysis=analysis)
+   result = search.fit(model=model, analysis=analysis)
 
 Here, we'll look in detail at what information is contained in the ``Result``.
 

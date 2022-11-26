@@ -4,7 +4,8 @@ __Documentation__
 - Include docs on the Dictable object from autoconf.
 - Model Collection addition not working?
 - Animation of 1D Gaussian fitting.
-
+- Need to add model cookbook script for MGE style models, add link to readthedocs overview. Use example of many 1D gaussians, with images
+- Add image example to every cookbook showing the 1D gaussian model we are composing for.
 
 __Complaints__
 

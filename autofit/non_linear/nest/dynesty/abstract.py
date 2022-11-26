@@ -158,7 +158,7 @@ class AbstractDynesty(AbstractNest, ABC):
 
             try:
 
-                if conf.instance["non_linear"]["nest"]["DynestyStatic"]["parallel"]["force_x1_cpu"]:
+                if conf.instance["non_linear"]["nest"][self.__class__.__name__]["parallel"]["force_x1_cpu"]:
                     raise RuntimeError
 
                 with Pool(
@@ -357,10 +357,11 @@ class AbstractDynesty(AbstractNest, ABC):
 
     def sampler_from(
             self,
-            model,
+            model: AbstractPriorModel,
             fitness_function,
-            pool,
-            queue_size
+            checkpoint_exists : bool,
+            pool: Optional["Pool"],
+            queue_size: Optional[int]
     ):
         raise NotImplementedError()
 

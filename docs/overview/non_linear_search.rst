@@ -7,22 +7,7 @@ Non-linear Search
 
 - **Optimizers**: ``PySwarms``.
 - **MCMC**: ``emcee`` and ``Zeus``.
-- **Nested Samplers**: ``dynesty`` and ``UltraNest`` (optional).
-
-Functionality
--------------
-
-**PyAutoFit** extends the functionality of each non-linear search to ensure that they always perform the
-following tasks, even if the original package does not:
-
-- Stores the results of the non-linear search to the hard-disk, writing the results to human-readable files.
-
-- Allows the non-linear search to be resumed if a previous run was finished.
-
-- Can write results and associated metadata to an sqlite database for querying and inspection post model-fit.
-
-- Extends the functionality of the non-linear search's, for example providing auto-correlation analysis and
-  stopping criteria for MCMC algorithms.
+- **Nested Samplers**: ``dynesty`` and ``UltraNest``.
 
 Settings
 --------
@@ -33,9 +18,9 @@ We've seen that we can call a non-linear search as follows:
 
    analysis = Analysis(data=data, noise_map=noise_map)
 
-   emcee = af.Emcee(name="example_mcmc")
+   search = af.Emcee(name="example_mcmc")
 
-   result = emcee.fit(model=model, analysis=analysis)
+   result = search.fit(model=model, analysis=analysis)
 
 However, ``Emcee`` has many settings associated with it (the number of walkers, the number of steps they take,
 etc.). Above, we did not pass them to the ``Emcee`` constructor and they use the default values found in the
@@ -48,7 +33,7 @@ Of course, we can manually specify all of the parameters instead:
 
    analysis = Analysis(data=data, noise_map=noise_map)
 
-   emcee = af.Emcee(
+   search = af.Emcee(
        name="example_mcmc",
        nwalkers=50,
        nsteps=2000,
@@ -61,14 +46,14 @@ Of course, we can manually specify all of the parameters instead:
        ),
    )
 
-   result = emcee.fit(model=model, analysis=analysis)
+   result = search.fit(model=model, analysis=analysis)
 
 A number of these parameters are not part of the ``emcee`` package, but additional functionality added by
 **PyAutoFit**:
 
-- Initialization methods for the walkers are provided, including the strategy recommended at this `page <https://emcee.readthedocs.io/en/stable/user/faq/?highlight=ball#how-should-i-initialize-the-walkers>`_ where the walkers are initialized as a compact 'ball' in parameter space.
+- Initialization methods for the walkers are provided, including the strategy recommended at this `page <https://search.readthedocs.io/en/stable/user/faq/?highlight=ball#how-should-i-initialize-the-walkers>`_ where the walkers are initialized as a compact 'ball' in parameter space.
 
-- Auto correlation lengths can be checked during sampling and used to determine whether the MCMC chains have converged, terminating ``emcee`` before all ``nwalkers`` have taken all ``nsteps``, as discussed at this `link <https://emcee.readthedocs.io/en/stable/tutorials/autocorr/>`_.
+- Auto correlation lengths can be checked during sampling and used to determine whether the MCMC chains have converged, terminating ``emcee`` before all ``nwalkers`` have taken all ``nsteps``, as discussed at this `link <https://search.readthedocs.io/en/stable/tutorials/autocorr/>`_.
 
 The nested sampling algorithm ``dynesty`` has its own config file for default settings, which are at
 this `link <https://github.com/Jammy2211/autofit_workspace/blob/master/config/non_linear/nest/Dynesty.ini>`_.
@@ -78,7 +63,7 @@ this `link <https://github.com/Jammy2211/autofit_workspace/blob/master/config/no
 
    analysis = Analysis(data=data, noise_map=noise_map)
 
-   dynesty = af.DynestyStatic(
+   search = af.DynestyStatic(
        name="example_nest",
        nlive=150,
        bound="multi",
@@ -95,21 +80,50 @@ this `link <https://github.com/Jammy2211/autofit_workspace/blob/master/config/no
        max_move=100,
    )
 
-   result = dynesty.fit(model=model, analysis=analysis)
+   result = search.fit(model=model, analysis=analysis)
 
 Output Paths
 ------------
 
-We can also customize the output folder and path structure where results are output. The output folder is set
-using the **PyAutoFit** parent project **PyAutoConf** and the following command:
+The non-linear search `dynesty` above did not output results to hard-disk, which for quick model-fits and
+experimenting with different models is desirable.
+
+For many problems it is preferable for all results to be written to hard-disk. The benefits of doing this include:
+
+- Inspecting results in an ordered directory structure can be more efficient than using a Jupyter Notebook.
+- Results can be output on-the-fly, to check that a fit is progressing as expected mid way through.
+- An unfinished run can be resumed where it ended.
+- Additional information about a fit (e.g. visualization) can be output.
+- On high performance computers which use a batch system, this is the only way to transfer results.
+
+Any model-fit performed by **PyAutoFit** can be saved to hard-disk, by simply giving the non-linear search a
+``name``. A ``path_prefix`` can optionally be input to customize the output directory.
+
+.. code-block:: python
+
+    from os import path
+
+   search = af.Emcee(
+       path_prefix=path.join("folder_0", "folder_1"),
+       name="example_mcmc"
+   )
+
+By default, results are output to a folder called ``output`` in the current working directory. This can be
+customized as follows, using the **PyAutoFit** parent project **PyAutoConf** and the following command:
 
 .. code-block:: python
 
    from autoconf import conf
 
-   conf.instance.push(new_path="path/to/config", output_path="path/to/output")
+   conf.instance.push(
+   new_path="path/to/config",
+   output_path="path/to/output"
+   )
 
 The path structure within this folder of a given non-linear search is set using the ``path_prefix``.
+
+Unique Identifier
+-----------------
 
 Results are output to a folder which is a collection of random characters, which is the 'unique_identifier' of
 the model-fit. This identifier is generated based on the model fitted and search used, such that an identical
@@ -120,16 +134,7 @@ you change the model or search, a new unique identifier will be generated, ensur
 output into a separate folder.
 
 The example code below would output the results to the
-path ``/path/to/output/folder_0/folder_1/unique_tag/example_mcmc/sihfiuy838h``:
-
-.. code-block:: python
-
-    from os import path
-
-   emcee = af.Emcee(
-       path_prefix=path.join("folder_0", "folder_1"),
-       name="example_mcmc"
-   )
+path ``/path/to/output/folder_0/folder_1/unique_tag/example_mcmc/sihfiuy838h``.
 
 Parallelization
 ---------------
@@ -149,9 +154,9 @@ the ``number_of_cores`` parameter (which is also found in the default config fil
 
    analysis = Analysis(data=data, noise_map=noise_map)
 
-   emcee = af.Emcee(number_of_cores=4)
+   search = af.Emcee(number_of_cores=4)
 
-   result = emcee.fit(model=model, analysis=analysis)
+   result = search.fit(model=model, analysis=analysis)
 
 Wrap-Up
 -------

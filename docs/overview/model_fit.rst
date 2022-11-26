@@ -181,9 +181,9 @@ Next, we *compose* our model, set up our ``Analysis`` and fit the model to the `
     model = af.Model(Gaussian)
     analysis = Analysis(data=data, noise_map=noise_map)
 
-    emcee = af.Emcee(name="example_search")
+    search = af.Emcee()
 
-    result = emcee.fit(model=model, analysis=analysis)
+    result = search.fit(model=model, analysis=analysis)
 
 We perform the fit using the non-linear search algorithm `emcee <https://github.com/dfm/emcee>`_. We cover
 non-linear search's in more detail in the `non-linear search overview page <https://pyautofit.readthedocs.io/en/latest/overview/non_linear_search.html>`_.

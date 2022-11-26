@@ -38,11 +38,11 @@ Model-Fit
 
     analysis = af.ex.Analysis(data=data, noise_map=noise_map)
 
-    dynesty = af.DynestyStatic(
+    search = af.DynestyStatic(
         name="cookbook_6_model_linking",
     )
 
-    result = dynesty.fit(model=model, analysis=analysis)
+    result = search.fit(model=model, analysis=analysis)
 
 Instance & Model
 ----------------
