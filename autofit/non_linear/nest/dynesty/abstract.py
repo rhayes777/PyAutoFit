@@ -357,10 +357,11 @@ class AbstractDynesty(AbstractNest, ABC):
 
     def sampler_from(
             self,
-            model,
+            model: AbstractPriorModel,
             fitness_function,
-            pool,
-            queue_size
+            checkpoint_exists : bool,
+            pool: Optional["Pool"],
+            queue_size: Optional[int]
     ):
         raise NotImplementedError()
 
