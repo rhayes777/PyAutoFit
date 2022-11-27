@@ -88,7 +88,7 @@ class AbstractDynesty(AbstractNest, ABC):
             **kwargs
         )
 
-        self.logger.debug("Creating DynestyStatic Search")
+        self.logger.debug(f"Creating {self.__class__.__name__} Search")
 
     class Fitness(AbstractNest.Fitness):
         @property

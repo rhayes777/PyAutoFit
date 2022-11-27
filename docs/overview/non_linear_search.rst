@@ -92,7 +92,7 @@ For many problems it is preferable for all results to be written to hard-disk. T
 
 - Inspecting results in an ordered directory structure can be more efficient than using a Jupyter Notebook.
 - Results can be output on-the-fly, to check that a fit is progressing as expected mid way through.
-- An unfinished run can be resumed where it ended.
+- An unfinished run can be resumed where it was terminated.
 - Additional information about a fit (e.g. visualization) can be output.
 - On high performance computers which use a batch system, this is the only way to transfer results.
 
