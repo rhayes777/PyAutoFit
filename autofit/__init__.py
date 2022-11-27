@@ -1,5 +1,5 @@
 import abc
-import pickle 
+import pickle
 
 from dill import register
 
