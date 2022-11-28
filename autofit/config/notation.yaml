@@ -1,0 +1,23 @@
+label:
+  label:
+    centre: x
+    normalization: norm
+    parameter0: a
+    parameter1: b
+    parameter2: c
+    rate: \lambda
+    sigma: \sigma
+  superscript:
+    exponential: e
+    gaussian: g
+    modelcomponent0: M0
+    modelcomponent1: M1
+label_format:
+  format:
+    centre: '{:.2f}'
+    normalization: '{:.2f}'
+    parameter0: '{:.2f}'
+    parameter1: '{:.2f}'
+    parameter2: '{:.2f}'
+    rate: '{:.2f}'
+    sigma: '{:.2f}'
