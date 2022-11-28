@@ -1,0 +1,62 @@
+ModelComponent0:
+  parameter0:
+    gaussian_limits:
+      lower: -inf
+      upper: inf
+    lower_limit: 0.0
+    type: Uniform
+    upper_limit: 1.0
+    width_modifier:
+      type: Absolute
+      value: 20.0
+  parameter1:
+    gaussian_limits:
+      lower: 0.0
+      upper: inf
+    lower_limit: 1.0e-06
+    type: LogUniform
+    upper_limit: 1000000.0
+    width_modifier:
+      type: Relative
+      value: 0.5
+  parameter2:
+    gaussian_limits:
+      lower: 0.0
+      upper: inf
+    lower_limit: 0.0
+    type: Uniform
+    upper_limit: 25.0
+    width_modifier:
+      type: Relative
+      value: 0.5
+ModelComponent1:
+  parameter0:
+    gaussian_limits:
+      lower: -inf
+      upper: inf
+    lower_limit: 0.0
+    type: Uniform
+    upper_limit: 1.0
+    width_modifier:
+      type: Absolute
+      value: 20.0
+  parameter1:
+    gaussian_limits:
+      lower: 0.0
+      upper: inf
+    lower_limit: 1.0e-06
+    type: LogUniform
+    upper_limit: 1000000.0
+    width_modifier:
+      type: Relative
+      value: 0.5
+  parameter2:
+    gaussian_limits:
+      lower: 0.0
+      upper: inf
+    lower_limit: 0.0
+    type: Uniform
+    upper_limit: 1.0
+    width_modifier:
+      type: Relative
+      value: 0.5
