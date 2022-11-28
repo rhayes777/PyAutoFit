@@ -168,7 +168,7 @@ To do that, we interface a model with a summed list of analysis objects
     model = af.Collection(gaussian=af.Model(Gaussian))
 
     analysis = analysis.with_free_parameters(
-        model.gaussian.sigma]
+        model.gaussian.sigma
     )
 
 We code above updates the model using the summed ``Analysis ``objects to compose a model where:
