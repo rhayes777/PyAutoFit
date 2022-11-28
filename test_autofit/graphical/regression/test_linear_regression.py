@@ -119,18 +119,18 @@ def test_laplace(
     check_model_approx(mean_field, a_, b_, z_, x_, y_)
 
 
-def test_parallel_laplace(
-    model_approx, a_, b_, x_, y_, z_,
-):
-    laplace = LaplaceOptimiser()
-    opt = ParallelEPOptimiser(
-        model_approx.factor_graph,
-        n_cores=len(model_approx.factors) + 1,
-        default_optimiser=laplace,
-    )
-    model_approx = opt.run(model_approx)
-    mean_field = model_approx.mean_field
-    check_model_approx(mean_field, a_, b_, z_, x_, y_)
+# def test_parallel_laplace(
+#     model_approx, a_, b_, x_, y_, z_,
+# ):
+#     laplace = LaplaceOptimiser()
+#     opt = ParallelEPOptimiser(
+#         model_approx.factor_graph,
+#         n_cores=len(model_approx.factors) + 1,
+#         default_optimiser=laplace,
+#     )
+#     model_approx = opt.run(model_approx)
+#     mean_field = model_approx.mean_field
+#     check_model_approx(mean_field, a_, b_, z_, x_, y_)
 
 
 def _test_laplace_jac(
