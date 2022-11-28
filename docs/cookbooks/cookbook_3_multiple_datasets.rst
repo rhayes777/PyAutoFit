@@ -87,7 +87,7 @@ This means that the model has 7 free parameters in total, the shared ``centre`` 
     analysis = sum(analysis_list)
 
     analysis = analysis.with_free_parameters(
-        *[model.gaussian.sigma]
+        model.gaussian.sigma]
     )
 
 The code above does not immediately update the model.
@@ -139,7 +139,7 @@ We can make multiple parameters free by simply adding them to the input list abo
     analysis = sum(analysis_list)
 
     analysis = analysis.with_free_parameters(
-        *[model.gaussian.sigma, model.gaussian.centre]
+        model.gaussian.sigma, model.gaussian.centre]
     )
 
 Variable Parameters As Relationship
