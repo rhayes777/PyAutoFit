@@ -1,0 +1,30 @@
+centre:
+  gaussian_limits:
+    lower: -inf
+    upper: inf
+  lower_limit: 0.0
+  type: Uniform
+  upper_limit: 100.0
+  width_modifier:
+    type: Absolute
+    value: 20.0
+normalization:
+  gaussian_limits:
+    lower: 0.0
+    upper: inf
+  lower_limit: 1.0e-06
+  type: LogUniform
+  upper_limit: 1000000.0
+  width_modifier:
+    type: Relative
+    value: 0.5
+rate:
+  gaussian_limits:
+    lower: 0.0
+    upper: inf
+  lower_limit: 0.0
+  type: Uniform
+  upper_limit: 1.0
+  width_modifier:
+    type: Relative
+    value: 0.5
