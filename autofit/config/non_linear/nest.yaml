@@ -1,0 +1,132 @@
+# Configuration files that customize the default behaviour of non-linear searches.
+
+# **PyAutoFit** supports the following nested sampling algorithms:
+
+# - Dynesty: https://github.com/joshspeagle/dynesty / https://dynesty.readthedocs.io/en/latest/index.html
+# - UltraNest: https://github.com/JohannesBuchner/UltraNest / https://johannesbuchner.github.io/UltraNest/readme.html
+
+# Settings in the [search] and [run] entries are specific to each nested algorithm and should be determined by
+# consulting that MCMC method's own readthedocs.
+
+DynestyStatic:
+  search:
+    bootstrap: null
+    bound: multi
+    enlarge: null
+    facc: 0.2
+    first_update: null
+    fmove: 0.9
+    max_move: 100
+    nlive: 50
+    sample: auto
+    slices: 5
+    update_interval: null
+    walks: 5
+  run:
+    dlogz: null
+    logl_max: .inf
+    maxcall: null
+    maxiter: null
+    n_effective: null
+  initialize:                       # The method used to generate where walkers are initialized in parameter space {prior}.
+    method: prior                   # priors: samples are initialized by randomly drawing from each parameter's prior.
+  parallel:
+    number_of_cores: 1              # The number of cores the search is parallelized over by default, using Python multiprocessing.
+    force_x1_cpu: false             # Force Dynesty to not use Python multiprocessing Pool, which can fix issues on certain operating systems.
+  printing:
+    silence: false                  # If True, the default print output of the non-linear search is silenced and not printed by the Python interpreter.
+  prior_passer:
+    sigma: 3.0                      # For non-linear search chaining and model prior passing, the sigma value of the inferred model parameter used as the sigma of the passed Gaussian prior.
+    use_errors: true                # If True, the errors of the previous model's results are used when passing priors.
+    use_widths: true                # If True the width of the model parameters defined in the priors config file are used.
+  updates:
+    iterations_per_update: 500      # The number of iterations of the non-linear search performed between every 'update', where an update performs tasks like outputting model.results.
+    remove_state_files_at_end: true # Whether to remove the savestate of the seach (e.g. the Emcee hdf5 file) at the end to save hard-disk space (results are still stored as PyAutoFit pickles and loadable).
+DynestyDynamic:
+  search:
+    bootstrap: null
+    bound: multi
+    enlarge: null
+    facc: 0.2
+    first_update: null
+    fmove: 0.9
+    max_move: 100
+    sample: auto
+    slices: 5
+    update_interval: null
+    walks: 5
+  run:
+    dlogz_init: 0.01
+    logl_max_init: .inf
+    maxcall: null
+    maxcall_init: null
+    maxiter: null
+    maxiter_init: null
+    n_effective: .inf
+    n_effective_init: .inf
+    nlive_init: 500
+  initialize:                       # The method used to generate where walkers are initialized in parameter space {prior}.
+    method: prior                   # priors: samples are initialized by randomly drawing from each parameter's prior.
+  parallel:
+    number_of_cores: 1              # The number of cores the search is parallelized over by default, using Python multiprocessing.
+    force_x1_cpu: false             # Force Dynesty to not use Python multiprocessing Pool, which can fix issues on certain operating systems.
+  printing:
+    silence: false                  # If True, the default print output of the non-linear search is silenced and not printed by the Python interpreter.
+  prior_passer:
+    sigma: 3.0                      # For non-linear search chaining and model prior passing, the sigma value of the inferred model parameter used as the sigma of the passed Gaussian prior.
+    use_errors: true                # If True, the errors of the previous model's results are used when passing priors.
+    use_widths: true                # If True the width of the model parameters defined in the priors config file are used.
+  updates:
+    iterations_per_update: 500      # The number of iterations of the non-linear search performed between every 'update', where an update performs tasks like outputting model.results.
+    remove_state_files_at_end: true # Whether to remove the savestate of the seach (e.g. the Emcee hdf5 file) at the end to save hard-disk space (results are still stored as PyAutoFit pickles and loadable).
+UltraNest:
+  search:
+    draw_multiple: true
+    ndraw_max: 65536
+    ndraw_min: 128
+    num_bootstraps: 30
+    num_test_samples: 2
+    resume: true
+    run_num: null
+    storage_backend: hdf5
+    vectorized: false
+    warmstart_max_tau: -1.0
+  run:
+    cluster_num_live_points: 40
+    dkl: 0.5
+    dlogz: 0.5
+    frac_remain: 0.01
+    insertion_test_window: 10
+    insertion_test_zscore_threshold: 2
+    lepsilon: 0.001
+    log_interval: null
+    max_iters: null
+    max_ncalls: null
+    max_num_improvement_loops: -1.0
+    min_ess: 400
+    min_num_live_points: 400
+    show_status: true
+    update_interval_ncall: null
+    update_interval_volume_fraction: 0.8
+    viz_callback: auto
+  stepsampler:
+    adaptive_nsteps: false
+    log: false
+    max_nsteps: 1000
+    nsteps: 25
+    region_filter: false
+    scale: 1.0
+    stepsampler_cls: null
+  initialize:                       # The method used to generate where walkers are initialized in parameter space {prior}.
+    method: prior                   # priors: samples are initialized by randomly drawing from each parameter's prior.
+  parallel:
+    number_of_cores: 1              # The number of cores the search is parallelized over by default, using Python multiprocessing.
+  printing:
+    silence: false                  # If True, the default print output of the non-linear search is silenced and not printed by the Python interpreter.
+  prior_passer:
+    sigma: 3.0                      # For non-linear search chaining and model prior passing, the sigma value of the inferred model parameter used as the sigma of the passed Gaussian prior.
+    use_errors: true                # If True, the errors of the previous model's results are used when passing priors.
+    use_widths: true                # If True the width of the model parameters defined in the priors config file are used.
+  updates:
+    iterations_per_update: 500      # The number of iterations of the non-linear search performed between every 'update', where an update performs tasks like outputting model.results.
+    remove_state_files_at_end: true # Whether to remove the savestate of the seach (e.g. the Emcee hdf5 file) at the end to save hard-disk space (results are still stored as PyAutoFit pickles and loadable).

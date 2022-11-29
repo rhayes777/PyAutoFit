@@ -1,3 +1,16 @@
+# The notation configs define the labels of every model parameter and its derived quantities, which are used when
+# visualizing results (for example labeling the axis of the PDF triangle plots output by a non-linear search).
+
+
+# label: The label given to the `centre` parameter of `Gaussian` model-components. This is used
+# in plots like PDF corner plots.
+
+# For example, if `centre=x`, the plot axis will be labeled 'x'.
+
+# superscript: the superscript used on certain plots that show the results of different model-components.
+
+# For example, if `Gaussian=g`, plots where the parameters of the Gaussian model-component have superscript `g`.
+
 label:
   label:
     centre: x
@@ -12,6 +25,11 @@ label:
     gaussian: g
     modelcomponent0: M0
     modelcomponent1: M1
+
+# label_format: The format certain parameters are output as in output files like the `model.results` file.
+
+# For example, if `centre={:.2d}`, the format of the centre parameter in results files will use this Python format.
+
 label_format:
   format:
     centre: '{:.2f}'
