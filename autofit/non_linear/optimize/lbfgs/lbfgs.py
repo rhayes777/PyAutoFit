@@ -75,7 +75,7 @@ class LBFGS(AbstractOptimizer):
     @property
     def config_dict_options(self):
 
-        config_dict = copy.copy(self._class_config["options"]._dict)
+        config_dict = copy.copy(self._class_config["options"])
 
         for key, value in config_dict.items():
             try:

@@ -591,7 +591,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
     @property
     def config_dict_search(self) -> Dict:
 
-        config_dict = copy.copy(self._class_config["search"]._dict)
+        config_dict = copy.copy(self._class_config["search"])
 
         for key, value in config_dict.items():
             try:
@@ -604,7 +604,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
     @property
     def config_dict_run(self) -> Dict:
 
-        config_dict = copy.copy(self._class_config["run"]._dict)
+        config_dict = copy.copy(self._class_config["run"])
 
         for key, value in config_dict.items():
             try:
@@ -624,7 +624,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
     @property
     def config_dict_settings(self) -> Dict:
-        return self._class_config["settings"]._dict
+        return self._class_config["settings"]
 
     @property
     def config_type(self):

@@ -1,9 +1,4 @@
-GridSearch:
-  general:
-    number_of_cores: '3 # The number of cores the search is parallelized over by default,
-      using Python multiprocessing.'
-    step_size: '0.1     # The default step size of each grid search parameter, in
-      terms of unit values of the priors.'
+
 mock:
   MockOptimizer:
     initialize:
@@ -18,19 +13,6 @@ mock:
       iterations_per_update: 2500
       remove_state_files_at_end: true
   MockSearch:
-    initialize:
-      method: prior
-    printing:
-      silence: false
-    prior_passer:
-      sigma: 3.0
-      use_errors: true
-      use_widths: true
-    search: {}
-    updates:
-      iterations_per_update: 2500
-      remove_state_files_at_end: true
-  MockSearchBC:
     initialize:
       method: prior
     printing:

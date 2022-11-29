@@ -1,0 +1,108 @@
+DynestyDynamic:
+  initialize:
+    method: prior
+  parallel:
+    number_of_cores: 4
+  printing:
+    silence: false
+  prior_passer:
+    sigma: 3.0
+    use_errors: true
+    use_widths: true
+  run:
+    dlogz_init: 0.01
+    logl_max_init: .inf
+    maxcall: null
+    maxcall_init: null
+    maxiter: null
+    maxiter_init: null
+    n_effective_init: .inf
+    nlive_init: 5
+  search:
+    bootstrap: 1
+    bound: balls
+    enlarge: 2
+    facc: 0.6
+    fmove: 0.8
+    logl_max: .inf
+    max_move: 101
+    sample: rwalk
+    slices: 6
+    update_interval: 2.0
+    walks: 26
+  updates:
+    iterations_per_update: 501
+    log_every_update: 1
+    model_results_every_update: 1
+    remove_state_files_at_end: true
+    visualize_every_update: 1
+DynestyStatic:
+  initialize:
+    method: prior
+  parallel:
+    force_x1_cpu: false
+    number_of_cores: 1
+  printing:
+    silence: false
+  prior_passer:
+    sigma: 3.0
+    use_errors: true
+    use_widths: true
+  run:
+    dlogz: null
+    logl_max: .inf
+    maxcall: null
+    maxiter: null
+    n_effective: 0
+  search:
+    bootstrap: null
+    bound: multi
+    enlarge: null
+    facc: 0.5
+    first_update: null
+    fmove: 0.9
+    max_move: 100
+    nlive: 150
+    sample: auto
+    slices: 5
+    update_interval: null
+    walks: 5
+  updates:
+    iterations_per_update: 500
+    log_every_update: 1
+    model_results_every_update: 1
+    remove_state_files_at_end: true
+    visualize_every_update: 1
+MultiNest:
+  printing:
+    silence: false
+  prior_passer:
+    sigma: 3.0
+    use_errors: true
+    use_widths: true
+  search:
+    const_efficiency_mode: false
+    context: 0
+    evidence_tolerance: 0.5
+    importance_nested_sampling: true
+    init_mpi: false
+    log_zero: -1.0e+100
+    max_iter: 0
+    max_modes: 100
+    mode_tolerance: -1.0e+89
+    multimodal: true
+    n_iter_before_update: 100
+    n_live_points: 50
+    null_log_evidence: -1.0e+90
+    resume: true
+    sampling_efficiency: 0.6
+    seed: -1.0
+    verbose: false
+    write_output: true
+  updates:
+    iterations_per_update: 2500
+    log_every_update: 1
+    model_results_every_update: 1
+    remove_state_files_at_end: true
+    should_update_sym: 250
+    visualize_every_update: 1
