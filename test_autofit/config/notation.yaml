@@ -16,11 +16,11 @@ label:
     tup_x2_1: y
     two: two_label
   superscript:
-    class: c
-    galaxy: g
-    gaussian: g
-    mockchildtuplex2: l
-    mockclassrelativewidth: r
+    Class: c
+    Galaxy: g
+    Gaussian: g
+    MockChildTuplex2: l
+    MockClassRelativeWidth: r
     MockClassx2: o
     MockClassx2FormatExp: o
     MockClassx2Tuple: a

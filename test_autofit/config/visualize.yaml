@@ -3,26 +3,26 @@ general:
     backend: default         # The matploblib backend used for visualization. `default` uses the system default, can specifiy specific backend (e.g. TKAgg, Qt5Agg, WXAgg).
 plots_search:
   dynesty:
-    cornerplot: true
+    cornerplot: false
     cornerpoints: false      # Whether to output the Dynesty cornerplot figure during a non-linear search fit.
-    runplot: true            # Whether to output the Dynesty runplot figure during a non-linear search fit.
-    traceplot: true          # Whether to output the Dynesty traceplot figure during a non-linear search fit.
+    runplot: false            # Whether to output the Dynesty runplot figure during a non-linear search fit.
+    traceplot: false          # Whether to output the Dynesty traceplot figure during a non-linear search fit.
   emcee:
-    corner: true             # Whether to output the Emcee corner figure during a non-linear search fit.
-    likelihood_series: true  # Whether to output the Emcee likelihood series figure during a non-linear search fit.
-    time_series: true        # Whether to output the Emcee time series figure during a non-linear search fit.
-    trajectories: true       # Whether to output the Emcee trajectories figure during a non-linear search fit.
+    corner: false             # Whether to output the Emcee corner figure during a non-linear search fit.
+    likelihood_series: false  # Whether to output the Emcee likelihood series figure during a non-linear search fit.
+    time_series: false        # Whether to output the Emcee time series figure during a non-linear search fit.
+    trajectories: false       # Whether to output the Emcee trajectories figure during a non-linear search fit.
   pyswarms:
-    contour: true            # Whether to output the PySwarms contour figure during a non-linear search fit.
-    cost_history: true       # Whether to output the PySwarms cost_history figure during a non-linear search fit.
-    time_series: true        # Whether to output the PySwarms time_series figure during a non-linear search fit.
-    trajectories: true       # Whether to output the PySwarms trajectories figure during a non-linear search fit.
+    contour: false            # Whether to output the PySwarms contour figure during a non-linear search fit.
+    cost_history: false       # Whether to output the PySwarms cost_history figure during a non-linear search fit.
+    time_series: false        # Whether to output the PySwarms time_series figure during a non-linear search fit.
+    trajectories: false       # Whether to output the PySwarms trajectories figure during a non-linear search fit.
   ultranest:
-    cornerplot: true         # Whether to output the Ultranest cornerplot figure during a non-linear search fit.
-    runplot: true            # Whether to output the Ultranest runplot figure during a non-linear search fit.
-    traceplot: true          # Whether to output the Ultranest traceplot figure during a non-linear search fit.
+    cornerplot: false         # Whether to output the Ultranest cornerplot figure during a non-linear search fit.
+    runplot: false            # Whether to output the Ultranest runplot figure during a non-linear search fit.
+    traceplot: false          # Whether to output the Ultranest traceplot figure during a non-linear search fit.
   zeus:
-    corner: true             # Whether to output the Zeus corner figure during a non-linear search fit.
-    likelihood_series: true  # Whether to output the Zeus likelihood series figure during a non-linear search fit.
-    time_series: true        # Whether to output the Zeus time series figure during a non-linear search fit.
-    trajectories: true       # Whether to output the Zeus trajectories figure during a non-linear search fit.
+    corner: false             # Whether to output the Zeus corner figure during a non-linear search fit.
+    likelihood_series: false  # Whether to output the Zeus likelihood series figure during a non-linear search fit.
+    time_series: false        # Whether to output the Zeus time series figure during a non-linear search fit.
+    trajectories: false       # Whether to output the Zeus trajectories figure during a non-linear search fit.
