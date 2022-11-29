@@ -14,7 +14,7 @@ output:
   log_file: output.log              # The name of the file the logged output is written to (in the non-linear search output folder)
   model_results_decimal_places: 3   # Number of decimal places estimated parameter values / errors are output in model.results.
   remove_files: false               # If True, all output files of a non-linear search (e.g. samples, visualization, etc.) are deleted once the model-fit has completed, such that only the .zip file remains.
-  samples_to_csv: false
+  samples_to_csv: true              # If True, non-linear search samples are written to a .csv file.
 parallel:
   warn_environment_variables: true  # If True, a warning is displayed when the search's number of CPU > 1 and enviromment variables related to threading are also > 1.
 profiling:
@@ -22,6 +22,5 @@ profiling:
   should_profile: false             # If True, the ``profile_log_likelihood_function()`` function of an analysis class is called throughout a model-fit, profiling run times.
   repeats: 1                        # The number of repeat function calls used to measure run-times when profiling.
 test:
-  check_preloads: false             # If True, perform a sanity check that the likelihood using preloads is identical to the likelihood not using preloads.
   exception_override: false
   parallel_profile: false
