@@ -1,0 +1,356 @@
+GridSearch:
+  general:
+    number_of_cores: '3 # The number of cores the search is parallelized over by default,
+      using Python multiprocessing.'
+    step_size: '0.1     # The default step size of each grid search parameter, in
+      terms of unit values of the priors.'
+mock:
+  MockOptimizer:
+    initialize:
+      method: prior
+    printing:
+      silence: false
+    prior_passer:
+      sigma: 3.0
+      use_errors: true
+      use_widths: true
+    updates:
+      iterations_per_update: 2500
+      remove_state_files_at_end: true
+  MockSearch:
+    initialize:
+      method: prior
+    printing:
+      silence: false
+    prior_passer:
+      sigma: 3.0
+      use_errors: true
+      use_widths: true
+    search: {}
+    updates:
+      iterations_per_update: 2500
+      remove_state_files_at_end: true
+  MockSearchBC:
+    initialize:
+      method: prior
+    printing:
+      silence: false
+    prior_passer:
+      sigma: 3.0
+      use_errors: true
+      use_widths: true
+    search: {}
+    updates:
+      iterations_per_update: 2500
+      remove_state_files_at_end: true
+  NLO:
+    printing:
+      silence: false
+    prior_passer:
+      sigma: 3.0
+      use_errors: true
+      use_widths: true
+    updates:
+      iterations_per_update: 2500
+      remove_state_files_at_end: true
+mcmc:
+  Emcee:
+    auto_correlations:
+      change_threshold: 0.01
+      check_for_convergence: true
+      check_size: 100
+      required_length: 50
+    initialize:
+      ball_lower_limit: 0.49
+      ball_upper_limit: 0.51
+      method: prior
+    parallel:
+      number_of_cores: 1
+    printing:
+      silence: false
+    prior_passer:
+      sigma: 3.0
+      use_errors: true
+      use_widths: true
+    run:
+      nsteps: 2000
+    search:
+      nwalkers: 50
+    updates:
+      iterations_per_update: 2500
+      remove_state_files_at_end: true
+  Zeus:
+    auto_correlations:
+      change_threshold: 0.01
+      check_for_convergence: true
+      check_size: 100
+      required_length: 50
+    initialize:
+      ball_lower_limit: 0.49
+      ball_upper_limit: 0.51
+      method: prior
+    parallel:
+      number_of_cores: 1
+    printing:
+      silence: false
+    prior_passer:
+      sigma: 3.0
+      use_errors: true
+      use_widths: true
+    run:
+      check_walkers: true
+      light_mode: false
+      maxiter: 10000
+      maxsteps: 10000
+      mu: 1.0
+      nsteps: 2000
+      patience: 5
+      shuffle_ensemble: true
+      tolerance: 0.05
+      tune: true
+      vectorize: false
+    search:
+      nwalkers: 50
+    updates:
+      iterations_per_update: 500
+      log_every_update: 1
+      model_results_every_update: 1
+      remove_state_files_at_end: true
+      visualize_every_update: 1
+nest:
+  DynestyDynamic:
+    initialize:
+      method: prior
+    parallel:
+      number_of_cores: 4
+    printing:
+      silence: false
+    prior_passer:
+      sigma: 3.0
+      use_errors: true
+      use_widths: true
+    run:
+      dlogz_init: 0.01
+      logl_max_init: .inf
+      maxcall: null
+      maxcall_init: null
+      maxiter: null
+      maxiter_init: null
+      n_effective_init: .inf
+      nlive_init: 5
+    search:
+      bootstrap: 1
+      bound: balls
+      enlarge: 2
+      facc: 0.6
+      fmove: 0.8
+      logl_max: .inf
+      max_move: 101
+      sample: rwalk
+      slices: 6
+      update_interval: 2.0
+      walks: 26
+    updates:
+      iterations_per_update: 501
+      log_every_update: 1
+      model_results_every_update: 1
+      remove_state_files_at_end: true
+      visualize_every_update: 1
+  DynestyStatic:
+    initialize:
+      method: prior
+    parallel:
+      force_x1_cpu: false
+      number_of_cores: 1
+    printing:
+      silence: false
+    prior_passer:
+      sigma: 3.0
+      use_errors: true
+      use_widths: true
+    run:
+      dlogz: null
+      logl_max: .inf
+      maxcall: null
+      maxiter: null
+      n_effective: 0
+    search:
+      bootstrap: null
+      bound: multi
+      enlarge: null
+      facc: 0.5
+      first_update: null
+      fmove: 0.9
+      max_move: 100
+      nlive: 150
+      sample: auto
+      slices: 5
+      update_interval: null
+      walks: 5
+    updates:
+      iterations_per_update: 500
+      log_every_update: 1
+      model_results_every_update: 1
+      remove_state_files_at_end: true
+      visualize_every_update: 1
+  MultiNest:
+    printing:
+      silence: false
+    prior_passer:
+      sigma: 3.0
+      use_errors: true
+      use_widths: true
+    search:
+      const_efficiency_mode: false
+      context: 0
+      evidence_tolerance: 0.5
+      importance_nested_sampling: true
+      init_mpi: false
+      log_zero: -1.0e+100
+      max_iter: 0
+      max_modes: 100
+      mode_tolerance: -1.0e+89
+      multimodal: true
+      n_iter_before_update: 100
+      n_live_points: 50
+      null_log_evidence: -1.0e+90
+      resume: true
+      sampling_efficiency: 0.6
+      seed: -1.0
+      verbose: false
+      write_output: true
+    updates:
+      iterations_per_update: 2500
+      log_every_update: 1
+      model_results_every_update: 1
+      remove_state_files_at_end: true
+      should_update_sym: 250
+      visualize_every_update: 1
+optimize:
+  DownhillSimplex:
+    initialize:
+      method: prior
+    printing:
+      silence: false
+    prior_passer:
+      sigma: 3.0
+      use_errors: true
+      use_widths: true
+    search:
+      disp: 1
+      ftol: 0.0001
+      full_output: 0
+      maxfun: null
+      maxiter: null
+      retall: 0
+      xtol: 0.0001
+    updates:
+      iterations_per_update: 11
+      log_every_update: 1
+      model_results_every_update: 1
+      remove_state_files_at_end: true
+      visualize_every_update: 1
+  Drawer:
+    initialize:
+      ball_lower_limit: 0.49
+      ball_upper_limit: 0.51
+      method: prior
+    printing:
+      silence: false
+    prior_passer:
+      sigma: 3.0
+      use_errors: true
+      use_widths: true
+    search:
+      total_draws: 10
+    updates:
+      iterations_per_update: 500
+      log_every_update: 1
+      model_results_every_update: 1
+      remove_state_files_at_end: true
+      visualize_every_update: 1
+  LBFGS:
+    initialize:
+      ball_lower_limit: 0.49
+      ball_upper_limit: 0.51
+      method: prior
+    options:
+      disp: false
+      eps: 1.0e-08
+      ftol: 2.220446049250313e-09
+      gtol: 1.0e-05
+      iprint: -1.0
+      maxcor: 10
+      maxfun: 15000
+      maxiter: 15000
+      maxls: 20
+    printing:
+      silence: false
+    prior_passer:
+      sigma: 3.0
+      use_errors: true
+      use_widths: true
+    search:
+      tol: null
+    updates:
+      iterations_per_update: 11
+      log_every_update: 1
+      model_results_every_update: 1
+      remove_state_files_at_end: true
+      visualize_every_update: 1
+  PySwarmsGlobal:
+    initialize:
+      ball_lower_limit: 0.49
+      ball_upper_limit: 0.51
+      method: prior
+    parallel:
+      number_of_cores: 1
+    printing:
+      silence: false
+    prior_passer:
+      sigma: 3.0
+      use_errors: true
+      use_widths: true
+    run:
+      iters: 2000
+    search:
+      cognitive: 0.1
+      ftol: -.inf
+      inertia: 0.3
+      n_particles: 50
+      social: 0.2
+    updates:
+      iterations_per_update: 11
+      log_every_update: 1
+      model_results_every_update: 1
+      remove_state_files_at_end: true
+      visualize_every_update: 1
+  PySwarmsLocal:
+    initialize:
+      ball_lower_limit: 0.49
+      ball_upper_limit: 0.51
+      method: prior
+    parallel:
+      number_of_cores: 1
+    printing:
+      silence: false
+    prior_passer:
+      sigma: 3.0
+      use_errors: true
+      use_widths: true
+    run:
+      iters: 2000
+    search:
+      cognitive: 0.1
+      ftol: -.inf
+      inertia: 0.3
+      minkowski_p_norm: 2
+      n_particles: 50
+      number_of_k_neighbors: 3
+      social: 0.2
+    updates:
+      iterations_per_update: 11
+      log_every_update: 1
+      model_results_every_update: 1
+      remove_state_files_at_end: true
+      visualize_every_update: 1

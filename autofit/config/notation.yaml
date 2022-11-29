@@ -21,10 +21,10 @@ label:
     rate: \lambda
     sigma: \sigma
   superscript:
-    exponential: e
-    gaussian: g
-    modelcomponent0: M0
-    modelcomponent1: M1
+    Exponential: e
+    Gaussian: g
+    ModelComponent0: M0
+    ModelComponent1: M1
 
 # label_format: The format certain parameters are output as in output files like the `model.results` file.
 

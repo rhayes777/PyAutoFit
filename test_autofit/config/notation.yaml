@@ -1,0 +1,41 @@
+label:
+  label:
+    contribution_factor: \omega0
+    effective_radius: R_{\rm eff}
+    four: four_label
+    gamma: \gamma
+    normalization: I
+    one: one_label
+    one_tuple_0: one_tuple_0_label
+    one_tuple_1: one_tuple_1_label
+    param0: p0
+    parameter: p
+    sersic_index: n
+    three: three_label
+    tup_x2_0: x
+    tup_x2_1: y
+    two: two_label
+  superscript:
+    class: c
+    galaxy: g
+    gaussian: g
+    mockchildtuplex2: l
+    mockclassrelativewidth: r
+    MockClassx2: o
+    MockClassx2FormatExp: o
+    MockClassx2Tuple: a
+    MockClassx4: a
+    MockComponents: a
+    MockParent: gp
+label_format:
+  format:
+    mass: '{:.2f}'
+    one: '{:.2f}'
+    param0: '{:.2f}'
+    param00: '{:.2f}'
+    param000: '{:.2f}'
+    param11: '{:.4f}'
+    param12: '{:.2e}'
+    radius: '{:.2f}'
+    two: '{:.2f}'
+    two_exp: '{:.2e}'
