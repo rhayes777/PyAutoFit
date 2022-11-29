@@ -13,7 +13,7 @@ output:
   log_to_file: false                # If True, outputs the non-linear search log to a file (and not printed to screen).
   log_file: output.log              # The name of the file the logged output is written to (in the non-linear search output folder)
   model_results_decimal_places: 3   # Number of decimal places estimated parameter values / errors are output in model.results.
-  remove_files: false               # If True, all output files of a non-linear search (e.g. samples, visualization, etc.) are deleted once the model-fit has completed, such that only the .zip file remains.
+  remove_files: true                # If True, all output files of a non-linear search (e.g. samples, visualization, etc.) are deleted once the model-fit has completed, such that only the .zip file remains.
   samples_to_csv: false
 parallel:
   warn_environment_variables: false # If True, a warning is displayed when the search's number of CPU > 1 and enviromment variables related to threading are also > 1.
