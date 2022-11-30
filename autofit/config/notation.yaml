@@ -2,10 +2,10 @@
 # visualizing results (for example labeling the axis of the PDF triangle plots output by a non-linear search).
 
 
-# label: The label given to the `centre` parameter of `Gaussian` model-components. This is used
-# in plots like PDF corner plots.
+# label: The label given to the each parameter, for plots like PDF corner plots.
 
 # For example, if `centre=x`, the plot axis will be labeled 'x'.
+
 
 # superscript: the superscript used on certain plots that show the results of different model-components.
 
