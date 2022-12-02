@@ -1,20 +1,20 @@
 import os
 from abc import ABC
-from dynesty.pool import Pool
-from dynesty import NestedSampler, DynamicNestedSampler
 from os import path
 from typing import Optional, Tuple, Union
 
 import numpy as np
+from dynesty import NestedSampler, DynamicNestedSampler
+from dynesty.pool import Pool
+
 from autoconf import conf
+from autofit import exc
 from autofit.database.sqlalchemy_ import sa
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.abstract_search import PriorPasser
 from autofit.non_linear.nest.abstract_nest import AbstractNest
 from autofit.non_linear.nest.dynesty.plotter import DynestyPlotter
 from autofit.plot.output import Output
-
-from autofit import exc
 
 
 def prior_transform(cube, model):

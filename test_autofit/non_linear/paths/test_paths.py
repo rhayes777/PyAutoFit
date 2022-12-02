@@ -8,13 +8,11 @@ import autofit as af
 from autoconf.conf import output_path_for_test
 from autofit.non_linear.paths.null import NullPaths
 
+
 def test_null_paths():
     search = af.DynestyStatic()
 
-    assert isinstance(
-        search.paths,
-        NullPaths
-    )
+    assert isinstance(search.paths, NullPaths)
 
 
 class TestPathDecorator:
@@ -41,47 +39,33 @@ class TestPathDecorator:
         self.assert_paths_as_expected(search.paths)
 
     def test_combination_argument(self):
-        search = af.m.MockSearch("other", )
+        search = af.m.MockSearch("other",)
         search.paths = af.DirectoryPaths(name="name")
         self.assert_paths_as_expected(search.paths)
 
 
-output_path = Path(
-    __file__
-).parent / "path"
+output_path = Path(__file__).parent / "path"
 
 
-@pytest.fixture(
-    name="model"
-)
+@pytest.fixture(name="model")
 def make_model():
-    return af.Model(
-        af.Gaussian
-    )
+    return af.Model(af.Gaussian)
 
 
-@output_path_for_test(
-    output_path
-)
+@output_path_for_test(output_path)
 def test_identifier_file(model):
     paths = af.DirectoryPaths()
     paths.model = model
     paths.search = af.DynestyStatic()
     paths.save_all({}, {}, [])
 
-    assert os.path.exists(
-        output_path / paths.identifier / ".identifier"
-    )
+    assert os.path.exists(output_path / paths.identifier / ".identifier")
 
 
 def test_serialize(model):
     paths = af.DirectoryPaths()
     paths.model = model
 
-    pickled_paths = pickle.loads(
-        pickle.dumps(
-            paths
-        )
-    )
+    pickled_paths = pickle.loads(pickle.dumps(paths))
 
     assert pickled_paths.model is not None
