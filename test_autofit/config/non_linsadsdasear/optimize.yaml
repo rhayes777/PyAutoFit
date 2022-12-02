@@ -36,10 +36,7 @@ Drawer:
     total_draws: 10
   updates:
     iterations_per_update: 500
-    log_every_update: 1
-    model_results_every_update: 1
     remove_state_files_at_end: true
-    visualize_every_update: 1
 LBFGS:
   initialize:
     ball_lower_limit: 0.49
