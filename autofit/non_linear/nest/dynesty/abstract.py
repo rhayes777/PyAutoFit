@@ -260,7 +260,10 @@ class AbstractDynesty(AbstractNest, ABC):
 
         """
         config_dict_run = self.config_dict_run
-        config_dict_run.pop("maxcall")
+        try:
+            config_dict_run.pop("maxcall")
+        except KeyError:
+            pass
 
         iterations, total_iterations = self.iterations_from(sampler=sampler)
 
