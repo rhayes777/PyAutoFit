@@ -1,3 +1,4 @@
+import tempfile
 from typing import Optional
 
 from .abstract import AbstractPaths
@@ -11,6 +12,11 @@ class NullPaths(AbstractPaths):
     def __init__(self):
         super().__init__()
         self.objects = dict()
+        self._samples_path = tempfile.mkdtemp()
+
+    @property
+    def samples_path(self) -> str:
+        return self._samples_path
 
     @AbstractPaths.parent.setter
     def parent(self, parent):
@@ -21,11 +27,11 @@ class NullPaths(AbstractPaths):
         return False
 
     def create_child(
-            self,
-            name: Optional[str] = None,
-            path_prefix: Optional[str] = None,
-            is_identifier_in_paths: Optional[bool] = None,
-            identifier: Optional[str] = None
+        self,
+        name: Optional[str] = None,
+        path_prefix: Optional[str] = None,
+        is_identifier_in_paths: Optional[bool] = None,
+        identifier: Optional[str] = None,
     ) -> "AbstractPaths":
         return NullPaths()
 
