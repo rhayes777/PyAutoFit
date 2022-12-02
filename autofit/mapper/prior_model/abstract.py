@@ -21,7 +21,11 @@ from autofit.mapper.prior.deferred import DeferredArgument
 from autofit.mapper.prior.tuple_prior import TuplePrior
 from autofit.mapper.prior.width_modifier import WidthModifier
 from autofit.mapper.prior_model.attribute_pair import DeferredNameValue
-from autofit.mapper.prior_model.attribute_pair import cast_collection, PriorNameValue, InstanceNameValue
+from autofit.mapper.prior_model.attribute_pair import (
+    cast_collection,
+    PriorNameValue,
+    InstanceNameValue,
+)
 from autofit.mapper.prior_model.recursion import DynamicRecursionCache
 from autofit.mapper.prior_model.util import PriorModelNameValue
 from autofit.text import formatter as frm
@@ -29,9 +33,7 @@ from autofit.text.formatter import TextFormatter
 from autofit.tools.util import split_paths
 from autofit.tools.util import info_whitespace
 
-logger = logging.getLogger(
-    __name__
-)
+logger = logging.getLogger(__name__)
 
 
 class Limits:
@@ -49,18 +51,20 @@ def check_assertions(func):
         # noinspection PyProtectedMember
         failed_assertions = [
             assertion
-            for assertion
-            in s._assertions
-            if assertion is False or assertion is not True and not assertion.instance_for_arguments(arguments, )
+            for assertion in s._assertions
+            if assertion is False
+            or assertion is not True
+            and not assertion.instance_for_arguments(arguments,)
         ]
         number_of_failed_assertions = len(failed_assertions)
         if number_of_failed_assertions > 0:
-            name_string = "\n".join([
-                assertion.name
-                for assertion
-                in failed_assertions
-                if hasattr(assertion, "name") and assertion.name is not None
-            ])
+            name_string = "\n".join(
+                [
+                    assertion.name
+                    for assertion in failed_assertions
+                    if hasattr(assertion, "name") and assertion.name is not None
+                ]
+            )
             if not conf.instance["general"]["test"]["exception_override"]:
                 raise exc.FitException(
                     f"{number_of_failed_assertions} assertions failed!\n{name_string}"
@@ -92,13 +96,9 @@ class TuplePathModifier:
         ----------
         model_
         """
-        tuple_priors = model_.path_instance_tuples_for_class(
-            TuplePrior
-        )
+        tuple_priors = model_.path_instance_tuples_for_class(TuplePrior)
         try:
-            self.tuple_paths, _ = zip(
-                *tuple_priors
-            )
+            self.tuple_paths, _ = zip(*tuple_priors)
         except ValueError:
             self.tuple_paths = None
 
@@ -113,10 +113,7 @@ Path = Tuple[str, ...]
 
 
 class MeanField:
-    def __init__(
-            self,
-            prior_model: "AbstractPriorModel"
-    ):
+    def __init__(self, prior_model: "AbstractPriorModel"):
         """
         Implements same interface as graphical code
 
@@ -133,15 +130,10 @@ class MeanField:
         for prior in self.prior_model.priors:
             if prior == item:
                 return prior
-        raise KeyError(
-            f"Could not find {item} in model"
-        )
+        raise KeyError(f"Could not find {item} in model")
 
 
-def paths_to_tree(
-        paths: List[Tuple[str, ...]],
-        tree: Optional[dict] = None
-) -> dict:
+def paths_to_tree(paths: List[Tuple[str, ...]], tree: Optional[dict] = None) -> dict:
     """
     Recursively convert a list of paths to a tree structure where common paths
     are matched.
@@ -183,10 +175,7 @@ def paths_to_tree(
         if first not in tree:
             child = dict()
             tree[first] = child
-        tree[first] = paths_to_tree(
-            [rest],
-            tree=tree[first]
-        )
+        tree[first] = paths_to_tree([rest], tree=tree[first])
     return tree
 
 
@@ -210,16 +199,10 @@ class AbstractPriorModel(AbstractModel):
         without_attributes = copy.copy(self)
         for key in self.__dict__:
             if not (key.startswith("_") or key in ("cls", "id")):
-                delattr(
-                    without_attributes,
-                    key
-                )
+                delattr(without_attributes, key)
         return without_attributes
 
-    def _with_paths(
-            self,
-            tree: dict
-    ) -> "AbstractModel":
+    def _with_paths(self, tree: dict) -> "AbstractModel":
         """
         Recursively generate a copy of this model retaining only objects
         specified by the tree.
@@ -240,32 +223,14 @@ class AbstractPriorModel(AbstractModel):
         with_paths = self.without_attributes()
         for name, subtree in tree.items():
             # noinspection PyProtectedMember
-            new_value = getattr(
-                self,
-                name
-            )
-            if isinstance(
-                    new_value,
-                    (
-                            AbstractPriorModel,
-                            TuplePrior,
-                    )
-            ):
-                new_value = new_value._with_paths(
-                    subtree
-                )
-            setattr(
-                with_paths,
-                name,
-                new_value
-            )
+            new_value = getattr(self, name)
+            if isinstance(new_value, (AbstractPriorModel, TuplePrior,)):
+                new_value = new_value._with_paths(subtree)
+            setattr(with_paths, name, new_value)
         return with_paths
 
     @split_paths
-    def with_paths(
-            self,
-            paths: List[Tuple[str, ...]]
-    ) -> "AbstractModel":
+    def with_paths(self, paths: List[Tuple[str, ...]]) -> "AbstractModel":
         """
         Recursively generate a copy of this model retaining only objects
         specified by the list of paths.
@@ -280,14 +245,9 @@ class AbstractPriorModel(AbstractModel):
         -------
         A copy of this model with a subset of attributes
         """
-        return self._with_paths(
-            paths_to_tree(paths)
-        )
+        return self._with_paths(paths_to_tree(paths))
 
-    def _without_paths(
-            self,
-            tree: dict
-    ) -> "AbstractModel":
+    def _without_paths(self, tree: dict) -> "AbstractModel":
         """
         Recursively generate a copy of this model removing objects
         specified by the tree.
@@ -306,37 +266,16 @@ class AbstractPriorModel(AbstractModel):
         for name, subtree in tree.items():
             # noinspection PyProtectedMember
             if len(subtree) == 0:
-                delattr(
-                    without_paths,
-                    name
-                )
+                delattr(without_paths, name)
             else:
-                new_value = getattr(
-                    without_paths,
-                    name
-                )
-                if isinstance(
-                        new_value,
-                        (
-                                AbstractPriorModel,
-                                TuplePrior,
-                        )
-                ):
-                    new_value = new_value._without_paths(
-                        subtree
-                    )
-                setattr(
-                    without_paths,
-                    name,
-                    new_value
-                )
+                new_value = getattr(without_paths, name)
+                if isinstance(new_value, (AbstractPriorModel, TuplePrior,)):
+                    new_value = new_value._without_paths(subtree)
+                setattr(without_paths, name, new_value)
         return without_paths
 
     @split_paths
-    def without_paths(
-            self,
-            paths: List[Tuple[str, ...]]
-    ) -> "AbstractModel":
+    def without_paths(self, paths: List[Tuple[str, ...]]) -> "AbstractModel":
         """
         Recursively generate a copy of this model retaining only objects
         not specified by the list of paths.
@@ -351,14 +290,9 @@ class AbstractPriorModel(AbstractModel):
         -------
         A copy of this model with a subset of attributes
         """
-        return self._without_paths(
-            paths_to_tree(paths)
-        )
+        return self._without_paths(paths_to_tree(paths))
 
-    def index(
-            self,
-            path: Tuple[str, ...]
-    ) -> int:
+    def index(self, path: Tuple[str, ...]) -> int:
         """
         Retrieve the index of a given path in the model
         """
@@ -369,9 +303,7 @@ class AbstractPriorModel(AbstractModel):
         """
         Implements the same interface as the graphical code
         """
-        return MeanField(
-            self
-        )
+        return MeanField(self)
 
     @classmethod
     def from_json(cls, file: str):
@@ -434,18 +366,14 @@ class AbstractPriorModel(AbstractModel):
             obj.__init__(t, **kwargs)
         elif isinstance(t, list) or isinstance(t, dict):
             from autofit.mapper.prior_model import collection
-            obj = object.__new__(
-                collection.CollectionPriorModel
-            )
+
+            obj = object.__new__(collection.CollectionPriorModel)
             obj.__init__(t)
         else:
             obj = t
         return obj
 
-    def take_attributes(
-            self,
-            source: object
-    ):
+    def take_attributes(self, source: object):
         """
         Take all attributes with a matching path from the source prior model.
 
@@ -470,23 +398,19 @@ class AbstractPriorModel(AbstractModel):
 
         assert_no_assertions(self)
 
-        for path, _ in sum(map(
-                self.path_instance_tuples_for_class,
-                (Prior, float, TuplePrior)),
-                []
+        for path, _ in sum(
+            map(self.path_instance_tuples_for_class, (Prior, float, TuplePrior)), []
         ):
             try:
                 item = copy.copy(source)
                 if isinstance(item, dict):
-                    from autofit.mapper.prior_model.collection import CollectionPriorModel
+                    from autofit.mapper.prior_model.collection import (
+                        CollectionPriorModel,
+                    )
+
                     item = CollectionPriorModel(item)
                 for attribute in path:
-                    item = copy.copy(
-                        getattr(
-                            item,
-                            attribute
-                        )
-                    )
+                    item = copy.copy(getattr(item, attribute))
 
                 target = self
                 for attribute in path[:-1]:
@@ -518,14 +442,10 @@ class AbstractPriorModel(AbstractModel):
         exc.FitException
             If any assertion attached to this object returns False.
         """
-        exception_tuples = self.attribute_tuples_with_type(
-            ConfigException
-        )
+        exception_tuples = self.attribute_tuples_with_type(ConfigException)
         if len(exception_tuples) > 0:
             for name, exception in exception_tuples:
-                logger.exception(
-                    f"Could not load {name} because:\n\n{exception}"
-                )
+                logger.exception(f"Could not load {name} because:\n\n{exception}")
             names = [name for name, _ in exception_tuples]
             raise ConfigException(
                 f"No configuration was found for some attributes ({', '.join(names)})"
@@ -541,8 +461,7 @@ class AbstractPriorModel(AbstractModel):
                 lambda prior_tuple, unit: (
                     prior_tuple.prior,
                     prior_tuple.prior.value_for(
-                        unit,
-                        ignore_prior_limits=ignore_prior_limits,
+                        unit, ignore_prior_limits=ignore_prior_limits,
                     ),
                 ),
                 self.prior_tuples_ordered_by_id,
@@ -550,9 +469,7 @@ class AbstractPriorModel(AbstractModel):
             )
         )
 
-        return self.instance_for_arguments(
-            arguments,
-        )
+        return self.instance_for_arguments(arguments,)
 
     @property
     @cast_collection(PriorNameValue)
@@ -564,10 +481,12 @@ class AbstractPriorModel(AbstractModel):
         prior_tuple_dict: [(Prior, PriorTuple)]
             The set of all priors associated with this mapper
         """
-        return list({
-                        prior_tuple[1]: prior_tuple
-                        for prior_tuple in self.attribute_tuples_with_type(Prior)
-                    }.values())
+        return list(
+            {
+                prior_tuple[1]: prior_tuple
+                for prior_tuple in self.attribute_tuples_with_type(Prior)
+            }.values()
+        )
 
     @property
     @cast_collection(PriorNameValue)
@@ -585,15 +504,9 @@ class AbstractPriorModel(AbstractModel):
 
     @property
     def priors_ordered_by_id(self):
-        return [
-            prior for _, prior in self.prior_tuples_ordered_by_id
-        ]
+        return [prior for _, prior in self.prior_tuples_ordered_by_id]
 
-    def vector_from_unit_vector(
-            self,
-            unit_vector,
-            ignore_prior_limits=False
-    ):
+    def vector_from_unit_vector(self, unit_vector, ignore_prior_limits=False):
         """
         Parameters
         ----------
@@ -612,15 +525,16 @@ class AbstractPriorModel(AbstractModel):
         return list(
             map(
                 lambda prior_tuple, unit: prior_tuple.prior.value_for(
-                    unit,
-                    ignore_prior_limits=ignore_prior_limits
+                    unit, ignore_prior_limits=ignore_prior_limits
                 ),
                 self.prior_tuples_ordered_by_id,
                 unit_vector,
             )
         )
 
-    def random_unit_vector_within_limits(self, lower_limit: float = 0.0, upper_limit: float = 1.0) -> List[float]:
+    def random_unit_vector_within_limits(
+        self, lower_limit: float = 0.0, upper_limit: float = 1.0
+    ) -> List[float]:
         """
         Generate a random vector of unit values by drawing uniform random values between 0 and 1.
 
@@ -632,14 +546,13 @@ class AbstractPriorModel(AbstractModel):
         return [
             random.uniform(
                 max(lower_limit, prior.lower_unit_limit),
-                min(upper_limit, prior.upper_unit_limit))
+                min(upper_limit, prior.upper_unit_limit),
+            )
             for prior in self.priors_ordered_by_id
         ]
 
     def random_vector_from_priors_within_limits(
-            self,
-            lower_limit: float = 0.0,
-            upper_limit: float = 1.0
+        self, lower_limit: float = 0.0, upper_limit: float = 1.0
     ) -> List[float]:
         """
         Returns a random vector of physical values by drawing uniform random values between lower and upper limits
@@ -669,17 +582,14 @@ class AbstractPriorModel(AbstractModel):
         vector = []
 
         for prior in self.priors_ordered_by_id:
-            vector.append(prior.random(
-                lower_limit=lower_limit,
-                upper_limit=upper_limit,
-            ))
+            vector.append(
+                prior.random(lower_limit=lower_limit, upper_limit=upper_limit,)
+            )
 
         return vector
 
     def random_instance_from_priors_within_limits(
-            self,
-            lower_limit: float = 0.0,
-            upper_limit: float = 1.0
+        self, lower_limit: float = 0.0, upper_limit: float = 1.0
     ):
         """
         Returns a random instance of physical values by drawing uniform random values between lower and upper limits
@@ -705,8 +615,7 @@ class AbstractPriorModel(AbstractModel):
         """
 
         vector = self.random_vector_from_priors_within_limits(
-            lower_limit=lower_limit,
-            upper_limit=upper_limit
+            lower_limit=lower_limit, upper_limit=upper_limit
         )
 
         return self.instance_from_vector(vector=vector)
@@ -720,7 +629,9 @@ class AbstractPriorModel(AbstractModel):
         physical_values: [float]
             A list of physical values constructed by taking random values from each prior.
         """
-        return self.random_vector_from_priors_within_limits(lower_limit=0.0, upper_limit=1.0)
+        return self.random_vector_from_priors_within_limits(
+            lower_limit=0.0, upper_limit=1.0
+        )
 
     @property
     def physical_values_from_prior_medians(self):
@@ -733,11 +644,7 @@ class AbstractPriorModel(AbstractModel):
         """
         return self.vector_from_unit_vector([0.5] * len(self.unique_prior_tuples))
 
-    def instance_from_vector(
-            self,
-            vector,
-            ignore_prior_limits=False
-    ):
+    def instance_from_vector(self, vector, ignore_prior_limits=False):
         """
         Returns a ModelInstance, which has an attribute and class instance corresponding
         to every `PriorModel` attributed to this instance.
@@ -771,27 +678,21 @@ class AbstractPriorModel(AbstractModel):
             for prior, value in arguments.items():
                 prior.assert_within_limits(value)
 
-        return self.instance_for_arguments(
-            arguments,
-        )
+        return self.instance_for_arguments(arguments,)
 
     def has_instance(self, cls) -> bool:
         """
         True iff this model contains an instance of type
         cls, recursively.
         """
-        return len(
-            self.attribute_tuples_with_type(cls)
-        ) > 0
+        return len(self.attribute_tuples_with_type(cls)) > 0
 
     def has_model(self, cls) -> bool:
         """
         True iff this model contains a PriorModel of type
         cls, recursively.
         """
-        return len(
-            self.model_tuples_with_type(cls)
-        ) > 0
+        return len(self.model_tuples_with_type(cls)) > 0
 
     def is_only_model(self, cls) -> bool:
         """
@@ -800,12 +701,11 @@ class AbstractPriorModel(AbstractModel):
         of type cls, recursively.
         """
         from .prior_model import PriorModel
+
         cls_models = self.model_tuples_with_type(cls)
         other_models = [
-            value for _, value
-            in self.attribute_tuples_with_type(
-                PriorModel
-            )
+            value
+            for _, value in self.attribute_tuples_with_type(PriorModel)
             if value.prior_count > 0
         ]
         return len(cls_models) > 0 and len(cls_models) == len(other_models)
@@ -879,13 +779,7 @@ class AbstractPriorModel(AbstractModel):
         raise NotImplementedError()
 
     def mapper_from_gaussian_tuples(
-            self,
-            tuples,
-            a=None,
-            r=None,
-            use_errors=True,
-            use_widths=True,
-            no_limits=False
+        self, tuples, a=None, r=None, use_errors=True, use_widths=True, no_limits=False
     ):
         """
         The widths of the new priors are taken from the
@@ -933,7 +827,10 @@ class AbstractPriorModel(AbstractModel):
             if name.isdigit():
                 name = self.path_for_prior(prior_tuple.prior)[-2]
 
-            width_modifier = WidthModifier.for_class_and_attribute_name(cls, name)
+            width_modifier = (
+                prior.width_modifier
+                or WidthModifier.for_class_and_attribute_name(cls, name)
+            )
 
             if a is not None and r is not None:
                 raise exc.PriorException(
@@ -950,10 +847,7 @@ class AbstractPriorModel(AbstractModel):
                 limits = (float("-inf"), float("inf"))
             else:
                 try:
-                    limits = Limits.for_class_and_attributes_name(
-                        cls,
-                        name
-                    )
+                    limits = Limits.for_class_and_attributes_name(cls, name)
                 except ConfigException:
                     limits = prior.limits
 
@@ -964,22 +858,18 @@ class AbstractPriorModel(AbstractModel):
             elif use_errors and use_widths:
                 sigma = max(tuples[i][1], width)
             else:
-                raise exc.PriorException("use_passed_errors and use_widths are both False, meaning there is no "
-                                         "way to pass priors to set up the new model's Gaussian Priors.")
+                raise exc.PriorException(
+                    "use_passed_errors and use_widths are both False, meaning there is no "
+                    "way to pass priors to set up the new model's Gaussian Priors."
+                )
 
-            new_prior = GaussianPrior(
-                mean,
-                sigma,
-                *limits
-            )
+            new_prior = GaussianPrior(mean, sigma, *limits)
             new_prior.id = prior.id
             arguments[prior] = new_prior
 
         return self.mapper_from_prior_arguments(arguments)
 
-    def with_limits(
-            self, limits: List[Tuple[float, float]]
-    ) -> "AbstractPriorModel":
+    def with_limits(self, limits: List[Tuple[float, float]]) -> "AbstractPriorModel":
         """
         Create a new instance of this model where each prior is updated to
         lie between new limits.
@@ -993,12 +883,12 @@ class AbstractPriorModel(AbstractModel):
         -------
         A new model with updated limits
         """
-        return self.mapper_from_prior_arguments({
-            prior: prior.with_limits(*prior_limits)
-            for prior, prior_limits in zip(
-                self.priors_ordered_by_id, limits
-            )
-        })
+        return self.mapper_from_prior_arguments(
+            {
+                prior: prior.with_limits(*prior_limits)
+                for prior, prior_limits in zip(self.priors_ordered_by_id, limits)
+            }
+        )
 
     def instance_from_prior_medians(self, ignore_prior_limits=False):
         """
@@ -1009,12 +899,12 @@ class AbstractPriorModel(AbstractModel):
             A list of physical values
         """
         return self.instance_from_unit_vector(
-            unit_vector=[0.5] * self.prior_count, ignore_prior_limits=ignore_prior_limits
+            unit_vector=[0.5] * self.prior_count,
+            ignore_prior_limits=ignore_prior_limits,
         )
 
     def log_prior_list_from_vector(
-            self,
-            vector: [float],
+        self, vector: [float],
     ):
         """
         Compute the log priors of every parameter in a vector, using the Prior of every parameter.
@@ -1030,7 +920,9 @@ class AbstractPriorModel(AbstractModel):
         """
         return list(
             map(
-                lambda prior_tuple, value: prior_tuple.prior.log_prior_from_value(value=value),
+                lambda prior_tuple, value: prior_tuple.prior.log_prior_from_value(
+                    value=value
+                ),
                 self.prior_tuples_ordered_by_id,
                 vector,
             )
@@ -1044,12 +936,11 @@ class AbstractPriorModel(AbstractModel):
         if ignore_prior_limits:
             return self.instance_from_unit_vector(
                 unit_vector=[random.random() for _ in range(self.prior_count)],
-                ignore_prior_limits=ignore_prior_limits
+                ignore_prior_limits=ignore_prior_limits,
             )
-        return self.instance_for_arguments({
-            prior: prior.random()
-            for prior in self.priors
-        })
+        return self.instance_for_arguments(
+            {prior: prior.random() for prior in self.priors}
+        )
 
     @staticmethod
     @DynamicRecursionCache()
@@ -1068,6 +959,7 @@ class AbstractPriorModel(AbstractModel):
             A concrete child of an abstract prior model
         """
         from autofit.mapper.prior_model import collection
+
         if isinstance(instance, (Prior, AbstractPriorModel)):
             return instance
         elif isinstance(instance, list):
@@ -1079,6 +971,7 @@ class AbstractPriorModel(AbstractModel):
             )
         elif isinstance(instance, model.ModelInstance):
             from autofit.mapper import model_mapper
+
             result = model_mapper.ModelMapper()
             for key, value in instance.dict.items():
                 setattr(
@@ -1097,10 +990,7 @@ class AbstractPriorModel(AbstractModel):
                     for key, value in instance.items()
                 }
             )
-        elif isinstance(
-                instance,
-                (np.ndarray, types.FunctionType)
-        ):
+        elif isinstance(instance, (np.ndarray, types.FunctionType)):
             return instance
         else:
             from .prior_model import PriorModel
@@ -1124,10 +1014,10 @@ class AbstractPriorModel(AbstractModel):
 
     def items(self):
         return (
-                self.direct_prior_tuples
-                + self.direct_instance_tuples
-                + self.direct_prior_model_tuples
-                + self.direct_tuple_priors
+            self.direct_prior_tuples
+            + self.direct_instance_tuples
+            + self.direct_prior_model_tuples
+            + self.direct_tuple_priors
         )
 
     @property
@@ -1189,15 +1079,12 @@ class AbstractPriorModel(AbstractModel):
         priors: [(String, Prior))]
         """
         # noinspection PyUnresolvedReferences
-        return self.attribute_tuples_with_type(
-            Prior,
-            ignore_children=True
-        )
+        return self.attribute_tuples_with_type(Prior, ignore_children=True)
 
     def __eq__(self, other):
         return (
-                isinstance(other, AbstractPriorModel)
-                and self.direct_prior_model_tuples == other.direct_prior_model_tuples
+            isinstance(other, AbstractPriorModel)
+            and self.direct_prior_model_tuples == other.direct_prior_model_tuples
         )
 
     @property
@@ -1221,14 +1108,12 @@ class AbstractPriorModel(AbstractModel):
         return d
 
     def _instance_for_arguments(
-            self,
-            arguments: Dict[Prior, float],
+        self, arguments: Dict[Prior, float],
     ):
         raise NotImplementedError()
 
     def instance_for_arguments(
-            self,
-            arguments,
+        self, arguments,
     ):
         """
         Returns an instance of the model for a set of arguments
@@ -1243,14 +1128,9 @@ class AbstractPriorModel(AbstractModel):
             An instance of the class
         """
         logger.debug(f"Creating an instance for arguments")
-        return self._instance_for_arguments(
-            arguments,
-        )
+        return self._instance_for_arguments(arguments,)
 
-    def path_for_name(
-            self,
-            name: str
-    ) -> Tuple[str, ...]:
+    def path_for_name(self, name: str) -> Tuple[str, ...]:
         """
         Find the path to a prior in the model that matches
         a given name.
@@ -1279,14 +1159,7 @@ class AbstractPriorModel(AbstractModel):
         """
 
         def _explode_path(path_):
-            return tuple(
-                string
-                for part in path_
-                for string
-                in part.split(
-                    "_"
-                )
-            )
+            return tuple(string for part in path_ for string in part.split("_"))
 
         exploded = tuple(name.split("_"))
         for path, _ in self.path_priors_tuples:
@@ -1294,23 +1167,16 @@ class AbstractPriorModel(AbstractModel):
             if exploded_path == exploded:
                 return path
 
-        for path, prior_tuple in self.path_instance_tuples_for_class(
-                TuplePrior
-        ):
+        for path, prior_tuple in self.path_instance_tuples_for_class(TuplePrior):
             for name, prior in prior_tuple.prior_tuples:
                 total_path = path[:-1] + (name,)
-                exploded_path = _explode_path(
-                    total_path
-                )
+                exploded_path = _explode_path(total_path)
                 if exploded_path == exploded:
                     return path + (name,)
-        raise AssertionError(
-            f"No path was found matching {name}"
-        )
+        raise AssertionError(f"No path was found matching {name}")
 
     def instance_from_prior_name_arguments(
-            self,
-            prior_name_arguments: Dict[str, float]
+        self, prior_name_arguments: Dict[str, float]
     ):
         """
         Instantiate the model from the names of priors and
@@ -1327,16 +1193,14 @@ class AbstractPriorModel(AbstractModel):
         -------
         An instance of the model
         """
-        return self.instance_from_path_arguments({
-            self.path_for_name(name): value
-            for name, value
-            in prior_name_arguments.items()
-        })
+        return self.instance_from_path_arguments(
+            {
+                self.path_for_name(name): value
+                for name, value in prior_name_arguments.items()
+            }
+        )
 
-    def instance_from_path_arguments(
-            self,
-            path_arguments: Dict[Tuple[str], float]
-    ):
+    def instance_from_path_arguments(self, path_arguments: Dict[Tuple[str], float]):
         """
         Create an instance from a dictionary mapping paths to tuples
         to corresponding values.
@@ -1354,15 +1218,9 @@ class AbstractPriorModel(AbstractModel):
         An instance of the model
         """
         arguments = {
-            self.object_for_path(
-                path
-            ): value
-            for path, value
-            in path_arguments.items()
+            self.object_for_path(path): value for path, value in path_arguments.items()
         }
-        return self._instance_for_arguments(
-            arguments
-        )
+        return self._instance_for_arguments(arguments)
 
     @property
     def prior_count(self) -> int:
@@ -1377,16 +1235,10 @@ class AbstractPriorModel(AbstractModel):
 
     @property
     def _prior_id_map(self):
-        return {
-            prior.id: prior
-            for prior
-            in self.priors
-        }
+        return {prior.id: prior for prior in self.priors}
 
     def prior_with_id(self, prior_id):
-        return self._prior_id_map[
-            prior_id
-        ]
+        return self._prior_id_map[prior_id]
 
     def name_for_prior(self, prior):
         for prior_model_name, prior_model in self.direct_prior_model_tuples:
@@ -1446,16 +1298,9 @@ class AbstractPriorModel(AbstractModel):
         A list of paths to all the priors in the model, ordered by their
         ids
         """
-        return [
-            path
-            for path, _
-            in self.path_priors_tuples
-        ]
+        return [path for path, _ in self.path_priors_tuples]
 
-    def sort_priors_alphabetically(
-            self,
-            priors: Iterable[Prior]
-    ) -> List[Prior]:
+    def sort_priors_alphabetically(self, priors: Iterable[Prior]) -> List[Prior]:
         """
         Sort priors by their paths according to this model.
 
@@ -1468,10 +1313,7 @@ class AbstractPriorModel(AbstractModel):
         -------
         Those priors sorted alphabetically by path.
         """
-        return sorted(
-            priors,
-            key=lambda prior: self.path_for_prior(prior)
-        )
+        return sorted(priors, key=lambda prior: self.path_for_prior(prior))
 
     def path_for_prior(self, prior: Prior) -> Optional[Path]:
         """
@@ -1511,18 +1353,11 @@ class AbstractPriorModel(AbstractModel):
 
     @property
     def unique_prior_paths(self):
-        return [
-            item[0] for item in
-            self.unique_path_prior_tuples
-        ]
+        return [item[0] for item in self.unique_path_prior_tuples]
 
     @property
     def unique_path_prior_tuples(self):
-        unique = {
-            item[1]: item
-            for item
-            in self.path_priors_tuples
-        }.values()
+        unique = {item[1]: item for item in self.path_priors_tuples}.values()
         return sorted(unique, key=lambda item: item[1].id)
 
     @property
@@ -1543,7 +1378,8 @@ class AbstractPriorModel(AbstractModel):
 
     def log_prior_list_from(self, parameter_lists: List[List]) -> List:
         return [
-            sum(self.log_prior_list_from_vector(vector=vector)) for vector in parameter_lists
+            sum(self.log_prior_list_from_vector(vector=vector))
+            for vector in parameter_lists
         ]
 
     @property
@@ -1554,23 +1390,20 @@ class AbstractPriorModel(AbstractModel):
         This information is extracted from each priors *model_info* property.
         """
 
-        formatter = TextFormatter(
-            line_length=info_whitespace()
-        )
+        formatter = TextFormatter(line_length=info_whitespace())
 
         for t in self.path_instance_tuples_for_class(
-                (
-                        Prior, float, tuple
-                ),
-                ignore_children=True
+            (Prior, float, tuple), ignore_children=True
         ):
             formatter.add(*t)
 
-        return '\n\n'.join([
-            f"Total Free Parameters = {self.prior_count}",
-            f"{self.parameterization}",
-            formatter.text
-        ])
+        return "\n\n".join(
+            [
+                f"Total Free Parameters = {self.prior_count}",
+                f"{self.parameterization}",
+                formatter.text,
+            ]
+        )
 
     @property
     def order_no(self) -> str:
@@ -1586,10 +1419,7 @@ class AbstractPriorModel(AbstractModel):
         values = [
             str(float(value))
             for _, value in sorted(
-                self.path_instance_tuples_for_class((
-                    Prior, float
-                )),
-                key=lambda t: t[0]
+                self.path_instance_tuples_for_class((Prior, float)), key=lambda t: t[0]
             )
         ]
         return ":".join(values)
@@ -1602,23 +1432,14 @@ class AbstractPriorModel(AbstractModel):
         """
         from .prior_model import PriorModel
 
-        formatter = TextFormatter(
-            line_length=info_whitespace()
-        )
+        formatter = TextFormatter(line_length=info_whitespace())
 
         for t in self.path_instance_tuples_for_class(
-                (
-                        Prior,
-                        float,
-                        tuple,
-                ),
-                ignore_children=True
+            (Prior, float, tuple,), ignore_children=True
         ):
             for i in range(len(t[0])):
                 path = t[0][:i]
-                obj = self.object_for_path(
-                    path
-                )
+                obj = self.object_for_path(path)
                 if isinstance(obj, TuplePrior):
                     continue
                 if isinstance(obj, AbstractPriorModel):
@@ -1630,9 +1451,7 @@ class AbstractPriorModel(AbstractModel):
                 else:
                     name = type(obj).__name__
 
-                formatter.add(
-                    ("model",) + path, f"{name} (N={n})"
-                )
+                formatter.add(("model",) + path, f"{name} (N={n})")
 
         return formatter.text
 
@@ -1656,12 +1475,8 @@ class AbstractPriorModel(AbstractModel):
         for path, prior in self.path_priors_tuples:
             prior_paths_dict[prior] += (path,)
         return sorted(
-            [
-                (paths, prior)
-                for prior, paths
-                in prior_paths_dict.items()
-            ],
-            key=lambda item: item[1].id
+            [(paths, prior) for prior, paths in prior_paths_dict.items()],
+            key=lambda item: item[1].id,
         )
 
     @property
@@ -1682,15 +1497,8 @@ class AbstractPriorModel(AbstractModel):
         """
         path_modifier = TuplePathModifier(self)
         return [
-            (
-                tuple(
-                    "_".join(path_modifier(path))
-                    for path in paths
-                ),
-                prior
-            )
-            for paths, prior
-            in self.all_paths_prior_tuples
+            (tuple("_".join(path_modifier(path)) for path in paths), prior)
+            for paths, prior in self.all_paths_prior_tuples
         ]
 
     @property
@@ -1701,20 +1509,11 @@ class AbstractPriorModel(AbstractModel):
         model_mapper. Latex tags are properties of each model class."""
         prior_paths = self.unique_prior_paths
 
-        tuple_filter = TuplePathModifier(
-            self
-        )
+        tuple_filter = TuplePathModifier(self)
 
-        prior_paths = list(map(
-            tuple_filter,
-            prior_paths
-        ))
+        prior_paths = list(map(tuple_filter, prior_paths))
 
-        return [
-            "_".join(path)
-            for path
-            in prior_paths
-        ]
+        return ["_".join(path) for path in prior_paths]
 
     @property
     def parameter_names(self) -> List[str]:
@@ -1741,7 +1540,9 @@ class AbstractPriorModel(AbstractModel):
         parameter_labels = []
 
         for parameter_name in self.parameter_names:
-            parameter_label = frm.convert_name_to_label(parameter_name=parameter_name, name_to_label=True)
+            parameter_label = frm.convert_name_to_label(
+                parameter_name=parameter_name, name_to_label=True
+            )
             parameter_labels.append(parameter_label)
 
         return parameter_labels
@@ -1768,27 +1569,17 @@ class AbstractPriorModel(AbstractModel):
 
         prior_paths = self.unique_prior_paths
 
-        tuple_filter = TuplePathModifier(
-            self
-        )
+        tuple_filter = TuplePathModifier(self)
 
-        prior_paths = map(
-            tuple_filter,
-            prior_paths
-        )
+        prior_paths = map(tuple_filter, prior_paths)
 
-        superscripts = [
-            path[-2] if len(path) > 1 else path[0]
-            for path
-            in prior_paths
-        ]
+        superscripts = [path[-2] if len(path) > 1 else path[0] for path in prior_paths]
 
         return [
-            superscript
-            if not superscript_overwrite
-            else superscript_overwrite
-            for superscript, superscript_overwrite
-            in zip(superscripts, self.superscripts_overwrite_via_config)
+            superscript if not superscript_overwrite else superscript_overwrite
+            for superscript, superscript_overwrite in zip(
+                superscripts, self.superscripts_overwrite_via_config
+            )
         ]
 
     @property
@@ -1815,13 +1606,7 @@ class AbstractPriorModel(AbstractModel):
         for prior_name, prior in self.prior_tuples_ordered_by_id:
             cls = self.prior_class_dict[prior]
             try:
-                superscript = conf.instance[
-                    "notation"
-                ][
-                    "label"
-                ][
-                    "superscript"
-                ][
+                superscript = conf.instance["notation"]["label"]["superscript"][
                     cls.__name__
                 ]
 
@@ -1846,8 +1631,7 @@ class AbstractPriorModel(AbstractModel):
 
         return [
             f"{label}^{{\\rm {superscript}}}"
-            for label, superscript in
-            zip(self.parameter_labels, self.superscripts)
+            for label, superscript in zip(self.parameter_labels, self.superscripts)
         ]
 
     @property
@@ -1862,11 +1646,7 @@ class AbstractPriorModel(AbstractModel):
         cornerplot.
         """
 
-        return [
-            f"${label}$"
-            for label in
-            self.parameter_labels_with_superscripts
-        ]
+        return [f"${label}$" for label in self.parameter_labels_with_superscripts]
 
 
 def transfer_classes(instance, mapper, model_classes=None):
@@ -1889,7 +1669,7 @@ def transfer_classes(instance, mapper, model_classes=None):
         try:
             mapper_value = getattr(mapper, key)
             if isinstance(mapper_value, Prior) or isinstance(
-                    mapper_value, AnnotationPriorModel
+                mapper_value, AnnotationPriorModel
             ):
                 setattr(mapper, key, instance_value)
                 continue
