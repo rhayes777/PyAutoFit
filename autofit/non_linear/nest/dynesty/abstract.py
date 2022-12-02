@@ -276,7 +276,7 @@ class AbstractDynesty(AbstractNest, ABC):
 
         return (
             total_iterations == iterations_after_run
-            or total_iterations == self.config_dict_run["maxcall"]
+            or total_iterations == self.config_dict_run.get("maxcall")
         )
 
     def write_uses_pool(self, uses_pool: bool) -> str:
