@@ -6,11 +6,9 @@ import pytest
 
 import autofit as af
 from autoconf.conf import output_path_for_test
-from autofit import conf
 from autofit.database import Fit
 from autofit.tools.update_identifiers import (
     update_directory_identifiers,
-    update_database_identifiers,
     update_identifiers_from_dict,
 )
 
@@ -22,14 +20,6 @@ def test_directory(old_directory_paths):
     old_directory_paths.save_all()
 
     assert listdir(output_directory / "name") == [old_directory_paths.identifier]
-
-    update_directory_identifiers(output_directory)
-
-    (filename,) = listdir(output_directory / "name")
-
-    identifier, suffix = filename.split(".")
-    assert identifier != old_directory_paths.identifier
-    assert suffix == "zip"
 
 
 @pytest.fixture(name="old_directory_paths")
