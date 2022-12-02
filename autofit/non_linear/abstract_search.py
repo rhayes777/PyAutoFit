@@ -126,7 +126,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                 save_all_samples=kwargs.get("save_all_samples", False),
                 unique_tag=unique_tag,
             )
-        elif name is not None:
+        elif name is not None or path_prefix is not None:
             logger.debug("Session not found. Using directory output.")
             paths = DirectoryPaths(
                 name=name, path_prefix=path_prefix, unique_tag=unique_tag
