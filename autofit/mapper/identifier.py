@@ -3,11 +3,10 @@ from collections.abc import Iterable
 from hashlib import md5
 from typing import Optional
 
-from autoconf import conf
-# floats are rounded to this increment so floating point errors
-# have no impact on identifier value
 from autoconf.class_path import get_class_path
 
+# floats are rounded to this increment so floating point errors
+# have no impact on identifier value
 RESOLUTION = 1e-8
 
 
@@ -19,11 +18,7 @@ class IdentifierField:
     must be recomputed prior to use.
     """
 
-    def __set_name__(
-            self,
-            owner: object,
-            name: str
-    ):
+    def __set_name__(self, owner: object, name: str):
         """
         Called on instantiation
 
@@ -35,17 +30,9 @@ class IdentifierField:
             The name of the attribute
         """
         self.private = f"_{name}"
-        setattr(
-            owner,
-            self.private,
-            None
-        )
+        setattr(owner, self.private, None)
 
-    def __get__(
-            self,
-            obj: object,
-            objtype=None
-    ) -> Optional:
+    def __get__(self, obj: object, objtype=None) -> Optional:
         """
         Retrieve the value of this field.
 
@@ -59,10 +46,7 @@ class IdentifierField:
         -------
         The value (or None if it has not been set)
         """
-        return getattr(
-            obj,
-            self.private
-        )
+        return getattr(obj, self.private)
 
     def __set__(self, obj, value):
         """
@@ -76,43 +60,19 @@ class IdentifierField:
             A new value for the attribute
         """
         obj._identifier = None
-        setattr(
-            obj,
-            self.private,
-            value
-        )
+        setattr(obj, self.private, value)
 
 
 class Identifier:
-    def __init__(self, obj, version=None):
+    def __init__(self, obj):
         """
         Wraps an object and recursively generates an identifier
 
         The version can be set in general.ini (output/identifier_version). It can
         be overridden by specifying it explicitly in the constructor.
-
-        The version determines how the identifier is generated.
-
-        Version History
-        ---------------
-        1 - Original version
-        2 - Accounts for the class of objects
-        3 - Include class path to distinguish prior models
-        4 - __exclude_identifier_fields__ can be used to exclude specific fields
-
         """
-        self._identifier_version = version or conf.instance[
-            "general"
-        ][
-            "output"
-        ][
-            "identifier_version"
-        ]
-
         self.hash_list = list()
-        self._add_value_to_hash_list(
-            obj
-        )
+        self._add_value_to_hash_list(obj)
 
     @property
     def description(self):
@@ -133,122 +93,64 @@ class Identifier:
             An object
         """
         from .model_object import ModelObject
-        if self._identifier_version >= 3:
-            if inspect.isclass(value):
-                self.add_value_to_hash_list(
-                    get_class_path(value)
-                )
-                return
 
-        if isinstance(
-                value, Exception
-        ):
+        if inspect.isclass(value):
+            self.add_value_to_hash_list(get_class_path(value))
+            return
+
+        if isinstance(value, Exception):
             raise value
         if hasattr(value, "__dict__"):
-            if self._identifier_version >= 2:
-                if hasattr(value, "__class__"):
-                    self.add_value_to_hash_list(
-                        value.__class__.__name__
-                    )
+            if hasattr(value, "__class__"):
+                self.add_value_to_hash_list(value.__class__.__name__)
             d = value.__dict__
 
-            if hasattr(
-                    value,
-                    "__identifier_fields__"
-            ):
+            if hasattr(value, "__identifier_fields__"):
                 fields = value.__identifier_fields__
 
                 try:
-                    d = {
-                        k: getattr(value, k)
-                        for k in fields
-                    }
+                    d = {k: getattr(value, k) for k in fields}
                 except AttributeError as e:
                     raise AssertionError(
                         f"Missing identifier fields for {type(value)}"
                     ) from e
-            elif hasattr(
-                    value,
-                    "__class__"
-            ) and not inspect.isclass(
-                value
-            ) and not isinstance(
-                value,
-                ModelObject
+            elif (
+                hasattr(value, "__class__")
+                and not inspect.isclass(value)
+                and not isinstance(value, ModelObject)
             ):
-                args = inspect.getfullargspec(
-                    value.__class__
-                ).args
-                d = {
-                    k: v
-                    for k, v
-                    in d.items()
-                    if k in args
-                }
-                if self._identifier_version >= 4 and hasattr(
-                        value,
-                        "__exclude_identifier_fields__"
-                ):
+                args = inspect.getfullargspec(value.__class__).args
+                d = {k: v for k, v in d.items() if k in args}
+                if hasattr(value, "__exclude_identifier_fields__"):
                     excluded_fields = value.__exclude_identifier_fields__
 
-                    d = {
-                        k: v
-                        for k, v
-                        in d.items()
-                        if k not in excluded_fields
-                    }
-            self.add_value_to_hash_list(
-                d
-            )
-        elif isinstance(
-                value, dict
-        ):
+                    d = {k: v for k, v in d.items() if k not in excluded_fields}
+            self.add_value_to_hash_list(d)
+        elif isinstance(value, dict):
             for key, value in value.items():
                 if not (key.startswith("_") or key in ("id", "paths")):
                     self.hash_list.append(key)
-                    self.add_value_to_hash_list(
-                        value
-                    )
-        elif isinstance(
-                value, float
-        ):
+                    self.add_value_to_hash_list(value)
+        elif isinstance(value, float):
             try:
-                value = RESOLUTION * round(
-                    value / RESOLUTION
-                )
+                value = RESOLUTION * round(value / RESOLUTION)
             except OverflowError:
                 pass
 
-            self.hash_list.append(
-                str(value)
-            )
-        elif isinstance(
-                value,
-                (str, int, bool)
-        ):
-            self.hash_list.append(
-                str(value)
-            )
+            self.hash_list.append(str(value))
+        elif isinstance(value, (str, int, bool)):
+            self.hash_list.append(str(value))
         elif isinstance(value, Iterable):
             for value in value:
-                self.add_value_to_hash_list(
-                    value
-                )
+                self.add_value_to_hash_list(value)
 
     def add_value_to_hash_list(self, value):
-        if isinstance(
-                value,
-                property
-        ):
+        if isinstance(value, property):
             return
-        self._add_value_to_hash_list(
-            value
-        )
+        self._add_value_to_hash_list(value)
 
     def __str__(self):
-        return md5(".".join(
-            self.hash_list
-        ).encode("utf-8")).hexdigest()
+        return md5(".".join(self.hash_list).encode("utf-8")).hexdigest()
 
     def __repr__(self):
         return f"<{self.__class__.__name__} {self}>"
