@@ -865,6 +865,7 @@ class AbstractPriorModel(AbstractModel):
 
             new_prior = GaussianPrior(mean, sigma, *limits)
             new_prior.id = prior.id
+            new_prior.width_modifier = prior.width_modifier
             arguments[prior] = new_prior
 
         return self.mapper_from_prior_arguments(arguments)
