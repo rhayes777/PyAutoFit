@@ -228,7 +228,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                     If you "know what you are doing" and do not want these environment variables to be set to one, you 
                     can disable this warning by changing the following entry in the config files:
                     
-                    `config -> general.ini -> [parallel] -> warn_environment_variable=False`
+                    `config -> general.yaml -> parallel: -> warn_environment_variable=False`
                     """
                 )
             )
