@@ -39,6 +39,8 @@ class Prior(Variable, ABC, ArithmeticMixin):
                 "The upper limit of a prior must be greater than its lower limit"
             )
 
+        self.width_modifier = None
+
     @property
     def lower_unit_limit(self) -> float:
         """
@@ -91,8 +93,10 @@ class Prior(Variable, ABC, ArithmeticMixin):
         return self.message.factor
 
     def assert_within_limits(self, value):
-        if conf.instance["general"]["model"]["ignore_prior_limits"] or \
-            os.environ.get("PYAUTOFIT_TEST_MODE") == "1":
+        if (
+            conf.instance["general"]["model"]["ignore_prior_limits"]
+            or os.environ.get("PYAUTOFIT_TEST_MODE") == "1"
+        ):
             return
         if not (self.lower_limit <= value <= self.upper_limit):
             raise exc.PriorLimitException(

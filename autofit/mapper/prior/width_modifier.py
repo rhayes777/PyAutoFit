@@ -1,16 +1,15 @@
 import inspect
 import logging
 import sys
+from abc import ABC, abstractmethod
 
 from autoconf import conf
 from autoconf.exc import ConfigException
 
-logger = logging.getLogger(
-    __name__
-)
+logger = logging.getLogger(__name__)
 
 
-class WidthModifier:
+class WidthModifier(ABC):
     def __init__(self, value):
         self.value = float(value)
 
@@ -27,15 +26,16 @@ class WidthModifier:
             value=width_modifier_dict["value"]
         )
 
+    @abstractmethod
+    def __call__(self, mean):
+        pass
+
     @property
     def dict(self):
         return {"type": self.name_of_class(), "value": self.value}
 
     @staticmethod
-    def for_class_and_attribute_name(
-            cls: type,
-            attribute_name: str
-    ) -> "WidthModifier":
+    def for_class_and_attribute_name(cls: type, attribute_name: str) -> "WidthModifier":
         """
         Search prior configuration for a WidthModifier.
 
