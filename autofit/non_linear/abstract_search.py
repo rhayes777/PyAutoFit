@@ -158,20 +158,12 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                 "iterations_per_update"
             ]
 
-        self.log_every_update = self._config("updates", "log_every_update")
-        self.visualize_every_update = self._config("updates", "visualize_every_update",)
-        self.model_results_every_update = self._config(
-            "updates", "model_results_every_update",
-        )
         self.remove_state_files_at_end = self._config(
             "updates", "remove_state_files_at_end",
         )
 
         self.iterations = 0
-        self.should_visualize = IntervalCounter(self.visualize_every_update)
-        self.should_output_model_results = IntervalCounter(
-            self.model_results_every_update
-        )
+
         self.should_profile = conf.instance["general"]["profiling"]["should_profile"]
 
         self.silence = self._config("printing", "silence")
@@ -599,7 +591,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
     @property
     def config_dict_search(self) -> Dict:
 
-        config_dict = copy.copy(self._class_config["search"]._dict)
+        config_dict = copy.copy(self._class_config["search"])
 
         for key, value in config_dict.items():
             try:
@@ -612,7 +604,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
     @property
     def config_dict_run(self) -> Dict:
 
-        config_dict = copy.copy(self._class_config["run"]._dict)
+        config_dict = copy.copy(self._class_config["run"])
 
         for key, value in config_dict.items():
             try:
@@ -632,7 +624,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
     @property
     def config_dict_settings(self) -> Dict:
-        return self._class_config["settings"]._dict
+        return self._class_config["settings"]
 
     @property
     def config_type(self):
@@ -661,9 +653,6 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         1) Visualize the maximum log likelihood model.
         2) Output the model results to the model.reults file.
-
-        These task are performed every n updates, set by the relevent *task_every_update* variable, for example
-        *visualize_every_update*
 
         Parameters
         ----------
@@ -696,7 +685,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         except exc.FitException:
             return samples
 
-        if self.should_visualize() or not during_analysis:
+        if not during_analysis:
             self.logger.debug("Visualizing")
             analysis.visualize(
                 paths=self.paths, instance=instance, during_analysis=during_analysis
@@ -708,7 +697,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                 paths=self.paths, instance=instance,
             )
 
-        if self.should_output_model_results() or not during_analysis:
+        if not during_analysis:
             self.logger.debug("Outputting model result")
             try:
 

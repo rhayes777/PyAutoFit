@@ -6,7 +6,6 @@ import pytest
 
 import autofit as af
 from autoconf.conf import output_path_for_test
-from autofit import Gaussian
 from autofit import conf
 from autofit.database import Fit
 from autofit.tools.update_identifiers import (

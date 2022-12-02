@@ -42,7 +42,7 @@ class AutoCorrelationsSettings:
 
     def update_via_config(self, config):
 
-        config_dict = config._dict
+        config_dict = config
 
         self.check_for_convergence = self.check_for_convergence if self.check_for_convergence is not None else config_dict["check_for_convergence"]
         self.check_size = self.check_size or config_dict["check_size"]

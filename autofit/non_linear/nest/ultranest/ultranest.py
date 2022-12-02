@@ -106,7 +106,7 @@ class UltraNest(abstract_nest.AbstractNest):
     @property
     def config_dict_stepsampler(self):
 
-        config_dict = copy.copy(self.config_type[self.__class__.__name__]["stepsampler"]._dict)
+        config_dict = copy.copy(self.config_type[self.__class__.__name__]["stepsampler"])
 
         for key, value in config_dict.items():
             try:

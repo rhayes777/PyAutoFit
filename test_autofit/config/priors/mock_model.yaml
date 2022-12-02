@@ -1,0 +1,410 @@
+MockChildTuple:
+  tup_0:
+    gaussian_limits:
+      lower: 0.0
+      upper: 1.0
+    lower_limit: 0.0
+    type: Uniform
+    upper_limit: 1.0
+    width_modifier:
+      type: Absolute
+      value: 0.2
+  tup_1:
+    gaussian_limits:
+      lower: 0.0
+      upper: 1.0
+    lower_limit: 0.0
+    type: Uniform
+    upper_limit: 1.0
+    width_modifier:
+      type: Absolute
+      value: 0.2
+MockChildTuplex2:
+  one:
+    gaussian_limits:
+      lower: 0.0
+      upper: 1.0
+    lower_limit: 0.0
+    type: Uniform
+    upper_limit: 2.0
+    width_modifier:
+      type: Absolute
+      value: 0.2
+  tup_0:
+    gaussian_limits:
+      lower: 0.0
+      upper: 1.0
+    lower_limit: 0.0
+    type: Uniform
+    upper_limit: 1.0
+    width_modifier:
+      type: Absolute
+      value: 0.2
+  tup_1:
+    gaussian_limits:
+      lower: 0.0
+      upper: 1.0
+    lower_limit: 0.0
+    type: Uniform
+    upper_limit: 1.0
+    width_modifier:
+      type: Absolute
+      value: 0.2
+  two:
+    gaussian_limits:
+      lower: 0.0
+      upper: 1.0
+    lower_limit: 0.0
+    type: Uniform
+    upper_limit: 2.0
+    width_modifier:
+      type: Absolute
+      value: 0.2
+MockChildTuplex3:
+  one:
+    gaussian_limits:
+      lower: 0.0
+      upper: 1.0
+    lower_limit: 0.0
+    type: Uniform
+    upper_limit: 2.0
+    width_modifier:
+      type: Absolute
+      value: 0.2
+  three:
+    gaussian_limits:
+      lower: 0.0
+      upper: 1.0
+    lower_limit: 0.0
+    type: Uniform
+    upper_limit: 2.0
+    width_modifier:
+      type: Absolute
+      value: 0.2
+  tup_0:
+    gaussian_limits:
+      lower: 0.0
+      upper: 1.0
+    lower_limit: 0.0
+    type: Uniform
+    upper_limit: 1.0
+    width_modifier:
+      type: Absolute
+      value: 0.2
+  tup_1:
+    gaussian_limits:
+      lower: 0.0
+      upper: 1.0
+    lower_limit: 0.0
+    type: Uniform
+    upper_limit: 1.0
+    width_modifier:
+      type: Absolute
+      value: 0.2
+  two:
+    gaussian_limits:
+      lower: 0.0
+      upper: 1.0
+    lower_limit: 0.0
+    type: Uniform
+    upper_limit: 2.0
+    width_modifier:
+      type: Absolute
+      value: 0.2
+MockClassInf:
+  one:
+    gaussian_limits:
+      lower: 0.0
+      upper: 1.0
+    lower_limit: -inf
+    type: Uniform
+    upper_limit: 0.0
+    width_modifier:
+      type: Absolute
+      value: 0.2
+  two:
+    gaussian_limits:
+      lower: 0.0
+      upper: 1.0
+    lower_limit: 0.0
+    type: Uniform
+    upper_limit: inf
+    width_modifier:
+      type: Absolute
+      value: 0.2
+MockClassRelativeWidth:
+  one:
+    gaussian_limits:
+      lower: 0.0
+      upper: 1.0
+    lower_limit: 0.0
+    type: Uniform
+    upper_limit: 1.0
+    width_modifier:
+      type: Absolute
+      value: 0.1
+  three:
+    gaussian_limits:
+      lower: 0.0
+      upper: 1.0
+    lower_limit: 0.0
+    type: Uniform
+    upper_limit: 1.0
+    width_modifier:
+      type: Absolute
+      value: 1.0
+  two:
+    gaussian_limits:
+      lower: 0.0
+      upper: 1.0
+    lower_limit: 0.0
+    type: Uniform
+    upper_limit: 1.0
+    width_modifier:
+      type: Absolute
+      value: 0.5
+MockClassx2:
+  one:
+    gaussian_limits:
+      lower: 0.0
+      upper: 1.0
+    lower_limit: 0.0
+    type: Uniform
+    upper_limit: 1.0
+    width_modifier:
+      type: Absolute
+      value: 1.0
+  two:
+    gaussian_limits:
+      lower: 0.0
+      upper: 2.0
+    lower_limit: 0.0
+    type: Uniform
+    upper_limit: 2.0
+    width_modifier:
+      type: Absolute
+      value: 2.0
+MockClassx2FormatExp:
+  one:
+    gaussian_limits:
+      lower: 0.0
+      upper: 1.0
+    lower_limit: 0.0
+    type: Uniform
+    upper_limit: 1.0
+    width_modifier:
+      type: Absolute
+      value: 1.0
+  two_exp:
+    gaussian_limits:
+      lower: 0.0
+      upper: 2.0
+    lower_limit: 0.0
+    type: Uniform
+    upper_limit: 2.0
+    width_modifier:
+      type: Absolute
+      value: 2.0
+MockClassx2NoSuperScript:
+  one:
+    gaussian_limits:
+      lower: 0.0
+      upper: 1.0
+    lower_limit: 0.0
+    type: Uniform
+    upper_limit: 1.0
+    width_modifier:
+      type: Absolute
+      value: 1.0
+  two:
+    gaussian_limits:
+      lower: 0.0
+      upper: 2.0
+    lower_limit: 0.0
+    type: Uniform
+    upper_limit: 2.0
+    width_modifier:
+      type: Absolute
+      value: 2.0
+MockClassx2Tuple:
+  one_tuple_0:
+    gaussian_limits:
+      lower: 0.0
+      upper: 1.0
+    lower_limit: 0.0
+    type: Uniform
+    upper_limit: 1.0
+    width_modifier:
+      type: Absolute
+      value: 0.2
+  one_tuple_1:
+    gaussian_limits:
+      lower: 0.0
+      upper: 2.0
+    lower_limit: 0.0
+    type: Uniform
+    upper_limit: 2.0
+    width_modifier:
+      type: Absolute
+      value: 0.2
+MockClassx3TupleFloat:
+  one_tuple_0:
+    gaussian_limits:
+      lower: 0.0
+      upper: 1.0
+    lower_limit: 0.0
+    type: Uniform
+    upper_limit: 1.0
+    width_modifier:
+      type: Absolute
+      value: 0.2
+  one_tuple_1:
+    gaussian_limits:
+      lower: 0.0
+      upper: 2.0
+    lower_limit: 0.0
+    type: Uniform
+    upper_limit: 2.0
+    width_modifier:
+      type: Absolute
+      value: 0.2
+  two:
+    gaussian_limits:
+      lower: 0.0
+      upper: 2.0
+    lower_limit: 0.0
+    type: Uniform
+    upper_limit: 2.0
+    width_modifier:
+      type: Absolute
+      value: 0.2
+MockClassx4:
+  four:
+    gaussian_limits:
+      lower: -120.0
+      upper: 120.0
+    lower_limit: -120.0
+    type: Uniform
+    upper_limit: 120.0
+    width_modifier:
+      type: Absolute
+      value: 2.0
+  one:
+    gaussian_limits:
+      lower: -120.0
+      upper: 120.0
+    lower_limit: -120.0
+    type: Uniform
+    upper_limit: 120.0
+    width_modifier:
+      type: Absolute
+      value: 1.0
+  three:
+    gaussian_limits:
+      lower: -120.0
+      upper: 120.0
+    lower_limit: -120.0
+    type: Uniform
+    upper_limit: 120.0
+    width_modifier:
+      type: Absolute
+      value: 2.0
+  two:
+    gaussian_limits:
+      lower: -120.0
+      upper: 120.0
+    lower_limit: -120.0
+    type: Uniform
+    upper_limit: 120.0
+    width_modifier:
+      type: Absolute
+      value: 2.0
+MockComponents:
+  parameter:
+    gaussian_limits:
+      lower: 0.0
+      upper: 1.0
+    lower_limit: 0.0
+    type: Uniform
+    upper_limit: 1.0
+    width_modifier:
+      type: Absolute
+      value: 0.2
+MockDeferredClass:
+  one:
+    lower_limit: 0.0
+    type: Uniform
+    upper_limit: 1.0
+  two:
+    type: Deferred
+MockDistanceClass:
+  one:
+    gaussian_limits:
+      lower: 0.0
+      upper: 1.0
+    lower_limit: 0.0
+    type: Uniform
+    upper_limit: 1.0
+    width_modifier:
+      type: Absolute
+      value: 0.2
+  two:
+    gaussian_limits:
+      lower: 0.0
+      upper: 1.0
+    lower_limit: 0.0
+    type: Uniform
+    upper_limit: 1.0
+    width_modifier:
+      type: Absolute
+      value: 0.2
+MockOverload:
+  one:
+    lower_limit: 0.0
+    type: Uniform
+    upper_limit: 2.0
+  two:
+    lower_limit: 0.0
+    type: Uniform
+    upper_limit: 2.0
+MockPositionClass:
+  position_0:
+    lower_limit: 0.0
+    type: Uniform
+    upper_limit: 1.0
+  position_1:
+    lower_limit: 0.0
+    type: Uniform
+    upper_limit: 1.0
+MockWithFloat:
+  value:
+    gaussian_limits:
+      lower: 0.0
+      upper: 1.0
+    lower_limit: 0.0
+    type: Uniform
+    upper_limit: 1.0
+    width_modifier:
+      type: Absolute
+      value: 0.2
+MockWithTuple:
+  tup_0:
+    gaussian_limits:
+      lower: 0.0
+      upper: 1.0
+    lower_limit: 0.0
+    type: Uniform
+    upper_limit: 1.0
+    width_modifier:
+      type: Absolute
+      value: 0.2
+  tup_1:
+    gaussian_limits:
+      lower: 0.0
+      upper: 1.0
+    lower_limit: 0.0
+    type: Uniform
+    upper_limit: 1.0
+    width_modifier:
+      type: Absolute
+      value: 0.2
