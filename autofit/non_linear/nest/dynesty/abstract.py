@@ -19,8 +19,7 @@ from autofit import exc
 
 def prior_transform(cube, model):
     phys_cube = model.vector_from_unit_vector(
-        unit_vector=cube,
-        ignore_prior_limits=True
+        unit_vector=cube, ignore_prior_limits=True
     )
 
     for i in range(len(phys_cube)):
@@ -30,17 +29,16 @@ def prior_transform(cube, model):
 
 
 class AbstractDynesty(AbstractNest, ABC):
-
     def __init__(
-            self,
-            name: str = "",
-            path_prefix: str = "",
-            unique_tag: Optional[str] = None,
-            prior_passer: PriorPasser = None,
-            iterations_per_update: int = None,
-            number_of_cores: int = None,
-            session: Optional[sa.orm.Session] = None,
-            **kwargs
+        self,
+        name: str = "",
+        path_prefix: str = "",
+        unique_tag: Optional[str] = None,
+        prior_passer: PriorPasser = None,
+        iterations_per_update: int = None,
+        number_of_cores: int = None,
+        session: Optional[sa.orm.Session] = None,
+        **kwargs,
     ):
         """
         A Dynesty non-linear search.
@@ -85,7 +83,7 @@ class AbstractDynesty(AbstractNest, ABC):
             iterations_per_update=iterations_per_update,
             number_of_cores=number_of_cores,
             session=session,
-            **kwargs
+            **kwargs,
         )
 
         self.logger.debug(f"Creating {self.__class__.__name__} Search")
@@ -105,10 +103,10 @@ class AbstractDynesty(AbstractNest, ABC):
             pass
 
     def _fit(
-            self,
-            model: AbstractPriorModel,
-            analysis,
-            log_likelihood_cap: Optional[float] = None
+        self,
+        model: AbstractPriorModel,
+        analysis,
+        log_likelihood_cap: Optional[float] = None,
     ):
         """
         Fit a model using Dynesty and the Analysis class which contains the data and returns the log likelihood from
@@ -140,15 +138,17 @@ class AbstractDynesty(AbstractNest, ABC):
         """
 
         fitness_function = self.fitness_function_from_model_and_analysis(
-            model=model,
-            analysis=analysis,
-            log_likelihood_cap=log_likelihood_cap,
+            model=model, analysis=analysis, log_likelihood_cap=log_likelihood_cap,
         )
 
         if os.path.exists(self.checkpoint_file):
-            self.logger.info("Existing Dynesty samples found, resuming non-linear search.")
+            self.logger.info(
+                "Existing Dynesty samples found, resuming non-linear search."
+            )
         else:
-            self.logger.info("No Dynesty samples found, beginning new non-linear search. ")
+            self.logger.info(
+                "No Dynesty samples found, beginning new non-linear search. "
+            )
 
         finished = False
 
@@ -158,15 +158,17 @@ class AbstractDynesty(AbstractNest, ABC):
 
             try:
 
-                if conf.instance["non_linear"]["nest"][self.__class__.__name__]["parallel"]["force_x1_cpu"]:
+                if conf.instance["non_linear"]["nest"][self.__class__.__name__][
+                    "parallel"
+                ]["force_x1_cpu"]:
                     raise RuntimeError
 
                 with Pool(
-                        njobs=self.number_of_cores,
-                        loglike=fitness_function,
-                        prior_transform=prior_transform,
-                        logl_args=(model, fitness_function),
-                        ptform_args=(model,)
+                    njobs=self.number_of_cores,
+                    loglike=fitness_function,
+                    prior_transform=prior_transform,
+                    logl_args=(model, fitness_function),
+                    ptform_args=(model,),
                 ) as pool:
 
                     sampler = self.sampler_from(
@@ -198,14 +200,16 @@ class AbstractDynesty(AbstractNest, ABC):
                     fitness_function=fitness_function,
                     checkpoint_exists=checkpoint_exists,
                     pool=None,
-                    queue_size=None
+                    queue_size=None,
                 )
 
                 finished = self.run_sampler(sampler=sampler)
 
             self.perform_update(model=model, analysis=analysis, during_analysis=True)
 
-    def iterations_from(self, sampler: Union[NestedSampler, DynamicNestedSampler]) -> Tuple[int, int]:
+    def iterations_from(
+        self, sampler: Union[NestedSampler, DynamicNestedSampler]
+    ) -> Tuple[int, int]:
         """
         Returns the next number of iterations that a dynesty call will use and the total number of iterations
         that have been performed so far.
@@ -229,7 +233,7 @@ class AbstractDynesty(AbstractNest, ABC):
         except AttributeError:
             total_iterations = 0
 
-        if self.config_dict_run["maxcall"] is not None:
+        if self.config_dict_run.get("maxcall") is not None:
             iterations = self.config_dict_run["maxcall"] - total_iterations
 
             return iterations, total_iterations
@@ -265,14 +269,17 @@ class AbstractDynesty(AbstractNest, ABC):
                 maxcall=iterations,
                 print_progress=not self.silence,
                 checkpoint_file=self.checkpoint_file,
-                **config_dict_run
+                **config_dict_run,
             )
 
         iterations_after_run = np.sum(sampler.results.ncall)
 
-        return total_iterations == iterations_after_run or total_iterations == self.config_dict_run["maxcall"]
+        return (
+            total_iterations == iterations_after_run
+            or total_iterations == self.config_dict_run["maxcall"]
+        )
 
-    def write_uses_pool(self, uses_pool : bool) -> str:
+    def write_uses_pool(self, uses_pool: bool) -> str:
         """
         If a Dynesty fit does not use a parallel pool, and is then resumed using one,
         this causes significant slow down.
@@ -310,11 +317,7 @@ class AbstractDynesty(AbstractNest, ABC):
             "maxcall": 1,
         }
 
-    def live_points_init_from(
-            self,
-            model,
-            fitness_function
-    ):
+    def live_points_init_from(self, model, fitness_function):
         """
         By default, dynesty live points are generated via the sampler's in-built initialization.
 
@@ -332,14 +335,22 @@ class AbstractDynesty(AbstractNest, ABC):
         """
         if os.environ.get("PYAUTOFIT_TEST_MODE") == "1":
 
-            unit_parameters, parameters, log_likelihood_list = self.initializer.samples_from_model(
+            (
+                unit_parameters,
+                parameters,
+                log_likelihood_list,
+            ) = self.initializer.samples_from_model(
                 total_points=self.total_live_points,
                 model=model,
                 fitness_function=fitness_function,
             )
 
-            init_unit_parameters = np.zeros(shape=(self.total_live_points, model.prior_count))
-            init_parameters = np.zeros(shape=(self.total_live_points, model.prior_count))
+            init_unit_parameters = np.zeros(
+                shape=(self.total_live_points, model.prior_count)
+            )
+            init_parameters = np.zeros(
+                shape=(self.total_live_points, model.prior_count)
+            )
             init_log_likelihood_list = np.zeros(shape=(self.total_live_points))
 
             for i in range(len(parameters)):
@@ -347,7 +358,11 @@ class AbstractDynesty(AbstractNest, ABC):
                 init_parameters[i, :] = np.asarray(parameters[i])
                 init_log_likelihood_list[i] = np.asarray(log_likelihood_list[i])
 
-            live_points = [init_unit_parameters, init_parameters, init_log_likelihood_list]
+            live_points = [
+                init_unit_parameters,
+                init_parameters,
+                init_log_likelihood_list,
+            ]
 
             blobs = np.asarray(self.total_live_points * [False])
 
@@ -356,16 +371,16 @@ class AbstractDynesty(AbstractNest, ABC):
             return live_points
 
     def sampler_from(
-            self,
-            model: AbstractPriorModel,
-            fitness_function,
-            checkpoint_exists : bool,
-            pool: Optional["Pool"],
-            queue_size: Optional[int]
+        self,
+        model: AbstractPriorModel,
+        fitness_function,
+        checkpoint_exists: bool,
+        pool: Optional["Pool"],
+        queue_size: Optional[int],
     ):
         raise NotImplementedError()
 
-    def check_pool(self, uses_pool : bool, pool: Pool):
+    def check_pool(self, uses_pool: bool, pool: Pool):
 
         if (uses_pool and pool is None) or (not uses_pool and pool is not None):
             raise exc.SearchException(
@@ -412,7 +427,9 @@ class AbstractDynesty(AbstractNest, ABC):
 
         plotter = DynestyPlotter(
             samples=samples,
-            output=Output(path=path.join(self.paths.image_path, "search"), format="png")
+            output=Output(
+                path=path.join(self.paths.image_path, "search"), format="png"
+            ),
         )
 
         if should_plot("cornerplot"):
