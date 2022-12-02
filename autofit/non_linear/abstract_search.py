@@ -33,7 +33,6 @@ from .analysis import Analysis
 from .paths.null import NullPaths
 from ..graphical.declarative.abstract import PriorFactor
 from ..graphical.expectation_propagation import AbstractFactorOptimiser
-from ..tools.util import IntervalCounter
 
 logger = logging.getLogger(__name__)
 
@@ -677,7 +676,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         self.paths.save_object("samples", samples)
 
-        if not during_analysis:
+        if not during_analysis and not isinstance(self.paths, NullPaths):
             self.plot_results(samples=samples)
 
         try:

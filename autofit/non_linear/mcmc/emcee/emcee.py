@@ -6,7 +6,6 @@ import emcee
 import numpy as np
 
 from autoconf import conf
-from autofit import exc
 from autofit.database.sqlalchemy_ import sa
 from autofit.mapper.model_mapper import ModelMapper
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
@@ -20,22 +19,20 @@ from autofit.plot.output import Output
 
 
 class Emcee(AbstractMCMC):
-    __identifier_fields__ = (
-        "nwalkers",
-    )
+    __identifier_fields__ = ("nwalkers",)
 
     def __init__(
-            self,
-            name: Optional[str] = None,
-            path_prefix: Optional[str] = None,
-            unique_tag: Optional[str] = None,
-            prior_passer: Optional[PriorPasser] = None,
-            initializer: Optional[Initializer] = None,
-            auto_correlations_settings=AutoCorrelationsSettings(),
-            iterations_per_update: int = None,
-            number_of_cores: int = None,
-            session: Optional[sa.orm.Session] = None,
-            **kwargs
+        self,
+        name: Optional[str] = None,
+        path_prefix: Optional[str] = None,
+        unique_tag: Optional[str] = None,
+        prior_passer: Optional[PriorPasser] = None,
+        initializer: Optional[Initializer] = None,
+        auto_correlations_settings=AutoCorrelationsSettings(),
+        iterations_per_update: int = None,
+        number_of_cores: int = None,
+        session: Optional[sa.orm.Session] = None,
+        **kwargs
     ):
         """
         An Emcee non-linear search.
@@ -93,7 +90,6 @@ class Emcee(AbstractMCMC):
         self.logger.debug("Creating Emcee Search")
 
     class Fitness(AbstractMCMC.Fitness):
-
         def figure_of_merit_from(self, parameter_list):
             """
             The figure of merit is the value that the `NonLinearSearch` uses to sample parameter space. `Emcee`
@@ -123,17 +119,13 @@ class Emcee(AbstractMCMC):
             model=model, analysis=analysis
         )
 
-        pool = self.make_sneaky_pool(
-            fitness_function
-        )
+        pool = self.make_sneaky_pool(fitness_function)
 
         emcee_sampler = emcee.EnsembleSampler(
             nwalkers=self.config_dict_search["nwalkers"],
             ndim=model.prior_count,
             log_prob_fn=fitness_function.__call__,
-            backend=emcee.backends.HDFBackend(
-                filename=self.backend_filename
-            ),
+            backend=emcee.backends.HDFBackend(filename=self.backend_filename),
             pool=pool,
         )
 
@@ -149,11 +141,17 @@ class Emcee(AbstractMCMC):
             else:
                 iterations_remaining = self.config_dict_run["nsteps"] - total_iterations
 
-                self.logger.info("Existing Emcee samples found, resuming non-linear search.")
+                self.logger.info(
+                    "Existing Emcee samples found, resuming non-linear search."
+                )
 
         except AttributeError:
 
-            unit_parameter_lists, parameter_lists, log_posterior_list = self.initializer.samples_from_model(
+            (
+                unit_parameter_lists,
+                parameter_lists,
+                log_posterior_list,
+            ) = self.initializer.samples_from_model(
                 total_points=emcee_sampler.nwalkers,
                 model=model,
                 fitness_function=fitness_function,
@@ -177,11 +175,11 @@ class Emcee(AbstractMCMC):
                 iterations = self.iterations_per_update
 
             for sample in emcee_sampler.sample(
-                    initial_state=emcee_state,
-                    iterations=iterations,
-                    progress=True,
-                    skip_initial_state_check=True,
-                    store=True,
+                initial_state=emcee_state,
+                iterations=iterations,
+                progress=True,
+                skip_initial_state_check=True,
+                store=True,
             ):
                 pass
 
@@ -209,14 +207,16 @@ class Emcee(AbstractMCMC):
             "nsteps": 10,
         }
 
-    def fitness_function_from_model_and_analysis(self, model, analysis, log_likelihood_cap=None):
+    def fitness_function_from_model_and_analysis(
+        self, model, analysis, log_likelihood_cap=None
+    ):
 
         return Emcee.Fitness(
             paths=self.paths,
             model=model,
             analysis=analysis,
             samples_from_model=self.samples_from,
-            log_likelihood_cap=log_likelihood_cap
+            log_likelihood_cap=log_likelihood_cap,
         )
 
     @property
@@ -232,9 +232,7 @@ class Emcee(AbstractMCMC):
         """
 
         if os.path.isfile(self.backend_filename):
-            return emcee.backends.HDFBackend(
-                filename=self.backend_filename
-            )
+            return emcee.backends.HDFBackend(filename=self.backend_filename)
         else:
             raise FileNotFoundError(
                 "The file emcee.hdf does not exist at the path "
@@ -247,17 +245,18 @@ class Emcee(AbstractMCMC):
             model=model,
             results_internal=self.backend,
             auto_correlation_settings=self.auto_correlations_settings,
-            time=self.timer.time
+            time=self.timer.time,
         )
 
     def plot_results(self, samples):
-
         def should_plot(name):
             return conf.instance["visualize"]["plots_search"]["emcee"][name]
 
         plotter = EmceePlotter(
             samples=samples,
-            output=Output(path=path.join(self.paths.image_path, "search"), format="png")
+            output=Output(
+                path=path.join(self.paths.image_path, "search"), format="png"
+            ),
         )
 
         if should_plot("corner"):
