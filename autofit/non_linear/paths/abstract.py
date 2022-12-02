@@ -328,7 +328,7 @@ class AbstractPaths(ABC):
     def _save_search(self, config_dict):
 
         with open_(path.join(self.output_path, "search.json"), "w+") as f:
-            json.dump(config_dict, f, indent=4)
+            json.dump(dict(config_dict), f, indent=4)
 
     def save_summary(self, samples, log_likelihood_function_time):
 

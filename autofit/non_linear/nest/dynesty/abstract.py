@@ -233,7 +233,7 @@ class AbstractDynesty(AbstractNest, ABC):
         except AttributeError:
             total_iterations = 0
 
-        if self.config_dict_run["maxcall"] is not None:
+        if self.config_dict_run.get("maxcall") is not None:
             iterations = self.config_dict_run["maxcall"] - total_iterations
 
             return iterations, total_iterations
@@ -260,7 +260,10 @@ class AbstractDynesty(AbstractNest, ABC):
 
         """
         config_dict_run = self.config_dict_run
-        config_dict_run.pop("maxcall")
+        try:
+            config_dict_run.pop("maxcall")
+        except KeyError:
+            pass
 
         iterations, total_iterations = self.iterations_from(sampler=sampler)
 
@@ -276,7 +279,7 @@ class AbstractDynesty(AbstractNest, ABC):
 
         return (
             total_iterations == iterations_after_run
-            or total_iterations == self.config_dict_run["maxcall"]
+            or total_iterations == self.config_dict_run.get("maxcall")
         )
 
     def write_uses_pool(self, uses_pool: bool) -> str:
