@@ -19,7 +19,7 @@ Emcee:
   run:
     nsteps: 2000
   search:
-    nwalkers: 51
+    nwalkers: 50
   updates:
     iterations_per_update: 2500
     log_every_update: 1
