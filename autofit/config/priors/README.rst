@@ -1,5 +1,5 @@
-The prior config files contain the default priors and related variables for every light profile and mass profile
-when it is used as a model.
+The prior config files contain the default priors and related variables for every model component when it is used as a
+model.
 
 They appear as follows:
 

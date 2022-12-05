@@ -19,7 +19,7 @@ Emcee:
   run:
     nsteps: 2000
   search:
-    nwalkers: 50
+    nwalkers: 51
   updates:
     iterations_per_update: 2500
     log_every_update: 1
@@ -60,7 +60,4 @@ Zeus:
     nwalkers: 50
   updates:
     iterations_per_update: 500
-    log_every_update: 1
-    model_results_every_update: 1
     remove_state_files_at_end: true
-    visualize_every_update: 1
