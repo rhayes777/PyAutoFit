@@ -1,0 +1,25 @@
+MockOptimizer:
+  initialize:
+    method: prior
+  printing:
+    silence: false
+  prior_passer:
+    sigma: 3.0
+    use_errors: true
+    use_widths: true
+  updates:
+    iterations_per_update: 2500
+    remove_state_files_at_end: true
+MockSearch:
+  initialize:
+    method: prior
+  printing:
+    silence: false
+  prior_passer:
+    sigma: 3.0
+    use_errors: true
+    use_widths: true
+  search: {}
+  updates:
+    iterations_per_update: 2500
+    remove_state_files_at_end: true
