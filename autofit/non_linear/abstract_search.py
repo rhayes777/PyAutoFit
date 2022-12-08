@@ -676,7 +676,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         self.paths.save_object("samples", samples)
 
-        if not during_analysis and not isinstance(self.paths, NullPaths):
+        if not isinstance(self.paths, NullPaths):
             self.plot_results(samples=samples)
 
         try:
@@ -684,11 +684,10 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         except exc.FitException:
             return samples
 
-        if not during_analysis:
-            self.logger.debug("Visualizing")
-            analysis.visualize(
-                paths=self.paths, instance=instance, during_analysis=during_analysis
-            )
+        self.logger.debug("Visualizing")
+        analysis.visualize(
+            paths=self.paths, instance=instance, during_analysis=during_analysis
+        )
 
         if self.should_profile:
             self.logger.debug("Profiling Maximum Likelihood Model")
@@ -696,20 +695,19 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                 paths=self.paths, instance=instance,
             )
 
-        if not during_analysis:
-            self.logger.debug("Outputting model result")
-            try:
+        self.logger.debug("Outputting model result")
+        try:
 
-                start = time.time()
-                analysis.log_likelihood_function(instance=instance)
-                log_likelihood_function_time = time.time() - start
+            start = time.time()
+            analysis.log_likelihood_function(instance=instance)
+            log_likelihood_function_time = time.time() - start
 
-                self.paths.save_summary(
-                    samples=samples,
-                    log_likelihood_function_time=log_likelihood_function_time,
-                )
-            except exc.FitException:
-                pass
+            self.paths.save_summary(
+                samples=samples,
+                log_likelihood_function_time=log_likelihood_function_time,
+            )
+        except exc.FitException:
+            pass
 
         if not during_analysis and self.remove_state_files_at_end:
             self.logger.debug("Removing state files")
