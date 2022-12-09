@@ -191,7 +191,25 @@ class AbstractPriorModel(AbstractModel):
         super().__init__(label=label)
         self._assertions = list()
 
-    def cast(self, value_dict, new_class):
+    def cast(
+        self, value_dict: Dict["AbstractModel":dict], new_class: type,
+    ) -> "AbstractPriorModel":
+        """
+        Cast models to a new type. Allows selected models in within this
+        model to be given a new type and new arguments.
+
+        Parameters
+        ----------
+        value_dict
+            A dictionary mapping models to dictionaries of argument overrides
+        new_class
+            A new class to which specified models should be converted
+
+        Returns
+        -------
+        A model where specified child models have been updated to a new class
+        and new arguments
+        """
         from .prior_model import PriorModel
 
         updated = self
@@ -213,7 +231,21 @@ class AbstractPriorModel(AbstractModel):
 
         return updated
 
-    def replacing_for_path(self, path, value):
+    def replacing_for_path(self, path: Tuple[str, ...], value) -> "AbstractModel":
+        """
+        Create a new model replacing the value for a given path with a new value
+
+        Parameters
+        ----------
+        path
+            A path indicating the sequence of names used to address an object
+        value
+            A value that should replace the object at the given path
+
+        Returns
+        -------
+        A copy of this with an updated value
+        """
         new = copy.deepcopy(self)
         obj = new
         for key in path[:-1]:
