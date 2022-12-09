@@ -192,7 +192,7 @@ class AbstractPriorModel(AbstractModel):
         self._assertions = list()
 
     def cast(
-        self, value_dict: Dict["AbstractModel":dict], new_class: type,
+        self, value_dict: Dict["AbstractModel", dict], new_class: type,
     ) -> "AbstractPriorModel":
         """
         Cast models to a new type. Allows selected models in within this
