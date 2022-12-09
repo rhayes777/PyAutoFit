@@ -12,7 +12,7 @@ from typing import Dict, Optional, Union, Tuple, List
 
 import numpy as np
 
-from autoconf import conf
+from autoconf import conf, cached_property
 from autofit import exc
 from autofit.database.sqlalchemy_ import sa
 from autofit.graphical import (
@@ -587,10 +587,10 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
     def _class_config(self) -> Dict:
         return self.config_type[self.__class__.__name__]
 
-    @property
+    @cached_property
     def config_dict_search(self) -> Dict:
 
-        config_dict = copy.copy(self._class_config["search"])
+        config_dict = copy.deepcopy(self._class_config["search"])
 
         for key, value in config_dict.items():
             try:
@@ -600,10 +600,10 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         return config_dict
 
-    @property
+    @cached_property
     def config_dict_run(self) -> Dict:
 
-        config_dict = copy.copy(self._class_config["run"])
+        config_dict = copy.deepcopy(self._class_config["run"])
 
         for key, value in config_dict.items():
             try:
