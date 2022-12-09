@@ -36,6 +36,13 @@ def test_cast(collection_a, model_a, prior):
     assert result.a.a is prior
 
 
+def test_cast_both(collection_a, model_a):
+    result = collection_a.cast({model_a: {"a": 1, "b": 2}}, B)
+
+    assert result.a.a == 1
+    assert result.a.b == 2
+
+
 def test_replace_for_path(collection_a):
     collection = collection_a.replacing_for_path(("a", "a"), 3)
     assert collection.a.a == 3
