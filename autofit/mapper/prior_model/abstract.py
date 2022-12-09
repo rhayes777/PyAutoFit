@@ -198,11 +198,11 @@ class AbstractPriorModel(AbstractModel):
 
         for path, prior_model in self.path_instance_tuples_for_class(PriorModel):
             try:
-                value_dict = value_dict[prior_model]
+                model_value_dict = value_dict[prior_model]
                 argument_dict = {
                     **dict(prior_model.direct_prior_tuples),
                     **dict(prior_model.direct_tuples_with_type(float)),
-                    **value_dict,
+                    **model_value_dict,
                 }
                 updated = updated.replacing_for_path(
                     path, PriorModel(new_class, **argument_dict)

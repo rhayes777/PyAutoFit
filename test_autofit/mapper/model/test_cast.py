@@ -29,6 +29,21 @@ def make_collection_a(model_a):
     return af.Collection(a=model_a)
 
 
+def test_cast_multiple(prior):
+    model_a_1 = af.Model(A, a=prior)
+    model_a_2 = af.Model(A, a=prior)
+
+    collection = af.Collection(a_1=model_a_1, a_2=model_a_2)
+
+    collection = collection.cast({model_a_1: {"b": 1}, model_a_2: {"b": 2}}, B)
+
+    assert collection.a_1.cls is B
+    assert collection.a_2.cls is B
+
+    assert collection.a_1.b == 1
+    assert collection.a_2.b == 2
+
+
 def test_cast(collection_a, model_a, prior):
     result = collection_a.cast({model_a: {"b": 2}}, B)
     assert result.a.cls is B
