@@ -191,6 +191,21 @@ class AbstractPriorModel(AbstractModel):
         super().__init__(label=label)
         self._assertions = list()
 
+    def cast(self, value_dict, new_class):
+        from .prior_model import PriorModel
+
+        for path, prior_model in self.path_instance_tuples_for_class(PriorModel):
+            pass
+
+    def replacing_for_path(self, path, value):
+        new = copy.deepcopy(self)
+        obj = new
+        for key in path[:-1]:
+            obj = getattr(new, key)
+
+        setattr(obj, path[-1], value)
+        return new
+
     def without_attributes(self) -> "AbstractModel":
         """
         Returns a copy of this object with all priors, prior models and
