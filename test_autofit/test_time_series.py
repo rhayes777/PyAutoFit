@@ -12,11 +12,9 @@ def test_trivial():
     assert result is instance
 
 
-@pytest.mark.parametrize(
-    "t, centre", [(0.0, -1.0), (1.0, 0.0), (1.5, 0.5), (2.0, 1.0), (3.0, 2.0)]
-)
-def test_linear(t, centre):
-    time_series = af.LinearTimeSeries(
+@pytest.fixture(name="time_series")
+def make_time_series():
+    return af.LinearTimeSeries(
         [
             af.ModelInstance(
                 items=dict(
@@ -33,9 +31,26 @@ def test_linear(t, centre):
         ]
     )
 
+
+@pytest.mark.parametrize(
+    "t, centre", [(0.0, -1.0), (1.0, 0.0), (1.5, 0.5), (2.0, 1.0), (3.0, 2.0)]
+)
+def test_linear(t, centre, time_series):
+
     result = time_series[time_series.t == t]
 
     assert result.t == t
     assert result.gaussian.centre == centre
     assert result.gaussian.normalization == t
     assert result.gaussian.sigma == -t
+
+
+@pytest.mark.parametrize("sigma", [-0.5, 0.0, 0.5, 1.0])
+def test_alternate_attribute(time_series, sigma):
+    sigma = 1.0
+
+    result = time_series[time_series.gaussian.sigma == sigma]
+
+    assert result.gaussian.sigma == sigma
+    assert result.t == -sigma
+    assert result.gaussian.normalization == -sigma
