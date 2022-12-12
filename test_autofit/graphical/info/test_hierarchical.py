@@ -19,8 +19,7 @@ def make_model_factor_2():
 
 @pytest.fixture(name="hierarchical_factor")
 def make_hierarchical_factor(
-        model_factor_1,
-        model_factor_2,
+    model_factor_1, model_factor_2,
 ):
     hierarchical_factor = g.HierarchicalFactor(
         af.GaussianPrior,
@@ -35,9 +34,7 @@ def make_hierarchical_factor(
 
 @pytest.fixture(name="hierarchical_model")
 def make_factor_graph_model(
-        model_factor_1,
-        model_factor_2,
-        hierarchical_factor,
+    model_factor_1, model_factor_2, hierarchical_factor,
 ):
     return g.FactorGraphModel(model_factor_1, model_factor_2, hierarchical_factor)
 
@@ -51,11 +48,9 @@ def make_graph(hierarchical_model):
     return hierarchical_model.graph
 
 
-@pytest.fixture(
-    autouse=True
-)
+@pytest.fixture(autouse=True)
 def reset_ids():
-    af.ModelObject._ids = itertools.count()
+    af.Prior._ids = itertools.count()
 
 
 def test_info_for_hierarchical_factor(graph):
@@ -63,8 +58,8 @@ def test_info_for_hierarchical_factor(graph):
         graph.hierarchical_factors[0]
     )
     assert (
-            info
-            == """HierarchicalFactor0
+        info
+        == """HierarchicalFactor0
 
 mean (HierarchicalFactor0, PriorFactor1)                                                  GaussianPrior [8], mean = 100, sigma = 10
 sigma (HierarchicalFactor0, PriorFactor0)                                                 GaussianPrior [9], mean = 10, sigma = 5
@@ -79,8 +74,8 @@ AnalysisFactor1.centre, PriorFactor4                                            
 def test_graph_info(graph):
     info = graph.info
     assert (
-            info
-            == """PriorFactors
+        info
+        == """PriorFactors
 
 PriorFactor0 (HierarchicalFactor0)                                                        GaussianPrior [9], mean = 10, sigma = 5
 PriorFactor1 (HierarchicalFactor0)                                                        GaussianPrior [8], mean = 100, sigma = 10

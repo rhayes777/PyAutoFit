@@ -6,17 +6,15 @@ import autofit as af
 import autofit.graphical as g
 
 
-@pytest.fixture(
-    autouse=True
-)
+@pytest.fixture(autouse=True)
 def reset_ids():
-    af.ModelObject._ids = itertools.count()
+    af.Prior._ids = itertools.count()
 
 
-def test_info(
-        model_factor
-):
-    assert model_factor.global_prior_model.info == """PriorFactors
+def test_info(model_factor):
+    assert (
+        model_factor.global_prior_model.info
+        == """PriorFactors
 
 PriorFactor0 (AnalysisFactor0.one)                                                        UniformPrior [0], lower_limit = 0.0, upper_limit = 1.0
 
@@ -25,14 +23,13 @@ AnalysisFactors
 AnalysisFactor0
 
 one (PriorFactor0)                                                                        UniformPrior [0], lower_limit = 0.0, upper_limit = 1.0"""
+    )
 
 
-def test_results(
-        model_factor
-):
-    assert model_factor.graph.make_results_text(
-        model_factor.global_prior_model
-    ) == """PriorFactors
+def test_results(model_factor):
+    assert (
+        model_factor.graph.make_results_text(model_factor.global_prior_model)
+        == """PriorFactors
 
 PriorFactor0 (AnalysisFactor0.one)                                                        0.5
 
@@ -41,32 +38,31 @@ AnalysisFactors
 AnalysisFactor0
 
 one (PriorFactor0)                                                                        0.5"""
+    )
 
 
 class TestGlobalLikelihood:
     @pytest.mark.parametrize("unit_value, likelihood", [(0.5, 0.0), (0.0, -0.25)])
     def test_single_factor(self, model_factor, unit_value, likelihood):
         assert (
-                model_factor.log_likelihood_function(
-                    model_factor.global_prior_model.instance_from_unit_vector(
-                        [unit_value],
-                        ignore_prior_limits=True,
-                    )[0]
-                )
-                == likelihood
+            model_factor.log_likelihood_function(
+                model_factor.global_prior_model.instance_from_unit_vector(
+                    [unit_value], ignore_prior_limits=True,
+                )[0]
+            )
+            == likelihood
         )
 
     @pytest.mark.parametrize("unit_value, likelihood", [(0.5, 0.0), (0.0, -0.5)])
     def test_collection(self, model_factor, unit_value, likelihood):
         collection = g.FactorGraphModel(model_factor, model_factor)
         assert (
-                collection.log_likelihood_function(
-                    collection.global_prior_model.instance_from_unit_vector(
-                        [unit_value],
-                        ignore_prior_limits=True
-                    )
+            collection.log_likelihood_function(
+                collection.global_prior_model.instance_from_unit_vector(
+                    [unit_value], ignore_prior_limits=True
                 )
-                == likelihood
+            )
+            == likelihood
         )
 
     @pytest.mark.parametrize(
@@ -76,13 +72,12 @@ class TestGlobalLikelihood:
         collection = g.FactorGraphModel(model_factor, model_factor_2)
 
         assert (
-                collection.log_likelihood_function(
-                    collection.global_prior_model.instance_from_unit_vector(
-                        unit_vector,
-                        ignore_prior_limits=True
-                    )
+            collection.log_likelihood_function(
+                collection.global_prior_model.instance_from_unit_vector(
+                    unit_vector, ignore_prior_limits=True
                 )
-                == likelihood
+            )
+            == likelihood
         )
 
     def test_global_search(self, model_factor, model_factor_2):
