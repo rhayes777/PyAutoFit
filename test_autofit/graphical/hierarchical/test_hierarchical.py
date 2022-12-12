@@ -116,7 +116,7 @@ def make_model_approx(centres, widths):
     return model_approx
 
 
-def test_simple(model_approx, centres):
+def _test_simple(model_approx, centres):
     laplace = graph.LaplaceOptimiser()
     ep_opt = graph.EPOptimiser(model_approx, default_optimiser=laplace)
     new_approx = ep_opt.run(model_approx, max_steps=20)
@@ -128,6 +128,7 @@ def test_simple(model_approx, centres):
     assert new_approx.mean_field[logt_].mean == pytest.approx(
         np.log(np.std(centres) ** -2), rel=2.0, abs=1.0
     )
+
 
 def test_hierarchical(centres, widths):
     centres_ = [Variable(f"x_{i}") for i in range(n)]

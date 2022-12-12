@@ -4,6 +4,7 @@ import pytest
 
 import autofit as af
 
+
 @pytest.fixture(name="instance_prior_model")
 def make_instance_prior_model():
     instance = af.m.MockClassx2(1.0, 2.0)
@@ -165,25 +166,29 @@ class TestSum:
         mock_components_1 = af.PriorModel(
             af.m.MockComponents,
             components_0=af.CollectionPriorModel(mock_cls_0=af.m.MockChildTuplex2),
-            components_1=af.CollectionPriorModel(
-                mock_cls_2=af.m.MockChildTuplex3
-            ),
+            components_1=af.CollectionPriorModel(mock_cls_2=af.m.MockChildTuplex3),
         )
         mock_components_2 = af.PriorModel(
             af.m.MockComponents,
             components_0=af.CollectionPriorModel(mock_cls_1=af.m.MockChildTuplex2),
-            components_1=af.CollectionPriorModel(
-                mock_cls_3=af.m.MockChildTuplex3
-            ),
+            components_1=af.CollectionPriorModel(mock_cls_3=af.m.MockChildTuplex3),
         )
 
         result = mock_components_1 + mock_components_2
 
-        assert result.components_0.mock_cls_0 == mock_components_1.components_0.mock_cls_0
-        assert result.components_0.mock_cls_1 == mock_components_2.components_0.mock_cls_1
+        assert (
+            result.components_0.mock_cls_0 == mock_components_1.components_0.mock_cls_0
+        )
+        assert (
+            result.components_0.mock_cls_1 == mock_components_2.components_0.mock_cls_1
+        )
 
-        assert result.components_1.mock_cls_2 == mock_components_1.components_1.mock_cls_2
-        assert result.components_1.mock_cls_3 == mock_components_2.components_1.mock_cls_3
+        assert (
+            result.components_1.mock_cls_2 == mock_components_1.components_1.mock_cls_2
+        )
+        assert (
+            result.components_1.mock_cls_3 == mock_components_2.components_1.mock_cls_3
+        )
 
     def test_prior_model_override(self):
         mock_components_1 = af.PriorModel(
@@ -194,9 +199,7 @@ class TestSum:
         mock_components_2 = af.PriorModel(
             af.m.MockComponents,
             components_0=af.CollectionPriorModel(light=af.m.MockChildTuplex2),
-            components_1=af.CollectionPriorModel(
-                mass=af.m.MockChildTuplex3()
-            ),
+            components_1=af.CollectionPriorModel(mass=af.m.MockChildTuplex3()),
         )
 
         result = mock_components_1 + mock_components_2
@@ -236,12 +239,6 @@ class TestHashing:
             hash(af.AnnotationPriorModel(af.m.MockClassx2, af.m.MockClassx2, "one"))
             is not None
         )
-
-    def test_prior_prior_model_hash_consecutive(self):
-        prior = af.UniformPrior(0, 1)
-        prior_model = af.AbstractPriorModel()
-
-        assert prior.id + 1 == prior_model.id
 
 
 class StringDefault:
