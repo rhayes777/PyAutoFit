@@ -47,6 +47,7 @@ def test_linear(t, centre, time_series):
 
 @pytest.mark.parametrize("sigma", [-0.5, 0.0, 0.5, 1.0])
 def test_alternate_attribute(time_series, sigma):
+
     result = time_series[time_series.gaussian.sigma == sigma]
 
     assert result.gaussian.sigma == sigma
