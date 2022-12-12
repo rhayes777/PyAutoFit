@@ -236,8 +236,8 @@ class AbstractDynesty(AbstractNest, ABC):
         if self.config_dict_run.get("maxcall") is not None:
             iterations = self.config_dict_run["maxcall"] - total_iterations
 
-            return iterations, total_iterations
-        return self.iterations_per_update, total_iterations
+            return int(iterations), int(total_iterations)
+        return self.iterations_per_update, int(total_iterations)
 
     def run_sampler(self, sampler: Union[NestedSampler, DynamicNestedSampler]):
         """
@@ -259,13 +259,10 @@ class AbstractDynesty(AbstractNest, ABC):
         -------
 
         """
-        config_dict_run = self.config_dict_run
-        try:
-            config_dict_run.pop("maxcall")
-        except KeyError:
-            pass
 
         iterations, total_iterations = self.iterations_from(sampler=sampler)
+
+        config_dict_run = {key: value for key, value in self.config_dict_run.items() if key != 'maxcall'}
 
         if iterations > 0:
             sampler.run_nested(
