@@ -37,31 +37,31 @@ def test_info(model):
         model.info
         == """PriorFactors
 
-PriorFactor0 (HierarchicalFactor0)                                                        GaussianPrior [5], mean = 1.0, sigma = 0.01
-PriorFactor1 (HierarchicalFactor0)                                                        GaussianPrior [4], mean = 0.5, sigma = 0.1
+PriorFactor0 (HierarchicalFactor0)                                                        GaussianPrior [4], mean = 1.0, sigma = 0.01
+PriorFactor1 (HierarchicalFactor0)                                                        GaussianPrior [3], mean = 0.5, sigma = 0.1
 PriorFactor2 (HierarchicalFactor0)                                                        UniformPrior [2], lower_limit = 0.0, upper_limit = 1.0
-PriorFactor3 (AnalysisFactor0.one, HierarchicalFactor0)                                   UniformPrior [0], lower_limit = 0.0, upper_limit = 1.0
+PriorFactor3 (AnalysisFactor0.one, HierarchicalFactor0)                                   UniformPrior [1], lower_limit = 0.0, upper_limit = 1.0
 
 AnalysisFactors
 
 AnalysisFactor0
 
-one (HierarchicalFactor0, PriorFactor3)                                                   UniformPrior [0], lower_limit = 0.0, upper_limit = 1.0
+one (HierarchicalFactor0, PriorFactor3)                                                   UniformPrior [1], lower_limit = 0.0, upper_limit = 1.0
 
 AnalysisFactor0
 
-one (HierarchicalFactor0, PriorFactor3)                                                   UniformPrior [0], lower_limit = 0.0, upper_limit = 1.0
+one (HierarchicalFactor0, PriorFactor3)                                                   UniformPrior [1], lower_limit = 0.0, upper_limit = 1.0
 
 HierarchicalFactors
 
 HierarchicalFactor0
 
-mean (HierarchicalFactor0, PriorFactor1)                                                  GaussianPrior [4], mean = 0.5, sigma = 0.1
-sigma (HierarchicalFactor0, PriorFactor0)                                                 GaussianPrior [5], mean = 1.0, sigma = 0.01
+mean (HierarchicalFactor0, PriorFactor1)                                                  GaussianPrior [3], mean = 0.5, sigma = 0.1
+sigma (HierarchicalFactor0, PriorFactor0)                                                 GaussianPrior [4], mean = 1.0, sigma = 0.01
 
 Drawn Variables
 
-AnalysisFactor0.one, PriorFactor3                                                         UniformPrior [0], lower_limit = 0.0, upper_limit = 1.0
+AnalysisFactor0.one, PriorFactor3                                                         UniformPrior [1], lower_limit = 0.0, upper_limit = 1.0
 PriorFactor2                                                                              UniformPrior [2], lower_limit = 0.0, upper_limit = 1.0"""
     )
 
