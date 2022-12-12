@@ -86,6 +86,7 @@ from .non_linear.samples.pdf import marginalize
 from .example.model import Gaussian
 from .text import formatter
 from .text import samples_text
+from .time_series import TimeSeries
 from .tools import util
 
 
