@@ -1,3 +1,5 @@
+import pytest
+
 import autofit as af
 
 
@@ -10,7 +12,10 @@ def test_trivial():
     assert result is instance
 
 
-def test_linear():
+@pytest.mark.parametrize(
+    "t, centre", [(0.0, -1.0), (1.0, 0.0), (1.5, 0.5), (2.0, 1.0), (3.0, 2.0),]
+)
+def test_linear(t, centre):
     time_series = af.LinearTimeSeries(
         [
             af.ModelInstance(items=dict(t=1, gaussian=af.Gaussian(centre=0.0))),
@@ -18,6 +23,6 @@ def test_linear():
         ]
     )
 
-    result = time_series[time_series.t == 1.5]
+    result = time_series[time_series.t == t]
 
-    assert result.gaussian.centre == 0.5
+    assert result.gaussian.centre == centre
