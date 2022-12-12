@@ -16,13 +16,13 @@ def test_info(model_factor):
         model_factor.global_prior_model.info
         == """PriorFactors
 
-PriorFactor0 (AnalysisFactor0.one)                                                        UniformPrior [0], lower_limit = 0.0, upper_limit = 1.0
+PriorFactor0 (AnalysisFactor0.one)                                                        UniformPrior [1], lower_limit = 0.0, upper_limit = 1.0
 
 AnalysisFactors
 
 AnalysisFactor0
 
-one (PriorFactor0)                                                                        UniformPrior [0], lower_limit = 0.0, upper_limit = 1.0"""
+one (PriorFactor0)                                                                        UniformPrior [1], lower_limit = 0.0, upper_limit = 1.0"""
     )
 
 
