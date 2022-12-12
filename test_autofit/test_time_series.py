@@ -5,7 +5,7 @@ import autofit as af
 
 def test_trivial():
     instance = af.ModelInstance(items=dict(t=1))
-    time_series = af.TimeSeries([instance])
+    time_series = af.LinearTimeSeries([instance])
 
     result = time_series[time_series.t == 1]
 
@@ -13,7 +13,7 @@ def test_trivial():
 
 
 @pytest.mark.parametrize(
-    "t, centre", [(0.0, -1.0), (1.0, 0.0), (1.5, 0.5), (2.0, 1.0), (3.0, 2.0),]
+    "t, centre", [(0.0, -1.0), (1.0, 0.0), (1.5, 0.5), (2.0, 1.0), (3.0, 2.0)]
 )
 def test_linear(t, centre):
     time_series = af.LinearTimeSeries(
