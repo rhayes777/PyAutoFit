@@ -1,5 +1,6 @@
 from typing import Optional
 
+from autoconf import cached_property
 from autofit.database.sqlalchemy_ import sa
 
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
@@ -19,15 +20,15 @@ class LBFGS(AbstractOptimizer):
     __identifier_fields__ = ()
 
     def __init__(
-            self,
-            name: Optional[str] = None,
-            path_prefix: Optional[str] = None,
-            unique_tag: Optional[str] = None,
-            prior_passer: Optional[PriorPasser] = None,
-            initializer: Optional[AbstractInitializer] = None,
-            iterations_per_update: int = None,
-            session: Optional[sa.orm.Session] = None,
-            **kwargs
+        self,
+        name: Optional[str] = None,
+        path_prefix: Optional[str] = None,
+        unique_tag: Optional[str] = None,
+        prior_passer: Optional[PriorPasser] = None,
+        initializer: Optional[AbstractInitializer] = None,
+        iterations_per_update: int = None,
+        session: Optional[sa.orm.Session] = None,
+        **kwargs
     ):
         """
         A L-BFGS scipy non-linear search.
@@ -72,10 +73,10 @@ class LBFGS(AbstractOptimizer):
 
         self.logger.debug("Creating LBFGS Search")
 
-    @property
+    @cached_property
     def config_dict_options(self):
 
-        config_dict = copy.copy(self._class_config["options"])
+        config_dict = copy.deepcopy(self._class_config["options"])
 
         for key, value in config_dict.items():
             try:
@@ -86,10 +87,10 @@ class LBFGS(AbstractOptimizer):
         return config_dict
 
     def _fit(
-            self,
-            model: AbstractPriorModel,
-            analysis: Analysis,
-            log_likelihood_cap: Optional[float] = None
+        self,
+        model: AbstractPriorModel,
+        analysis: Analysis,
+        log_likelihood_cap: Optional[float] = None,
     ):
         """
         Fit a model using the scipy L-BFGS method and the Analysis class which contains the data and returns the log
@@ -117,21 +118,27 @@ class LBFGS(AbstractOptimizer):
             x0 = self.paths.load_object("x0")
             total_iterations = self.paths.load_object("total_iterations")
 
-            self.logger.info("Existing LBGFS samples found, resuming non-linear search.")
+            self.logger.info(
+                "Existing LBGFS samples found, resuming non-linear search."
+            )
 
         else:
 
-            unit_parameter_lists, parameter_lists, log_posterior_list = self.initializer.samples_from_model(
-                total_points=1,
-                model=model,
-                fitness_function=fitness_function,
+            (
+                unit_parameter_lists,
+                parameter_lists,
+                log_posterior_list,
+            ) = self.initializer.samples_from_model(
+                total_points=1, model=model, fitness_function=fitness_function,
             )
 
             x0 = np.asarray(parameter_lists[0])
 
             total_iterations = 0
 
-            self.logger.info("No LBFGS samples found, beginning new non-linear search. ")
+            self.logger.info(
+                "No LBFGS samples found, beginning new non-linear search. "
+            )
 
         maxiter = self.config_dict_options.get("maxiter", 1e8)
 
@@ -156,18 +163,12 @@ class LBFGS(AbstractOptimizer):
 
                 total_iterations += lbfgs.nit
 
-                self.paths.save_object(
-                    "total_iterations",
-                    total_iterations
-                )
+                self.paths.save_object("total_iterations", total_iterations)
                 self.paths.save_object(
                     "log_posterior",
-                    fitness_function.log_posterior_from(parameter_list=lbfgs.x)
+                    fitness_function.log_posterior_from(parameter_list=lbfgs.x),
                 )
-                self.paths.save_object(
-                    "x0",
-                    lbfgs.x
-                )
+                self.paths.save_object("x0", lbfgs.x)
 
                 self.perform_update(
                     model=model, analysis=analysis, during_analysis=True
@@ -180,18 +181,12 @@ class LBFGS(AbstractOptimizer):
 
         self.logger.info("L-BFGS sampling complete.")
 
-    def samples_from(
-            self,
-            model: AbstractPriorModel
-    ):
+    def samples_from(self, model: AbstractPriorModel):
 
         return SamplesLBFGS.from_results_internal(
             model=model,
             results_internal=self.paths.load_object("x0"),
             log_posterior_list=np.array([self.paths.load_object("log_posterior")]),
             total_iterations=self.paths.load_object("total_iterations"),
-            time=self.timer.time
+            time=self.timer.time,
         )
-
-
-

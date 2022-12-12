@@ -1,7 +1,8 @@
+import itertools
+import os
 import random
 from abc import ABC, abstractmethod
 from copy import copy
-import os
 from typing import Union, Tuple
 
 from autoconf import conf
@@ -16,6 +17,8 @@ epsilon = 1e-14
 class Prior(Variable, ABC, ArithmeticMixin):
     __database_args__ = ("lower_limit", "upper_limit", "id_")
 
+    _ids = itertools.count()
+
     def __init__(self, message, lower_limit=0.0, upper_limit=1.0, id_=None):
         """
         An object used to mappers a unit value to an attribute value for a specific
@@ -28,6 +31,8 @@ class Prior(Variable, ABC, ArithmeticMixin):
         upper_limit: Float
             The highest value this prior can return
         """
+        if id_ is None:
+            id_ = next(self._ids)
         super().__init__(id_=id_)
         self.message = message
         message.id_ = id_

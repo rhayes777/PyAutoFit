@@ -37,7 +37,7 @@ def test__loads_from_config_file_correct():
     assert pso.prior_passer.sigma == 3.0
     assert pso.prior_passer.use_errors is True
     assert pso.prior_passer.use_widths is True
-    assert pso.config_dict_search["n_particles"] == 51
+    assert pso.config_dict_search["n_particles"] == 50
     assert pso.config_dict_search["cognitive"] == 0.1
     assert pso.config_dict_run["iters"] == 2000
     assert isinstance(pso.initializer, af.InitializerPrior)
@@ -75,12 +75,13 @@ def test__loads_from_config_file_correct():
     assert pso.prior_passer.sigma == 3.0
     assert pso.prior_passer.use_errors is True
     assert pso.prior_passer.use_widths is True
-    assert pso.config_dict_search["n_particles"] == 51
+    assert pso.config_dict_search["n_particles"] == 50
     assert pso.config_dict_search["cognitive"] == 0.1
     assert pso.config_dict_run["iters"] == 2000
     assert isinstance(pso.initializer, af.InitializerPrior)
     assert pso.iterations_per_update == 11
     assert pso.number_of_cores == 1
+
 
 def test__samples_from_model():
     pyswarms = af.PySwarmsGlobal()

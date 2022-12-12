@@ -7,19 +7,13 @@ import autofit as af
 from autofit.text import formatter as frm
 
 
-@pytest.fixture(
-    autouse=True
-)
+@pytest.fixture(autouse=True)
 def reset_ids():
-    af.ModelObject._ids = itertools.count()
+    af.Prior._ids = itertools.count()
 
 
 def test_parameterization():
-    model = af.Collection(
-        collection=af.Collection(
-            gaussian=af.Model(af.Gaussian)
-        )
-    )
+    model = af.Collection(collection=af.Collection(gaussian=af.Model(af.Gaussian)))
 
     parameterization = model.parameterization
     assert parameterization == (
@@ -33,16 +27,12 @@ def test_root():
     model = af.Model(af.Gaussian)
     parameterization = model.parameterization
     assert parameterization == (
-        'model                                                                           Gaussian (N=3)'
+        "model                                                                           Gaussian (N=3)"
     )
 
 
 def test_instance():
-    model = af.Collection(
-        collection=af.Collection(
-            gaussian=af.Gaussian()
-        )
-    )
+    model = af.Collection(collection=af.Collection(gaussian=af.Gaussian()))
 
     parameterization = model.parameterization
     assert parameterization == (
@@ -57,13 +47,10 @@ def test_tuple_prior():
     centre.centre_0 = af.UniformPrior()
     centre.centre_1 = af.UniformPrior()
 
-    model = af.Model(
-        af.Gaussian,
-        centre=centre
-    )
+    model = af.Model(af.Gaussian, centre=centre)
     parameterization = model.parameterization
     assert parameterization == (
-        'model                                                                           Gaussian (N=4)'
+        "model                                                                           Gaussian (N=4)"
     )
 
 
@@ -97,15 +84,15 @@ class TestGenerateModelInfo:
         model_info = mm.info
 
         assert (
-                model_info
-                == """Total Free Parameters = 2
+            model_info
+            == """Total Free Parameters = 2
 
 model                                                                           ModelMapper (N=2)
     mock_class                                                                  MockClassx2 (N=2)
 
 mock_class
-    one                                                                         UniformPrior [2], lower_limit = 0.0, upper_limit = 1.0
-    two                                                                         UniformPrior [3], lower_limit = 0.0, upper_limit = 2.0"""
+    one                                                                         UniformPrior [1], lower_limit = 0.0, upper_limit = 1.0
+    two                                                                         UniformPrior [2], lower_limit = 0.0, upper_limit = 2.0"""
         )
 
     def test_with_instance(self):
@@ -117,14 +104,14 @@ mock_class
         model_info = mm.info
 
         assert (
-                model_info
-                == """Total Free Parameters = 1
+            model_info
+            == """Total Free Parameters = 1
 
 model                                                                           ModelMapper (N=1)
     mock_class                                                                  MockClassx2 (N=1)
 
 mock_class
-    one                                                                         UniformPrior [2], lower_limit = 0.0, upper_limit = 1.0
+    one                                                                         UniformPrior [1], lower_limit = 0.0, upper_limit = 1.0
     two                                                                         1.0"""
         )
 
@@ -133,8 +120,8 @@ mock_class
         mm.tuple = (0, 1)
 
         assert (
-                mm.info
-                == """Total Free Parameters = 0
+            mm.info
+            == """Total Free Parameters = 0
 
 model                                                                           ModelMapper (N=0)
 

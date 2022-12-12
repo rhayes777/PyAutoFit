@@ -13,7 +13,7 @@ h5py>=2.10.0
 SQLAlchemy==1.3.20
 scipy>=1.5.1
 astunparse==1.6.3
-autoconf==2022.11.26.11
+autoconf
 sphinx==5.2.3
 xxhash==3.0.0
 furo
