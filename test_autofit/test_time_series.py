@@ -18,11 +18,21 @@ def test_trivial():
 def test_linear(t, centre):
     time_series = af.LinearTimeSeries(
         [
-            af.ModelInstance(items=dict(t=1, gaussian=af.Gaussian(centre=0.0))),
-            af.ModelInstance(items=dict(t=2, gaussian=af.Gaussian(centre=1.0))),
+            af.ModelInstance(
+                items=dict(
+                    t=1, gaussian=af.Gaussian(centre=0.0, normalization=1.0, sigma=-1.0)
+                )
+            ),
+            af.ModelInstance(
+                items=dict(
+                    t=2, gaussian=af.Gaussian(centre=1.0, normalization=2.0, sigma=-2.0)
+                )
+            ),
         ]
     )
 
     result = time_series[time_series.t == t]
 
     assert result.gaussian.centre == centre
+    assert result.gaussian.normalization == t
+    assert result.gaussian.sigma == -t
