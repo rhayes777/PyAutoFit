@@ -20,12 +20,14 @@ def test_linear(t, centre):
         [
             af.ModelInstance(
                 items=dict(
-                    t=1, gaussian=af.Gaussian(centre=0.0, normalization=1.0, sigma=-1.0)
+                    t=1.0,
+                    gaussian=af.Gaussian(centre=0.0, normalization=1.0, sigma=-1.0),
                 )
             ),
             af.ModelInstance(
                 items=dict(
-                    t=2, gaussian=af.Gaussian(centre=1.0, normalization=2.0, sigma=-2.0)
+                    t=2.0,
+                    gaussian=af.Gaussian(centre=1.0, normalization=2.0, sigma=-2.0),
                 )
             ),
         ]
@@ -33,6 +35,7 @@ def test_linear(t, centre):
 
     result = time_series[time_series.t == t]
 
+    assert result.t == t
     assert result.gaussian.centre == centre
     assert result.gaussian.normalization == t
     assert result.gaussian.sigma == -t
