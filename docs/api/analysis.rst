@@ -5,11 +5,12 @@ Analysis
 The ``Analysis`` object is used to define the ``log_likelihood_function`` of your model-fitting problem, and acts
 as an interface between the data and the non-linear search.
 
-In addition to the API documentation below, checkout the ``overview`` scripts on the ``autofit_workspace`` for a
-tutorial in creating an ``Analysis`` for a model-fit:
+**Examples / Tutorials:**
 
-- https://github.com/Jammy2211/autofit_workspace/blob/release/notebooks/overview/simple/fit.ipynb
-- https://github.com/Jammy2211/autofit_workspace/blob/release/notebooks/overview/complex/fit.ipynb
+- `readthedocs: example using Analysis object <https://pyautofit.readthedocs.io/en/latest/overview/model_fit.html>`_.
+- `autofit_workspace: simple tutorial <https://github.com/Jammy2211/autofit_workspace/blob/release/notebooks/overview/simple/fit.ipynb>`_
+- `autofit_workspace: complex tutorial <https://github.com/Jammy2211/autofit_workspace/blob/release/notebooks/overview/complex/fit.ipynb>`_
+- `HowToFit: introduction chapter (detailed step-by-step examples) <https://pyautofit.readthedocs.io/en/latest/howtofit/chapter_1_introduction.html>`_
 
 --------
 Analysis
