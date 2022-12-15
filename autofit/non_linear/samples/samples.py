@@ -602,7 +602,7 @@ class Samples(ABC):
         The parameters of an individual sample of the non-linear search, returned as a model instance.
 
         Parameters
-        -----------
+        ----------
         sample_index
             The sample index of the weighted sample to return.
         """
@@ -711,7 +711,7 @@ class Samples(ABC):
         used to link to another search, it will thus automatically use the prior config values.
 
         Parameters
-        -----------
+        ----------
         sigma
             The sigma limit within which the PDF is used to estimate errors (e.g. sigma = 1.0 uses 0.6826 of the PDF).
         """

@@ -182,7 +182,7 @@ class SamplesPDF(Samples):
         See values_at_sigma for a full description of how the parameters at sigma are computed.
 
         Parameters
-        -----------
+        ----------
         sigma
             The sigma within which the PDF is used to estimate errors (e.g. sigma = 1.0 uses 0.6826 of the PDF).
         """
@@ -197,7 +197,7 @@ class SamplesPDF(Samples):
         See values_at_sigma for a full description of how the parameters at sigma are computed.
 
         Parameters
-        -----------
+        ----------
         sigma
             The sigma limit within which the PDF is used to estimate errors (e.g. sigma = 1.0 uses 0.6826 of the PDF).
         """
@@ -212,7 +212,7 @@ class SamplesPDF(Samples):
         See values_at_sigma for a full description of how the parameters at sigma are computed.
 
         Parameters
-        -----------
+        ----------
         sigma
             The sigma within which the PDF is used to estimate errors (e.g. sigma = 1.0 uses 0.6826 of the PDF).
         """
@@ -229,7 +229,7 @@ class SamplesPDF(Samples):
         See values_at_sigma for a full description of how the parameters at sigma are computed.
 
         Parameters
-        -----------
+        ----------
         sigma
             The sigma within which the PDF is used to estimate errors (e.g. sigma = 1.0 uses 0.6826 of the PDF).
         """
@@ -251,7 +251,7 @@ class SamplesPDF(Samples):
         See values_at_sigma for a full description of how the parameters at sigma are computed.
 
         Parameters
-        -----------
+        ----------
         sigma
             The sigma within which the PDF is used to estimate errors (e.g. sigma = 1.0 uses 0.6826 of the PDF).
         """
@@ -291,7 +291,7 @@ class SamplesPDF(Samples):
         - Their errors are computed at an input sigma value (using errors_at_sigma).
 
         Parameters
-        -----------
+        ----------
         sigma
             The sigma within which the PDF is used to estimate errors (e.g. sigma = 1.0 uses 0.6826 of the PDF).
         """
