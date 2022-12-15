@@ -219,7 +219,14 @@ provides new users with a more detailed introduction to **PyAutoFit**.
    :maxdepth: 1
    :hidden:
 
-   api/api
+   api/model
+   api/priors
+   api/analysis
+   api/searches
+   api/plot
+   api/samples
+   api/database
+   api/source
 
 .. toctree::
    :caption: Features:
