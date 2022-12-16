@@ -94,6 +94,13 @@ class UniformPrior(Prior):
         -------
         value
             The unit value mapped to a physical value according to the prior.
+
+        Examples
+        --------
+
+        prior = af.UniformPrior(lower_limit=0.0, upper_limit=2.0)
+
+        physical_value = prior.value_for(unit=0.2)
         """
         return round(
             super().value_for(unit, ignore_prior_limits=ignore_prior_limits), 14

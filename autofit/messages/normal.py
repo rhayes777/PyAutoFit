@@ -157,16 +157,26 @@ class NormalMessage(AbstractMessage):
 
     __default_fields__ = ("log_norm", "id_")
 
-    def value_for(self, unit):
+    def value_for(self, unit : float) -> float:
         """
+        Returns a physical value from an input unit value according to the Gaussian distribution of the prior.
+
         Parameters
         ----------
-        unit: Float
-            A unit hypercube value between 0 and 1
+        unit
+            A unit value between 0 and 1.
+
         Returns
         -------
-        value: Float
-            A value for the attribute biased to the gaussian distribution
+        value
+            The unit value mapped to a physical value according to the prior.
+
+        Examples
+        --------
+
+        prior = af.GaussianPrior(mean=1.0, sigma=2.0, lower_limit=0.0, upper_limit=2.0)
+
+        physical_value = prior.value_for(unit=0.5)
         """
         return self.mean + (self.sigma * math.sqrt(2) * erfcinv(2.0 * (1.0 - unit)))
 
@@ -198,7 +208,8 @@ class NormalMessage(AbstractMessage):
 
 
 class NaturalNormal(NormalMessage):
-    """Identical to the NormalMessage but allows non-normalised values,
+    """
+    Identical to the NormalMessage but allows non-normalised values,
     e.g negative or infinite variances
     """
 
