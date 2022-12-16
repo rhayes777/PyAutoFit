@@ -27,5 +27,5 @@ Models
    :template: custom-class-template.rst
    :recursive:
 
-   PriorModel
-   CollectionPriorModel
+   Model
+   Collection

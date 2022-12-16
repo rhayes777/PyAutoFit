@@ -6,13 +6,42 @@ from ...messages.transform import LinearShiftTransform
 
 
 class UniformPrior(Prior):
-    """A prior with a uniform distribution between a lower and upper limit"""
 
     __identifier_fields__ = ("lower_limit", "upper_limit")
 
     def __init__(
-        self, lower_limit=0.0, upper_limit=1.0, id_=None,
+        self,
+        lower_limit : float = 0.0,
+        upper_limit : float = 1.0,
+        id_ = None,
     ):
+        """
+        A prior with a uniform distribution, defined between a lower limit and upper limit.
+
+        The conversion of an input unit value via the prior is as follows:
+
+        .. math::
+
+        For example for ``prior = UniformPrior(lower_limit=0.0, upper_limit=2.0)``, an
+        input ``prior.value_for(unit=0.5)`` is equal to 1.0.
+
+        [Rich describe how this is done via message]
+
+        Parameters
+        ----------
+        lower_limit
+            The lower limit of the uniform distribution defining the prior.
+        upper_limit
+            The upper limit of the uniform distribution defining the prior.
+
+        Examples
+        --------
+
+        prior = af.UniformPrior(lower_limit=0.0, upper_limit=2.0)
+
+        physical_value = prior.value_for(unit=0.2)
+        """
+
         lower_limit = float(lower_limit)
         upper_limit = float(upper_limit)
 
@@ -52,17 +81,19 @@ class UniformPrior(Prior):
     def parameter_string(self) -> str:
         return f"lower_limit = {self.lower_limit}, upper_limit = {self.upper_limit}"
 
-    def value_for(self, unit, ignore_prior_limits=False):
+    def value_for(self, unit : float, ignore_prior_limits : bool = False) -> float:
         """
+        Returns a physical value from an input unit value according to the limits of the uniform prior.
 
         Parameters
         ----------
-        unit: Float
-            A unit hypercube value between 0 and 1
+        unit
+            A unit value between 0 and 1.
+
         Returns
         -------
-        value: Float
-            A value for the attribute between the upper and lower limits
+        value
+            The unit value mapped to a physical value according to the prior.
         """
         return round(
             super().value_for(unit, ignore_prior_limits=ignore_prior_limits), 14

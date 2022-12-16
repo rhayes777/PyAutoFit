@@ -17,6 +17,8 @@ For example, for an MCMC model-fit, the ``Samples`` objects contains every sampl
 Samples
 -------
 
+.. currentmodule:: autofit
+
 .. autosummary::
    :toctree: _autosummary
    :template: custom-class-template.rst

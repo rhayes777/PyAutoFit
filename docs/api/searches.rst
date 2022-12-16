@@ -1,5 +1,5 @@
 ===================
-Non=Linear Searches
+Non-Linear Searches
 ===================
 
 A non-linear search is an algorithm which fits a model to data.
@@ -17,6 +17,8 @@ Markov Chain Monte Carlo (MCMC) and optimizers.
 Nested Samplers
 ---------------
 
+.. currentmodule:: autofit
+
 .. autosummary::
    :toctree: _autosummary
    :template: custom-class-template.rst
@@ -29,6 +31,8 @@ Nested Samplers
 MCMC
 ----
 
+.. currentmodule:: autofit
+
 .. autosummary::
    :toctree: _autosummary
    :template: custom-class-template.rst
@@ -39,6 +43,8 @@ MCMC
 
 Optimizers
 ----------
+
+.. currentmodule:: autofit
 
 .. autosummary::
    :toctree: _autosummary
@@ -53,6 +59,8 @@ including directory output structure, parameter sample initialization and MCMC a
 
 Tools
 -----
+
+.. currentmodule:: autofit
 
 .. autosummary::
    :toctree: _autosummary

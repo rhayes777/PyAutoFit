@@ -15,6 +15,8 @@ by **PyAutoFit**.
 Plotters
 --------
 
+.. currentmodule:: autofit.plot
+
 .. autosummary::
    :toctree: _autosummary
    :template: custom-class-template.rst

@@ -13,6 +13,8 @@ Model Mapping
 These tools are used internally by **PyAutoFit** to map input lists of values (e.g. a unit cube of parameter values)
 to model instances.
 
+.. currentmodule:: autofit
+
 .. autosummary::
    :toctree: _autosummary
    :template: custom-class-template.rst

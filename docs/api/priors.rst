@@ -17,6 +17,8 @@ The priors of every model-fit are customized using `Prior` objects.
 Priors
 ------
 
+.. currentmodule:: autofit
+
 .. autosummary::
    :toctree: _autosummary
    :template: custom-class-template.rst

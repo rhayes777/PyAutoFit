@@ -19,9 +19,6 @@ class_args_dict = dict()
 
 
 class PriorModel(AbstractPriorModel):
-    """Object comprising class and associated priors
-        @DynamicAttrs
-    """
 
     @property
     def name(self):
@@ -50,10 +47,46 @@ class PriorModel(AbstractPriorModel):
 
     def __init__(self, cls, **kwargs):
         """
+        The object a Python class is input into to create a model-component, which has free parameters that are fitted
+        by a non-linear search.
+
+        The ``Model`` object is flexible, and can create models from many input Python data structures
+        (e.g. a list of classes, dictionary of classes, hierarchy of classes).
+
+        For a complete description of the model composition API, see the **PyAutoFit** model API cookbooks:
+
+        https://pyautofit.readthedocs.io/en/latest/cookbooks/cookbook_1_basics.html
+
+        The Python class input into a ``Model`` to create a model component is written using the following format:
+
+        - The name of the class is the name of the model component (e.g. ``Gaussian``).
+        - The input arguments of the constructor are the parameters of the mode (e.g. ``centre``, ``normalization`` and ``sigma``).
+        - The default values of the input arguments tell PyAutoFit whether a parameter is a single-valued float or a
+        multi-valued tuple.
+
+        [Rich explain everything else]
+
         Parameters
         ----------
-        cls: class
+        cls
             The class associated with this instance
+
+        Examples
+        --------
+
+        class Gaussian:
+
+            def __init__(
+                self,
+                centre=0.0,        # <- PyAutoFit recognises these
+                normalization=0.1, # <- constructor arguments are
+                sigma=0.01,        # <- the Gaussian's parameters.
+            ):
+                self.centre = centre
+                self.normalization = normalization
+                self.sigma = sigma
+
+        model = af.Model(Gaussian)
         """
         super().__init__(
             label=namer(cls.__name__)
