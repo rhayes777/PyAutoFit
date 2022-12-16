@@ -141,11 +141,11 @@ class Prior(Variable, ABC, ArithmeticMixin):
         Parameters
         ----------
         unit
-            A hypercube value between 0 and 1.
+            A unit value between 0 and 1.
 
         Returns
         -------
-        A physical value.
+        A physical value, mapped from the unit value accoridng to the prior.
         """
         result = self.message.value_for(unit)
         if not ignore_prior_limits:

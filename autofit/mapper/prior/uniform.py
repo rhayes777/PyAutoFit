@@ -18,7 +18,7 @@ class UniformPrior(Prior):
         """
         A prior with a uniform distribution, defined between a lower limit and upper limit.
 
-        The conversion of an input unit value via the prior is as follows:
+        The conversion of an input unit value, ``u``, to a physical value, ``p``, via the prior is as follows:
 
         .. math::
 
@@ -113,10 +113,8 @@ class UniformPrior(Prior):
         Returns the log prior of a physical value, so the log likelihood of a model evaluation can be converted to a
         posterior as log_prior + log_likelihood.
 
-        This is used by Emcee in the log likelihood function evaluation.
+        This is used by certain non-linear searches (e.g. Emcee) in the log likelihood function evaluation.
 
-        NOTE: For a UniformPrior this is always zero, provided the value is between the lower and upper limit. Given
-        this is check for when the instance is made (in the *instance_from_vector* function), we thus can simply return
-        zero in this function.
+        For a UniformPrior this is always zero, provided the value is between the lower and upper limit.
         """
         return 0.0

@@ -28,7 +28,7 @@ class GaussianPrior(Prior):
 
             p = \mu + (\sigma * sqrt(2) * erfcinv(2.0 * (1.0 - u))
 
-        For example for ``prior = UniformPrior(lower_limit=0.0, upper_limit=2.0)``, an
+        For example for ``prior = GaussianPrior(mean=1.0, sigma=2.0)``, an
         input ``prior.value_for(unit=0.5)`` is equal to 1.0.
 
         [Rich describe how this is done via message]
