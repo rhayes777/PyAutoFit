@@ -29,7 +29,8 @@ class AbstractInitializer(ABC):
             total_points: int,
             model: AbstractPriorModel,
             fitness_function,
-            use_prior_medians: bool = False
+            use_prior_medians: bool = False,
+            test_mode_samples : bool = True
     ):
         """
         Generate the initial points of the non-linear search, by randomly drawing unit values from a uniform
@@ -44,7 +45,7 @@ class AbstractInitializer(ABC):
             of free dimensions of the model.
         """
 
-        if os.environ.get("PYAUTOFIT_TEST_MODE") == "1":
+        if os.environ.get("PYAUTOFIT_TEST_MODE") == "1" and test_mode_samples:
             return self.samples_in_test_mode(total_points=total_points, model=model)
 
         logger.info("Generating initial samples of model, which are subject to prior limits and other constraints.")
