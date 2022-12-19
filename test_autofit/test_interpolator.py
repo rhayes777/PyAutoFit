@@ -5,7 +5,7 @@ import autofit as af
 
 def test_trivial():
     instance = af.ModelInstance(items=dict(t=1))
-    time_series = af.LinearTimeSeries([instance])
+    time_series = af.LinearInterpolator([instance])
 
     result = time_series[time_series.t == 1]
 
@@ -14,7 +14,7 @@ def test_trivial():
 
 @pytest.fixture(name="time_series")
 def make_time_series():
-    return af.LinearTimeSeries(
+    return af.LinearInterpolator(
         [
             af.ModelInstance(
                 items=dict(

@@ -7,7 +7,7 @@ from scipy.stats import stats
 from autofit.mapper.model import ModelInstance
 
 
-class TimeSeriesPath:
+class InterpolatorPath:
     def __init__(self, keys: List[str]):
         """
         Addresses a given attribute in a ModelInstance
@@ -19,11 +19,11 @@ class TimeSeriesPath:
         """
         self.keys = keys
 
-    def __getattr__(self, item: str) -> "TimeSeriesPath":
+    def __getattr__(self, item: str) -> "InterpolatorPath":
         """
         Add a new attribute name to the end of the path
         """
-        return TimeSeriesPath(self.keys + [item])
+        return InterpolatorPath(self.keys + [item])
 
     def get_value(self, instance: ModelInstance) -> float:
         """
@@ -60,7 +60,7 @@ class TimeSeriesPath:
 
 
 class Equality:
-    def __init__(self, path: TimeSeriesPath, value: float):
+    def __init__(self, path: InterpolatorPath, value: float):
         """
         Describes the value of a given attribute for which other values
         are interpolated.
@@ -76,7 +76,7 @@ class Equality:
         self.value = value
 
 
-class AbstractTimeSeries(ABC):
+class AbstractInterpolator(ABC):
     def __init__(self, instances: List[ModelInstance]):
         """
         A TimeSeries allows interpolation on any variable.
@@ -93,7 +93,7 @@ class AbstractTimeSeries(ABC):
         """
         self.instances = instances
 
-    def __getattr__(self, item: str) -> TimeSeriesPath:
+    def __getattr__(self, item: str) -> InterpolatorPath:
         """
         Used to indicate which attribute is the time attribute.
 
@@ -112,9 +112,9 @@ class AbstractTimeSeries(ABC):
         -------
         A class that keeps track of which attributes have been addressed
         """
-        return TimeSeriesPath([item])
+        return InterpolatorPath([item])
 
-    def _value_map(self, path: TimeSeriesPath) -> Dict[float, ModelInstance]:
+    def _value_map(self, path: InterpolatorPath) -> Dict[float, ModelInstance]:
         """
         Maps know values to corresponding instances for a given path
 
@@ -198,7 +198,7 @@ class AbstractTimeSeries(ABC):
         """
 
 
-class LinearTimeSeries(AbstractTimeSeries):
+class LinearInterpolator(AbstractInterpolator):
     """
     Assume all attributes have a linear relationship with time
     """
