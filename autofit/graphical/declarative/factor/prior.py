@@ -1,6 +1,6 @@
 from autofit.graphical.factor_graphs.factor import FactorKW
 from autofit.mapper.prior.abstract import Prior
-from autofit.mapper.prior_model.collection import CollectionPriorModel
+from autofit.mapper.prior_model.collection import Collection
 from autofit.non_linear.analysis import Analysis
 from autofit.tools.namer import namer
 
@@ -34,11 +34,11 @@ class PriorFactor(FactorKW, Analysis):
         )
 
     @property
-    def prior_model(self) -> CollectionPriorModel:
+    def prior_model(self) -> Collection:
         """
         A trivial prior model to conform to the expected interface.
         """
-        return CollectionPriorModel(self.prior)
+        return Collection(self.prior)
 
     @property
     def analysis(self) -> "PriorFactor":

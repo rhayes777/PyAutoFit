@@ -16,7 +16,7 @@ def make_mapper():
 
 @pytest.fixture(name="mock_list")
 def make_mock_list():
-    return [af.PriorModel(af.m.MockClassx4), af.PriorModel(af.m.MockClassx4)]
+    return [af.Model(af.m.MockClassx4), af.Model(af.m.MockClassx4)]
 
 
 @pytest.fixture(name="result")
@@ -72,7 +72,7 @@ class TestResult:
 
 class TestLabels:
     def test_param_names(self):
-        model = af.PriorModel(af.m.MockClassx4)
+        model = af.Model(af.m.MockClassx4)
         assert [
                    "one",
                    "two",

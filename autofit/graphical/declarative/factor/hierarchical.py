@@ -2,8 +2,8 @@ from typing import Set, Optional, Type, List, Tuple, Dict
 
 from autofit.mapper.model import ModelInstance
 from autofit.mapper.prior.abstract import Prior
-from autofit.mapper.prior_model.collection import CollectionPriorModel
-from autofit.mapper.prior_model.prior_model import PriorModel
+from autofit.mapper.prior_model.collection import Collection
+from autofit.mapper.prior_model.prior_model import Model
 from autofit.mapper.variable import Plate
 from autofit.messages import NormalMessage
 from autofit.non_linear.paths.abstract import AbstractPaths
@@ -11,7 +11,7 @@ from autofit.tools.namer import namer
 from .abstract import AbstractModelFactor
 
 
-class HierarchicalFactor(PriorModel):
+class HierarchicalFactor(Model):
     _plates: Tuple[Plate, ...] = ()
 
     def __init__(
@@ -165,7 +165,7 @@ class _HierarchicalFactor(AbstractModelFactor):
         prior_variable_dict["argument"] = drawn_prior
 
         super().__init__(
-            prior_model=CollectionPriorModel(
+            prior_model=Collection(
                 distribution_model=distribution_model, drawn_prior=drawn_prior
             ),
             factor=Factor(distribution_model),

@@ -215,8 +215,8 @@ class TestAddition:
     def test_mapper_plus_mapper(self):
         one = af.ModelMapper()
         two = af.ModelMapper()
-        one.a = af.PriorModel(af.m.MockClassx2)
-        two.b = af.PriorModel(af.m.MockClassx2)
+        one.a = af.Model(af.m.MockClassx2)
+        two.b = af.Model(af.m.MockClassx2)
 
         three = one + two
 

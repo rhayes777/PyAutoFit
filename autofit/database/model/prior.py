@@ -9,7 +9,7 @@ from autofit.mapper.prior_model import collection
 from .model import Object
 
 
-class CollectionPriorModel(Object):
+class Collection(Object):
     """
     A collection
     """
@@ -32,7 +32,7 @@ class CollectionPriorModel(Object):
     def _from_object(
             cls,
             source: Union[
-                collection.CollectionPriorModel,
+                collection.Collection,
                 list,
                 dict
             ]
@@ -40,19 +40,19 @@ class CollectionPriorModel(Object):
         instance = cls()
         if not isinstance(
                 source,
-                collection.CollectionPriorModel
+                collection.Collection
         ):
-            source = collection.CollectionPriorModel(
+            source = collection.Collection(
                 source
             )
         instance._add_children(
             source.items()
         )
-        instance.cls = collection.CollectionPriorModel
+        instance.cls = collection.Collection
         return instance
 
 
-class PriorModel(Object):
+class Model(Object):
     """
     A prior model
     """
@@ -74,7 +74,7 @@ class PriorModel(Object):
     @classmethod
     def _from_object(
             cls,
-            model: prior_model.PriorModel,
+            model: prior_model.Model,
     ):
         instance = cls()
         instance.cls = model.cls
@@ -82,7 +82,7 @@ class PriorModel(Object):
         return instance
 
     def _make_instance(self):
-        instance = object.__new__(prior_model.PriorModel)
+        instance = object.__new__(prior_model.Model)
         instance.cls = self.cls
         instance._assertions = []
         return instance

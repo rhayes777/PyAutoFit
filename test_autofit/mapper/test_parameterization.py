@@ -17,8 +17,8 @@ def test_parameterization():
 
     parameterization = model.parameterization
     assert parameterization == (
-        """model                                                                           CollectionPriorModel (N=3)
-    collection                                                                  CollectionPriorModel (N=3)
+        """model                                                                           Collection (N=3)
+    collection                                                                  Collection (N=3)
         gaussian                                                                Gaussian (N=3)"""
     )
 
@@ -36,8 +36,8 @@ def test_instance():
 
     parameterization = model.parameterization
     assert parameterization == (
-        """model                                                                           CollectionPriorModel (N=0)
-    collection                                                                  CollectionPriorModel (N=0)
+        """model                                                                           Collection (N=0)
+    collection                                                                  Collection (N=0)
         gaussian                                                                Gaussian (N=0)"""
     )
 

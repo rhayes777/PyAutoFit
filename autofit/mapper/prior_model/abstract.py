@@ -210,11 +210,11 @@ class AbstractPriorModel(AbstractModel):
         A model where specified child models have been updated to a new class
         and new arguments
         """
-        from .prior_model import PriorModel
+        from .prior_model import Model
 
         updated = self
 
-        for path, prior_model in self.path_instance_tuples_for_class(PriorModel):
+        for path, prior_model in self.path_instance_tuples_for_class(Model):
             try:
                 model_value_dict = value_dict[prior_model]
                 argument_dict = {
@@ -223,7 +223,7 @@ class AbstractPriorModel(AbstractModel):
                     **model_value_dict,
                 }
                 updated = updated.replacing_for_path(
-                    path, PriorModel(new_class, **argument_dict)
+                    path, Model(new_class, **argument_dict)
                 )
 
             except KeyError:
@@ -364,7 +364,7 @@ class AbstractPriorModel(AbstractModel):
         Returns
         -------
         object
-            The model, which may be a `Collection` of `PriorModel` objects or a single `PriorModel`.
+            The model, which may be a `Collection` of `Model` objects or a single `Model`.
         """
 
         with open(file) as json_file:
@@ -400,14 +400,14 @@ class AbstractPriorModel(AbstractModel):
     @staticmethod
     def from_object(t, *args, **kwargs):
         if inspect.isclass(t):
-            from .prior_model import PriorModel
+            from .prior_model import Model
 
-            obj = object.__new__(PriorModel)
+            obj = object.__new__(Model)
             obj.__init__(t, **kwargs)
         elif isinstance(t, list) or isinstance(t, dict):
             from autofit.mapper.prior_model import collection
 
-            obj = object.__new__(collection.CollectionPriorModel)
+            obj = object.__new__(collection.Collection)
             obj.__init__(t)
         else:
             obj = t
@@ -445,10 +445,10 @@ class AbstractPriorModel(AbstractModel):
                 item = copy.copy(source)
                 if isinstance(item, dict):
                     from autofit.mapper.prior_model.collection import (
-                        CollectionPriorModel,
+                        Collection,
                     )
 
-                    item = CollectionPriorModel(item)
+                    item = Collection(item)
                 for attribute in path:
                     item = copy.copy(getattr(item, attribute))
 
@@ -464,7 +464,7 @@ class AbstractPriorModel(AbstractModel):
     def instance_from_unit_vector(self, unit_vector, ignore_prior_limits=False):
         """
         Returns a ModelInstance, which has an attribute and class instance corresponding
-        to every `PriorModel` attributed to this instance.
+        to every `Model` attributed to this instance.
         This method takes as input a unit vector of parameter values, converting each to
         physical values via their priors.
         Parameters
@@ -687,7 +687,7 @@ class AbstractPriorModel(AbstractModel):
     def instance_from_vector(self, vector, ignore_prior_limits=False):
         """
         Returns a ModelInstance, which has an attribute and class instance corresponding
-        to every `PriorModel` attributed to this instance.
+        to every `Model` attributed to this instance.
         This method takes as input a physical vector of parameter values, thus omitting
         the use of priors.
         Parameters
@@ -745,7 +745,7 @@ class AbstractPriorModel(AbstractModel):
 
     def has_model(self, cls, include_zero_dimension=False) -> bool:
         """
-        True iff this model contains a PriorModel of type
+        True iff this model contains a Model of type
         cls, recursively.
         """
         return (
@@ -759,16 +759,16 @@ class AbstractPriorModel(AbstractModel):
 
     def is_only_model(self, cls) -> bool:
         """
-        True iff this model contains at least one PriorModel
+        True iff this model contains at least one Model
         of type cls and contains no PriorModels that are not
         of type cls, recursively.
         """
-        from .prior_model import PriorModel
+        from .prior_model import Model
 
         cls_models = self.model_tuples_with_type(cls)
         other_models = [
             value
-            for _, value in self.attribute_tuples_with_type(PriorModel)
+            for _, value in self.attribute_tuples_with_type(Model)
             if value.prior_count > 0
         ]
         return len(cls_models) > 0 and len(cls_models) == len(other_models)
@@ -1027,7 +1027,7 @@ class AbstractPriorModel(AbstractModel):
         if isinstance(instance, (Prior, AbstractPriorModel)):
             return instance
         elif isinstance(instance, list):
-            result = collection.CollectionPriorModel(
+            result = collection.Collection(
                 [
                     AbstractPriorModel.from_instance(item, model_classes=model_classes)
                     for item in instance
@@ -1046,7 +1046,7 @@ class AbstractPriorModel(AbstractModel):
                     ),
                 )
         elif isinstance(instance, dict):
-            result = collection.CollectionPriorModel(
+            result = collection.Collection(
                 {
                     key: AbstractPriorModel.from_instance(
                         value, model_classes=model_classes
@@ -1057,10 +1057,10 @@ class AbstractPriorModel(AbstractModel):
         elif isinstance(instance, (np.ndarray, types.FunctionType)):
             return instance
         else:
-            from .prior_model import PriorModel
+            from .prior_model import Model
 
             try:
-                result = PriorModel(
+                result = Model(
                     instance.__class__,
                     **{
                         key: AbstractPriorModel.from_instance(
@@ -1429,7 +1429,7 @@ class AbstractPriorModel(AbstractModel):
         """
         Returns
         -------
-        prior_prior_model_dict: {Prior: PriorModel}
+        prior_prior_model_dict: {Prior: Model}
             A dictionary mapping priors to associated prior models. Each prior will only
             have one prior model; if a prior is shared by two prior models then one of
             those prior models will be in this dictionary.
@@ -1494,7 +1494,7 @@ class AbstractPriorModel(AbstractModel):
         Describes the path to each of the PriorModels, its class
         and its number of free parameters
         """
-        from .prior_model import PriorModel
+        from .prior_model import Model
 
         formatter = TextFormatter(line_length=info_whitespace())
 
@@ -1510,7 +1510,7 @@ class AbstractPriorModel(AbstractModel):
                     n = obj.prior_count
                 else:
                     n = 0
-                if isinstance(obj, PriorModel):
+                if isinstance(obj, Model):
                     name = obj.cls.__name__
                 else:
                     name = type(obj).__name__

@@ -18,7 +18,7 @@ from autofit.graphical.utils import (
     LogWarnings,
 )
 from autofit.mapper.prior.abstract import Prior
-from autofit.mapper.prior_model.collection import CollectionPriorModel
+from autofit.mapper.prior_model.collection import Collection
 from autofit.mapper.variable import (
     Variable,
     Plate,
@@ -45,7 +45,7 @@ def is_message(message):
 
 
 # Does this need to be a Factor?
-class MeanField(CollectionPriorModel, Dict[Variable, AbstractMessage], Factor):
+class MeanField(Collection, Dict[Variable, AbstractMessage], Factor):
     """For a factor with multiple variables, this class represents the
     the mean field approximation to that factor,
 
@@ -80,7 +80,7 @@ class MeanField(CollectionPriorModel, Dict[Variable, AbstractMessage], Factor):
     ):
         dict.__init__(self, dists)
         Factor.__init__(self, self._logpdf, *self, arg_names=[])
-        CollectionPriorModel.__init__(self)
+        Collection.__init__(self)
 
         if isinstance(dists, MeanField):
             self.log_norm = dists.log_norm
@@ -255,7 +255,7 @@ class MeanField(CollectionPriorModel, Dict[Variable, AbstractMessage], Factor):
     @property
     def arguments(self) -> Dict[Variable, Prior]:
         """
-        Arguments that can be used to update a PriorModel
+        Arguments that can be used to update a Model
         """
         return {v: dist for v, dist in self.items()}
 

@@ -200,7 +200,7 @@ This gives the following output:
     Maximum Log Likelihood             -38.90532783
     Maximum Log Posterior              -38.90532783
     
-    model                              CollectionPriorModel (N=6)
+    model                              Collection (N=6)
         gaussian                       Gaussian (N=3)
         exponential                    Exponential (N=3)
     

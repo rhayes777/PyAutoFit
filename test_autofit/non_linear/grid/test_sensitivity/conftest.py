@@ -28,7 +28,7 @@ class Analysis(af.Analysis):
     name="perturbation_model"
 )
 def make_perturbation_model():
-    return af.PriorModel(af.Gaussian)
+    return af.Model(af.Gaussian)
 
 
 @pytest.fixture(
@@ -51,7 +51,7 @@ def make_sensitivity(
     return s.Sensitivity(
         simulation_instance=instance,
         base_model=af.Collection(
-            gaussian=af.PriorModel(af.Gaussian)
+            gaussian=af.Model(af.Gaussian)
         ),
         perturbation_model=perturbation_model,
         simulate_function=image_function,
@@ -84,9 +84,9 @@ def make_job(
     # noinspection PyTypeChecker
     return s.Job(
         model=af.Collection(
-            gaussian=af.PriorModel(af.Gaussian)
+            gaussian=af.Model(af.Gaussian)
         ),
-        perturbation_model=af.PriorModel(af.Gaussian),
+        perturbation_model=af.Model(af.Gaussian),
         base_instance=base_instance,
         perturbation_instance=instance,
         analysis_factory=MockAnalysisFactory(Analysis(image)),

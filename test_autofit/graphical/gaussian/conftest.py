@@ -23,7 +23,7 @@ def make_y(x):
     name="prior_model"
 )
 def make_prior_model():
-    return af.PriorModel(
+    return af.Model(
         Gaussian,
         centre=af.GaussianPrior(mean=50, sigma=20),
         normalization=af.GaussianPrior(mean=25, sigma=10),

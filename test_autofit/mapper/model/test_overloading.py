@@ -1,7 +1,7 @@
 import autofit as af
 
 def test_constructor():
-    prior_model = af.PriorModel(af.m.MockOverload)
+    prior_model = af.Model(af.m.MockOverload)
 
     assert prior_model.prior_count == 1
 
@@ -12,7 +12,7 @@ def test_constructor():
 
 
 def test_alternative():
-    prior_model = af.PriorModel(af.m.MockOverload.with_two)
+    prior_model = af.Model(af.m.MockOverload.with_two)
 
     assert prior_model.prior_count == 1
 
