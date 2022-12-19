@@ -220,6 +220,12 @@ class AbstractModel(ModelObject):
             )
         )
 
+    def has(self, cls: Union[Type, Tuple[Type, ...]]) -> bool:
+        """
+        Does this instance have an attribute which is of type cls?
+        """
+        return len(self.attribute_tuples_with_type(cls)) > 0
+
     @frozen_cache
     def model_tuples_with_type(self, cls):
         """
