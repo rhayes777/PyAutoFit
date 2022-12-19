@@ -6,7 +6,7 @@ import random
 import types
 from collections import defaultdict
 from functools import wraps
-from typing import Tuple, Optional, Dict, List, Iterable, Generator
+from typing import Tuple, Optional, Dict, List, Iterable, Generator, Union, Type
 
 import numpy as np
 
@@ -30,8 +30,8 @@ from autofit.mapper.prior_model.recursion import DynamicRecursionCache
 from autofit.mapper.prior_model.util import PriorModelNameValue
 from autofit.text import formatter as frm
 from autofit.text.formatter import TextFormatter
-from autofit.tools.util import split_paths
 from autofit.tools.util import info_whitespace
+from autofit.tools.util import split_paths
 
 logger = logging.getLogger(__name__)
 
@@ -719,6 +719,20 @@ class AbstractPriorModel(AbstractModel):
                 prior.assert_within_limits(value)
 
         return self.instance_for_arguments(arguments,)
+
+    def has(self, cls: Union[Type, Tuple[Type, ...]]) -> bool:
+        """
+        Parameters
+        ----------
+        cls
+            The type to check for
+
+        Returns
+        -------
+        True iff this model contains an instance or model with the given
+        type recursively.
+        """
+        return self.has_instance(cls) or self.has_model(cls)
 
     def has_instance(self, cls) -> bool:
         """
