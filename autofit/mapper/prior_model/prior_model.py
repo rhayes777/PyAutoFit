@@ -1,3 +1,4 @@
+import builtins
 import copy
 import inspect
 import logging
@@ -22,6 +23,7 @@ class Model(AbstractPriorModel):
     """
     @DynamicAttrs
     """
+
     @property
     def name(self):
         return self.cls.__name__
@@ -90,30 +92,27 @@ class Model(AbstractPriorModel):
 
         model = af.Model(Gaussian)
         """
-        super().__init__(
-            label=namer(cls.__name__)
-            if inspect.isclass(cls)
-            else None
-        )
+        super().__init__(label=namer(cls.__name__) if inspect.isclass(cls) else None)
         if cls is self:
             return
 
         if not (inspect.isclass(cls) or inspect.isfunction(cls)):
-            raise AssertionError(
-                f"{cls} is not a class or function"
-            )
+            raise AssertionError(f"{cls} is not a class or function")
 
         self.cls = cls
 
         try:
             annotations = inspect.getfullargspec(cls).annotations
+            for key, value in annotations.items():
+                if isinstance(value, str):
+                    annotations[key] = getattr(builtins, value)
         except TypeError:
             annotations = dict()
 
         try:
             arg_spec = inspect.getfullargspec(cls)
             defaults = dict(
-                zip(arg_spec.args[-len(arg_spec.defaults):], arg_spec.defaults)
+                zip(arg_spec.args[-len(arg_spec.defaults) :], arg_spec.defaults)
             )
         except TypeError:
             defaults = {}
@@ -132,9 +131,7 @@ class Model(AbstractPriorModel):
             if arg in kwargs:
                 keyword_arg = kwargs[arg]
                 if isinstance(keyword_arg, (list, dict)):
-                    from autofit.mapper.prior_model.collection import (
-                        Collection,
-                    )
+                    from autofit.mapper.prior_model.collection import Collection
 
                     ls = Collection(keyword_arg)
 
@@ -151,7 +148,7 @@ class Model(AbstractPriorModel):
                         tuple_prior, attribute_name, self.make_prior(attribute_name)
                     )
                 setattr(self, arg, tuple_prior)
-            elif arg in annotations and annotations[arg] != float:
+            elif arg in annotations and annotations[arg] is not float:
                 spec = annotations[arg]
 
                 # noinspection PyUnresolvedReferences
@@ -159,6 +156,7 @@ class Model(AbstractPriorModel):
                     from autofit.mapper.prior_model.annotation import (
                         AnnotationPriorModel,
                     )
+
                     setattr(self, arg, AnnotationPriorModel(spec, cls, arg))
                 elif hasattr(spec, "__args__") and type(None) in spec.__args__:
                     setattr(self, arg, None)
@@ -166,27 +164,19 @@ class Model(AbstractPriorModel):
                     setattr(self, arg, Model(annotations[arg]))
             else:
                 prior = self.make_prior(arg)
-                if isinstance(
-                        prior,
-                        ConfigException
-                ) and hasattr(
-                    cls, "__default_fields__"
-                ) and arg in cls.__default_fields__:
+                if (
+                    isinstance(prior, ConfigException)
+                    and hasattr(cls, "__default_fields__")
+                    and arg in cls.__default_fields__
+                ):
                     prior = defaults[arg]
                 setattr(self, arg, prior)
         for key, value in kwargs.items():
             if not hasattr(self, key):
-                setattr(
-                    self, key, Model(value) if inspect.isclass(value) else value
-                )
+                setattr(self, key, Model(value) if inspect.isclass(value) else value)
 
     def dict(self):
-        return {
-            "class_path": get_class_path(
-                self.cls
-            ),
-            **super().dict()
-        }
+        return {"class_path": get_class_path(self.cls), **super().dict()}
 
     # noinspection PyAttributeOutsideInit
     @property
@@ -200,9 +190,9 @@ class Model(AbstractPriorModel):
 
     def __eq__(self, other):
         return (
-                isinstance(other, Model)
-                and self.cls == other.cls
-                and self.prior_tuples == other.prior_tuples
+            isinstance(other, Model)
+            and self.cls == other.cls
+            and self.prior_tuples == other.prior_tuples
         )
 
     def make_prior(self, attribute_name):
@@ -250,12 +240,12 @@ class Model(AbstractPriorModel):
             pass
 
         if key not in (
-                "component_number",
-                "phase_property_position",
-                "mapping_name",
-                "id",
-                "_is_frozen",
-                "_frozen_cache"
+            "component_number",
+            "phase_property_position",
+            "mapping_name",
+            "id",
+            "_is_frozen",
+            "_frozen_cache",
         ):
             try:
                 if "_" in key:
@@ -275,10 +265,11 @@ class Model(AbstractPriorModel):
 
     def __getattr__(self, item):
         try:
-            if "_" in item and item not in (
-                    "_is_frozen",
-                    "tuple_prior_tuples"
-            ) and not item.startswith("_"):
+            if (
+                "_" in item
+                and item not in ("_is_frozen", "tuple_prior_tuples")
+                and not item.startswith("_")
+            ):
                 return getattr(
                     [v for k, v in self.tuple_prior_tuples if item.split("_")[0] == k][
                         0
@@ -325,7 +316,7 @@ class Model(AbstractPriorModel):
             prior_model = prior_model_tuple.prior_model
             model_arguments[
                 prior_model_tuple.name
-            ] = prior_model.instance_for_arguments(arguments, )
+            ] = prior_model.instance_for_arguments(arguments,)
 
         prior_arguments = dict()
 
@@ -333,9 +324,7 @@ class Model(AbstractPriorModel):
             try:
                 prior_arguments[name] = arguments[prior]
             except KeyError as e:
-                raise KeyError(
-                    f"No argument given for prior {name}"
-                ) from e
+                raise KeyError(f"No argument given for prior {name}") from e
 
         constructor_arguments = {
             **attribute_arguments,
@@ -355,10 +344,10 @@ class Model(AbstractPriorModel):
 
         for key, value in self.__dict__.items():
             if (
-                    not hasattr(result, key)
-                    and not isinstance(value, Prior)
-                    and not key == "cls"
-                    and not key.startswith("_")
+                not hasattr(result, key)
+                and not isinstance(value, Prior)
+                and not key == "cls"
+                and not key.startswith("_")
             ):
                 if isinstance(value, Model):
                     value = value.instance_for_arguments(arguments)
