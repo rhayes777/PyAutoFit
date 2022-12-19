@@ -74,7 +74,7 @@ class FreeParameterAnalysis(IndexCollectionAnalysis):
             ]
         )
 
-    def modify_before_fit(self, paths: AbstractPaths, model: CollectionPriorModel):
+    def modify_before_fit(self, paths: AbstractPaths, model: Collection):
         """
         Modify the analysis before fitting.
 
@@ -93,9 +93,7 @@ class FreeParameterAnalysis(IndexCollectionAnalysis):
             free_parameters=tuple(self.free_parameters),
         )
 
-    def modify_after_fit(
-        self, paths: AbstractPaths, model: CollectionPriorModel, result
-    ):
+    def modify_after_fit(self, paths: AbstractPaths, model: Collection, result):
         """
         Modify the analysis after fitting.
 

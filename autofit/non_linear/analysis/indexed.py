@@ -4,7 +4,7 @@ from .analysis import Analysis
 from .combined import CombinedAnalysis
 from ..paths.abstract import AbstractPaths
 
-from autofit.mapper.prior_model.collection import CollectionPriorModel
+from autofit.mapper.prior_model.collection import Collection
 
 logger = logging.getLogger(__name__)
 
@@ -90,7 +90,7 @@ class IndexCollectionAnalysis(CombinedAnalysis):
         result.child_results = child_results
         return result
 
-    def modify_before_fit(self, paths: AbstractPaths, model: CollectionPriorModel):
+    def modify_before_fit(self, paths: AbstractPaths, model: Collection):
         """
         Modify the analysis before fitting.
 
@@ -105,9 +105,7 @@ class IndexCollectionAnalysis(CombinedAnalysis):
             *(analysis.modify_before_fit(paths, model) for analysis in self.analyses)
         )
 
-    def modify_after_fit(
-        self, paths: AbstractPaths, model: CollectionPriorModel, result
-    ):
+    def modify_after_fit(self, paths: AbstractPaths, model: Collection, result):
         """
         Modify the analysis after fitting.
 
