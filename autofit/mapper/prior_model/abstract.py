@@ -231,29 +231,6 @@ class AbstractPriorModel(AbstractModel):
 
         return updated
 
-    def replacing_for_path(self, path: Tuple[str, ...], value) -> "AbstractModel":
-        """
-        Create a new model replacing the value for a given path with a new value
-
-        Parameters
-        ----------
-        path
-            A path indicating the sequence of names used to address an object
-        value
-            A value that should replace the object at the given path
-
-        Returns
-        -------
-        A copy of this with an updated value
-        """
-        new = copy.deepcopy(self)
-        obj = new
-        for key in path[:-1]:
-            obj = getattr(new, key)
-
-        setattr(obj, path[-1], value)
-        return new
-
     def without_attributes(self) -> "AbstractModel":
         """
         Returns a copy of this object with all priors, prior models and
