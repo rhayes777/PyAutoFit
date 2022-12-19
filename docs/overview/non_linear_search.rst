@@ -3,6 +3,8 @@
 Non-linear Search
 =================
 
+A non-linear search is an algorithm which fits a model to data.
+
 **PyAutoFit** currently supports three types of non-linear search algorithms:
 
 - **Optimizers**: ``PySwarms``.

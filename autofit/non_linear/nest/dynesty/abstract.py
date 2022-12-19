@@ -160,7 +160,8 @@ class AbstractDynesty(AbstractNest, ABC):
 
                 if conf.instance["non_linear"]["nest"][self.__class__.__name__][
                     "parallel"
-                ]["force_x1_cpu"]:
+                ]["force_x1_cpu"] or self.kwargs.get("force_x1_cpu"):
+
                     raise RuntimeError
 
                 with Pool(

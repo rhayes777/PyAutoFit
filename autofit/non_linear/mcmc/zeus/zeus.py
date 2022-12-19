@@ -185,6 +185,7 @@ class Zeus(AbstractMCMC):
                 total_points=zeus_sampler.nwalkers,
                 model=model,
                 fitness_function=fitness_function,
+                test_mode_samples=False
             )
 
             zeus_state = np.zeros(shape=(zeus_sampler.nwalkers, model.prior_count))
