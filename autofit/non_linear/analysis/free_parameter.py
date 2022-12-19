@@ -7,6 +7,8 @@ from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.mapper.prior_model.collection import CollectionPriorModel
 from .analysis import Analysis
 from .indexed import IndexCollectionAnalysis
+from ..paths.abstract import AbstractPaths
+
 
 logger = logging.getLogger(__name__)
 
@@ -70,4 +72,41 @@ class FreeParameterAnalysis(IndexCollectionAnalysis):
                 )
                 for analysis in self.analyses
             ]
+        )
+
+    def modify_before_fit(self, paths: AbstractPaths, model: AbstractPriorModel):
+        """
+        Modify the analysis before fitting.
+
+        Parameters
+        ----------
+        paths
+            An object describing the paths for saving data (e.g. hard-disk directories or entries in sqlite database).
+        model
+            The model which is to be fitted.
+        """
+        return FreeParameterAnalysis(
+            *(analysis.modify_before_fit(paths, model) for analysis in self.analyses),
+            free_parameters=tuple(self.free_parameters),
+        )
+
+    def modify_after_fit(self, paths: AbstractPaths, model: AbstractPriorModel, result):
+        """
+        Modify the analysis after fitting.
+
+        Parameters
+        ----------
+        paths
+            An object describing the paths for saving data (e.g. hard-disk directories or entries in sqlite database).
+        model
+            The model which is to be fitted.
+        result
+            The result of the fit.
+        """
+        return FreeParameterAnalysis(
+            *(
+                analysis.modify_after_fit(paths, model, result)
+                for analysis in self.analyses
+            ),
+            free_parameters=tuple(self.free_parameters),
         )
