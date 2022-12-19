@@ -730,9 +730,11 @@ class AbstractPriorModel(AbstractModel):
         Returns
         -------
         True iff this model contains an instance or model with the given
-        type recursively.
+        type recursively. Includes models which have zero priors.
         """
-        return self.has_instance(cls) or self.has_model(cls)
+        return self.has_instance(cls) or self.has_model(
+            cls, include_zero_dimension=True
+        )
 
     def has_instance(self, cls) -> bool:
         """
@@ -741,12 +743,19 @@ class AbstractPriorModel(AbstractModel):
         """
         return len(self.attribute_tuples_with_type(cls)) > 0
 
-    def has_model(self, cls) -> bool:
+    def has_model(self, cls, include_zero_dimension=False) -> bool:
         """
         True iff this model contains a PriorModel of type
         cls, recursively.
         """
-        return len(self.model_tuples_with_type(cls)) > 0
+        return (
+            len(
+                self.model_tuples_with_type(
+                    cls, include_zero_dimension=include_zero_dimension,
+                )
+            )
+            > 0
+        )
 
     def is_only_model(self, cls) -> bool:
         """
