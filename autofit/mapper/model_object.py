@@ -1,3 +1,4 @@
+import copy
 import itertools
 from typing import Type, Union, Tuple
 
@@ -13,9 +14,7 @@ class ModelObject:
         return next(cls._ids)
 
     def __init__(
-            self,
-            id_=None,
-            label=None,
+        self, id_=None, label=None,
     ):
         """
         A generic object in AutoFit
@@ -30,6 +29,29 @@ class ModelObject:
         """
         self.id = id_ or self.next_id()
         self._label = label
+
+    def replacing_for_path(self, path: Tuple[str, ...], value) -> "ModelObject":
+        """
+        Create a new model replacing the value for a given path with a new value
+
+        Parameters
+        ----------
+        path
+            A path indicating the sequence of names used to address an object
+        value
+            A value that should replace the object at the given path
+
+        Returns
+        -------
+        A copy of this with an updated value
+        """
+        new = copy.deepcopy(self)
+        obj = new
+        for key in path[:-1]:
+            obj = getattr(new, key)
+
+        setattr(obj, path[-1], value)
+        return new
 
     def has(self, cls: Union[Type, Tuple[Type, ...]]) -> bool:
         """
@@ -86,25 +108,17 @@ class ModelObject:
         from autofit.mapper.prior.abstract import Prior
         from autofit.mapper.prior.tuple_prior import TuplePrior
 
-        if not isinstance(
-                d, dict
-        ):
+        if not isinstance(d, dict):
             return d
 
         type_ = d["type"]
 
         if type_ == "model":
-            instance = PriorModel(
-                get_class(
-                    d.pop("class_path")
-                )
-            )
+            instance = PriorModel(get_class(d.pop("class_path")))
         elif type_ == "collection":
             instance = CollectionPriorModel()
         elif type_ == "instance":
-            cls = get_class(
-                d.pop("class_path")
-            )
+            cls = get_class(d.pop("class_path"))
             instance = object.__new__(cls)
         elif type_ == "tuple_prior":
             instance = TuplePrior()
@@ -114,11 +128,7 @@ class ModelObject:
         d.pop("type")
 
         for key, value in d.items():
-            setattr(
-                instance,
-                key,
-                AbstractPriorModel.from_dict(value)
-            )
+            setattr(instance, key, AbstractPriorModel.from_dict(value))
         return instance
 
     def dict(self) -> dict:
@@ -130,43 +140,25 @@ class ModelObject:
         from autofit.mapper.prior_model.prior_model import PriorModel
         from autofit.mapper.prior.tuple_prior import TuplePrior
 
-        if isinstance(
-                self,
-                CollectionPriorModel
-        ):
+        if isinstance(self, CollectionPriorModel):
             type_ = "collection"
-        elif isinstance(
-                self,
-                AbstractPriorModel
-        ) and self.prior_count == 0:
+        elif isinstance(self, AbstractPriorModel) and self.prior_count == 0:
             type_ = "instance"
-        elif isinstance(
-                self,
-                PriorModel
-        ):
+        elif isinstance(self, PriorModel):
             type_ = "model"
-        elif isinstance(
-                self,
-                TuplePrior
-        ):
+        elif isinstance(self, TuplePrior):
             type_ = "tuple_prior"
         else:
             raise AssertionError(
                 f"{self.__class__.__name__} cannot be serialised to dict"
             )
 
-        dict_ = {
-            "type": type_
-        }
+        dict_ = {"type": type_}
 
         for key, value in self._dict.items():
             try:
-                if not isinstance(
-                        value, ModelObject
-                ):
-                    value = AbstractPriorModel.from_instance(
-                        value
-                    )
+                if not isinstance(value, ModelObject):
+                    value = AbstractPriorModel.from_instance(value)
                 value = value.dict()
             except AttributeError:
                 pass
@@ -181,5 +173,5 @@ class ModelObject:
             key: value
             for key, value in self.__dict__.items()
             if key not in ("component_number", "item_number", "id", "cls")
-               and not key.startswith("_")
+            and not key.startswith("_")
         }
