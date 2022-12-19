@@ -4,10 +4,14 @@ PyAutoFit: Classy Probabilistic Programming
 .. |binder| image:: https://mybinder.org/badge_logo.svg
    :target: https://mybinder.org/v2/gh/Jammy2211/autofit_workspace/HEAD
 
+.. |RTD| image:: https://readthedocs.org/projects/pyautofit/badge/?version=latest
+    :target: https://pyautofit.readthedocs.io/en/latest/?badge=latest
+    :alt: Documentation Status
+
 .. |JOSS| image:: https://joss.theoj.org/papers/10.21105/joss.02550/status.svg
    :target: https://doi.org/10.21105/joss.02550
 
-|binder| |JOSS|
+|binder| |RTD| |JOSS|
 
 `Installation Guide <https://pyautofit.readthedocs.io/en/latest/installation/overview.html>`_ |
 `readthedocs <https://pyautofit.readthedocs.io/en/latest/index.html>`_ |
