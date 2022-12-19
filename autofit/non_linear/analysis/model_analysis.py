@@ -53,9 +53,9 @@ class CombinedModelAnalysis(IndexCollectionAnalysis):
         """
         return CollectionPriorModel(
             [
-                analysis.analysis.model
+                analysis.modify_model(analysis.analysis.model)
                 if isinstance(analysis.analysis, ModelAnalysis)
-                else model
+                else analysis.modify_model(model)
                 for analysis in self.analyses
             ]
         )
