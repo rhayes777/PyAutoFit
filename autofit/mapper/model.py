@@ -220,14 +220,8 @@ class AbstractModel(ModelObject):
             )
         )
 
-    def has(self, cls: Union[Type, Tuple[Type, ...]]) -> bool:
-        """
-        Does this instance have an attribute which is of type cls?
-        """
-        return len(self.attribute_tuples_with_type(cls)) > 0
-
     @frozen_cache
-    def model_tuples_with_type(self, cls):
+    def model_tuples_with_type(self, cls, check_prior_count=True):
         """
         All models of the class in this model which have at least
         one free parameter, recursively.
@@ -236,6 +230,8 @@ class AbstractModel(ModelObject):
         ----------
         cls
             The type of the model
+        check_prior_count
+            If true, only return models with at least one free parameter
 
         Returns
         -------
@@ -246,7 +242,8 @@ class AbstractModel(ModelObject):
         return [
             (path, model)
             for path, model in self.attribute_tuples_with_type(PriorModel)
-            if issubclass(model.cls, cls) and model.prior_count > 0
+            if issubclass(model.cls, cls)
+            and (not check_prior_count or model.prior_count > 0)
         ]
 
     @frozen_cache
