@@ -59,7 +59,6 @@ noisy 1D data. Here's the ``data`` (black) and the model (red) we'll fit:
 
 .. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/master/files/toy_model_fit.png
   :width: 400
-  :alt: Alternative text
 
 We define our model, a 1D Gaussian by writing a Python class using the format below:
 

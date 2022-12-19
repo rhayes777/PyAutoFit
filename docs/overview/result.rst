@@ -251,7 +251,7 @@ make a corner plot of the probability density function (PDF):
 
 Here is an example of how a PDF estimated for a model appears:
 
-.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/master/docs/images/cornerplot.png
+.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/main/docs/images/cornerplot.png
   :width: 600
   :alt: Alternative text
 
