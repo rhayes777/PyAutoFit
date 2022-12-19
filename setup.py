@@ -31,7 +31,7 @@ setup(
     version=version,
     description="Classy Probabilistic Programming",
     long_description=long_description,
-    long_description_content_type="text/markdown",
+    long_description_content_type="text/x-rst",
     url="https://github.com/rhayes777/PyAutoFit",
     author="James Nightingale and Richard Hayes",
     author_email="richard@rghsoftware.co.uk",

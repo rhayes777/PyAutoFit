@@ -25,15 +25,15 @@ datasets simultaneously.
 Each dataset has a different noise realization, meaning that performing a simultaneously fit will offer improved constraints
 over individual fits.
 
-.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/master/docs/images/gaussian_0.png
+.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/main/docs/images/gaussian_0.png
   :width: 600
   :alt: Alternative text
 
-.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/master/docs/images/gaussian_1.png
+.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/main/docs/images/gaussian_1.png
   :width: 600
   :alt: Alternative text
 
-.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/master/docs/images/gaussian_2.png
+.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/main/docs/images/gaussian_2.png
   :width: 600
   :alt: Alternative text
 
@@ -119,15 +119,15 @@ as ``max_log_likelihood_instance``.
 
 Inspection of the results show tht the model was successfully fitted to all three datasets:
 
-.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/master/docs/images/gaussian_model_0.png
+.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/main/docs/images/gaussian_model_0.png
   :width: 600
   :alt: Alternative text
 
-.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/master/docs/images/gaussian_model_1.png
+.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/main/docs/images/gaussian_model_1.png
   :width: 600
   :alt: Alternative text
 
-.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/master/docs/images/gaussian_model_2.png
+.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/main/docs/images/gaussian_model_2.png
   :width: 600
   :alt: Alternative text
 
@@ -143,15 +143,15 @@ The model parameterization therefore needs to change in order to account for thi
 
 Lets look at an example of a dataset of 3 1D Gaussians where the signal varies across the datasets:
 
-.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/master/docs/images/gaussian_model_vary_0.png
+.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/main/docs/images/gaussian_model_vary_0.png
   :width: 600
   :alt: Alternative text
 
-.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/master/docs/images/gaussian_model_vary_1.png
+.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/main/docs/images/gaussian_model_vary_1.png
   :width: 600
   :alt: Alternative text
 
-.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/master/docs/images/gaussian_model_vary_2.png
+.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/main/docs/images/gaussian_model_vary_2.png
   :width: 600
   :alt: Alternative text
 

@@ -23,7 +23,7 @@ To illustrate sensitivity mapping we will again use the example of fitting 1D Ga
 includes a small feature to the right of the central ``Gaussian``, a second ``Gaussian`` centred on pixel 70.
 
 
-.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/master/docs/features/images/gaussian_x1_with_feature.png
+.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/main/docs/features/images/gaussian_x1_with_feature.png
   :width: 600
   :alt: Alternative text
 
@@ -182,11 +182,11 @@ gaussian features.
 
 Here are what the two most extreme simulated datasets look like, corresponding to the highest and lowest normalization values
 
-.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/master/docs/features/images/sensitivity_data_low.png
+.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/main/docs/features/images/sensitivity_data_low.png
   :width: 600
   :alt: Alternative text
 
-.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/master/docs/features/images/sensitivity_data_high.png
+.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/main/docs/features/images/sensitivity_data_high.png
   :width: 600
   :alt: Alternative text
 
@@ -229,11 +229,11 @@ full example script on the ``autofit_workspace``).
 Here are what the fits to the two most extreme simulated datasets look like, for the models including the Gaussian
 feature.
 
-.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/master/docs/features/images/sensitivity_data_low_fit.png
+.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/main/docs/features/images/sensitivity_data_low_fit.png
   :width: 600
   :alt: Alternative text
 
-.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/master/docs/features/images/sensitivity_data_high_fit.png
+.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/main/docs/features/images/sensitivity_data_high_fit.png
   :width: 600
   :alt: Alternative text
 

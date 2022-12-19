@@ -12,7 +12,7 @@ Data
 The example ``data`` with errors (black), including the model-fit we'll perform (red) and individual
 ``Gaussian`` (blue dashed) and ``Exponential`` (orange dashed) components are shown below:
 
-.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/master/docs/images/toy_model_fit_x2.png
+.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/main/docs/images/toy_model_fit_x2.png
   :width: 600
   :alt: Alternative text
 
