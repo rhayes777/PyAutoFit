@@ -21,7 +21,7 @@ class MockFitness:
 
 class TestInitializePrior:
     def test__samples_from_model__sample_via_priors(self):
-        model = af.PriorModel(af.m.MockClassx4)
+        model = af.Model(af.m.MockClassx4)
         model.one = af.UniformPrior(lower_limit=0.099, upper_limit=0.101)
         model.two = af.UniformPrior(lower_limit=0.199, upper_limit=0.201)
         model.three = af.UniformPrior(lower_limit=0.299, upper_limit=0.301)
@@ -54,7 +54,7 @@ class TestInitializePrior:
         assert figure_of_merit_list == [1.0, 2.0]
 
     def test__samples_from_model__raise_exception_if_all_likelihoods_identical(self):
-        model = af.PriorModel(af.m.MockClassx4)
+        model = af.Model(af.m.MockClassx4)
 
         initializer = af.InitializerPrior()
 
@@ -68,7 +68,7 @@ class TestInitializePrior:
 
         os.environ["PYAUTOFIT_TEST_MODE"] = "1"
 
-        model = af.PriorModel(af.m.MockClassx4)
+        model = af.Model(af.m.MockClassx4)
         model.one = af.UniformPrior(lower_limit=0.099, upper_limit=0.101)
         model.two = af.UniformPrior(lower_limit=0.199, upper_limit=0.201)
         model.three = af.UniformPrior(lower_limit=0.299, upper_limit=0.301)
@@ -104,7 +104,7 @@ class TestInitializePrior:
 
 class TestInitializeBall:
     def test__ball__samples_sample_centre_of_priors(self):
-        model = af.PriorModel(af.m.MockClassx4)
+        model = af.Model(af.m.MockClassx4)
         model.one = af.UniformPrior(lower_limit=0.0, upper_limit=1.0)
         model.two = af.UniformPrior(lower_limit=0.0, upper_limit=2.0)
         model.three = af.UniformPrior(lower_limit=0.0, upper_limit=3.0)

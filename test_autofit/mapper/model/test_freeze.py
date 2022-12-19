@@ -7,7 +7,7 @@ import autofit as af
     name="frozen_model"
 )
 def make_frozen_model():
-    model = af.PriorModel(
+    model = af.Model(
         af.Gaussian
     )
 
@@ -19,8 +19,8 @@ def make_frozen_model():
     name="frozen_collection"
 )
 def make_frozen_collection():
-    model = af.CollectionPriorModel(
-        gaussian=af.PriorModel(
+    model = af.Collection(
+        gaussian=af.Model(
             af.Gaussian
         )
     )

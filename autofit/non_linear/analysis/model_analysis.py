@@ -1,5 +1,5 @@
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
-from autofit.mapper.prior_model.collection import CollectionPriorModel
+from autofit.mapper.prior_model.collection import Collection
 from .analysis import Analysis
 from .indexed import IndexCollectionAnalysis
 
@@ -37,7 +37,7 @@ class ModelAnalysis(Analysis):
 
 
 class CombinedModelAnalysis(IndexCollectionAnalysis):
-    def modify_model(self, model: AbstractPriorModel) -> CollectionPriorModel:
+    def modify_model(self, model: AbstractPriorModel) -> Collection:
         """
         Creates a collection with one model for each analysis. For each ModelAnalysis
         the model is used; for other analyses the default model is used.
@@ -51,7 +51,7 @@ class CombinedModelAnalysis(IndexCollectionAnalysis):
         -------
         A collection of models, one for each analysis.
         """
-        return CollectionPriorModel(
+        return Collection(
             [
                 analysis.modify_model(analysis.analysis.model)
                 if isinstance(analysis.analysis, ModelAnalysis)

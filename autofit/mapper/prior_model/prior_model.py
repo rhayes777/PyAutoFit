@@ -18,7 +18,7 @@ logger = logging.getLogger(__name__)
 class_args_dict = dict()
 
 
-class PriorModel(AbstractPriorModel):
+class Model(AbstractPriorModel):
     """
     @DynamicAttrs
     """
@@ -34,7 +34,7 @@ class PriorModel(AbstractPriorModel):
         return f"<{self.__class__.__name__} {self}>"
 
     def as_model(self):
-        return PriorModel(self.cls)
+        return Model(self.cls)
 
     def __hash__(self):
         return self.id
@@ -133,15 +133,15 @@ class PriorModel(AbstractPriorModel):
                 keyword_arg = kwargs[arg]
                 if isinstance(keyword_arg, (list, dict)):
                     from autofit.mapper.prior_model.collection import (
-                        CollectionPriorModel,
+                        Collection,
                     )
 
-                    ls = CollectionPriorModel(keyword_arg)
+                    ls = Collection(keyword_arg)
 
                     setattr(self, arg, ls)
                 else:
                     if inspect.isclass(keyword_arg):
-                        keyword_arg = PriorModel(keyword_arg)
+                        keyword_arg = Model(keyword_arg)
                     setattr(self, arg, keyword_arg)
             elif arg in defaults and isinstance(defaults[arg], tuple):
                 tuple_prior = TuplePrior()
@@ -163,7 +163,7 @@ class PriorModel(AbstractPriorModel):
                 elif hasattr(spec, "__args__") and type(None) in spec.__args__:
                     setattr(self, arg, None)
                 else:
-                    setattr(self, arg, PriorModel(annotations[arg]))
+                    setattr(self, arg, Model(annotations[arg]))
             else:
                 prior = self.make_prior(arg)
                 if isinstance(
@@ -177,7 +177,7 @@ class PriorModel(AbstractPriorModel):
         for key, value in kwargs.items():
             if not hasattr(self, key):
                 setattr(
-                    self, key, PriorModel(value) if inspect.isclass(value) else value
+                    self, key, Model(value) if inspect.isclass(value) else value
                 )
 
     def dict(self):
@@ -200,7 +200,7 @@ class PriorModel(AbstractPriorModel):
 
     def __eq__(self, other):
         return (
-                isinstance(other, PriorModel)
+                isinstance(other, Model)
                 and self.cls == other.cls
                 and self.prior_tuples == other.prior_tuples
         )
@@ -360,7 +360,7 @@ class PriorModel(AbstractPriorModel):
                     and not key == "cls"
                     and not key.startswith("_")
             ):
-                if isinstance(value, PriorModel):
+                if isinstance(value, Model):
                     value = value.instance_for_arguments(arguments)
                 elif isinstance(value, Prior):
                     value = arguments[value]

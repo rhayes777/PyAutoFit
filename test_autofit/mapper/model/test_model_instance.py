@@ -37,7 +37,7 @@ class TestModelInstance:
     def test_as_model(self, instance):
         model = instance.as_model()
         assert isinstance(model, af.ModelMapper)
-        assert isinstance(model.mock_components_2, af.PriorModel)
+        assert isinstance(model.mock_components_2, af.Model)
         assert model.mock_components_2.cls == af.m.MockComponents
 
     def test_object_for_path(self, instance, mock_components_1, mock_components_2):

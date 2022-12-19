@@ -9,7 +9,7 @@ from autofit.graphical.expectation_propagation import AbstractFactorOptimiser
 from autofit.graphical.expectation_propagation import EPMeanField, EPOptimiser
 from autofit.mapper.model import ModelInstance
 from autofit.mapper.prior.abstract import Prior
-from autofit.mapper.prior_model.collection import CollectionPriorModel
+from autofit.mapper.prior_model.collection import Collection
 from autofit.mapper.variable import Plate
 from autofit.messages.normal import NormalMessage
 from autofit.non_linear.analysis import Analysis
@@ -255,14 +255,14 @@ class AbstractDeclarativeFactor(Analysis, ABC):
             )
 
     @property
-    def global_prior_model(self) -> CollectionPriorModel:
+    def global_prior_model(self) -> Collection:
         """
         A collection of prior models, with one model for each factor.
         """
         return GlobalPriorModel(self)
 
 
-class GlobalPriorModel(CollectionPriorModel):
+class GlobalPriorModel(Collection):
     def __init__(
             self,
             factor: AbstractDeclarativeFactor

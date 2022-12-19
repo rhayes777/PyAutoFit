@@ -88,7 +88,7 @@ class Analysis(af.Analysis):
 
     def log_likelihood_function(self, instance: Gaussian) -> np.array:
         """
-        This function takes an instance created by the PriorModel and computes the
+        This function takes an instance created by the Model and computes the
         likelihood that it fits the data.
         """
         y_model = instance(self.x)

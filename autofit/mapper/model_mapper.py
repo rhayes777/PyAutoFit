@@ -1,11 +1,11 @@
 import os
 
-from autofit.mapper.prior_model.collection import CollectionPriorModel
+from autofit.mapper.prior_model.collection import Collection
 
 path = os.path.dirname(os.path.realpath(__file__))
 
 
-class ModelMapper(CollectionPriorModel):
+class ModelMapper(Collection):
     """
     A mapper of priors formed by passing in classes to be reconstructed
 
@@ -28,7 +28,7 @@ class ModelMapper(CollectionPriorModel):
     mapper.gaussian = al.lp.Gaussian
     mapper.any_class = SomeClass
 
-    A `PriorModel` instance is created each time we add a class to the mapper. We
+    A `Model` instance is created each time we add a class to the mapper. We
     can access those models using # the mapper attributes:
 
     sersic_model = mapper.sersic
@@ -71,7 +71,7 @@ class ModelMapper(CollectionPriorModel):
 
         Returns
         -------
-        prior_prior_model_dict: {Prior: PriorModel}
+        prior_prior_model_dict: {Prior: Model}
             A dictionary mapping priors to associated prior models. Each prior will only
             have one prior model; if a prior is shared by two prior models then one of
             those prior models will be in this dictionary.

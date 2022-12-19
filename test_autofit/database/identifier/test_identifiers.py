@@ -162,46 +162,46 @@ def test_prior():
 
 
 def test_model():
-    identifier = af.PriorModel(af.Gaussian, centre=af.UniformPrior()).identifier
-    assert identifier == af.PriorModel(af.Gaussian, centre=af.UniformPrior()).identifier
+    identifier = af.Model(af.Gaussian, centre=af.UniformPrior()).identifier
+    assert identifier == af.Model(af.Gaussian, centre=af.UniformPrior()).identifier
     assert (
         identifier
-        != af.PriorModel(
+        != af.Model(
             af.Gaussian, centre=af.UniformPrior(upper_limit=0.5)
         ).identifier
     )
 
 
 def test_collection():
-    identifier = af.CollectionPriorModel(
-        gaussian=af.PriorModel(af.Gaussian, centre=af.UniformPrior())
+    identifier = af.Collection(
+        gaussian=af.Model(af.Gaussian, centre=af.UniformPrior())
     ).identifier
     assert (
         identifier
-        == af.CollectionPriorModel(
-            gaussian=af.PriorModel(af.Gaussian, centre=af.UniformPrior())
+        == af.Collection(
+            gaussian=af.Model(af.Gaussian, centre=af.UniformPrior())
         ).identifier
     )
     assert (
         identifier
-        != af.CollectionPriorModel(
-            gaussian=af.PriorModel(af.Gaussian, centre=af.UniformPrior(upper_limit=0.5))
+        != af.Collection(
+            gaussian=af.Model(af.Gaussian, centre=af.UniformPrior(upper_limit=0.5))
         ).identifier
     )
 
 
 def test_instance():
-    identifier = af.CollectionPriorModel(gaussian=af.Gaussian()).identifier
-    assert identifier == af.CollectionPriorModel(gaussian=af.Gaussian()).identifier
+    identifier = af.Collection(gaussian=af.Gaussian()).identifier
+    assert identifier == af.Collection(gaussian=af.Gaussian()).identifier
     assert (
         identifier
-        != af.CollectionPriorModel(gaussian=af.Gaussian(centre=0.5)).identifier
+        != af.Collection(gaussian=af.Gaussian(centre=0.5)).identifier
     )
 
 
 def test__identifier_description():
-    model = af.CollectionPriorModel(
-        gaussian=af.PriorModel(
+    model = af.Collection(
+        gaussian=af.Model(
             af.Gaussian,
             centre=af.UniformPrior(lower_limit=0.0, upper_limit=1.0),
             normalization=af.LogUniformPrior(lower_limit=0.001, upper_limit=0.01),
@@ -217,7 +217,7 @@ def test__identifier_description():
 
     i = 0
 
-    assert description[i] == "CollectionPriorModel"
+    assert description[i] == "Collection"
     i += 1
     assert description[i] == "item_number"
     i += 1
@@ -225,7 +225,7 @@ def test__identifier_description():
     i += 1
     assert description[i] == "gaussian"
     i += 1
-    assert description[i] == "PriorModel"
+    assert description[i] == "Model"
     i += 1
     assert description[i] == "cls"
     i += 1
@@ -278,8 +278,8 @@ def test__identifier_description():
 
 
 def test__identifier_description__after_model_and_instance():
-    model = af.CollectionPriorModel(
-        gaussian=af.PriorModel(
+    model = af.Collection(
+        gaussian=af.Model(
             af.Gaussian,
             centre=af.UniformPrior(lower_limit=0.0, upper_limit=1.0),
             normalization=af.LogUniformPrior(lower_limit=0.001, upper_limit=0.01),
@@ -308,11 +308,11 @@ def test__identifier_description__after_model_and_instance():
     description = identifier.description
     assert (
         description
-        == """CollectionPriorModel
+        == """Collection
 item_number
 0
 gaussian
-PriorModel
+Model
 cls
 autofit.example.model.Gaussian
 centre
@@ -341,8 +341,8 @@ sigma
 
 
 def test__identifier_description__after_take_attributes():
-    model = af.CollectionPriorModel(
-        gaussian=af.PriorModel(
+    model = af.Collection(
+        gaussian=af.Model(
             af.Gaussian,
             centre=af.UniformPrior(lower_limit=0.0, upper_limit=1.0),
             normalization=af.LogUniformPrior(lower_limit=0.001, upper_limit=0.01),
@@ -362,7 +362,7 @@ def test__identifier_description__after_take_attributes():
 
     i = 0
 
-    assert description[i] == "CollectionPriorModel"
+    assert description[i] == "Collection"
     i += 1
     assert description[i] == "item_number"
     i += 1
@@ -370,7 +370,7 @@ def test__identifier_description__after_take_attributes():
     i += 1
     assert description[i] == "gaussian"
     i += 1
-    assert description[i] == "PriorModel"
+    assert description[i] == "Model"
     i += 1
     assert description[i] == "cls"
     i += 1

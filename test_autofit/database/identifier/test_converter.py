@@ -25,14 +25,14 @@ def test_directory(old_directory_paths):
 @pytest.fixture(name="old_directory_paths")
 def make_old_directory_paths():
     search = af.DynestyStatic(name="name")
-    search.paths.model = af.PriorModel(af.Gaussian)
+    search.paths.model = af.Model(af.Gaussian)
     return search.paths
 
 
 @output_path_for_test(output_directory)
 def test_update_identifiers_from_dict():
     search = af.DynestyStatic(name="name")
-    search.paths.model = af.PriorModel(af.Gaussian)
+    search.paths.model = af.Model(af.Gaussian)
     old_directory_paths = search.paths
 
     initial_length = len(old_directory_paths._identifier.hash_list)
@@ -86,7 +86,7 @@ def test_zipped(old_directory_paths):
 
 def test_database(session):
     search = af.DynestyStatic(name="name", session=session)
-    search.paths.model = af.PriorModel(af.Gaussian)
+    search.paths.model = af.Model(af.Gaussian)
     search.paths.save_all(
         search_config_dict=search.config_dict_search, info={}, pickle_files=[]
     )

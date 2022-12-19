@@ -118,14 +118,15 @@ def make_model():
 def test_model_identifier(
         model
 ):
-    assert str(model) == "8f342d3d4f2a60639700c295378b8b9f"
+
+    assert str(model) == "9929b2be4248f0d116f5c1c034bda870"
 
 
 def test_model_identifier_fields(
         model
 ):
     assert model.hash_list == [
-        'PriorModel',
+        'Model',
         'cls',
         'autofit.example.model.Gaussian',
         'centre',

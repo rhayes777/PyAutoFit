@@ -36,11 +36,11 @@ class FactorGraphModel(AbstractDeclarativeFactor):
     @property
     def prior_model(self):
         """
-        Construct a CollectionPriorModel comprising the prior models described
+        Construct a Collection comprising the prior models described
         in each model factor
         """
-        from autofit.mapper.prior_model.collection import CollectionPriorModel
-        return CollectionPriorModel({
+        from autofit.mapper.prior_model.collection import Collection
+        return Collection({
             factor.name: factor.prior_model
             for factor
             in self.model_factors

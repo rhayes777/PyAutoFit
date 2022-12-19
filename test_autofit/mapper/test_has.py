@@ -5,7 +5,7 @@ class GaussianChild(af.Gaussian):
 
 
 def test_inheritance():
-    collection = af.CollectionPriorModel(
+    collection = af.Collection(
         first=af.Model(
             GaussianChild
         ),
@@ -33,7 +33,7 @@ def test_embedded():
 
 
 def test_no_free_parameters():
-    collection = af.CollectionPriorModel(
+    collection = af.Collection(
         gaussian=af.Model(
             af.Gaussian,
             centre=1.0,
@@ -48,7 +48,7 @@ def test_no_free_parameters():
 
 
 def test_instance():
-    collection = af.CollectionPriorModel(
+    collection = af.Collection(
         gaussian=af.Gaussian()
     )
 
@@ -61,8 +61,8 @@ def test_instance():
 
 
 def test_model():
-    collection = af.CollectionPriorModel(
-        gaussian=af.PriorModel(
+    collection = af.Collection(
+        gaussian=af.Model(
             af.Gaussian
         )
     )
@@ -76,8 +76,8 @@ def test_model():
 
 
 def test_both():
-    collection = af.CollectionPriorModel(
-        gaussian=af.PriorModel(
+    collection = af.Collection(
+        gaussian=af.Model(
             af.Gaussian
         ),
         gaussian_2=af.Gaussian()
@@ -92,8 +92,8 @@ def test_both():
 
 
 def test_embedded():
-    collection = af.CollectionPriorModel(
-        gaussian=af.PriorModel(
+    collection = af.Collection(
+        gaussian=af.Model(
             af.Gaussian,
             centre=af.Gaussian()
         ),
@@ -108,11 +108,11 @@ def test_embedded():
 
 
 def test_is_only_model():
-    collection = af.CollectionPriorModel(
-        gaussian=af.PriorModel(
+    collection = af.Collection(
+        gaussian=af.Model(
             af.Gaussian
         ),
-        gaussian_2=af.PriorModel(
+        gaussian_2=af.Model(
             af.Gaussian
         )
     )
@@ -121,7 +121,7 @@ def test_is_only_model():
         af.Gaussian
     ) is True
 
-    collection.other = af.PriorModel(
+    collection.other = af.Model(
         af.m.MockClassx2
     )
 
