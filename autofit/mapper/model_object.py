@@ -103,8 +103,8 @@ class ModelObject:
         An instance
         """
         from autofit.mapper.prior_model.abstract import AbstractPriorModel
-        from autofit.mapper.prior_model.collection import CollectionPriorModel
-        from autofit.mapper.prior_model.prior_model import PriorModel
+        from autofit.mapper.prior_model.collection import Collection
+        from autofit.mapper.prior_model.prior_model import Model
         from autofit.mapper.prior.abstract import Prior
         from autofit.mapper.prior.tuple_prior import TuplePrior
 
@@ -114,9 +114,9 @@ class ModelObject:
         type_ = d["type"]
 
         if type_ == "model":
-            instance = PriorModel(get_class(d.pop("class_path")))
+            instance = Model(get_class(d.pop("class_path")))
         elif type_ == "collection":
-            instance = CollectionPriorModel()
+            instance = Collection()
         elif type_ == "instance":
             cls = get_class(d.pop("class_path"))
             instance = object.__new__(cls)
@@ -136,15 +136,15 @@ class ModelObject:
         A dictionary representation of this object
         """
         from autofit.mapper.prior_model.abstract import AbstractPriorModel
-        from autofit.mapper.prior_model.collection import CollectionPriorModel
-        from autofit.mapper.prior_model.prior_model import PriorModel
+        from autofit.mapper.prior_model.collection import Collection
+        from autofit.mapper.prior_model.prior_model import Model
         from autofit.mapper.prior.tuple_prior import TuplePrior
 
-        if isinstance(self, CollectionPriorModel):
+        if isinstance(self, Collection):
             type_ = "collection"
         elif isinstance(self, AbstractPriorModel) and self.prior_count == 0:
             type_ = "instance"
-        elif isinstance(self, PriorModel):
+        elif isinstance(self, Model):
             type_ = "model"
         elif isinstance(self, TuplePrior):
             type_ = "tuple_prior"

@@ -95,9 +95,9 @@ class Object(Base):
         An instance of a concrete child of this class
         """
 
-        from autofit.mapper.prior_model.prior_model import PriorModel
+        from autofit.mapper.prior_model.prior_model import Model
         from autofit.mapper.prior.abstract import Prior
-        from autofit.mapper.prior_model.collection import CollectionPriorModel
+        from autofit.mapper.prior_model.collection import Collection
 
         if source is None or isinstance(
                 source,
@@ -110,9 +110,9 @@ class Object(Base):
         ):
             from .instance import NoneInstance
             instance = NoneInstance()
-        elif isinstance(source, PriorModel):
-            from .prior import PriorModel
-            instance = PriorModel._from_object(
+        elif isinstance(source, Model):
+            from .prior import Model
+            instance = Model._from_object(
                 source
             )
         elif isinstance(source, Prior):
@@ -130,9 +130,9 @@ class Object(Base):
             instance = Collection._from_object(
                 source
             )
-        elif isinstance(source, (CollectionPriorModel, dict)):
-            from .prior import CollectionPriorModel
-            instance = CollectionPriorModel._from_object(
+        elif isinstance(source, (Collection, dict)):
+            from .prior import Collection
+            instance = Collection._from_object(
                 source
             )
         elif isinstance(source, str):

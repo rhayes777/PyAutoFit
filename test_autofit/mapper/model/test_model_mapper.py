@@ -8,12 +8,12 @@ import autofit as af
 
 @pytest.fixture(name="initial_model")
 def make_initial_model():
-    return af.PriorModel(af.m.MockClassx2)
+    return af.Model(af.m.MockClassx2)
 
 
 class TestParamNames:
     def test_has_prior(self):
-        prior_model = af.PriorModel(af.m.MockClassx2)
+        prior_model = af.Model(af.m.MockClassx2)
         assert "one" == prior_model.name_for_prior(prior_model.one)
 
 
@@ -78,10 +78,10 @@ class TestRegression:
 
     def test_parameter_name_distinction(self):
         mm = af.ModelMapper()
-        mm.ls = af.CollectionPriorModel(
+        mm.ls = af.Collection(
             [
-                af.PriorModel(af.m.MockClassRelativeWidth),
-                af.PriorModel(af.m.MockClassRelativeWidth),
+                af.Model(af.m.MockClassRelativeWidth),
+                af.Model(af.m.MockClassRelativeWidth),
             ]
         )
         assert mm.model_component_and_parameter_names == [
@@ -147,10 +147,10 @@ class TestRegression:
         ]
 
     def test_name_for_prior(self):
-        ls = af.CollectionPriorModel(
+        ls = af.Collection(
             [
                 af.m.MockClassRelativeWidth(1, 2, 3),
-                af.PriorModel(af.m.MockClassRelativeWidth),
+                af.Model(af.m.MockClassRelativeWidth),
             ]
         )
         assert ls.name_for_prior(ls[1].one) == "1_one"
@@ -204,7 +204,7 @@ class TestInstances:
         mm.cls_1 = af.m.MockClassx2
 
         assert 1 == len(mm.prior_model_tuples)
-        assert isinstance(mm.cls_1, af.PriorModel)
+        assert isinstance(mm.cls_1, af.Model)
 
     def test__instance_from_unit_vector(self):
         mapper = af.ModelMapper(mock_cls=af.m.MockClassx2Tuple)
@@ -420,7 +420,7 @@ class TestInstances:
 
     def test_log_prior_list_from_vector(self):
         mapper = af.ModelMapper()
-        mapper.mock_class = af.PriorModel(af.m.MockClassx2)
+        mapper.mock_class = af.Model(af.m.MockClassx2)
         mapper.mock_class.one = af.GaussianPrior(mean=1.0, sigma=2.0)
         mapper.mock_class.two = af.LogUniformPrior(lower_limit=1e-8, upper_limit=10.0)
 
@@ -430,7 +430,7 @@ class TestInstances:
 
     def test_random_unit_vector_within_limits(self):
         mapper = af.ModelMapper()
-        mapper.mock_class = af.PriorModel(af.m.MockClassx2)
+        mapper.mock_class = af.Model(af.m.MockClassx2)
 
         random.seed(1)
 
@@ -446,7 +446,7 @@ class TestInstances:
         random.seed(1)
 
         mapper = af.ModelMapper()
-        mapper.mock_class = af.PriorModel(af.m.MockClassx2)
+        mapper.mock_class = af.Model(af.m.MockClassx2)
 
         vector = mapper.random_vector_from_priors_within_limits(
             lower_limit=0.499999, upper_limit=0.500001
@@ -501,7 +501,7 @@ class TestInstances:
 
     def test_vector_from_prior_medians(self):
         mapper = af.ModelMapper()
-        mapper.mock_class = af.PriorModel(af.m.MockClassx2)
+        mapper.mock_class = af.Model(af.m.MockClassx2)
 
         assert mapper.physical_values_from_prior_medians == [0.5, 1.0]
 
@@ -572,8 +572,8 @@ class TestArguments:
     def test_same_argument_name(self):
         mapper = af.ModelMapper()
 
-        mapper.one = af.PriorModel(af.m.MockClassx2)
-        mapper.two = af.PriorModel(af.m.MockClassx2)
+        mapper.one = af.Model(af.m.MockClassx2)
+        mapper.two = af.Model(af.m.MockClassx2)
 
         instance = mapper.instance_from_vector([0.1, 0.2, 0.3, 0.4])
 
@@ -585,7 +585,7 @@ class TestArguments:
 
 class TestIndependentPriorModel:
     def test_associate_prior_model(self):
-        prior_model = af.PriorModel(af.m.MockClassx2)
+        prior_model = af.Model(af.m.MockClassx2)
 
         mapper = af.ModelMapper()
 
@@ -601,8 +601,8 @@ class TestIndependentPriorModel:
 
 @pytest.fixture(name="list_prior_model")
 def make_list_prior_model():
-    return af.CollectionPriorModel(
-        [af.PriorModel(af.m.MockClassx2), af.PriorModel(af.m.MockClassx2)]
+    return af.Collection(
+        [af.Model(af.m.MockClassx2), af.Model(af.m.MockClassx2)]
     )
 
 
@@ -661,14 +661,14 @@ class TestListPriorModel:
 
     def test_automatic_boxing(self):
         mapper = af.ModelMapper()
-        mapper.list = [af.PriorModel(af.m.MockClassx2), af.PriorModel(af.m.MockClassx2)]
+        mapper.list = [af.Model(af.m.MockClassx2), af.Model(af.m.MockClassx2)]
 
-        assert isinstance(mapper.list, af.CollectionPriorModel)
+        assert isinstance(mapper.list, af.Collection)
 
 
 @pytest.fixture(name="mock_with_instance")
 def make_mock_with_instance():
-    mock_with_instance = af.PriorModel(af.m.MockClassx2)
+    mock_with_instance = af.Model(af.m.MockClassx2)
     mock_with_instance.one = 3.0
     return mock_with_instance
 
@@ -695,7 +695,7 @@ class Testinstance:
     def test__instance_in_config(self):
         mapper = af.ModelMapper()
 
-        mock_with_instance = af.PriorModel(af.m.MockClassx2Instance, one=3)
+        mock_with_instance = af.Model(af.m.MockClassx2Instance, one=3)
 
         mapper.mock_class = mock_with_instance
 
@@ -705,23 +705,23 @@ class Testinstance:
         assert instance.mock_class.two == 0.5
 
     def test__set_float(self):
-        prior_model = af.PriorModel(af.m.MockClassx2)
+        prior_model = af.Model(af.m.MockClassx2)
         prior_model.one = 3
         prior_model.two = 4.0
         assert prior_model.one == 3
         assert prior_model.two == 4.0
 
     def test__list_prior_model_instances(self, mapper):
-        prior_model = af.PriorModel(af.m.MockClassx2)
+        prior_model = af.Model(af.m.MockClassx2)
         prior_model.one = 3.0
         prior_model.two = 4.0
 
         mapper.mock_list = [prior_model]
-        assert isinstance(mapper.mock_list, af.CollectionPriorModel)
+        assert isinstance(mapper.mock_list, af.Collection)
         assert len(mapper.instance_tuples) == 2
 
     def test__set_for_tuple_prior(self):
-        prior_model = af.PriorModel(af.m.MockChildTuplex3)
+        prior_model = af.Model(af.m.MockChildTuplex3)
         prior_model.tup_0 = 1.0
         prior_model.tup_1 = 2.0
         prior_model.one = 1.0
@@ -739,14 +739,14 @@ def make_mock_config():
 @pytest.fixture(name="mapper_with_one")
 def make_mapper_with_one():
     mapper = af.ModelMapper()
-    mapper.one = af.PriorModel(af.m.MockClassx2)
+    mapper.one = af.Model(af.m.MockClassx2)
     return mapper
 
 
 @pytest.fixture(name="mapper_with_list")
 def make_mapper_with_list():
     mapper = af.ModelMapper()
-    mapper.list = [af.PriorModel(af.m.MockClassx2), af.PriorModel(af.m.MockClassx2)]
+    mapper.list = [af.Model(af.m.MockClassx2), af.Model(af.m.MockClassx2)]
     return mapper
 
 
@@ -781,7 +781,7 @@ class TestGaussianWidthConfig:
     def test_no_override(self):
         mapper = af.ModelMapper()
 
-        mapper.one = af.PriorModel(af.m.MockClassx2)
+        mapper.one = af.Model(af.m.MockClassx2)
 
         af.ModelMapper()
 

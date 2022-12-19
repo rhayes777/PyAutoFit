@@ -15,7 +15,7 @@ def make_make_model_factor(normalization, normalization_prior, x):
             Gaussian(centre=centre, normalization=normalization, sigma=sigma), x
         )
 
-        prior_model = af.PriorModel(
+        prior_model = af.Model(
             Gaussian,
             centre=af.UniformPrior(lower_limit=10, upper_limit=100),
             normalization=normalization_prior,
@@ -91,7 +91,7 @@ def _test_gaussian():
     x = np.arange(n_observations)
     y = make_data(Gaussian(centre=50.0, normalization=25.0, sigma=10.0), x)
 
-    prior_model = af.PriorModel(
+    prior_model = af.Model(
         Gaussian,
         # centre=af.GaussianPrior(mean=50, sigma=10),
         # normalization=af.GaussianPrior(mean=25, sigma=10),

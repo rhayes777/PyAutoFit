@@ -6,7 +6,7 @@ from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.mapper.prior_model.abstract import check_assertions
 
 
-class CollectionPriorModel(AbstractPriorModel):
+class Collection(AbstractPriorModel):
     def name_for_prior(self, prior: Prior) -> str:
         """
         Construct a name for the prior. This is the path taken
@@ -67,7 +67,7 @@ class CollectionPriorModel(AbstractPriorModel):
         Filter members of the collection, only returning those that start
         with a given prefix as a new collection.
         """
-        return CollectionPriorModel({
+        return Collection({
             key: value
             for key, value
             in self.items()
@@ -77,7 +77,7 @@ class CollectionPriorModel(AbstractPriorModel):
         })
 
     def as_model(self):
-        return CollectionPriorModel({
+        return Collection({
             key: value.as_model()
             if isinstance(value, AbstractPriorModel)
             else value
@@ -236,7 +236,7 @@ class CollectionPriorModel(AbstractPriorModel):
         -------
         A new collection
         """
-        collection = CollectionPriorModel()
+        collection = Collection()
 
         for key, value in self.items():
             if key in (

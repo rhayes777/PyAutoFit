@@ -38,7 +38,7 @@ def test_direct_instances_only():
 
 def test_function_from_instance():
     assert (
-        af.PriorModel.from_instance(test_function_from_instance)
+        af.Model.from_instance(test_function_from_instance)
         is test_function_from_instance
     )
 

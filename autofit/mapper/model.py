@@ -164,7 +164,7 @@ class AbstractModel(ModelObject):
             if isinstance(name, int):
                 instance = instance[name]
             elif isinstance(name, type):
-                from autofit.mapper.prior_model.prior_model import PriorModel
+                from autofit.mapper.prior_model.prior_model import Model
 
                 instances = [
                     instance
@@ -172,7 +172,7 @@ class AbstractModel(ModelObject):
                 ]
                 instances += [
                     instance
-                    for _, instance in self.path_instance_tuples_for_class(PriorModel)
+                    for _, instance in self.path_instance_tuples_for_class(Model)
                     if issubclass(instance.cls, name)
                 ]
                 instance = ModelInstance(instances)
@@ -237,11 +237,11 @@ class AbstractModel(ModelObject):
         -------
         Models with free parameters
         """
-        from .prior_model.prior_model import PriorModel
+        from .prior_model.prior_model import Model
 
         return [
             (path, model)
-            for path, model in self.attribute_tuples_with_type(PriorModel)
+            for path, model in self.attribute_tuples_with_type(Model)
             if issubclass(model.cls, cls)
             and (include_zero_dimension or model.prior_count > 0)
         ]

@@ -4,7 +4,7 @@ from typing import Tuple
 from autofit.mapper.prior.abstract import Prior
 from autofit.mapper.prior.tuple_prior import TuplePrior
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
-from autofit.mapper.prior_model.collection import CollectionPriorModel
+from autofit.mapper.prior_model.collection import Collection
 from .analysis import Analysis
 from .indexed import IndexCollectionAnalysis
 from ..paths.abstract import AbstractPaths
@@ -60,7 +60,7 @@ class FreeParameterAnalysis(IndexCollectionAnalysis):
         A new model with all the same priors except for those associated
         with free parameters.
         """
-        return CollectionPriorModel(
+        return Collection(
             [
                 analysis.modify_model(
                     model.mapper_from_partial_prior_arguments(

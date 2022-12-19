@@ -27,7 +27,7 @@ def make_make_model_factor(normalization, normalization_prior, x):
     
         Note that the normalization prior is shared.
         """
-        prior_model = af.PriorModel(
+        prior_model = af.Model(
             Gaussian,
             centre=af.GaussianPrior(mean=50, sigma=20),
             normalization=normalization_prior,
@@ -122,7 +122,7 @@ def test_gaussian():
     x = np.arange(n_observations)
     y = make_data(Gaussian(centre=50.0, normalization=25.0, sigma=10.0), x)
 
-    prior_model = af.PriorModel(
+    prior_model = af.Model(
         Gaussian,
         centre=af.GaussianPrior(mean=50, sigma=20),
         normalization=af.GaussianPrior(mean=25, sigma=10),
@@ -141,7 +141,7 @@ def test_gaussian():
 
 @pytest.fixture(name="prior_model")
 def make_prior_model():
-    return af.PriorModel(Gaussian)
+    return af.Model(Gaussian)
 
 
 @pytest.fixture(name="likelihood_model")

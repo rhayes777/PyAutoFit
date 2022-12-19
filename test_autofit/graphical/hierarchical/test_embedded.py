@@ -70,7 +70,7 @@ def test_generate_data(data):
 def test_model_factor(data, centres):
     y = data[0]
     centre_argument = af.GaussianPrior(mean=50, sigma=20)
-    prior_model = af.PriorModel(
+    prior_model = af.Model(
         af.Gaussian, centre=centre_argument, normalization=20, sigma=5
     )
     factor = g.AnalysisFactor(prior_model, analysis=Analysis(x=x, y=y))
@@ -83,7 +83,7 @@ def test_model_factor(data, centres):
 def test_full_fit(centre_model, data, centres):
     graph = g.FactorGraphModel()
     for i, y in enumerate(data):
-        prior_model = af.PriorModel(
+        prior_model = af.Model(
             af.Gaussian,
             centre=af.GaussianPrior(mean=100, sigma=1),
             intensity=20,
