@@ -6,9 +6,7 @@ from typing import Optional, Union, Tuple, List, Iterable, Type
 from autofit.mapper.model_object import ModelObject
 from autofit.mapper.prior_model.recursion import DynamicRecursionCache
 
-logger = logging.getLogger(
-    __name__
-)
+logger = logging.getLogger(__name__)
 
 
 def frozen_cache(func):
@@ -32,17 +30,11 @@ def frozen_cache(func):
     @wraps(func)
     def cache(self, *args, **kwargs):
         if hasattr(self, "_is_frozen") and self._is_frozen:
-            key = (func.__name__, self, *args,) + tuple(
-                kwargs.items()
-            )
+            key = (func.__name__, self, *args,) + tuple(kwargs.items())
 
             if key not in self._frozen_cache:
-                self._frozen_cache[
-                    key
-                ] = func(self, *args, **kwargs)
-            return self._frozen_cache[
-                key
-            ]
+                self._frozen_cache[key] = func(self, *args, **kwargs)
+            return self._frozen_cache[key]
         return func(self, *args, **kwargs)
 
     return cache
@@ -68,16 +60,14 @@ def assert_not_frozen(func):
 
     @wraps(func)
     def wrapper(self, *args, **kwargs):
-        string_args = list(filter(
-            lambda arg: isinstance(arg, str),
-            args
-        ))
-        if "_is_frozen" not in string_args and "_frozen_cache" not in string_args and hasattr(
-                self, "_is_frozen"
-        ) and self._is_frozen:
-            raise AssertionError(
-                "Frozen models cannot be modified"
-            )
+        string_args = list(filter(lambda arg: isinstance(arg, str), args))
+        if (
+            "_is_frozen" not in string_args
+            and "_frozen_cache" not in string_args
+            and hasattr(self, "_is_frozen")
+            and self._is_frozen
+        ):
+            raise AssertionError("Frozen models cannot be modified")
         return func(self, *args, **kwargs)
 
     return wrapper
@@ -91,10 +81,7 @@ class AbstractModel(ModelObject):
 
     def __getstate__(self):
         return {
-            key: value
-            for key, value
-            in self.__dict__.items()
-            if key != "_frozen_cache"
+            key: value for key, value in self.__dict__.items() if key != "_frozen_cache"
         }
 
     def __setstate__(self, state):
@@ -109,9 +96,7 @@ class AbstractModel(ModelObject):
         and does not allow its state to be modified.
         """
         logger.debug("Freezing model")
-        tuples = self.direct_tuples_with_type(
-            AbstractModel
-        )
+        tuples = self.direct_tuples_with_type(AbstractModel)
         for _, model in tuples:
             if model is not self:
                 model.freeze()
@@ -124,9 +109,7 @@ class AbstractModel(ModelObject):
         """
         logger.debug("Thawing model")
         self._is_frozen = False
-        tuples = self.direct_tuples_with_type(
-            AbstractModel
-        )
+        tuples = self.direct_tuples_with_type(AbstractModel)
         for _, model in tuples:
             if model is not self:
                 model.unfreeze()
@@ -155,7 +138,7 @@ class AbstractModel(ModelObject):
         return copy.deepcopy(self)
 
     def object_for_path(
-            self, path: Iterable[Union[str, int, type]]
+        self, path: Iterable[Union[str, int, type]]
     ) -> Union[object, List]:
         """
         Get the object at a given path.
@@ -199,10 +182,10 @@ class AbstractModel(ModelObject):
 
     @frozen_cache
     def path_instance_tuples_for_class(
-            self,
-            cls: Union[Tuple, Type],
-            ignore_class: bool = None,
-            ignore_children: bool = True
+        self,
+        cls: Union[Tuple, Type],
+        ignore_class: bool = None,
+        ignore_children: bool = True,
     ):
         """
         Tuples containing the path tuple and instance for every instance of the class
@@ -223,17 +206,16 @@ class AbstractModel(ModelObject):
             Tuples containing the path to and instance of objects of the given type.
         """
         return path_instances_of_class(
-            self,
-            cls,
-            ignore_class=ignore_class,
-            ignore_children=ignore_children
+            self, cls, ignore_class=ignore_class, ignore_children=ignore_children
         )
 
     @frozen_cache
     def direct_tuples_with_type(self, class_type):
         return list(
             filter(
-                lambda t: t[0] != "id" and not t[0].startswith("_") and isinstance(t[1], class_type),
+                lambda t: t[0] != "id"
+                and not t[0].startswith("_")
+                and isinstance(t[1], class_type),
                 self.__dict__.items(),
             )
         )
@@ -254,24 +236,16 @@ class AbstractModel(ModelObject):
         Models with free parameters
         """
         from .prior_model.prior_model import PriorModel
+
         return [
             (path, model)
-            for path, model
-            in self.attribute_tuples_with_type(
-                PriorModel
-            )
-            if issubclass(
-                model.cls,
-                cls
-            ) and model.prior_count > 0
+            for path, model in self.attribute_tuples_with_type(PriorModel)
+            if issubclass(model.cls, cls) and model.prior_count > 0
         ]
 
     @frozen_cache
     def attribute_tuples_with_type(
-            self,
-            class_type,
-            ignore_class=None,
-            ignore_children=True
+        self, class_type, ignore_class=None, ignore_children=True
     ) -> List[tuple]:
         """
         Tuples describing the name and instance for attributes in the model
@@ -293,19 +267,40 @@ class AbstractModel(ModelObject):
         return [
             (path[-1] if len(path) > 0 else "", value)
             for path, value in self.path_instance_tuples_for_class(
-                class_type,
-                ignore_class=ignore_class,
-                ignore_children=ignore_children
+                class_type, ignore_class=ignore_class, ignore_children=ignore_children
             )
         ]
+
+    def replacing_for_path(self, path: Tuple[str, ...], value) -> "AbstractModel":
+        """
+        Create a new model replacing the value for a given path with a new value
+
+        Parameters
+        ----------
+        path
+            A path indicating the sequence of names used to address an object
+        value
+            A value that should replace the object at the given path
+
+        Returns
+        -------
+        A copy of this with an updated value
+        """
+        new = copy.deepcopy(self)
+        obj = new
+        for key in path[:-1]:
+            obj = getattr(new, key)
+
+        setattr(obj, path[-1], value)
+        return new
 
 
 @DynamicRecursionCache()
 def path_instances_of_class(
-        obj,
-        cls: type,
-        ignore_class: Optional[Union[type, Tuple[type]]] = None,
-        ignore_children: bool = False
+    obj,
+    cls: type,
+    ignore_class: Optional[Union[type, Tuple[type]]] = None,
+    ignore_children: bool = False,
 ):
     """
     Recursively search the object for instances of a given class
@@ -345,10 +340,7 @@ def path_instances_of_class(
             if key.startswith("_"):
                 continue
             for item in path_instances_of_class(
-                    value,
-                    cls,
-                    ignore_class=ignore_class,
-                    ignore_children=ignore_children
+                value, cls, ignore_class=ignore_class, ignore_children=ignore_children
             ):
                 if isinstance(value, AnnotationPriorModel):
                     path = (key,)
@@ -383,9 +375,7 @@ class ModelInstance(AbstractModel):
         if isinstance(item, int):
             return list(self.values())[item]
         if isinstance(item, slice):
-            return ModelInstance(
-                list(self.values())[item]
-            )
+            return ModelInstance(list(self.values())[item])
         return self.__dict__[item]
 
     def __setitem__(self, key, value):
@@ -402,14 +392,8 @@ class ModelInstance(AbstractModel):
         return {
             key: value
             for key, value in self.__dict__.items()
-            if key not in (
-                "id",
-                "component_number",
-                "item_number"
-            ) and not (
-                    isinstance(key, str)
-                    and key.startswith("_")
-            )
+            if key not in ("id", "component_number", "item_number")
+            and not (isinstance(key, str) and key.startswith("_"))
         }
 
     def values(self):
