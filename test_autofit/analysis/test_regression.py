@@ -52,12 +52,12 @@ def make_combined_analysis():
 
 
 def test_combined_before_fit(combined_analysis):
-    combined_analysis = combined_analysis.modify_before_fit(None, None)
+    combined_analysis = combined_analysis.modify_before_fit(None, [None])
 
     assert combined_analysis[0].is_modified_before
 
 
 def test_combined_after_fit(combined_analysis):
-    combined_analysis = combined_analysis.modify_after_fit(None, None, None)
+    combined_analysis = combined_analysis.modify_after_fit(None, [None], None)
 
     assert combined_analysis[0].is_modified_after
