@@ -68,7 +68,9 @@ jobs:
         export PYTHONPATH=$PYTHONPATH:$ROOT_DIR/PyAutoConf
         export PYTHONPATH=$PYTHONPATH:$ROOT_DIR/PyAutoFit
         pushd PyAutoFit
-        pytest
+        pytest --cov
+    - name: Upload coverage to Codecov
+      uses: codecov/codecov-action@v3
     - name: Slack send
       if: ${{ failure() }}
       id: slack
