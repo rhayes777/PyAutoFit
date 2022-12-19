@@ -56,7 +56,6 @@ from .mapper.prior_model.attribute_pair import InstanceNameValue
 from .mapper.prior_model.attribute_pair import PriorNameValue
 from .mapper.prior_model.attribute_pair import cast_collection
 from .mapper.prior_model.collection import Collection
-from .mapper.prior_model.collection import Collection
 from .mapper.prior_model.prior_model import Model
 from .mapper.prior_model.prior_model import Model
 from .mapper.prior_model.util import PriorModelNameValue

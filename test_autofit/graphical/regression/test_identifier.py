@@ -118,7 +118,7 @@ def make_model():
 def test_model_identifier(
         model
 ):
-    
+
     assert str(model) == "9929b2be4248f0d116f5c1c034bda870"
 
 
