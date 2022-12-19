@@ -52,7 +52,7 @@ Every model-component must have a ``.json`` config file in the ``autofit_workspa
 that **PyAutoFit** knows the default priors to associate with the model-component. If we do not manually override 
 priors, these are the priors that will be used by default when a model-fit is performed.
 
-Next, inspect the `TemplateObject.json  <https://github.com/Jammy2211/autofit_workspace/blob/master/config/priors/TemplateObject.json>`_ configuration file in ``autofit_workspace/config/priors``. You should see
+Next, inspect the `TemplateObject.json  <https://github.com/Jammy2211/autofit_workspace/blob/main/config/priors/TemplateObject.json>`_ configuration file in ``autofit_workspace/config/priors``. You should see
 the following ``.json`` text:
 
 .. code-block:: python
@@ -84,7 +84,7 @@ The ``lower_limit`` and ``upper_limit`` of a ``GaussianPrior`` define the bounda
 physically allowed. If a model-component is given a value outside these limits during model-fitting the model is
 instantly resampled and discarded.
  
-We can easily adapt this template for our ``LinearFit`` model component. First, copy and paste the `TemplateObject.json  <https://github.com/Jammy2211/autofit_workspace/blob/master/config/priors/TemplateObject.json>`_
+We can easily adapt this template for our ``LinearFit`` model component. First, copy and paste the `TemplateObject.json  <https://github.com/Jammy2211/autofit_workspace/blob/main/config/priors/TemplateObject.json>`_
 file to create a new file called ``LinearFit.json``. 
 
 **PyAutoFit** matches the name of the class to the name of the configuration file, therefore it is a requirement that 
@@ -144,7 +144,7 @@ classes, we receive the same configuration error as before.
 This is because if a model-component is contained in a Python module, the prior configuration file must be named after
 that ``module`` and structured to contain Python class itself.
 
-Open the file ``autofit_workspace/config/priors/template_module.json``, (https://github.com/Jammy2211/autofit_workspace/blob/master/config/priors/template_module.json) which reads as follows:
+Open the file ``autofit_workspace/config/priors/template_module.json``, (https://github.com/Jammy2211/autofit_workspace/blob/main/config/priors/template_module.json) which reads as follows:
 
 .. code-block:: python
     

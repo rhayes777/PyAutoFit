@@ -151,7 +151,7 @@ Wrap Up
 -------
 
 If you'd like to see the ``Aggregator`` in action, checkout the
-`database example <https://github.com/Jammy2211/autofit_workspace/blob/master/notebooks/features/database.ipynb>`_ on the
+`database example <https://github.com/Jammy2211/autofit_workspace/blob/main/notebooks/features/database.ipynb>`_ on the
 ``autofit_workspace``.
 
 The Database Chapter of the `HowToFit lecture series <https://pyautofit.readthedocs.io/en/latest/howtofit/howtofit.html>`_
