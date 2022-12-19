@@ -5,6 +5,7 @@ from autoconf import conf
 from autofit.mapper.prior.abstract import Prior
 from autofit.mapper.prior.tuple_prior import TuplePrior
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
+from autofit.mapper.prior_model.collection import CollectionPriorModel
 from autofit.non_linear.analysis.multiprocessing import AnalysisPool
 from autofit.non_linear.paths.abstract import AbstractPaths
 from autofit.non_linear.result import Result
@@ -45,7 +46,7 @@ class CombinedAnalysis(Analysis):
     def __getitem__(self, item):
         return self.analyses[item]
 
-    def modify_before_fit(self, paths: AbstractPaths, model: AbstractPriorModel):
+    def modify_before_fit(self, paths: AbstractPaths, model: CollectionPriorModel):
         """
         Modify the analysis before fitting.
 
@@ -57,11 +58,14 @@ class CombinedAnalysis(Analysis):
             The model which is to be fitted.
         """
         return CombinedAnalysis(
-            *(analysis.modify_before_fit(paths, model) for analysis in self.analyses)
+            *(
+                analysis.modify_before_fit(paths, model_)
+                for analysis, model_ in zip(self.analyses, model)
+            )
         )
 
     def modify_after_fit(
-        self, paths: AbstractPaths, model: AbstractPriorModel, result: Result
+        self, paths: AbstractPaths, model: CollectionPriorModel, result: Result
     ):
         """
         Modify the analysis after fitting.
@@ -77,8 +81,8 @@ class CombinedAnalysis(Analysis):
         """
         return CombinedAnalysis(
             *(
-                analysis.modify_after_fit(paths, model, result)
-                for analysis in self.analyses
+                analysis.modify_after_fit(paths, model_, result)
+                for analysis, model_ in zip(self.analyses, model)
             )
         )
 
