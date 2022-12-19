@@ -42,6 +42,24 @@ class CombinedAnalysis(Analysis):
         self._log_likelihood_function = None
         self.n_cores = conf.instance["general"]["analysis"]["n_cores"]
 
+    def __getitem__(self, item):
+        return self.analyses[item]
+
+    def modify_before_fit(self, paths: AbstractPaths, model: AbstractPriorModel):
+        """
+        Modify the analysis before fitting.
+
+        Parameters
+        ----------
+        paths
+            An object describing the paths for saving data (e.g. hard-disk directories or entries in sqlite database).
+        model
+            The model which is to be fitted.
+        """
+        return CombinedAnalysis(
+            *(analysis.modify_before_fit(paths, model) for analysis in self.analyses)
+        )
+
     @property
     def n_cores(self):
         return self._n_cores

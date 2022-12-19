@@ -15,11 +15,18 @@ class MyResult(af.Result):
 
 
 class MyAnalysis(af.Analysis):
+    def __init__(self):
+        self.is_modified = False
+
     def log_likelihood_function(self, instance):
         pass
 
     def make_result(self, samples, model, sigma=1.0, use_errors=True, use_widths=False):
         return MyResult(model=model, samples=samples)
+
+    def modify_before_fit(self, paths, model):
+        self.is_modified = True
+        return self
 
 
 def test_result_type():
@@ -30,3 +37,11 @@ def test_result_type():
     result = analysis.make_result(None, model)
 
     assert isinstance(result, MyResult)
+
+
+def test_combined_before_fit():
+    analysis = MyAnalysis() + MyAnalysis()
+
+    analysis = analysis.modify_before_fit(None, None)
+
+    assert analysis[0].is_modified
