@@ -19,7 +19,9 @@ class_args_dict = dict()
 
 
 class PriorModel(AbstractPriorModel):
-
+    """
+    @DynamicAttrs
+    """
     @property
     def name(self):
         return self.cls.__name__

@@ -12,12 +12,11 @@ class GaussianPrior(Prior):
     )
 
     def __init__(
-            self,
-            mean: float,
-            sigma : float,
-            lower_limit : float = float("-inf"),
-            upper_limit : float = float("inf"),
-
+        self,
+        mean: float,
+        sigma : float,
+        lower_limit : float = float("-inf"),
+        upper_limit : float = float("inf"),
     ):
         """
         A prior with a uniform distribution, defined between a lower limit and upper limit.
@@ -31,7 +30,8 @@ class GaussianPrior(Prior):
         For example for ``prior = GaussianPrior(mean=1.0, sigma=2.0)``, an
         input ``prior.value_for(unit=0.5)`` is equal to 1.0.
 
-        [Rich describe how this is done via message]
+        The mapping is performed using the message functionality, where a message represents the distirubtion
+        of this prior.
 
         Parameters
         ----------
