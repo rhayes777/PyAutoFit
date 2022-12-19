@@ -19,7 +19,7 @@ def make_centre_model():
     return g.HierarchicalFactor(
         af.GaussianPrior,
         mean=af.GaussianPrior(mean=100, sigma=10),
-        sigma=af.GaussianPrior(mean=10, sigma=5),
+        sigma=af.GaussianPrior(mean=10, sigma=5, lower_limit=0),
     )
 
 
@@ -54,11 +54,7 @@ def make_centre(centre_model):
 def generate_data(centres):
     data = []
     for centre in centres:
-        gaussian = af.Gaussian(
-            centre=centre,
-            normalization=20,
-            sigma=5,
-        )
+        gaussian = af.Gaussian(centre=centre, normalization=20, sigma=5,)
 
         data.append(gaussian(x))
     return data
@@ -89,44 +85,21 @@ def test_full_fit(centre_model, data, centres):
     for i, y in enumerate(data):
         prior_model = af.PriorModel(
             af.Gaussian,
-            centre=af.GaussianPrior(
-                mean=100,
-                sigma=1
-            ),
+            centre=af.GaussianPrior(mean=100, sigma=1),
             intensity=20,
             normalization=20,
-            sigma=5
+            sigma=5,
         )
-        graph.add(
-            g.AnalysisFactor(
-                prior_model,
-                analysis=Analysis(
-                    x=x,
-                    y=y
-                )
-            )
-        )
-        centre_model.add_drawn_variable(
-            prior_model.centre
-        )
+        graph.add(g.AnalysisFactor(prior_model, analysis=Analysis(x=x, y=y)))
+        centre_model.add_drawn_variable(prior_model.centre)
 
     graph.add(centre_model)
 
     optimiser = g.LaplaceOptimiser()
 
-    collection = graph.optimise(
-        optimiser,
-        max_steps=10
-    ).model
+    collection = graph.optimise(optimiser, max_steps=10).model
 
-    for gaussian, centre in zip(
-            collection.with_prefix(
-                "AnalysisFactor"
-            ),
-            centres
-    ):
+    for gaussian, centre in zip(collection.with_prefix("AnalysisFactor"), centres):
         assert gaussian.instance_from_prior_medians().centre == pytest.approx(
-            centre,
-            abs=0.1
+            centre, abs=0.1
         )
-
