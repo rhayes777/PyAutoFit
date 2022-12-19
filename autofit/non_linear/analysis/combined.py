@@ -199,9 +199,9 @@ class CombinedAnalysis(Analysis):
     def make_result(self, samples, model, sigma=1.0, use_errors=True, use_widths=False):
         child_results = [
             analysis.make_result(
-                samples, model, sigma=1.0, use_errors=True, use_widths=False
+                samples, child_model, sigma=1.0, use_errors=True, use_widths=False
             )
-            for analysis in self.analyses
+            for child_model, analysis in zip(model, self.analyses)
         ]
         result = self.analyses[0].make_result(
             samples=samples, model=model, sigma=1.0, use_errors=True, use_widths=False
