@@ -4,9 +4,9 @@ from .analysis import Analysis
 from .combined import CombinedAnalysis
 from ..paths.abstract import AbstractPaths
 
-logger = logging.getLogger(
-    __name__
-)
+from autofit.mapper.prior_model.collection import CollectionPriorModel
+
+logger = logging.getLogger(__name__)
 
 
 class IndexedAnalysis:
@@ -31,40 +31,20 @@ class IndexedAnalysis:
         """
         Compute the log likelihood by taking the instance at the index
         """
-        return self.analysis.log_likelihood_function(
-            instance[self.index]
-        )
+        return self.analysis.log_likelihood_function(instance[self.index])
 
     def visualize(self, paths: AbstractPaths, instance, during_analysis):
-        return self.analysis.visualize(
-            paths, instance[self.index], during_analysis
-        )
+        return self.analysis.visualize(paths, instance[self.index], during_analysis)
 
     def profile_log_likelihood_function(self, paths: AbstractPaths, instance):
-        return self.profile_log_likelihood_function(
-            paths, instance[self.index]
-        )
+        return self.profile_log_likelihood_function(paths, instance[self.index])
 
     def __getattr__(self, item):
-        return getattr(
-            self.analysis,
-            item
-        )
+        return getattr(self.analysis, item)
 
-    def make_result(
-            self,
-            samples,
-            model,
-            sigma=3.0,
-            use_errors=True,
-            use_widths=True
-    ):
+    def make_result(self, samples, model, sigma=3.0, use_errors=True, use_widths=True):
         return self.analysis.make_result(
-            samples,
-            model,
-            sigma=sigma,
-            use_errors=use_errors,
-            use_widths=use_widths,
+            samples, model, sigma=sigma, use_errors=use_errors, use_widths=use_widths,
         )
 
 
@@ -79,23 +59,14 @@ class IndexCollectionAnalysis(CombinedAnalysis):
         analyses
             A list of analyses each with a separate model
         """
-        super().__init__(*[
-            IndexedAnalysis(
-                analysis,
-                index,
-            )
-            for index, analysis
-            in enumerate(analyses)
-        ])
+        super().__init__(
+            *[
+                IndexedAnalysis(analysis, index,)
+                for index, analysis in enumerate(analyses)
+            ]
+        )
 
-    def make_result(
-            self,
-            samples,
-            model,
-            sigma=1.0,
-            use_errors=True,
-            use_widths=False
-    ):
+    def make_result(self, samples, model, sigma=1.0, use_errors=True, use_widths=False):
         """
         Associate each model with an analysis when creating the result.
         """
@@ -118,3 +89,40 @@ class IndexCollectionAnalysis(CombinedAnalysis):
         )
         result.child_results = child_results
         return result
+
+    def modify_before_fit(self, paths: AbstractPaths, model: CollectionPriorModel):
+        """
+        Modify the analysis before fitting.
+
+        Parameters
+        ----------
+        paths
+            An object describing the paths for saving data (e.g. hard-disk directories or entries in sqlite database).
+        model
+            The model which is to be fitted.
+        """
+        return CombinedAnalysis(
+            *(analysis.modify_before_fit(paths, model) for analysis in self.analyses)
+        )
+
+    def modify_after_fit(
+        self, paths: AbstractPaths, model: CollectionPriorModel, result
+    ):
+        """
+        Modify the analysis after fitting.
+
+        Parameters
+        ----------
+        paths
+            An object describing the paths for saving data (e.g. hard-disk directories or entries in sqlite database).
+        model
+            The model which is to be fitted.
+        result
+            The result of the fit.
+        """
+        return CombinedAnalysis(
+            *(
+                analysis.modify_after_fit(paths, model, result)
+                for analysis in self.analyses
+            )
+        )
