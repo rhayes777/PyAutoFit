@@ -8,10 +8,16 @@ PyAutoFit: Classy Probabilistic Programming
     :target: https://pyautofit.readthedocs.io/en/latest/?badge=latest
     :alt: Documentation Status
 
+.. |Tests| image:: https://github.com/rhayes777/PyAutoFit/actions/workflows/main.yml/badge.svg
+   :target: https://github.com/rhayes777/PyAutoFit/actions
+
+.. |Build| image:: https://github.com/rhayes777/PyAutoBuild/actions/workflows/release.yml/badge.svg
+   :target: https://github.com/rhayes777/PyAutoBuild/actions
+
 .. |JOSS| image:: https://joss.theoj.org/papers/10.21105/joss.02550/status.svg
    :target: https://doi.org/10.21105/joss.02550
 
-|binder| |RTD| |JOSS|
+|binder| |Tests| |Build| |RTD| |JOSS|
 
 `Installation Guide <https://pyautofit.readthedocs.io/en/latest/installation/overview.html>`_ |
 `readthedocs <https://pyautofit.readthedocs.io/en/latest/index.html>`_ |
