@@ -7,6 +7,15 @@ from autofit.plot.samples_plotters import skip_plot_in_test_mode
 logger = logging.getLogger(__name__)
 
 class DynestyPlotter(SamplesPlotter):
+    
+    @staticmethod
+    def log_plot_exception(plot_name : str):
+
+        logger.info(
+            f"Dynesty unable to produce {plot_name} visual: posterior estimate therefore"
+            "not yet sufficient for this model-fit is not yet robust enough to do this. Visual"
+            "should be produced in later update, once posterior estimate is updated."
+        )
 
     @skip_plot_in_test_mode
     def boundplot(self, **kwargs):
@@ -48,11 +57,7 @@ class DynestyPlotter(SamplesPlotter):
 
         except ValueError:
 
-            logger.info(
-                "Dynesty unable to produce cornerplot visual: posterior estimate therefore"
-                "not yet sufficient for this model-fit is not yet robust enough to do this. Visual"
-                "should be produced in later update, once posterior estimate is updated."
-            )
+            self.log_plot_exception(plot_name="cornerplot")
 
     @skip_plot_in_test_mode
     def cornerpoints(self, **kwargs):
@@ -69,11 +74,7 @@ class DynestyPlotter(SamplesPlotter):
 
         except ValueError:
 
-            logger.info(
-                "Dynesty unable to produce cornerpoints visual: posterior estimate therefore"
-                "not yet sufficient for this model-fit is not yet robust enough to do this. Visual"
-                "should be produced in later update, once posterior estimate is updated."
-            )
+            self.log_plot_exception(plot_name="cornerpoints")
 
     @skip_plot_in_test_mode
     def runplot(self, **kwargs):
@@ -89,11 +90,7 @@ class DynestyPlotter(SamplesPlotter):
 
         except ValueError:
 
-            logger.info(
-                "Dynesty unable to produce runplot visual: posterior estimate therefore"
-                "not yet sufficient for this model-fit is not yet robust enough to do this. Visual"
-                "should be produced in later update, once posterior estimate is updated."
-            )
+            self.log_plot_exception(plot_name="runplot")
 
     @skip_plot_in_test_mode
     def traceplot(self, **kwargs):
@@ -110,8 +107,4 @@ class DynestyPlotter(SamplesPlotter):
 
         except ValueError:
 
-            logger.info(
-                "Dynesty unable to produce traceplot visual: posterior estimate therefore"
-                "not yet sufficient for this model-fit is not yet robust enough to do this. Visual"
-                "should be produced in later update, once posterior estimate is updated."
-            )
+            self.log_plot_exception(plot_name="traceplot")
