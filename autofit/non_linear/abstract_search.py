@@ -570,6 +570,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         self.logger.info("Removing zip file")
         self.paths.zip_remove()
+        self.paths.zip_remove_nuclear()
         return result
 
     @abstractmethod
