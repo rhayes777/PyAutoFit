@@ -270,7 +270,7 @@ class AbstractPaths(ABC):
         used with CAUTION AND CARE!
         """
 
-        if os.environ.get("PYAUTOFIT_NUCLEAR_MODE") == "1" :
+        if os.environ.get("PYAUTOFIT_NUCLEAR_MODE") == "1":
 
             file_path = os.path.split(self.output_path)[0]
 

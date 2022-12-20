@@ -452,6 +452,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         info=None,
         pickle_files=None,
         log_likelihood_cap=None,
+        bypass_nuclear : bool = False
     ) -> Union["Result", List["Result"]]:
         """
         Fit a model, M with some function f that takes instances of the
@@ -570,7 +571,9 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         self.logger.info("Removing zip file")
         self.paths.zip_remove()
-        self.paths.zip_remove_nuclear()
+
+        if not bypass_nuclear:
+            self.paths.zip_remove_nuclear()
 
         return result
 
