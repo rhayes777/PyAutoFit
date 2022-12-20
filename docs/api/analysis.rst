@@ -2,8 +2,9 @@
 Analysis
 ========
 
-The ``Analysis`` object is used to define the ``log_likelihood_function`` of your model-fitting problem, and acts
-as an interface between the data and the non-linear search.
+The ``Analysis`` object defines the ``log_likelihood_function`` of your model-fitting problem.
+
+It acts as an interface between the data, model and the non-linear search.
 
 **Examples / Tutorials:**
 

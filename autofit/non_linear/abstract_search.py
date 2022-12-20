@@ -85,7 +85,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         searches.
 
         Parameters
-        -----------
+    ----------
         name
             The name of the search, controlling the last folder results are output.
         path_prefix
