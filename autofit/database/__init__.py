@@ -24,16 +24,14 @@ def open_database(
     To connect to a postgres database one must be created.
 
     1) Install postgres https://www.postgresql.org/download/
-    2) Install the python postgres client
-        psycopg2==2.9.1
-    2) Create a user
-        createuser autofit
-    3) Create a database
-        createdb -O autofit autofit
+    2) Install the python postgres client ``psycopg2==2.9.1``
+    2) Create a user ``createuser autofit``
+    3) Create a database ``createdb -O autofit autofit``
     4) Open that database using this function
-        open_database(
-            "postgresql://autofit@localhost/autofit"
-        )
+
+       open_database(
+           "postgresql://autofit@localhost/autofit"
+       )
 
     Note that the above instructions create a database called autofit
     with a user called autofit. You can create a new database for the

@@ -794,8 +794,8 @@ class PriorPasser:
 
         By invoking the 'model' attribute, the prior is passed following 3 rules:
 
-        1) The new parameter uses a GaussianPrior. A GaussianPrior is ideal, as the 1D pdf results we compute at
-        the end of a search are easily summarized as a Gaussian.
+        1) The new parameter uses a GaussianPrior. A ``GaussianPrior`` is ideal, as the 1D pdf results we compute at
+           the end of a search are easily summarized as a Gaussian.
 
         2) The mean of the GaussianPrior is the median PDF value of the parameter estimated in search 1.
 
@@ -827,14 +827,14 @@ class PriorPasser:
         There are two ways a value is specified using the priors/width file:
 
         1) Absolute: In this case, the error assumed on the parameter is the value given in the config file. For
-        example, if for the width on the parameter of a model component the width modifier reads "Absolute" with
-        a value 0.05. This means if the error on the parameter was less than 0.05 in the previous search, the
-        sigma of its GaussianPrior in this search will be 0.05.
+           example, if for the width on the parameter of a model component the width modifier reads "Absolute" with
+           a value 0.05. This means if the error on the parameter was less than 0.05 in the previous search, the
+           sigma of its GaussianPrior in this search will be 0.05.
 
         2) Relative: In this case, the error assumed on the parameter is the % of the value of the estimate value
-        given in the config file. For example, if the parameter estimated in the previous search was 2.0, and the
-        relative error in the config file reads "Relative" with a value 0.5, then the sigma of the GaussianPrior
-        will be 50% of this value, i.e. sigma = 0.5 * 2.0 = 1.0.
+           given in the config file. For example, if the parameter estimated in the previous search was 2.0, and the
+           relative error in the config file reads "Relative" with a value 0.5, then the sigma of the GaussianPrior
+           will be 50% of this value, i.e. sigma = 0.5 * 2.0 = 1.0.
 
         The PriorPasser allows us to customize at what sigma the error values the model results are computed at to
         compute the passed sigma values and customizes whether the widths in the config file, these computed errors,
