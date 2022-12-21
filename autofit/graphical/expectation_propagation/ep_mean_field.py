@@ -194,9 +194,9 @@ class EPMeanField(FactorGraph):
         - The factor
         - The factor's variable distributions
         - The cavity distribution, which is the product of the distributions
-        for each variable for all other factors
+          for each variable for all other factors
         - The model distribution, which is the product of the distributions
-        for each variable for all factors
+          for each variable for all factors
 
         Parameters
         ----------
@@ -486,9 +486,9 @@ class EPMeanFieldSubset(EPMeanField):
         - The factor
         - The factor's variable distributions
         - The cavity distribution, which is the product of the distributions
-        for each variable for all other factors
+          for each variable for all other factors
         - The model distribution, which is the product of the distributions
-        for each variable for all factors
+          for each variable for all factors
 
         Parameters
         ----------

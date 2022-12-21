@@ -708,7 +708,7 @@ class Samples(ABC):
 
         - The mean is given by maximum log likelihood model values.
         - Their errors are omitted, as this information is not available from an search. When these priors are
-        used to link to another search, it will thus automatically use the prior config values.
+          used to link to another search, it will thus automatically use the prior config values.
 
         Parameters
         ----------
