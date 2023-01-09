@@ -7,11 +7,6 @@ handlers:
     level: INFO
     stream: ext://sys.stdout
     formatter: formatter
-  file:
-    class: logging.FileHandler
-    level: INFO
-    filename: root.log
-    formatter: formatter
 
 root:
   level: INFO
