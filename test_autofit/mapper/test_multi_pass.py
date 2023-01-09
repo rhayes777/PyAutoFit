@@ -1,3 +1,5 @@
+import os
+from pathlib import Path
 from random import random
 
 import autofit as af
@@ -11,14 +13,18 @@ class Analysis(af.Analysis):
 
 
 def test_integration():
-    search = af.LBFGS()
-    analysis = sum([Analysis() for _ in range(10)])
+    search = af.LBFGS(name="test_lbfgs")
 
     model = af.Collection(gaussian=af.Gaussian)
 
-    result = search.fit(model=model, analysis=analysis)
+    n_analyses = 10
 
-    print(result.model)
+    analysis = Analysis()
+    analysis = sum([analysis.with_model(model) for _ in range(n_analyses)])
+
+    result = search.fit_sequential(model=model, analysis=analysis)
+
+    assert len(os.listdir(Path(str(search.paths)).parent)) == n_analyses
 
 
 def test_from_combined():

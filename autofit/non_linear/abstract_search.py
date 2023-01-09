@@ -30,6 +30,7 @@ from autofit.non_linear.paths.sub_directory_paths import SubDirectoryPaths
 from autofit.non_linear.result import Result
 from autofit.non_linear.timer import Timer
 from .analysis import Analysis
+from .analysis.indexed import IndexCollectionAnalysis
 from .paths.null import NullPaths
 from ..graphical.declarative.abstract import PriorFactor
 from ..graphical.expectation_propagation import AbstractFactorOptimiser
@@ -444,6 +445,36 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
              should be given a likelihood so low that it is discard.
              """
             return -np.inf
+
+    def fit_sequential(
+        self,
+        model,
+        analysis: IndexCollectionAnalysis,
+        info=None,
+        pickle_files=None,
+        log_likelihood_cap=None,
+    ):
+        results = []
+
+        _paths = self.paths
+        original_name = self.paths.name or "analysis"
+
+        for i, (model, analysis) in enumerate(
+            zip(analysis.modify_model(model=model), analysis.analyses)
+        ):
+            self.paths = copy.copy(_paths)
+            self.paths.name = f"{original_name}/{i}"
+            results.append(
+                self.fit(
+                    model=model,
+                    analysis=analysis,
+                    info=info,
+                    pickle_files=pickle_files,
+                    log_likelihood_cap=log_likelihood_cap,
+                )
+            )
+        self.paths = _paths
+        return results
 
     def fit(
         self,
