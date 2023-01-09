@@ -2,9 +2,9 @@ import os
 from pathlib import Path
 from random import random
 
+import pytest
+
 import autofit as af
-from autofit import mock as m
-from autofit.non_linear.analysis.combined import CombinedResult
 
 
 class Analysis(af.Analysis):
@@ -12,16 +12,32 @@ class Analysis(af.Analysis):
         return -random()
 
 
-def test_integration():
-    search = af.LBFGS(name="test_lbfgs")
+@pytest.fixture(name="search")
+def make_search():
+    return af.LBFGS(name="test_lbfgs")
 
-    model = af.Collection(gaussian=af.Gaussian)
 
-    n_analyses = 10
+@pytest.fixture(name="model")
+def make_model():
+    return af.Model(af.Gaussian)
 
-    analysis = Analysis()
-    analysis = sum([analysis.with_model(model) for _ in range(n_analyses)])
 
-    search.fit_sequential(model=model, analysis=analysis)
+@pytest.fixture(name="analysis")
+def make_analysis():
+    return Analysis()
 
-    assert len(os.listdir(Path(str(search.paths)).parent)) == n_analyses
+
+def test_with_model(analysis, model, search):
+    combined_analysis = sum([analysis.with_model(model) for _ in range(10)])
+
+    search.fit_sequential(model=model, analysis=combined_analysis)
+
+    assert len(os.listdir(Path(str(search.paths)).parent)) == 10
+
+
+def test_combined_analysis(analysis, model, search):
+    combined_analysis = sum([analysis for _ in range(10)])
+
+    search.fit_sequential(model=model, analysis=combined_analysis)
+
+    assert len(os.listdir(Path(str(search.paths)).parent)) == 10

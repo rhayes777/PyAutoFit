@@ -22,6 +22,7 @@ from autofit.graphical import (
     FactorApproximation,
 )
 from autofit.graphical.utils import Status
+from autofit.mapper.prior_model.collection import Collection
 from autofit.non_linear.initializer import Initializer
 from autofit.non_linear.parallel import SneakyPool
 from autofit.non_linear.paths.abstract import AbstractPaths
@@ -458,6 +459,9 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         _paths = self.paths
         original_name = self.paths.name or "analysis"
+
+        if not isinstance(model, Collection):
+            model = [model for _ in range(len(analysis.analyses))]
 
         for i, (model, analysis) in enumerate(
             zip(analysis.modify_model(model=model), analysis.analyses)
