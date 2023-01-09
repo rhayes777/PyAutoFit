@@ -5,6 +5,7 @@ from random import random
 import pytest
 
 import autofit as af
+from autofit.non_linear.analysis.combined import CombinedResult
 
 
 class Analysis(af.Analysis):
@@ -58,3 +59,8 @@ def test_with_free_parameter(combined_analysis, model, search):
     )
 
     assert count_output(search.paths) == 10
+
+
+def test_singular_analysis(analysis, model, search):
+    with pytest.raises(ValueError):
+        search.fit_sequential(model=model, analysis=analysis)

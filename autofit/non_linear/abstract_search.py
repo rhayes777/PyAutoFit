@@ -462,8 +462,14 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         original_name = self.paths.name or "analysis"
 
         model = analysis.modify_model(model=model)
-        if not isinstance(model, Collection):
-            model = [model for _ in range(len(analysis.analyses))]
+
+        try:
+            if not isinstance(model, Collection):
+                model = [model for _ in range(len(analysis.analyses))]
+        except AttributeError:
+            raise ValueError(
+                f"Analysis with type {type(analysis)} is not supported by fit_sequential"
+            )
 
         for i, (model, analysis) in enumerate(zip(model, analysis.analyses)):
             self.paths = copy.copy(_paths)
