@@ -248,7 +248,7 @@ class Initializer(AbstractInitializer):
             )
 
     def _generate_unit_parameter_list(self, model):
-        return model.random_vector_from_priors_within_limits(
+        return model.random_unit_vector_within_limits(
             lower_limit=self.lower_limit, upper_limit=self.upper_limit
         )
 
