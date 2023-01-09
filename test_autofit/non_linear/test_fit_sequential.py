@@ -27,12 +27,17 @@ def make_analysis():
     return Analysis()
 
 
+def count_output(paths):
+    return len(os.listdir(Path(str(paths)).parent))
+
+
 def test_with_model(analysis, model, search):
     combined_analysis = sum([analysis.with_model(model) for _ in range(10)])
 
-    search.fit_sequential(model=model, analysis=combined_analysis)
+    result = search.fit_sequential(model=model, analysis=combined_analysis)
 
-    assert len(os.listdir(Path(str(search.paths)).parent)) == 10
+    assert count_output(search.paths) == 10
+    assert len(result.child_results) == 10
 
 
 @pytest.fixture(name="combined_analysis")
@@ -43,7 +48,7 @@ def make_combined_analysis(analysis):
 def test_combined_analysis(combined_analysis, model, search):
     search.fit_sequential(model=model, analysis=combined_analysis)
 
-    assert len(os.listdir(Path(str(search.paths)).parent)) == 10
+    assert count_output(search.paths) == 10
 
 
 def test_with_free_parameter(combined_analysis, model, search):
@@ -52,4 +57,4 @@ def test_with_free_parameter(combined_analysis, model, search):
         model=model, analysis=combined_analysis,
     )
 
-    assert len(os.listdir(Path(str(search.paths)).parent)) == 10
+    assert count_output(search.paths) == 10

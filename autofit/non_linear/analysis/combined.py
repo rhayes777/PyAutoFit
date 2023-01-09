@@ -213,7 +213,11 @@ class CombinedAnalysis(Analysis):
     def make_result(self, samples, model, sigma=1.0, use_errors=True, use_widths=False):
         child_results = [
             analysis.make_result(
-                samples, model, sigma=1.0, use_errors=True, use_widths=False
+                samples,
+                model,
+                sigma=sigma,
+                use_errors=use_errors,
+                use_widths=use_widths,
             )
             for analysis in self.analyses
         ]

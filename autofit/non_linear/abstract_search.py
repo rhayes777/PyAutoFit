@@ -31,6 +31,7 @@ from autofit.non_linear.paths.sub_directory_paths import SubDirectoryPaths
 from autofit.non_linear.result import Result
 from autofit.non_linear.timer import Timer
 from .analysis import Analysis
+from .analysis.combined import CombinedResult
 from .analysis.indexed import IndexCollectionAnalysis
 from .paths.null import NullPaths
 from ..graphical.declarative.abstract import PriorFactor
@@ -477,7 +478,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                 )
             )
         self.paths = _paths
-        return results
+        return CombinedResult(results)
 
     def fit(
         self,
