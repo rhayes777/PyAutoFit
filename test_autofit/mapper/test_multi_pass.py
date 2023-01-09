@@ -22,12 +22,6 @@ def test_integration():
     analysis = Analysis()
     analysis = sum([analysis.with_model(model) for _ in range(n_analyses)])
 
-    result = search.fit_sequential(model=model, analysis=analysis)
+    search.fit_sequential(model=model, analysis=analysis)
 
     assert len(os.listdir(Path(str(search.paths)).parent)) == n_analyses
-
-
-def test_from_combined():
-    combined_result = CombinedResult(
-        [m.MockResult(model=af.Gaussian()) for _ in range(10)]
-    )
