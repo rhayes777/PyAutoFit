@@ -455,7 +455,38 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         info=None,
         pickle_files=None,
         log_likelihood_cap=None,
-    ):
+    ) -> CombinedResult:
+        """
+        Fit multiple analyses contained within the analysis sequentially.
+
+        This can be useful for avoiding very high dimensional parameter spaces.
+
+        Parameters
+        ----------
+        log_likelihood_cap
+        analysis
+            Multiple analyses that are fit sequentially
+        model
+            An object that represents possible instances of some model with a
+            given dimensionality which is the number of free dimensions of the
+            model.
+        info
+            Optional dictionary containing information about the fit that can be loaded by the aggregator.
+        pickle_files : [str]
+            Optional list of strings specifying the path and filename of .pickle files, that are copied to each
+            model-fits pickles folder so they are accessible via the Aggregator.
+
+        Returns
+        -------
+        An object combining the results of each individual optimisation.
+
+        Raises
+        ------
+        AssertionError
+            If the model has 0 dimensions.
+        ValueError
+            If the analysis is not a combined analysis
+        """
         results = []
 
         _paths = self.paths
