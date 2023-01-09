@@ -1,6 +1,8 @@
 from random import random
 
 import autofit as af
+from autofit import mock as m
+from autofit.non_linear.analysis.combined import CombinedResult
 
 
 class Analysis(af.Analysis):
@@ -17,3 +19,9 @@ def test_integration():
     result = search.fit(model=model, analysis=analysis)
 
     print(result.model)
+
+
+def test_from_combined():
+    combined_result = CombinedResult(
+        [m.MockResult(model=af.Gaussian()) for _ in range(10)]
+    )
