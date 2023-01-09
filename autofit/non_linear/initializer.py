@@ -10,9 +10,7 @@ from autofit import exc
 from autofit.mapper.prior.abstract import Prior
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 
-logger = logging.getLogger(
-    __name__
-)
+logger = logging.getLogger(__name__)
 
 
 class AbstractInitializer(ABC):
@@ -25,12 +23,12 @@ class AbstractInitializer(ABC):
         pass
 
     def samples_from_model(
-            self,
-            total_points: int,
-            model: AbstractPriorModel,
-            fitness_function,
-            use_prior_medians: bool = False,
-            test_mode_samples : bool = True
+        self,
+        total_points: int,
+        model: AbstractPriorModel,
+        fitness_function,
+        use_prior_medians: bool = False,
+        test_mode_samples: bool = True,
     ):
         """
         Generate the initial points of the non-linear search, by randomly drawing unit values from a uniform
@@ -48,7 +46,9 @@ class AbstractInitializer(ABC):
         if os.environ.get("PYAUTOFIT_TEST_MODE") == "1" and test_mode_samples:
             return self.samples_in_test_mode(total_points=total_points, model=model)
 
-        logger.info("Generating initial samples of model, which are subject to prior limits and other constraints.")
+        logger.info(
+            "Generating initial samples of model, which are subject to prior limits and other constraints."
+        )
 
         unit_parameter_lists = []
         parameter_lists = []
@@ -62,7 +62,9 @@ class AbstractInitializer(ABC):
             else:
                 unit_parameter_list = [0.5] * model.prior_count
 
-            parameter_list = model.vector_from_unit_vector(unit_vector=unit_parameter_list)
+            parameter_list = model.vector_from_unit_vector(
+                unit_vector=unit_parameter_list
+            )
 
             try:
                 figure_of_merit = fitness_function.figure_of_merit_from(
@@ -79,7 +81,7 @@ class AbstractInitializer(ABC):
             except exc.FitException:
                 pass
 
-        if np.allclose(a=figures_of_merit_list[0],b=figures_of_merit_list[1:]):
+        if np.allclose(a=figures_of_merit_list[0], b=figures_of_merit_list[1:]):
             raise exc.InitializerException(
                 """
                 The initial samples all have the same figure of merit (e.g. log likelihood values).
@@ -96,11 +98,7 @@ class AbstractInitializer(ABC):
 
         return unit_parameter_lists, parameter_lists, figures_of_merit_list
 
-    def samples_in_test_mode(
-            self,
-            total_points: int,
-            model: AbstractPriorModel
-    ):
+    def samples_in_test_mode(self, total_points: int, model: AbstractPriorModel):
         """
         Generate the initial points of the non-linear search in test mode. Like normal, test model draws points, by
         randomly drawing unit values from a uniform distribution between the ball_lower_limit and ball_upper_limit
@@ -119,7 +117,9 @@ class AbstractInitializer(ABC):
             of free dimensions of the model.
         """
 
-        logger.warning(f"TEST MODE ON: SAMPLES BEING ASSIGNED ABRITRARY LARGE LIKELIHOODS")
+        logger.warning(
+            f"TEST MODE ON: SAMPLES BEING ASSIGNED ABRITRARY LARGE LIKELIHOODS"
+        )
 
         unit_parameter_lists = []
         parameter_lists = []
@@ -133,7 +133,9 @@ class AbstractInitializer(ABC):
 
             try:
                 unit_parameter_list = self._generate_unit_parameter_list(model)
-                parameter_list = model.vector_from_unit_vector(unit_vector=unit_parameter_list)
+                parameter_list = model.vector_from_unit_vector(
+                    unit_vector=unit_parameter_list
+                )
                 model.instance_from_vector(vector=parameter_list)
                 unit_parameter_lists.append(unit_parameter_list)
                 parameter_lists.append(parameter_list)
@@ -148,10 +150,10 @@ class AbstractInitializer(ABC):
 
 class SpecificRangeInitializer(AbstractInitializer):
     def __init__(
-            self,
-            parameter_dict: Dict[Prior, Tuple[float, float]],
-            lower_limit=0.0,
-            upper_limit=1.0
+        self,
+        parameter_dict: Dict[Prior, Tuple[float, float]],
+        lower_limit=0.0,
+        upper_limit=1.0,
     ):
         """
         Initializer that allows the range of possible starting points for each prior
@@ -199,9 +201,7 @@ class SpecificRangeInitializer(AbstractInitializer):
                 lower = self.lower_limit
                 upper = self.upper_limit
 
-                value = prior.unit_value_for(
-                    prior.random(lower, upper)
-                )
+                value = prior.unit_value_for(prior.random(lower, upper))
 
             unit_parameter_list.append(value)
 
@@ -209,11 +209,7 @@ class SpecificRangeInitializer(AbstractInitializer):
 
 
 class Initializer(AbstractInitializer):
-    def __init__(
-            self,
-            lower_limit: float,
-            upper_limit: float
-    ):
+    def __init__(self, lower_limit: float, upper_limit: float):
         """
         The Initializer creates the initial set of samples in non-linear parameter space that can be passed into a
         `NonLinearSearch` to define where to begin sampling.
@@ -252,7 +248,7 @@ class Initializer(AbstractInitializer):
             )
 
     def _generate_unit_parameter_list(self, model):
-        return model.random_unit_vector_within_limits(
+        return model.random_vector_from_priors_within_limits(
             lower_limit=self.lower_limit, upper_limit=self.upper_limit
         )
 
@@ -273,11 +269,7 @@ class InitializerPrior(Initializer):
 
 
 class InitializerBall(Initializer):
-    def __init__(
-            self,
-            lower_limit: float,
-            upper_limit: float
-    ):
+    def __init__(self, lower_limit: float, upper_limit: float):
         """
         The Initializer creates the initial set of samples in non-linear parameter space that can be passed into a
         `NonLinearSearch` to define where to begin sampling.
