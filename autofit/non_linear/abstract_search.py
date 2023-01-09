@@ -460,12 +460,11 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         _paths = self.paths
         original_name = self.paths.name or "analysis"
 
+        model = analysis.modify_model(model=model)
         if not isinstance(model, Collection):
             model = [model for _ in range(len(analysis.analyses))]
 
-        for i, (model, analysis) in enumerate(
-            zip(analysis.modify_model(model=model), analysis.analyses)
-        ):
+        for i, (model, analysis) in enumerate(zip(model, analysis.analyses)):
             self.paths = copy.copy(_paths)
             self.paths.name = f"{original_name}/{i}"
             results.append(
