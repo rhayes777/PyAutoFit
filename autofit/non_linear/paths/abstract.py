@@ -272,7 +272,7 @@ class AbstractPaths(ABC):
 
         To enable nuclear mode, set the environment variable ``PYAUTOFIT_NUCLEAR_MODE=1``.
 
-        Nuclear model is dangerous, and must be used with CAUTION AND CARE!
+        Nuclear mode is dangerous, and must be used with CAUTION AND CARE!
         """
 
         if os.environ.get("PYAUTOFIT_NUCLEAR_MODE") == "1":
