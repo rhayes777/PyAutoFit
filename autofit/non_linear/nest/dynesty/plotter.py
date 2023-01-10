@@ -1,10 +1,23 @@
 from dynesty import plotting as dyplot
+from functools import wraps
 import logging
 
 from autofit.plot import SamplesPlotter
 from autofit.plot.samples_plotters import skip_plot_in_test_mode
 
 logger = logging.getLogger(__name__)
+
+def log_value_error(func):
+
+    @wraps(func)
+    def wrapper(self, *args, **kwargs):
+
+        try:
+            return func(self, *args, **kwargs)
+        except ValueError:
+            self.log_plot_exception(func.__name__)
+
+    return wrapper
 
 class DynestyPlotter(SamplesPlotter):
     
@@ -70,49 +83,41 @@ class DynestyPlotter(SamplesPlotter):
         self.close()
 
     @skip_plot_in_test_mode
+    @log_value_error
     def cornerplot(self, **kwargs):
         """
         Plots the in-built ``dynesty`` plot ``cornerplot``.
 
         This figure plots a corner plot of the 1-D and 2-D marginalized posteriors.
         """
-        try:
+        dyplot.cornerplot(
+            results=self.samples.results_internal,
+            labels=self.model.parameter_labels_with_superscripts_latex,
+            **kwargs
+        )
 
-            dyplot.cornerplot(
-                results=self.samples.results_internal,
-                labels=self.model.parameter_labels_with_superscripts_latex,
-                **kwargs
-            )
-
-            self.output.to_figure(structure=None, auto_filename="cornerplot")
-            self.close()
-
-        except ValueError:
-
-            self.log_plot_exception(plot_name="cornerplot")
+        self.output.to_figure(structure=None, auto_filename="cornerplot")
+        self.close()
 
     @skip_plot_in_test_mode
+    @log_value_error
     def cornerpoints(self, **kwargs):
         """
         Plots the in-built ``dynesty`` plot ``cornerpoints``.
 
         This figure plots a (sub-)corner plot of (weighted) samples.
         """
-        try:
-            dyplot.cornerpoints(
-                results=self.samples.results_internal,
-                labels=self.model.parameter_labels_with_superscripts_latex,
-                **kwargs
-            )
+        dyplot.cornerpoints(
+            results=self.samples.results_internal,
+            labels=self.model.parameter_labels_with_superscripts_latex,
+            **kwargs
+        )
 
-            self.output.to_figure(structure=None, auto_filename="cornerpoints")
-            self.close()
-
-        except ValueError:
-
-            self.log_plot_exception(plot_name="cornerpoints")
+        self.output.to_figure(structure=None, auto_filename="cornerpoints")
+        self.close()
 
     @skip_plot_in_test_mode
+    @log_value_error
     def runplot(self, **kwargs):
         """
         Plots the in-built ``dynesty`` plot ``runplot``.
@@ -120,36 +125,26 @@ class DynestyPlotter(SamplesPlotter):
         This figure plots live points, ln(likelihood), ln(weight), and ln(evidence)
         as a function of ln(prior volume).
         """
-        try:
-            dyplot.runplot(
-                results=self.samples.results_internal,
-                **kwargs
-            )
+        dyplot.runplot(
+            results=self.samples.results_internal,
+            **kwargs
+        )
 
-            self.output.to_figure(structure=None, auto_filename="runplot")
-            self.close()
-
-        except ValueError:
-
-            self.log_plot_exception(plot_name="runplot")
+        self.output.to_figure(structure=None, auto_filename="runplot")
+        self.close()
 
     @skip_plot_in_test_mode
+    @log_value_error
     def traceplot(self, **kwargs):
         """
         Plots the in-built ``dynesty`` plot ``traceplot``.
 
         This figure plots traces and marginalized posteriors for each parameter.
         """
-        try:
+        dyplot.traceplot(
+            results=self.samples.results_internal,
+            **kwargs
+        )
 
-            dyplot.traceplot(
-                results=self.samples.results_internal,
-                **kwargs
-            )
-
-            self.output.to_figure(structure=None, auto_filename="traceplot")
-            self.close()
-
-        except ValueError:
-
-            self.log_plot_exception(plot_name="traceplot")
+        self.output.to_figure(structure=None, auto_filename="traceplot")
+        self.close()
