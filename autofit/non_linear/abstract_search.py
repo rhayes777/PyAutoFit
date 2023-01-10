@@ -85,7 +85,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         searches.
 
         Parameters
-        -----------
+    ----------
         name
             The name of the search, controlling the last folder results are output.
         path_prefix
@@ -452,6 +452,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         info=None,
         pickle_files=None,
         log_likelihood_cap=None,
+        bypass_nuclear_if_on : bool = False
     ) -> Union["Result", List["Result"]]:
         """
         Fit a model, M with some function f that takes instances of the
@@ -477,6 +478,9 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         pickle_files : [str]
             Optional list of strings specifying the path and filename of .pickle files, that are copied to each
             model-fits pickles folder so they are accessible via the Aggregator.
+        bypass_nuclear_if_on
+            If nuclear mode is on (environment variable "PYAUTOFIT_NUCLEAR_MODE=1") passing this as True will
+            bypass it.
 
         Returns
         -------
@@ -570,6 +574,10 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         self.logger.info("Removing zip file")
         self.paths.zip_remove()
+
+        if not bypass_nuclear_if_on:
+            self.paths.zip_remove_nuclear()
+
         return result
 
     @abstractmethod

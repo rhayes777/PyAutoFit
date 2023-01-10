@@ -2,7 +2,7 @@
 Priors
 ======
 
-The priors of every model-fit are customized using `Prior` objects.
+The priors of parameters of every component of a mdoel, which is fitted to data, are customized using ``Prior`` objects.
 
 **Examples / Tutorials:**
 
