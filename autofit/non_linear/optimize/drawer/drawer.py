@@ -40,16 +40,16 @@ class Drawer(AbstractOptimizer):
         Whilst this is not the typical use case of a non-linear search, it has certain niche applications, for example:
 
         - Given a model one can determine how much variation there is in the log likelihood / log posterior values.
-        By visualizing this as a histogram one can therefore quantify the behaviour of that
-        model's `log_likelihood_function`.
+          By visualizing this as a histogram one can therefore quantify the behaviour of that
+          model's `log_likelihood_function`.
 
         - If the `log_likelihood_function` of a model is stochastic (e.g. different values of likelihood may be
-        computed for an identical model due to randomness in the likelihood evaluation) this search can quantify
-        the behaviour of that stochasticity.
+          computed for an identical model due to randomness in the likelihood evaluation) this search can quantify
+          the behaviour of that stochasticity.
 
         - For advanced modeling tools, for example sensitivity mapping performed via the `Sensitivity` object,
-        the `Drawer` search may be sufficient to perform the overall modeling task, without the need of performing
-        an actual parameter space search.
+          the `Drawer` search may be sufficient to perform the overall modeling task, without the need of performing
+          an actual parameter space search.
 
         The drawer search itself is performed by simply reusing the functionality of the `AbstractInitializer` object.
         Whereas this is normally used to initialize a non-linear search, for the drawer it performed all log
