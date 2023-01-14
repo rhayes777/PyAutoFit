@@ -1,10 +1,9 @@
 import configparser
 import logging
-import os
 import random
 from abc import ABC, abstractmethod
 from typing import Dict, Tuple, List
-
+import os
 import numpy as np
 
 from autofit import exc
@@ -82,9 +81,7 @@ class AbstractInitializer(ABC):
             except exc.FitException:
                 pass
 
-        if total_points > 1 and np.allclose(
-            a=figures_of_merit_list[0], b=figures_of_merit_list[1:]
-        ):
+        if np.allclose(a=figures_of_merit_list[0], b=figures_of_merit_list[1:]):
             raise exc.InitializerException(
                 """
                 The initial samples all have the same figure of merit (e.g. log likelihood values).

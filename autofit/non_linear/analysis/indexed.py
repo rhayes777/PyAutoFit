@@ -1,7 +1,7 @@
 import logging
 
 from .analysis import Analysis
-from .combined import CombinedAnalysis, CombinedResult
+from .combined import CombinedAnalysis
 from ..paths.abstract import AbstractPaths
 
 from autofit.mapper.prior_model.collection import Collection
@@ -80,7 +80,15 @@ class IndexCollectionAnalysis(CombinedAnalysis):
             )
             for model, analysis in zip(model, self.analyses)
         ]
-        return CombinedResult(child_results)
+        result = self.analyses[0].make_result(
+            samples=samples,
+            model=model,
+            sigma=sigma,
+            use_errors=use_errors,
+            use_widths=use_widths,
+        )
+        result.child_results = child_results
+        return result
 
     def modify_before_fit(self, paths: AbstractPaths, model: Collection):
         """

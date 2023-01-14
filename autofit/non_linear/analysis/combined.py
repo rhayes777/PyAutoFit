@@ -13,20 +13,6 @@ from .analysis import Analysis
 logger = logging.getLogger(__name__)
 
 
-class CombinedResult:
-    def __init__(self, results):
-        self.child_results = results
-
-    def __getattr__(self, item):
-        return getattr(self.child_results[0], item)
-
-    def __iter__(self):
-        return iter(self.child_results)
-
-    def __len__(self):
-        return len(self.child_results)
-
-
 class CombinedAnalysis(Analysis):
     def __new__(cls, *analyses, **kwargs):
         from .model_analysis import ModelAnalysis, CombinedModelAnalysis
@@ -213,15 +199,15 @@ class CombinedAnalysis(Analysis):
     def make_result(self, samples, model, sigma=1.0, use_errors=True, use_widths=False):
         child_results = [
             analysis.make_result(
-                samples,
-                model,
-                sigma=sigma,
-                use_errors=use_errors,
-                use_widths=use_widths,
+                samples, model, sigma=1.0, use_errors=True, use_widths=False
             )
             for analysis in self.analyses
         ]
-        return CombinedResult(child_results)
+        result = self.analyses[0].make_result(
+            samples=samples, model=model, sigma=1.0, use_errors=True, use_widths=False
+        )
+        result.child_results = child_results
+        return result
 
     def __len__(self):
         return len(self.analyses)
