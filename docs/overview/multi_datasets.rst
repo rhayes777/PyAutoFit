@@ -189,6 +189,23 @@ We can again fit this model as per usual:
 
     result_list = search.fit(model=model, analysis=analysis)
 
+Individual Sequential Searches
+------------------------------
+
+The API above is used to create a model with free parameters across ``Analysis`` objects, which are all fit
+simultaneously using a summed ``log_likelihood_function`` and single non-linear search.
+
+Each ``Analysis`` can be fitted one-by-one, using a series of multiple non-linear searches, using
+the ``fit_sequential`` method:
+
+.. code-block:: python
+
+    result_list = search.fit_sequential(model=model, analysis=analysis)
+
+The benefit of this method is for complex high dimensionality models (e.g. when many parameters are passed
+to `` analysis.with_free_parameters``, it breaks the fit down into a series of lower dimensionality non-linear
+searches that may convergence on a solution more reliably.
+
 Variable Model With Relationships
 ---------------------------------
 
