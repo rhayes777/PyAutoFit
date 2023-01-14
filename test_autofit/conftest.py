@@ -13,24 +13,37 @@ from autofit import database as db
 from autofit import fixtures
 from autofit.database.model import sa
 
-if sys.platform == "darwin":
-    multiprocessing.set_start_method("forkserver")
+if sys.platform == 'darwin':
+    multiprocessing.set_start_method('forkserver')
 
 directory = Path(__file__).parent
 
 
-@pytest.fixture(name="test_directory", scope="session")
+@pytest.fixture(
+    name="test_directory",
+    scope="session"
+)
 def make_test_directory():
     return directory
 
 
-@pytest.fixture(name="output_directory", scope="session")
-def make_output_directory(test_directory):
+@pytest.fixture(
+    name="output_directory",
+    scope="session"
+)
+def make_output_directory(
+        test_directory
+):
     return test_directory / "output"
 
 
-@pytest.fixture(name="remove_output", scope="session")
-def make_remove_output(output_directory):
+@pytest.fixture(
+    name="remove_output",
+    scope="session"
+)
+def make_remove_output(
+        output_directory
+):
     def remove_output():
         try:
             for item in os.listdir(output_directory):
@@ -38,18 +51,27 @@ def make_remove_output(output_directory):
                     item_path = output_directory / item
                     if item_path.is_dir():
                         shutil.rmtree(
-                            item_path, ignore_errors=True,
+                            item_path,
+                            ignore_errors=True,
                         )
                     else:
-                        os.remove(item_path)
-        except (FileExistsError, FileNotFoundError):
+                        os.remove(
+                            item_path
+                        )
+        except FileExistsError:
             pass
 
     return remove_output
 
 
-@pytest.fixture(autouse=True, scope="session")
-def do_remove_output(output_directory, remove_output):
+@pytest.fixture(
+    autouse=True,
+    scope="session"
+)
+def do_remove_output(
+        output_directory,
+        remove_output
+):
     yield
     remove_output()
 
@@ -71,7 +93,7 @@ def make_plot_patch(monkeypatch):
 
 @pytest.fixture(name="session")
 def make_session():
-    engine = sa.create_engine("sqlite://")
+    engine = sa.create_engine('sqlite://')
     session = sa.orm.sessionmaker(bind=engine)()
     db.Base.metadata.create_all(engine)
     yield session
@@ -79,7 +101,10 @@ def make_session():
     engine.dispose()
 
 
-@pytest.fixture(autouse=True, scope="session")
+@pytest.fixture(
+    autouse=True,
+    scope="session"
+)
 def remove_logs():
     yield
     for d, _, files in os.walk(directory):
@@ -92,11 +117,13 @@ def remove_logs():
 def set_config_path():
     conf.instance.push(
         new_path=path.join(directory, "config"),
-        output_path=path.join(directory, "output"),
+        output_path=path.join(directory, "output")
     )
 
 
-@pytest.fixture(name="model_gaussian_x1")
+@pytest.fixture(
+    name="model_gaussian_x1"
+)
 def make_model_gaussian_x1():
     return fixtures.make_model_gaussian_x1()
 
