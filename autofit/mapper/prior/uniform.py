@@ -10,10 +10,7 @@ class UniformPrior(Prior):
     __identifier_fields__ = ("lower_limit", "upper_limit")
 
     def __init__(
-        self,
-        lower_limit : float = 0.0,
-        upper_limit : float = 1.0,
-        id_ = None,
+        self, lower_limit: float = 0.0, upper_limit: float = 1.0, id_=None,
     ):
         """
         A prior with a uniform distribution, defined between a lower limit and upper limit.
@@ -55,20 +52,6 @@ class UniformPrior(Prior):
             message, lower_limit=lower_limit, upper_limit=upper_limit, id_=id_,
         )
 
-    @property
-    def lower_unit_limit(self) -> float:
-        """
-        The lower limit for this prior in unit vector space
-        """
-        return 0.0
-
-    @property
-    def upper_unit_limit(self) -> float:
-        """
-        The upper limit for this prior in unit vector space
-        """
-        return 1.0
-
     def logpdf(self, x):
         # TODO: handle x as a numpy array
         if x == self.lower_limit:
@@ -81,7 +64,7 @@ class UniformPrior(Prior):
     def parameter_string(self) -> str:
         return f"lower_limit = {self.lower_limit}, upper_limit = {self.upper_limit}"
 
-    def value_for(self, unit : float, ignore_prior_limits : bool = False) -> float:
+    def value_for(self, unit: float, ignore_prior_limits: bool = False) -> float:
         """
         Returns a physical value from an input unit value according to the limits of the uniform prior.
 

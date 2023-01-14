@@ -2,7 +2,7 @@
 Plotters
 ========
 
-The ``Plotter`` objects are used to create non-linear search specific visualization of every search algorithm supported
+Create figures and subplots of non-linear search specific visualization of every search algorithm supported
 by **PyAutoFit**.
 
 **Examples / Tutorials:**
