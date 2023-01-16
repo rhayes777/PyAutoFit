@@ -1,5 +1,5 @@
 import logging
-from typing import Union
+from typing import Union, List
 
 from autoconf import conf
 from autofit.mapper.prior.abstract import Prior
@@ -14,10 +14,23 @@ logger = logging.getLogger(__name__)
 
 
 class CombinedResult:
-    def __init__(self, results):
+    def __init__(self, results: List[Result]):
+        """
+        A `Result` object that is composed of multiple `Result` objects. This is used to combine the results of
+        multiple `Analysis` objects into a single `Result` object, for example when performing a model-fitting
+        analysis where there are multiple datasets.
+
+        Parameters
+        ----------
+        results
+            The list of `Result` objects that are combined into this `CombinedResult` object.
+        """
         self.child_results = results
 
-    def __getattr__(self, item):
+    def __getattr__(self, item: str):
+        """
+        Get an attribute of the first `Result` object in the list of `Result` objects.
+        """
         return getattr(self.child_results[0], item)
 
     def __iter__(self):
@@ -25,6 +38,12 @@ class CombinedResult:
 
     def __len__(self):
         return len(self.child_results)
+
+    def __getitem__(self, item: int) -> Result:
+        """
+        Get a `Result` object from the list of `Result` objects.
+        """
+        return self.child_results[item]
 
 
 class CombinedAnalysis(Analysis):
