@@ -222,8 +222,22 @@ class AbstractModel(ModelObject):
 
     @frozen_cache
     def models_with_type(
-        self, cls: Union[Type, Tuple[Type, ...]], include_zero_dimension=False
-    ):
+        self, cls: Union[Type, Tuple[Type, ...]], include_zero_dimension=False,
+    ) -> List["AbstractModel"]:
+        """
+        Return all models of a given type in the model tree.
+
+        Parameters
+        ----------
+        cls
+            The type to find instances of
+        include_zero_dimension
+            If true, include models with zero dimensions
+
+        Returns
+        -------
+        A list of models of the given type
+        """
         # noinspection PyTypeChecker
         return [
             t[1]
