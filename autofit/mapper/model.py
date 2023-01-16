@@ -221,7 +221,21 @@ class AbstractModel(ModelObject):
         )
 
     @frozen_cache
-    def model_tuples_with_type(self, cls, include_zero_dimension=False):
+    def models_with_type(
+        self, cls: Union[Type, Tuple[Type, ...]], include_zero_dimension=False
+    ):
+        # noinspection PyTypeChecker
+        return [
+            t[1]
+            for t in self.model_tuples_with_type(
+                cls, include_zero_dimension=include_zero_dimension
+            )
+        ]
+
+    @frozen_cache
+    def model_tuples_with_type(
+        self, cls: Union[Type, Tuple[Type, ...]], include_zero_dimension=False
+    ):
         """
         All models of the class in this model which have at least
         one free parameter, recursively.

@@ -1,6 +1,7 @@
 import math
-import numpy as np
 from typing import Dict
+
+import numpy as np
 
 from autoconf.dictable import Dictable
 
@@ -17,9 +18,9 @@ their methods (e.g. model_data_1d_via_xvalues_from) can be used in the log likel
 class Gaussian(Dictable):
     def __init__(
         self,
-        centre:float=0.0,  # <- PyAutoFit recognises these constructor arguments
-        normalization:float=0.1,  # <- are the Gaussian`s model parameters.
-        sigma:float=0.01,
+        centre: float = 0.0,  # <- PyAutoFit recognises these constructor arguments
+        normalization: float = 0.1,  # <- are the Gaussian`s model parameters.
+        sigma: float = 0.01,
     ):
         """
         Represents a 1D `Gaussian` profile, which may be treated as a model-component of PyAutoFit the
@@ -38,7 +39,7 @@ class Gaussian(Dictable):
         self.normalization = normalization
         self.sigma = sigma
 
-    def model_data_1d_via_xvalues_from(self, xvalues:np.ndarray) -> np.ndarray:
+    def model_data_1d_via_xvalues_from(self, xvalues: np.ndarray) -> np.ndarray:
         """
         Calculate the normalization of the profile on a 1D grid of Cartesian x coordinates.
 
@@ -56,7 +57,7 @@ class Gaussian(Dictable):
             np.exp(-0.5 * np.square(np.divide(transformed_xvalues, self.sigma))),
         )
 
-    def __call__(self, xvalues:np.ndarray) -> np.ndarray:
+    def __call__(self, xvalues: np.ndarray) -> np.ndarray:
         """
         For certain graphical models, the `__call__` function is overwritten for producing the model-fit.
         We include this here so these examples work, but it should not be important for most PyAutoFit users.
@@ -82,33 +83,24 @@ class Gaussian(Dictable):
         """
         return super().dict()
 
-    def inverse(
-            self,
-            y
-    ):
+    def inverse(self, y):
         """
         For graphical models, the inverse of the Gaussian is used to test certain aspects of the calculation.
         """
 
-        a = self.normalization / (
-                y * self.sigma * math.sqrt(2 * math.pi)
-        )
+        a = self.normalization / (y * self.sigma * math.sqrt(2 * math.pi))
 
-        b = 2 * math.log(
-            a
-        )
-        
-        return self.centre + self.sigma * math.sqrt(
-            b
-        )
+        b = 2 * math.log(a)
+
+        return self.centre + self.sigma * math.sqrt(b)
 
 
 class Exponential(Dictable):
     def __init__(
         self,
-        centre:float=0.0,  # <- PyAutoFit recognises these constructor arguments are the model
-        normalization:float=0.1,  # <- parameters of the Gaussian.
-        rate:float=0.01,
+        centre: float = 0.0,  # <- PyAutoFit recognises these constructor arguments are the model
+        normalization: float = 0.1,  # <- parameters of the Gaussian.
+        rate: float = 0.01,
     ):
         """
         Represents a 1D Exponential profile, which may be treated as a model-component of PyAutoFit the
@@ -127,7 +119,7 @@ class Exponential(Dictable):
         self.normalization = normalization
         self.rate = rate
 
-    def model_data_1d_via_xvalues_from(self, xvalues:np.ndarray) -> np.ndarray:
+    def model_data_1d_via_xvalues_from(self, xvalues: np.ndarray) -> np.ndarray:
         """
         Calculate the 1D Gaussian profile on a 1D grid of Cartesian x coordinates.
 
@@ -143,7 +135,7 @@ class Exponential(Dictable):
             self.rate, np.exp(-1.0 * self.rate * abs(transformed_xvalues))
         )
 
-    def __call__(self, xvalues:np.ndarray) -> np.ndarray:
+    def __call__(self, xvalues: np.ndarray) -> np.ndarray:
         """
         Calculate the 1D Gaussian profile on a 1D grid of Cartesian x coordinates.
 
