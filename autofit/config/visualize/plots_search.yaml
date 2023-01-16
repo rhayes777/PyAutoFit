@@ -1,6 +1,6 @@
 dynesty:
-  cornerplot: true
-  cornerpoints: false      # Output Dynesty cornerplot figure during a non-linear search fit?
+  cornerplot: true         # Output Dynesty cornerplot figure during a non-linear search fit?
+  cornerpoints: false      # Output Dynesty cornerpoints figure during a non-linear search fit?
   runplot: true            # Output Dynesty runplot figure during a non-linear search fit?
   traceplot: true          # Output Dynesty traceplot figure during a non-linear search fit?
 emcee:
