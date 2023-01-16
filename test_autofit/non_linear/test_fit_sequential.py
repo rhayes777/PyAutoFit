@@ -5,7 +5,6 @@ from random import random
 import pytest
 
 import autofit as af
-from autofit.non_linear.analysis.combined import CombinedResult
 
 
 class Analysis(af.Analysis):
