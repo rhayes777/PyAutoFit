@@ -22,6 +22,7 @@ from autofit.graphical import (
     FactorApproximation,
 )
 from autofit.graphical.utils import Status
+from autofit.mapper.prior_model.collection import Collection
 from autofit.non_linear.initializer import Initializer
 from autofit.non_linear.parallel import SneakyPool
 from autofit.non_linear.paths.abstract import AbstractPaths
@@ -30,6 +31,8 @@ from autofit.non_linear.paths.sub_directory_paths import SubDirectoryPaths
 from autofit.non_linear.result import Result
 from autofit.non_linear.timer import Timer
 from .analysis import Analysis
+from .analysis.combined import CombinedResult
+from .analysis.indexed import IndexCollectionAnalysis
 from .paths.null import NullPaths
 from ..graphical.declarative.abstract import PriorFactor
 from ..graphical.expectation_propagation import AbstractFactorOptimiser
@@ -444,6 +447,75 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
              should be given a likelihood so low that it is discard.
              """
             return -np.inf
+
+    def fit_sequential(
+        self,
+        model,
+        analysis: IndexCollectionAnalysis,
+        info=None,
+        pickle_files=None,
+        log_likelihood_cap=None,
+    ) -> CombinedResult:
+        """
+        Fit multiple analyses contained within the analysis sequentially.
+
+        This can be useful for avoiding very high dimensional parameter spaces.
+
+        Parameters
+        ----------
+        log_likelihood_cap
+        analysis
+            Multiple analyses that are fit sequentially
+        model
+            An object that represents possible instances of some model with a
+            given dimensionality which is the number of free dimensions of the
+            model.
+        info
+            Optional dictionary containing information about the fit that can be loaded by the aggregator.
+        pickle_files : [str]
+            Optional list of strings specifying the path and filename of .pickle files, that are copied to each
+            model-fits pickles folder so they are accessible via the Aggregator.
+
+        Returns
+        -------
+        An object combining the results of each individual optimisation.
+
+        Raises
+        ------
+        AssertionError
+            If the model has 0 dimensions.
+        ValueError
+            If the analysis is not a combined analysis
+        """
+        results = []
+
+        _paths = self.paths
+        original_name = self.paths.name or "analysis"
+
+        model = analysis.modify_model(model=model)
+
+        try:
+            if not isinstance(model, Collection):
+                model = [model for _ in range(len(analysis.analyses))]
+        except AttributeError:
+            raise ValueError(
+                f"Analysis with type {type(analysis)} is not supported by fit_sequential"
+            )
+
+        for i, (model, analysis) in enumerate(zip(model, analysis.analyses)):
+            self.paths = copy.copy(_paths)
+            self.paths.name = f"{original_name}/{i}"
+            results.append(
+                self.fit(
+                    model=model,
+                    analysis=analysis,
+                    info=info,
+                    pickle_files=pickle_files,
+                    log_likelihood_cap=log_likelihood_cap,
+                )
+            )
+        self.paths = _paths
+        return CombinedResult(results)
 
     def fit(
         self,
