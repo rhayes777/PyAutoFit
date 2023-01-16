@@ -150,7 +150,7 @@ class AbstractDynesty(AbstractNest, ABC):
                 "No Dynesty samples found, beginning new non-linear search. "
             )
 
-        finished = False
+        finished = False 
 
         while not finished:
 
@@ -160,7 +160,7 @@ class AbstractDynesty(AbstractNest, ABC):
 
                 if conf.instance["non_linear"]["nest"][self.__class__.__name__][
                     "parallel"
-                ].get("force_x1_cpu") or self.kwargs.get("force_x1_cpu"):
+                ].get("force_x1_cpu", False) or self.kwargs.get("force_x1_cpu"):
 
                     raise RuntimeError
 
