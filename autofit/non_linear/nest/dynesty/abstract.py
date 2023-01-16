@@ -150,7 +150,7 @@ class AbstractDynesty(AbstractNest, ABC):
                 "No Dynesty samples found, beginning new non-linear search. "
             )
 
-        finished = False 
+        finished = False
 
         while not finished:
 
