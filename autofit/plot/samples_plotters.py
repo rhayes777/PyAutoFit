@@ -1,9 +1,23 @@
 import matplotlib.pyplot as plt
 from functools import wraps
+import logging
 import os
 
 from autofit.plot.output import Output
 
+logger = logging.getLogger(__name__)
+
+def log_value_error(func):
+
+    @wraps(func)
+    def wrapper(self, *args, **kwargs):
+
+        try:
+            return func(self, *args, **kwargs)
+        except (ValueError, KeyError, AttributeError):
+            self.log_plot_exception(func.__name__)
+
+    return wrapper
 
 def skip_plot_in_test_mode(func):
     """
@@ -65,6 +79,26 @@ class SamplesPlotter:
         if plt.fignum_exists(num=1):
             plt.close()
 
+    def log_plot_exception(self, plot_name : str):
+        """
+        Plotting the results of a ``dynesty`` model-fit before they have converged on an
+        accurate estimate of the posterior can lead the ``dynesty`` plotting routines
+        to raise a ``ValueError``.
+
+        This exception is caught in each of the plotting methods below, and this
+        function is used to log the behaviour.
+
+        Parameters
+        ----------
+        plot_name
+            The name of the ``dynesty`` plot which raised a ``ValueError``
+        """
+
+        logger.info(
+            f"{self.__class__.__name__} unable to produce {plot_name} visual: posterior estimate therefore"
+            "not yet sufficient for this model-fit is not yet robust enough to do this. Visual"
+            "should be produced in later update, once posterior estimate is updated."
+        )
 
 class MCMCPlotter(SamplesPlotter):
 
