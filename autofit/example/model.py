@@ -39,6 +39,13 @@ class Gaussian(Dictable):
         self.normalization = normalization
         self.sigma = sigma
 
+    def _tree_flatten(self):
+        return (self.centre, self.normalization, self.sigma), None
+
+    @classmethod
+    def _tree_unflatten(cls, aux_data, children):
+        return Gaussian(*children)
+
     def model_data_1d_via_xvalues_from(self, xvalues: np.ndarray) -> np.ndarray:
         """
         Calculate the normalization of the profile on a 1D grid of Cartesian x coordinates.

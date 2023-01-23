@@ -4,19 +4,14 @@ from .abstract import Prior
 
 class GaussianPrior(Prior):
 
-    __identifier_fields__ = (
-        "lower_limit",
-        "upper_limit",
-        "mean",
-        "sigma"
-    )
+    __identifier_fields__ = ("lower_limit", "upper_limit", "mean", "sigma")
 
     def __init__(
         self,
         mean: float,
-        sigma : float,
-        lower_limit : float = float("-inf"),
-        upper_limit : float = float("inf"),
+        sigma: float,
+        lower_limit: float = float("-inf"),
+        upper_limit: float = float("inf"),
     ):
         """
         A prior with a uniform distribution, defined between a lower limit and upper limit.
@@ -59,15 +54,18 @@ class GaussianPrior(Prior):
                 sigma=sigma,
                 lower_limit=lower_limit,
                 upper_limit=upper_limit,
-            )
+            ),
         )
 
+    def _tree_flatten(self):
+        return (self.mean, self.sigma, self.lower_limit, self.upper_limit), None
+
     @classmethod
-    def with_limits(
-            cls,
-            lower_limit: float,
-            upper_limit: float
-    ) -> "GaussianPrior":
+    def _tree_unflatten(cls, aux_data, children):
+        return cls(*children)
+
+    @classmethod
+    def with_limits(cls, lower_limit: float, upper_limit: float) -> "GaussianPrior":
         """
         Create a new gaussian prior centred between two limits
         with sigma distance between this limits.
@@ -91,8 +89,7 @@ class GaussianPrior(Prior):
         A new GaussianPrior
         """
         return cls(
-            mean=(lower_limit + upper_limit) / 2,
-            sigma=upper_limit - lower_limit,
+            mean=(lower_limit + upper_limit) / 2, sigma=upper_limit - lower_limit,
         )
 
     def dict(self) -> dict:
