@@ -1,4 +1,6 @@
 from __future__ import annotations
+
+from jax import grad
 from typing import TYPE_CHECKING, Optional
 
 if TYPE_CHECKING:
@@ -23,19 +25,19 @@ class DynestyStatic(AbstractDynesty):
         "facc",
         "slices",
         "fmove",
-        "max_move"
+        "max_move",
     )
 
     def __init__(
-            self,
-            name: Optional[str] = None,
-            path_prefix: Optional[str] = None,
-            unique_tag: Optional[str] = None,
-            prior_passer=None,
-            iterations_per_update: int = None,
-            number_of_cores: int = None,
-            session: Optional[sa.orm.Session] = None,
-            **kwargs
+        self,
+        name: Optional[str] = None,
+        path_prefix: Optional[str] = None,
+        unique_tag: Optional[str] = None,
+        prior_passer=None,
+        iterations_per_update: int = None,
+        number_of_cores: int = None,
+        session: Optional[sa.orm.Session] = None,
+        **kwargs
     ):
         """
         A Dynesty `NonLinearSearch` using a static number of live points.
@@ -102,12 +104,12 @@ class DynestyStatic(AbstractDynesty):
         )
 
     def sampler_from(
-            self,
-            model: AbstractPriorModel,
-            fitness_function,
-            checkpoint_exists : bool,
-            pool: Optional[Pool],
-            queue_size: Optional[int]
+        self,
+        model: AbstractPriorModel,
+        fitness_function,
+        checkpoint_exists: bool,
+        pool: Optional[Pool],
+        queue_size: Optional[int],
     ):
         """
         Returns an instance of the Dynesty static sampler set up using the input variables of this class.
@@ -134,10 +136,7 @@ class DynestyStatic(AbstractDynesty):
 
         if checkpoint_exists:
 
-            sampler = StaticSampler.restore(
-                fname=self.checkpoint_file,
-                pool=pool
-            )
+            sampler = StaticSampler.restore(fname=self.checkpoint_file, pool=pool)
 
             uses_pool = self.read_uses_pool()
 
@@ -147,7 +146,9 @@ class DynestyStatic(AbstractDynesty):
 
         else:
 
-            live_points = self.live_points_init_from(model=model, fitness_function=fitness_function)
+            live_points = self.live_points_init_from(
+                model=model, fitness_function=fitness_function
+            )
 
             if pool is not None:
 
@@ -167,6 +168,7 @@ class DynestyStatic(AbstractDynesty):
 
             return StaticSampler(
                 loglikelihood=fitness_function,
+                gradient=grad(fitness_function),
                 prior_transform=prior_transform,
                 ndim=model.prior_count,
                 logl_args=[model, fitness_function],
