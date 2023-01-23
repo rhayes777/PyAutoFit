@@ -1,4 +1,5 @@
 import math
+from jax._src.scipy.special import erfinv
 from typing import Tuple, Union
 
 import numpy as np
@@ -69,7 +70,7 @@ class NormalMessage(AbstractMessage):
 
     @staticmethod
     def calc_natural_parameters(mu, sigma):
-        precision =  1 / sigma ** 2
+        precision = 1 / sigma ** 2
         return np.array([mu * precision, -precision / 2])
 
     @staticmethod
@@ -157,7 +158,7 @@ class NormalMessage(AbstractMessage):
 
     __default_fields__ = ("log_norm", "id_")
 
-    def value_for(self, unit : float) -> float:
+    def value_for(self, unit: float) -> float:
         """
         Returns a physical value from an input unit value according to the Gaussian distribution of the prior.
 
@@ -178,7 +179,8 @@ class NormalMessage(AbstractMessage):
 
         physical_value = prior.value_for(unit=0.5)
         """
-        return self.mean + (self.sigma * math.sqrt(2) * erfcinv(2.0 * (1.0 - unit)))
+        inv = erfinv(1 - 2.0 * (1.0 - unit))
+        return self.mean + (self.sigma * np.sqrt(2) * inv)
 
     def log_prior_from_value(self, value):
         """
