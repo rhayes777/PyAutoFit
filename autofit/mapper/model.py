@@ -269,7 +269,9 @@ class AbstractModel(ModelObject):
 
         return [
             (path, model)
-            for path, model in self.attribute_tuples_with_type(Model)
+            for path, model in self.attribute_tuples_with_type(
+                Model, ignore_children=False
+            )
             if issubclass(model.cls, cls)
             and (include_zero_dimension or model.prior_count > 0)
         ]
