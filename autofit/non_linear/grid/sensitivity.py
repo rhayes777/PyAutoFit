@@ -18,12 +18,7 @@ from autofit.text.text_util import padding
 
 
 class JobResult(AbstractJobResult):
-    def __init__(
-            self,
-            number: int,
-            result: Result,
-            perturbed_result: Result
-    ):
+    def __init__(self, number: int, result: Result, perturbed_result: Result):
         """
         The result of a single sensitivity comparison
 
@@ -55,14 +50,14 @@ class Job(AbstractJob):
     use_instance = False
 
     def __init__(
-            self,
-            analysis_factory: "AnalysisFactory",
-            model: AbstractPriorModel,
-            perturbation_model: AbstractPriorModel,
-            base_instance: ModelInstance,
-            perturbation_instance: ModelInstance,
-            search: NonLinearSearch,
-            number: int,
+        self,
+        analysis_factory: "AnalysisFactory",
+        model: AbstractPriorModel,
+        perturbation_model: AbstractPriorModel,
+        base_instance: ModelInstance,
+        perturbation_instance: ModelInstance,
+        search: NonLinearSearch,
+        number: int,
     ):
         """
         Job to run non-linear searches comparing how well a model and a model with a perturbation
@@ -79,9 +74,7 @@ class Job(AbstractJob):
         search
             A non-linear search
         """
-        super().__init__(
-            number=number
-        )
+        super().__init__(number=number)
 
         self.analysis_factory = analysis_factory
         self.model = model
@@ -90,15 +83,9 @@ class Job(AbstractJob):
         self.base_instance = base_instance
         self.perturbation_instance = perturbation_instance
 
-        self.search = search.copy_with_paths(
-            search.paths.for_sub_analysis(
-                "[base]",
-            )
-        )
+        self.search = search.copy_with_paths(search.paths.for_sub_analysis("[base]",))
         self.perturbed_search = search.copy_with_paths(
-            search.paths.for_sub_analysis(
-                "[perturbed]",
-            )
+            search.paths.for_sub_analysis("[perturbed]",)
         )
 
     @cached_property
@@ -126,27 +113,26 @@ class Job(AbstractJob):
 
         perturbed_result = self.perturbation_model_func(perturbed_model=perturbed_model)
         return JobResult(
-            number=self.number,
-            result=result,
-            perturbed_result=perturbed_result
+            number=self.number, result=result, perturbed_result=perturbed_result
         )
 
     def base_model_func(self):
-        return self.search.fit(
-            model=self.model,
-            analysis=self.analysis
-        )
+        return self.search.fit(model=self.model, analysis=self.analysis)
 
     def perturbation_model_func(self, perturbed_model):
-        return self.perturbed_search.fit(
-            model=perturbed_model,
-            analysis=self.analysis
-        )
+        return self.perturbed_search.fit(model=perturbed_model, analysis=self.analysis)
 
 
 class SensitivityResult:
-
     def __init__(self, results: List[JobResult]):
+        """
+        The result of a sensitivity mapping
+
+        Parameters
+        ----------
+        results
+            The results of each sensitivity job
+        """
         self.results = sorted(results)
 
     def __getitem__(self, item):
@@ -158,21 +144,41 @@ class SensitivityResult:
     def __len__(self):
         return len(self.results)
 
+    @property
+    def log_likelihoods_base(self) -> List[float]:
+        """
+        The log likelihoods of the base model for each sensitivity fit
+        """
+        return [result.log_likelihood_base for result in self.results]
+
+    @property
+    def log_likelihoods_perturbed(self) -> List[float]:
+        """
+        The log likelihoods of the perturbed model for each sensitivity fit
+        """
+        return [result.log_likelihood_perturbed for result in self.results]
+
+    @property
+    def log_likelihood_differences(self) -> List[float]:
+        """
+        The log likelihood differences between the base and perturbed models
+        """
+        return [result.log_likelihood_difference for result in self.results]
+
 
 class Sensitivity:
-
     def __init__(
-            self,
-            base_model: AbstractPriorModel,
-            perturbation_model: AbstractPriorModel,
-            simulation_instance,
-            simulate_function: Callable,
-            analysis_class: Type[Analysis],
-            search: NonLinearSearch,
-            job_cls: ClassVar = Job,
-            number_of_steps: Union[Tuple[int], int] = 4,
-            number_of_cores: int = 2,
-            limit_scale: int = 1,
+        self,
+        base_model: AbstractPriorModel,
+        perturbation_model: AbstractPriorModel,
+        simulation_instance,
+        simulate_function: Callable,
+        analysis_class: Type[Analysis],
+        search: NonLinearSearch,
+        job_cls: ClassVar = Job,
+        number_of_steps: Union[Tuple[int], int] = 4,
+        number_of_cores: int = 2,
+        limit_scale: int = 1,
     ):
         """
         Perform sensitivity mapping to evaluate whether a perturbation
@@ -212,9 +218,7 @@ class Sensitivity:
                 A scale of 0.5 means priors have limits smaller than the grid square
                     with width half a grid square.
         """
-        self.logger = logging.getLogger(
-            f"Sensitivity ({search.name})"
-        )
+        self.logger = logging.getLogger(f"Sensitivity ({search.name})")
 
         self.logger.info("Creating")
 
@@ -243,7 +247,9 @@ class Sensitivity:
             The size of a step in any given dimension in hyper space.
         """
         if isinstance(self.number_of_steps, tuple):
-            return tuple([1 / number_of_steps for number_of_steps in self.number_of_steps])
+            return tuple(
+                [1 / number_of_steps for number_of_steps in self.number_of_steps]
+            )
         return 1 / self.number_of_steps
 
     def run(self) -> SensitivityResult:
@@ -258,14 +264,13 @@ class Sensitivity:
             *self._headers,
             "log_likelihood_base",
             "log_likelihood_perturbed",
-            "log_likelihood_difference"
+            "log_likelihood_difference",
         ]
         physical_values = list(self._physical_values)
 
         results = list()
         for result in Process.run_jobs(
-                self._make_jobs(),
-                number_of_cores=self.number_of_cores
+            self._make_jobs(), number_of_cores=self.number_of_cores
         ):
             if isinstance(result, Exception):
                 raise result
@@ -273,17 +278,12 @@ class Sensitivity:
             results.append(result)
             results = sorted(results)
 
-            os.makedirs(
-                self.search.paths.output_path,
-                exist_ok=True
-            )
+            os.makedirs(self.search.paths.output_path, exist_ok=True)
             with open(self.results_path, "w+") as f:
                 writer = csv.writer(f)
                 writer.writerow(headers)
                 for result_ in results:
-                    values = physical_values[
-                        result_.number
-                    ]
+                    values = physical_values[result_.number]
                     writer.writerow(
                         padding(item)
                         for item in [
@@ -292,15 +292,14 @@ class Sensitivity:
                             result_.log_likelihood_base,
                             result_.log_likelihood_perturbed,
                             result_.log_likelihood_difference,
-                        ])
+                        ]
+                    )
 
         return SensitivityResult(results)
 
     @property
     def results_path(self):
-        return Path(
-            self.search.paths.output_path
-        ) / "results.csv"
+        return Path(self.search.paths.output_path) / "results.csv"
 
     @property
     def _lists(self) -> List[List[float]]:
@@ -309,10 +308,7 @@ class Sensitivity:
         the perturbation_model and create the individual
         perturbations.
         """
-        return make_lists(
-            self.perturbation_model.prior_count,
-            step_size=self.step_size
-        )
+        return make_lists(self.perturbation_model.prior_count, step_size=self.step_size)
 
     @property
     def _physical_values(self) -> List[List[float]]:
@@ -321,14 +317,10 @@ class Sensitivity:
         """
         return [
             [
-                prior.value_for(
-                    unit_value
+                prior.value_for(unit_value)
+                for prior, unit_value in zip(
+                    self.perturbation_model.priors_ordered_by_id, unit_values
                 )
-                for prior, unit_value
-                in zip(
-                self.perturbation_model.priors_ordered_by_id,
-                unit_values
-            )
             ]
             for unit_values in self._lists
         ]
@@ -350,36 +342,23 @@ class Sensitivity:
         """
         for list_ in self._lists:
             strings = list()
-            for value, prior_tuple in zip(
-                    list_,
-                    self.perturbation_model.prior_tuples
-            ):
+            for value, prior_tuple in zip(list_, self.perturbation_model.prior_tuples):
                 path, prior = prior_tuple
-                value = prior.value_for(
-                    value
-                )
-                strings.append(
-                    f"{path}_{value}"
-                )
+                value = prior.value_for(value)
+                strings.append(f"{path}_{value}")
             yield "_".join(strings)
 
     @property
-    def _perturbation_instances(self) -> Generator[
-        ModelInstance, None, None
-    ]:
+    def _perturbation_instances(self) -> Generator[ModelInstance, None, None]:
         """
         A list of instances each of which defines a perturbation to
         be applied to the image.
         """
         for list_ in self._lists:
-            yield self.perturbation_model.instance_from_unit_vector(
-                list_
-            )
+            yield self.perturbation_model.instance_from_unit_vector(list_)
 
     @property
-    def _perturbation_models(self) -> Generator[
-        AbstractPriorModel, None, None
-    ]:
+    def _perturbation_models(self) -> Generator[AbstractPriorModel, None, None]:
         """
         A list of models representing a perturbation at each grid square.
 
@@ -395,29 +374,21 @@ class Sensitivity:
                     prior.value_for(min(1.0, centre + half_step)),
                 )
                 for centre, prior in zip(
-                    list_,
-                    self.perturbation_model.priors_ordered_by_id
+                    list_, self.perturbation_model.priors_ordered_by_id
                 )
             ]
             yield self.perturbation_model.with_limits(limits)
 
     @property
-    def _searches(self) -> Generator[
-        NonLinearSearch, None, None
-    ]:
+    def _searches(self) -> Generator[NonLinearSearch, None, None]:
         """
         A list of non-linear searches, each of which is applied to
         one perturbation.
         """
         for label in self._labels:
-            yield self._search_instance(
-                label
-            )
+            yield self._search_instance(label)
 
-    def _search_instance(
-            self,
-            name_path: str
-    ) -> NonLinearSearch:
+    def _search_instance(self, name_path: str) -> NonLinearSearch:
         """
         Create a search instance, distinguished by its name
 
@@ -432,9 +403,7 @@ class Sensitivity:
         """
         paths = self.search.paths
         search_instance = self.search.copy_with_paths(
-            paths.for_sub_analysis(
-                name_path,
-            )
+            paths.for_sub_analysis(name_path,)
         )
 
         return search_instance
@@ -446,15 +415,9 @@ class Sensitivity:
         Each job fits a perturbed image with the original model
         and a model which includes a perturbation.
         """
-        for number, (
-                perturbation_instance,
-                perturbation_model,
-                search
-        ) in enumerate(zip(
-            self._perturbation_instances,
-            self._perturbation_models,
-            self._searches
-        )):
+        for number, (perturbation_instance, perturbation_model, search) in enumerate(
+            zip(self._perturbation_instances, self._perturbation_models, self._searches)
+        ):
             instance = copy(self.instance)
             instance.perturbation = perturbation_instance
 
@@ -469,16 +432,13 @@ class Sensitivity:
                 base_instance=self.instance,
                 perturbation_instance=perturbation_instance,
                 search=search,
-                number=number
+                number=number,
             )
 
 
 class AnalysisFactory:
     def __init__(
-            self,
-            instance,
-            simulate_function,
-            analysis_class,
+        self, instance, simulate_function, analysis_class,
     ):
         """
         Callable to delay simulation such that it is performed
@@ -489,9 +449,5 @@ class AnalysisFactory:
         self.analysis_class = analysis_class
 
     def __call__(self):
-        dataset = self.simulate_function(
-            self.instance
-        )
-        return self.analysis_class(
-            dataset
-        )
+        dataset = self.simulate_function(self.instance)
+        return self.analysis_class(dataset)
