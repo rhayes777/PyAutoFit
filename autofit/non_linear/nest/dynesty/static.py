@@ -30,6 +30,9 @@ class GradWrapper:
     def __setstate__(self, state):
         self.__init__(state["function"])
 
+    def __call__(self, *args, **kwargs):
+        return self.grad(*args, **kwargs)
+
 
 class DynestyStatic(AbstractDynesty):
     __identifier_fields__ = (
@@ -150,6 +153,7 @@ class DynestyStatic(AbstractDynesty):
             The number of CPU's over which multiprocessing is performed, determining how many samples are stored
             in the dynesty queue for samples.
         """
+        # gradient = None
         gradient = GradWrapper(fitness_function)
 
         if checkpoint_exists:
