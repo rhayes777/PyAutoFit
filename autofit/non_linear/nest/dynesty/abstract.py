@@ -263,7 +263,11 @@ class AbstractDynesty(AbstractNest, ABC):
 
         iterations, total_iterations = self.iterations_from(sampler=sampler)
 
-        config_dict_run = {key: value for key, value in self.config_dict_run.items() if key != 'maxcall'}
+        config_dict_run = {
+            key: value
+            for key, value in self.config_dict_run.items()
+            if key != "maxcall"
+        }
 
         if iterations > 0:
             sampler.run_nested(
@@ -348,9 +352,7 @@ class AbstractDynesty(AbstractNest, ABC):
         init_unit_parameters = np.zeros(
             shape=(self.total_live_points, model.prior_count)
         )
-        init_parameters = np.zeros(
-            shape=(self.total_live_points, model.prior_count)
-        )
+        init_parameters = np.zeros(shape=(self.total_live_points, model.prior_count))
         init_log_likelihood_list = np.zeros(shape=(self.total_live_points))
 
         for i in range(len(parameters)):

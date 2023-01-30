@@ -133,6 +133,8 @@ class DynestyStatic(AbstractDynesty):
             The number of CPU's over which multiprocessing is performed, determining how many samples are stored
             in the dynesty queue for samples.
         """
+        gradient = grad(fitness_function)
+        gradient.__name__ = "gradient"
 
         if checkpoint_exists:
 
@@ -156,6 +158,7 @@ class DynestyStatic(AbstractDynesty):
 
                 return StaticSampler(
                     loglikelihood=pool.loglike,
+                    gradient=gradient,
                     prior_transform=pool.prior_transform,
                     ndim=model.prior_count,
                     live_points=live_points,
@@ -168,7 +171,7 @@ class DynestyStatic(AbstractDynesty):
 
             return StaticSampler(
                 loglikelihood=fitness_function,
-                gradient=grad(fitness_function),
+                gradient=gradient,
                 prior_transform=prior_transform,
                 ndim=model.prior_count,
                 logl_args=[model, fitness_function],
