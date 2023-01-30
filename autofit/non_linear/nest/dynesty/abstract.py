@@ -1,6 +1,7 @@
 import os
 from abc import ABC
 from os import path
+from pickle import PicklingError
 from typing import Optional, Tuple, Union
 
 import numpy as np

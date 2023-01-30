@@ -3,6 +3,8 @@ from __future__ import annotations
 from jax import grad
 from typing import TYPE_CHECKING, Optional
 
+from autoconf import cached_property
+
 if TYPE_CHECKING:
     from dynesty.pool import Pool
 
@@ -12,6 +14,21 @@ from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.nest.dynesty.samples import SamplesDynesty
 
 from .abstract import AbstractDynesty, prior_transform
+
+
+class GradWrapper:
+    def __init__(self, function):
+        self.function = function
+
+    @cached_property
+    def grad(self):
+        return grad(self.function)
+
+    def __getstate__(self):
+        return {"function": self.function}
+
+    def __setstate__(self, state):
+        self.__init__(state["function"])
 
 
 class DynestyStatic(AbstractDynesty):
@@ -133,8 +150,7 @@ class DynestyStatic(AbstractDynesty):
             The number of CPU's over which multiprocessing is performed, determining how many samples are stored
             in the dynesty queue for samples.
         """
-        gradient = grad(fitness_function)
-        gradient.__name__ = "gradient"
+        gradient = GradWrapper(fitness_function)
 
         if checkpoint_exists:
 
@@ -155,7 +171,6 @@ class DynestyStatic(AbstractDynesty):
             if pool is not None:
 
                 self.write_uses_pool(uses_pool=True)
-
                 return StaticSampler(
                     loglikelihood=pool.loglike,
                     gradient=gradient,
@@ -168,7 +183,6 @@ class DynestyStatic(AbstractDynesty):
                 )
 
             self.write_uses_pool(uses_pool=False)
-
             return StaticSampler(
                 loglikelihood=fitness_function,
                 gradient=gradient,
