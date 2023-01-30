@@ -125,6 +125,14 @@ class Job(AbstractJob):
 
 class SensitivityResult:
     def __init__(self, results: List[JobResult]):
+        """
+        The result of a sensitivity mapping
+
+        Parameters
+        ----------
+        results
+            The results of each sensitivity job
+        """
         self.results = sorted(results)
 
     def __getitem__(self, item):
@@ -137,15 +145,24 @@ class SensitivityResult:
         return len(self.results)
 
     @property
-    def log_likelihoods_base(self):
+    def log_likelihoods_base(self) -> List[float]:
+        """
+        The log likelihoods of the base model for each sensitivity fit
+        """
         return [result.log_likelihood_base for result in self.results]
 
     @property
-    def log_likelihoods_perturbed(self):
+    def log_likelihoods_perturbed(self) -> List[float]:
+        """
+        The log likelihoods of the perturbed model for each sensitivity fit
+        """
         return [result.log_likelihood_perturbed for result in self.results]
 
     @property
-    def log_likelihood_differences(self):
+    def log_likelihood_differences(self) -> List[float]:
+        """
+        The log likelihood differences between the base and perturbed models
+        """
         return [result.log_likelihood_difference for result in self.results]
 
 
