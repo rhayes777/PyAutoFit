@@ -175,6 +175,16 @@ class Model(AbstractPriorModel):
             if not hasattr(self, key):
                 setattr(self, key, Model(value) if inspect.isclass(value) else value)
 
+    def _tree_flatten(self):
+        names, priors = zip(*self.direct_prior_tuples)
+        return priors, (names, self.cls)
+
+    @classmethod
+    def _tree_unflatten(cls, aux_data, children):
+        names, cls_ = aux_data
+        arguments = {name: child for name, child in zip(names, children)}
+        return cls(cls_, **arguments)
+
     def dict(self):
         return {"class_path": get_class_path(self.cls), **super().dict()}
 
