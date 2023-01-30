@@ -1,3 +1,5 @@
+from typing import Optional
+
 from autofit.messages.normal import NormalMessage
 from .abstract import Prior
 
@@ -12,6 +14,7 @@ class GaussianPrior(Prior):
         sigma: float,
         lower_limit: float = float("-inf"),
         upper_limit: float = float("inf"),
+        id_: Optional[int] = None,
     ):
         """
         A prior with a uniform distribution, defined between a lower limit and upper limit.
@@ -55,14 +58,15 @@ class GaussianPrior(Prior):
                 lower_limit=lower_limit,
                 upper_limit=upper_limit,
             ),
+            id_=id_,
         )
 
     def _tree_flatten(self):
-        return (self.mean, self.sigma, self.lower_limit, self.upper_limit), None
+        return (self.mean, self.sigma, self.lower_limit, self.upper_limit), (self.id,)
 
     @classmethod
     def _tree_unflatten(cls, aux_data, children):
-        return cls(*children)
+        return cls(*children, id_=aux_data[0])
 
     @classmethod
     def with_limits(cls, lower_limit: float, upper_limit: float) -> "GaussianPrior":
