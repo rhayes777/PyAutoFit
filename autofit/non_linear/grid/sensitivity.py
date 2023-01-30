@@ -259,6 +259,8 @@ class Sensitivity:
         """
         self.logger.info("Running")
 
+        self.search.paths.save_unique_tag(is_grid_search=True)
+
         headers = [
             "index",
             *self._headers,
@@ -294,6 +296,10 @@ class Sensitivity:
                             result_.log_likelihood_difference,
                         ]
                     )
+
+        result = SensitivityResult(results)
+
+        self.search.paths.save_object("result", result)
 
         return SensitivityResult(results)
 
