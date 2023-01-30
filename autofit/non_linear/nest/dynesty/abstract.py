@@ -1,7 +1,6 @@
 import os
 from abc import ABC
 from os import path
-from pickle import PicklingError
 from typing import Optional, Tuple, Union
 
 import numpy as np
@@ -159,9 +158,13 @@ class AbstractDynesty(AbstractNest, ABC):
 
             try:
 
-                if conf.instance["non_linear"]["nest"][self.__class__.__name__][
-                    "parallel"
-                ].get("force_x1_cpu") or self.kwargs.get("force_x1_cpu"):
+                if (
+                    conf.instance["non_linear"]["nest"][self.__class__.__name__][
+                        "parallel"
+                    ].get("force_x1_cpu")
+                    or self.kwargs.get("force_x1_cpu")
+                    or self.number_of_cores == 1
+                ):
 
                     raise RuntimeError
 
