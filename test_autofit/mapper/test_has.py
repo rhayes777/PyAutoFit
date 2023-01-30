@@ -79,3 +79,25 @@ def test_multiple_types(collection):
         collection.gaussian,
         collection.exponential,
     ]
+
+
+class Galaxy:
+    def __init__(self, child):
+        self.child = child
+
+
+def test_instances_with_type():
+    model = af.Collection(galaxy=Galaxy(child=af.Model(af.Gaussian)))
+    assert model.models_with_type(af.Gaussian) == [model.galaxy.child]
+
+
+class DelaunayBrightnessImage:
+    pass
+
+
+def test_model_attributes_with_type():
+    mesh = af.Model(DelaunayBrightnessImage)
+    mesh.pixels = af.UniformPrior(lower_limit=5.0, upper_limit=10.0)
+    pixelization = af.Model(af.Gaussian, mesh=mesh)
+
+    assert pixelization.models_with_type(DelaunayBrightnessImage) == [mesh]
