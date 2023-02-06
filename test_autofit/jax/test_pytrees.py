@@ -101,3 +101,18 @@ def test_model_instance(model):
 
     assert isinstance(new, af.ModelInstance)
     assert isinstance(new.gaussian, af.Gaussian)
+
+
+def test_collection(model):
+    collection = af.Collection(gaussian=model)
+    new = recreate(collection)
+
+    assert isinstance(new, af.Collection)
+    assert isinstance(new.gaussian, af.Model)
+
+    assert new.gaussian.cls == af.Gaussian
+
+    centre = new.gaussian.centre
+    assert centre.mean == model.centre.mean
+    assert centre.sigma == model.centre.sigma
+    assert centre.id == model.centre.id
