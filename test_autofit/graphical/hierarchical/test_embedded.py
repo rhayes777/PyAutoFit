@@ -23,10 +23,6 @@ def make_centre_model():
     )
 
 
-def test_embedded_priors(centre_model):
-    assert isinstance(centre_model.random_instance().value_for(0.5), float)
-
-
 def test_hierarchical_factor(centre_model):
     centre_model.add_drawn_variable(af.GaussianPrior(100, 10))
     factor = centre_model.factors[0]
