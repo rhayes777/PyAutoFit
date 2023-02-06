@@ -68,10 +68,6 @@ class GaussianPrior(Prior):
         return (self.mean, self.sigma, self.lower_limit, self.upper_limit), (self.id,)
 
     @classmethod
-    def tree_unflatten(cls, aux_data, children):
-        return cls(*children, id_=aux_data[0])
-
-    @classmethod
     def with_limits(cls, lower_limit: float, upper_limit: float) -> "GaussianPrior":
         """
         Create a new gaussian prior centred between two limits

@@ -46,6 +46,10 @@ class Prior(Variable, ABC, ArithmeticMixin):
 
         self.width_modifier = None
 
+    @classmethod
+    def tree_unflatten(cls, aux_data, children):
+        return cls(*children, id_=aux_data[0])
+
     @property
     def lower_unit_limit(self) -> float:
         """

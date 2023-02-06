@@ -49,6 +49,9 @@ def test_gaussian_prior():
     assert new.sigma == prior.sigma
     assert new.id == prior.id
 
+    assert new.lower_limit == prior.lower_limit
+    assert new.upper_limit == prior.upper_limit
+
 
 @pytest.fixture(name="model")
 def _model():
@@ -79,3 +82,13 @@ def test_instance(model):
     assert new.centre == instance.centre
     assert new.normalization == instance.normalization
     assert new.sigma == instance.sigma
+
+
+def test_uniform_prior():
+    prior = af.UniformPrior(lower_limit=0.0, upper_limit=1.0)
+
+    new = recreate(prior)
+
+    assert new.lower_limit == prior.lower_limit
+    assert new.upper_limit == prior.upper_limit
+    assert new.id == prior.id
