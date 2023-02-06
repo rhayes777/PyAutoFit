@@ -92,3 +92,12 @@ def test_uniform_prior():
     assert new.lower_limit == prior.lower_limit
     assert new.upper_limit == prior.upper_limit
     assert new.id == prior.id
+
+
+def test_model_instance(model):
+    collection = af.Collection(gaussian=model)
+    instance = collection.instance_from_prior_medians()
+    new = recreate(instance)
+
+    assert isinstance(new, af.ModelInstance)
+    assert isinstance(new.gaussian, af.Gaussian)

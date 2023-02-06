@@ -3,6 +3,8 @@ import logging
 from functools import wraps
 from typing import Optional, Union, Tuple, List, Iterable, Type
 
+from jax._src.tree_util import register_pytree_node_class
+
 from autofit.mapper.model_object import ModelObject
 from autofit.mapper.prior_model.recursion import DynamicRecursionCache
 
@@ -74,10 +76,10 @@ def assert_not_frozen(func):
 
 
 class AbstractModel(ModelObject):
-    def __init__(self, label=None):
+    def __init__(self, label=None, id_=None):
         self._is_frozen = False
         self._frozen_cache = dict()
-        super().__init__(label=label)
+        super().__init__(label=label, id_=id_)
 
     def __getstate__(self):
         return {
@@ -362,6 +364,7 @@ def path_instances_of_class(
         return results
 
 
+@register_pytree_node_class
 class ModelInstance(AbstractModel):
     """
     An object to hold model instances produced by providing arguments to a model mapper.
@@ -369,8 +372,10 @@ class ModelInstance(AbstractModel):
     @DynamicAttrs
     """
 
-    def __init__(self, items=None):
-        super().__init__()
+    def __init__(
+        self, items=None, id_=None,
+    ):
+        super().__init__(id_=id_)
         if isinstance(items, list):
             for i, item in enumerate(items):
                 self[i] = item
@@ -405,6 +410,20 @@ class ModelInstance(AbstractModel):
             if key not in ("id", "component_number", "item_number")
             and not (isinstance(key, str) and key.startswith("_"))
         }
+
+    def tree_flatten(self):
+        keys, values = zip(*self.dict.items())
+        return values, (*keys, self.id,)
+
+    @classmethod
+    def tree_unflatten(cls, aux_data, children):
+        *keys, id_ = aux_data
+
+        instance = cls(id_=id_)
+
+        for key, value in zip(keys, children):
+            instance[key] = value
+        return instance
 
     def values(self):
         return self.dict.values()
