@@ -1,13 +1,15 @@
+import numpy as np
 import pytest
 from jax import grad, vmap
+from jax._src.tree_util import _registry
 
 import autofit as af
-import numpy as np
 
 
 def recreate(o):
-    children, aux_data = o._tree_flatten()
-    return type(o)._tree_unflatten(aux_data, children)
+    flatten_func, unflatten_func = _registry[type(o)]
+    children, aux_data = flatten_func(o)
+    return unflatten_func(aux_data, children)
 
 
 @pytest.fixture(name="gaussian")
@@ -18,10 +20,10 @@ def make_gaussian():
 def test_gradient(gaussian):
     gradient = grad(gaussian.f)
 
-    assert gradient(1.0) == 0.0
+    assert float(gradient(1.0)) == 0.0
 
     gaussian.centre = 2.0
-    assert gradient(1.0) != 0.0
+    assert float(gradient(1.0)) != 0.0
 
 
 def classic(gaussian, size=1000):
@@ -48,14 +50,17 @@ def test_gaussian_prior():
     assert new.id == prior.id
 
 
-def test_model():
-    model = af.Model(
+@pytest.fixture(name="model")
+def _model():
+    return af.Model(
         af.Gaussian,
         centre=af.GaussianPrior(mean=1.0, sigma=1.0),
         normalization=af.GaussianPrior(mean=1.0, sigma=1.0, lower_limit=0.0),
         sigma=af.GaussianPrior(mean=1.0, sigma=1.0, lower_limit=0.0),
     )
 
+
+def test_model(model):
     new = recreate(model)
     assert new.cls == af.Gaussian
 
@@ -63,3 +68,14 @@ def test_model():
     assert centre.mean == model.centre.mean
     assert centre.sigma == model.centre.sigma
     assert centre.id == model.centre.id
+
+
+def test_instance(model):
+    instance = model.instance_from_prior_medians()
+    new = recreate(instance)
+
+    assert isinstance(new, af.Gaussian)
+
+    assert new.centre == instance.centre
+    assert new.normalization == instance.normalization
+    assert new.sigma == instance.sigma

@@ -3,6 +3,8 @@ import copy
 import inspect
 import logging
 
+from jax._src.tree_util import register_pytree_node_class, register_pytree_node
+
 from autoconf.class_path import get_class_path
 from autoconf.exc import ConfigException
 from autofit.mapper.model import assert_not_frozen
@@ -19,6 +21,7 @@ logger = logging.getLogger(__name__)
 class_args_dict = dict()
 
 
+@register_pytree_node_class
 class Model(AbstractPriorModel):
     """
     @DynamicAttrs
@@ -175,12 +178,29 @@ class Model(AbstractPriorModel):
             if not hasattr(self, key):
                 setattr(self, key, Model(value) if inspect.isclass(value) else value)
 
-    def _tree_flatten(self):
+        try:
+            # noinspection PyTypeChecker
+            register_pytree_node(
+                self.cls, self.instance_flatten, self.instance_unflatten,
+            )
+        except ValueError:
+            pass
+
+    def instance_flatten(self, instance):
+        return (
+            [getattr(instance, name) for name in self.constructor_argument_names],
+            None,
+        )
+
+    def instance_unflatten(self, aux_data, children):
+        return self.cls(**dict(zip(self.constructor_argument_names, children)))
+
+    def tree_flatten(self):
         names, priors = zip(*self.direct_prior_tuples)
         return priors, (names, self.cls)
 
     @classmethod
-    def _tree_unflatten(cls, aux_data, children):
+    def tree_unflatten(cls, aux_data, children):
         names, cls_ = aux_data
         arguments = {name: child for name, child in zip(names, children)}
         return cls(cls_, **arguments)
