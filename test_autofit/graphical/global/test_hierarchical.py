@@ -71,11 +71,11 @@ def test_instance(model):
     instance = model.instance_from_unit_vector([0.1, 0.2, 0.3, 0.4])
     dist_model_1 = instance[0].distribution_model
     assert isinstance(dist_model_1, af.GaussianPrior)
-    assert instance[0].drawn_prior == 0.1
+    assert instance[0].drawn_prior == pytest.approx(0.1)
 
     dist_model_2 = instance[0].distribution_model
     assert isinstance(dist_model_2, af.GaussianPrior)
-    assert instance[1].drawn_prior == 0.2
+    assert instance[1].drawn_prior == pytest.approx(0.2)
 
     assert dist_model_1 == dist_model_2
 
