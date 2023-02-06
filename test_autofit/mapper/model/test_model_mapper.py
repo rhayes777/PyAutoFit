@@ -111,11 +111,11 @@ class TestRegression:
         mm.one = af.m.MockClassRelativeWidth
         mm.two = af.m.MockClassx2NoSuperScript
 
-        assert mm.superscripts == ['r', 'r', 'r', 'two', 'two']
+        assert mm.superscripts == ["r", "r", "r", "two", "two"]
 
         model = af.Collection(group=mm)
 
-        assert model.superscripts == ['r', 'r', 'r', "two", "two"]
+        assert model.superscripts == ["r", "r", "r", "two", "two"]
 
     def test__superscript_overwrite_via_config(self):
         mm = af.ModelMapper()
@@ -123,7 +123,16 @@ class TestRegression:
         mm.two = af.m.MockClassx2NoSuperScript
         mm.three = af.m.MockClassx3
 
-        assert mm.superscripts_overwrite_via_config == ['r', 'r', 'r', "", "", "", "", ""]
+        assert mm.superscripts_overwrite_via_config == [
+            "r",
+            "r",
+            "r",
+            "",
+            "",
+            "",
+            "",
+            "",
+        ]
 
     def test__parameter_labels_with_superscripts_latex(self):
         mm = af.ModelMapper()
@@ -198,7 +207,6 @@ class TestModelingMapper:
 
 
 class TestInstances:
-
     def test_attribute(self):
         mm = af.ModelMapper()
         mm.cls_1 = af.m.MockClassx2
@@ -245,9 +253,7 @@ class TestInstances:
         assert isinstance(model_map.mock_child_tuple, af.m.MockChildTuple)
 
         assert isinstance(model_map.mock_child_cls_0, af.m.MockChildTuplex3)
-        assert isinstance(
-            model_map.mock_child_cls_3, af.m.MockChildTuplex3
-        )
+        assert isinstance(model_map.mock_child_cls_3, af.m.MockChildTuplex3)
 
     def test__in_order_of_class_constructor(self):
         mapper = af.ModelMapper(mock_cls_0=af.m.MockChildTuplex2)
@@ -268,15 +274,15 @@ class TestInstances:
             [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
         )
 
-        assert model_map.mock_cls_0.tup == (0.1, 0.2)
-        assert model_map.mock_cls_0.one == 0.6
-        assert model_map.mock_cls_0.two == 0.8
+        assert model_map.mock_cls_0.tup == pytest.approx((0.1, 0.2))
+        assert model_map.mock_cls_0.one == pytest.approx(0.6)
+        assert model_map.mock_cls_0.two == pytest.approx(0.8)
 
-        assert model_map.mock_cls_1.tup == (0.5, 0.6)
+        assert model_map.mock_cls_1.tup == pytest.approx((0.5, 0.6))
 
-        assert model_map.mock_cls_2.tup == (0.7, 0.8)
-        assert model_map.mock_cls_2.one == 1.8
-        assert model_map.mock_cls_2.two == 2.0
+        assert model_map.mock_cls_2.tup == pytest.approx((0.7, 0.8))
+        assert model_map.mock_cls_2.one == pytest.approx(1.8)
+        assert model_map.mock_cls_2.two == pytest.approx(2.0)
 
     def test__check_order_for_different_unit_values(self):
         mapper = af.ModelMapper(
@@ -313,7 +319,7 @@ class TestInstances:
         assert model_map.mock_cls_2.two == 1.0
 
     def test__check_order_for_different_unit_values_and_set_priors_equal_to_one_another(
-            self
+        self,
     ):
         mapper = af.ModelMapper(
             mock_cls_0=af.m.MockChildTuplex2,
@@ -467,9 +473,7 @@ class TestInstances:
         assert vector == pytest.approx([0.268, 0.402], abs=0.1)
 
     def test_random_vector_from_prior(self):
-        mapper = af.Collection(
-            mock_class=af.Model(af.m.MockClassx2)
-        )
+        mapper = af.Collection(mock_class=af.Model(af.m.MockClassx2))
 
         random.seed(1)
 
@@ -485,11 +489,7 @@ class TestInstances:
 
         mapper = af.Collection(
             mock_class=af.Model(
-                af.m.MockClassx2,
-                one=af.UniformPrior(
-                    lower_limit=0.15,
-                    upper_limit=1.0
-                )
+                af.m.MockClassx2, one=af.UniformPrior(lower_limit=0.15, upper_limit=1.0)
             )
         )
 
@@ -512,12 +512,12 @@ class TestUtility:
 
         assert len(mapper.prior_prior_model_dict) == 2
         assert (
-                mapper.prior_prior_model_dict[mapper.prior_tuples_ordered_by_id[0][1]].cls
-                == af.m.MockClassx2
+            mapper.prior_prior_model_dict[mapper.prior_tuples_ordered_by_id[0][1]].cls
+            == af.m.MockClassx2
         )
         assert (
-                mapper.prior_prior_model_dict[mapper.prior_tuples_ordered_by_id[1][1]].cls
-                == af.m.MockClassx2
+            mapper.prior_prior_model_dict[mapper.prior_tuples_ordered_by_id[1][1]].cls
+            == af.m.MockClassx2
         )
 
     def test_name_for_prior(self):
@@ -533,11 +533,9 @@ class TestPriorReplacement:
         result = mapper.mapper_from_gaussian_tuples([(10, 3), (5, 3)])
 
         assert isinstance(result.mock_class.one, af.GaussianPrior)
-        assert {
-                   prior.id for prior in mapper.priors
-               } == {
-                   prior.id for prior in result.priors
-               }
+        assert {prior.id for prior in mapper.priors} == {
+            prior.id for prior in result.priors
+        }
 
     def test_replace_priors_with_gaussians_from_tuples(self):
         mapper = af.ModelMapper(mock_class=af.m.MockClassx2)
@@ -601,9 +599,7 @@ class TestIndependentPriorModel:
 
 @pytest.fixture(name="list_prior_model")
 def make_list_prior_model():
-    return af.Collection(
-        [af.Model(af.m.MockClassx2), af.Model(af.m.MockClassx2)]
-    )
+    return af.Collection([af.Model(af.m.MockClassx2), af.Model(af.m.MockClassx2)])
 
 
 class TestListPriorModel:
@@ -640,7 +636,7 @@ class TestListPriorModel:
         assert gaussian_mapper.list[1].two.sigma == 5
 
     def test_prior_results_for_gaussian_tuples__include_override_from_width_file(
-            self, list_prior_model
+        self, list_prior_model
     ):
         mapper = af.ModelMapper()
         mapper.list = list_prior_model
