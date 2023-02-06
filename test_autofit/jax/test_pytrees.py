@@ -1,9 +1,21 @@
+from jax import grad
+
 import autofit as af
 
 
 def recreate(o):
     children, aux_data = o._tree_flatten()
     return type(o)._tree_unflatten(aux_data, children)
+
+
+def test_gradient():
+    gaussian = af.Gaussian(centre=1.0, sigma=1.0, normalization=1.0)
+    gradient = grad(gaussian.f)
+
+    assert gradient(1.0) == 0.0
+
+    gaussian.centre = 2.0
+    assert gradient(1.0) != 0.0
 
 
 def test_gaussian_prior():
