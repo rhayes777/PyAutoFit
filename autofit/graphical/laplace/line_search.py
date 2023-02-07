@@ -34,7 +34,7 @@ class FlattenedState:
 
     @classmethod
     def from_state(cls, state):
-        param_shapes = FlattenArrays.from_arrays(state.parameters)
+        param_shapes = FlattenArrays.from_arrays(state.params)
         return cls(state, param_shapes)
 
     def make_state(self, x):
@@ -58,7 +58,7 @@ class FlattenedState:
 
     @property
     def parameters(self):
-        return self.param_shapes.flatten(self.state.parameters)
+        return self.param_shapes.flatten(self.state.params)
 
 
 class OptimisationState:

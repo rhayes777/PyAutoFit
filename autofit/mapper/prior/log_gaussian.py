@@ -68,7 +68,7 @@ class LogGaussianPrior(Prior):
         projection.
         """
         return LogGaussianPrior(
-            *message.parameters,
+            *message.params,
             lower_limit=self.lower_limit,
             upper_limit=self.upper_limit,
             id_=self.instance().id,

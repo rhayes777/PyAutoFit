@@ -44,13 +44,16 @@ class Analysis(af.Analysis):
         """
 
         xvalues = np.arange(self.data.shape[0])
+        model_data_1d = np.zeros(self.data.shape[0])
 
         try:
-            model_data_1d = sum(
-                profile.model_data_1d_via_xvalues_from(xvalues=xvalues) for profile in instance
-            )
+            for profile in instance:
+                try:
+                    model_data_1d += profile.model_data_1d_via_xvalues_from(xvalues=xvalues)
+                except AttributeError:
+                    pass
         except TypeError:
-            model_data_1d = instance.model_data_1d_via_xvalues_from(xvalues=xvalues)
+            model_data_1d += instance.model_data_1d_via_xvalues_from(xvalues=xvalues)
 
         residual_map = self.data - model_data_1d
         chi_squared_map = (residual_map / self.noise_map) ** 2.0
@@ -83,13 +86,16 @@ class Analysis(af.Analysis):
         """
 
         xvalues = np.arange(self.data.shape[0])
+        model_data_1d = np.zeros(self.data.shape[0])
 
         try:
-            model_data_1d = sum(
-                profile.model_data_1d_via_xvalues_from(xvalues=xvalues) for profile in instance
-            )
+            for profile in instance:
+                try:
+                    model_data_1d += profile.model_data_1d_via_xvalues_from(xvalues=xvalues)
+                except AttributeError:
+                    pass
         except TypeError:
-            model_data_1d = instance.model_data_1d_via_xvalues_from(xvalues=xvalues)
+            model_data_1d += instance.model_data_1d_via_xvalues_from(xvalues=xvalues)
 
         plt.errorbar(
             x=xvalues,

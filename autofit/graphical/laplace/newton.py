@@ -266,7 +266,7 @@ def xtol_condition(state, old_state, xtol=1e-6, ord=None, **kwargs):
     if not old_state:
         return
 
-    dx = VariableData.sub(state.parameters, old_state.parameters).vecnorm(ord=ord)
+    dx = VariableData.sub(state.params, old_state.params).vecnorm(ord=ord)
     if dx < xtol:
         return True, f"Minimum parameter change tolerance achieved, {dx} < {xtol}"
 

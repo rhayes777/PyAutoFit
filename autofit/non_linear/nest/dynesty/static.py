@@ -1,9 +1,6 @@
 from __future__ import annotations
 from typing import TYPE_CHECKING, Optional
 
-if TYPE_CHECKING:
-    from dynesty.pool import Pool
-
 from dynesty import NestedSampler as StaticSampler
 from autofit.database.sqlalchemy_ import sa
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
@@ -106,7 +103,7 @@ class DynestyStatic(AbstractDynesty):
             model: AbstractPriorModel,
             fitness_function,
             checkpoint_exists : bool,
-            pool: Optional[Pool],
+            pool: Optional,
             queue_size: Optional[int]
     ):
         """
