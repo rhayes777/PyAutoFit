@@ -142,7 +142,7 @@ class AbstractMessage(MessageInterface, ABC):
 
     def __setitem__(self, index, value):
         self._reset_cache()
-        for param0, param1 in zip(self.parameters, value.params):
+        for param0, param1 in zip(self.parameters, value.parameters):
             param0[index] = param1
 
     def merge(self, index, value):
@@ -150,7 +150,7 @@ class AbstractMessage(MessageInterface, ABC):
         return cls(
             *(
                 update_array(param0, index, param1)
-                for param0, param1 in zip(self.parameters, value.params)
+                for param0, param1 in zip(self.parameters, value.parameters)
             )
         )
 
