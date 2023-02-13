@@ -53,3 +53,24 @@ def test_alternate_attribute(time_series, sigma):
     assert result.gaussian.sigma == sigma
     assert result.t == -sigma
     assert result.gaussian.normalization == -sigma
+
+
+def test_deeper_attributes():
+    collection = af.Collection(
+        model=af.Model(af.Gaussian, centre=0.0, normalization=1.0, sigma=-1.0,)
+    )
+
+    instance_1 = af.Collection(
+        t=1.0, collection=collection,
+    ).instance_from_prior_medians()
+    instance_2 = af.Collection(
+        t=2.0, collection=collection,
+    ).instance_from_prior_medians()
+
+    time_series = af.LinearInterpolator([instance_1, instance_2])
+
+    result = time_series[time_series.t == 1.5]
+
+    assert result.collection.model.centre == 0.0
+    assert result.collection.model.normalization == 1.0
+    assert result.collection.model.sigma == -1.0
