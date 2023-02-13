@@ -48,7 +48,7 @@ class ModelObject:
         new = copy.deepcopy(self)
         obj = new
         for key in path[:-1]:
-            obj = getattr(new, key)
+            obj = getattr(obj, key)
 
         setattr(obj, path[-1], value)
         return new
