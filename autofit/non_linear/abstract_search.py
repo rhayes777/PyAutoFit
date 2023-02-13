@@ -10,7 +10,7 @@ from functools import wraps
 from os import path
 from typing import Dict, Optional, Union, Tuple, List
 
-import numpy as np
+import jax.numpy as np
 
 from autoconf import conf, cached_property
 from autofit import exc
@@ -524,7 +524,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         info=None,
         pickle_files=None,
         log_likelihood_cap=None,
-        bypass_nuclear_if_on : bool = False
+        bypass_nuclear_if_on: bool = False,
     ) -> Union["Result", List["Result"]]:
         """
         Fit a model, M with some function f that takes instances of the
