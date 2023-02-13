@@ -12,24 +12,53 @@ def test_trivial():
     assert result is instance
 
 
+@pytest.fixture(name="instances")
+def make_instances():
+    return [
+        af.ModelInstance(
+            items=dict(
+                t=1.0, gaussian=af.Gaussian(centre=0.0, normalization=1.0, sigma=-1.0),
+            )
+        ),
+        af.ModelInstance(
+            items=dict(
+                t=2.0, gaussian=af.Gaussian(centre=1.0, normalization=2.0, sigma=-2.0),
+            )
+        ),
+    ]
+
+
 @pytest.fixture(name="time_series")
-def make_time_series():
-    return af.LinearInterpolator(
-        [
+def make_time_series(instances):
+    return af.LinearInterpolator(instances)
+
+
+def test_spline_interpolator(instances):
+    interpolator = af.SplineInterpolator(instances)
+
+    result = interpolator[interpolator.t == 1.5]
+
+    assert result.t == 1.5
+    assert result.gaussian.centre == 0.5
+
+
+def test_smooth_spline_interpolator(instances):
+    interpolator = af.SplineInterpolator(
+        instances
+        + [
             af.ModelInstance(
                 items=dict(
-                    t=1.0,
-                    gaussian=af.Gaussian(centre=0.0, normalization=1.0, sigma=-1.0),
-                )
-            ),
-            af.ModelInstance(
-                items=dict(
-                    t=2.0,
-                    gaussian=af.Gaussian(centre=1.0, normalization=2.0, sigma=-2.0),
+                    t=3.0,
+                    gaussian=af.Gaussian(centre=4.0, normalization=3.0, sigma=-3.0),
                 )
             ),
         ]
     )
+
+    result = interpolator[interpolator.t == 1.5]
+
+    assert result.t == 1.5
+    assert result.gaussian.centre < 0.5
 
 
 @pytest.mark.parametrize(
