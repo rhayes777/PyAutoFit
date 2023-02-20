@@ -109,8 +109,13 @@ def test_deeper_attributes():
     assert result.collection.model.sigma == -1.0
 
 
-def test_to_dict(linear_interpolator):
-    assert linear_interpolator.dict() == {}
+def test_to_dict(linear_interpolator, linear_interpolator_dict):
+    assert linear_interpolator.dict() == linear_interpolator_dict
+
+
+def test_from_dict(linear_interpolator_dict):
+    interpolator = af.LinearInterpolator.from_dict(linear_interpolator_dict)
+    assert interpolator[interpolator.t == 1.5].t == 1.5
 
 
 @pytest.fixture(name="instance_dict")
@@ -119,16 +124,37 @@ def make_instance_dict():
         "child_items": {
             "gaussian": {
                 "centre": 0.0,
-                "class_path": "autofit.example.model.Gaussian",
                 "normalization": 1.0,
                 "sigma": -1.0,
-                "type": "instance",
+                "type": "autofit.example.model.Gaussian",
             },
             "t": 1.0,
             "type": "dict",
         },
-        "class_path": "autofit.mapper.model.ModelInstance",
-        "type": "instance",
+        "type": "autofit.mapper.model.ModelInstance",
+    }
+
+
+@pytest.fixture(name="linear_interpolator_dict")
+def make_linear_interpolator_dict(instance_dict):
+    return {
+        "instances": [
+            instance_dict,
+            {
+                "child_items": {
+                    "gaussian": {
+                        "centre": 1.0,
+                        "normalization": 2.0,
+                        "sigma": -2.0,
+                        "type": "autofit.example.model.Gaussian",
+                    },
+                    "t": 2.0,
+                    "type": "dict",
+                },
+                "type": "autofit.mapper.model.ModelInstance",
+            },
+        ],
+        "type": "autofit.interpolator.LinearInterpolator",
     }
 
 

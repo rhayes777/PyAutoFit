@@ -117,15 +117,16 @@ class ModelObject:
             instance = Model(get_class(d.pop("class_path")))
         elif type_ == "collection":
             instance = Collection()
-        elif type_ == "instance":
-            cls = get_class(d.pop("class_path"))
-            instance = object.__new__(cls)
         elif type_ == "tuple_prior":
             instance = TuplePrior()
         elif type_ == "dict":
             return {key: ModelObject.from_dict(value) for key, value in d.items()}
         else:
-            return Prior.from_dict(d)
+            try:
+                return Prior.from_dict(d)
+            except KeyError:
+                cls = get_class(type_)
+                instance = object.__new__(cls)
 
         d.pop("type")
 
