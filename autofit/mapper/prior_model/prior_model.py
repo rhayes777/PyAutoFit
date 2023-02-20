@@ -140,8 +140,7 @@ class Model(AbstractPriorModel):
 
                     setattr(self, arg, ls)
                 else:
-                    if inspect.isclass(keyword_arg):
-                        keyword_arg = Model(keyword_arg)
+                    keyword_arg = self._convert_value(keyword_arg)
                     setattr(self, arg, keyword_arg)
             elif arg in defaults and isinstance(defaults[arg], tuple):
                 tuple_prior = TuplePrior()
@@ -176,7 +175,7 @@ class Model(AbstractPriorModel):
                 setattr(self, arg, prior)
         for key, value in kwargs.items():
             if not hasattr(self, key):
-                setattr(self, key, Model(value) if inspect.isclass(value) else value)
+                setattr(self, key, self._convert_value(value))
 
         try:
             # noinspection PyTypeChecker
@@ -186,14 +185,33 @@ class Model(AbstractPriorModel):
         except ValueError:
             pass
 
+    @staticmethod
+    def _convert_value(value):
+        if inspect.isclass(value):
+            value = Model(value)
+        if isinstance(value, int):
+            value = float(value)
+        return value
+
+    @property
+    def direct_argument_names(self):
+        return [
+            t.name
+            for t in self.direct_prior_tuples
+            + self.direct_prior_model_tuples
+            + self.direct_instance_tuples
+            + self.direct_deferred_tuples
+            + self.direct_prior_tuples
+        ]
+
     def instance_flatten(self, instance):
         return (
-            [getattr(instance, name) for name in self.constructor_argument_names],
+            [getattr(instance, name) for name in self.direct_argument_names],
             None,
         )
 
     def instance_unflatten(self, aux_data, children):
-        return self.cls(**dict(zip(self.constructor_argument_names, children)))
+        return self.cls(**dict(zip(self.direct_argument_names, children)))
 
     def tree_flatten(self):
         names, priors = zip(*self.direct_prior_tuples)

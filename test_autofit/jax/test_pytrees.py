@@ -116,3 +116,25 @@ def test_collection(model):
     assert centre.mean == model.centre.mean
     assert centre.sigma == model.centre.sigma
     assert centre.id == model.centre.id
+
+
+class KwargClass:
+    """
+    @DynamicAttrs
+    """
+
+    def __init__(self, **kwargs):
+        self.__dict__.update(kwargs)
+
+
+def test_kwargs():
+    model = af.Model(KwargClass, a=1, b=2)
+    instance = model.instance_from_prior_medians()
+
+    assert instance.a == 1
+    assert instance.b == 2
+
+    new = recreate(instance)
+
+    assert new.a == instance.a
+    assert new.b == instance.b
