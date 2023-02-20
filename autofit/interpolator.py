@@ -5,6 +5,7 @@ from typing import List, Dict, cast
 
 from scipy.stats import stats
 
+from autoconf.dictable import Dictable
 from autofit.mapper.model import ModelInstance
 
 
@@ -77,7 +78,7 @@ class Equality:
         self.value = value
 
 
-class AbstractInterpolator(ABC):
+class AbstractInterpolator(Dictable, ABC):
     def __init__(self, instances: List[ModelInstance]):
         """
         A TimeSeries allows interpolation on any variable.
