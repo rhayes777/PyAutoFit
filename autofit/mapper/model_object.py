@@ -122,6 +122,8 @@ class ModelObject:
             instance = object.__new__(cls)
         elif type_ == "tuple_prior":
             instance = TuplePrior()
+        elif type_ == "dict":
+            return {key: ModelObject.from_dict(value) for key, value in d.items()}
         else:
             return Prior.from_dict(d)
 

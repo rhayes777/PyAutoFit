@@ -119,13 +119,16 @@ def make_instance_dict():
         "child_items": {
             "gaussian": {
                 "centre": 0.0,
+                "class_path": "autofit.example.model.Gaussian",
                 "normalization": 1.0,
                 "sigma": -1.0,
-                "type": "autofit.example.model.Gaussian",
+                "type": "instance",
             },
             "t": 1.0,
+            "type": "dict",
         },
-        "type": "autofit.mapper.model.ModelInstance",
+        "class_path": "autofit.mapper.model.ModelInstance",
+        "type": "instance",
     }
 
 
@@ -134,4 +137,11 @@ def test_instance_as_dict(model_instance, instance_dict):
 
 
 def test_instance_from_dict(model_instance, instance_dict):
-    assert af.ModelInstance.from_dict(instance_dict) == model_instance
+    instance = af.ModelInstance.from_dict(instance_dict)
+    assert instance.t == 1.0
+
+    gaussian = instance.gaussian
+    assert isinstance(gaussian, af.Gaussian)
+    assert gaussian.centre == 0.0
+    assert gaussian.normalization == 1.0
+    assert gaussian.sigma == -1.0
