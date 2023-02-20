@@ -1,10 +1,11 @@
 import pytest
 
 import autofit as af
+from autoconf.dictable import as_dict
 
 
 def test_trivial():
-    instance = af.ModelInstance(items=dict(t=1))
+    instance = af.ModelInstance(dict(t=1))
     linear_interpolator = af.LinearInterpolator([instance])
 
     result = linear_interpolator[linear_interpolator.t == 1]
@@ -12,16 +13,19 @@ def test_trivial():
     assert result is instance
 
 
+@pytest.fixture(name="model_instance")
+def make_model_instance():
+    return af.ModelInstance(
+        dict(t=1.0, gaussian=af.Gaussian(centre=0.0, normalization=1.0, sigma=-1.0),)
+    )
+
+
 @pytest.fixture(name="instances")
-def make_instances():
+def make_instances(model_instance):
     return [
+        model_instance,
         af.ModelInstance(
-            items=dict(
-                t=1.0, gaussian=af.Gaussian(centre=0.0, normalization=1.0, sigma=-1.0),
-            )
-        ),
-        af.ModelInstance(
-            items=dict(
+            dict(
                 t=2.0, gaussian=af.Gaussian(centre=1.0, normalization=2.0, sigma=-2.0),
             )
         ),
@@ -47,7 +51,7 @@ def test_smooth_spline_interpolator(instances):
         instances
         + [
             af.ModelInstance(
-                items=dict(
+                dict(
                     t=3.0,
                     gaussian=af.Gaussian(centre=4.0, normalization=3.0, sigma=-3.0),
                 )
@@ -107,3 +111,27 @@ def test_deeper_attributes():
 
 def test_to_dict(linear_interpolator):
     assert linear_interpolator.dict() == {}
+
+
+@pytest.fixture(name="instance_dict")
+def make_instance_dict():
+    return {
+        "child_items": {
+            "gaussian": {
+                "centre": 0.0,
+                "normalization": 1.0,
+                "sigma": -1.0,
+                "type": "autofit.example.model.Gaussian",
+            },
+            "t": 1.0,
+        },
+        "type": "autofit.mapper.model.ModelInstance",
+    }
+
+
+def test_instance_as_dict(model_instance, instance_dict):
+    assert as_dict(model_instance) == instance_dict
+
+
+def test_instance_from_dict(model_instance, instance_dict):
+    assert af.ModelInstance.from_dict(instance_dict) == model_instance
