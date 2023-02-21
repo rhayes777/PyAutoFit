@@ -369,14 +369,11 @@ class ModelInstance(AbstractModel):
     @DynamicAttrs
     """
 
-    def __init__(self, items=None):
+    __dictable_type__ = "instance"
+
+    def __init__(self, child_items=None):
         super().__init__()
-        if isinstance(items, list):
-            for i, item in enumerate(items):
-                self[i] = item
-        if isinstance(items, dict):
-            for key, value in items.items():
-                self[key] = value
+        self.child_items = child_items
 
     def __eq__(self, other):
         return self.__dict__ == other.__dict__
@@ -390,6 +387,19 @@ class ModelInstance(AbstractModel):
 
     def __setitem__(self, key, value):
         self.__dict__[key] = value
+
+    @property
+    def child_items(self):
+        return self.dict
+
+    @child_items.setter
+    def child_items(self, child_items):
+        if isinstance(child_items, list):
+            for i, item in enumerate(child_items):
+                self[i] = item
+        if isinstance(child_items, dict):
+            for key, value in child_items.items():
+                self[key] = value
 
     def items(self):
         return self.dict.items()
