@@ -444,9 +444,7 @@ class AbstractPriorModel(AbstractModel):
             try:
                 item = copy.copy(source)
                 if isinstance(item, dict):
-                    from autofit.mapper.prior_model.collection import (
-                        Collection,
-                    )
+                    from autofit.mapper.prior_model.collection import Collection
 
                     item = Collection(item)
                 for attribute in path:
@@ -1010,7 +1008,7 @@ class AbstractPriorModel(AbstractModel):
     @DynamicRecursionCache()
     def from_instance(instance, model_classes=tuple()):
         """
-        Recursively create an prior object model from an object model.
+        Recursively create a prior object model from an object model.
 
         Parameters
         ----------
