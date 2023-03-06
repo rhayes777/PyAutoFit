@@ -166,13 +166,24 @@ class TestModelInstance:
         assert model_map.mock_profile.two == 0.0
 
 
-def test_as_model_filter():
-    class Child(af.Gaussian):
-        pass
+class Child(af.Gaussian):
+    pass
 
-    instance = af.ModelInstance({"child": Child(), "gaussian": af.Gaussian(),})
 
+@pytest.fixture(name="instance")
+def make_instance():
+    return af.ModelInstance({"child": Child(), "gaussian": af.Gaussian()})
+
+
+def test_single_argument(instance):
     model = instance.as_model(af.Gaussian)
 
     assert isinstance(model.gaussian, af.Model)
     assert isinstance(model.child, af.Model)
+
+
+def test_filter_child(instance):
+    model = instance.as_model(af.Gaussian, excluded_classes=Child)
+
+    assert isinstance(model.gaussian, af.Model)
+    assert not isinstance(model.child, af.Model)

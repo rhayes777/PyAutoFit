@@ -422,8 +422,10 @@ class ModelInstance(AbstractModel):
     def __len__(self):
         return len(self.values())
 
-    def as_model(self, model_classes=tuple()):
+    def as_model(
+        self, model_classes=tuple(), excluded_classes=tuple(),
+    ):
 
         from autofit.mapper.prior_model.abstract import AbstractPriorModel
 
-        return AbstractPriorModel.from_instance(self, model_classes)
+        return AbstractPriorModel.from_instance(self, model_classes, excluded_classes,)
