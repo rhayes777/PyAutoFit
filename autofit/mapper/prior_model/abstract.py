@@ -1007,7 +1007,9 @@ class AbstractPriorModel(AbstractModel):
     @staticmethod
     @DynamicRecursionCache()
     def from_instance(
-        instance, model_classes=tuple(), exclude_classes=tuple(),
+        instance,
+        model_classes: Union[type, Iterable[type]] = tuple(),
+        exclude_classes: Union[type, Iterable[type]] = tuple(),
     ):
         """
         Recursively create a prior object model from an object model.
@@ -1015,6 +1017,9 @@ class AbstractPriorModel(AbstractModel):
         Parameters
         ----------
         model_classes
+            A tuple of classes that should be converted to a prior model
+        exclude_classes
+            A tuple of classes that should not be converted to a prior model
         instance
             A dictionary, list, class instance or model instance
         Returns
