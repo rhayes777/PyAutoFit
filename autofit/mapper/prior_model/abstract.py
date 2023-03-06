@@ -1070,7 +1070,7 @@ class AbstractPriorModel(AbstractModel):
                 )
             except AttributeError:
                 return instance
-        if any([isinstance(instance, cls) for cls in model_classes]):
+        if isinstance(instance, model_classes):
             return result.as_model()
         return result
 

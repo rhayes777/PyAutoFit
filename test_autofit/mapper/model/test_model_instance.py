@@ -2,6 +2,7 @@ import pytest
 
 import autofit as af
 
+
 @pytest.fixture(name="mock_components_1")
 def make_mock_components_1():
     return af.m.MockComponents()
@@ -42,12 +43,23 @@ class TestModelInstance:
 
     def test_object_for_path(self, instance, mock_components_1, mock_components_2):
         assert instance.object_for_path(("mock_components_2",)) is mock_components_2
-        assert instance.object_for_path(("sub", "mock_components_1")) is mock_components_1
-        assert instance.object_for_path(("sub", "sub", "mock_components_1")) is mock_components_1
-        setattr(instance.object_for_path(("mock_components_2",)), "mock_components", mock_components_1)
+        assert (
+            instance.object_for_path(("sub", "mock_components_1")) is mock_components_1
+        )
+        assert (
+            instance.object_for_path(("sub", "sub", "mock_components_1"))
+            is mock_components_1
+        )
+        setattr(
+            instance.object_for_path(("mock_components_2",)),
+            "mock_components",
+            mock_components_1,
+        )
         assert mock_components_2.mock_components is mock_components_1
 
-    def test_path_instance_tuples_for_class(self, instance, mock_components_1, mock_components_2):
+    def test_path_instance_tuples_for_class(
+        self, instance, mock_components_1, mock_components_2
+    ):
         result = instance.path_instance_tuples_for_class(af.m.MockComponents)
         assert result[0] == (("mock_components_2",), mock_components_2)
         assert result[1] == (("sub", "mock_components_1"), mock_components_1)
@@ -59,8 +71,7 @@ class TestModelInstance:
         mapper.mock_class = af.m.MockClassx2
 
         model_map = mapper.instance_from_unit_vector(
-            [1.0, 1.0],
-            ignore_prior_limits=True
+            [1.0, 1.0], ignore_prior_limits=True
         )
 
         assert isinstance(model_map.mock_class, af.m.MockClassx2)
@@ -74,8 +85,7 @@ class TestModelInstance:
         mapper.mock_class_2 = af.m.MockClassx2
 
         model_map = mapper.instance_from_unit_vector(
-            [1.0, 0.0, 0.0, 1.0],
-            ignore_prior_limits=True
+            [1.0, 0.0, 0.0, 1.0], ignore_prior_limits=True
         )
 
         assert isinstance(model_map.mock_class_1, af.m.MockClassx2)
@@ -154,3 +164,15 @@ class TestModelInstance:
 
         assert model_map.mock_profile.one_tuple == (1.0, 1.0)
         assert model_map.mock_profile.two == 0.0
+
+
+def test_as_model_filter():
+    class Child(af.Gaussian):
+        pass
+
+    instance = af.ModelInstance({"child": Child(), "gaussian": af.Gaussian(),})
+
+    model = instance.as_model(af.Gaussian)
+
+    assert isinstance(model.gaussian, af.Model)
+    assert isinstance(model.child, af.Model)
