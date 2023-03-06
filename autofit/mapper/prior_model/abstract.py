@@ -444,9 +444,7 @@ class AbstractPriorModel(AbstractModel):
             try:
                 item = copy.copy(source)
                 if isinstance(item, dict):
-                    from autofit.mapper.prior_model.collection import (
-                        Collection,
-                    )
+                    from autofit.mapper.prior_model.collection import Collection
 
                     item = Collection(item)
                 for attribute in path:
@@ -1008,13 +1006,20 @@ class AbstractPriorModel(AbstractModel):
 
     @staticmethod
     @DynamicRecursionCache()
-    def from_instance(instance, model_classes=tuple()):
+    def from_instance(
+        instance,
+        model_classes: Union[type, Iterable[type]] = tuple(),
+        exclude_classes: Union[type, Iterable[type]] = tuple(),
+    ):
         """
-        Recursively create an prior object model from an object model.
+        Recursively create a prior object model from an object model.
 
         Parameters
         ----------
         model_classes
+            A tuple of classes that should be converted to a prior model
+        exclude_classes
+            A tuple of classes that should not be converted to a prior model
         instance
             A dictionary, list, class instance or model instance
         Returns
@@ -1024,12 +1029,18 @@ class AbstractPriorModel(AbstractModel):
         """
         from autofit.mapper.prior_model import collection
 
+        if isinstance(instance, exclude_classes):
+            return instance
         if isinstance(instance, (Prior, AbstractPriorModel)):
             return instance
         elif isinstance(instance, list):
             result = collection.Collection(
                 [
-                    AbstractPriorModel.from_instance(item, model_classes=model_classes)
+                    AbstractPriorModel.from_instance(
+                        item,
+                        model_classes=model_classes,
+                        exclude_classes=exclude_classes,
+                    )
                     for item in instance
                 ]
             )
@@ -1042,14 +1053,18 @@ class AbstractPriorModel(AbstractModel):
                     result,
                     key,
                     AbstractPriorModel.from_instance(
-                        value, model_classes=model_classes
+                        value,
+                        model_classes=model_classes,
+                        exclude_classes=exclude_classes,
                     ),
                 )
         elif isinstance(instance, dict):
             result = collection.Collection(
                 {
                     key: AbstractPriorModel.from_instance(
-                        value, model_classes=model_classes
+                        value,
+                        model_classes=model_classes,
+                        exclude_classes=exclude_classes,
                     )
                     for key, value in instance.items()
                 }
@@ -1064,7 +1079,9 @@ class AbstractPriorModel(AbstractModel):
                     instance.__class__,
                     **{
                         key: AbstractPriorModel.from_instance(
-                            value, model_classes=model_classes
+                            value,
+                            model_classes=model_classes,
+                            exclude_classes=exclude_classes,
                         )
                         for key, value in instance.__dict__.items()
                         if key != "cls"
@@ -1072,7 +1089,7 @@ class AbstractPriorModel(AbstractModel):
                 )
             except AttributeError:
                 return instance
-        if any([isinstance(instance, cls) for cls in model_classes]):
+        if isinstance(instance, model_classes):
             return result.as_model()
         return result
 
