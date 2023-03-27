@@ -85,7 +85,7 @@ from .non_linear.samples.pdf import marginalize
 from .example.model import Gaussian
 from .text import formatter
 from .text import samples_text
-from .interpolator import LinearInterpolator
+from .interpolator import LinearInterpolator, SplineInterpolator
 from .tools import util
 
 
@@ -109,4 +109,5 @@ def save_abc(pickler, obj):
 
 conf.instance.register(__file__)
 
-__version__ = "2023.3.21.5"
+__version__ = "2023.3.27.1"
+

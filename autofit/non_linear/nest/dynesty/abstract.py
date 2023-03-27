@@ -5,7 +5,6 @@ from typing import Optional, Tuple, Union
 
 import numpy as np
 from dynesty import NestedSampler, DynamicNestedSampler
-from dynesty.pool import Pool
 
 from autoconf import conf
 from autofit import exc
@@ -137,6 +136,8 @@ class AbstractDynesty(AbstractNest, ABC):
         set of accepted samples of the fit.
         """
 
+        from dynesty.pool import Pool
+
         fitness_function = self.fitness_function_from_model_and_analysis(
             model=model, analysis=analysis, log_likelihood_cap=log_likelihood_cap,
         )
@@ -160,7 +161,7 @@ class AbstractDynesty(AbstractNest, ABC):
 
                 if conf.instance["non_linear"]["nest"][self.__class__.__name__][
                     "parallel"
-                ]["force_x1_cpu"] or self.kwargs.get("force_x1_cpu"):
+                ].get("force_x1_cpu") or self.kwargs.get("force_x1_cpu"):
 
                     raise RuntimeError
 
@@ -375,12 +376,12 @@ class AbstractDynesty(AbstractNest, ABC):
         model: AbstractPriorModel,
         fitness_function,
         checkpoint_exists: bool,
-        pool: Optional["Pool"],
+        pool: Optional,
         queue_size: Optional[int],
     ):
         raise NotImplementedError()
 
-    def check_pool(self, uses_pool: bool, pool: Pool):
+    def check_pool(self, uses_pool: bool, pool):
 
         if (uses_pool and pool is None) or (not uses_pool and pool is not None):
             raise exc.SearchException(

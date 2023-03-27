@@ -24,6 +24,10 @@ PyAutoFit: Classy Probabilistic Programming
 `Introduction on Binder <https://mybinder.org/v2/gh/Jammy2211/autofit_workspace/release?filepath=introduction.ipynb>`_ |
 `HowToFit <https://pyautofit.readthedocs.io/en/latest/howtofit/howtofit.html>`_
 
+
+..
+   _ One day make these BOLD with a colon like my fellowsahip proposa,s where the first is Model Composition & Fitting: Tools for composing a complex model and fitting it with dynesty...
+
 PyAutoFit is a Python based probabilistic programming language for the fully Bayesian analysis of extremely large
 datasets which:
 

@@ -1,47 +1,11 @@
 from dynesty import plotting as dyplot
-from functools import wraps
-import logging
 
 from autofit.plot import SamplesPlotter
+
 from autofit.plot.samples_plotters import skip_plot_in_test_mode
-
-logger = logging.getLogger(__name__)
-
-def log_value_error(func):
-
-    @wraps(func)
-    def wrapper(self, *args, **kwargs):
-
-        try:
-            return func(self, *args, **kwargs)
-        except ValueError:
-            self.log_plot_exception(func.__name__)
-
-    return wrapper
+from autofit.plot.samples_plotters import log_value_error
 
 class DynestyPlotter(SamplesPlotter):
-    
-    @staticmethod
-    def log_plot_exception(plot_name : str):
-        """
-        Plotting the results of a ``dynesty`` model-fit before they have converged on an
-        accurate estimate of the posterior can lead the ``dynesty`` plotting routines
-        to raise a ``ValueError``.
-
-        This exception is caught in each of the plotting methods below, and this
-        function is used to log the behaviour.
-
-        Parameters
-        ----------
-        plot_name
-            The name of the ``dynesty`` plot which raised a ``ValueError``
-        """
-
-        logger.info(
-            f"Dynesty unable to produce {plot_name} visual: posterior estimate therefore"
-            "not yet sufficient for this model-fit is not yet robust enough to do this. Visual"
-            "should be produced in later update, once posterior estimate is updated."
-        )
 
     @skip_plot_in_test_mode
     def boundplot(self, **kwargs):

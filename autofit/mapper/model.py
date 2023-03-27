@@ -221,7 +221,35 @@ class AbstractModel(ModelObject):
         )
 
     @frozen_cache
-    def model_tuples_with_type(self, cls, include_zero_dimension=False):
+    def models_with_type(
+        self, cls: Union[Type, Tuple[Type, ...]], include_zero_dimension=False,
+    ) -> List["AbstractModel"]:
+        """
+        Return all models of a given type in the model tree.
+
+        Parameters
+        ----------
+        cls
+            The type to find instances of
+        include_zero_dimension
+            If true, include models with zero dimensions
+
+        Returns
+        -------
+        A list of models of the given type
+        """
+        # noinspection PyTypeChecker
+        return [
+            t[1]
+            for t in self.model_tuples_with_type(
+                cls, include_zero_dimension=include_zero_dimension
+            )
+        ]
+
+    @frozen_cache
+    def model_tuples_with_type(
+        self, cls: Union[Type, Tuple[Type, ...]], include_zero_dimension=False
+    ):
         """
         All models of the class in this model which have at least
         one free parameter, recursively.
@@ -241,7 +269,9 @@ class AbstractModel(ModelObject):
 
         return [
             (path, model)
-            for path, model in self.attribute_tuples_with_type(Model)
+            for path, model in self.attribute_tuples_with_type(
+                Model, ignore_children=False
+            )
             if issubclass(model.cls, cls)
             and (include_zero_dimension or model.prior_count > 0)
         ]
@@ -339,14 +369,11 @@ class ModelInstance(AbstractModel):
     @DynamicAttrs
     """
 
-    def __init__(self, items=None):
+    __dictable_type__ = "instance"
+
+    def __init__(self, child_items=None):
         super().__init__()
-        if isinstance(items, list):
-            for i, item in enumerate(items):
-                self[i] = item
-        if isinstance(items, dict):
-            for key, value in items.items():
-                self[key] = value
+        self.child_items = child_items
 
     def __eq__(self, other):
         return self.__dict__ == other.__dict__
@@ -360,6 +387,19 @@ class ModelInstance(AbstractModel):
 
     def __setitem__(self, key, value):
         self.__dict__[key] = value
+
+    @property
+    def child_items(self):
+        return self.dict
+
+    @child_items.setter
+    def child_items(self, child_items):
+        if isinstance(child_items, list):
+            for i, item in enumerate(child_items):
+                self[i] = item
+        if isinstance(child_items, dict):
+            for key, value in child_items.items():
+                self[key] = value
 
     def items(self):
         return self.dict.items()
@@ -382,8 +422,26 @@ class ModelInstance(AbstractModel):
     def __len__(self):
         return len(self.values())
 
-    def as_model(self, model_classes=tuple()):
+    def as_model(
+        self,
+        model_classes: Union[type, Iterable[type]] = tuple(),
+        excluded_classes: Union[type, Iterable[type]] = tuple(),
+    ):
+        """
+        Convert this instance to a model
+
+        Parameters
+        ----------
+        model_classes
+            The classes to convert to models
+        excluded_classes
+            The classes to exclude from conversion
+
+        Returns
+        -------
+        A model
+        """
 
         from autofit.mapper.prior_model.abstract import AbstractPriorModel
 
-        return AbstractPriorModel.from_instance(self, model_classes)
+        return AbstractPriorModel.from_instance(self, model_classes, excluded_classes,)
