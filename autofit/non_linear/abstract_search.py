@@ -768,6 +768,9 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         analysis.visualize(
             paths=self.paths, instance=instance, during_analysis=during_analysis
         )
+        analysis.visualize_combined(
+            paths=self.paths, instance=instance, during_analysis=during_analysis
+        )
 
         if self.should_profile:
             self.logger.debug("Profiling Maximum Likelihood Model")

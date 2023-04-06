@@ -129,6 +129,11 @@ class AnalysisFactor(AbstractModelFactor):
             instance,
             during_analysis
         )
+        self.analysis.visualize_combined(
+            paths,
+            instance,
+            during_analysis
+        )
 
     def log_likelihood_function(
             self,

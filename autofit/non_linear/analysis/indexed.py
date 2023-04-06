@@ -36,6 +36,9 @@ class IndexedAnalysis:
     def visualize(self, paths: AbstractPaths, instance, during_analysis):
         return self.analysis.visualize(paths, instance[self.index], during_analysis)
 
+    def visualize_combined(self, paths: AbstractPaths, instance, during_analysis):
+        return self.analysis.visualize_combined(paths, instance[self.index], during_analysis)
+
     def profile_log_likelihood_function(self, paths: AbstractPaths, instance):
         return self.profile_log_likelihood_function(paths, instance[self.index])
 

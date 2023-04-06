@@ -206,6 +206,25 @@ class CombinedAnalysis(Analysis):
 
         self._for_each_analysis(func, paths)
 
+    def visualize_combined(self, paths: AbstractPaths, instance, during_analysis):
+        """
+        Visualise the instance using images and quantities which are shared across all analyses.
+
+        For example, each Analysis may have a different dataset, where the fit to each dataset is intended to all
+        be plotted on the same matplotlib subplot. This function can be overwritten to allow the visualization of such
+        a plot.
+
+        Parameters
+        ----------
+        paths
+            An object describing the paths for saving data (e.g. hard-disk directories or entries in sqlite database).
+        instance
+            The maximum likelihood instance of the model so far in the non-linear search.
+        during_analysis
+            Is this visualisation during analysis?
+        """
+        pass
+
     def profile_log_likelihood_function(
         self, paths: AbstractPaths, instance,
     ):

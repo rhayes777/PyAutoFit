@@ -253,6 +253,11 @@ class AbstractDeclarativeFactor(Analysis, ABC):
                 instance,
                 during_analysis
             )
+            model_factor.visualize_combined(
+                paths,
+                instance,
+                during_analysis
+            )
 
     @property
     def global_prior_model(self) -> Collection:
