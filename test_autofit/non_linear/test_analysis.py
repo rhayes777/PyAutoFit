@@ -24,7 +24,7 @@ class Analysis(af.Analysis):
         os.makedirs(paths.image_path)
         open(f"{paths.image_path}/image.png", "w+").close()
 
-    def visualize_combined(self, paths: AbstractPaths, instance, during_analysis):
+    def visualize_combined(self, analyses, paths: AbstractPaths, instance, during_analysis):
 
         self.did_visualise_combined = True
 

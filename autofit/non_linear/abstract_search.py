@@ -22,6 +22,7 @@ from autofit.graphical import (
     FactorApproximation,
 )
 from autofit.graphical.utils import Status
+from autofit.graphical.utils import Status
 from autofit.mapper.prior_model.collection import Collection
 from autofit.non_linear.initializer import Initializer
 from autofit.non_linear.parallel import SneakyPool
@@ -765,10 +766,10 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             return samples
 
         self.logger.debug("Visualizing")
-        analysis.visualize(
+        analysis.visualize_combined(
             paths=self.paths, instance=instance, during_analysis=during_analysis
         )
-        analysis.visualize_combined(
+        analysis.visualize(
             paths=self.paths, instance=instance, during_analysis=during_analysis
         )
 
