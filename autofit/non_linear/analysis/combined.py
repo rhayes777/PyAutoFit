@@ -214,6 +214,9 @@ class CombinedAnalysis(Analysis):
         be plotted on the same matplotlib subplot. This function can be overwritten to allow the visualization of such
         a plot.
 
+        Only the first analysis is used to visualize the combined results, where it is assumed that it uses the
+        `analyses` property to access the other analyses and perform visualization.
+
         Parameters
         ----------
         paths
