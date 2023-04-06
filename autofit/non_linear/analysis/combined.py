@@ -223,7 +223,7 @@ class CombinedAnalysis(Analysis):
         during_analysis
             Is this visualisation during analysis?
         """
-        pass
+        self.analyses[0].visualize_combined(paths, instance, during_analysis)
 
     def profile_log_likelihood_function(
         self, paths: AbstractPaths, instance,
