@@ -37,7 +37,7 @@ from .analysis.indexed import IndexCollectionAnalysis
 from .paths.null import NullPaths
 from ..graphical.declarative.abstract import PriorFactor
 from ..graphical.expectation_propagation import AbstractFactorOptimiser
-from ..jax import use_jax
+from ..jax_wrapper import use_jax
 
 logger = logging.getLogger(__name__)
 
