@@ -44,6 +44,9 @@ class Analysis(ABC):
     def visualize(self, paths: AbstractPaths, instance, during_analysis):
         pass
 
+    def visualize_combined(self, analyses, paths: AbstractPaths, instance, during_analysis):
+        pass
+
     def save_attributes_for_aggregator(self, paths: AbstractPaths):
         pass
 

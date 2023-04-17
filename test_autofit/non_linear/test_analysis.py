@@ -13,6 +13,7 @@ from autofit.non_linear.paths.sub_directory_paths import SubDirectoryPaths
 class Analysis(af.Analysis):
     def __init__(self):
         self.did_visualise = False
+        self.did_visualise_combined = False
         self.did_profile = False
 
     def log_likelihood_function(self, instance):
@@ -22,6 +23,10 @@ class Analysis(af.Analysis):
         self.did_visualise = True
         os.makedirs(paths.image_path)
         open(f"{paths.image_path}/image.png", "w+").close()
+
+    def visualize_combined(self, analyses, paths: AbstractPaths, instance, during_analysis):
+
+        self.did_visualise_combined = True
 
     def profile_log_likelihood_function(self, paths: AbstractPaths, instance):
         self.did_profile = True
@@ -35,6 +40,17 @@ def test_visualise():
 
     assert analysis_1.did_visualise is True
     assert analysis_2.did_visualise is True
+
+
+def test_visualise_combined():
+    analysis_1 = Analysis()
+    analysis_2 = Analysis()
+
+    (analysis_1 + analysis_2).visualize_combined(af.DirectoryPaths(), None, None)
+
+    assert analysis_1.did_visualise_combined is True
+    assert analysis_2.did_visualise_combined is False
+
 
 
 def test__profile_log_likelihood():
