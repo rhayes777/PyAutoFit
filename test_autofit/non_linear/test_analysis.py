@@ -46,7 +46,7 @@ def test_visualise_combined():
     analysis_1 = Analysis()
     analysis_2 = Analysis()
 
-    (analysis_1 + analysis_2).visualize_combined(af.DirectoryPaths(), None, None)
+    (analysis_1 + analysis_2).visualize_combined(None, af.DirectoryPaths(), None, None)
 
     assert analysis_1.did_visualise_combined is True
     assert analysis_2.did_visualise_combined is False
