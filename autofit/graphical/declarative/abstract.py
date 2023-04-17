@@ -254,6 +254,7 @@ class AbstractDeclarativeFactor(Analysis, ABC):
                 during_analysis
             )
             model_factor.visualize_combined(
+                None,
                 paths,
                 instance,
                 during_analysis
