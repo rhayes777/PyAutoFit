@@ -14,7 +14,7 @@ from autofit import fixtures
 from autofit.database.model import sa
 
 if sys.platform == "darwin":
-    multiprocessing.set_start_method("forkserver")
+    multiprocessing.set_start_method("fork")
 
 directory = Path(__file__).parent
 
@@ -38,7 +38,8 @@ def make_remove_output(output_directory):
                     item_path = output_directory / item
                     if item_path.is_dir():
                         shutil.rmtree(
-                            item_path, ignore_errors=True,
+                            item_path,
+                            ignore_errors=True,
                         )
                     else:
                         os.remove(item_path)
