@@ -37,6 +37,7 @@ from .analysis.indexed import IndexCollectionAnalysis
 from .paths.null import NullPaths
 from ..graphical.declarative.abstract import PriorFactor
 from ..graphical.expectation_propagation import AbstractFactorOptimiser
+from ..jax import use_jax
 
 logger = logging.getLogger(__name__)
 
@@ -387,7 +388,9 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         @property
         def log_likelihood_function(self):
-            return jax.jit(self.analysis.log_likelihood_function)
+            if use_jax:
+                return jax.jit(self.analysis.log_likelihood_function)
+            return self.analysis.log_likelihood_function
 
         def fit_instance(self, instance):
             log_likelihood = self.log_likelihood_function(instance=instance)
