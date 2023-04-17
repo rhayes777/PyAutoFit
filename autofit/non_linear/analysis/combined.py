@@ -89,9 +89,11 @@ class CombinedAnalysis(Analysis):
         model
             The model which is to be fitted.
         """
-        return CombinedAnalysis(
-            *(analysis.modify_before_fit(paths, model) for analysis in self.analyses)
-        )
+
+        def func(child_paths, analysis):
+            return analysis.modify_before_fit(child_paths, model)
+
+        return CombinedAnalysis(*self._for_each_analysis(func, paths))
 
     def modify_after_fit(
         self, paths: AbstractPaths, model: AbstractPriorModel, result: Result
@@ -108,11 +110,12 @@ class CombinedAnalysis(Analysis):
         result
             The result of the fit.
         """
+
+        def func(child_paths, analysis, result_):
+            return analysis.modify_after_fit(child_paths, model, result_)
+
         return CombinedAnalysis(
-            *(
-                analysis.modify_after_fit(paths, model, result)
-                for analysis in self.analyses
-            )
+            *self._for_each_analysis(func, paths, result.child_results)
         )
 
     @property
@@ -155,7 +158,7 @@ class CombinedAnalysis(Analysis):
     def log_likelihood_function(self, instance):
         return self._log_likelihood_function(instance)
 
-    def _for_each_analysis(self, func, paths, *args):
+    def _for_each_analysis(self, func, paths, *args) -> List[Union[Result, Analysis]]:
         """
         Convenience function to call an underlying function for each
         analysis with a paths object with an integer attached to the
@@ -168,13 +171,18 @@ class CombinedAnalysis(Analysis):
         paths
             An object describing the paths for saving data (e.g. hard-disk directories or entries in sqlite database).
         """
+        results = []
         for (i, analysis), *args in zip(enumerate(self.analyses), *args):
             child_paths = paths.for_sub_analysis(analysis_name=f"analyses/analysis_{i}")
-            func(child_paths, analysis, *args)
+            results.append(func(child_paths, analysis, *args))
+
+        return results
 
     def save_attributes_for_aggregator(self, paths: AbstractPaths):
         def func(child_paths, analysis):
-            analysis.save_attributes_for_aggregator(child_paths,)
+            analysis.save_attributes_for_aggregator(
+                child_paths,
+            )
 
         self._for_each_analysis(func, paths)
 
@@ -207,7 +215,9 @@ class CombinedAnalysis(Analysis):
         self._for_each_analysis(func, paths)
 
     def profile_log_likelihood_function(
-        self, paths: AbstractPaths, instance,
+        self,
+        paths: AbstractPaths,
+        instance,
     ):
         """
         Profile the log likelihood function of the maximum likelihood model instance using each analysis.
@@ -224,7 +234,8 @@ class CombinedAnalysis(Analysis):
 
         def func(child_paths, analysis):
             analysis.profile_log_likelihood_function(
-                child_paths, instance,
+                child_paths,
+                instance,
             )
 
         self._for_each_analysis(func, paths)

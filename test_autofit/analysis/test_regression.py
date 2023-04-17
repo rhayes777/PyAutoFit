@@ -51,13 +51,20 @@ def make_combined_analysis():
     return MyAnalysis() + MyAnalysis()
 
 
-def test_combined_before_fit(combined_analysis):
-    combined_analysis = combined_analysis.modify_before_fit(None, [None])
+@pytest.fixture(name="paths")
+def make_paths():
+    return af.DirectoryPaths()
+
+
+def test_combined_before_fit(combined_analysis, paths):
+    combined_analysis = combined_analysis.modify_before_fit(paths, [None])
 
     assert combined_analysis[0].is_modified_before
 
 
-def test_combined_after_fit(combined_analysis):
-    combined_analysis = combined_analysis.modify_after_fit(None, [None], None)
+def test_combined_after_fit(combined_analysis, paths):
+    result = combined_analysis.make_result(None, None)
+
+    combined_analysis = combined_analysis.modify_after_fit(paths, [None], result)
 
     assert combined_analysis[0].is_modified_after
