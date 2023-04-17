@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import jax
 from jax import grad
 from typing import TYPE_CHECKING, Optional
 
@@ -22,7 +23,7 @@ class GradWrapper:
 
     @cached_property
     def grad(self):
-        return grad(self.function)
+        return jax.jit(grad(self.function))
 
     def __getstate__(self):
         return {"function": self.function}
@@ -57,7 +58,7 @@ class DynestyStatic(AbstractDynesty):
         iterations_per_update: int = None,
         number_of_cores: int = None,
         session: Optional[sa.orm.Session] = None,
-        **kwargs
+        **kwargs,
     ):
         """
         A Dynesty `NonLinearSearch` using a static number of live points.
@@ -96,7 +97,7 @@ class DynestyStatic(AbstractDynesty):
             iterations_per_update=iterations_per_update,
             number_of_cores=number_of_cores,
             session=session,
-            **kwargs
+            **kwargs,
         )
 
         self.logger.debug("Creating DynestyStatic Search")
@@ -157,7 +158,6 @@ class DynestyStatic(AbstractDynesty):
         gradient = GradWrapper(fitness_function)
 
         if checkpoint_exists:
-
             sampler = StaticSampler.restore(fname=self.checkpoint_file, pool=pool)
 
             uses_pool = self.read_uses_pool()
@@ -167,13 +167,11 @@ class DynestyStatic(AbstractDynesty):
             return sampler
 
         else:
-
             live_points = self.live_points_init_from(
                 model=model, fitness_function=fitness_function
             )
 
             if pool is not None:
-
                 self.write_uses_pool(uses_pool=True)
                 return StaticSampler(
                     loglikelihood=pool.loglike,
@@ -183,7 +181,7 @@ class DynestyStatic(AbstractDynesty):
                     live_points=live_points,
                     queue_size=queue_size,
                     pool=pool,
-                    **self.config_dict_search
+                    **self.config_dict_search,
                 )
 
             self.write_uses_pool(uses_pool=False)
@@ -195,7 +193,7 @@ class DynestyStatic(AbstractDynesty):
                 logl_args=[model, fitness_function],
                 ptform_args=[model],
                 live_points=live_points,
-                **self.config_dict_search
+                **self.config_dict_search,
             )
 
     @property
