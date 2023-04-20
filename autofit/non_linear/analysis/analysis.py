@@ -44,10 +44,10 @@ class Analysis(ABC):
     def visualize_before_fit(self, paths: AbstractPaths, model: AbstractPriorModel):
         pass
 
-    def visualize_before_fit_combined(self, analyses, paths: AbstractPaths, model: AbstractPriorModel):
+    def visualize(self, paths: AbstractPaths, instance, during_analysis):
         pass
 
-    def visualize(self, paths: AbstractPaths, instance, during_analysis):
+    def visualize_before_fit_combined(self, analyses, paths: AbstractPaths, model: AbstractPriorModel):
         pass
 
     def visualize_combined(self, analyses, paths: AbstractPaths, instance, during_analysis):
