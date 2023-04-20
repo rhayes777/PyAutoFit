@@ -19,6 +19,11 @@ class Analysis(af.Analysis):
     def log_likelihood_function(self, instance):
         return -1
 
+    def visualize_before_fit(self, paths: AbstractPaths, model):
+        self.did_visualise = True
+        os.makedirs(paths.image_path)
+        open(f"{paths.image_path}/image.png", "w+").close()
+
     def visualize(self, paths: AbstractPaths, instance, during_analysis):
         self.did_visualise = True
         os.makedirs(paths.image_path)
@@ -30,6 +35,16 @@ class Analysis(af.Analysis):
 
     def profile_log_likelihood_function(self, paths: AbstractPaths, instance):
         self.did_profile = True
+
+
+def test_visualise_before_fit():
+    analysis_1 = Analysis()
+    analysis_2 = Analysis()
+
+    (analysis_1 + analysis_2).visualize_before_fit(af.DirectoryPaths(), None)
+
+    assert analysis_1.did_visualise is True
+    assert analysis_2.did_visualise is True
 
 
 def test_visualise():

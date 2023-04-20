@@ -578,10 +578,10 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         analysis = analysis.modify_before_fit(paths=self.paths, model=model)
 
         analysis.visualize_before_fit(
-            paths=self.paths,
+            paths=self.paths, model=model,
         )
         analysis.visualize_before_fit_combined(
-            analyses=None, paths=self.paths,
+            analyses=None, paths=self.paths, model=model,
         )
 
         if not self.paths.is_complete or self.force_pickle_overwrite:

@@ -192,7 +192,7 @@ class CombinedAnalysis(Analysis):
 
         self._for_each_analysis(func, paths, result)
 
-    def visualize_before_fit(self, paths: AbstractPaths):
+    def visualize_before_fit(self, paths: AbstractPaths, model: AbstractPriorModel):
         """
         Visualise the model before fitting.
 
@@ -205,11 +205,11 @@ class CombinedAnalysis(Analysis):
             An object describing the paths for saving data (e.g. hard-disk directories or entries in sqlite database).
         """
         def func(child_paths, analysis):
-            analysis.visualize(child_paths)
+            analysis.visualize_before_fit(child_paths, model)
 
         self._for_each_analysis(func, paths)
 
-    def visualize_before_fit_combined(self, analyses, paths: AbstractPaths):
+    def visualize_before_fit_combined(self, analyses, paths: AbstractPaths, model: AbstractPriorModel):
         """
         Visualise images and quantities which are shared across all analyses.
 
@@ -225,9 +225,10 @@ class CombinedAnalysis(Analysis):
         paths
             An object describing the paths for saving data (e.g. hard-disk directories or entries in sqlite database).
         """
-        self.analyses[0].visualize_combined(
+        self.analyses[0].visualize_before_fit_combined(
             analyses=self.analyses,
             paths=paths,
+            model=model,
         )
 
     def visualize(self, paths: AbstractPaths, instance, during_analysis):
