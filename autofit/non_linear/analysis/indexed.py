@@ -33,6 +33,8 @@ class IndexedAnalysis:
         """
         return self.analysis.log_likelihood_function(instance[self.index])
 
+    # TODO : Add before fit methods here?
+
     def visualize(self, paths: AbstractPaths, instance, during_analysis):
         return self.analysis.visualize(paths, instance[self.index], during_analysis)
 

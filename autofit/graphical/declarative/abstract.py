@@ -224,6 +224,8 @@ class AbstractDeclarativeFactor(Analysis, ABC):
             updated_ep_mean_field=updated_ep_mean_field,
         )
 
+    # TODO : Visualize method before fit?
+
     def visualize(
             self,
             paths: AbstractPaths,
