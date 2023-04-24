@@ -1,6 +1,6 @@
 import math
 
-import jax.numpy as np
+from autofit.jax_wrapper import numpy as np
 from typing import Dict
 
 from autoconf.dictable import Dictable

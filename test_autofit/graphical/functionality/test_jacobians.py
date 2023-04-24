@@ -3,12 +3,12 @@ from itertools import combinations
 import numpy as np
 import pytest
 
-try:
-    import jax
-
-    _HAS_JAX = True
-except ImportError:
-    _HAS_JAX = False
+# try:
+#     import jax
+#
+#     _HAS_JAX = True
+# except ImportError:
+_HAS_JAX = False
 
 from autofit.mapper.variable import variables
 from autofit.graphical.factor_graphs import (
@@ -23,7 +23,7 @@ def test_jacobian_equiv():
 
     def linear(x, a, b, c):
         z = x.dot(a) + b
-        return (z ** 2).sum(), z
+        return (z**2).sum(), z
 
     x_, a_, b_, c_, z_ = variables("x, a, b, c, z")
     x = np.arange(10.0).reshape(5, 2)
@@ -102,7 +102,7 @@ def test_jac_model():
 
     def linear(x, a, b):
         z = x.dot(a) + b
-        return (z ** 2).sum(), z
+        return (z**2).sum(), z
 
     def likelihood(y, z):
         return ((y - z) ** 2).sum()

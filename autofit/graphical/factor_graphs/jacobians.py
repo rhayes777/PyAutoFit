@@ -5,12 +5,12 @@
 # import numpy as np
 # from sklearn.linear_model import PassiveAggressiveClassifier
 
-try:
-    import jax
-
-    _HAS_JAX = True
-except ImportError:
-    _HAS_JAX = False
+# try:
+#     import jax
+#
+#     _HAS_JAX = True
+# except ImportError:
+_HAS_JAX = False
 
 
 import numpy as np
@@ -138,7 +138,7 @@ class JacobianVectorProduct(AbstractJacobian, RectVariableOperator):
 
 class VectorJacobianProduct(AbstractJacobian):
     def __init__(
-            self, factor_out, vjp: Callable, *variables: Variable, out_shapes=None
+        self, factor_out, vjp: Callable, *variables: Variable, out_shapes=None
     ):
         self.factor_out = factor_out
         self.vjp = vjp

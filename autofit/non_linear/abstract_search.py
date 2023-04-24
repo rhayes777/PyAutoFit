@@ -11,7 +11,7 @@ from os import path
 from typing import Dict, Optional, Union, Tuple, List
 
 import jax
-import jax.numpy as np
+from autofit.jax_wrapper import numpy as np
 
 from autoconf import conf, cached_property
 from autofit import exc
