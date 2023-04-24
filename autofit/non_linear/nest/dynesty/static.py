@@ -58,6 +58,7 @@ class DynestyStatic(AbstractDynesty):
         iterations_per_update: int = None,
         number_of_cores: int = None,
         session: Optional[sa.orm.Session] = None,
+        use_gradient: bool = True,
         **kwargs,
     ):
         """
@@ -87,6 +88,8 @@ class DynestyStatic(AbstractDynesty):
             pool instance is not created and the job runs in serial.
         session
             An SQLalchemy session instance so the results of the model-fit are written to an SQLite database.
+        use_gradient
+            Determines whether the gradient should be passed to the Dynesty sampler.
         """
 
         super().__init__(
@@ -99,6 +102,8 @@ class DynestyStatic(AbstractDynesty):
             session=session,
             **kwargs,
         )
+
+        self.use_gradient = use_gradient
 
         self.logger.debug("Creating DynestyStatic Search")
 
@@ -154,8 +159,10 @@ class DynestyStatic(AbstractDynesty):
             The number of CPU's over which multiprocessing is performed, determining how many samples are stored
             in the dynesty queue for samples.
         """
-        # gradient = None
-        gradient = GradWrapper(fitness_function)
+        if self.use_gradient:
+            gradient = GradWrapper(fitness_function)
+        else:
+            gradient = None
 
         if checkpoint_exists:
             sampler = StaticSampler.restore(fname=self.checkpoint_file, pool=pool)
