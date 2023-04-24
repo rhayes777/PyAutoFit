@@ -6,6 +6,8 @@ if use_jax:
     try:
         import jax
         from jax import numpy
+
+        print("JAX mode enabled")
     except ImportError:
         raise ImportError(
             "JAX is not installed. Please install it with `pip install jax`."
