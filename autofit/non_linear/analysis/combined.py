@@ -192,6 +192,45 @@ class CombinedAnalysis(Analysis):
 
         self._for_each_analysis(func, paths, result)
 
+    def visualize_before_fit(self, paths: AbstractPaths, model: AbstractPriorModel):
+        """
+        Visualise the model before fitting.
+
+        Visualisation output is distinguished by using an integer suffix
+        for each analysis path.
+
+        Parameters
+        ----------
+        paths
+            An object describing the paths for saving data (e.g. hard-disk directories or entries in sqlite database).
+        """
+        def func(child_paths, analysis):
+            analysis.visualize_before_fit(child_paths, model)
+
+        self._for_each_analysis(func, paths)
+
+    def visualize_before_fit_combined(self, analyses, paths: AbstractPaths, model: AbstractPriorModel):
+        """
+        Visualise images and quantities which are shared across all analyses.
+
+        For example, each Analysis may have a different dataset, where the data in each dataset is intended to all
+        be plotted on the same matplotlib subplot. This function can be overwritten to allow the visualization of such
+        a plot.
+
+        Only the first analysis is used to visualize the combined results, where it is assumed that it uses the
+        `analyses` property to access the other analyses and perform visualization.
+
+        Parameters
+        ----------
+        paths
+            An object describing the paths for saving data (e.g. hard-disk directories or entries in sqlite database).
+        """
+        self.analyses[0].visualize_before_fit_combined(
+            analyses=self.analyses,
+            paths=paths,
+            model=model,
+        )
+
     def visualize(self, paths: AbstractPaths, instance, during_analysis):
         """
         Visualise the instance according to each analysis.
@@ -234,7 +273,12 @@ class CombinedAnalysis(Analysis):
         during_analysis
             Is this visualisation during analysis?
         """
-        self.analyses[0].visualize_combined(analyses=self.analyses, paths=paths, instance=instance, during_analysis=during_analysis)
+        self.analyses[0].visualize_combined(
+            analyses=self.analyses,
+            paths=paths,
+            instance=instance,
+            during_analysis=during_analysis
+        )
 
     def profile_log_likelihood_function(
         self,

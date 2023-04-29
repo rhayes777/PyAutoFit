@@ -41,7 +41,13 @@ class Analysis(ABC):
     def log_likelihood_function(self, instance):
         raise NotImplementedError()
 
+    def visualize_before_fit(self, paths: AbstractPaths, model: AbstractPriorModel):
+        pass
+
     def visualize(self, paths: AbstractPaths, instance, during_analysis):
+        pass
+
+    def visualize_before_fit_combined(self, analyses, paths: AbstractPaths, model: AbstractPriorModel):
         pass
 
     def visualize_combined(self, analyses, paths: AbstractPaths, instance, during_analysis):
