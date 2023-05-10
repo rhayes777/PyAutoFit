@@ -10,9 +10,7 @@ from autofit.database import model as m
 from ..query.query import AbstractQuery, Attribute
 from ..query.query.attribute import BestFitQuery
 
-logger = logging.getLogger(
-    __name__
-)
+logger = logging.getLogger(__name__)
 
 
 class NullPredicate(AbstractQuery):
@@ -62,10 +60,7 @@ class FitQuery(Query):
     """
 
     @staticmethod
-    def for_name(name: str) -> Union[
-        AbstractQuery,
-        Attribute
-    ]:
+    def for_name(name: str) -> Union[AbstractQuery, Attribute]:
         """
         Create a query based on some attribute of the Fit.
 
@@ -83,12 +78,8 @@ class FitQuery(Query):
         aggregator.fit.name == 'example name'
         """
         if name not in m.fit_attributes:
-            raise AttributeError(
-                f"Fit has no attribute {name}"
-            )
-        if m.fit_attributes[
-            name
-        ].type.python_type == bool:
+            raise AttributeError(f"Fit has no attribute {name}")
+        if m.fit_attributes[name].type.python_type == bool:
             return q.BA(name)
         return q.A(name)
 
@@ -130,10 +121,24 @@ class AbstractAggregator(ABC):
 
         return values
 
+    def child_values(self, name: str) -> List[list]:
+        """
+        Retrieve the value associated with each fit with the given
+        parameter name
+
+        Parameters
+        ----------
+        name
+            The name of some pickle, such as 'samples'
+
+        Returns
+        -------
+        A list of objects, one for each fit
+        """
+        return [[analysis[name] for analysis in fit.children] for fit in self]
+
     def __iter__(self):
-        return iter(
-            self.fits
-        )
+        return iter(self.fits)
 
     def __len__(self):
         return len(self.fits)
@@ -146,13 +151,13 @@ class AbstractAggregator(ABC):
 
 class Aggregator(AbstractAggregator):
     def __init__(
-            self,
-            session: sa.orm.Session,
-            filename: Optional[str] = None,
-            predicate: AbstractQuery = NullPredicate(),
-            offset=0,
-            limit=None,
-            order_bys=None
+        self,
+        session: sa.orm.Session,
+        filename: Optional[str] = None,
+        predicate: AbstractQuery = NullPredicate(),
+        offset=0,
+        limit=None,
+        order_bys=None,
     ):
         """
         Query results from an intermediary SQLite database.
@@ -173,11 +178,7 @@ class Aggregator(AbstractAggregator):
         self._limit = limit
         self._order_bys = order_bys or list()
 
-    def order_by(
-            self,
-            item: Attribute,
-            reverse=False
-    ) -> "Aggregator":
+    def order_by(self, item: Attribute, reverse=False) -> "Aggregator":
         """
         Order the results by a given attribute of the search. Can be applied
         multiple times with the first application taking precedence.
@@ -201,9 +202,7 @@ class Aggregator(AbstractAggregator):
         """
         if reverse:
             item = Reverse(item)
-        return self._new_with(
-            order_bys=self._order_bys + [item]
-        )
+        return self._new_with(order_bys=self._order_bys + [item])
 
     @property
     def search(self) -> FitQuery:
@@ -231,9 +230,7 @@ class Aggregator(AbstractAggregator):
         match the aggregator's predicate.
         """
         if self._fits is None:
-            self._fits = self._fits_for_query(
-                self._predicate.fit_query
-            )
+            self._fits = self._fits_for_query(self._predicate.fit_query)
         return self._fits
 
     def map(self, func):
@@ -289,14 +286,12 @@ class Aggregator(AbstractAggregator):
         >>> aggregator.filter((lens.bulge == SersicCore) & (lens.disk == Sersic))
         >>> aggregator.filter((lens.bulge == SersicCore) | (lens.disk == Sersic))
         """
-        return self._new_with(
-            predicate=self._predicate & predicate
-        )
+        return self._new_with(predicate=self._predicate & predicate)
 
     def _new_with(
-            self,
-            type_=None,
-            **kwargs,
+        self,
+        type_=None,
+        **kwargs,
     ) -> "Aggregator":
         """
         Create a new instance with the same attribute values except
@@ -319,23 +314,17 @@ class Aggregator(AbstractAggregator):
             "filename": self.filename,
             "predicate": self._predicate,
             "order_bys": self._order_bys,
-            **kwargs
+            **kwargs,
         }
         type_ = type_ or type(self)
-        return type_(
-            **kwargs
-        )
+        return type_(**kwargs)
 
     def __getitem__(self, item):
         offset = self._offset
         limit = self._limit
-        if isinstance(
-                item, int
-        ):
+        if isinstance(item, int):
             return self.fits[item]
-        elif isinstance(
-                item, slice
-        ):
+        elif isinstance(item, slice):
             if item.start is not None:
                 if item.start >= 0:
                     offset += item.start
@@ -346,15 +335,9 @@ class Aggregator(AbstractAggregator):
                     limit = len(self) - item.stop - offset
                 else:
                     limit = len(self) + item.stop
-        return self._new_with(
-            offset=offset,
-            limit=limit
-        )
+        return self._new_with(offset=offset, limit=limit)
 
-    def _fits_for_query(
-            self,
-            query: str
-    ) -> List[m.Fit]:
+    def _fits_for_query(self, query: str) -> List[m.Fit]:
         """
         Execute a raw SQL query and return a Fit object
         for each Fit id returned by the query
@@ -369,53 +352,21 @@ class Aggregator(AbstractAggregator):
         A list of fit objects, one for each id returned by the
         query
         """
-        logger.debug(
-            f"Executing query: {query}"
-        )
-        fit_ids = {
-            row[0]
-            for row
-            in self.session.execute(
-                query
-            )
-        }
+        logger.debug(f"Executing query: {query}")
+        fit_ids = {row[0] for row in self.session.execute(query)}
 
-        logger.info(
-            f"{len(fit_ids)} fit(s) found matching query"
-        )
-        query = self.session.query(
-            m.Fit
-        ).filter(
-            m.Fit.id.in_(
-                fit_ids
-            )
-        )
+        logger.info(f"{len(fit_ids)} fit(s) found matching query")
+        query = self.session.query(m.Fit).filter(m.Fit.id.in_(fit_ids))
         for order_by in self._order_bys:
-            attribute = getattr(
-                m.Fit,
-                order_by.attribute
-            )
+            attribute = getattr(m.Fit, order_by.attribute)
 
-            if isinstance(
-                    order_by,
-                    Reverse
-            ):
+            if isinstance(order_by, Reverse):
                 attribute = sa.desc(attribute)
-            query = query.order_by(
-                attribute
-            )
+            query = query.order_by(attribute)
 
-        return query.offset(
-            self._offset
-        ).limit(
-            self._limit
-        ).all()
+        return query.offset(self._offset).limit(self._limit).all()
 
-    def add_directory(
-            self,
-            directory: str,
-            auto_commit=True
-    ):
+    def add_directory(self, directory: str, auto_commit=True):
         """
         Recursively search a directory for autofit results
         and add them to this database.
@@ -437,21 +388,14 @@ class Aggregator(AbstractAggregator):
             A directory containing autofit results embedded in a
             file structure
         """
-        scraper = Scraper(
-            directory,
-            self.session
-        )
+        scraper = Scraper(directory, self.session)
         scraper.scrape()
 
         if auto_commit:
             self.session.commit()
 
     @classmethod
-    def from_database(
-            cls,
-            filename: str,
-            completed_only: bool = False
-    ) -> "Aggregator":
+    def from_database(cls, filename: str, completed_only: bool = False) -> "Aggregator":
         """
         Create an instance from a sqlite database file.
 
@@ -468,17 +412,11 @@ class Aggregator(AbstractAggregator):
         An aggregator connected to the database specified by the file.
         """
         from autofit.database import open_database
-        session = open_database(
-            str(filename)
-        )
-        aggregator = Aggregator(
-            session,
-            filename
-        )
+
+        session = open_database(str(filename))
+        aggregator = Aggregator(session, filename)
         if completed_only:
-            return aggregator(
-                aggregator.search.is_complete
-            )
+            return aggregator(aggregator.search.is_complete)
         return aggregator
 
     def grid_searches(self) -> "GridSearchAggregator":
@@ -493,7 +431,7 @@ class Aggregator(AbstractAggregator):
             self._new_with(
                 type_=GridSearchAggregator,
                 predicate=self._predicate & self.search.is_grid_search,
-                order_bys=[Attribute("id")]
+                order_bys=[Attribute("id")],
             ),
         )
 
@@ -506,10 +444,7 @@ class GridSearchAggregator(Aggregator):
         Best fits are initially implicitly ordered by their parent id
         """
         return self._new_with(
-            predicate=BestFitQuery(
-                self._predicate
-            ),
-            order_bys=[Attribute("parent_id")]
+            predicate=BestFitQuery(self._predicate), order_bys=[Attribute("parent_id")]
         )
 
     def children(self) -> "GridSearchAggregator":
@@ -520,16 +455,10 @@ class GridSearchAggregator(Aggregator):
         Children are initially implicitly ordered by their parent id
         """
         return self._new_with(
-            predicate=q.ChildQuery(
-                self._predicate
-            ),
-            order_bys=[Attribute("parent_id")]
+            predicate=q.ChildQuery(self._predicate), order_bys=[Attribute("parent_id")]
         )
 
-    def cell_number(
-            self,
-            number: int
-    ) -> "CellAggregator":
+    def cell_number(self, number: int) -> "CellAggregator":
         """
         Create an aggregator for accessing all values for child fits
         with a given index, ordered by parameter values.
@@ -543,18 +472,11 @@ class GridSearchAggregator(Aggregator):
         -------
         An aggregator comprising fits for a given cell for each grid search
         """
-        return CellAggregator(
-            number,
-            self
-        )
+        return CellAggregator(number, self)
 
 
 class CellAggregator(AbstractAggregator):
-    def __init__(
-            self,
-            number: int,
-            aggregator: GridSearchAggregator
-    ):
+    def __init__(self, number: int, aggregator: GridSearchAggregator):
         """
         Aggregator for accessing data for a specific fit number in each
         grid search.
@@ -582,7 +504,7 @@ class CellAggregator(AbstractAggregator):
                 self._fits.append(
                     sorted(
                         fit.children,
-                        key=lambda f: f.model.order_no if f.model is not None else 0
+                        key=lambda f: f.model.order_no if f.model is not None else 0,
                     )[self.number]
                 )
         return self._fits

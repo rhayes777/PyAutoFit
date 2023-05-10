@@ -112,9 +112,9 @@ class Scraper:
             for i, child_analysis in enumerate(item.child_analyses):
                 child_fit = m.Fit(
                     id=f"{identifier}_{i}",
-                    parent_id=identifier,
                 )
                 _add_pickles(child_fit, child_analysis.pickle_path)
+                fit.children.append(child_fit)
 
             yield fit
 

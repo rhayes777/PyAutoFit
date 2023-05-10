@@ -4,6 +4,7 @@ import pytest
 
 from autofit import SearchOutput
 from autofit.aggregator import Aggregator
+import autofit as af
 
 
 @pytest.fixture(name="directory")
@@ -33,3 +34,13 @@ def test_child_analysis_values(directory):
     aggregator = Aggregator(directory)
 
     assert list(aggregator.child_values("example")) == [["hello world", "hello world"]]
+
+
+def test_database_aggregator(directory, session):
+    aggregator = af.Aggregator(session)
+    aggregator.add_directory(directory)
+    assert list(aggregator.child_values("example")) == [
+        ["hello world", "hello world"],
+        [],
+        [],
+    ]
