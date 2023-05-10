@@ -19,6 +19,9 @@ from autofit.graphical.utils import (
     nested_filter,
     nested_update,
     nested_zip,
+    nested_set, 
+    nested_map, 
+    nested_items, 
     is_variable,
     Status, 
 )
@@ -277,19 +280,19 @@ class AbstractNode(ABC):
         factor._factor(*args), jax.jacobian(factor._factor, range(len(args)))(*args)
         """
         eps = eps or self.eps
-        args = tuple(np.array(value, dtype=np.float64) for value in args)
+
+        args = nested_map(lambda _, val: np.array(val, dtype=np.float64), self.args, args)
 
         raw_fval0 = self._factor_args(*args)
         fval0 = self._factor_value(raw_fval0).to_dict()
 
         jac = {
-            v0: tuple(
-                np.empty_like(val, shape=np.shape(val) + np.shape(value))
-                for value in args
-            )
-            for v0, val in fval0.items()
+            v0: nested_map(
+                lambda _, v: np.empty_like(val, shape=np.shape(val) + np.shape(v)),
+                self.args, args
+            ) for v0, val in fval0.items()
         }
-        for i, val in enumerate(args):
+        for ks, _, val in nested_items(self.args, args):
             with np.nditer(val, op_flags=["readwrite"], flags=["multi_index"]) as it:
                 for x_i in it:
                     val[it.multi_index] += eps
@@ -298,7 +301,9 @@ class AbstractNode(ABC):
                     x_i -= eps
                     indexes = (Ellipsis,) + it.multi_index
                     for v0, jac_v0v_i in jac_v1_i.items():
-                        jac[v0][i][indexes] = jac_v0v_i
+                        key_path = (v0, *ks, indexes)
+                        nested_set(jac, key_path, jac_v0v_i)
+                        # jac[v0][i][indexes] = jac_v0v_i
 
         # This replicates the output of normal
         # jax.jacobian(self.factor, len(self.args))(*args)
@@ -309,8 +314,8 @@ class AbstractNode(ABC):
     def numerical_func_jacobian(
             self, values: VariableData, **kwargs
     ) -> tuple:
-        flat_args = (values[k] for k in self.flat_args)
-        raw_fval, raw_jac = self._numerical_factor_jacobian(*flat_args, **kwargs)
+        args = self.resolve_args(values)
+        raw_fval, raw_jac = self._numerical_factor_jacobian(*args, **kwargs)
         fval = self._factor_value(raw_fval)
         jvp = self._jac_out_to_jvp(raw_jac, values=fval.to_dict().merge(values))
         return fval, jvp
