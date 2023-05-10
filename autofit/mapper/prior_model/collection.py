@@ -3,7 +3,6 @@ from collections.abc import Iterable
 from autofit.mapper.model import ModelInstance, assert_not_frozen
 from autofit.mapper.prior.abstract import Prior
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
-from autofit.mapper.prior_model.abstract import check_assertions
 
 
 class Collection(AbstractPriorModel):
@@ -40,11 +39,7 @@ class Collection(AbstractPriorModel):
         return len(self.values)
 
     def __str__(self):
-        return "\n".join(
-            f"{key} = {value}"
-            for key, value
-            in self.items()
-        )
+        return "\n".join(f"{key} = {value}" for key, value in self.items())
 
     def __hash__(self):
         return self.id
@@ -59,30 +54,24 @@ class Collection(AbstractPriorModel):
     def items(self):
         return self._dict.items()
 
-    def with_prefix(
-            self,
-            prefix: str
-    ):
+    def with_prefix(self, prefix: str):
         """
         Filter members of the collection, only returning those that start
         with a given prefix as a new collection.
         """
-        return Collection({
-            key: value
-            for key, value
-            in self.items()
-            if key.startswith(
-                prefix
-            )
-        })
+        return Collection(
+            {key: value for key, value in self.items() if key.startswith(prefix)}
+        )
 
     def as_model(self):
-        return Collection({
-            key: value.as_model()
-            if isinstance(value, AbstractPriorModel)
-            else value
-            for key, value in self.dict().items()
-        })
+        return Collection(
+            {
+                key: value.as_model()
+                if isinstance(value, AbstractPriorModel)
+                else value
+                for key, value in self.dict().items()
+            }
+        )
 
     def __init__(self, *arguments, **kwargs):
         """
@@ -198,7 +187,33 @@ class Collection(AbstractPriorModel):
             if value == item:
                 del self.__dict__[key]
 
-    @check_assertions
+    def gaussian_prior_model_for_arguments(self, arguments):
+        """
+        Create a new collection, updating its priors according to the argument
+        dictionary.
+
+        Parameters
+        ----------
+        arguments
+            A dictionary of arguments
+
+        Returns
+        -------
+        A new collection
+        """
+        collection = Collection()
+
+        for key, value in self.items():
+            if key in ("component_number", "item_number", "id") or key.startswith("_"):
+                continue
+
+            if isinstance(value, AbstractPriorModel):
+                collection[key] = value.gaussian_prior_model_for_arguments(arguments)
+            if isinstance(value, Prior):
+                collection[key] = arguments[value]
+
+        return collection
+
     def _instance_for_arguments(self, arguments):
         """
         Parameters
@@ -221,41 +236,6 @@ class Collection(AbstractPriorModel):
                 value = arguments[value]
             setattr(result, key, value)
         return result
-
-    def gaussian_prior_model_for_arguments(self, arguments):
-        """
-        Create a new collection, updating its priors according to the argument
-        dictionary.
-
-        Parameters
-        ----------
-        arguments
-            A dictionary of arguments
-
-        Returns
-        -------
-        A new collection
-        """
-        collection = Collection()
-
-        for key, value in self.items():
-            if key in (
-                    "component_number",
-                    "item_number",
-                    "id"
-            ) or key.startswith(
-                "_"
-            ):
-                continue
-
-            if isinstance(value, AbstractPriorModel):
-                collection[key] = value.gaussian_prior_model_for_arguments(
-                    arguments
-                )
-            if isinstance(value, Prior):
-                collection[key] = arguments[value]
-
-        return collection
 
     @property
     def prior_class_dict(self):

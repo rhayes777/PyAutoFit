@@ -45,36 +45,6 @@ class Limits:
         return limit_dict["lower"], limit_dict["upper"]
 
 
-def check_assertions(func):
-    @wraps(func)
-    def wrapper(s, arguments):
-        # noinspection PyProtectedMember
-        failed_assertions = [
-            assertion
-            for assertion in s._assertions
-            if assertion is False
-            or assertion is not True
-            and not assertion.instance_for_arguments(arguments,)
-        ]
-        number_of_failed_assertions = len(failed_assertions)
-        if number_of_failed_assertions > 0:
-            name_string = "\n".join(
-                [
-                    assertion.name
-                    for assertion in failed_assertions
-                    if hasattr(assertion, "name") and assertion.name is not None
-                ]
-            )
-            if not conf.instance["general"]["test"]["exception_override"]:
-                raise exc.FitException(
-                    f"{number_of_failed_assertions} assertions failed!\n{name_string}"
-                )
-
-        return func(s, arguments)
-
-    return wrapper
-
-
 class TuplePathModifier:
     def __init__(self, model_: "AbstractPriorModel"):
         """
@@ -191,8 +161,46 @@ class AbstractPriorModel(AbstractModel):
         super().__init__(label=label)
         self._assertions = list()
 
+    def check_assertions(self, arguments: Dict[Prior, float]):
+        """
+        Check that all assertions are satisfied by the given arguments.
+
+        Parameters
+        ----------
+        arguments
+            A dictionary mapping priors to values
+
+        Raises
+        ------
+        FitException
+            If any assertion is not satisfied
+        """
+        failed_assertions = [
+            assertion
+            for assertion in self._assertions
+            if assertion is False
+            or assertion is not True
+            and not assertion.instance_for_arguments(
+                arguments,
+            )
+        ]
+        number_of_failed_assertions = len(failed_assertions)
+        if number_of_failed_assertions > 0:
+            name_string = "\n".join(
+                [
+                    assertion.name
+                    for assertion in failed_assertions
+                    if hasattr(assertion, "name") and assertion.name is not None
+                ]
+            )
+            raise exc.FitException(
+                f"{number_of_failed_assertions} assertions failed!\n{name_string}"
+            )
+
     def cast(
-        self, value_dict: Dict["AbstractModel", dict], new_class: type,
+        self,
+        value_dict: Dict["AbstractModel", dict],
+        new_class: type,
     ) -> "AbstractPriorModel":
         """
         Cast models to a new type. Allows selected models in within this
@@ -264,7 +272,13 @@ class AbstractPriorModel(AbstractModel):
         for name, subtree in tree.items():
             # noinspection PyProtectedMember
             new_value = getattr(self, name)
-            if isinstance(new_value, (AbstractPriorModel, TuplePrior,)):
+            if isinstance(
+                new_value,
+                (
+                    AbstractPriorModel,
+                    TuplePrior,
+                ),
+            ):
                 new_value = new_value._with_paths(subtree)
             setattr(with_paths, name, new_value)
         return with_paths
@@ -309,7 +323,13 @@ class AbstractPriorModel(AbstractModel):
                 delattr(without_paths, name)
             else:
                 new_value = getattr(without_paths, name)
-                if isinstance(new_value, (AbstractPriorModel, TuplePrior,)):
+                if isinstance(
+                    new_value,
+                    (
+                        AbstractPriorModel,
+                        TuplePrior,
+                    ),
+                ):
                     new_value = new_value._without_paths(subtree)
                 setattr(without_paths, name, new_value)
         return without_paths
@@ -499,7 +519,8 @@ class AbstractPriorModel(AbstractModel):
                 lambda prior_tuple, unit: (
                     prior_tuple.prior,
                     prior_tuple.prior.value_for(
-                        unit, ignore_prior_limits=ignore_prior_limits,
+                        unit,
+                        ignore_prior_limits=ignore_prior_limits,
                     ),
                 ),
                 self.prior_tuples_ordered_by_id,
@@ -507,7 +528,10 @@ class AbstractPriorModel(AbstractModel):
             )
         )
 
-        return self.instance_for_arguments(arguments,)
+        return self.instance_for_arguments(
+            arguments,
+            ignore_assertions=ignore_prior_limits,
+        )
 
     @property
     @cast_collection(PriorNameValue)
@@ -621,7 +645,10 @@ class AbstractPriorModel(AbstractModel):
 
         for prior in self.priors_ordered_by_id:
             vector.append(
-                prior.random(lower_limit=lower_limit, upper_limit=upper_limit,)
+                prior.random(
+                    lower_limit=lower_limit,
+                    upper_limit=upper_limit,
+                )
             )
 
         return vector
@@ -660,7 +687,7 @@ class AbstractPriorModel(AbstractModel):
 
     @property
     def random_vector_from_priors(self):
-        """ Generate a random vector of physical values by drawing uniform random values between 0 and 1 and using
+        """Generate a random vector of physical values by drawing uniform random values between 0 and 1 and using
         the model priors to map them from unit values to physical values.
         Returns
         -------
@@ -716,7 +743,9 @@ class AbstractPriorModel(AbstractModel):
             for prior, value in arguments.items():
                 prior.assert_within_limits(value)
 
-        return self.instance_for_arguments(arguments,)
+        return self.instance_for_arguments(
+            arguments,
+        )
 
     def has(self, cls: Union[Type, Tuple[Type, ...]]) -> bool:
         """
@@ -749,7 +778,8 @@ class AbstractPriorModel(AbstractModel):
         return (
             len(
                 self.model_tuples_with_type(
-                    cls, include_zero_dimension=include_zero_dimension,
+                    cls,
+                    include_zero_dimension=include_zero_dimension,
                 )
             )
             > 0
@@ -966,7 +996,8 @@ class AbstractPriorModel(AbstractModel):
         )
 
     def log_prior_list_from_vector(
-        self, vector: [float],
+        self,
+        vector: [float],
     ):
         """
         Compute the log priors of every parameter in a vector, using the Prior of every parameter.
@@ -1189,27 +1220,39 @@ class AbstractPriorModel(AbstractModel):
         return d
 
     def _instance_for_arguments(
-        self, arguments: Dict[Prior, float],
+        self,
+        arguments: Dict[Prior, float],
     ):
         raise NotImplementedError()
 
     def instance_for_arguments(
-        self, arguments,
+        self,
+        arguments: Dict[Prior, float],
+        ignore_assertions: bool = False,
     ):
         """
         Returns an instance of the model for a set of arguments
 
         Parameters
         ----------
-        arguments: {Prior: float}
+        arguments
             Dictionary mapping priors to attribute analysis_path and value pairs
+        ignore_assertions
+            If True, assertions will not be checked
 
         Returns
         -------
             An instance of the class
         """
+        if not (
+            conf.instance["general"]["test"]["exception_override"] or ignore_assertions
+        ):
+            self.check_assertions(arguments)
+
         logger.debug(f"Creating an instance for arguments")
-        return self._instance_for_arguments(arguments,)
+        return self._instance_for_arguments(
+            arguments,
+        )
 
     def path_for_name(self, name: str) -> Tuple[str, ...]:
         """
@@ -1516,7 +1559,12 @@ class AbstractPriorModel(AbstractModel):
         formatter = TextFormatter(line_length=info_whitespace())
 
         for t in self.path_instance_tuples_for_class(
-            (Prior, float, tuple,), ignore_children=True
+            (
+                Prior,
+                float,
+                tuple,
+            ),
+            ignore_children=True,
         ):
             for i in range(len(t[0])):
                 path = t[0][:i]
