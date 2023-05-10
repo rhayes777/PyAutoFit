@@ -2,6 +2,7 @@ import logging
 import os
 import pickle
 from os import path
+from pathlib import Path
 
 import dill
 
@@ -16,14 +17,9 @@ def _create_file_handle(*args, **kwargs):
     using dill and return None instead.
     """
     try:
-        return original_create_file_handle(
-            *args, **kwargs
-        )
+        return original_create_file_handle(*args, **kwargs)
     except pickle.UnpicklingError as e:
-        if not isinstance(
-                e.args[0],
-                FileNotFoundError
-        ):
+        if not isinstance(e.args[0], FileNotFoundError):
             raise e
         logging.warning(
             f"Could not create a handler for {e.args[0].filename} as it does not exist"
@@ -32,6 +28,11 @@ def _create_file_handle(*args, **kwargs):
 
 
 dill._dill._create_filehandle = _create_file_handle
+
+
+class ChildAnalysis:
+    def __init__(self, directory: Path):
+        self.directory = directory
 
 
 class SearchOutput:
@@ -54,13 +55,15 @@ class SearchOutput:
         self.file_path = os.path.join(directory, "metadata")
         with open(self.file_path) as f:
             self.text = f.read()
-            pairs = [
-                line.split("=")
-                for line
-                in self.text.split("\n")
-                if "=" in line
-            ]
+            pairs = [line.split("=") for line in self.text.split("\n") if "=" in line]
             self.__dict__.update({pair[0]: pair[1] for pair in pairs})
+
+    @property
+    def child_analyses(self):
+        """
+        A list of child analyses loaded from the analyses directory
+        """
+        return list(map(ChildAnalysis, Path(self.directory).glob("analyses/*")))
 
     @property
     def pickle_path(self):
@@ -79,9 +82,7 @@ class SearchOutput:
         """
         A pickled mask object
         """
-        with open(
-                os.path.join(self.pickle_path, "mask.pickle"), "rb"
-        ) as f:
+        with open(os.path.join(self.pickle_path, "mask.pickle"), "rb") as f:
             return dill.load(f)
 
     def __getattr__(self, item):
@@ -91,9 +92,7 @@ class SearchOutput:
         dataset.pickle, meta_dataset.pickle etc.
         """
         try:
-            with open(
-                    os.path.join(self.pickle_path, f"{item}.pickle"), "rb"
-            ) as f:
+            with open(os.path.join(self.pickle_path, f"{item}.pickle"), "rb") as f:
                 return pickle.load(f)
         except FileNotFoundError:
             pass
