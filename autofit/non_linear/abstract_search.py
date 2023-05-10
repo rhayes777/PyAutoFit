@@ -374,6 +374,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             self.samples_from_model = samples_from_model
 
             self.log_likelihood_cap = log_likelihood_cap
+            self._log_likelihood_function = None
 
         def __call__(self, parameters, *kwargs):
             try:
@@ -387,10 +388,18 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             except exc.FitException:
                 return self.resample_figure_of_merit
 
+        def __getstate__(self):
+            del self.__dict__["_log_likelihood_function"]
+            return self.__dict__
+
         @property
         def log_likelihood_function(self):
             if use_jax:
-                return jax.jit(self.analysis.log_likelihood_function)
+                if self._log_likelihood_function is None:
+                    self._log_likelihood_function = jax.jit(
+                        self.analysis.log_likelihood_function
+                    )
+                return self._log_likelihood_function
             return self.analysis.log_likelihood_function
 
         def fit_instance(self, instance):
