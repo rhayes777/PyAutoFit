@@ -114,3 +114,28 @@ class Analysis(af.Analysis):
         os.makedirs(paths.image_path, exist_ok=True)
         plt.savefig(path.join(paths.image_path, "model_fit.png"))
         plt.clf()
+
+    def save_attributes_for_aggregator(self, paths: af.DirectoryPaths):
+        """
+        Before the model-fit via the non-linear search begins, this routine saves attributes of the `Analysis` object
+        to the `pickles` folder such that they can be loaded after the analysis using PyAutoFit's database and
+        aggregator tools.
+
+        For this analysis the following are output:
+
+        - The dataset's data.
+        - The dataset's noise-map.
+
+        It is common for these attributes to be loaded by many of the template aggregator functions given in the
+        `aggregator` modules. For example, when using the database tools to reperform a fit, this will by default
+        load the dataset, settings and other attributes necessary to perform a fit using the attributes output by
+        this function.
+
+        Parameters
+        ----------
+        paths
+            The PyAutoFit paths object which manages all paths, e.g. where the non-linear search outputs are stored,
+            visualization, and the pickled objects used by the aggregator output by this function.
+        """
+        paths.save_object("data", self.data)
+        paths.save_object("noise_map", self.noise_map)
