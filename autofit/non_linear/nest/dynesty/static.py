@@ -23,6 +23,7 @@ class GradWrapper:
 
     @cached_property
     def grad(self):
+        print("Compiling gradient")
         return jax.jit(grad(self.function))
 
     def __getstate__(self):
