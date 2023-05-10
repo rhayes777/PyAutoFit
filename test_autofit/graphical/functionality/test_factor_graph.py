@@ -86,9 +86,21 @@ def test_nested_factor():
     a, b, c = graph.variables("a, b, c")
 
     f = func((1, {'c': 2}), 3)
-    values = {a: 1, b: 3, c:2}
+    values = {a: 1., b: 3., c: 2.}
 
     factor = graph.Factor(func, [a, {'c': c}], b)
+
+    assert factor(values) == pytest.approx(f)
+
+    fval, grad = factor.func_gradient(values)
+
+    assert fval == pytest.approx(f)
+    assert grad[a] == pytest.approx(6)
+    assert grad[b] == pytest.approx(2)
+    assert grad[c] == pytest.approx(3)
+
+    
+    factor = graph.Factor(func, (a, {'c': c}), b, vjp=True)
 
     assert factor(values) == pytest.approx(f)
 
