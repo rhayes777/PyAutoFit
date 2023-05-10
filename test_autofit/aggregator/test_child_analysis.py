@@ -41,6 +41,4 @@ def test_database_aggregator(directory, session):
     aggregator.add_directory(directory)
     assert list(aggregator.child_values("example")) == [
         ["hello world", "hello world"],
-        [],
-        [],
     ]

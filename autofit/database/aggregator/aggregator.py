@@ -158,6 +158,7 @@ class Aggregator(AbstractAggregator):
         offset=0,
         limit=None,
         order_bys=None,
+        top_level_only=True,
     ):
         """
         Query results from an intermediary SQLite database.
@@ -169,6 +170,17 @@ class Aggregator(AbstractAggregator):
         session
             A session for communicating with the database.
         filename
+            The path to the database file. If None, the database is in memory.
+        predicate
+            A predicate to filter the results by.
+        offset
+            The number of results to skip
+        limit
+            The maximum number of results to return
+        order_bys
+            A list of attributes to order the results by
+        top_level_only
+            If True, only return the top level fits
         """
         self.session = session
         self.filename = filename
@@ -177,6 +189,7 @@ class Aggregator(AbstractAggregator):
         self._offset = offset
         self._limit = limit
         self._order_bys = order_bys or list()
+        self._top_level_only = top_level_only
 
     def order_by(self, item: Attribute, reverse=False) -> "Aggregator":
         """
@@ -364,7 +377,10 @@ class Aggregator(AbstractAggregator):
                 attribute = sa.desc(attribute)
             query = query.order_by(attribute)
 
-        return query.offset(self._offset).limit(self._limit).all()
+        fits = query.offset(self._offset).limit(self._limit).all()
+        if self._top_level_only:
+            return [fit for fit in fits if fit.parent is None]
+        return fits
 
     def add_directory(self, directory: str, auto_commit=True):
         """
@@ -437,6 +453,25 @@ class Aggregator(AbstractAggregator):
 
 
 class GridSearchAggregator(Aggregator):
+    def __init__(
+        self,
+        session: sa.orm.Session,
+        filename: Optional[str] = None,
+        predicate: AbstractQuery = NullPredicate(),
+        offset=0,
+        limit=None,
+        order_bys=None,
+    ):
+        super().__init__(
+            session=session,
+            filename=filename,
+            predicate=predicate,
+            offset=offset,
+            limit=limit,
+            order_bys=order_bys,
+            top_level_only=False,
+        )
+
     def best_fits(self) -> "GridSearchAggregator":
         """
         The best fit from each of the grid searches
