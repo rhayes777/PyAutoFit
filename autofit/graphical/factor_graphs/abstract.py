@@ -18,6 +18,7 @@ from autofit.graphical.utils import (
     FlattenArrays,
     nested_filter,
     nested_update,
+    nested_iter,
     is_variable,
     Status, 
 )
@@ -92,7 +93,7 @@ class AbstractNode(ABC):
     def resolve_args(
             self, values: Dict[Variable, np.ndarray]
     ) -> Tuple[np.ndarray, ...]:
-        return (values[k] for k in self.args)
+        return nested_update(self.args, values)
 
     @cached_property
     def fixed_values(self) -> VariableData:
@@ -103,7 +104,7 @@ class AbstractNode(ABC):
         """
         Dictionary mapping the names of variables to those variables
         """
-        return frozenset(self._kwargs.values())
+        return frozenset(self.flat_args)
 
     @property
     def free_variables(self) -> Set[Variable]:
@@ -121,12 +122,16 @@ class AbstractNode(ABC):
         self._kwargs = kwargs
 
     @property
-    def args(self) -> Tuple[Variable, ...]:
+    def args(self) -> Tuple[Any, ...]:
         return tuple(self.kwargs.values())
 
     @property
     def arg_names(self) -> Tuple[str, ...]:
         return tuple(self.kwargs)
+    
+    @property 
+    def flat_args(self) -> Tuple[Variable, ...]:
+        return tuple(x for x, in nested_iter(self._kwargs))
 
     @property
     def factor_out(self):
@@ -245,7 +250,7 @@ class AbstractNode(ABC):
         return (
             self._factor,
             self.arg_names,
-            self.args,
+            self.flat_args,
             self.deterministic_variables,
         )
 
@@ -304,8 +309,8 @@ class AbstractNode(ABC):
     def numerical_func_jacobian(
             self, values: VariableData, **kwargs
     ) -> tuple:
-        args = (values[k] for k in self.args)
-        raw_fval, raw_jac = self._numerical_factor_jacobian(*args, **kwargs)
+        flat_args = (values[k] for k in self.flat_args)
+        raw_fval, raw_jac = self._numerical_factor_jacobian(*flat_args, **kwargs)
         fval = self._factor_value(raw_fval)
         jvp = self._jac_out_to_jvp(raw_jac, values=fval.to_dict().merge(values))
         return fval, jvp
