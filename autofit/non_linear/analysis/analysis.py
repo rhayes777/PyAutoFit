@@ -1,5 +1,8 @@
 import logging
 from abc import ABC
+import os
+
+from autoconf import conf
 
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.paths.abstract import AbstractPaths
@@ -37,6 +40,35 @@ class Analysis(ABC):
             analysis=self,
             model=model
         )
+
+    def should_visualize(self, paths: AbstractPaths) -> bool:
+        """
+        Whether a visualize method should continue and perform visualization, or be terminated early.
+
+        If a model-fit has already completed, the default behaviour is for visualization to be bypassed in order
+        to make model-fits run faster. However, visualization can be forced to run via
+        the `force_visualization_overwrite`, for example if a user wants to plot additional images that were not
+        output on the original run.
+
+        PyAutoFit test mode also disables visualization, irrespective of the `force_visualization_overwite`
+        config input.
+
+        Parameters
+        ----------
+        paths
+            The PyAutoFit paths object which manages all paths, e.g. where the non-linear search outputs are stored,
+            visualization and the pickled objects used by the aggregator output by this function.
+
+
+        Returns
+        -------
+        A bool determining whether visualization should be performed or not.
+        """
+
+        if os.environ.get("PYAUTOFIT_TEST_MODE") == "1":
+            return False
+
+        return not paths.is_complete or conf.instance["general"]["output"]["force_visualize_overwrite"]
 
     def log_likelihood_function(self, instance):
         raise NotImplementedError()
