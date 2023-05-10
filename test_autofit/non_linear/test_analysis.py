@@ -21,20 +21,20 @@ class Analysis(af.Analysis):
 
     def visualize_before_fit(self, paths: AbstractPaths, model):
         self.did_visualise = True
-        os.makedirs(paths.image_path)
+        os.makedirs(paths.image_path, exist_ok=True)
         open(f"{paths.image_path}/image.png", "w+").close()
 
     def visualize(self, paths: AbstractPaths, instance, during_analysis):
         self.did_visualise = True
-        os.makedirs(paths.image_path)
+        os.makedirs(paths.image_path, exist_ok=True)
         open(f"{paths.image_path}/image.png", "w+").close()
 
     def visualize_before_fit_combined(self, analyses, paths, model):
-
         self.did_visualise_combined = True
 
-    def visualize_combined(self, analyses, paths: AbstractPaths, instance, during_analysis):
-
+    def visualize_combined(
+        self, analyses, paths: AbstractPaths, instance, during_analysis
+    ):
         self.did_visualise_combined = True
 
     def profile_log_likelihood_function(self, paths: AbstractPaths, instance):
@@ -62,11 +62,12 @@ def test_visualise():
 
 
 def test_visualise_before_fit_combined():
-
     analysis_1 = Analysis()
     analysis_2 = Analysis()
 
-    (analysis_1 + analysis_2).visualize_before_fit_combined(None, af.DirectoryPaths(), None)
+    (analysis_1 + analysis_2).visualize_before_fit_combined(
+        None, af.DirectoryPaths(), None
+    )
 
     assert analysis_1.did_visualise_combined is True
     assert analysis_2.did_visualise_combined is False
@@ -82,13 +83,13 @@ def test_visualise_combined():
     assert analysis_2.did_visualise_combined is False
 
 
-
 def test__profile_log_likelihood():
     analysis_1 = Analysis()
     analysis_2 = Analysis()
 
     (analysis_1 + analysis_2).profile_log_likelihood_function(
-        af.DirectoryPaths(), None,
+        af.DirectoryPaths(),
+        None,
     )
 
     assert analysis_1.did_profile is True
@@ -109,7 +110,14 @@ def test_add_analysis():
 
 
 @pytest.mark.parametrize(
-    "number, first, second", [(3, 2, 1), (4, 2, 2), (5, 3, 2), (6, 3, 3), (7, 4, 3),]
+    "number, first, second",
+    [
+        (3, 2, 1),
+        (4, 2, 2),
+        (5, 3, 2),
+        (6, 3, 3),
+        (7, 4, 3),
+    ],
 )
 def test_analysis_pool(number, first, second):
     pool = AnalysisPool(number * [Analysis()], 2)
