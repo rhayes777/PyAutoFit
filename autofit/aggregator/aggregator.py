@@ -168,7 +168,7 @@ class AbstractAggregator:
         """
         return map(lambda phase: getattr(phase, name), self.search_outputs)
 
-    def child_analysis_values(self, name: str) -> Iterator[List]:
+    def child_values(self, name: str) -> Iterator[List]:
         """
         Get values with a given name from the child analyses of each search in
         this aggregator.

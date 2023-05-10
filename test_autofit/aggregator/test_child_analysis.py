@@ -32,6 +32,4 @@ def test_child_analysis_pickles(child_analyses):
 def test_child_analysis_values(directory):
     aggregator = Aggregator(directory)
 
-    assert list(aggregator.child_analysis_values("example")) == [
-        ["hello world", "hello world"]
-    ]
+    assert list(aggregator.child_values("example")) == [["hello world", "hello world"]]
