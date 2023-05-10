@@ -30,12 +30,28 @@ def _create_file_handle(*args, **kwargs):
 dill._dill._create_filehandle = _create_file_handle
 
 
-class ChildAnalysis:
+class Output:
     def __init__(self, directory: Path):
         self.directory = directory
 
+    @property
+    def pickle_path(self):
+        return self.directory / "pickles"
 
-class SearchOutput:
+    def __getattr__(self, item):
+        """
+        Attempt to load a pickle by the same name from the search output directory.
+
+        dataset.pickle, meta_dataset.pickle etc.
+        """
+        try:
+            with open(self.pickle_path / f"{item}.pickle", "rb") as f:
+                return pickle.load(f)
+        except FileNotFoundError:
+            pass
+
+
+class SearchOutput(Output):
     """
     @DynamicAttrs
     """
@@ -49,7 +65,7 @@ class SearchOutput:
         directory
             The directory of the search
         """
-        self.directory = directory
+        super().__init__(Path(directory))
         self.__search = None
         self.__model = None
         self.file_path = os.path.join(directory, "metadata")
@@ -63,18 +79,14 @@ class SearchOutput:
         """
         A list of child analyses loaded from the analyses directory
         """
-        return list(map(ChildAnalysis, Path(self.directory).glob("analyses/*")))
-
-    @property
-    def pickle_path(self):
-        return path.join(self.directory, "pickles")
+        return list(map(Output, Path(self.directory).glob("analyses/*")))
 
     @property
     def model_results(self) -> str:
         """
         Reads the model.results file
         """
-        with open(os.path.join(self.directory, "model.results")) as f:
+        with open(self.directory / "model.results") as f:
             return f.read()
 
     @property
@@ -82,20 +94,8 @@ class SearchOutput:
         """
         A pickled mask object
         """
-        with open(os.path.join(self.pickle_path, "mask.pickle"), "rb") as f:
+        with open(self.pickle_path / "mask.pickle", "rb") as f:
             return dill.load(f)
-
-    def __getattr__(self, item):
-        """
-        Attempt to load a pickle by the same name from the search output directory.
-
-        dataset.pickle, meta_dataset.pickle etc.
-        """
-        try:
-            with open(os.path.join(self.pickle_path, f"{item}.pickle"), "rb") as f:
-                return pickle.load(f)
-        except FileNotFoundError:
-            pass
 
     @property
     def header(self) -> str:
@@ -113,7 +113,7 @@ class SearchOutput:
         """
         if self.__search is None:
             try:
-                with open(os.path.join(self.pickle_path, "search.pickle"), "r+b") as f:
+                with open(self.pickle_path / "search.pickle", "r+b") as f:
                     self.__search = pickle.loads(f.read())
             except (FileNotFoundError, ModuleNotFoundError) as e:
                 print(self.pickle_path)
@@ -127,7 +127,7 @@ class SearchOutput:
         """
         if self.__model is None:
             try:
-                with open(os.path.join(self.pickle_path, "model.pickle"), "r+b") as f:
+                with open(self.pickle_path / "model.pickle", "r+b") as f:
                     self.__model = pickle.loads(f.read())
             except (FileNotFoundError, ModuleNotFoundError) as e:
                 print(self.pickle_path)
