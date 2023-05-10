@@ -389,7 +389,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                 return self.resample_figure_of_merit
 
         def __getstate__(self):
-            del self.__dict__["_log_likelihood_function"]
+            self.__dict__["_log_likelihood_function"] = None
             return self.__dict__
 
         @property
