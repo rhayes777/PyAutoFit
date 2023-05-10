@@ -327,6 +327,7 @@ class Aggregator(AbstractAggregator):
             "filename": self.filename,
             "predicate": self._predicate,
             "order_bys": self._order_bys,
+            "top_level_only": self._top_level_only,
             **kwargs,
         }
         type_ = type_ or type(self)
@@ -456,6 +457,7 @@ class Aggregator(AbstractAggregator):
                 type_=GridSearchAggregator,
                 predicate=self._predicate & self.search.is_grid_search,
                 order_bys=[Attribute("id")],
+                top_level_only=False,
             ),
         )
 
@@ -469,6 +471,7 @@ class GridSearchAggregator(Aggregator):
         offset=0,
         limit=None,
         order_bys=None,
+        top_level_only=False,
     ):
         super().__init__(
             session=session,
@@ -477,7 +480,7 @@ class GridSearchAggregator(Aggregator):
             offset=offset,
             limit=limit,
             order_bys=order_bys,
-            top_level_only=False,
+            top_level_only=top_level_only,
         )
 
     def best_fits(self) -> "GridSearchAggregator":
