@@ -1,5 +1,6 @@
 import logging
 from abc import ABC
+import os
 
 from autoconf import conf
 
@@ -67,10 +68,7 @@ class Analysis(ABC):
         if os.environ.get("PYAUTOFIT_TEST_MODE") == "1":
             return False
 
-        if paths.is_complete and not conf.instance["general"]["output"]["force_visualize_overwrite"]:
-            return False
-
-        return True
+        return not paths.is_complete or conf.instance["general"]["output"]["force_visualize_overwrite"]
 
     def log_likelihood_function(self, instance):
         raise NotImplementedError()
