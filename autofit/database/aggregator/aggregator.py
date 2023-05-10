@@ -411,7 +411,12 @@ class Aggregator(AbstractAggregator):
             self.session.commit()
 
     @classmethod
-    def from_database(cls, filename: str, completed_only: bool = False) -> "Aggregator":
+    def from_database(
+        cls,
+        filename: str,
+        completed_only: bool = False,
+        top_level_only: bool = True,
+    ) -> "Aggregator":
         """
         Create an instance from a sqlite database file.
 
@@ -420,8 +425,11 @@ class Aggregator(AbstractAggregator):
         Parameters
         ----------
         completed_only
+            If True only completed fits are returned
         filename
             The name of the database file.
+        top_level_only
+            If True only top level fits are returned
 
         Returns
         -------
@@ -430,7 +438,7 @@ class Aggregator(AbstractAggregator):
         from autofit.database import open_database
 
         session = open_database(str(filename))
-        aggregator = Aggregator(session, filename)
+        aggregator = Aggregator(session, filename, top_level_only=top_level_only)
         if completed_only:
             return aggregator(aggregator.search.is_complete)
         return aggregator
