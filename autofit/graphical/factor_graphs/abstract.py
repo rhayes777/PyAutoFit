@@ -18,7 +18,7 @@ from autofit.graphical.utils import (
     FlattenArrays,
     nested_filter,
     nested_update,
-    nested_iter,
+    nested_zip,
     is_variable,
     Status, 
 )
@@ -131,7 +131,7 @@ class AbstractNode(ABC):
     
     @property 
     def flat_args(self) -> Tuple[Variable, ...]:
-        return tuple(x for x, in nested_iter(self._kwargs))
+        return tuple(x for x, in nested_zip(self._kwargs))
 
     @property
     def factor_out(self):

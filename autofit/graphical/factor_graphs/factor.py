@@ -14,7 +14,7 @@ except ImportError:
 from autofit.graphical.utils import (
     nested_filter,
     to_variabledata, 
-    nested_iter, 
+    nested_zip, 
     is_variable,
     try_getitem,
 )
@@ -329,7 +329,7 @@ class Factor(AbstractFactor):
         values passed, returns a FactorValue with the value returned by the
         factor, and any deterministic factors"""
         args = self.resolve_args(values)
-        key = self._key("__call__", *(val for _, val in nested_iter(self.args, args)))
+        key = self._key("__call__", *(val for _, val in nested_zip(self.args, args)))
 
         if key not in self._cache:
             raw_fval = self._factor_args(*args)
@@ -403,7 +403,7 @@ class Factor(AbstractFactor):
         jac = {}
         for v0, vjac in nested_filter(is_variable, self.factor_out, raw_jac):
             jac[v0] = VariableData()
-            for v1, j in nested_iter(self.args, vjac):
+            for v1, j in nested_zip(self.args, vjac):
                 jac[v0][v1] = j
 
         return jac

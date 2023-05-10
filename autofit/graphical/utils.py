@@ -121,16 +121,16 @@ def nested_items(*args, key=()):
         yield (key,) + args
 
 
-def nested_iter(*args):
+def nested_zip(*args):
     """ Iterates through a potentially nested set of list, tuples and dictionaries, 
     recursively looping through the structure and returning the leaves of the tree
 
     Example
     -------
-    >>> list(nested_iter([1, (2, 3), [3, 2, {1, 2}]]))
+    >>> list(nested_zip([1, (2, 3), [3, 2, {1, 2}]]))
     [(1,), (2,), (3,), (3,), (2,), (1,), (2,)]
 
-    >>> list(nested_iter(
+    >>> list(nested_zip(
     ...     [1, (2, 3), [3, 2, {1, 2}]],
     ...     [1, ('a', 3), [3, 'b', {1, 'c'}]]
     ... ))
@@ -139,10 +139,10 @@ def nested_iter(*args):
     out, *_ = args
     if isinstance(out, dict):
         for k in out:
-            yield from nested_iter(*(out[k] for out in args))
+            yield from nested_zip(*(out[k] for out in args))
     elif is_iterable(out):
         for elems in zip(*args):
-            yield from nested_iter(*elems)
+            yield from nested_zip(*elems)
     else:
         yield args
 
@@ -167,7 +167,7 @@ def nested_filter(func, *args):
     ... ))
     [(2, 'a'), (2, 'b'), (2, 'c')]
     """
-    for leaves in nested_iter(*args):
+    for leaves in nested_zip(*args):
         if func(*leaves):
             yield leaves
 
