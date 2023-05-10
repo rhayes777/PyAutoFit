@@ -11,7 +11,6 @@ from autofit.mapper.prior.abstract import Prior
 from autofit.mapper.prior.deferred import DeferredInstance
 from autofit.mapper.prior.tuple_prior import TuplePrior
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
-from autofit.mapper.prior_model.abstract import check_assertions
 from autofit.tools.namer import namer
 
 logger = logging.getLogger(__name__)
@@ -287,7 +286,6 @@ class Model(AbstractPriorModel):
         return len(self.direct_deferred_tuples) > 0
 
     # noinspection PyUnresolvedReferences
-    @check_assertions
     def _instance_for_arguments(self, arguments: {ModelObject: object}):
         """
         Returns an instance of the associated class for a set of arguments
@@ -316,7 +314,9 @@ class Model(AbstractPriorModel):
             prior_model = prior_model_tuple.prior_model
             model_arguments[
                 prior_model_tuple.name
-            ] = prior_model.instance_for_arguments(arguments,)
+            ] = prior_model.instance_for_arguments(
+                arguments,
+            )
 
         prior_arguments = dict()
 
