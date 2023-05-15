@@ -1,9 +1,12 @@
 import copy
 from abc import ABC, abstractmethod
+
+import numpy as np
 from scipy.interpolate import CubicSpline
 from typing import List, Dict, cast
 
 from scipy.stats import stats
+from scipy.optimize import curve_fit
 
 from autoconf.dictable import Dictable
 from autofit.mapper.model import ModelInstance
@@ -172,7 +175,8 @@ class AbstractInterpolator(Dictable, ABC):
                 y = [value_map[value].object_for_path(path) for value in x]
 
                 new_instance = new_instance.replacing_for_path(
-                    path, self._interpolate(x, cast(List[float], y), item.value),
+                    path,
+                    self._interpolate(x, cast(List[float], y), item.value),
                 )
 
         new_instance.replacing_for_path(tuple(item.path.keys), item.value)
@@ -220,3 +224,21 @@ class SplineInterpolator(AbstractInterpolator):
     def _interpolate(x, y, value):
         f = CubicSpline(x, y)
         return f(value)
+
+
+class CovarianceInterpolator(AbstractInterpolator):
+    def __init__(
+        self,
+        instances: List[ModelInstance],
+        covariance_matrices: List[np.ndarray],
+    ):
+        super().__init__(instances)
+        self.covariance_matrices = covariance_matrices
+
+    @property
+    def covariance_matrix(self):
+        pass
+
+    @staticmethod
+    def _interpolate(x, y, value):
+        curve_fit(x, y, value)
