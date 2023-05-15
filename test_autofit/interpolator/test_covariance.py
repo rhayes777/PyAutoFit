@@ -1,9 +1,12 @@
+import pytest
+
 import autofit as af
 from autofit.interpolator import CovarianceInterpolator
 import numpy as np
 
 
-def test_covariance_matrix(instances):
+@pytest.fixture(name="interpolator")
+def make_interpolator():
     samples_list = [
         af.SamplesPDF(
             model=af.Collection(
@@ -26,9 +29,12 @@ def test_covariance_matrix(instances):
         )
         for value in range(3)
     ]
-    interpolator = CovarianceInterpolator(
+    return CovarianceInterpolator(
         samples_list,
     )
+
+
+def test_covariance_matrix(interpolator):
     assert (
         interpolator.covariance_matrix
         == np.array(
