@@ -12,16 +12,16 @@ def test_covariance_matrix(instances):
             ),
             sample_list=[
                 af.Sample(
-                    log_likelihood=1.0,
+                    log_likelihood=-i,
                     log_prior=1.0,
                     weight=1.0,
                     kwargs={
-                        ("gaussian", "centre"): value,
-                        ("gaussian", "normalization"): value,
-                        ("gaussian", "sigma"): value,
+                        ("gaussian", "centre"): value + i,
+                        ("gaussian", "normalization"): value + i,
+                        ("gaussian", "sigma"): value + i,
                     },
                 )
-                for _ in range(3)
+                for i in range(3)
             ],
         )
         for value in range(3)
@@ -29,4 +29,19 @@ def test_covariance_matrix(instances):
     interpolator = CovarianceInterpolator(
         samples_list,
     )
-    assert interpolator.covariance_matrix.shape == (9, 9)
+    assert (
+        interpolator.covariance_matrix
+        == np.array(
+            [
+                [1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+                [1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+                [1.0, 1.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
+                [0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0],
+                [0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0],
+                [0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 0.0, 0.0, 0.0],
+                [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0],
+                [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0],
+                [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0],
+            ]
+        )
+    ).all()
