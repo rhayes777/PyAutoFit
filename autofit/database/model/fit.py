@@ -176,11 +176,11 @@ class Fit(Base):
         "Fit", backref=sa.orm.backref("parent", remote_side=[id])
     )
 
-    def child_values(self, key):
+    def child_values(self, name):
         """
         Get the values of a given key for all children
         """
-        return [child[key] for child in self.children]
+        return [child[name] for child in self.children]
 
     @property
     def best_fit(self) -> "Fit":

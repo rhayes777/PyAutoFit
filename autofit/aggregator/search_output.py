@@ -120,11 +120,11 @@ class SearchOutput(Output):
                 logging.exception(e)
         return self.__search
 
-    def child_values(self, key):
+    def child_values(self, name):
         """
         Get the values of a given key for all children
         """
-        return [getattr(child, key) for child in self.child_analyses]
+        return [getattr(child, name) for child in self.child_analyses]
 
     @property
     def model(self):
