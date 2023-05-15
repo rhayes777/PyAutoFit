@@ -10,6 +10,7 @@ from scipy.optimize import curve_fit
 
 from autoconf.dictable import Dictable
 from autofit.mapper.model import ModelInstance
+from autofit.non_linear.samples.pdf import SamplesPDF
 
 
 class InterpolatorPath:
@@ -229,15 +230,24 @@ class SplineInterpolator(AbstractInterpolator):
 class CovarianceInterpolator(AbstractInterpolator):
     def __init__(
         self,
-        instances: List[ModelInstance],
-        covariance_matrices: List[np.ndarray],
+        samples_list: List[SamplesPDF],
     ):
-        super().__init__(instances)
-        self.covariance_matrices = covariance_matrices
+        self.samples_list = samples_list
+        # noinspection PyTypeChecker
+        super().__init__([samples.max_log_likelihood for samples in samples_list])
 
     @property
     def covariance_matrix(self):
-        pass
+        matrices = [samples.covariance_matrix() for samples in self.samples_list]
+        prior_count = self.samples_list[0].model.prior_count
+        size = prior_count * len(self.samples_list)
+        array = np.zeros((size, size))
+        for i, matrix in enumerate(matrices):
+            array[
+                i * prior_count : (i + 1) * prior_count,
+                i * prior_count : (i + 1) * prior_count,
+            ] = matrix
+        return array
 
     @staticmethod
     def _interpolate(x, y, value):
