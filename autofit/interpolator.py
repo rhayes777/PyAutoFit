@@ -259,7 +259,9 @@ class CovarianceInterpolator(AbstractInterpolator):
         def func(x, *args):
             return x
 
-        curve = curve_fit(func, x, self._y, sigma=self.covariance_matrix)
+        curve = curve_fit(
+            func, x, self._y, p0=2 * len(x) * [1], sigma=self.covariance_matrix
+        )
         print(curve)
 
     @property
