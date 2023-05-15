@@ -5,11 +5,7 @@ from autofit.database.model import get_class_path
 
 
 class Table:
-    def __init__(
-            self,
-            name: str,
-            abbreviation: Optional[str] = None
-    ):
+    def __init__(self, name: str, abbreviation: Optional[str] = None):
         """
         A table containing some type of object in the database.
 
@@ -75,36 +71,25 @@ class AbstractCondition(ABC):
         The condition written as SQL
         """
 
-    def __and__(
-            self,
-            other:
-            "AbstractCondition"
-    ):
+    def __and__(self, other: "AbstractCondition"):
         """
         Combine this and another query with an AND statement.
-        
+
         Simplification is applied so that the query will execute as fast as possible.
         """
         from .junction import And
-        return And(
-            self,
-            other
-        )
 
-    def __or__(
-            self,
-            other: "AbstractCondition"
-    ):
+        return And(self, other)
+
+    def __or__(self, other: "AbstractCondition"):
         """
         Combine this and another query with an AND statement.
 
         Simplification is applied so that the query will execute as fast as possible.
         """
         from .junction import Or
-        return Or(
-            self,
-            other
-        )
+
+        return Or(self, other)
 
     def __hash__(self):
         return hash(str(self))
@@ -123,7 +108,6 @@ class AbstractCondition(ABC):
 
 
 class NoneCondition(AbstractCondition):
-
     @property
     def tables(self) -> Set[Table]:
         return {none_table}
@@ -133,11 +117,7 @@ class NoneCondition(AbstractCondition):
 
 
 class AbstractValueCondition(AbstractCondition, ABC):
-    def __init__(
-            self,
-            symbol: str,
-            value
-    ):
+    def __init__(self, symbol: str, value):
         """
         A condition which compares the named column to a value
 
@@ -238,9 +218,7 @@ class TypeCondition(AbstractCondition):
         """
         The full import path of the type
         """
-        return get_class_path(
-            self.cls
-        )
+        return get_class_path(self.cls)
 
 
 class AttributeCondition(AbstractCondition, ABC):
@@ -260,14 +238,13 @@ class AttributeCondition(AbstractCondition, ABC):
 class EqualityAttributeCondition(AttributeCondition):
     @property
     def value(self):
-        if isinstance(
-                self._value,
-                str
-        ):
+        if isinstance(self._value, str):
             return f"'{self._value}'"
         return self._value
 
     def __str__(self):
+        if self._value is None:
+            return f"{self.attribute} IS NULL"
         return f"{self.attribute} = {self.value}"
 
 

@@ -139,7 +139,10 @@ class NamedInstancesWrapper:
 class Fit(Base):
     __tablename__ = "fit"
 
-    id = sa.Column(sa.String, primary_key=True,)
+    id = sa.Column(
+        sa.String,
+        primary_key=True,
+    )
     is_complete = sa.Column(sa.Boolean)
 
     _named_instances: List[NamedInstance] = sa.orm.relationship("NamedInstance")
@@ -172,6 +175,12 @@ class Fit(Base):
     children: List["Fit"] = sa.orm.relationship(
         "Fit", backref=sa.orm.backref("parent", remote_side=[id])
     )
+
+    def child_values(self, name):
+        """
+        Get the values of a given key for all children
+        """
+        return [child[name] for child in self.children]
 
     @property
     def best_fit(self) -> "Fit":
