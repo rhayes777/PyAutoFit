@@ -51,3 +51,9 @@ def test_covariance_matrix(interpolator):
             ]
         )
     ).all()
+
+
+def test_y(interpolator):
+    assert (
+        interpolator._y == np.array([0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 2.0, 2.0, 2.0])
+    ).all()

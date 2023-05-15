@@ -234,7 +234,7 @@ class CovarianceInterpolator(AbstractInterpolator):
     ):
         self.samples_list = samples_list
         # noinspection PyTypeChecker
-        super().__init__([samples.max_log_likelihood for samples in samples_list])
+        super().__init__([samples.max_log_likelihood() for samples in samples_list])
 
     @property
     def covariance_matrix(self):
@@ -252,3 +252,13 @@ class CovarianceInterpolator(AbstractInterpolator):
     @staticmethod
     def _interpolate(x, y, value):
         curve_fit(x, y, value)
+
+    @property
+    def _y(self):
+        return np.array(
+            [
+                value
+                for samples in self.samples_list
+                for value in samples.max_log_likelihood(as_instance=False)
+            ]
+        )
