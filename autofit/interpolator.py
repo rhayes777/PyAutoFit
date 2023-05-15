@@ -251,7 +251,16 @@ class CovarianceInterpolator(AbstractInterpolator):
 
     @staticmethod
     def _interpolate(x, y, value):
-        curve_fit(x, y, value)
+        pass
+
+    def __getitem__(self, value: Equality):
+        x = [value.path.get_value(instance) for instance in self.instances]
+
+        def func(x, *args):
+            return x
+
+        curve = curve_fit(func, x, self._y, sigma=self.covariance_matrix)
+        print(curve)
 
     @property
     def _y(self):
