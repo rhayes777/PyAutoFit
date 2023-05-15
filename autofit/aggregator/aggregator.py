@@ -185,10 +185,7 @@ class AbstractAggregator:
         -------
         A generator of values for the attribute
         """
-        return (
-            [getattr(analysis, name) for analysis in phase.child_analyses]
-            for phase in self.search_outputs
-        )
+        return (phase.child_values(name) for phase in self.search_outputs)
 
     def map(self, func):
         """

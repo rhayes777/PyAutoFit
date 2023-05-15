@@ -34,11 +34,22 @@ def test_child_analysis_values(directory):
     aggregator = Aggregator(directory)
 
     assert list(aggregator.child_values("example")) == [["hello world", "hello world"]]
+    assert list(aggregator)[0].child_values("example") == ["hello world", "hello world"]
 
 
-def test_database_aggregator(directory, session):
+@pytest.fixture(name="aggregator")
+def make_aggregator(session, directory):
     aggregator = af.Aggregator(session)
     aggregator.add_directory(directory)
+    return aggregator
+
+
+def test_database_aggregator(aggregator):
     assert list(aggregator.child_values("example")) == [
         ["hello world", "hello world"],
     ]
+
+
+def test_child_values(aggregator):
+    fit, *_ = list(aggregator)
+    assert fit.child_values("example") == ["hello world", "hello world"]

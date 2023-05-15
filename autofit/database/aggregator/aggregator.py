@@ -135,7 +135,7 @@ class AbstractAggregator(ABC):
         -------
         A list of objects, one for each fit
         """
-        return [[analysis[name] for analysis in fit.children] for fit in self]
+        return [fit.child_values(name) for fit in self]
 
     def __iter__(self):
         return iter(self.fits)
