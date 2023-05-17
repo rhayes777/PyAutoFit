@@ -5,7 +5,7 @@ from autofit.graphical.expectation_propagation import EPHistory
 from autofit.graphical.expectation_propagation.ep_mean_field import EPMeanField
 from autofit.graphical.factor_graphs.factor import Factor
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
-from autofit.mapper.prior_model.collection import CollectionPriorModel
+from autofit.mapper.prior_model.collection import Collection
 from autofit.non_linear.result import Result, AbstractResult
 from autofit.non_linear.samples.samples import Samples
 
@@ -91,13 +91,13 @@ class EPResult:
         self.updated_ep_mean_field = updated_ep_mean_field
 
     @property
-    def model(self) -> CollectionPriorModel:
+    def model(self) -> Collection:
         """
         A collection populated with messages representing the posteriors of
         the EP Optimisation. Each item in the collection represents a single
         factor in the optimisation.
         """
-        collection = CollectionPriorModel({
+        collection = Collection({
             factor.name: factor.prior_model
             for factor
             in self.declarative_factor.model_factors

@@ -25,15 +25,15 @@ datasets simultaneously.
 Each dataset has a different noise realization, meaning that performing a simultaneously fit will offer improved constraints
 over individual fits.
 
-.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/master/docs/images/gaussian_0.png
+.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/main/docs/images/gaussian_0.png
   :width: 600
   :alt: Alternative text
 
-.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/master/docs/images/gaussian_1.png
+.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/main/docs/images/gaussian_1.png
   :width: 600
   :alt: Alternative text
 
-.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/master/docs/images/gaussian_2.png
+.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/main/docs/images/gaussian_2.png
   :width: 600
   :alt: Alternative text
 
@@ -119,15 +119,15 @@ as ``max_log_likelihood_instance``.
 
 Inspection of the results show tht the model was successfully fitted to all three datasets:
 
-.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/master/docs/images/gaussian_model_0.png
+.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/main/docs/images/gaussian_model_0.png
   :width: 600
   :alt: Alternative text
 
-.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/master/docs/images/gaussian_model_1.png
+.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/main/docs/images/gaussian_model_1.png
   :width: 600
   :alt: Alternative text
 
-.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/master/docs/images/gaussian_model_2.png
+.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/main/docs/images/gaussian_model_2.png
   :width: 600
   :alt: Alternative text
 
@@ -143,15 +143,15 @@ The model parameterization therefore needs to change in order to account for thi
 
 Lets look at an example of a dataset of 3 1D Gaussians where the signal varies across the datasets:
 
-.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/master/docs/images/gaussian_model_vary_0.png
+.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/main/docs/images/gaussian_model_vary_0.png
   :width: 600
   :alt: Alternative text
 
-.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/master/docs/images/gaussian_model_vary_1.png
+.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/main/docs/images/gaussian_model_vary_1.png
   :width: 600
   :alt: Alternative text
 
-.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/master/docs/images/gaussian_model_vary_2.png
+.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/main/docs/images/gaussian_model_vary_2.png
   :width: 600
   :alt: Alternative text
 
@@ -168,7 +168,7 @@ To do that, we interface a model with a summed list of analysis objects
     model = af.Collection(gaussian=af.Model(Gaussian))
 
     analysis = analysis.with_free_parameters(
-        *[model.gaussian.sigma]
+        model.gaussian.sigma
     )
 
 We code above updates the model using the summed ``Analysis ``objects to compose a model where:
@@ -188,6 +188,23 @@ We can again fit this model as per usual:
     search = af.DynestyStatic(path_prefix=path.join("features"), name="multiple_datasets_free_sigma")
 
     result_list = search.fit(model=model, analysis=analysis)
+
+Individual Sequential Searches
+------------------------------
+
+The API above is used to create a model with free parameters across ``Analysis`` objects, which are all fit
+simultaneously using a summed ``log_likelihood_function`` and single non-linear search.
+
+Each ``Analysis`` can be fitted one-by-one, using a series of multiple non-linear searches, using
+the ``fit_sequential`` method:
+
+.. code-block:: python
+
+    result_list = search.fit_sequential(model=model, analysis=analysis)
+
+The benefit of this method is for complex high dimensionality models (e.g. when many parameters are passed
+to `` analysis.with_free_parameters``, it breaks the fit down into a series of lower dimensionality non-linear
+searches that may convergence on a solution more reliably.
 
 Variable Model With Relationships
 ---------------------------------

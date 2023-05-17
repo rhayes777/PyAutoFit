@@ -602,7 +602,7 @@ class Samples(ABC):
         The parameters of an individual sample of the non-linear search, returned as a model instance.
 
         Parameters
-        -----------
+        ----------
         sample_index
             The sample index of the weighted sample to return.
         """
@@ -708,10 +708,10 @@ class Samples(ABC):
 
         - The mean is given by maximum log likelihood model values.
         - Their errors are omitted, as this information is not available from an search. When these priors are
-        used to link to another search, it will thus automatically use the prior config values.
+          used to link to another search, it will thus automatically use the prior config values.
 
         Parameters
-        -----------
+        ----------
         sigma
             The sigma limit within which the PDF is used to estimate errors (e.g. sigma = 1.0 uses 0.6826 of the PDF).
         """

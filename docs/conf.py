@@ -66,7 +66,7 @@ templates_path = ["_templates"]
 # -- Options for extlinks ----------------------------------------------------
 
 extlinks = {
-    "pypi": ("https://pypi.org/project/%s/", ""),
+    "pypi": ("https://pypi.org/project/%s/", "%s"),
 }
 
 # -- Options for intersphinx -------------------------------------------------
@@ -91,6 +91,8 @@ myst_heading_anchors = 3
 autosummary_generate = True
 autodoc_member_order = "bysource"
 autodoc_default_flags = ["members"]
+
+autoclass_content = "both"
 
 numpydoc_show_class_members = False
 numpydoc_show_inherited_class_members = False

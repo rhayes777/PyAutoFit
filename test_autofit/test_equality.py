@@ -7,7 +7,7 @@ import autofit as af
 
 @pytest.fixture(name="prior_model")
 def make_prior_model():
-    return af.PriorModel(af.m.MockClassx2Tuple)
+    return af.Model(af.m.MockClassx2Tuple)
 
 
 class TestCase:
@@ -20,7 +20,7 @@ class TestCase:
         assert prior_model != prior_model_copy
 
     def test_list_prior_model(self, prior_model):
-        list_prior_model = af.CollectionPriorModel([prior_model])
+        list_prior_model = af.Collection([prior_model])
         list_prior_model_copy = deepcopy(list_prior_model)
         assert list_prior_model == list_prior_model_copy
 
@@ -40,10 +40,10 @@ class TestCase:
         assert model_mapper != model_mapper_copy
 
     def test_non_trivial_equality(self):
-        mock_components = af.PriorModel(
+        mock_components = af.Model(
             af.m.MockComponents,
-            components_0=af.CollectionPriorModel(mock_cls_0=af.m.MockChildTuplex2),
-            components_1=af.CollectionPriorModel(
+            components_0=af.Collection(mock_cls_0=af.m.MockChildTuplex2),
+            components_1=af.Collection(
                 mock_cls_2=af.m.MockChildTuplex3
             ),
         )

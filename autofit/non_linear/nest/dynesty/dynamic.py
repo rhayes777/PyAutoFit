@@ -1,4 +1,5 @@
-from typing import Optional
+from __future__ import annotations
+from typing import TYPE_CHECKING, Optional
 
 from dynesty.dynesty import DynamicNestedSampler
 from autofit.non_linear.nest.dynesty.samples import SamplesDynesty
@@ -98,7 +99,7 @@ class DynestyDynamic(AbstractDynesty):
             model: AbstractPriorModel,
             fitness_function,
             checkpoint_exists : bool,
-            pool: Optional["Pool"],
+            pool: Optional,
             queue_size: Optional[int]
     ):
         """

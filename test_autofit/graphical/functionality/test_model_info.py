@@ -6,29 +6,21 @@ import autofit as af
 from autofit import graphical as g
 
 
-@pytest.fixture(
-    name="analysis_factor"
-)
+@pytest.fixture(name="analysis_factor")
 def make_analysis_factor():
     return g.AnalysisFactor(
-        prior_model=af.PriorModel(
-            af.Gaussian
-        ),
+        prior_model=af.Model(af.Gaussian),
         analysis=af.m.MockAnalysis(),
-        name="AnalysisFactor0"
+        name="AnalysisFactor0",
     )
 
 
-@pytest.fixture(
-    autouse=True
-)
+@pytest.fixture(autouse=True)
 def reset_ids():
-    af.ModelObject._ids = itertools.count()
+    af.Prior._ids = itertools.count()
 
 
-@pytest.fixture(
-    name="info"
-)
+@pytest.fixture(name="info")
 def make_info():
     return """AnalysisFactor0
 
@@ -41,8 +33,5 @@ normalization                                                                   
 sigma                                                                           UniformPrior [3], lower_limit = 0.0, upper_limit = 1.0"""
 
 
-def test_analysis_factor(
-        analysis_factor,
-        info
-):
+def test_analysis_factor(analysis_factor, info):
     assert analysis_factor.info == info

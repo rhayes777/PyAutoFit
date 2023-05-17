@@ -6,13 +6,39 @@ from ...messages.transform import LinearShiftTransform
 
 
 class UniformPrior(Prior):
-    """A prior with a uniform distribution between a lower and upper limit"""
 
     __identifier_fields__ = ("lower_limit", "upper_limit")
 
     def __init__(
-        self, lower_limit=0.0, upper_limit=1.0, id_=None,
+        self, lower_limit: float = 0.0, upper_limit: float = 1.0, id_=None,
     ):
+        """
+        A prior with a uniform distribution, defined between a lower limit and upper limit.
+
+        The conversion of an input unit value, ``u``, to a physical value, ``p``, via the prior is as follows:
+
+        .. math::
+
+        For example for ``prior = UniformPrior(lower_limit=0.0, upper_limit=2.0)``, an
+        input ``prior.value_for(unit=0.5)`` is equal to 1.0.
+
+        [Rich describe how this is done via message]
+
+        Parameters
+        ----------
+        lower_limit
+            The lower limit of the uniform distribution defining the prior.
+        upper_limit
+            The upper limit of the uniform distribution defining the prior.
+
+        Examples
+        --------
+
+        prior = af.UniformPrior(lower_limit=0.0, upper_limit=2.0)
+
+        physical_value = prior.value_for(unit=0.2)
+        """
+
         lower_limit = float(lower_limit)
         upper_limit = float(upper_limit)
 
@@ -26,20 +52,6 @@ class UniformPrior(Prior):
             message, lower_limit=lower_limit, upper_limit=upper_limit, id_=id_,
         )
 
-    @property
-    def lower_unit_limit(self) -> float:
-        """
-        The lower limit for this prior in unit vector space
-        """
-        return 0.0
-
-    @property
-    def upper_unit_limit(self) -> float:
-        """
-        The upper limit for this prior in unit vector space
-        """
-        return 1.0
-
     def logpdf(self, x):
         # TODO: handle x as a numpy array
         if x == self.lower_limit:
@@ -52,17 +64,26 @@ class UniformPrior(Prior):
     def parameter_string(self) -> str:
         return f"lower_limit = {self.lower_limit}, upper_limit = {self.upper_limit}"
 
-    def value_for(self, unit, ignore_prior_limits=False):
+    def value_for(self, unit: float, ignore_prior_limits: bool = False) -> float:
         """
+        Returns a physical value from an input unit value according to the limits of the uniform prior.
 
         Parameters
         ----------
-        unit: Float
-            A unit hypercube value between 0 and 1
+        unit
+            A unit value between 0 and 1.
+
         Returns
         -------
-        value: Float
-            A value for the attribute between the upper and lower limits
+        value
+            The unit value mapped to a physical value according to the prior.
+
+        Examples
+        --------
+
+        prior = af.UniformPrior(lower_limit=0.0, upper_limit=2.0)
+
+        physical_value = prior.value_for(unit=0.2)
         """
         return round(
             super().value_for(unit, ignore_prior_limits=ignore_prior_limits), 14
@@ -75,10 +96,8 @@ class UniformPrior(Prior):
         Returns the log prior of a physical value, so the log likelihood of a model evaluation can be converted to a
         posterior as log_prior + log_likelihood.
 
-        This is used by Emcee in the log likelihood function evaluation.
+        This is used by certain non-linear searches (e.g. Emcee) in the log likelihood function evaluation.
 
-        NOTE: For a UniformPrior this is always zero, provided the value is between the lower and upper limit. Given
-        this is check for when the instance is made (in the *instance_from_vector* function), we thus can simply return
-        zero in this function.
+        For a UniformPrior this is always zero, provided the value is between the lower and upper limit.
         """
         return 0.0

@@ -1,19 +1,22 @@
 # MANIFEST.in
 exclude .gitignore
-exclude .coverage
-exclude .travis.yml
-exclude docs
 include README.rst
 include setup.cfg
-recursive-include autofit/config *
+include CITATIONS.rst
+include LICENSE
+include requirements.txt
+include optional_requirements.txt
+
 prune .cache
 prune .git
 prune build
 prune dist
+
 recursive-exclude *.egg-info *
-recursive-include tests *
-include requirements.txt
-recursive-include data *
+
+recursive-include autofit/config *
+
+exclude docs
 
 global-exclude test_autofit
 recursive-exclude test_autofit *

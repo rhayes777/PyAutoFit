@@ -24,11 +24,7 @@ class Attribute:
         """
         self.attribute = attribute
 
-    def _make_query(
-            self,
-            cls,
-            value
-    ) -> AttributeQuery:
+    def _make_query(self, cls, value) -> AttributeQuery:
         """
         Create a query against this attribute
 
@@ -43,51 +39,33 @@ class Attribute:
         -------
         A query on ids of the fit table
         """
-        return AttributeQuery(
-            cls(
-                attribute=self.attribute,
-                value=value
-            )
-        )
+        return AttributeQuery(cls(attribute=self.attribute, value=value))
 
     def __eq__(self, other) -> AttributeQuery:
         """
         Check whether an attribute, such as a search name, is equal
         to some value
         """
-        return self._make_query(
-            cls=c.EqualityAttributeCondition,
-            value=other
-        )
+        return self._make_query(cls=c.EqualityAttributeCondition, value=other)
 
     def in_(self, item: str) -> AttributeQuery:
         """
         Check whether an attribute is contained within a substring
         """
-        return self._make_query(
-            cls=c.InAttributeCondition,
-            value=item
-        )
+        return self._make_query(cls=c.InAttributeCondition, value=item)
 
     def contains(self, item: str) -> AttributeQuery:
         """
         Check whether an attribute, such as a search name, contains
         some string
         """
-        return self._make_query(
-            cls=c.ContainsAttributeCondition,
-            value=item
-        )
+        return self._make_query(cls=c.ContainsAttributeCondition, value=item)
 
 
 class BooleanAttribute(Attribute, AttributeQuery):
     def __init__(self, attribute):
         super().__init__(attribute)
-        super(AttributeQuery, self).__init__(
-            c.AttributeCondition(
-                attribute
-            )
-        )
+        super(AttributeQuery, self).__init__(c.AttributeCondition(attribute))
 
     def __hash__(self):
         return hash(str(self))
@@ -95,9 +73,7 @@ class BooleanAttribute(Attribute, AttributeQuery):
 
 class ChildQuery(AttributeQuery):
     def __init__(self, predicate: AbstractQuery):
-        super().__init__(
-            predicate
-        )
+        super().__init__(predicate)
 
     @property
     def condition(self):
@@ -106,9 +82,7 @@ class ChildQuery(AttributeQuery):
 
 class BestFitQuery(ChildQuery):
     def __init__(self, predicate: AbstractQuery):
-        super().__init__(
-            predicate
-        )
+        super().__init__(predicate)
 
     @property
     def fit_query(self) -> str:

@@ -106,7 +106,7 @@ class UltraNest(abstract_nest.AbstractNest):
     @property
     def config_dict_stepsampler(self):
 
-        config_dict = copy.copy(self.config_type[self.__class__.__name__]["stepsampler"]._dict)
+        config_dict = copy.copy(self.config_type[self.__class__.__name__]["stepsampler"])
 
         for key, value in config_dict.items():
             try:
@@ -215,10 +215,14 @@ class UltraNest(abstract_nest.AbstractNest):
 
             if iterations > 0:
 
-                config_dict_run = self.config_dict_run
-                config_dict_run.pop("max_ncalls")
-                config_dict_run["dKL"] = config_dict_run.pop("dkl")
-                config_dict_run["Lepsilon"] = config_dict_run.pop("lepsilon")
+                filter_list = ["max_ncalls", "dkl", "lepsilon"]
+                config_dict_run = {
+                    key: value for key, value
+                    in self.config_dict_run.items()
+                    if key
+                    not in filter_list
+                }
+
                 config_dict_run["update_interval_ncall"] = iterations
 
                 sampler.run(

@@ -17,7 +17,7 @@ Data
 
 The example ``data`` with errors (black) and the model-fit (red), are shown below:
 
-.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/master/docs/images/toy_model_fit.png
+.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/main/docs/images/toy_model_fit.png
   :width: 600
   :alt: Alternative text
 

@@ -1,6 +1,7 @@
 import copy
 import csv
 import logging
+import os
 from os import path
 from typing import List, Tuple, Union, Type, Optional, Dict
 
@@ -190,6 +191,7 @@ class GridSearch:
         self.logger.info(
             "Running grid search..."
         )
+
         process_class = Process if self.parallel else Sequential
         # noinspection PyArgumentList
         return self._fit(
@@ -294,10 +296,12 @@ class GridSearch:
         return builder()
 
     def save_metadata(self):
+
         self.paths.save_parent_identifier()
         self.paths.save_unique_tag(
             is_grid_search=True
         )
+        self.paths.zip_remove_nuclear()
 
     def make_jobs(self, model, analysis, grid_priors, info: Optional[Dict] = None):
         grid_priors = model.sort_priors_alphabetically(

@@ -1,3 +1,4 @@
+import builtins
 import copy
 import inspect
 import logging
@@ -10,7 +11,6 @@ from autofit.mapper.prior.abstract import Prior
 from autofit.mapper.prior.deferred import DeferredInstance
 from autofit.mapper.prior.tuple_prior import TuplePrior
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
-from autofit.mapper.prior_model.abstract import check_assertions
 from autofit.tools.namer import namer
 
 logger = logging.getLogger(__name__)
@@ -18,9 +18,9 @@ logger = logging.getLogger(__name__)
 class_args_dict = dict()
 
 
-class PriorModel(AbstractPriorModel):
-    """Object comprising class and associated priors
-        @DynamicAttrs
+class Model(AbstractPriorModel):
+    """
+    @DynamicAttrs
     """
 
     @property
@@ -35,7 +35,7 @@ class PriorModel(AbstractPriorModel):
         return f"<{self.__class__.__name__} {self}>"
 
     def as_model(self):
-        return PriorModel(self.cls)
+        return Model(self.cls)
 
     def __hash__(self):
         return self.id
@@ -50,35 +50,68 @@ class PriorModel(AbstractPriorModel):
 
     def __init__(self, cls, **kwargs):
         """
+        The object a Python class is input into to create a model-component, which has free parameters that are fitted
+        by a non-linear search.
+
+        The ``Model`` object is flexible, and can create models from many input Python data structures
+        (e.g. a list of classes, dictionary of classes, hierarchy of classes).
+
+        For a complete description of the model composition API, see the **PyAutoFit** model API cookbooks:
+
+        https://pyautofit.readthedocs.io/en/latest/cookbooks/cookbook_1_basics.html
+
+        The Python class input into a ``Model`` to create a model component is written using the following format:
+
+        - The name of the class is the name of the model component (e.g. ``Gaussian``).
+        - The input arguments of the constructor are the parameters of the mode (e.g. ``centre``, ``normalization`` and ``sigma``).
+        - The default values of the input arguments tell PyAutoFit whether a parameter is a single-valued float or a
+        multi-valued tuple.
+
+        [Rich explain everything else]
+
         Parameters
         ----------
-        cls: class
+        cls
             The class associated with this instance
+
+        Examples
+        --------
+
+        class Gaussian:
+
+            def __init__(
+                self,
+                centre=0.0,        # <- PyAutoFit recognises these
+                normalization=0.1, # <- constructor arguments are
+                sigma=0.01,        # <- the Gaussian's parameters.
+            ):
+                self.centre = centre
+                self.normalization = normalization
+                self.sigma = sigma
+
+        model = af.Model(Gaussian)
         """
-        super().__init__(
-            label=namer(cls.__name__)
-            if inspect.isclass(cls)
-            else None
-        )
+        super().__init__(label=namer(cls.__name__) if inspect.isclass(cls) else None)
         if cls is self:
             return
 
         if not (inspect.isclass(cls) or inspect.isfunction(cls)):
-            raise AssertionError(
-                f"{cls} is not a class or function"
-            )
+            raise AssertionError(f"{cls} is not a class or function")
 
         self.cls = cls
 
         try:
             annotations = inspect.getfullargspec(cls).annotations
+            for key, value in annotations.items():
+                if isinstance(value, str):
+                    annotations[key] = getattr(builtins, value)
         except TypeError:
             annotations = dict()
 
         try:
             arg_spec = inspect.getfullargspec(cls)
             defaults = dict(
-                zip(arg_spec.args[-len(arg_spec.defaults):], arg_spec.defaults)
+                zip(arg_spec.args[-len(arg_spec.defaults) :], arg_spec.defaults)
             )
         except TypeError:
             defaults = {}
@@ -97,16 +130,14 @@ class PriorModel(AbstractPriorModel):
             if arg in kwargs:
                 keyword_arg = kwargs[arg]
                 if isinstance(keyword_arg, (list, dict)):
-                    from autofit.mapper.prior_model.collection import (
-                        CollectionPriorModel,
-                    )
+                    from autofit.mapper.prior_model.collection import Collection
 
-                    ls = CollectionPriorModel(keyword_arg)
+                    ls = Collection(keyword_arg)
 
                     setattr(self, arg, ls)
                 else:
                     if inspect.isclass(keyword_arg):
-                        keyword_arg = PriorModel(keyword_arg)
+                        keyword_arg = Model(keyword_arg)
                     setattr(self, arg, keyword_arg)
             elif arg in defaults and isinstance(defaults[arg], tuple):
                 tuple_prior = TuplePrior()
@@ -116,7 +147,7 @@ class PriorModel(AbstractPriorModel):
                         tuple_prior, attribute_name, self.make_prior(attribute_name)
                     )
                 setattr(self, arg, tuple_prior)
-            elif arg in annotations and annotations[arg] != float:
+            elif arg in annotations and annotations[arg] is not float:
                 spec = annotations[arg]
 
                 # noinspection PyUnresolvedReferences
@@ -124,34 +155,27 @@ class PriorModel(AbstractPriorModel):
                     from autofit.mapper.prior_model.annotation import (
                         AnnotationPriorModel,
                     )
+
                     setattr(self, arg, AnnotationPriorModel(spec, cls, arg))
                 elif hasattr(spec, "__args__") and type(None) in spec.__args__:
                     setattr(self, arg, None)
                 else:
-                    setattr(self, arg, PriorModel(annotations[arg]))
+                    setattr(self, arg, Model(annotations[arg]))
             else:
                 prior = self.make_prior(arg)
-                if isinstance(
-                        prior,
-                        ConfigException
-                ) and hasattr(
-                    cls, "__default_fields__"
-                ) and arg in cls.__default_fields__:
+                if (
+                    isinstance(prior, ConfigException)
+                    and hasattr(cls, "__default_fields__")
+                    and arg in cls.__default_fields__
+                ):
                     prior = defaults[arg]
                 setattr(self, arg, prior)
         for key, value in kwargs.items():
             if not hasattr(self, key):
-                setattr(
-                    self, key, PriorModel(value) if inspect.isclass(value) else value
-                )
+                setattr(self, key, Model(value) if inspect.isclass(value) else value)
 
     def dict(self):
-        return {
-            "class_path": get_class_path(
-                self.cls
-            ),
-            **super().dict()
-        }
+        return {"class_path": get_class_path(self.cls), **super().dict()}
 
     # noinspection PyAttributeOutsideInit
     @property
@@ -165,9 +189,9 @@ class PriorModel(AbstractPriorModel):
 
     def __eq__(self, other):
         return (
-                isinstance(other, PriorModel)
-                and self.cls == other.cls
-                and self.prior_tuples == other.prior_tuples
+            isinstance(other, Model)
+            and self.cls == other.cls
+            and self.prior_tuples == other.prior_tuples
         )
 
     def make_prior(self, attribute_name):
@@ -215,12 +239,12 @@ class PriorModel(AbstractPriorModel):
             pass
 
         if key not in (
-                "component_number",
-                "phase_property_position",
-                "mapping_name",
-                "id",
-                "_is_frozen",
-                "_frozen_cache"
+            "component_number",
+            "phase_property_position",
+            "mapping_name",
+            "id",
+            "_is_frozen",
+            "_frozen_cache",
         ):
             try:
                 if "_" in key:
@@ -240,10 +264,11 @@ class PriorModel(AbstractPriorModel):
 
     def __getattr__(self, item):
         try:
-            if "_" in item and item not in (
-                    "_is_frozen",
-                    "tuple_prior_tuples"
-            ) and not item.startswith("_"):
+            if (
+                "_" in item
+                and item not in ("_is_frozen", "tuple_prior_tuples")
+                and not item.startswith("_")
+            ):
                 return getattr(
                     [v for k, v in self.tuple_prior_tuples if item.split("_")[0] == k][
                         0
@@ -261,7 +286,6 @@ class PriorModel(AbstractPriorModel):
         return len(self.direct_deferred_tuples) > 0
 
     # noinspection PyUnresolvedReferences
-    @check_assertions
     def _instance_for_arguments(self, arguments: {ModelObject: object}):
         """
         Returns an instance of the associated class for a set of arguments
@@ -290,7 +314,9 @@ class PriorModel(AbstractPriorModel):
             prior_model = prior_model_tuple.prior_model
             model_arguments[
                 prior_model_tuple.name
-            ] = prior_model.instance_for_arguments(arguments, )
+            ] = prior_model.instance_for_arguments(
+                arguments,
+            )
 
         prior_arguments = dict()
 
@@ -298,9 +324,7 @@ class PriorModel(AbstractPriorModel):
             try:
                 prior_arguments[name] = arguments[prior]
             except KeyError as e:
-                raise KeyError(
-                    f"No argument given for prior {name}"
-                ) from e
+                raise KeyError(f"No argument given for prior {name}") from e
 
         constructor_arguments = {
             **attribute_arguments,
@@ -320,12 +344,12 @@ class PriorModel(AbstractPriorModel):
 
         for key, value in self.__dict__.items():
             if (
-                    not hasattr(result, key)
-                    and not isinstance(value, Prior)
-                    and not key == "cls"
-                    and not key.startswith("_")
+                not hasattr(result, key)
+                and not isinstance(value, Prior)
+                and not key == "cls"
+                and not key.startswith("_")
             ):
-                if isinstance(value, PriorModel):
+                if isinstance(value, Model):
                     value = value.instance_for_arguments(arguments)
                 elif isinstance(value, Prior):
                     value = arguments[value]

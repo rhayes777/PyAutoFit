@@ -1,7 +1,8 @@
+import itertools
+import os
 import random
 from abc import ABC, abstractmethod
 from copy import copy
-import os
 from typing import Union, Tuple
 
 from autoconf import conf
@@ -16,6 +17,8 @@ epsilon = 1e-14
 class Prior(Variable, ABC, ArithmeticMixin):
     __database_args__ = ("lower_limit", "upper_limit", "id_")
 
+    _ids = itertools.count()
+
     def __init__(self, message, lower_limit=0.0, upper_limit=1.0, id_=None):
         """
         An object used to mappers a unit value to an attribute value for a specific
@@ -28,6 +31,8 @@ class Prior(Variable, ABC, ArithmeticMixin):
         upper_limit: Float
             The highest value this prior can return
         """
+        if id_ is None:
+            id_ = next(self._ids)
         super().__init__(id_=id_)
         self.message = message
         message.id_ = id_
@@ -38,6 +43,8 @@ class Prior(Variable, ABC, ArithmeticMixin):
             raise exc.PriorException(
                 "The upper limit of a prior must be greater than its lower limit"
             )
+
+        self.width_modifier = None
 
     @property
     def lower_unit_limit(self) -> float:
@@ -91,8 +98,10 @@ class Prior(Variable, ABC, ArithmeticMixin):
         return self.message.factor
 
     def assert_within_limits(self, value):
-        if conf.instance["general"]["model"]["ignore_prior_limits"] or \
-            os.environ.get("PYAUTOFIT_TEST_MODE") == "1":
+        if (
+            conf.instance["general"]["model"]["ignore_prior_limits"]
+            or os.environ.get("PYAUTOFIT_TEST_MODE") == "1"
+        ):
             return
         if not (self.lower_limit <= value <= self.upper_limit):
             raise exc.PriorLimitException(
@@ -132,11 +141,11 @@ class Prior(Variable, ABC, ArithmeticMixin):
         Parameters
         ----------
         unit
-            A hypercube value between 0 and 1.
+            A unit value between 0 and 1.
 
         Returns
         -------
-        A physical value.
+        A physical value, mapped from the unit value accoridng to the prior.
         """
         result = self.message.value_for(unit)
         if not ignore_prior_limits:

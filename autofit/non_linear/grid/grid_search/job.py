@@ -45,7 +45,12 @@ class Job(AbstractJob):
         self.info = info
 
     def perform(self):
-        result = self.search_instance.fit(model=self.model, analysis=self.analysis, info=self.info)
+        result = self.search_instance.fit(
+            model=self.model,
+            analysis=self.analysis,
+            info=self.info,
+            bypass_nuclear_if_on=True
+        )
         result_list_row = [
             self.index,
             *[

@@ -125,9 +125,10 @@ class AnalysisFactor(AbstractModelFactor):
             Is this visualisation during analysis?
         """
         self.analysis.visualize(
-            paths,
-            instance,
-            during_analysis
+            paths=paths, instance=instance, during_analysis=during_analysis
+        )
+        self.analysis.visualize_combined(
+            analyses=None, paths=paths, instance=instance, during_analysis=during_analysis
         )
 
     def log_likelihood_function(

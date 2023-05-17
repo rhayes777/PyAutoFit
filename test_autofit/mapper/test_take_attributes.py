@@ -7,7 +7,7 @@ import autofit as af
     name="target_gaussian"
 )
 def make_target_gaussian():
-    return af.PriorModel(
+    return af.Model(
         af.Gaussian
     )
 
@@ -23,7 +23,7 @@ def make_prior():
     name="source_gaussian"
 )
 def make_source_gaussian(prior):
-    return af.PriorModel(
+    return af.Model(
         af.Gaussian,
         centre=prior
     )
@@ -81,10 +81,10 @@ def test_in_collection(
         target_gaussian,
         prior
 ):
-    target = af.CollectionPriorModel(
+    target = af.Collection(
         gaussian=target_gaussian
     )
-    source = af.CollectionPriorModel(
+    source = af.Collection(
         gaussian=source_gaussian
     )
     target.take_attributes(
@@ -143,10 +143,10 @@ def test_tuple_in_collection(
 ):
     source_gaussian.centre = (prior, 1.0)
 
-    source = af.CollectionPriorModel(
+    source = af.Collection(
         gaussian=source_gaussian
     )
-    target = af.CollectionPriorModel(
+    target = af.Collection(
         gaussian=target_gaussian
     )
 
@@ -163,10 +163,10 @@ def test_tuple_in_instance_in_collection(
         centre=(prior, 1.0)
     )
 
-    source = af.CollectionPriorModel(
+    source = af.Collection(
         gaussian=source_gaussian
     )
-    target = af.CollectionPriorModel(
+    target = af.Collection(
         gaussian=target_gaussian
     )
 
@@ -182,7 +182,7 @@ def test_source_is_dict(
     source = dict(
         gaussian=source_gaussian
     )
-    target = af.CollectionPriorModel(
+    target = af.Collection(
         gaussian=target_gaussian
     )
     target.take_attributes(source)
@@ -195,12 +195,12 @@ def test_target_is_dict(
         target_gaussian,
         prior
 ):
-    source = af.CollectionPriorModel(
-        collection=af.CollectionPriorModel(
+    source = af.Collection(
+        collection=af.Collection(
             gaussian=source_gaussian
         )
     )
-    target = af.CollectionPriorModel(
+    target = af.Collection(
         collection=dict(
             gaussian=target_gaussian
         )
@@ -217,7 +217,7 @@ def test_missing_from_source(
     target_gaussian.centre = prior
 
     target_gaussian.take_attributes(
-        af.CollectionPriorModel()
+        af.Collection()
     )
     assert target_gaussian.centre == prior
 
@@ -227,10 +227,10 @@ def test_unlabelled_in_collection(
         target_gaussian,
         prior
 ):
-    target = af.CollectionPriorModel(
+    target = af.Collection(
         [target_gaussian]
     )
-    source = af.CollectionPriorModel(
+    source = af.Collection(
         [source_gaussian]
     )
     target.take_attributes(
@@ -256,7 +256,7 @@ def test_missing_from_origin(
         target_gaussian
 ):
     target_gaussian.take_attributes(
-        af.CollectionPriorModel()
+        af.Collection()
     )
 
 

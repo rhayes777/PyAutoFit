@@ -123,6 +123,7 @@ def factor_step(factor_approx, optimiser):
         status = Status(
             False, (f"Factor: {factor} experienced error {e}",), StatusFlag.FAILURE,
         )
+        new_model_dist = factor_approx.model_dist
 
     factor_logger.debug(status)
     return new_model_dist, status

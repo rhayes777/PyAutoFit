@@ -3,10 +3,9 @@ from collections.abc import Iterable
 from autofit.mapper.model import ModelInstance, assert_not_frozen
 from autofit.mapper.prior.abstract import Prior
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
-from autofit.mapper.prior_model.abstract import check_assertions
 
 
-class CollectionPriorModel(AbstractPriorModel):
+class Collection(AbstractPriorModel):
     def name_for_prior(self, prior: Prior) -> str:
         """
         Construct a name for the prior. This is the path taken
@@ -40,11 +39,7 @@ class CollectionPriorModel(AbstractPriorModel):
         return len(self.values)
 
     def __str__(self):
-        return "\n".join(
-            f"{key} = {value}"
-            for key, value
-            in self.items()
-        )
+        return "\n".join(f"{key} = {value}" for key, value in self.items())
 
     def __hash__(self):
         return self.id
@@ -59,33 +54,49 @@ class CollectionPriorModel(AbstractPriorModel):
     def items(self):
         return self._dict.items()
 
-    def with_prefix(
-            self,
-            prefix: str
-    ):
+    def with_prefix(self, prefix: str):
         """
         Filter members of the collection, only returning those that start
         with a given prefix as a new collection.
         """
-        return CollectionPriorModel({
-            key: value
-            for key, value
-            in self.items()
-            if key.startswith(
-                prefix
-            )
-        })
+        return Collection(
+            {key: value for key, value in self.items() if key.startswith(prefix)}
+        )
 
     def as_model(self):
-        return CollectionPriorModel({
-            key: value.as_model()
-            if isinstance(value, AbstractPriorModel)
-            else value
-            for key, value in self.dict().items()
-        })
+        return Collection(
+            {
+                key: value.as_model()
+                if isinstance(value, AbstractPriorModel)
+                else value
+                for key, value in self.dict().items()
+            }
+        )
 
     def __init__(self, *arguments, **kwargs):
         """
+        The object multiple Python classes are input into to create model-components, which has free parameters that
+        are fitted by a non-linear search.
+
+        Multiple Python classes can be input into a `Collection` in order to compose high dimensional models made of
+        multiple model-components.
+
+        The ``Collection`` object is highly flexible, and can create models from many input Python data structures
+        (e.g. a list of classes, dictionary of classes, hierarchy of classes).
+
+        For a complete description of the model composition API, see the **PyAutoFit** model API cookbooks:
+
+        https://pyautofit.readthedocs.io/en/latest/cookbooks/cookbook_1_basics.html
+
+        The Python class input into a ``Model`` to create a model component is written using the following format:
+
+        - The name of the class is the name of the model component (e.g. ``Gaussian``).
+        - The input arguments of the constructor are the parameters of the mode (e.g. ``centre``, ``normalization`` and ``sigma``).
+        - The default values of the input arguments tell PyAutoFit whether a parameter is a single-valued float or a
+        multi-valued tuple.
+
+        [Rich document more clearly]
+
         A prior model used to represent a list of prior models for convenience.
 
         Arguments are flexibly converted into a collection.
@@ -94,6 +105,23 @@ class CollectionPriorModel(AbstractPriorModel):
         ----------
         arguments
             Classes, prior models, instances or priors
+
+        Examples
+        --------
+
+        class Gaussian:
+
+            def __init__(
+                self,
+                centre=0.0,        # <- PyAutoFit recognises these
+                normalization=0.1, # <- constructor arguments are
+                sigma=0.01,        # <- the Gaussian's parameters.
+            ):
+                self.centre = centre
+                self.normalization = normalization
+                self.sigma = sigma
+
+        model = af.Collection(gaussian_0=Gaussian, gaussian_1=Gaussian)
         """
         super().__init__()
         self.item_number = 0
@@ -159,7 +187,33 @@ class CollectionPriorModel(AbstractPriorModel):
             if value == item:
                 del self.__dict__[key]
 
-    @check_assertions
+    def gaussian_prior_model_for_arguments(self, arguments):
+        """
+        Create a new collection, updating its priors according to the argument
+        dictionary.
+
+        Parameters
+        ----------
+        arguments
+            A dictionary of arguments
+
+        Returns
+        -------
+        A new collection
+        """
+        collection = Collection()
+
+        for key, value in self.items():
+            if key in ("component_number", "item_number", "id") or key.startswith("_"):
+                continue
+
+            if isinstance(value, AbstractPriorModel):
+                collection[key] = value.gaussian_prior_model_for_arguments(arguments)
+            if isinstance(value, Prior):
+                collection[key] = arguments[value]
+
+        return collection
+
     def _instance_for_arguments(self, arguments):
         """
         Parameters
@@ -182,41 +236,6 @@ class CollectionPriorModel(AbstractPriorModel):
                 value = arguments[value]
             setattr(result, key, value)
         return result
-
-    def gaussian_prior_model_for_arguments(self, arguments):
-        """
-        Create a new collection, updating its priors according to the argument
-        dictionary.
-
-        Parameters
-        ----------
-        arguments
-            A dictionary of arguments
-
-        Returns
-        -------
-        A new collection
-        """
-        collection = CollectionPriorModel()
-
-        for key, value in self.items():
-            if key in (
-                    "component_number",
-                    "item_number",
-                    "id"
-            ) or key.startswith(
-                "_"
-            ):
-                continue
-
-            if isinstance(value, AbstractPriorModel):
-                collection[key] = value.gaussian_prior_model_for_arguments(
-                    arguments
-                )
-            if isinstance(value, Prior):
-                collection[key] = arguments[value]
-
-        return collection
 
     @property
     def prior_class_dict(self):

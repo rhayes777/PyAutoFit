@@ -3,6 +3,8 @@
 Non-linear Search
 =================
 
+A non-linear search is an algorithm which fits a model to data.
+
 **PyAutoFit** currently supports three types of non-linear search algorithms:
 
 - **Optimizers**: ``PySwarms``.
@@ -25,7 +27,7 @@ We've seen that we can call a non-linear search as follows:
 However, ``Emcee`` has many settings associated with it (the number of walkers, the number of steps they take,
 etc.). Above, we did not pass them to the ``Emcee`` constructor and they use the default values found in the
 ``autofit_workspace`` configuration files ``autofit_workspace/config/non_linear/mcmc/Emcee.ini``, which can be
-viewed at this `link <https://github.com/Jammy2211/autofit_workspace/blob/master/config/non_linear/mcmc/Emcee.ini>`_.
+viewed at this `link <https://github.com/Jammy2211/autofit_workspace/blob/main/config/non_linear/mcmc/Emcee.ini>`_.
 
 Of course, we can manually specify all of the parameters instead:
 
@@ -56,7 +58,7 @@ A number of these parameters are not part of the ``emcee`` package, but addition
 - Auto correlation lengths can be checked during sampling and used to determine whether the MCMC chains have converged, terminating ``emcee`` before all ``nwalkers`` have taken all ``nsteps``, as discussed at this `link <https://search.readthedocs.io/en/stable/tutorials/autocorr/>`_.
 
 The nested sampling algorithm ``dynesty`` has its own config file for default settings, which are at
-this `link <https://github.com/Jammy2211/autofit_workspace/blob/master/config/non_linear/nest/Dynesty.ini>`_.
+this `link <https://github.com/Jammy2211/autofit_workspace/blob/main/config/non_linear/nest/Dynesty.ini>`_.
 ``DynestyStatic`` parameters can be manually specified as follows:
 
 .. code-block:: python
@@ -162,5 +164,5 @@ Wrap-Up
 -------
 
 We are always looking to add more non-linear searches to **PyAutoFit**. If you are the developer of a package check out
-our `contributions section <https://github.com/rhayes777/PyAutoFit/blob/master/CONTRIBUTING.md>`_ and please
+our `contributions section <https://github.com/rhayes777/PyAutoFit/blob/main/CONTRIBUTING.md>`_ and please
 contact us!

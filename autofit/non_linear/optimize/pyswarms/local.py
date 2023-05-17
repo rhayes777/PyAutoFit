@@ -81,12 +81,8 @@ class PySwarmsLocal(AbstractPySwarms):
             "p": self.config_dict_search["minkowski_p_norm"],
         }
 
-        config_dict = self.config_dict_search
-        config_dict.pop("cognitive")
-        config_dict.pop("social")
-        config_dict.pop("inertia")
-        config_dict.pop("number_of_k_neighbors")
-        config_dict.pop("minkowski_p_norm")
+        filter_list = ["cognitive", "social", "inertia", "number_of_k_neighbors", "minkowski_p_norm"]
+        config_dict = {key: value for key, value in self.config_dict_search.items() if key not in filter_list}
 
         return pyswarms.local_best.LocalBestPSO(
             dimensions=model.prior_count,

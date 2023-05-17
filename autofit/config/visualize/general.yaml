@@ -1,0 +1,2 @@
+general:
+  backend: default         # The matploblib backend used for visualization. `default` uses the system default, can specifiy specific backend (e.g. TKAgg, Qt5Agg, WXAgg).

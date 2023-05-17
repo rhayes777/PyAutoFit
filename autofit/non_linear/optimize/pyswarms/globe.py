@@ -79,10 +79,8 @@ class PySwarmsGlobal(AbstractPySwarms):
             "w": self.config_dict_search["inertia"]
         }
 
-        config_dict = self.config_dict_search
-        config_dict.pop("cognitive")
-        config_dict.pop("social")
-        config_dict.pop("inertia")
+        filter_list = ["cognitive", "social", "inertia"]
+        config_dict = {key: value for key, value in self.config_dict_search.items() if key not in filter_list}
 
         return pyswarms.global_best.GlobalBestPSO(
             dimensions=model.prior_count,

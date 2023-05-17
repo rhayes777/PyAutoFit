@@ -6,9 +6,7 @@ from typing import Optional, Union, Tuple, List, Iterable, Type
 from autofit.mapper.model_object import ModelObject
 from autofit.mapper.prior_model.recursion import DynamicRecursionCache
 
-logger = logging.getLogger(
-    __name__
-)
+logger = logging.getLogger(__name__)
 
 
 def frozen_cache(func):
@@ -32,17 +30,11 @@ def frozen_cache(func):
     @wraps(func)
     def cache(self, *args, **kwargs):
         if hasattr(self, "_is_frozen") and self._is_frozen:
-            key = (func.__name__, self, *args,) + tuple(
-                kwargs.items()
-            )
+            key = (func.__name__, self, *args,) + tuple(kwargs.items())
 
             if key not in self._frozen_cache:
-                self._frozen_cache[
-                    key
-                ] = func(self, *args, **kwargs)
-            return self._frozen_cache[
-                key
-            ]
+                self._frozen_cache[key] = func(self, *args, **kwargs)
+            return self._frozen_cache[key]
         return func(self, *args, **kwargs)
 
     return cache
@@ -68,16 +60,14 @@ def assert_not_frozen(func):
 
     @wraps(func)
     def wrapper(self, *args, **kwargs):
-        string_args = list(filter(
-            lambda arg: isinstance(arg, str),
-            args
-        ))
-        if "_is_frozen" not in string_args and "_frozen_cache" not in string_args and hasattr(
-                self, "_is_frozen"
-        ) and self._is_frozen:
-            raise AssertionError(
-                "Frozen models cannot be modified"
-            )
+        string_args = list(filter(lambda arg: isinstance(arg, str), args))
+        if (
+            "_is_frozen" not in string_args
+            and "_frozen_cache" not in string_args
+            and hasattr(self, "_is_frozen")
+            and self._is_frozen
+        ):
+            raise AssertionError("Frozen models cannot be modified")
         return func(self, *args, **kwargs)
 
     return wrapper
@@ -91,10 +81,7 @@ class AbstractModel(ModelObject):
 
     def __getstate__(self):
         return {
-            key: value
-            for key, value
-            in self.__dict__.items()
-            if key != "_frozen_cache"
+            key: value for key, value in self.__dict__.items() if key != "_frozen_cache"
         }
 
     def __setstate__(self, state):
@@ -109,9 +96,7 @@ class AbstractModel(ModelObject):
         and does not allow its state to be modified.
         """
         logger.debug("Freezing model")
-        tuples = self.direct_tuples_with_type(
-            AbstractModel
-        )
+        tuples = self.direct_tuples_with_type(AbstractModel)
         for _, model in tuples:
             if model is not self:
                 model.freeze()
@@ -124,9 +109,7 @@ class AbstractModel(ModelObject):
         """
         logger.debug("Thawing model")
         self._is_frozen = False
-        tuples = self.direct_tuples_with_type(
-            AbstractModel
-        )
+        tuples = self.direct_tuples_with_type(AbstractModel)
         for _, model in tuples:
             if model is not self:
                 model.unfreeze()
@@ -155,7 +138,7 @@ class AbstractModel(ModelObject):
         return copy.deepcopy(self)
 
     def object_for_path(
-            self, path: Iterable[Union[str, int, type]]
+        self, path: Iterable[Union[str, int, type]]
     ) -> Union[object, List]:
         """
         Get the object at a given path.
@@ -181,7 +164,7 @@ class AbstractModel(ModelObject):
             if isinstance(name, int):
                 instance = instance[name]
             elif isinstance(name, type):
-                from autofit.mapper.prior_model.prior_model import PriorModel
+                from autofit.mapper.prior_model.prior_model import Model
 
                 instances = [
                     instance
@@ -189,7 +172,7 @@ class AbstractModel(ModelObject):
                 ]
                 instances += [
                     instance
-                    for _, instance in self.path_instance_tuples_for_class(PriorModel)
+                    for _, instance in self.path_instance_tuples_for_class(Model)
                     if issubclass(instance.cls, name)
                 ]
                 instance = ModelInstance(instances)
@@ -199,10 +182,10 @@ class AbstractModel(ModelObject):
 
     @frozen_cache
     def path_instance_tuples_for_class(
-            self,
-            cls: Union[Tuple, Type],
-            ignore_class: bool = None,
-            ignore_children: bool = True
+        self,
+        cls: Union[Tuple, Type],
+        ignore_class: bool = None,
+        ignore_children: bool = True,
     ):
         """
         Tuples containing the path tuple and instance for every instance of the class
@@ -223,23 +206,50 @@ class AbstractModel(ModelObject):
             Tuples containing the path to and instance of objects of the given type.
         """
         return path_instances_of_class(
-            self,
-            cls,
-            ignore_class=ignore_class,
-            ignore_children=ignore_children
+            self, cls, ignore_class=ignore_class, ignore_children=ignore_children
         )
 
     @frozen_cache
     def direct_tuples_with_type(self, class_type):
         return list(
             filter(
-                lambda t: t[0] != "id" and not t[0].startswith("_") and isinstance(t[1], class_type),
+                lambda t: t[0] != "id"
+                and not t[0].startswith("_")
+                and isinstance(t[1], class_type),
                 self.__dict__.items(),
             )
         )
 
     @frozen_cache
-    def model_tuples_with_type(self, cls):
+    def models_with_type(
+        self, cls: Union[Type, Tuple[Type, ...]], include_zero_dimension=False,
+    ) -> List["AbstractModel"]:
+        """
+        Return all models of a given type in the model tree.
+
+        Parameters
+        ----------
+        cls
+            The type to find instances of
+        include_zero_dimension
+            If true, include models with zero dimensions
+
+        Returns
+        -------
+        A list of models of the given type
+        """
+        # noinspection PyTypeChecker
+        return [
+            t[1]
+            for t in self.model_tuples_with_type(
+                cls, include_zero_dimension=include_zero_dimension
+            )
+        ]
+
+    @frozen_cache
+    def model_tuples_with_type(
+        self, cls: Union[Type, Tuple[Type, ...]], include_zero_dimension=False
+    ):
         """
         All models of the class in this model which have at least
         one free parameter, recursively.
@@ -248,30 +258,27 @@ class AbstractModel(ModelObject):
         ----------
         cls
             The type of the model
+        include_zero_dimension
+            If true, include models with 0 free parameters
 
         Returns
         -------
         Models with free parameters
         """
-        from .prior_model.prior_model import PriorModel
+        from .prior_model.prior_model import Model
+
         return [
             (path, model)
-            for path, model
-            in self.attribute_tuples_with_type(
-                PriorModel
+            for path, model in self.attribute_tuples_with_type(
+                Model, ignore_children=False
             )
-            if issubclass(
-                model.cls,
-                cls
-            ) and model.prior_count > 0
+            if issubclass(model.cls, cls)
+            and (include_zero_dimension or model.prior_count > 0)
         ]
 
     @frozen_cache
     def attribute_tuples_with_type(
-            self,
-            class_type,
-            ignore_class=None,
-            ignore_children=True
+        self, class_type, ignore_class=None, ignore_children=True
     ) -> List[tuple]:
         """
         Tuples describing the name and instance for attributes in the model
@@ -293,19 +300,17 @@ class AbstractModel(ModelObject):
         return [
             (path[-1] if len(path) > 0 else "", value)
             for path, value in self.path_instance_tuples_for_class(
-                class_type,
-                ignore_class=ignore_class,
-                ignore_children=ignore_children
+                class_type, ignore_class=ignore_class, ignore_children=ignore_children
             )
         ]
 
 
 @DynamicRecursionCache()
 def path_instances_of_class(
-        obj,
-        cls: type,
-        ignore_class: Optional[Union[type, Tuple[type]]] = None,
-        ignore_children: bool = False
+    obj,
+    cls: type,
+    ignore_class: Optional[Union[type, Tuple[type]]] = None,
+    ignore_children: bool = False,
 ):
     """
     Recursively search the object for instances of a given class
@@ -345,10 +350,7 @@ def path_instances_of_class(
             if key.startswith("_"):
                 continue
             for item in path_instances_of_class(
-                    value,
-                    cls,
-                    ignore_class=ignore_class,
-                    ignore_children=ignore_children
+                value, cls, ignore_class=ignore_class, ignore_children=ignore_children
             ):
                 if isinstance(value, AnnotationPriorModel):
                     path = (key,)
@@ -367,14 +369,11 @@ class ModelInstance(AbstractModel):
     @DynamicAttrs
     """
 
-    def __init__(self, items=None):
+    __dictable_type__ = "instance"
+
+    def __init__(self, child_items=None):
         super().__init__()
-        if isinstance(items, list):
-            for i, item in enumerate(items):
-                self[i] = item
-        if isinstance(items, dict):
-            for key, value in items.items():
-                self[key] = value
+        self.child_items = child_items
 
     def __eq__(self, other):
         return self.__dict__ == other.__dict__
@@ -383,13 +382,24 @@ class ModelInstance(AbstractModel):
         if isinstance(item, int):
             return list(self.values())[item]
         if isinstance(item, slice):
-            return ModelInstance(
-                list(self.values())[item]
-            )
+            return ModelInstance(list(self.values())[item])
         return self.__dict__[item]
 
     def __setitem__(self, key, value):
         self.__dict__[key] = value
+
+    @property
+    def child_items(self):
+        return self.dict
+
+    @child_items.setter
+    def child_items(self, child_items):
+        if isinstance(child_items, list):
+            for i, item in enumerate(child_items):
+                self[i] = item
+        if isinstance(child_items, dict):
+            for key, value in child_items.items():
+                self[key] = value
 
     def items(self):
         return self.dict.items()
@@ -402,14 +412,8 @@ class ModelInstance(AbstractModel):
         return {
             key: value
             for key, value in self.__dict__.items()
-            if key not in (
-                "id",
-                "component_number",
-                "item_number"
-            ) and not (
-                    isinstance(key, str)
-                    and key.startswith("_")
-            )
+            if key not in ("id", "component_number", "item_number")
+            and not (isinstance(key, str) and key.startswith("_"))
         }
 
     def values(self):
@@ -418,8 +422,26 @@ class ModelInstance(AbstractModel):
     def __len__(self):
         return len(self.values())
 
-    def as_model(self, model_classes=tuple()):
+    def as_model(
+        self,
+        model_classes: Union[type, Iterable[type]] = tuple(),
+        excluded_classes: Union[type, Iterable[type]] = tuple(),
+    ):
+        """
+        Convert this instance to a model
+
+        Parameters
+        ----------
+        model_classes
+            The classes to convert to models
+        excluded_classes
+            The classes to exclude from conversion
+
+        Returns
+        -------
+        A model
+        """
 
         from autofit.mapper.prior_model.abstract import AbstractPriorModel
 
-        return AbstractPriorModel.from_instance(self, model_classes)
+        return AbstractPriorModel.from_instance(self, model_classes, excluded_classes,)

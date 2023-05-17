@@ -1,0 +1,10 @@
+higher_level_centre:
+  gaussian_limits:
+    lower: -inf
+    upper: inf
+  lower_limit: 0.0
+  type: Uniform
+  upper_limit: 100.0
+  width_modifier:
+    type: Absolute
+    value: 20.0

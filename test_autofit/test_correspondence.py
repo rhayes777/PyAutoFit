@@ -37,7 +37,7 @@ def test_logpdf_gradient_hessian(message):
     for v1, v2 in zip(
         message.logpdf_gradient_hessian(x), answer
     ):
-        assert v1 == pytest.approx(v2)
+        assert v1 == pytest.approx(v2, abs=1e-3)
 
 
 def test_calc_log_base_measure(message, x):

@@ -9,7 +9,7 @@ from autofit.non_linear.samples import Samples
     name="model"
 )
 def make_model():
-    return af.PriorModel(
+    return af.Model(
         af.Gaussian
     )
 
@@ -27,7 +27,7 @@ def make_serialized_model(model):
     name="collection"
 )
 def make_collection(model):
-    return af.CollectionPriorModel(
+    return af.Collection(
         model=model
     )
 
@@ -62,7 +62,7 @@ class TestModel:
             serialized_model
     ):
         assert isinstance(
-            serialized_model, db.PriorModel
+            serialized_model, db.Model
         )
         assert serialized_model.cls is af.Gaussian
 
@@ -146,7 +146,7 @@ class TestCollection:
     ):
         assert isinstance(
             serialized_collection,
-            db.CollectionPriorModel
+            db.Collection
         )
         child, = serialized_collection.children
         assert len(child.children) == 3
@@ -159,7 +159,7 @@ class TestCollection:
         assert len(collection) == 1
         assert isinstance(
             collection.model,
-            af.PriorModel
+            af.Model
         )
 
 
@@ -205,7 +205,7 @@ def test_none():
 
 
 def test_commit(session):
-    model = af.PriorModel(
+    model = af.Model(
         af.Gaussian
     )
     serialized = db.Object.from_object(model)

@@ -1,0 +1,5 @@
+# The settings of a parallelized grid search of non-linear searches.
+
+parallel:
+  number_of_cores: 3 # The number of cores the search is parallelized over by default, using Python multiprocessing.
+  step_size: 0.1     # The default step size of each grid search parameter, in terms of unit values of the priors.

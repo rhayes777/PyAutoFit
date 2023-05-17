@@ -4,15 +4,29 @@ PyAutoFit: Classy Probabilistic Programming
 .. |binder| image:: https://mybinder.org/badge_logo.svg
    :target: https://mybinder.org/v2/gh/Jammy2211/autofit_workspace/HEAD
 
+.. |RTD| image:: https://readthedocs.org/projects/pyautofit/badge/?version=latest
+    :target: https://pyautofit.readthedocs.io/en/latest/?badge=latest
+    :alt: Documentation Status
+
+.. |Tests| image:: https://github.com/rhayes777/PyAutoFit/actions/workflows/main.yml/badge.svg
+   :target: https://github.com/rhayes777/PyAutoFit/actions
+
+.. |Build| image:: https://github.com/rhayes777/PyAutoBuild/actions/workflows/release.yml/badge.svg
+   :target: https://github.com/rhayes777/PyAutoBuild/actions
+
 .. |JOSS| image:: https://joss.theoj.org/papers/10.21105/joss.02550/status.svg
    :target: https://doi.org/10.21105/joss.02550
 
-|binder| |JOSS|
+|binder| |Tests| |Build| |RTD| |JOSS|
 
 `Installation Guide <https://pyautofit.readthedocs.io/en/latest/installation/overview.html>`_ |
 `readthedocs <https://pyautofit.readthedocs.io/en/latest/index.html>`_ |
 `Introduction on Binder <https://mybinder.org/v2/gh/Jammy2211/autofit_workspace/release?filepath=introduction.ipynb>`_ |
 `HowToFit <https://pyautofit.readthedocs.io/en/latest/howtofit/howtofit.html>`_
+
+
+..
+   _ One day make these BOLD with a colon like my fellowsahip proposa,s where the first is Model Composition & Fitting: Tools for composing a complex model and fitting it with dynesty...
 
 PyAutoFit is a Python based probabilistic programming language for the fully Bayesian analysis of extremely large
 datasets which:
@@ -59,7 +73,6 @@ noisy 1D data. Here's the ``data`` (black) and the model (red) we'll fit:
 
 .. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/master/files/toy_model_fit.png
   :width: 400
-  :alt: Alternative text
 
 We define our model, a 1D Gaussian by writing a Python class using the format below:
 

@@ -12,7 +12,7 @@ from typing import Dict, Optional, Union, Tuple, List
 
 import numpy as np
 
-from autoconf import conf
+from autoconf import conf, cached_property
 from autofit import exc
 from autofit.database.sqlalchemy_ import sa
 from autofit.graphical import (
@@ -22,6 +22,8 @@ from autofit.graphical import (
     FactorApproximation,
 )
 from autofit.graphical.utils import Status
+from autofit.graphical.utils import Status
+from autofit.mapper.prior_model.collection import Collection
 from autofit.non_linear.initializer import Initializer
 from autofit.non_linear.parallel import SneakyPool
 from autofit.non_linear.paths.abstract import AbstractPaths
@@ -30,10 +32,11 @@ from autofit.non_linear.paths.sub_directory_paths import SubDirectoryPaths
 from autofit.non_linear.result import Result
 from autofit.non_linear.timer import Timer
 from .analysis import Analysis
+from .analysis.combined import CombinedResult
+from .analysis.indexed import IndexCollectionAnalysis
 from .paths.null import NullPaths
 from ..graphical.declarative.abstract import PriorFactor
 from ..graphical.expectation_propagation import AbstractFactorOptimiser
-from ..tools.util import IntervalCounter
 
 logger = logging.getLogger(__name__)
 
@@ -86,7 +89,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         searches.
 
         Parameters
-        ------------
+    ----------
         name
             The name of the search, controlling the last folder results are output.
         path_prefix
@@ -127,7 +130,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                 save_all_samples=kwargs.get("save_all_samples", False),
                 unique_tag=unique_tag,
             )
-        elif name is not None:
+        elif name is not None or path_prefix:
             logger.debug("Session not found. Using directory output.")
             paths = DirectoryPaths(
                 name=name, path_prefix=path_prefix, unique_tag=unique_tag
@@ -158,20 +161,12 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                 "iterations_per_update"
             ]
 
-        self.log_every_update = self._config("updates", "log_every_update")
-        self.visualize_every_update = self._config("updates", "visualize_every_update",)
-        self.model_results_every_update = self._config(
-            "updates", "model_results_every_update",
-        )
         self.remove_state_files_at_end = self._config(
             "updates", "remove_state_files_at_end",
         )
 
         self.iterations = 0
-        self.should_visualize = IntervalCounter(self.visualize_every_update)
-        self.should_output_model_results = IntervalCounter(
-            self.model_results_every_update
-        )
+
         self.should_profile = conf.instance["general"]["profiling"]["should_profile"]
 
         self.silence = self._config("printing", "silence")
@@ -236,7 +231,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                     If you "know what you are doing" and do not want these environment variables to be set to one, you 
                     can disable this warning by changing the following entry in the config files:
                     
-                    `config -> general.ini -> [parallel] -> warn_environment_variable=False`
+                    `config -> general.yaml -> parallel: -> warn_environment_variable=False`
                     """
                 )
             )
@@ -454,6 +449,75 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
              """
             return -np.inf
 
+    def fit_sequential(
+        self,
+        model,
+        analysis: IndexCollectionAnalysis,
+        info=None,
+        pickle_files=None,
+        log_likelihood_cap=None,
+    ) -> CombinedResult:
+        """
+        Fit multiple analyses contained within the analysis sequentially.
+
+        This can be useful for avoiding very high dimensional parameter spaces.
+
+        Parameters
+        ----------
+        log_likelihood_cap
+        analysis
+            Multiple analyses that are fit sequentially
+        model
+            An object that represents possible instances of some model with a
+            given dimensionality which is the number of free dimensions of the
+            model.
+        info
+            Optional dictionary containing information about the fit that can be loaded by the aggregator.
+        pickle_files : [str]
+            Optional list of strings specifying the path and filename of .pickle files, that are copied to each
+            model-fits pickles folder so they are accessible via the Aggregator.
+
+        Returns
+        -------
+        An object combining the results of each individual optimisation.
+
+        Raises
+        ------
+        AssertionError
+            If the model has 0 dimensions.
+        ValueError
+            If the analysis is not a combined analysis
+        """
+        results = []
+
+        _paths = self.paths
+        original_name = self.paths.name or "analysis"
+
+        model = analysis.modify_model(model=model)
+
+        try:
+            if not isinstance(model, Collection):
+                model = [model for _ in range(len(analysis.analyses))]
+        except AttributeError:
+            raise ValueError(
+                f"Analysis with type {type(analysis)} is not supported by fit_sequential"
+            )
+
+        for i, (model, analysis) in enumerate(zip(model, analysis.analyses)):
+            self.paths = copy.copy(_paths)
+            self.paths.name = f"{original_name}/{i}"
+            results.append(
+                self.fit(
+                    model=model,
+                    analysis=analysis,
+                    info=info,
+                    pickle_files=pickle_files,
+                    log_likelihood_cap=log_likelihood_cap,
+                )
+            )
+        self.paths = _paths
+        return CombinedResult(results)
+
     def fit(
         self,
         model,
@@ -461,6 +525,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         info=None,
         pickle_files=None,
         log_likelihood_cap=None,
+        bypass_nuclear_if_on : bool = False
     ) -> Union["Result", List["Result"]]:
         """
         Fit a model, M with some function f that takes instances of the
@@ -486,6 +551,9 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         pickle_files : [str]
             Optional list of strings specifying the path and filename of .pickle files, that are copied to each
             model-fits pickles folder so they are accessible via the Aggregator.
+        bypass_nuclear_if_on
+            If nuclear mode is on (environment variable "PYAUTOFIT_NUCLEAR_MODE=1") passing this as True will
+            bypass it.
 
         Returns
         -------
@@ -508,6 +576,13 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         self.paths.restore()
 
         analysis = analysis.modify_before_fit(paths=self.paths, model=model)
+
+        analysis.visualize_before_fit(
+            paths=self.paths, model=model,
+        )
+        analysis.visualize_before_fit_combined(
+            analyses=None, paths=self.paths, model=model,
+        )
 
         if not self.paths.is_complete or self.force_pickle_overwrite:
             self.logger.info("Saving path info")
@@ -579,6 +654,10 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         self.logger.info("Removing zip file")
         self.paths.zip_remove()
+
+        if not bypass_nuclear_if_on:
+            self.paths.zip_remove_nuclear()
+
         return result
 
     @abstractmethod
@@ -596,10 +675,10 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
     def _class_config(self) -> Dict:
         return self.config_type[self.__class__.__name__]
 
-    @property
+    @cached_property
     def config_dict_search(self) -> Dict:
 
-        config_dict = copy.copy(self._class_config["search"]._dict)
+        config_dict = copy.deepcopy(self._class_config["search"])
 
         for key, value in config_dict.items():
             try:
@@ -609,10 +688,10 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         return config_dict
 
-    @property
+    @cached_property
     def config_dict_run(self) -> Dict:
 
-        config_dict = copy.copy(self._class_config["run"]._dict)
+        config_dict = copy.deepcopy(self._class_config["run"])
 
         for key, value in config_dict.items():
             try:
@@ -632,7 +711,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
     @property
     def config_dict_settings(self) -> Dict:
-        return self._class_config["settings"]._dict
+        return self._class_config["settings"]
 
     @property
     def config_type(self):
@@ -662,9 +741,6 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         1) Visualize the maximum log likelihood model.
         2) Output the model results to the model.reults file.
 
-        These task are performed every n updates, set by the relevent *task_every_update* variable, for example
-        *visualize_every_update*
-
         Parameters
         ----------
         model : ModelMapper
@@ -688,7 +764,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         self.paths.save_object("samples", samples)
 
-        if not during_analysis:
+        if not isinstance(self.paths, NullPaths):
             self.plot_results(samples=samples)
 
         try:
@@ -696,11 +772,13 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         except exc.FitException:
             return samples
 
-        if self.should_visualize() or not during_analysis:
-            self.logger.debug("Visualizing")
-            analysis.visualize(
-                paths=self.paths, instance=instance, during_analysis=during_analysis
-            )
+        self.logger.debug("Visualizing")
+        analysis.visualize(
+            paths=self.paths, instance=instance, during_analysis=during_analysis
+        )
+        analysis.visualize_combined(
+            analyses=None, paths=self.paths, instance=instance, during_analysis=during_analysis
+        )
 
         if self.should_profile:
             self.logger.debug("Profiling Maximum Likelihood Model")
@@ -708,20 +786,19 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                 paths=self.paths, instance=instance,
             )
 
-        if self.should_output_model_results() or not during_analysis:
-            self.logger.debug("Outputting model result")
-            try:
+        self.logger.debug("Outputting model result")
+        try:
 
-                start = time.time()
-                analysis.log_likelihood_function(instance=instance)
-                log_likelihood_function_time = time.time() - start
+            start = time.time()
+            analysis.log_likelihood_function(instance=instance)
+            log_likelihood_function_time = time.time() - start
 
-                self.paths.save_summary(
-                    samples=samples,
-                    log_likelihood_function_time=log_likelihood_function_time,
-                )
-            except exc.FitException:
-                pass
+            self.paths.save_summary(
+                samples=samples,
+                log_likelihood_function_time=log_likelihood_function_time,
+            )
+        except exc.FitException:
+            pass
 
         if not during_analysis and self.remove_state_files_at_end:
             self.logger.debug("Removing state files")
@@ -803,8 +880,8 @@ class PriorPasser:
 
         By invoking the 'model' attribute, the prior is passed following 3 rules:
 
-        1) The new parameter uses a GaussianPrior. A GaussianPrior is ideal, as the 1D pdf results we compute at
-        the end of a search are easily summarized as a Gaussian.
+        1) The new parameter uses a GaussianPrior. A ``GaussianPrior`` is ideal, as the 1D pdf results we compute at
+           the end of a search are easily summarized as a Gaussian.
 
         2) The mean of the GaussianPrior is the median PDF value of the parameter estimated in search 1.
 
@@ -836,14 +913,14 @@ class PriorPasser:
         There are two ways a value is specified using the priors/width file:
 
         1) Absolute: In this case, the error assumed on the parameter is the value given in the config file. For
-        example, if for the width on the parameter of a model component the width modifier reads "Absolute" with
-        a value 0.05. This means if the error on the parameter was less than 0.05 in the previous search, the
-        sigma of its GaussianPrior in this search will be 0.05.
+           example, if for the width on the parameter of a model component the width modifier reads "Absolute" with
+           a value 0.05. This means if the error on the parameter was less than 0.05 in the previous search, the
+           sigma of its GaussianPrior in this search will be 0.05.
 
         2) Relative: In this case, the error assumed on the parameter is the % of the value of the estimate value
-        given in the config file. For example, if the parameter estimated in the previous search was 2.0, and the
-        relative error in the config file reads "Relative" with a value 0.5, then the sigma of the GaussianPrior
-        will be 50% of this value, i.e. sigma = 0.5 * 2.0 = 1.0.
+           given in the config file. For example, if the parameter estimated in the previous search was 2.0, and the
+           relative error in the config file reads "Relative" with a value 0.5, then the sigma of the GaussianPrior
+           will be 50% of this value, i.e. sigma = 0.5 * 2.0 = 1.0.
 
         The PriorPasser allows us to customize at what sigma the error values the model results are computed at to
         compute the passed sigma values and customizes whether the widths in the config file, these computed errors,

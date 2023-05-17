@@ -1,26 +1,29 @@
 from typing import Optional
 
 from autoconf import conf
-from autofit import exc
 from autofit.database.sqlalchemy_ import sa
-from autofit.non_linear.abstract_search import IntervalCounter
 from autofit.non_linear.abstract_search import NonLinearSearch
 from autofit.non_linear.abstract_search import PriorPasser
-from autofit.non_linear.initializer import InitializerPrior, AbstractInitializer, SpecificRangeInitializer
+from autofit.non_linear.initializer import (
+    InitializerPrior,
+    AbstractInitializer,
+    SpecificRangeInitializer,
+)
+from autofit.tools.util import IntervalCounter
 
 
 class AbstractNest(NonLinearSearch):
     def __init__(
-            self,
-            name: Optional[str] = None,
-            path_prefix: Optional[str] = None,
-            unique_tag: Optional[str] = None,
-            prior_passer: Optional[PriorPasser] = None,
-            iterations_per_update: Optional[int] = None,
-            number_of_cores: Optional[int] = None,
-            session: Optional[sa.orm.Session] = None,
-            initializer: Optional[AbstractInitializer] = None,
-            **kwargs
+        self,
+        name: Optional[str] = None,
+        path_prefix: Optional[str] = None,
+        unique_tag: Optional[str] = None,
+        prior_passer: Optional[PriorPasser] = None,
+        iterations_per_update: Optional[int] = None,
+        number_of_cores: Optional[int] = None,
+        session: Optional[sa.orm.Session] = None,
+        initializer: Optional[AbstractInitializer] = None,
+        **kwargs
     ):
         """
         Abstract class of a nested sampling `NonLinearSearch` (e.g. MultiNest, Dynesty).
@@ -42,7 +45,9 @@ class AbstractNest(NonLinearSearch):
             An SQLAlchemy session instance so the results of the model-fit are written to an SQLite database.
         """
         if isinstance(initializer, SpecificRangeInitializer):
-            raise ValueError("SpecificRangeInitializer cannot be used for nested sampling")
+            raise ValueError(
+                "SpecificRangeInitializer cannot be used for nested sampling"
+            )
 
         super().__init__(
             name=name,
@@ -58,20 +63,14 @@ class AbstractNest(NonLinearSearch):
 
     class Fitness(NonLinearSearch.Fitness):
         def __init__(
-                self,
-                paths,
-                analysis,
-                model,
-                samples_from_model,
-                log_likelihood_cap=None
+            self, paths, analysis, model, samples_from_model, log_likelihood_cap=None
         ):
-
             super().__init__(
                 paths=paths,
                 analysis=analysis,
                 model=model,
                 samples_from_model=samples_from_model,
-                log_likelihood_cap=log_likelihood_cap
+                log_likelihood_cap=log_likelihood_cap,
             )
 
             self.stagger_accepted_samples = 0
@@ -89,12 +88,14 @@ class AbstractNest(NonLinearSearch):
     def config_type(self):
         return conf.instance["non_linear"]["nest"]
 
-    def fitness_function_from_model_and_analysis(self, model, analysis, log_likelihood_cap=None):
+    def fitness_function_from_model_and_analysis(
+        self, model, analysis, log_likelihood_cap=None
+    ):
 
         return self.__class__.Fitness(
             paths=self.paths,
             model=model,
             analysis=analysis,
             samples_from_model=self.samples_from,
-            log_likelihood_cap=log_likelihood_cap
+            log_likelihood_cap=log_likelihood_cap,
         )

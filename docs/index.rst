@@ -37,9 +37,16 @@ for example:
 How does PyAutoFit Work?
 ========================
 
+To illustrate the **PyAutoFit** API, we'll use an illustrative toy model of fitting a one-dimensional Gaussian to
+noisy 1D data. Here's the ``data`` (black) and the model (red) we'll fit:
+
+.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/master/files/toy_model_fit.png
+  :width: 400
+
 Model components are written as Python classes, allowing **PyAutoFit** to define the *model* and
-associated *parameters* in an expressive way that is tied to the modeling software's API. Here is a simple example of
-how a *model* representing a 1D Gaussian is written:
+associated *parameters* in an expressive way that is tied to the modeling software's API.
+
+Here is a simple example of how a *model* representing a 1D Gaussian is written:
 
 .. code-block:: python
 
@@ -219,7 +226,14 @@ provides new users with a more detailed introduction to **PyAutoFit**.
    :maxdepth: 1
    :hidden:
 
-   api/api
+   api/model
+   api/priors
+   api/analysis
+   api/searches
+   api/plot
+   api/samples
+   api/database
+   api/source
 
 .. toctree::
    :caption: Features:

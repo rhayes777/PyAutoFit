@@ -8,14 +8,10 @@ from .. import model as m
 from ..sqlalchemy_ import sa
 from ...mapper.model_object import Identifier
 
-logger = logging.getLogger(
-    __name__
-)
+logger = logging.getLogger(__name__)
 
 
-def _parent_identifier(
-        directory: str
-) -> Optional[str]:
+def _parent_identifier(directory: str) -> Optional[str]:
     """
     Read the parent identifier for a fit in a directory.
 
@@ -29,11 +25,7 @@ def _parent_identifier(
 
 
 class Scraper:
-    def __init__(
-            self,
-            directory: Union[Path, str],
-            session: sa.orm.Session
-    ):
+    def __init__(self, directory: Union[Path, str], session: sa.orm.Session):
         """
         Facilitates scraping of data output into a directory
         into the database.
@@ -54,13 +46,9 @@ class Scraper:
         add them to the session
         """
         for fit in self._fits():
-            self.session.add(
-                fit
-            )
+            self.session.add(fit)
         for grid_search in self._grid_searches():
-            self.session.add(
-                grid_search
-            )
+            self.session.add(grid_search)
 
     def _fits(self):
         """
@@ -71,25 +59,15 @@ class Scraper:
         -------
         Generator yielding Fit database objects
         """
-        logger.info(
-            f"Scraping directory {self.directory}"
-        )
+        logger.info(f"Scraping directory {self.directory}")
         from autofit.aggregator.aggregator import Aggregator as ClassicAggregator
-        aggregator = ClassicAggregator(
-            self.directory
-        )
-        logger.info(
-            f"{len(aggregator)} searches found"
-        )
+
+        aggregator = ClassicAggregator(self.directory)
+        logger.info(f"{len(aggregator)} searches found")
         for item in aggregator:
+            is_complete = os.path.exists(f"{item.directory}/.completed")
 
-            is_complete = os.path.exists(
-                f"{item.directory}/.completed"
-            )
-
-            parent_identifier = _parent_identifier(
-                directory=item.directory
-            )
+            parent_identifier = _parent_identifier(directory=item.directory)
 
             model = item.model
             samples = item.samples
@@ -101,7 +79,8 @@ class Scraper:
                 f"{item.search.paths.path_prefix} "
                 f"{item.search.unique_tag} "
                 f"{item.search.name} "
-                f"{identifier} ")
+                f"{identifier} "
+            )
 
             try:
                 instance = samples.max_log_likelihood()
@@ -109,12 +88,8 @@ class Scraper:
                 instance = None
 
             try:
-                fit = self._retrieve_model_fit(
-                    item
-                )
-                logger.warning(
-                    f"Fit already existed with identifier {identifier}"
-                )
+                fit = self._retrieve_model_fit(item)
+                logger.warning(f"Fit already existed with identifier {identifier}")
             except sa.orm.exc.NoResultFound:
                 try:
                     log_likelihood = samples.max_log_likelihood_sample.log_likelihood
@@ -129,20 +104,21 @@ class Scraper:
                     is_complete=is_complete,
                     info=item.info,
                     max_log_likelihood=log_likelihood,
-                    parent_id=parent_identifier
+                    parent_id=parent_identifier,
                 )
 
             pickle_path = Path(item.pickle_path)
-            _add_pickles(
-                fit,
-                pickle_path
-            )
+            _add_pickles(fit, pickle_path)
+            for i, child_analysis in enumerate(item.child_analyses):
+                child_fit = m.Fit(
+                    id=f"{identifier}_{i}",
+                )
+                _add_pickles(child_fit, child_analysis.pickle_path)
+                fit.children.append(child_fit)
 
             yield fit
 
-    def _grid_searches(
-            self
-    ):
+    def _grid_searches(self):
         """
         Retrieve grid searches recursively from an output directory by
         searching for the .is_grid_search file.
@@ -154,49 +130,34 @@ class Scraper:
         Fit objects representing grid searches with child fits associated
         """
         from autofit.aggregator.aggregator import Aggregator as ClassicAggregator
+
         for root, _, filenames in os.walk(self.directory):
             if ".is_grid_search" in filenames:
                 path = Path(root)
 
                 is_complete = (path / ".completed").exists()
 
-                with open(
-                        path / ".is_grid_search"
-                ) as f:
+                with open(path / ".is_grid_search") as f:
                     unique_tag = f.read()
 
                 grid_search = m.Fit(
                     id=path.name,
                     unique_tag=unique_tag,
                     is_grid_search=True,
-                    parent_id=_parent_identifier(
-                        root
-                    ),
-                    is_complete=is_complete
+                    parent_id=_parent_identifier(root),
+                    is_complete=is_complete,
                 )
 
                 pickle_path = path / "pickles"
-                _add_pickles(
-                    grid_search,
-                    pickle_path
-                )
+                _add_pickles(grid_search, pickle_path)
 
-                aggregator = ClassicAggregator(
-                    root
-                )
+                aggregator = ClassicAggregator(root)
                 for item in aggregator:
-                    fit = self._retrieve_model_fit(
-                        item
-                    )
-                    grid_search.children.append(
-                        fit
-                    )
+                    fit = self._retrieve_model_fit(item)
+                    grid_search.children.append(fit)
                 yield grid_search
 
-    def _retrieve_model_fit(
-            self,
-            item
-    ) -> m.Fit:
+    def _retrieve_model_fit(self, item) -> m.Fit:
         """
         Retrieve a Fit, if one exists, corresponding to a given SearchOutput
 
@@ -214,18 +175,12 @@ class Scraper:
         NoResultFound
             If no fit is found with the identifier
         """
-        return self.session.query(
-            m.Fit
-        ).filter(
-            m.Fit.id == _make_identifier(
-                item
-            )
-        ).one()
+        return (
+            self.session.query(m.Fit).filter(m.Fit.id == _make_identifier(item)).one()
+        )
 
 
-def _make_identifier(
-        item
-) -> str:
+def _make_identifier(item) -> str:
     """
     Create a unique identifier for a SearchOutput.
 
@@ -243,17 +198,10 @@ def _make_identifier(
     """
     search = item.search
     model = item.model
-    return str(Identifier([
-        search,
-        model,
-        search.unique_tag
-    ]))
+    return str(Identifier([search, model, search.unique_tag]))
 
 
-def _add_pickles(
-        fit: m.Fit,
-        pickle_path: Path
-):
+def _add_pickles(fit: m.Fit, pickle_path: Path):
     """
     Load pickles from the path and add them to the database.
 
@@ -265,26 +213,19 @@ def _add_pickles(
         The path in which the pickles are stored
     """
     try:
-        filenames = os.listdir(
-            pickle_path
-        )
+        filenames = os.listdir(pickle_path)
     except FileNotFoundError as e:
         logger.exception(e)
         filenames = []
 
     for filename in filenames:
-
         try:
-            with open(
-                    pickle_path / filename,
-                    "r+b"
-            ) as f:
-                fit[
-                    filename.split(".")[0]
-                ] = pickle.load(f)
+            with open(pickle_path / filename, "r+b") as f:
+                fit[filename.split(".")[0]] = pickle.load(f)
         except (pickle.UnpicklingError, ModuleNotFoundError) as e:
-
             if filename == "dynesty.pickle":
                 continue
 
-            raise pickle.UnpicklingError(f"Failed to unpickle: {pickle_path} {filename}") from e
+            raise pickle.UnpicklingError(
+                f"Failed to unpickle: {pickle_path} {filename}"
+            ) from e

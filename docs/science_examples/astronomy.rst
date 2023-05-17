@@ -9,7 +9,7 @@ off of our astronomy software `PyAutoLens <https://github.com/Jammy2211/PyAutoLe
 
 The schematic below depicts a strong gravitational lens:
 
-.. image:: https://raw.githubusercontent.com/Jammy2211/PyAutoLens/master/docs/overview/images/lensing/schematic.jpg
+.. image:: https://raw.githubusercontent.com/Jammy2211/PyAutoLens/main/docs/overview/images/lensing/schematic.jpg
   :width: 600
   :alt: Alternative text
 
@@ -26,7 +26,7 @@ Multi-Level Models
 We therefore need a model which contains separate model-components for every galaxy, and where each galaxy contains
 separate model-components describing its light and mass. A multi-level representation of this model is as follows:
 
-.. image:: https://github.com/rhayes777/PyAutoFit/blob/master/docs/overview/image/lens_model.png?raw=true
+.. image:: https://github.com/rhayes777/PyAutoFit/blob/main/docs/overview/image/lens_model.png?raw=true
   :width: 600
   :alt: Alternative text
 
@@ -263,7 +263,7 @@ modeling features to compose and fits models of arbitrary complexity and dimensi
 
 To illustrate this further, consider the following dataset which is called a **strong lens galaxy cluster**:
 
-.. image:: https://github.com/rhayes777/PyAutoFit/blob/master/docs/overview/image/cluster_example.jpg?raw=true
+.. image:: https://github.com/rhayes777/PyAutoFit/blob/main/docs/overview/image/cluster_example.jpg?raw=true
    :width: 600
    :alt: Alternative text
 
@@ -307,7 +307,7 @@ example:
 
 Here is an illustration of this model's graph:
 
-.. image:: https://github.com/rhayes777/PyAutoFit/blob/master/docs/overview/image/lens_model_cluster.png?raw=true
+.. image:: https://github.com/rhayes777/PyAutoFit/blob/main/docs/overview/image/lens_model_cluster.png?raw=true
   :width: 600
   :alt: Alternative text
 

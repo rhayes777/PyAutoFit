@@ -1,0 +1,29 @@
+analysis:
+  n_cores: 1                        # The number of cores a parallelized sum of Analysis classes uses by default.
+hpc:
+  hpc_mode: false                   # If True, use HPC mode, which disables GUI visualization, logging to screen and other settings which are not suited to running on a super computer.
+  iterations_per_update: 5000       # The number of iterations between every update (visualization, results output, etc) in HPC mode.
+inversion:
+  check_reconstruction: true        # If True, the inversion's reconstruction is checked to ensure the solution of a meshs's mapper is not an invalid solution where the values are all the same.
+  reconstruction_vmax_factor: 0.5   # Plots of an Inversion's reconstruction use the reconstructed data's bright value multiplied by this factor.  
+model:
+  ignore_prior_limits: false        # If ``True`` the limits applied to priors will be ignored, where limits set upper / lower limits. This stops PriorLimitException's from being raised.
+output:
+  force_pickle_overwrite: false     # If True pickle files output by a search (e.g. samples.pickle) are recreated when a new model-fit is performed.
+  force_visualize_overwrite: false # If True, visualization images output by a search (e.g. subplots of the fit) are recreated when a new model-fit is performed.
+  info_whitespace_length: 80        # Length of whitespace between the parameter names and values in the model.info / result.info
+  log_level: INFO                   # The level of information output by logging.
+  log_to_file: false                # If True, outputs the non-linear search log to a file (and not printed to screen).
+  log_file: output.log              # The name of the file the logged output is written to (in the non-linear search output folder)
+  model_results_decimal_places: 3   # Number of decimal places estimated parameter values / errors are output in model.results.
+  remove_files: false               # If True, all output files of a non-linear search (e.g. samples, visualization, etc.) are deleted once the model-fit has completed, such that only the .zip file remains.
+  samples_to_csv: true              # If True, non-linear search samples are written to a .csv file.
+parallel:
+  warn_environment_variables: true  # If True, a warning is displayed when the search's number of CPU > 1 and enviromment variables related to threading are also > 1.
+profiling:
+  parallel_profile: false           # If True, the parallelization of the fit is profiled outputting a cPython graph.
+  should_profile: false             # If True, the ``profile_log_likelihood_function()`` function of an analysis class is called throughout a model-fit, profiling run times.
+  repeats: 1                        # The number of repeat function calls used to measure run-times when profiling.
+test:
+  exception_override: false
+  parallel_profile: false

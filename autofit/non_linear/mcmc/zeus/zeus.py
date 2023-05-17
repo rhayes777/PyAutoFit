@@ -2,18 +2,17 @@ from os import path
 from typing import Optional
 
 import numpy as np
-from autofit.database.sqlalchemy_ import sa
 
 from autoconf import conf
-from autofit import exc
+from autofit.database.sqlalchemy_ import sa
 from autofit.mapper.model_mapper import ModelMapper
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
-from autofit.non_linear.mcmc.abstract_mcmc import AbstractMCMC
-from autofit.non_linear.mcmc.auto_correlations import AutoCorrelationsSettings
-from autofit.non_linear.mcmc.zeus.samples import SamplesZeus
 from autofit.non_linear.abstract_search import PriorPasser
 from autofit.non_linear.initializer import Initializer
+from autofit.non_linear.mcmc.abstract_mcmc import AbstractMCMC
+from autofit.non_linear.mcmc.auto_correlations import AutoCorrelationsSettings
 from autofit.non_linear.mcmc.zeus.plotter import ZeusPlotter
+from autofit.non_linear.mcmc.zeus.samples import SamplesZeus
 from autofit.plot.output import Output
 
 
@@ -24,21 +23,21 @@ class Zeus(AbstractMCMC):
         "tolerance",
         "patience",
         "mu",
-        "light_mode"
+        "light_mode",
     )
 
     def __init__(
-            self,
-            name: Optional[str] = None,
-            path_prefix: Optional[str] = None,
-            unique_tag: Optional[str] = None,
-            prior_passer: Optional[PriorPasser] = None,
-            initializer: Optional[Initializer] = None,
-            auto_correlations_settings=AutoCorrelationsSettings(),
-            iterations_per_update: int = None,
-            number_of_cores: int = None,
-            session: Optional[sa.orm.Session] = None,
-            **kwargs
+        self,
+        name: Optional[str] = None,
+        path_prefix: Optional[str] = None,
+        unique_tag: Optional[str] = None,
+        prior_passer: Optional[PriorPasser] = None,
+        initializer: Optional[Initializer] = None,
+        auto_correlations_settings=AutoCorrelationsSettings(),
+        iterations_per_update: int = None,
+        number_of_cores: int = None,
+        session: Optional[sa.orm.Session] = None,
+        **kwargs
     ):
         """
         An Zeus non-linear search.
@@ -97,7 +96,6 @@ class Zeus(AbstractMCMC):
         self.logger.debug("Creating Zeus Search")
 
     class Fitness(AbstractMCMC.Fitness):
-
         def figure_of_merit_from(self, parameter_list):
             """
             The figure of merit is the value that the `NonLinearSearch` uses to sample parameter space. 
@@ -164,7 +162,9 @@ class Zeus(AbstractMCMC):
             else:
                 iterations_remaining = self.config_dict_run["nsteps"] - total_iterations
 
-                self.logger.info("Existing Zeus samples found, resuming non-linear search.")
+                self.logger.info(
+                    "Existing Zeus samples found, resuming non-linear search."
+                )
 
         else:
 
@@ -177,10 +177,15 @@ class Zeus(AbstractMCMC):
 
             zeus_sampler.ncall_total = 0
 
-            unit_parameter_lists, parameter_lists, log_posterior_list = self.initializer.samples_from_model(
+            (
+                unit_parameter_lists,
+                parameter_lists,
+                log_posterior_list,
+            ) = self.initializer.samples_from_model(
                 total_points=zeus_sampler.nwalkers,
                 model=model,
                 fitness_function=fitness_function,
+                test_mode_samples=False
             )
 
             zeus_state = np.zeros(shape=(zeus_sampler.nwalkers, model.prior_count))
@@ -202,20 +207,17 @@ class Zeus(AbstractMCMC):
                 iterations = self.iterations_per_update
 
             for sample in zeus_sampler.sample(
-                    start=zeus_state,
-                    log_prob0=log_posterior_list,
-                    iterations=iterations,
-                    progress=True,
+                start=zeus_state,
+                log_prob0=log_posterior_list,
+                iterations=iterations,
+                progress=True,
             ):
 
                 pass
 
             zeus_sampler.ncall_total += zeus_sampler.ncall
 
-            self.paths.save_object(
-                "zeus",
-                zeus_sampler
-            )
+            self.paths.save_object("zeus", zeus_sampler)
 
             zeus_state = zeus_sampler.get_last_sample()
             log_posterior_list = zeus_sampler.get_last_log_prob()
@@ -252,14 +254,16 @@ class Zeus(AbstractMCMC):
             "nsteps": 10,
         }
 
-    def fitness_function_from_model_and_analysis(self, model, analysis, log_likelihood_cap=None):
+    def fitness_function_from_model_and_analysis(
+        self, model, analysis, log_likelihood_cap=None
+    ):
 
         return Zeus.Fitness(
             paths=self.paths,
             model=model,
             analysis=analysis,
             samples_from_model=self.samples_from,
-            log_likelihood_cap=log_likelihood_cap
+            log_likelihood_cap=log_likelihood_cap,
         )
 
     def samples_from(self, model):
@@ -279,23 +283,22 @@ class Zeus(AbstractMCMC):
             results_internal=self.zeus_pickled,
             model=model,
             auto_correlation_settings=self.auto_correlations_settings,
-            time=self.timer.time
+            time=self.timer.time,
         )
 
     @property
     def zeus_pickled(self):
-        return self.paths.load_object(
-            "zeus"
-        )
+        return self.paths.load_object("zeus")
 
     def plot_results(self, samples):
-
         def should_plot(name):
             return conf.instance["visualize"]["plots_search"]["emcee"][name]
 
         plotter = ZeusPlotter(
             samples=samples,
-            output=Output(path=path.join(self.paths.image_path, "search"), format="png")
+            output=Output(
+                path=path.join(self.paths.image_path, "search"), format="png"
+            ),
         )
 
         if should_plot("corner"):
@@ -309,5 +312,3 @@ class Zeus(AbstractMCMC):
 
         if should_plot("time_series"):
             plotter.time_series()
-
-
