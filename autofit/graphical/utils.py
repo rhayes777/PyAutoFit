@@ -54,6 +54,9 @@ def is_iterable(arg):
         arg, six.string_types
     )
 
+def is_namedtuple(obj):
+    return isinstance(obj, tuple) and hasattr(obj, '_fields')
+
 def nested_getitem(obj, key):
     """
     Example
@@ -112,7 +115,7 @@ def nested_items(*args, key=()):
     """
     out, *_ = args
     if isinstance(out, dict):
-        for k in out:
+        for k in sorted(out):
             yield from nested_items(*(out[k] for out in args), key=key + (k,))
     elif isinstance(out, (tuple, list)):
         for i, elems in enumerate(zip(*args)):
@@ -138,13 +141,26 @@ def nested_zip(*args):
     """
     out, *_ = args
     if isinstance(out, dict):
-        for k in out:
+        for k in sorted(out):
             yield from nested_zip(*(out[k] for out in args))
     elif is_iterable(out):
         for elems in zip(*args):
             yield from nested_zip(*elems)
     else:
         yield args
+
+
+def nested_iter(args):
+    """Iterates through a potentially nested set of list, tuples and dictionaries, 
+    recursively looping through the structure and returning the leaves of the tree
+
+    Example
+    -------
+    >>> list(nested_iter([1, (2, 3), [3, 2, {1, 2}]]))    
+    [1, 2, 3, 3, 2, 1, 2]
+    """
+    for elem, in nested_zip(args):
+        yield elem
 
 
 def nested_filter(func, *args):
@@ -172,7 +188,7 @@ def nested_filter(func, *args):
             yield leaves
 
 
-def nested_map(func, out, *args):
+def nested_map(func, *args):
     """
     Given a potentially nested set of list, tuples and dictionaries, recursively loop through the structure and
     replace any values that appear in the dict to_replace
@@ -190,17 +206,20 @@ def nested_map(func, out, *args):
     ... )
     [1, (4, 9), [9, {'a': 1, 'b': 4}]]
     """
+    out, *_ = args
     if isinstance(out, dict):
         return type(out)(
             {
-                k: nested_map(func, v, *(arg[k] for arg in args))
-                for k, v in out.items()
+                k: nested_map(func, *(arg[k] for arg in args))
+                for k in sorted(out)
             }
         )
+    elif is_namedtuple(out):
+        return type(out)(*(nested_map(func, *elems) for elems in zip(*args)))
     elif is_iterable(out):
-        return type(out)(nested_map(func, *elems) for elems in zip(out, *args))
+        return type(out)(nested_map(func, *elems) for elems in zip(*args))
 
-    return func(out, *args)
+    return func(*args)
 
 
 def nested_update(out, to_replace):
@@ -208,6 +227,8 @@ def nested_update(out, to_replace):
     Given a potentially nested set of list, tuples and dictionaries, recursively loop through the structure and
     replace any values that appear in the dict to_replace
     can set to replace dictionary keys optionally,
+
+    Does not replace values in place, so can 'mutate' tuples
 
     Example
     -------

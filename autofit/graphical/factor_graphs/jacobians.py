@@ -119,6 +119,7 @@ class AbstractJacobian(VariableLinearOperator):
         for v, g in jac.items():
             grad[v] = grad.get(v, 0) + g
 
+        grad.pop(FactorValue)
         return grad
 
 
