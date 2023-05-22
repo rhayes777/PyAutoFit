@@ -22,6 +22,12 @@ class LinearRelationship:
     def __call__(self, x):
         return self.m * x + self.c
 
+    def __str__(self):
+        return f"y = {self.m}x + {self.c}"
+
+    def __repr__(self):
+        return str(self)
+
 
 class LinearAnalysis(Analysis):
     def __init__(
