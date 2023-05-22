@@ -6,6 +6,34 @@ from scipy.optimize import curve_fit
 from autofit.non_linear.samples.pdf import SamplesPDF
 from .abstract import AbstractInterpolator
 from .query import Equality
+from autofit.non_linear.analysis.analysis import Analysis
+
+
+class LinearRelationship:
+    def __init__(self, m: float, c: float):
+        self.m = m
+        self.c = c
+
+    def __call__(self, x):
+        return self.m * x + self.c
+
+
+class LinearAnalysis(Analysis):
+    def __init__(self, x, y, inverse_covariance_matrix):
+        self.x = np.array(x)
+        self.y = np.array(y)
+        self.inverse_covariance_matrix = inverse_covariance_matrix
+
+    def _y(self, instance):
+        return np.array([relationship(x) for relationship, x in zip(instance, self.x)])
+
+    def log_likelihood_function(self, instance):
+        return -0.5 * (
+            np.dot(
+                self.y - self._y(instance),
+                np.dot(self.inverse_covariance_matrix, self.y - self._y(instance)),
+            )
+        )
 
 
 class CovarianceInterpolator(AbstractInterpolator):
