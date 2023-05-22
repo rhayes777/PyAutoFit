@@ -2,6 +2,7 @@ import copy
 from abc import ABC, abstractmethod
 
 import numpy as np
+import scipy
 from scipy.interpolate import CubicSpline
 from typing import List, Dict, cast
 
@@ -248,6 +249,10 @@ class CovarianceInterpolator(AbstractInterpolator):
                 i * prior_count : (i + 1) * prior_count,
             ] = matrix
         return array
+
+    @property
+    def inverse_covariance_matrix(self):
+        return scipy.linalg.inv(self.covariance_matrix)
 
     @staticmethod
     def _interpolate(x, y, value):
