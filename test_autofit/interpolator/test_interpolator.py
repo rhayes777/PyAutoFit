@@ -2,8 +2,6 @@ import pytest
 
 import autofit as af
 from autoconf.dictable import as_dict
-from autofit.interpolator.covariance import LinearAnalysis, LinearRelationship
-import numpy as np
 
 
 def test_trivial():
@@ -159,22 +157,3 @@ def test_instance_from_dict(model_instance, instance_dict):
     assert gaussian.centre == 0.0
     assert gaussian.normalization == 1.0
     assert gaussian.sigma == -1.0
-
-
-def test_trivial_linear_analysis():
-    linear_analysis = LinearAnalysis(
-        x=[1.0, 2.0, 3.0],
-        y=[2.0, 4.0, 6.0],
-        inverse_covariance_matrix=np.eye(3),
-    )
-    instance = 3 * [
-        LinearRelationship(
-            m=2.0,
-            c=0.0,
-        )
-    ]
-    assert list(linear_analysis._y(instance)) == [2.0, 4.0, 6.0]
-    assert linear_analysis.log_likelihood_function(instance) == 0.0
-
-
-# Multiple attributes per point in time

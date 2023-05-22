@@ -1,3 +1,5 @@
+from collections import defaultdict
+
 import numpy as np
 import scipy
 from typing import List
@@ -20,12 +22,18 @@ class LinearRelationship:
 
 class LinearAnalysis(Analysis):
     def __init__(self, x, y, inverse_covariance_matrix):
+        x_y_map = defaultdict(list)
+        for x, y in zip(x, y):
+            x_y_map[x].append(y)
+
+        x, y = zip(*sorted(x_y_map.items()))
+
         self.x = np.array(x)
-        self.y = np.array(y)
+        self.y = np.array([value for values in y for value in values])
         self.inverse_covariance_matrix = inverse_covariance_matrix
 
     def _y(self, instance):
-        return np.array([relationship(x) for relationship, x in zip(instance, self.x)])
+        return np.array([relationship(x) for x in self.x for relationship in instance])
 
     def log_likelihood_function(self, instance):
         return -0.5 * (
