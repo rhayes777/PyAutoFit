@@ -30,7 +30,11 @@ def frozen_cache(func):
     @wraps(func)
     def cache(self, *args, **kwargs):
         if hasattr(self, "_is_frozen") and self._is_frozen:
-            key = (func.__name__, self, *args,) + tuple(kwargs.items())
+            key = (
+                func.__name__,
+                self,
+                *args,
+            ) + tuple(kwargs.items())
 
             if key not in self._frozen_cache:
                 self._frozen_cache[key] = func(self, *args, **kwargs)
@@ -222,7 +226,9 @@ class AbstractModel(ModelObject):
 
     @frozen_cache
     def models_with_type(
-        self, cls: Union[Type, Tuple[Type, ...]], include_zero_dimension=False,
+        self,
+        cls: Union[Type, Tuple[Type, ...]],
+        include_zero_dimension=False,
     ) -> List["AbstractModel"]:
         """
         Return all models of a given type in the model tree.
@@ -376,7 +382,10 @@ class ModelInstance(AbstractModel):
         self.child_items = child_items
 
     def __eq__(self, other):
-        return self.__dict__ == other.__dict__
+        try:
+            return self.__dict__ == other.__dict__
+        except AttributeError:
+            return False
 
     def __getitem__(self, item):
         if isinstance(item, int):
@@ -444,4 +453,8 @@ class ModelInstance(AbstractModel):
 
         from autofit.mapper.prior_model.abstract import AbstractPriorModel
 
-        return AbstractPriorModel.from_instance(self, model_classes, excluded_classes,)
+        return AbstractPriorModel.from_instance(
+            self,
+            model_classes,
+            excluded_classes,
+        )

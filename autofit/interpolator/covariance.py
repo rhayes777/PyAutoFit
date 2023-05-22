@@ -8,6 +8,7 @@ from autofit.non_linear.samples.pdf import SamplesPDF
 from .abstract import AbstractInterpolator
 from .query import Equality
 from autofit.non_linear.analysis.analysis import Analysis
+from autofit.non_linear.nest.dynesty.static import DynestyStatic
 from autofit.mapper.prior_model.prior_model import Model
 from autofit.mapper.prior_model.collection import Collection
 from autofit.mapper.prior.gaussian import GaussianPrior
@@ -92,17 +93,36 @@ class CovarianceInterpolator(AbstractInterpolator):
             inverse_covariance_matrix=self.inverse_covariance_matrix,
         )
 
-    def __getitem__(self, value: Equality):
+    def _relationships_for_value(self, value: Equality):
         analysis = self._linear_analysis_for_value(value)
+        model = self.model
+        optimizer = DynestyStatic()
+        result = optimizer.fit(model=model, analysis=analysis)
+        return result.instance
+
+    def __getitem__(self, value: Equality):
+        relationships = self._relationships_for_value(value)
+        model = self._single_model
+        arguments = {
+            prior: relationship(value.value)
+            for prior, relationship in zip(
+                model.priors_ordered_by_id,
+                relationships,
+            )
+        }
+        return model.instance_for_arguments(arguments)
 
     def _max_likelihood_samples_list(self):
         return max(self.samples_list, key=lambda s: max(s.log_likelihood_list))
 
     @property
+    def _single_model(self):
+        return self._max_likelihood_samples_list().model
+
+    @property
     def model(self):
-        single_model = self._max_likelihood_samples_list().model
         models = []
-        for prior in single_model.priors_ordered_by_id:
+        for prior in self._single_model.priors_ordered_by_id:
             mean = prior.mean
             models.append(
                 Model(
