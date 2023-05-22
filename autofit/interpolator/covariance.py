@@ -4,11 +4,13 @@ import numpy as np
 import scipy
 from typing import List
 
-from scipy.optimize import curve_fit
 from autofit.non_linear.samples.pdf import SamplesPDF
 from .abstract import AbstractInterpolator
 from .query import Equality
 from autofit.non_linear.analysis.analysis import Analysis
+from autofit.mapper.prior_model.prior_model import Model
+from autofit.mapper.prior_model.collection import Collection
+from autofit.mapper.prior.gaussian import GaussianPrior
 
 
 class LinearRelationship:
@@ -93,12 +95,20 @@ class CovarianceInterpolator(AbstractInterpolator):
     def __getitem__(self, value: Equality):
         analysis = self._linear_analysis_for_value(value)
 
+    def _max_likelihood_samples_list(self):
+        return max(self.samples_list, key=lambda s: max(s.log_likelihood_list))
+
     @property
-    def _y(self):
-        return np.array(
-            [
-                value
-                for samples in self.samples_list
-                for value in samples.max_log_likelihood(as_instance=False)
-            ]
-        )
+    def model(self):
+        single_model = self._max_likelihood_samples_list().model
+        models = []
+        for prior in single_model.priors_ordered_by_id:
+            mean = prior.mean
+            models.append(
+                Model(
+                    LinearRelationship,
+                    m=GaussianPrior(mean=mean, sigma=mean),
+                    c=GaussianPrior(mean=mean, sigma=mean),
+                )
+            )
+        return Collection(models)

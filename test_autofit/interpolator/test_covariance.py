@@ -70,12 +70,6 @@ def test_covariance_is_invertible(interpolator):
     assert np.linalg.inv(interpolator.covariance_matrix) is not None
 
 
-def test_y(interpolator):
-    assert (
-        interpolator._y == np.array([0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 2.0, 2.0, 2.0])
-    ).all()
-
-
 def test_interpolate(interpolator):
     assert interpolator[interpolator.t == 0.5] == 0.5
 
@@ -84,3 +78,8 @@ def test_linear_analysis_for_value(interpolator):
     analysis = interpolator._linear_analysis_for_value(interpolator.t == 0.5)
     assert (analysis.x == np.array([0, 1, 2])).all()
     assert (analysis.y == np.array([0, 0, 0, 1, 1, 1, 2, 2, 2])).all()
+
+
+def test_model(interpolator):
+    model = interpolator.model
+    assert model.prior_count == 6
