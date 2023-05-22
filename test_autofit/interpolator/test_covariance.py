@@ -11,7 +11,12 @@ def make_interpolator():
         af.SamplesPDF(
             model=af.Collection(
                 t=value,
-                gaussian=af.Model(af.Gaussian),
+                gaussian=af.Model(
+                    af.Gaussian,
+                    centre=af.GaussianPrior(mean=1.0, sigma=1.0),
+                    normalization=af.GaussianPrior(mean=1.0, sigma=1.0),
+                    sigma=af.GaussianPrior(mean=1.0, sigma=1.0),
+                ),
             ),
             sample_list=[
                 af.Sample(
@@ -71,7 +76,7 @@ def test_covariance_is_invertible(interpolator):
 
 
 def test_interpolate(interpolator):
-    assert interpolator[interpolator.t == 0.5] == 0.5
+    assert interpolator[interpolator.t == 0.5].gaussian.centre == 0.5
 
 
 def test_linear_analysis_for_value(interpolator):
