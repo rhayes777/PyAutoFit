@@ -113,5 +113,34 @@ def test_single_variable():
     interpolator = CovarianceInterpolator(
         samples_list,
     )
+    assert interpolator[interpolator.t == 50.0].v == pytest.approx(50.0, abs=1.0)
+
+
+def test_variable_and_constant():
+    samples_list = [
+        af.SamplesPDF(
+            model=af.Collection(
+                t=value,
+                v=af.GaussianPrior(mean=1.0, sigma=1.0),
+                x=af.GaussianPrior(mean=1.0, sigma=1.0),
+            ),
+            sample_list=[
+                af.Sample(
+                    log_likelihood=-value,
+                    log_prior=1.0,
+                    weight=1.0,
+                    kwargs={
+                        ("v",): value + 0.1 * (1 - np.random.random()),
+                        ("x",): 0.5 * (1 - +np.random.random()),
+                    },
+                )
+                for _ in range(100)
+            ],
+        )
+        for value in range(100)
+    ]
+    interpolator = CovarianceInterpolator(
+        samples_list,
+    )
     print(interpolator.covariance_matrix)
     assert interpolator[interpolator.t == 50.0].v == pytest.approx(50.0, abs=1.0)
