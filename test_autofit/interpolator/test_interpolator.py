@@ -140,7 +140,7 @@ def make_linear_interpolator_dict(instance_dict):
                 "type": "autofit.mapper.model.ModelInstance",
             },
         ],
-        "type": "autofit.interpolator.LinearInterpolator",
+        "type": "autofit.interpolator.linear.LinearInterpolator",
     }
 
 
