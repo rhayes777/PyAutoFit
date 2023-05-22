@@ -88,3 +88,30 @@ def test_linear_analysis_for_value(interpolator):
 def test_model(interpolator):
     model = interpolator.model
     assert model.prior_count == 6
+
+
+def test_single_variable():
+    samples_list = [
+        af.SamplesPDF(
+            model=af.Collection(
+                t=value,
+                v=af.GaussianPrior(mean=1.0, sigma=1.0),
+            ),
+            sample_list=[
+                af.Sample(
+                    log_likelihood=-value,
+                    log_prior=1.0,
+                    weight=1.0,
+                    kwargs={
+                        ("v",): value,
+                    },
+                )
+            ],
+        )
+        for value in range(100)
+    ]
+    interpolator = CovarianceInterpolator(
+        samples_list,
+    )
+    print(interpolator.covariance_matrix)
+    assert interpolator[interpolator.t == 50.0].v == pytest.approx(50.0, abs=1.0)

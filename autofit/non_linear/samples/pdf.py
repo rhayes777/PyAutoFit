@@ -6,18 +6,22 @@ import numpy as np
 from autofit.mapper.model import ModelInstance
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.samples.sample import Sample, load_from_table
-from autofit.non_linear.samples.samples import to_instance, to_instance_sigma, to_instance_input
+from autofit.non_linear.samples.samples import (
+    to_instance,
+    to_instance_sigma,
+    to_instance_input,
+)
 from .samples import Samples
 
 
 class SamplesPDF(Samples):
     def __init__(
-            self,
-            model: AbstractPriorModel,
-            sample_list: List[Sample],
-            unconverged_sample_size: int = 100,
-            time: Optional[float] = None,
-            results_internal: Optional = None,
+        self,
+        model: AbstractPriorModel,
+        sample_list: List[Sample],
+        unconverged_sample_size: int = 100,
+        time: Optional[float] = None,
+        results_internal: Optional = None,
     ):
         """
         The `Samples` classes in **PyAutoFit** provide an interface between the results_internal of
@@ -53,7 +57,7 @@ class SamplesPDF(Samples):
             model=model,
             sample_list=sample_list,
             time=time,
-            results_internal=results_internal
+            results_internal=results_internal,
         )
 
         self._unconverged_sample_size = int(unconverged_sample_size)
@@ -70,14 +74,9 @@ class SamplesPDF(Samples):
         """
         from .stored import SamplesStored
 
-        sample_list = load_from_table(
-            filename=filename
-        )
+        sample_list = load_from_table(filename=filename)
 
-        return SamplesStored(
-            model=model,
-            sample_list=sample_list
-        )
+        return SamplesStored(model=model, sample_list=sample_list)
 
     @property
     def unconverged_sample_size(self):
@@ -124,7 +123,9 @@ class SamplesPDF(Samples):
         return self.max_log_likelihood(as_instance=False)
 
     @to_instance_sigma
-    def values_at_sigma(self, sigma: float, as_instance: bool = True) -> [Tuple, ModelInstance]:
+    def values_at_sigma(
+        self, sigma: float, as_instance: bool = True
+    ) -> [Tuple, ModelInstance]:
         """
         The value of every parameter marginalized in 1D at an input sigma value of its probability density function
         (PDF), returned as two lists of values corresponding to the lower and upper values parameter values.
@@ -147,7 +148,6 @@ class SamplesPDF(Samples):
         """
 
         if self.pdf_converged:
-
             low_limit = (1 - math.erf(sigma / math.sqrt(2))) / 2
 
             lower_errors = [
@@ -162,10 +162,10 @@ class SamplesPDF(Samples):
             return [(lower, upper) for lower, upper in zip(lower_errors, upper_errors)]
 
         parameters_min = list(
-            np.min(self.parameter_lists[-self.unconverged_sample_size:], axis=0)
+            np.min(self.parameter_lists[-self.unconverged_sample_size :], axis=0)
         )
         parameters_max = list(
-            np.max(self.parameter_lists[-self.unconverged_sample_size:], axis=0)
+            np.max(self.parameter_lists[-self.unconverged_sample_size :], axis=0)
         )
 
         return [
@@ -174,7 +174,9 @@ class SamplesPDF(Samples):
         ]
 
     @to_instance_sigma
-    def values_at_upper_sigma(self, sigma: float, as_instance: bool = True) -> Union[List, ModelInstance]:
+    def values_at_upper_sigma(
+        self, sigma: float, as_instance: bool = True
+    ) -> Union[List, ModelInstance]:
         """
         The upper value of every parameter marginalized in 1D at an input sigma value of its probability density
         function (PDF), returned as a list.
@@ -186,10 +188,14 @@ class SamplesPDF(Samples):
         sigma
             The sigma within which the PDF is used to estimate errors (e.g. sigma = 1.0 uses 0.6826 of the PDF).
         """
-        return list(map(lambda param: param[1], self.values_at_sigma(sigma, as_instance=False)))
+        return list(
+            map(lambda param: param[1], self.values_at_sigma(sigma, as_instance=False))
+        )
 
     @to_instance_sigma
-    def values_at_lower_sigma(self, sigma: float, as_instance: bool = True) -> Union[List, ModelInstance]:
+    def values_at_lower_sigma(
+        self, sigma: float, as_instance: bool = True
+    ) -> Union[List, ModelInstance]:
         """
         The lower value of every parameter marginalized in 1D at an input sigma value of its probability density
         function (PDF), returned as a list.
@@ -201,10 +207,14 @@ class SamplesPDF(Samples):
         sigma
             The sigma limit within which the PDF is used to estimate errors (e.g. sigma = 1.0 uses 0.6826 of the PDF).
         """
-        return list(map(lambda param: param[0], self.values_at_sigma(sigma, as_instance=False)))
+        return list(
+            map(lambda param: param[0], self.values_at_sigma(sigma, as_instance=False))
+        )
 
     @to_instance_sigma
-    def errors_at_sigma(self, sigma: float, as_instance: bool = True) -> [Tuple, ModelInstance]:
+    def errors_at_sigma(
+        self, sigma: float, as_instance: bool = True
+    ) -> [Tuple, ModelInstance]:
         """
         The lower and upper error of every parameter marginalized in 1D at an input sigma value of its probability
         density function (PDF), returned as a list.
@@ -218,10 +228,15 @@ class SamplesPDF(Samples):
         """
         error_vector_lower = self.errors_at_lower_sigma(sigma=sigma, as_instance=False)
         error_vector_upper = self.errors_at_upper_sigma(sigma=sigma, as_instance=False)
-        return [(lower, upper) for lower, upper in zip(error_vector_lower, error_vector_upper)]
+        return [
+            (lower, upper)
+            for lower, upper in zip(error_vector_lower, error_vector_upper)
+        ]
 
     @to_instance_sigma
-    def errors_at_upper_sigma(self, sigma: float, as_instance: bool = True) -> Union[List, ModelInstance]:
+    def errors_at_upper_sigma(
+        self, sigma: float, as_instance: bool = True
+    ) -> Union[List, ModelInstance]:
         """
         The upper error of every parameter marginalized in 1D at an input sigma value of its probability density
         function (PDF), returned as a list.
@@ -243,7 +258,9 @@ class SamplesPDF(Samples):
         )
 
     @to_instance_sigma
-    def errors_at_lower_sigma(self, sigma: float, as_instance: bool = True) -> Union[List, ModelInstance]:
+    def errors_at_lower_sigma(
+        self, sigma: float, as_instance: bool = True
+    ) -> Union[List, ModelInstance]:
         """
         The lower error of every parameter marginalized in 1D at an input sigma value of its probability density
         function (PDF), returned as a list.
@@ -265,7 +282,9 @@ class SamplesPDF(Samples):
         )
 
     @to_instance_sigma
-    def error_magnitudes_at_sigma(self, sigma: float, as_instance: bool = True) -> Union[List, ModelInstance]:
+    def error_magnitudes_at_sigma(
+        self, sigma: float, as_instance: bool = True
+    ) -> Union[List, ModelInstance]:
         """
         The magnitude of every error after marginalization in 1D at an input sigma value of the probability density
         function (PDF), returned as two lists of values corresponding to the lower and upper errors.
@@ -314,7 +333,9 @@ class SamplesPDF(Samples):
         return list(map(lambda mean, sigma: (mean, sigma), means, sigmas))
 
     @to_instance
-    def draw_randomly_via_pdf(self, as_instance: bool = True) -> Union[List, ModelInstance]:
+    def draw_randomly_via_pdf(
+        self, as_instance: bool = True
+    ) -> Union[List, ModelInstance]:
         """
         The parameter vector of an individual sample of the non-linear search drawn randomly from the PDF, returned as
         a 1D list.
@@ -322,12 +343,16 @@ class SamplesPDF(Samples):
         The draw is weighted by the sample weights to ensure that the sample is drawn from the PDF (which is important
         for non-linear searches like nested sampling).
         """
-        sample_index = np.random.choice(a=range(len(self.sample_list)), p=self.weight_list)
+        sample_index = np.random.choice(
+            a=range(len(self.sample_list)), p=self.weight_list
+        )
 
         return self.parameter_lists[sample_index][:]
 
     @to_instance_input
-    def offset_values_via_input_values(self, input_vector: List, as_instance: bool = True) -> Union[List, ModelInstance]:
+    def offset_values_via_input_values(
+        self, input_vector: List, as_instance: bool = True
+    ) -> Union[List, ModelInstance]:
         """
         The values of an input_vector offset by the median_pdf(as_instance=False) (the PDF medians).
 
@@ -364,22 +389,19 @@ class SamplesPDF(Samples):
             A covariance matrix of shape [total_parameters, total_parameters] for the model parameters of the
             non-linear search.
         """
+        if len(self.parameter_lists) == 1:
+            return np.eye(1)
         return np.cov(m=self.parameter_lists, rowvar=False, aweights=self.weight_list)
 
 
 def marginalize(
-        parameter_list: List,
-        sigma: float,
-        weight_list : Optional[List] = None
+    parameter_list: List, sigma: float, weight_list: Optional[List] = None
 ) -> Tuple[float, float, float]:
-
     low_limit = (1 - math.erf(sigma / math.sqrt(2))) / 2
 
     median = quantile(x=parameter_list, q=0.5, weights=weight_list)[0]
     lower = quantile(x=parameter_list, q=low_limit, weights=weight_list)[0]
-    upper = quantile(
-        x=parameter_list, q=1 - low_limit, weights=weight_list
-    )[0]
+    upper = quantile(x=parameter_list, q=1 - low_limit, weights=weight_list)[0]
 
     return median, lower, upper
 
