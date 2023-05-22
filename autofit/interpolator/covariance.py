@@ -21,15 +21,14 @@ class LinearRelationship:
 
 
 class LinearAnalysis(Analysis):
-    def __init__(self, x, y, inverse_covariance_matrix):
-        x_y_map = defaultdict(list)
-        for x, y in zip(x, y):
-            x_y_map[x].append(y)
-
-        x, y = zip(*sorted(x_y_map.items()))
-
-        self.x = np.array(x)
-        self.y = np.array([value for values in y for value in values])
+    def __init__(
+        self,
+        x: np.ndarray,
+        y: np.ndarray,
+        inverse_covariance_matrix: np.ndarray,
+    ):
+        self.x = x
+        self.y = y
         self.inverse_covariance_matrix = inverse_covariance_matrix
 
     def _y(self, instance):
@@ -74,16 +73,25 @@ class CovarianceInterpolator(AbstractInterpolator):
     def _interpolate(x, y, value):
         pass
 
-    def __getitem__(self, value: Equality):
-        x = [value.path.get_value(instance) for instance in self.instances]
+    def _linear_analysis_for_value(self, value: Equality):
+        x = []
+        y = []
+        for sample in sorted(
+            self.samples_list,
+            key=lambda s: value.path.get_value(s.max_log_likelihood()),
+        ):
+            # noinspection PyTypeChecker
+            x.append(value.path.get_value(sample.max_log_likelihood()))
+            y.extend([value for value in sample.max_log_likelihood(as_instance=False)])
 
-        def func(x, *args):
-            return x
-
-        curve = curve_fit(
-            func, x, self._y, p0=2 * len(x) * [1], sigma=self.covariance_matrix
+        return LinearAnalysis(
+            np.array(x),
+            np.array(y),
+            inverse_covariance_matrix=self.inverse_covariance_matrix,
         )
-        print(curve)
+
+    def __getitem__(self, value: Equality):
+        analysis = self._linear_analysis_for_value(value)
 
     @property
     def _y(self):

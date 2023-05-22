@@ -78,3 +78,9 @@ def test_y(interpolator):
 
 def test_interpolate(interpolator):
     assert interpolator[interpolator.t == 0.5] == 0.5
+
+
+def test_linear_analysis_for_value(interpolator):
+    analysis = interpolator._linear_analysis_for_value(interpolator.t == 0.5)
+    assert (analysis.x == np.array([0, 1, 2])).all()
+    assert (analysis.y == np.array([0, 0, 0, 1, 1, 1, 2, 2, 2])).all()

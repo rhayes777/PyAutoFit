@@ -14,8 +14,8 @@ from autofit.interpolator.covariance import LinearAnalysis, LinearRelationship
 )
 def test_trivial_linear_analysis(m, c, y):
     linear_analysis = LinearAnalysis(
-        x=[1.0, 2.0, 3.0],
-        y=y,
+        x=np.array([1.0, 2.0, 3.0]),
+        y=np.array(y),
         inverse_covariance_matrix=np.eye(3),
     )
     instance = [
@@ -38,17 +38,12 @@ def make_two_times():
     )
 
 
-@pytest.mark.parametrize(
-    "x, y",
-    [
-        ([1.0, 1.0, 2.0, 2.0, 3.0, 3.0], [2.0, 3.0, 4.0, 6.0, 6.0, 9.0]),
-        ([2.0, 2.0, 1.0, 1.0, 3.0, 3.0], [4.0, 6.0, 2.0, 3.0, 6.0, 9.0]),
-    ],
-)
-def test_multiple_time_points_linear_analysis(x, y, two_times):
+def test_multiple_time_points_linear_analysis(two_times):
     linear_analysis = LinearAnalysis(
-        x=x,
-        y=y,
+        x=np.array(
+            [1.0, 2.0, 3.0],
+        ),
+        y=np.array([2.0, 3.0, 4.0, 6.0, 6.0, 9.0]),
         inverse_covariance_matrix=np.eye(6),
     )
     instance = [
@@ -64,8 +59,8 @@ def test_multiple_time_points_linear_analysis(x, y, two_times):
 
 def test_non_trivial_covariance(two_times):
     linear_analysis = LinearAnalysis(
-        x=[1.0, 2.0],
-        y=[2.5, 3.0],
+        x=np.array([1.0, 2.0]),
+        y=np.array([2.5, 3.0]),
         inverse_covariance_matrix=np.array(
             [
                 [2.0, 1.0],
