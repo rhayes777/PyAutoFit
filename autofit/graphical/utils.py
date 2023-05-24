@@ -54,6 +54,114 @@ def is_iterable(arg):
         arg, six.string_types
     )
 
+def is_namedtuple(obj):
+    return isinstance(obj, tuple) and hasattr(obj, '_fields')
+
+def nested_getitem(obj, key):
+    """
+    Example
+    -------
+    >>> nested_getitem([1, (2, 3), [3, {'a': 1, 'b': 2}]], (2, 1, 'b'))
+    2
+    """
+    for k in key:
+        obj = obj[k]
+    return obj 
+
+
+def nested_get(obj, key, default=None):
+    """
+    Example
+    -------
+    >>> nested_get([1, (2, 3), [3, {'a': 1, 'b': 2}]], (2, 1, 'b'))
+    2
+    >>> nested_get([1, (2, 3), [3, {'a': 1, 'b': 2}]], (2, 1, 'c'), 'default')
+    'default'
+    """
+    try:
+        return nested_getitem(obj, key)
+    except (KeyError, IndexError):
+        return default
+    
+
+def nested_set(obj, key, val):
+    """
+    Example
+    -------
+    >>> obj = [1, (2, 3), [3, {'a': 1, 'b': 2}]]
+    >>> nested_set(obj, (2, 1, 'b'), 3)
+    >>> obj
+    [1, (2, 3), [3, {'a': 1, 'b': 3}]]
+
+    >>> nested_set(obj, (2, 1,), ()))
+    >>> obj
+    [1, (2, 3), [3, ()]]
+    """
+    *parents, k = key 
+    for p in parents:
+        obj = obj[p]
+    obj[k] = val 
+
+
+def nested_items(*args, key=()):
+    """
+    Example
+    -------
+    >>> list(nested_items([1, (2, 3), [3, {'a': 1, 'b': 2}]]))
+    [((0,), 1), ((1, 0), 2), ((1, 1), 3), ((2, 0), 3), ((2, 1, 'a'), 1), ((2, 1, 'b'), 2)]
+
+    >>> list(nested_items([1, (2, 3)], [4, (5, 6)]))
+    [((0,), 1, 4), ((1, 0), 2, 5), ((1, 1), 3, 6)]
+    """
+    out, *_ = args
+    if isinstance(out, dict):
+        for k in sorted(out):
+            yield from nested_items(*(out[k] for out in args), key=key + (k,))
+    elif isinstance(out, (tuple, list)):
+        for i, elems in enumerate(zip(*args)):
+            yield from nested_items(*elems, key=key + (i,))
+    else:
+        yield (key,) + args
+
+
+def nested_zip(*args):
+    """ Iterates through a potentially nested set of list, tuples and dictionaries, 
+    recursively looping through the structure and returning the leaves of the tree
+
+    Example
+    -------
+    >>> list(nested_zip([1, (2, 3), [3, 2, {1, 2}]]))
+    [(1,), (2,), (3,), (3,), (2,), (1,), (2,)]
+
+    >>> list(nested_zip(
+    ...     [1, (2, 3), [3, 2, {1, 2}]],
+    ...     [1, ('a', 3), [3, 'b', {1, 'c'}]]
+    ... ))
+    [(1, 1), (2, 'a'), (3, 3), (3, 3), (2, 'b'), (1, 1), (2, 'c')]
+    """
+    out, *_ = args
+    if isinstance(out, dict):
+        for k in sorted(out):
+            yield from nested_zip(*(out[k] for out in args))
+    elif is_iterable(out):
+        for elems in zip(*args):
+            yield from nested_zip(*elems)
+    else:
+        yield args
+
+
+def nested_iter(args):
+    """Iterates through a potentially nested set of list, tuples and dictionaries, 
+    recursively looping through the structure and returning the leaves of the tree
+
+    Example
+    -------
+    >>> list(nested_iter([1, (2, 3), [3, 2, {1, 2}]]))    
+    [1, 2, 3, 3, 2, 1, 2]
+    """
+    for elem, in nested_zip(args):
+        yield elem
+
 
 def nested_filter(func, *args):
     """ Iterates through a potentially nested set of list, tuples and dictionaries, 
@@ -75,23 +183,52 @@ def nested_filter(func, *args):
     ... ))
     [(2, 'a'), (2, 'b'), (2, 'c')]
     """
-    out, *_ = args
-    if isinstance(out, dict):
-        for k in out:
-            yield from nested_filter(func, *(out[k] for out in args))
-    elif is_iterable(out):
-        for elems in zip(*args):
-            yield from nested_filter(func, *elems)
-    else:
-        if func(*args):
-            yield args
+    for leaves in nested_zip(*args):
+        if func(*leaves):
+            yield leaves
 
 
-def nested_update(out, to_replace: dict, replace_keys=False):
+def nested_map(func, *args):
     """
     Given a potentially nested set of list, tuples and dictionaries, recursively loop through the structure and
     replace any values that appear in the dict to_replace
     can set to replace dictionary keys optionally,
+
+    Example
+    -------
+    >>> nested_map(lambda x: x*2, [1, (2, 3), [3, 2, {1, 2}, {'a': 'b'}]])
+    [2, (4, 6), [6, 4, {2, 4}, {'a': 'bb'}]]
+
+    >>> graph.utils.nested_map(
+    ...     lambda x, y: x*y, 
+    ...     [1, (2, 3), [3, {'a': 1, 'b': 2}]],
+    ...     [1, (2, 3), [3, {'a': 1, 'b': 2}]]
+    ... )
+    [1, (4, 9), [9, {'a': 1, 'b': 4}]]
+    """
+    out, *_ = args
+    if isinstance(out, dict):
+        return type(out)(
+            {
+                k: nested_map(func, *(arg[k] for arg in args))
+                for k in sorted(out)
+            }
+        )
+    elif is_namedtuple(out):
+        return type(out)(*(nested_map(func, *elems) for elems in zip(*args)))
+    elif is_iterable(out):
+        return type(out)(nested_map(func, *elems) for elems in zip(*args))
+
+    return func(*args)
+
+
+def nested_update(out, to_replace):
+    """
+    Given a potentially nested set of list, tuples and dictionaries, recursively loop through the structure and
+    replace any values that appear in the dict to_replace
+    can set to replace dictionary keys optionally,
+
+    Does not replace values in place, so can 'mutate' tuples
 
     Example
     -------
@@ -100,33 +237,17 @@ def nested_update(out, to_replace: dict, replace_keys=False):
 
     >>> nested_update([{2: 2}], {2: 'a'})
     [{2: 'a'}]
-
-    >>> nested_update([{2: 2}], {2: 'a'}, True)
-    [{'a': 'a'}]
     """
-    try:
-        return to_replace[out]
-    except KeyError:
-        pass
 
-    if isinstance(out, dict):
-        if replace_keys:
-            return type(out)(
-                {
-                    nested_update(k, to_replace, replace_keys): nested_update(
-                        v, to_replace, replace_keys
-                    )
-                    for k, v in out.items()
-                }
-            )
-        else:
-            return type(out)(
-                {k: nested_update(v, to_replace, replace_keys) for k, v in out.items()}
-            )
-    elif is_iterable(out):
-        return type(out)(nested_update(elem, to_replace, replace_keys) for elem in out)
+    def replace(val):
+        return to_replace.get(val, val)
+    
+    return nested_map(replace, out)
 
-    return out
+from_variabledata = nested_update
+
+def to_variabledata(variables, raw_values) -> VariableData:
+    return VariableData(nested_filter(is_variable, variables, raw_values))
 
 
 class StatusFlag(Enum):

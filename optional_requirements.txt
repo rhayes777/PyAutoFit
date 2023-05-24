@@ -1,5 +1,5 @@
 getdist==1.4
-jax==0.3.1
-jaxlib==0.3.0
+jax==0.4.10
+jaxlib==0.4.10
 ultranest==3.5.5
 zeus-mcmc==2.5.4

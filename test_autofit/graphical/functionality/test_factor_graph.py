@@ -77,6 +77,52 @@ def test_factor_jacobian():
     assert np.allclose(ngrad, grad[z_])
 
 
+def test_nested_factor():
+    def func(a, b):
+        a0 = a[0]
+        c = a[1]['c']
+        return a0 * c * b
+
+    a, b, c = graph.variables("a, b, c")
+
+    f = func((1, {'c': 2}), 3)
+    values = {a: 1., b: 3., c: 2.}
+
+    factor = graph.Factor(func, [a, {'c': c}], b)
+
+    assert factor(values) == pytest.approx(f)
+
+    fval, grad = factor.func_gradient(values)
+
+    assert fval == pytest.approx(f)
+    assert grad[a] == pytest.approx(6)
+    assert grad[b] == pytest.approx(2)
+    assert grad[c] == pytest.approx(3)
+
+
+def test_nested_factor_jax():
+    def func(a, b):
+        a0 = a[0]
+        c = a[1]['c']
+        return a0 * c * b
+
+    a, b, c = graph.variables("a, b, c")
+
+    f = func((1, {'c': 2}), 3)
+    values = {a: 1., b: 3., c: 2.}
+    
+    factor = graph.Factor(func, (a, {'c': c}), b, vjp=True)
+
+    assert factor(values) == pytest.approx(f)
+
+    fval, grad = factor.func_gradient(values)
+
+    assert fval == pytest.approx(f)
+    assert grad[a] == pytest.approx(6)
+    assert grad[b] == pytest.approx(2)
+    assert grad[c] == pytest.approx(3)
+
+
 class TestFactorGraph:
     def test_names(self, sigmoid, phi, compound):
         assert sigmoid.name == "log_sigmoid"
