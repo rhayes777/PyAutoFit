@@ -459,6 +459,6 @@ class AnalysisFactory:
     def __call__(self):
         dataset = self.simulate_function(
             instance=self.instance,
-            paths=self.paths
+            simulate_path=self.paths.image_path.replace("image", "simulate")
         )
         return self.analysis_class(dataset)
