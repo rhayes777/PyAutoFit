@@ -116,10 +116,10 @@ def nested_items(*args, key=(), key_func=None):
     out, *_ = args
     if isinstance(out, dict):
         for k in sorted(out, key=key_func):
-            yield from nested_items(*(out[k] for out in args), key=key + (k,))
+            yield from nested_items(*(out[k] for out in args), key=key + (k,), key_func=key_func)
     elif isinstance(out, (tuple, list)):
         for i, elems in enumerate(zip(*args)):
-            yield from nested_items(*elems, key=key + (i,))
+            yield from nested_items(*elems, key=key + (i,), key_func=key_func)
     else:
         yield (key,) + args
 
