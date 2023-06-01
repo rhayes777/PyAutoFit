@@ -90,6 +90,9 @@ class MeanField(Collection, Dict[Variable, AbstractMessage], Factor):
             self.log_norm = log_norm
             self._plates = self.sorted_plates if plates is None else plates
 
+    def copy(self) -> "MeanField":
+        return type(self)(self)
+
     def __radd__(self, other):
         return self + other
 

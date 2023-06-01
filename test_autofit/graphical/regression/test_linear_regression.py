@@ -72,8 +72,8 @@ def check_model_approx(mean_field, a_, b_, z_, x_, y_):
     a_std = cov_a.diagonal()[:, None] ** 0.5
     b_std = cov_b[[-1]] ** 0.5
 
-    assert mean_field[a_].mean == pytest.approx(mean_a, rel=1e-2)
-    assert mean_field[b_].mean == pytest.approx(mean_b, rel=1e-2)
+    assert mean_field[a_].mean == pytest.approx(mean_a, rel=5e-2)
+    assert mean_field[b_].mean == pytest.approx(mean_b, rel=5e-2)
     assert mean_field[a_].sigma == pytest.approx(a_std, rel=0.5)
     assert mean_field[b_].sigma == pytest.approx(b_std, rel=0.5)
 

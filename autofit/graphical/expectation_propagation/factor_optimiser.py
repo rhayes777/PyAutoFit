@@ -31,7 +31,10 @@ class AbstractFactorOptimiser(ABC):
         self, factor_approx: FactorApproximation, status: Status = Status()
     ) -> Tuple[MeanField, Status]:
         factor = factor_approx.factor
-        cavity_dist = factor_approx.cavity_dist
+        cavity_dist = factor_approx.cavity_dist.copy()
+        for v in factor_approx.mean_field.keys() - cavity_dist:
+            cavity_dist[v] = factor_approx.mean_field[v].zeros_like()
+
         with LogWarnings(logger=self.logger, action="always") as caught_warnings:
             if factor._calc_exact_update:
                 factor_mean_field = factor.calc_exact_update(cavity_dist)

@@ -215,7 +215,6 @@ class EPMeanField(FactorGraph):
             for v in factor_dist.all_variables
         }).prod(
             *factor_mean_field.values(),
-            default=factor_dist.zeros_like(),
         )
 
         model_dist = factor_dist.prod(cavity_dist, default=factor)
