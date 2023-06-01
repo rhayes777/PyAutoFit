@@ -2,6 +2,7 @@ import logging
 from collections import ChainMap
 from numbers import Real
 from typing import Dict, Tuple, Optional, Union, Iterable
+from operator import attrgetter
 
 import numpy as np
 
@@ -150,6 +151,10 @@ class MeanField(Collection, Dict[Variable, AbstractMessage], Factor):
     @property
     def sizes(self):
         return {v: np.size(m) for v, m in self.items()}
+    
+    @property 
+    def names(self):
+        return {v.name: m for v, m in self.items()}
 
     def __getitem__(self, index):
         if isinstance(index, Variable):
@@ -212,44 +217,47 @@ class MeanField(Collection, Dict[Variable, AbstractMessage], Factor):
                 rescaled[v] = message ** scale
 
         return MeanField(rescaled)
+    
+    def map(self, func):
+        return VariableData({v: func(dist) for v, dist in self.items()})
+
+    def attr(self, attr: str):
+        return MeanField.map(self, attrgetter(attr))
 
     @property
     def mean(self):
-        return VariableData({v: dist.mean for v, dist in self.items()})
+        return self.attr("mean")
 
     @property
     def variance(self):
-        return VariableData({v: dist.variance for v, dist in self.items()})
+        return self.attr("variance")
 
     @property
     def std(self):
-        return VariableData({v: dist.std for v, dist in self.items()})
+        return self.attr("std")
 
     @property
     def scale(self):
-        return VariableData({v: dist.scale for v, dist in self.items()})
+        return self.attr("scale")
 
     @property
     def lower_limit(self):
-        return VariableData(
-            {
-                v: np.full(m.shape, m.lower_limit) if m.shape else m.lower_limit
-                for v, m in self.items()
-            }
+        return self.map(
+            lambda m: np.full(m.shape, m.lower_limit) if m.shape else m.lower_limit
         )
 
     @property
     def upper_limit(self):
-        return VariableData(
-            {
-                v: np.full(m.shape, m.upper_limit) if m.shape else m.upper_limit
-                for v, m in self.items()
-            }
+        return self.map(
+            lambda m: np.full(m.shape, m.upper_limit) if m.shape else m.upper_limit
         )
+    
+    def zeros_like(self):
+        return MeanField.map(self, lambda m: m.zeros_like())
 
     def precision(self, variables=None):
         variables = variables or self.all_variables
-        variances = MeanField.variance.fget(self).subset(variables)
+        variances = MeanField.attr(self, "variance").subset(variables)
         return VariableFullOperator.from_diagonal(variances ** -1)
 
     @property
@@ -260,7 +268,6 @@ class MeanField(Collection, Dict[Variable, AbstractMessage], Factor):
         return {v: dist for v, dist in self.items()}
 
     def _logpdf(self, *args: np.ndarray) -> np.ndarray:
-        var_names = self.name_variable_dict
         return self.logpdf(dict(zip(self.args, args)))
 
     def logpdf(self, values: Dict[Variable, np.ndarray],) -> np.ndarray:

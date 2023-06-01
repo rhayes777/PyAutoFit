@@ -205,6 +205,15 @@ class NormalMessage(AbstractMessage):
                 self.id, self.mean, self.sigma, self.lower_limit, self.upper_limit
             )
         )
+    
+    @property
+    def natural(self):
+        return NaturalNormal.from_natural_parameters(
+            self.natural_parameters * 0., **self._init_kwargs
+        )
+
+    def zeros_like(self) -> "AbstractMessage":
+        return self.natural.zeros_like()
 
 
 class NaturalNormal(NormalMessage):
@@ -273,6 +282,12 @@ class NaturalNormal(NormalMessage):
 
         return cls(mode * precision, -precision / 2, **kwargs)
 
+    zeros_like = AbstractMessage.zeros_like
+    
+    @property
+    def natural(self):
+        return self
+    
 
 UniformNormalMessage = TransformedMessage(NormalMessage(0, 1), phi_transform)
 
