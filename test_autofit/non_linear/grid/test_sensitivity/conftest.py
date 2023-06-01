@@ -1,5 +1,6 @@
 import numpy as np
 import pytest
+from typing import Optional
 
 import autofit as af
 from autofit.non_linear.grid import sensitivity as s
@@ -7,7 +8,7 @@ from autofit.non_linear.grid import sensitivity as s
 x = np.array(range(10))
 
 
-def image_function(instance: af.ModelInstance):
+def image_function(instance: af.ModelInstance, paths:Optional[af.DirectoryPaths]):
     image = instance.gaussian(x)
     if hasattr(instance, "perturbation"):
         image += instance.perturbation(x)
@@ -20,7 +21,7 @@ class Analysis(af.Analysis):
         self.image = image
 
     def log_likelihood_function(self, instance):
-        image = image_function(instance)
+        image = image_function(instance, paths=None)
         return np.mean(np.multiply(-0.5, np.square(np.subtract(self.image, image))))
 
 
@@ -80,7 +81,7 @@ def make_job(
     instance.gaussian = af.Gaussian()
     base_instance = instance
     instance.perturbation = af.Gaussian()
-    image = image_function(instance)
+    image = image_function(instance, search.paths)
     # noinspection PyTypeChecker
     return s.Job(
         model=af.Collection(
