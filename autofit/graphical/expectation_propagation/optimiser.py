@@ -199,7 +199,7 @@ class EPOptimiser:
         self.paths = paths
         if self.paths:
             for optimiser in self.factor_optimisers.values():
-                optimiser.paths = self.paths
+                optimiser.paths = getattr(optimiser, "paths", None) or self.paths
 
             with open(self.output_path / "graph.info", "w+") as f:
                 f.write(self.factor_graph.info)
