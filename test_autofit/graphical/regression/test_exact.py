@@ -160,6 +160,8 @@ def test_probit_regression():
 
 def test_probit_regression_no_path():
     model_approx = make_model()
+    
+    # testing paths=False codepath
     ep_opt = graph.EPOptimiser.from_meanfield(model_approx, paths=False)
 
     fit_approx = ep_opt.run(model_approx)
