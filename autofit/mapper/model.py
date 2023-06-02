@@ -345,7 +345,7 @@ def path_instances_of_class(
         if ignore_children:
             return results
 
-    if isinstance(obj, (list, tuple)):
+    if isinstance(obj, list):
         for i, item in enumerate(obj):
             for path, instance in path_instances_of_class(
                 item, cls, ignore_class=ignore_class, ignore_children=ignore_children
