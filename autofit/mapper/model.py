@@ -30,7 +30,11 @@ def frozen_cache(func):
     @wraps(func)
     def cache(self, *args, **kwargs):
         if hasattr(self, "_is_frozen") and self._is_frozen:
-            key = (func.__name__, self, *args,) + tuple(kwargs.items())
+            key = (
+                func.__name__,
+                self,
+                *args,
+            ) + tuple(kwargs.items())
 
             if key not in self._frozen_cache:
                 self._frozen_cache[key] = func(self, *args, **kwargs)
@@ -222,7 +226,9 @@ class AbstractModel(ModelObject):
 
     @frozen_cache
     def models_with_type(
-        self, cls: Union[Type, Tuple[Type, ...]], include_zero_dimension=False,
+        self,
+        cls: Union[Type, Tuple[Type, ...]],
+        include_zero_dimension=False,
     ) -> List["AbstractModel"]:
         """
         Return all models of a given type in the model tree.
@@ -338,6 +344,15 @@ def path_instances_of_class(
         results.append((tuple(), obj))
         if ignore_children:
             return results
+
+    if isinstance(obj, (list, tuple)):
+        for i, item in enumerate(obj):
+            for path, instance in path_instances_of_class(
+                item, cls, ignore_class=ignore_class, ignore_children=ignore_children
+            ):
+                results.append(((i,) + path, instance))
+        return results
+
     try:
         from autofit.mapper.prior_model.annotation import AnnotationPriorModel
 
@@ -444,4 +459,8 @@ class ModelInstance(AbstractModel):
 
         from autofit.mapper.prior_model.abstract import AbstractPriorModel
 
-        return AbstractPriorModel.from_instance(self, model_classes, excluded_classes,)
+        return AbstractPriorModel.from_instance(
+            self,
+            model_classes,
+            excluded_classes,
+        )
