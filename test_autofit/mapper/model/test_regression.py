@@ -27,10 +27,20 @@ def test_mapper_from_prior_arguments_simple_collection():
 
 
 def test_direct_instances_only():
-    child = af.Model(af.Gaussian, centre=0.0, normalization=0.1, sigma=0.01,)
+    child = af.Model(
+        af.Gaussian,
+        centre=0.0,
+        normalization=0.1,
+        sigma=0.01,
+    )
     child.constant = 1.0
 
-    model = af.Model(af.Gaussian, centre=child, normalization=0.1, sigma=0.01,)
+    model = af.Model(
+        af.Gaussian,
+        centre=child,
+        normalization=0.1,
+        sigma=0.01,
+    )
 
     new_model = model.gaussian_prior_model_for_arguments({})
     assert not hasattr(new_model, "constant")
@@ -81,7 +91,12 @@ def test_set_centre():
 def test_passing_priors():
     model = af.Model(af.m.MockWithTuple)
 
-    new_model = model.mapper_from_gaussian_tuples([(1, 1), (1, 1),])
+    new_model = model.mapper_from_gaussian_tuples(
+        [
+            (1, 1),
+            (1, 1),
+        ]
+    )
     assert isinstance(new_model.tup_0, af.GaussianPrior)
     assert isinstance(new_model.tup_1, af.GaussianPrior)
 
@@ -100,3 +115,11 @@ def test_independent_ids():
     prior = af.UniformPrior()
     af.ModelInstance()
     assert af.UniformPrior().id == prior.id + 1
+
+
+def test_lists():
+    gaussian = af.Gaussian()
+    instance = af.ModelInstance(dict(ls=[gaussian]))
+    assert instance.path_instance_tuples_for_class(af.Gaussian) == [
+        (("ls", 0), gaussian)
+    ]
