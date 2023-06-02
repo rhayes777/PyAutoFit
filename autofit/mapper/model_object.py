@@ -14,7 +14,9 @@ class ModelObject:
         return next(cls._ids)
 
     def __init__(
-        self, id_=None, label=None,
+        self,
+        id_=None,
+        label=None,
     ):
         """
         A generic object in AutoFit
@@ -48,9 +50,16 @@ class ModelObject:
         new = copy.deepcopy(self)
         obj = new
         for key in path[:-1]:
-            obj = getattr(obj, key)
+            if isinstance(key, int):
+                obj = obj[key]
+            else:
+                obj = getattr(obj, key)
 
-        setattr(obj, path[-1], value)
+        key = path[-1]
+        if isinstance(key, int):
+            obj[key] = value
+        else:
+            setattr(obj, key, value)
         return new
 
     def has(self, cls: Union[Type, Tuple[Type, ...]]) -> bool:

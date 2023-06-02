@@ -117,9 +117,25 @@ def test_independent_ids():
     assert af.UniformPrior().id == prior.id + 1
 
 
-def test_lists():
-    gaussian = af.Gaussian()
-    instance = af.ModelInstance(dict(ls=[gaussian]))
-    assert instance.path_instance_tuples_for_class(af.Gaussian) == [
-        (("ls", 0), gaussian)
-    ]
+@pytest.fixture(name="gaussian")
+def make_gaussian():
+    return af.Gaussian()
+
+
+@pytest.fixture(name="instance")
+def make_instance(gaussian):
+    return af.ModelInstance(dict(ls=[gaussian]))
+
+
+@pytest.fixture(name="path")
+def make_path():
+    return "ls", 0
+
+
+def test_lists(instance, gaussian, path):
+    assert instance.path_instance_tuples_for_class(af.Gaussian) == [(path, gaussian)]
+
+
+def test_replace_positional_path(instance, gaussian, path):
+    new = instance.replacing_for_path(path, None)
+    assert new.ls[0] is None
