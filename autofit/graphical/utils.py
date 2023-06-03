@@ -103,7 +103,7 @@ def nested_set(obj, key, val):
     obj[k] = val 
 
 
-def nested_items(*args, key=()):
+def nested_items(*args, key=(), key_func=None):
     """
     Example
     -------
@@ -115,16 +115,16 @@ def nested_items(*args, key=()):
     """
     out, *_ = args
     if isinstance(out, dict):
-        for k in sorted(out):
-            yield from nested_items(*(out[k] for out in args), key=key + (k,))
+        for k in sorted(out, key=key_func):
+            yield from nested_items(*(out[k] for out in args), key=key + (k,), key_func=key_func)
     elif isinstance(out, (tuple, list)):
         for i, elems in enumerate(zip(*args)):
-            yield from nested_items(*elems, key=key + (i,))
+            yield from nested_items(*elems, key=key + (i,), key_func=key_func)
     else:
         yield (key,) + args
 
 
-def nested_zip(*args):
+def nested_zip(*args, key_func=None):
     """ Iterates through a potentially nested set of list, tuples and dictionaries, 
     recursively looping through the structure and returning the leaves of the tree
 
@@ -141,16 +141,16 @@ def nested_zip(*args):
     """
     out, *_ = args
     if isinstance(out, dict):
-        for k in sorted(out):
-            yield from nested_zip(*(out[k] for out in args))
+        for k in sorted(out, key=key_func):
+            yield from nested_zip(*(out[k] for out in args), key_func=key_func)
     elif is_iterable(out):
         for elems in zip(*args):
-            yield from nested_zip(*elems)
+            yield from nested_zip(*elems, key_func=key_func)
     else:
         yield args
 
 
-def nested_iter(args):
+def nested_iter(args, key_func=None):
     """Iterates through a potentially nested set of list, tuples and dictionaries, 
     recursively looping through the structure and returning the leaves of the tree
 
@@ -159,11 +159,11 @@ def nested_iter(args):
     >>> list(nested_iter([1, (2, 3), [3, 2, {1, 2}]]))    
     [1, 2, 3, 3, 2, 1, 2]
     """
-    for elem, in nested_zip(args):
+    for elem, in nested_zip(args, key_func=key_func):
         yield elem
 
 
-def nested_filter(func, *args):
+def nested_filter(func, *args, key_func=None):
     """ Iterates through a potentially nested set of list, tuples and dictionaries, 
     recursively looping through the structure and returning the arguments
     that func return true on, 
@@ -183,12 +183,12 @@ def nested_filter(func, *args):
     ... ))
     [(2, 'a'), (2, 'b'), (2, 'c')]
     """
-    for leaves in nested_zip(*args):
+    for leaves in nested_zip(*args, key_func=key_func):
         if func(*leaves):
             yield leaves
 
 
-def nested_map(func, *args):
+def nested_map(func, *args, key_func=None):
     """
     Given a potentially nested set of list, tuples and dictionaries, recursively loop through the structure and
     replace any values that appear in the dict to_replace
@@ -210,8 +210,8 @@ def nested_map(func, *args):
     if isinstance(out, dict):
         return type(out)(
             {
-                k: nested_map(func, *(arg[k] for arg in args))
-                for k in sorted(out)
+                k: nested_map(func, *(arg[k] for arg in args), key_func=key_func)
+                for k in sorted(out, key=key_func)
             }
         )
     elif is_namedtuple(out):
