@@ -2,6 +2,7 @@ from os import path
 import os
 import matplotlib.pyplot as plt
 import numpy as np
+from typing import List
 
 import autofit as af
 
@@ -114,6 +115,15 @@ class Analysis(af.Analysis):
         os.makedirs(paths.image_path, exist_ok=True)
         plt.savefig(path.join(paths.image_path, "model_fit.png"))
         plt.clf()
+
+    # def visualize_combined(
+    #     self,
+    #     analyses: List[af.Analysis],
+    #     paths: af.DirectoryPaths,
+    #     instance: af.ModelInstance,
+    #     during_analysis: bool,
+    # ):
+    #     pass
 
     def save_attributes_for_aggregator(self, paths: af.DirectoryPaths):
         """

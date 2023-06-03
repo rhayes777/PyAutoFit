@@ -253,7 +253,7 @@ class CombinedAnalysis(Analysis):
 
         self._for_each_analysis(func, paths)
 
-    def visualize_combined(self, analyses : List["Analysis"], paths: AbstractPaths, instance, during_analysis):
+    def visualize_combined(self, analyses : List["Analysis"], instance, paths: AbstractPaths, during_analysis):
         """
         Visualise the instance using images and quantities which are shared across all analyses.
 

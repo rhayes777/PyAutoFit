@@ -246,8 +246,8 @@ make a corner plot of the probability density function (PDF):
 
 .. code-block:: python
 
-    emcee_plotter = aplt.EmceePlotter(samples=result.samples)
-    emcee_plotter.corner()
+    search_plotter = aplt.EmceePlotter(samples=result.samples)
+    search_plotter.corner()
 
 Here is an example of how a PDF estimated for a model appears:
 
