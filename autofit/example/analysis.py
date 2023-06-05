@@ -116,14 +116,33 @@ class Analysis(af.Analysis):
         plt.savefig(path.join(paths.image_path, "model_fit.png"))
         plt.clf()
 
-    # def visualize_combined(
-    #     self,
-    #     analyses: List[af.Analysis],
-    #     paths: af.DirectoryPaths,
-    #     instance: af.ModelInstance,
-    #     during_analysis: bool,
-    # ):
-    #     pass
+    def visualize_combined(
+        self,
+        analyses: List[af.Analysis],
+        paths: af.DirectoryPaths,
+        instance: af.ModelInstance,
+        during_analysis: bool,
+    ):
+        """
+        Visualise the instance using images and quantities which are shared across all analyses.
+
+        For example, each Analysis may have a different dataset, where the fit to each dataset is intended to all
+        be plotted on the same matplotlib subplot. This function can be overwritten to allow the visualization of such
+        a plot.
+
+        Only the first analysis is used to visualize the combined results, where it is assumed that it uses the
+        `analyses` property to access the other analyses and perform visualization.
+
+        Parameters
+        ----------
+        paths
+            An object describing the paths for saving data (e.g. hard-disk directories or entries in sqlite database).
+        instance
+            The maximum likelihood instance of the model so far in the non-linear search.
+        during_analysis
+            Is this visualisation during analysis?
+        """
+        pass
 
     def save_attributes_for_aggregator(self, paths: af.DirectoryPaths):
         """
