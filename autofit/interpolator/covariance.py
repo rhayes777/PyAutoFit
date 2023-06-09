@@ -4,7 +4,7 @@ from typing import List, Dict
 
 from autofit.non_linear.samples.pdf import SamplesPDF
 from .abstract import AbstractInterpolator
-from .query import Equality
+from .query import Equality, InterpolatorPath
 from autofit.non_linear.analysis.analysis import Analysis
 from autofit.non_linear.nest.dynesty.static import DynestyStatic
 from autofit.mapper.prior_model.prior_model import Model
@@ -205,7 +205,7 @@ class CovarianceInterpolator(AbstractInterpolator):
     def get(
         self,
         value: Equality,
-        path_relationship_map: Dict = None,
+        path_relationship_map: Dict[InterpolatorPath, Model] = None,
     ) -> float:
         """
         Calculate the value of the variable for a given value of the variable to which it is related
@@ -213,6 +213,8 @@ class CovarianceInterpolator(AbstractInterpolator):
         Parameters
         ----------
         path_relationship_map
+            Specifies which model should be used for each relationship. Each parameter in the model
+            is described by a LinearRelationship with GaussianPriors by default.
         value
             The value to which the variables are related (e.g. time)
 
