@@ -139,7 +139,7 @@ class CovarianceInterpolator(AbstractInterpolator):
         """
         covariance_matrix = self.covariance_matrix()
         return scipy.linalg.inv(
-            covariance_matrix + 1e-8 * np.eye(covariance_matrix.shape[0])
+            covariance_matrix + 1e-6 * np.eye(covariance_matrix.shape[0])
         )
 
     @staticmethod
