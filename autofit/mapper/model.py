@@ -391,7 +391,10 @@ class ModelInstance(AbstractModel):
         self.child_items = child_items
 
     def __eq__(self, other):
-        return self.__dict__ == other.__dict__
+        try:
+            return self.__dict__ == other.__dict__
+        except AttributeError:
+            return False
 
     def __getitem__(self, item):
         if isinstance(item, int):
