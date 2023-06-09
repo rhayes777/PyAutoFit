@@ -4,7 +4,7 @@ from typing import List, Optional, Tuple, Union
 import numpy as np
 
 from autofit.mapper.model import ModelInstance
-from autofit.mapper.prior_model.abstract import AbstractPriorModel
+from autofit.mapper.prior_model.abstract import AbstractPriorModel, Path
 from autofit.non_linear.samples.sample import Sample, load_from_table
 from autofit.non_linear.samples.samples import (
     to_instance,
@@ -395,6 +395,17 @@ class SamplesPDF(Samples):
         if len(self.parameter_lists) == 1:
             return np.eye(1)
         return np.cov(m=self.parameter_lists, rowvar=False, aweights=self.weight_list)
+
+    def save_covariance_matrix(self, filename: Path):
+        """
+        Save the covariance matrix as a CSV file.
+
+        Parameters
+        ----------
+        filename
+            The filename the covariance matrix is saved to.
+        """
+        np.savetxt(filename, self.covariance_matrix(), delimiter=",")
 
 
 def marginalize(
