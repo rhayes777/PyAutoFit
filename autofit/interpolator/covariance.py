@@ -229,7 +229,7 @@ class CovarianceInterpolator(AbstractInterpolator):
         return self._max_likelihood_samples_list().model
 
     @property
-    def model(self) -> Collection[Model]:
+    def model(self) -> Collection:
         """
         Create a model that describes the linear relationships between each variable and the variable to which it is
         related

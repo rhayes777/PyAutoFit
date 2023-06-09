@@ -28,6 +28,30 @@ def test_trivial_linear_analysis(m, c, y):
     assert linear_analysis.log_likelihood_function(instance) == 0.0
 
 
+def test_anti_covariance():
+    m = 2.0
+    c = 0.0
+    y = [3.0, 5.0]
+
+    linear_analysis = LinearAnalysis(
+        x=np.array([1.0, 2.0]),
+        y=np.array(y),
+        inverse_covariance_matrix=np.array(
+            [
+                [0.0, 1.0],
+                [1.0, 0.0],
+            ]
+        ),
+    )
+    instance = [
+        LinearRelationship(
+            m=m,
+            c=c,
+        )
+    ]
+    assert linear_analysis.log_likelihood_function(instance) == -1.0
+
+
 @pytest.fixture(
     name="two_times",
 )
@@ -38,7 +62,20 @@ def make_two_times():
     )
 
 
-def test_multiple_time_points_linear_analysis(two_times):
+@pytest.fixture(
+    name="three_times",
+)
+def make_three_times():
+    return LinearRelationship(
+        m=3.0,
+        c=0.0,
+    )
+
+
+def test_multiple_time_points_linear_analysis(
+    two_times,
+    three_times,
+):
     linear_analysis = LinearAnalysis(
         x=np.array(
             [1.0, 2.0, 3.0],
@@ -48,10 +85,7 @@ def test_multiple_time_points_linear_analysis(two_times):
     )
     instance = [
         two_times,
-        LinearRelationship(
-            m=3.0,
-            c=0.0,
-        ),
+        three_times,
     ]
     assert list(linear_analysis._y(instance)) == [2.0, 3.0, 4.0, 6.0, 6.0, 9.0]
     assert linear_analysis.log_likelihood_function(instance) == 0.0
