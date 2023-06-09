@@ -137,7 +137,7 @@ taken without a local `PyAutoFit` installation.
 
 # Software Citations
 
-`PyAutoFit` is written in Python 3.8+ [@python] and uses the following software packages:
+`PyAutoFit` is written in Python 3.8 - 3.10 [@python] and uses the following software packages:
 
 - `corner.py` https://github.com/dfm/corner.py [@corner]
 - `dynesty` https://github.com/joshspeagle/dynesty [@dynesty]
