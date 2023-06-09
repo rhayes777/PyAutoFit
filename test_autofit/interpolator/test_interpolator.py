@@ -13,25 +13,6 @@ def test_trivial():
     assert result is instance
 
 
-@pytest.fixture(name="model_instance")
-def make_model_instance():
-    return af.ModelInstance(
-        dict(t=1.0, gaussian=af.Gaussian(centre=0.0, normalization=1.0, sigma=-1.0),)
-    )
-
-
-@pytest.fixture(name="instances")
-def make_instances(model_instance):
-    return [
-        model_instance,
-        af.ModelInstance(
-            dict(
-                t=2.0, gaussian=af.Gaussian(centre=1.0, normalization=2.0, sigma=-2.0),
-            )
-        ),
-    ]
-
-
 @pytest.fixture(name="linear_interpolator")
 def make_linear_interpolator(instances):
     return af.LinearInterpolator(instances)
@@ -69,7 +50,6 @@ def test_smooth_spline_interpolator(instances):
     "t, centre", [(0.0, -1.0), (1.0, 0.0), (1.5, 0.5), (2.0, 1.0), (3.0, 2.0)]
 )
 def test_linear(t, centre, linear_interpolator):
-
     result = linear_interpolator[linear_interpolator.t == t]
 
     assert result.t == t
@@ -80,7 +60,6 @@ def test_linear(t, centre, linear_interpolator):
 
 @pytest.mark.parametrize("sigma", [-0.5, 0.0, 0.5, 1.0])
 def test_alternate_attribute(linear_interpolator, sigma):
-
     result = linear_interpolator[linear_interpolator.gaussian.sigma == sigma]
 
     assert result.gaussian.sigma == sigma
@@ -90,14 +69,21 @@ def test_alternate_attribute(linear_interpolator, sigma):
 
 def test_deeper_attributes():
     collection = af.Collection(
-        model=af.Model(af.Gaussian, centre=0.0, normalization=1.0, sigma=-1.0,)
+        model=af.Model(
+            af.Gaussian,
+            centre=0.0,
+            normalization=1.0,
+            sigma=-1.0,
+        )
     )
 
     instance_1 = af.Collection(
-        t=1.0, collection=collection,
+        t=1.0,
+        collection=collection,
     ).instance_from_prior_medians()
     instance_2 = af.Collection(
-        t=2.0, collection=collection,
+        t=2.0,
+        collection=collection,
     ).instance_from_prior_medians()
 
     linear_interpolator = af.LinearInterpolator([instance_1, instance_2])
@@ -154,7 +140,7 @@ def make_linear_interpolator_dict(instance_dict):
                 "type": "autofit.mapper.model.ModelInstance",
             },
         ],
-        "type": "autofit.interpolator.LinearInterpolator",
+        "type": "autofit.interpolator.linear.LinearInterpolator",
     }
 
 
