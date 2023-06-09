@@ -1,3 +1,5 @@
+import os
+
 import numpy as np
 import pytest
 
@@ -8,8 +10,8 @@ import autofit as af
 pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
 
 
-def test__from_csv_table():
-
+@pytest.fixture(name="samples_x5")
+def make_samples_x5():
     model = af.ModelMapper(mock_class_1=af.m.MockClassx4)
 
     parameters = [
@@ -20,7 +22,7 @@ def test__from_csv_table():
         [0.0, 1.0, 2.0, 3.0],
     ]
 
-    samples_x5 = af.Samples(
+    return af.Samples(
         model=model,
         sample_list=af.Sample.from_lists(
             model=model,
@@ -31,6 +33,17 @@ def test__from_csv_table():
         ),
     )
 
+
+@pytest.fixture(autouse=True)
+def remove_samples():
+    yield
+    try:
+        os.remove("samples.csv")
+    except FileNotFoundError:
+        pass
+
+
+def test__from_csv_table(samples_x5):
     filename = "samples.csv"
     samples_x5.write_table(filename=filename)
 
@@ -47,6 +60,25 @@ def test__from_csv_table():
     assert samples_x5.log_prior_list == [0.0, 0.0, 0.0, 0.0, 0.0]
     assert samples_x5.log_posterior_list == [1.0, 2.0, 3.0, 10.0, 5.0]
     assert samples_x5.weight_list == [1.0, 1.0, 1.0, 1.0, 1.0]
+
+
+def test_format(samples_x5):
+    filename = "samples.csv"
+    samples_x5.write_table(filename=filename)
+
+    with open(filename) as f:
+        text = f.read()
+
+    assert (
+        text
+        == """mock_class_1_one,mock_class_1_two,mock_class_1_three,mock_class_1_four,log_likelihood,log_prior,log_posterior,weight
+             0.0,             1.0,               2.0,              3.0,           1.0,      0.0,          1.0,   1.0
+             0.0,             1.0,               2.0,              3.0,           2.0,      0.0,          2.0,   1.0
+             0.0,             1.0,               2.0,              3.0,           3.0,      0.0,          3.0,   1.0
+            21.0,            22.0,              23.0,             24.0,          10.0,      0.0,         10.0,   1.0
+             0.0,             1.0,               2.0,              3.0,           5.0,      0.0,          5.0,   1.0
+"""
+    )
 
 
 def test__median_pdf__converged():
