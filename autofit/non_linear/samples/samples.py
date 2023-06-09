@@ -16,6 +16,7 @@ from autofit.non_linear.samples.sample import Sample
 
 ### TODO: Rich how do I reduce this to one wrapper sensible?
 
+
 def to_instance(func):
     """
 
@@ -30,10 +31,7 @@ def to_instance(func):
 
     @wraps(func)
     def wrapper(
-        obj,
-        as_instance: bool = True,
-        *args,
-        **kwargs
+        obj, as_instance: bool = True, *args, **kwargs
     ) -> Union[List, ModelInstance]:
         """
         This decorator checks if a light profile is a `LightProfileOperated` class and therefore already has had operations like a
@@ -62,10 +60,8 @@ def to_instance(func):
         vector = func(obj, as_instance, *args, **kwargs)
 
         if as_instance:
-
             return obj.model.instance_from_vector(
-                vector=vector,
-                ignore_prior_limits=True
+                vector=vector, ignore_prior_limits=True
             )
 
         return vector
@@ -87,11 +83,7 @@ def to_instance_sigma(func):
 
     @wraps(func)
     def wrapper(
-        obj,
-        sigma,
-        as_instance : bool = True,
-        *args,
-        **kwargs
+        obj, sigma, as_instance: bool = True, *args, **kwargs
     ) -> Union[List, ModelInstance]:
         """
         This decorator checks if a light profile is a `LightProfileOperated` class and therefore already has had operations like a
@@ -120,10 +112,8 @@ def to_instance_sigma(func):
         vector = func(obj, sigma, as_instance, *args, **kwargs)
 
         if as_instance:
-
             return obj.model.instance_from_vector(
-                vector=vector,
-                ignore_prior_limits=True
+                vector=vector, ignore_prior_limits=True
             )
 
         return vector
@@ -145,11 +135,7 @@ def to_instance_samples(func):
 
     @wraps(func)
     def wrapper(
-        obj,
-        sample_index,
-        as_instance : bool = True,
-        *args,
-        **kwargs
+        obj, sample_index, as_instance: bool = True, *args, **kwargs
     ) -> Union[List, ModelInstance]:
         """
         This decorator checks if a light profile is a `LightProfileOperated` class and therefore already has had operations like a
@@ -178,10 +164,8 @@ def to_instance_samples(func):
         vector = func(obj, sample_index, as_instance, *args, **kwargs)
 
         if as_instance:
-
             return obj.model.instance_from_vector(
-                vector=vector,
-                ignore_prior_limits=True
+                vector=vector, ignore_prior_limits=True
             )
 
         return vector
@@ -203,11 +187,7 @@ def to_instance_input(func):
 
     @wraps(func)
     def wrapper(
-        obj,
-        input_vector,
-        as_instance : bool = True,
-        *args,
-        **kwargs
+        obj, input_vector, as_instance: bool = True, *args, **kwargs
     ) -> Union[List, ModelInstance]:
         """
         This decorator checks if a light profile is a `LightProfileOperated` class and therefore already has had operations like a
@@ -236,10 +216,8 @@ def to_instance_input(func):
         vector = func(obj, input_vector, as_instance, *args, **kwargs)
 
         if as_instance:
-
             return obj.model.instance_from_vector(
-                vector=vector,
-                ignore_prior_limits=True
+                vector=vector, ignore_prior_limits=True
             )
 
         return vector
@@ -249,12 +227,12 @@ def to_instance_input(func):
 
 class Samples(ABC):
     def __init__(
-            self,
-            model: AbstractPriorModel,
-            sample_list: List[Sample],
-            total_iterations: Optional[int] = None,
-            time: Optional[float] = None,
-            results_internal: Optional = None,
+        self,
+        model: AbstractPriorModel,
+        sample_list: List[Sample],
+        total_iterations: Optional[int] = None,
+        time: Optional[float] = None,
+        results_internal: Optional = None,
     ):
         """
         The `Samples` classes in **PyAutoFit** provide an interface between the results_internal of
@@ -295,10 +273,7 @@ class Samples(ABC):
         self._paths = None
         self._names = None
 
-    def __add__(
-            self,
-            other: "Samples"
-    ) -> "Samples":
+    def __add__(self, other: "Samples") -> "Samples":
         """
         Samples can be added together, which combines their `sample_list` meaning that inferred parameters are
         computed via their joint PDF.
@@ -319,13 +294,13 @@ class Samples(ABC):
             warnings.warn(
                 f"Addition of {self.__class__.__name__} cannot retain results in native format. "
                 "Visualization of summed samples diabled.",
-                exc.SamplesWarning
+                exc.SamplesWarning,
             )
 
         return self.__class__(
             model=self.model,
             sample_list=self.sample_list + other.sample_list,
-            time=self.time
+            time=self.time,
         )
 
     def __radd__(self, other):
@@ -352,7 +327,6 @@ class Samples(ABC):
         return len(self.sample_list)
 
     def __setstate__(self, state):
-
         self.__dict__.update(state)
 
     def __copy__(self):
@@ -383,17 +357,10 @@ class Samples(ABC):
                 "Cannot add together two Samples objects which have different models."
             )
 
-        if not isinstance(
-                self,
-                Samples
-        ):
-
+        if not isinstance(self, Samples):
             raise_exc()
 
-        if not isinstance(
-                other,
-                Samples
-        ):
+        if not isinstance(other, Samples):
             raise_exc()
 
         if self.model.prior_count != other.model.prior_count:
@@ -403,21 +370,12 @@ class Samples(ABC):
             if path_self != path_other:
                 raise_exc()
 
-    def values_for_path(
-            self,
-            path: Tuple[str]
-    ) -> List[float]:
+    def values_for_path(self, path: Tuple[str]) -> List[float]:
         """
         Returns the value for a variable with a given path
         for each sample in the model
         """
-        return [
-            sample.kwargs[
-                path
-            ]
-            for sample
-            in self.sample_list
-        ]
+        return [sample.kwargs[path] for sample in self.sample_list]
 
     @property
     def paths(self) -> List[Tuple[Path]]:
@@ -448,11 +406,7 @@ class Samples(ABC):
         result = list()
         for sample in self.sample_list:
             tuples = self.paths if sample.is_path_kwargs else self.names
-            result.append(
-                sample.parameter_lists_for_paths(
-                    tuples
-                )
-            )
+            result.append(sample.parameter_lists_for_paths(tuples))
 
         return result
 
@@ -462,35 +416,19 @@ class Samples(ABC):
 
     @property
     def weight_list(self):
-        return [
-            sample.weight
-            for sample
-            in self.sample_list
-        ]
+        return [sample.weight for sample in self.sample_list]
 
     @property
     def log_likelihood_list(self):
-        return [
-            sample.log_likelihood
-            for sample
-            in self.sample_list
-        ]
+        return [sample.log_likelihood for sample in self.sample_list]
 
     @property
     def log_posterior_list(self):
-        return [
-            sample.log_posterior
-            for sample
-            in self.sample_list
-        ]
+        return [sample.log_posterior for sample in self.sample_list]
 
     @property
     def log_prior_list(self):
-        return [
-            sample.log_prior
-            for sample
-            in self.sample_list
-        ]
+        return [sample.log_prior for sample in self.sample_list]
 
     @property
     def parameters_extract(self):
@@ -537,19 +475,32 @@ class Samples(ABC):
         filename
             Where the table is to be written
         """
+        column_max_widths = [
+            max(len(str(value)) for value in column)
+            for column in zip(*([self._headers] + list(self._rows)))
+        ]
 
-        with open(filename, "w+", newline="") as f:
+        with open(filename, "w+") as f:
             writer = csv.writer(f)
-            writer.writerow(self._headers)
+
+            def write_row(row_):
+                writer.writerow(
+                    [
+                        "{0:>{1}}".format(header, width)
+                        for width, header in zip(column_max_widths, row_)
+                    ]
+                )
+
+            write_row(self._headers)
             for row in self._rows:
-                writer.writerow(row)
+                write_row(row)
 
     @property
     def info_json(self):
         return {}
 
     def info_to_json(self, filename):
-        with open(filename, 'w') as outfile:
+        with open(filename, "w") as outfile:
             json.dump(self.info_json, outfile)
 
     @property
@@ -559,7 +510,10 @@ class Samples(ABC):
         """
         most_likely_sample = None
         for sample in self.sample_list:
-            if most_likely_sample is None or sample.log_likelihood > most_likely_sample.log_likelihood:
+            if (
+                most_likely_sample is None
+                or sample.log_likelihood > most_likely_sample.log_likelihood
+            ):
                 most_likely_sample = sample
         return most_likely_sample
 
@@ -578,9 +532,7 @@ class Samples(ABC):
 
     @property
     def max_log_posterior_sample(self) -> Sample:
-        return self.sample_list[
-            self.max_log_posterior_index
-        ]
+        return self.sample_list[self.max_log_posterior_index]
 
     @property
     def max_log_posterior_index(self) -> int:
@@ -597,7 +549,9 @@ class Samples(ABC):
         return self.parameter_lists[self.max_log_posterior_index]
 
     @to_instance_samples
-    def from_sample_index(self, sample_index : int, as_instance: bool = True) -> ModelInstance:
+    def from_sample_index(
+        self, sample_index: int, as_instance: bool = True
+    ) -> ModelInstance:
         """
         The parameters of an individual sample of the non-linear search, returned as a model instance.
 
@@ -614,16 +568,12 @@ class Samples(ABC):
         """
         samples = copy(self)
         samples.model = None
-        samples.sample_list = list({
-            self.max_log_likelihood_sample,
-            self.max_log_posterior_sample
-        })
+        samples.sample_list = list(
+            {self.max_log_likelihood_sample, self.max_log_posterior_sample}
+        )
         return samples
 
-    def with_paths(
-            self,
-            paths: Union[List[Tuple[str, ...]], List[str]]
-    ) -> "Samples":
+    def with_paths(self, paths: Union[List[Tuple[str, ...]], List[str]]) -> "Samples":
         """
         Create a copy of this object with only attributes specified
         by a list of paths.
@@ -641,18 +591,14 @@ class Samples(ABC):
         A set of samples with a reduced set of attributes
         """
         with_paths = copy(self)
-        with_paths.model = self.model.with_paths(
-            paths
-        )
+        with_paths.model = self.model.with_paths(paths)
         with_paths.sample_list = [
-            sample.with_paths(paths)
-            for sample in self.sample_list
+            sample.with_paths(paths) for sample in self.sample_list
         ]
         return with_paths
 
     def without_paths(
-            self,
-            paths: Union[List[Tuple[str, ...]], List[str]]
+        self, paths: Union[List[Tuple[str, ...]], List[str]]
     ) -> "Samples":
         """
         Create a copy of this object with only attributes not specified
@@ -671,12 +617,9 @@ class Samples(ABC):
         A set of samples with a reduced set of attributes
         """
         with_paths = copy(self)
-        with_paths.model = self.model.without_paths(
-            paths
-        )
+        with_paths.model = self.model.without_paths(paths)
         with_paths.sample_list = [
-            sample.without_paths(paths)
-            for sample in self.sample_list
+            sample.without_paths(paths) for sample in self.sample_list
         ]
         return with_paths
 
@@ -685,9 +628,7 @@ class Samples(ABC):
             return None
 
         path_map = {
-            tuple(self.model.all_paths_for_prior(
-                prior
-            )): path
+            tuple(self.model.all_paths_for_prior(prior)): path
             for path, prior in model.path_priors_tuples
         }
         copied = copy(self)
@@ -695,10 +636,7 @@ class Samples(ABC):
         copied._names = None
         copied.model = model
 
-        copied.sample_list = [
-            sample.subsample(path_map)
-            for sample in self.sample_list
-        ]
+        copied.sample_list = [sample.subsample(path_map) for sample in self.sample_list]
         return copied
 
     def gaussian_priors_at_sigma(self, sigma: float) -> [List]:
@@ -715,4 +653,8 @@ class Samples(ABC):
         sigma
             The sigma limit within which the PDF is used to estimate errors (e.g. sigma = 1.0 uses 0.6826 of the PDF).
         """
-        return list(map(lambda vector: (vector, 0.0), self.max_log_likelihood(as_instance=False)))
+        return list(
+            map(
+                lambda vector: (vector, 0.0), self.max_log_likelihood(as_instance=False)
+            )
+        )
