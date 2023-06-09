@@ -14,6 +14,17 @@ class InterpolatorPath:
         """
         self.keys = keys
 
+    def __hash__(self):
+        return hash(tuple(self.keys))
+
+    def __repr__(self):
+        return f"InterpolatorPath({self.keys})"
+
+    def __eq__(self, other):
+        if isinstance(other, InterpolatorPath):
+            keys = other.keys
+        return self.keys == keys
+
     def __getattr__(self, item: str) -> "InterpolatorPath":
         """
         Add a new attribute name to the end of the path
