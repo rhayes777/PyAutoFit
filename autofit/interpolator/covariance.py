@@ -116,7 +116,6 @@ class CovarianceInterpolator(AbstractInterpolator):
         # noinspection PyTypeChecker
         super().__init__([samples.max_log_likelihood() for samples in samples_list])
 
-    @property
     def covariance_matrix(self) -> np.ndarray:
         """
         Calculate the covariance matrix of the samples
@@ -134,12 +133,14 @@ class CovarianceInterpolator(AbstractInterpolator):
             ] = matrix
         return array
 
-    @property
     def inverse_covariance_matrix(self) -> np.ndarray:
         """
         Calculate the inverse covariance matrix of the samples
         """
-        return scipy.linalg.inv(self.covariance_matrix)
+        covariance_matrix = self.covariance_matrix()
+        return scipy.linalg.inv(
+            covariance_matrix + 1e-8 * np.eye(covariance_matrix.shape[0])
+        )
 
     @staticmethod
     def _interpolate(x, y, value):
@@ -172,7 +173,7 @@ class CovarianceInterpolator(AbstractInterpolator):
         return CovarianceAnalysis(
             np.array(x),
             np.array(y),
-            inverse_covariance_matrix=self.inverse_covariance_matrix,
+            inverse_covariance_matrix=self.inverse_covariance_matrix(),
         )
 
     def _relationships_for_value(self, value: Equality) -> List[LinearRelationship]:

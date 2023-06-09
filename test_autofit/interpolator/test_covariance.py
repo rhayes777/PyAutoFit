@@ -41,7 +41,7 @@ def make_interpolator():
 
 def test_covariance_matrix(interpolator):
     assert np.allclose(
-        interpolator.covariance_matrix,
+        interpolator.covariance_matrix(),
         np.array(
             [
                 [1.0, 2.0, 4.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
@@ -61,7 +61,7 @@ def test_covariance_matrix(interpolator):
 # Fails due to poorly defined inversion?
 def _test_inverse_covariance_matrix(interpolator):
     identity = np.dot(
-        interpolator.covariance_matrix, interpolator.inverse_covariance_matrix
+        interpolator.covariance_matrix(), interpolator.inverse_covariance_matrix()
     )
     print(identity)
     assert np.allclose(
@@ -71,8 +71,8 @@ def _test_inverse_covariance_matrix(interpolator):
 
 
 def test_covariance_is_invertible(interpolator):
-    assert np.linalg.det(interpolator.covariance_matrix) != 0
-    assert np.linalg.inv(interpolator.covariance_matrix) is not None
+    assert np.linalg.det(interpolator.covariance_matrix()) != 0
+    assert np.linalg.inv(interpolator.covariance_matrix()) is not None
 
 
 def test_interpolate(interpolator):
