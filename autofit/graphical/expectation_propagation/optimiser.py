@@ -164,8 +164,6 @@ class EPOptimiser:
         paths
             Optionally define how data should be output
         """
-        self.paths = paths or DirectoryPaths(identifier=str(Identifier(factor_graph)))
-
         factor_optimisers = factor_optimisers or {}
         self.factor_graph = factor_graph
         self.factors = factor_order or self.factor_graph.factors
@@ -188,15 +186,26 @@ class EPOptimiser:
                 for factor in self.factors
             }
 
-        for optimiser in self.factor_optimisers.values():
-            optimiser.paths = self.paths
-
+            
         self.ep_history = ep_history or EPHistory()
 
-        with open(self.output_path / "graph.info", "w+") as f:
-            f.write(self.factor_graph.info)
+        self.visualiser = None
+        if paths is None:
+            try:
+                paths = DirectoryPaths(identifier=str(Identifier(factor_graph)))
+            except KeyError: 
+                pass 
 
-        self.visualiser = Visualise(self.ep_history, self.output_path)
+        self.paths = paths
+        if self.paths:
+            for optimiser in self.factor_optimisers.values():
+                # optimiser.paths = optimiser_paths or self.paths
+                optimiser.paths = self.paths
+
+            with open(self.output_path / "graph.info", "w+") as f:
+                f.write(self.factor_graph.info)
+
+            self.visualiser = Visualise(self.ep_history, self.output_path)
 
     @classmethod
     def from_meanfield(
@@ -232,15 +241,18 @@ class EPOptimiser:
         )
 
     @property
-    def output_path(self) -> Path:
+    def output_path(self) -> Optional[Path]:
         """
         The path at which data will be output. Uses the name of the optimiser.
 
         If the path does not exist it is created.
         """
-        path = Path(self.paths.output_path)
-        os.makedirs(path, exist_ok=True)
-        return path
+        if self.paths:
+            path = Path(self.paths.output_path)
+            os.makedirs(path, exist_ok=True)
+            return path
+        
+        return None
 
     def _log_factor(self, factor: Factor):
         """
@@ -316,15 +328,16 @@ class EPOptimiser:
                     break  # callback controls convergence
 
             else:  # If no break do next iteration
-                if _should_visualise:
+                if self.visualiser and _should_visualise:
                     self.visualiser()
-                if _should_output:
+                if self.output_path and _should_output:
                     self._output_results(model_approx)
                 continue
             break  # stop iterations
 
-        self.visualiser()
-        self._output_results(model_approx)
+        if self.paths:
+            self.visualiser()
+            self._output_results(model_approx)
 
         return model_approx
 
@@ -332,8 +345,9 @@ class EPOptimiser:
         """
         Save the graph.results text
         """
-        with open(self.output_path / "graph.results", "w+") as f:
-            f.write(self.factor_graph.make_results_text(model_approx))
+        if self.paths:
+            with open(self.output_path / "graph.results", "w+") as f:
+                f.write(self.factor_graph.make_results_text(model_approx))
 
 
 class ParallelEPOptimiser(EPOptimiser):

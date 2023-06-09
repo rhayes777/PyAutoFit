@@ -20,6 +20,7 @@ from autofit.graphical.utils import (
     nested_filter,
     nested_update,
     is_variable,
+    to_variabledata,
 )
 from autofit.mapper.variable import (
     Variable,
@@ -114,9 +115,11 @@ class AbstractJacobian(VariableLinearOperator):
         if values:
             grad.update(values)
 
-        for v, g in self(grad).items():
+        jac = self(grad)
+        for v, g in jac.items():
             grad[v] = grad.get(v, 0) + g
 
+        grad.pop(FactorValue)
         return grad
 
 
@@ -138,12 +141,17 @@ class JacobianVectorProduct(AbstractJacobian, RectVariableOperator):
 
 class VectorJacobianProduct(AbstractJacobian):
     def __init__(
-            self, factor_out, vjp: Callable, *variables: Variable, out_shapes=None
+            self, factor_out, vjp: Callable, *args: Variable, out_shapes=None
     ):
         self.factor_out = factor_out
         self.vjp = vjp
-        self._variables = variables
+        self._args = args
+        self._variables = tuple(v for v, in nested_filter(is_variable, args))
         self.out_shapes = out_shapes
+
+    @property 
+    def args(self):
+        return self._args 
 
     @property
     def variables(self):
@@ -172,7 +180,7 @@ class VectorJacobianProduct(AbstractJacobian):
     def __call__(self, values: Union[VariableData, FactorValue]) -> VariableData:
         v = self._get_cotangent(values)
         grads = self.vjp(v)
-        return VariableData(zip(self.variables, grads))
+        return to_variabledata(self.args, grads)
 
     __rmul__ = __call__
 

@@ -343,6 +343,9 @@ class SamplesPDF(Samples):
         The draw is weighted by the sample weights to ensure that the sample is drawn from the PDF (which is important
         for non-linear searches like nested sampling).
         """
+        print(self.sample_list)
+        print(self.weight_list)
+
         sample_index = np.random.choice(
             a=range(len(self.sample_list)), p=self.weight_list
         )

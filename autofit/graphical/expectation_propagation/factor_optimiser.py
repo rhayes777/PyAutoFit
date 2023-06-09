@@ -31,7 +31,16 @@ class AbstractFactorOptimiser(ABC):
         self, factor_approx: FactorApproximation, status: Status = Status()
     ) -> Tuple[MeanField, Status]:
         factor = factor_approx.factor
-        cavity_dist = factor_approx.cavity_dist
+        cavity_dist = factor_approx.cavity_dist.copy()
+
+        """For exact_fits of FactorApproximations we need the full cavity_dist, 
+        so in this case we need to create zeros_like versions of the missing 
+        cavity_dists - e.g. for the Normal Distribution the zeros_like dist 
+        has infinite variance, note that its logpdf will be - inf 
+        so we don't want to evaluate it in general."""
+        for v in factor_approx.mean_field.keys() - cavity_dist:
+            cavity_dist[v] = factor_approx.mean_field[v].zeros_like()
+
         with LogWarnings(logger=self.logger, action="always") as caught_warnings:
             if factor._calc_exact_update:
                 factor_mean_field = factor.calc_exact_update(cavity_dist)

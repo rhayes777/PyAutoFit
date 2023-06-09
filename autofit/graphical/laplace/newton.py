@@ -70,7 +70,7 @@ def diag_sr1_update(
     d = dzk.dot(dzk)
     if d > tol * dk.norm() ** 2 * zk.norm() ** 2:
         alpha = -zk.dot(dk) / d
-        Bk = Bk.diagonalupdate(alpha * (zk ** 2))
+        Bk = Bk.diagonalupdate((zk ** 2) * alpha)
 
     state1.hessian = Bk
     return state1
@@ -93,7 +93,7 @@ def diag_sr1_update_(
         else:
             alpha[v] = 0.0
 
-    Bk = Bk.diagonalupdate(alpha * (zk ** 2))
+    Bk = Bk.diagonalupdate((zk ** 2) * alpha)
 
     state1.hessian = Bk
     return state1
@@ -184,7 +184,7 @@ def diag_quasi_deterministic_update(
     zk2 = zk ** 2
     zk4 = (zk2 ** 2).sum()
     alpha = (dk.dot(Bxk.dot(dk)) - zk.dot(Bzk.dot(zk))) / zk4
-    state1.det_hessian = Bzk.diagonalupdate(float(alpha) * zk2)
+    state1.det_hessian = Bzk.diagonalupdate(zk2 * alpha)
 
     return state1
 

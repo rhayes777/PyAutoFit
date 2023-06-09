@@ -432,6 +432,7 @@ class Sensitivity:
                     instance=instance,
                     simulate_function=self.simulate_function,
                     analysis_class=self.analysis_class,
+                    paths=search.paths,
                 ),
                 model=self.model,
                 perturbation_model=perturbation_model,
@@ -444,7 +445,7 @@ class Sensitivity:
 
 class AnalysisFactory:
     def __init__(
-        self, instance, simulate_function, analysis_class,
+        self, instance, simulate_function, analysis_class, paths,
     ):
         """
         Callable to delay simulation such that it is performed
@@ -453,7 +454,11 @@ class AnalysisFactory:
         self.instance = instance
         self.simulate_function = simulate_function
         self.analysis_class = analysis_class
+        self.paths = paths
 
     def __call__(self):
-        dataset = self.simulate_function(self.instance)
+        dataset = self.simulate_function(
+            instance=self.instance,
+            simulate_path=self.paths.image_path.replace("image", "simulate")
+        )
         return self.analysis_class(dataset)

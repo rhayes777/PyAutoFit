@@ -344,6 +344,15 @@ def path_instances_of_class(
         results.append((tuple(), obj))
         if ignore_children:
             return results
+
+    if isinstance(obj, list):
+        for i, item in enumerate(obj):
+            for path, instance in path_instances_of_class(
+                item, cls, ignore_class=ignore_class, ignore_children=ignore_children
+            ):
+                results.append(((i,) + path, instance))
+        return results
+
     try:
         from autofit.mapper.prior_model.annotation import AnnotationPriorModel
 

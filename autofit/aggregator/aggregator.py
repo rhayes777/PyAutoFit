@@ -48,12 +48,7 @@ class AggregatorGroup:
         -------
         A collection of groups of the same length with each group having the same or fewer members.
         """
-        return AggregatorGroup(
-            [
-                group.filter(*predicates)
-                for group in self.groups
-            ]
-        )
+        return AggregatorGroup([group.filter(*predicates) for group in self.groups])
 
     def __getitem__(self, item):
         return self.groups[item]
@@ -75,10 +70,7 @@ class AggregatorGroup:
         -------
         A list of lists of values.
         """
-        return [
-            group.values(name)
-            for group in self.groups
-        ]
+        return [group.values(name) for group in self.groups]
 
 
 class AbstractAggregator:
@@ -98,23 +90,15 @@ class AbstractAggregator:
         Removes the unzipped output directory for each phase.
         """
         for phase in self.search_outputs:
-
             split_path = path.split(phase.directory)[0]
 
             unzipped_path = path.join(split_path)
 
-            rmtree(
-                unzipped_path,
-                ignore_errors=True
-            )
+            rmtree(unzipped_path, ignore_errors=True)
 
     def __getitem__(
-            self,
-            item: Union[slice, int]
-    ) -> Union[
-        "AbstractAggregator",
-        SearchOutput
-    ]:
+        self, item: Union[slice, int]
+    ) -> Union["AbstractAggregator", SearchOutput]:
         """
         If an index is passed in then a specific phase output is returned.
 
@@ -130,9 +114,7 @@ class AbstractAggregator:
         An aggregator or phase
         """
         if isinstance(item, slice):
-            return AbstractAggregator(
-                self.search_outputs[item]
-            )
+            return AbstractAggregator(self.search_outputs[item])
         return self.search_outputs[item]
 
     def __len__(self):
@@ -184,12 +166,26 @@ class AbstractAggregator:
         -------
         A generator of values for the attribute
         """
-        return map(
-            lambda phase: getattr(
-                phase, name
-            ),
-            self.search_outputs
-        )
+        return map(lambda phase: getattr(phase, name), self.search_outputs)
+
+    def child_values(self, name: str) -> Iterator[List]:
+        """
+        Get values with a given name from the child analyses of each search in
+        this aggregator.
+
+        Parameters
+        ----------
+        name
+            The name of an attribute expected to be associated with
+            child analysis output. If a pickle file with this name
+            is in the child analysis output directory then that pickle
+            will be loaded.
+
+        Returns
+        -------
+        A generator of values for the attribute
+        """
+        return (phase.child_values(name) for phase in self.search_outputs)
 
     def map(self, func):
         """
@@ -204,10 +200,7 @@ class AbstractAggregator:
         -------
         A generator of results
         """
-        return map(
-            func,
-            self.search_outputs
-        )
+        return map(func, self.search_outputs)
 
     def group_by(self, field: str) -> AggregatorGroup:
         """
@@ -241,11 +234,7 @@ class AbstractAggregator:
 
 
 class Aggregator(AbstractAggregator):
-    def __init__(
-            self,
-            directory: Union[str, os.PathLike],
-            completed_only=False
-    ):
+    def __init__(self, directory: Union[str, os.PathLike], completed_only=False):
         """
         Class to aggregate phase results for all subdirectories in a given directory.
 
@@ -276,9 +265,7 @@ class Aggregator(AbstractAggregator):
                             f.extractall(path.join(root, filename[:-4]))
                     except zipfile.BadZipFile:
                         raise zipfile.BadZipFile(
-                            f"File is not a zip file: \n "
-                            f"{root} \n"
-                            f"{filename}"
+                            f"File is not a zip file: \n " f"{root} \n" f"{filename}"
                         )
 
         for root, _, filenames in os.walk(directory):
@@ -289,5 +276,7 @@ class Aggregator(AbstractAggregator):
         if len(search_outputs) == 0:
             print(f"\nNo search_outputs found in {directory}\n")
         else:
-            print(f"\n A total of {str(len(search_outputs))} search_outputs and results were found.")
+            print(
+                f"\n A total of {str(len(search_outputs))} search_outputs and results were found."
+            )
         super().__init__(search_outputs)

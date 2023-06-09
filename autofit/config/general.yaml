@@ -10,6 +10,7 @@ model:
   ignore_prior_limits: false        # If ``True`` the limits applied to priors will be ignored, where limits set upper / lower limits. This stops PriorLimitException's from being raised.
 output:
   force_pickle_overwrite: false     # If True pickle files output by a search (e.g. samples.pickle) are recreated when a new model-fit is performed.
+  force_visualize_overwrite: false # If True, visualization images output by a search (e.g. subplots of the fit) are recreated when a new model-fit is performed.
   info_whitespace_length: 80        # Length of whitespace between the parameter names and values in the model.info / result.info
   log_level: INFO                   # The level of information output by logging.
   log_to_file: false                # If True, outputs the non-linear search log to a file (and not printed to screen).

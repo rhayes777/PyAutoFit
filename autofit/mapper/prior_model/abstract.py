@@ -468,14 +468,24 @@ class AbstractPriorModel(AbstractModel):
 
                     item = Collection(item)
                 for attribute in path:
-                    item = copy.copy(getattr(item, attribute))
+                    if isinstance(attribute, int):
+                        item = item[attribute]
+                    else:
+                        item = copy.copy(getattr(item, attribute))
 
                 target = self
                 for attribute in path[:-1]:
-                    target = getattr(target, attribute)
+                    if isinstance(attribute, int):
+                        target = target[attribute]
+                    else:
+                        target = getattr(target, attribute)
                     assert_no_assertions(target)
 
-                setattr(target, path[-1], item)
+                attribute = path[-1]
+                if isinstance(attribute, int):
+                    target[attribute] = item
+                else:
+                    setattr(target, path[-1], item)
             except AttributeError:
                 pass
 

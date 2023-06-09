@@ -304,3 +304,6 @@ class TransformedMessage(MessageInterface):
     @property
     def log_base_measure(self):
         return self.base_message.log_base_measure
+
+    def zeros_like(self) -> "MessageInterface":
+        return self ** 0.
