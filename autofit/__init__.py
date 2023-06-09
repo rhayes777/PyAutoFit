@@ -94,7 +94,6 @@ from .interpolator import (
 )
 from .tools import util
 
-
 from autofit.mapper.prior.arithmetic.compound import SumPrior as Add
 from autofit.mapper.prior.arithmetic.compound import MultiplePrior as Multiply
 from autofit.mapper.prior.arithmetic.compound import DivisionPrior as Divide
@@ -115,4 +114,4 @@ def save_abc(pickler, obj):
 
 conf.instance.register(__file__)
 
-__version__ = "2023.3.27.1"
+__version__ = "2023.7.7.2"
