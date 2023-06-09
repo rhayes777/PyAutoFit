@@ -11,7 +11,7 @@ from autofit.text import formatter
 from autofit.tools.util import open_
 from .abstract import AbstractPaths
 from ..samples import load_from_table
-from ... import SamplesPDF
+from autofit.non_linear.samples.pdf import SamplesPDF
 
 
 class DirectoryPaths(AbstractPaths):
