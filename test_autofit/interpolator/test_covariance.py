@@ -54,7 +54,7 @@ def test_linear_analysis_for_value(interpolator):
 
 
 def test_model(interpolator):
-    model = interpolator.model
+    model = interpolator.model()
     assert model.prior_count == 6
 
 

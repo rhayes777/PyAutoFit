@@ -25,7 +25,10 @@ def test(interpolator, path_relationship_map, t):
 def test_model(interpolator, path_relationship_map):
     collection = interpolator.model(path_relationship_map)
 
-    assert MockRelationship in [model.cls for model in collection]
+    classes = {model.cls for model in collection}
+
+    assert MockRelationship in classes
+    assert len(classes) == 2
 
 
 def test_path_matching(path_relationship_map):

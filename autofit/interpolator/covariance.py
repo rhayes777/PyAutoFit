@@ -1,6 +1,6 @@
 import numpy as np
 import scipy
-from typing import List
+from typing import List, Dict
 
 from autofit.non_linear.samples.pdf import SamplesPDF
 from .abstract import AbstractInterpolator
@@ -205,13 +205,14 @@ class CovarianceInterpolator(AbstractInterpolator):
     def get(
         self,
         value: Equality,
-        path_relationship_map=None,
+        path_relationship_map: Dict = None,
     ) -> float:
         """
         Calculate the value of the variable for a given value of the variable to which it is related
 
         Parameters
         ----------
+        path_relationship_map
         value
             The value to which the variables are related (e.g. time)
 
@@ -246,13 +247,14 @@ class CovarianceInterpolator(AbstractInterpolator):
         """
         return self._max_likelihood_samples_list().model
 
-    def model(self, path_relationship_map) -> Collection:
+    def model(self, path_relationship_map=None) -> Collection:
         """
         Create a model that describes the linear relationships between each variable and the variable to which it is
         related
         """
         models = []
         single_model = self._single_model
+        path_relationship_map = path_relationship_map or {}
         for prior in single_model.priors_ordered_by_id:
             path = single_model.path_for_prior(prior)
             if path in path_relationship_map:
