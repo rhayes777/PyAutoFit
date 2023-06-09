@@ -40,7 +40,7 @@ class LinearRelationship:
         return str(self)
 
 
-class LinearAnalysis(Analysis):
+class CovarianceAnalysis(Analysis):
     def __init__(
         self,
         x: np.ndarray,
@@ -145,10 +145,10 @@ class CovarianceInterpolator(AbstractInterpolator):
     def _interpolate(x, y, value):
         raise NotImplementedError()
 
-    def _linear_analysis_for_value(self, value: Equality) -> LinearAnalysis:
+    def _analysis_for_value(self, value: Equality) -> CovarianceAnalysis:
         """
-        Create a linear analysis for a given value. That is an analysis that will
-        optimise a linear relationship between each variable and that value.
+        Create a covariance analysis for a given value. That is an analysis that will
+        optimise relationships between each variable and that value.
 
         Parameters
         ----------
@@ -169,7 +169,7 @@ class CovarianceInterpolator(AbstractInterpolator):
             x.append(value.path.get_value(sample.max_log_likelihood()))
             y.extend([value for value in sample.max_log_likelihood(as_instance=False)])
 
-        return LinearAnalysis(
+        return CovarianceAnalysis(
             np.array(x),
             np.array(y),
             inverse_covariance_matrix=self.inverse_covariance_matrix,
@@ -188,7 +188,7 @@ class CovarianceInterpolator(AbstractInterpolator):
         -------
         A list of linear relationships
         """
-        analysis = self._linear_analysis_for_value(value)
+        analysis = self._analysis_for_value(value)
         model = self.model
         optimizer = DynestyStatic()
         result = optimizer.fit(model=model, analysis=analysis)
@@ -226,6 +226,9 @@ class CovarianceInterpolator(AbstractInterpolator):
 
     @property
     def _single_model(self):
+        """
+        The model from the point in the time series that gave the highest likelihood
+        """
         return self._max_likelihood_samples_list().model
 
     @property

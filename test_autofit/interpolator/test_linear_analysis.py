@@ -1,7 +1,7 @@
 import numpy as np
 import pytest
 
-from autofit.interpolator.covariance import LinearAnalysis, LinearRelationship
+from autofit.interpolator.covariance import CovarianceAnalysis, LinearRelationship
 
 
 @pytest.mark.parametrize(
@@ -13,7 +13,7 @@ from autofit.interpolator.covariance import LinearAnalysis, LinearRelationship
     ],
 )
 def test_trivial_linear_analysis(m, c, y):
-    linear_analysis = LinearAnalysis(
+    linear_analysis = CovarianceAnalysis(
         x=np.array([1.0, 2.0, 3.0]),
         y=np.array(y),
         inverse_covariance_matrix=np.eye(3),
@@ -33,7 +33,7 @@ def test_anti_covariance():
     c = 0.0
     y = [3.0, 5.0]
 
-    linear_analysis = LinearAnalysis(
+    linear_analysis = CovarianceAnalysis(
         x=np.array([1.0, 2.0]),
         y=np.array(y),
         inverse_covariance_matrix=np.array(
@@ -76,7 +76,7 @@ def test_multiple_time_points_linear_analysis(
     two_times,
     three_times,
 ):
-    linear_analysis = LinearAnalysis(
+    linear_analysis = CovarianceAnalysis(
         x=np.array(
             [1.0, 2.0, 3.0],
         ),
@@ -92,7 +92,7 @@ def test_multiple_time_points_linear_analysis(
 
 
 def test_non_trivial_covariance(two_times):
-    linear_analysis = LinearAnalysis(
+    linear_analysis = CovarianceAnalysis(
         x=np.array([1.0, 2.0]),
         y=np.array([2.5, 3.0]),
         inverse_covariance_matrix=np.array(
