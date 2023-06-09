@@ -86,7 +86,12 @@ from .non_linear.samples.pdf import marginalize
 from .example.model import Gaussian
 from .text import formatter
 from .text import samples_text
-from .interpolator import LinearInterpolator, SplineInterpolator
+from .interpolator import (
+    LinearInterpolator,
+    SplineInterpolator,
+    CovarianceInterpolator,
+    LinearRelationship,
+)
 from .tools import util
 
 
