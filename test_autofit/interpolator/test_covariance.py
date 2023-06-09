@@ -75,9 +75,15 @@ def test_covariance_is_invertible(interpolator):
     assert np.linalg.inv(interpolator.covariance_matrix) is not None
 
 
-# Fails due to small number of data points?
-def _test_interpolate(interpolator):
-    assert interpolator[interpolator.t == 0.5].gaussian.centre == 0.5
+def test_interpolate(interpolator):
+    assert isinstance(interpolator[interpolator.t == 0.5].gaussian.centre, float)
+
+
+def test_interpolate_other_field(interpolator):
+    assert isinstance(
+        interpolator[interpolator.gaussian.centre == 0.5].gaussian.centre,
+        float,
+    )
 
 
 def test_linear_analysis_for_value(interpolator):
