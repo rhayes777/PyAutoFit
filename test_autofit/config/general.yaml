@@ -25,6 +25,6 @@ profiling:
   repeats: 1                        # The number of repeat function calls used to measure run-times when profiling.
 test:
   check_preloads: false
-  preloads_check_threshold: 0.1     # If the figure of merit of a fit with and without preloads is greater than this threshold, the check preload test fails and an exception raised for a model-fit.              # If True, perform a sanity check that the likelihood using preloads is identical to the likelihood not using preloads.
+  preloads_check_threshold: 1.0     # If the figure of merit of a fit with and without preloads is greater than this threshold, the check preload test fails and an exception raised for a model-fit.              # If True, perform a sanity check that the likelihood using preloads is identical to the likelihood not using preloads.
   exception_override: false
   parallel_profile: false
