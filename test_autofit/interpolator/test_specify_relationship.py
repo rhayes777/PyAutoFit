@@ -13,9 +13,10 @@ def make_path_relationship_map(interpolator):
     return {interpolator.gaussian.centre: af.Model(MockRelationship)}
 
 
-def test(interpolator, path_relationship_map):
+@pytest.mark.parametrize("t", range(3))
+def test(interpolator, path_relationship_map, t):
     interpolated = interpolator.get(
-        interpolator.t == 1.0,
+        interpolator.t == t,
         path_relationship_map,
     )
     assert interpolated.gaussian.centre == 1.0
