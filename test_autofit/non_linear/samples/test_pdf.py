@@ -22,7 +22,7 @@ def make_samples_x5():
         [0.0, 1.0, 2.0, 3.0],
     ]
 
-    return af.Samples(
+    return af.SamplesPDF(
         model=model,
         sample_list=af.Sample.from_lists(
             model=model,
@@ -35,12 +35,32 @@ def make_samples_x5():
 
 
 @pytest.fixture(autouse=True)
-def remove_samples():
+def remove_csv_output():
     yield
     try:
         os.remove("samples.csv")
     except FileNotFoundError:
         pass
+    try:
+        os.remove("covariance.csv")
+    except FileNotFoundError:
+        pass
+
+
+def test_save_covariance_matrix(samples_x5):
+    samples_x5.save_covariance_matrix("covariance.csv")
+    with open("covariance.csv") as f:
+        string = f.read()
+        print(string)
+
+    assert (
+        string
+        == """8.820000000000000284e+01,8.820000000000000284e+01,8.820000000000000284e+01,8.820000000000000284e+01
+8.820000000000000284e+01,8.820000000000000284e+01,8.820000000000000284e+01,8.820000000000000284e+01
+8.820000000000000284e+01,8.820000000000000284e+01,8.820000000000000284e+01,8.820000000000000284e+01
+8.820000000000000284e+01,8.820000000000000284e+01,8.820000000000000284e+01,8.820000000000000284e+01
+"""
+    )
 
 
 def test__from_csv_table(samples_x5):
