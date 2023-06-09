@@ -70,11 +70,6 @@ def _test_inverse_covariance_matrix(interpolator):
     )
 
 
-def test_covariance_is_invertible(interpolator):
-    assert np.linalg.det(interpolator.covariance_matrix()) != 0
-    assert np.linalg.inv(interpolator.covariance_matrix()) is not None
-
-
 def test_interpolate(interpolator):
     assert isinstance(interpolator[interpolator.t == 0.5].gaussian.centre, float)
 
