@@ -1,3 +1,4 @@
+import json
 import logging
 import os
 import pickle
@@ -7,6 +8,7 @@ from pathlib import Path
 import dill
 
 from autofit.non_linear import abstract_search
+from autofit.mapper.prior_model.abstract import AbstractPriorModel
 
 original_create_file_handle = dill._dill._create_filehandle
 
@@ -37,6 +39,10 @@ class Output:
     @property
     def pickle_path(self):
         return self.directory / "pickles"
+
+    @property
+    def json_path(self):
+        return self.directory / "jsons"
 
     def __getattr__(self, item):
         """
@@ -133,10 +139,9 @@ class SearchOutput(Output):
         """
         if self.__model is None:
             try:
-                with open(self.pickle_path / "model.pickle", "r+b") as f:
-                    self.__model = pickle.loads(f.read())
+                with open(self.json_path / "model.json") as f:
+                    self.__model = AbstractPriorModel.from_dict(json.load(f))
             except (FileNotFoundError, ModuleNotFoundError) as e:
-                print(self.pickle_path)
                 logging.exception(e)
         return self.__model
 
