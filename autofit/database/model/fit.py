@@ -1,3 +1,4 @@
+import json
 import pickle
 from functools import wraps
 from typing import List
@@ -40,6 +41,33 @@ class Pickle(Base):
             self.string = pickle.dumps(value)
         except pickle.PicklingError:
             pass
+
+
+class JSON(Base):
+    """
+    A JSON serialised python object that was found in the jsons directory
+    """
+
+    __tablename__ = "json"
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    id = sa.Column(sa.Integer, primary_key=True)
+
+    name = sa.Column(sa.String)
+    string = sa.Column(sa.String)
+    object_type = sa.Column(sa.String)
+    fit_id = sa.Column(sa.String, sa.ForeignKey("fit.id"))
+    fit = sa.orm.relationship("Fit", uselist=False)
+
+    @property
+    def dict(self):
+        return json.loads(self.string)
+
+    @dict.setter
+    def dict(self, d):
+        self.string = json.dumps(d)
 
 
 class Info(Base):
@@ -244,6 +272,7 @@ class Fit(Base):
         self.__model = Object.from_object(model)
 
     pickles: List[Pickle] = sa.orm.relationship("Pickle", lazy="joined")
+    jsons: List[JSON] = sa.orm.relationship("JSON", lazy="joined")
 
     def __getitem__(self, item: str):
         """
@@ -265,6 +294,16 @@ class Fit(Base):
             if p.name == item:
                 return p.value
         return getattr(self, item)
+
+    def set_json(self, key: str, value: dict):
+        new = JSON(name=key, dict=value)
+        self.jsons = [p for p in self.pickles if p.name != key] + [new]
+
+    def get_json(self, key: str):
+        for p in self.jsons:
+            if p.name == key:
+                return p.dict
+        raise KeyError(f"JSON {key} not found")
 
     def __contains__(self, item):
         for p in self.pickles:

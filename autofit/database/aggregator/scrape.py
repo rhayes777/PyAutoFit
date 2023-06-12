@@ -1,3 +1,4 @@
+import json
 import logging
 import os
 import pickle
@@ -222,6 +223,36 @@ def _add_pickles(fit: m.Fit, pickle_path: Path):
         try:
             with open(pickle_path / filename, "r+b") as f:
                 fit[filename.split(".")[0]] = pickle.load(f)
+        except (pickle.UnpicklingError, ModuleNotFoundError) as e:
+            if filename == "dynesty.pickle":
+                continue
+
+            raise pickle.UnpicklingError(
+                f"Failed to unpickle: {pickle_path} {filename}"
+            ) from e
+
+
+def _add_jsons(fit: m.Fit, json_path: Path):
+    """
+    Load JSONs from the path and add them to the database.
+
+    Parameters
+    ----------
+    fit
+        A fit to which the pickles belong
+    json_path
+        The path in which the JSONs are stored
+    """
+    try:
+        filenames = os.listdir(json_path)
+    except FileNotFoundError as e:
+        logger.exception(e)
+        filenames = []
+
+    for filename in filenames:
+        try:
+            with open(json_path / filename) as f:
+                fit[filename.split(".")[0]] = json.load(f)
         except (pickle.UnpicklingError, ModuleNotFoundError) as e:
             if filename == "dynesty.pickle":
                 continue
