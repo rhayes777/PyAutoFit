@@ -57,7 +57,6 @@ class JSON(Base):
 
     name = sa.Column(sa.String)
     string = sa.Column(sa.String)
-    object_type = sa.Column(sa.String)
     fit_id = sa.Column(sa.String, sa.ForeignKey("fit.id"))
     fit = sa.orm.relationship("Fit", uselist=False)
 
