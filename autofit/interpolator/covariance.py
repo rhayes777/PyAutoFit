@@ -1,10 +1,10 @@
 import numpy as np
 import scipy
-from typing import List
+from typing import List, Dict
 
 from autofit.non_linear.samples.pdf import SamplesPDF
 from .abstract import AbstractInterpolator
-from .query import Equality
+from .query import Equality, InterpolatorPath
 from autofit.non_linear.analysis.analysis import Analysis
 from autofit.non_linear.nest.dynesty.static import DynestyStatic
 from autofit.mapper.prior_model.prior_model import Model
@@ -176,7 +176,11 @@ class CovarianceInterpolator(AbstractInterpolator):
             inverse_covariance_matrix=self.inverse_covariance_matrix(),
         )
 
-    def _relationships_for_value(self, value: Equality) -> List[LinearRelationship]:
+    def _relationships_for_value(
+        self,
+        value: Equality,
+        path_relationship_map=None,
+    ) -> List[LinearRelationship]:
         """
         Calculate the linear relationships between each variable and a given value
 
@@ -190,17 +194,27 @@ class CovarianceInterpolator(AbstractInterpolator):
         A list of linear relationships
         """
         analysis = self._analysis_for_value(value)
-        model = self.model
+        model = self.model(path_relationship_map=path_relationship_map or {})
         optimizer = DynestyStatic()
         result = optimizer.fit(model=model, analysis=analysis)
         return result.instance
 
     def __getitem__(self, value: Equality) -> float:
+        return self.get(value)
+
+    def get(
+        self,
+        value: Equality,
+        path_relationship_map: Dict[InterpolatorPath, Model] = None,
+    ) -> float:
         """
         Calculate the value of the variable for a given value of the variable to which it is related
 
         Parameters
         ----------
+        path_relationship_map
+            Specifies which model should be used for each relationship. Each parameter in the model
+            is described by a LinearRelationship with GaussianPriors by default.
         value
             The value to which the variables are related (e.g. time)
 
@@ -208,7 +222,10 @@ class CovarianceInterpolator(AbstractInterpolator):
         -------
         The value of the variable at the given time
         """
-        relationships = self._relationships_for_value(value)
+        relationships = self._relationships_for_value(
+            value,
+            path_relationship_map=path_relationship_map,
+        )
         model = self._single_model
         arguments = {
             prior: relationship(value.value)
@@ -232,14 +249,20 @@ class CovarianceInterpolator(AbstractInterpolator):
         """
         return self._max_likelihood_samples_list().model
 
-    @property
-    def model(self) -> Collection:
+    def model(self, path_relationship_map=None) -> Collection:
         """
         Create a model that describes the linear relationships between each variable and the variable to which it is
         related
         """
         models = []
-        for prior in self._single_model.priors_ordered_by_id:
+        single_model = self._single_model
+        path_relationship_map = path_relationship_map or {}
+        for prior in single_model.priors_ordered_by_id:
+            path = single_model.path_for_prior(prior)
+            if path in path_relationship_map:
+                models.append(path_relationship_map[path])
+                continue
+
             mean = prior.mean
             models.append(
                 Model(

@@ -86,9 +86,13 @@ from .non_linear.samples.pdf import marginalize
 from .example.model import Gaussian
 from .text import formatter
 from .text import samples_text
-from .interpolator import LinearInterpolator, SplineInterpolator
+from .interpolator import (
+    LinearInterpolator,
+    SplineInterpolator,
+    CovarianceInterpolator,
+    LinearRelationship,
+)
 from .tools import util
-
 
 from autofit.mapper.prior.arithmetic.compound import SumPrior as Add
 from autofit.mapper.prior.arithmetic.compound import MultiplePrior as Multiply
@@ -111,3 +115,4 @@ def save_abc(pickler, obj):
 conf.instance.register(__file__)
 
 __version__ = "2023.6.12.5"
+
