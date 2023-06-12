@@ -11,6 +11,7 @@ from autofit.text import formatter
 from autofit.tools.util import open_
 from .abstract import AbstractPaths
 from ..samples import load_from_table
+from autofit.non_linear.samples.pdf import SamplesPDF
 
 
 class DirectoryPaths(AbstractPaths):
@@ -119,6 +120,8 @@ class DirectoryPaths(AbstractPaths):
         if conf.instance["general"]["output"]["samples_to_csv"]:
             samples.write_table(filename=self._samples_file)
             samples.info_to_json(filename=self._info_file)
+            if isinstance(samples, SamplesPDF):
+                samples.save_covariance_matrix(self._covariance_file)
 
     def load_samples_info(self):
         with open_(self._info_file) as infile:
