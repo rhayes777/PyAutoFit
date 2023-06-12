@@ -109,6 +109,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         from autofit.non_linear.paths.database import DatabasePaths
 
         path_prefix = path_prefix or ""
+        self.path_prefix = path_prefix
 
         self.path_prefix_no_unique_tag = path_prefix
 
@@ -237,20 +238,6 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             )
 
         self.optimisation_counter = Counter()
-
-    def dict(self):
-        return {
-            "type": get_class_path(type(self)),
-            "arguments": {
-                "name": self.name,
-                "path_prefix": self.path_prefix_no_unique_tag,
-                "unique_tag": self.unique_tag,
-                "prior_passer": self.prior_passer.dict(),
-                "initializer": self.initializer.dict(),
-                "iterations_per_update": self.iterations_per_update,
-                "number_of_cores": self.number_of_cores,
-            },
-        }
 
     __identifier_fields__ = tuple()
 
@@ -978,10 +965,3 @@ class PriorPasser:
         use_errors = config("prior_passer", "use_errors")
         use_widths = config("prior_passer", "use_widths")
         return PriorPasser(sigma=sigma, use_errors=use_errors, use_widths=use_widths)
-
-    def dict(self):
-        return {
-            "sigma": self.sigma,
-            "use_errors": self.use_errors,
-            "use_widths": self.use_widths,
-        }
