@@ -118,6 +118,9 @@ class DatabasePaths(AbstractPaths):
         del d["session"]
         return d
 
+    def save_json(self, name, object_dict: dict):
+        self.fit.set_json(name, object_dict)
+
     def save_object(self, name: str, obj: object):
         self.fit[name] = obj
 

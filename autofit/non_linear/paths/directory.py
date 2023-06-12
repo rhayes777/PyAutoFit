@@ -41,9 +41,9 @@ class DirectoryPaths(AbstractPaths):
         with open_(self._path_for_pickle(name), "wb") as f:
             dill.dump(obj, f)
 
-    def save_json(self, name, obj):
+    def save_json(self, name, object_dict: dict):
         with open_(self._path_for_json(name), "w+") as f:
-            json.dump(obj, f, indent=4)
+            json.dump(object_dict, f, indent=4)
 
     def load_object(self, name: str):
         """
