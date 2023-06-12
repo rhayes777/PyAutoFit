@@ -134,7 +134,7 @@ class DirectoryPaths(AbstractPaths):
         self._save_search(config_dict=search_config_dict)
         self._save_model_info(model=self.model)
         self._save_parameter_names_file(model=self.model)
-        self.save_object("info", info)
+        self.save_json("info", info)
         self.save_object("search", self.search)
         self.save_json("model", self.model.dict())
         self._save_metadata(search_name=type(self.search).__name__.lower())
