@@ -1,7 +1,7 @@
 import pytest
 
 import autofit as af
-from autofit.tools.util import to_dict
+from autofit.tools.util import to_dict, from_dict
 
 
 @pytest.fixture(name="dynesty_dict")
@@ -25,6 +25,10 @@ def make_dynesty_dict():
 def test_dict(dynesty_dict):
     dynesty = af.DynestyStatic()
     assert to_dict(dynesty) == dynesty_dict
+
+
+def test_from_dict(dynesty_dict):
+    assert isinstance(from_dict(dynesty_dict), af.DynestyStatic)
 
 
 def test_prior_passer():

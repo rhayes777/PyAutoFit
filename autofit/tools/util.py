@@ -10,10 +10,19 @@ from pathlib import Path
 import numpy as np
 
 from autoconf import conf
-from autoconf.class_path import get_class_path
+from autoconf.class_path import get_class_path, get_class
 
 
 def to_dict(obj):
+    """
+    Convert an object to a dictionary.
+
+    The dictionary can be converted back to the object using `from_dict`.
+
+    The representation is recursive, so dictionaries and lists are also converted.
+    A type describes the path to the class of the object, and arguments maps
+    constructor arguments to values of attributes with the same name.
+    """
     if isinstance(obj, (int, float, str, bool, type(None))):
         return obj
     if inspect.isclass(type(obj)):
@@ -33,8 +42,13 @@ def to_dict(obj):
 
 
 def from_dict(dictionary):
+    """
+    Convert a dictionary to an object.
+    """
+    if isinstance(dictionary, (int, float, str, bool, type(None))):
+        return dictionary
     if "type" in dictionary:
-        cls = getattr(__import__(dictionary["type"].split(".")[0]), dictionary["type"])
+        cls = get_class(dictionary["type"])
         return cls(
             **{
                 argument: from_dict(value)
