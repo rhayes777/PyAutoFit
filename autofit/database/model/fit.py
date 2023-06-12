@@ -296,7 +296,7 @@ class Fit(Base):
 
     def set_json(self, key: str, value: dict):
         new = JSON(name=key, dict=value)
-        self.jsons = [p for p in self.pickles if p.name != key] + [new]
+        self.jsons = [p for p in self.jsons if p.name != key] + [new]
 
     def get_json(self, key: str):
         for p in self.jsons:
