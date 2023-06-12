@@ -42,6 +42,16 @@ class DirectoryPaths(AbstractPaths):
             dill.dump(obj, f)
 
     def save_json(self, name, object_dict: dict):
+        """
+        Save a dictionary as a json file in the jsons directory of the search.
+
+        Parameters
+        ----------
+        name
+            The name of the json file
+        object_dict
+            The dictionary to save
+        """
         with open_(self._path_for_json(name), "w+") as f:
             json.dump(object_dict, f, indent=4)
 

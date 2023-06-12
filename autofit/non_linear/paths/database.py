@@ -119,6 +119,16 @@ class DatabasePaths(AbstractPaths):
         return d
 
     def save_json(self, name, object_dict: dict):
+        """
+        Save a dictionary as a json file in the database
+
+        Parameters
+        ----------
+        name
+            The name of the json
+        object_dict
+            The dictionary to save
+        """
         self.fit.set_json(name, object_dict)
 
     def save_object(self, name: str, obj: object):

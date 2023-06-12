@@ -295,10 +295,33 @@ class Fit(Base):
         return getattr(self, item)
 
     def set_json(self, key: str, value: dict):
+        """
+        Add a JSON object to the database. Overwrites any existing JSON
+        object with the same name.
+
+        Parameters
+        ----------
+        key
+            The name of the JSON object
+        value
+            A dictionary to be serialised
+        """
         new = JSON(name=key, dict=value)
         self.jsons = [p for p in self.jsons if p.name != key] + [new]
 
-    def get_json(self, key: str):
+    def get_json(self, key: str) -> dict:
+        """
+        Retrieve a JSON object from the database.
+
+        Parameters
+        ----------
+        key
+            The name of the JSON object
+
+        Returns
+        -------
+        A dictionary
+        """
         for p in self.jsons:
             if p.name == key:
                 return p.dict
