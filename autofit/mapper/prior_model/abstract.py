@@ -1364,6 +1364,13 @@ class AbstractPriorModel(AbstractModel):
         return len(self.unique_prior_tuples)
 
     @property
+    def total_free_parameters(self) -> int:
+        """
+        Returns the prior count, but with a name that is more easy to interpret for users.
+        """
+        return self.prior_count
+
+    @property
     def priors(self):
         return [prior_tuple.prior for prior_tuple in self.prior_tuples]
 

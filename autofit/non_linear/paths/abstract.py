@@ -413,5 +413,9 @@ class AbstractPaths(ABC):
         return path.join(self.samples_path, "samples.csv")
 
     @property
+    def _covariance_file(self) -> str:
+        return path.join(self.samples_path, "covariance.txt")
+
+    @property
     def _info_file(self) -> str:
         return path.join(self.samples_path, "info.json")

@@ -5,40 +5,6 @@ from autofit.interpolator import CovarianceInterpolator
 import numpy as np
 
 
-@pytest.fixture(name="interpolator")
-def make_interpolator():
-    samples_list = [
-        af.SamplesPDF(
-            model=af.Collection(
-                t=value,
-                gaussian=af.Model(
-                    af.Gaussian,
-                    centre=af.GaussianPrior(mean=1.0, sigma=1.0),
-                    normalization=af.GaussianPrior(mean=1.0, sigma=1.0),
-                    sigma=af.GaussianPrior(mean=1.0, sigma=1.0),
-                ),
-            ),
-            sample_list=[
-                af.Sample(
-                    log_likelihood=-i,
-                    log_prior=1.0,
-                    weight=1.0,
-                    kwargs={
-                        ("gaussian", "centre"): value + i,
-                        ("gaussian", "normalization"): value + i**2,
-                        ("gaussian", "sigma"): value + i**3,
-                    },
-                )
-                for i in range(3)
-            ],
-        )
-        for value in range(3)
-    ]
-    return CovarianceInterpolator(
-        samples_list,
-    )
-
-
 def test_covariance_matrix(interpolator):
     assert np.allclose(
         interpolator.covariance_matrix(),
@@ -88,7 +54,7 @@ def test_linear_analysis_for_value(interpolator):
 
 
 def test_model(interpolator):
-    model = interpolator.model
+    model = interpolator.model()
     assert model.prior_count == 6
 
 
