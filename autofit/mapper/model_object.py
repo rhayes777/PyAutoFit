@@ -1,9 +1,13 @@
 import copy
 import itertools
 from typing import Type, Union, Tuple
+import logging
 
 from autoconf.class_path import get_class
 from .identifier import Identifier
+
+
+logger = logging.getLogger(__name__)
 
 
 class ModelObject:
@@ -123,7 +127,14 @@ class ModelObject:
         type_ = d["type"]
 
         if type_ == "model":
-            instance = Model(get_class(d.pop("class_path")))
+            class_path = d.pop("class_path")
+            try:
+                instance = Model(get_class(class_path))
+            except (ModuleNotFoundError, AttributeError):
+                logger.warning(
+                    f"Could not find type for class path {class_path}. Defaulting to Collection placeholder."
+                )
+                instance = Collection()
         elif type_ == "collection":
             instance = Collection()
         elif type_ == "tuple_prior":
