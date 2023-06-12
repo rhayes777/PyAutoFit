@@ -190,6 +190,6 @@ class ModelObject:
         return {
             key: value
             for key, value in self.__dict__.items()
-            if key not in ("component_number", "item_number", "id", "cls")
+            if key not in ("component_number", "item_number", "id", "cls", "label")
             and not key.startswith("_")
         }
