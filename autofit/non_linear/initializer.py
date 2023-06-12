@@ -23,6 +23,11 @@ class AbstractInitializer(ABC):
     def _generate_unit_parameter_list(self, model):
         pass
 
+    def dict(self):
+        return {
+            "type": self.__class__.__name__,
+        }
+
     def samples_from_model(
         self,
         total_points: int,
@@ -133,7 +138,6 @@ class AbstractInitializer(ABC):
         figure_of_merit = -1.0e99
 
         while point_index < total_points:
-
             try:
                 unit_parameter_list = self._generate_unit_parameter_list(model)
                 parameter_list = model.vector_from_unit_vector(
@@ -175,6 +179,14 @@ class SpecificRangeInitializer(AbstractInitializer):
         self.parameter_dict = parameter_dict
         self.lower_limit = lower_limit
         self.upper_limit = upper_limit
+
+    def dict(self):
+        return {
+            **super().dict(),
+            "parameter_dict": self.parameter_dict,
+            "lower_limit": self.lower_limit,
+            "upper_limit": self.upper_limit,
+        }
 
     def _generate_unit_parameter_list(self, model: AbstractPriorModel) -> List[float]:
         """
@@ -230,19 +242,15 @@ class Initializer(AbstractInitializer):
         """
 
         try:
-
             initializer = config("initialize", "method")
 
         except configparser.NoSectionError:
-
             return None
 
         if initializer in "prior":
-
             return InitializerPrior()
 
         elif initializer in "ball":
-
             ball_lower_limit = config("initialize", "ball_lower_limit")
             ball_upper_limit = config("initialize", "ball_upper_limit")
 
