@@ -48,10 +48,13 @@ class Analysis(ABC):
         1) If a model-fit has already completed, the default behaviour is for visualization to be bypassed in order
         to make model-fits run faster.
 
-        2) However, visualization can be forced to run via the `force_visualization_overwrite`, for example if a user
+        2) If a model-fit has completed, but it is the final visualization output where `during_analysis` is False,
+        it should be performed.
+
+        3) Visualization can be forced to run via the `force_visualization_overwrite`, for example if a user
         wants to plot additional images that were not output on the original run.
 
-        3) If PyAutoFit test mode is on visualization is disabled, irrespective of the `force_visualization_overwite`
+        4) If PyAutoFit test mode is on visualization is disabled, irrespective of the `force_visualization_overwite`
         config input.
 
         Parameters
