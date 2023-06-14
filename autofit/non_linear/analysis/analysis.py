@@ -43,14 +43,15 @@ class Analysis(ABC):
 
     def should_visualize(self, paths: AbstractPaths, during_analysis : bool = True) -> bool:
         """
-        Whether a visualize method should continue and perform visualization, or be terminated early.
+        Whether a visualize method should be called perform visualization, which depends on the following:
 
-        If a model-fit has already completed, the default behaviour is for visualization to be bypassed in order
-        to make model-fits run faster. However, visualization can be forced to run via
-        the `force_visualization_overwrite`, for example if a user wants to plot additional images that were not
-        output on the original run.
+        1) If a model-fit has already completed, the default behaviour is for visualization to be bypassed in order
+        to make model-fits run faster.
 
-        PyAutoFit test mode also disables visualization, irrespective of the `force_visualization_overwite`
+        2) However, visualization can be forced to run via the `force_visualization_overwrite`, for example if a user
+        wants to plot additional images that were not output on the original run.
+
+        3) If PyAutoFit test mode is on visualization is disabled, irrespective of the `force_visualization_overwite`
         config input.
 
         Parameters
@@ -68,10 +69,13 @@ class Analysis(ABC):
         if os.environ.get("PYAUTOFIT_TEST_MODE") == "1":
             return False
 
+        if conf.instance["general"]["output"]["force_visualize_overwrite"]:
+            return True
+
         if not during_analysis:
             return True
 
-        return not paths.is_complete or conf.instance["general"]["output"]["force_visualize_overwrite"]
+        return not paths.is_complete
 
     def log_likelihood_function(self, instance):
         raise NotImplementedError()

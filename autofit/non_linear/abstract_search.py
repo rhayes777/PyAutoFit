@@ -577,12 +577,14 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         analysis = analysis.modify_before_fit(paths=self.paths, model=model)
 
-        analysis.visualize_before_fit(
-            paths=self.paths, model=model,
-        )
-        analysis.visualize_before_fit_combined(
-            analyses=None, paths=self.paths, model=model,
-        )
+        if analysis.should_visualize(paths=self.paths):
+
+            analysis.visualize_before_fit(
+                paths=self.paths, model=model,
+            )
+            analysis.visualize_before_fit_combined(
+                analyses=None, paths=self.paths, model=model,
+            )
 
         if not self.paths.is_complete or self.force_pickle_overwrite:
             self.logger.info("Saving path info")
@@ -764,8 +766,9 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         self.paths.save_object("samples", samples)
 
-        if not isinstance(self.paths, NullPaths):
-            self.plot_results(samples=samples)
+        if analysis.should_visualize(paths=self.paths, during_analysis=during_analysis):
+            if not isinstance(self.paths, NullPaths):
+                self.plot_results(samples=samples)
 
         try:
             instance = samples.max_log_likelihood()
@@ -773,12 +776,13 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             return samples
 
         self.logger.debug("Visualizing")
-        analysis.visualize(
-            paths=self.paths, instance=instance, during_analysis=during_analysis
-        )
-        analysis.visualize_combined(
-            analyses=None, paths=self.paths, instance=instance, during_analysis=during_analysis
-        )
+        if analysis.should_visualize(paths=self.paths, during_analysis=during_analysis):
+            analysis.visualize(
+                paths=self.paths, instance=instance, during_analysis=during_analysis
+            )
+            analysis.visualize_combined(
+                analyses=None, paths=self.paths, instance=instance, during_analysis=during_analysis
+            )
 
         if self.should_profile:
             self.logger.debug("Profiling Maximum Likelihood Model")
