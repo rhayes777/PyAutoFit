@@ -41,7 +41,7 @@ class Analysis(ABC):
             model=model
         )
 
-    def should_visualize(self, paths: AbstractPaths) -> bool:
+    def should_visualize(self, paths: AbstractPaths, during_analysis : bool = True) -> bool:
         """
         Whether a visualize method should continue and perform visualization, or be terminated early.
 
@@ -67,6 +67,9 @@ class Analysis(ABC):
 
         if os.environ.get("PYAUTOFIT_TEST_MODE") == "1":
             return False
+
+        if not during_analysis:
+            return True
 
         return not paths.is_complete or conf.instance["general"]["output"]["force_visualize_overwrite"]
 
