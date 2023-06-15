@@ -146,6 +146,10 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             "force_pickle_overwrite"
         ]
 
+        self.force_visualize_overwrite = conf.instance["general"]["output"][
+            "force_visualize_overwrite"
+        ]
+
         if initializer is None:
             self.logger.debug("Creating initializer ")
             self.initializer = Initializer.from_config(config=self._config)
@@ -630,6 +634,9 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
             samples = self.paths.load_object("samples")
 
+            if self.force_visualize_overwrite:
+                self.perform_visualization(model=model, analysis=analysis, during_analysis=False)
+
             result = analysis.make_result(
                 samples=samples,
                 model=model,
@@ -766,23 +773,12 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         self.paths.save_object("samples", samples)
 
-        if analysis.should_visualize(paths=self.paths, during_analysis=during_analysis):
-            if not isinstance(self.paths, NullPaths):
-                self.plot_results(samples=samples)
-
         try:
             instance = samples.max_log_likelihood()
         except exc.FitException:
             return samples
 
-        self.logger.debug("Visualizing")
-        if analysis.should_visualize(paths=self.paths, during_analysis=during_analysis):
-            analysis.visualize(
-                paths=self.paths, instance=instance, during_analysis=during_analysis
-            )
-            analysis.visualize_combined(
-                analyses=None, paths=self.paths, instance=instance, during_analysis=during_analysis
-            )
+        self.perform_visualization(model=model, analysis=analysis, during_analysis=during_analysis)
 
         if self.should_profile:
             self.logger.debug("Profiling Maximum Likelihood Model")
@@ -812,6 +808,31 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                 pass
 
         return samples
+
+    def perform_visualization(self, model, analysis, during_analysis):
+
+        try:
+            samples = self.samples_from(model=model)
+        except FileNotFoundError:
+            samples = self.paths.load_object(name="samples")
+
+        try:
+            instance = samples.max_log_likelihood()
+        except exc.FitException:
+            return samples
+
+        if analysis.should_visualize(paths=self.paths, during_analysis=during_analysis):
+            if not isinstance(self.paths, NullPaths):
+                self.plot_results(samples=samples)
+
+        self.logger.debug("Visualizing")
+        if analysis.should_visualize(paths=self.paths, during_analysis=during_analysis):
+            analysis.visualize(
+                paths=self.paths, instance=instance, during_analysis=during_analysis
+            )
+            analysis.visualize_combined(
+                analyses=None, paths=self.paths, instance=instance, during_analysis=during_analysis
+            )
 
     @property
     def samples_cls(self):
