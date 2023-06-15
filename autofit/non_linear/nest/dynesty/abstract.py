@@ -436,11 +436,11 @@ class AbstractDynesty(AbstractNest, ABC):
         if should_plot("cornerplot"):
             plotter.cornerplot()
 
-        if should_plot("runplot"):
-            plotter.runplot()
+        # if should_plot("runplot"):
+        #     plotter.runplot()
 
         if should_plot("traceplot"):
             plotter.traceplot()
 
-        if should_plot("cornerpoints"):
-            plotter.cornerpoints()
+        # if should_plot("cornerpoints"):
+        #     plotter.cornerpoints()
