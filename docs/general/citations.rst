@@ -11,3 +11,8 @@ would greatly appreciate it if you mention **PyAutoFit** by name and include a l
 
 **PyAutoFit** is published in the `Journal of Open Source Software <https://joss.theoj.org/papers/10.21105/joss.02550#>`_ and its
 entry in the above .bib file is under the key ``pyautofit``.
+
+Dynesty
+-------
+
+If you used the nested sampling algorithm Dynesty, please follow the citation instructions `on the dynesty readthedocs <https://dynesty.readthedocs.io/en/latest/references.html>`_.
