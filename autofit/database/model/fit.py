@@ -71,6 +71,8 @@ class JSON(Base):
 
     @property
     def value(self):
+        if self.name == "model":
+            return AbstractPriorModel.from_object(self.dict)
         return from_dict(self.dict)
 
 
