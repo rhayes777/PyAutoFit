@@ -122,8 +122,12 @@ class SearchOutput(Output):
             try:
                 with open(self.json_path / "search.json") as f:
                     self.__search = from_dict(json.loads(f.read()))
-            except (FileNotFoundError, ModuleNotFoundError) as e:
-                logging.exception(e)
+            except (FileNotFoundError, ModuleNotFoundError):
+                try:
+                    with open(self.pickle_path / "search.pickle", "rb") as f:
+                        self.__search = pickle.load(f)
+                except (FileNotFoundError, ModuleNotFoundError):
+                    logging.warning("Could not load search")
         return self.__search
 
     def child_values(self, name):
@@ -143,6 +147,11 @@ class SearchOutput(Output):
                     self.__model = AbstractPriorModel.from_dict(json.load(f))
             except (FileNotFoundError, ModuleNotFoundError) as e:
                 logging.exception(e)
+                try:
+                    with open(self.pickle_path / "model.pickle", "rb") as f:
+                        self.__model = pickle.load(f)
+                except (FileNotFoundError, ModuleNotFoundError):
+                    logging.warning("Could not load model")
         return self.__model
 
     def __str__(self):
