@@ -1,5 +1,8 @@
+import numpy as np
+
 from .interface import SamplesInterface
-from ...tools.util import to_dict
+from autofit.mapper.prior_model.abstract import AbstractPriorModel
+from ...tools.util import to_dict, from_dict
 
 
 class SamplesSummary(SamplesInterface):
@@ -12,5 +15,21 @@ class SamplesSummary(SamplesInterface):
         return {
             "max_log_likelihood_sample": to_dict(self.max_log_likelihood_sample),
             "model": self.model.dict(),
-            "covariance_matrix": self.covariance_matrix.tolist(),
+            "covariance_matrix": self.covariance_matrix.tolist()
+            if self.covariance_matrix is not None
+            else None,
         }
+
+    @classmethod
+    def from_dict(cls, summary_dict):
+        try:
+            covariance_matrix = np.array(summary_dict["covariance_matrix"])
+        except (KeyError, ValueError):
+            covariance_matrix = None
+        return cls(
+            max_log_likelihood_sample=from_dict(
+                summary_dict["max_log_likelihood_sample"]
+            ),
+            model=AbstractPriorModel.from_dict(summary_dict["model"]),
+            covariance_matrix=covariance_matrix,
+        )

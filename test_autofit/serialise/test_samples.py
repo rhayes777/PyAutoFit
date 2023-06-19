@@ -3,6 +3,8 @@ import numpy as np
 import autofit as af
 import pytest
 
+from autofit.non_linear.samples.summary import SamplesSummary
+
 
 @pytest.fixture(name="model")
 def make_model():
@@ -46,8 +48,9 @@ def test_summary(summary, model, sample):
     assert isinstance(summary.covariance_matrix, np.ndarray)
 
 
-def test_dict(summary):
-    assert summary.dict() == {
+@pytest.fixture(name="summary_dict")
+def make_summary_dict():
+    return {
         "covariance_matrix": [
             [2.0, 3.0, 3.9999999999999996],
             [3.0, 4.5, 6.0],
@@ -74,3 +77,15 @@ def test_dict(summary):
             "type": "model",
         },
     }
+
+
+def test_dict(summary, summary_dict):
+    assert summary.dict() == summary_dict
+
+
+def test_from_dict(summary_dict):
+    summary = SamplesSummary.from_dict(summary_dict)
+    assert isinstance(summary, SamplesSummary)
+    assert isinstance(summary.model, af.Model)
+    assert isinstance(summary.max_log_likelihood_sample, af.Sample)
+    assert isinstance(summary.covariance_matrix, np.ndarray)
