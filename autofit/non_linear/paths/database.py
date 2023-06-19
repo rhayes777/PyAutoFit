@@ -204,6 +204,6 @@ class DatabasePaths(AbstractPaths):
         self.fit.info = info
         self.fit.model = self.model
 
-        self.save_object("search", self.search)
+        self.save_json("search", self.search.to_dict())
 
         self.session.commit()

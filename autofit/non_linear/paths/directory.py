@@ -8,7 +8,7 @@ import dill
 
 from autoconf import conf
 from autofit.text import formatter
-from autofit.tools.util import open_
+from autofit.tools.util import open_, to_dict
 from .abstract import AbstractPaths
 from ..samples import load_from_table
 from autofit.non_linear.samples.pdf import SamplesPDF
@@ -138,7 +138,7 @@ class DirectoryPaths(AbstractPaths):
         self._save_model_info(model=self.model)
         self._save_parameter_names_file(model=self.model)
         self.save_json("info", info)
-        self.save_object("search", self.search)
+        self.save_json("search", to_dict(self.search))
         self.save_json("model", self.model.dict())
         self._save_metadata(search_name=type(self.search).__name__.lower())
         self._move_pickle_files(pickle_files=pickle_files)

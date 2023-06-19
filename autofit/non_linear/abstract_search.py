@@ -37,6 +37,7 @@ from .analysis.indexed import IndexCollectionAnalysis
 from .paths.null import NullPaths
 from ..graphical.declarative.abstract import PriorFactor
 from ..graphical.expectation_propagation import AbstractFactorOptimiser
+from ..tools.util import to_dict, from_dict
 
 logger = logging.getLogger(__name__)
 
