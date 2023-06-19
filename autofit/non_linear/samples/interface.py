@@ -3,6 +3,7 @@ from functools import wraps
 from typing import Union, List, Tuple
 
 from autofit.mapper.model import ModelInstance
+from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.mapper.prior_model.abstract import Path
 
 
@@ -24,7 +25,10 @@ def to_instance(func):
 
 
 class SamplesInterface(ABC):
-    def __init__(self, model):
+    def __init__(self, model: AbstractPriorModel):
+        """
+        An interface for the samples of a `NonLinearSearch` that has been run, including the maximum log likelihood
+        """
         self.model = model
 
         self._paths = None
