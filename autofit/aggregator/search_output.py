@@ -9,6 +9,7 @@ import dill
 
 from autofit.non_linear import abstract_search
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
+from autofit.tools.util import from_dict
 
 original_create_file_handle = dill._dill._create_filehandle
 
@@ -119,10 +120,9 @@ class SearchOutput(Output):
         """
         if self.__search is None:
             try:
-                with open(self.pickle_path / "search.pickle", "r+b") as f:
-                    self.__search = pickle.loads(f.read())
+                with open(self.json_path / "search.json") as f:
+                    self.__search = from_dict(json.loads(f.read()))
             except (FileNotFoundError, ModuleNotFoundError) as e:
-                print(self.pickle_path)
                 logging.exception(e)
         return self.__search
 
