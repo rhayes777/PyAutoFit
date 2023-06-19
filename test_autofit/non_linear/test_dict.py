@@ -8,15 +8,25 @@ from autofit.tools.util import to_dict, from_dict
 def make_dynesty_dict():
     return {
         "arguments": {
+            "bootstrap": None,
+            "bound": "multi",
+            "enlarge": None,
+            "facc": 0.5,
+            "fmove": 0.9,
             "iterations_per_update": 500,
+            "max_move": 100,
             "name": "",
+            "nlive": 150,
             "number_of_cores": 1,
             "path_prefix": "",
             "prior_passer": {
                 "arguments": {"sigma": 3.0, "use_errors": True, "use_widths": True},
                 "type": "autofit.non_linear.abstract_search.PriorPasser",
             },
+            "sample": "auto",
+            "slices": 5,
             "unique_tag": None,
+            "walks": 5,
         },
         "type": "autofit.non_linear.nest.dynesty.static.DynestyStatic",
     }
