@@ -6,7 +6,6 @@ import logging
 from autoconf.class_path import get_class
 from .identifier import Identifier
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -142,11 +141,20 @@ class ModelObject:
         elif type_ == "dict":
             return {key: ModelObject.from_dict(value) for key, value in d.items()}
         elif type_ == "instance":
-            d.pop("type")
-            cls = get_class(d.pop("class_path"))
-            return cls(
-                **{key: ModelObject.from_dict(value) for key, value in d.items()}
-            )
+            class_path = d.pop("class_path")
+            try:
+                cls = get_class(class_path)
+                d.pop("type")
+                return cls(
+                    **{key: ModelObject.from_dict(value) for key, value in d.items()}
+                )
+            except (ModuleNotFoundError, AttributeError):
+                from autofit.mapper.model import ModelInstance
+
+                logger.warning(
+                    f"Could not find type for class path {class_path}. Defaulting to Instance placeholder."
+                )
+                instance = ModelInstance()
         else:
             try:
                 return Prior.from_dict(d)
