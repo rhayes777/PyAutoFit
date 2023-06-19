@@ -13,7 +13,6 @@ from typing import Dict, Optional, Union, Tuple, List
 import numpy as np
 
 from autoconf import conf, cached_property
-from autoconf.class_path import get_class_path
 from autofit import exc
 from autofit.database.sqlalchemy_ import sa
 from autofit.graphical import (
@@ -624,6 +623,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             analysis.save_results_for_aggregator(paths=self.paths, result=result)
 
             self.paths.save_object("samples", samples)
+            self.paths.save_json("samples_summary", samples.summary().dict())
 
         else:
             self.logger.info(f"Already completed, skipping non-linear search.")
@@ -641,6 +641,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             if self.force_pickle_overwrite:
                 self.logger.info("Forcing pickle overwrite")
                 self.paths.save_object("samples", samples)
+                self.paths.save_json("samples_summary", samples.summary().dict())
                 try:
                     self.paths.save_object("results", samples.results)
                 except AttributeError:

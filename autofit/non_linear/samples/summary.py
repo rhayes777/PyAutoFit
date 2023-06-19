@@ -37,13 +37,14 @@ class SamplesSummary(SamplesInterface):
         """
         A JSON serialisable dictionary representation of the summary
         """
+        covariance_matrix = self.covariance_matrix()
+        if covariance_matrix is not None:
+            covariance_matrix = covariance_matrix.tolist()
         return {
             "type": get_class_path(type(self)),
             "max_log_likelihood_sample": to_dict(self.max_log_likelihood_sample),
-            "model": self.model.dict(),
-            "covariance_matrix": self.covariance_matrix().tolist()
-            if self.covariance_matrix is not None
-            else None,
+            "model": self.model.dict() if self.model is not None else None,
+            "covariance_matrix": covariance_matrix,
         }
 
     @classmethod
