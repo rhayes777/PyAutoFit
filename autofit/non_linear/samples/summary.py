@@ -1,5 +1,6 @@
 import numpy as np
 
+from autoconf.class_path import get_class_path
 from .interface import SamplesInterface
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.tools.util import to_dict, from_dict
@@ -37,6 +38,7 @@ class SamplesSummary(SamplesInterface):
         A JSON serialisable dictionary representation of the summary
         """
         return {
+            "type": get_class_path(type(self)),
             "max_log_likelihood_sample": to_dict(self.max_log_likelihood_sample),
             "model": self.model.dict(),
             "covariance_matrix": self.covariance_matrix().tolist()
