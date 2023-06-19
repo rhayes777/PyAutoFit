@@ -146,6 +146,11 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         self.force_pickle_overwrite = conf.instance["general"]["output"][
             "force_pickle_overwrite"
         ]
+        self.skip_save_samples = kwargs.get("skip_save_samples")
+        if self.skip_save_samples is None:
+            self.skip_save_samples = conf.instance["general"]["output"].get(
+                "skip_save_samples"
+            )
 
         if initializer is None:
             self.logger.debug("Creating initializer ")
@@ -622,7 +627,8 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
             analysis.save_results_for_aggregator(paths=self.paths, result=result)
 
-            self.paths.save_object("samples", samples)
+            if not self.skip_save_samples:
+                self.paths.save_object("samples", samples)
             self.paths.save_json("samples_summary", samples.summary().dict())
 
         else:
@@ -640,7 +646,8 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
             if self.force_pickle_overwrite:
                 self.logger.info("Forcing pickle overwrite")
-                self.paths.save_object("samples", samples)
+                if not self.skip_save_samples:
+                    self.paths.save_object("samples", samples)
                 self.paths.save_json("samples_summary", samples.summary().dict())
                 try:
                     self.paths.save_object("results", samples.results)
