@@ -7,15 +7,18 @@ from ...tools.util import to_dict, from_dict
 
 class SamplesSummary(SamplesInterface):
     def __init__(self, max_log_likelihood_sample, model, covariance_matrix=None):
-        self.max_log_likelihood_sample = max_log_likelihood_sample
-        self.model = model
-        self.covariance_matrix = covariance_matrix
+        super().__init__(model=model)
+        self._max_log_likelihood_sample = max_log_likelihood_sample
+        self._covariance_matrix = covariance_matrix
+
+    def covariance_matrix(self):
+        return self._covariance_matrix
 
     def dict(self):
         return {
             "max_log_likelihood_sample": to_dict(self.max_log_likelihood_sample),
             "model": self.model.dict(),
-            "covariance_matrix": self.covariance_matrix.tolist()
+            "covariance_matrix": self.covariance_matrix().tolist()
             if self.covariance_matrix is not None
             else None,
         }
@@ -33,3 +36,7 @@ class SamplesSummary(SamplesInterface):
             model=AbstractPriorModel.from_dict(summary_dict["model"]),
             covariance_matrix=covariance_matrix,
         )
+
+    @property
+    def max_log_likelihood_sample(self):
+        return self._max_log_likelihood_sample

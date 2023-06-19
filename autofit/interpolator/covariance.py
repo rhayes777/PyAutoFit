@@ -240,7 +240,9 @@ class CovarianceInterpolator(AbstractInterpolator):
         """
         Find the samples with the highest log likelihood
         """
-        return max(self.samples_list, key=lambda s: max(s.log_likelihood_list))
+        return max(
+            self.samples_list, key=lambda s: s.max_log_likelihood_sample.log_likelihood
+        )
 
     @property
     def _single_model(self):

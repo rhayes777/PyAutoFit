@@ -45,7 +45,7 @@ def make_summary(samples_pdf):
 def test_summary(summary, model, sample):
     assert summary.model is model
     assert summary.max_log_likelihood_sample == sample
-    assert isinstance(summary.covariance_matrix, np.ndarray)
+    assert isinstance(summary.covariance_matrix(), np.ndarray)
 
 
 @pytest.fixture(name="summary_dict")
@@ -88,4 +88,9 @@ def test_from_dict(summary_dict):
     assert isinstance(summary, SamplesSummary)
     assert isinstance(summary.model, af.Model)
     assert isinstance(summary.max_log_likelihood_sample, af.Sample)
-    assert isinstance(summary.covariance_matrix, np.ndarray)
+    assert isinstance(summary.covariance_matrix(), np.ndarray)
+
+
+def test_covariance_interpolator(summary):
+    interpolator = af.CovarianceInterpolator([summary])
+    assert interpolator[interpolator.centre == 0.5]
