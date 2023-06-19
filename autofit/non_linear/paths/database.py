@@ -4,6 +4,7 @@ from typing import Optional
 from autofit.database.sqlalchemy_ import sa
 from .abstract import AbstractPaths
 from ...database.model import Fit
+from ...tools.util import to_dict
 
 
 class DatabasePaths(AbstractPaths):
@@ -204,6 +205,6 @@ class DatabasePaths(AbstractPaths):
         self.fit.info = info
         self.fit.model = self.model
 
-        self.save_json("search", self.search.to_dict())
+        self.save_json("search", to_dict(self.search))
 
         self.session.commit()
