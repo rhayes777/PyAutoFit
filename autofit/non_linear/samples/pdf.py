@@ -12,6 +12,7 @@ from autofit.non_linear.samples.samples import (
     to_instance_input,
 )
 from .samples import Samples
+from .summary import SamplesSummary
 
 
 class SamplesPDF(Samples):
@@ -61,6 +62,13 @@ class SamplesPDF(Samples):
         )
 
         self._unconverged_sample_size = int(unconverged_sample_size)
+
+    def summary(self):
+        return SamplesSummary(
+            max_log_likelihood_sample=self.max_log_likelihood_sample,
+            model=self.model,
+            covariance_matrix=self.covariance_matrix(),
+        )
 
     @classmethod
     def from_table(cls, filename: str, model, number_live_points=None):

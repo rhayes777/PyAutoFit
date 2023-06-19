@@ -13,6 +13,8 @@ from autofit.mapper.model import ModelInstance
 from autofit.mapper.prior_model.abstract import AbstractPriorModel, Path
 from autofit.non_linear.samples.sample import Sample
 
+from .summary import SamplesSummary
+
 
 ### TODO: Rich how do I reduce this to one wrapper sensible?
 
@@ -272,6 +274,12 @@ class Samples(ABC):
 
         self._paths = None
         self._names = None
+
+    def summary(self):
+        return SamplesSummary(
+            max_log_likelihood_sample=self.max_log_likelihood_sample,
+            model=self.model,
+        )
 
     def __add__(self, other: "Samples") -> "Samples":
         """
