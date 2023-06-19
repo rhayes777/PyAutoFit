@@ -26,11 +26,15 @@ def to_dict(obj):
     if isinstance(obj, (int, float, str, bool, type(None))):
         return obj
     if inspect.isclass(type(obj)):
+        try:
+            arguments = obj.__identifier_fields__
+        except AttributeError:
+            arguments = inspect.getfullargspec(obj.__init__).args[1:]
         return {
             "type": get_class_path(type(obj)),
             "arguments": {
                 argument: to_dict(getattr(obj, argument))
-                for argument in inspect.getfullargspec(obj.__init__).args[1:]
+                for argument in arguments
                 if hasattr(obj, argument)
             },
         }

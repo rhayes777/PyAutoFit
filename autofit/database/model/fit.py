@@ -7,6 +7,7 @@ from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.samples import Samples
 from .model import Base, Object
 from ..sqlalchemy_ import sa
+from ...tools.util import from_dict
 
 
 class Pickle(Base):
@@ -67,6 +68,10 @@ class JSON(Base):
     @dict.setter
     def dict(self, d):
         self.string = json.dumps(d)
+
+    @property
+    def value(self):
+        return from_dict(self.dict)
 
 
 class Info(Base):
@@ -297,7 +302,7 @@ class Fit(Base):
         except AttributeError:
             for p in self.jsons:
                 if p.name == item:
-                    return p.dict
+                    return p.value
 
     def set_json(self, key: str, value: dict):
         """
