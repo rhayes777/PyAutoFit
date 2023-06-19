@@ -289,10 +289,15 @@ class Fit(Base):
         -------
         An unpickled object
         """
-        for p in self.pickles:
-            if p.name == item:
-                return p.value
-        return getattr(self, item)
+        try:
+            for p in self.pickles:
+                if p.name == item:
+                    return p.value
+            return getattr(self, item)
+        except AttributeError:
+            for p in self.jsons:
+                if p.name == item:
+                    return p.dict
 
     def set_json(self, key: str, value: dict):
         """
@@ -330,6 +335,9 @@ class Fit(Base):
     def __contains__(self, item):
         for p in self.pickles:
             if p.name == item:
+                return True
+        for j in self.jsons:
+            if j.name == item:
                 return True
         return False
 
