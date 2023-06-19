@@ -54,6 +54,8 @@ def from_dict(dictionary):
         return dictionary
     if "type" in dictionary:
         cls = get_class(dictionary["type"])
+        if hasattr(cls, "from_dict"):
+            return cls.from_dict(dictionary)
         return cls(
             **{
                 argument: from_dict(value)

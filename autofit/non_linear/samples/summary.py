@@ -6,7 +6,7 @@ from autofit.tools.util import to_dict, from_dict
 from .sample import Sample
 
 
-class SamplesSummary(Sample1sInterface):
+class SamplesSummary(SamplesInterface):
     def __init__(
         self,
         max_log_likelihood_sample: Sample,
