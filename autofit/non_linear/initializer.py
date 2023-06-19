@@ -23,11 +23,6 @@ class AbstractInitializer(ABC):
     def _generate_unit_parameter_list(self, model):
         pass
 
-    def dict(self):
-        return {
-            "type": self.__class__.__name__,
-        }
-
     def samples_from_model(
         self,
         total_points: int,
@@ -179,14 +174,6 @@ class SpecificRangeInitializer(AbstractInitializer):
         self.parameter_dict = parameter_dict
         self.lower_limit = lower_limit
         self.upper_limit = upper_limit
-
-    def dict(self):
-        return {
-            **super().dict(),
-            "parameter_dict": self.parameter_dict,
-            "lower_limit": self.lower_limit,
-            "upper_limit": self.upper_limit,
-        }
 
     def _generate_unit_parameter_list(self, model: AbstractPriorModel) -> List[float]:
         """
