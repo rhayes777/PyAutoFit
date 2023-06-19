@@ -26,10 +26,11 @@ def to_dict(obj):
     if isinstance(obj, (int, float, str, bool, type(None))):
         return obj
     if inspect.isclass(type(obj)):
+        arguments = set(inspect.getfullargspec(obj.__init__).args[1:])
         try:
-            arguments = obj.__identifier_fields__
+            arguments |= set(obj.__identifier_fields__)
         except AttributeError:
-            arguments = inspect.getfullargspec(obj.__init__).args[1:]
+            pass
         return {
             "type": get_class_path(type(obj)),
             "arguments": {
