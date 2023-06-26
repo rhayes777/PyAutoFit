@@ -172,7 +172,10 @@ class ModelObject:
         d.pop("type")
 
         for key, value in d.items():
-            setattr(instance, key, AbstractPriorModel.from_dict(value))
+            try:
+                setattr(instance, key, AbstractPriorModel.from_dict(value))
+            except KeyError:
+                pass
         return instance
 
     def dict(self) -> dict:
