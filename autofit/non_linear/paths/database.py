@@ -3,8 +3,9 @@ from typing import Optional
 
 from autofit.database.sqlalchemy_ import sa
 from .abstract import AbstractPaths
-from ...database.model import Fit
-from ...tools.util import to_dict
+
+from autofit.database.model import Fit
+from autofit.tools.util import to_dict
 
 
 class DatabasePaths(AbstractPaths):
