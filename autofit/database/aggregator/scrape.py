@@ -217,7 +217,7 @@ def _add_pickles(fit: m.Fit, pickle_path: Path):
     try:
         filenames = os.listdir(pickle_path)
     except FileNotFoundError as e:
-        logger.exception(e)
+        logger.info(e)
         filenames = []
 
     for filename in filenames:
@@ -247,7 +247,7 @@ def _add_jsons(fit: m.Fit, json_path: Path):
     try:
         filenames = os.listdir(json_path)
     except FileNotFoundError as e:
-        logger.exception(e)
+        logger.info(e)
         filenames = []
 
     for filename in filenames:
