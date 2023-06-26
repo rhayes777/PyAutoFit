@@ -139,14 +139,20 @@ class ModelObject:
         elif type_ == "tuple_prior":
             instance = TuplePrior()
         elif type_ == "dict":
-            return {key: ModelObject.from_dict(value) for key, value in d.items()}
+            return {
+                key: ModelObject.from_dict(value) for key, value in d.items() if value
+            }
         elif type_ == "instance":
             class_path = d.pop("class_path")
             try:
                 cls = get_class(class_path)
                 d.pop("type")
                 return cls(
-                    **{key: ModelObject.from_dict(value) for key, value in d.items()}
+                    **{
+                        key: ModelObject.from_dict(value)
+                        for key, value in d.items()
+                        if value
+                    }
                 )
             except (ModuleNotFoundError, AttributeError):
                 from autofit.mapper.model import ModelInstance
@@ -155,6 +161,7 @@ class ModelObject:
                     f"Could not find type for class path {class_path}. Defaulting to Instance placeholder."
                 )
                 instance = ModelInstance()
+
         else:
             try:
                 return Prior.from_dict(d)
