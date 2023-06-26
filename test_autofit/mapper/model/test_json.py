@@ -94,10 +94,23 @@ class TestToDict:
         collection = af.Collection(gaussian=af.Gaussian())
         assert collection.dict() == {"gaussian": instance_dict, "type": "collection"}
 
+    @pytest.mark.parametrize(
+        "path",
+        [
+            "autofit.example.different.Gaussian",
+            "autofit.example.model.Gossian",
+        ],
+    )
+    def test_bad_class_path(self, model_dict, path):
+        model_dict["class_path"] = path
+
+        model = af.Model.from_dict(model_dict)
+        assert isinstance(model, af.Collection)
+        assert model.centre.upper_limit == 2.0
+
 
 class TestFromJson:
     def test__from_json(self, model_dict):
-
         model = af.Model.from_dict(model_dict)
 
         model_file = Path(__file__).parent / "model.json"
