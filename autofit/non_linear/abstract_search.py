@@ -8,7 +8,7 @@ from abc import ABC, abstractmethod
 from collections import Counter
 from functools import wraps
 from os import path
-from typing import Dict, Optional, Union, Tuple, List
+from typing import Optional, Union, Tuple, List, Dict
 
 import numpy as np
 
@@ -36,7 +36,6 @@ from .analysis.indexed import IndexCollectionAnalysis
 from .paths.null import NullPaths
 from ..graphical.declarative.abstract import PriorFactor
 from ..graphical.expectation_propagation import AbstractFactorOptimiser
-from ..tools.util import to_dict, from_dict
 
 logger = logging.getLogger(__name__)
 
@@ -151,6 +150,10 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             self.skip_save_samples = conf.instance["general"]["output"].get(
                 "skip_save_samples"
             )
+
+        self.force_visualize_overwrite = conf.instance["general"]["output"][
+            "force_visualize_overwrite"
+        ]
 
         if initializer is None:
             self.logger.debug("Creating initializer ")
@@ -580,15 +583,16 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         analysis = analysis.modify_before_fit(paths=self.paths, model=model)
 
-        analysis.visualize_before_fit(
-            paths=self.paths,
-            model=model,
-        )
-        analysis.visualize_before_fit_combined(
-            analyses=None,
-            paths=self.paths,
-            model=model,
-        )
+        if analysis.should_visualize(paths=self.paths):
+            analysis.visualize_before_fit(
+                paths=self.paths,
+                model=model,
+            )
+            analysis.visualize_before_fit_combined(
+                analyses=None,
+                paths=self.paths,
+                model=model,
+            )
 
         if not self.paths.is_complete or self.force_pickle_overwrite:
             self.logger.info("Saving path info")
@@ -635,6 +639,11 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             self.logger.info(f"Already completed, skipping non-linear search.")
 
             samples = self.paths.load_object("samples")
+
+            if self.force_visualize_overwrite:
+                self.perform_visualization(
+                    model=model, analysis=analysis, during_analysis=False
+                )
 
             result = analysis.make_result(
                 samples=samples,
@@ -740,24 +749,33 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         """
         return self._class_config[section][attribute_name]
 
-    def perform_update(self, model, analysis, during_analysis):
+    def perform_update(
+        self, model: Collection, analysis: Analysis, during_analysis: bool
+    ):
         """
-        Perform an update of the `NonLinearSearch` results, which occurs every *iterations_per_update* of the
-        non-linear search. The update performs the following tasks:
+        Perform an update of the non-linear search's model-fitting results.
 
-        1) Visualize the maximum log likelihood model.
-        2) Output the model results to the model.reults file.
+        This occurs every `iterations_per_update` of the non-linear search and once it is complete.
+
+        The update performs the following tasks (if the settings indicate they should be performed):
+
+        1) Visualize the search results (e.g. a cornerplot).
+        2) Visualize the maximum log likelihood model using model-specific visualization implented via the `Analysis`
+           object.
+        3) Perform profiling of the analysis object `log_likelihood_function` and ouptut run-time information.
+        4) Output the `search.summary` file which contains information on model-fitting so far.
+        5) Output the `model.results` file which contains a concise text summary of the model results so far.
 
         Parameters
         ----------
-        model : ModelMapper
+        model
             The model which generates instances for different points in parameter space.
-        analysis : Analysis
+        analysis
             Contains the data and the log likelihood function which fits an instance of the model to the data, returning
             the log likelihood the `NonLinearSearch` maximizes.
         during_analysis
             If the update is during a non-linear search, in which case tasks are only performed after a certain number
-             of updates and only a subset of visualization may be performed.
+            of updates and only a subset of visualization may be performed.
         """
 
         self.iterations += self.iterations_per_update
@@ -771,23 +789,13 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         self.paths.save_object("samples", samples)
 
-        if not isinstance(self.paths, NullPaths):
-            self.plot_results(samples=samples)
-
         try:
             instance = samples.max_log_likelihood()
         except exc.FitException:
             return samples
 
-        self.logger.debug("Visualizing")
-        analysis.visualize(
-            paths=self.paths, instance=instance, during_analysis=during_analysis
-        )
-        analysis.visualize_combined(
-            analyses=None,
-            paths=self.paths,
-            instance=instance,
-            during_analysis=during_analysis,
+        self.perform_visualization(
+            model=model, analysis=analysis, during_analysis=during_analysis
         )
 
         if self.should_profile:
@@ -818,6 +826,57 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                 pass
 
         return samples
+
+    def perform_visualization(self, model, analysis, during_analysis):
+        """
+        Perform visualization of the non-linear search's model-fitting results.
+
+        This occurs every `iterations_per_update` of the non-linear search, when the search is complete and can
+        also be forced to occur even though a search is completed on a rerun, to update the visualization
+        with different `matplotlib` settings.
+
+        The update performs the following tasks (if the settings indicate they should be performed):
+
+        1) Visualize the search results (e.g. a cornerplot).
+        2) Visualize the maximum log likelihood model using model-specific visualization implented via the `Analysis`
+           object.
+
+        Parameters
+        ----------
+        model
+            The model which generates instances for different points in parameter space.
+        analysis
+            Contains the data and the log likelihood function which fits an instance of the model to the data, returning
+            the log likelihood the `NonLinearSearch` maximizes.
+        during_analysis
+            If the update is during a non-linear search, in which case tasks are only performed after a certain number
+            of updates and only a subset of visualization may be performed.
+        """
+        try:
+            samples = self.samples_from(model=model)
+        except FileNotFoundError:
+            samples = self.paths.load_object(name="samples")
+
+        try:
+            instance = samples.max_log_likelihood()
+        except exc.FitException:
+            return samples
+
+        if analysis.should_visualize(paths=self.paths, during_analysis=during_analysis):
+            if not isinstance(self.paths, NullPaths):
+                self.plot_results(samples=samples)
+
+        self.logger.debug("Visualizing")
+        if analysis.should_visualize(paths=self.paths, during_analysis=during_analysis):
+            analysis.visualize(
+                paths=self.paths, instance=instance, during_analysis=during_analysis
+            )
+            analysis.visualize_combined(
+                analyses=None,
+                paths=self.paths,
+                instance=instance,
+                during_analysis=during_analysis,
+            )
 
     @property
     def samples_cls(self):

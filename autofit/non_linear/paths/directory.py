@@ -3,6 +3,7 @@ import os
 import shutil
 from os import path
 from typing import Optional
+import logging
 
 import dill
 
@@ -12,6 +13,8 @@ from autofit.tools.util import open_, to_dict
 from .abstract import AbstractPaths
 from ..samples import load_from_table
 from autofit.non_linear.samples.pdf import SamplesPDF
+
+logger = logging.getLogger(__name__)
 
 
 class DirectoryPaths(AbstractPaths):
@@ -121,7 +124,12 @@ class DirectoryPaths(AbstractPaths):
             samples.write_table(filename=self._samples_file)
             samples.info_to_json(filename=self._info_file)
             if isinstance(samples, SamplesPDF):
-                samples.save_covariance_matrix(self._covariance_file)
+                try:
+                    samples.save_covariance_matrix(self._covariance_file)
+                except ValueError as e:
+                    logger.warning(
+                        f"Could not save covariance matrix because of the following error:\n{e}"
+                    )
 
     def load_samples_info(self):
         with open_(self._info_file) as infile:
