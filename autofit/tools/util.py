@@ -27,7 +27,10 @@ def to_dict(obj):
     if isinstance(obj, (int, float, str, bool, type(None))):
         return obj
     if isinstance(obj, dict):
-        return {key: to_dict(value) for key, value in obj.items()}
+        return {
+            ".".join(key) if isinstance(key, tuple) else key: to_dict(value)
+            for key, value in obj.items()
+        }
     if isinstance(obj, list):
         return [to_dict(value) for value in obj]
     if inspect.isclass(type(obj)):
