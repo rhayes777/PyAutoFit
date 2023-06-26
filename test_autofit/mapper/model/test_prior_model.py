@@ -353,9 +353,7 @@ class TestCase:
 
 class TestCollectionPriorModel:
     def test_keyword_arguments(self):
-        prior_model = af.Collection(
-            one=af.m.MockClassx2, two=af.m.MockClassx2(1, 2)
-        )
+        prior_model = af.Collection(one=af.m.MockClassx2, two=af.m.MockClassx2(1, 2))
 
         assert len(prior_model.direct_prior_model_tuples) == 1
         assert len(prior_model) == 2
@@ -371,9 +369,7 @@ class TestCollectionPriorModel:
         assert instance.two.two == 2
 
     def test_mix_instances_in_grouped_list_prior_model(self):
-        prior_model = af.Collection(
-            [af.m.MockClassx2, af.m.MockClassx2(1, 2)]
-        )
+        prior_model = af.Collection([af.m.MockClassx2, af.m.MockClassx2(1, 2)])
 
         assert len(prior_model.direct_prior_model_tuples) == 1
         assert prior_model.prior_count == 2
@@ -437,3 +433,7 @@ class TestCopy:
         # noinspection PyUnresolvedReferences
         assert one.prior_count == one.one.prior_count
         assert copy.deepcopy(one).prior_count == one.prior_count
+
+
+def test_composition(simple_model):
+    assert simple_model.composition == ["simple.one", "simple.two"]
