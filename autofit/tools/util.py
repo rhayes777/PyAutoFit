@@ -11,6 +11,7 @@ import numpy as np
 
 from autoconf import conf
 from autoconf.class_path import get_class_path, get_class
+from autofit.mapper.model import ModelObject
 
 
 def to_dict(obj):
@@ -53,7 +54,16 @@ def from_dict(dictionary):
     if isinstance(dictionary, (int, float, str, bool, type(None))):
         return dictionary
     if "type" in dictionary:
-        cls = get_class(dictionary["type"])
+        type_ = dictionary["type"]
+        if type_ in (
+            "model",
+            "collection",
+            "tuple_prior",
+            "dict",
+            "instance",
+        ):
+            return ModelObject.from_dict(dictionary)
+        cls = get_class(type_)
         if hasattr(cls, "from_dict"):
             return cls.from_dict(dictionary)
         return cls(

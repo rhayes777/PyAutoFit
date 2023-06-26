@@ -129,12 +129,18 @@ class ModelObject:
         elif type_ == "tuple_prior":
             instance = TuplePrior()
         elif type_ == "dict":
-            return {key: ModelObject.from_dict(value) for key, value in d.items()}
+            return {
+                key: ModelObject.from_dict(value) for key, value in d.items() if value
+            }
         elif type_ == "instance":
             d.pop("type")
             cls = get_class(d.pop("class_path"))
             return cls(
-                **{key: ModelObject.from_dict(value) for key, value in d.items()}
+                **{
+                    key: ModelObject.from_dict(value)
+                    for key, value in d.items()
+                    if value
+                }
             )
         else:
             try:
