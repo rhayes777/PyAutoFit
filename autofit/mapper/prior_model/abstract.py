@@ -1441,6 +1441,10 @@ class AbstractPriorModel(AbstractModel):
         """
         return [path for path, _ in self.path_priors_tuples]
 
+    @property
+    def composition(self):
+        return [".".join(path) for path in self.paths]
+
     def sort_priors_alphabetically(self, priors: Iterable[Prior]) -> List[Prior]:
         """
         Sort priors by their paths according to this model.

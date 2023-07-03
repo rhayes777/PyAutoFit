@@ -32,6 +32,22 @@ class Sample:
             for key, value in (kwargs or dict()).items()
         }
 
+    def model_dict(self) -> dict:
+        """
+        A dictionary mapping model paths to values for the sample
+        """
+        model_dict = dict()
+        for key, value in self.kwargs.items():
+            current = model_dict
+            if not isinstance(key, tuple):
+                key = (key,)
+            for part in key[:-1]:
+                if part not in current:
+                    current[part] = dict()
+                current = current[part]
+            current[key[-1]] = value
+        return model_dict
+
     @property
     def log_posterior(self) -> float:
         """

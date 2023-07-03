@@ -7,6 +7,7 @@ from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.samples import Samples
 from autofit.text import text_util
 
+
 class Placeholder:
     def __getattr__(self, item):
         """
@@ -121,12 +122,7 @@ class AbstractResult(ABC):
 
 class Result(AbstractResult):
     def __init__(
-            self,
-            samples: Samples,
-            model,
-            sigma=3.0,
-            use_errors=True,
-            use_widths=True
+        self, samples: Samples, model, sigma=3.0, use_errors=True, use_widths=True
     ):
         """
         The result of a non-linear search, which includes:
@@ -158,6 +154,14 @@ class Result(AbstractResult):
 
         self.child_results = None
 
+    def dict(self) -> dict:
+        """
+        Human-readable dictionary representation of the results
+        """
+        return {
+            "max_log_likelihood": self.samples.max_log_likelihood_sample.model_dict(),
+        }
+
     @property
     def samples(self):
         return self._samples
@@ -172,30 +176,19 @@ class Result(AbstractResult):
         weights = self.samples.weight_list
         arguments = {
             prior: prior.project(
-                samples=np.array(
-                    self.samples.values_for_path(
-                        path
-                    )
-                ),
+                samples=np.array(self.samples.values_for_path(path)),
                 weights=weights,
             )
-            for path, prior
-            in self._model.path_priors_tuples
+            for path, prior in self._model.path_priors_tuples
         }
-        return self._model.mapper_from_prior_arguments(
-            arguments
-        )
+        return self._model.mapper_from_prior_arguments(arguments)
 
     @property
     def model(self):
         if self.__model is None:
-            tuples = self.samples.gaussian_priors_at_sigma(
-                sigma=self.sigma
-            )
+            tuples = self.samples.gaussian_priors_at_sigma(sigma=self.sigma)
             self.__model = self._model.mapper_from_gaussian_tuples(
-                tuples,
-                use_errors=self.use_errors,
-                use_widths=self.use_widths
+                tuples, use_errors=self.use_errors, use_widths=self.use_widths
             )
         return self.__model
 
