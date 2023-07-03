@@ -4,13 +4,13 @@ import numpy as np
 import pytest
 
 import autofit as af
-from autofit import exc, Result
+from autofit import exc
 
 
 def test_unpickle_result():
     # noinspection PyTypeChecker
     result = af.GridSearchResult(
-        results=[af.Result(samples=None, model=None)],
+        results=[af.Result(samples=None)],
         lower_limits_lists=[[1]],
         grid_priors=[],
     )
@@ -20,7 +20,6 @@ def test_unpickle_result():
 
 class TestGridSearchablePriors:
     def test_generated_models(self, grid_search, mapper):
-
         mappers = list(
             grid_search.model_mappers(
                 mapper,
@@ -167,7 +166,8 @@ class TestGridNLOBehaviour:
         assert result.no_dimensions == 2
 
         grid_search = af.SearchGridSearch(
-            search=af.m.MockOptimizer(), number_of_steps=10,
+            search=af.m.MockOptimizer(),
+            number_of_steps=10,
         )
         grid_search.search.paths = af.DirectoryPaths(name="sample_name")
         result = grid_search.fit(
@@ -299,19 +299,35 @@ class TestGridSearchResult:
         assert (
             grid_search_result.results_native
             == np.array(
-                [[grid_search_result.results[0], grid_search_result.results[1]],]
+                [
+                    [grid_search_result.results[0], grid_search_result.results[1]],
+                ]
             )
         ).all()
 
-        assert (grid_search_result.log_likelihoods_native == np.array([[1, 2],])).all()
+        assert (
+            grid_search_result.log_likelihoods_native
+            == np.array(
+                [
+                    [1, 2],
+                ]
+            )
+        ).all()
 
 
 @pytest.mark.parametrize(
-    "n_dimensions, n_steps", [(2, 2), (3, 3), (2, 3), (3, 2), (4, 4),]
+    "n_dimensions, n_steps",
+    [
+        (2, 2),
+        (3, 3),
+        (2, 3),
+        (3, 2),
+        (4, 4),
+    ],
 )
 def test_higher_dimensions(n_dimensions, n_steps):
     shape = n_dimensions * (n_steps,)
-    total = n_steps ** n_dimensions
+    total = n_steps**n_dimensions
     model = af.Model(af.Gaussian)
     result = af.GridSearchResult(
         results=total
@@ -328,7 +344,6 @@ def test_higher_dimensions(n_dimensions, n_steps):
                         )
                     ],
                 ),
-                model=model,
             )
         ],
         grid_priors=[],

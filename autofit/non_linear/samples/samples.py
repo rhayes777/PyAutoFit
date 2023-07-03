@@ -214,6 +214,8 @@ class Samples(SamplesInterface, ABC):
         results_internal
             The nested sampler's results in their native internal format for interfacing its visualization library.
         """
+        assert model is not None
+
         super().__init__(model=model)
         self.sample_list = sample_list
 

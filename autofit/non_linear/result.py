@@ -1,6 +1,5 @@
 from abc import ABC, abstractmethod
 import numpy as np
-from os import path
 
 from autofit import exc
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
@@ -121,9 +120,7 @@ class AbstractResult(ABC):
 
 
 class Result(AbstractResult):
-    def __init__(
-        self, samples: Samples, model, sigma=3.0, use_errors=True, use_widths=True
-    ):
+    def __init__(self, samples: Samples, sigma=3.0, use_errors=True, use_widths=True):
         """
         The result of a non-linear search, which includes:
 
@@ -137,19 +134,16 @@ class Result(AbstractResult):
 
         Parameters
         ----------
-        model
-            The model mapper from the stage that produced this result
+        samples
+            The samples of the non-linear search
         """
         super().__init__(sigma)
-        if samples is not None:
-            samples.model = model
 
         self._samples = samples
 
         self.use_errors = use_errors
         self.use_widths = use_widths
 
-        self._model = model
         self.__model = None
 
         self.child_results = None
@@ -179,15 +173,15 @@ class Result(AbstractResult):
                 samples=np.array(self.samples.values_for_path(path)),
                 weights=weights,
             )
-            for path, prior in self._model.path_priors_tuples
+            for path, prior in self.samples.model.path_priors_tuples
         }
-        return self._model.mapper_from_prior_arguments(arguments)
+        return self.samples.model.mapper_from_prior_arguments(arguments)
 
     @property
     def model(self):
         if self.__model is None:
             tuples = self.samples.gaussian_priors_at_sigma(sigma=self.sigma)
-            self.__model = self._model.mapper_from_gaussian_tuples(
+            self.__model = self.samples.model.mapper_from_gaussian_tuples(
                 tuples, use_errors=self.use_errors, use_widths=self.use_widths
             )
         return self.__model
