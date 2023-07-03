@@ -149,6 +149,7 @@ class MockSearch(NonLinearSearch):
                 (prior.mean, prior.width if math.isfinite(prior.width) else 1.0)
                 for prior in sorted(model.priors, key=lambda prior: prior.id)
             ],
+            model=model,
         )
 
 

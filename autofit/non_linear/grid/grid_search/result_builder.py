@@ -7,11 +7,7 @@ from .result import GridSearchResult
 
 
 class ResultBuilder:
-    def __init__(
-            self,
-            lists: List[List[float]],
-            grid_priors: List[Prior]
-    ):
+    def __init__(self, lists: List[List[float]], grid_priors: List[Prior]):
         """
         Builds GridSearchResults including all results so far computed
         and Placeholders where no result has yet been computed.
@@ -33,11 +29,7 @@ class ResultBuilder:
         Generate a GridSearchResult with all results so far and placeholders
         where no result has been returned yet
         """
-        return GridSearchResult(
-            self.results,
-            self.lists,
-            self.grid_priors
-        )
+        return GridSearchResult(self.results, self.lists, self.grid_priors)
 
     @property
     def results(self) -> List[Union[Result, Placeholder]]:
@@ -48,23 +40,18 @@ class ResultBuilder:
         results = []
         for number in range(len(self.lists)):
             try:
-                job_result = self._job_result_dict[
-                    number
-                ]
+                job_result = self._job_result_dict[number]
                 result = job_result.result
                 results.append(
                     Result(
                         samples=job_result.result.samples,
-                        model=job_result.result.model,
                         sigma=result.sigma,
                         use_errors=result.use_errors,
                         use_widths=result.use_widths,
                     )
                 )
             except KeyError:
-                results.append(
-                    Placeholder()
-                )
+                results.append(Placeholder())
         return results
 
     def add(self, job_result: JobResult):
@@ -80,6 +67,4 @@ class ResultBuilder:
             A result of an optimisation for a single point in
             the grid.
         """
-        self._job_result_dict[
-            job_result.number
-        ] = job_result
+        self._job_result_dict[job_result.number] = job_result
