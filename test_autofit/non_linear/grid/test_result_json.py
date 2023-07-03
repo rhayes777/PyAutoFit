@@ -82,4 +82,10 @@ def test_result_json(sample):
         model=model,
     )
 
-    assert result.dict() == {}
+    assert result.dict() == {
+        "max_log_likelihood": {
+            "centre": 1.0,
+            "intensity": 2.0,
+            "sigma": 3.0,
+        }
+    }

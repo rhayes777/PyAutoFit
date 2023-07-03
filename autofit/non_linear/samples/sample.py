@@ -29,7 +29,10 @@ class Sample:
         self.weight = weight
         self.kwargs = kwargs or dict()
 
-    def model_dict(self):
+    def model_dict(self) -> dict:
+        """
+        A dictionary mapping model paths to values for the sample
+        """
         model_dict = dict()
         for key, value in self.kwargs.items():
             current = model_dict

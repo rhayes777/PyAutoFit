@@ -155,7 +155,9 @@ class Result(AbstractResult):
         self.child_results = None
 
     def dict(self) -> dict:
-        return {"max_log_likelihood": {}}
+        return {
+            "max_log_likelihood": self.samples.max_log_likelihood_sample.model_dict(),
+        }
 
     @property
     def samples(self):
