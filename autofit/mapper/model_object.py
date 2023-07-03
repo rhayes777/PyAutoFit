@@ -1,12 +1,23 @@
 import copy
 import itertools
-from typing import Type, Union, Tuple
+from typing import Type, Union, Tuple, Optional
 import logging
 
 from autoconf.class_path import get_class
 from .identifier import Identifier
 
 logger = logging.getLogger(__name__)
+
+
+def dereference(reference: Optional[dict], name: str):
+    if reference is None:
+        return None
+    updated = {}
+    for key, value in reference.items():
+        array = key.split(".")
+        if array[0] == name:
+            updated[".".join(array[1:])] = value
+    return updated
 
 
 class ModelObject:
@@ -100,7 +111,7 @@ class ModelObject:
         return str(Identifier(self))
 
     @staticmethod
-    def from_dict(d):
+    def from_dict(d, reference=None):
         """
         Recursively parse a dictionary returning the model, collection or
         instance that is represents.
@@ -126,7 +137,7 @@ class ModelObject:
         type_ = d["type"]
 
         if type_ == "model":
-            class_path = d.pop("class_path")
+            class_path = reference.get("") or d.pop("class_path")
             try:
                 instance = Model(get_class(class_path))
             except (ModuleNotFoundError, AttributeError):
@@ -143,13 +154,15 @@ class ModelObject:
                 key: ModelObject.from_dict(value) for key, value in d.items() if value
             }
         elif type_ == "instance":
-            class_path = d.pop("class_path")
+            class_path = reference.get("") or d.pop("class_path")
             try:
                 cls = get_class(class_path)
                 d.pop("type")
                 return cls(
                     **{
-                        key: ModelObject.from_dict(value)
+                        key: ModelObject.from_dict(
+                            value, reference=dereference(reference, key)
+                        )
                         for key, value in d.items()
                         if value
                     }
@@ -173,7 +186,13 @@ class ModelObject:
 
         for key, value in d.items():
             try:
-                setattr(instance, key, AbstractPriorModel.from_dict(value))
+                setattr(
+                    instance,
+                    key,
+                    AbstractPriorModel.from_dict(
+                        value, reference=dereference(reference, key)
+                    ),
+                )
             except KeyError:
                 pass
         return instance
