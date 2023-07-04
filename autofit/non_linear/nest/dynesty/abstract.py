@@ -1,3 +1,4 @@
+import dill
 import os
 from abc import ABC
 from os import path
@@ -14,7 +15,7 @@ from autofit.non_linear.abstract_search import PriorPasser
 from autofit.non_linear.nest.abstract_nest import AbstractNest
 from autofit.non_linear.nest.dynesty.plotter import DynestyPlotter
 from autofit.plot.output import Output
-
+from autofit.tools.util import open_
 
 def prior_transform(cube, model):
     phys_cube = model.vector_from_unit_vector(
@@ -209,6 +210,8 @@ class AbstractDynesty(AbstractNest, ABC):
 
             self.perform_update(model=model, analysis=analysis, during_analysis=True)
 
+        self.save_results_internal(results_internal=sampler.results)
+
     def iterations_from(
         self, sampler: Union[NestedSampler, DynamicNestedSampler]
     ) -> Tuple[int, int]:
@@ -370,6 +373,22 @@ class AbstractDynesty(AbstractNest, ABC):
         live_points.append(blobs)
 
         return live_points
+
+    def save_results_internal(self, results_internal):
+        """
+        Save dynesty's internal representation of the results as a pickle file.
+
+        The results in this representation are required to use in built dynesty tools for visualization, analysing
+        samples and other tasks.
+
+        Parameters
+        ----------
+        results_internal
+            The results of the dynesty sampler in its internal representation.
+        """
+
+        with open_(path.join(self.paths.search_internal, "results_internal.pickle"), "wb") as f:
+            dill.dump(results_internal, f)
 
     def sampler_from(
         self,
