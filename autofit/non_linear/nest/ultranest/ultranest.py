@@ -193,7 +193,7 @@ class UltraNest(abstract_nest.AbstractNest):
             param_names=model.parameter_names,
             loglike=fitness_function.__call__,
             transform=prior_transform,
-            log_dir=self.paths.search_internal,
+            log_dir=self.paths.search_internal_path,
             **self.config_dict_search
         )
 

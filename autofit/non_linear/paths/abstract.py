@@ -190,7 +190,7 @@ class AbstractPaths(ABC):
             f.write(self._identifier.description)
 
     @property
-    def search_internal(self) -> str:
+    def search_internal_path(self) -> str:
         """
         The path to the samples folder.
         """

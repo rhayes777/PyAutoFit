@@ -75,7 +75,7 @@ class SamplesDynesty(SamplesNest):
         samples_info = paths.load_samples_info()
 
         try:
-            with open_(path.join(paths.search_internal, "results_internal.pickle"), "rb") as f:
+            with open_(path.join(paths.search_internal_path, "results_internal.pickle"), "rb") as f:
                 results_internal = dill.load(f)
         except FileNotFoundError:
             results_internal = None

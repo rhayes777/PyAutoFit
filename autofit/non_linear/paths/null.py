@@ -21,7 +21,7 @@ class NullPaths(AbstractPaths):
         pass
 
     @property
-    def search_internal(self) -> str:
+    def search_internal_path(self) -> str:
         return self._search_internal
 
     @AbstractPaths.parent.setter

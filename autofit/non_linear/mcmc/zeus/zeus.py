@@ -1,3 +1,4 @@
+import dill
 from os import path
 from typing import Optional
 
@@ -14,6 +15,7 @@ from autofit.non_linear.mcmc.auto_correlations import AutoCorrelationsSettings
 from autofit.non_linear.mcmc.zeus.plotter import ZeusPlotter
 from autofit.non_linear.mcmc.zeus.samples import SamplesZeus
 from autofit.plot.output import Output
+from autofit.tools.util import open_
 
 
 class Zeus(AbstractMCMC):
@@ -146,9 +148,9 @@ class Zeus(AbstractMCMC):
             model=model, analysis=analysis
         )
 
-        if self.paths.is_object("zeus"):
+        try:
 
-            zeus_sampler = self.zeus_pickled
+            zeus_sampler = self.results_internal
 
             zeus_state = zeus_sampler.get_last_sample()
             log_posterior_list = zeus_sampler.get_last_log_prob()
@@ -166,7 +168,7 @@ class Zeus(AbstractMCMC):
                     "Existing Zeus samples found, resuming non-linear search."
                 )
 
-        else:
+        except FileNotFoundError:
 
             zeus_sampler = zeus.EnsembleSampler(
                 nwalkers=self.config_dict_search["nwalkers"],
@@ -217,7 +219,7 @@ class Zeus(AbstractMCMC):
 
             zeus_sampler.ncall_total += zeus_sampler.ncall
 
-            self.paths.save_object("zeus", zeus_sampler)
+            self.save_results_internal(results_internal=zeus_sampler)
 
             zeus_state = zeus_sampler.get_last_sample()
             log_posterior_list = zeus_sampler.get_last_log_prob()
@@ -266,8 +268,26 @@ class Zeus(AbstractMCMC):
             log_likelihood_cap=log_likelihood_cap,
         )
 
-    def samples_from(self, model):
-        """Create a `Samples` object from this non-linear search's output files on the hard-disk and model.
+    def save_results_internal(self, results_internal):
+        """
+        Save dynesty's internal representation of the results as a pickle file.
+
+        The results in this representation are required to use in built dynesty tools for visualization, analysing
+        samples and other tasks.
+
+        Parameters
+        ----------
+        results_internal
+            The results of the dynesty sampler in its internal representation.
+        """
+
+        with open_(path.join(self.paths.search_internal_path, "results_internal.pickle"), "wb") as f:
+            dill.dump(results_internal, f)
+
+
+    def samples_via_internal_from(self, model):
+        """
+        Create a `Samples` object from this non-linear search's output files on the hard-disk and model.
 
         Parameters
         ----------
@@ -280,19 +300,27 @@ class Zeus(AbstractMCMC):
         """
 
         return SamplesZeus.from_results_internal(
-            results_internal=self.zeus_pickled,
+            results_internal=self.results_internal,
             model=model,
             auto_correlation_settings=self.auto_correlations_settings,
             time=self.timer.time,
         )
 
+    def samples_via_csv_from(self, model):
+
+        return SamplesZeus.from_csv(
+            paths=self.paths,
+            model=model,
+        )
+
     @property
-    def zeus_pickled(self):
-        return self.paths.load_object("zeus")
+    def results_internal(self):
+        with open_(path.join(self.paths.search_internal_path, "results_internal.pickle"), "rb") as f:
+            return dill.load(f)
 
     def plot_results(self, samples):
         def should_plot(name):
-            return conf.instance["visualize"]["plots_search"]["emcee"][name]
+            return conf.instance["visualize"]["plots_search"]["zeus"][name]
 
         plotter = ZeusPlotter(
             samples=samples,
