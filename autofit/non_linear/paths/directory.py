@@ -313,7 +313,7 @@ class DirectoryPaths(AbstractPaths):
 
     @property
     def _info_file(self) -> str:
-        return path.join(self.samples_path, "info.json")
+        return path.join(self._json_path, "samples_info.json")
 
     @property
     def _has_completed_path(self) -> str:

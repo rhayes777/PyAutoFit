@@ -418,4 +418,4 @@ class AbstractPaths(ABC):
 
     @property
     def _info_file(self) -> str:
-        return path.join(self._json_path, "info.json")
+        return path.join(self._json_path, "samples_info.json")
