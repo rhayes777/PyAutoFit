@@ -1,12 +1,15 @@
+import dill
 from dynesty.results import Results
 from dynesty import utils as dyfunc
 import numpy as np
+from os import path
 from typing import Optional
 
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
+from autofit.non_linear.paths.abstract import AbstractPaths
 from autofit.non_linear.samples import Sample
 from autofit.non_linear.samples.nest import SamplesNest
-
+from autofit.tools.util import open_
 
 class SamplesDynesty(SamplesNest):
 
@@ -42,6 +45,27 @@ class SamplesDynesty(SamplesNest):
             unconverged_sample_size=self.unconverged_sample_size,
             time=self.time,
             results_internal=results_internal
+        )
+
+    @classmethod
+    def from_csv(cls, paths : AbstractPaths, model: AbstractPriorModel):
+
+        sample_list = paths.load_samples()
+        samples_info = paths.load_samples_info()
+
+        try:
+            with open_(path.join(paths.search_internal, "results_internal.pickle"), "rb") as f:
+                results_internal = dill.load(f)
+        except FileNotFoundError:
+            results_internal = None
+
+        return SamplesDynesty(
+            model=model,
+            sample_list=sample_list,
+            number_live_points=samples_info["number_live_points"],
+            unconverged_sample_size=samples_info["unconverged_sample_size"],
+            time=samples_info["time"],
+            results_internal=results_internal,
         )
 
     @classmethod
