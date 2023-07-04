@@ -49,6 +49,27 @@ class SamplesDynesty(SamplesNest):
 
     @classmethod
     def from_csv(cls, paths : AbstractPaths, model: AbstractPriorModel):
+        """
+        Returns a `Samples` object from the non-linear search output samples, which are stored in a .csv file.
+
+        The samples object requires additional information on the non-linear search (e.g. the number of live points),
+        which is extracted from the `search_info.json` file.
+
+        This function looks for the internal results of dynesty and includes it in the samples if it exists, which
+        allows for dynesty visualization tools to be used on the samples.
+
+        Parameters
+        ----------
+        paths
+            An object describing the paths for saving data (e.g. hard-disk directories or entries in sqlite database).
+        model
+            An object that represents possible instances of some model with a given dimensionality which is the number
+            of free dimensions of the model.
+
+        Returns
+        -------
+        The dynesty samples which have been loaded from hard-disk via .csv.
+        """
 
         sample_list = paths.load_samples()
         samples_info = paths.load_samples_info()
@@ -78,11 +99,11 @@ class SamplesDynesty(SamplesNest):
             time: Optional[float] = None,
     ):
         """
-        The `Samples` classes in **PyAutoFit** provide an interface between the results of a `NonLinearSearch` (e.g.
-        as files on your hard-disk) and Python.
+        Returns a `Samples` object from a Dynesty the dynesty internal results format, which contains the
+        samples of the non-linear search (e.g. the parameters, log likelihoods, etc.).
 
-        To create a `Samples` object after a `dynesty` model-fit the results must be converted from the
-        native format used by `dynesty` to lists of values, the format used by the **PyAutoFit** `Samples` objects.
+        The internal dynesty results are converted from the native format used by `dynesty` to lists of values,
+        for the samples.
 
         This classmethod performs this conversion before creating a `SamplesDynesty` object.
 

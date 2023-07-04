@@ -250,9 +250,6 @@ def load_from_table(filename: str) -> List[Sample]:
     with open(filename, "r+", newline="") as f:
         reader = csv.reader(f)
         headers = next(reader)
-
-        # TODO : For Rich, better way to remove whitespace?
-
         headers = [header.strip() for header in headers]
         for row in reader:
             d = {header: float(value) for header, value in zip(headers, row)}
