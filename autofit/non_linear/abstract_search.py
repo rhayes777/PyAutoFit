@@ -348,7 +348,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
     @property
     def timer(self):
-        return Timer(self.paths.sampler_path)
+        return Timer(self.paths.search_internal)
 
     @property
     def paths(self) -> Optional[AbstractPaths]:

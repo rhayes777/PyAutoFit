@@ -15,14 +15,14 @@ class NullPaths(AbstractPaths):
     def __init__(self):
         super().__init__()
         self.objects = dict()
-        self._sampler_path = tempfile.mkdtemp()
+        self._search_internal = tempfile.mkdtemp()
 
     def save_summary(self, samples, log_likelihood_function_time):
         pass
 
     @property
-    def sampler_path(self) -> str:
-        return self._sampler_path
+    def search_internal(self) -> str:
+        return self._search_internal
 
     @AbstractPaths.parent.setter
     def parent(self, parent):
