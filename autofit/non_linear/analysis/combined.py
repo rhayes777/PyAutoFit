@@ -31,6 +31,8 @@ class CombinedResult:
         """
         Get an attribute of the first `Result` object in the list of `Result` objects.
         """
+        if item in ("__getstate__", "__setstate__"):
+            raise AttributeError(item)
         return getattr(self.child_results[0], item)
 
     def __iter__(self):
@@ -204,12 +206,15 @@ class CombinedAnalysis(Analysis):
         paths
             An object describing the paths for saving data (e.g. hard-disk directories or entries in sqlite database).
         """
+
         def func(child_paths, analysis):
             analysis.visualize_before_fit(child_paths, model)
 
         self._for_each_analysis(func, paths)
 
-    def visualize_before_fit_combined(self, analyses, paths: AbstractPaths, model: AbstractPriorModel):
+    def visualize_before_fit_combined(
+        self, analyses, paths: AbstractPaths, model: AbstractPriorModel
+    ):
         """
         Visualise images and quantities which are shared across all analyses.
 
@@ -253,7 +258,13 @@ class CombinedAnalysis(Analysis):
 
         self._for_each_analysis(func, paths)
 
-    def visualize_combined(self, analyses : List["Analysis"], instance, paths: AbstractPaths, during_analysis):
+    def visualize_combined(
+        self,
+        analyses: List["Analysis"],
+        instance,
+        paths: AbstractPaths,
+        during_analysis,
+    ):
         """
         Visualise the instance using images and quantities which are shared across all analyses.
 
@@ -277,7 +288,7 @@ class CombinedAnalysis(Analysis):
             analyses=self.analyses,
             paths=paths,
             instance=instance,
-            during_analysis=during_analysis
+            during_analysis=during_analysis,
         )
 
     def profile_log_likelihood_function(

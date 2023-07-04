@@ -18,6 +18,8 @@ class ModelAnalysis(Analysis):
         self.model = model
 
     def __getattr__(self, item):
+        if item in ("__getstate__", "__setstate__"):
+            raise AttributeError(item)
         return getattr(self.analysis, item)
 
     def log_likelihood_function(self, instance):

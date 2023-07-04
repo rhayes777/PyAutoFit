@@ -1,14 +1,22 @@
+import pickle
+
 import pytest
 
 import autofit as af
 from autofit.mapper.prior.arithmetic.compound import SumPrior
 from autofit.non_linear.analysis.indexed import IndexedAnalysis
-from autofit.non_linear.analysis.model_analysis import CombinedModelAnalysis, ModelAnalysis
-
-
-@pytest.fixture(
-    name="model_analysis"
+from autofit.non_linear.analysis.model_analysis import (
+    CombinedModelAnalysis,
+    ModelAnalysis,
 )
+
+
+def test_pickle_indexed_analysis():
+    analysis = IndexedAnalysis(LinearAnalysis(1), 0)
+    pickle.loads(pickle.dumps(analysis))
+
+
+@pytest.fixture(name="model_analysis")
 def make_model_analysis(Analysis, model):
     return Analysis().with_model(model)
 
@@ -17,22 +25,13 @@ def test_analysis_model(model_analysis, model):
     assert model_analysis.modify_model(model) is model
 
 
-@pytest.fixture(
-    name="combined_model_analysis"
-)
-def make_combined_model_analysis(
-        model_analysis
-):
+@pytest.fixture(name="combined_model_analysis")
+def make_combined_model_analysis(model_analysis):
     return model_analysis + model_analysis
 
 
-def test_combined_model_analysis(
-        combined_model_analysis
-):
-    assert isinstance(
-        combined_model_analysis,
-        CombinedModelAnalysis
-    )
+def test_combined_model_analysis(combined_model_analysis):
+    assert isinstance(combined_model_analysis, CombinedModelAnalysis)
 
     for analysis in combined_model_analysis.analyses:
         assert isinstance(analysis, IndexedAnalysis)
@@ -48,28 +47,16 @@ def test_sum(model):
         assert isinstance(analysis_.analysis, ModelAnalysis)
 
 
-def test_modify(
-        combined_model_analysis,
-        model
-):
-    modified = combined_model_analysis.modify_model(
-        model
-    )
+def test_modify(combined_model_analysis, model):
+    modified = combined_model_analysis.modify_model(model)
     first, second = modified
     assert first is model
     assert second is model
 
 
-def test_default(
-        combined_model_analysis,
-        Analysis,
-        model
-):
+def test_default(combined_model_analysis, Analysis, model):
     analysis = combined_model_analysis + Analysis()
-    assert isinstance(
-        analysis,
-        CombinedModelAnalysis
-    )
+    assert isinstance(analysis, CombinedModelAnalysis)
     modified = analysis.modify_model(model)
 
     first, second, third = modified
@@ -78,13 +65,13 @@ def test_default(
     assert third is model
 
 
-def test_fit(
-        combined_model_analysis,
-        model
-):
-    assert combined_model_analysis.log_likelihood_function(
-        af.Collection([model, model]).instance_from_prior_medians()
-    ) == 2
+def test_fit(combined_model_analysis, model):
+    assert (
+        combined_model_analysis.log_likelihood_function(
+            af.Collection([model, model]).instance_from_prior_medians()
+        )
+        == 2
+    )
 
 
 def test_prior_arithmetic():
@@ -107,18 +94,12 @@ class LinearAnalysis(af.Analysis):
 
 class ComplexLinearAnalysis(LinearAnalysis):
     def log_likelihood_function(self, instance):
-        return super().log_likelihood_function(
-            instance.centre
-        )
+        return super().log_likelihood_function(instance.centre)
 
 
 def test_embedded_model():
-    model = af.Model(
-        af.Gaussian
-    )
-    copy = model.replacing({
-        model.centre: af.UniformPrior()
-    })
+    model = af.Model(af.Gaussian)
+    copy = model.replacing({model.centre: af.UniformPrior()})
     assert copy is not model
     assert copy.centre != model.centre
     assert copy.sigma == model.sigma
@@ -135,53 +116,29 @@ def data(x):
     return 3 * x + 5
 
 
-@pytest.fixture(
-    name="m"
-)
+@pytest.fixture(name="m")
 def make_m():
-    return af.GaussianPrior(
-        mean=3,
-        sigma=1
-    )
+    return af.GaussianPrior(mean=3, sigma=1)
 
 
-@pytest.fixture(
-    name="c"
-)
+@pytest.fixture(name="c")
 def make_c():
-    return af.GaussianPrior(
-        mean=5,
-        sigma=1
-    )
+    return af.GaussianPrior(mean=5, sigma=1)
 
 
 def test_multiple_models(m, c):
-    models = [
-        x * m + c
-        for x in (1, 2, 3)
-    ]
+    models = [x * m + c for x in (1, 2, 3)]
 
-    one, two, three = [
-        model.instance_from_prior_medians()
-        for model in models
-    ]
+    one, two, three = [model.instance_from_prior_medians() for model in models]
     assert one < two < three
 
 
-def _test_embedded_integration(
-        m, c
-):
-    base_model = af.Model(
-        af.Gaussian
-    )
+def _test_embedded_integration(m, c):
+    base_model = af.Model(af.Gaussian)
 
     analyses = [
-        ComplexLinearAnalysis(
-            data(x)
-        ).with_model(
-            base_model.replacing({
-                base_model.centre: m * x + c
-            })
+        ComplexLinearAnalysis(data(x)).with_model(
+            base_model.replacing({base_model.centre: m * x + c})
         )
         for x in range(10)
     ]
@@ -191,53 +148,28 @@ def _test_embedded_integration(
     optimiser = af.DynestyStatic()
     result = optimiser.fit(None, combined)
 
-    centres = [
-        result.instance.centre
-        for result
-        in result.child_results
-    ]
+    centres = [result.instance.centre for result in result.child_results]
     assert centres == pytest.approx(
-        list(map(
-            data,
-            range(10)
-        )),
+        list(map(data, range(10))),
         rel=0.01,
     )
 
 
-def _test_integration(
-        m, c
-):
-    analyses = [
-        LinearAnalysis(
-            data(x)
-        ).with_model(
-            m * x + c
-        )
-        for x in range(10)
-    ]
+def _test_integration(m, c):
+    analyses = [LinearAnalysis(data(x)).with_model(m * x + c) for x in range(10)]
 
     combined = sum(analyses)
 
     optimiser = af.DynestyStatic()
     result = optimiser.fit(None, combined)
 
-    instances = [
-        result.instance
-        for result
-        in result.child_results
-    ]
+    instances = [result.instance for result in result.child_results]
     assert instances == pytest.approx(
-        list(map(
-            data,
-            range(10)
-        )),
+        list(map(data, range(10))),
         rel=0.01,
     )
 
 
 def test_remove(model):
-    model = model.replacing({
-        model.centre: None
-    })
+    model = model.replacing({model.centre: None})
     assert model.centre is None
