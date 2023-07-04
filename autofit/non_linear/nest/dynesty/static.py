@@ -77,7 +77,7 @@ class DynestyStatic(AbstractDynesty):
 
         self.logger.debug("Creating DynestyStatic Search")
 
-    def samples_from(self, model):
+    def samples_via_internal_from(self, model):
         """
         Create a `Samples` object from this non-linear search's output files on the hard-disk and model.
 
@@ -89,18 +89,15 @@ class DynestyStatic(AbstractDynesty):
             The model which generates instances for different points in parameter space. This maps the points from unit
             cube values to physical values via the priors.
         """
-        try:
-            sampler = StaticSampler.restore(self.checkpoint_file)
+        sampler = StaticSampler.restore(self.checkpoint_file)
 
-            return SamplesDynesty.from_results_internal(
-                model=model,
-                results_internal=sampler.results,
-                number_live_points=self.total_live_points,
-                unconverged_sample_size=1,
-                time=self.timer.time,
-            )
-        except FileNotFoundError:
-            return SamplesDynesty.from_csv(paths=self.paths, model=model)
+        return SamplesDynesty.from_results_internal(
+            model=model,
+            results_internal=sampler.results,
+            number_live_points=self.total_live_points,
+            unconverged_sample_size=1,
+            time=self.timer.time,
+        )
 
     def sampler_from(
         self,

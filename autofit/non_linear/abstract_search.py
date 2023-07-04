@@ -886,6 +886,15 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         pass
 
     def samples_from(self, model):
+        try:
+            return self.samples_via_internal_from(model=model)
+        except (FileNotFoundError, NotImplementedError):
+            return self.samples_via_csv_from(model=model)
+
+    def samples_via_internal_from(self, model):
+        raise NotImplementedError()
+
+    def samples_via_csv_from(self, model):
         raise NotImplementedError()
 
     @check_cores

@@ -14,6 +14,7 @@ from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.abstract_search import PriorPasser
 from autofit.non_linear.nest.abstract_nest import AbstractNest
 from autofit.non_linear.nest.dynesty.plotter import DynestyPlotter
+from autofit.non_linear.nest.dynesty.samples import SamplesDynesty
 from autofit.plot.output import Output
 from autofit.tools.util import open_
 
@@ -415,19 +416,8 @@ class AbstractDynesty(AbstractNest, ABC):
                 """
             )
 
-    def samples_from(self, model):
-        """
-        Create a `Samples` object from this non-linear search's output files on the hard-disk and model.
-
-        For Dynesty, all information that we need is available from the instance of the dynesty sampler.
-
-        Parameters
-        ----------
-        model
-            The model which generates instances for different points in parameter space. This maps the points from unit
-            cube values to physical values via the priors.
-        """
-        raise NotImplementedError()
+    def samples_via_csv_from(self, model):
+        return SamplesDynesty.from_csv(paths=self.paths, model=model)
 
     def remove_state_files(self):
 
