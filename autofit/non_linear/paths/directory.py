@@ -307,7 +307,7 @@ class DirectoryPaths(AbstractPaths):
             parameter_name_and_label += [f"{line}\n"]
 
         formatter.output_list_of_strings_to_file(
-            file=path.join(self.samples_path, "model.paramnames"),
+            file=path.join(self._json_path, "model.paramnames"),
             list_of_strings=parameter_name_and_label,
         )
 
