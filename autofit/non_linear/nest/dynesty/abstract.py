@@ -288,7 +288,7 @@ class AbstractDynesty(AbstractNest, ABC):
 
         This file checks the original pool use so an exception can be raised to avoid this.
         """
-        with open(path.join(self.paths.samples_path, "uses_pool.save"), "w+") as f:
+        with open(path.join(self.paths.sampler_path, "uses_pool.save"), "w+") as f:
             if uses_pool:
                 f.write("True")
             else:
@@ -301,7 +301,7 @@ class AbstractDynesty(AbstractNest, ABC):
 
         This file checks the original pool use so an exception can be raised to avoid this.
         """
-        with open(path.join(self.paths.samples_path, "uses_pool.save"), "r+") as f:
+        with open(path.join(self.paths.sampler_path, "uses_pool.save"), "r+") as f:
             return bool(f.read())
 
     @property
@@ -309,7 +309,7 @@ class AbstractDynesty(AbstractNest, ABC):
         """
         The path to the file used by dynesty for checkpointing.
         """
-        return path.join(self.paths.samples_path, "savestate.save")
+        return path.join(self.paths.sampler_path, "savestate.save")
 
     def config_dict_with_test_mode_settings_from(self, config_dict):
 

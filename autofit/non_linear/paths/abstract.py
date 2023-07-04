@@ -190,11 +190,11 @@ class AbstractPaths(ABC):
             f.write(self._identifier.description)
 
     @property
-    def samples_path(self) -> str:
+    def sampler_path(self) -> str:
         """
         The path to the samples folder.
         """
-        return path.join(self.output_path, "samples")
+        return path.join(self.output_path, "sampler")
 
     @property
     def image_path(self) -> str:

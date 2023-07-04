@@ -193,7 +193,7 @@ class UltraNest(abstract_nest.AbstractNest):
             param_names=model.parameter_names,
             loglike=fitness_function.__call__,
             transform=prior_transform,
-            log_dir=self.paths.samples_path,
+            log_dir=self.paths.sampler_path,
             **self.config_dict_search
         )
 
@@ -272,7 +272,7 @@ class UltraNest(abstract_nest.AbstractNest):
         except FileNotFoundError:
 
             samples = self.paths.load_object(
-                "samples"
+                "sampler"
             )
             results_internal = samples.results
 

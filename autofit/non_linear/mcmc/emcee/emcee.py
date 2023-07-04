@@ -221,7 +221,7 @@ class Emcee(AbstractMCMC):
 
     @property
     def backend_filename(self):
-        return path.join(self.paths.samples_path, "emcee.hdf")
+        return path.join(self.paths.sampler_path, "emcee.hdf")
 
     @property
     def backend(self) -> emcee.backends.HDFBackend:
@@ -236,7 +236,7 @@ class Emcee(AbstractMCMC):
         else:
             raise FileNotFoundError(
                 "The file emcee.hdf does not exist at the path "
-                + self.paths.samples_path
+                + self.paths.sampler_path
             )
 
     def samples_from(self, model):

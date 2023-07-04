@@ -138,7 +138,7 @@ class MockSearch(NonLinearSearch):
 
     def perform_update(self, model, analysis, during_analysis):
         if self.samples is not None and not self.return_sensitivity_results:
-            self.paths.save_object("samples", self.samples)
+            self.paths.save_object("sampler", self.samples)
             return self.samples
 
         return MockSamples(

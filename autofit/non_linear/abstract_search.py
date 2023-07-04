@@ -348,7 +348,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
     @property
     def timer(self):
-        return Timer(self.paths.samples_path)
+        return Timer(self.paths.sampler_path)
 
     @property
     def paths(self) -> Optional[AbstractPaths]:
@@ -637,7 +637,10 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         else:
             self.logger.info(f"Already completed, skipping non-linear search.")
 
-            samples = self.paths.load_object("samples")
+            try:
+                samples = self.samples_from(model=model)
+            except FileNotFoundError:
+                samples = self.paths.load_object(name="samples")
 
             if self.force_visualize_overwrite:
                 self.perform_visualization(
