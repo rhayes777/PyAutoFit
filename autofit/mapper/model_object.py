@@ -1,6 +1,6 @@
 import copy
 import itertools
-from typing import Type, Union, Tuple, Optional
+from typing import Type, Union, Tuple, Optional, Dict
 import logging
 
 from autoconf.class_path import get_class
@@ -111,7 +111,7 @@ class ModelObject:
         return str(Identifier(self))
 
     @staticmethod
-    def from_dict(d, reference=None):
+    def from_dict(d, reference: Optional[Dict[str, str]] = None):
         """
         Recursively parse a dictionary returning the model, collection or
         instance that is represents.
@@ -120,6 +120,19 @@ class ModelObject:
         ----------
         d
             A dictionary representation of some object
+        reference
+            An optional dictionary mapping names to class paths. This is used
+            to specify the type of a model or instance.
+
+            Maps paths to class paths. For example:
+            "path.in.model": "path.to.Class"
+
+            In this case, the class path "path.to.Class" will be used to
+            instantiate the object at "path.in.model". If no class path is
+            specified, or no type can be found for the class path in 'd', then
+            a Collection will be used as a placeholder.
+
+            This is used to specify the type of a model or instance.
 
         Returns
         -------
@@ -158,6 +171,7 @@ class ModelObject:
             try:
                 cls = get_class(class_path)
                 d.pop("type")
+                # noinspection PyArgumentList
                 return cls(
                     **{
                         key: ModelObject.from_dict(
