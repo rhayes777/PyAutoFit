@@ -632,8 +632,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             analysis.save_results_for_aggregator(paths=self.paths, result=result)
 
             if not self.skip_save_samples:
-                self.paths.save_object("samples", samples)
-            self.paths.save_json("samples_summary", samples.summary().dict())
+                self.paths.save_json("samples_summary", samples.summary().dict())
 
         else:
             self.logger.info(f"Already completed, skipping non-linear search.")
@@ -656,16 +655,14 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             if self.force_pickle_overwrite:
                 self.logger.info("Forcing pickle overwrite")
                 if not self.skip_save_samples:
-                    self.paths.save_object("samples", samples)
-                self.paths.save_json("samples_summary", samples.summary().dict())
+                    self.paths.save_json("samples_summary", samples.summary().dict())
+
                 try:
                     self.paths.save_object("results", samples.results)
                 except AttributeError:
                     self.paths.save_object("results", samples.results_internal)
 
                 analysis.save_results_for_aggregator(paths=self.paths, result=result)
-
-        self.paths.samples_to_csv(samples=samples)
 
         analysis = analysis.modify_after_fit(
             paths=self.paths, model=model, result=result
@@ -787,7 +784,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         samples = self.samples_from(model=model)
 
-        self.paths.save_object("samples", samples)
+        self.paths.samples_to_csv(samples=samples)
 
         try:
             instance = samples.max_log_likelihood()

@@ -98,7 +98,7 @@ The ``log_likelihood_function``'s can be called in parallel over multiple cores 
 
     analysis.n_cores = 1
 
-To fit the multiple datasets via a non-linear search we use this analysis using the usual **PyAutoFit** API:
+To fit the multiple datasets via a non-linear search we use this analysis:
 
 .. code-block:: python
 
