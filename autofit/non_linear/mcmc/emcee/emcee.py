@@ -239,13 +239,20 @@ class Emcee(AbstractMCMC):
                 + self.paths.search_internal
             )
 
-    def samples_from(self, model):
+    def samples_via_internal_from(self, model):
 
         return SamplesEmcee.from_results_internal(
             model=model,
             results_internal=self.backend,
             auto_correlation_settings=self.auto_correlations_settings,
             time=self.timer.time,
+        )
+
+    def samples_via_csv_from(self, model):
+
+        return SamplesEmcee.from_csv(
+            paths=self.paths,
+            model=model,
         )
 
     def plot_results(self, samples):
