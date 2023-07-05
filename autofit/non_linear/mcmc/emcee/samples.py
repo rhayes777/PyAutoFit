@@ -45,7 +45,7 @@ class SamplesEmcee(SamplesMCMC):
             change_threshold=samples_info["change_threshold"],
         )
 
-        backend_filename = path.join(paths.search_internal_path, "emcee.hdf")
+        backend_filename = path.join(paths.search_internal_path, "results_internal.hdf")
 
         try:
             results_internal = emcee.backends.HDFBackend(filename=backend_filename)

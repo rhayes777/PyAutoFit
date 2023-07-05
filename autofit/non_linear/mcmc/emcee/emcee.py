@@ -221,7 +221,7 @@ class Emcee(AbstractMCMC):
 
     @property
     def backend_filename(self):
-        return path.join(self.paths.search_internal_path, "emcee.hdf")
+        return path.join(self.paths.search_internal_path, "results_internal.hdf")
 
     @property
     def backend(self) -> emcee.backends.HDFBackend:
@@ -235,7 +235,7 @@ class Emcee(AbstractMCMC):
             return emcee.backends.HDFBackend(filename=self.backend_filename)
         else:
             raise FileNotFoundError(
-                "The file emcee.hdf does not exist at the path "
+                "The file results_internal.hdf does not exist at the path "
                 + self.paths.search_internal_path
             )
 

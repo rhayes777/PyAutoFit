@@ -639,7 +639,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
             try:
                 samples = self.samples_from(model=model)
-            except FileNotFoundError:
+            except (FileNotFoundError, NotImplementedError):
                 samples = self.paths.load_object(name="samples")
 
             if self.force_visualize_overwrite:
