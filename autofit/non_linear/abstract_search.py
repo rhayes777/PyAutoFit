@@ -914,6 +914,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             processes=self.number_of_cores, paths=self.paths, fitness=fitness_function
         )
     
+    # TODO: Currently returns None if number_of_cores == 1, raises exception if used in a with statement
     @check_cores
     def make_sneakier_pool(
             self, fitness_function: Fitness, **kwargs
