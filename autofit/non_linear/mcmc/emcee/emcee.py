@@ -119,85 +119,85 @@ class Emcee(AbstractMCMC):
             model=model, analysis=analysis
         )
 
-        pool = self.make_sneaky_pool(fitness_function)
+        # pool = self.make_sneaky_pool(fitness_function)
+        with self.make_sneakier_pool(fitness_function=fitness_function) as pool:
+            emcee_sampler = emcee.EnsembleSampler(
+                nwalkers=self.config_dict_search["nwalkers"],
+                ndim=model.prior_count,
+                log_prob_fn=pool.fitness,
+                backend=emcee.backends.HDFBackend(filename=self.backend_filename),
+                pool=pool,
+            )
 
-        emcee_sampler = emcee.EnsembleSampler(
-            nwalkers=self.config_dict_search["nwalkers"],
-            ndim=model.prior_count,
-            log_prob_fn=fitness_function.__call__,
-            backend=emcee.backends.HDFBackend(filename=self.backend_filename),
-            pool=pool,
-        )
+            try:
 
-        try:
+                emcee_state = emcee_sampler.get_last_sample()
+                samples = self.samples_from(model=model)
 
-            emcee_state = emcee_sampler.get_last_sample()
-            samples = self.samples_from(model=model)
+                total_iterations = emcee_sampler.iteration
 
-            total_iterations = emcee_sampler.iteration
+                if samples.converged:
+                    iterations_remaining = 0
+                else:
+                    iterations_remaining = self.config_dict_run["nsteps"] - total_iterations
 
-            if samples.converged:
-                iterations_remaining = 0
-            else:
-                iterations_remaining = self.config_dict_run["nsteps"] - total_iterations
+                    self.logger.info(
+                        "Existing Emcee samples found, resuming non-linear search."
+                    )
 
-                self.logger.info(
-                    "Existing Emcee samples found, resuming non-linear search."
+            except AttributeError:
+
+                (
+                    unit_parameter_lists,
+                    parameter_lists,
+                    log_posterior_list,
+                ) = self.initializer.samples_from_model(
+                    total_points=emcee_sampler.nwalkers,
+                    model=model,
+                    fitness_function=fitness_function,
                 )
 
-        except AttributeError:
+                emcee_state = np.zeros(shape=(emcee_sampler.nwalkers, model.prior_count))
 
-            (
-                unit_parameter_lists,
-                parameter_lists,
-                log_posterior_list,
-            ) = self.initializer.samples_from_model(
-                total_points=emcee_sampler.nwalkers,
-                model=model,
-                fitness_function=fitness_function,
-            )
+                self.logger.info("No Emcee samples found, beginning new non-linear search.")
 
-            emcee_state = np.zeros(shape=(emcee_sampler.nwalkers, model.prior_count))
+                for index, parameters in enumerate(parameter_lists):
+                    emcee_state[index, :] = np.asarray(parameters)
 
-            self.logger.info("No Emcee samples found, beginning new non-linear search.")
+                total_iterations = 0
+                iterations_remaining = self.config_dict_run["nsteps"]
 
-            for index, parameters in enumerate(parameter_lists):
-                emcee_state[index, :] = np.asarray(parameters)
+            while iterations_remaining > 0:
 
-            total_iterations = 0
-            iterations_remaining = self.config_dict_run["nsteps"]
+                if self.iterations_per_update > iterations_remaining:
+                    iterations = iterations_remaining
+                else:
+                    iterations = self.iterations_per_update
 
-        while iterations_remaining > 0:
+                for sample in emcee_sampler.sample(
+                    initial_state=emcee_state,
+                    iterations=iterations,
+                    progress=True,
+                    skip_initial_state_check=True,
+                    store=True,
+                ):
+                    pass
 
-            if self.iterations_per_update > iterations_remaining:
-                iterations = iterations_remaining
-            else:
-                iterations = self.iterations_per_update
+                emcee_state = emcee_sampler.get_last_sample()
 
-            for sample in emcee_sampler.sample(
-                initial_state=emcee_state,
-                iterations=iterations,
-                progress=True,
-                skip_initial_state_check=True,
-                store=True,
-            ):
-                pass
+                total_iterations += iterations
+                iterations_remaining = self.config_dict_run["nsteps"] - total_iterations
 
-            emcee_state = emcee_sampler.get_last_sample()
+                samples = self.perform_update(
+                    model=model, analysis=analysis, during_analysis=True
+                )
 
-            total_iterations += iterations
-            iterations_remaining = self.config_dict_run["nsteps"] - total_iterations
+                if self.auto_correlations_settings.check_for_convergence:
+                    if emcee_sampler.iteration > self.auto_correlations_settings.check_size:
+                        if samples.converged:
+                            iterations_remaining = 0
 
-            samples = self.perform_update(
-                model=model, analysis=analysis, during_analysis=True
-            )
-
-            if self.auto_correlations_settings.check_for_convergence:
-                if emcee_sampler.iteration > self.auto_correlations_settings.check_size:
-                    if samples.converged:
-                        iterations_remaining = 0
-
-        self.logger.info("Emcee sampling complete.")
+            self.logger.info("Emcee sampling complete.")
 
     def config_dict_with_test_mode_settings_from(self, config_dict):
 
