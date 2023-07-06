@@ -8,6 +8,8 @@ from abc import ABC, abstractmethod
 from collections import Counter
 from functools import wraps
 from os import path
+
+from contextlib import nullcontext
 from typing import Dict, Optional, Union, Tuple, List
 
 import numpy as np
@@ -914,15 +916,17 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             processes=self.number_of_cores, paths=self.paths, fitness=fitness_function
         )
     
-    # TODO: Currently returns None if number_of_cores == 1, raises exception if used in a with statement
-    @check_cores
     def make_sneakier_pool(
             self, fitness_function: Fitness, **kwargs
     ) -> SneakierPool:
+        if self.number_of_cores > 1:
+            pool = SneakierPool(
+                processes=self.number_of_cores, fitness=fitness_function, **kwargs
+            )
+        else:
+            pool = nullcontext
         
-        return SneakierPool(
-            processes=self.number_of_cores, fitness=fitness_function, **kwargs
-        )
+        return pool
 
     def __eq__(self, other):
         return isinstance(other, NonLinearSearch) and self.__dict__ == other.__dict__
