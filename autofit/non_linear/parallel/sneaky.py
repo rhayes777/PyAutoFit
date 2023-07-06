@@ -7,7 +7,8 @@ from typing import Iterable, Optional, Callable
 
 from dynesty.dynesty import _function_wrapper
 from emcee.ensemble import _FunctionWrapper
-from mpi4py import MPI, MPIPoolExecutor
+from mpi4py import MPI
+from mpi4py.futures import MPIPoolExecutor
 
 from autoconf import conf
 from autofit.non_linear.paths.abstract import AbstractPaths
