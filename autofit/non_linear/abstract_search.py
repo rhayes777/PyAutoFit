@@ -916,6 +916,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             processes=self.number_of_cores, paths=self.paths, fitness=fitness_function
         )
     
+    # TODO: How do we handle cases where n_cores == 1?
     def make_sneakier_pool(
             self, fitness_function: Fitness, **kwargs
     ) -> SneakierPool:
@@ -924,7 +925,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                 processes=self.number_of_cores, fitness=fitness_function, **kwargs
             )
         else:
-            pool = nullcontext
+            pool = nullcontext()
         
         return pool
 
