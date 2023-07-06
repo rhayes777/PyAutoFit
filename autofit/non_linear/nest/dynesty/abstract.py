@@ -136,8 +136,6 @@ class AbstractDynesty(AbstractNest, ABC):
         set of accepted samples of the fit.
         """
 
-        from dynesty.pool import Pool
-
         fitness_function = self.fitness_function_from_model_and_analysis(
             model=model, analysis=analysis, log_likelihood_cap=log_likelihood_cap,
         )
@@ -165,12 +163,12 @@ class AbstractDynesty(AbstractNest, ABC):
 
                     raise RuntimeError
 
-                with Pool(
-                    njobs=self.number_of_cores,
-                    loglike=fitness_function,
+
+                with self.make_sneakier_pool(
+                    fitness_function=fitness_function,
                     prior_transform=prior_transform,
-                    logl_args=(model, fitness_function),
-                    ptform_args=(model,),
+                    fitness_args=(model, fitness_function),
+                    prior_transform_args=(model,),
                 ) as pool:
 
                     sampler = self.sampler_from(
