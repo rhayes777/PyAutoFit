@@ -1,3 +1,5 @@
+import json
+import pickle
 from os import path
 from typing import Optional
 
@@ -13,6 +15,7 @@ from autofit.non_linear.optimize.abstract_optimize import AbstractOptimizer
 from autofit.non_linear.optimize.pyswarms.samples import SamplesPySwarms
 from autofit.plot import PySwarmsPlotter
 from autofit.plot.output import Output
+from autofit.tools.util import open_
 
 
 class AbstractPySwarms(AbstractOptimizer):
@@ -128,14 +131,20 @@ class AbstractPySwarms(AbstractOptimizer):
             model=model, analysis=analysis
         )
 
-        if self.paths.is_object("points"):
+        try:
 
-            init_pos = self.paths.load_object("points")[-1]
-            total_iterations = self.paths.load_object("total_iterations")
+            with open_(path.join(self.paths.search_internal_path, "results_internal.pickle"), "rb") as f:
+                results_internal = pickle.load(f)
+
+            with open_(path.join(self.paths.search_internal_path, "results_internal.json"), "w+") as f:
+                results_internal_dict = json.load(f, indent=4)
+
+            init_pos = results_internal[-1]
+            total_iterations = results_internal_dict["total_iterations"]
 
             self.logger.info("Existing PySwarms samples found, resuming non-linear search.")
 
-        else:
+        except FileNotFoundError:
 
             unit_parameter_lists, parameter_lists, log_posterior_list = self.initializer.samples_from_model(
                 total_points=self.config_dict_search["n_particles"],
@@ -190,24 +199,22 @@ class AbstractPySwarms(AbstractOptimizer):
 
                 total_iterations += iterations
 
-                self.paths.save_object(
-                    "total_iterations",
-                    total_iterations
-                )
-                self.paths.save_object(
-                    "points",
-                    pso.pos_history
-                )
-                self.paths.save_object(
-                    "log_posterior_list",
-                    [-0.5 * cost for cost in pso.cost_history]
-                )
+                results_internal_dict = {
+                    "total_iterations": total_iterations,
+                    "log_posterior_list": [-0.5 * cost for cost in pso.cost_history],
+                }
+
+                with open_(path.join(self.paths.search_internal_path, "results_internal.pickle"), "wb") as f:
+                    pickle.dump(pso.pos_history, f)
+
+                with open_(path.join(self.paths.search_internal_path, "results_internal.json"), "w+") as f:
+                    json.dump(results_internal_dict, f, indent=4)
 
                 self.perform_update(
                     model=model, analysis=analysis, during_analysis=True
                 )
 
-                init_pos = self.paths.load_object("points")[-1]
+                init_pos = pso.pos_history[-1]
 
         self.logger.info("PySwarmsGlobal complete")
 
@@ -233,11 +240,17 @@ class AbstractPySwarms(AbstractOptimizer):
 
     def samples_from(self, model):
 
+        with open_(path.join(self.paths.search_internal_path, "results_internal.pickle"), "rb") as f:
+            results_internal = pickle.load(f)
+
+        with open_(path.join(self.paths.search_internal_path, "results_internal.json"), "r+") as f:
+            results_internal_dict = json.load(f)
+
         return SamplesPySwarms.from_results_internal(
-            results_internal=self.paths.load_object("points"),
+            results_internal=results_internal,
             model=model,
-            log_posterior_list=self.paths.load_object("log_posterior_list"),
-            total_iterations=self.paths.load_object("total_iterations"),
+            log_posterior_list=results_internal_dict["log_posterior_list"],
+            total_iterations=results_internal_dict["total_iterations"],
             time=self.timer.time
         )
 
