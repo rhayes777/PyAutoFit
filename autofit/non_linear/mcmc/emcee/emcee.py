@@ -122,7 +122,17 @@ class Emcee(AbstractMCMC):
         # pool = self.make_sneaky_pool(fitness_function)
         with self.make_sneakier_pool(fitness_function=fitness_function) as pool:
 
-            log_prob_fn = pool.fitness if pool is not None else fitness_function
+            is_pool_none = pool is None
+            if not is_pool_none:
+                self.logger.info(
+                    "Using FunctionCache fitness function"
+                )
+                log_prob_fn = pool.fitness
+            else:
+                self.logger.info(
+                    "Not using FunctionCache fitness function"
+                )
+                log_prob_fn = fitness_function
 
             emcee_sampler = emcee.EnsembleSampler(
                 nwalkers=self.config_dict_search["nwalkers"],
