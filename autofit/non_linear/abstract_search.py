@@ -920,11 +920,15 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
     def make_sneakier_pool(
             self, fitness_function: Fitness, **kwargs
     ) -> SneakierPool:
+        self.logger.info(f"number_of_cores == {self.number_of_cores}")
+
         if self.number_of_cores > 1:
+            self.logger.info("Creating SneakierPool...")
             pool = SneakierPool(
                 processes=self.number_of_cores, fitness=fitness_function, **kwargs
             )
         else:
+            self.logger.info("...not using pool")
             pool = nullcontext()
         
         return pool

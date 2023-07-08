@@ -121,10 +121,13 @@ class Emcee(AbstractMCMC):
 
         # pool = self.make_sneaky_pool(fitness_function)
         with self.make_sneakier_pool(fitness_function=fitness_function) as pool:
+
+            log_prob_fn = pool.fitness if pool is not None else fitness_function
+
             emcee_sampler = emcee.EnsembleSampler(
                 nwalkers=self.config_dict_search["nwalkers"],
                 ndim=model.prior_count,
-                log_prob_fn=pool.fitness,
+                log_prob_fn=log_prob_fn,
                 backend=emcee.backends.HDFBackend(filename=self.backend_filename),
                 pool=pool,
             )

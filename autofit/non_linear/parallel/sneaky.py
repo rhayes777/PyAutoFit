@@ -439,12 +439,14 @@ class SneakierPool:
         use_mpi = self.check_if_mpi()
 
         if use_mpi:
+            logger.info("... using MPIPoolExecutor")
             self.pool = MPIPoolExecutor(
                 max_workers=self.processes,
                 initializer=initializer,
                 initargs=init_args
             )
         else:
+            logger.info("... using multiprocessing")
             self.pool = mp.Pool(
                 processes=self.processes,
                 initializer=initializer,
