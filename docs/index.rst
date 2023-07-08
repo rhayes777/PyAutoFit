@@ -163,11 +163,31 @@ provides new users with a more detailed introduction to **PyAutoFit**.
    :maxdepth: 1
    :hidden:
 
-   overview/model_fit
-   overview/model_complex
-   overview/non_linear_search
-   overview/result
-   overview/multi_datasets
+   overview/the_basics
+
+.. toctree::
+   :caption: Cookbooks:
+   :maxdepth: 1
+   :hidden:
+
+   cookbooks/model
+   cookbooks/analysis
+   cookbooks/search
+   cookbooks/result
+   cookbooks/configs
+   cookbooks/multiple_datasets
+   cookbooks/database
+   cookbooks/multi_level_model
+
+.. toctree::
+   :caption: Features:
+   :maxdepth: 1
+   :hidden:
+
+   features/graphical
+   features/search_chaining
+   features/search_grid_search
+   features/sensitivity_mapping
 
 .. toctree::
    :caption: Installation:
@@ -186,23 +206,11 @@ provides new users with a more detailed introduction to **PyAutoFit**.
    :hidden:
 
    general/workspace
-   general/adding_a_model_component
    general/configs
    general/roadmap
    general/software
    general/citations
    general/credits
-
-.. toctree::
-   :caption: Model API Cookbooks:
-   :maxdepth: 1
-   :hidden:
-
-   cookbooks/cookbook_1_basics
-   cookbooks/cookbook_2_collections
-   cookbooks/cookbook_3_multiple_datasets
-   cookbooks/cookbook_4_multi_level
-   cookbooks/cookbook_5_model_linking
 
 .. toctree::
    :caption: Tutorials:
@@ -235,13 +243,3 @@ provides new users with a more detailed introduction to **PyAutoFit**.
    api/database
    api/source
 
-.. toctree::
-   :caption: Features:
-   :maxdepth: 1
-   :hidden:
-
-   features/database
-   features/graphical
-   features/search_chaining
-   features/search_grid_search
-   features/sensitivity_mapping

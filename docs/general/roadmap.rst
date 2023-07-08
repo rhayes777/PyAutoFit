@@ -6,6 +6,10 @@ Road Map
 **PyAutoFit** is in active development and the road-map of features currently planned in the short and long term are
 listed and described below:
 
+**JAX:**
+
+Supported for autodiff is nearly implemented, including JAX fits.
+
 **Non-Linear Searches:**
 
 We are always striving to add new non-linear searches to **PyAutoFit*. In the short term, we aim to provide a wrapper to the many method available in the ``scipy.optimize`` library with support for outputting results to hard-disk.
