@@ -295,4 +295,4 @@ test_autofit/tools/files/aggregator/phase/
 test_autofit/tools/files/aggregator/phase_completed/
 
 # tmp testing dir
-test_parallel/
+parallel_scaling/
