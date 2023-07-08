@@ -420,7 +420,7 @@ class SneakierPool:
 
     def check_if_mpi(self):
 
-        max_workers_from_env_var = os.environ_get('MAX_WORKERS')
+        max_workers_from_env_var = os.environ.get('MAX_WORKERS', None)
         universe_size_is_valid = MPI.UNIVERSE_SIZE != MPI.KEYVAL_INVALID
 
         if universe_size_is_valid:
