@@ -39,8 +39,7 @@ A model component is written as a Python class using the following format:
 
 - The input arguments of the constructor are the parameters of the mode (here ``centre``, ``normalization`` and ``sigma``).
 
-- The default values of the input arguments tell PyAutoFit whether a parameter is a single-valued float or a
- multi-valued tuple.
+- The default values of the input arguments tell PyAutoFit whether a parameter is a single-valued float or a multi-valued tuple.
 
 We define a 1D Gaussian model component to illustrate model composition in PyAutoFit.
 
@@ -164,7 +163,7 @@ The inputs of 0.5 below are mapped as follows:
 
 - ``centre``: goes to 0.5 because this is the midpoint of a ``UniformPrior`` with ``lower_limit=0.0`` and ``upper_limit=1.0``.
 
-- ``normalization`` goes to 1.0 because this is the midpoint of the ``LogUniformPrior``' with ``lower_limit=1e-4`` and ``upper_limit=1e4``, corresponding to log10 space.
+- ``normalization`` goes to 1.0 because this is the midpoint of the ``LogUniformPrior``' with ``lower_limit=1e-4`` and ``upper_limit=1e4`` corresponding to log10 space.
 
 - ``sigma``: goes to 0.0 because this is the ``mean`` of the ``GaussianPrior``.
 
@@ -238,23 +237,41 @@ parameter space by 1):
 
 .. code-block:: python
 
-    model = af.Model(Gaussian)
     model.centre = model.normalization
 
 Offsets between linked parameters or with certain values are possible:
 
 .. code-block:: python
 
-    model = af.Model(Gaussian)
     model.centre = model.normalization + model.sigma
 
 Assertions remove regions of parameter space (but do not reduce the dimensionality of parameter space):
 
 .. code-block:: python
 
-    model = af.Model(Gaussian)
     model.add_assertion(model.sigma > 5.0)
     model.add_assertion(model.centre > model.normalization)
+
+The customized model can be inspected by printing its `info` attribute.
+
+.. code-block:: python
+
+    print(model.info)
+
+This gives the following output:
+
+.. code-block:: bash
+
+    Total Free Parameters = 2
+    
+    model                            Gaussian (N=2)
+        centre                       SumPrior (N=2)
+    
+    centre
+        self                         LogUniformPrior [14], lower_limit = 1e-06, upper_limit = 1000000.0
+        other                        UniformPrior [15], lower_limit = 0.0, upper_limit = 25.0
+    normalization                    LogUniformPrior [14], lower_limit = 1e-06, upper_limit = 1000000.0
+    sigma                            UniformPrior [15], lower_limit = 0.0, upper_limit = 25.0
 
 The overwriting of priors shown above can be achieved via the following alternative API:
 
@@ -830,7 +847,7 @@ Wrap Up
 -------
 
 This cookbook shows how to compose models consisting of multiple components using the ``af.Model()``
-and `af.Collection()` object.
+and ``af.Collection()`` object.
 
 Advanced model composition uses multi-level models, which compose models from hierarchies of Python classes. This is
 described in the multi-level model cookbook. 

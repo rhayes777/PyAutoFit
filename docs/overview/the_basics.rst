@@ -17,7 +17,7 @@ Example
 
 The example ``data`` with errors (black) and the model-fit (red), are shown below:
 
-.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/docs_update/docs/images/data.png
+.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/feature/docs_update/docs/images/data.png
   :width: 600
   :alt: Alternative text
 
@@ -256,7 +256,7 @@ create a realization of the ``Gaussian`` and plot it.
 
 Here is what the plot looks like:
 
-.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/docs_update/docs/images/model_gaussian.png
+.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/feature/docs_update/docs/images/model_gaussian.png
   :width: 600
   :alt: Alternative text
 
@@ -478,7 +478,7 @@ Below, we use the maximum likelihood instance to compare the maximum likelihood 
 
 The plot appears as follows:
 
-.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/docs_update/docs/images/toy_model_fit.png
+.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/feature/docs_update/docs/images/toy_model_fit.png
   :width: 600
   :alt: Alternative text
 
@@ -500,7 +500,7 @@ cornerplot of the results.
 
 The plot appears as follows:
 
-.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/docs_update/docs/images/cornerplot.png
+.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/feature/docs_update/docs/images/cornerplot.png
   :width: 600
   :alt: Alternative text
 
@@ -531,7 +531,7 @@ Lets begin by loading and plotting this data.
 
 The data appear as follows:
 
-.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/docs_update/docs/images/data_2.png
+.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/feature/docs_update/docs/images/data_2.png
   :width: 600
   :alt: Alternative text
 
@@ -863,7 +863,7 @@ data.
 
 The plot appears as follows:
 
-.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/docs_update/docs/images/toy_model_fit.png
+.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/feature/docs_update/docs/images/toy_model_fit.png
   :width: 600
   :alt: Alternative text
 
