@@ -143,7 +143,7 @@ model and marginalized probability density functions.
    :hidden:
 
    overview/the_basics
-   overvie/scientific_workflow
+   overview/scientific_workflow
 
 .. toctree::
    :caption: Cookbooks:
