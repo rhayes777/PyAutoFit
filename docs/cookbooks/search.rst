@@ -31,7 +31,7 @@ It then provides example code for using every search:
 Example Fit
 -----------
 
-An example of how to use a `search` to fit a model to data is given in other example scripts, but is shown below
+An example of how to use a ``search`` to fit a model to data is given in other example scripts, but is shown below
 for completeness.
 
 .. code-block:: python
@@ -46,7 +46,7 @@ for completeness.
 
     analysis = af.ex.Analysis(data=data, noise_map=noise_map)
 
-It is this line, where the command `af.Emcee()` can be swapped out for the examples provided throughout this
+It is this line, where the command ``af.Emcee()`` can be swapped out for the examples provided throughout this
 cookbook to use different non-linear searches.
 
 .. code-block:: python
@@ -59,9 +59,9 @@ Output To Hard-Disk
 -------------------
 
 By default, a non-linear search does not output its results to hard-disk and its results can only be inspected
-in Python via the `result` object. 
+in Python via the ``result`` object. 
 
-However, the results of any non-linear search can be output to hard-disk by passing the `name` and / or `path_prefix`
+However, the results of any non-linear search can be output to hard-disk by passing the ``name`` and / or ``path_prefix``
 attributes, which are used to name files and output the results to a folder on your hard-disk.
 
 The benefits of doing this include:
@@ -89,7 +89,7 @@ This ensures that rerunning an identical fit will use the existing results to re
 you change the model or search, a new unique identifier will be generated, ensuring that the model-fit results are
 output into a separate folder.
 
-A `unique_tag` can be input into a search, which customizes the unique identifier based on the string you provide.
+A ``unique_tag`` can be input into a search, which customizes the unique identifier based on the string you provide.
 For example, if you are performing many fits to different datasets, using an identical model and search, you may
 wish to provide a unique tag for each dataset such that the model-fit results are output into a different folder.
 
@@ -100,7 +100,7 @@ wish to provide a unique tag for each dataset such that the model-fit results ar
 Iterations Per Update
 ---------------------
 
-If results are output to hard-disk, this occurs every `iterations_per_update` number of iterations. 
+If results are output to hard-disk, this occurs every ``iterations_per_update`` number of iterations. 
 
 For certain problems, you may want this value to be low, to inspect the results of the model-fit on a regular basis.
 This is especially true if the time it takes for your non-linear search to perform an iteration by evaluating the 
@@ -118,12 +118,12 @@ maximum solution given enough iterations.
 Parallelization
 ---------------
 
-Many searches support parallelization using the Python ``multiprocessing`` module. 
+Many searches support parallelization using the Python ````multiprocessing```` module. 
 
 This distributes the non-linear search analysis over multiple CPU's, speeding up the run-time roughly by the number 
 of CPUs used.
 
-To enable parallelization, input a `number_of_cores` greater than 1. You should aim not to exceed the number of
+To enable parallelization, input a ``number_of_cores`` greater than 1. You should aim not to exceed the number of
 physical cores in your computer, as using more cores than exist may actually slow down the non-linear search.
 
 .. code-block:: python
@@ -133,15 +133,15 @@ physical cores in your computer, as using more cores than exist may actually slo
 Plots
 -----
 
-Every non-linear search supported by **PyAutoFit** has a dedicated `plotter` class that allows the results of the
+Every non-linear search supported by **PyAutoFit** has a dedicated ``plotter`` class that allows the results of the
 model-fit to be plotted and inspected.
 
-This uses that search's in-built visualization libraries, which are fully described in the `plot` package of the
+This uses that search's in-built visualization libraries, which are fully described in the ``plot`` package of the
 workspace.
 
-For example, `Emcee` has a corresponding `EmceePlotter`, which is used as follows.
+For example, ``Emcee`` has a corresponding ``EmceePlotter``, which is used as follows.
 
-Checkout the `plot` package for a complete description of the plots that can be made for a given search.
+Checkout the ``plot`` package for a complete description of the plots that can be made for a given search.
 
 .. code-block:: python
 
@@ -183,10 +183,10 @@ Checkout the `plot` package for a complete description of the plots that can be 
     )
 
 
-The Python library `GetDist <https://getdist.readthedocs.io/en/latest/>`_ can also be used to create plots of the
+The Python library ``GetDist <https://getdist.readthedocs.io/en/latest/>``_ can also be used to create plots of the
 results. 
 
-This is described in the `plot` package of the workspace.
+This is described in the ``plot`` package of the workspace.
 
 Start Point
 -----------
@@ -210,15 +210,15 @@ We now define the start point of certain parameters in the model as follows.
 
     initializer = af.SpecificRangeInitializer(
         {
-            model.gaussian.centre: (49.0, 51.0),
-            model.gaussian.sigma: (4.0, 6.0),
-            model.exponential.centre: (49.0, 51.0),
+            model.centre: (49.0, 51.0),
+            model.normalization: (4.0, 6.0),
+            model.sigma: (1.0, 2.0),
         }
     )
 
 
-Similar behaviour can be achieved by customizing the priors of a model-fit. We could place `GaussianPrior`'s
-centred on the regions of parameter space we want to sample, or we could place tight `UniformPrior`'s on regions
+Similar behaviour can be achieved by customizing the priors of a model-fit. We could place ``GaussianPrior``'s
+centred on the regions of parameter space we want to sample, or we could place tight ``UniformPrior``'s on regions
 of parameter space we believe the correct answer lies.
 
 The downside of using priors is that our priors have a direct influence on the parameters we infer and the size
@@ -232,7 +232,7 @@ Emcee (MCMC)
 ------------
 
 The Emcee sampler is a Markov Chain Monte Carlo (MCMC) Ensemble sampler. It is a Python implementation of the
-`Goodman & Weare <https://msp.org/camcos/2010/5-1/p04.xhtml>`_ affine-invariant ensemble MCMC sampler.
+``Goodman & Weare <https://msp.org/camcos/2010/5-1/p04.xhtml>``_ affine-invariant ensemble MCMC sampler.
 
 Information about Emcee can be found at the following links:
 
@@ -241,8 +241,8 @@ Information about Emcee can be found at the following links:
 
 The following workspace example shows examples of fitting data with Emcee and plotting the results.
 
-- `autofit_workspace/notebooks/searches/mcmc/Emcee.ipynb`
-- `autofit_workspace/notebooks/plot/EmceePlotter.ipynb`
+- ``autofit_workspace/notebooks/searches/mcmc/Emcee.ipynb``
+- ``autofit_workspace/notebooks/plot/EmceePlotter.ipynb``
 
 The following code shows how to use Emcee with all available options.
 
@@ -298,7 +298,7 @@ DynestyDynamic (Nested Sampling)
 --------------------------------
 
 The DynestyDynamic sampler is a Dynamic Nested Sampling algorithm. It is a Python implementation of the
-`Speagle <https://arxiv.org/abs/1904.02180>`_ algorithm.
+``Speagle <https://arxiv.org/abs/1904.02180>``_ algorithm.
 
 Information about Dynesty can be found at the following links:
 
@@ -325,7 +325,7 @@ DynestyStatic (Nested Sampling)
 -------------------------------
 
 The DynestyStatic sampler is a Static Nested Sampling algorithm. It is a Python implementation of the
-`Speagle <https://arxiv.org/abs/1904.02180>`_ algorithm.
+``Speagle <https://arxiv.org/abs/1904.02180>``_ algorithm.
 
 Information about Dynesty can be found at the following links:
 
@@ -352,9 +352,9 @@ UltraNest (Nested Sampling)
 ---------------------------
 
 The UltraNest sampler is a Nested Sampling algorithm. It is a Python implementation of the
-`Buchner <https://arxiv.org/abs/1904.02180>`_ algorithm.
+``Buchner <https://arxiv.org/abs/1904.02180>``_ algorithm.
 
-UltraNest is an optional requirement and must be installed manually via the command `pip install ultranest`.
+UltraNest is an optional requirement and must be installed manually via the command ``pip install ultranest``.
 It is optional as it has certain dependencies which are generally straight forward to install (e.g. Cython).
 
 Information about UltraNest can be found at the following links:
@@ -400,7 +400,7 @@ PySwarmsGlobal
 --------------
 
 The PySwarmsGlobal sampler is a Global Optimization algorithm. It is a Python implementation of the
-`Bratley <https://arxiv.org/abs/1904.02180>`_ algorithm.
+``Bratley <https://arxiv.org/abs/1904.02180>``_ algorithm.
 
 Information about PySwarms can be found at the following links:
 
@@ -422,7 +422,7 @@ PySwarmsLocal
 -------------
 
 The PySwarmsLocal sampler is a Local Optimization algorithm. It is a Python implementation of the
-`Bratley <https://arxiv.org/abs/1904.02180>`_ algorithm.
+``Bratley <https://arxiv.org/abs/1904.02180>``_ algorithm.
 
 Information about PySwarms can be found at the following links:
 

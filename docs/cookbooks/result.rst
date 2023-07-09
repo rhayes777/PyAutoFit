@@ -3,16 +3,16 @@
 Result
 ======
 
-After a non-linear search has completed, it returns a `Result` object that contains information on fit, such as
+After a non-linear search has completed, it returns a ``Result`` object that contains information on fit, such as
 the maximum likelihood model instance, the errors on each parameter and the Bayesian evidence.
 
 This cookbook provides an overview of using the results.
 
 **Contents:**
 
- - Model Fit: Perform a simple model-fit to create a `Result` object.
- - Info: Print the `info` attribute of the `Result` object to display a summary of the model-fit.
- - Samples: The `Samples` object contained in the `Result`, containing all non-linear samples (e.g. parameters,
+ - Model Fit: Perform a simple model-fit to create a ``Result`` object.
+ - Info: Print the ``info`` attribute of the ``Result`` object to display a summary of the model-fit.
+ - Samples: The ``Samples`` object contained in the ``Result``, containing all non-linear samples (e.g. parameters,
    log likelihoods, etc.).
  - Maximum Likelihood: The maximum likelihood model instance.
  - Posterior / PDF: The median PDF model instance and PDF vectors of all model parameters via 1D marginalization.
@@ -20,25 +20,25 @@ This cookbook provides an overview of using the results.
  - Sample Instance: The model instance of any accepted sample.
  - Search Plots: Plots of the non-linear search, for example a corner plot or 1D PDF of every parameter.
  - Bayesian Evidence: The log evidence estimated via a nested sampling algorithm.
- - Collection: Results created from models defined via a `Collection` object.
+ - Collection: Results created from models defined via a ``Collection`` object.
  - Lists: Extracting results as Python lists instead of instances.
  - Latex: Producing latex tables of results (e.g. for a paper).
 
 The following sections outline how to use advanced features of the results, which you may skip on a first read:
 
  - Derived Quantities: Computing quantities and errors for quantities and parameters not included directly in the model.
- - Result Extension: Extend the `Result` object with new attributes and methods (e.g. `max_log_likelihood_model_data`).
- - Samples Filtering: Filter the `Samples` object to only contain samples fulfilling certain criteria.
+ - Result Extension: Extend the ``Result`` object with new attributes and methods (e.g. ``max_log_likelihood_model_data``).
+ - Samples Filtering: Filter the ``Samples`` object to only contain samples fulfilling certain criteria.
 
 Model Fit
 ---------
 
-To illustrate results, we need to perform a model-fit in order to create a `Result` object.
+To illustrate results, we need to perform a model-fit in order to create a ``Result`` object.
 
 We do this below using the standard API and noisy 1D signal example, which you should be familiar with from other 
 example scripts.
 
-Note that the `Gaussian` and `Analysis` classes come via the `af.ex` module, which contains example model components
+Note that the ``Gaussian`` and ``Analysis`` classes come via the ``af.ex`` module, which contains example model components
 that are identical to those found throughout the examples.
 
 .. code-block:: python
@@ -64,17 +64,45 @@ that are identical to those found throughout the examples.
 Info
 ----
 
-Printing the `info` attribute shows the overall result of the model-fit in a human readable format.
+Printing the ``info`` attribute shows the overall result of the model-fit in a human readable format.
 
 .. code-block:: python
 
     print(result.info)
 
+The output appears as follows:
+
+.. code-block:: bash
+
+    Maximum Log Likelihood                                                          -46.68992727
+    Maximum Log Posterior                                                           -46.64963514
+
+    model                                                                           Gaussian (N=3)
+
+    Maximum Log Likelihood Model:
+
+    centre                                                                          49.892
+    normalization                                                                   24.819
+    sigma                                                                           9.844
+
+
+    Summary (3.0 sigma limits):
+
+    centre                                                                          49.89 (49.52, 50.23)
+    normalization                                                                   24.79 (23.96, 25.61)
+    sigma                                                                           9.85 (9.53, 10.21)
+
+
+    Summary (1.0 sigma limits):
+
+    centre                                                                          49.89 (49.83, 49.96)
+    normalization                                                                   24.79 (24.65, 24.94)
+    sigma                                                                           9.85 (9.78, 9.90)
 
 Samples
 -------
 
-The result contains a `Samples` object, which contains all samples of the non-linear search.
+The result contains a ``Samples`` object, which contains all samples of the non-linear search.
 
 Each sample corresponds to a set of model parameters that were evaluated and accepted by the non linear search, 
 in this example emcee. 
@@ -82,7 +110,7 @@ in this example emcee.
 This includes their log likelihoods, which are used for computing additional information about the model-fit,
 for example the error on every parameter. 
 
-Our model-fit used the MCMC algorithm Emcee, so the `Samples` object returned is a `SamplesMCMC` object.
+Our model-fit used the MCMC algorithm Emcee, so the ``Samples`` object returned is a ``SamplesMCMC`` object.
 
 .. code-block:: python
 
@@ -90,7 +118,6 @@ Our model-fit used the MCMC algorithm Emcee, so the `Samples` object returned is
 
     print("MCMC Samples: \n")
     print(samples)
-
 
 The parameters are stored as a list of lists, where:
 
@@ -103,19 +130,27 @@ The parameters are stored as a list of lists, where:
 
     print("Sample 5's second parameter value (Gaussian -> normalization):")
     print(samples.parameter_lists[4][1])
-    print("Sample 10`s third parameter value (Gaussian -> sigma)")
+    print("Sample 10's third parameter value (Gaussian -> sigma)")
     print(samples.parameter_lists[9][2], "\n")
 
+The output appears as follows:
+
+.. code-block:: bash
+
+    Sample 5's second parameter value (Gaussian -> normalization):
+    1.561170345314133
+    Sample 10`s third parameter value (Gaussian -> sigma)
+    12.617071617003607
 
 The Samples class contains the log likelihood, log prior, log posterior and weight_list of every accepted sample, where:
 
-- The `log_likelihood` is the value evaluated in the `log_likelihood_function`.
+- The ``log_likelihood`` is the value evaluated in the ``log_likelihood_function``.
 
-- The `log_prior` encodes information on how parameter priors map log likelihood values to log posterior values.
+- The ``log_prior`` encodes information on how parameter priors map log likelihood values to log posterior values.
 
-- The `log_posterior` is `log_likelihood + log_prior`.
+- The ``log_posterior`` is ``log_likelihood + log_prior``.
 
-- The `weight` gives information on how samples are combined to estimate the posterior, which depends on type of search used (for `Emcee` they are all 1's meaning they are weighted equally).
+- The ``weight`` gives information on how samples are combined to estimate the posterior, which depends on type of search used (for ``Emcee`` they are all 1's meaning they are weighted equally).
 
 Lets inspect the last 10 values of each for the analysis.     
 
@@ -127,10 +162,20 @@ Lets inspect the last 10 values of each for the analysis.
     print(samples.log_posterior_list[9])
     print(samples.weight_list[9])
 
+The output appears as follows:
+
+.. code-block:: bash
+
+    log(likelihood), log(prior), log(posterior) and weight of the tenth sample.
+    -5056.579275235516
+    0.743571372185727
+    -5055.83570386333
+    1.0
+
 Maximum Likelihood
 ------------------
 
-Using the `Samples` object many results can be returned as an instance of the model, using the Python class structure
+Using the ``Samples`` object many results can be returned as an instance of the model, using the Python class structure
 of the model composition.
 
 For example, we can return the model parameters corresponding to the maximum log likelihood sample.
@@ -139,10 +184,19 @@ For example, we can return the model parameters corresponding to the maximum log
 
     instance = samples.max_log_likelihood()
 
-    print("Max Log Likelihood `Gaussian` Instance:")
+    print("Max Log Likelihood Gaussian Instance:")
     print("Centre = ", instance.centre)
     print("Normalization = ", instance.normalization)
     print("Sigma = ", instance.sigma, "\n")
+
+The output appears as follows:
+
+.. code-block:: bash
+
+    Max Log Likelihood `Gaussian` Instance:
+    Centre =  49.891590184286855
+    Normalization =  24.8187423966329
+    Sigma =  9.844319034011903
 
 This makes it straight forward to plot the median PDF model:
 
@@ -152,11 +206,18 @@ This makes it straight forward to plot the median PDF model:
 
     plt.plot(range(data.shape[0]), data)
     plt.plot(range(data.shape[0]), model_data)
-    plt.title("Illustrative model fit to 1D `Gaussian` profile data.")
+    plt.title("Illustrative model fit to 1D Gaussian profile data.")
     plt.xlabel("x values of profile")
     plt.ylabel("Profile normalization")
     plt.show()
     plt.close()
+
+This plot appears as follows:
+
+.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/main/docs/images/toy_model_fit.png
+  :width: 600
+  :alt: Alternative text
+
 
 Posterior / PDF
 ---------------
@@ -170,10 +231,19 @@ The median pdf vector is available, which estimates every parameter via 1D margi
 
     instance = samples.median_pdf()
 
-    print("Median PDF `Gaussian` Instance:")
+    print("Median PDF Gaussian Instance:")
     print("Centre = ", instance.centre)
     print("Normalization = ", instance.normalization)
     print("Sigma = ", instance.sigma, "\n")
+
+The output appears as follows:
+
+.. code-block:: bash
+
+    Median PDF `Gaussian` Instance:
+    Centre =  49.88646575581081
+    Normalization =  24.786319329440854
+    Sigma =  9.845578558662783
 
 Errors
 ------
@@ -197,6 +267,20 @@ This again uses 1D marginalization, now at an input sigma confidence limit.
     print("Normalization = ", instance_lower_sigma.normalization)
     print("Sigma = ", instance_lower_sigma.sigma, "\n")
 
+The output appears as follows:
+
+.. code-block:: bash
+
+    Upper Error values (at 3.0 sigma confidence):
+    Centre =  0.34351559431248546
+    Normalization =  0.8210523662181224
+    Sigma =  0.36460084790041236
+
+    lower Error values (at 3.0 sigma confidence):
+    Centre =  0.36573975189415364
+    Normalization =  0.8277555014351385
+    Sigma =  0.318978781734252
+
 They can also be returned at the values of the parameters at their error values.
 
 .. code-block:: python
@@ -214,6 +298,20 @@ They can also be returned at the values of the parameters at their error values.
     print("Normalization = ", instance_lower_values.normalization)
     print("Sigma = ", instance_lower_values.sigma, "\n")
 
+The output appears as follows:
+
+.. code-block:: bash
+
+    Upper Parameter values w/ error (at 3.0 sigma confidence):
+    Centre =  50.229981350123296
+    Normalization =  25.607371695658976
+    Sigma =  10.210179406563196
+
+    lower Parameter values w/ errors (at 3.0 sigma confidence):
+    Centre =  49.52072600391666
+    Normalization =  23.958563828005715
+    Sigma =  9.526599776928531
+
 Sample Instance
 ---------------
 
@@ -230,16 +328,31 @@ We can create an instance of any model -- below we create an instance of the las
     print("Normalization = ", instance.normalization)
     print("Sigma = ", instance.sigma, "\n")
 
+The output appears as follows:
+
+.. code-block:: bash
+
+    Gaussian Instance of last sample
+    Centre =  49.81486592598193
+    Normalization =  25.342058160043972
+    Sigma =  10.001029545296722
+
 Search Plots
 ------------
 
 The Probability Density Functions (PDF's) of the results can be plotted using the Emcee's visualization 
-tool `corner.py`, which is wrapped via the `EmceePlotter` object.
+tool ``corner.py``, which is wrapped via the ``EmceePlotter`` object.
 
 .. code-block:: python
 
     search_plotter = aplt.EmceePlotter(samples=result.samples)
     search_plotter.corner()
+
+This plot appears as follows:
+
+.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/main/docs/images/cornerplot.png
+  :width: 600
+  :alt: Alternative text
 
 Bayesian Evidence
 ------------------
@@ -253,12 +366,18 @@ is None).:
     log_evidence = samples.log_evidence
     print(f"Log Evidence: {log_evidence}")
 
-_Collection
------------
+The output appears as follows:
 
-The examples correspond to a model where `af.Model(Gaussian)` was used to compose the model.
+.. code-block:: bash
 
-Below, we illustrate how the results API slightly changes if we compose our model using a `Collection`:
+    Log Evidence: None
+
+Collection
+----------
+
+The examples correspond to a model where ``af.Model(Gaussian)`` was used to compose the model.
+
+Below, we illustrate how the results API slightly changes if we compose our model using a ``Collection``:
 
 .. code-block:: python
 
@@ -272,18 +391,64 @@ Below, we illustrate how the results API slightly changes if we compose our mode
         number_of_cores=1,
     )
 
-    result_collection = search.fit(model=model, analysis=analysis)
+    result = search.fit(model=model, analysis=analysis)
 
-The `result.info` shows the result for the model with both a `Gaussian` and `Exponential` profile.
+The ``result.info`` shows the result for the model with both a ``Gaussian`` and ``Exponential`` profile.
 
 .. code-block:: python
 
     print(result.info)
 
+The output appears as follows:
+
+.. code-block:: bash
+
+    Maximum Log Likelihood                                                          -46.19567314
+    Maximum Log Posterior                                                           999953.27251548
+
+    model                                                                           Collection (N=6)
+        gaussian                                                                    Gaussian (N=3)
+        exponential                                                                 Exponential (N=3)
+
+    Maximum Log Likelihood Model:
+
+    gaussian
+        centre                                                                      49.914
+        normalization                                                               24.635
+        sigma                                                                       9.851
+    exponential
+        centre                                                                      35.911
+        normalization                                                               0.010
+        rate                                                                        5.219
+
+
+    Summary (3.0 sigma limits):
+
+    gaussian
+        centre                                                                      49.84 (44.87, 53.10)
+        normalization                                                               24.67 (17.87, 38.81)
+        sigma                                                                       9.82 (6.93, 12.98)
+    exponential
+        centre                                                                      45.03 (1.03, 98.31)
+        normalization                                                               0.00 (0.00, 0.67)
+        rate                                                                        4.88 (0.07, 9.91)
+
+
+    Summary (1.0 sigma limits):
+
+    gaussian
+        centre                                                                      49.84 (49.76, 49.93)
+        normalization                                                               24.67 (24.46, 24.86)
+        sigma                                                                       9.82 (9.74, 9.90)
+    exponential
+        centre                                                                      45.03 (36.88, 54.81)
+        normalization                                                               0.00 (0.00, 0.00)
+        rate                                                                        4.88 (3.73, 5.68)
+
 Result instances again use the Python classes used to compose the model. 
 
-However, because our fit uses a `Collection` the `instance` has attribues named according to the names given to the
-`Collection`, which above were `gaussian` and `exponential`.
+However, because our fit uses a ``Collection`` the ``instance`` has attribues named according to the names given to the
+``Collection``, which above were ``gaussian`` and ``exponential``.
 
 For complex models, with a large number of model components and parameters, this offers a readable API to interpret
 the results.
@@ -292,7 +457,7 @@ the results.
 
     instance = samples.max_log_likelihood()
 
-    print("Max Log Likelihood `Gaussian` Instance:")
+    print("Max Log Likelihood Gaussian Instance:")
     print("Centre = ", instance.gaussian.centre)
     print("Normalization = ", instance.gaussian.normalization)
     print("Sigma = ", instance.gaussian.sigma, "\n")
@@ -302,10 +467,24 @@ the results.
     print("Normalization = ", instance.exponential.normalization)
     print("Sigma = ", instance.exponential.rate, "\n")
 
+The output appears as follows:
+
+.. code-block:: bash
+
+    Max Log Likelihood `Gaussian` Instance:
+    Centre =  49.91396277773068
+    Normalization =  24.63471453899279
+    Sigma =  9.850878941872832
+
+    Max Log Likelihood Exponential Instance:
+    Centre =  35.911326828717904
+    Normalization =  0.010107001861903789
+    Sigma =  5.2192591581876036
+
 Lists
 -----
 
-All results can alternatively be returned as a 1D list of values, by passing `as_instance=False`:
+All results can alternatively be returned as a 1D list of values, by passing ``as_instance=False``:
 
 .. code-block:: python
 
@@ -313,14 +492,22 @@ All results can alternatively be returned as a 1D list of values, by passing `as
     print("Max Log Likelihood Model Parameters: \n")
     print(max_lh_list, "\n\n")
 
+The output appears as follows:
+
+.. code-block:: bash
+
+    Max Log Likelihood Model Parameters:
+
+    [49.91396277773068, 24.63471453899279, 9.850878941872832, 35.911326828717904, 0.010107001861903789, 5.2192591581876036]
+
 The list above does not tell us which values correspond to which parameters.
 
-The following quantities are available in the `Model`, where the order of their entries correspond to the parameters 
-in the `ml_vector` above:
+The following quantities are available in the ``Model``, where the order of their entries correspond to the parameters 
+in the ``ml_vector`` above:
 
-- `paths`: a list of tuples which give the path of every parameter in the `Model`.
-- `parameter_names`: a list of shorthand parameter names derived from the `paths`.
-- `parameter_labels`: a list of parameter labels used when visualizing non-linear search results (see below).
+- ``paths``: a list of tuples which give the path of every parameter in the ``Model``.
+- ``parameter_names``: a list of shorthand parameter names derived from the ``paths``.
+- ``parameter_labels``: a list of parameter labels used when visualizing non-linear search results (see below).
 
 For simple models like the one fitted in this tutorial, the quantities below are somewhat redundant. For the
 more complex models they are important for tracking the parameters of the model.
@@ -334,6 +521,15 @@ more complex models they are important for tracking the parameters of the model.
     print(model.parameter_labels)
     print(model.model_component_and_parameter_names)
     print("\n")
+
+The output appears as follows:
+
+.. code-block:: bash
+
+    [('gaussian', 'centre'), ('gaussian', 'normalization'), ('gaussian', 'sigma'), ('exponential', 'centre'), ('exponential', 'normalization'), ('exponential', 'rate')]
+    ['centre', 'normalization', 'sigma', 'centre', 'normalization', 'rate']
+    ['x', 'norm', '\\sigma', 'x', 'norm', '\\lambda']
+    ['gaussian_centre', 'gaussian_normalization', 'gaussian_sigma', 'exponential_centre', 'exponential_normalization', 'exponential_rate']
 
 All the methods above are available as lists.
 
@@ -353,7 +549,7 @@ code which you can copy to your .tex document.
 
 By combining this with the filtering tools below, specific parameters can be included or removed from the latex.
 
-Remember that the superscripts of a parameter are loaded from the config file `notation/label.yaml`, providing high
+Remember that the superscripts of a parameter are loaded from the config file ``notation/label.yaml``, providing high
 levels of customization for how the parameter names appear in the latex table. This is especially useful if your model
 uses the same model components with the same parameter, which therefore need to be distinguished via superscripts.
 
@@ -372,11 +568,17 @@ uses the same model components with the same parameter, which therefore need to 
 
     print(latex)
 
+The output appears as follows:
+
+.. code-block:: bash
+
+    Example Prefix $x^{\rm{g}} = 49.88^{+0.37}_{-0.35}$ & $norm^{\rm{g}} = 24.83^{+0.82}_{-0.76}$ & $\sigma^{\rm{g}} = 9.84^{+0.35}_{-0.40}$ \[-2pt]
+
 Derived Errors (Advanced)
 -------------------------
 
-Computing the errors of a quantity like the `sigma` of the Gaussian is simple, because it is sampled by the non-linear 
-search. Thus, to get their errors above we used the `Samples` object to simply marginalize over all over parameters 
+Computing the errors of a quantity like the ``sigma`` of the Gaussian is simple, because it is sampled by the non-linear 
+search. Thus, to get their errors above we used the ``Samples`` object to simply marginalize over all over parameters 
 via the 1D Probability Density Function (PDF).
 
 Computing errors on derived quantitys is more tricky, because it is not sampled directly by the non-linear search. 
@@ -385,10 +587,10 @@ we need to create the PDF of that derived quantity, which we can then marginaliz
 use to marginalize model parameters.
 
 Below, we compute the FWHM of every accepted model sampled by the non-linear search and use this determine the PDF 
-of the FWHM. When combining the FWHM's we weight each value by its `weight`. For Emcee, an MCMC algorithm, the
+of the FWHM. When combining the FWHM's we weight each value by its ``weight``. For Emcee, an MCMC algorithm, the
 weight of every sample is 1, but weights may take different values for other non-linear searches.
 
-In order to pass these samples to the function `marginalize`, which marginalizes over the PDF of the FWHM to compute 
+In order to pass these samples to the function ``marginalize``, which marginalizes over the PDF of the FWHM to compute 
 its error, we also pass the weight list of the samples.
 
 (Computing the error on the FWHM could be done in much simpler ways than creating its PDF from the list of every
@@ -414,11 +616,17 @@ complicated derived quantities.)
 
     print(f"FWHM = {median_fwhm} ({upper_fwhm} {lower_fwhm}")
 
+The output appears as follows:
+
+.. code-block:: bash
+
+    FWHM = 23.065988076921947 (10.249510919377173 54.67455139997644
+
 Result Extensions (Advanced)
 ----------------------------
 
 You might be wondering what else the results contains, as nearly everything we discussed above was a part of its 
-`samples` property! The answer is, not much, however the result can be extended to include  model-specific results for 
+``samples`` property! The answer is, not much, however the result can be extended to include  model-specific results for 
 your project. 
 
 We detail how to do this in the **HowToFit** lectures, but for the example of fitting a 1D Gaussian we could extend
@@ -457,6 +665,22 @@ again below.
     print("Maximum Log Likelihood Model Instances (containing only the Gaussian centre):\n")
     print(samples.max_log_likelihood(as_instance=False))
 
+The output appears as follows:
+
+.. code-block:: bash
+
+    Parameter paths in the model which are used for filtering:
+    [('gaussian', 'centre'), ('gaussian', 'normalization'), ('gaussian', 'sigma'), ('exponential', 'centre'), ('exponential', 'normalization'), ('exponential', 'rate')]
+
+    All parameters of the very first sample
+    [49.63779704398534, 1.1898799260824928, 12.68275074146554, 50.67597072491201, 0.7836791226321858, 5.07432721731388]
+
+    All parameters of the very first sample (containing only the Gaussian centre.
+    [49.63779704398534]
+
+    Maximum Log Likelihood Model Instances (containing only the Gaussian centre):
+    [49.880800628266506]
+
 Above, we specified each path as a list of tuples of strings. 
 
 This is how the PyAutoFit source code stores the path to different components of the model, but it is not 
@@ -473,11 +697,17 @@ We can alternatively use the following API:
     print("All parameters of the very first sample (containing only the Gaussian centre).")
     print(samples.parameter_lists[0])
 
+The output appears as follows:
 
-Above, we filtered the `Samples` but asking for all parameters which included the path ("gaussian", "centre").
+.. code-block:: bash
 
-We can alternatively filter the `Samples` object by removing all parameters with a certain path. Below, we remove
-the Gaussian's `centre` to be left with 2 parameters; the `normalization` and `sigma`.
+    All parameters of the very first sample (containing only the Gaussian centre).
+    [49.63779704398534]
+
+Above, we filtered the ``Samples`` but asking for all parameters which included the path ("gaussian", "centre").
+
+We can alternatively filter the ``Samples`` object by removing all parameters with a certain path. Below, we remove
+the Gaussian's ``centre`` to be left with 2 parameters; the ``normalization`` and ``sigma``.
 
 .. code-block:: python
 
@@ -496,12 +726,22 @@ the Gaussian's `centre` to be left with 2 parameters; the `normalization` and `s
     )
     print(samples.parameter_lists[0])
 
+The output appears as follows:
+
+.. code-block:: bash
+
+    Parameter paths in the model which are used for filtering:
+    [('gaussian', 'centre'), ('gaussian', 'normalization'), ('gaussian', 'sigma'), ('exponential', 'centre'), ('exponential', 'normalization'), ('exponential', 'rate')]
+    All parameters of the very first sample
+    [49.63779704398534, 1.1898799260824928, 12.68275074146554, 50.67597072491201, 0.7836791226321858, 5.07432721731388]
+    All parameters of the very first sample (containing only the Gaussian normalization and sigma).
+    [1.1898799260824928, 12.68275074146554, 50.67597072491201, 0.7836791226321858, 5.07432721731388]
 
 Database
 --------
 
 For large-scaling model-fitting problems to large datasets, the results of the many model-fits performed can be output
-and stored in a queryable sqlite3 database. The `Result` and `Samples` objects have been designed to streamline the
+and stored in a queryable sqlite3 database. The ``Result`` and ``Samples`` objects have been designed to streamline the
 analysis and interpretation of model-fits to large datasets using the database.
 
 Checkout the database cookbook for more details on how to use the database.

@@ -3,22 +3,22 @@
 Analysis
 ========
 
-The `Analysis` class is the interface between the data and model, whereby a `log_likelihood_function` is defined
+The ``Analysis`` class is the interface between the data and model, whereby a ``log_likelihood_function`` is defined
 and called by the non-linear search fitting to fit the model.
 
-This cookbook provides an overview of how to use and extend `Analysis` objects in **PyAutoFit**.
+This cookbook provides an overview of how to use and extend ``Analysis`` objects in **PyAutoFit**.
 
 **Contents:**
 
 - Example: A simple example of an analysis class which can be adapted for you use-case.
-- Customization: Customizing an analysis class with different data inputs and editing the `log_likelihood_function`.
-- Visualization: Adding a `visualize` method to the analysis so that model-specific visuals are output to hard-disk.
-- Custom Output: Add methods which output model-specific results to hard-disk in the `files` folder (e.g. as .json files) to aid in the interpretation of results.
+- Customization: Customizing an analysis class with different data inputs and editing the ``log_likelihood_function``.
+- Visualization: Adding a ``visualize`` method to the analysis so that model-specific visuals are output to hard-disk.
+- Custom Output: Add methods which output model-specific results to hard-disk in the ``files`` folder (e.g. as .json files) to aid in the interpretation of results.
 
 Example
 -------
 
-An example simple `Analysis` class, to remind ourselves of the basic structure and inputs.
+An example simple ``Analysis`` class, to remind ourselves of the basic structure and inputs.
 
 This can be adapted for your use case.
 
@@ -83,19 +83,19 @@ An instance of the analysis class is created as follows.
 Customization
 -------------
 
-The `Analysis` class can be fully customized to be suitable for your model-fit.
+The ``Analysis`` class can be fully customized to be suitable for your model-fit.
 
-For example, additional inputs can be included in the `__init__` constructor and used in the `log_likelihood_function`.
-if they are required for your `log_likelihood_function` to work.
+For example, additional inputs can be included in the ``__init__`` constructor and used in the ``log_likelihood_function``.
+if they are required for your ``log_likelihood_function`` to work.
 
 The example below includes three additional inputs:
 
- - Instead of inputting a `noise_map`, a `noise_covariance_matrix` is input, which means that corrrlated noise is
-   accounted for in the `log_likelihood_function`.
+ - Instead of inputting a ``noise_map``, a ``noise_covariance_matrix`` is input, which means that corrrlated noise is
+   accounted for in the ``log_likelihood_function``.
 
- - A `mask` is input which masks the data such that certain data points are omitted from the log likelihood
+ - A ``mask`` is input which masks the data such that certain data points are omitted from the log likelihood
 
- - A `kernel` is input which can account for certain blurring operations during data acquisition.
+ - A ``kernel`` is input which can account for certain blurring operations during data acquisition.
 
 .. code-block:: python
 
@@ -169,10 +169,10 @@ An instance of the analysis class is created as follows.
 Visualization
 -------------
 
-If a `name` is input into a non-linear search, all results are output to hard-disk in a folder.
+If a ``name`` is input into a non-linear search, all results are output to hard-disk in a folder.
 
-By extending the `Analysis` class with a `visualize_before_fit` and / or `visualize` function, model specific
-visualization will also be output into an `image` folder, for example as `.png` files.
+By extending the ``Analysis`` class with a ``visualize_before_fit`` and / or ``visualize`` function, model specific
+visualization will also be output into an ``image`` folder, for example as ``.png`` files.
 
 This uses the maximum log likelihood model of the model-fit inferred so far.
 
@@ -292,13 +292,13 @@ Function", are also automatically output during the model-fit on the fly.
 Custom Output
 -------------
 
-When performing fits which output results to hard-disc, a `files` folder is created containing .json / .csv files of
+When performing fits which output results to hard-disc, a ``files`` folder is created containing .json / .csv files of
 the model, samples, search, etc.
 
 These files are human readable and help one quickly inspect and interpret results.
 
-By extending an `Analysis` class with the methods `save_attributes_for_aggregator` and `save_results_for_aggregator`,
-custom files can be written to the `files` folder to further aid this inspection.
+By extending an ``Analysis`` class with the methods ``save_attributes_for_aggregator`` and ``save_results_for_aggregator``,
+custom files can be written to the ``files`` folder to further aid this inspection.
 
 These files can then also be loaded via the database, as described in the database cookbook.
 
@@ -363,7 +363,7 @@ These files can then also be loaded via the database, as described in the databa
             with open(file_path, "w+") as f:
                 json.dump(self.noise_map, f, indent=4)
 
-        def save_results_for_aggregator(self, paths: af.AbstractPaths, result: af.Result):
+        def save_results_for_aggregator(self, paths: af.DirectoryPaths, result: af.Result):
             """
             At the end of a model-fit,  this routine saves attributes of the `Analysis` object to the `files`
             folder such that they can be loaded after the analysis using PyAutoFit's database and aggregator tools.

@@ -21,7 +21,7 @@ This cookbook provides a concise reference to the database API.
 Ann overview of database functionality is given in the following sections:
 
  - Unique Identifiers: How unique identifiers are used to ensure every entry of the database is unique.
- - Info: Passing an `info` dictionary to the search to include information on the model-fit that is not part of the
+ - Info: Passing an ``info`` dictionary to the search to include information on the model-fit that is not part of the
    model-fit itself, which can be loaded via the database.
  - Session: Set up a database session so results are written directly to the .sqlite database.
  - Building Database via Directory: Build a database from results already written to hard-disk in an output folder.
@@ -35,8 +35,8 @@ The results that can be loaded via the database are described in the following s
  - Samples: The samples of the non-linear search (e.g. all parameter values, log likelihoods, etc.).
  - Samples Summary: A summary of the samples of the non-linear search (e.g. the maximum log likelihood model) which can
    be faster to load than the full set of samples.
- - Info: The `info` dictionary passed to the search.
- - Custom Output: Extend `Analysis` classes to output additional information which can be loaded via the database (e.g.
+ - Info: The ``info`` dictionary passed to the search.
+ - Custom Output: Extend ``Analysis`` classes to output additional information which can be loaded via the database (e.g.
    the data, maximum likelihood model data, etc.).
 
 Using queries to load specific results is described in the following sections:
@@ -51,23 +51,23 @@ Unique Identifiers
 ------------------
 
 Results output to hard-disk by **PyAutoFit** are contained in a folder named via a unique identifier (a
-random collection of characters, e.g. `8hds89fhndlsiuhnfiusdh`). The unique identifier changes if the model or
+random collection of characters, e.g. ``8hds89fhndlsiuhnfiusdh``). The unique identifier changes if the model or
 search change, to ensure different fits to not overwrite one another on hard-disk.
 
 Each unique identifier is used to define every entry of the database as it is built. Unique identifiers therefore play
 the same vital role for the database of ensuring that every set of results written to it are unique.
 
-In this example, we fit 3 different datasets with the same search and model. Each `dataset_name` is therefore passed
-in as the search's `unique_tag` to ensure 3 separate sets of results for each model-fit are written to the .sqlite
+In this example, we fit 3 different datasets with the same search and model. Each ``dataset_name`` is therefore passed
+in as the search's ``unique_tag`` to ensure 3 separate sets of results for each model-fit are written to the .sqlite
 database.
 
 Info
 ----
 
 Information about the model-fit that is not part included in the model-fit itself can be made accessible via the
-database by passing an `info` dictionary.
+database by passing an ``info`` dictionary.
 
-Below we write info on the dataset`s (hypothetical) data of observation and exposure time, which we will later show
+Below we write info on the dataset``s (hypothetical) data of observation and exposure time, which we will later show
 the database can access.
 
 For fits to large datasets this ensures that all relevant information for interpreting results is accessible.
@@ -81,7 +81,7 @@ Session
 
 We now perform a simple model-fit to 3 datasets, where the results are written directly a sqlite3 database.
 
-To do this, we start a session, which includes the name of the database `.sqlite` file where results are stored.
+To do this, we start a session, which includes the name of the database ``.sqlite`` file where results are stored.
 
 .. code-block:: python
 
@@ -89,7 +89,7 @@ To do this, we start a session, which includes the name of the database `.sqlite
 
 For each dataset we load it from hard-disc, set up a model and analysis and fit it with a non-linear search.
 
-Note how the `session` is passed to the `Dynesty` search.
+Note how the ``session`` is passed to the ``Dynesty`` search.
 
 .. code-block:: python
 
@@ -140,7 +140,7 @@ already written to hard-disk in an output folder, which you wish to build your .
 
 This can be done via the following code, which is commented out below to avoid us deleting the existing .sqlite file.
 
-Below, the `database_name` corresponds to the name of your output folder and is also the name of the `.sqlite` file
+Below, the ``database_name`` corresponds to the name of your output folder and is also the name of the ``.sqlite`` file
 that is created.
 
 If you are fitting a relatively small number of datasets (e.g. 10-100) having all results written
@@ -159,30 +159,30 @@ to hard-disk (e.g. for quick visual inspection) but using the database for sampl
 Files
 -----
 
-When performing fits which output results to hard-disc, a `files` folder is created containing .json / .csv files of
+When performing fits which output results to hard-disc, a ``files`` folder is created containing .json / .csv files of
 the model, samples, search, etc.
 
 These are the files that are written to the database, and the aggregator load them via the database in order
 to make them accessible in a Python script or Jupyter notebook.
 
-Below, we will access these results using the aggregator's `values` method. A full list of what can be loaded is
+Below, we will access these results using the aggregator's ``values`` method. A full list of what can be loaded is
 as follows:
 
- - model: The `model` defined above and used in the model-fit (`model.json`).
- - search: The non-linear search settings of the fit (`search.json`).
- - samples: The non-linear search samples of the fit (`samples.csv`).
- - samples_summary: A summary of the samples results of the fit (`samples_summary.json`).
- - info: The info dictionary passed to the search (`info.json`).
- - covariance: The covariance matrix of the fit (`covariance.csv`).
+ - model: The ``model`` defined above and used in the model-fit (``model.json``).
+ - search: The non-linear search settings of the fit (``search.json``).
+ - samples: The non-linear search samples of the fit (``samples.csv``).
+ - samples_summary: A summary of the samples results of the fit (``samples_summary.json``).
+ - info: The info dictionary passed to the search (``info.json``).
+ - covariance: The covariance matrix of the fit (``covariance.csv``).
 
-The `samples` and `samples_summary` results contain a lot of repeated information. The `samples` result contains
-the full non-linear search samples, for example every parameter sample and its log likelihood. The `samples_summary`
+The ``samples`` and ``samples_summary`` results contain a lot of repeated information. The ``samples`` result contains
+the full non-linear search samples, for example every parameter sample and its log likelihood. The ``samples_summary``
 contains a summary of the results, for example the maximum log likelihood model and error estimates on parameters
 at 1 and 3 sigma confidence.
 
-Accessing results via the `samples_summary` is therefore a lot faster, as it does reperform calculations using the
-full list of samples. Therefore, if the result you want is accessible via the `samples_summary` you should use it
-but if not you can revert to the `samples.
+Accessing results via the ``samples_summary`` is therefore a lot faster, as it does reperform calculations using the
+full list of samples. Therefore, if the result you want is accessible via the ``samples_summary`` you should use it
+but if not you can revert to the ``samples.
 
 Generators
 ----------
@@ -200,15 +200,15 @@ Once we use a generator in the Python code, it cannot be used again. To perform 
 generator must be remade it. This cookbook therefore rarely stores generators as variables and instead uses the
 aggregator to create each generator at the point of use.
 
-To create a generator of a specific set of results, we use the `values` method. This takes the `name` of the
-object we want to create a generator of, for example inputting `name=samples` will return the results `Samples`
+To create a generator of a specific set of results, we use the ``values`` method. This takes the ``name`` of the
+object we want to create a generator of, for example inputting ``name=samples`` will return the results ``Samples``
 object.
 
 .. code-block:: python
 
     samples_gen = agg.values("samples")
 
-By converting this generator to a list and printing it, it is a list of 3 `SamplesDynesty` objects, corresponding to
+By converting this generator to a list and printing it, it is a list of 3 ``SamplesDynesty`` objects, corresponding to
 the 3 model-fits performed above.
 
 .. code-block:: python
@@ -266,7 +266,7 @@ The `Samples` class is described fully in the results cookbook.
 Samples Summary
 ---------------
 
-The samples summary contains a subset of results access via the `Samples`, for example the maximum likelihood model
+The samples summary contains a subset of results access via the ``Samples``, for example the maximum likelihood model
 and parameter error estimates.
 
 Using the samples method above can be slow, as the quantities have to be computed from all non-linear search samples
@@ -302,10 +302,10 @@ models and load only the results they are interested in for inspection and analy
 Custom Output
 -------------
 
-The results accessible via the database (e.g. `model`, `samples`) are those contained in the `files` folder.
+The results accessible via the database (e.g. ``model``, ``samples``) are those contained in the ``files`` folder.
 
-By extending an `Analysis` class with the methods `save_attributes_for_aggregator` and `save_results_for_aggregator`,
-custom files can be written to the `files` folder and become accessible via the database.
+By extending an ``Analysis`` class with the methods ``save_attributes_for_aggregator`` and ``save_results_for_aggregator``,
+custom files can be written to the ``files`` folder and become accessible via the database.
 
 .. code-block:: python
 
@@ -369,7 +369,7 @@ custom files can be written to the `files` folder and become accessible via the 
             with open(file_path, "w+") as f:
                 json.dump(self.noise_map, f, indent=4)
 
-        def save_results_for_aggregator(self, paths: af.AbstractPaths, result: af.Result):
+        def save_results_for_aggregator(self, paths: af.DirectoryPaths, result: af.Result):
             """
             At the end of a model-fit,  this routine saves attributes of the `Analysis` object to the `files`
             folder such that they can be loaded after the analysis using PyAutoFit's database and aggregator tools.
@@ -406,18 +406,18 @@ Querying Datasets
 
 The aggregator can query the database, returning only specific fits of interested.
 
-We can query using the `dataset_name` string we input into the model-fit above, in order to get the results
+We can query using the ``dataset_name`` string we input into the model-fit above, in order to get the results
 of a fit to a specific dataset.
 
-For example, querying using the string `gaussian_x1_1` returns results for only the fit using the
-second `Gaussian` dataset.
+For example, querying using the string ``gaussian_x1_1`` returns results for only the fit using the
+second ``Gaussian`` dataset.
 
 .. code-block:: python
 
     unique_tag = agg.search.unique_tag
     agg_query = agg.query(unique_tag == "gaussian_x1_1")
 
-As expected, this list has only 1 `SamplesDynesty` corresponding to the second dataset.
+As expected, this list has only 1 ``SamplesDynesty`` corresponding to the second dataset.
 
 .. code-block:: python
 
@@ -435,9 +435,9 @@ If we query using an incorrect dataset name we get no results.
 Querying Searches
 -----------------
 
-We can query using the `name` of the non-linear search used to fit the model.
+We can query using the ``name`` of the non-linear search used to fit the model.
 
-In this cookbook, all three fits used the same search, named `database_example`. Query based on search name in this
+In this cookbook, all three fits used the same search, named ``database_example``. Query based on search name in this
 example is therefore somewhat pointless.
 
 However, querying based on the search name is useful for model-fits which use a range of searches, for example
@@ -458,15 +458,15 @@ Querying Models
 
 We can query based on the model fitted.
 
-For example, we can load all results which fitted a `Gaussian` model-component, which in this simple example is all
+For example, we can load all results which fitted a ``Gaussian`` model-component, which in this simple example is all
 3 model-fits.
 
 Querying via the model is useful for loading results after performing many model-fits with many different model
 parameterizations to large (e.g. Bayesian model comparison).
 
-[Note: the code `agg.model.gaussian` corresponds to the fact that in the `Collection` above, we named the model
-component `gaussian`. If this `Collection` had used a different name the code below would change
-correspondingly. Models with multiple model components (e.g., `gaussian` and `exponential`) are therefore also easily
+[Note: the code ``agg.model.gaussian`` corresponds to the fact that in the ``Collection`` above, we named the model
+component ``gaussian``. If this ``Collection`` had used a different name the code below would change
+correspondingly. Models with multiple model components (e.g., ``gaussian`` and ``exponential``) are therefore also easily
 accessed via the database.]
 
 .. code-block:: python
@@ -480,7 +480,7 @@ Querying Results
 
 We can query based on the results of the model-fit.
 
-Below, we query the database to find all fits where the inferred value of `sigma` for the `Gaussian` is less
+Below, we query the database to find all fits where the inferred value of ``sigma`` for the ``Gaussian`` is less
 than 3.0 (which returns only the first of the three model-fits).
 
 .. code-block:: python
@@ -494,7 +494,7 @@ Querying with Logic
 
 Advanced queries can be constructed using logic.
 
-Below, we combine the two queries above to find all results which fitted a `Gaussian` AND (using the & symbol)
+Below, we combine the two queries above to find all results which fitted a ``Gaussian`` AND (using the & symbol)
 inferred a value of sigma less than 3.0.
 
 The OR logical clause is also supported via the symbol |.
