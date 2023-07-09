@@ -13,22 +13,22 @@ This cookbook provides an overview of basic model composition tools.
 If first describes how to use the ``af.Model`` object to define models with a single model component from single
 Python classes, with the following sections:
 
-- Python Class Template: The template of a model component written as a Python class.
-- Model Composition (Model): Creating a model via ``af.Model()``.
-- Priors (Model): How the default priors of a model are set and how to customize them.
-- Instances (Model): Creating an instance of a model via input parameters.
-- Model Customization (Model): Customizing a model (e.g. fixing parameters or linking them to one another).
-- Json Output (Model): Output a model in human readable text via a .json file and loading it back again.
+- **Python Class Template**: The template of a model component written as a Python class.
+- **Model Composition (Model)**: Creating a model via ``af.Model()``.
+- **Priors (Model)**: How the default priors of a model are set and how to customize them.
+- **Instances (Model)**: Creating an instance of a model via input parameters.
+- **Model Customization (Model)**: Customizing a model (e.g. fixing parameters or linking them to one another).
+- **Json Output (Model)**: Output a model in human readable text via a .json file and loading it back again.
 
 It then describes how to use the ``af.Collection`` object to define models with many model components from multiple
 Python classes, with the following sections:
 
-- Model Composition (Collection): Creating a model via ``af.Collection()``.
-- Priors (Collection): How the default priors of a collection are set and how to customize them.
-- Instances (Collection): Create an instance of a collection via input parameters.
-- Model Customization (Collection): Customize a collection (e.g. fixing parameters or linking them to one another).
-- Json Output (Collection): Output a collection in human readable text via a .json file and loading it back again.
-- Extensible Models (Collection): Using collections to extend models with new model components, including the use of Python dictionaries and lists.
+- **Model Composition (Collection)**: Creating a model via ``af.Collection()``.
+- **Priors (Collection)**: How the default priors of a collection are set and how to customize them.
+- **Instances (Collection)**: Create an instance of a collection via input parameters.
+- **Model Customization (Collection)**: Customize a collection (e.g. fixing parameters or linking them to one another).
+- **Json Output (Collection)**: Output a collection in human readable text via a .json file and loading it back again.
+- **Extensible Models (Collection)**: Using collections to extend models with new model components, including the use of Python dictionaries and lists.
 
 Python Class Template
 ---------------------

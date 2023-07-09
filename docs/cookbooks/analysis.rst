@@ -10,10 +10,10 @@ This cookbook provides an overview of how to use and extend ``Analysis`` objects
 
 **Contents:**
 
-- Example: A simple example of an analysis class which can be adapted for you use-case.
-- Customization: Customizing an analysis class with different data inputs and editing the ``log_likelihood_function``.
-- Visualization: Adding a ``visualize`` method to the analysis so that model-specific visuals are output to hard-disk.
-- Custom Output: Add methods which output model-specific results to hard-disk in the ``files`` folder (e.g. as .json files) to aid in the interpretation of results.
+- **Example**: A simple example of an analysis class which can be adapted for you use-case.
+- **Customization**: Customizing an analysis class with different data inputs and editing the ``log_likelihood_function``.
+- **Visualization**: Adding a ``visualize`` method to the analysis so that model-specific visuals are output to hard-disk.
+- **Custom Output**: Add methods which output model-specific results to hard-disk in the ``files`` folder (e.g. as .json files) to aid in the interpretation of results.
 
 Example
 -------

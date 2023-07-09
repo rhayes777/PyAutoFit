@@ -15,10 +15,10 @@ with **PyAutoFit**.
 
 **Contents:**
 
-- No Config Behaviour: An example of what happens when a model component does not have a config file.
-- Template: A template config file for specifying default model component priors.
-- Modules: Writing prior config files based on the Python module the model component Python class is contained in.
-- Labels: Config files which specify the labels of model component parameters for visualization.
+- **No Config Behaviour**: An example of what happens when a model component does not have a config file.
+- **Template**: A template config file for specifying default model component priors.
+- **Modules**: Writing prior config files based on the Python module the model component Python class is contained in.
+- **Labels**: Config files which specify the labels of model component parameters for visualization.
 
 No Config Behaviour
 -------------------

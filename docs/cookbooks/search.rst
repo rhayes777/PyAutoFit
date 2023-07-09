@@ -9,24 +9,24 @@ This cookbook provides an overview of the non-linear searches available in **PyA
 
 It first covers standard options available for all non-linear searches:
 
-- Example Fit: A simple example of a non-linear search to remind us how it works.
-- Output To Hard-Disk: Output results to hard-disk so they can be inspected and used to restart a crashed search.
-- Unique Identifier: Ensure results are output in unique folders, so tthey do not overwrite each other.
-- Iterations Per Update: Control how often non-linear searches output results to hard-disk.
-- Parallelization: Use parallel processing to speed up the sampling of parameter space.
-- Plots: Perform non-linear search specific visualization using their in-built visualization tools.
-- Start Point: Manually specify the start point of a non-linear search, or sample a specific region of parameter space.
+- **Example Fit**: A simple example of a non-linear search to remind us how it works.
+- **Output To Hard-Disk**: Output results to hard-disk so they can be inspected and used to restart a crashed search.
+- **Unique Identifier**: Ensure results are output in unique folders, so tthey do not overwrite each other.
+- **Iterations Per Update**: Control how often non-linear searches output results to hard-disk.
+- **Parallelization**: Use parallel processing to speed up the sampling of parameter space.
+- **Plots**: Perform non-linear search specific visualization using their in-built visualization tools.
+- **Start Point**: Manually specify the start point of a non-linear search, or sample a specific region of parameter space.
 
 It then provides example code for using every search:
 
-- Emcee (MCMC): The Emcee ensemble sampler MCMC.
-- Zeus (MCMC): The Zeus ensemble sampler MCMC.
-- DynestyDynamic (Nested Sampling): The Dynesty dynamic nested sampler.
-- DynestyStatic (Nested Sampling): The Dynesty static nested sampler.
-- UltraNest (Nested Sampling): The UltraNest nested sampler.
-- PySwarmsGlobal (Particle Swarm Optimization): The global PySwarms particle swarm optimization
-- PySwarmsLocal (Particle Swarm Optimization): The local PySwarms particle swarm optimization.
-- LBFGS: The L-BFGS scipy optimization.
+- **Emcee (MCMC)**: The Emcee ensemble sampler MCMC.
+- **Zeus (MCMC)**: The Zeus ensemble sampler MCMC.
+- **DynestyDynamic (Nested Sampling)**: The Dynesty dynamic nested sampler.
+- **DynestyStatic (Nested Sampling)**: The Dynesty static nested sampler.
+- **UltraNest (Nested Sampling)**: The UltraNest nested sampler.
+- **PySwarmsGlobal (Particle Swarm Optimization)**: The global PySwarms particle swarm optimization
+- **PySwarmsLocal (Particle Swarm Optimization)**: The local PySwarms particle swarm optimization.
+- **LBFGS**: The L-BFGS scipy optimization.
 
 Example Fit
 -----------
@@ -451,7 +451,7 @@ algorithm.
 
 Information about the L-BFGS method can be found at the following links:
 
- - https://docs.scipy.org/doc/scipy/reference/optimize.minimize-lbfgsb.html
+- https://docs.scipy.org/doc/scipy/reference/optimize.minimize-lbfgsb.html
 
 .. code-block:: python
 

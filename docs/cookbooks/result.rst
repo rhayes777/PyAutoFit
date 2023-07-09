@@ -10,25 +10,24 @@ This cookbook provides an overview of using the results.
 
 **Contents:**
 
-- Model Fit: Perform a simple model-fit to create a ``Result`` object.
-- Info: Print the ``info`` attribute of the ``Result`` object to display a summary of the model-fit.
-- Samples: The ``Samples`` object contained in the ``Result``, containing all non-linear samples (e.g. parameters,
-   log likelihoods, etc.).
-- Maximum Likelihood: The maximum likelihood model instance.
-- Posterior / PDF: The median PDF model instance and PDF vectors of all model parameters via 1D marginalization.
-- Errors: The errors on every parameter estimated from the PDF, computed via marginalized 1D PDFs at an input sigma.
-- Sample Instance: The model instance of any accepted sample.
-- Search Plots: Plots of the non-linear search, for example a corner plot or 1D PDF of every parameter.
-- Bayesian Evidence: The log evidence estimated via a nested sampling algorithm.
-- Collection: Results created from models defined via a ``Collection`` object.
-- Lists: Extracting results as Python lists instead of instances.
-- Latex: Producing latex tables of results (e.g. for a paper).
+- **Model Fit**: Perform a simple model-fit to create a ``Result`` object.
+- **Info**: Print the ``info`` attribute of the ``Result`` object to display a summary of the model-fit.
+- **Samples**: The ``Samples`` object contained in the ``Result``, containing all non-linear samples (e.g. parameters, log likelihoods, etc.).
+- **Maximum Likelihood**: The maximum likelihood model instance.
+- **Posterior / PDF**: The median PDF model instance and PDF vectors of all model parameters via 1D marginalization.
+- **Errors**: The errors on every parameter estimated from the PDF, computed via marginalized 1D PDFs at an input sigma.
+- **Sample Instance**: The model instance of any accepted sample.
+- **Search Plots**: Plots of the non-linear search, for example a corner plot or 1D PDF of every parameter.
+- **Bayesian Evidence**: The log evidence estimated via a nested sampling algorithm.
+- **Collection**: Results created from models defined via a ``Collection`` object.
+- **Lists**: Extracting results as Python lists instead of instances.
+- **Latex**: Producing latex tables of results (e.g. for a paper).
 
 The following sections outline how to use advanced features of the results, which you may skip on a first read:
 
-- Derived Quantities: Computing quantities and errors for quantities and parameters not included directly in the model.
-- Result Extension: Extend the ``Result`` object with new attributes and methods (e.g. ``max_log_likelihood_model_data``).
-- Samples Filtering: Filter the ``Samples`` object to only contain samples fulfilling certain criteria.
+- **Derived Quantities**: Computing quantities and errors for quantities and parameters not included directly in the model.
+- **Result Extension**: Extend the ``Result`` object with new attributes and methods (e.g. ``max_log_likelihood_model_data``).
+- **Samples Filtering**: Filter the ``Samples`` object to only contain samples fulfilling certain criteria.
 
 Model Fit
 ---------

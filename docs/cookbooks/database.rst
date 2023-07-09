@@ -20,32 +20,29 @@ This cookbook provides a concise reference to the database API.
 
 Ann overview of database functionality is given in the following sections:
 
-- Unique Identifiers: How unique identifiers are used to ensure every entry of the database is unique.
-- Info: Passing an ``info`` dictionary to the search to include information on the model-fit that is not part of the
-   model-fit itself, which can be loaded via the database.
-- Session: Set up a database session so results are written directly to the .sqlite database.
-- Building Database via Directory: Build a database from results already written to hard-disk in an output folder.
-- Files: The files that are stored in the database that can be loaded and inspected.
-- Generators: Why the database uses Python generators to load results.
+- **Unique Identifiers**: How unique identifiers are used to ensure every entry of the database is unique.
+- **Info**: Passing an ``info`` dictionary to the search to include information on the model-fit that is not part of the model-fit itself, which can be loaded via the database.
+- **Session**: Set up a database session so results are written directly to the .sqlite database.
+- **Building Database via Directory**: Build a database from results already written to hard-disk in an output folder.
+- **Files**: The files that are stored in the database that can be loaded and inspected.
+- **Generators**: Why the database uses Python generators to load results.
 
 The results that can be loaded via the database are described in the following sections:
 
-- Model: The model fitted by the non-linear search.
-- Search: The search used to perform the model-fit.
-- Samples: The samples of the non-linear search (e.g. all parameter values, log likelihoods, etc.).
-- Samples Summary: A summary of the samples of the non-linear search (e.g. the maximum log likelihood model) which can
-   be faster to load than the full set of samples.
-- Info: The ``info`` dictionary passed to the search.
-- Custom Output: Extend ``Analysis`` classes to output additional information which can be loaded via the database (e.g.
-   the data, maximum likelihood model data, etc.).
+- **Model**: The model fitted by the non-linear search.
+- **Search**: The search used to perform the model-fit.
+- **Samples**: The samples of the non-linear search (e.g. all parameter values, log likelihoods, etc.).
+- **Samples Summary**: A summary of the samples of the non-linear search (e.g. the maximum log likelihood model) which can be faster to load than the full set of samples.
+- **Info**: The ``info`` dictionary passed to the search.
+- **Custom Output**: Extend ``Analysis`` classes to output additional information which can be loaded via the database (e.g. the data, maximum likelihood model data, etc.).
 
 Using queries to load specific results is described in the following sections:
 
-- Querying Datasets: Query based on the name of the dataset.
-- Querying Searches: Query based on the name of the search.
-- Querying Models: Query based on the model that is fitted.
-- Querying Results: Query based on the results of the model-fit.
-- Querying Logic: Use logic to combine queries to load specific results (e.g. AND, OR, etc.).
+- **Querying Datasets**: Query based on the name of the dataset.
+- **Querying Searches**: Query based on the name of the search.
+- **Querying Models**: Query based on the model that is fitted.
+- **Querying Results**: Query based on the results of the model-fit.
+- **Querying Logic**: Use logic to combine queries to load specific results (e.g. AND, OR, etc.).
 
 Unique Identifiers
 ------------------
