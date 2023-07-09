@@ -421,22 +421,13 @@ class SneakierPool:
     def check_if_mpi(self):
 
         max_workers_from_env_var = os.environ.get('MAX_WORKERS', None)
-        universe_size_is_valid = MPI.UNIVERSE_SIZE != MPI.KEYVAL_INVALID
-
-        if universe_size_is_valid:
-            universe_size = self.comm.Get_attr(MPI.UNIVERSE_SIZE)
-            universe_size_is_set = universe_size is not None
-            if universe_size_is_set:
-                world_size = MPI.COMM_WORLD.Get_size()
-                max_workers_from_universe_size = max(universe_size - world_size, 1)
-        else:
-            max_workers_from_universe_size = None
+        universe_size_from_env_var = os.environ.get('MPIEXEC_UNIVERSE_SIZE', None)
 
 
         max_workers_from_env_var_is_set = max_workers_from_env_var is not None
-        max_workers_from_universe_size_is_set = max_workers_from_universe_size is not None
-        if max_workers_from_env_var_is_set:
-            max_workers_from_universe_size_is_above_one = max_workers_from_universe_size > 1
+        max_workers_from_universe_size_is_set = universe_size_from_env_var is not None
+        if max_workers_from_universe_size_is_set:
+            max_workers_from_universe_size_is_above_one = universe_size_from_env_var > 1
         else:
             max_workers_from_universe_size_is_above_one = False
 
