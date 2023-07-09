@@ -60,7 +60,7 @@ A model component is written as a Python class using the following format:
             normalization=0.1,  # <- are the Gaussian``s model parameters.
             sigma=0.01,
         ):
-
+            """
             Represents a 1D ``Gaussian`` profile, which can be treated as a
             PyAutoFit model-component whose free parameters (centre,
             normalization and sigma) are fitted for by a non-linear search.
@@ -73,13 +73,13 @@ A model component is written as a Python class using the following format:
                 Overall normalization of the ``Gaussian`` profile.
             sigma
                 The sigma value controlling the size of the Gaussian.
-
+            """
             self.centre = centre
             self.normalization = normalization
             self.sigma = sigma
 
         def model_data_1d_via_xvalues_from(self, xvalues: np.ndarray) -> np.ndarray:
-
+            """
             Returns the 1D Gaussian profile on a line of Cartesian x coordinates.
 
             The input xvalues are translated to a coordinate system centred on the
@@ -92,7 +92,7 @@ A model component is written as a Python class using the following format:
             ----------
             xvalues
                 The x coordinates for which the Gaussian is evaluated.
-
+            """
             transformed_xvalues = xvalues - self.centre
 
             return np.multiply(
@@ -279,9 +279,10 @@ Read the comments and docstrings of the ``Analysis`` object below in detail for 
 works.
 
 .. code-block:: python
+
     class Analysis(af.Analysis):
         def __init__(self, data: np.ndarray, noise_map: np.ndarray):
-
+            """
             The ``Analysis`` class acts as an interface between the data and
             model in **PyAutoFit**.
 
@@ -301,6 +302,7 @@ works.
             noise_map
                 A 1D numpy array containing the noise values of the data, used
                 for computing the goodness of fit metric, the log likelihood.
+            """
 
             super().__init__()
 
@@ -308,14 +310,15 @@ works.
             self.noise_map = noise_map
 
         def log_likelihood_function(self, instance) -> float:
-
+            """
             Returns the log likelihood of a fit of a 1D Gaussian to the dataset.
 
             The data is fitted using an ``instance`` of the ``Gaussian`` class
             where its ``model_data_1d_via_xvalues_from`` is called in order to
             create a model data representation of the Gaussian that is fitted to the data.
+            """
 
-
+            """
             The ``instance`` that comes into this method is an instance of the ``Gaussian``
             model above, which was created via ``af.Model()``.
 
@@ -332,21 +335,22 @@ works.
             # print("Centre = ", instance.centre)
             # print("Normalization = ", instance.normalization)
             # print("Sigma = ", instance.sigma)
+            """
 
-
+            """
             Get the range of x-values the data is defined on, to evaluate the model of the Gaussian.
-
+            """
             xvalues = np.arange(self.data.shape[0])
 
-
+            """
             Use these xvalues to create model data of our Gaussian.
-
+            """
             model_data = instance.model_data_1d_via_xvalues_from(xvalues=xvalues)
 
-
+            """
             Fit the model gaussian line data to the observed data, computing the residuals,
             chi-squared and log likelihood.
-
+            """
             residual_map = self.data - model_data
             chi_squared_map = (residual_map / self.noise_map) ** 2.0
             chi_squared = sum(chi_squared_map)
@@ -552,7 +556,7 @@ We define a Python class for the ``Exponential`` model component, exactly as we 
             normalization=1.0,  # <- are the Exponentials``s model parameters.
             rate=0.01,
         ):
-
+            """
             Represents a symmetric 1D Exponential profile.
 
             Parameters
@@ -563,13 +567,14 @@ We define a Python class for the ``Exponential`` model component, exactly as we 
                 Overall normalization of the profile.
             ratw
                 The decay rate controlling has fast the Exponential declines.
+            """
 
             self.centre = centre
             self.normalization = normalization
             self.rate = rate
 
         def model_data_1d_via_xvalues_from(self, xvalues: np.ndarray):
-
+            """
             Returns the symmetric 1D Exponential on an input list of Cartesian
             x coordinates.
 
@@ -584,6 +589,7 @@ We define a Python class for the ``Exponential`` model component, exactly as we 
             ----------
             xvalues
                 The x coordinates in the original reference frame of the data.
+            """
 
             transformed_xvalues = np.subtract(xvalues, self.centre)
             return self.normalization * np.multiply(
@@ -691,7 +697,7 @@ We update its ``log_likelihood_function`` to use both model components in the ``
 
     class Analysis(af.Analysis):
         def __init__(self, data: np.ndarray, noise_map: np.ndarray):
-
+            """
             The ``Analysis`` class acts as an interface between the data and
             model in **PyAutoFit**.
 
@@ -710,6 +716,7 @@ We update its ``log_likelihood_function`` to use both model components in the ``
             noise_map
                 A 1D numpy array containing the noise values of the data, used for computing the goodness of fit
                 metric, the log likelihood.
+            """
 
             super().__init__()
 
@@ -717,16 +724,16 @@ We update its ``log_likelihood_function`` to use both model components in the ``
             self.noise_map = noise_map
 
         def log_likelihood_function(self, instance) -> float:
-
+            """
             Returns the log likelihood of a fit of a 1D Gaussian to the dataset.
 
             The data is fitted using an ``instance`` of multiple 1D profiles
             (e.g. a ``Gaussian``, ``Exponential``) where
             their ``model_data_1d_via_xvalues_from`` methods are called and summed
             in order to create a model data representation that is fitted to the data.
+            """
 
-
-
+            """
             The ``instance`` that comes into this method is an instance of the
             ``Gaussian`` and ``Exponential`` models above, which were created
             via ``af.Collection()``.
@@ -751,21 +758,21 @@ We update its ``log_likelihood_function`` to use both model components in the ``
             # print("Centre = ", instance.exponential.centre)
             # print("Normalization = ", instance.exponential.normalization)
             # print("Rate = ", instance.exponential.rate)
-
-
+            """
+            """
             Get the range of x-values the data is defined on, to evaluate
             the model of the Gaussian.
-
+            """
             xvalues = np.arange(self.data.shape[0])
 
-
+            """
             Internally, the ``instance`` variable is a list of all model
             omponents pass to the ``Collection`` above.
 
             we can therefore iterate over them and use their
             ``model_data_1d_via_xvalues_from`` methods to create the
             summed overall model data.
-
+            """
             model_data = sum(
                 [
                     profile_1d.model_data_1d_via_xvalues_from(xvalues=xvalues)
@@ -773,9 +780,9 @@ We update its ``log_likelihood_function`` to use both model components in the ``
                 ]
             )
 
-
+            """
             Fit the model gaussian line data to the observed data, computing the residuals, chi-squared and log likelihood.
-
+            """
             residual_map = self.data - model_data
             chi_squared_map = (residual_map / self.noise_map) ** 2.0
             chi_squared = sum(chi_squared_map)

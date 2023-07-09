@@ -74,30 +74,30 @@ The output appears as follows:
 
 .. code-block:: bash
 
-    Maximum Log Likelihood                                                          -46.68992727
-    Maximum Log Posterior                                                           -46.64963514
+    Maximum Log Likelihood              -46.68992727
+    Maximum Log Posterior               -46.64963514
 
-    model                                                                           Gaussian (N=3)
+    model                               Gaussian (N=3)
 
     Maximum Log Likelihood Model:
 
-    centre                                                                          49.892
-    normalization                                                                   24.819
-    sigma                                                                           9.844
+    centre                              49.892
+    normalization                       24.819
+    sigma                               9.844
 
 
     Summary (3.0 sigma limits):
 
-    centre                                                                          49.89 (49.52, 50.23)
-    normalization                                                                   24.79 (23.96, 25.61)
-    sigma                                                                           9.85 (9.53, 10.21)
+    centre                              49.89 (49.52, 50.23)
+    normalization                       24.79 (23.96, 25.61)
+    sigma                               9.85 (9.53, 10.21)
 
 
     Summary (1.0 sigma limits):
 
-    centre                                                                          49.89 (49.83, 49.96)
-    normalization                                                                   24.79 (24.65, 24.94)
-    sigma                                                                           9.85 (9.78, 9.90)
+    centre                              49.89 (49.83, 49.96)
+    normalization                       24.79 (24.65, 24.94)
+    sigma                               9.85 (9.78, 9.90)
 
 Samples
 -------
@@ -403,47 +403,47 @@ The output appears as follows:
 
 .. code-block:: bash
 
-    Maximum Log Likelihood                                                          -46.19567314
-    Maximum Log Posterior                                                           999953.27251548
+    Maximum Log Likelihood              -46.19567314
+    Maximum Log Posterior               999953.27251548
 
-    model                                                                           Collection (N=6)
-        gaussian                                                                    Gaussian (N=3)
-        exponential                                                                 Exponential (N=3)
+    model                               Collection (N=6)
+        gaussian                        Gaussian (N=3)
+        exponential                     Exponential (N=3)
 
     Maximum Log Likelihood Model:
 
     gaussian
-        centre                                                                      49.914
-        normalization                                                               24.635
-        sigma                                                                       9.851
+        centre                          49.914
+        normalization                   24.635
+        sigma                           9.851
     exponential
-        centre                                                                      35.911
-        normalization                                                               0.010
-        rate                                                                        5.219
+        centre                          35.911
+        normalization                   0.010
+        rate                            5.219
 
 
     Summary (3.0 sigma limits):
 
     gaussian
-        centre                                                                      49.84 (44.87, 53.10)
-        normalization                                                               24.67 (17.87, 38.81)
-        sigma                                                                       9.82 (6.93, 12.98)
+        centre                          49.84 (44.87, 53.10)
+        normalization                   24.67 (17.87, 38.81)
+        sigma                           9.82 (6.93, 12.98)
     exponential
-        centre                                                                      45.03 (1.03, 98.31)
-        normalization                                                               0.00 (0.00, 0.67)
-        rate                                                                        4.88 (0.07, 9.91)
+        centre                          45.03 (1.03, 98.31)
+        normalization                   0.00 (0.00, 0.67)
+        rate                            4.88 (0.07, 9.91)
 
 
     Summary (1.0 sigma limits):
 
     gaussian
-        centre                                                                      49.84 (49.76, 49.93)
-        normalization                                                               24.67 (24.46, 24.86)
-        sigma                                                                       9.82 (9.74, 9.90)
+        centre                          49.84 (49.76, 49.93)
+        normalization                   24.67 (24.46, 24.86)
+        sigma                           9.82 (9.74, 9.90)
     exponential
-        centre                                                                      45.03 (36.88, 54.81)
-        normalization                                                               0.00 (0.00, 0.00)
-        rate                                                                        4.88 (3.73, 5.68)
+        centre                          45.03 (36.88, 54.81)
+        normalization                   0.00 (0.00, 0.00)
+        rate                            4.88 (3.73, 5.68)
 
 Result instances again use the Python classes used to compose the model. 
 

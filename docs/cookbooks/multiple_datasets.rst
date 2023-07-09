@@ -95,6 +95,18 @@ Plot all 3 datasets, including their error bars.
 
 Here is what the plots look like:
 
+.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/feature/docs_update/docs/images/multi_data_0.png
+  :width: 300
+  :alt: Alternative text
+
+.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/feature/docs_update/docs/images/multi_data_1.png
+  :width: 300
+  :alt: Alternative text
+
+.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/feature/docs_update/docs/images/multi_data_2.png
+  :width: 300
+  :alt: Alternative text
+
 Create our model corresponding to a single 1D Gaussian that is fitted to all 3 datasets simultaneously.
 
 .. code-block:: python
@@ -218,6 +230,18 @@ We can plot the model-fit to each dataset by iterating over the results:
 
 The image appears as follows:
 
+.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/feature/docs_update/docs/images/multi_model_data_0.png
+  :width: 300
+  :alt: Alternative text
+
+.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/feature/docs_update/docs/images/multi_model_data_1.png
+  :width: 300
+  :alt: Alternative text
+
+.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/feature/docs_update/docs/images/multi_model_data_2.png
+  :width: 300
+  :alt: Alternative text
+
 Variable Model Across Datasets
 ------------------------------
 
@@ -262,6 +286,18 @@ Plotting these datasets shows that the ``normalization`` and`` ``sigma`` of each
         af.ex.plot_profile_1d(xvalues=xvalues, profile_1d=data)
 
 The images appear as follows:
+
+.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/feature/docs_update/docs/images/multi_model_data_0.png
+  :width: 300
+  :alt: Alternative text
+
+.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/feature/docs_update/docs/images/multi_model_data_1.png
+  :width: 300
+  :alt: Alternative text
+
+.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/feature/docs_update/docs/images/multi_model_data_2.png
+  :width: 300
+  :alt: Alternative text
 
 
 The ``centre`` of all three 1D Gaussians are the same in each dataset, but their ``normalization`` and ``sigma`` values 
