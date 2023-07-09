@@ -1,7 +1,7 @@
 .. _model_fit:
 
-Model Fitting Basics
-====================
+The Basics
+==========
 
 To illustrate **PyAutoFit** we'll use the example modeling problem of fitting a 1D Gaussian profile to noisy data.
 
@@ -25,17 +25,17 @@ The 1D signal was generated using a 1D Gaussian profile of the form:
 
 .. math::
 
-g(x, I, \sigma) = \frac{N}{\sigma\sqrt{2\pi}} \exp{(-0.5 (x / \sigma)^2)}
+    g(x, I, \sigma) = \frac{N}{\sigma\sqrt{2\pi}} \exp{(-0.5 (x / \sigma)^2)}
 
 Where:
 
-`x`: Is the x-axis coordinate where the `Gaussian` is evaluated.
+``x``: Is the x-axis coordinate where the ``Gaussian`` is evaluated.
 
-`N`: Describes the overall normalization of the Gaussian.
+``N``: Describes the overall normalization of the Gaussian.
 
-sigma: Describes the size of the Gaussian (Full Width Half Maximum = $\mathrm {FWHM}$ = $2{\sqrt {2\ln 2}}\;\sigma$)
+``sigma``: Describes the size of the Gaussian (Full Width Half Maximum = $\mathrm {FWHM}$ = $2{\sqrt {2\ln 2}}\;\sigma$)
 
-Our modeling task is to fit the signal with a 1D Gaussian and recover its parameters (`x`, `N`, `sigma`).
+Our modeling task is to fit the signal with a 1D Gaussian and recover its parameters (``x``, ``N``, ``sigma``).
 
 Model
 -----
@@ -46,11 +46,11 @@ A model component is written as a Python class using the following format:
 
 - The name of the class is the name of the model component, in this case, "Gaussian".
 
-- The input arguments of the constructor (the `__init__` method) are the parameters of the model, in this case
- `centre`, `normalization` and `sigma`.
+- The input arguments of the constructor (the ``__init__`` method) are the parameters of the model, in this case
+ ``centre``, ``normalization`` and ``sigma``.
   
-- The default values of the input arguments define whether a parameter is a single-valued `float` or a 
-  multi-valued `tuple`. In this case, all 3 input parameters are floats.
+- The default values of the input arguments define whether a parameter is a single-valued ``float`` or a 
+  multi-valued ``tuple``. In this case, all 3 input parameters are floats.
   
 - It includes functions associated with that model component, which will be used when fitting the model to data.
 
@@ -60,11 +60,11 @@ A model component is written as a Python class using the following format:
         def __init__(
             self,
             centre=0.0,  # <- PyAutoFit recognises these constructor arguments
-            normalization=0.1,  # <- are the Gaussian`s model parameters.
+            normalization=0.1,  # <- are the Gaussian``s model parameters.
             sigma=0.01,
         ):
 
-            Represents a 1D `Gaussian` profile, which can be treated as a PyAutoFit model-component whose free
+            Represents a 1D ``Gaussian`` profile, which can be treated as a PyAutoFit model-component whose free
             parameters (centre, normalization and sigma) are fitted for by a non-linear search.
 
             Parameters
@@ -72,7 +72,7 @@ A model component is written as a Python class using the following format:
             centre
                 The x coordinate of the profile centre.
             normalization
-                Overall normalization of the `Gaussian` profile.
+                Overall normalization of the ``Gaussian`` profile.
             sigma
                 The sigma value controlling the size of the Gaussian.
 
@@ -86,7 +86,7 @@ A model component is written as a Python class using the following format:
 
             The input xvalues are translated to a coordinate system centred on the Gaussian, by subtracting its centre.
 
-            The output is referred to as the `model_data` to signify that it is a representation of the data from the
+            The output is referred to as the ``model_data`` to signify that it is a representation of the data from the
             model.
 
             Parameters
@@ -102,12 +102,12 @@ A model component is written as a Python class using the following format:
             )
 
 
-To compose a model using the `Gaussian` class above we use the `af.Model` object.
+To compose a model using the ``Gaussian`` class above we use the ``af.Model`` object.
 
 .. code-block:: python
 
     model = af.Model(Gaussian)
-    print("Model `Gaussian` object: \n")
+    print("Model ``Gaussian`` object: \n")
     print(model)
 
 This gives the following output:
@@ -120,7 +120,7 @@ The model has a total of 3 parameters:
 
     print(model.total_free_parameters)
 
-All model information is given by printing its `info` attribute.
+All model information is given by printing its ``info`` attribute.
 
 This shows that each model parameter has an associated prior.
 
@@ -142,7 +142,7 @@ model to data.
     model.sigma = af.UniformPrior(lower_limit=0.0, upper_limit=30.0)
 
 
-Printing the `model.info` displayed these updated priors.
+Printing the ``model.info`` displayed these updated priors.
 
 .. code-block:: python
 
@@ -155,11 +155,11 @@ This gives the following output:
 Instances
 ---------
 
-Instances of the model components above (created via `af.Model`) can be created, where an input `vector` of
+Instances of the model components above (created via ``af.Model``) can be created, where an input ``vector`` of
 parameters is mapped to create an instance of the Python class of the model.
 
-We first need to know the order of parameters in the model, so we know how to define the input `vector`. This
-information is contained in the models `paths` attribute:
+We first need to know the order of parameters in the model, so we know how to define the input ``vector``. This
+information is contained in the models ``paths`` attribute:
 
 .. code-block:: python
 
@@ -172,17 +172,17 @@ This gives the following output:
 
 We input values for the 3 free parameters of our model following the order of paths above:
  
-1) `centre=30.0`
-2) `normalization=2.0`
-3) `sigma=3.0`
+1) ``centre=30.0``
+2) ``normalization=2.0``
+3) ``sigma=3.0``
  
-This creates an `instance` of the Gaussian class via the model. 
+This creates an ``instance`` of the Gaussian class via the model. 
 
 .. code-block:: python
 
     instance = model.instance_from_vector(vector=[30.0, 2.0, 3.0])
 
-This is an instance of the `Gaussian` class.
+This is an instance of the ``Gaussian`` class.
 
 .. code-block:: python
 
@@ -194,7 +194,7 @@ This gives the following output:
 .. code-block:: bash
 
 
-It has the parameters of the `Gaussian` with the values input above.
+It has the parameters of the ``Gaussian`` with the values input above.
 
 .. code-block:: python
 
@@ -208,8 +208,8 @@ This gives the following output:
 .. code-block:: bash
 
 
-We can use functions associated with the class, specifically the `model_data_1d_via_xvalues_from` function, to 
-create a realization of the `Gaussian` and plot it.
+We can use functions associated with the class, specifically the ``model_data_1d_via_xvalues_from`` function, to 
+create a realization of the ``Gaussian`` and plot it.
 
 .. code-block:: python
 
@@ -235,13 +235,13 @@ Analysis
 
 Now we've defined our model, we need to inform **PyAutoFit** how to fit it to data.
 
-We therefore define an `Analysis` class, which includes:
+We therefore define an ``Analysis`` class, which includes:
 
-- An `__init__` constructor, which takes as input the `data` and `noise_map`. This could be extended to include anything else necessary to fit the model to the data.
+- An ``__init__`` constructor, which takes as input the ``data`` and ``noise_map``. This could be extended to include anything else necessary to fit the model to the data.
 
-- A `log_likelihood_function`, which defines how given an `instance` of the model we fit it to the data and return a log likelihood value.
+- A ``log_likelihood_function``, which defines how given an ``instance`` of the model we fit it to the data and return a log likelihood value.
 
-Read the comments and docstrings of the `Analysis` object below in detail for more insights into how this object
+Read the comments and docstrings of the ``Analysis`` object below in detail for more insights into how this object
 works.
 
 .. code-block:: python
@@ -249,12 +249,12 @@ works.
     class Analysis(af.Analysis):
         def __init__(self, data: np.ndarray, noise_map: np.ndarray):
 
-            The `Analysis` class acts as an interface between the data and model in **PyAutoFit**.
+            The ``Analysis`` class acts as an interface between the data and model in **PyAutoFit**.
 
-            Its `log_likelihood_function` defines how the model is fitted to the data and it is called many times by
+            Its ``log_likelihood_function`` defines how the model is fitted to the data and it is called many times by
             the non-linear search fitting algorithm.
 
-            In this example the `Analysis` `__init__` constructor only contains the `data` and `noise-map`, but it can be
+            In this example the ``Analysis`` ``__init__`` constructor only contains the ``data`` and ``noise-map``, but it can be
             easily extended to include other quantities.
 
             Parameters
@@ -274,13 +274,13 @@ works.
 
             Returns the log likelihood of a fit of a 1D Gaussian to the dataset.
 
-            The data is fitted using an `instance` of the `Gaussian` class where its `model_data_1d_via_xvalues_from`
+            The data is fitted using an ``instance`` of the ``Gaussian`` class where its ``model_data_1d_via_xvalues_from``
             is called in order to create a model data representation of the Gaussian that is fitted to the data.
 
 
 
-            The `instance` that comes into this method is an instance of the `Gaussian` model above, which was created
-            via `af.Model()`.
+            The ``instance`` that comes into this method is an instance of the ``Gaussian`` model above, which was created
+            via ``af.Model()``.
 
             The parameter values are chosen by the non-linear search, based on where it thinks the high likelihood regions
             of parameter space are.
@@ -317,7 +317,7 @@ works.
             return log_likelihood
 
 
-Create an instance of the `Analysis` class by passing the `data` and `noise_map`.
+Create an instance of the ``Analysis`` class by passing the ``data`` and ``noise_map``.
 
 .. code-block:: python
 
@@ -344,7 +344,7 @@ available in **PyAutoFit** (see ?).
 Model Fit
 ---------
 
-We begin the non-linear search by calling its `fit` method. 
+We begin the non-linear search by calling its ``fit`` method. 
 
 .. code-block:: python
 
@@ -364,7 +364,7 @@ Result
 
 The result object returned by the fit provides information on the results of the non-linear search. 
 
-The `info` attribute shows the result in a readable format.
+The ``info`` attribute shows the result in a readable format.
 
 .. code-block:: python
 
@@ -390,7 +390,7 @@ This gives the following output:
 
 A benefit of the result being an instance is that we can use any of its methods to inspect the results.
 
-Below, we use the maximum likelihood instance to compare the maximum likelihood `Gaussian` to the data.
+Below, we use the maximum likelihood instance to compare the maximum likelihood ``Gaussian`` to the data.
 
 .. code-block:: python
 
@@ -413,7 +413,7 @@ The plot appears as follows:
 Samples
 -------
 
-The results object also contains a `Samples` object, which contains all information on the non-linear search.
+The results object also contains a ``Samples`` object, which contains all information on the non-linear search.
 
 This includes parameter samples, log likelihood values, posterior information and results internal to the specific
 algorithm (e.g. the internal dynesty samples).
@@ -454,7 +454,7 @@ Lets begin by loading and plotting this data.
 
 The data appear as follows:
 
-We define a Python class for the `Exponential` model component, exactly as we did for the `Gaussian` above.
+We define a Python class for the ``Exponential`` model component, exactly as we did for the ``Gaussian`` above.
 
 .. code-block:: python
 
@@ -462,7 +462,7 @@ We define a Python class for the `Exponential` model component, exactly as we di
         def __init__(
             self,
             centre=30.0,  # <- **PyAutoFit** recognises these constructor arguments
-            normalization=1.0,  # <- are the Exponentials`s model parameters.
+            normalization=1.0,  # <- are the Exponentials``s model parameters.
             rate=0.01,
         ):
 
@@ -485,9 +485,9 @@ We define a Python class for the `Exponential` model component, exactly as we di
 
             Returns the symmetric 1D Exponential on an input list of Cartesian x coordinates.
 
-            The input xvalues are translated to a coordinate system centred on the Gaussian, via its `centre`.
+            The input xvalues are translated to a coordinate system centred on the Gaussian, via its ``centre``.
 
-            The output is referred to as the `model_data` to signify that it is a representation of the data from the
+            The output is referred to as the ``model_data`` to signify that it is a representation of the data from the
             model.
 
             Parameters
@@ -501,20 +501,20 @@ We define a Python class for the `Exponential` model component, exactly as we di
             )
 
 
-We can easily compose a model consisting of 1 `Gaussian` object and 1 `Exponential` object using the `af.Collection`
+We can easily compose a model consisting of 1 ``Gaussian`` object and 1 ``Exponential`` object using the ``af.Collection``
 object:
 
 .. code-block:: python
 
     model = af.Collection(gaussian=af.Model(Gaussian), exponential=af.Model(Exponential))
 
-A `Collection` behaves analogous to a `Model`, but it contains a multiple model components.
+A ``Collection`` behaves analogous to a ``Model``, but it contains a multiple model components.
 
-We can see this by printing its `paths` attribute, where paths to all 6 free parameters via both model components
+We can see this by printing its ``paths`` attribute, where paths to all 6 free parameters via both model components
 are shown.
 
-The paths have the entries `.gaussian.` and `.exponential.`, which correspond to the names we input into  
-the `af.Collection` above. 
+The paths have the entries ``.gaussian.`` and ``.exponential.``, which correspond to the names we input into  
+the ``af.Collection`` above. 
 
 .. code-block:: python
 
@@ -535,7 +535,7 @@ We can use the paths to customize the priors of each parameter.
     model.exponential.normalization = af.UniformPrior(lower_limit=0.0, upper_limit=1e2)
     model.exponential.rate = af.UniformPrior(lower_limit=0.0, upper_limit=10.0)
 
-All of the information about the model created via the collection can be printed at once using its `info` attribute:
+All of the information about the model created via the collection can be printed at once using its ``info`` attribute:
 
 .. code-block:: python
 
@@ -545,15 +545,15 @@ The output appears as follows:
 
 .. code-block:: bash
 
-A model instance can again be created by mapping an input `vector`, which now has 6 entries.
+A model instance can again be created by mapping an input ``vector``, which now has 6 entries.
 
 .. code-block:: python
 
     instance = model.instance_from_vector(vector=[0.1, 0.2, 0.3, 0.4, 0.5, 0.01])
 
-This `instance` contains each of the model components we defined above. 
+This ``instance`` contains each of the model components we defined above. 
 
-The argument names input into the `Collection` define the attribute names of the `instance`:
+The argument names input into the ``Collection`` define the attribute names of the ``instance``:
 
 .. code-block:: python
 
@@ -569,21 +569,21 @@ The output appear as follows:
 
 .. code-block:: bash
 
-The `Analysis` class above assumed the `instance` contained only a single model-component.
+The ``Analysis`` class above assumed the ``instance`` contained only a single model-component.
 
-We update its `log_likelihood_function` to use both model components in the `instance` to fit the data.
+We update its ``log_likelihood_function`` to use both model components in the ``instance`` to fit the data.
 
 .. code-block:: python
 
     class Analysis(af.Analysis):
         def __init__(self, data: np.ndarray, noise_map: np.ndarray):
 
-            The `Analysis` class acts as an interface between the data and model in **PyAutoFit**.
+            The ``Analysis`` class acts as an interface between the data and model in **PyAutoFit**.
 
-            Its `log_likelihood_function` defines how the model is fitted to the data and it is called many times by
+            Its ``log_likelihood_function`` defines how the model is fitted to the data and it is called many times by
             the non-linear search fitting algorithm.
 
-            In this example the `Analysis` `__init__` constructor only contains the `data` and `noise-map`, but it can be
+            In this example the ``Analysis`` ``__init__`` constructor only contains the ``data`` and ``noise-map``, but it can be
             easily extended to include other quantities.
 
             Parameters
@@ -603,18 +603,18 @@ We update its `log_likelihood_function` to use both model components in the `ins
 
             Returns the log likelihood of a fit of a 1D Gaussian to the dataset.
 
-            The data is fitted using an `instance` of multiple 1D profiles (e.g. a `Gaussian`, `Exponential`) where
-            their `model_data_1d_via_xvalues_from` methods are called and sumed in order to create a model data
+            The data is fitted using an ``instance`` of multiple 1D profiles (e.g. a ``Gaussian``, ``Exponential``) where
+            their ``model_data_1d_via_xvalues_from`` methods are called and sumed in order to create a model data
             representation that is fitted to the data.
 
 
 
-            The `instance` that comes into this method is an instance of the `Gaussian` and `Exponential` models above,
-            which were created via `af.Collection()`.
+            The ``instance`` that comes into this method is an instance of the ``Gaussian`` and ``Exponential`` models above,
+            which were created via ``af.Collection()``.
 
             It contains instances of every class we instantiated it with, where each instance is named following the names
-            given to the Collection, which in this example is a `Gaussian` (with name `gaussian) and Exponential (with
-            name `exponential`).
+            given to the Collection, which in this example is a ``Gaussian`` (with name ``gaussian) and Exponential (with
+            name ``exponential``).
 
             The parameter values are again chosen by the non-linear search, based on where it thinks the high likelihood
             regions of parameter space are. The lines of Python code are commented out below to prevent excessive print
@@ -637,9 +637,9 @@ We update its `log_likelihood_function` to use both model components in the `ins
             xvalues = np.arange(self.data.shape[0])
 
 
-            Internally, the `instance` variable is a list of all model components pass to the `Collection` above.
+            Internally, the ``instance`` variable is a list of all model components pass to the ``Collection`` above.
 
-            we can therefore iterate over them and use their `model_data_1d_via_xvalues_from` methods to create the
+            we can therefore iterate over them and use their ``model_data_1d_via_xvalues_from`` methods to create the
             summed overall model data.
 
             model_data = sum(
@@ -676,7 +676,7 @@ We can now fit this model to the data using the same API we did before.
     result = search.fit(model=model, analysis=analysis)
 
 
-The `info` attribute shows the result in a readable format, showing that all 6 free parameters were fitted for.
+The ``info`` attribute shows the result in a readable format, showing that all 6 free parameters were fitted for.
 
 .. code-block:: python
 
