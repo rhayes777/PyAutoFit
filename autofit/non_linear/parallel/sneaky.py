@@ -423,11 +423,16 @@ class SneakierPool:
         max_workers_from_env_var = os.environ.get('MAX_WORKERS', None)
         universe_size_from_env_var = os.environ.get('MPIEXEC_UNIVERSE_SIZE', None)
 
+        print(f"MAX_WORKERS ENV VAR: {max_workers_from_env_var}")
+        print(f"UNIVERSE SIZE ENV VAR: {universe_size_from_env_var}")
 
         max_workers_from_env_var_is_set = max_workers_from_env_var is not None
         max_workers_from_universe_size_is_set = universe_size_from_env_var is not None
+        
+        print(f"is UNIVERSE SIZE env var set: {max_workers_from_universe_size_is_set}")
+
         if max_workers_from_universe_size_is_set:
-            max_workers_from_universe_size_is_above_one = universe_size_from_env_var > 1
+            max_workers_from_universe_size_is_above_one = int(universe_size_from_env_var) > 1
         else:
             max_workers_from_universe_size_is_above_one = False
 

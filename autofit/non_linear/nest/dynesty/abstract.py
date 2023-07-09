@@ -170,10 +170,11 @@ class AbstractDynesty(AbstractNest, ABC):
                     fitness_args=(model, fitness_function),
                     prior_transform_args=(model,),
                 ) as pool:
-
+                    
+                    # TODO: DOuble check this bad boi
                     sampler = self.sampler_from(
                         model=model,
-                        fitness_function=self.fitness,
+                        fitness_function=fitness_function,
                         checkpoint_exists=checkpoint_exists,
                         pool=pool,
                         queue_size=self.number_of_cores,
