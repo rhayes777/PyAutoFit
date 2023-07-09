@@ -53,7 +53,6 @@ A model component is written as a Python class using the following format:
 - It includes functions associated with that model component, which will be used when fitting the model to data.
 
 .. code-block:: python
-
     class Gaussian:
         def __init__(
             self,
@@ -62,8 +61,9 @@ A model component is written as a Python class using the following format:
             sigma=0.01,
         ):
 
-            Represents a 1D ``Gaussian`` profile, which can be treated as a PyAutoFit model-component whose free
-            parameters (centre, normalization and sigma) are fitted for by a non-linear search.
+            Represents a 1D ``Gaussian`` profile, which can be treated as a
+            PyAutoFit model-component whose free parameters (centre,
+            normalization and sigma) are fitted for by a non-linear search.
 
             Parameters
             ----------
@@ -82,10 +82,11 @@ A model component is written as a Python class using the following format:
 
             Returns the 1D Gaussian profile on a line of Cartesian x coordinates.
 
-            The input xvalues are translated to a coordinate system centred on the Gaussian, by subtracting its centre.
+            The input xvalues are translated to a coordinate system centred on the
+            Gaussian, by subtracting its centre.
 
-            The output is referred to as the ``model_data`` to signify that it is a representation of the data from the
-            model.
+            The output is referred to as the ``model_data`` to signify that it is
+            a representation of the data from the model.
 
             Parameters
             ----------
@@ -278,25 +279,28 @@ Read the comments and docstrings of the ``Analysis`` object below in detail for 
 works.
 
 .. code-block:: python
-
     class Analysis(af.Analysis):
         def __init__(self, data: np.ndarray, noise_map: np.ndarray):
 
-            The ``Analysis`` class acts as an interface between the data and model in **PyAutoFit**.
+            The ``Analysis`` class acts as an interface between the data and
+            model in **PyAutoFit**.
 
-            Its ``log_likelihood_function`` defines how the model is fitted to the data and it is called many times by
-            the non-linear search fitting algorithm.
+            Its ``log_likelihood_function`` defines how the model is fitted to
+            the data and it is called many times by the non-linear search fitting
+            algorithm.
 
-            In this example the ``Analysis`` ``__init__`` constructor only contains the ``data`` and ``noise-map``, but it can be
-            easily extended to include other quantities.
+            In this example the ``Analysis`` ``__init__`` constructor only contains
+            the ``data`` and ``noise-map``, but it can be easily extended to
+            include other quantities.
 
             Parameters
             ----------
             data
-                A 1D numpy array containing the data (e.g. a noisy 1D signal) fitted in the workspace examples.
+                A 1D numpy array containing the data (e.g. a noisy 1D signal) f
+                itted in the workspace examples.
             noise_map
-                A 1D numpy array containing the noise values of the data, used for computing the goodness of fit
-                metric, the log likelihood.
+                A 1D numpy array containing the noise values of the data, used
+                for computing the goodness of fit metric, the log likelihood.
 
             super().__init__()
 
@@ -307,19 +311,20 @@ works.
 
             Returns the log likelihood of a fit of a 1D Gaussian to the dataset.
 
-            The data is fitted using an ``instance`` of the ``Gaussian`` class where its ``model_data_1d_via_xvalues_from``
-            is called in order to create a model data representation of the Gaussian that is fitted to the data.
+            The data is fitted using an ``instance`` of the ``Gaussian`` class
+            where its ``model_data_1d_via_xvalues_from`` is called in order to
+            create a model data representation of the Gaussian that is fitted to the data.
 
 
+            The ``instance`` that comes into this method is an instance of the ``Gaussian``
+            model above, which was created via ``af.Model()``.
 
-            The ``instance`` that comes into this method is an instance of the ``Gaussian`` model above, which was created
-            via ``af.Model()``.
+            The parameter values are chosen by the non-linear search, based on where
+            it thinks the high likelihood regions of parameter space are.
 
-            The parameter values are chosen by the non-linear search, based on where it thinks the high likelihood regions
-            of parameter space are.
-
-            The lines of Python code are commented out below to prevent excessive print statements when we run the
-            non-linear search, but feel free to uncomment them and run the search to see the parameters of every instance
+            The lines of Python code are commented out below to prevent excessive print
+            statements when we run the non-linear search, but feel free to uncomment
+            them and run the search to see the parameters of every instance
             that it fits.
 
 
@@ -339,7 +344,8 @@ works.
             model_data = instance.model_data_1d_via_xvalues_from(xvalues=xvalues)
 
 
-            Fit the model gaussian line data to the observed data, computing the residuals, chi-squared and log likelihood.
+            Fit the model gaussian line data to the observed data, computing the residuals,
+            chi-squared and log likelihood.
 
             residual_map = self.data - model_data
             chi_squared_map = (residual_map / self.noise_map) ** 2.0
@@ -383,8 +389,8 @@ We begin the non-linear search by calling its ``fit`` method.
 
     print(
         The non-linear search has begun running.
-        This Jupyter notebook cell with progress once the search has completed - this could take a few minutes!
-
+        This Jupyter notebook cell with progress once the search
+        has completed - this could take a few minutes!
     )
 
     result = search.fit(model=model, analysis=analysis)
@@ -564,11 +570,14 @@ We define a Python class for the ``Exponential`` model component, exactly as we 
 
         def model_data_1d_via_xvalues_from(self, xvalues: np.ndarray):
 
-            Returns the symmetric 1D Exponential on an input list of Cartesian x coordinates.
+            Returns the symmetric 1D Exponential on an input list of Cartesian
+            x coordinates.
 
-            The input xvalues are translated to a coordinate system centred on the Gaussian, via its ``centre``.
+            The input xvalues are translated to a coordinate system centred on
+            the Exponential, via its ``centre``.
 
-            The output is referred to as the ``model_data`` to signify that it is a representation of the data from the
+            The output is referred to as the ``model_data`` to signify that it
+            is a representation of the data from the
             model.
 
             Parameters
@@ -683,13 +692,16 @@ We update its ``log_likelihood_function`` to use both model components in the ``
     class Analysis(af.Analysis):
         def __init__(self, data: np.ndarray, noise_map: np.ndarray):
 
-            The ``Analysis`` class acts as an interface between the data and model in **PyAutoFit**.
+            The ``Analysis`` class acts as an interface between the data and
+            model in **PyAutoFit**.
 
-            Its ``log_likelihood_function`` defines how the model is fitted to the data and it is called many times by
-            the non-linear search fitting algorithm.
+            Its ``log_likelihood_function`` defines how the model is fitted to
+            the data and it is called many times by the non-linear search
+            fitting algorithm.
 
-            In this example the ``Analysis`` ``__init__`` constructor only contains the ``data`` and ``noise-map``, but it can be
-            easily extended to include other quantities.
+            In this example the ``Analysis`` ``__init__`` constructor only
+            contains the ``data`` and ``noise-map``, but it can be easily
+            extended to include other quantities.
 
             Parameters
             ----------
@@ -708,22 +720,26 @@ We update its ``log_likelihood_function`` to use both model components in the ``
 
             Returns the log likelihood of a fit of a 1D Gaussian to the dataset.
 
-            The data is fitted using an ``instance`` of multiple 1D profiles (e.g. a ``Gaussian``, ``Exponential``) where
-            their ``model_data_1d_via_xvalues_from`` methods are called and sumed in order to create a model data
-            representation that is fitted to the data.
+            The data is fitted using an ``instance`` of multiple 1D profiles
+            (e.g. a ``Gaussian``, ``Exponential``) where
+            their ``model_data_1d_via_xvalues_from`` methods are called and summed
+            in order to create a model data representation that is fitted to the data.
 
 
 
-            The ``instance`` that comes into this method is an instance of the ``Gaussian`` and ``Exponential`` models above,
-            which were created via ``af.Collection()``.
+            The ``instance`` that comes into this method is an instance of the
+            ``Gaussian`` and ``Exponential`` models above, which were created
+            via ``af.Collection()``.
 
-            It contains instances of every class we instantiated it with, where each instance is named following the names
-            given to the Collection, which in this example is a ``Gaussian`` (with name ``gaussian) and Exponential (with
-            name ``exponential``).
+            It contains instances of every class we instantiated it with, where
+            each instance is named following the names given to the Collection,
+            which in this example is a ``Gaussian`` (with name ``gaussian) and
+            Exponential (with name ``exponential``).
 
-            The parameter values are again chosen by the non-linear search, based on where it thinks the high likelihood
-            regions of parameter space are. The lines of Python code are commented out below to prevent excessive print
-            statements.
+            The parameter values are again chosen by the non-linear search,
+            based on where it thinks the high likelihood regions of parameter
+            space are. The lines of Python code are commented out below to
+            prevent excessive print statements.
 
 
             # print("Gaussian Instance:")
@@ -737,14 +753,17 @@ We update its ``log_likelihood_function`` to use both model components in the ``
             # print("Rate = ", instance.exponential.rate)
 
 
-            Get the range of x-values the data is defined on, to evaluate the model of the Gaussian.
+            Get the range of x-values the data is defined on, to evaluate
+            the model of the Gaussian.
 
             xvalues = np.arange(self.data.shape[0])
 
 
-            Internally, the ``instance`` variable is a list of all model components pass to the ``Collection`` above.
+            Internally, the ``instance`` variable is a list of all model
+            omponents pass to the ``Collection`` above.
 
-            we can therefore iterate over them and use their ``model_data_1d_via_xvalues_from`` methods to create the
+            we can therefore iterate over them and use their
+            ``model_data_1d_via_xvalues_from`` methods to create the
             summed overall model data.
 
             model_data = sum(

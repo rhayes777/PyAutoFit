@@ -9,24 +9,24 @@ This cookbook provides an overview of the non-linear searches available in **PyA
 
 It first covers standard options available for all non-linear searches:
 
- - Example Fit: A simple example of a non-linear search to remind us how it works.
- - Output To Hard-Disk: Output results to hard-disk so they can be inspected and used to restart a crashed search.
- - Unique Identifier: Ensure results are output in unique folders, so tthey do not overwrite each other.
- - Iterations Per Update: Control how often non-linear searches output results to hard-disk.
- - Parallelization: Use parallel processing to speed up the sampling of parameter space.
- - Plots: Perform non-linear search specific visualization using their in-built visualization tools.
- - Start Point: Manually specify the start point of a non-linear search, or sample a specific region of parameter space.
+- Example Fit: A simple example of a non-linear search to remind us how it works.
+- Output To Hard-Disk: Output results to hard-disk so they can be inspected and used to restart a crashed search.
+- Unique Identifier: Ensure results are output in unique folders, so tthey do not overwrite each other.
+- Iterations Per Update: Control how often non-linear searches output results to hard-disk.
+- Parallelization: Use parallel processing to speed up the sampling of parameter space.
+- Plots: Perform non-linear search specific visualization using their in-built visualization tools.
+- Start Point: Manually specify the start point of a non-linear search, or sample a specific region of parameter space.
 
 It then provides example code for using every search:
 
- - Emcee (MCMC): The Emcee ensemble sampler MCMC.
- - Zeus (MCMC): The Zeus ensemble sampler MCMC.
- - DynestyDynamic (Nested Sampling): The Dynesty dynamic nested sampler.
- - DynestyStatic (Nested Sampling): The Dynesty static nested sampler.
- - UltraNest (Nested Sampling): The UltraNest nested sampler.
- - PySwarmsGlobal (Particle Swarm Optimization): The global PySwarms particle swarm optimization
- - PySwarmsLocal (Particle Swarm Optimization): The local PySwarms particle swarm optimization.
- - LBFGS: The L-BFGS scipy optimization.
+- Emcee (MCMC): The Emcee ensemble sampler MCMC.
+- Zeus (MCMC): The Zeus ensemble sampler MCMC.
+- DynestyDynamic (Nested Sampling): The Dynesty dynamic nested sampler.
+- DynestyStatic (Nested Sampling): The Dynesty static nested sampler.
+- UltraNest (Nested Sampling): The UltraNest nested sampler.
+- PySwarmsGlobal (Particle Swarm Optimization): The global PySwarms particle swarm optimization
+- PySwarmsLocal (Particle Swarm Optimization): The local PySwarms particle swarm optimization.
+- LBFGS: The L-BFGS scipy optimization.
 
 Example Fit
 -----------
@@ -236,8 +236,8 @@ The Emcee sampler is a Markov Chain Monte Carlo (MCMC) Ensemble sampler. It is a
 
 Information about Emcee can be found at the following links:
 
- - https://github.com/dfm/emcee
- - https://emcee.readthedocs.io/en/stable/
+- https://github.com/dfm/emcee
+- https://emcee.readthedocs.io/en/stable/
 
 The following workspace example shows examples of fitting data with Emcee and plotting the results.
 
@@ -267,8 +267,8 @@ The Zeus sampler is a Markov Chain Monte Carlo (MCMC) Ensemble sampler.
 
 Information about Zeus can be found at the following links:
 
- - https://github.com/minaskar/zeus
- - https://zeus-mcmc.readthedocs.io/en/latest/
+- https://github.com/minaskar/zeus
+- https://zeus-mcmc.readthedocs.io/en/latest/
 
 .. code-block:: python
 
@@ -302,8 +302,8 @@ The DynestyDynamic sampler is a Dynamic Nested Sampling algorithm. It is a Pytho
 
 Information about Dynesty can be found at the following links:
 
- - https://github.com/joshspeagle/dynesty
- - https://dynesty.readthedocs.io/en/latest/
+- https://github.com/joshspeagle/dynesty
+- https://dynesty.readthedocs.io/en/latest/
 
 .. code-block:: python
 
@@ -329,8 +329,8 @@ The DynestyStatic sampler is a Static Nested Sampling algorithm. It is a Python 
 
 Information about Dynesty can be found at the following links:
 
- - https://github.com/joshspeagle/dynesty
- - https://dynesty.readthedocs.io/en/latest/
+- https://github.com/joshspeagle/dynesty
+- https://dynesty.readthedocs.io/en/latest/
 
 .. code-block:: python
 
@@ -359,8 +359,8 @@ It is optional as it has certain dependencies which are generally straight forwa
 
 Information about UltraNest can be found at the following links:
 
- - https://github.com/JohannesBuchner/UltraNest
- - https://johannesbuchner.github.io/UltraNest/readme.html
+- https://github.com/JohannesBuchner/UltraNest
+- https://johannesbuchner.github.io/UltraNest/readme.html
 
 .. code-block:: python
 
@@ -404,9 +404,9 @@ The PySwarmsGlobal sampler is a Global Optimization algorithm. It is a Python im
 
 Information about PySwarms can be found at the following links:
 
- - https://github.com/ljvmiranda921/pyswarms
- - https://pyswarms.readthedocs.io/en/latest/index.html
- - https://pyswarms.readthedocs.io/en/latest/api/pyswarms.single.html#module-pyswarms.single.global_best
+- https://github.com/ljvmiranda921/pyswarms
+- https://pyswarms.readthedocs.io/en/latest/index.html
+- https://pyswarms.readthedocs.io/en/latest/api/pyswarms.single.html#module-pyswarms.single.global_best
 
 .. code-block:: python
 
@@ -426,8 +426,8 @@ The PySwarmsLocal sampler is a Local Optimization algorithm. It is a Python impl
 
 Information about PySwarms can be found at the following links:
 
- - https://github.com/ljvmiranda921/pyswarms
- - https://pyswarms.readthedocs.io/en/latest/index.html
+- https://github.com/ljvmiranda921/pyswarms
+- https://pyswarms.readthedocs.io/en/latest/index.html
  - https://pyswarms.readthedocs.io/en/latest/api/pyswarms.single.html#module-pyswarms.single.global_best
 
 .. code-block:: python

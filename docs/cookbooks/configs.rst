@@ -80,8 +80,8 @@ of the ``GaussianNoConfig`` are located.
 
 In all other examples, the fits runs because the priors have been defined in one of two ways:
 
- - They were manually input in the example script.
- - They were loaded via config files "behind the scenes".
+- They were manually input in the example script.
+- They were loaded via config files "behind the scenes".
 
 Checkout the folder ``autofit_workspace/config/priors``, where .yaml files defining the priors of the ``Gaussian`` and
 ``Exponential`` model components are located. These are the config files that **PyAutoFit** loads in the background
@@ -232,8 +232,8 @@ configs and reads as follows:
 
 This looks very similar to ``TemplateObject``, the only differences are:
 
- - It now contains the model-component class name in the configuration file, e.g. ``ModelComponent0``, ``ModelComponent1``.
- - It includes multiple model-components, whereas ``TemplateObject.yaml`` corresponded to only one model component.
+- It now contains the model-component class name in the configuration file, e.g. ``ModelComponent0``, ``ModelComponent1``.
+- It includes multiple model-components, whereas ``TemplateObject.yaml`` corresponded to only one model component.
 
 Labels
 ------

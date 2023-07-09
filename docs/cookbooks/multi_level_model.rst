@@ -15,13 +15,13 @@ This cookbook provides an overview of multi-level model composition.
 
 **Contents:**
 
- - Python Class Template: The template of multi level model components written as a Python class.
- - Model Composition: How to compose a multi-level model using the ``af.Model()`` object.
- - Instances:  Creating an instance of a multi-level model via input parameters.
- - Why Use Multi-Level Models?: A description of the benefits of using multi-level models compared to a ``Collection``.
- - Model Customization: Customizing a multi-level model (e.g. fixing parameters or linking them to one another).
- - Alternative API: Alternative API for multi-level models which may be more concise and readable for certain models.
- - Json Output (Model): Output a multi-level model in human readable text via a .json file and loading it back again.
+- Python Class Template: The template of multi level model components written as a Python class.
+- Model Composition: How to compose a multi-level model using the ``af.Model()`` object.
+- Instances:  Creating an instance of a multi-level model via input parameters.
+- Why Use Multi-Level Models?: A description of the benefits of using multi-level models compared to a ``Collection``.
+- Model Customization: Customizing a multi-level model (e.g. fixing parameters or linking them to one another).
+- Alternative API: Alternative API for multi-level models which may be more concise and readable for certain models.
+- Json Output (Model): Output a multi-level model in human readable text via a .json file and loading it back again.
 
 Python Class Template
 ---------------------
@@ -67,8 +67,8 @@ Model Composition
 
 A multi-level model is instantiated via the af.Model() command, which is passed: 
 
- - ``MultiLevelGaussians``: To tell it that the model component will be a ``MultiLevelGaussians`` object. 
- - ``gaussian_list``: One or more ``Gaussian``'s, each of which are created as an ``af.Model()`` object with free parameters.
+- ``MultiLevelGaussians``: To tell it that the model component will be a ``MultiLevelGaussians`` object.
+- ``gaussian_list``: One or more ``Gaussian``'s, each of which are created as an ``af.Model()`` object with free parameters.
 
 .. code-block:: python
 

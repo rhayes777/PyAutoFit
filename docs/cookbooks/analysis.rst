@@ -29,19 +29,20 @@ This can be adapted for your use case.
             """
             The `Analysis` class acts as an interface between the data and model in **PyAutoFit**.
 
-            Its `log_likelihood_function` defines how the model is fitted to the data and it is called many times by
-            the non-linear search fitting algorithm.
+            Its `log_likelihood_function` defines how the model is fitted to the data and it is
+            called many times by the non-linear search fitting algorithm.
 
-            In this example the `Analysis` `__init__` constructor only contains the `data` and `noise-map`, but it can be
-            easily extended to include other quantities.
+            In this example the `Analysis` `__init__` constructor only contains the `data`
+            and `noise-map`, but it can be easily extended to include other quantities.
 
             Parameters
             ----------
             data
-                A 1D numpy array containing the data (e.g. a noisy 1D signal) fitted in the workspace examples.
+                A 1D numpy array containing the data (e.g. a noisy 1D signal) fitted in the
+                workspace examples.
             noise_map
-                A 1D numpy array containing the noise values of the data, used for computing the goodness of fit
-                metric, the log likelihood.
+                A 1D numpy array containing the noise values of the data, used for computing
+                the goodness of fit metric, the log likelihood.
             """
             super().__init__()
 
@@ -52,8 +53,9 @@ This can be adapted for your use case.
             """
             Returns the log likelihood of a fit of a 1D Gaussian to the dataset.
 
-            The data is fitted using an `instance` of the `Gaussian` class where its `model_data_1d_via_xvalues_from`
-            is called in order to create a model data representation of the Gaussian that is fitted to the data.
+            The data is fitted using an `instance` of the `Gaussian` class where
+            its `model_data_1d_via_xvalues_from` is called in order to create a
+            model data representation of the Gaussian that is fitted to the data.
             """
 
             xvalues = np.arange(self.data.shape[0])
@@ -90,12 +92,12 @@ if they are required for your ``log_likelihood_function`` to work.
 
 The example below includes three additional inputs:
 
- - Instead of inputting a ``noise_map``, a ``noise_covariance_matrix`` is input, which means that corrrlated noise is
+- Instead of inputting a ``noise_map``, a ``noise_covariance_matrix`` is input, which means that corrrlated noise is
    accounted for in the ``log_likelihood_function``.
 
- - A ``mask`` is input which masks the data such that certain data points are omitted from the log likelihood
+- A ``mask`` is input which masks the data such that certain data points are omitted from the log likelihood
 
- - A ``kernel`` is input which can account for certain blurring operations during data acquisition.
+- A ``kernel`` is input which can account for certain blurring operations during data acquisition.
 
 .. code-block:: python
 
@@ -113,15 +115,19 @@ The example below includes three additional inputs:
             Parameters
             ----------
             data
-                A 1D numpy array containing the data (e.g. a noisy 1D signal) fitted in the workspace examples.
+                A 1D numpy array containing the data (e.g. a noisy 1D signal) fitted
+                in the workspace examples.
             noise_covariance_matrix
-                A 2D numpy array containing the noise values and their covariances for the data, used for computing the
+                A 2D numpy array containing the noise values and their covariances
+                for the data, used for computing the
                 goodness of fit whilst accounting for correlated noise.
             mask
-                A 1D numpy array containing a mask, where `True` values mean a data point is masked and is omitted from
+                A 1D numpy array containing a mask, where `True` values mean a data
+                point is masked and is omitted from
                 the log likelihood.
             kernel
-                A 1D numpy array containing the blurring kernel of the data, used for creating the model data.
+                A 1D numpy array containing the blurring kernel of the data, used
+                for creating the model data.
             """
             super().__init__()
 
@@ -132,19 +138,21 @@ The example below includes three additional inputs:
 
         def log_likelihood_function(self, instance) -> float:
             """
-            The `log_likelihood_function` now has access to the  `noise_covariance_matrix`, `mask` and `kernel`
-            input above.
+            The `log_likelihood_function` now has access to
+            the  `noise_covariance_matrix`, `mask` and `kernel`, input above.
             """
             print(self.noise_covariance_matrix)
             print(self.mask)
             print(self.kernel)
 
             """
-            We do not provide a specific example of how to use these inputs in the `log_likelihood_function` as they are
-            specific to your model fitting problem.
+            We do not provide a specific example of how to use these inputs
+            in the `log_likelihood_function` as they are specific to your
+            model fitting problem.
 
-            The key point is that any inputs required to compute the log likelihood can be passed into the `__init__`
-            constructor of the `Analysis` class and used in the `log_likelihood_function`.
+            The key point is that any inputs required to compute the log
+            likelihood can be passed into the `__init__` constructor of the
+            `Analysis` class and used in the `log_likelihood_function`.
             """
 
             log_likelihood = None
@@ -210,12 +218,14 @@ Function", are also automatically output during the model-fit on the fly.
             self, paths: af.DirectoryPaths, model: af.AbstractPriorModel
         ):
             """
-            Before a model-fit, the `visualize_before_fit` method is called to perform visualization.
+            Before a model-fit, the `visualize_before_fit` method is called t
+            o perform visualization.
 
-            This can output visualization of quantities which do not change during the model-fit, for example the
-            data and noise-map.
+            This can output visualization of quantities which do not change
+            during the model-fit, for example the data and noise-map.
 
-            The `paths` object contains the path to the folder where the visualization should be output, which is determined
+            The `paths` object contains the path to the folder where the
+            visualization should be output, which is determined
             by the non-linear search `name` and other inputs.
             """
 
@@ -240,13 +250,16 @@ Function", are also automatically output during the model-fit on the fly.
 
         def visualize(self, paths: af.DirectoryPaths, instance, during_analysis):
             """
-            During a model-fit, the `visualize` method is called throughout the non-linear search.
+            During a model-fit, the `visualize` method is called throughout the
+            non-linear search.
 
-            The `instance` passed into the visualize method is maximum log likelihood solution obtained by the model-fit
-            so far and it can be used to provide on-the-fly images showing how the model-fit is going.
+            The `instance` passed into the visualize method is maximum log
+            likelihood solution obtained by the model-fit so far and it can
+            be used to provide on-the-fly images showing how the model-fit is going.
 
-            The `paths` object contains the path to the folder where the visualization should be output, which is determined
-            by the non-linear search `name` and other inputs.
+            The `paths` object contains the path to the folder where the
+            visualization should be output, which is determined by the
+            non-linear search `name` and other inputs.
             """
             xvalues = np.arange(self.data.shape[0])
 
@@ -254,7 +267,8 @@ Function", are also automatically output during the model-fit on the fly.
             residual_map = self.data - model_data
 
             """
-            The visualizer now outputs images of the best-fit results to hard-disk (checkout `visualizer.py`).
+            The visualizer now outputs images of the best-fit results to
+            hard-disk (checkout `visualizer.py`).
             """
             import matplotlib.pyplot as plt
 
@@ -333,21 +347,25 @@ These files can then also be loaded via the database, as described in the databa
 
         def save_attributes_for_aggregator(self, paths: af.DirectoryPaths):
             """
-            Before the non-linear search begins, this routine saves attributes of the `Analysis` object to the `files`
-            folder such that they can be loaded after the analysis using PyAutoFit's database and aggregator tools.
+            Before the non-linear search begins, this routine saves attributes
+            of the `Analysis` object to the `files` folder such that they can
+            be loaded after the analysis using PyAutoFit's database and aggregator tools.
 
-            For this analysis, it uses the `AnalysisDataset` object's method to output the following:
+            For this analysis, it uses the `AnalysisDataset` object's method to
+            output the following:
 
             - The dataset's data as a .json file.
             - The dataset's noise-map as a .json file.
 
-            These are accessed using the aggregator via `agg.values("data")` and `agg.values("noise_map")`.
+            These are accessed using the aggregator via `agg.values("data")`
+            and `agg.values("noise_map")`.
 
             Parameters
             ----------
             paths
-                The PyAutoFit paths object which manages all paths, e.g. where the non-linear search outputs are stored,
-                visualization, and the pickled objects used by the aggregator output by this function.
+                The PyAutoFit paths object which manages all paths, e.g. where
+                the non-linear search outputs are stored, visualization, and the
+                pickled objects used by the aggregator output by this function.
             """
             # The path where data.json is saved, e.g. output/dataset_name/unique_id/files/data.json
 

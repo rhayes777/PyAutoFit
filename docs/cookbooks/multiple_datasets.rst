@@ -26,20 +26,20 @@ datasets is straight forward. This is because different ``Analysis`` classes can
 
 **Contents:**
 
- - Model-Fit: Setup a model-fit to 3 datasets to illustrate multi-dataset fitting.
- - Analysis Summing: Sum multiple ``Analysis`` classes to create a single ``Analysis`` class that fits all 3 datasets
+- Model-Fit: Setup a model-fit to 3 datasets to illustrate multi-dataset fitting.
+- Analysis Summing: Sum multiple ``Analysis`` classes to create a single ``Analysis`` class that fits all 3 datasets
    simultaneously, including summing their individual log likelihood functions.
- - Result List: Use the output of fits to multiple datasets which are a list of ``Result`` objects.
- - Variable Model Across Datasets: Fit a model where certain parameters vary across the datasets whereas others
+- Result List: Use the output of fits to multiple datasets which are a list of ``Result`` objects.
+- Variable Model Across Datasets: Fit a model where certain parameters vary across the datasets whereas others
    stay fixed.
- - Relational Model: Fit models where certain parameters vary across the dataset as a user
+- Relational Model: Fit models where certain parameters vary across the dataset as a user
    defined relation (e.g. ``y = mx + c``).
- - Different Analysis Classes: Fit multiple datasets where each dataset is fitted by a different ``Analysis`` class,
+- Different Analysis Classes: Fit multiple datasets where each dataset is fitted by a different ``Analysis`` class,
    meaning that datasets with different formats can be fitted simultaneously.
- - Interpolation: Fit multiple datasets with a model one-by-one and interpolation over a smoothly varying parameter
+- Interpolation: Fit multiple datasets with a model one-by-one and interpolation over a smoothly varying parameter
    (e.g. time) to infer the model between datasets.
- - Individual Sequential Searches: Fit multiple datasets where each dataset is fitted one-by-one sequentially.
- - Hierarchical / Graphical Models: Use hierarchical / graphical models to fit multiple datasets simultaneously,
+- Individual Sequential Searches: Fit multiple datasets where each dataset is fitted one-by-one sequentially.
+- Hierarchical / Graphical Models: Use hierarchical / graphical models to fit multiple datasets simultaneously,
    which fit for global trends in the model across the datasets.
 
 Model Fit
@@ -291,9 +291,9 @@ We next compose a model of a 1D Gaussian.
 
 We now update the model using the summed ``Analysis ``objects to compose a model where: 
 
- - The ``centre`` values of the Gaussian fitted to every dataset in every ``Analysis`` object are identical. 
+- The ``centre`` values of the Gaussian fitted to every dataset in every ``Analysis`` object are identical.
 
- - The``normalization`` and ``sigma`` value of the every Gaussian fitted to every dataset in every ``Analysis`` object are different.
+- The``normalization`` and ``sigma`` value of the every Gaussian fitted to every dataset in every ``Analysis`` object are different.
 
 The model has 7 free parameters in total, x1 shared ``centre``, x3 unique ``normalization``'s and x3 unique ``sigma``'s.
 
