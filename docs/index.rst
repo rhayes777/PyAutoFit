@@ -17,7 +17,7 @@ Try it now
 ----------
 
 You can try **PyAutoFit** now by going to the `introduction Jupyter Notebook on our
-Binder <https://mybinder.org/v2/gh/Jammy2211/autofit_workspace/release?filepath=introduction.ipynb>`_, which runs
+Binder <https://mybinder.org/v2/gh/Jammy2211/autofit_workspace/release?filepath=notebooks/overview/overview_1_the_basics.ipynb>`_, which runs
 **PyAutoFit** in a web browser without installation.
 
 Why PyAutoFit?

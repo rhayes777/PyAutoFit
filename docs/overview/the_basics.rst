@@ -57,11 +57,11 @@ A model component is written as a Python class using the following format:
         def __init__(
             self,
             centre=0.0,  # <- PyAutoFit recognises these constructor arguments
-            normalization=0.1,  # <- are the Gaussian``s model parameters.
+            normalization=0.1,  # <- are the Gaussian`s model parameters.
             sigma=0.01,
         ):
             """
-            Represents a 1D ``Gaussian`` profile, which can be treated as a
+            Represents a 1D `Gaussian` profile, which can be treated as a
             PyAutoFit model-component whose free parameters (centre,
             normalization and sigma) are fitted for by a non-linear search.
 
@@ -70,7 +70,7 @@ A model component is written as a Python class using the following format:
             centre
                 The x coordinate of the profile centre.
             normalization
-                Overall normalization of the ``Gaussian`` profile.
+                Overall normalization of the `Gaussian` profile.
             sigma
                 The sigma value controlling the size of the Gaussian.
             """
@@ -85,7 +85,7 @@ A model component is written as a Python class using the following format:
             The input xvalues are translated to a coordinate system centred on the
             Gaussian, by subtracting its centre.
 
-            The output is referred to as the ``model_data`` to signify that it is
+            The output is referred to as the `model_data` to signify that it is
             a representation of the data from the model.
 
             Parameters
@@ -139,11 +139,11 @@ This gives the following output:
 
     Total Free Parameters = 3
 
-    model                                   Gaussian (N=3)
+    model                         Gaussian (N=3)
 
-    centre                                  UniformPrior [1], lower_limit = 0.0, upper_limit = 100.0
-    normalization                           LogUniformPrior [2], lower_limit = 1e-06, upper_limit = 1000000.0
-    sigma                                   UniformPrior [3], lower_limit = 0.0, upper_limit = 25.0
+    centre                        UniformPrior [1], lower_limit = 0.0, upper_limit = 100.0
+    normalization                 LogUniformPrior [2], lower_limit = 1e-06, upper_limit = 1000000.0
+    sigma                         UniformPrior [3], lower_limit = 0.0, upper_limit = 25.0
 
 
 The priors can be manually altered as follows, noting that these updated files will be used below when we fit the
@@ -698,24 +698,25 @@ We update its ``log_likelihood_function`` to use both model components in the ``
     class Analysis(af.Analysis):
         def __init__(self, data: np.ndarray, noise_map: np.ndarray):
             """
-            The ``Analysis`` class acts as an interface between the data and
+            The `Analysis` class acts as an interface between the data and
             model in **PyAutoFit**.
 
-            Its ``log_likelihood_function`` defines how the model is fitted to
+            Its `log_likelihood_function` defines how the model is fitted to
             the data and it is called many times by the non-linear search
             fitting algorithm.
 
-            In this example the ``Analysis`` ``__init__`` constructor only
-            contains the ``data`` and ``noise-map``, but it can be easily
+            In this example the `Analysis` `__init__` constructor only
+            contains the `data` and `noise-map`, but it can be easily
             extended to include other quantities.
 
             Parameters
             ----------
             data
-                A 1D numpy array containing the data (e.g. a noisy 1D signal) fitted in the workspace examples.
+                A 1D numpy array containing the data (e.g. a noisy 1D signal)
+                fitted in the workspace examples.
             noise_map
-                A 1D numpy array containing the noise values of the data, used for computing the goodness of fit
-                metric, the log likelihood.
+                A 1D numpy array containing the noise values of the data,
+                used for computing the goodness of fit metric, the log likelihood.
             """
 
             super().__init__()
@@ -727,21 +728,21 @@ We update its ``log_likelihood_function`` to use both model components in the ``
             """
             Returns the log likelihood of a fit of a 1D Gaussian to the dataset.
 
-            The data is fitted using an ``instance`` of multiple 1D profiles
-            (e.g. a ``Gaussian``, ``Exponential``) where
-            their ``model_data_1d_via_xvalues_from`` methods are called and summed
+            The data is fitted using an `instance` of multiple 1D profiles
+            (e.g. a `Gaussian`, `Exponential`) where
+            their `model_data_1d_via_xvalues_from` methods are called and summed
             in order to create a model data representation that is fitted to the data.
             """
 
             """
-            The ``instance`` that comes into this method is an instance of the
-            ``Gaussian`` and ``Exponential`` models above, which were created
-            via ``af.Collection()``.
+            The `instance` that comes into this method is an instance of the
+            `Gaussian` and `Exponential` models above, which were created
+            via `af.Collection()`.
 
             It contains instances of every class we instantiated it with, where
             each instance is named following the names given to the Collection,
-            which in this example is a ``Gaussian`` (with name ``gaussian) and
-            Exponential (with name ``exponential``).
+            which in this example is a `Gaussian` (with name `gaussian) and
+            Exponential (with name `exponential`).
 
             The parameter values are again chosen by the non-linear search,
             based on where it thinks the high likelihood regions of parameter
@@ -766,11 +767,11 @@ We update its ``log_likelihood_function`` to use both model components in the ``
             xvalues = np.arange(self.data.shape[0])
 
             """
-            Internally, the ``instance`` variable is a list of all model
-            omponents pass to the ``Collection`` above.
+            Internally, the `instance` variable is a list of all model
+            omponents pass to the `Collection` above.
 
             we can therefore iterate over them and use their
-            ``model_data_1d_via_xvalues_from`` methods to create the
+            `model_data_1d_via_xvalues_from` methods to create the
             summed overall model data.
             """
             model_data = sum(
@@ -905,10 +906,10 @@ fit.
 The following cookbooks give a concise API reference for using **PyAutoFit**, and you should use them as you define
 your own model to get a fit going:
 
- - Model Cookbook: https://pyautofit.readthedocs.io/en/latest/cookbooks/model.html
- - Searches Cookbook: https://pyautofit.readthedocs.io/en/latest/cookbooks/analysis.html
- - Analysis Cookbook: https://pyautofit.readthedocs.io/en/latest/cookbooks/search.html
- - Results Cookbook: https://pyautofit.readthedocs.io/en/latest/cookbooks/result.html
+- Model Cookbook: https://pyautofit.readthedocs.io/en/latest/cookbooks/model.html
+- Searches Cookbook: https://pyautofit.readthedocs.io/en/latest/cookbooks/analysis.html
+- Analysis Cookbook: https://pyautofit.readthedocs.io/en/latest/cookbooks/search.html
+- Results Cookbook: https://pyautofit.readthedocs.io/en/latest/cookbooks/result.html
 
 There are additioal cookbooks which explain advanced PyAutoFit functionality
 which you should look into after you have a good understanding of the basics.
