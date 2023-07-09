@@ -1,4 +1,4 @@
-.. _model_fit:
+.. _the_basics:
 
 The Basics
 ==========

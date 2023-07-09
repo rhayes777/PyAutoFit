@@ -34,7 +34,7 @@ Users can then set up **PyAutoFit** scientific workflow, which enables streamlin
 datasets with tools to scale up to large datasets.
 
 **PyAutoFit** supports advanced statistical methods, most
-notably `a big data framework for Bayesian hierarchical analysis <https://pyautofit.readthedocs.io/en/latest/features/graphical.html>`_, `model-fit chaining <https://pyautofit.readthedocs.io/en/latest/features/search_chaining.html>`_, `sensitivity mapping <https://pyautofit.readthedocs.io/en/latest/features/sensitivity_mapping.html>`_ and `massively parallel model-fits <https://pyautofit.readthedocs.io/en/latest/features/search_grid_search.html>`_ .
+notably `a big data framework for Bayesian hierarchical analysis <https://pyautofit.readthedocs.io/en/latest/features/graphical.html>`_.
 
 Getting Started
 ---------------

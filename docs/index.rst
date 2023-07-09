@@ -1,52 +1,58 @@
-Probabilistic Programming
-=========================
+PyAutoFit
+=========
 
-Probabilistic programming languages provide a framework that allows users to easily specify a probabilistic
-model and perform inference automatically. PyAutoFit is a Python based probabilistic programming language for the
-fully Bayesian analysis of extremely large datasets which:
+**PyAutoFit** is a Python based probabilistic programming language for model fitting and Bayesian inference
+of large datasets.
 
-- Makes it simple to compose and fit multi-level models using a range of Bayesian inference libraries, such as `emcee <https://github.com/dfm/emcee>`_ and `dynesty <https://github.com/joshspeagle/dynesty>`_.
+The basic **PyAutoFit** API allows us a user to quickly compose a probabilistic model and fit it to data via a
+log likelihood function, using a range of non-linear search algorithms (e.g. MCMC, nested sampling).
 
-- Handles the 'heavy lifting' that comes with model-fitting, including model composition & customization, outputting results, visualization and parameter inference.
+Users can then set up **PyAutoFit** scientific workflow, which enables streamlined modeling of small
+datasets with tools to scale up to large datasets.
 
-- Is built for *big-data* analysis, whereby results are output as a sqlite database which can be queried after model-fitting is complete.
+**PyAutoFit** supports advanced statistical methods, most
+notably `a big data framework for Bayesian hierarchical analysis <https://pyautofit.readthedocs.io/en/latest/features/graphical.html>`_.
 
-**PyAutoFit** supports advanced statistical methods such as `massively parallel non-linear search grid-searches <https://pyautofit.readthedocs.io/en/latest/features/search_grid_search.html>`_, `chaining together model-fits <https://pyautofit.readthedocs.io/en/latest/features/search_chaining.html>`_  and `sensitivity mapping <https://pyautofit.readthedocs.io/en/latest/features/sensitivity_mapping.html>`_.
+Getting Started
+---------------
 
-Try it now
-----------
+The following links are useful for new starters:
 
-You can try **PyAutoFit** now by going to the `introduction Jupyter Notebook on our
-Binder <https://mybinder.org/v2/gh/Jammy2211/autofit_workspace/release?filepath=notebooks/overview/overview_1_the_basics.ipynb>`_, which runs
-**PyAutoFit** in a web browser without installation.
+- `The PyAutoFit readthedocs <https://pyautofit.readthedocs.io/en/latest>`_, which includes an `installation guide <https://pyautofit.readthedocs.io/en/latest/installation/overview.html>`_ and an overview of **PyAutoFit**'s core features.
 
-Why PyAutoFit?
---------------
+- `The introduction Jupyter Notebook on Binder <https://mybinder.org/v2/gh/Jammy2211/autofit_workspace/release?filepath=notebooks/overview/overview_1_the_basics.ipynb>`_, where you can try **PyAutoFit** in a web browser (without installation).
 
-**PyAutoFit** is developed by Astronomers for fitting large imaging datasets of galaxies. We found that existing
-probabilistic programming languages (e.g `PyMC3 <https://github.com/pymc-devs/pymc3>`_, `Pyro <https://github.com/pyro-ppl/pyro>`_,
-`STAN <https://github.com/stan-dev/stan>`_) were not suited to the type of model fitting problems Astronomers faced,
-for example:
+- `The autofit_workspace GitHub repository <https://github.com/Jammy2211/autofit_workspace>`_, which includes example scripts and the `HowToFit Jupyter notebook lectures <https://github.com/Jammy2211/autofit_workspace/tree/master/notebooks/howtofit>`_ which give new users a step-by-step introduction to **PyAutoFit**.
 
-- Fitting large and homogenous datasets with an identical model fitting procedure, with tools for processing the large libraries of results output.
+Support
+-------
 
-- Problems where likelihood evaluations are expensive, leading to run times of days per fit and necessitating support for massively parallel computing.
+Support for installation issues, help with Fit modeling and using **PyAutoFit** is available by
+`raising an issue on the GitHub issues page <https://github.com/rhayes777/PyAutoFit/issues>`_.
 
-- Fitting many different models to the same dataset with tools that streamline model comparison.
+We also offer support on the **PyAutoFit** `Slack channel <https://pyautoFit.slack.com/>`_, where we also provide the
+latest updates on **PyAutoFit**. Slack is invitation-only, so if you'd like to join send
+an `email <https://github.com/Jammy2211>`_ requesting an invite.
 
-How does PyAutoFit Work?
-========================
+HowToFit
+--------
 
-To illustrate the **PyAutoFit** API, we'll use an illustrative toy model of fitting a one-dimensional Gaussian to
+For users less familiar with Bayesian inference and scientific analysis you may wish to read through
+the **HowToFits** lectures. These teach you the basic principles of Bayesian inference, with the
+content pitched at undergraduate level and above.
+
+A complete overview of the lectures `is provided on the HowToFit readthedocs page <https://pyautofit.readthedocs.io/en/latest/howtofit/howtofit.htmll>`_
+
+API Overview
+------------
+
+To illustrate the **PyAutoFit** API, we use an illustrative toy model of fitting a one-dimensional Gaussian to
 noisy 1D data. Here's the ``data`` (black) and the model (red) we'll fit:
 
 .. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/master/files/toy_model_fit.png
   :width: 400
 
-Model components are written as Python classes, allowing **PyAutoFit** to define the *model* and
-associated *parameters* in an expressive way that is tied to the modeling software's API.
-
-Here is a simple example of how a *model* representing a 1D Gaussian is written:
+We define our model, a 1D Gaussian by writing a Python class using the format below:
 
 .. code-block:: python
 
@@ -54,9 +60,9 @@ Here is a simple example of how a *model* representing a 1D Gaussian is written:
 
         def __init__(
             self,
-            centre=0.0,     # <- PyAutoFit recognises these
-            normalization=0.1,  # <- constructor arguments are
-            sigma=0.01,     # <- the Gaussian's parameters.
+            centre=0.0,        # <- PyAutoFit recognises these
+            normalization=0.1, # <- constructor arguments are
+            sigma=0.01,        # <- the Gaussian's parameters.
         ):
             self.centre = centre
             self.normalization = normalization
@@ -65,7 +71,7 @@ Here is a simple example of how a *model* representing a 1D Gaussian is written:
         """
         An instance of the Gaussian class will be available during model fitting.
 
-        This method will be used to fit the model to ``data`` and compute a likelihood.
+        This method will be used to fit the model to data and compute a likelihood.
         """
 
         def model_data_1d_via_xvalues_from(self, xvalues):
@@ -73,10 +79,13 @@ Here is a simple example of how a *model* representing a 1D Gaussian is written:
             transformed_xvalues = xvalues - self.centre
 
             return (self.normalization / (self.sigma * (2.0 * np.pi) ** 0.5)) * \
-                    np.exp(-0.5 * transformed_xvalues / self.sigma)
+                    np.exp(-0.5 * (transformed_xvalues / self.sigma) ** 2.0)
 
-A model-fit requires that a **PyAutoFit** ``Analysis`` class is written, which combines the data and model via
-likelihood function:
+**PyAutoFit** recognises that this Gaussian may be treated as a model component whose parameters can be fitted for via
+a non-linear search like `emcee <https://github.com/dfm/emcee>`_.
+
+To fit this Gaussian to the ``data`` we create an Analysis object, which gives **PyAutoFit** the ``data`` and a
+``log_likelihood_function`` describing how to fit the ``data`` with the model:
 
 .. code-block:: python
 
@@ -91,7 +100,7 @@ likelihood function:
 
             """
             The 'instance' that comes into this method is an instance of the Gaussian class
-            above, with the *parameters* set to values chosen by the non-linear search.
+            above, with the parameters set to values chosen by the non-linear search.
             """
 
             print("Gaussian Instance:")
@@ -106,18 +115,14 @@ likelihood function:
 
             xvalues = np.arange(self.data.shape[0])
 
-            model_data_1d = instance.model_data_1d_via_xvalues_from(xvalues=xvalues)
-            residual_map = self.data - model_data_1d
+            model_data = instance.model_data_1d_via_xvalues_from(xvalues=xvalues)
+            residual_map = self.data - model_data
             chi_squared_map = (residual_map / self.noise_map) ** 2.0
             log_likelihood = -0.5 * sum(chi_squared_map)
 
             return log_likelihood
 
-The ``Analysis`` class provides a model specific interface between **PyAutoFit** and the modeling software, allowing
-it to handle the 'heavy lifting' that comes with writing *model-fitting* software. This includes interfacing with the
-non-linear search, model-specific visualization during and outputting results to a queryable sqlite database.
-
-Performing a fit with a non-linear search, for example ``emcee``, is performed as follows:
+We can now fit our model to the ``data`` using a non-linear search:
 
 .. code-block:: python
 
@@ -125,38 +130,12 @@ Performing a fit with a non-linear search, for example ``emcee``, is performed a
 
     analysis = Analysis(data=data, noise_map=noise_map)
 
-    search = af.Emcee(name="example_search", nwalkers=50, nsteps=2000)
+    emcee = af.Emcee(nwalkers=50, nsteps=2000)
 
-    result = search.fit(model=model, analysis=analysis)
+    result = emcee.fit(model=model, analysis=analysis)
 
 The ``result`` contains information on the model-fit, for example the parameter samples, maximum log likelihood
 model and marginalized probability density functions.
-
-Model Abstraction and Composition
-=================================
-
-For many model fitting problems the model comprises abstract *model components* representing objects or processes in a
-physical system. For example, our child project `PyAutoLens <https://github.com/Jammy2211/PyAutoLens>`_,  where
-*model components* represent the light and mass of galaxies. For these problems the likelihood function is typically a
-sequence of numerical processes (e.g. convolutions, Fourier transforms, linear algebra) and extensions to the *model* 
-often requires the addition of new *model components* in a way that is non-trivially included in the fitting process
-and likelihood function. Existing PPLs have tools for these problems, however they decouple *model composition* from the
-data and fitting procedure, making the *model* less expressive, restricting *model customization* and reducing
-flexibility in how the *model-fit* is performed.
-
-By writing *model components* as ``Python`` classes, the *model* and its associated *parameters* are defined in an
-expressive way that is tied to the modeling software’s API. *Model composition* with **PyAutoFit** allows complex
-*models* to be built from these individual components, abstracting the details of how they change *model-fitting*
-procedure from the user. *Models* can be fully customized, allowing adjustment of individual parameter priors, the
-fixing or coupling of parameters between *model components* and removing regions of parameter space via parameter
-assertions. Adding new *model components* to a **PyAutoFit** project is straightforward, whereby adding a new
-``Python`` class means it works within the entire modeling framework. **PyAutoFit** is therefore ideal for
-problems where there is a desire to *compose*, *fit* and *compare* many similar (but slightly different) models to a
-single dataset, with **Database** tools available to facilitate this.
-
-The `overview section <https://pyautofit.readthedocs.io/en/latest/overview/model_fit.html>`_ gives a run-down of
-**PyAutoFit**'s core features and the `HowToFit lecture series <https://pyautofit.readthedocs.io/en/latest/howtofit/howtofit.html>`_
-provides new users with a more detailed introduction to **PyAutoFit**.
 
 .. toctree::
    :caption: Overview:
@@ -164,6 +143,7 @@ provides new users with a more detailed introduction to **PyAutoFit**.
    :hidden:
 
    overview/the_basics
+   overvie/scientific_workflow
 
 .. toctree::
    :caption: Cookbooks:
