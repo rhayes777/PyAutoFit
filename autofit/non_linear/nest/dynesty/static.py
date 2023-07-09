@@ -151,7 +151,7 @@ class DynestyStatic(AbstractDynesty):
                 self.write_uses_pool(uses_pool=True)
 
                 return StaticSampler(
-                    loglikelihood=pool.loglike,
+                    loglikelihood=pool.fitness,
                     prior_transform=pool.prior_transform,
                     ndim=model.prior_count,
                     live_points=live_points,

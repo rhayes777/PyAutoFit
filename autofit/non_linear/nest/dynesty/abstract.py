@@ -173,7 +173,7 @@ class AbstractDynesty(AbstractNest, ABC):
 
                     sampler = self.sampler_from(
                         model=model,
-                        fitness_function=fitness_function,
+                        fitness_function=self.fitness,
                         checkpoint_exists=checkpoint_exists,
                         pool=pool,
                         queue_size=self.number_of_cores,

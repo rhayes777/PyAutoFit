@@ -145,7 +145,7 @@ class DynestyDynamic(AbstractDynesty):
                 self.write_uses_pool(uses_pool=True)
 
                 return DynamicNestedSampler(
-                    loglikelihood=pool.loglike,
+                    loglikelihood=pool.fitness,
                     prior_transform=pool.prior_transform,
                     ndim=model.prior_count,
                     queue_size=queue_size,
