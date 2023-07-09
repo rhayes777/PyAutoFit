@@ -29,23 +29,16 @@ must be suitable for this environment.
 **PyAutoFit** enables the development of effective scientific workflows for both small and large datasets, thanks
 to the following features:
 
-- **On The Fly Feedback**: The results of a model-fit are shown to the user on-the-fly in Jupiter notebooks, providing
-  quick feedback allowing them adapt their scientific workflow accordingly.
+- **On The Fly Feedback**: The results of a model-fit are shown to the user on-the-fly in Jupiter notebooks, providing quick feedback allowing them adapt their scientific workflow accordingly.
 
-- **Hard-disk Output**: All results of an analysis can output to hard-disk with high levels of customization, ensuring
-  that quick inspection of results ~100s of datasets is feasible.
+- **Hard-disk Output**: All results of an analysis can output to hard-disk with high levels of customization, ensuring that quick inspection of results ~100s of datasets is feasible.
 
-- **Visualization**: Results output includes model specific visualization, allowing the user to produce custom
-  plots that further streamline result inspection.
+- **Visualization**: Results output includes model specific visualization, allowing the user to produce custom plots that further streamline result inspection.
 
-- **Model Composition**: The API for model composition is extensible, meaning a user can easily experiment with
- different model assumptions and priors, as well as comparing many different models.
+- **Model Composition**: The API for model composition is extensible, meaning a user can easily experiment with different model assumptions and priors, as well as comparing many different models.
 
-- **Searches**: Support for a wide variety of non-linear searches (nested sampling, MCMC etc.) means a user can find
-  the fitting algorithm that is optimal for their model and dataset.
+- **Searches**: Support for a wide variety of non-linear searches (nested sampling, MCMC etc.) means a user can find the fitting algorithm that is optimal for their model and dataset.
 
-- **Multiple Datasets**: Dedicated support for simultaneously fitting multiple datasets simultaneously means a user
-  can easily combine different datasets in their analysis in order to fit more complex models.
+- **Multiple Datasets**: Dedicated support for simultaneously fitting multiple datasets simultaneously means a user can easily combine different datasets in their analysis in order to fit more complex models.
 
-- **Database**: The results of a model-fit can be output to a relational sqlite3 database, meaning that once you are
-  ready to scale up to large datasets you can easily do so.
+- **Database**: The results of a model-fit can be output to a relational sqlite3 database, meaning that once you are ready to scale up to large datasets you can easily do so.
