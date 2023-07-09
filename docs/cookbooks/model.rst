@@ -8,39 +8,38 @@ ultimate fitted to a dataset via a non-linear search.
 
 This cookbook provides an overview of basic model composition tools.
 
-**Content:s**
+**Contents:**
 
 If first describes how to use the ``af.Model`` object to define models with a single model component from single
 Python classes, with the following sections:
 
- - Python Class Template: The template of a model component written as a Python class.
- - Model Composition (Model): Creating a model via ``af.Model()``.
- - Priors (Model): How the default priors of a model are set and how to customize them.
- - Instances (Model): Creating an instance of a model via input parameters.
- - Model Customization (Model): Customizing a model (e.g. fixing parameters or linking them to one another).
- - Json Output (Model): Output a model in human readable text via a .json file and loading it back again.
+- Python Class Template: The template of a model component written as a Python class.
+- Model Composition (Model): Creating a model via ``af.Model()``.
+- Priors (Model): How the default priors of a model are set and how to customize them.
+- Instances (Model): Creating an instance of a model via input parameters.
+- Model Customization (Model): Customizing a model (e.g. fixing parameters or linking them to one another).
+- Json Output (Model): Output a model in human readable text via a .json file and loading it back again.
 
 It then describes how to use the ``af.Collection`` object to define models with many model components from multiple
 Python classes, with the following sections:
 
- - Model Composition (Collection): Creating a model via ``af.Collection()``.
- - Priors (Collection): How the default priors of a collection are set and how to customize them.
- - Instances (Collection): Create an instance of a collection via input parameters.
- - Model Customization (Collection): Customize a collection (e.g. fixing parameters or linking them to one another).
- - Json Output (Collection): Output a collection in human readable text via a .json file and loading it back again.
- - Extensible Models (Collection): Using collections to extend models with new model components, including the use
-   of Python dictionaries and lists.
+- Model Composition (Collection): Creating a model via ``af.Collection()``.
+- Priors (Collection): How the default priors of a collection are set and how to customize them.
+- Instances (Collection): Create an instance of a collection via input parameters.
+- Model Customization (Collection): Customize a collection (e.g. fixing parameters or linking them to one another).
+- Json Output (Collection): Output a collection in human readable text via a .json file and loading it back again.
+- Extensible Models (Collection): Using collections to extend models with new model components, including the use of Python dictionaries and lists.
 
 Python Class Template
 ---------------------
 
 A model component is written as a Python class using the following format:
 
- - The name of the class is the name of the model component, in this case, “Gaussian”.
+- The name of the class is the name of the model component, in this case, “Gaussian”.
 
- - The input arguments of the constructor are the parameters of the mode (here ``centre``, ``normalization`` and ``sigma``).
+- The input arguments of the constructor are the parameters of the mode (here ``centre``, ``normalization`` and ``sigma``).
 
- - The default values of the input arguments tell PyAutoFit whether a parameter is a single-valued float or a
+- The default values of the input arguments tell PyAutoFit whether a parameter is a single-valued float or a
  multi-valued tuple.
 
 We define a 1D Gaussian model component to illustrate model composition in PyAutoFit.
@@ -167,7 +166,7 @@ The inputs of 0.5 below are mapped as follows:
 
 - ``normalization`` goes to 1.0 because this is the midpoint of the ``LogUniformPrior``' with ``lower_limit=1e-4`` and ``upper_limit=1e4``, corresponding to log10 space.
 
- - ``sigma``: goes to 0.0 because this is the ``mean`` of the ``GaussianPrior``.
+- ``sigma``: goes to 0.0 because this is the ``mean`` of the ``GaussianPrior``.
 
 .. code-block:: python
 
@@ -738,7 +737,7 @@ This gives the following output:
 
 A model can be created via ``af.Collection()`` where a dictionary of ``af.Model()`` objects are passed to it.
 
-The two models created below are identical - one uses the API detailed above whereas the second uses a dictionary.
+The two models created below are identical- one uses the API detailed above whereas the second uses a dictionary.
 
 .. code-block:: python
 
