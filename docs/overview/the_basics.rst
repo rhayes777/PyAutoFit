@@ -17,7 +17,7 @@ Example
 
 The example ``data`` with errors (black) and the model-fit (red), are shown below:
 
-.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/main/docs/images/toy_model_fit.png
+.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/main/docs/images/data.png
   :width: 600
   :alt: Alternative text
 
@@ -46,11 +46,9 @@ A model component is written as a Python class using the following format:
 
 - The name of the class is the name of the model component, in this case, "Gaussian".
 
-- The input arguments of the constructor (the ``__init__`` method) are the parameters of the model, in this case
- ``centre``, ``normalization`` and ``sigma``.
+- The input arguments of the constructor (the ``__init__`` method) are the parameters of the model, in this case ``centre``, ``normalization`` and ``sigma``.
   
-- The default values of the input arguments define whether a parameter is a single-valued ``float`` or a 
-  multi-valued ``tuple``. In this case, all 3 input parameters are floats.
+- The default values of the input arguments define whether a parameter is a single-valued ``float`` or a multi-valued ``tuple``. In this case, all 3 input parameters are floats.
   
 - It includes functions associated with that model component, which will be used when fitting the model to data.
 
@@ -114,6 +112,12 @@ This gives the following output:
 
 .. code-block:: bash
 
+    Model `Gaussian` object:
+
+    Gaussian (centre, UniformPrior [1], lower_limit = 0.0, upper_limit = 100.0),
+    (normalization, LogUniformPrior [2], lower_limit = 1e-06, upper_limit = 1000000.0),
+    (sigma, UniformPrior [3], lower_limit = 0.0, upper_limit = 25.0)
+
 The model has a total of 3 parameters:
 
 .. code-block:: python
@@ -131,6 +135,15 @@ This shows that each model parameter has an associated prior.
 This gives the following output:
 
 .. code-block:: bash
+
+    Total Free Parameters = 3
+
+    model                                   Gaussian (N=3)
+
+    centre                                  UniformPrior [1], lower_limit = 0.0, upper_limit = 100.0
+    normalization                           LogUniformPrior [2], lower_limit = 1e-06, upper_limit = 1000000.0
+    sigma                                   UniformPrior [3], lower_limit = 0.0, upper_limit = 25.0
+
 
 The priors can be manually altered as follows, noting that these updated files will be used below when we fit the
 model to data.
@@ -152,6 +165,14 @@ This gives the following output:
 
 .. code-block:: bash
 
+    Total Free Parameters = 3
+
+    model                                   Gaussian (N=3)
+
+    centre                                  UniformPrior [4], lower_limit = 0.0, upper_limit = 100.0
+    normalization                           UniformPrior [5], lower_limit = 0.0, upper_limit = 100.0
+    sigma                                   UniformPrior [6], lower_limit = 0.0, upper_limit = 30.0
+
 Instances
 ---------
 
@@ -169,6 +190,7 @@ This gives the following output:
 
 .. code-block:: bash
 
+    [('centre',), ('normalization',), ('sigma',)]
 
 We input values for the 3 free parameters of our model following the order of paths above:
  
@@ -193,6 +215,9 @@ This gives the following output:
 
 .. code-block:: bash
 
+    Model Instance:
+
+    <__main__.Gaussian object at 0x7f3e37cb1990>
 
 It has the parameters of the ``Gaussian`` with the values input above.
 
@@ -207,6 +232,11 @@ This gives the following output:
 
 .. code-block:: bash
 
+    Instance Parameters
+
+    x =  30.0
+    normalization =  2.0
+    sigma =  3.0
 
 We can use functions associated with the class, specifically the ``model_data_1d_via_xvalues_from`` function, to 
 create a realization of the ``Gaussian`` and plot it.
@@ -226,6 +256,9 @@ create a realization of the ``Gaussian`` and plot it.
 
 Here is what the plot looks like:
 
+.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/main/docs/images/model_gaussian.png
+  :width: 600
+  :alt: Alternative text
 
 This "model mapping", whereby models map to an instances of their Python classes, is integral to the core **PyAutoFit**
 API for model composition and fitting.
@@ -370,6 +403,35 @@ The ``info`` attribute shows the result in a readable format.
 
     print(result.info)
 
+The output is as follows:
+
+.. code-block:: bash
+
+    Bayesian Evidence                       167.54413502
+    Maximum Log Likelihood                  183.29775793
+    Maximum Log Posterior                   183.29775793
+
+    model                                   Gaussian (N=3)
+
+    Maximum Log Likelihood Model:
+
+    centre                                  49.880
+    normalization                           24.802
+    sigma                                   9.849
+
+
+    Summary (3.0 sigma limits):
+
+    centre                                  49.88 (49.51, 50.29)
+    normalization                           24.80 (23.98, 25.67)
+    sigma                                   9.84 (9.47, 10.25)
+
+
+    Summary (1.0 sigma limits):
+
+    centre                                  49.88 (49.75, 50.01)
+    normalization                           24.80 (24.54, 25.11)
+    sigma                                   9.84 (9.73, 9.97)
 
 Results are returned as instances of the model, as we illustrated above in the model mapping section.
 
@@ -379,7 +441,7 @@ For example, we can print the result's maximum likelihood instance.
 
     print(result.max_log_likelihood_instance)
 
-    print("\n Model-fit Max Log-likelihood Parameter Estimates: \n")
+    print("\nModel-fit Max Log-likelihood Parameter Estimates: \n")
     print("Centre = ", result.max_log_likelihood_instance.centre)
     print("Normalization = ", result.max_log_likelihood_instance.normalization)
     print("Sigma = ", result.max_log_likelihood_instance.sigma)
@@ -387,6 +449,12 @@ For example, we can print the result's maximum likelihood instance.
 This gives the following output:
 
 .. code-block:: bash
+
+    Model-fit Max Log-likelihood Parameter Estimates:
+
+    Centre =  49.87954357347897
+    Normalization =  24.80227227310798
+    Sigma =  9.84888033338011
 
 A benefit of the result being an instance is that we can use any of its methods to inspect the results.
 
@@ -410,6 +478,10 @@ Below, we use the maximum likelihood instance to compare the maximum likelihood 
 
 The plot appears as follows:
 
+.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/main/docs/images/toy_model_fit.png
+  :width: 600
+  :alt: Alternative text
+
 Samples
 -------
 
@@ -426,11 +498,16 @@ cornerplot of the results.
     search_plotter = aplt.DynestyPlotter(samples=result.samples)
     search_plotter.cornerplot()
 
+The plot appears as follows:
+
+.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/main/docs/images/cornerplot.png
+  :width: 600
+  :alt: Alternative text
 
 Extending Models
 ----------------
 
-The model composition API is designed to  make composing complex models, consisting of multiple components with many 
+The model composition API is designed to make composing complex models, consisting of multiple components with many
 free parameters, straightforward and scalable.
 
 To illustrate this, we will extend our model to include a second component, representing a symmetric 1D Exponential
@@ -453,6 +530,10 @@ Lets begin by loading and plotting this data.
     plt.close()
 
 The data appear as follows:
+
+.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/main/docs/images/data_2.png
+  :width: 600
+  :alt: Alternative text
 
 We define a Python class for the ``Exponential`` model component, exactly as we did for the ``Gaussian`` above.
 
@@ -524,6 +605,15 @@ The output is as follows:
 
 .. code-block:: bash
 
+    [
+        ('gaussian', 'centre'),
+        ('gaussian', 'normalization'),
+        ('gaussian', 'sigma'),
+        ('exponential', 'centre'),
+        ('exponential', 'normalization'),
+        ('exponential', 'rate')
+    ]
+
 We can use the paths to customize the priors of each parameter.
 
 .. code-block:: python
@@ -544,6 +634,21 @@ All of the information about the model created via the collection can be printed
 The output appears as follows:
 
 .. code-block:: bash
+
+    Total Free Parameters = 6
+    model                                       Collection (N=6)
+            gaussian                            Gaussian (N=3)
+            exponential                         Exponential (N=3)
+        
+        gaussian
+            centre                              UniformPrior [13], lower_limit = 0.0, upper_limit = 100.0
+            normalization                       UniformPrior [14], lower_limit = 0.0, upper_limit = 100.0
+            sigma                               UniformPrior [15], lower_limit = 0.0, upper_limit = 30.0
+        exponential
+            centre                              UniformPrior [16], lower_limit = 0.0, upper_limit = 100.0
+            normalization                       UniformPrior [17], lower_limit = 0.0, upper_limit = 100.0
+            rate                                UniformPrior [18], lower_limit = 0.0, upper_limit = 10.0
+    
 
 A model instance can again be created by mapping an input ``vector``, which now has 6 entries.
 
@@ -686,6 +791,49 @@ The output appears as follows:
 
 .. code-block:: bash
 
+    Bayesian Evidence                       144.86032973
+    Maximum Log Likelihood                  181.14287034
+    Maximum Log Posterior                   181.14287034
+
+    model                                   Collection (N=6)
+        gaussian                            Gaussian (N=3)
+        exponential                         Exponential (N=3)
+
+    Maximum Log Likelihood Model:
+
+    gaussian
+        centre                              50.223
+        normalization                       26.108
+        sigma                               9.710
+    exponential
+        centre                              50.057
+        normalization                       39.948
+        rate                                0.048
+
+
+    Summary (3.0 sigma limits):
+
+    gaussian
+        centre                              50.27 (49.63, 50.88)
+        normalization                       26.22 (21.37, 32.41)
+        sigma                               9.75 (9.25, 10.27)
+    exponential
+        centre                              50.04 (49.60, 50.50)
+        normalization                       40.06 (37.60, 42.38)
+        rate                                0.05 (0.04, 0.05)
+
+
+    Summary (1.0 sigma limits):
+
+    gaussian
+        centre                              50.27 (50.08, 50.49)
+        normalization                       26.22 (24.33, 28.39)
+        sigma                               9.75 (9.60, 9.90)
+    exponential
+        centre                              50.04 (49.90, 50.18)
+        normalization                       40.06 (39.20, 40.88)
+        rate                                0.05 (0.05, 0.05)
+
 We can again use the max log likelihood instance to visualize the model data of the best fit model compared to the
 data.
 
@@ -715,6 +863,10 @@ data.
 
 The plot appears as follows:
 
+.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/main/docs/images/toy_model_fit.png
+  :width: 600
+  :alt: Alternative text
+
 Cookbooks
 ----------
 
@@ -727,10 +879,13 @@ fit.
 The following cookbooks give a concise API reference for using **PyAutoFit**, and you should use them as you define
 your own model to get a fit going:
 
- - Model Cookbook:
- - Searches Cookbook:
- - Analysis Cookbook:
- - Results Cookbook:
+ - Model Cookbook: https://pyautofit.readthedocs.io/en/latest/cookbooks/model.html
+ - Searches Cookbook: https://pyautofit.readthedocs.io/en/latest/cookbooks/analysis.html
+ - Analysis Cookbook: https://pyautofit.readthedocs.io/en/latest/cookbooks/search.html
+ - Results Cookbook: https://pyautofit.readthedocs.io/en/latest/cookbooks/result.html
+
+There are additioal cookbooks which explain advanced PyAutoFit functionality
+which you should look into after you have a good understanding of the basics.
 
 The next overview describes how to set up a scientific workflow, where many other tasks required to perform detailed but
 scalable model-fitting can be delegated to **PyAutoFit**. 
