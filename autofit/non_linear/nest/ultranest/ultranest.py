@@ -1,6 +1,6 @@
 import copy
 from os import path
-import os
+import pickle
 from typing import Optional
 
 from autofit.database.sqlalchemy_ import sa
@@ -13,7 +13,7 @@ from autofit.non_linear.nest.abstract_nest import AbstractNest
 from autofit.non_linear.nest.ultranest.samples import SamplesUltraNest
 from autofit.plot import UltraNestPlotter
 from autofit.plot.output import Output
-
+from autofit.tools.util import open_
 
 class UltraNest(abstract_nest.AbstractNest):
     __identifier_fields__ = (
@@ -142,10 +142,12 @@ class UltraNest(abstract_nest.AbstractNest):
     class Fitness(AbstractNest.Fitness):
         @property
         def resample_figure_of_merit(self):
-            """If a sample raises a FitException, this value is returned to signify that the point requires resampling or
-             should be given a likelihood so low that it is discard.
+            """
+            If a sample raises a FitException, this value is returned to signify that the point requires resampling or
+            should be given a likelihood so low that it is discard.
 
-             -np.inf is an invalid sample value for Dynesty, so we instead use a large negative number."""
+            -np.inf is an invalid sample value for Dynesty, so we instead use a large negative number.
+            """
             return -1.0e99
 
     def _fit(self, model: AbstractPriorModel, analysis, log_likelihood_cap=None):
@@ -230,10 +232,7 @@ class UltraNest(abstract_nest.AbstractNest):
                     **config_dict_run
                 )
 
-            self.paths.save_object(
-                "results",
-                sampler.results
-            )
+            self.save_results_internal(results_internal=sampler.results)
 
             self.perform_update(model=model, analysis=analysis, during_analysis=True)
 
@@ -245,7 +244,27 @@ class UltraNest(abstract_nest.AbstractNest):
             ):
                 finished = True
 
-    def samples_from(self, model: AbstractPriorModel):
+    def save_results_internal(self, results_internal):
+        """
+        Save the internal representation of the results as a pickle file.
+
+        The results in this representation are required to use in built tools for visualization, analysing
+        samples and other tasks.
+
+        Parameters
+        ----------
+        results_internal
+            The results of the sampler in its internal representation.
+        """
+
+        with open_(path.join(self.paths.search_internal_path, "results_internal.pickle"), "wb") as f:
+            pickle.dump(results_internal, f)
+
+    def load_results_internal(self):
+        with open_(path.join(self.paths.search_internal_path, "results_internal.pickle"), "rb") as f:
+            return pickle.load(f)
+
+    def samples_via_internal_from(self, model: AbstractPriorModel):
         """
         Create a `Samples` object from this non-linear search's output files on the hard-disk and model.
 
@@ -263,18 +282,7 @@ class UltraNest(abstract_nest.AbstractNest):
             cube values to physical values via the priors.
         """
 
-        try:
-
-            results_internal = self.paths.load_object(
-                "results"
-            )
-
-        except FileNotFoundError:
-
-            samples = self.paths.load_object(
-                "search_internal"
-            )
-            results_internal = samples.results
+        results_internal = self.load_results_internal()
 
         return SamplesUltraNest.from_results_internal(
             results_internal=results_internal,
@@ -283,6 +291,9 @@ class UltraNest(abstract_nest.AbstractNest):
             unconverged_sample_size=1,
             time=self.timer.time,
         )
+
+    def samples_via_csv_from(self, model):
+        return SamplesUltraNest.from_csv(paths=self.paths, model=model)
 
     def plot_results(self, samples):
 

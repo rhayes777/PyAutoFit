@@ -21,54 +21,55 @@ PyAutoFit: Classy Probabilistic Programming
 
 `Installation Guide <https://pyautofit.readthedocs.io/en/latest/installation/overview.html>`_ |
 `readthedocs <https://pyautofit.readthedocs.io/en/latest/index.html>`_ |
-`Introduction on Binder <https://mybinder.org/v2/gh/Jammy2211/autofit_workspace/release?filepath=introduction.ipynb>`_ |
+`Introduction on Binder <https://mybinder.org/v2/gh/Jammy2211/autofit_workspace/release?filepath=notebooks/overview/overview_1_the_basics.ipynb>`_ |
 `HowToFit <https://pyautofit.readthedocs.io/en/latest/howtofit/howtofit.html>`_
 
+**PyAutoFit** is a Python based probabilistic programming language for model fitting and Bayesian inference
+of large datasets.
 
-..
-   _ One day make these BOLD with a colon like my fellowsahip proposa,s where the first is Model Composition & Fitting: Tools for composing a complex model and fitting it with dynesty...
+The basic **PyAutoFit** API allows us a user to quickly compose a probabilistic model and fit it to data via a
+log likelihood function, using a range of non-linear search algorithms (e.g. MCMC, nested sampling).
 
-PyAutoFit is a Python based probabilistic programming language for the fully Bayesian analysis of extremely large
-datasets which:
+Users can then set up **PyAutoFit** scientific workflow, which enables streamlined modeling of small
+datasets with tools to scale up to large datasets.
 
-- Makes it simple to compose and fit multi-level models using a range of Bayesian inference libraries, such as `emcee <https://github.com/dfm/emcee>`_ and `dynesty <https://github.com/joshspeagle/dynesty>`_.
-
-- Handles the 'heavy lifting' that comes with model-fitting, including model composition & customization, outputting results, model-specific visualization and posterior analysis.
-
-- Is built for *big-data* analysis, whereby results are output as a sqlite database which can be queried after model-fitting is complete.
-
-**PyAutoFit** supports advanced statistical methods such as `graphical and hierarchical models <https://pyautofit.readthedocs.io/en/latest/features/graphical.html>`_, `model-fit chaining <https://pyautofit.readthedocs.io/en/latest/features/search_chaining.html>`_, `sensitivity mapping <https://pyautofit.readthedocs.io/en/latest/features/sensitivity_mapping.html>`_ and `massively parallel model-fits <https://pyautofit.readthedocs.io/en/latest/features/search_grid_search.html>`_ .
+**PyAutoFit** supports advanced statistical methods, most
+notably `a big data framework for Bayesian hierarchical analysis <https://pyautofit.readthedocs.io/en/latest/features/graphical.html>`_.
 
 Getting Started
 ---------------
 
 The following links are useful for new starters:
 
-- `The introduction Jupyter Notebook on Binder <https://mybinder.org/v2/gh/Jammy2211/autofit_workspace/release?filepath=introduction.ipynb>`_, where you can try **PyAutoFit** in a web browser (without installation).
-
 - `The PyAutoFit readthedocs <https://pyautofit.readthedocs.io/en/latest>`_, which includes an `installation guide <https://pyautofit.readthedocs.io/en/latest/installation/overview.html>`_ and an overview of **PyAutoFit**'s core features.
+
+- `The introduction Jupyter Notebook on Binder <https://mybinder.org/v2/gh/Jammy2211/autofit_workspace/release?filepath=notebooks/overview/overview_1_the_basics.ipynb>`_, where you can try **PyAutoFit** in a web browser (without installation).
 
 - `The autofit_workspace GitHub repository <https://github.com/Jammy2211/autofit_workspace>`_, which includes example scripts and the `HowToFit Jupyter notebook lectures <https://github.com/Jammy2211/autofit_workspace/tree/master/notebooks/howtofit>`_ which give new users a step-by-step introduction to **PyAutoFit**.
 
-Why PyAutoFit?
---------------
+Support
+-------
 
-**PyAutoFit** began as an Astronomy project for fitting large imaging datasets of galaxies after the developers found that existing PPLs
-(e.g., `PyMC3 <https://github.com/pymc-devs/pymc3>`_, `Pyro <https://github.com/pyro-ppl/pyro>`_, `STAN <https://github.com/stan-dev/stan>`_)
-were not suited to the model fitting problems many Astronomers faced. This includes:
+Support for installation issues, help with Fit modeling and using **PyAutoFit** is available by
+`raising an issue on the GitHub issues page <https://github.com/rhayes777/PyAutoFit/issues>`_.
 
-- Efficiently analysing large and homogenous datasets with an identical model fitting procedure, with tools for processing the large libraries of results output.
+We also offer support on the **PyAutoFit** `Slack channel <https://pyautoFit.slack.com/>`_, where we also provide the
+latest updates on **PyAutoFit**. Slack is invitation-only, so if you'd like to join send
+an `email <https://github.com/Jammy2211>`_ requesting an invite.
 
-- Problems where likelihood evaluations are expensive (e.g. run times of days per model-fit), necessitating highly customizable model-fitting pipelines with support for massively parallel computing.
+HowToFit
+--------
 
-- Fitting many different models to the same dataset with tools that streamline model comparison.
+For users less familiar with Bayesian inference and scientific analysis you may wish to read through
+the **HowToFits** lectures. These teach you the basic principles of Bayesian inference, with the
+content pitched at undergraduate level and above.
 
-If these challenges sound familiar, then **PyAutoFit** may be the right software for your model-fitting needs!
+A complete overview of the lectures `is provided on the HowToFit readthedocs page <https://pyautofit.readthedocs.io/en/latest/howtofit/howtofit.htmll>`_
 
 API Overview
 ------------
 
-To illustrate the **PyAutoFit** API, we'll use an illustrative toy model of fitting a one-dimensional Gaussian to
+To illustrate the **PyAutoFit** API, we use an illustrative toy model of fitting a one-dimensional Gaussian to
 noisy 1D data. Here's the ``data`` (black) and the model (red) we'll fit:
 
 .. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/master/files/toy_model_fit.png
@@ -158,13 +159,3 @@ We can now fit our model to the ``data`` using a non-linear search:
 
 The ``result`` contains information on the model-fit, for example the parameter samples, maximum log likelihood
 model and marginalized probability density functions.
-
-Support
--------
-
-Support for installation issues, help with Fit modeling and using **PyAutoFit** is available by
-`raising an issue on the GitHub issues page <https://github.com/rhayes777/PyAutoFit/issues>`_.
-
-We also offer support on the **PyAutoFit** `Slack channel <https://pyautoFit.slack.com/>`_, where we also provide the 
-latest updates on **PyAutoFit**. Slack is invitation-only, so if you'd like to join send 
-an `email <https://github.com/Jammy2211>`_ requesting an invite.

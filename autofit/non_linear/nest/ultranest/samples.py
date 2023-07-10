@@ -1,12 +1,57 @@
+import pickle
+from os import path
 from typing import Optional
 
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
+from autofit.non_linear.paths.abstract import AbstractPaths
 from autofit.non_linear.samples import Sample
 from autofit.non_linear.samples.nest import SamplesNest
-
+from autofit.tools.util import open_
 
 
 class SamplesUltraNest(SamplesNest):
+
+    @classmethod
+    def from_csv(cls, paths : AbstractPaths, model: AbstractPriorModel):
+        """
+        Returns a `Samples` object from the non-linear search output samples, which are stored in a .csv file.
+
+        The samples object requires additional information on the non-linear search (e.g. the number of live points),
+        which is extracted from the `search_info.json` file.
+
+        This function looks for the internal results of dynesty and includes it in the samples if it exists, which
+        allows for dynesty visualization tools to be used on the samples.
+
+        Parameters
+        ----------
+        paths
+            An object describing the paths for saving data (e.g. hard-disk directories or entries in sqlite database).
+        model
+            An object that represents possible instances of some model with a given dimensionality which is the number
+            of free dimensions of the model.
+
+        Returns
+        -------
+        The dynesty samples which have been loaded from hard-disk via .csv.
+        """
+
+        sample_list = paths.load_samples()
+        samples_info = paths.load_samples_info()
+
+        try:
+            with open_(path.join(paths.search_internal_path, "results_internal.pickle"), "rb") as f:
+                results_internal = pickle.load(f)
+        except FileNotFoundError:
+            results_internal = None
+
+        return SamplesUltraNest(
+            model=model,
+            sample_list=sample_list,
+            number_live_points=samples_info["number_live_points"],
+            unconverged_sample_size=samples_info["unconverged_sample_size"],
+            time=samples_info["time"],
+            results_internal=results_internal,
+        )
 
     @classmethod
     def from_results_internal(
