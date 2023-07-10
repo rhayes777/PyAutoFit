@@ -166,10 +166,10 @@ class Prior(Variable, ABC, ArithmeticMixin):
         )
         return result
 
-    # def __getattr__(self, item):
-    #     if item in ("__setstate__", "__getstate__"):
-    #         raise AttributeError(item)
-    #     return getattr(self.message, item)
+    def __getattr__(self, item):
+        if item in ("__setstate__", "__getstate__"):
+            raise AttributeError(item)
+        return getattr(self.message, item)
 
     def __eq__(self, other):
         try:
