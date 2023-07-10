@@ -149,8 +149,14 @@ class ModelObject:
 
         type_ = d["type"]
 
+        def get_class_path():
+            try:
+                return reference[""]
+            except (KeyError, TypeError):
+                return d.pop("class_path")
+
         if type_ == "model":
-            class_path = reference.get("") or d.pop("class_path")
+            class_path = get_class_path()
             try:
                 instance = Model(get_class(class_path))
             except (ModuleNotFoundError, AttributeError):
@@ -167,7 +173,7 @@ class ModelObject:
                 key: ModelObject.from_dict(value) for key, value in d.items() if value
             }
         elif type_ == "instance":
-            class_path = reference.get("") or d.pop("class_path")
+            class_path = get_class_path()
             try:
                 cls = get_class(class_path)
                 d.pop("type")
