@@ -431,6 +431,13 @@ class Samples(SamplesInterface, ABC):
     def info_json(self):
         return {}
 
+    @property
+    def info_json(self):
+        return {
+            "total_samples": self.total_samples,
+            "time": self.time,
+        }
+
     def info_to_json(self, filename):
         with open(filename, "w") as outfile:
             json.dump(self.info_json, outfile)

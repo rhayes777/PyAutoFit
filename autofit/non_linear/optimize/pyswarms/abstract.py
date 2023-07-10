@@ -238,7 +238,7 @@ class AbstractPySwarms(AbstractOptimizer):
     def sampler_from(self, model, fitness_function, bounds, init_pos):
         raise NotImplementedError()
 
-    def samples_from(self, model):
+    def samples_via_internal_from(self, model):
 
         with open_(path.join(self.paths.search_internal_path, "results_internal.pickle"), "rb") as f:
             results_internal = pickle.load(f)
@@ -253,6 +253,9 @@ class AbstractPySwarms(AbstractOptimizer):
             total_iterations=results_internal_dict["total_iterations"],
             time=self.timer.time
         )
+
+    def samples_via_csv_from(self, model):
+        return SamplesPySwarms.from_csv(paths=self.paths, model=model)
 
     def plot_results(self, samples):
 
