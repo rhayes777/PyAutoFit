@@ -14,21 +14,18 @@ from autofit.plot.output import Output
 
 
 class Drawer(AbstractOptimizer):
-
-    __identifier_fields__ = (
-        "total_draws",
-    )
+    __identifier_fields__ = ("total_draws",)
 
     def __init__(
-            self,
-            name: Optional[str] = None,
-            path_prefix: Optional[str] = None,
-            unique_tag: Optional[str] = None,
-            prior_passer: Optional[PriorPasser] = None,
-            initializer: Optional[AbstractInitializer] = None,
-            iterations_per_update: int = None,
-            session: Optional[sa.orm.Session] = None,
-            **kwargs
+        self,
+        name: Optional[str] = None,
+        path_prefix: Optional[str] = None,
+        unique_tag: Optional[str] = None,
+        prior_passer: Optional[PriorPasser] = None,
+        initializer: Optional[AbstractInitializer] = None,
+        iterations_per_update: int = None,
+        session: Optional[sa.orm.Session] = None,
+        **kwargs,
     ):
         """
         A Drawer non-linear search, which simply draws a fixed number of samples from the model uniformly from the
@@ -83,13 +80,12 @@ class Drawer(AbstractOptimizer):
             iterations_per_update=iterations_per_update,
             number_of_cores=number_of_cores,
             session=session,
-            **kwargs
+            **kwargs,
         )
 
         self.logger.debug("Creating Drawer Search")
 
     class Fitness(AbstractOptimizer.Fitness):
-
         def figure_of_merit_from(self, parameter_list):
             """
             The figure of merit is the value that the `NonLinearSearch` uses to sample parameter space.
@@ -123,32 +119,31 @@ class Drawer(AbstractOptimizer):
 
         total_draws = self.config_dict_search["total_draws"]
 
-        self.logger.info(f"Performing DrawerSearch for a total of {total_draws} points.")
+        self.logger.info(
+            f"Performing DrawerSearch for a total of {total_draws} points."
+        )
 
-        unit_parameter_lists, parameter_lists, log_posterior_list = self.initializer.samples_from_model(
+        (
+            unit_parameter_lists,
+            parameter_lists,
+            log_posterior_list,
+        ) = self.initializer.samples_from_model(
             total_points=self.config_dict_search["total_draws"],
             model=model,
             fitness_function=fitness_function,
-            use_prior_medians=True
+            use_prior_medians=True,
         )
 
-        self.paths.save_object(
-            "parameter_lists",
-            parameter_lists
-        )
-        self.paths.save_object(
-            "log_posterior_list",
-            log_posterior_list
-        )
+        self.paths.save_object("parameter_lists", parameter_lists)
+        self.paths.save_object("log_posterior_list", log_posterior_list)
 
-        self.perform_update(
-            model=model, analysis=analysis, during_analysis=False
-        )
+        self.perform_update(model=model, analysis=analysis, during_analysis=False)
 
         self.logger.info("Drawer complete")
 
-    def fitness_function_from_model_and_analysis(self, model, analysis, log_likelihood_cap=None):
-
+    def fitness_function_from_model_and_analysis(
+        self, model, analysis, log_likelihood_cap=None
+    ):
         return Drawer.Fitness(
             paths=self.paths,
             model=model,
@@ -158,17 +153,17 @@ class Drawer(AbstractOptimizer):
         )
 
     def samples_from(self, model):
-
         parameter_lists = self.paths.load_object("parameter_lists")
 
         log_prior_list = [
             sum(model.log_prior_list_from_vector(vector=vector))
-            for vector
-            in parameter_lists
+            for vector in parameter_lists
         ]
         log_likelihood_list = [
-            lp - prior for lp, prior
-            in zip(self.paths.load_object("log_posterior_list"), log_prior_list)
+            lp - prior
+            for lp, prior in zip(
+                self.paths.load_object("log_posterior_list"), log_prior_list
+            )
         ]
 
         weight_list = len(log_likelihood_list) * [1.0]
@@ -178,22 +173,22 @@ class Drawer(AbstractOptimizer):
             parameter_lists=parameter_lists,
             log_likelihood_list=log_likelihood_list,
             log_prior_list=log_prior_list,
-            weight_list=weight_list
+            weight_list=weight_list,
         )
 
-        return Samples(
-            model=model,
-            sample_list=sample_list,
-            time=self.timer.time
-        )
+        return Samples(model=model, sample_list=sample_list, time=self.timer.time)
 
-    def plot_results(self, samples):
-
+    def plot_results(
+        self,
+        samples,
+        during_analysis,
+    ):
         def should_plot(name):
             return conf.instance["visualize"]["plots_search"]["drawer"][name]
 
         plotter = DrawerPlotter(
             samples=samples,
-            output=Output(path=path.join(self.paths.image_path, "search"), format="png")
+            output=Output(
+                path=path.join(self.paths.image_path, "search"), format="png"
+            ),
         )
-

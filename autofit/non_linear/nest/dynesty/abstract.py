@@ -138,7 +138,9 @@ class AbstractDynesty(AbstractNest, ABC):
         from dynesty.pool import Pool
 
         fitness_function = self.fitness_function_from_model_and_analysis(
-            model=model, analysis=analysis, log_likelihood_cap=log_likelihood_cap,
+            model=model,
+            analysis=analysis,
+            log_likelihood_cap=log_likelihood_cap,
         )
 
         if os.path.exists(self.checkpoint_file):
@@ -153,15 +155,12 @@ class AbstractDynesty(AbstractNest, ABC):
         finished = False
 
         while not finished:
-
             checkpoint_exists = os.path.exists(self.checkpoint_file)
 
             try:
-
                 if conf.instance["non_linear"]["nest"][self.__class__.__name__][
                     "parallel"
                 ].get("force_x1_cpu") or self.kwargs.get("force_x1_cpu"):
-
                     raise RuntimeError
 
                 with Pool(
@@ -171,7 +170,6 @@ class AbstractDynesty(AbstractNest, ABC):
                     logl_args=(model, fitness_function),
                     ptform_args=(model,),
                 ) as pool:
-
                     sampler = self.sampler_from(
                         model=model,
                         fitness_function=fitness_function,
@@ -183,11 +181,9 @@ class AbstractDynesty(AbstractNest, ABC):
                     finished = self.run_sampler(sampler=sampler)
 
             except RuntimeError:
-
                 checkpoint_exists = os.path.exists(self.checkpoint_file)
 
                 if not checkpoint_exists:
-
                     self.logger.info(
                         """
                         Your operating system does not support Python multiprocessing.
@@ -263,7 +259,11 @@ class AbstractDynesty(AbstractNest, ABC):
 
         iterations, total_iterations = self.iterations_from(sampler=sampler)
 
-        config_dict_run = {key: value for key, value in self.config_dict_run.items() if key != 'maxcall'}
+        config_dict_run = {
+            key: value
+            for key, value in self.config_dict_run.items()
+            if key != "maxcall"
+        }
 
         if iterations > 0:
             sampler.run_nested(
@@ -311,7 +311,6 @@ class AbstractDynesty(AbstractNest, ABC):
         return path.join(self.paths.samples_path, "savestate.save")
 
     def config_dict_with_test_mode_settings_from(self, config_dict):
-
         return {
             **config_dict,
             "maxiter": 1,
@@ -348,9 +347,7 @@ class AbstractDynesty(AbstractNest, ABC):
         init_unit_parameters = np.zeros(
             shape=(self.total_live_points, model.prior_count)
         )
-        init_parameters = np.zeros(
-            shape=(self.total_live_points, model.prior_count)
-        )
+        init_parameters = np.zeros(shape=(self.total_live_points, model.prior_count))
         init_log_likelihood_list = np.zeros(shape=(self.total_live_points))
 
         for i in range(len(parameters)):
@@ -381,7 +378,6 @@ class AbstractDynesty(AbstractNest, ABC):
         raise NotImplementedError()
 
     def check_pool(self, uses_pool: bool, pool):
-
         if (uses_pool and pool is None) or (not uses_pool and pool is not None):
             raise exc.SearchException(
                 """
@@ -410,15 +406,13 @@ class AbstractDynesty(AbstractNest, ABC):
         raise NotImplementedError()
 
     def remove_state_files(self):
-
         os.remove(self.checkpoint_file)
 
     @property
     def total_live_points(self):
         raise NotImplementedError()
 
-    def plot_results(self, samples):
-
+    def plot_results(self, samples, during_analysis):
         from autofit.non_linear.nest.dynesty.plotter import DynestyPlotter
 
         if not samples.pdf_converged:
@@ -434,7 +428,7 @@ class AbstractDynesty(AbstractNest, ABC):
             ),
         )
 
-        if should_plot("cornerplot"):
+        if not during_analysis and should_plot("cornerplot"):
             plotter.cornerplot()
 
         if should_plot("traceplot"):

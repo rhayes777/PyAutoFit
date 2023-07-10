@@ -98,8 +98,8 @@ class Zeus(AbstractMCMC):
     class Fitness(AbstractMCMC.Fitness):
         def figure_of_merit_from(self, parameter_list):
             """
-            The figure of merit is the value that the `NonLinearSearch` uses to sample parameter space. 
-            
+            The figure of merit is the value that the `NonLinearSearch` uses to sample parameter space.
+
             `Zeus` uses the log posterior.
             """
             log_posterior = self.log_posterior_from(parameter_list=parameter_list)
@@ -147,7 +147,6 @@ class Zeus(AbstractMCMC):
         )
 
         if self.paths.is_object("zeus"):
-
             zeus_sampler = self.zeus_pickled
 
             zeus_state = zeus_sampler.get_last_sample()
@@ -167,7 +166,6 @@ class Zeus(AbstractMCMC):
                 )
 
         else:
-
             zeus_sampler = zeus.EnsembleSampler(
                 nwalkers=self.config_dict_search["nwalkers"],
                 ndim=model.prior_count,
@@ -185,7 +183,7 @@ class Zeus(AbstractMCMC):
                 total_points=zeus_sampler.nwalkers,
                 model=model,
                 fitness_function=fitness_function,
-                test_mode_samples=False
+                test_mode_samples=False,
             )
 
             zeus_state = np.zeros(shape=(zeus_sampler.nwalkers, model.prior_count))
@@ -193,14 +191,12 @@ class Zeus(AbstractMCMC):
             self.logger.info("No Zeus samples found, beginning new non-linear search.")
 
             for index, parameters in enumerate(parameter_lists):
-
                 zeus_state[index, :] = np.asarray(parameters)
 
             total_iterations = 0
             iterations_remaining = self.config_dict_run["nsteps"]
 
         while iterations_remaining > 0:
-
             if self.iterations_per_update > iterations_remaining:
                 iterations = iterations_remaining
             else:
@@ -212,7 +208,6 @@ class Zeus(AbstractMCMC):
                 iterations=iterations,
                 progress=True,
             ):
-
                 pass
 
             zeus_sampler.ncall_total += zeus_sampler.ncall
@@ -247,7 +242,6 @@ class Zeus(AbstractMCMC):
         self.logger.info("Zeus sampling complete.")
 
     def config_dict_with_test_mode_settings_from(self, config_dict):
-
         return {
             **config_dict,
             "nwalkers": 20,
@@ -257,7 +251,6 @@ class Zeus(AbstractMCMC):
     def fitness_function_from_model_and_analysis(
         self, model, analysis, log_likelihood_cap=None
     ):
-
         return Zeus.Fitness(
             paths=self.paths,
             model=model,
@@ -290,7 +283,7 @@ class Zeus(AbstractMCMC):
     def zeus_pickled(self):
         return self.paths.load_object("zeus")
 
-    def plot_results(self, samples):
+    def plot_results(self, samples, during_analysis):
         def should_plot(name):
             return conf.instance["visualize"]["plots_search"]["emcee"][name]
 
@@ -301,7 +294,7 @@ class Zeus(AbstractMCMC):
             ),
         )
 
-        if should_plot("corner"):
+        if not during_analysis and should_plot("corner"):
             plotter.corner()
 
         if should_plot("trajectories"):
