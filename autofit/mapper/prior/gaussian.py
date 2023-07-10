@@ -1,22 +1,19 @@
+from typing import Optional
+
 from autofit.messages.normal import NormalMessage
 from .abstract import Prior
 
 
 class GaussianPrior(Prior):
-
-    __identifier_fields__ = (
-        "lower_limit",
-        "upper_limit",
-        "mean",
-        "sigma"
-    )
+    __identifier_fields__ = ("lower_limit", "upper_limit", "mean", "sigma")
 
     def __init__(
         self,
         mean: float,
-        sigma : float,
-        lower_limit : float = float("-inf"),
-        upper_limit : float = float("inf"),
+        sigma: float,
+        lower_limit: float = float("-inf"),
+        upper_limit: float = float("inf"),
+        id_: Optional[int] = None,
     ):
         """
         A prior with a uniform distribution, defined between a lower limit and upper limit.
@@ -59,15 +56,12 @@ class GaussianPrior(Prior):
                 sigma=sigma,
                 lower_limit=lower_limit,
                 upper_limit=upper_limit,
-            )
+            ),
+            id_=id_,
         )
 
     @classmethod
-    def with_limits(
-            cls,
-            lower_limit: float,
-            upper_limit: float
-    ) -> "GaussianPrior":
+    def with_limits(cls, lower_limit: float, upper_limit: float) -> "GaussianPrior":
         """
         Create a new gaussian prior centred between two limits
         with sigma distance between this limits.

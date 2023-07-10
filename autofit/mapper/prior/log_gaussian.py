@@ -1,3 +1,5 @@
+from typing import Optional
+
 from autofit.messages.normal import NormalMessage
 from .abstract import Prior
 from ...messages.composed_transform import TransformedMessage
@@ -5,16 +7,15 @@ from ...messages.transform import log_transform
 
 
 class LogGaussianPrior(Prior):
-
     __identifier_fields__ = ("lower_limit", "upper_limit", "mean", "sigma")
 
     def __init__(
         self,
-        mean : float,
-        sigma : float,
-        lower_limit : float = 0.0,
-        upper_limit : float = float("inf"),
-        id_=None,
+        mean: float,
+        sigma: float,
+        lower_limit: float = 0.0,
+        upper_limit: float = float("inf"),
+        id_: Optional[int] = None,
     ):
         """
         A prior with a log base 10 uniform distribution, defined between a lower limit and upper limit.
@@ -54,10 +55,16 @@ class LogGaussianPrior(Prior):
         self.mean = mean
         self.sigma = sigma
 
-        message = TransformedMessage(NormalMessage(mean, sigma), log_transform,)
+        message = TransformedMessage(
+            NormalMessage(mean, sigma),
+            log_transform,
+        )
 
         super().__init__(
-            message=message, lower_limit=lower_limit, upper_limit=upper_limit, id_=id_,
+            message=message,
+            lower_limit=lower_limit,
+            upper_limit=upper_limit,
+            id_=id_,
         )
 
     def _new_for_base_message(self, message):
@@ -74,7 +81,7 @@ class LogGaussianPrior(Prior):
             id_=self.instance().id,
         )
 
-    def value_for(self, unit : float, ignore_prior_limits : bool = False) -> float:
+    def value_for(self, unit: float, ignore_prior_limits: bool = False) -> float:
         """
         Return a physical value for a value between 0 and 1 with the transformation
         described by this prior.

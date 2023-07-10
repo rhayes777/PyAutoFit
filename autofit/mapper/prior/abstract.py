@@ -252,8 +252,9 @@ class Prior(Variable, ABC, ArithmeticMixin):
             **{
                 key: value
                 for key, value in prior_dict.items()
-                if key not in ("type", "width_modifier", "gaussian_limits")
-            }
+                if key not in ("type", "width_modifier", "gaussian_limits", "id")
+            },
+            id_=id_,
         )
 
     def dict(self) -> dict:

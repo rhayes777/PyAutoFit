@@ -81,8 +81,8 @@ def make_summary_dict():
     }
 
 
-def test_dict(summary, summary_dict):
-    assert summary.dict() == summary_dict
+def test_dict(summary, summary_dict, remove_ids):
+    assert remove_ids(summary.dict()) == summary_dict
 
 
 def test_from_dict(summary_dict):

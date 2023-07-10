@@ -1,3 +1,5 @@
+from typing import Optional
+
 from autofit.messages.normal import UniformNormalMessage
 from .abstract import Prior
 from .abstract import epsilon
@@ -6,11 +8,13 @@ from ...messages.transform import LinearShiftTransform
 
 
 class UniformPrior(Prior):
-
     __identifier_fields__ = ("lower_limit", "upper_limit")
 
     def __init__(
-        self, lower_limit: float = 0.0, upper_limit: float = 1.0, id_=None,
+        self,
+        lower_limit: float = 0.0,
+        upper_limit: float = 1.0,
+        id_: Optional[int] = None,
     ):
         """
         A prior with a uniform distribution, defined between a lower limit and upper limit.
@@ -49,7 +53,10 @@ class UniformPrior(Prior):
             upper_limit=upper_limit,
         )
         super().__init__(
-            message, lower_limit=lower_limit, upper_limit=upper_limit, id_=id_,
+            message,
+            lower_limit=lower_limit,
+            upper_limit=upper_limit,
+            id_=id_,
         )
 
     def logpdf(self, x):
