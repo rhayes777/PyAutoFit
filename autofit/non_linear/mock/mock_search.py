@@ -3,6 +3,7 @@ from typing import Optional, Tuple
 
 from autoconf import conf
 from autofit import exc
+from autofit.mapper.model_mapper import ModelMapper
 from autofit.graphical import FactorApproximation
 from autofit.graphical.utils import Status
 from autofit.non_linear.abstract_search import NonLinearSearch
@@ -11,10 +12,7 @@ from autofit.non_linear.mock.mock_samples import MockSamples
 from autofit.non_linear.samples import Sample
 
 
-def samples_with_log_likelihood_list(
-        log_likelihood_list,
-        kwargs
-):
+def samples_with_log_likelihood_list(log_likelihood_list, kwargs):
     if isinstance(log_likelihood_list, float):
         log_likelihood_list = [log_likelihood_list]
     return [
@@ -24,37 +22,31 @@ def samples_with_log_likelihood_list(
             weight=0,
             kwargs=kwargs,
         )
-        for log_likelihood
-        in log_likelihood_list
+        for log_likelihood in log_likelihood_list
     ]
 
 
 def _make_samples(model):
-    return {
-        path: prior.value_for(0.5)
-        for path, prior
-        in model.path_priors_tuples
-    }
+    return {path: prior.value_for(0.5) for path, prior in model.path_priors_tuples}
 
 
 class MockSearch(NonLinearSearch):
     def __init__(
-            self,
-            name="",
-            samples=None,
-            result=None,
-            unique_tag: Optional[str] = None,
-            prior_passer=None,
-            fit_fast=True,
-            sample_multiplier=1,
-            save_for_aggregator=False,
-            return_sensitivity_results=False,
-            **kwargs
+        self,
+        name="",
+        samples=None,
+        result=None,
+        unique_tag: Optional[str] = None,
+        prior_passer=None,
+        fit_fast=True,
+        sample_multiplier=1,
+        save_for_aggregator=False,
+        return_sensitivity_results=False,
+        **kwargs
     ):
-
         super().__init__(name=name, unique_tag=unique_tag, **kwargs)
 
-        self.samples = samples or MockSamples()
+        self.samples = samples or MockSamples(ModelMapper())
 
         self.result = MockResult(samples=samples) if result is None else result
 
@@ -104,7 +96,6 @@ class MockSearch(NonLinearSearch):
         return fitness_function.result
 
     def _fit(self, model, analysis, log_likelihood_cap=None):
-
         if self.fit_fast:
             result = self._fit_fast(model=model, analysis=analysis)
             return result
@@ -129,8 +120,7 @@ class MockSearch(NonLinearSearch):
                 index = (index + 1) % model.prior_count
         samples = MockSamples(
             sample_list=samples_with_log_likelihood_list(
-                self.sample_multiplier * fit,
-                _make_samples(model)
+                self.sample_multiplier * fit, _make_samples(model)
             ),
             model=model,
             gaussian_tuples=[
@@ -147,25 +137,23 @@ class MockSearch(NonLinearSearch):
         )
 
     def perform_update(self, model, analysis, during_analysis):
-
         if self.samples is not None and not self.return_sensitivity_results:
             self.paths.save_object("samples", self.samples)
             return self.samples
 
         return MockSamples(
             sample_list=samples_with_log_likelihood_list(
-                [1.0, 2.0],
-                _make_samples(model)
+                [1.0, 2.0], _make_samples(model)
             ),
             gaussian_tuples=[
                 (prior.mean, prior.width if math.isfinite(prior.width) else 1.0)
                 for prior in sorted(model.priors, key=lambda prior: prior.id)
-            ]
+            ],
+            model=model,
         )
 
 
 class MockOptimizer(MockSearch):
-
     def __init__(self, **kwargs):
         super().__init__(fit_fast=False, **kwargs)
 
@@ -174,9 +162,7 @@ class MockOptimizer(MockSearch):
         return MockOptimizer
 
     def project(
-            self,
-            factor_approx: FactorApproximation,
-            status: Status = Status()
+        self, factor_approx: FactorApproximation, status: Status = Status()
     ) -> Tuple[FactorApproximation, Status]:
         pass
 

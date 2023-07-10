@@ -1,31 +1,10 @@
+import itertools
 import os
 from pathlib import Path
 import pytest
 import json
 
 import autofit as af
-
-
-@pytest.fixture(name="model_dict")
-def make_model_dict():
-    return {
-        "type": "model",
-        "class_path": "autofit.example.model.Gaussian",
-        "centre": {"lower_limit": 0.0, "type": "Uniform", "upper_limit": 2.0},
-        "normalization": {"lower_limit": 0.0, "type": "Uniform", "upper_limit": 1.0},
-        "sigma": {"lower_limit": 0.0, "type": "Uniform", "upper_limit": 1.0},
-    }
-
-
-@pytest.fixture(name="instance_dict")
-def make_instance_dict():
-    return {
-        "type": "instance",
-        "class_path": "autofit.example.model.Gaussian",
-        "centre": 0.0,
-        "normalization": 0.1,
-        "sigma": 0.01,
-    }
 
 
 @pytest.fixture(name="collection_dict")
@@ -36,6 +15,12 @@ def make_collection_dict(model_dict):
 @pytest.fixture(name="model")
 def make_model():
     return af.Model(af.Gaussian, centre=af.UniformPrior(upper_limit=2.0))
+
+
+@pytest.fixture(autouse=True)
+def reset_prior_id():
+    af.Prior._ids = itertools.count()
+    af.Prior._priors_by_id = {}
 
 
 class TestTuple:
@@ -78,26 +63,39 @@ class TestFromDict:
 
 
 class TestToDict:
-    def test_model_priors(self, model, model_dict):
-        assert model.dict() == model_dict
+    def test_model_priors(self, model, model_dict, remove_ids):
+        assert remove_ids(model.dict()) == model_dict
 
     def test_model_floats(self, instance_dict):
         model = af.Model(af.Gaussian, centre=0.0, normalization=0.1, sigma=0.01)
 
         assert model.dict() == instance_dict
 
-    def test_collection(self, model, collection_dict):
+    def test_collection(self, model, collection_dict, remove_ids):
         collection = af.Collection(gaussian=model)
-        assert collection.dict() == collection_dict
+        assert remove_ids(collection.dict()) == collection_dict
 
     def test_collection_instance(self, instance_dict):
         collection = af.Collection(gaussian=af.Gaussian())
         assert collection.dict() == {"gaussian": instance_dict, "type": "collection"}
 
+    @pytest.mark.parametrize(
+        "path",
+        [
+            "autofit.example.different.Gaussian",
+            "autofit.example.model.Gossian",
+        ],
+    )
+    def test_bad_class_path(self, model_dict, path):
+        model_dict["class_path"] = path
+
+        model = af.Model.from_dict(model_dict)
+        assert isinstance(model, af.Collection)
+        assert model.centre.upper_limit == 2.0
+
 
 class TestFromJson:
     def test__from_json(self, model_dict):
-
         model = af.Model.from_dict(model_dict)
 
         model_file = Path(__file__).parent / "model.json"

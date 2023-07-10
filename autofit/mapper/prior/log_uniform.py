@@ -1,3 +1,5 @@
+from typing import Optional
+
 import numpy as np
 
 from autofit import exc
@@ -8,12 +10,11 @@ from ...messages.composed_transform import TransformedMessage
 
 
 class LogUniformPrior(Prior):
-
     def __init__(
         self,
-        lower_limit : float =1e-6,
-        upper_limit : float = 1.0,
-        id_=None,
+        lower_limit: float = 1e-6,
+        upper_limit: float = 1.0,
+        id_: Optional[int] = None,
     ):
         """
         A prior with a log base 10 uniform distribution, defined between a lower limit and upper limit.
@@ -53,13 +54,17 @@ class LogUniformPrior(Prior):
         message = TransformedMessage(
             UniformNormalMessage,
             LinearShiftTransform(
-                shift=np.log10(lower_limit), scale=np.log10(upper_limit / lower_limit),
+                shift=np.log10(lower_limit),
+                scale=np.log10(upper_limit / lower_limit),
             ),
             log_10_transform,
         )
 
         super().__init__(
-            message=message, lower_limit=lower_limit, upper_limit=upper_limit, id_=id_,
+            message=message,
+            lower_limit=lower_limit,
+            upper_limit=upper_limit,
+            id_=id_,
         )
 
     @classmethod
@@ -86,7 +91,10 @@ class LogUniformPrior(Prior):
         -------
         A new LogUniform.
         """
-        return cls(lower_limit=max(0.000001, lower_limit), upper_limit=upper_limit,)
+        return cls(
+            lower_limit=max(0.000001, lower_limit),
+            upper_limit=upper_limit,
+        )
 
     __identifier_fields__ = ("lower_limit", "upper_limit")
 
@@ -105,7 +113,7 @@ class LogUniformPrior(Prior):
         """
         return 1.0 / value
 
-    def value_for(self, unit: float, ignore_prior_limits : bool = False) -> float:
+    def value_for(self, unit: float, ignore_prior_limits: bool = False) -> float:
         """
         Returns a physical value from an input unit value according to the limits of the log10 uniform prior.
 

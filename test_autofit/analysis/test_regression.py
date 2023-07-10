@@ -25,7 +25,7 @@ class MyAnalysis(af.Analysis):
         pass
 
     def make_result(self, samples, model, sigma=1.0, use_errors=True, use_widths=False):
-        return MyResult(model=model, samples=samples)
+        return MyResult(samples=samples)
 
     def modify_before_fit(self, paths, model):
         self.is_modified_before = True

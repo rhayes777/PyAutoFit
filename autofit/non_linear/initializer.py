@@ -133,7 +133,6 @@ class AbstractInitializer(ABC):
         figure_of_merit = -1.0e99
 
         while point_index < total_points:
-
             try:
                 unit_parameter_list = self._generate_unit_parameter_list(model)
                 parameter_list = model.vector_from_unit_vector(
@@ -230,19 +229,15 @@ class Initializer(AbstractInitializer):
         """
 
         try:
-
             initializer = config("initialize", "method")
 
         except configparser.NoSectionError:
-
             return None
 
         if initializer in "prior":
-
             return InitializerPrior()
 
         elif initializer in "ball":
-
             ball_lower_limit = config("initialize", "ball_lower_limit")
             ball_upper_limit = config("initialize", "ball_upper_limit")
 

@@ -1,3 +1,4 @@
+import json
 import pickle
 from functools import wraps
 from typing import List
@@ -6,6 +7,7 @@ from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.samples import Samples
 from .model import Base, Object
 from ..sqlalchemy_ import sa
+from ...tools.util import from_dict
 
 
 class Pickle(Base):
@@ -40,6 +42,36 @@ class Pickle(Base):
             self.string = pickle.dumps(value)
         except pickle.PicklingError:
             pass
+
+
+class JSON(Base):
+    """
+    A JSON serialised python object that was found in the jsons directory
+    """
+
+    __tablename__ = "json"
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    id = sa.Column(sa.Integer, primary_key=True)
+
+    name = sa.Column(sa.String)
+    string = sa.Column(sa.String)
+    fit_id = sa.Column(sa.String, sa.ForeignKey("fit.id"))
+    fit = sa.orm.relationship("Fit", uselist=False)
+
+    @property
+    def dict(self):
+        return json.loads(self.string)
+
+    @dict.setter
+    def dict(self, d):
+        self.string = json.dumps(d)
+
+    @property
+    def value(self):
+        return from_dict(self.dict)
 
 
 class Info(Base):
@@ -244,6 +276,7 @@ class Fit(Base):
         self.__model = Object.from_object(model)
 
     pickles: List[Pickle] = sa.orm.relationship("Pickle", lazy="joined")
+    jsons: List[JSON] = sa.orm.relationship("JSON", lazy="joined")
 
     def __getitem__(self, item: str):
         """
@@ -261,14 +294,55 @@ class Fit(Base):
         -------
         An unpickled object
         """
+        for p in self.jsons:
+            if p.name == item:
+                return p.value
+
         for p in self.pickles:
             if p.name == item:
                 return p.value
+
         return getattr(self, item)
+
+    def set_json(self, key: str, value: dict):
+        """
+        Add a JSON object to the database. Overwrites any existing JSON
+        object with the same name.
+
+        Parameters
+        ----------
+        key
+            The name of the JSON object
+        value
+            A dictionary to be serialised
+        """
+        new = JSON(name=key, dict=value)
+        self.jsons = [p for p in self.jsons if p.name != key] + [new]
+
+    def get_json(self, key: str) -> dict:
+        """
+        Retrieve a JSON object from the database.
+
+        Parameters
+        ----------
+        key
+            The name of the JSON object
+
+        Returns
+        -------
+        A dictionary
+        """
+        for p in self.jsons:
+            if p.name == key:
+                return p.dict
+        raise KeyError(f"JSON {key} not found")
 
     def __contains__(self, item):
         for p in self.pickles:
             if p.name == item:
+                return True
+        for j in self.jsons:
+            if j.name == item:
                 return True
         return False
 

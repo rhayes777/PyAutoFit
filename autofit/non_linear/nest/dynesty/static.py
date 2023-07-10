@@ -1,7 +1,8 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING, Optional
+from typing import Optional
 
 from dynesty import NestedSampler as StaticSampler
+
 from autofit.database.sqlalchemy_ import sa
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.nest.dynesty.samples import SamplesDynesty
@@ -20,19 +21,19 @@ class DynestyStatic(AbstractDynesty):
         "facc",
         "slices",
         "fmove",
-        "max_move"
+        "max_move",
     )
 
     def __init__(
-            self,
-            name: Optional[str] = None,
-            path_prefix: Optional[str] = None,
-            unique_tag: Optional[str] = None,
-            prior_passer=None,
-            iterations_per_update: int = None,
-            number_of_cores: int = None,
-            session: Optional[sa.orm.Session] = None,
-            **kwargs
+        self,
+        name: Optional[str] = None,
+        path_prefix: Optional[str] = None,
+        unique_tag: Optional[str] = None,
+        prior_passer=None,
+        iterations_per_update: int = None,
+        number_of_cores: int = None,
+        session: Optional[sa.orm.Session] = None,
+        **kwargs,
     ):
         """
         A Dynesty `NonLinearSearch` using a static number of live points.
@@ -71,7 +72,7 @@ class DynestyStatic(AbstractDynesty):
             iterations_per_update=iterations_per_update,
             number_of_cores=number_of_cores,
             session=session,
-            **kwargs
+            **kwargs,
         )
 
         self.logger.debug("Creating DynestyStatic Search")
@@ -99,12 +100,12 @@ class DynestyStatic(AbstractDynesty):
         )
 
     def sampler_from(
-            self,
-            model: AbstractPriorModel,
-            fitness_function,
-            checkpoint_exists : bool,
-            pool: Optional,
-            queue_size: Optional[int]
+        self,
+        model: AbstractPriorModel,
+        fitness_function,
+        checkpoint_exists: bool,
+        pool: Optional,
+        queue_size: Optional[int],
     ):
         """
         Returns an instance of the Dynesty static sampler set up using the input variables of this class.
@@ -130,11 +131,7 @@ class DynestyStatic(AbstractDynesty):
         """
 
         if checkpoint_exists:
-
-            sampler = StaticSampler.restore(
-                fname=self.checkpoint_file,
-                pool=pool
-            )
+            sampler = StaticSampler.restore(fname=self.checkpoint_file, pool=pool)
 
             uses_pool = self.read_uses_pool()
 
@@ -143,11 +140,11 @@ class DynestyStatic(AbstractDynesty):
             return sampler
 
         else:
-
-            live_points = self.live_points_init_from(model=model, fitness_function=fitness_function)
+            live_points = self.live_points_init_from(
+                model=model, fitness_function=fitness_function
+            )
 
             if pool is not None:
-
                 self.write_uses_pool(uses_pool=True)
 
                 return StaticSampler(
@@ -157,7 +154,7 @@ class DynestyStatic(AbstractDynesty):
                     live_points=live_points,
                     queue_size=queue_size,
                     pool=pool,
-                    **self.config_dict_search
+                    **self.config_dict_search,
                 )
 
             self.write_uses_pool(uses_pool=False)
@@ -169,7 +166,7 @@ class DynestyStatic(AbstractDynesty):
                 logl_args=[model, fitness_function],
                 ptform_args=[model],
                 live_points=live_points,
-                **self.config_dict_search
+                **self.config_dict_search,
             )
 
     @property

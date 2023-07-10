@@ -9,6 +9,9 @@ class NullPaths(AbstractPaths):
     Null version of paths object for avoiding writing of files to disk
     """
 
+    def save_json(self, name, object_dict: dict):
+        pass
+
     def __init__(self):
         super().__init__()
         self.objects = dict()

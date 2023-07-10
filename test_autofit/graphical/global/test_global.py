@@ -16,13 +16,13 @@ def test_info(model_factor):
         model_factor.global_prior_model.info
         == """PriorFactors
 
-PriorFactor0 (AnalysisFactor0.one)                                                        UniformPrior [1], lower_limit = 0.0, upper_limit = 1.0
+PriorFactor0 (AnalysisFactor0.one)                                                        UniformPrior [0], lower_limit = 0.0, upper_limit = 1.0
 
 AnalysisFactors
 
 AnalysisFactor0
 
-one (PriorFactor0)                                                                        UniformPrior [1], lower_limit = 0.0, upper_limit = 1.0"""
+one (PriorFactor0)                                                                        UniformPrior [0], lower_limit = 0.0, upper_limit = 1.0"""
     )
 
 
@@ -47,7 +47,8 @@ class TestGlobalLikelihood:
         assert (
             model_factor.log_likelihood_function(
                 model_factor.global_prior_model.instance_from_unit_vector(
-                    [unit_value], ignore_prior_limits=True,
+                    [unit_value],
+                    ignore_prior_limits=True,
                 )[0]
             )
             == likelihood

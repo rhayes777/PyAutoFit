@@ -9,7 +9,7 @@ import dill
 
 from autoconf import conf
 from autofit.text import formatter
-from autofit.tools.util import open_
+from autofit.tools.util import open_, to_dict
 from .abstract import AbstractPaths
 from ..samples import load_from_table
 from autofit.non_linear.samples.pdf import SamplesPDF
@@ -27,6 +27,9 @@ class DirectoryPaths(AbstractPaths):
     def _path_for_pickle(self, name: str):
         return path.join(self._pickle_path, f"{name}.pickle")
 
+    def _path_for_json(self, name):
+        return path.join(self._json_path, f"{name}.json")
+
     def save_object(self, name: str, obj: object):
         """
         Serialise an object using dill and save it to the pickles
@@ -41,6 +44,20 @@ class DirectoryPaths(AbstractPaths):
         """
         with open_(self._path_for_pickle(name), "wb") as f:
             dill.dump(obj, f)
+
+    def save_json(self, name, object_dict: dict):
+        """
+        Save a dictionary as a json file in the jsons directory of the search.
+
+        Parameters
+        ----------
+        name
+            The name of the json file
+        object_dict
+            The dictionary to save
+        """
+        with open_(self._path_for_json(name), "w+") as f:
+            json.dump(object_dict, f, indent=4)
 
     def load_object(self, name: str):
         """
@@ -128,9 +145,10 @@ class DirectoryPaths(AbstractPaths):
         self._save_search(config_dict=search_config_dict)
         self._save_model_info(model=self.model)
         self._save_parameter_names_file(model=self.model)
-        self.save_object("info", info)
-        self.save_object("search", self.search)
-        self.save_object("model", self.model)
+        if info:
+            self.save_json("info", info)
+        self.save_json("search", to_dict(self.search))
+        self.save_json("model", self.model.dict())
         self._save_metadata(search_name=type(self.search).__name__.lower())
         self._move_pickle_files(pickle_files=pickle_files)
 
@@ -226,6 +244,13 @@ class DirectoryPaths(AbstractPaths):
         This is private for a reason, use the save_object etc. methods to save and load pickles
         """
         return path.join(self.output_path, "pickles")
+
+    @property
+    def _json_path(self) -> str:
+        """
+        This is private for a reason, use the save_json etc. methods to save and load json
+        """
+        return path.join(self.output_path, "jsons")
 
     def _save_metadata(self, search_name):
         """

@@ -1,3 +1,4 @@
+import json
 import logging
 import os
 import pickle
@@ -107,13 +108,14 @@ class Scraper:
                     parent_id=parent_identifier,
                 )
 
-            pickle_path = Path(item.pickle_path)
-            _add_pickles(fit, pickle_path)
+            _add_pickles(fit, Path(item.pickle_path))
+            _add_jsons(fit, Path(item.json_path))
             for i, child_analysis in enumerate(item.child_analyses):
                 child_fit = m.Fit(
                     id=f"{identifier}_{i}",
                 )
                 _add_pickles(child_fit, child_analysis.pickle_path)
+                _add_jsons(child_fit, child_analysis.json_path)
                 fit.children.append(child_fit)
 
             yield fit
@@ -148,8 +150,8 @@ class Scraper:
                     is_complete=is_complete,
                 )
 
-                pickle_path = path / "pickles"
-                _add_pickles(grid_search, pickle_path)
+                _add_pickles(grid_search, path / "pickles")
+                _add_jsons(grid_search, path / "jsons")
 
                 aggregator = ClassicAggregator(root)
                 for item in aggregator:
@@ -215,7 +217,7 @@ def _add_pickles(fit: m.Fit, pickle_path: Path):
     try:
         filenames = os.listdir(pickle_path)
     except FileNotFoundError as e:
-        logger.exception(e)
+        logger.info(e)
         filenames = []
 
     for filename in filenames:
@@ -229,3 +231,25 @@ def _add_pickles(fit: m.Fit, pickle_path: Path):
             raise pickle.UnpicklingError(
                 f"Failed to unpickle: {pickle_path} {filename}"
             ) from e
+
+
+def _add_jsons(fit: m.Fit, json_path: Path):
+    """
+    Load JSONs from the path and add them to the database.
+
+    Parameters
+    ----------
+    fit
+        A fit to which the pickles belong
+    json_path
+        The path in which the JSONs are stored
+    """
+    try:
+        filenames = os.listdir(json_path)
+    except FileNotFoundError as e:
+        logger.info(e)
+        filenames = []
+
+    for filename in filenames:
+        with open(json_path / filename) as f:
+            fit.set_json(filename.split(".")[0], json.load(f))

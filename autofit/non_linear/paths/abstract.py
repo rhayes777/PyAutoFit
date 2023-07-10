@@ -335,6 +335,10 @@ class AbstractPaths(ABC):
         return f"{self.output_path}.zip"
 
     @abstractmethod
+    def save_json(self, name, object_dict: dict):
+        pass
+
+    @abstractmethod
     def save_object(self, name: str, obj: object):
         pass
 

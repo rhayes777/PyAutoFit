@@ -1,9 +1,23 @@
 import copy
 import itertools
-from typing import Type, Union, Tuple
+from typing import Type, Union, Tuple, Optional, Dict
+import logging
 
 from autoconf.class_path import get_class
 from .identifier import Identifier
+
+logger = logging.getLogger(__name__)
+
+
+def dereference(reference: Optional[dict], name: str):
+    if reference is None:
+        return None
+    updated = {}
+    for key, value in reference.items():
+        array = key.split(".")
+        if array[0] == name:
+            updated[".".join(array[1:])] = value
+    return updated
 
 
 class ModelObject:
@@ -96,8 +110,8 @@ class ModelObject:
     def identifier(self):
         return str(Identifier(self))
 
-    @staticmethod
-    def from_dict(d):
+    @classmethod
+    def from_dict(cls, d, reference: Optional[Dict[str, str]] = None):
         """
         Recursively parse a dictionary returning the model, collection or
         instance that is represents.
@@ -106,6 +120,19 @@ class ModelObject:
         ----------
         d
             A dictionary representation of some object
+        reference
+            An optional dictionary mapping names to class paths. This is used
+            to specify the type of a model or instance.
+
+            Maps paths to class paths. For example:
+            "path.in.model": "path.to.Class"
+
+            In this case, the class path "path.to.Class" will be used to
+            instantiate the object at "path.in.model". If no class path is
+            specified, or no type can be found for the class path in 'd', then
+            a Collection will be used as a placeholder.
+
+            This is used to specify the type of a model or instance.
 
         Returns
         -------
@@ -122,31 +149,72 @@ class ModelObject:
 
         type_ = d["type"]
 
+        def get_class_path():
+            try:
+                return reference[""]
+            except (KeyError, TypeError):
+                return d.pop("class_path")
+
         if type_ == "model":
-            instance = Model(get_class(d.pop("class_path")))
+            class_path = get_class_path()
+            try:
+                instance = Model(get_class(class_path))
+            except (ModuleNotFoundError, AttributeError):
+                logger.warning(
+                    f"Could not find type for class path {class_path}. Defaulting to Collection placeholder."
+                )
+                instance = Collection()
         elif type_ == "collection":
             instance = Collection()
         elif type_ == "tuple_prior":
             instance = TuplePrior()
         elif type_ == "dict":
-            return {key: ModelObject.from_dict(value) for key, value in d.items()}
+            return {
+                key: ModelObject.from_dict(value) for key, value in d.items() if value
+            }
         elif type_ == "instance":
-            d.pop("type")
-            cls = get_class(d.pop("class_path"))
-            return cls(
-                **{key: ModelObject.from_dict(value) for key, value in d.items()}
-            )
+            class_path = get_class_path()
+            try:
+                cls_ = get_class(class_path)
+                d.pop("type")
+                # noinspection PyArgumentList
+                return cls_(
+                    **{
+                        key: ModelObject.from_dict(
+                            value, reference=dereference(reference, key)
+                        )
+                        for key, value in d.items()
+                        if value
+                    }
+                )
+            except (ModuleNotFoundError, AttributeError):
+                from autofit.mapper.model import ModelInstance
+
+                logger.warning(
+                    f"Could not find type for class path {class_path}. Defaulting to Instance placeholder."
+                )
+                instance = ModelInstance()
+
         else:
             try:
                 return Prior.from_dict(d)
             except KeyError:
-                cls = get_class(type_)
-                instance = object.__new__(cls)
+                cls_ = get_class(type_)
+                instance = object.__new__(cls_)
 
         d.pop("type")
 
         for key, value in d.items():
-            setattr(instance, key, AbstractPriorModel.from_dict(value))
+            try:
+                setattr(
+                    instance,
+                    key,
+                    AbstractPriorModel.from_dict(
+                        value, reference=dereference(reference, key)
+                    ),
+                )
+            except KeyError:
+                pass
         return instance
 
     def dict(self) -> dict:
@@ -171,7 +239,9 @@ class ModelObject:
                 f"{self.__class__.__name__} cannot be serialised to dict"
             )
 
-        dict_ = {"type": type_}
+        dict_ = {
+            "type": type_,
+        }
 
         for key, value in self._dict.items():
             try:
@@ -190,6 +260,6 @@ class ModelObject:
         return {
             key: value
             for key, value in self.__dict__.items()
-            if key not in ("component_number", "item_number", "id", "cls")
+            if key not in ("component_number", "item_number", "id", "cls", "label")
             and not key.startswith("_")
         }

@@ -7,19 +7,19 @@ from autofit.non_linear.mock.mock_samples import MockSamples
 
 class MockResult(Result):
     def __init__(
-            self,
-            samples=None,
-            instance=None,
-            model=None,
-            analysis=None,
-            search=None,
+        self,
+        samples=None,
+        instance=None,
+        analysis=None,
+        search=None,
+        model=None,
     ):
-
-        super().__init__(samples, model, search)
+        super().__init__(samples)
 
         self._instance = instance or ModelInstance()
-        self.model = model or ModelMapper()
-        self._samples = samples or MockSamples(max_log_likelihood_instance=self.instance)
+        self._samples = samples or MockSamples(
+            max_log_likelihood_instance=self.instance, model=model or ModelMapper()
+        )
 
         self.gaussian_tuples = None
         self.analysis = analysis
@@ -35,7 +35,6 @@ class MockResult(Result):
     @property
     def last(self):
         return self
-
 
 
 class MockResultGrid(Result):

@@ -91,8 +91,8 @@ model                                                                           
     mock_class                                                                  MockClassx2 (N=2)
 
 mock_class
-    one                                                                         UniformPrior [1], lower_limit = 0.0, upper_limit = 1.0
-    two                                                                         UniformPrior [2], lower_limit = 0.0, upper_limit = 2.0"""
+    one                                                                         UniformPrior [0], lower_limit = 0.0, upper_limit = 1.0
+    two                                                                         UniformPrior [1], lower_limit = 0.0, upper_limit = 2.0"""
         )
 
     def test_with_instance(self):
@@ -111,7 +111,7 @@ model                                                                           
     mock_class                                                                  MockClassx2 (N=1)
 
 mock_class
-    one                                                                         UniformPrior [1], lower_limit = 0.0, upper_limit = 1.0
+    one                                                                         UniformPrior [0], lower_limit = 0.0, upper_limit = 1.0
     two                                                                         1.0"""
         )
 

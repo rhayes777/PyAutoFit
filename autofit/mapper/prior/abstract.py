@@ -3,7 +3,7 @@ import os
 import random
 from abc import ABC, abstractmethod
 from copy import copy
-from typing import Union, Tuple
+from typing import Union, Tuple, Optional, Dict
 
 from autoconf import conf
 from autofit import exc
@@ -18,6 +18,7 @@ class Prior(Variable, ABC, ArithmeticMixin):
     __database_args__ = ("lower_limit", "upper_limit", "id_")
 
     _ids = itertools.count()
+    _priors_by_id = {}
 
     def __init__(self, message, lower_limit=0.0, upper_limit=1.0, id_=None):
         """
@@ -31,11 +32,10 @@ class Prior(Variable, ABC, ArithmeticMixin):
         upper_limit: Float
             The highest value this prior can return
         """
-        if id_ is None:
-            id_ = next(self._ids)
         super().__init__(id_=id_)
         self.message = message
-        message.id_ = id_
+        message.id_ = self.id
+        self._priors_by_id[self.id] = self
 
         self.lower_limit = float(lower_limit)
         self.upper_limit = float(upper_limit)
@@ -122,7 +122,11 @@ class Prior(Variable, ABC, ArithmeticMixin):
     def width(self):
         return self.upper_limit - self.lower_limit
 
-    def random(self, lower_limit=0.0, upper_limit=1.0,) -> float:
+    def random(
+        self,
+        lower_limit=0.0,
+        upper_limit=1.0,
+    ) -> float:
         """
         A random value sampled from this prior
         """
@@ -201,7 +205,11 @@ class Prior(Variable, ABC, ArithmeticMixin):
         return self.value_for(0.5)
 
     @classmethod
-    def from_dict(cls, prior_dict: dict) -> Union["Prior", DeferredArgument]:
+    def from_dict(
+        cls,
+        prior_dict: dict,
+        reference: Optional[Dict[str, str]] = None,
+    ) -> Union["Prior", DeferredArgument]:
         """
         Returns a prior from a JSON representation.
 
@@ -209,11 +217,19 @@ class Prior(Variable, ABC, ArithmeticMixin):
         ----------
         prior_dict : dict
             A dictionary representation of a prior including a type (e.g. Uniform) and all constructor arguments.
+        reference
+            A dictionary mapping prior ids to the priors they reference.
 
         Returns
         -------
         An instance of a child of this class.
         """
+        id_ = prior_dict.get("id")
+        try:
+            return cls._priors_by_id[id_]
+        except KeyError:
+            pass
+
         if prior_dict["type"] == "Constant":
             return prior_dict["value"]
         if prior_dict["type"] == "Deferred":
@@ -236,8 +252,9 @@ class Prior(Variable, ABC, ArithmeticMixin):
             **{
                 key: value
                 for key, value in prior_dict.items()
-                if key not in ("type", "width_modifier", "gaussian_limits")
-            }
+                if key not in ("type", "width_modifier", "gaussian_limits", "id")
+            },
+            id_=id_,
         )
 
     def dict(self) -> dict:
@@ -248,6 +265,7 @@ class Prior(Variable, ABC, ArithmeticMixin):
             "lower_limit": self.lower_limit,
             "upper_limit": self.upper_limit,
             "type": self.name_of_class(),
+            "id": self.id,
         }
         return prior_dict
 

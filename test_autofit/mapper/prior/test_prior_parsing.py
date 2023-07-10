@@ -1,12 +1,19 @@
+import itertools
+
 import pytest
 
 import autofit as af
 from autofit.mapper.prior.deferred import DeferredArgument
 
 
+@pytest.fixture(autouse=True)
+def reset_priors_by_id():
+    af.Prior._priors_by_id = {}
+
+
 @pytest.fixture(name="uniform_dict")
 def make_uniform_dict():
-    return {"type": "Uniform", "lower_limit": 2, "upper_limit": 3}
+    return {"type": "Uniform", "lower_limit": 2.0, "upper_limit": 3.0}
 
 
 @pytest.fixture(name="uniform_prior")
@@ -32,6 +39,7 @@ def make_gaussian_dict():
         "upper_limit": 10,
         "mean": 3,
         "sigma": 4,
+        "id": 2,
     }
 
 
@@ -71,22 +79,18 @@ class TestWidth:
 
     def test_default(self):
         modifier = af.WidthModifier.for_class_and_attribute_name(
-            af.Gaussian,
-            "not_real"
+            af.Gaussian, "not_real"
         )
         assert modifier.value == 0.5
-        assert isinstance(
-            modifier,
-            af.RelativeWidthModifier
-        )
+        assert isinstance(modifier, af.RelativeWidthModifier)
 
 
 class TestDict:
-    def test_uniform(self, uniform_prior, uniform_dict):
-        assert uniform_prior.dict() == uniform_dict
+    def test_uniform(self, uniform_prior, uniform_dict, remove_ids):
+        assert remove_ids(uniform_prior.dict()) == uniform_dict
 
-    def test_log_uniform(self, log_uniform_prior, log_uniform_dict):
-        assert log_uniform_prior.dict() == log_uniform_dict
+    def test_log_uniform(self, log_uniform_prior, log_uniform_dict, remove_ids):
+        assert remove_ids(log_uniform_prior.dict()) == log_uniform_dict
 
     def test_gaussian(self, gaussian_prior, gaussian_dict):
         assert gaussian_prior.dict() == gaussian_dict

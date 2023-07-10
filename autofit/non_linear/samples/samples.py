@@ -13,60 +13,11 @@ from autofit.mapper.model import ModelInstance
 from autofit.mapper.prior_model.abstract import AbstractPriorModel, Path
 from autofit.non_linear.samples.sample import Sample
 
+from .summary import SamplesSummary
+from .interface import SamplesInterface, to_instance
+
 
 ### TODO: Rich how do I reduce this to one wrapper sensible?
-
-
-def to_instance(func):
-    """
-
-    Parameters
-    ----------
-    func
-
-    Returns
-    -------
-        A function that returns a 2D image.
-    """
-
-    @wraps(func)
-    def wrapper(
-        obj, as_instance: bool = True, *args, **kwargs
-    ) -> Union[List, ModelInstance]:
-        """
-        This decorator checks if a light profile is a `LightProfileOperated` class and therefore already has had operations like a
-        PSF convolution performed.
-
-        This is compared to the `only_operated` input to determine if the image of that light profile is returned, or
-        an array of zeros.
-
-        Parameters
-        ----------
-        obj
-            A light profile with an `image_2d_from` function whose class is inspected to determine if the image is
-            operated on.
-        grid
-            A grid_like object of (y,x) coordinates on which the function values are evaluated.
-        operated_only
-            By default this is None and the image is returned irrespecive of light profile class (E.g. it does not matter
-            if it is already operated or not). If this input is included as a bool, the light profile image is only
-            returned if they are or are not already operated.
-
-        Returns
-        -------
-            The 2D image, which is customized depending on whether it has been operated on.
-        """
-
-        vector = func(obj, as_instance, *args, **kwargs)
-
-        if as_instance:
-            return obj.model.instance_from_vector(
-                vector=vector, ignore_prior_limits=True
-            )
-
-        return vector
-
-    return wrapper
 
 
 def to_instance_sigma(func):
@@ -225,7 +176,7 @@ def to_instance_input(func):
     return wrapper
 
 
-class Samples(ABC):
+class Samples(SamplesInterface, ABC):
     def __init__(
         self,
         model: AbstractPriorModel,
@@ -263,15 +214,20 @@ class Samples(ABC):
         results_internal
             The nested sampler's results in their native internal format for interfacing its visualization library.
         """
-        self.model = model
+        assert model is not None
+
+        super().__init__(model=model)
         self.sample_list = sample_list
 
         self.total_iterations = total_iterations
         self.time = time
         self.results_internal = results_internal
 
-        self._paths = None
-        self._names = None
+    def summary(self):
+        return SamplesSummary(
+            max_log_likelihood_sample=self.max_log_likelihood_sample,
+            model=self.model,
+        )
 
     def __add__(self, other: "Samples") -> "Samples":
         """
@@ -376,30 +332,6 @@ class Samples(ABC):
         for each sample in the model
         """
         return [sample.kwargs[path] for sample in self.sample_list]
-
-    @property
-    def paths(self) -> List[Tuple[Path]]:
-        """
-        A list of paths to unique priors in the same order as prior
-        ids (and therefore sample columns)
-
-        Uses hasattr to make backwards compatible
-        """
-        if not hasattr(self, "_paths") or self._paths is None:
-            self._paths = self.model.all_paths
-        return self._paths
-
-    @property
-    def names(self) -> List[Tuple[str]]:
-        """
-        A list of names of unique priors in the same order as prior
-        ids (and therefore sample columns)
-
-        Uses hasattr to make backwards compatible
-        """
-        if not hasattr(self, "_names") or self._names is None:
-            self._names = self.model.all_names
-        return self._names
 
     @property
     def parameter_lists(self):

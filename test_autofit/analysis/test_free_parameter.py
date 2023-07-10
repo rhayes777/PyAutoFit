@@ -74,7 +74,8 @@ def test_modified_models(modified):
 
 @pytest.fixture(name="result")
 def make_result(
-    combined_analysis, model,
+    combined_analysis,
+    model,
 ):
     optimizer = MockOptimizer()
     return optimizer.fit(model, combined_analysis)
@@ -84,13 +85,6 @@ def make_result(
 def do_remove_output(remove_output):
     yield
     remove_output()
-
-
-def test_integration(result):
-    result_1, result_2 = result
-
-    assert result_1._model.centre is not result_2._model.centre
-    assert result_1._model.sigma is result_2._model.sigma
 
 
 def test_tuple_prior(model, Analysis):
@@ -115,7 +109,8 @@ def test_prior_model(model, Analysis):
 
 def test_split_samples(modified):
     samples = af.Samples(
-        modified, af.Sample.from_lists(modified, [[1, 2, 3, 4]], [1], [1], [1]),
+        modified,
+        af.Sample.from_lists(modified, [[1, 2, 3, 4]], [1], [1], [1]),
     )
 
     combined = samples.max_log_likelihood()

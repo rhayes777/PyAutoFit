@@ -1,3 +1,4 @@
+import json
 import logging
 import os
 import pickle
@@ -7,6 +8,8 @@ from pathlib import Path
 import dill
 
 from autofit.non_linear import abstract_search
+from autofit.mapper.prior_model.abstract import AbstractPriorModel
+from autofit.tools.util import from_dict
 
 original_create_file_handle = dill._dill._create_filehandle
 
@@ -37,6 +40,10 @@ class Output:
     @property
     def pickle_path(self):
         return self.directory / "pickles"
+
+    @property
+    def json_path(self):
+        return self.directory / "jsons"
 
     def __getattr__(self, item):
         """
@@ -113,11 +120,14 @@ class SearchOutput(Output):
         """
         if self.__search is None:
             try:
-                with open(self.pickle_path / "search.pickle", "r+b") as f:
-                    self.__search = pickle.loads(f.read())
-            except (FileNotFoundError, ModuleNotFoundError) as e:
-                print(self.pickle_path)
-                logging.exception(e)
+                with open(self.json_path / "search.json") as f:
+                    self.__search = from_dict(json.loads(f.read()))
+            except (FileNotFoundError, ModuleNotFoundError):
+                try:
+                    with open(self.pickle_path / "search.pickle", "rb") as f:
+                        self.__search = pickle.load(f)
+                except (FileNotFoundError, ModuleNotFoundError):
+                    logging.warning("Could not load search")
         return self.__search
 
     def child_values(self, name):
@@ -133,11 +143,15 @@ class SearchOutput(Output):
         """
         if self.__model is None:
             try:
-                with open(self.pickle_path / "model.pickle", "r+b") as f:
-                    self.__model = pickle.loads(f.read())
+                with open(self.json_path / "model.json") as f:
+                    self.__model = AbstractPriorModel.from_dict(json.load(f))
             except (FileNotFoundError, ModuleNotFoundError) as e:
-                print(self.pickle_path)
                 logging.exception(e)
+                try:
+                    with open(self.pickle_path / "model.pickle", "rb") as f:
+                        self.__model = pickle.load(f)
+                except (FileNotFoundError, ModuleNotFoundError):
+                    logging.warning("Could not load model")
         return self.__model
 
     def __str__(self):

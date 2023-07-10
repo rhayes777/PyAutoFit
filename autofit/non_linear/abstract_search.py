@@ -8,7 +8,7 @@ from abc import ABC, abstractmethod
 from collections import Counter
 from functools import wraps
 from os import path
-from typing import Dict, Optional, Union, Tuple, List
+from typing import Optional, Union, Tuple, List, Dict
 
 import numpy as np
 
@@ -21,7 +21,6 @@ from autofit.graphical import (
     _HierarchicalFactor,
     FactorApproximation,
 )
-from autofit.graphical.utils import Status
 from autofit.graphical.utils import Status
 from autofit.mapper.prior_model.collection import Collection
 from autofit.non_linear.initializer import Initializer
@@ -109,6 +108,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         from autofit.non_linear.paths.database import DatabasePaths
 
         path_prefix = path_prefix or ""
+        self.path_prefix = path_prefix
 
         self.path_prefix_no_unique_tag = path_prefix
 
@@ -145,6 +145,11 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         self.force_pickle_overwrite = conf.instance["general"]["output"][
             "force_pickle_overwrite"
         ]
+        self.skip_save_samples = kwargs.get("skip_save_samples")
+        if self.skip_save_samples is None:
+            self.skip_save_samples = conf.instance["general"]["output"].get(
+                "skip_save_samples"
+            )
 
         self.force_visualize_overwrite = conf.instance["general"]["output"][
             "force_visualize_overwrite"
@@ -166,7 +171,8 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             ]
 
         self.remove_state_files_at_end = self._config(
-            "updates", "remove_state_files_at_end",
+            "updates",
+            "remove_state_files_at_end",
         )
 
         self.iterations = 0
@@ -201,7 +207,6 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                 "NUMEXPR_NUM_THREADS",
             )
         ):
-
             warnings.warn(
                 exc.SearchWarning(
                     """
@@ -245,7 +250,9 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
     __identifier_fields__ = tuple()
 
     def optimise(
-        self, factor_approx: FactorApproximation, status: Status = Status(),
+        self,
+        factor_approx: FactorApproximation,
+        status: Status = Status(),
     ) -> Tuple[MeanField, Status]:
         """
         Perform optimisation for expectation propagation. Currently only
@@ -365,7 +372,6 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         def __init__(
             self, paths, model, analysis, samples_from_model, log_likelihood_cap=None
         ):
-
             self.i = 0
 
             self.paths = paths
@@ -377,7 +383,6 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             self.log_likelihood_cap = log_likelihood_cap
 
         def __call__(self, parameters, *kwargs):
-
             try:
                 figure_of_merit = self.figure_of_merit_from(parameter_list=parameters)
 
@@ -399,14 +404,12 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             return log_likelihood
 
         def log_likelihood_from(self, parameter_list):
-
             instance = self.model.instance_from_vector(vector=parameter_list)
             log_likelihood = self.fit_instance(instance)
 
             return log_likelihood
 
         def log_posterior_from(self, parameter_list):
-
             log_likelihood = self.log_likelihood_from(parameter_list=parameter_list)
             log_prior_list = self.model.log_prior_list_from_vector(
                 vector=parameter_list
@@ -427,7 +430,6 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         @staticmethod
         def prior(cube, model):
-
             # NEVER EVER REFACTOR THIS LINE! Haha.
 
             phys_cube = model.vector_from_unit_vector(unit_vector=cube)
@@ -450,7 +452,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             """
             If a sample raises a FitException, this value is returned to signify that the point requires resampling or
              should be given a likelihood so low that it is discard.
-             """
+            """
             return -np.inf
 
     def fit_sequential(
@@ -529,7 +531,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         info=None,
         pickle_files=None,
         log_likelihood_cap=None,
-        bypass_nuclear_if_on : bool = False
+        bypass_nuclear_if_on: bool = False,
     ) -> Union["Result", List["Result"]]:
         """
         Fit a model, M with some function f that takes instances of the
@@ -582,12 +584,14 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         analysis = analysis.modify_before_fit(paths=self.paths, model=model)
 
         if analysis.should_visualize(paths=self.paths):
-
             analysis.visualize_before_fit(
-                paths=self.paths, model=model,
+                paths=self.paths,
+                model=model,
             )
             analysis.visualize_before_fit_combined(
-                analyses=None, paths=self.paths, model=model,
+                analyses=None,
+                paths=self.paths,
+                model=model,
             )
 
         if not self.paths.is_complete or self.force_pickle_overwrite:
@@ -627,7 +631,9 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
             analysis.save_results_for_aggregator(paths=self.paths, result=result)
 
-            self.paths.save_object("samples", samples)
+            if not self.skip_save_samples:
+                self.paths.save_object("samples", samples)
+            self.paths.save_json("samples_summary", samples.summary().dict())
 
         else:
             self.logger.info(f"Already completed, skipping non-linear search.")
@@ -635,7 +641,9 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             samples = self.paths.load_object("samples")
 
             if self.force_visualize_overwrite:
-                self.perform_visualization(model=model, analysis=analysis, during_analysis=False)
+                self.perform_visualization(
+                    model=model, analysis=analysis, during_analysis=False
+                )
 
             result = analysis.make_result(
                 samples=samples,
@@ -647,7 +655,9 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
             if self.force_pickle_overwrite:
                 self.logger.info("Forcing pickle overwrite")
-                self.paths.save_object("samples", samples)
+                if not self.skip_save_samples:
+                    self.paths.save_object("samples", samples)
+                self.paths.save_json("samples_summary", samples.summary().dict())
                 try:
                     self.paths.save_object("results", samples.results)
                 except AttributeError:
@@ -686,7 +696,6 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
     @cached_property
     def config_dict_search(self) -> Dict:
-
         config_dict = copy.deepcopy(self._class_config["search"])
 
         for key, value in config_dict.items():
@@ -699,7 +708,6 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
     @cached_property
     def config_dict_run(self) -> Dict:
-
         config_dict = copy.deepcopy(self._class_config["run"])
 
         for key, value in config_dict.items():
@@ -709,7 +717,6 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                 pass
 
         if os.environ.get("PYAUTOFIT_TEST_MODE") == "1":
-
             logger.warning(f"TEST MODE ON: SEARCH WILL SKIP SAMPLING\n\n")
 
             config_dict = self.config_dict_with_test_mode_settings_from(
@@ -742,7 +749,9 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         """
         return self._class_config[section][attribute_name]
 
-    def perform_update(self, model : Collection, analysis : Analysis, during_analysis : bool):
+    def perform_update(
+        self, model: Collection, analysis: Analysis, during_analysis: bool
+    ):
         """
         Perform an update of the non-linear search's model-fitting results.
 
@@ -785,17 +794,19 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         except exc.FitException:
             return samples
 
-        self.perform_visualization(model=model, analysis=analysis, during_analysis=during_analysis)
+        self.perform_visualization(
+            model=model, analysis=analysis, during_analysis=during_analysis
+        )
 
         if self.should_profile:
             self.logger.debug("Profiling Maximum Likelihood Model")
             analysis.profile_log_likelihood_function(
-                paths=self.paths, instance=instance,
+                paths=self.paths,
+                instance=instance,
             )
 
         self.logger.debug("Outputting model result")
         try:
-
             start = time.time()
             analysis.log_likelihood_function(instance=instance)
             log_likelihood_function_time = time.time() - start
@@ -861,7 +872,10 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                 paths=self.paths, instance=instance, during_analysis=during_analysis
             )
             analysis.visualize_combined(
-                analyses=None, paths=self.paths, instance=instance, during_analysis=during_analysis
+                analyses=None,
+                paths=self.paths,
+                instance=instance,
+                during_analysis=during_analysis,
             )
 
     @property

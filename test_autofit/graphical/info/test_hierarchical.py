@@ -19,7 +19,8 @@ def make_model_factor_2():
 
 @pytest.fixture(name="hierarchical_factor")
 def make_hierarchical_factor(
-    model_factor_1, model_factor_2,
+    model_factor_1,
+    model_factor_2,
 ):
     hierarchical_factor = g.HierarchicalFactor(
         af.GaussianPrior,
@@ -34,7 +35,9 @@ def make_hierarchical_factor(
 
 @pytest.fixture(name="hierarchical_model")
 def make_factor_graph_model(
-    model_factor_1, model_factor_2, hierarchical_factor,
+    model_factor_1,
+    model_factor_2,
+    hierarchical_factor,
 ):
     return g.FactorGraphModel(model_factor_1, model_factor_2, hierarchical_factor)
 
@@ -61,13 +64,13 @@ def test_info_for_hierarchical_factor(graph):
         info
         == """HierarchicalFactor0
 
-mean (HierarchicalFactor0, PriorFactor1)                                                  GaussianPrior [7], mean = 100, sigma = 10
-sigma (HierarchicalFactor0, PriorFactor0)                                                 GaussianPrior [8], mean = 10, sigma = 5
+mean (HierarchicalFactor0, PriorFactor1)                                                  GaussianPrior [6], mean = 100, sigma = 10
+sigma (HierarchicalFactor0, PriorFactor0)                                                 GaussianPrior [7], mean = 10, sigma = 5
 
 Drawn Variables
 
-AnalysisFactor0.centre, PriorFactor7                                                      UniformPrior [1], lower_limit = 0.0, upper_limit = 1.0
-AnalysisFactor1.centre, PriorFactor4                                                      UniformPrior [4], lower_limit = 0.0, upper_limit = 1.0"""
+AnalysisFactor0.centre, PriorFactor7                                                      UniformPrior [0], lower_limit = 0.0, upper_limit = 1.0
+AnalysisFactor1.centre, PriorFactor4                                                      UniformPrior [3], lower_limit = 0.0, upper_limit = 1.0"""
     )
 
 
@@ -77,38 +80,38 @@ def test_graph_info(graph):
         info
         == """PriorFactors
 
-PriorFactor0 (HierarchicalFactor0)                                                        GaussianPrior [8], mean = 10, sigma = 5
-PriorFactor1 (HierarchicalFactor0)                                                        GaussianPrior [7], mean = 100, sigma = 10
-PriorFactor2 (AnalysisFactor1.sigma)                                                      UniformPrior [6], lower_limit = 0.0, upper_limit = 1.0
-PriorFactor3 (AnalysisFactor1.normalization)                                              UniformPrior [5], lower_limit = 0.0, upper_limit = 1.0
-PriorFactor4 (AnalysisFactor1.centre, HierarchicalFactor0)                                UniformPrior [4], lower_limit = 0.0, upper_limit = 1.0
-PriorFactor5 (AnalysisFactor0.sigma)                                                      UniformPrior [3], lower_limit = 0.0, upper_limit = 1.0
-PriorFactor6 (AnalysisFactor0.normalization)                                              UniformPrior [2], lower_limit = 0.0, upper_limit = 1.0
-PriorFactor7 (AnalysisFactor0.centre, HierarchicalFactor0)                                UniformPrior [1], lower_limit = 0.0, upper_limit = 1.0
+PriorFactor0 (HierarchicalFactor0)                                                        GaussianPrior [7], mean = 10, sigma = 5
+PriorFactor1 (HierarchicalFactor0)                                                        GaussianPrior [6], mean = 100, sigma = 10
+PriorFactor2 (AnalysisFactor1.sigma)                                                      UniformPrior [5], lower_limit = 0.0, upper_limit = 1.0
+PriorFactor3 (AnalysisFactor1.normalization)                                              UniformPrior [4], lower_limit = 0.0, upper_limit = 1.0
+PriorFactor4 (AnalysisFactor1.centre, HierarchicalFactor0)                                UniformPrior [3], lower_limit = 0.0, upper_limit = 1.0
+PriorFactor5 (AnalysisFactor0.sigma)                                                      UniformPrior [2], lower_limit = 0.0, upper_limit = 1.0
+PriorFactor6 (AnalysisFactor0.normalization)                                              UniformPrior [1], lower_limit = 0.0, upper_limit = 1.0
+PriorFactor7 (AnalysisFactor0.centre, HierarchicalFactor0)                                UniformPrior [0], lower_limit = 0.0, upper_limit = 1.0
 
 AnalysisFactors
 
 AnalysisFactor0
 
-centre (HierarchicalFactor0, PriorFactor7)                                                UniformPrior [1], lower_limit = 0.0, upper_limit = 1.0
-normalization (PriorFactor6)                                                              UniformPrior [2], lower_limit = 0.0, upper_limit = 1.0
-sigma (PriorFactor5)                                                                      UniformPrior [3], lower_limit = 0.0, upper_limit = 1.0
+centre (HierarchicalFactor0, PriorFactor7)                                                UniformPrior [0], lower_limit = 0.0, upper_limit = 1.0
+normalization (PriorFactor6)                                                              UniformPrior [1], lower_limit = 0.0, upper_limit = 1.0
+sigma (PriorFactor5)                                                                      UniformPrior [2], lower_limit = 0.0, upper_limit = 1.0
 
 AnalysisFactor1
 
-centre (HierarchicalFactor0, PriorFactor4)                                                UniformPrior [4], lower_limit = 0.0, upper_limit = 1.0
-normalization (PriorFactor3)                                                              UniformPrior [5], lower_limit = 0.0, upper_limit = 1.0
-sigma (PriorFactor2)                                                                      UniformPrior [6], lower_limit = 0.0, upper_limit = 1.0
+centre (HierarchicalFactor0, PriorFactor4)                                                UniformPrior [3], lower_limit = 0.0, upper_limit = 1.0
+normalization (PriorFactor3)                                                              UniformPrior [4], lower_limit = 0.0, upper_limit = 1.0
+sigma (PriorFactor2)                                                                      UniformPrior [5], lower_limit = 0.0, upper_limit = 1.0
 
 HierarchicalFactors
 
 HierarchicalFactor0
 
-mean (HierarchicalFactor0, PriorFactor1)                                                  GaussianPrior [7], mean = 100, sigma = 10
-sigma (HierarchicalFactor0, PriorFactor0)                                                 GaussianPrior [8], mean = 10, sigma = 5
+mean (HierarchicalFactor0, PriorFactor1)                                                  GaussianPrior [6], mean = 100, sigma = 10
+sigma (HierarchicalFactor0, PriorFactor0)                                                 GaussianPrior [7], mean = 10, sigma = 5
 
 Drawn Variables
 
-AnalysisFactor0.centre, PriorFactor7                                                      UniformPrior [1], lower_limit = 0.0, upper_limit = 1.0
-AnalysisFactor1.centre, PriorFactor4                                                      UniformPrior [4], lower_limit = 0.0, upper_limit = 1.0"""
+AnalysisFactor0.centre, PriorFactor7                                                      UniformPrior [0], lower_limit = 0.0, upper_limit = 1.0
+AnalysisFactor1.centre, PriorFactor4                                                      UniformPrior [3], lower_limit = 0.0, upper_limit = 1.0"""
     )

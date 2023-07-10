@@ -9,8 +9,7 @@ def make_result():
     mapper.component = af.m.MockClassx2Tuple
     # noinspection PyTypeChecker
     return af.Result(
-        samples=af.m.MockSamples(gaussian_tuples=[(0, 0), (1, 0)]),
-        model=mapper,
+        samples=af.m.MockSamples(gaussian_tuples=[(0, 0), (1, 0)], model=mapper),
     )
 
 
