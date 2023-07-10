@@ -1,7 +1,7 @@
 import copy
 import logging
 from functools import wraps
-from typing import Optional, Union, Tuple, List, Iterable, Type
+from typing import Optional, Union, Tuple, List, Iterable, Type, Dict
 
 from autofit.mapper.model_object import ModelObject
 from autofit.mapper.prior_model.recursion import DynamicRecursionCache
@@ -379,14 +379,27 @@ def path_instances_of_class(
 
 class ModelInstance(AbstractModel):
     """
-    An object to hold model instances produced by providing arguments to a model mapper.
+    An instance of a Collection or Model. This is created by optimisers and correspond
+    to a point in the parameter space.
 
     @DynamicAttrs
     """
 
     __dictable_type__ = "instance"
 
-    def __init__(self, child_items=None):
+    def __init__(self, child_items: Optional[Union[List, Dict]] = None):
+        """
+        An instance of a Collection or Model. This is created by optimisers and correspond
+        to a point in the parameter space.
+
+        Parameters
+        ----------
+        child_items
+            The child items of the instance. This can be a list or dict.
+
+            If a list, the items are assigned to the instance in order.
+            If a dict, the items are assigned to the instance by key and accessed by attribute.
+        """
         super().__init__()
         self.child_items = child_items
 
