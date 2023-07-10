@@ -17,6 +17,9 @@ epsilon = 1e-14
 class Prior(Variable, ABC, ArithmeticMixin):
     __database_args__ = ("lower_limit", "upper_limit", "id_")
 
+    _ids = itertools.count()
+    _priors_by_id = {}
+
     def __init__(self, message, lower_limit=0.0, upper_limit=1.0, id_=None):
         """
         An object used to mappers a unit value to an attribute value for a specific
@@ -32,6 +35,7 @@ class Prior(Variable, ABC, ArithmeticMixin):
         super().__init__(id_=id_)
         self.message = message
         message.id_ = self.id
+        self._priors_by_id[self.id] = self
 
         self.lower_limit = float(lower_limit)
         self.upper_limit = float(upper_limit)
@@ -222,7 +226,7 @@ class Prior(Variable, ABC, ArithmeticMixin):
         """
         id_ = prior_dict.get("id")
         try:
-            return cls._objects_by_id[id_]
+            return cls._priors_by_id[id_]
         except KeyError:
             pass
 
@@ -260,6 +264,7 @@ class Prior(Variable, ABC, ArithmeticMixin):
             "lower_limit": self.lower_limit,
             "upper_limit": self.upper_limit,
             "type": self.name_of_class(),
+            "id": self.id,
         }
         return prior_dict
 

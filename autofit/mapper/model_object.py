@@ -22,7 +22,6 @@ def dereference(reference: Optional[dict], name: str):
 
 class ModelObject:
     _ids = itertools.count()
-    _objects_by_id = {}
 
     @classmethod
     def next_id(cls):
@@ -45,7 +44,6 @@ class ModelObject:
             graph.
         """
         self.id = id_ or self.next_id()
-        self._objects_by_id[self.id] = self
         self._label = label
 
     def replacing_for_path(self, path: Tuple[str, ...], value) -> "ModelObject":
@@ -149,12 +147,6 @@ class ModelObject:
         if not isinstance(d, dict):
             return d
 
-        id_ = d.get("id")
-        try:
-            return cls._objects_by_id[id_]
-        except KeyError:
-            pass
-
         type_ = d["type"]
 
         def get_class_path():
@@ -166,7 +158,7 @@ class ModelObject:
         if type_ == "model":
             class_path = get_class_path()
             try:
-                instance = Model(get_class(class_path), id_=id_)
+                instance = Model(get_class(class_path))
             except (ModuleNotFoundError, AttributeError):
                 logger.warning(
                     f"Could not find type for class path {class_path}. Defaulting to Collection placeholder."
@@ -183,10 +175,10 @@ class ModelObject:
         elif type_ == "instance":
             class_path = get_class_path()
             try:
-                cls = get_class(class_path)
+                cls_ = get_class(class_path)
                 d.pop("type")
                 # noinspection PyArgumentList
-                return cls(
+                return cls_(
                     **{
                         key: ModelObject.from_dict(
                             value, reference=dereference(reference, key)
@@ -207,8 +199,8 @@ class ModelObject:
             try:
                 return Prior.from_dict(d)
             except KeyError:
-                cls = get_class(type_)
-                instance = object.__new__(cls)
+                cls_ = get_class(type_)
+                instance = object.__new__(cls_)
 
         d.pop("type")
 
@@ -249,7 +241,6 @@ class ModelObject:
 
         dict_ = {
             "type": type_,
-            "id": self.id,
         }
 
         for key, value in self._dict.items():
