@@ -168,7 +168,6 @@ This is all expanded upon in the **HowToFit** chapter on graphical models, where
 description of why this approach to model-fitting extracts a lot more information than fitting each dataset
 one-by-one.
 
-
 Expectation Propagation
 -----------------------
 
