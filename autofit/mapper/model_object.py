@@ -22,6 +22,7 @@ def dereference(reference: Optional[dict], name: str):
 
 class ModelObject:
     _ids = itertools.count()
+    _objects_by_id = {}
 
     @classmethod
     def next_id(cls):
@@ -44,6 +45,7 @@ class ModelObject:
             graph.
         """
         self.id = id_ or self.next_id()
+        self._objects_by_id[self.id] = self
         self._label = label
 
     def replacing_for_path(self, path: Tuple[str, ...], value) -> "ModelObject":
@@ -110,8 +112,8 @@ class ModelObject:
     def identifier(self):
         return str(Identifier(self))
 
-    @staticmethod
-    def from_dict(d, reference: Optional[Dict[str, str]] = None):
+    @classmethod
+    def from_dict(cls, d, reference: Optional[Dict[str, str]] = None):
         """
         Recursively parse a dictionary returning the model, collection or
         instance that is represents.
@@ -147,6 +149,12 @@ class ModelObject:
         if not isinstance(d, dict):
             return d
 
+        id_ = d.get("id")
+        try:
+            return cls._objects_by_id[id_]
+        except KeyError:
+            pass
+
         type_ = d["type"]
 
         def get_class_path():
@@ -158,7 +166,7 @@ class ModelObject:
         if type_ == "model":
             class_path = get_class_path()
             try:
-                instance = Model(get_class(class_path))
+                instance = Model(get_class(class_path), id_=id_)
             except (ModuleNotFoundError, AttributeError):
                 logger.warning(
                     f"Could not find type for class path {class_path}. Defaulting to Collection placeholder."
@@ -239,7 +247,10 @@ class ModelObject:
                 f"{self.__class__.__name__} cannot be serialised to dict"
             )
 
-        dict_ = {"type": type_}
+        dict_ = {
+            "type": type_,
+            "id": self.id,
+        }
 
         for key, value in self._dict.items():
             try:
