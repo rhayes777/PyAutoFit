@@ -79,7 +79,6 @@ def test_result_json(sample):
             sample_list=[sample],
             model=model,
         ),
-        model=model,
     )
 
     assert result.dict() == {

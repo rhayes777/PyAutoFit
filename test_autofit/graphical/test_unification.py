@@ -13,7 +13,10 @@ from autofit.messages.transform import log_10_transform, LinearShiftTransform
 
 @pytest.fixture(name="prior")
 def make_prior():
-    return af.GaussianPrior(mean=1, sigma=2,).message
+    return af.GaussianPrior(
+        mean=1,
+        sigma=2,
+    ).message
 
 
 def test():
@@ -49,7 +52,7 @@ def test_projected_model():
             for _ in range(100)
         ],
     )
-    result = af.Result(samples=samples, model=model)
+    result = af.Result(samples=samples)
     projected_model = result.projected_model
 
     assert projected_model.prior_count == 3
@@ -60,7 +63,8 @@ def test_projected_model():
 
 def test_uniform_normal(x):
     message = TransformedMessage(
-        UniformNormalMessage, LinearShiftTransform(shift=1, scale=2.1),
+        UniformNormalMessage,
+        LinearShiftTransform(shift=1, scale=2.1),
     )
 
     assert message.pdf(0.9) == pytest.approx(0)
@@ -83,7 +87,10 @@ def test_uniform_normal(x):
     ],
 )
 def test_uniform_prior(lower_limit, upper_limit, unit_value, physical_value):
-    assert af.UniformPrior(lower_limit=lower_limit, upper_limit=upper_limit,).value_for(
+    assert af.UniformPrior(
+        lower_limit=lower_limit,
+        upper_limit=upper_limit,
+    ).value_for(
         unit_value, ignore_prior_limits=True
     ) == pytest.approx(physical_value)
 
@@ -106,7 +113,11 @@ def test_log10(lower_limit, upper_limit, unit):
 
 @pytest.fixture(name="uniform_prior")
 def make_uniform_prior():
-    return af.UniformPrior(lower_limit=10, upper_limit=20, id_=1,).message
+    return af.UniformPrior(
+        lower_limit=10,
+        upper_limit=20,
+        id_=1,
+    ).message
 
 
 def test_prior_arithmetic(uniform_prior):
@@ -137,7 +148,12 @@ def test_pickle_log_uniform_prior():
 @pytest.fixture(name="LogMessage")
 def make_log_message():
     return TransformedMessage(
-        UniformNormalMessage, log_10_transform, LinearShiftTransform(shift=1, scale=2,),
+        UniformNormalMessage,
+        log_10_transform,
+        LinearShiftTransform(
+            shift=1,
+            scale=2,
+        ),
     )
 
 

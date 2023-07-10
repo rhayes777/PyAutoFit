@@ -1,7 +1,5 @@
 import os
-from os import path
 import pytest
-import warnings
 
 import autofit as af
 from autoconf import conf
@@ -25,13 +23,14 @@ def make_result():
     mapper.component = af.m.MockClassx2Tuple
     # noinspection PyTypeChecker
     return af.Result(
-        samples=af.m.MockSamples(gaussian_tuples=[(0, 0), (1, 0)]),
-        model=mapper,
+        samples=af.m.MockSamples(
+            gaussian_tuples=[(0, 0), (1, 0)],
+            model=mapper,
+        ),
     )
 
 
 def test__environment_variable_override():
-
     os.environ["OPENBLAS_NUM_THREADS"] = "2"
     os.environ["MKL_NUM_THREADS"] = "2"
     os.environ["OMP_NUM_THREADS"] = "2"
@@ -40,6 +39,7 @@ def test__environment_variable_override():
 
     with pytest.warns(af.exc.SearchWarning):
         af.mock.MockSearch(number_of_cores=2)
+
 
 class TestResult:
     def test_model(self, result):
@@ -74,19 +74,14 @@ class TestLabels:
     def test_param_names(self):
         model = af.Model(af.m.MockClassx4)
         assert [
-                   "one",
-                   "two",
-                   "three",
-                   "four",
-               ] == model.model_component_and_parameter_names
+            "one",
+            "two",
+            "three",
+            "four",
+        ] == model.model_component_and_parameter_names
 
     def test_label_config(self):
         assert conf.instance["notation"]["label"]["label"]["one"] == "one_label"
         assert conf.instance["notation"]["label"]["label"]["two"] == "two_label"
         assert conf.instance["notation"]["label"]["label"]["three"] == "three_label"
         assert conf.instance["notation"]["label"]["label"]["four"] == "four_label"
-
-
-test_path = path.join(
-    "{}".format(path.dirname(path.realpath(__file__))), "files", "phase"
-)

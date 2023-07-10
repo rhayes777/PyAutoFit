@@ -8,9 +8,7 @@ from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.paths.abstract import AbstractPaths
 from autofit.non_linear.result import Result
 
-logger = logging.getLogger(
-    __name__
-)
+logger = logging.getLogger(__name__)
 
 
 class Analysis(ABC):
@@ -36,12 +34,12 @@ class Analysis(ABC):
         An analysis for that model
         """
         from .model_analysis import ModelAnalysis
-        return ModelAnalysis(
-            analysis=self,
-            model=model
-        )
 
-    def should_visualize(self, paths: AbstractPaths, during_analysis : bool = True) -> bool:
+        return ModelAnalysis(analysis=self, model=model)
+
+    def should_visualize(
+        self, paths: AbstractPaths, during_analysis: bool = True
+    ) -> bool:
         """
         Whether a visualize method should be called perform visualization, which depends on the following:
 
@@ -89,16 +87,20 @@ class Analysis(ABC):
     def visualize(self, paths: AbstractPaths, instance, during_analysis):
         pass
 
-    def visualize_before_fit_combined(self, analyses, paths: AbstractPaths, model: AbstractPriorModel):
+    def visualize_before_fit_combined(
+        self, analyses, paths: AbstractPaths, model: AbstractPriorModel
+    ):
         pass
 
-    def visualize_combined(self, analyses, paths: AbstractPaths, instance, during_analysis):
+    def visualize_combined(
+        self, analyses, paths: AbstractPaths, instance, during_analysis
+    ):
         pass
 
     def save_attributes_for_aggregator(self, paths: AbstractPaths):
         pass
 
-    def save_results_for_aggregator(self, paths: AbstractPaths, result:Result):
+    def save_results_for_aggregator(self, paths: AbstractPaths, result: Result):
         pass
 
     def modify_before_fit(self, paths: AbstractPaths, model: AbstractPriorModel):
@@ -113,7 +115,9 @@ class Analysis(ABC):
     def modify_model(self, model):
         return model
 
-    def modify_after_fit(self, paths: AbstractPaths, model: AbstractPriorModel, result: Result):
+    def modify_after_fit(
+        self, paths: AbstractPaths, model: AbstractPriorModel, result: Result
+    ):
         """
         Overwrite this method to modify the attributes of the `Analysis` class before the non-linear search begins.
 
@@ -125,7 +129,6 @@ class Analysis(ABC):
     def make_result(self, samples, model, sigma=1.0, use_errors=True, use_widths=False):
         return Result(
             samples=samples,
-            model=model,
             sigma=sigma,
             use_errors=use_errors,
             use_widths=use_widths,
@@ -133,12 +136,12 @@ class Analysis(ABC):
 
     def profile_log_likelihood_function(self, paths: AbstractPaths, instance):
         """
-        Overwrite this function for profiling of the log likelihood function to be performed every update of a 
+        Overwrite this function for profiling of the log likelihood function to be performed every update of a
         non-linear search.
-        
-        This behaves analogously to overwriting the `visualize` function of the `Analysis` class, whereby the user 
+
+        This behaves analogously to overwriting the `visualize` function of the `Analysis` class, whereby the user
         fills in the project-specific behaviour of the profiling.
-        
+
         Parameters
         ----------
         paths
@@ -148,10 +151,7 @@ class Analysis(ABC):
         """
         pass
 
-    def __add__(
-            self,
-            other: "Analysis"
-    ):
+    def __add__(self, other: "Analysis"):
         """
         Analyses can be added together. The resultant
         log likelihood function returns the sum of the
@@ -167,14 +167,10 @@ class Analysis(ABC):
         A class that computes log likelihood based on both analyses
         """
         from .combined import CombinedAnalysis
-        if isinstance(
-                other,
-                CombinedAnalysis
-        ):
+
+        if isinstance(other, CombinedAnalysis):
             return other + self
-        return CombinedAnalysis(
-            self, other
-        )
+        return CombinedAnalysis(self, other)
 
     def __radd__(self, other):
         """
