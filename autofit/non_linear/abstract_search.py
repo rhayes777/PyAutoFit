@@ -864,7 +864,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         if analysis.should_visualize(paths=self.paths, during_analysis=during_analysis):
             if not isinstance(self.paths, NullPaths):
-                self.plot_results(samples=samples)
+                self.plot_results(samples=samples, during_analysis=during_analysis)
 
         self.logger.debug("Visualizing")
         if analysis.should_visualize(paths=self.paths, during_analysis=during_analysis):
@@ -931,7 +931,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
     def __eq__(self, other):
         return isinstance(other, NonLinearSearch) and self.__dict__ == other.__dict__
 
-    def plot_results(self, samples):
+    def plot_results(self, samples, during_analysis):
         pass
 
 
