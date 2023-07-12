@@ -24,7 +24,7 @@ class MyAnalysis(af.Analysis):
     def log_likelihood_function(self, instance):
         pass
 
-    def make_result(self, samples, model, sigma=1.0, use_errors=True, use_widths=False):
+    def make_result(self, samples, sigma=1.0, use_errors=True, use_widths=False):
         return MyResult(samples=samples)
 
     def modify_before_fit(self, paths, model):
@@ -41,7 +41,7 @@ def test_result_type():
 
     analysis = MyAnalysis().with_model(model)
 
-    result = analysis.make_result(None, model)
+    result = analysis.make_result(None)
 
     assert isinstance(result, MyResult)
 
@@ -63,7 +63,7 @@ def test_combined_before_fit(combined_analysis, paths):
 
 
 def test_combined_after_fit(combined_analysis, paths):
-    result = combined_analysis.make_result(None, None)
+    result = combined_analysis.make_result(None)
 
     combined_analysis = combined_analysis.modify_after_fit(paths, [None], result)
 

@@ -13,7 +13,7 @@ def samples_with_log_likelihood_list(log_likelihood_list):
 class MockSamples(SamplesPDF):
     def __init__(
         self,
-        model,
+        model=None,
         sample_list=None,
         max_log_likelihood_instance=None,
         log_likelihood_list=None,
@@ -66,6 +66,7 @@ class MockSamples(SamplesPDF):
         return self._max_log_likelihood_instance
 
     def gaussian_priors_at_sigma(self, sigma=None):
+
         if self._gaussian_tuples is None:
             return super().gaussian_priors_at_sigma(sigma=sigma)
 

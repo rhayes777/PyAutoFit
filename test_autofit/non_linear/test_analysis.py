@@ -100,7 +100,7 @@ def test_make_result():
     analysis_1 = Analysis()
     analysis_2 = Analysis()
 
-    result = (analysis_1 + analysis_2).make_result(samples=None, model=[None, None])
+    result = (analysis_1 + analysis_2).make_result(samples=None)
 
     assert len(result) == 2
 

@@ -96,6 +96,7 @@ class MockSearch(NonLinearSearch):
         return fitness_function.result
 
     def _fit(self, model, analysis, log_likelihood_cap=None):
+
         if self.fit_fast:
             result = self._fit_fast(model=model, analysis=analysis)
             return result
@@ -132,7 +133,6 @@ class MockSearch(NonLinearSearch):
         self.paths.save_samples(samples)
 
         return analysis.make_result(
-            model=model,
             samples=samples,
         )
 
