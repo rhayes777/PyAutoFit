@@ -1,6 +1,6 @@
 import math
 import numpy as np
-from typing import List, Optional
+from typing import Dict, List, Optional
 import warnings
 
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
@@ -21,8 +21,7 @@ class SamplesMCMC(SamplesPDF):
             model: AbstractPriorModel,
             sample_list: List[Sample],
             auto_correlation_settings: AutoCorrelationsSettings,
-            unconverged_sample_size: int = 100,
-            time: Optional[float] = None,
+            samples_info: Dict,
             results_internal: Optional = None,
     ):
         """
@@ -59,8 +58,7 @@ class SamplesMCMC(SamplesPDF):
         super().__init__(
             model=model,
             sample_list=sample_list,
-            unconverged_sample_size=unconverged_sample_size,
-            time=time,
+            samples_info=samples_info,
             results_internal=results_internal
         )
 

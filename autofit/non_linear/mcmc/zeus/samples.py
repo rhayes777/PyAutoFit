@@ -1,7 +1,6 @@
 import logging
 import numpy as np
-from os import path
-from typing import List, Optional
+from typing import Dict, List
 
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.paths.abstract import AbstractPaths
@@ -58,8 +57,7 @@ class SamplesZeus(SamplesMCMC):
             model=model,
             sample_list=sample_list,
             auto_correlation_settings=auto_correlation_settings,
-            unconverged_sample_size=samples_info["unconverged_sample_size"],
-            time=samples_info["time"],
+            samples_info=samples_info,
             results_internal=results_internal,
         )
 
@@ -69,8 +67,7 @@ class SamplesZeus(SamplesMCMC):
             results_internal,
             model: AbstractPriorModel,
             auto_correlation_settings: AutoCorrelationsSettings,
-            unconverged_sample_size: int = 100,
-            time: Optional[float] = None,
+            samples_info: Dict,
     ):
         """
         The `Samples` classes in **PyAutoFit** provide an interface between the results of a `NonLinearSearch` (e.g.
@@ -122,8 +119,7 @@ class SamplesZeus(SamplesMCMC):
             model=model,
             sample_list=sample_list,
             auto_correlation_settings=auto_correlation_settings,
-            unconverged_sample_size=unconverged_sample_size,
-            time=time,
+            samples_info=samples_info,
             results_internal=results_internal,
         )
 

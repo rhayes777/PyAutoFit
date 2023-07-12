@@ -602,7 +602,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                 info=info,
                 pickle_files=pickle_files,
             )
-            analysis.save_attributes_for_aggregator(paths=self.paths)
+            analysis.save_attributes(paths=self.paths)
 
         if not self.paths.is_complete:
             self.logger.info("Not complete. Starting non-linear search.")
@@ -628,7 +628,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                 use_widths=self.prior_passer.use_widths,
             )
 
-            analysis.save_results_for_aggregator(paths=self.paths, result=result)
+            analysis.save_results(paths=self.paths, result=result)
 
             if not self.skip_save_samples:
                 self.paths.save_json("samples_summary", samples.summary().dict())
@@ -663,7 +663,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                 except AttributeError:
                     self.paths.save_object("results", samples.results_internal)
 
-                analysis.save_results_for_aggregator(paths=self.paths, result=result)
+                analysis.save_results(paths=self.paths, result=result)
 
         analysis = analysis.modify_after_fit(
             paths=self.paths, model=model, result=result

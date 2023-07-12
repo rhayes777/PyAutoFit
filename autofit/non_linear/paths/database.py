@@ -1,5 +1,5 @@
 import shutil
-from typing import Optional
+from typing import Dict, Optional
 
 from autofit.database.sqlalchemy_ import sa
 from .abstract import AbstractPaths
@@ -138,6 +138,18 @@ class DatabasePaths(AbstractPaths):
 
     def load_object(self, name: str):
         return self.fit[name]
+
+    def save_results_internal(self, obj: object):
+        pass
+
+    def load_results_internal(self):
+        pass
+
+    def save_results_internal_json(self, results_internal_dict : Dict):
+        pass
+
+    def load_results_internal_json(self) -> Dict:
+        pass
 
     def remove_object(self, name: str):
         del self.fit[name]

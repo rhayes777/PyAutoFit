@@ -88,7 +88,7 @@ class MockSearch(NonLinearSearch):
                 return -2 * log_likelihood
 
         if self.save_for_aggregator:
-            analysis.save_attributes_for_aggregator(paths=self.paths)
+            analysis.save_attributes(paths=self.paths)
 
         fitness_function = Fitness(model.instance_from_vector, result=self.result)
         fitness_function([prior.mean for prior in model.priors_ordered_by_id])

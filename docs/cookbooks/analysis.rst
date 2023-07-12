@@ -311,7 +311,7 @@ the model, samples, search, etc.
 
 These files are human readable and help one quickly inspect and interpret results.
 
-By extending an ``Analysis`` class with the methods ``save_attributes_for_aggregator`` and ``save_results_for_aggregator``,
+By extending an ``Analysis`` class with the methods ``save_attributes`` and ``save_results``,
 custom files can be written to the ``files`` folder to further aid this inspection.
 
 These files can then also be loaded via the database, as described in the database cookbook.
@@ -345,7 +345,7 @@ These files can then also be loaded via the database, as described in the databa
 
             return log_likelihood
 
-        def save_attributes_for_aggregator(self, paths: af.DirectoryPaths):
+        def save_attributes(self, paths: af.DirectoryPaths):
             """
             Before the non-linear search begins, this routine saves attributes
             of the `Analysis` object to the `files` folder such that they can
@@ -381,7 +381,7 @@ These files can then also be loaded via the database, as described in the databa
             with open(file_path, "w+") as f:
                 json.dump(self.noise_map, f, indent=4)
 
-        def save_results_for_aggregator(self, paths: af.DirectoryPaths, result: af.Result):
+        def save_results(self, paths: af.DirectoryPaths, result: af.Result):
             """
             At the end of a model-fit,  this routine saves attributes of the `Analysis`
             object to the `files` folder such that they can be loaded after the analysis

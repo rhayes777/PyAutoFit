@@ -1,13 +1,9 @@
-import json
 import numpy as np
-from os import path
-import pickle
-from typing import Optional
+from typing import Dict
 
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.paths.abstract import AbstractPaths
 from autofit.non_linear.samples import Samples, Sample
-from autofit.tools.util import open_
 
 class SamplesPySwarms(Samples):
 
@@ -38,20 +34,15 @@ class SamplesPySwarms(Samples):
         sample_list = paths.load_samples()
         samples_info = paths.load_samples_info()
 
-        with open_(path.join(paths.search_internal_path, "results_internal.json"), "r+") as f:
-            results_internal_dict = json.load(f)
-
         try:
-            with open_(path.join(paths.search_internal_path, "results_internal.pickle"), "rb") as f:
-                results_internal = pickle.load(f)
+            results_internal = paths.load_results_internal()
         except FileNotFoundError:
             results_internal = None
 
         return SamplesPySwarms(
             model=model,
             sample_list=sample_list,
-            total_iterations=results_internal_dict["total_iterations"],
-            time=samples_info["time"],
+            samples_info=samples_info,
             results_internal=results_internal,
         )
 
@@ -60,9 +51,8 @@ class SamplesPySwarms(Samples):
             cls,
             results_internal: np.ndarray,
             log_posterior_list: np.ndarray,
+            samples_info: Dict,
             model: AbstractPriorModel,
-            total_iterations: int,
-            time: Optional[float] = None,
     ):
         """
         The `Samples` classes in **PyAutoFit** provide an interface between the results of a `NonLinearSearch` (e.g.
@@ -107,8 +97,7 @@ class SamplesPySwarms(Samples):
         return SamplesPySwarms(
             model=model,
             sample_list=sample_list,
-            total_iterations=total_iterations,
-            time=time,
+            samples_info=samples_info,
             results_internal=results_internal,
         )
 

@@ -133,11 +133,8 @@ class AbstractPySwarms(AbstractOptimizer):
 
         try:
 
-            with open_(path.join(self.paths.search_internal_path, "results_internal.pickle"), "rb") as f:
-                results_internal = pickle.load(f)
-
-            with open_(path.join(self.paths.search_internal_path, "results_internal.json"), "w+") as f:
-                results_internal_dict = json.load(f, indent=4)
+            results_internal = self.paths.load_results_internal()
+            results_internal_dict = self.paths.load_results_internal_json()
 
             init_pos = results_internal[-1]
             total_iterations = results_internal_dict["total_iterations"]
@@ -204,11 +201,8 @@ class AbstractPySwarms(AbstractOptimizer):
                     "log_posterior_list": [-0.5 * cost for cost in pso.cost_history],
                 }
 
-                with open_(path.join(self.paths.search_internal_path, "results_internal.pickle"), "wb") as f:
-                    pickle.dump(pso.pos_history, f)
-
-                with open_(path.join(self.paths.search_internal_path, "results_internal.json"), "w+") as f:
-                    json.dump(results_internal_dict, f, indent=4)
+                self.paths.save_results_internal(obj=pso.pos_history)
+                self.paths.save_results_internal_json(results_internal_dict=results_internal_dict)
 
                 self.perform_update(
                     model=model, analysis=analysis, during_analysis=True
@@ -240,11 +234,8 @@ class AbstractPySwarms(AbstractOptimizer):
 
     def samples_via_internal_from(self, model):
 
-        with open_(path.join(self.paths.search_internal_path, "results_internal.pickle"), "rb") as f:
-            results_internal = pickle.load(f)
-
-        with open_(path.join(self.paths.search_internal_path, "results_internal.json"), "r+") as f:
-            results_internal_dict = json.load(f)
+        results_internal = self.paths.load_results_internal()
+        results_internal_dict = self.paths.load_results_internal_json()
 
         return SamplesPySwarms.from_results_internal(
             results_internal=results_internal,

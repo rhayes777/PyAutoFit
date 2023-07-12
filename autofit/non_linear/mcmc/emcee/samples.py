@@ -1,7 +1,7 @@
 import emcee
 import numpy as np
 from os import path
-from typing import Optional
+from typing import Dict
 
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.paths.abstract import AbstractPaths
@@ -56,8 +56,7 @@ class SamplesEmcee(SamplesMCMC):
             model=model,
             sample_list=sample_list,
             auto_correlation_settings=auto_correlation_settings,
-            unconverged_sample_size=samples_info["unconverged_sample_size"],
-            time=samples_info["time"],
+            samples_info=samples_info,
             results_internal=results_internal,
         )
 
@@ -67,8 +66,7 @@ class SamplesEmcee(SamplesMCMC):
             results_internal: emcee.backends.HDFBackend,
             model: AbstractPriorModel,
             auto_correlation_settings: AutoCorrelationsSettings,
-            unconverged_sample_size: int = 100,
-            time: Optional[float] = None,
+            samples_info: Dict,
     ):
         """
         The `Samples` classes in **PyAutoFit** provide an interface between the results of a `NonLinearSearch` (e.g.
@@ -121,8 +119,7 @@ class SamplesEmcee(SamplesMCMC):
             model=model,
             sample_list=sample_list,
             auto_correlation_settings=auto_correlation_settings,
-            unconverged_sample_size=unconverged_sample_size,
-            time=time,
+            samples_info=samples_info,
             results_internal=results_internal,
         )
 

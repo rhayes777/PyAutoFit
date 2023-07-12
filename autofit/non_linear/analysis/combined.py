@@ -180,17 +180,17 @@ class CombinedAnalysis(Analysis):
 
         return results
 
-    def save_attributes_for_aggregator(self, paths: AbstractPaths):
+    def save_attributes(self, paths: AbstractPaths):
         def func(child_paths, analysis):
-            analysis.save_attributes_for_aggregator(
+            analysis.save_attributes(
                 child_paths,
             )
 
         self._for_each_analysis(func, paths)
 
-    def save_results_for_aggregator(self, paths: AbstractPaths, result: Result):
+    def save_results(self, paths: AbstractPaths, result: Result):
         def func(child_paths, analysis, result_):
-            analysis.save_results_for_aggregator(paths=child_paths, result=result_)
+            analysis.save_results(paths=child_paths, result=result_)
 
         self._for_each_analysis(func, paths, result)
 

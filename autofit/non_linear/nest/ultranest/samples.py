@@ -1,13 +1,9 @@
-import pickle
-from os import path
-from typing import Optional
+from typing import Dict
 
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.paths.abstract import AbstractPaths
 from autofit.non_linear.samples import Sample
 from autofit.non_linear.samples.nest import SamplesNest
-from autofit.tools.util import open_
-
 
 class SamplesUltraNest(SamplesNest):
 
@@ -45,9 +41,7 @@ class SamplesUltraNest(SamplesNest):
         return SamplesUltraNest(
             model=model,
             sample_list=sample_list,
-            number_live_points=samples_info["number_live_points"],
-            unconverged_sample_size=samples_info["unconverged_sample_size"],
-            time=samples_info["time"],
+            samples_info=samples_info,
             results_internal=results_internal,
         )
 
@@ -56,9 +50,7 @@ class SamplesUltraNest(SamplesNest):
             cls,
             results_internal,
             model: AbstractPriorModel,
-            number_live_points: int,
-            unconverged_sample_size: int = 100,
-            time: Optional[float] = None,
+            samples_info: Dict,
     ):
         """
         The `Samples` classes in **PyAutoFit** provide an interface between the resultsof a `NonLinearSearch` (e.g.
@@ -102,9 +94,7 @@ class SamplesUltraNest(SamplesNest):
         return SamplesUltraNest(
             model=model,
             sample_list=sample_list,
-            number_live_points=number_live_points,
-            unconverged_sample_size=unconverged_sample_size,
-            time=time,
+            samples_info=samples_info,
             results_internal=results_internal,
         )
 

@@ -1,6 +1,6 @@
 import logging
 import math
-from typing import List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Tuple, Union
 
 import numpy as np
 
@@ -21,8 +21,7 @@ class SamplesPDF(Samples):
         self,
         model: AbstractPriorModel,
         sample_list: List[Sample],
-        unconverged_sample_size: int = 100,
-        time: Optional[float] = None,
+        samples_info: Optional[Dict] = None,
         results_internal: Optional = None,
     ):
         """
@@ -45,12 +44,8 @@ class SamplesPDF(Samples):
         sample_list
             The list of `Samples` which contains the paramoeters, likelihood, weights, etc. of every sample taken
             by the non-linear search.
-        unconverged_sample_size
-            If the samples are for a search that is yet to convergence, a reduced set of samples are used to provide
-            a rough estimate of the parameters. The number of samples is set by this parameter.
-        time
-            The time taken to perform the model-fit, which is passed around `Samples` objects for outputting
-            information on the overall fit.
+        samples_info
+            Contains information on the samples (e.g. total iterations, time to run the search, etc.).
         results_internal
             The nested sampler's results in their native internal format for interfacing its visualization library.
         """
@@ -58,11 +53,11 @@ class SamplesPDF(Samples):
         super().__init__(
             model=model,
             sample_list=sample_list,
-            time=time,
+            samples_info=samples_info,
             results_internal=results_internal,
         )
 
-        self._unconverged_sample_size = int(unconverged_sample_size)
+        self._unconverged_sample_size = samples_info["unconverged_sample_size"]
 
     def summary(self):
         try:

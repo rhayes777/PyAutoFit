@@ -4,7 +4,7 @@ from functools import wraps
 import json
 import warnings
 from copy import copy
-from typing import List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Tuple, Union
 
 import numpy as np
 
@@ -181,8 +181,7 @@ class Samples(SamplesInterface, ABC):
         self,
         model: AbstractPriorModel,
         sample_list: List[Sample],
-        total_iterations: Optional[int] = None,
-        time: Optional[float] = None,
+        samples_info : Optional[Dict],
         results_internal: Optional = None,
     ):
         """
@@ -205,21 +204,15 @@ class Samples(SamplesInterface, ABC):
         sample_list
             The list of `Samples` which contains the paramoeters, likelihood, weights, etc. of every sample taken
             by the non-linear search.
-        total_iterations
-            The total number of iterations, which often cannot be estimated from the sample list (which contains
-            only accepted samples).
-        time
-            The time taken to perform the model-fit, which is passed around `Samples` objects for outputting
-            information on the overall fit.
+        samples_info
+            Contains information on the samples (e.g. total iterations, time to run the search, etc.).
         results_internal
             The nested sampler's results in their native internal format for interfacing its visualization library.
         """
 
         super().__init__(model=model)
         self.sample_list = sample_list
-
-        self.total_iterations = total_iterations
-        self.time = time
+        self.samples_info = samples_info
         self.results_internal = results_internal
 
     def summary(self):
@@ -331,6 +324,14 @@ class Samples(SamplesInterface, ABC):
         for each sample in the model
         """
         return [sample.kwargs[path] for sample in self.sample_list]
+
+    @property
+    def total_iterations(self) -> int:
+        return self.samples_info["total_iterations"]
+
+    @property
+    def time(self) -> Optional[float]:
+        return self.samples_info["time"]
 
     @property
     def parameter_lists(self):

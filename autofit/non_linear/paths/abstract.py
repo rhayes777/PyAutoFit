@@ -7,7 +7,7 @@ import zipfile
 from abc import ABC, abstractmethod
 from configparser import NoSectionError
 from os import path
-from typing import Optional
+from typing import Dict, Optional
 
 from autoconf import conf
 from autofit.mapper.identifier import Identifier, IdentifierField
@@ -360,6 +360,14 @@ class AbstractPaths(ABC):
 
     @abstractmethod
     def load_results_internal(self):
+        pass
+
+    @abstractmethod
+    def save_results_internal_json(self, results_internal_dict : Dict):
+        pass
+
+    @abstractmethod
+    def load_results_internal_json(self) -> Dict:
         pass
 
     @property

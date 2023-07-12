@@ -97,10 +97,10 @@ class Analysis(ABC):
     ):
         pass
 
-    def save_attributes_for_aggregator(self, paths: AbstractPaths):
+    def save_attributes(self, paths: AbstractPaths):
         pass
 
-    def save_results_for_aggregator(self, paths: AbstractPaths, result: Result):
+    def save_results(self, paths: AbstractPaths, result: Result):
         pass
 
     def modify_before_fit(self, paths: AbstractPaths, model: AbstractPriorModel):
