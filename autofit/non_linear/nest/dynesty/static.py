@@ -77,7 +77,7 @@ class DynestyStatic(AbstractDynesty):
 
         self.logger.debug("Creating DynestyStatic Search")
 
-    def samples_from(self, model):
+    def samples_via_internal_from(self, model):
         """
         Create a `Samples` object from this non-linear search's output files on the hard-disk and model.
 

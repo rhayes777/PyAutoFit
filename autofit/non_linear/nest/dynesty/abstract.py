@@ -1,3 +1,4 @@
+import dill
 import os
 from abc import ABC
 from os import path
@@ -12,7 +13,9 @@ from autofit.database.sqlalchemy_ import sa
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.abstract_search import PriorPasser
 from autofit.non_linear.nest.abstract_nest import AbstractNest
+from autofit.non_linear.nest.dynesty.samples import SamplesDynesty
 from autofit.plot.output import Output
+from autofit.tools.util import open_
 
 
 def prior_transform(cube, model):
@@ -28,15 +31,15 @@ def prior_transform(cube, model):
 
 class AbstractDynesty(AbstractNest, ABC):
     def __init__(
-        self,
-        name: str = "",
-        path_prefix: str = "",
-        unique_tag: Optional[str] = None,
-        prior_passer: PriorPasser = None,
-        iterations_per_update: int = None,
-        number_of_cores: int = None,
-        session: Optional[sa.orm.Session] = None,
-        **kwargs,
+            self,
+            name: str = "",
+            path_prefix: str = "",
+            unique_tag: Optional[str] = None,
+            prior_passer: PriorPasser = None,
+            iterations_per_update: int = None,
+            number_of_cores: int = None,
+            session: Optional[sa.orm.Session] = None,
+            **kwargs,
     ):
         """
         A Dynesty non-linear search.
@@ -101,10 +104,10 @@ class AbstractDynesty(AbstractNest, ABC):
             pass
 
     def _fit(
-        self,
-        model: AbstractPriorModel,
-        analysis,
-        log_likelihood_cap: Optional[float] = None,
+            self,
+            model: AbstractPriorModel,
+            analysis,
+            log_likelihood_cap: Optional[float] = None,
     ):
         """
         Fit a model using Dynesty and the Analysis class which contains the data and returns the log likelihood from
@@ -138,9 +141,7 @@ class AbstractDynesty(AbstractNest, ABC):
         from dynesty.pool import Pool
 
         fitness_function = self.fitness_function_from_model_and_analysis(
-            model=model,
-            analysis=analysis,
-            log_likelihood_cap=log_likelihood_cap,
+            model=model, analysis=analysis, log_likelihood_cap=log_likelihood_cap,
         )
 
         if os.path.exists(self.checkpoint_file):
@@ -155,21 +156,24 @@ class AbstractDynesty(AbstractNest, ABC):
         finished = False
 
         while not finished:
+
             checkpoint_exists = os.path.exists(self.checkpoint_file)
 
             try:
+
                 if conf.instance["non_linear"]["nest"][self.__class__.__name__][
                     "parallel"
                 ].get("force_x1_cpu") or self.kwargs.get("force_x1_cpu"):
                     raise RuntimeError
 
                 with Pool(
-                    njobs=self.number_of_cores,
-                    loglike=fitness_function,
-                    prior_transform=prior_transform,
-                    logl_args=(model, fitness_function),
-                    ptform_args=(model,),
+                        njobs=self.number_of_cores,
+                        loglike=fitness_function,
+                        prior_transform=prior_transform,
+                        logl_args=(model, fitness_function),
+                        ptform_args=(model,),
                 ) as pool:
+
                     sampler = self.sampler_from(
                         model=model,
                         fitness_function=fitness_function,
@@ -181,13 +185,14 @@ class AbstractDynesty(AbstractNest, ABC):
                     finished = self.run_sampler(sampler=sampler)
 
             except RuntimeError:
+
                 checkpoint_exists = os.path.exists(self.checkpoint_file)
 
                 if not checkpoint_exists:
                     self.logger.info(
                         """
                         Your operating system does not support Python multiprocessing.
-                        
+
                         A single CPU non-multiprocessing Dynesty run is being performed.
                         """
                     )
@@ -204,8 +209,10 @@ class AbstractDynesty(AbstractNest, ABC):
 
             self.perform_update(model=model, analysis=analysis, during_analysis=True)
 
+        self.save_results_internal(results_internal=sampler.results)
+
     def iterations_from(
-        self, sampler: Union[NestedSampler, DynamicNestedSampler]
+            self, sampler: Union[NestedSampler, DynamicNestedSampler]
     ) -> Tuple[int, int]:
         """
         Returns the next number of iterations that a dynesty call will use and the total number of iterations
@@ -259,11 +266,7 @@ class AbstractDynesty(AbstractNest, ABC):
 
         iterations, total_iterations = self.iterations_from(sampler=sampler)
 
-        config_dict_run = {
-            key: value
-            for key, value in self.config_dict_run.items()
-            if key != "maxcall"
-        }
+        config_dict_run = {key: value for key, value in self.config_dict_run.items() if key != 'maxcall'}
 
         if iterations > 0:
             sampler.run_nested(
@@ -276,8 +279,8 @@ class AbstractDynesty(AbstractNest, ABC):
         iterations_after_run = np.sum(sampler.results.ncall)
 
         return (
-            total_iterations == iterations_after_run
-            or total_iterations == self.config_dict_run.get("maxcall")
+                total_iterations == iterations_after_run
+                or total_iterations == self.config_dict_run.get("maxcall")
         )
 
     def write_uses_pool(self, uses_pool: bool) -> str:
@@ -287,7 +290,7 @@ class AbstractDynesty(AbstractNest, ABC):
 
         This file checks the original pool use so an exception can be raised to avoid this.
         """
-        with open(path.join(self.paths.samples_path, "uses_pool.save"), "w+") as f:
+        with open(path.join(self.paths.search_internal_path, "uses_pool.save"), "w+") as f:
             if uses_pool:
                 f.write("True")
             else:
@@ -300,7 +303,7 @@ class AbstractDynesty(AbstractNest, ABC):
 
         This file checks the original pool use so an exception can be raised to avoid this.
         """
-        with open(path.join(self.paths.samples_path, "uses_pool.save"), "r+") as f:
+        with open(path.join(self.paths.search_internal_path, "uses_pool.save"), "r+") as f:
             return bool(f.read())
 
     @property
@@ -308,9 +311,10 @@ class AbstractDynesty(AbstractNest, ABC):
         """
         The path to the file used by dynesty for checkpointing.
         """
-        return path.join(self.paths.samples_path, "savestate.save")
+        return path.join(self.paths.search_internal_path, "savestate.save")
 
     def config_dict_with_test_mode_settings_from(self, config_dict):
+
         return {
             **config_dict,
             "maxiter": 1,
@@ -347,7 +351,9 @@ class AbstractDynesty(AbstractNest, ABC):
         init_unit_parameters = np.zeros(
             shape=(self.total_live_points, model.prior_count)
         )
-        init_parameters = np.zeros(shape=(self.total_live_points, model.prior_count))
+        init_parameters = np.zeros(
+            shape=(self.total_live_points, model.prior_count)
+        )
         init_log_likelihood_list = np.zeros(shape=(self.total_live_points))
 
         for i in range(len(parameters)):
@@ -367,17 +373,34 @@ class AbstractDynesty(AbstractNest, ABC):
 
         return live_points
 
+    def save_results_internal(self, results_internal):
+        """
+        Save dynesty's internal representation of the results as a pickle file.
+
+        The results in this representation are required to use in built dynesty tools for visualization, analysing
+        samples and other tasks.
+
+        Parameters
+        ----------
+        results_internal
+            The results of the dynesty sampler in its internal representation.
+        """
+
+        with open_(path.join(self.paths.search_internal_path, "results_internal.pickle"), "wb") as f:
+            dill.dump(results_internal, f)
+
     def sampler_from(
-        self,
-        model: AbstractPriorModel,
-        fitness_function,
-        checkpoint_exists: bool,
-        pool: Optional,
-        queue_size: Optional[int],
+            self,
+            model: AbstractPriorModel,
+            fitness_function,
+            checkpoint_exists: bool,
+            pool: Optional,
+            queue_size: Optional[int],
     ):
         raise NotImplementedError()
 
     def check_pool(self, uses_pool: bool, pool):
+
         if (uses_pool and pool is None) or (not uses_pool and pool is not None):
             raise exc.SearchException(
                 """
@@ -391,28 +414,19 @@ class AbstractDynesty(AbstractNest, ABC):
                 """
             )
 
-    def samples_from(self, model):
-        """
-        Create a `Samples` object from this non-linear search's output files on the hard-disk and model.
-
-        For Dynesty, all information that we need is available from the instance of the dynesty sampler.
-
-        Parameters
-        ----------
-        model
-            The model which generates instances for different points in parameter space. This maps the points from unit
-            cube values to physical values via the priors.
-        """
-        raise NotImplementedError()
+    def samples_via_csv_from(self, model):
+        return SamplesDynesty.from_csv(paths=self.paths, model=model)
 
     def remove_state_files(self):
+
         os.remove(self.checkpoint_file)
 
     @property
     def total_live_points(self):
         raise NotImplementedError()
 
-    def plot_results(self, samples, during_analysis):
+    def plot_results(self, samples):
+
         from autofit.non_linear.nest.dynesty.plotter import DynestyPlotter
 
         if not samples.pdf_converged:
@@ -428,7 +442,7 @@ class AbstractDynesty(AbstractNest, ABC):
             ),
         )
 
-        if not during_analysis and should_plot("cornerplot"):
+        if should_plot("cornerplot"):
             plotter.cornerplot()
 
         if should_plot("traceplot"):
