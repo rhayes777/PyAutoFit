@@ -139,6 +139,7 @@ class SamplesMCMC(SamplesPDF):
             "check_size": self.auto_correlations.check_size,
             "required_length": self.auto_correlations.required_length,
             "change_threshold": self.auto_correlations.change_threshold,
+            "unconverged_sample_size": self.unconverged_sample_size,
             "total_walkers": self.total_walkers,
             "total_steps": self.total_steps,
             "time": self.time,

@@ -648,7 +648,6 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
             result = analysis.make_result(
                 samples=samples,
-                model=model,
                 sigma=self.prior_passer.sigma,
                 use_errors=self.prior_passer.use_errors,
                 use_widths=self.prior_passer.use_widths,
