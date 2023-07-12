@@ -355,11 +355,11 @@ class AbstractPaths(ABC):
         pass
 
     @abstractmethod
-    def save_results_internal(self, obj: object, output_type="pickle"):
+    def save_results_internal(self, obj: object):
         pass
 
     @abstractmethod
-    def load_results_internal(self, output_type="pickle"):
+    def load_results_internal(self):
         pass
 
     @property

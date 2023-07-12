@@ -150,7 +150,7 @@ class Zeus(AbstractMCMC):
 
         try:
 
-            zeus_sampler = self.paths.load_results_internal(output_type="dill")
+            zeus_sampler = self.paths.load_results_internal()
 
             zeus_state = zeus_sampler.get_last_sample()
             log_posterior_list = zeus_sampler.get_last_log_prob()
@@ -217,7 +217,7 @@ class Zeus(AbstractMCMC):
 
             zeus_sampler.ncall_total += zeus_sampler.ncall
 
-            self.paths.save_results_internal(obj=zeus_sampler, output_type="dill")
+            self.paths.save_results_internal(obj=zeus_sampler)
 
             zeus_state = zeus_sampler.get_last_sample()
             log_posterior_list = zeus_sampler.get_last_log_prob()
@@ -281,7 +281,7 @@ class Zeus(AbstractMCMC):
         """
 
         return SamplesZeus.from_results_internal(
-            results_internal=self.paths.load_results_internal(output_type="dill"),
+            results_internal=self.paths.load_results_internal(),
             model=model,
             auto_correlation_settings=self.auto_correlations_settings,
             time=self.timer.time,

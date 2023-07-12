@@ -209,7 +209,7 @@ class AbstractDynesty(AbstractNest, ABC):
 
             self.perform_update(model=model, analysis=analysis, during_analysis=True)
 
-        self.paths.save_results_internal(obj=sampler.results, output_type="dill")
+        self.paths.save_results_internal(obj=sampler.results)
 
     def iterations_from(
             self, sampler: Union[NestedSampler, DynamicNestedSampler]
