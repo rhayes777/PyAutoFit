@@ -130,6 +130,7 @@ class Emcee(AbstractMCMC):
         )
 
         try:
+
             emcee_state = emcee_sampler.get_last_sample()
             samples = self.samples_from(model=model)
 
@@ -145,6 +146,7 @@ class Emcee(AbstractMCMC):
                 )
 
         except AttributeError:
+
             (
                 unit_parameter_lists,
                 parameter_lists,
@@ -166,6 +168,7 @@ class Emcee(AbstractMCMC):
             iterations_remaining = self.config_dict_run["nsteps"]
 
         while iterations_remaining > 0:
+
             if self.iterations_per_update > iterations_remaining:
                 iterations = iterations_remaining
             else:
@@ -197,6 +200,7 @@ class Emcee(AbstractMCMC):
         self.logger.info("Emcee sampling complete.")
 
     def config_dict_with_test_mode_settings_from(self, config_dict):
+
         return {
             **config_dict,
             "nwalkers": 20,
@@ -206,6 +210,7 @@ class Emcee(AbstractMCMC):
     def fitness_function_from_model_and_analysis(
         self, model, analysis, log_likelihood_cap=None
     ):
+
         return Emcee.Fitness(
             paths=self.paths,
             model=model,
@@ -216,7 +221,7 @@ class Emcee(AbstractMCMC):
 
     @property
     def backend_filename(self):
-        return path.join(self.paths.samples_path, "emcee.hdf")
+        return path.join(self.paths.search_internal_path, "results_internal.hdf")
 
     @property
     def backend(self) -> emcee.backends.HDFBackend:
@@ -230,11 +235,12 @@ class Emcee(AbstractMCMC):
             return emcee.backends.HDFBackend(filename=self.backend_filename)
         else:
             raise FileNotFoundError(
-                "The file emcee.hdf does not exist at the path "
-                + self.paths.samples_path
+                "The file results_internal.hdf does not exist at the path "
+                + self.paths.search_internal_path
             )
 
-    def samples_from(self, model):
+    def samples_via_internal_from(self, model):
+
         return SamplesEmcee.from_results_internal(
             model=model,
             results_internal=self.backend,
@@ -242,7 +248,14 @@ class Emcee(AbstractMCMC):
             time=self.timer.time,
         )
 
-    def plot_results(self, samples, during_analysis):
+    def samples_via_csv_from(self, model):
+
+        return SamplesEmcee.from_csv(
+            paths=self.paths,
+            model=model,
+        )
+
+    def plot_results(self, samples):
         def should_plot(name):
             return conf.instance["visualize"]["plots_search"]["emcee"][name]
 
@@ -253,7 +266,7 @@ class Emcee(AbstractMCMC):
             ),
         )
 
-        if not during_analysis and should_plot("corner"):
+        if should_plot("corner"):
             plotter.corner()
 
         if should_plot("trajectories"):
