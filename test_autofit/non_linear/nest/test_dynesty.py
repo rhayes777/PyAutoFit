@@ -21,6 +21,7 @@ class MockDynestySampler:
     def __init__(self, results):
         self.results = results
 
+
 class TestDynestyConfig:
 
     def test__loads_from_config_file_if_not_input(self):

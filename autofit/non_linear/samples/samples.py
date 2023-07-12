@@ -9,10 +9,9 @@ from typing import Dict, List, Optional, Tuple, Union
 import numpy as np
 
 from autofit import exc
-from autofit.non_linear.paths.abstract import AbstractPaths
-from autofit.non_linear.mcmc.auto_correlations import AutoCorrelationsSettings, AutoCorrelations
+from autofit.non_linear.mcmc.auto_correlations import AutoCorrelationsSettings
 from autofit.mapper.model import ModelInstance
-from autofit.mapper.prior_model.abstract import AbstractPriorModel, Path
+from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.samples.sample import Sample
 
 from .summary import SamplesSummary
@@ -219,7 +218,7 @@ class Samples(SamplesInterface, ABC):
         self.results_internal = results_internal
 
     @classmethod
-    def from_csv(cls, paths : AbstractPaths, model: AbstractPriorModel):
+    def from_csv(cls, paths, model: AbstractPriorModel):
         """
         Returns a `Samples` object from the output paths of a non-linear search.
 
@@ -482,13 +481,6 @@ class Samples(SamplesInterface, ABC):
             write_row(self._headers)
             for row in self._rows:
                 write_row(row)
-
-    @property
-    def samples_info(self):
-        return {
-            "total_samples": self.total_samples,
-            "time": self.time,
-        }
 
     def info_to_json(self, filename):
         with open(filename, "w") as outfile:

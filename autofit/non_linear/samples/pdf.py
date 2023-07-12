@@ -57,8 +57,6 @@ class SamplesPDF(Samples):
             results_internal=results_internal,
         )
 
-        self._unconverged_sample_size = samples_info["unconverged_sample_size"]
-
     def summary(self):
         try:
             covariance_matrix = self.covariance_matrix()
@@ -97,8 +95,8 @@ class SamplesPDF(Samples):
         unconverted_sample_size. However, if there are fewer samples than this size, we change the size to be the
         the size of the total number of samples.
         """
-        if self.total_samples > self._unconverged_sample_size:
-            return self._unconverged_sample_size
+        if self.total_samples > self.samples_info["unconverged_sample_size"]:
+            return self.samples_info["unconverged_sample_size"]
         return self.total_samples
 
     @property

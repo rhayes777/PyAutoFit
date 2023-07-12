@@ -175,5 +175,5 @@ class SamplesNest(SamplesPDF):
         return SamplesStored(
             model=self.model,
             sample_list=sample_list,
-            unconverged_sample_size=self.unconverged_sample_size,
+            samples_info=self.samples_info,
         )

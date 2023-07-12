@@ -18,7 +18,6 @@ class MockSamples(SamplesPDF):
         max_log_likelihood_instance=None,
         log_likelihood_list=None,
         gaussian_tuples=None,
-        unconverged_sample_size=10,
         **kwargs,
     ):
         self._log_likelihood_list = log_likelihood_list
@@ -30,7 +29,7 @@ class MockSamples(SamplesPDF):
         super().__init__(
             model=model,
             sample_list=sample_list,
-            unconverged_sample_size=unconverged_sample_size,
+            samples_info={},
             **kwargs,
         )
 
