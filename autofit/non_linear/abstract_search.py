@@ -70,16 +70,16 @@ def check_cores(func):
 
 class NonLinearSearch(AbstractFactorOptimiser, ABC):
     def __init__(
-        self,
-        name: Optional[str] = None,
-        path_prefix: Optional[str] = None,
-        unique_tag: Optional[str] = None,
-        prior_passer: "PriorPasser" = None,
-        initializer: Initializer = None,
-        iterations_per_update: int = None,
-        number_of_cores: int = 1,
-        session: Optional[sa.orm.Session] = None,
-        **kwargs,
+            self,
+            name: Optional[str] = None,
+            path_prefix: Optional[str] = None,
+            unique_tag: Optional[str] = None,
+            prior_passer: "PriorPasser" = None,
+            initializer: Initializer = None,
+            iterations_per_update: int = None,
+            number_of_cores: int = 1,
+            session: Optional[sa.orm.Session] = None,
+            **kwargs,
     ):
         """
         Abstract base class for non-linear searches.L
@@ -198,48 +198,48 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         self.number_of_cores = number_of_cores
 
         if number_of_cores > 1 and any(
-            os.environ.get(key) != "1"
-            for key in (
-                "OPENBLAS_NUM_THREADS",
-                "MKL_NUM_THREADS",
-                "OMP_NUM_THREADS",
-                "VECLIB_MAXIMUM_THREADS",
-                "NUMEXPR_NUM_THREADS",
-            )
+                os.environ.get(key) != "1"
+                for key in (
+                        "OPENBLAS_NUM_THREADS",
+                        "MKL_NUM_THREADS",
+                        "OMP_NUM_THREADS",
+                        "VECLIB_MAXIMUM_THREADS",
+                        "NUMEXPR_NUM_THREADS",
+                )
         ):
             warnings.warn(
                 exc.SearchWarning(
                     """
                     The non-linear search is using multiprocessing (number_of_cores>1). 
-                    
+
                     However, the following environment variables have not been set to 1:
-                    
+
                     OPENBLAS_NUM_THREADS
                     MKL_NUM_THREADS
                     OMP_NUM_THREADS
                     VECLIB_MAXIMUM_THREADS
                     NUMEXPR_NUM_THREADS
-                    
+
                     This can lead to performance issues, because both the non-linear search and libraries that may be
                     used in your `log_likelihood_function` evaluation (e.g. NumPy, SciPy, scikit-learn) may attempt to
                     parallelize over all cores available.
-                    
+
                     This will lead to slow-down, due to overallocation of tasks over the CPUs.
-                    
+
                     To mitigate this, set the environment variables to 1 via the following command on your
                     bash terminal / command line:
-                    
+
                     export OPENBLAS_NUM_THREADS=1
                     export MKL_NUM_THREADS=1
                     export OMP_NUM_THREADS=1
                     export VECLIB_MAXIMUM_THREADS=1
                     export NUMEXPR_NUM_THREADS=1
-                 
+
                     This means only the non-linear search is parallelized over multiple cores.
-                    
+
                     If you "know what you are doing" and do not want these environment variables to be set to one, you 
                     can disable this warning by changing the following entry in the config files:
-                    
+
                     `config -> general.yaml -> parallel: -> warn_environment_variable=False`
                     """
                 )
@@ -250,9 +250,9 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
     __identifier_fields__ = tuple()
 
     def optimise(
-        self,
-        factor_approx: FactorApproximation,
-        status: Status = Status(),
+            self,
+            factor_approx: FactorApproximation,
+            status: Status = Status(),
     ) -> Tuple[MeanField, Status]:
         """
         Perform optimisation for expectation propagation. Currently only
@@ -348,7 +348,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
     @property
     def timer(self):
-        return Timer(self.paths.samples_path)
+        return Timer(self.paths.search_internal_path)
 
     @property
     def paths(self) -> Optional[AbstractPaths]:
@@ -370,7 +370,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
     class Fitness:
         def __init__(
-            self, paths, model, analysis, samples_from_model, log_likelihood_cap=None
+                self, paths, model, analysis, samples_from_model, log_likelihood_cap=None
         ):
             self.i = 0
 
@@ -456,12 +456,12 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             return -np.inf
 
     def fit_sequential(
-        self,
-        model,
-        analysis: IndexCollectionAnalysis,
-        info=None,
-        pickle_files=None,
-        log_likelihood_cap=None,
+            self,
+            model,
+            analysis: IndexCollectionAnalysis,
+            info=None,
+            pickle_files=None,
+            log_likelihood_cap=None,
     ) -> CombinedResult:
         """
         Fit multiple analyses contained within the analysis sequentially.
@@ -525,13 +525,13 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         return CombinedResult(results)
 
     def fit(
-        self,
-        model,
-        analysis: "Analysis",
-        info=None,
-        pickle_files=None,
-        log_likelihood_cap=None,
-        bypass_nuclear_if_on: bool = False,
+            self,
+            model,
+            analysis: "Analysis",
+            info=None,
+            pickle_files=None,
+            log_likelihood_cap=None,
+            bypass_nuclear_if_on: bool = False,
     ) -> Union["Result", List["Result"]]:
         """
         Fit a model, M with some function f that takes instances of the
@@ -623,6 +623,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
             result = analysis.make_result(
                 samples=samples,
+                model=model,
                 sigma=self.prior_passer.sigma,
                 use_errors=self.prior_passer.use_errors,
                 use_widths=self.prior_passer.use_widths,
@@ -631,13 +632,15 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             analysis.save_results_for_aggregator(paths=self.paths, result=result)
 
             if not self.skip_save_samples:
-                self.paths.save_object("samples", samples)
-            self.paths.save_json("samples_summary", samples.summary().dict())
+                self.paths.save_json("samples_summary", samples.summary().dict())
 
         else:
             self.logger.info(f"Already completed, skipping non-linear search.")
 
-            samples = self.paths.load_object("samples")
+            try:
+                samples = self.samples_from(model=model)
+            except (FileNotFoundError, NotImplementedError):
+                samples = self.paths.load_object(name="samples")
 
             if self.force_visualize_overwrite:
                 self.perform_visualization(
@@ -646,6 +649,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
             result = analysis.make_result(
                 samples=samples,
+                model=model,
                 sigma=self.prior_passer.sigma,
                 use_errors=self.prior_passer.use_errors,
                 use_widths=self.prior_passer.use_widths,
@@ -654,16 +658,14 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             if self.force_pickle_overwrite:
                 self.logger.info("Forcing pickle overwrite")
                 if not self.skip_save_samples:
-                    self.paths.save_object("samples", samples)
-                self.paths.save_json("samples_summary", samples.summary().dict())
+                    self.paths.save_json("samples_summary", samples.summary().dict())
+
                 try:
                     self.paths.save_object("results", samples.results)
                 except AttributeError:
                     self.paths.save_object("results", samples.results_internal)
 
                 analysis.save_results_for_aggregator(paths=self.paths, result=result)
-
-        self.paths.samples_to_csv(samples=samples)
 
         analysis = analysis.modify_after_fit(
             paths=self.paths, model=model, result=result
@@ -748,7 +750,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         return self._class_config[section][attribute_name]
 
     def perform_update(
-        self, model: Collection, analysis: Analysis, during_analysis: bool
+            self, model: Collection, analysis: Analysis, during_analysis: bool
     ):
         """
         Perform an update of the non-linear search's model-fitting results.
@@ -785,7 +787,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         samples = self.samples_from(model=model)
 
-        self.paths.save_object("samples", samples)
+        self.paths.samples_to_csv(samples=samples)
 
         try:
             instance = samples.max_log_likelihood()
@@ -862,7 +864,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         if analysis.should_visualize(paths=self.paths, during_analysis=during_analysis):
             if not isinstance(self.paths, NullPaths):
-                self.plot_results(samples=samples, during_analysis=during_analysis)
+                self.plot_results(samples=samples)
 
         self.logger.debug("Visualizing")
         if analysis.should_visualize(paths=self.paths, during_analysis=during_analysis):
@@ -884,6 +886,15 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         pass
 
     def samples_from(self, model):
+        try:
+            return self.samples_via_internal_from(model=model)
+        except (FileNotFoundError, NotImplementedError):
+            return self.samples_via_csv_from(model=model)
+
+    def samples_via_internal_from(self, model):
+        raise NotImplementedError()
+
+    def samples_via_csv_from(self, model):
         raise NotImplementedError()
 
     @check_cores
@@ -929,7 +940,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
     def __eq__(self, other):
         return isinstance(other, NonLinearSearch) and self.__dict__ == other.__dict__
 
-    def plot_results(self, samples, during_analysis):
+    def plot_results(self, samples):
         pass
 
 

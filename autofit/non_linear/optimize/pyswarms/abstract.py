@@ -1,3 +1,5 @@
+import json
+import pickle
 from os import path
 from typing import Optional
 
@@ -13,20 +15,21 @@ from autofit.non_linear.optimize.abstract_optimize import AbstractOptimizer
 from autofit.non_linear.optimize.pyswarms.samples import SamplesPySwarms
 from autofit.plot import PySwarmsPlotter
 from autofit.plot.output import Output
+from autofit.tools.util import open_
 
 
 class AbstractPySwarms(AbstractOptimizer):
     def __init__(
-        self,
-        name: Optional[str] = None,
-        path_prefix: Optional[str] = None,
-        unique_tag: Optional[str] = None,
-        prior_passer: Optional[PriorPasser] = None,
-        initializer: Optional[AbstractInitializer] = None,
-        iterations_per_update: int = None,
-        number_of_cores: int = None,
-        session: Optional[sa.orm.Session] = None,
-        **kwargs
+            self,
+            name: Optional[str] = None,
+            path_prefix: Optional[str] = None,
+            unique_tag: Optional[str] = None,
+            prior_passer: Optional[PriorPasser] = None,
+            initializer: Optional[AbstractInitializer] = None,
+            iterations_per_update: int = None,
+            number_of_cores: int = None,
+            session: Optional[sa.orm.Session] = None,
+            **kwargs
     ):
         """
         A PySwarms Particle Swarm Optimizer global non-linear search.
@@ -78,9 +81,11 @@ class AbstractPySwarms(AbstractOptimizer):
 
     class Fitness(AbstractOptimizer.Fitness):
         def __call__(self, parameters, *kwargs):
+
             figures_of_merit = []
 
             for params_of_particle in parameters:
+
                 try:
                     figure_of_merit = self.figure_of_merit_from(
                         parameter_list=params_of_particle
@@ -126,45 +131,46 @@ class AbstractPySwarms(AbstractOptimizer):
             model=model, analysis=analysis
         )
 
-        if self.paths.is_object("points"):
-            init_pos = self.paths.load_object("points")[-1]
-            total_iterations = self.paths.load_object("total_iterations")
+        try:
 
-            self.logger.info(
-                "Existing PySwarms samples found, resuming non-linear search."
-            )
+            with open_(path.join(self.paths.search_internal_path, "results_internal.pickle"), "rb") as f:
+                results_internal = pickle.load(f)
 
-        else:
-            (
-                unit_parameter_lists,
-                parameter_lists,
-                log_posterior_list,
-            ) = self.initializer.samples_from_model(
+            with open_(path.join(self.paths.search_internal_path, "results_internal.json"), "w+") as f:
+                results_internal_dict = json.load(f, indent=4)
+
+            init_pos = results_internal[-1]
+            total_iterations = results_internal_dict["total_iterations"]
+
+            self.logger.info("Existing PySwarms samples found, resuming non-linear search.")
+
+        except FileNotFoundError:
+
+            unit_parameter_lists, parameter_lists, log_posterior_list = self.initializer.samples_from_model(
                 total_points=self.config_dict_search["n_particles"],
                 model=model,
                 fitness_function=fitness_function,
             )
 
-            init_pos = np.zeros(
-                shape=(self.config_dict_search["n_particles"], model.prior_count)
-            )
+            init_pos = np.zeros(shape=(self.config_dict_search["n_particles"], model.prior_count))
 
             for index, parameters in enumerate(parameter_lists):
+
                 init_pos[index, :] = np.asarray(parameters)
 
             total_iterations = 0
 
-            self.logger.info(
-                "No PySwarms samples found, beginning new non-linear search. "
-            )
+            self.logger.info("No PySwarms samples found, beginning new non-linear search. ")
 
         ## TODO : Use actual limits
 
         vector_lower = model.vector_from_unit_vector(
-            unit_vector=[1e-6] * model.prior_count, ignore_prior_limits=True
+            unit_vector=[1e-6] * model.prior_count,
+            ignore_prior_limits=True
         )
         vector_upper = model.vector_from_unit_vector(
-            unit_vector=[0.9999999] * model.prior_count, ignore_prior_limits=True
+            unit_vector=[0.9999999] * model.prior_count,
+            ignore_prior_limits=True
         )
 
         lower_bounds = [lower for lower in vector_lower]
@@ -175,11 +181,12 @@ class AbstractPySwarms(AbstractOptimizer):
         self.logger.info("Running PySwarmsGlobal Optimizer...")
 
         while total_iterations < self.config_dict_run["iters"]:
+
             pso = self.sampler_from(
                 model=model,
                 fitness_function=fitness_function,
                 bounds=bounds,
-                init_pos=init_pos,
+                init_pos=init_pos
             )
 
             iterations_remaining = self.config_dict_run["iters"] - total_iterations
@@ -187,65 +194,80 @@ class AbstractPySwarms(AbstractOptimizer):
             iterations = min(self.iterations_per_update, iterations_remaining)
 
             if iterations > 0:
+
                 pso.optimize(objective_func=fitness_function.__call__, iters=iterations)
 
                 total_iterations += iterations
 
-                self.paths.save_object("total_iterations", total_iterations)
-                self.paths.save_object("points", pso.pos_history)
-                self.paths.save_object(
-                    "log_posterior_list", [-0.5 * cost for cost in pso.cost_history]
-                )
+                results_internal_dict = {
+                    "total_iterations": total_iterations,
+                    "log_posterior_list": [-0.5 * cost for cost in pso.cost_history],
+                }
+
+                with open_(path.join(self.paths.search_internal_path, "results_internal.pickle"), "wb") as f:
+                    pickle.dump(pso.pos_history, f)
+
+                with open_(path.join(self.paths.search_internal_path, "results_internal.json"), "w+") as f:
+                    json.dump(results_internal_dict, f, indent=4)
 
                 self.perform_update(
                     model=model, analysis=analysis, during_analysis=True
                 )
 
-                init_pos = self.paths.load_object("points")[-1]
+                init_pos = pso.pos_history[-1]
 
         self.logger.info("PySwarmsGlobal complete")
 
     def config_dict_with_test_mode_settings_from(self, config_dict):
+
         return {
             **config_dict,
             "iters": 1,
         }
 
-    def fitness_function_from_model_and_analysis(
-        self, model, analysis, log_likelihood_cap=None
-    ):
+    def fitness_function_from_model_and_analysis(self, model, analysis, log_likelihood_cap=None):
+
         return AbstractPySwarms.Fitness(
             paths=self.paths,
             model=model,
             analysis=analysis,
             samples_from_model=self.samples_from,
-            log_likelihood_cap=log_likelihood_cap,
+            log_likelihood_cap=log_likelihood_cap
         )
 
     def sampler_from(self, model, fitness_function, bounds, init_pos):
         raise NotImplementedError()
 
-    def samples_from(self, model):
+    def samples_via_internal_from(self, model):
+
+        with open_(path.join(self.paths.search_internal_path, "results_internal.pickle"), "rb") as f:
+            results_internal = pickle.load(f)
+
+        with open_(path.join(self.paths.search_internal_path, "results_internal.json"), "r+") as f:
+            results_internal_dict = json.load(f)
+
         return SamplesPySwarms.from_results_internal(
-            results_internal=self.paths.load_object("points"),
+            results_internal=results_internal,
             model=model,
-            log_posterior_list=self.paths.load_object("log_posterior_list"),
-            total_iterations=self.paths.load_object("total_iterations"),
-            time=self.timer.time,
+            log_posterior_list=results_internal_dict["log_posterior_list"],
+            total_iterations=results_internal_dict["total_iterations"],
+            time=self.timer.time
         )
 
-    def plot_results(self, samples, during_analysis):
+    def samples_via_csv_from(self, model):
+        return SamplesPySwarms.from_csv(paths=self.paths, model=model)
+
+    def plot_results(self, samples):
+
         def should_plot(name):
             return conf.instance["visualize"]["plots_search"]["pyswarms"][name]
 
         plotter = PySwarmsPlotter(
             samples=samples,
-            output=Output(
-                path=path.join(self.paths.image_path, "search"), format="png"
-            ),
+            output=Output(path=path.join(self.paths.image_path, "search"), format="png")
         )
 
-        if not during_analysis and should_plot("contour"):
+        if should_plot("contour"):
             plotter.contour()
 
         if should_plot("cost_history"):
