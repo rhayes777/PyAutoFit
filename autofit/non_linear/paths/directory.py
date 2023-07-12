@@ -72,11 +72,13 @@ class DirectoryPaths(AbstractPaths):
         results_internal
             The results of the non-linear search in its internal representation.
         """
+        filename = f"{self.search_internal_path}/results_internal.{output_type}"
+
         if output_type == "pickle":
-            with open_(self.search_internal_path, "results_internal.pickle", "wb") as f:
+            with open_(filename, "wb") as f:
                 pickle.dump(obj, f)
         elif output_type == "dill":
-            with open_(self.search_internal_path, "results_internal.dill", "wb") as f:
+            with open_(filename, "wb") as f:
                 dill.dump(obj, f)
 
     def load_results_internal(self, output_type="pickle"):
@@ -90,12 +92,14 @@ class DirectoryPaths(AbstractPaths):
         -------
         The results of the non-linear search in its internal representation.
         """
+        filename = f"{self.search_internal_path}/results_internal.{output_type}"
+
         try:
             if output_type == "pickle":
-                with open_(self.search_internal_path, "results_internal.pickle", "rb") as f:
+                with open_(filename, "rb") as f:
                     return pickle.load(f)
             elif output_type == "dill":
-                with open_(self.search_internal_path, "results_internal.dill", "rb") as f:
+                with open_(filename, "rb") as f:
                     return dill.load(f)
         except FileNotFoundError:
             pass
