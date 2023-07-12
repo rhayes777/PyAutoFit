@@ -13,7 +13,9 @@ from autofit.non_linear.abstract_search import PriorPasser
 from autofit.non_linear.initializer import Initializer
 from autofit.non_linear.mcmc.abstract_mcmc import AbstractMCMC
 from autofit.non_linear.mcmc.auto_correlations import AutoCorrelationsSettings
-from autofit.non_linear.mcmc.emcee.samples import SamplesEmcee
+from autofit.non_linear.mcmc.auto_correlations import AutoCorrelations
+from autofit.non_linear.samples.sample import Sample
+from autofit.non_linear.samples.mcmc import SamplesMCMC
 from autofit.plot import EmceePlotter
 from autofit.plot.output import Output
 
@@ -28,7 +30,7 @@ class Emcee(AbstractMCMC):
         unique_tag: Optional[str] = None,
         prior_passer: Optional[PriorPasser] = None,
         initializer: Optional[Initializer] = None,
-        auto_correlations_settings=AutoCorrelationsSettings(),
+        auto_correlation_settings=AutoCorrelationsSettings(),
         iterations_per_update: int = None,
         number_of_cores: int = None,
         session: Optional[sa.orm.Session] = None,
@@ -59,7 +61,7 @@ class Emcee(AbstractMCMC):
             Controls how priors are passed from the results of this `NonLinearSearch` to a subsequent non-linear search.
         initializer
             Generates the initialize samples of non-linear parameter space (see autofit.non_linear.initializer).
-        auto_correlations_settings
+        auto_correlation_settings
             Customizes and performs auto correlation calculations performed during and after the search.
         number_of_cores
             The number of cores Emcee sampling is performed using a Python multiprocessing Pool instance. If 1, a
@@ -80,7 +82,7 @@ class Emcee(AbstractMCMC):
             unique_tag=unique_tag,
             prior_passer=prior_passer,
             initializer=initializer,
-            auto_correlations_settings=auto_correlations_settings,
+            auto_correlation_settings=auto_correlation_settings,
             iterations_per_update=iterations_per_update,
             number_of_cores=number_of_cores,
             session=session,
@@ -192,12 +194,102 @@ class Emcee(AbstractMCMC):
                 model=model, analysis=analysis, during_analysis=True
             )
 
-            if self.auto_correlations_settings.check_for_convergence:
-                if emcee_sampler.iteration > self.auto_correlations_settings.check_size:
+            if self.auto_correlation_settings.check_for_convergence:
+                if emcee_sampler.iteration > self.auto_correlation_settings.check_size:
                     if samples.converged:
                         iterations_remaining = 0
 
         self.logger.info("Emcee sampling complete.")
+
+    @property
+    def samples_info(self):
+
+        results_internal = self.backend
+
+        return {
+            "check_size": self.auto_correlations.check_size,
+            "required_length": self.auto_correlations.required_length,
+            "change_threshold": self.auto_correlations.change_threshold,
+            "total_walkers":  len(results_internal.get_chain()[0, :, 0]),
+            "total_steps": len(results_internal.get_log_prob()),
+            "unconverged_sample_size": 100,
+            "time": self.timer.time,
+        }
+
+    def samples_via_internal_from(self, model):
+        """
+        The `Samples` classes in **PyAutoFit** provide an interface between the results of a `NonLinearSearch` (e.g.
+        as files on your hard-disk) and Python.
+
+        To create a `Samples` object after an `Zeus` model-fit the results must be converted from the
+        native format used by `Zeus` (which is a HDFBackend) to lists of values, the format used by the **PyAutoFit**
+        `Samples` objects.
+
+        This classmethod performs this conversion before creating a `SamplesZeus` object.
+
+        Parameters
+        ----------
+        results_internal
+            The MCMC results in their native internal format from which the samples are computed.
+        model
+            Maps input vectors of unit parameter values to physical values and model instances via priors.
+        auto_correlation_settings
+            Customizes and performs auto correlation calculations performed during and after the search.
+        """
+
+        results_internal = self.backend
+
+        discard = int(3.0 * np.max(self.auto_correlations.times))
+        thin = int(np.max(self.auto_correlations.times) / 2.0)
+        samples_after_burn_in = results_internal.get_chain(discard=discard, thin=thin, flat=True)
+
+        parameter_lists = samples_after_burn_in.tolist()
+        log_prior_list = model.log_prior_list_from(parameter_lists=parameter_lists)
+        log_posterior_list = results_internal.get_log_prob(flat=True).tolist()
+
+        log_likelihood_list = [
+            log_posterior - log_prior for
+            log_posterior, log_prior in
+            zip(log_posterior_list, log_prior_list)
+        ]
+
+        weight_list = len(log_likelihood_list) * [1.0]
+
+        sample_list = Sample.from_lists(
+            model=model,
+            parameter_lists=parameter_lists,
+            log_likelihood_list=log_likelihood_list,
+            log_prior_list=log_prior_list,
+            weight_list=weight_list
+        )
+
+        return SamplesMCMC(
+            model=model,
+            sample_list=sample_list,
+            samples_info=self.samples_info,
+            results_internal=results_internal,
+            auto_correlation_settings=self.auto_correlation_settings,
+            auto_correlations=self.auto_correlations,
+        )
+
+    @property
+    def auto_correlations(self):
+
+        results_internal = self.backend
+
+        times = results_internal.get_autocorr_time(tol=0)
+
+        previous_auto_correlation_times = emcee.autocorr.integrated_time(
+            x=results_internal.get_chain()[: -self.auto_correlation_settings.check_size, :, :], tol=0
+        )
+
+        return AutoCorrelations(
+            check_size=self.auto_correlation_settings.check_size,
+            required_length=self.auto_correlation_settings.required_length,
+            change_threshold=self.auto_correlation_settings.change_threshold,
+            times=times,
+            previous_times=previous_auto_correlation_times,
+        )
 
     def config_dict_with_test_mode_settings_from(self, config_dict):
 
@@ -238,15 +330,6 @@ class Emcee(AbstractMCMC):
                 "The file results_internal.hdf does not exist at the path "
                 + self.paths.search_internal_path
             )
-
-    def samples_via_internal_from(self, model):
-
-        return SamplesEmcee.from_results_internal(
-            model=model,
-            results_internal=self.backend,
-            auto_correlation_settings=self.auto_correlations_settings,
-            time=self.timer.time,
-        )
 
     def plot_results(self, samples):
         def should_plot(name):

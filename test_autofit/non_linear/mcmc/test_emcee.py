@@ -14,7 +14,7 @@ def test__config__loads_from_file_correctly():
         nwalkers=51,
         nsteps=2001,
         initializer=af.InitializerBall(lower_limit=0.2, upper_limit=0.8),
-        auto_correlations_settings=af.AutoCorrelationsSettings(
+        auto_correlation_settings=af.AutoCorrelationsSettings(
             check_for_convergence=False,
             check_size=101,
             required_length=51,
@@ -31,10 +31,10 @@ def test__config__loads_from_file_correctly():
     assert isinstance(emcee.initializer, af.InitializerBall)
     assert emcee.initializer.lower_limit == 0.2
     assert emcee.initializer.upper_limit == 0.8
-    assert emcee.auto_correlations_settings.check_for_convergence is False
-    assert emcee.auto_correlations_settings.check_size == 101
-    assert emcee.auto_correlations_settings.required_length == 51
-    assert emcee.auto_correlations_settings.change_threshold == 0.02
+    assert emcee.auto_correlation_settings.check_for_convergence is False
+    assert emcee.auto_correlation_settings.check_size == 101
+    assert emcee.auto_correlation_settings.required_length == 51
+    assert emcee.auto_correlation_settings.change_threshold == 0.02
     assert emcee.number_of_cores == 2
 
     emcee = af.Emcee()
@@ -45,10 +45,10 @@ def test__config__loads_from_file_correctly():
     assert emcee.config_dict_search["nwalkers"] == 50
     assert emcee.config_dict_run["nsteps"] == 2000
     assert isinstance(emcee.initializer, af.InitializerPrior)
-    assert emcee.auto_correlations_settings.check_for_convergence is True
-    assert emcee.auto_correlations_settings.check_size == 100
-    assert emcee.auto_correlations_settings.required_length == 50
-    assert emcee.auto_correlations_settings.change_threshold == 0.01
+    assert emcee.auto_correlation_settings.check_for_convergence is True
+    assert emcee.auto_correlation_settings.check_size == 100
+    assert emcee.auto_correlation_settings.required_length == 50
+    assert emcee.auto_correlation_settings.change_threshold == 0.01
     assert emcee.number_of_cores == 1
 
 def test__samples_from_model():

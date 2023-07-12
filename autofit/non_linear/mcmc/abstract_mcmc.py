@@ -17,14 +17,15 @@ class AbstractMCMC(NonLinearSearch):
             unique_tag: Optional[str] = None,
             prior_passer: Optional[PriorPasser] = None,
             initializer: Optional[Initializer] = None,
-            auto_correlations_settings=AutoCorrelationsSettings(),
+            auto_correlation_settings=AutoCorrelationsSettings(),
             iterations_per_update: Optional[int] = None,
             number_of_cores: Optional[int] = None,
             session: Optional[sa.orm.Session] = None,
             **kwargs
     ):
-        self.auto_correlations_settings = auto_correlations_settings
-        self.auto_correlations_settings.update_via_config(
+        
+        self.auto_correlation_settings = auto_correlation_settings
+        self.auto_correlation_settings.update_via_config(
             config=self.config_type[self.__class__.__name__]["auto_correlations"]
         )
 

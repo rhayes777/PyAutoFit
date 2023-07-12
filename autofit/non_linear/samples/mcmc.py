@@ -4,11 +4,10 @@ from typing import Dict, List, Optional
 import warnings
 
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
+from autofit.non_linear.mcmc.auto_correlations import AutoCorrelations
 from autofit.non_linear.mcmc.auto_correlations import AutoCorrelationsSettings
 from autofit.non_linear.samples.pdf import SamplesPDF
-from autofit.non_linear.samples.samples import Samples
 from autofit.non_linear.samples.samples import Sample
-from autofit.non_linear.samples.sample import load_from_table
 
 from autofit.non_linear.samples.samples import to_instance, to_instance_sigma
 
@@ -21,9 +20,9 @@ class SamplesMCMC(SamplesPDF):
             model: AbstractPriorModel,
             sample_list: List[Sample],
             samples_info: Dict,
-            samples_after_burn_in,
             results_internal: Optional = None,
             auto_correlation_settings: Optional[AutoCorrelationsSettings] = None,
+            auto_correlations : Optional[AutoCorrelations] = None
     ):
         """
         The `Samples` classes in **PyAutoFit** provide an interface between the results_internal of
@@ -42,7 +41,7 @@ class SamplesMCMC(SamplesPDF):
             The MCMC results in their native internal format from which the samples are computed.
         model
             Maps input vectors of unit parameter values to physical values and model instances via priors.
-        auto_correlations_settings
+        auto_correlation_settings
             Customizes and performs auto correlation calculations performed during and after the search.
         unconverged_sample_size
             If the samples are for a search that is yet to convergence, a reduced set of samples are used to provide
@@ -54,6 +53,7 @@ class SamplesMCMC(SamplesPDF):
             The MCMC library's results in their native internal format for interfacing its visualization library.
         """
 
+        self.auto_correlations = auto_correlations
         self.auto_correlation_settings = auto_correlation_settings
 
         super().__init__(
@@ -101,27 +101,6 @@ class SamplesMCMC(SamplesPDF):
         )
 
     @property
-    def total_steps(self):
-        raise NotImplementedError
-
-    @property
-    def auto_correlations(self):
-        raise NotImplementedError
-
-    @property
-    def samples_info(self):
-        return {
-            "times": None,
-            "check_size": self.auto_correlations.check_size,
-            "required_length": self.auto_correlations.required_length,
-            "change_threshold": self.auto_correlations.change_threshold,
-            "unconverged_sample_size": self.unconverged_sample_size,
-            "total_walkers": self.total_walkers,
-            "total_steps": self.total_steps,
-            "time": self.time,
-        }
-
-    @property
     def pdf_converged(self):
         """
         To analyse and visualize samples using corner.py, the analysis must be sufficiently converged to produce
@@ -132,21 +111,11 @@ class SamplesMCMC(SamplesPDF):
         will likely produce inaccurate results.
         """
         try:
-            samples_after_burn_in = self.samples_after_burn_in
-            if len(samples_after_burn_in) == 0:
+            if len(self.parameter_lists) == 0:
                 return False
             return True
         except ValueError:
             return False
-
-    @property
-    def samples_after_burn_in(self) -> [List]:
-        """
-        The emcee samples with the initial burn-in samples removed.
-
-        The burn-in period is estimated using the auto-correlation times of the parameters.
-        """
-        raise NotImplementedError()
 
     @property
     def converged(self) -> bool:
@@ -169,7 +138,7 @@ class SamplesMCMC(SamplesPDF):
 
         if self.pdf_converged:
             return [
-                float(np.percentile(self.samples_after_burn_in[:, i], [50]))
+                float(np.percentile(self.parameter_lists[:, i], [50]))
                 for i in range(self.model.prior_count)
             ]
 
@@ -199,7 +168,7 @@ class SamplesMCMC(SamplesPDF):
         limit = math.erf(0.5 * sigma * math.sqrt(2))
 
         if self.pdf_converged:
-            samples = self.samples_after_burn_in
+            samples = self.parameter_lists
 
             return [
                 tuple(

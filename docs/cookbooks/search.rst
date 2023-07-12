@@ -252,7 +252,7 @@ The following code shows how to use Emcee with all available options.
         nwalkers=30,
         nsteps=1000,
         initializer=af.InitializerBall(lower_limit=0.49, upper_limit=0.51),
-        auto_correlations_settings=af.AutoCorrelationsSettings(
+        auto_correlation_settings=af.AutoCorrelationsSettings(
             check_for_convergence=True,
             check_size=100,
             required_length=50,
@@ -276,7 +276,7 @@ Information about Zeus can be found at the following links:
         nwalkers=30,
         nsteps=1001,
         initializer=af.InitializerBall(lower_limit=0.49, upper_limit=0.51),
-        auto_correlations_settings=af.AutoCorrelationsSettings(
+        auto_correlation_settings=af.AutoCorrelationsSettings(
             check_for_convergence=True,
             check_size=100,
             required_length=50,

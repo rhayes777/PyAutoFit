@@ -40,7 +40,7 @@ class Zeus(AbstractMCMC):
             unique_tag: Optional[str] = None,
             prior_passer: Optional[PriorPasser] = None,
             initializer: Optional[Initializer] = None,
-            auto_correlations_settings=AutoCorrelationsSettings(),
+            auto_correlation_settings=AutoCorrelationsSettings(),
             iterations_per_update: int = None,
             number_of_cores: int = None,
             session: Optional[sa.orm.Session] = None,
@@ -76,7 +76,7 @@ class Zeus(AbstractMCMC):
             nsteps iterations.
         initializer
             Generates the initialize samples of non-linear parameter space (see autofit.non_linear.initializer).
-        auto_correlations_settings : AutoCorrelationsSettings
+        auto_correlation_settings : AutoCorrelationsSettings
             Customizes and performs auto correlation calculations performed during and after the search.
         number_of_cores
             The number of cores Zeus sampling is performed using a Python multiprocessing Pool instance. If 1, a
@@ -93,7 +93,7 @@ class Zeus(AbstractMCMC):
             unique_tag=unique_tag,
             prior_passer=prior_passer,
             initializer=initializer,
-            auto_correlations_settings=auto_correlations_settings,
+            auto_correlation_settings=auto_correlation_settings,
             iterations_per_update=iterations_per_update,
             number_of_cores=number_of_cores,
             session=session,
@@ -234,8 +234,8 @@ class Zeus(AbstractMCMC):
                 model=model, analysis=analysis, during_analysis=True
             )
 
-            if self.auto_correlations_settings.check_for_convergence:
-                if zeus_sampler.iteration > self.auto_correlations_settings.check_size:
+            if self.auto_correlation_settings.check_for_convergence:
+                if zeus_sampler.iteration > self.auto_correlation_settings.check_size:
                     if samples.converged:
                         iterations_remaining = 0
 
@@ -283,13 +283,17 @@ class Zeus(AbstractMCMC):
             The MCMC results in their native internal format from which the samples are computed.
         model
             Maps input vectors of unit parameter values to physical values and model instances via priors.
-        auto_correlations_settings
+        auto_correlation_settings
             Customizes and performs auto correlation calculations performed during and after the search.
         """
 
         results_internal = self.paths.load_results_internal()
 
-        parameter_lists = results_internal.get_chain(flat=True).tolist()
+        discard = int(3.0 * np.max(self.auto_correlations.times))
+        thin = int(np.max(self.auto_correlations.times) / 2.0)
+        samples_after_burn_in =  results_internal.get_chain(discard=discard, thin=thin, flat=True)
+
+        parameter_lists = samples_after_burn_in.tolist()
         log_posterior_list = results_internal.get_log_prob(flat=True).tolist()
         log_prior_list = model.log_prior_list_from(parameter_lists=parameter_lists)
 
@@ -309,17 +313,13 @@ class Zeus(AbstractMCMC):
             weight_list=weight_list
         )
 
-        discard = int(3.0 * np.max(self.auto_correlations.times))
-        thin = int(np.max(self.auto_correlations.times) / 2.0)
-        samples_after_burn_in =  self.results_internal.get_chain(discard=discard, thin=thin, flat=True)
-
         return SamplesMCMC(
             model=model,
             sample_list=sample_list,
-            auto_correlation_settings=self.auto_correlation_settings,
             samples_info=self.samples_info,
-            samples_after_burn_in=samples_after_burn_in,
             results_internal=results_internal,
+            auto_correlation_settings=self.auto_correlation_settings,
+            auto_correlations=self.auto_correlations,
         )
 
     @property
