@@ -37,7 +37,10 @@ class SamplesUltraNest(SamplesNest):
 
         sample_list = paths.load_samples()
         samples_info = paths.load_samples_info()
-        results_internal = paths.load_results_internal()
+        try:
+            results_internal = paths.load_results_internal()
+        except FileNotFoundError:
+            results_internal = None
 
         return SamplesUltraNest(
             model=model,

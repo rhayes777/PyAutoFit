@@ -150,7 +150,7 @@ class Zeus(AbstractMCMC):
 
         try:
 
-            zeus_sampler = self.results_internal
+            zeus_sampler = self.paths.load_results_internal(output_type="dill")
 
             zeus_state = zeus_sampler.get_last_sample()
             log_posterior_list = zeus_sampler.get_last_log_prob()
@@ -217,7 +217,7 @@ class Zeus(AbstractMCMC):
 
             zeus_sampler.ncall_total += zeus_sampler.ncall
 
-            self.save_results_internal(results_internal=zeus_sampler)
+            self.paths.save_results_internal(obj=zeus_sampler, output_type="dill")
 
             zeus_state = zeus_sampler.get_last_sample()
             log_posterior_list = zeus_sampler.get_last_log_prob()
@@ -266,22 +266,6 @@ class Zeus(AbstractMCMC):
             log_likelihood_cap=log_likelihood_cap,
         )
 
-    def save_results_internal(self, results_internal):
-        """
-        Save dynesty's internal representation of the results as a pickle file.
-
-        The results in this representation are required to use in built dynesty tools for visualization, analysing
-        samples and other tasks.
-
-        Parameters
-        ----------
-        results_internal
-            The results of the dynesty sampler in its internal representation.
-        """
-
-        with open_(path.join(self.paths.search_internal_path, "results_internal.pickle"), "wb") as f:
-            dill.dump(results_internal, f)
-
     def samples_via_internal_from(self, model):
         """
         Create a `Samples` object from this non-linear search's output files on the hard-disk and model.
@@ -297,7 +281,7 @@ class Zeus(AbstractMCMC):
         """
 
         return SamplesZeus.from_results_internal(
-            results_internal=self.results_internal,
+            results_internal=self.paths.load_results_internal(output_type="dill"),
             model=model,
             auto_correlation_settings=self.auto_correlations_settings,
             time=self.timer.time,
@@ -309,11 +293,6 @@ class Zeus(AbstractMCMC):
             paths=self.paths,
             model=model,
         )
-
-    @property
-    def results_internal(self):
-        with open_(path.join(self.paths.search_internal_path, "results_internal.pickle"), "rb") as f:
-            return dill.load(f)
 
     def plot_results(self, samples):
         def should_plot(name):

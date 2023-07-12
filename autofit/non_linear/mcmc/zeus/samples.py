@@ -50,7 +50,7 @@ class SamplesZeus(SamplesMCMC):
         )
 
         try:
-            results_internal = paths.load_object("zeus")
+            results_internal = paths.load_results_internal(output_type="dill")
         except FileNotFoundError:
             results_internal = None
 

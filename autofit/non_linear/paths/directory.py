@@ -94,15 +94,12 @@ class DirectoryPaths(AbstractPaths):
         """
         filename = f"{self.search_internal_path}/results_internal.{output_type}"
 
-        try:
-            if output_type == "pickle":
-                with open_(filename, "rb") as f:
-                    return pickle.load(f)
-            elif output_type == "dill":
-                with open_(filename, "rb") as f:
-                    return dill.load(f)
-        except FileNotFoundError:
-            pass
+        if output_type == "pickle":
+            with open_(filename, "rb") as f:
+                return pickle.load(f)
+        elif output_type == "dill":
+            with open_(filename, "rb") as f:
+                return dill.load(f)
 
     def load_object(self, name: str):
         """
