@@ -28,6 +28,7 @@ from autofit.non_linear.parallel import SneakyPool
 from autofit.non_linear.paths.abstract import AbstractPaths
 from autofit.non_linear.paths.directory import DirectoryPaths
 from autofit.non_linear.paths.sub_directory_paths import SubDirectoryPaths
+from autofit.non_linear.samples.samples import Samples
 from autofit.non_linear.result import Result
 from autofit.non_linear.timer import Timer
 from .analysis import Analysis
@@ -893,7 +894,10 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         raise NotImplementedError()
 
     def samples_via_csv_from(self, model):
-        raise NotImplementedError()
+        return Samples.from_csv(
+            paths=self.paths,
+            model=model,
+        )
 
     @check_cores
     def make_pool(self):

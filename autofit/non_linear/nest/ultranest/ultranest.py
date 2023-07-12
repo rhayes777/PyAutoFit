@@ -272,9 +272,6 @@ class UltraNest(abstract_nest.AbstractNest):
             time=self.timer.time,
         )
 
-    def samples_via_csv_from(self, model):
-        return SamplesUltraNest.from_csv(paths=self.paths, model=model)
-
     def plot_results(self, samples):
 
         if not samples.pdf_converged:

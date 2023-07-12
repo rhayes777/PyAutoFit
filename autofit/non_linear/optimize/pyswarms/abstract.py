@@ -245,9 +245,6 @@ class AbstractPySwarms(AbstractOptimizer):
             time=self.timer.time
         )
 
-    def samples_via_csv_from(self, model):
-        return SamplesPySwarms.from_csv(paths=self.paths, model=model)
-
     def plot_results(self, samples):
 
         def should_plot(name):

@@ -248,13 +248,6 @@ class Emcee(AbstractMCMC):
             time=self.timer.time,
         )
 
-    def samples_via_csv_from(self, model):
-
-        return SamplesEmcee.from_csv(
-            paths=self.paths,
-            model=model,
-        )
-
     def plot_results(self, samples):
         def should_plot(name):
             return conf.instance["visualize"]["plots_search"]["emcee"][name]

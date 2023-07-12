@@ -15,53 +15,6 @@ logger = logging.getLogger(
 class SamplesZeus(SamplesMCMC):
 
     @classmethod
-    def from_csv(cls, paths : AbstractPaths, model: AbstractPriorModel):
-        """
-        Returns a `Samples` object from the non-linear search output samples, which are stored in a .csv file.
-
-        The samples object requires additional information on the non-linear search (e.g. the number of live points),
-        which is extracted from the `search_info.json` file.
-
-        This function looks for the internal results of dynesty and includes it in the samples if it exists, which
-        allows for dynesty visualization tools to be used on the samples.
-
-        Parameters
-        ----------
-        paths
-            An object describing the paths for saving data (e.g. hard-disk directories or entries in sqlite database).
-        model
-            An object that represents possible instances of some model with a given dimensionality which is the number
-            of free dimensions of the model.
-
-        Returns
-        -------
-        The dynesty samples which have been loaded from hard-disk via .csv.
-        """
-
-        sample_list = paths.load_samples()
-        samples_info = paths.load_samples_info()
-
-        auto_correlation_settings = AutoCorrelationsSettings(
-            check_for_convergence=True,
-            check_size=samples_info["check_size"],
-            required_length=samples_info["required_length"],
-            change_threshold=samples_info["change_threshold"],
-        )
-
-        try:
-            results_internal = paths.load_results_internal()
-        except FileNotFoundError:
-            results_internal = None
-
-        return SamplesZeus(
-            model=model,
-            sample_list=sample_list,
-            auto_correlation_settings=auto_correlation_settings,
-            samples_info=samples_info,
-            results_internal=results_internal,
-        )
-
-    @classmethod
     def from_results_internal(
             cls,
             results_internal,

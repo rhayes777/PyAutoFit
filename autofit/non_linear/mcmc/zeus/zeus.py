@@ -287,13 +287,6 @@ class Zeus(AbstractMCMC):
             time=self.timer.time,
         )
 
-    def samples_via_csv_from(self, model):
-
-        return SamplesZeus.from_csv(
-            paths=self.paths,
-            model=model,
-        )
-
     def plot_results(self, samples):
         def should_plot(name):
             return conf.instance["visualize"]["plots_search"]["zeus"][name]

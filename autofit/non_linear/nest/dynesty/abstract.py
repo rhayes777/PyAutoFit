@@ -1,4 +1,3 @@
-import dill
 import os
 from abc import ABC
 from os import path
@@ -15,7 +14,6 @@ from autofit.non_linear.abstract_search import PriorPasser
 from autofit.non_linear.nest.abstract_nest import AbstractNest
 from autofit.non_linear.nest.dynesty.samples import SamplesDynesty
 from autofit.plot.output import Output
-from autofit.tools.util import open_
 
 
 def prior_transform(cube, model):
@@ -397,9 +395,6 @@ class AbstractDynesty(AbstractNest, ABC):
                 has been disabled and then enabled.
                 """
             )
-
-    def samples_via_csv_from(self, model):
-        return SamplesDynesty.from_csv(paths=self.paths, model=model)
 
     def remove_state_files(self):
 
