@@ -8,7 +8,8 @@ from autofit.non_linear.optimize.abstract_optimize import AbstractOptimizer
 from autofit.non_linear.abstract_search import Analysis
 from autofit.non_linear.abstract_search import PriorPasser
 from autofit.non_linear.initializer import AbstractInitializer
-from autofit.non_linear.optimize.lbfgs.samples import SamplesLBFGS
+from autofit.non_linear.samples.sample import Sample
+from autofit.non_linear.samples.samples import Samples
 
 import copy
 from scipy import optimize
@@ -181,12 +182,37 @@ class LBFGS(AbstractOptimizer):
 
         self.logger.info("L-BFGS sampling complete.")
 
-    def samples_from(self, model: AbstractPriorModel):
+    def samples_via_internal_from(self, model: AbstractPriorModel):
 
-        return SamplesLBFGS.from_results_internal(
+        results_internal = self.paths.load_object("x0")
+        log_posterior_list = np.array([self.paths.load_object("log_posterior")])
+        total_iterations = self.paths.load_object("total_iterations")
+
+        parameter_lists = [list(results_internal)]
+        log_prior_list = model.log_prior_list_from(parameter_lists=parameter_lists)
+        log_likelihood_list = [
+            lp - prior
+            for lp, prior
+            in zip(log_posterior_list, log_prior_list)
+        ]
+        weight_list = len(log_likelihood_list) * [1.0]
+
+        sample_list = Sample.from_lists(
             model=model,
-            results_internal=self.paths.load_object("x0"),
-            log_posterior_list=np.array([self.paths.load_object("log_posterior")]),
-            total_iterations=self.paths.load_object("total_iterations"),
-            time=self.timer.time,
+            parameter_lists=parameter_lists,
+            log_likelihood_list=log_likelihood_list,
+            log_prior_list=log_prior_list,
+            weight_list=weight_list
+        )
+
+        samples_info = {
+            "total_iterations": total_iterations,
+            "time": self.timer.time
+        }
+
+        return Samples(
+            model=model,
+            sample_list=sample_list,
+            samples_info=samples_info,
+            results_internal=results_internal,
         )
