@@ -66,6 +66,7 @@ class MockSamples(SamplesPDF):
         return self._max_log_likelihood_instance
 
     def gaussian_priors_at_sigma(self, sigma=None):
+
         if self._gaussian_tuples is None:
             return super().gaussian_priors_at_sigma(sigma=sigma)
 
