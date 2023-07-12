@@ -1,8 +1,10 @@
 import logging
 import numpy as np
+from os import path
 from typing import List, Optional
 
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
+from autofit.non_linear.paths.abstract import AbstractPaths
 from autofit.non_linear.samples.mcmc import SamplesMCMC
 from autofit.non_linear.mcmc.auto_correlations import AutoCorrelationsSettings, AutoCorrelations
 from autofit.non_linear.samples import Sample
@@ -12,6 +14,54 @@ logger = logging.getLogger(
 )
 
 class SamplesZeus(SamplesMCMC):
+
+    @classmethod
+    def from_csv(cls, paths : AbstractPaths, model: AbstractPriorModel):
+        """
+        Returns a `Samples` object from the non-linear search output samples, which are stored in a .csv file.
+
+        The samples object requires additional information on the non-linear search (e.g. the number of live points),
+        which is extracted from the `search_info.json` file.
+
+        This function looks for the internal results of dynesty and includes it in the samples if it exists, which
+        allows for dynesty visualization tools to be used on the samples.
+
+        Parameters
+        ----------
+        paths
+            An object describing the paths for saving data (e.g. hard-disk directories or entries in sqlite database).
+        model
+            An object that represents possible instances of some model with a given dimensionality which is the number
+            of free dimensions of the model.
+
+        Returns
+        -------
+        The dynesty samples which have been loaded from hard-disk via .csv.
+        """
+
+        sample_list = paths.load_samples()
+        samples_info = paths.load_samples_info()
+
+        auto_correlation_settings = AutoCorrelationsSettings(
+            check_for_convergence=True,
+            check_size=samples_info["check_size"],
+            required_length=samples_info["required_length"],
+            change_threshold=samples_info["change_threshold"],
+        )
+
+        try:
+            results_internal = paths.load_object("zeus")
+        except FileNotFoundError:
+            results_internal = None
+
+        return SamplesZeus(
+            model=model,
+            sample_list=sample_list,
+            auto_correlation_settings=auto_correlation_settings,
+            unconverged_sample_size=samples_info["unconverged_sample_size"],
+            time=samples_info["time"],
+            results_internal=results_internal,
+        )
 
     @classmethod
     def from_results_internal(

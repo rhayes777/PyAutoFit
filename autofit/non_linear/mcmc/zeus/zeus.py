@@ -1,3 +1,4 @@
+import dill
 from os import path
 from typing import Optional
 
@@ -14,6 +15,7 @@ from autofit.non_linear.mcmc.auto_correlations import AutoCorrelationsSettings
 from autofit.non_linear.mcmc.zeus.plotter import ZeusPlotter
 from autofit.non_linear.mcmc.zeus.samples import SamplesZeus
 from autofit.plot.output import Output
+from autofit.tools.util import open_
 
 
 class Zeus(AbstractMCMC):
@@ -27,17 +29,17 @@ class Zeus(AbstractMCMC):
     )
 
     def __init__(
-        self,
-        name: Optional[str] = None,
-        path_prefix: Optional[str] = None,
-        unique_tag: Optional[str] = None,
-        prior_passer: Optional[PriorPasser] = None,
-        initializer: Optional[Initializer] = None,
-        auto_correlations_settings=AutoCorrelationsSettings(),
-        iterations_per_update: int = None,
-        number_of_cores: int = None,
-        session: Optional[sa.orm.Session] = None,
-        **kwargs
+            self,
+            name: Optional[str] = None,
+            path_prefix: Optional[str] = None,
+            unique_tag: Optional[str] = None,
+            prior_passer: Optional[PriorPasser] = None,
+            initializer: Optional[Initializer] = None,
+            auto_correlations_settings=AutoCorrelationsSettings(),
+            iterations_per_update: int = None,
+            number_of_cores: int = None,
+            session: Optional[sa.orm.Session] = None,
+            **kwargs
     ):
         """
         An Zeus non-linear search.
@@ -98,7 +100,7 @@ class Zeus(AbstractMCMC):
     class Fitness(AbstractMCMC.Fitness):
         def figure_of_merit_from(self, parameter_list):
             """
-            The figure of merit is the value that the `NonLinearSearch` uses to sample parameter space.
+            The figure of merit is the value that the `NonLinearSearch` uses to sample parameter space. 
 
             `Zeus` uses the log posterior.
             """
@@ -146,8 +148,9 @@ class Zeus(AbstractMCMC):
             model=model, analysis=analysis
         )
 
-        if self.paths.is_object("zeus"):
-            zeus_sampler = self.zeus_pickled
+        try:
+
+            zeus_sampler = self.results_internal
 
             zeus_state = zeus_sampler.get_last_sample()
             log_posterior_list = zeus_sampler.get_last_log_prob()
@@ -165,7 +168,8 @@ class Zeus(AbstractMCMC):
                     "Existing Zeus samples found, resuming non-linear search."
                 )
 
-        else:
+        except FileNotFoundError:
+
             zeus_sampler = zeus.EnsembleSampler(
                 nwalkers=self.config_dict_search["nwalkers"],
                 ndim=model.prior_count,
@@ -183,7 +187,7 @@ class Zeus(AbstractMCMC):
                 total_points=zeus_sampler.nwalkers,
                 model=model,
                 fitness_function=fitness_function,
-                test_mode_samples=False,
+                test_mode_samples=False
             )
 
             zeus_state = np.zeros(shape=(zeus_sampler.nwalkers, model.prior_count))
@@ -197,22 +201,23 @@ class Zeus(AbstractMCMC):
             iterations_remaining = self.config_dict_run["nsteps"]
 
         while iterations_remaining > 0:
+
             if self.iterations_per_update > iterations_remaining:
                 iterations = iterations_remaining
             else:
                 iterations = self.iterations_per_update
 
             for sample in zeus_sampler.sample(
-                start=zeus_state,
-                log_prob0=log_posterior_list,
-                iterations=iterations,
-                progress=True,
+                    start=zeus_state,
+                    log_prob0=log_posterior_list,
+                    iterations=iterations,
+                    progress=True,
             ):
                 pass
 
             zeus_sampler.ncall_total += zeus_sampler.ncall
 
-            self.paths.save_object("zeus", zeus_sampler)
+            self.save_results_internal(results_internal=zeus_sampler)
 
             zeus_state = zeus_sampler.get_last_sample()
             log_posterior_list = zeus_sampler.get_last_log_prob()
@@ -242,6 +247,7 @@ class Zeus(AbstractMCMC):
         self.logger.info("Zeus sampling complete.")
 
     def config_dict_with_test_mode_settings_from(self, config_dict):
+
         return {
             **config_dict,
             "nwalkers": 20,
@@ -249,8 +255,9 @@ class Zeus(AbstractMCMC):
         }
 
     def fitness_function_from_model_and_analysis(
-        self, model, analysis, log_likelihood_cap=None
+            self, model, analysis, log_likelihood_cap=None
     ):
+
         return Zeus.Fitness(
             paths=self.paths,
             model=model,
@@ -259,8 +266,25 @@ class Zeus(AbstractMCMC):
             log_likelihood_cap=log_likelihood_cap,
         )
 
-    def samples_from(self, model):
-        """Create a `Samples` object from this non-linear search's output files on the hard-disk and model.
+    def save_results_internal(self, results_internal):
+        """
+        Save dynesty's internal representation of the results as a pickle file.
+
+        The results in this representation are required to use in built dynesty tools for visualization, analysing
+        samples and other tasks.
+
+        Parameters
+        ----------
+        results_internal
+            The results of the dynesty sampler in its internal representation.
+        """
+
+        with open_(path.join(self.paths.search_internal_path, "results_internal.pickle"), "wb") as f:
+            dill.dump(results_internal, f)
+
+    def samples_via_internal_from(self, model):
+        """
+        Create a `Samples` object from this non-linear search's output files on the hard-disk and model.
 
         Parameters
         ----------
@@ -273,19 +297,27 @@ class Zeus(AbstractMCMC):
         """
 
         return SamplesZeus.from_results_internal(
-            results_internal=self.zeus_pickled,
+            results_internal=self.results_internal,
             model=model,
             auto_correlation_settings=self.auto_correlations_settings,
             time=self.timer.time,
         )
 
-    @property
-    def zeus_pickled(self):
-        return self.paths.load_object("zeus")
+    def samples_via_csv_from(self, model):
 
-    def plot_results(self, samples, during_analysis):
+        return SamplesZeus.from_csv(
+            paths=self.paths,
+            model=model,
+        )
+
+    @property
+    def results_internal(self):
+        with open_(path.join(self.paths.search_internal_path, "results_internal.pickle"), "rb") as f:
+            return dill.load(f)
+
+    def plot_results(self, samples):
         def should_plot(name):
-            return conf.instance["visualize"]["plots_search"]["emcee"][name]
+            return conf.instance["visualize"]["plots_search"]["zeus"][name]
 
         plotter = ZeusPlotter(
             samples=samples,
@@ -294,7 +326,7 @@ class Zeus(AbstractMCMC):
             ),
         )
 
-        if not during_analysis and should_plot("corner"):
+        if should_plot("corner"):
             plotter.corner()
 
         if should_plot("trajectories"):
