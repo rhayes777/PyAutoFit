@@ -151,5 +151,5 @@ class DynestyStatic(AbstractDynesty):
             )
 
     @property
-    def total_live_points(self):
+    def number_live_points(self):
         return self.config_dict_search["nlive"]

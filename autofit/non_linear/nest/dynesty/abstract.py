@@ -218,7 +218,7 @@ class AbstractDynesty(AbstractNest, ABC):
             "log_evidence": np.max(results_internal.logz),
             "total_samples": int(np.sum(results_internal.ncall)),
             "time": self.timer.time,
-            "number_live_points": self.total_live_points
+            "number_live_points": self.number_live_points
         }
 
     def samples_via_internal_from(self, model):
@@ -400,18 +400,18 @@ class AbstractDynesty(AbstractNest, ABC):
             parameters,
             log_likelihood_list,
         ) = self.initializer.samples_from_model(
-            total_points=self.total_live_points,
+            total_points=self.number_live_points,
             model=model,
             fitness_function=fitness_function,
         )
 
         init_unit_parameters = np.zeros(
-            shape=(self.total_live_points, model.prior_count)
+            shape=(self.number_live_points, model.prior_count)
         )
         init_parameters = np.zeros(
-            shape=(self.total_live_points, model.prior_count)
+            shape=(self.number_live_points, model.prior_count)
         )
-        init_log_likelihood_list = np.zeros(shape=(self.total_live_points))
+        init_log_likelihood_list = np.zeros(shape=(self.number_live_points))
 
         for i in range(len(parameters)):
             init_unit_parameters[i, :] = np.asarray(unit_parameters[i])
@@ -424,7 +424,7 @@ class AbstractDynesty(AbstractNest, ABC):
             init_log_likelihood_list,
         ]
 
-        blobs = np.asarray(self.total_live_points * [False])
+        blobs = np.asarray(self.number_live_points * [False])
 
         live_points.append(blobs)
 
@@ -460,7 +460,7 @@ class AbstractDynesty(AbstractNest, ABC):
         os.remove(self.checkpoint_file)
 
     @property
-    def total_live_points(self):
+    def number_live_points(self):
         raise NotImplementedError()
 
     def plot_results(self, samples):

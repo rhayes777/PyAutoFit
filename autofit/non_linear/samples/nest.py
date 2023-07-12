@@ -16,7 +16,6 @@ class SamplesNest(SamplesPDF):
             model: AbstractPriorModel,
             sample_list: List[Sample],
             samples_info : Dict,
-            number_live_points: Optional[int] = None,
             results_internal: Optional = None,
     ):
         """
@@ -44,8 +43,6 @@ class SamplesNest(SamplesPDF):
         results_internal
             The nested sampler's results in their native internal format for interfacing its visualization library.
         """
-
-        self._number_live_points = number_live_points
 
         super().__init__(
             model=model,
@@ -86,24 +83,22 @@ class SamplesNest(SamplesPDF):
         return self.__class__(
             model=self.model,
             sample_list=self.sample_list + other.sample_list,
-            number_live_points=self._number_live_points,
             samples_info=self.samples_info,
             results_internal=None
         )
 
     @property
     def number_live_points(self):
-        return self._number_live_points
+        return self.samples_info["number_live_points"]
 
     @property
-    @abstractmethod
     def log_evidence(self):
-        pass
+        return self.samples_info["log_evidence"]
 
     @property
     @abstractmethod
     def total_samples(self):
-        pass
+        self.samples_info["total_samples"]
 
     @property
     def total_accepted_samples(self) -> int:

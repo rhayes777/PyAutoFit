@@ -29,7 +29,7 @@ class MockSamples(SamplesPDF):
         super().__init__(
             model=model,
             sample_list=sample_list,
-            samples_info={},
+            samples_info={"unconverged_sample_size": 0},
             **kwargs,
         )
 
@@ -80,9 +80,9 @@ class MockSamplesNest(SamplesNest):
         self,
         model,
         sample_list=None,
+        samples_info={},
         total_samples=10,
         log_evidence=0.0,
-        number_live_points=5,
         time: Optional[Union[str, float]] = None,
     ):
         self.model = model
@@ -93,11 +93,10 @@ class MockSamplesNest(SamplesNest):
                 for log_likelihood in self.log_likelihood_list
             ]
 
-        super().__init__(model=model, sample_list=sample_list, time=time)
+        super().__init__(model=model, sample_list=sample_list, samples_info=samples_info)
 
         self._total_samples = total_samples
         self._log_evidence = log_evidence
-        self._number_live_points = number_live_points
 
     @property
     def total_samples(self):
@@ -109,4 +108,4 @@ class MockSamplesNest(SamplesNest):
 
     @property
     def number_live_points(self):
-        return self._number_live_points
+        return self.samples_info["number_live_points"]
