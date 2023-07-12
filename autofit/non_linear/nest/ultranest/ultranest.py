@@ -1,6 +1,6 @@
 import copy
 from os import path
-import os
+import pickle
 from typing import Optional
 
 from autofit.database.sqlalchemy_ import sa
@@ -13,7 +13,7 @@ from autofit.non_linear.nest.abstract_nest import AbstractNest
 from autofit.non_linear.nest.ultranest.samples import SamplesUltraNest
 from autofit.plot import UltraNestPlotter
 from autofit.plot.output import Output
-
+from autofit.tools.util import open_
 
 class UltraNest(abstract_nest.AbstractNest):
     __identifier_fields__ = (
@@ -24,19 +24,19 @@ class UltraNest(abstract_nest.AbstractNest):
         "cluster_num_live_points",
         "insertion_test_zscore_threshold",
         "stepsampler_cls",
-        "nsteps",
+        "nsteps"
     )
 
     def __init__(
-        self,
-        name: str = "",
-        path_prefix: str = "",
-        unique_tag: Optional[str] = None,
-        prior_passer: PriorPasser = None,
-        iterations_per_update: int = None,
-        number_of_cores: int = None,
-        session: Optional[sa.orm.Session] = None,
-        **kwargs
+            self,
+            name: str = "",
+            path_prefix: str = "",
+            unique_tag: Optional[str] = None,
+            prior_passer: PriorPasser = None,
+            iterations_per_update: int = None,
+            number_of_cores: int = None,
+            session: Optional[sa.orm.Session] = None,
+            **kwargs
     ):
         """
         An UltraNest non-linear search.
@@ -96,6 +96,7 @@ class UltraNest(abstract_nest.AbstractNest):
         self.logger.debug("Creating UltraNest Search")
 
     def config_dict_with_test_mode_settings_from(self, config_dict):
+
         return {
             **config_dict,
             "max_iters": 1,
@@ -104,9 +105,8 @@ class UltraNest(abstract_nest.AbstractNest):
 
     @property
     def config_dict_stepsampler(self):
-        config_dict = copy.copy(
-            self.config_type[self.__class__.__name__]["stepsampler"]
-        )
+
+        config_dict = copy.copy(self.config_type[self.__class__.__name__]["stepsampler"])
 
         for key, value in config_dict.items():
             try:
@@ -118,6 +118,7 @@ class UltraNest(abstract_nest.AbstractNest):
 
     @property
     def stepsampler(self):
+
         from ultranest import stepsampler
 
         config_dict_stepsampler = self.config_dict_stepsampler
@@ -141,7 +142,8 @@ class UltraNest(abstract_nest.AbstractNest):
     class Fitness(AbstractNest.Fitness):
         @property
         def resample_figure_of_merit(self):
-            """If a sample raises a FitException, this value is returned to signify that the point requires resampling or
+            """
+            If a sample raises a FitException, this value is returned to signify that the point requires resampling or
             should be given a likelihood so low that it is discard.
 
             -np.inf is an invalid sample value for Dynesty, so we instead use a large negative number.
@@ -180,21 +182,20 @@ class UltraNest(abstract_nest.AbstractNest):
             )
 
         fitness_function = self.fitness_function_from_model_and_analysis(
-            model=model,
-            analysis=analysis,
-            log_likelihood_cap=log_likelihood_cap,
+            model=model, analysis=analysis, log_likelihood_cap=log_likelihood_cap,
         )
 
         def prior_transform(cube):
             return model.vector_from_unit_vector(
-                unit_vector=cube, ignore_prior_limits=True
+                unit_vector=cube,
+                ignore_prior_limits=True
             )
 
         sampler = ultranest.ReactiveNestedSampler(
             param_names=model.parameter_names,
             loglike=fitness_function.__call__,
             transform=prior_transform,
-            log_dir=self.paths.samples_path,
+            log_dir=self.paths.search_internal_path,
             **self.config_dict_search
         )
 
@@ -203,6 +204,7 @@ class UltraNest(abstract_nest.AbstractNest):
         finished = False
 
         while not finished:
+
             try:
                 total_iterations = sampler.ncall
             except AttributeError:
@@ -214,30 +216,55 @@ class UltraNest(abstract_nest.AbstractNest):
                 iterations = total_iterations + self.iterations_per_update
 
             if iterations > 0:
+
                 filter_list = ["max_ncalls", "dkl", "lepsilon"]
                 config_dict_run = {
-                    key: value
-                    for key, value in self.config_dict_run.items()
-                    if key not in filter_list
+                    key: value for key, value
+                    in self.config_dict_run.items()
+                    if key
+                    not in filter_list
                 }
 
                 config_dict_run["update_interval_ncall"] = iterations
 
-                sampler.run(max_ncalls=iterations, **config_dict_run)
+                sampler.run(
+                    max_ncalls=iterations,
+                    **config_dict_run
+                )
 
-            self.paths.save_object("results", sampler.results)
+            self.save_results_internal(results_internal=sampler.results)
 
             self.perform_update(model=model, analysis=analysis, during_analysis=True)
 
             iterations_after_run = sampler.ncall
 
             if (
-                total_iterations == iterations_after_run
-                or iterations_after_run == self.config_dict_run["max_ncalls"]
+                    total_iterations == iterations_after_run
+                    or iterations_after_run == self.config_dict_run["max_ncalls"]
             ):
                 finished = True
 
-    def samples_from(self, model: AbstractPriorModel):
+    def save_results_internal(self, results_internal):
+        """
+        Save the internal representation of the results as a pickle file.
+
+        The results in this representation are required to use in built tools for visualization, analysing
+        samples and other tasks.
+
+        Parameters
+        ----------
+        results_internal
+            The results of the sampler in its internal representation.
+        """
+
+        with open_(path.join(self.paths.search_internal_path, "results_internal.pickle"), "wb") as f:
+            pickle.dump(results_internal, f)
+
+    def load_results_internal(self):
+        with open_(path.join(self.paths.search_internal_path, "results_internal.pickle"), "rb") as f:
+            return pickle.load(f)
+
+    def samples_via_internal_from(self, model: AbstractPriorModel):
         """
         Create a `Samples` object from this non-linear search's output files on the hard-disk and model.
 
@@ -255,12 +282,7 @@ class UltraNest(abstract_nest.AbstractNest):
             cube values to physical values via the priors.
         """
 
-        try:
-            results_internal = self.paths.load_object("results")
-
-        except FileNotFoundError:
-            samples = self.paths.load_object("samples")
-            results_internal = samples.results
+        results_internal = self.load_results_internal()
 
         return SamplesUltraNest.from_results_internal(
             results_internal=results_internal,
@@ -270,7 +292,11 @@ class UltraNest(abstract_nest.AbstractNest):
             time=self.timer.time,
         )
 
-    def plot_results(self, samples, during_analysis):
+    def samples_via_csv_from(self, model):
+        return SamplesUltraNest.from_csv(paths=self.paths, model=model)
+
+    def plot_results(self, samples):
+
         if not samples.pdf_converged:
             return
 
@@ -279,12 +305,10 @@ class UltraNest(abstract_nest.AbstractNest):
 
         plotter = UltraNestPlotter(
             samples=samples,
-            output=Output(
-                path=path.join(self.paths.image_path, "search"), format="png"
-            ),
+            output=Output(path=path.join(self.paths.image_path, "search"), format="png")
         )
 
-        if not during_analysis and should_plot("cornerplot"):
+        if should_plot("cornerplot"):
             plotter.cornerplot()
 
         if should_plot("runplot"):
