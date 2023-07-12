@@ -16,7 +16,6 @@ from autofit.non_linear.samples.sample import Sample
 from autofit.non_linear.samples.nest import SamplesNest
 from autofit.plot.output import Output
 
-
 def prior_transform(cube, model):
     phys_cube = model.vector_from_unit_vector(
         unit_vector=cube, ignore_prior_limits=True

@@ -1,4 +1,4 @@
-import dill
+import logging
 from os import path
 from typing import Optional
 
@@ -12,10 +12,15 @@ from autofit.non_linear.abstract_search import PriorPasser
 from autofit.non_linear.initializer import Initializer
 from autofit.non_linear.mcmc.abstract_mcmc import AbstractMCMC
 from autofit.non_linear.mcmc.auto_correlations import AutoCorrelationsSettings
+from autofit.non_linear.mcmc.auto_correlations import AutoCorrelations
 from autofit.non_linear.mcmc.zeus.plotter import ZeusPlotter
-from autofit.non_linear.mcmc.zeus.samples import SamplesZeus
+from autofit.non_linear.samples.sample import Sample
+from autofit.non_linear.samples.mcmc import SamplesMCMC
 from autofit.plot.output import Output
-from autofit.tools.util import open_
+
+logger = logging.getLogger(
+    __name__
+)
 
 
 class Zeus(AbstractMCMC):
@@ -246,6 +251,103 @@ class Zeus(AbstractMCMC):
 
         self.logger.info("Zeus sampling complete.")
 
+    @property
+    def samples_info(self):
+
+        results_internal = self.paths.load_results_internal()
+
+        return {
+            "check_size": self.auto_correlations.check_size,
+            "required_length": self.auto_correlations.required_length,
+            "change_threshold": self.auto_correlations.change_threshold,
+            "total_walkers": len(results_internal.get_chain()[0, :, 0]),
+            "total_steps": int(results_internal.ncall_total),
+            "unconverged_sample_size": 100,
+            "time": self.timer.time,
+        }
+
+    def samples_via_internal_from(self, model):
+        """
+        The `Samples` classes in **PyAutoFit** provide an interface between the results of a `NonLinearSearch` (e.g.
+        as files on your hard-disk) and Python.
+
+        To create a `Samples` object after an `Zeus` model-fit the results must be converted from the
+        native format used by `Zeus` (which is a HDFBackend) to lists of values, the format used by the **PyAutoFit**
+        `Samples` objects.
+
+        This classmethod performs this conversion before creating a `SamplesZeus` object.
+
+        Parameters
+        ----------
+        results_internal
+            The MCMC results in their native internal format from which the samples are computed.
+        model
+            Maps input vectors of unit parameter values to physical values and model instances via priors.
+        auto_correlations_settings
+            Customizes and performs auto correlation calculations performed during and after the search.
+        """
+
+        results_internal = self.paths.load_results_internal()
+
+        parameter_lists = results_internal.get_chain(flat=True).tolist()
+        log_posterior_list = results_internal.get_log_prob(flat=True).tolist()
+        log_prior_list = model.log_prior_list_from(parameter_lists=parameter_lists)
+
+        log_likelihood_list = [
+            log_posterior - log_prior
+            for log_posterior, log_prior
+            in zip(log_posterior_list, log_prior_list)
+        ]
+
+        weight_list = len(log_likelihood_list) * [1.0]
+
+        sample_list = Sample.from_lists(
+            model=model,
+            parameter_lists=parameter_lists,
+            log_likelihood_list=log_likelihood_list,
+            log_prior_list=log_prior_list,
+            weight_list=weight_list
+        )
+
+        discard = int(3.0 * np.max(self.auto_correlations.times))
+        thin = int(np.max(self.auto_correlations.times) / 2.0)
+        samples_after_burn_in =  self.results_internal.get_chain(discard=discard, thin=thin, flat=True)
+
+        return SamplesMCMC(
+            model=model,
+            sample_list=sample_list,
+            auto_correlation_settings=self.auto_correlation_settings,
+            samples_info=self.samples_info,
+            samples_after_burn_in=samples_after_burn_in,
+            results_internal=results_internal,
+        )
+
+    @property
+    def auto_correlations(self):
+
+        import zeus
+
+        results_internal = self.paths.load_results_internal()
+
+        times = zeus.AutoCorrTime(samples=results_internal.get_chain())
+        try:
+            previous_auto_correlation_times = zeus.AutoCorrTime(
+                samples=results_internal.get_chain()[: - self.auto_correlation_settings.check_size, :, :],
+            )
+        except IndexError:
+            logger.debug(
+                "Unable to compute previous auto correlation times."
+            )
+            previous_auto_correlation_times = None
+
+        return AutoCorrelations(
+            check_size=self.auto_correlation_settings.check_size,
+            required_length=self.auto_correlation_settings.required_length,
+            change_threshold=self.auto_correlation_settings.change_threshold,
+            times=times,
+            previous_times=previous_auto_correlation_times,
+        )
+
     def config_dict_with_test_mode_settings_from(self, config_dict):
 
         return {
@@ -264,27 +366,6 @@ class Zeus(AbstractMCMC):
             analysis=analysis,
             samples_from_model=self.samples_from,
             log_likelihood_cap=log_likelihood_cap,
-        )
-
-    def samples_via_internal_from(self, model):
-        """
-        Create a `Samples` object from this non-linear search's output files on the hard-disk and model.
-
-        Parameters
-        ----------
-        model
-            The model which generates instances for different points in parameter space. This maps the points from unit
-            cube values to physical values via the priors.
-        paths : af.Paths
-            Manages all paths, e.g. where the search outputs are stored, the `NonLinearSearch` chains,
-            etc.
-        """
-
-        return SamplesZeus.from_results_internal(
-            results_internal=self.paths.load_results_internal(),
-            model=model,
-            auto_correlation_settings=self.auto_correlations_settings,
-            time=self.timer.time,
         )
 
     def plot_results(self, samples):

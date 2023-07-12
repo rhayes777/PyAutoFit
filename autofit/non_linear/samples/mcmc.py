@@ -20,9 +20,10 @@ class SamplesMCMC(SamplesPDF):
             self,
             model: AbstractPriorModel,
             sample_list: List[Sample],
-            auto_correlation_settings: AutoCorrelationsSettings,
             samples_info: Dict,
+            samples_after_burn_in,
             results_internal: Optional = None,
+            auto_correlation_settings: Optional[AutoCorrelationsSettings] = None,
     ):
         """
         The `Samples` classes in **PyAutoFit** provide an interface between the results_internal of
@@ -94,15 +95,10 @@ class SamplesMCMC(SamplesPDF):
         return self.__class__(
             model=self.model,
             sample_list=self.sample_list + other.sample_list,
+            samples_info=self.samples_info,
             auto_correlation_settings=self.auto_correlation_settings,
-            unconverged_sample_size=self.unconverged_sample_size,
-            time=self.time,
             results_internal=None
         )
-
-    @property
-    def total_walkers(self):
-        raise NotImplementedError
 
     @property
     def total_steps(self):
@@ -111,24 +107,6 @@ class SamplesMCMC(SamplesPDF):
     @property
     def auto_correlations(self):
         raise NotImplementedError
-
-    @classmethod
-    def from_table(self, filename: str, model: AbstractPriorModel, number_live_points: int = None):
-        """
-        Write a table of parameters, posteriors, priors and likelihoods
-
-        Parameters
-        ----------
-        filename
-            Where the table is to be written
-        """
-
-        sample_list = load_from_table(filename=filename)
-
-        return Samples(
-            model=model,
-            sample_list=sample_list
-        )
 
     @property
     def samples_info(self):
