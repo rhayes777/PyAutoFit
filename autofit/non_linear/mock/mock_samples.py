@@ -13,7 +13,7 @@ def samples_with_log_likelihood_list(log_likelihood_list):
 class MockSamples(SamplesPDF):
     def __init__(
         self,
-        model,
+        model=None,
         sample_list=None,
         max_log_likelihood_instance=None,
         log_likelihood_list=None,

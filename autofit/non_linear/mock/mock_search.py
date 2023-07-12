@@ -132,7 +132,6 @@ class MockSearch(NonLinearSearch):
         self.paths.save_samples(samples)
 
         return analysis.make_result(
-            model=model,
             samples=samples,
         )
 

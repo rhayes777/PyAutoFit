@@ -126,7 +126,7 @@ class Analysis(ABC):
         """
         return self
 
-    def make_result(self, samples, model, sigma=1.0, use_errors=True, use_widths=False):
+    def make_result(self, samples, sigma=1.0, use_errors=True, use_widths=False):
         return Result(
             samples=samples,
             sigma=sigma,
