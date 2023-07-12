@@ -1,5 +1,3 @@
-import json
-import pickle
 from os import path
 from typing import Optional
 
@@ -12,10 +10,10 @@ from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.abstract_search import PriorPasser
 from autofit.non_linear.initializer import AbstractInitializer
 from autofit.non_linear.optimize.abstract_optimize import AbstractOptimizer
-from autofit.non_linear.optimize.pyswarms.samples import SamplesPySwarms
+from autofit.non_linear.samples.sample import Sample
+from autofit.non_linear.samples.samples import Samples
 from autofit.plot import PySwarmsPlotter
 from autofit.plot.output import Output
-from autofit.tools.util import open_
 
 
 class AbstractPySwarms(AbstractOptimizer):
@@ -212,6 +210,34 @@ class AbstractPySwarms(AbstractOptimizer):
 
         self.logger.info("PySwarmsGlobal complete")
 
+    def samples_via_internal_from(self, model):
+
+        results_internal = self.paths.load_results_internal()
+        results_internal_dict = self.paths.load_results_internal_json()
+
+        parameter_lists = [
+            param.tolist() for parameters in results_internal for param in parameters
+        ]
+        log_posterior_list = results_internal_dict["log_posterior_list"]
+        log_prior_list = model.log_prior_list_from(parameter_lists=parameter_lists)
+        log_likelihood_list = [lp - prior for lp, prior in zip(log_posterior_list, log_prior_list)]
+        weight_list = len(log_likelihood_list) * [1.0]
+
+        sample_list = Sample.from_lists(
+            model=model,
+            parameter_lists=[parameters.tolist()[0] for parameters in results_internal],
+            log_likelihood_list=log_likelihood_list,
+            log_prior_list=log_prior_list,
+            weight_list=weight_list
+        )
+
+        return Samples(
+            model=model,
+            sample_list=sample_list,
+            samples_info=results_internal_dict,
+            results_internal=results_internal,
+        )
+
     def config_dict_with_test_mode_settings_from(self, config_dict):
 
         return {
@@ -231,19 +257,6 @@ class AbstractPySwarms(AbstractOptimizer):
 
     def sampler_from(self, model, fitness_function, bounds, init_pos):
         raise NotImplementedError()
-
-    def samples_via_internal_from(self, model):
-
-        results_internal = self.paths.load_results_internal()
-        results_internal_dict = self.paths.load_results_internal_json()
-
-        return SamplesPySwarms.from_results_internal(
-            results_internal=results_internal,
-            model=model,
-            log_posterior_list=results_internal_dict["log_posterior_list"],
-            total_iterations=results_internal_dict["total_iterations"],
-            time=self.timer.time
-        )
 
     def plot_results(self, samples):
 
