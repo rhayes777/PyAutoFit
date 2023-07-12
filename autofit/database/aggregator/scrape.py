@@ -151,7 +151,7 @@ class Scraper:
                 )
 
                 _add_pickles(grid_search, path / "pickles")
-                _add_jsons(grid_search, path / "jsons")
+                _add_jsons(grid_search, path / "files")
 
                 aggregator = ClassicAggregator(root)
                 for item in aggregator:

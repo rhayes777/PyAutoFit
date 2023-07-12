@@ -190,11 +190,11 @@ class AbstractPaths(ABC):
             f.write(self._identifier.description)
 
     @property
-    def samples_path(self) -> str:
+    def search_internal_path(self) -> str:
         """
         The path to the samples folder.
         """
-        return path.join(self.output_path, "samples")
+        return path.join(self.output_path, "search_internal")
 
     @property
     def image_path(self) -> str:
@@ -410,12 +410,12 @@ class AbstractPaths(ABC):
 
     @property
     def _samples_file(self) -> str:
-        return path.join(self.samples_path, "samples.csv")
+        return path.join(self._files_path, "samples.csv")
 
     @property
     def _covariance_file(self) -> str:
-        return path.join(self.samples_path, "covariance.txt")
+        return path.join(self._files_path, "covariance.txt")
 
     @property
     def _info_file(self) -> str:
-        return path.join(self.samples_path, "info.json")
+        return path.join(self._files_path, "samples_info.json")

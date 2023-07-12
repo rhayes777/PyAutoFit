@@ -307,13 +307,13 @@ class DirectoryPaths(AbstractPaths):
             parameter_name_and_label += [f"{line}\n"]
 
         formatter.output_list_of_strings_to_file(
-            file=path.join(self.samples_path, "model.paramnames"),
+            file=path.join(self._files_path, "model.paramnames"),
             list_of_strings=parameter_name_and_label,
         )
 
     @property
     def _info_file(self) -> str:
-        return path.join(self.samples_path, "info.json")
+        return path.join(self._files_path, "samples_info.json")
 
     @property
     def _has_completed_path(self) -> str:
