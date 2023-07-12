@@ -1,6 +1,5 @@
 import copy
 from os import path
-import pickle
 from typing import Optional
 
 from autofit.database.sqlalchemy_ import sa
@@ -10,10 +9,10 @@ from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.abstract_search import PriorPasser
 from autofit.non_linear.nest import abstract_nest
 from autofit.non_linear.nest.abstract_nest import AbstractNest
-from autofit.non_linear.nest.ultranest.samples import SamplesUltraNest
+from autofit.non_linear.samples.sample import Sample
+from autofit.non_linear.samples.nest import SamplesNest
 from autofit.plot import UltraNestPlotter
 from autofit.plot.output import Output
-from autofit.tools.util import open_
 
 class UltraNest(abstract_nest.AbstractNest):
     __identifier_fields__ = (
@@ -94,50 +93,6 @@ class UltraNest(abstract_nest.AbstractNest):
                 self.nsteps = None
 
         self.logger.debug("Creating UltraNest Search")
-
-    def config_dict_with_test_mode_settings_from(self, config_dict):
-
-        return {
-            **config_dict,
-            "max_iters": 1,
-            "max_ncalls": 1,
-        }
-
-    @property
-    def config_dict_stepsampler(self):
-
-        config_dict = copy.copy(self.config_type[self.__class__.__name__]["stepsampler"])
-
-        for key, value in config_dict.items():
-            try:
-                config_dict[key] = self.kwargs[key]
-            except KeyError:
-                pass
-
-        return config_dict
-
-    @property
-    def stepsampler(self):
-
-        from ultranest import stepsampler
-
-        config_dict_stepsampler = self.config_dict_stepsampler
-        stepsampler_cls = config_dict_stepsampler["stepsampler_cls"]
-        config_dict_stepsampler.pop("stepsampler_cls")
-
-        if stepsampler_cls is None:
-            return None
-        elif stepsampler_cls == "RegionMHSampler":
-            return stepsampler.RegionMHSampler(**config_dict_stepsampler)
-        elif stepsampler_cls == "AHARMSampler":
-            config_dict_stepsampler.pop("scale")
-            return stepsampler.AHARMSampler(**config_dict_stepsampler)
-        elif stepsampler_cls == "CubeMHSampler":
-            return stepsampler.CubeMHSampler(**config_dict_stepsampler)
-        elif stepsampler_cls == "CubeSliceSampler":
-            return stepsampler.CubeSliceSampler(**config_dict_stepsampler)
-        elif stepsampler_cls == "RegionSliceSampler":
-            return stepsampler.RegionSliceSampler(**config_dict_stepsampler)
 
     class Fitness(AbstractNest.Fitness):
         @property
@@ -244,6 +199,18 @@ class UltraNest(abstract_nest.AbstractNest):
             ):
                 finished = True
 
+    @property
+    def samples_info(self):
+
+        results_internal = self.paths.load_results_internal()
+
+        return {
+            "log_evidence": results_internal["logz"],
+            "total_samples": results_internal["ncall"],
+            "time": self.timer.time,
+            "number_live_points": self.config_dict_run["min_num_live_points"]
+        }
+
     def samples_via_internal_from(self, model: AbstractPriorModel):
         """
         Create a `Samples` object from this non-linear search's output files on the hard-disk and model.
@@ -264,13 +231,71 @@ class UltraNest(abstract_nest.AbstractNest):
 
         results_internal = self.paths.load_results_internal()
 
-        return SamplesUltraNest.from_results_internal(
-            results_internal=results_internal,
+        parameters = results_internal["weighted_samples"]["points"]
+        log_likelihood_list = results_internal["weighted_samples"]["logl"]
+        log_prior_list = [
+            sum(model.log_prior_list_from_vector(vector=vector)) for vector in parameters
+        ]
+        weight_list = results_internal["weighted_samples"]["weights"]
+
+        sample_list = Sample.from_lists(
             model=model,
-            number_live_points=self.config_dict_run["min_num_live_points"],
-            unconverged_sample_size=1,
-            time=self.timer.time,
+            parameter_lists=parameters,
+            log_likelihood_list=log_likelihood_list,
+            log_prior_list=log_prior_list,
+            weight_list=weight_list
         )
+
+        return SamplesNest(
+            model=model,
+            sample_list=sample_list,
+            samples_info=self.samples_info,
+            results_internal=results_internal,
+        )
+
+    def config_dict_with_test_mode_settings_from(self, config_dict):
+
+        return {
+            **config_dict,
+            "max_iters": 1,
+            "max_ncalls": 1,
+        }
+
+    @property
+    def config_dict_stepsampler(self):
+
+        config_dict = copy.copy(self.config_type[self.__class__.__name__]["stepsampler"])
+
+        for key, value in config_dict.items():
+            try:
+                config_dict[key] = self.kwargs[key]
+            except KeyError:
+                pass
+
+        return config_dict
+
+    @property
+    def stepsampler(self):
+
+        from ultranest import stepsampler
+
+        config_dict_stepsampler = self.config_dict_stepsampler
+        stepsampler_cls = config_dict_stepsampler["stepsampler_cls"]
+        config_dict_stepsampler.pop("stepsampler_cls")
+
+        if stepsampler_cls is None:
+            return None
+        elif stepsampler_cls == "RegionMHSampler":
+            return stepsampler.RegionMHSampler(**config_dict_stepsampler)
+        elif stepsampler_cls == "AHARMSampler":
+            config_dict_stepsampler.pop("scale")
+            return stepsampler.AHARMSampler(**config_dict_stepsampler)
+        elif stepsampler_cls == "CubeMHSampler":
+            return stepsampler.CubeMHSampler(**config_dict_stepsampler)
+        elif stepsampler_cls == "CubeSliceSampler":
+            return stepsampler.CubeSliceSampler(**config_dict_stepsampler)
+        elif stepsampler_cls == "RegionSliceSampler":
+            return stepsampler.RegionSliceSampler(**config_dict_stepsampler)
 
     def plot_results(self, samples):
 
