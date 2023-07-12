@@ -232,7 +232,7 @@ class UltraNest(abstract_nest.AbstractNest):
                     **config_dict_run
                 )
 
-            self.save_results_internal(results_internal=sampler.results)
+            self.paths.save_results_internal(obj=sampler.results)
 
             self.perform_update(model=model, analysis=analysis, during_analysis=True)
 
@@ -243,26 +243,6 @@ class UltraNest(abstract_nest.AbstractNest):
                     or iterations_after_run == self.config_dict_run["max_ncalls"]
             ):
                 finished = True
-
-    def save_results_internal(self, results_internal):
-        """
-        Save the internal representation of the results as a pickle file.
-
-        The results in this representation are required to use in built tools for visualization, analysing
-        samples and other tasks.
-
-        Parameters
-        ----------
-        results_internal
-            The results of the sampler in its internal representation.
-        """
-
-        with open_(path.join(self.paths.search_internal_path, "results_internal.pickle"), "wb") as f:
-            pickle.dump(results_internal, f)
-
-    def load_results_internal(self):
-        with open_(path.join(self.paths.search_internal_path, "results_internal.pickle"), "rb") as f:
-            return pickle.load(f)
 
     def samples_via_internal_from(self, model: AbstractPriorModel):
         """
@@ -282,7 +262,7 @@ class UltraNest(abstract_nest.AbstractNest):
             cube values to physical values via the priors.
         """
 
-        results_internal = self.load_results_internal()
+        results_internal = self.paths.load_results_internal()
 
         return SamplesUltraNest.from_results_internal(
             results_internal=results_internal,
