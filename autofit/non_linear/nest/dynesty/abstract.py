@@ -209,7 +209,7 @@ class AbstractDynesty(AbstractNest, ABC):
 
             self.perform_update(model=model, analysis=analysis, during_analysis=True)
 
-        self.save_results_internal(results_internal=sampler.results)
+        self.paths.save_results_internal(obj=sampler.results, output_type="dill")
 
     def iterations_from(
             self, sampler: Union[NestedSampler, DynamicNestedSampler]
@@ -372,22 +372,6 @@ class AbstractDynesty(AbstractNest, ABC):
         live_points.append(blobs)
 
         return live_points
-
-    def save_results_internal(self, results_internal):
-        """
-        Save dynesty's internal representation of the results as a pickle file.
-
-        The results in this representation are required to use in built dynesty tools for visualization, analysing
-        samples and other tasks.
-
-        Parameters
-        ----------
-        results_internal
-            The results of the dynesty sampler in its internal representation.
-        """
-
-        with open_(path.join(self.paths.search_internal_path, "results_internal.pickle"), "wb") as f:
-            dill.dump(results_internal, f)
 
     def sampler_from(
             self,

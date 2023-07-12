@@ -6,6 +6,7 @@ from typing import Optional
 import logging
 
 import dill
+import pickle
 
 from autoconf import conf
 from autofit.text import formatter
@@ -58,6 +59,46 @@ class DirectoryPaths(AbstractPaths):
         """
         with open_(self._path_for_json(name), "w+") as f:
             json.dump(object_dict, f, indent=4)
+
+    def save_results_internal(self, obj: object, output_type="pickle"):
+        """
+        Save the internal representation of a non-linear search as a pickle or dill file.
+
+        The results in this representation are required to use a search's in-built tools for visualization,
+        analysing samples and other tasks.
+
+        Parameters
+        ----------
+        results_internal
+            The results of the non-linear search in its internal representation.
+        """
+        if output_type == "pickle":
+            with open_(self.search_internal_path, "results_internal.pickle", "wb") as f:
+                pickle.dump(obj, f)
+        elif output_type == "dill":
+            with open_(self.search_internal_path, "results_internal.dill", "wb") as f:
+                dill.dump(obj, f)
+
+    def load_results_internal(self, output_type="pickle"):
+        """
+        Load the internal representation of a non-linear search from a pickle or dill file.
+
+        The results in this representation are required to use a search's in-built tools for visualization,
+        analysing samples and other tasks.
+
+        Returns
+        -------
+        The results of the non-linear search in its internal representation.
+        """
+        try:
+            if output_type == "pickle":
+                with open_(self.search_internal_path, "results_internal.pickle", "rb") as f:
+                    return pickle.load(f)
+            elif output_type == "dill":
+                with open_(self.search_internal_path, "results_internal.dill", "rb") as f:
+                    return dill.load(f)
+        except FileNotFoundError:
+            pass
 
     def load_object(self, name: str):
         """

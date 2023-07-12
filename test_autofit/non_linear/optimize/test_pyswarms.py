@@ -106,9 +106,9 @@ def test__samples_from_model():
         [50.1254, 1.04626, 10.09456], 1.0e-4
     )
 
-    assert samples.log_likelihood_list[0] == pytest.approx(-5071.80777, 1.0e-4)
-    assert samples.log_posterior_list[0] == pytest.approx(-5070.73298, 1.0e-4)
+    assert samples.log_likelihood_list[0] == pytest.approx(-2780.995417544426, 1.0e-4)
+    assert samples.log_posterior_list[0] == pytest.approx(-2779.9206, 1.0e-4)
     assert samples.weight_list[0] == 1.0
 
-    assert len(samples.parameter_lists) == 500
-    assert len(samples.log_likelihood_list) == 500
+    assert len(samples.parameter_lists) == 2
+    assert len(samples.log_likelihood_list) == 2

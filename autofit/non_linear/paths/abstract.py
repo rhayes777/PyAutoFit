@@ -354,6 +354,14 @@ class AbstractPaths(ABC):
     def is_object(self, name: str) -> bool:
         pass
 
+    @abstractmethod
+    def save_results_internal(self, obj: object, output_type="pickle"):
+        pass
+
+    @abstractmethod
+    def load_results_internal(self, output_type="pickle"):
+        pass
+
     @property
     @abstractmethod
     def is_complete(self) -> bool:
