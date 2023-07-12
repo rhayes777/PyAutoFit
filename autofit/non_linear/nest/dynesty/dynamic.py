@@ -1,8 +1,7 @@
 from __future__ import annotations
-from typing import TYPE_CHECKING, Optional
+from typing import Optional
 
 from dynesty.dynesty import DynamicNestedSampler
-from autofit.non_linear.nest.dynesty.samples import SamplesDynesty
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 
 from .abstract import AbstractDynesty, prior_transform
@@ -72,27 +71,9 @@ class DynestyDynamic(AbstractDynesty):
 
         self.logger.debug("Creating DynestyDynamic Search")
 
-    def samples_via_internal_from(self, model):
-        """
-        Create a `Samples` object from this non-linear search's output files on the hard-disk and model.
-
-        For Dynesty, all information that we need is available from the instance of the dynesty sampler.
-
-        Parameters
-        ----------
-        model
-            The model which generates instances for different points in parameter space. This maps the points from unit
-            cube values to physical values via the priors.
-        """
-        sampler = DynamicNestedSampler.restore(self.checkpoint_file)
-
-        return SamplesDynesty.from_results_internal(
-            model=model,
-            results_internal=sampler.results,
-            number_live_points=self.total_live_points,
-            unconverged_sample_size=1,
-            time=self.timer.time,
-        )
+    @property
+    def sampler(self):
+        return DynamicNestedSampler.restore(self.checkpoint_file)
 
     def sampler_from(
             self,

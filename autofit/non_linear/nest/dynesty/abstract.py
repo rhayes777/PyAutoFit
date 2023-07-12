@@ -12,7 +12,8 @@ from autofit.database.sqlalchemy_ import sa
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.abstract_search import PriorPasser
 from autofit.non_linear.nest.abstract_nest import AbstractNest
-from autofit.non_linear.nest.dynesty.samples import SamplesDynesty
+from autofit.non_linear.samples.sample import Sample
+from autofit.non_linear.samples.nest import SamplesNest
 from autofit.plot.output import Output
 
 
@@ -208,6 +209,65 @@ class AbstractDynesty(AbstractNest, ABC):
             self.perform_update(model=model, analysis=analysis, during_analysis=True)
 
         self.paths.save_results_internal(obj=sampler.results)
+
+    @property
+    def samples_info(self):
+
+        results_internal = self.sampler.results
+
+        return {
+            "log_evidence": np.max(results_internal.logz),
+            "total_samples": int(np.sum(results_internal.ncall)),
+            "time": self.timer.time,
+            "number_live_points": self.total_live_points
+        }
+
+    def samples_via_internal_from(self, model):
+        """
+        Returns a `Samples` object from a Dynesty the dynesty internal results format, which contains the
+        samples of the non-linear search (e.g. the parameters, log likelihoods, etc.).
+
+        The internal dynesty results are converted from the native format used by `dynesty` to lists of values,
+        for the samples.
+
+        This classmethod performs this conversion before creating a `SamplesDynesty` object.
+
+        Parameters
+        ----------
+        model
+            Maps input vectors of unit parameter values to physical values and model instances via priors.
+        """
+        results_internal = self.sampler.results
+
+        parameter_lists = results_internal.samples.tolist()
+        log_prior_list = model.log_prior_list_from(parameter_lists=parameter_lists)
+        log_likelihood_list = list(results_internal.logl)
+
+        try:
+            weight_list = list(
+                np.exp(np.asarray(results_internal.logwt) - results_internal.logz[-1])
+            )
+        except:
+            weight_list = results_internal["weights"]
+
+        sample_list = Sample.from_lists(
+            model=model,
+            parameter_lists=parameter_lists,
+            log_likelihood_list=log_likelihood_list,
+            log_prior_list=log_prior_list,
+            weight_list=weight_list,
+        )
+
+        return SamplesNest(
+            model=model,
+            sample_list=sample_list,
+            samples_info=self.samples_info,
+            results_internal=results_internal,
+        )
+
+    @property
+    def sampler(self):
+        raise NotImplementedError
 
     def iterations_from(
             self, sampler: Union[NestedSampler, DynamicNestedSampler]

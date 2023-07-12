@@ -211,7 +211,7 @@ class DatabasePaths(AbstractPaths):
         return self._load_samples().sample_list
 
     def load_samples_info(self):
-        return self._load_samples().info_json
+        return self._load_samples().samples_info
 
     def save_all(self, info, *_, **kwargs):
         self.save_identifier()

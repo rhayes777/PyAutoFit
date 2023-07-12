@@ -131,7 +131,7 @@ class SamplesMCMC(SamplesPDF):
         )
 
     @property
-    def info_json(self):
+    def samples_info(self):
         return {
             "times": None,
             "check_size": self.auto_correlations.check_size,

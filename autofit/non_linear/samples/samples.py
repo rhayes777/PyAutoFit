@@ -484,7 +484,7 @@ class Samples(SamplesInterface, ABC):
                 write_row(row)
 
     @property
-    def info_json(self):
+    def samples_info(self):
         return {
             "total_samples": self.total_samples,
             "time": self.time,
@@ -492,7 +492,7 @@ class Samples(SamplesInterface, ABC):
 
     def info_to_json(self, filename):
         with open(filename, "w") as outfile:
-            json.dump(self.info_json, outfile)
+            json.dump(self.samples_info, outfile)
 
     @property
     def max_log_likelihood_sample(self) -> Sample:

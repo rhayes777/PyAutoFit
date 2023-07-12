@@ -106,16 +106,6 @@ class SamplesNest(SamplesPDF):
         pass
 
     @property
-    def info_json(self):
-        return {
-            "log_evidence": self.log_evidence,
-            "total_samples": self.total_samples,
-            "unconverged_sample_size": self.unconverged_sample_size,
-            "time": self.time,
-            "number_live_points": self.number_live_points
-        }
-
-    @property
     def total_accepted_samples(self) -> int:
         """
         The total number of accepted samples performed by the nested sampler.
