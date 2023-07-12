@@ -28,7 +28,7 @@ class DirectoryPaths(AbstractPaths):
         return path.join(self._pickle_path, f"{name}.pickle")
 
     def _path_for_json(self, name):
-        return path.join(self._json_path, f"{name}.json")
+        return path.join(self._files_path, f"{name}.json")
 
     def save_object(self, name: str, obj: object):
         """
@@ -246,11 +246,11 @@ class DirectoryPaths(AbstractPaths):
         return path.join(self.output_path, "pickles")
 
     @property
-    def _json_path(self) -> str:
+    def _files_path(self) -> str:
         """
         This is private for a reason, use the save_json etc. methods to save and load json
         """
-        return path.join(self.output_path, "jsons")
+        return path.join(self.output_path, "files")
 
     def _save_metadata(self, search_name):
         """

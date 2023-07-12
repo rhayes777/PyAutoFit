@@ -42,8 +42,8 @@ class Output:
         return self.directory / "pickles"
 
     @property
-    def json_path(self):
-        return self.directory / "jsons"
+    def files_path(self):
+        return self.directory / "files"
 
     def __getattr__(self, item):
         """
@@ -120,7 +120,7 @@ class SearchOutput(Output):
         """
         if self.__search is None:
             try:
-                with open(self.json_path / "search.json") as f:
+                with open(self.files_path / "search.json") as f:
                     self.__search = from_dict(json.loads(f.read()))
             except (FileNotFoundError, ModuleNotFoundError):
                 try:
@@ -143,7 +143,7 @@ class SearchOutput(Output):
         """
         if self.__model is None:
             try:
-                with open(self.json_path / "model.json") as f:
+                with open(self.files_path / "model.json") as f:
                     self.__model = AbstractPriorModel.from_dict(json.load(f))
             except (FileNotFoundError, ModuleNotFoundError) as e:
                 logging.exception(e)
