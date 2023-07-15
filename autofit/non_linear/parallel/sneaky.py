@@ -420,28 +420,10 @@ class SneakierPool:
 
     def check_if_mpi(self):
 
-        max_workers_from_env_var = os.environ.get('MAX_WORKERS', None)
-        universe_size_from_env_var = os.environ.get('MPIEXEC_UNIVERSE_SIZE', None)
+        size = self.comm.size
+        use_mpi = size > 1
 
-        print(f"MAX_WORKERS ENV VAR: {max_workers_from_env_var}")
-        print(f"UNIVERSE SIZE ENV VAR: {universe_size_from_env_var}")
-
-        max_workers_from_env_var_is_set = max_workers_from_env_var is not None
-        max_workers_from_universe_size_is_set = universe_size_from_env_var is not None
-        
-        print(f"is UNIVERSE SIZE env var set: {max_workers_from_universe_size_is_set}")
-
-        if max_workers_from_universe_size_is_set:
-            max_workers_from_universe_size_is_above_one = int(universe_size_from_env_var) > 1
-        else:
-            max_workers_from_universe_size_is_above_one = False
-
-        is_mpi = (
-            max_workers_from_env_var_is_set or
-            max_workers_from_universe_size_is_above_one
-        )
-
-        return is_mpi
+        return use_mpi
 
     def __enter__(self):
         """
@@ -454,12 +436,11 @@ class SneakierPool:
             self.prior_transform_args, self.prior_transform_kwargs
         )
 
-        use_mpi = self.check_if_mpi() and self.processes > 1
+        use_mpi = self.check_if_mpi()
 
         if use_mpi:
             logger.info("... using MPIPoolExecutor")
             self.pool = MPIPoolExecutor(
-                max_workers=self.processes,
                 initializer=initializer,
                 initargs=init_args
             )
