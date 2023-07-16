@@ -12,10 +12,6 @@ Emcee:
     number_of_cores: 1
   printing:
     silence: false
-  prior_passer:
-    sigma: 3.0
-    use_errors: true
-    use_widths: true
   run:
     nsteps: 2000
   search:
@@ -40,10 +36,6 @@ Zeus:
     number_of_cores: 1
   printing:
     silence: false
-  prior_passer:
-    sigma: 3.0
-    use_errors: true
-    use_widths: true
   run:
     check_walkers: true
     light_mode: false

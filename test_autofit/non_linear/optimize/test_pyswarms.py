@@ -9,7 +9,6 @@ pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
 
 def test__loads_from_config_file_correct():
     pso = af.PySwarmsGlobal(
-        prior_passer=af.PriorPasser(sigma=2.0, use_errors=False, use_widths=False),
         n_particles=51,
         iters=2001,
         cognitive=0.4,
@@ -20,9 +19,6 @@ def test__loads_from_config_file_correct():
         number_of_cores=2,
     )
 
-    assert pso.prior_passer.sigma == 2.0
-    assert pso.prior_passer.use_errors is False
-    assert pso.prior_passer.use_widths is False
     assert pso.config_dict_search["n_particles"] == 51
     assert pso.config_dict_search["cognitive"] == 0.4
     assert pso.config_dict_run["iters"] == 2001
@@ -34,9 +30,6 @@ def test__loads_from_config_file_correct():
 
     pso = af.PySwarmsGlobal()
 
-    assert pso.prior_passer.sigma == 3.0
-    assert pso.prior_passer.use_errors is True
-    assert pso.prior_passer.use_widths is True
     assert pso.config_dict_search["n_particles"] == 50
     assert pso.config_dict_search["cognitive"] == 0.1
     assert pso.config_dict_run["iters"] == 2000
@@ -45,7 +38,6 @@ def test__loads_from_config_file_correct():
     assert pso.number_of_cores == 1
 
     pso = af.PySwarmsLocal(
-        prior_passer=af.PriorPasser(sigma=2.0, use_errors=False, use_widths=False),
         n_particles=51,
         iters=2001,
         cognitive=0.4,
@@ -58,9 +50,6 @@ def test__loads_from_config_file_correct():
         number_of_cores=2,
     )
 
-    assert pso.prior_passer.sigma == 2.0
-    assert pso.prior_passer.use_errors is False
-    assert pso.prior_passer.use_widths is False
     assert pso.config_dict_search["n_particles"] == 51
     assert pso.config_dict_search["cognitive"] == 0.4
     assert pso.config_dict_run["iters"] == 2001
@@ -72,9 +61,6 @@ def test__loads_from_config_file_correct():
 
     pso = af.PySwarmsLocal()
 
-    assert pso.prior_passer.sigma == 3.0
-    assert pso.prior_passer.use_errors is True
-    assert pso.prior_passer.use_widths is True
     assert pso.config_dict_search["n_particles"] == 50
     assert pso.config_dict_search["cognitive"] == 0.1
     assert pso.config_dict_run["iters"] == 2000

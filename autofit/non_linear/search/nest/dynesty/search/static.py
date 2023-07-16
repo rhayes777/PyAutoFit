@@ -28,7 +28,6 @@ class DynestyStatic(AbstractDynesty):
         name: Optional[str] = None,
         path_prefix: Optional[str] = None,
         unique_tag: Optional[str] = None,
-        prior_passer=None,
         iterations_per_update: int = None,
         number_of_cores: int = None,
         session: Optional[sa.orm.Session] = None,
@@ -51,8 +50,6 @@ class DynestyStatic(AbstractDynesty):
         unique_tag
             The name of a unique tag for this model-fit, which will be given a unique entry in the sqlite database
             and also acts as the folder after the path prefix and before the search name.
-        prior_passer
-            Controls how priors are passed from the results of this `NonLinearSearch` to a subsequent non-linear search.
         iterations_per_update
             The number of iterations performed between every Dynesty back-up (via dumping the Dynesty instance as a
             pickle).
@@ -67,7 +64,6 @@ class DynestyStatic(AbstractDynesty):
             name=name,
             path_prefix=path_prefix,
             unique_tag=unique_tag,
-            prior_passer=prior_passer,
             iterations_per_update=iterations_per_update,
             number_of_cores=number_of_cores,
             session=session,

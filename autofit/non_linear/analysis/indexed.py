@@ -53,12 +53,9 @@ class IndexedAnalysis:
             raise AttributeError(item)
         return getattr(self.analysis, item)
 
-    def make_result(self, samples, sigma=3.0, use_errors=True, use_widths=True):
+    def make_result(self, samples):
         return self.analysis.make_result(
             samples,
-            sigma=sigma,
-            use_errors=use_errors,
-            use_widths=use_widths,
         )
 
 
@@ -83,16 +80,13 @@ class IndexCollectionAnalysis(CombinedAnalysis):
             ]
         )
 
-    def make_result(self, samples, sigma=1.0, use_errors=True, use_widths=False):
+    def make_result(self, samples):
         """
         Associate each model with an analysis when creating the result.
         """
         child_results = [
             analysis.make_result(
                 samples.subsamples(model),
-                sigma=sigma,
-                use_errors=use_errors,
-                use_widths=use_widths,
             )
             for model, analysis in zip(model, self.analyses)
         ]

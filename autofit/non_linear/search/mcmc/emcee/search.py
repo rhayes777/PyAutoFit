@@ -28,7 +28,6 @@ class Emcee(AbstractMCMC):
         name: Optional[str] = None,
         path_prefix: Optional[str] = None,
         unique_tag: Optional[str] = None,
-        prior_passer: Optional[PriorPasser] = None,
         initializer: Optional[Initializer] = None,
         auto_correlation_settings=AutoCorrelationsSettings(),
         iterations_per_update: int = None,
@@ -57,8 +56,6 @@ class Emcee(AbstractMCMC):
         unique_tag
             The name of a unique tag for this model-fit, which will be given a unique entry in the sqlite database
             and also acts as the folder after the path prefix and before the search name.
-        prior_passer
-            Controls how priors are passed from the results of this `NonLinearSearch` to a subsequent non-linear search.
         initializer
             Generates the initialize samples of non-linear parameter space (see autofit.non_linear.initializer).
         auto_correlation_settings
@@ -80,7 +77,6 @@ class Emcee(AbstractMCMC):
             name=name,
             path_prefix=path_prefix,
             unique_tag=unique_tag,
-            prior_passer=prior_passer,
             initializer=initializer,
             auto_correlation_settings=auto_correlation_settings,
             iterations_per_update=iterations_per_update,

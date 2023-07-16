@@ -10,7 +10,6 @@ pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
 class TestLBFGSConfig:
     def test__loads_from_config_file_correct(self):
         lbfgs = af.LBFGS(
-            prior_passer=af.PriorPasser(sigma=2.0, use_errors=False, use_widths=False),
             tol=0.2,
             disp=True,
             maxcor=11,
@@ -26,9 +25,6 @@ class TestLBFGSConfig:
             number_of_cores=2,
         )
 
-        assert lbfgs.prior_passer.sigma == 2.0
-        assert lbfgs.prior_passer.use_errors is False
-        assert lbfgs.prior_passer.use_widths is False
         assert lbfgs.config_dict_search["tol"] == 0.2
         assert lbfgs.config_dict_options["maxcor"] == 11
         assert lbfgs.config_dict_options["ftol"] == 2.
@@ -47,9 +43,6 @@ class TestLBFGSConfig:
 
         lbfgs = af.LBFGS()
 
-        assert lbfgs.prior_passer.sigma == 3.0
-        assert lbfgs.prior_passer.use_errors is True
-        assert lbfgs.prior_passer.use_widths is True
         assert lbfgs.config_dict_search["tol"] == None
         assert lbfgs.config_dict_options["maxcor"] == 10
         assert lbfgs.config_dict_options["ftol"] == 2.220446049250313e-09

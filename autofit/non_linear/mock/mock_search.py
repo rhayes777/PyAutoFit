@@ -37,7 +37,6 @@ class MockSearch(NonLinearSearch):
         samples=None,
         result=None,
         unique_tag: Optional[str] = None,
-        prior_passer=None,
         fit_fast=True,
         sample_multiplier=1,
         save_for_aggregator=False,
@@ -49,9 +48,6 @@ class MockSearch(NonLinearSearch):
         self.samples = samples or MockSamples(ModelMapper())
 
         self.result = MockResult(samples=samples) if result is None else result
-
-        if prior_passer is not None:
-            self.prior_passer = prior_passer
 
         self.fit_fast = fit_fast
         self.sample_multiplier = sample_multiplier

@@ -19,10 +19,6 @@ def make_dynesty_dict():
             "nlive": 150,
             "number_of_cores": 1,
             "path_prefix": "",
-            "prior_passer": {
-                "arguments": {"sigma": 3.0, "use_errors": True, "use_widths": True},
-                "type": "autofit.non_linear.abstract_search.PriorPasser",
-            },
             "sample": "auto",
             "slices": 5,
             "unique_tag": None,
@@ -39,22 +35,6 @@ def test_dict(dynesty_dict):
 
 def test_from_dict(dynesty_dict):
     assert isinstance(from_dict(dynesty_dict), af.DynestyStatic)
-
-
-def test_prior_passer():
-    prior_passer = af.PriorPasser(
-        sigma=1.0,
-        use_errors=False,
-        use_widths=False,
-    )
-    assert to_dict(prior_passer) == {
-        "arguments": {
-            "sigma": 1.0,
-            "use_errors": False,
-            "use_widths": False,
-        },
-        "type": "autofit.non_linear.abstract_search.PriorPasser",
-    }
 
 
 def test_initializer():

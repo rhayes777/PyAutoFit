@@ -18,7 +18,6 @@ class AbstractNest(NonLinearSearch):
         name: Optional[str] = None,
         path_prefix: Optional[str] = None,
         unique_tag: Optional[str] = None,
-        prior_passer: Optional[PriorPasser] = None,
         iterations_per_update: Optional[int] = None,
         number_of_cores: Optional[int] = None,
         session: Optional[sa.orm.Session] = None,
@@ -39,8 +38,6 @@ class AbstractNest(NonLinearSearch):
 
         Parameters
         ----------
-        prior_passer
-            Controls how priors are passed from the results of this `NonLinearSearch` to a subsequent non-linear search.
         session
             An SQLAlchemy session instance so the results of the model-fit are written to an SQLite database.
         """
@@ -53,7 +50,6 @@ class AbstractNest(NonLinearSearch):
             name=name,
             path_prefix=path_prefix,
             unique_tag=unique_tag,
-            prior_passer=prior_passer,
             initializer=initializer or InitializerPrior(),
             iterations_per_update=iterations_per_update,
             number_of_cores=number_of_cores,

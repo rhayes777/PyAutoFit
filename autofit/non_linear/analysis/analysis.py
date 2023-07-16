@@ -126,12 +126,9 @@ class Analysis(ABC):
         """
         return self
 
-    def make_result(self, samples, sigma=1.0, use_errors=True, use_widths=False):
+    def make_result(self, samples):
         return Result(
             samples=samples,
-            sigma=sigma,
-            use_errors=use_errors,
-            use_widths=use_widths,
         )
 
     def profile_log_likelihood_function(self, paths: AbstractPaths, instance):

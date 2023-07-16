@@ -317,13 +317,10 @@ class CombinedAnalysis(Analysis):
 
         self._for_each_analysis(func, paths)
 
-    def make_result(self, samples, sigma=1.0, use_errors=True, use_widths=False):
+    def make_result(self, samples):
         child_results = [
             analysis.make_result(
                 samples,
-                sigma=sigma,
-                use_errors=use_errors,
-                use_widths=use_widths,
             )
             for analysis in self.analyses
         ]

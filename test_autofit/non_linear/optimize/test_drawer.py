@@ -11,13 +11,9 @@ class TestDrawerConfig:
     def test__loads_from_config_file_correct(self):
         drawer = af.Drawer(
             total_draws=5,
-            prior_passer=af.PriorPasser(sigma=2.0, use_errors=False, use_widths=False),
             initializer=af.InitializerBall(lower_limit=0.2, upper_limit=0.8),
         )
 
-        assert drawer.prior_passer.sigma == 2.0
-        assert drawer.prior_passer.use_errors is False
-        assert drawer.prior_passer.use_widths is False
         assert drawer.config_dict_search["total_draws"] == 5
         assert isinstance(drawer.initializer, af.InitializerBall)
         assert drawer.initializer.lower_limit == 0.2
@@ -26,9 +22,6 @@ class TestDrawerConfig:
 
         drawer = af.Drawer()
 
-        assert drawer.prior_passer.sigma == 3.0
-        assert drawer.prior_passer.use_errors is True
-        assert drawer.prior_passer.use_widths is True
         assert drawer.config_dict_search["total_draws"] == 10
         assert isinstance(drawer.initializer, af.InitializerPrior)
 

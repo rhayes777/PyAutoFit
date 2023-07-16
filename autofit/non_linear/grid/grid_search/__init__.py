@@ -48,7 +48,6 @@ class GridSearch:
         """
         self.number_of_steps = number_of_steps
         self.search = search
-        self.prior_passer = search.prior_passer
 
         self._logger = None
 
