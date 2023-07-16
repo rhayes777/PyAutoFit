@@ -6,7 +6,6 @@ from autofit.database.sqlalchemy_ import sa
 from autoconf import conf
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.search.optimize.abstract_optimize import AbstractOptimizer
-from autofit.non_linear.search.abstract_search import PriorPasser
 from autofit.non_linear.initializer import AbstractInitializer
 from autofit.non_linear.search.optimize.drawer.plotter import DrawerPlotter
 from autofit.non_linear.samples import Samples, Sample

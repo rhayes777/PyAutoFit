@@ -60,7 +60,6 @@ from .mapper.prior_model.prior_model import Model
 from .mapper.prior_model.prior_model import Model
 from .mapper.prior_model.util import PriorModelNameValue
 from .non_linear.search.abstract_search import NonLinearSearch
-from .non_linear.search.abstract_search import PriorPasser
 from .non_linear.analysis.analysis import Analysis
 from .non_linear.analysis.combined import CombinedAnalysis
 from .non_linear.grid.grid_search import GridSearchResult

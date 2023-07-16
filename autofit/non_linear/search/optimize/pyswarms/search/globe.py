@@ -1,7 +1,6 @@
 from typing import Optional
 
 from autofit.database.sqlalchemy_ import sa
-from autofit.non_linear.search.abstract_search import PriorPasser
 from autofit.non_linear.initializer import AbstractInitializer
 from autofit.non_linear.search.optimize.pyswarms.search.abstract import AbstractPySwarms
 

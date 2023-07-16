@@ -6,7 +6,6 @@ from autofit.database.sqlalchemy_ import sa
 
 from autoconf import conf
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
-from autofit.non_linear.search.abstract_search import PriorPasser
 from autofit.non_linear.search.nest import abstract_nest
 from autofit.non_linear.search.nest.abstract_nest import AbstractNest
 from autofit.non_linear.samples.sample import Sample
