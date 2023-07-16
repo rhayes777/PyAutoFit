@@ -182,9 +182,8 @@ class Samples(SamplesInterface, ABC):
         self,
         model: AbstractPriorModel,
         sample_list: List[Sample],
-        samples_info : Optional[Dict],
+        samples_info: Optional[Dict] = None,
         results_internal: Optional = None,
-        auto_correlation_settings: Optional[AutoCorrelationsSettings] = None,
     ):
         """
         The `Samples` classes in **PyAutoFit** provide an interface between the results_internal of
@@ -213,6 +212,7 @@ class Samples(SamplesInterface, ABC):
         """
 
         super().__init__(model=model)
+
         self.sample_list = sample_list
         self.samples_info = samples_info
         self.results_internal = results_internal
@@ -303,7 +303,6 @@ class Samples(SamplesInterface, ABC):
         return self.__class__(
             model=self.model,
             sample_list=self.sample_list + other.sample_list,
-            time=self.time,
         )
 
     def __radd__(self, other):

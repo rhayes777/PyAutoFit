@@ -11,7 +11,7 @@ class SamplesStored(SamplesPDF):
             self,
             model: AbstractPriorModel,
             sample_list: List[Sample],
-            samples_info: Optional[Dict],
+            samples_info : Optional[Dict] = None,
     ):
         """
         The `Samples` of a non-linear search, specifically the samples of a `NonLinearSearch` which maps out the

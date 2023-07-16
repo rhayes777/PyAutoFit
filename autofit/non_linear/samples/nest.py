@@ -15,7 +15,7 @@ class SamplesNest(SamplesPDF):
             self,
             model: AbstractPriorModel,
             sample_list: List[Sample],
-            samples_info : Dict,
+            samples_info : Optional[Dict] = None,
             results_internal: Optional = None,
     ):
         """
@@ -96,9 +96,8 @@ class SamplesNest(SamplesPDF):
         return self.samples_info["log_evidence"]
 
     @property
-    @abstractmethod
     def total_samples(self):
-        self.samples_info["total_samples"]
+        return self.samples_info["total_samples"]
 
     @property
     def total_accepted_samples(self) -> int:

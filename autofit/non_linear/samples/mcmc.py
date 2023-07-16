@@ -19,7 +19,7 @@ class SamplesMCMC(SamplesPDF):
             self,
             model: AbstractPriorModel,
             sample_list: List[Sample],
-            samples_info: Dict,
+            samples_info : Optional[Dict] = None,
             results_internal: Optional = None,
             auto_correlation_settings: Optional[AutoCorrelationsSettings] = None,
             auto_correlations : Optional[AutoCorrelations] = None
@@ -135,7 +135,7 @@ class SamplesMCMC(SamplesPDF):
 
         if self.pdf_converged:
             return [
-                float(np.percentile(self.parameter_lists[:, i], [50]))
+                float(np.percentile(self.parameters_extract[i, :], [50]))
                 for i in range(self.model.prior_count)
             ]
 
@@ -165,11 +165,11 @@ class SamplesMCMC(SamplesPDF):
         limit = math.erf(0.5 * sigma * math.sqrt(2))
 
         if self.pdf_converged:
-            samples = self.parameter_lists
+            samples = self.parameters_extract
 
             return [
                 tuple(
-                    np.percentile(samples[:, i], [100.0 * (1.0 - limit), 100.0 * limit])
+                    np.percentile(samples[i, :], [100.0 * (1.0 - limit), 100.0 * limit])
                 )
                 for i in range(self.model.prior_count)
             ]
@@ -185,6 +185,14 @@ class SamplesMCMC(SamplesPDF):
             (parameters_min[index], parameters_max[index])
             for index in range(len(parameters_min))
         ]
+
+    @property
+    def total_steps(self) -> int:
+        return self.samples_info["total_steps"]
+
+    @property
+    def total_walkers(self) -> int:
+        return self.samples_info["total_walkers"]
 
     @property
     def log_evidence(self):

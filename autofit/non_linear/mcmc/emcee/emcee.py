@@ -244,8 +244,12 @@ class Emcee(AbstractMCMC):
         samples_after_burn_in = results_internal.get_chain(discard=discard, thin=thin, flat=True)
 
         parameter_lists = samples_after_burn_in.tolist()
+
         log_prior_list = model.log_prior_list_from(parameter_lists=parameter_lists)
-        log_posterior_list = results_internal.get_log_prob(flat=True).tolist()
+
+        total_samples = len(parameter_lists)
+
+        log_posterior_list = results_internal.get_log_prob(flat=True)[-total_samples-1:-1].tolist()
 
         log_likelihood_list = [
             log_posterior - log_prior for

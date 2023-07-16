@@ -176,7 +176,7 @@ class Drawer(AbstractOptimizer):
             weight_list=weight_list,
         )
 
-        return Samples(model=model, sample_list=sample_list, time=self.timer.time)
+        return Samples(model=model, sample_list=sample_list)
 
     def plot_results(
         self,

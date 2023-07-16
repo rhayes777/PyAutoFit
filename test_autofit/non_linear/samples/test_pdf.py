@@ -374,7 +374,7 @@ def test__unconverged_sample_size():
             log_prior_list=[1.0, 1.0, 1.0, 1.0, 1.0],
             weight_list=weight_list,
         ),
-        unconverged_sample_size=2,
+        samples_info={"unconverged_sample_size" : 2},
     )
 
     assert samples_x5.pdf_converged is False
@@ -389,7 +389,7 @@ def test__unconverged_sample_size():
             log_prior_list=[1.0, 1.0, 1.0, 1.0, 1.0],
             weight_list=weight_list,
         ),
-        unconverged_sample_size=6,
+        samples_info={"unconverged_sample_size" : 6},
     )
 
     assert samples_x5.pdf_converged is False
