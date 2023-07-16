@@ -78,7 +78,7 @@ class DynestyDynamic(AbstractDynesty):
     def sampler_from(
             self,
             model: AbstractPriorModel,
-            fitness_function,
+            fitness,
             checkpoint_exists : bool,
             pool: Optional,
             queue_size: Optional[int]
@@ -97,7 +97,7 @@ class DynestyDynamic(AbstractDynesty):
         ----------
         model
             The model which generates instances for different points in parameter space.
-        fitness_function
+        fitness
             An instance of the fitness class used to evaluate the likelihood of each model.
         pool
             A dynesty Pool object which performs likelihood evaluations over multiple CPUs.
@@ -137,10 +137,10 @@ class DynestyDynamic(AbstractDynesty):
             self.write_uses_pool(uses_pool=False)
 
             return DynamicNestedSampler(
-                loglikelihood=fitness_function,
+                loglikelihood=fitness,
                 prior_transform=prior_transform,
                 ndim=model.prior_count,
-                logl_args=[model, fitness_function],
+                logl_args=[model, fitness],
                 ptform_args=[model],
                 **self.config_dict_search
             )

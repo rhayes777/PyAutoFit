@@ -110,8 +110,12 @@ class LBFGS(AbstractOptimizer):
         A result object comprising the Samples object that inclues the maximum log likelihood instance and full
         chains used by the fit.
         """
-        fitness_function = self.fitness_function_from_model_and_analysis(
-            model=model, analysis=analysis
+        fitness = self.Fitness(
+            paths=self.paths,
+            model=model,
+            analysis=analysis,
+            samples_from_model=self.samples_from,
+            log_likelihood_cap=log_likelihood_cap
         )
 
         if self.paths.is_object("x0"):
@@ -130,7 +134,7 @@ class LBFGS(AbstractOptimizer):
                 parameter_lists,
                 log_posterior_list,
             ) = self.initializer.samples_from_model(
-                total_points=1, model=model, fitness_function=fitness_function,
+                total_points=1, model=model, fitness=fitness,
             )
 
             x0 = np.asarray(parameter_lists[0])
@@ -155,7 +159,7 @@ class LBFGS(AbstractOptimizer):
                 config_dict_options["maxiter"] = iterations
 
                 lbfgs = optimize.minimize(
-                    fun=fitness_function.__call__,
+                    fun=fitness.__call__,
                     x0=x0,
                     method="L-BFGS-B",
                     options=config_dict_options,
@@ -167,7 +171,7 @@ class LBFGS(AbstractOptimizer):
                 self.paths.save_object("total_iterations", total_iterations)
                 self.paths.save_object(
                     "log_posterior",
-                    fitness_function.log_posterior_from(parameter_list=lbfgs.x),
+                    fitness.log_posterior_from(parameter_list=lbfgs.x),
                 )
                 self.paths.save_object("x0", lbfgs.x)
 

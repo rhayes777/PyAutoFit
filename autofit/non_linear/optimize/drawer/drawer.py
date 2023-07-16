@@ -113,8 +113,12 @@ class Drawer(AbstractOptimizer):
         chains used by the fit.
         """
 
-        fitness_function = self.fitness_function_from_model_and_analysis(
-            model=model, analysis=analysis
+        fitness = self.Fitness(
+            paths=self.paths,
+            model=model,
+            analysis=analysis,
+            samples_from_model=self.samples_from,
+            log_likelihood_cap=log_likelihood_cap,
         )
 
         total_draws = self.config_dict_search["total_draws"]
@@ -130,7 +134,7 @@ class Drawer(AbstractOptimizer):
         ) = self.initializer.samples_from_model(
             total_points=self.config_dict_search["total_draws"],
             model=model,
-            fitness_function=fitness_function,
+            fitness=fitness,
             use_prior_medians=True,
         )
 
@@ -140,17 +144,6 @@ class Drawer(AbstractOptimizer):
         self.perform_update(model=model, analysis=analysis, during_analysis=False)
 
         self.logger.info("Drawer complete")
-
-    def fitness_function_from_model_and_analysis(
-        self, model, analysis, log_likelihood_cap=None
-    ):
-        return Drawer.Fitness(
-            paths=self.paths,
-            model=model,
-            analysis=analysis,
-            samples_from_model=self.samples_from,
-            log_likelihood_cap=log_likelihood_cap,
-        )
 
     def samples_from(self, model):
         parameter_lists = self.paths.load_object("parameter_lists")

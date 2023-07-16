@@ -117,26 +117,30 @@ class Emcee(AbstractMCMC):
         A result object comprising the Samples object that inclues the maximum log likelihood instance and full
         chains used by the fit.
         """
-        fitness_function = self.fitness_function_from_model_and_analysis(
-            model=model, analysis=analysis
+        fitness = Emcee.Fitness(
+            paths=self.paths,
+            model=model,
+            analysis=analysis,
+            samples_from_model=self.samples_from,
+            log_likelihood_cap=log_likelihood_cap,
         )
 
-        pool = self.make_sneaky_pool(fitness_function)
+        pool = self.make_sneaky_pool(fitness)
 
-        emcee_sampler = emcee.EnsembleSampler(
+        sampler = emcee.EnsembleSampler(
             nwalkers=self.config_dict_search["nwalkers"],
             ndim=model.prior_count,
-            log_prob_fn=fitness_function.__call__,
+            log_prob_fn=fitness.__call__,
             backend=emcee.backends.HDFBackend(filename=self.backend_filename),
             pool=pool,
         )
 
         try:
 
-            emcee_state = emcee_sampler.get_last_sample()
+            state = sampler.get_last_sample()
             samples = self.samples_from(model=model)
 
-            total_iterations = emcee_sampler.iteration
+            total_iterations = sampler.iteration
 
             if samples.converged:
                 iterations_remaining = 0
@@ -154,17 +158,17 @@ class Emcee(AbstractMCMC):
                 parameter_lists,
                 log_posterior_list,
             ) = self.initializer.samples_from_model(
-                total_points=emcee_sampler.nwalkers,
+                total_points=sampler.nwalkers,
                 model=model,
-                fitness_function=fitness_function,
+                fitness=fitness,
             )
 
-            emcee_state = np.zeros(shape=(emcee_sampler.nwalkers, model.prior_count))
+            state = np.zeros(shape=(sampler.nwalkers, model.prior_count))
 
             self.logger.info("No Emcee samples found, beginning new non-linear search.")
 
             for index, parameters in enumerate(parameter_lists):
-                emcee_state[index, :] = np.asarray(parameters)
+                state[index, :] = np.asarray(parameters)
 
             total_iterations = 0
             iterations_remaining = self.config_dict_run["nsteps"]
@@ -176,8 +180,8 @@ class Emcee(AbstractMCMC):
             else:
                 iterations = self.iterations_per_update
 
-            for sample in emcee_sampler.sample(
-                initial_state=emcee_state,
+            for sample in sampler.sample(
+                initial_state=state,
                 iterations=iterations,
                 progress=True,
                 skip_initial_state_check=True,
@@ -185,7 +189,7 @@ class Emcee(AbstractMCMC):
             ):
                 pass
 
-            emcee_state = emcee_sampler.get_last_sample()
+            state = sampler.get_last_sample()
 
             total_iterations += iterations
             iterations_remaining = self.config_dict_run["nsteps"] - total_iterations
@@ -195,7 +199,7 @@ class Emcee(AbstractMCMC):
             )
 
             if self.auto_correlation_settings.check_for_convergence:
-                if emcee_sampler.iteration > self.auto_correlation_settings.check_size:
+                if sampler.iteration > self.auto_correlation_settings.check_size:
                     if samples.converged:
                         iterations_remaining = 0
 
@@ -301,18 +305,6 @@ class Emcee(AbstractMCMC):
             "nwalkers": 20,
             "nsteps": 10,
         }
-
-    def fitness_function_from_model_and_analysis(
-        self, model, analysis, log_likelihood_cap=None
-    ):
-
-        return Emcee.Fitness(
-            paths=self.paths,
-            model=model,
-            analysis=analysis,
-            samples_from_model=self.samples_from,
-            log_likelihood_cap=log_likelihood_cap,
-        )
 
     @property
     def backend_filename(self):

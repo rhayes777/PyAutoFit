@@ -30,7 +30,7 @@ class TestInitializePrior:
         initializer = af.InitializerPrior()
 
         unit_parameter_lists, parameter_lists, figure_of_merit_list = initializer.samples_from_model(
-            total_points=2, model=model, fitness_function=MockFitness()
+            total_points=2, model=model, fitness=MockFitness()
         )
 
         assert 0.0 < unit_parameter_lists[0][0] < 1.0
@@ -61,7 +61,7 @@ class TestInitializePrior:
         with pytest.raises(af.exc.InitializerException):
 
             initializer.samples_from_model(
-                total_points=2, model=model, fitness_function=MockFitness(increase_figure_of_merit=False)
+                total_points=2, model=model, fitness=MockFitness(increase_figure_of_merit=False)
             )
 
     def test__samples_in_test_mode(self):
@@ -77,7 +77,7 @@ class TestInitializePrior:
         initializer = af.InitializerPrior()
 
         unit_parameter_lists, parameter_lists, figure_of_merit_list = initializer.samples_from_model(
-            total_points=2, model=model, fitness_function=None
+            total_points=2, model=model, fitness=None
         )
 
         assert 0.0 < unit_parameter_lists[0][0] < 1.0
@@ -113,7 +113,7 @@ class TestInitializeBall:
         initializer = af.InitializerBall(lower_limit=0.4999, upper_limit=0.5001)
 
         unit_parameter_lists, parameter_lists, figure_of_merit_list = initializer.samples_from_model(
-            total_points=2, model=model, fitness_function=MockFitness()
+            total_points=2, model=model, fitness=MockFitness()
         )
 
         assert 0.4999 < unit_parameter_lists[0][0] < 0.5001
@@ -137,7 +137,7 @@ class TestInitializeBall:
         initializer = af.InitializerBall(lower_limit=0.7999, upper_limit=0.8001)
 
         unit_parameter_lists, parameter_lists, figure_of_merit_list = initializer.samples_from_model(
-            total_points=2, model=model, fitness_function=MockFitness()
+            total_points=2, model=model, fitness=MockFitness()
         )
 
         assert 0.799 < parameter_lists[0][0] < 0.801

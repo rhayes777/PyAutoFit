@@ -138,8 +138,12 @@ class AbstractDynesty(AbstractNest, ABC):
 
         from dynesty.pool import Pool
 
-        fitness_function = self.fitness_function_from_model_and_analysis(
-            model=model, analysis=analysis, log_likelihood_cap=log_likelihood_cap,
+        fitness = self.Fitness(
+            paths=self.paths,
+            model=model,
+            analysis=analysis,
+            samples_from_model=self.samples_from,
+            log_likelihood_cap=log_likelihood_cap,
         )
 
         if os.path.exists(self.checkpoint_file):
@@ -166,15 +170,15 @@ class AbstractDynesty(AbstractNest, ABC):
 
                 with Pool(
                         njobs=self.number_of_cores,
-                        loglike=fitness_function,
+                        loglike=fitness,
                         prior_transform=prior_transform,
-                        logl_args=(model, fitness_function),
+                        logl_args=(model, fitness),
                         ptform_args=(model,),
                 ) as pool:
 
                     sampler = self.sampler_from(
                         model=model,
-                        fitness_function=fitness_function,
+                        fitness=fitness,
                         checkpoint_exists=checkpoint_exists,
                         pool=pool,
                         queue_size=self.number_of_cores,
@@ -197,7 +201,7 @@ class AbstractDynesty(AbstractNest, ABC):
 
                 sampler = self.sampler_from(
                     model=model,
-                    fitness_function=fitness_function,
+                    fitness=fitness,
                     checkpoint_exists=checkpoint_exists,
                     pool=None,
                     queue_size=None,
@@ -378,7 +382,7 @@ class AbstractDynesty(AbstractNest, ABC):
             "maxcall": 1,
         }
 
-    def live_points_init_from(self, model, fitness_function):
+    def live_points_init_from(self, model, fitness):
         """
         By default, dynesty live points are generated via the sampler's in-built initialization.
 
@@ -388,7 +392,7 @@ class AbstractDynesty(AbstractNest, ABC):
         Parameters
         ----------
         model
-        fitness_function
+        fitness
 
         Returns
         -------
@@ -402,7 +406,7 @@ class AbstractDynesty(AbstractNest, ABC):
         ) = self.initializer.samples_from_model(
             total_points=self.number_live_points,
             model=model,
-            fitness_function=fitness_function,
+            fitness=fitness,
         )
 
         init_unit_parameters = np.zeros(
@@ -433,7 +437,7 @@ class AbstractDynesty(AbstractNest, ABC):
     def sampler_from(
             self,
             model: AbstractPriorModel,
-            fitness_function,
+            fitness,
             checkpoint_exists: bool,
             pool: Optional,
             queue_size: Optional[int],

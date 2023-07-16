@@ -79,23 +79,12 @@ class AbstractNest(NonLinearSearch):
             self.should_check_terminate = IntervalCounter(1000)
 
         def figure_of_merit_from(self, parameter_list):
-            """The figure of merit is the value that the `NonLinearSearch` uses to sample parameter space. All Nested
-            samplers use the log likelihood.
+            """The figure of merit is the value that the `NonLinearSearch` uses to sample parameter space.
+
+            All Nested samplers use the log likelihood.
             """
             return self.log_likelihood_from(parameter_list=parameter_list)
 
     @property
     def config_type(self):
         return conf.instance["non_linear"]["nest"]
-
-    def fitness_function_from_model_and_analysis(
-        self, model, analysis, log_likelihood_cap=None
-    ):
-
-        return self.__class__.Fitness(
-            paths=self.paths,
-            model=model,
-            analysis=analysis,
-            samples_from_model=self.samples_from,
-            log_likelihood_cap=log_likelihood_cap,
-        )

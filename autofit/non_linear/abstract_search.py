@@ -441,8 +441,8 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             return cube
 
         @staticmethod
-        def fitness(cube, model, fitness_function):
-            return fitness_function(instance=model.instance_from_vector(cube))
+        def fitness(cube, model, fitness):
+            return fitness(instance=model.instance_from_vector(cube))
 
         @property
         def samples(self):
@@ -914,7 +914,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         return mp.Pool(processes=self.number_of_cores)
 
     @check_cores
-    def make_sneaky_pool(self, fitness_function: Fitness) -> Optional[SneakyPool]:
+    def make_sneaky_pool(self, fitness: Fitness) -> Optional[SneakyPool]:
         """
         Create a pool for multiprocessing that uses slight-of-hand
         to avoid copying the fitness function between processes
@@ -922,7 +922,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         Parameters
         ----------
-        fitness_function
+        fitness
             An instance of a fitness class used to evaluate the
             likelihood that a particular model is correct
 
@@ -936,7 +936,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             "times."
         )
         return SneakyPool(
-            processes=self.number_of_cores, paths=self.paths, fitness=fitness_function
+            processes=self.number_of_cores, paths=self.paths, fitness=fitness
         )
 
     def __eq__(self, other):

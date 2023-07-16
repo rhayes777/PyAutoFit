@@ -136,8 +136,12 @@ class UltraNest(abstract_nest.AbstractNest):
                 "----------------------"
             )
 
-        fitness_function = self.fitness_function_from_model_and_analysis(
-            model=model, analysis=analysis, log_likelihood_cap=log_likelihood_cap,
+        fitness = self.Fitness(
+            paths=self.paths,
+            model=model,
+            analysis=analysis,
+            samples_from_model=self.samples_from,
+            log_likelihood_cap=log_likelihood_cap,
         )
 
         def prior_transform(cube):
@@ -148,7 +152,7 @@ class UltraNest(abstract_nest.AbstractNest):
 
         sampler = ultranest.ReactiveNestedSampler(
             param_names=model.parameter_names,
-            loglike=fitness_function.__call__,
+            loglike=fitness.__call__,
             transform=prior_transform,
             log_dir=self.paths.search_internal_path,
             **self.config_dict_search

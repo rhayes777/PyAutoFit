@@ -20,13 +20,3 @@ class AbstractOptimizer(NonLinearSearch, ABC):
             L-BFGS uses the chi-squared value, which is the -2.0*log_posterior.
             """
             return -2.0 * self.log_posterior_from(parameter_list=parameter_list)
-
-    def fitness_function_from_model_and_analysis(self, model, analysis, log_likelihood_cap=None):
-
-        return self.Fitness(
-            paths=self.paths,
-            model=model,
-            analysis=analysis,
-            samples_from_model=self.samples_from,
-            log_likelihood_cap=log_likelihood_cap
-        )

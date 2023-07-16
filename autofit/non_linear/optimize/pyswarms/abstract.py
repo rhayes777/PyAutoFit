@@ -125,8 +125,12 @@ class AbstractPySwarms(AbstractOptimizer):
         chains used by the fit.
         """
 
-        fitness_function = self.fitness_function_from_model_and_analysis(
-            model=model, analysis=analysis
+        fitness = self.Fitness(
+            paths=self.paths,
+            model=model,
+            analysis=analysis,
+            samples_from_model=self.samples_from,
+            log_likelihood_cap=log_likelihood_cap
         )
 
         try:
@@ -144,7 +148,7 @@ class AbstractPySwarms(AbstractOptimizer):
             unit_parameter_lists, parameter_lists, log_posterior_list = self.initializer.samples_from_model(
                 total_points=self.config_dict_search["n_particles"],
                 model=model,
-                fitness_function=fitness_function,
+                fitness=fitness,
             )
 
             init_pos = np.zeros(shape=(self.config_dict_search["n_particles"], model.prior_count))
@@ -179,7 +183,7 @@ class AbstractPySwarms(AbstractOptimizer):
 
             pso = self.sampler_from(
                 model=model,
-                fitness_function=fitness_function,
+                fitness=fitness,
                 bounds=bounds,
                 init_pos=init_pos
             )
@@ -190,7 +194,7 @@ class AbstractPySwarms(AbstractOptimizer):
 
             if iterations > 0:
 
-                pso.optimize(objective_func=fitness_function.__call__, iters=iterations)
+                pso.optimize(objective_func=fitness.__call__, iters=iterations)
 
                 total_iterations += iterations
 
@@ -245,17 +249,7 @@ class AbstractPySwarms(AbstractOptimizer):
             "iters": 1,
         }
 
-    def fitness_function_from_model_and_analysis(self, model, analysis, log_likelihood_cap=None):
-
-        return AbstractPySwarms.Fitness(
-            paths=self.paths,
-            model=model,
-            analysis=analysis,
-            samples_from_model=self.samples_from,
-            log_likelihood_cap=log_likelihood_cap
-        )
-
-    def sampler_from(self, model, fitness_function, bounds, init_pos):
+    def sampler_from(self, model, fitness, bounds, init_pos):
         raise NotImplementedError()
 
     def plot_results(self, samples):

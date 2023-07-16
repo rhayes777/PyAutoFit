@@ -67,7 +67,7 @@ class PySwarmsGlobal(AbstractPySwarms):
 
         self.logger.debug("Creating PySwarms Search")
 
-    def sampler_from(self, model, fitness_function, bounds, init_pos):
+    def sampler_from(self, model, fitness, bounds, init_pos):
         """Get the static Dynesty sampler which performs the non-linear search, passing it all associated input Dynesty
         variables."""
 

@@ -149,20 +149,24 @@ class Zeus(AbstractMCMC):
 
         pool = self.make_pool()
 
-        fitness_function = self.fitness_function_from_model_and_analysis(
-            model=model, analysis=analysis
+        fitness = Zeus.Fitness(
+            paths=self.paths,
+            model=model,
+            analysis=analysis,
+            samples_from_model=self.samples_from,
+            log_likelihood_cap=log_likelihood_cap,
         )
 
         try:
 
-            zeus_sampler = self.paths.load_results_internal()
+            sampler = self.paths.load_results_internal()
 
-            zeus_state = zeus_sampler.get_last_sample()
-            log_posterior_list = zeus_sampler.get_last_log_prob()
+            state = sampler.get_last_sample()
+            log_posterior_list = sampler.get_last_log_prob()
 
             samples = self.samples_from(model=model)
 
-            total_iterations = zeus_sampler.iteration
+            total_iterations = sampler.iteration
 
             if samples.converged:
                 iterations_remaining = 0
@@ -175,32 +179,32 @@ class Zeus(AbstractMCMC):
 
         except FileNotFoundError:
 
-            zeus_sampler = zeus.EnsembleSampler(
+            sampler = zeus.EnsembleSampler(
                 nwalkers=self.config_dict_search["nwalkers"],
                 ndim=model.prior_count,
-                logprob_fn=fitness_function.__call__,
+                logprob_fn=fitness.__call__,
                 pool=pool,
             )
 
-            zeus_sampler.ncall_total = 0
+            sampler.ncall_total = 0
 
             (
                 unit_parameter_lists,
                 parameter_lists,
                 log_posterior_list,
             ) = self.initializer.samples_from_model(
-                total_points=zeus_sampler.nwalkers,
+                total_points=sampler.nwalkers,
                 model=model,
-                fitness_function=fitness_function,
+                fitness=fitness,
                 test_mode_samples=False
             )
 
-            zeus_state = np.zeros(shape=(zeus_sampler.nwalkers, model.prior_count))
+            state = np.zeros(shape=(sampler.nwalkers, model.prior_count))
 
             self.logger.info("No Zeus samples found, beginning new non-linear search.")
 
             for index, parameters in enumerate(parameter_lists):
-                zeus_state[index, :] = np.asarray(parameters)
+                state[index, :] = np.asarray(parameters)
 
             total_iterations = 0
             iterations_remaining = self.config_dict_run["nsteps"]
@@ -212,20 +216,20 @@ class Zeus(AbstractMCMC):
             else:
                 iterations = self.iterations_per_update
 
-            for sample in zeus_sampler.sample(
-                    start=zeus_state,
+            for sample in sampler.sample(
+                    start=state,
                     log_prob0=log_posterior_list,
                     iterations=iterations,
                     progress=True,
             ):
                 pass
 
-            zeus_sampler.ncall_total += zeus_sampler.ncall
+            sampler.ncall_total += sampler.ncall
 
-            self.paths.save_results_internal(obj=zeus_sampler)
+            self.paths.save_results_internal(obj=sampler)
 
-            zeus_state = zeus_sampler.get_last_sample()
-            log_posterior_list = zeus_sampler.get_last_log_prob()
+            state = sampler.get_last_sample()
+            log_posterior_list = sampler.get_last_log_prob()
 
             total_iterations += iterations
             iterations_remaining = self.config_dict_run["nsteps"] - total_iterations
@@ -235,18 +239,18 @@ class Zeus(AbstractMCMC):
             )
 
             if self.auto_correlation_settings.check_for_convergence:
-                if zeus_sampler.iteration > self.auto_correlation_settings.check_size:
+                if sampler.iteration > self.auto_correlation_settings.check_size:
                     if samples.converged:
                         iterations_remaining = 0
 
-            auto_correlation_time = zeus.AutoCorrTime(samples=zeus_sampler.get_chain())
+            auto_correlation_time = zeus.AutoCorrTime(samples=sampler.get_chain())
 
             discard = int(3.0 * np.max(auto_correlation_time))
             thin = int(np.max(auto_correlation_time) / 2.0)
-            chain = zeus_sampler.get_chain(discard=discard, thin=thin, flat=True)
+            chain = sampler.get_chain(discard=discard, thin=thin, flat=True)
 
             if "maxcall" in self.kwargs:
-                if zeus_sampler.ncall_total > self.kwargs["maxcall"]:
+                if sampler.ncall_total > self.kwargs["maxcall"]:
                     iterations_remaining = 0
 
         self.logger.info("Zeus sampling complete.")
@@ -354,18 +358,6 @@ class Zeus(AbstractMCMC):
             "nwalkers": 20,
             "nsteps": 10,
         }
-
-    def fitness_function_from_model_and_analysis(
-            self, model, analysis, log_likelihood_cap=None
-    ):
-
-        return Zeus.Fitness(
-            paths=self.paths,
-            model=model,
-            analysis=analysis,
-            samples_from_model=self.samples_from,
-            log_likelihood_cap=log_likelihood_cap,
-        )
 
     def plot_results(self, samples):
         def should_plot(name):
