@@ -262,13 +262,21 @@ class Samples(SamplesInterface, ABC):
         except FileNotFoundError:
             results_internal = None
 
-        return cls(
-            model=model,
-            sample_list=sample_list,
-            samples_info=samples_info,
-            results_internal=results_internal,
-            auto_correlation_settings=auto_correlation_settings,
-        )
+        try:
+            return cls(
+                model=model,
+                sample_list=sample_list,
+                samples_info=samples_info,
+                results_internal=results_internal,
+                auto_correlation_settings=auto_correlation_settings,
+            )
+        except TypeError:
+            return cls(
+                model=model,
+                sample_list=sample_list,
+                samples_info=samples_info,
+                results_internal=results_internal,
+            )
 
     def summary(self):
         return SamplesSummary(

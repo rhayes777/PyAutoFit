@@ -196,6 +196,7 @@ class AbstractPySwarms(AbstractOptimizer):
                 results_internal_dict = {
                     "total_iterations": total_iterations,
                     "log_posterior_list": [-0.5 * cost for cost in pso.cost_history],
+                    "time" : self.timer.time
                 }
 
                 self.paths.save_results_internal(obj=pso.pos_history)
