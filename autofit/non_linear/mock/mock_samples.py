@@ -77,6 +77,10 @@ class MockSamples(SamplesPDF):
     def write_table(self, filename):
         pass
 
+    @property
+    def unconverged_sample_size(self):
+        return self.samples_info["unconverged_sample_size"]
+
 
 class MockSamplesNest(SamplesNest):
     def __init__(

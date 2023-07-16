@@ -262,7 +262,6 @@ class Zeus(AbstractMCMC):
             "change_threshold": self.auto_correlations.change_threshold,
             "total_walkers": len(results_internal.get_chain()[0, :, 0]),
             "total_steps": int(results_internal.ncall_total),
-            "unconverged_sample_size": 100,
             "time": self.timer.time,
         }
 

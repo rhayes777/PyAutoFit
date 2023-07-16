@@ -55,9 +55,16 @@ def test__search_summary_to_file(model):
             weight_list=log_likelihood_list,
             model=model
         ),
+        samples_info={
+            "time": "1",
+        }
     )
 
-    text_util.search_summary_to_file(samples=samples, log_likelihood_function_time=1.0, filename=file_search_summary)
+    text_util.search_summary_to_file(
+        samples=samples,
+        log_likelihood_function_time=1.0,
+        filename=file_search_summary
+    )
 
     results = open(file_search_summary)
     lines = results.readlines()

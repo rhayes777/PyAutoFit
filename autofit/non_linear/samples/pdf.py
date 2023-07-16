@@ -4,6 +4,7 @@ from typing import Dict, List, Optional, Tuple, Union
 
 import numpy as np
 
+from autoconf import conf
 from autofit.mapper.model import ModelInstance
 from autofit.mapper.prior_model.abstract import AbstractPriorModel, Path
 from autofit.non_linear.samples.sample import Sample, load_from_table
@@ -95,8 +96,11 @@ class SamplesPDF(Samples):
         unconverted_sample_size. However, if there are fewer samples than this size, we change the size to be the
         the size of the total number of samples.
         """
-        if self.total_samples > self.samples_info["unconverged_sample_size"]:
-            return self.samples_info["unconverged_sample_size"]
+
+        unconverged_sample_size = conf.instance["general"]["output"]["unconverged_sample_size"]
+
+        if self.total_samples > unconverged_sample_size:
+            return unconverged_sample_size
         return self.total_samples
 
     @property
