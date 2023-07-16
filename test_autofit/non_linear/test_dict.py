@@ -24,7 +24,7 @@ def make_dynesty_dict():
             "unique_tag": None,
             "walks": 5,
         },
-        "type": "autofit.non_linear.search.nest.dynesty.static.DynestyStatic",
+        "type": "autofit.non_linear.search.nest.dynesty.search.static.DynestyStatic",
     }
 
 

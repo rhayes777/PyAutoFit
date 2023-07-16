@@ -24,7 +24,7 @@ class MyAnalysis(af.Analysis):
     def log_likelihood_function(self, instance):
         pass
 
-    def make_result(self, samples, sigma=1.0, use_errors=True, use_widths=False):
+    def make_result(self, samples):
         return MyResult(samples=samples)
 
     def modify_before_fit(self, paths, model):

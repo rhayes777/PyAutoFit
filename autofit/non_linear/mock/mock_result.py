@@ -40,7 +40,7 @@ class MockResult(Result):
 class MockResultGrid(Result):
     def __init__(self, log_likelihood):
         # noinspection PyTypeChecker
-        super().__init__(None, None)
+        super().__init__(None)
         self._log_likelihood = log_likelihood
         self.model = log_likelihood
 
