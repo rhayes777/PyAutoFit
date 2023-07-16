@@ -7,7 +7,7 @@ from typing import List, Tuple, Union, Type, Optional, Dict
 
 from autofit import exc
 from autofit.mapper import prior as p
-from autofit.non_linear.abstract_search import NonLinearSearch
+from autofit.non_linear.search.abstract_search import NonLinearSearch
 from autofit.non_linear.parallel import Process
 from autofit.text.text_util import padding
 from .job import Job

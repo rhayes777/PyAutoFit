@@ -4,8 +4,8 @@ from typing import Dict, List, Optional
 import warnings
 
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
-from autofit.non_linear.mcmc.auto_correlations import AutoCorrelations
-from autofit.non_linear.mcmc.auto_correlations import AutoCorrelationsSettings
+from autofit.non_linear.search.mcmc.auto_correlations import AutoCorrelations
+from autofit.non_linear.search.mcmc.auto_correlations import AutoCorrelationsSettings
 from autofit.non_linear.samples.pdf import SamplesPDF
 from autofit.non_linear.samples.samples import Sample
 

@@ -36,7 +36,7 @@ def _is_likelihood_function(
     -------
     Is the object a log likelihood function?
     """
-    from autofit.non_linear.abstract_search import NonLinearSearch
+    from autofit.non_linear.search.abstract_search import NonLinearSearch
     return any([
         isinstance(
             function,

@@ -31,12 +31,12 @@ from autofit.non_linear.paths.sub_directory_paths import SubDirectoryPaths
 from autofit.non_linear.samples.samples import Samples
 from autofit.non_linear.result import Result
 from autofit.non_linear.timer import Timer
-from .analysis import Analysis
-from .analysis.combined import CombinedResult
-from .analysis.indexed import IndexCollectionAnalysis
-from .paths.null import NullPaths
-from ..graphical.declarative.abstract import PriorFactor
-from ..graphical.expectation_propagation import AbstractFactorOptimiser
+from autofit.non_linear.analysis import Analysis
+from autofit.non_linear.analysis.combined import CombinedResult
+from autofit.non_linear.analysis.indexed import IndexCollectionAnalysis
+from autofit.non_linear.paths.null import NullPaths
+from autofit.graphical.declarative.abstract import PriorFactor
+from autofit.graphical.expectation_propagation import AbstractFactorOptimiser
 
 logger = logging.getLogger(__name__)
 

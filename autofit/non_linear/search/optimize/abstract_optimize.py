@@ -1,7 +1,7 @@
 from abc import ABC
 
 from autoconf import conf
-from autofit.non_linear.abstract_search import NonLinearSearch
+from autofit.non_linear.search.abstract_search import NonLinearSearch
 
 
 

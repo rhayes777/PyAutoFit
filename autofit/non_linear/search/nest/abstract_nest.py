@@ -2,8 +2,8 @@ from typing import Optional
 
 from autoconf import conf
 from autofit.database.sqlalchemy_ import sa
-from autofit.non_linear.abstract_search import NonLinearSearch
-from autofit.non_linear.abstract_search import PriorPasser
+from autofit.non_linear.search.abstract_search import NonLinearSearch
+from autofit.non_linear.search.abstract_search import PriorPasser
 from autofit.non_linear.initializer import (
     InitializerPrior,
     AbstractInitializer,

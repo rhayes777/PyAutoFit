@@ -1,17 +1,17 @@
 from typing import Optional
 
 from autofit.database.sqlalchemy_ import sa
-from autofit.non_linear.abstract_search import PriorPasser
-from autofit.non_linear.initializer import AbstractInitializer
-from autofit.non_linear.optimize.pyswarms.abstract import AbstractPySwarms
+from autofit.non_linear.search.optimize.pyswarms.search.abstract import AbstractPySwarms
 
 
-class PySwarmsGlobal(AbstractPySwarms):
+class PySwarmsLocal(AbstractPySwarms):
     __identifier_fields__ = (
         "n_particles",
         "cognitive",
         "social",
         "inertia",
+        "number_of_k_neighbors",
+        "minkowski_p_norm"
     )
 
     def __init__(
@@ -19,8 +19,7 @@ class PySwarmsGlobal(AbstractPySwarms):
             name: Optional[str] = None,
             path_prefix: Optional[str] = None,
             unique_tag: Optional[str] = None,
-            prior_passer: Optional[PriorPasser] = None,
-            initializer: Optional[AbstractInitializer] = None,
+            prior_passer=None,
             iterations_per_update: int = None,
             number_of_cores: int = None,
             session: Optional[sa.orm.Session] = None,
@@ -58,7 +57,6 @@ class PySwarmsGlobal(AbstractPySwarms):
             path_prefix=path_prefix,
             unique_tag=unique_tag,
             prior_passer=prior_passer,
-            initializer=initializer,
             iterations_per_update=iterations_per_update,
             number_of_cores=number_of_cores,
             session=session,
@@ -68,21 +66,25 @@ class PySwarmsGlobal(AbstractPySwarms):
         self.logger.debug("Creating PySwarms Search")
 
     def sampler_from(self, model, fitness, bounds, init_pos):
-        """Get the static Dynesty sampler which performs the non-linear search, passing it all associated input Dynesty
-        variables."""
+        """
+        Get the static Dynesty sampler which performs the non-linear search, passing it all associated input Dynesty
+        variables.
+        """
 
         import pyswarms
 
         options = {
             "c1": self.config_dict_search["cognitive"],
             "c2": self.config_dict_search["social"],
-            "w": self.config_dict_search["inertia"]
+            "w": self.config_dict_search["inertia"],
+            "k": self.config_dict_search["number_of_k_neighbors"],
+            "p": self.config_dict_search["minkowski_p_norm"],
         }
 
-        filter_list = ["cognitive", "social", "inertia"]
+        filter_list = ["cognitive", "social", "inertia", "number_of_k_neighbors", "minkowski_p_norm"]
         config_dict = {key: value for key, value in self.config_dict_search.items() if key not in filter_list}
 
-        return pyswarms.global_best.GlobalBestPSO(
+        return pyswarms.local_best.LocalBestPSO(
             dimensions=model.prior_count,
             bounds=bounds,
             init_pos=init_pos,

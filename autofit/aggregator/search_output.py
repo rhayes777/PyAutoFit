@@ -7,7 +7,7 @@ from pathlib import Path
 
 import dill
 
-from autofit.non_linear import abstract_search
+from autofit.non_linear.search import abstract_search
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.tools.util import from_dict
 

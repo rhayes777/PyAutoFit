@@ -6,7 +6,7 @@ from autofit import exc
 from autofit.mapper.model_mapper import ModelMapper
 from autofit.graphical import FactorApproximation
 from autofit.graphical.utils import Status
-from autofit.non_linear.abstract_search import NonLinearSearch
+from autofit.non_linear.search.abstract_search import NonLinearSearch
 from autofit.non_linear.mock.mock_result import MockResult
 from autofit.non_linear.mock.mock_samples import MockSamples
 from autofit.non_linear.samples import Sample

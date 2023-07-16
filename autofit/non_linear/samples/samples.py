@@ -9,7 +9,7 @@ from typing import Dict, List, Optional, Tuple, Union
 import numpy as np
 
 from autofit import exc
-from autofit.non_linear.mcmc.auto_correlations import AutoCorrelationsSettings
+from autofit.non_linear.search.mcmc.auto_correlations import AutoCorrelationsSettings
 from autofit.mapper.model import ModelInstance
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.samples.sample import Sample
