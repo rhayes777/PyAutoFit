@@ -421,7 +421,15 @@ class SneakierPool:
     def check_if_mpi(self):
 
         size = self.comm.size
-        use_mpi = size > 1
+        world_size_above_1 = size > 1
+
+        mpi4py_futures_max_workers = os.environ.get(
+            "MPI4PY_FUTURES_MAX_WORKERS",
+            1
+        )
+
+        mpi4py_futures_max_workers_above_1 = mpi4py_futures_max_workers > 1
+        use_mpi = world_size_above_1 or mpi4py_futures_max_workers_above_1
 
         return use_mpi
 
