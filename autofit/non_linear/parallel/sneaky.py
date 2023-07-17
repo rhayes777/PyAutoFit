@@ -417,9 +417,11 @@ class SneakierPool:
         self.processes = processes
         self.pool = None
         self.comm = MPI.COMM_WORLD
-        self.mpi4py_max_workers = os.environ.get(
-            "MPI4PY_FUTURES_MAX_WORKERS",
-            1
+        self.mpi4py_max_workers = int(
+            os.environ.get(
+                "MPI4PY_FUTURES_MAX_WORKERS",
+                1
+            )
         )
 
     def check_if_mpi(self):
