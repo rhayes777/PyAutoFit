@@ -448,7 +448,6 @@ class SneakierPool:
         if use_mpi:
             logger.info("... using MPIPoolExecutor")
             self.pool = MPIPoolExecutor(
-                max_workers=self.processes,
                 initializer=initializer,
                 initargs=init_args
             )
