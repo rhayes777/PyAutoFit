@@ -1,4 +1,5 @@
 import os
+import sys
 from abc import ABC
 from os import path
 from typing import Optional, Tuple, Union
@@ -171,6 +172,10 @@ class AbstractDynesty(AbstractNest, ABC):
                     prior_transform_args=(model,),
                 ) as pool:
                     
+                    if not pool.is_master():
+                        pool.wait()
+                        sys.exit(0)
+
                     # TODO: DOuble check this bad boi
                     sampler = self.sampler_from(
                         model=model,

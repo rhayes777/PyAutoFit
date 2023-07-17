@@ -1,5 +1,6 @@
 import cProfile
 import logging
+import warnings
 import multiprocessing as mp
 import os
 from os import path
@@ -9,6 +10,7 @@ from dynesty.dynesty import _function_wrapper
 from emcee.ensemble import _FunctionWrapper
 from mpi4py import MPI
 from mpi4py.futures import MPIPoolExecutor
+from schwimmbad import MPIPool
 
 from autoconf import conf
 from autofit.non_linear.paths.abstract import AbstractPaths
@@ -423,6 +425,13 @@ class SneakierPool:
                 1
             )
         )
+        
+        init_args = (
+            self.fitness_init, self.prior_transform_init,
+            self.fitness_args, self.fitness_kwargs,
+            self.prior_transform_args, self.prior_transform_kwargs
+        )
+        initializer(*init_args)
 
     def check_if_mpi(self):
 
@@ -435,34 +444,43 @@ class SneakierPool:
 
         return use_mpi
 
+    def is_master(self):
+
+        is_mpi = self.check_if_mpi()
+        if is_mpi:
+            return_value = self.comm.rank == 0
+        else:
+            return_value = True
+        
+        return return_value
+
+    def wait(self):
+
+        is_mpi = self.check_if_mpi()
+        if is_mpi:
+            self.pool.wait()
+        else:
+            pass
+            warnings.warn(
+                "Cannot wait for pool to finish if not using MPI"
+            )
+
     def __enter__(self):
         """
         Activate the mp / mpi pool
         """
-        
-        init_args = (
-            self.fitness_init, self.prior_transform_init,
-            self.fitness_args, self.fitness_kwargs,
-            self.prior_transform_args, self.prior_transform_kwargs
-        )
 
         use_mpi = self.check_if_mpi()
 
         if use_mpi:
-            logger.info("... using MPIPoolExecutor")
-            self.pool = MPIPoolExecutor(
-                initializer=initializer,
-                initargs=init_args
-            )
+            logger.info("... using Schwimmbad MPIPool")
+            self.pool = MPIPool(use_dill=True)
+
         else:
             logger.info("... using multiprocessing")
             self.pool = mp.Pool(
                 processes=self.processes,
-                initializer=initializer,
-                initargs=init_args
             )
-        
-        initializer(*init_args)
 
         return self
 

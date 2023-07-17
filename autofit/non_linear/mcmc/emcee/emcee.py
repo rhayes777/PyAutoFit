@@ -1,4 +1,5 @@
 import os
+import sys
 from os import path
 from typing import Optional
 
@@ -120,6 +121,10 @@ class Emcee(AbstractMCMC):
         )
 
         with self.make_sneakier_pool(fitness_function=fitness_function) as pool:
+
+            if not pool.is_master():
+                pool.wait()
+                sys.exit(0)
 
             emcee_sampler = emcee.EnsembleSampler(
                 nwalkers=self.config_dict_search["nwalkers"],
