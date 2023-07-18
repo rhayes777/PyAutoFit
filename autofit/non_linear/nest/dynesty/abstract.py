@@ -141,14 +141,15 @@ class AbstractDynesty(AbstractNest, ABC):
             model=model, analysis=analysis, log_likelihood_cap=log_likelihood_cap,
         )
 
-        if os.path.exists(self.checkpoint_file):
-            self.logger.info(
-                "Existing Dynesty samples found, resuming non-linear search."
-            )
-        else:
-            self.logger.info(
-                "No Dynesty samples found, beginning new non-linear search. "
-            )
+        if self.is_master:
+            if os.path.exists(self.checkpoint_file):
+                self.logger.info(
+                    "Existing Dynesty samples found, resuming non-linear search."
+                )
+            else:
+                self.logger.info(
+                    "No Dynesty samples found, beginning new non-linear search. "
+                )
 
         finished = False
 

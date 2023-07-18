@@ -436,7 +436,7 @@ class SneakierPool:
     def check_if_mpi(self):
 
         size = self.comm.size
-        
+
         use_mpi = (
             size > 1 or
             self.mpi4py_max_workers > 1
@@ -473,11 +473,13 @@ class SneakierPool:
         use_mpi = self.check_if_mpi()
 
         if use_mpi:
-            logger.info("... using Schwimmbad MPIPool")
+            if self.is_master():
+                logger.info("... using Schwimmbad MPIPool")
             self.pool = MPIPool(use_dill=True)
 
         else:
-            logger.info("... using multiprocessing")
+            if self.is_master():
+                logger.info("... using multiprocessing")
             self.pool = mp.Pool(
                 processes=self.processes,
             )
