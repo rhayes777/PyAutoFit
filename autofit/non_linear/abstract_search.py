@@ -112,13 +112,16 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         from autofit.non_linear.paths.database import DatabasePaths
 
+        self.is_master = comm.Get_rank() == 0
+
         path_prefix = path_prefix or ""
 
         self.path_prefix_no_unique_tag = path_prefix
 
         self._logger = None
 
-        logger.info(f"Creating search")
+        if self.is_master:
+            logger.info(f"Creating search: {comm.Get_rank()}")
 
         if unique_tag is not None:
             path_prefix = path.join(path_prefix, unique_tag)
@@ -576,18 +579,19 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         """
         self.check_model(model=model)
 
-        self.logger.info("Starting search")
+        if self.is_master:
+            self.logger.info("Starting search")
 
         model = analysis.modify_model(model)
         self.paths.model = model
         self.paths.unique_tag = self.unique_tag
 
-        if comm.Get_rank() == 0:
+        if self.is_master:
             self.paths.restore()
 
         analysis = analysis.modify_before_fit(paths=self.paths, model=model)
 
-        if comm.Get_rank() == 0:
+        if self.is_master:
             self.pre_fit_output(analysis=analysis, model=model, info=info, pickle_files=pickle_files)
 
         if not self.paths.is_complete:
@@ -602,7 +606,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                 model=model,
             )
 
-        if comm.Get_rank() == 0:
+        if self.is_master:
             analysis = analysis.modify_after_fit(
                 paths=self.paths, model=model, result=result
             )
@@ -633,7 +637,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
     def start_fit(self, analysis, model, log_likelihood_cap):
 
-        if comm.Get_rank() == 0:
+        if self.is_master:
 
             self.logger.info("Not complete. Starting non-linear search.")
             self.timer.start()
@@ -644,21 +648,21 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         )
         model.unfreeze()
 
-        if comm.Get_rank() == 0:
+        self.paths.completed()
 
-            self.paths.completed()
+        samples = self.perform_update(
+            model=model, analysis=analysis, during_analysis=False
+        )
 
-            samples = self.perform_update(
-                model=model, analysis=analysis, during_analysis=False
-            )
+        result = analysis.make_result(
+            samples=samples,
+            model=model,
+            sigma=self.prior_passer.sigma,
+            use_errors=self.prior_passer.use_errors,
+            use_widths=self.prior_passer.use_widths,
+        )
 
-            result = analysis.make_result(
-                samples=samples,
-                model=model,
-                sigma=self.prior_passer.sigma,
-                use_errors=self.prior_passer.use_errors,
-                use_widths=self.prior_passer.use_widths,
-            )
+        if self.is_master:
 
             analysis.save_results_for_aggregator(paths=self.paths, result=result)
 
@@ -667,22 +671,23 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         return result
 
     def update_completed_fit(self, analysis, model):
+        
+        samples = self.paths.load_object("samples")
 
-        if comm.Get_rank() == 0:
-
-            self.logger.info(f"Already completed, skipping non-linear search.")
-            samples = self.paths.load_object("samples")
-
-            if self.force_visualize_overwrite:
-                self.perform_visualization(model=model, analysis=analysis, during_analysis=False)
-
-            result = analysis.make_result(
+        result = analysis.make_result(
                 samples=samples,
                 model=model,
                 sigma=self.prior_passer.sigma,
                 use_errors=self.prior_passer.use_errors,
                 use_widths=self.prior_passer.use_widths,
             )
+
+        if self.is_master:
+
+            self.logger.info(f"Already completed, skipping non-linear search.")
+
+            if self.force_visualize_overwrite:
+                self.perform_visualization(model=model, analysis=analysis, during_analysis=False)
 
             if self.force_pickle_overwrite:
                 self.logger.info("Forcing pickle overwrite")
@@ -814,7 +819,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         samples = self.samples_from(model=model)
 
-        if comm.Get_rank() == 0:
+        if self.is_master:
 
             self.paths.save_object("samples", samples)
 
@@ -956,12 +961,15 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
     def make_sneakier_pool(
             self, fitness_function: Fitness, **kwargs
     ) -> SneakierPool:
-        self.logger.info(f"number of cores == {self.number_of_cores}")
+        
+        if self.is_master:
+            self.logger.info(f"number of cores == {self.number_of_cores}")
 
-        if self.number_of_cores > 1:
-            self.logger.info("Creating SneakierPool...")
-        else:
-            self.logger.info("Creating multiprocessing Pool of size 1...")
+        if self.is_master:
+            if self.number_of_cores > 1:
+                self.logger.info("Creating SneakierPool...")
+            else:
+                self.logger.info("Creating multiprocessing Pool of size 1...")
         
         pool = SneakierPool(
                 processes=self.number_of_cores, fitness=fitness_function, **kwargs
