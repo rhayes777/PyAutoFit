@@ -9,7 +9,6 @@ from collections import Counter
 from functools import wraps
 from os import path
 
-from contextlib import nullcontext
 from typing import Dict, Optional, Union, Tuple, List
 
 import numpy as np
@@ -39,6 +38,9 @@ from .analysis.indexed import IndexCollectionAnalysis
 from .paths.null import NullPaths
 from ..graphical.declarative.abstract import PriorFactor
 from ..graphical.expectation_propagation import AbstractFactorOptimiser
+
+from mpi4py import MPI
+comm = MPI.COMM_WORLD
 
 logger = logging.getLogger(__name__)
 
@@ -579,9 +581,35 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         model = analysis.modify_model(model)
         self.paths.model = model
         self.paths.unique_tag = self.unique_tag
-        self.paths.restore()
+
+        if comm.Get_rank() == 0:
+            self.paths.restore()
 
         analysis = analysis.modify_before_fit(paths=self.paths, model=model)
+
+        if comm.Get_rank() == 0:
+            self.pre_fit_output(analysis=analysis, model=model, info=info, pickle_files=pickle_files)
+
+        if not self.paths.is_complete:
+           result = self.start_fit(
+                analysis=analysis,
+                model=model,
+                log_likelihood_cap=log_likelihood_cap,
+            )
+        else:
+            result = self.update_completed_fit(
+                analysis=analysis,
+                model=model,
+            )
+
+        if comm.Get_rank() == 0:
+            analysis = analysis.modify_after_fit(
+                paths=self.paths, model=model, result=result
+            )
+
+        return result
+
+    def pre_fit_output(self, analysis, model, info, pickle_files):
 
         if analysis.should_visualize(paths=self.paths):
 
@@ -593,6 +621,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             )
 
         if not self.paths.is_complete or self.force_pickle_overwrite:
+
             self.logger.info("Saving path info")
 
             self.paths.save_all(
@@ -602,16 +631,20 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             )
             analysis.save_attributes_for_aggregator(paths=self.paths)
 
-        if not self.paths.is_complete:
-            self.logger.info("Not complete. Starting non-linear search.")
+    def start_fit(self, analysis, model, log_likelihood_cap):
 
+        if comm.Get_rank() == 0:
+
+            self.logger.info("Not complete. Starting non-linear search.")
             self.timer.start()
 
-            model.freeze()
-            self._fit(
-                model=model, analysis=analysis, log_likelihood_cap=log_likelihood_cap
-            )
-            model.unfreeze()
+        model.freeze()
+        self._fit(
+            model=model, analysis=analysis, log_likelihood_cap=log_likelihood_cap
+        )
+        model.unfreeze()
+
+        if comm.Get_rank() == 0:
 
             self.paths.completed()
 
@@ -631,9 +664,13 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
             self.paths.save_object("samples", samples)
 
-        else:
-            self.logger.info(f"Already completed, skipping non-linear search.")
+        return result
 
+    def update_completed_fit(self, analysis, model):
+
+        if comm.Get_rank() == 0:
+
+            self.logger.info(f"Already completed, skipping non-linear search.")
             samples = self.paths.load_object("samples")
 
             if self.force_visualize_overwrite:
@@ -657,19 +694,16 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
                 analysis.save_results_for_aggregator(paths=self.paths, result=result)
 
-        self.paths.samples_to_csv(samples=samples)
+        return result
 
-        analysis = analysis.modify_after_fit(
-            paths=self.paths, model=model, result=result
-        )
+    def post_fit_output(self, samples, bypass_nuclear_if_on):
 
         self.logger.info("Removing zip file")
+        self.paths.samples_to_csv(samples=samples)
         self.paths.zip_remove()
 
         if not bypass_nuclear_if_on:
             self.paths.zip_remove_nuclear()
-
-        return result
 
     @abstractmethod
     def _fit(self, model, analysis, log_likelihood_cap=None):
