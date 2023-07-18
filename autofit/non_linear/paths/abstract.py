@@ -313,7 +313,13 @@ class AbstractPaths(ABC):
 
             try:
                 with zipfile.ZipFile(self._zip_path, "r") as f:
-                    f.extractall(self.output_path)
+                    try:
+                        f.extractall(self.output_path)
+                    except FileExistsError:
+                        logger.info(
+                            f"File {self.output_path} already exists, skipping extraction."
+                        )
+                        pass
             except zipfile.BadZipFile as e:
                 raise zipfile.BadZipFile(
                     f"Unable to restore the zip file at the path {self._zip_path}"
