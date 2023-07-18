@@ -814,41 +814,43 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         samples = self.samples_from(model=model)
 
-        self.paths.save_object("samples", samples)
+        if comm.Get_rank() == 0:
 
-        try:
-            instance = samples.max_log_likelihood()
-        except exc.FitException:
-            return samples
+            self.paths.save_object("samples", samples)
 
-        self.perform_visualization(model=model, analysis=analysis, during_analysis=during_analysis)
-
-        if self.should_profile:
-            self.logger.debug("Profiling Maximum Likelihood Model")
-            analysis.profile_log_likelihood_function(
-                paths=self.paths, instance=instance,
-            )
-
-        self.logger.debug("Outputting model result")
-        try:
-
-            start = time.time()
-            analysis.log_likelihood_function(instance=instance)
-            log_likelihood_function_time = time.time() - start
-
-            self.paths.save_summary(
-                samples=samples,
-                log_likelihood_function_time=log_likelihood_function_time,
-            )
-        except exc.FitException:
-            pass
-
-        if not during_analysis and self.remove_state_files_at_end:
-            self.logger.debug("Removing state files")
             try:
-                self.remove_state_files()
-            except FileNotFoundError:
+                instance = samples.max_log_likelihood()
+            except exc.FitException:
+                return samples
+
+            self.perform_visualization(model=model, analysis=analysis, during_analysis=during_analysis)
+
+            if self.should_profile:
+                self.logger.debug("Profiling Maximum Likelihood Model")
+                analysis.profile_log_likelihood_function(
+                    paths=self.paths, instance=instance,
+                )
+
+            self.logger.debug("Outputting model result")
+            try:
+
+                start = time.time()
+                analysis.log_likelihood_function(instance=instance)
+                log_likelihood_function_time = time.time() - start
+
+                self.paths.save_summary(
+                    samples=samples,
+                    log_likelihood_function_time=log_likelihood_function_time,
+                )
+            except exc.FitException:
                 pass
+
+            if not during_analysis and self.remove_state_files_at_end:
+                self.logger.debug("Removing state files")
+                try:
+                    self.remove_state_files()
+                except FileNotFoundError:
+                    pass
 
         return samples
 
