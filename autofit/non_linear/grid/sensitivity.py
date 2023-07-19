@@ -304,8 +304,8 @@ class Sensitivity:
         return SensitivityResult(results)
 
     @property
-    def results_path(self):
-        return Path(self.search.paths.output_path) / "results.csv"
+    def results_path(self) -> Path:
+        return self.search.paths.output_path / "results.csv"
 
     @property
     def _lists(self) -> List[List[float]]:

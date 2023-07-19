@@ -187,32 +187,32 @@ class AbstractPaths(ABC):
         return str(self._identifier)
 
     def save_identifier(self):
-        with open_(f"{self.output_path}/.identifier", "w+") as f:
+        with open_(self.output_path / ".identifier", "w+") as f:
             f.write(self._identifier.description)
 
     @property
-    def search_internal_path(self) -> str:
+    def search_internal_path(self) -> Path:
         """
         The path to the samples folder.
         """
-        return path.join(self.output_path, "search_internal")
+        return self.output_path / "search_internal"
 
     @property
-    def image_path(self) -> str:
+    def image_path(self) -> Path:
         """
         The path to the image folder.
         """
-        return path.join(self.output_path, "image")
+        return self.output_path / "image"
 
     @property
-    def profile_path(self) -> str:
+    def profile_path(self) -> Path:
         """
         The path to the profile folder.
         """
-        return path.join(self.output_path, "profile")
+        return self.output_path / "profile"
 
     @property
-    def output_path(self) -> str:
+    def output_path(self) -> Path:
         """
         The path to the output information for a search.
         """
@@ -230,7 +230,7 @@ class AbstractPaths(ABC):
         if self.is_identifier_in_paths:
             strings.append(self.identifier)
 
-        return path.join("", *strings)
+        return Path(path.join("", *strings))
 
     @property
     def _files_path(self) -> Path:
@@ -410,7 +410,7 @@ class AbstractPaths(ABC):
         pass
 
     def _save_search(self, config_dict):
-        with open_(path.join(self.output_path, "search.json"), "w+") as f:
+        with open_(self.output_path / "search.json", "w+") as f:
             json.dump(dict(config_dict), f, indent=4)
 
     def save_summary(self, samples, log_likelihood_function_time):
@@ -418,7 +418,7 @@ class AbstractPaths(ABC):
             samples=samples,
         )
 
-        filename = path.join(self.output_path, "model.results")
+        filename = self.output_path / "model.results"
 
         with open_(filename, "w") as f:
             f.write(result_info)
@@ -426,7 +426,7 @@ class AbstractPaths(ABC):
         text_util.search_summary_to_file(
             samples=samples,
             log_likelihood_function_time=log_likelihood_function_time,
-            filename=path.join(self.output_path, "search.summary"),
+            filename=self.output_path / "search.summary",
         )
 
     @property

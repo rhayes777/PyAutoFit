@@ -240,12 +240,12 @@ class DirectoryPaths(AbstractPaths):
                     f.write(self.unique_tag)
 
     @property
-    def _parent_identifier_path(self) -> str:
-        return path.join(self.output_path, ".parent_identifier")
+    def _parent_identifier_path(self) -> Path:
+        return self.output_path / ".parent_identifier"
 
     @property
-    def _grid_search_path(self) -> str:
-        return path.join(self.output_path, ".is_grid_search")
+    def _grid_search_path(self) -> Path:
+        return self.output_path / ".is_grid_search"
 
     @property
     def is_grid_search(self) -> bool:
@@ -306,25 +306,25 @@ class DirectoryPaths(AbstractPaths):
         return SubDirectoryPaths(parent=self, analysis_name=analysis_name)
 
     @property
-    def _pickle_path(self) -> str:
+    def _pickle_path(self) -> Path:
         """
         This is private for a reason, use the save_object etc. methods to save and load pickles
         """
-        return path.join(self.output_path, "pickles")
+        return self.output_path / "pickles"
 
     @property
     def _files_path(self) -> Path:
         """
         This is private for a reason, use the save_json etc. methods to save and load json
         """
-        return Path(self.output_path) / "files"
+        return self.output_path / "files"
 
     def _save_metadata(self, search_name):
         """
         Save metadata associated with the phase, such as the name of the pipeline, the
         name of the phase and the name of the dataset being fit
         """
-        with open_(path.join(self.output_path, "metadata"), "a") as f:
+        with open_(self.output_path / "metadata", "a") as f:
             f.write(
                 f"""name={self.name}
                 non_linear_search={search_name}
@@ -344,7 +344,7 @@ class DirectoryPaths(AbstractPaths):
         """
         Save the model.info file, which summarizes every parameter and prior.
         """
-        with open_(path.join(self.output_path, "model.info"), "w+") as f:
+        with open_(self.output_path / "model.info", "w+") as f:
             f.write(model.info)
 
     def _save_parameter_names_file(self, model):
@@ -383,11 +383,11 @@ class DirectoryPaths(AbstractPaths):
         return self._files_path / "samples_info.json"
 
     @property
-    def _has_completed_path(self) -> str:
+    def _has_completed_path(self) -> Path:
         """
         A file indicating that a `NonLinearSearch` has been completed previously
         """
-        return path.join(self.output_path, ".completed")
+        return self.output_path / ".completed"
 
     def _make_path(self) -> str:
         """
