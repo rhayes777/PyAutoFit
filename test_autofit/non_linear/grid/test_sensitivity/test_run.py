@@ -8,7 +8,7 @@ def test_sensitivity(sensitivity):
     results = sensitivity.run()
     assert len(results) == 8
 
-    output_path = Path(sensitivity.search.paths.output_path)
+    output_path = sensitivity.search.paths.output_path
 
     assert (output_path / ".is_grid_search").exists()
     path = output_path / "results.csv"
