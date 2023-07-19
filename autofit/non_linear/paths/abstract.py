@@ -288,13 +288,13 @@ class AbstractPaths(ABC):
         """
 
         if os.environ.get("PYAUTOFIT_NUCLEAR_MODE") == "1":
-            file_path = os.path.split(self.output_path)[0]
+            file_path = Path(os.path.split(self.output_path)[0])
 
             file_list = os.listdir(file_path)
             file_list = [file for file in file_list if self.identifier not in file]
 
             for file in file_list:
-                file_to_remove = path.join(file_path, file)
+                file_to_remove = file_path / file
 
                 try:
                     os.remove(file_to_remove)

@@ -113,7 +113,7 @@ class Analysis(af.Analysis):
         plt.ylabel("Profile normalization")
 
         os.makedirs(paths.image_path, exist_ok=True)
-        plt.savefig(path.join(paths.image_path, "model_fit.png"))
+        plt.savefig(paths.image_path / "model_fit.png")
         plt.clf()
 
     def visualize_combined(

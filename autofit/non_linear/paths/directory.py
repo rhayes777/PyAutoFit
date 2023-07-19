@@ -25,10 +25,10 @@ class DirectoryPaths(AbstractPaths):
         """
         self.save_object(name, instance)
 
-    def _path_for_pickle(self, name: str):
-        return path.join(self._pickle_path, f"{name}.pickle")
+    def _path_for_pickle(self, name: str) -> Path:
+        return self._pickle_path / f"{name}.pickle"
 
-    def _path_for_json(self, name):
+    def _path_for_json(self, name) -> Path:
         return self._files_path / f"{name}.json"
 
     def save_object(self, name: str, obj: object):
@@ -396,7 +396,7 @@ class DirectoryPaths(AbstractPaths):
         The path terminates with the identifier, unless the identifier has already
         been added to the path.
         """
-        path_ = path.join(conf.instance.output_path, self.path_prefix, self.name)
+        path_ = Path(path.join(conf.instance.output_path, self.path_prefix, self.name))
         if self.is_identifier_in_paths:
-            path_ = path.join(path_, self.identifier)
+            path_ = path_ / self.identifier
         return path_

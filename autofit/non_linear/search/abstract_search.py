@@ -8,6 +8,7 @@ from abc import ABC, abstractmethod
 from collections import Counter
 from functools import wraps
 from os import path
+from pathlib import Path
 from typing import Optional, Union, Tuple, List, Dict
 
 import numpy as np
@@ -105,7 +106,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         from autofit.non_linear.paths.database import DatabasePaths
 
-        path_prefix = path_prefix or ""
+        path_prefix = Path(path_prefix or "")
         self.path_prefix = path_prefix
 
         self.path_prefix_no_unique_tag = path_prefix
@@ -115,7 +116,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         logger.info(f"Creating search")
 
         if unique_tag is not None:
-            path_prefix = path.join(path_prefix, unique_tag)
+            path_prefix = path_prefix / unique_tag
 
         self.unique_tag = unique_tag
 

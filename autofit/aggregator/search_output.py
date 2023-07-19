@@ -72,10 +72,11 @@ class SearchOutput(Output):
         directory
             The directory of the search
         """
-        super().__init__(Path(directory))
+        directory = Path(directory)
+        super().__init__(directory)
         self.__search = None
         self.__model = None
-        self.file_path = os.path.join(directory, "metadata")
+        self.file_path = directory / "metadata"
         with open(self.file_path) as f:
             self.text = f.read()
             pairs = [line.split("=") for line in self.text.split("\n") if "=" in line]

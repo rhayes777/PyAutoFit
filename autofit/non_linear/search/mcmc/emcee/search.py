@@ -303,7 +303,7 @@ class Emcee(AbstractMCMC):
 
     @property
     def backend_filename(self):
-        return path.join(self.paths.search_internal_path, "results_internal.hdf")
+        return self.paths.search_internal_path / "results_internal.hdf"
 
     @property
     def backend(self) -> emcee.backends.HDFBackend:
@@ -328,7 +328,7 @@ class Emcee(AbstractMCMC):
         plotter = EmceePlotter(
             samples=samples,
             output=Output(
-                path=path.join(self.paths.image_path, "search"), format="png"
+                path=self.paths.image_path / "search", format="png"
             ),
         )
 

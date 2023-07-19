@@ -1,4 +1,5 @@
 import matplotlib
+from pathlib import Path
 from typing import List, Optional, Union
 
 from autoconf import conf
@@ -55,7 +56,7 @@ class Output:
         bypass
             Whether to bypass the `plt.show` or `plt.savefig` methods, used when plotting a subplot.
         """
-        self.path = path
+        self.path = Path(path)
 
         if path is not None and path:
             os.makedirs(
@@ -99,13 +100,13 @@ class Output:
                 if format == "show":
                     plt.show()
                 elif format == "png":
-                    plt.savefig(path.join(self.path, f"{filename}.png"))
+                    plt.savefig(self.path / f"{filename}.png")
                 elif format == "pdf":
-                    plt.savefig(path.join(self.path, f"{filename}.pdf"))
+                    plt.savefig(self.path / f"{filename}.pdf")
                 elif format == "fits":
                     if structure is not None:
                         structure.output_to_fits(
-                            file_path=path.join(self.path, f"{filename}.fits"),
+                            file_path=self.path / f"{filename}.fits",
                             overwrite=True,
                         )
 
@@ -121,6 +122,6 @@ class Output:
             if format == "show":
                 plt.show()
             elif format == "png":
-                plt.savefig(path.join(self.path, f"{filename}.png"))
+                plt.savefig(self.path / f"{filename}.png")
             elif format == "pdf":
-                plt.savefig(path.join(self.path, f"{filename}.pdf"))
+                plt.savefig(self.path / f"{filename}.pdf")
