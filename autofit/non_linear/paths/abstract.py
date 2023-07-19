@@ -7,6 +7,7 @@ import zipfile
 from abc import ABC, abstractmethod
 from configparser import NoSectionError
 from os import path
+from pathlib import Path
 from typing import Dict, Optional
 
 from autoconf import conf
@@ -231,6 +232,10 @@ class AbstractPaths(ABC):
 
         return path.join("", *strings)
 
+    @property
+    def _files_path(self) -> Path:
+        raise NotImplementedError
+
     def zip_remove(self):
         """
         Copy files from the sym linked search folder then remove the sym linked folder.
@@ -425,13 +430,13 @@ class AbstractPaths(ABC):
         )
 
     @property
-    def _samples_file(self) -> str:
-        return path.join(self._files_path, "samples.csv")
+    def _samples_file(self) -> Path:
+        return self._files_path / "samples.csv"
 
     @property
-    def _covariance_file(self) -> str:
-        return path.join(self._files_path, "covariance.txt")
+    def _covariance_file(self) -> Path:
+        return self._files_path / "covariance.txt"
 
     @property
-    def _info_file(self) -> str:
-        return path.join(self._files_path, "samples_info.json")
+    def _info_file(self) -> Path:
+        return self._files_path / "samples_info.json"

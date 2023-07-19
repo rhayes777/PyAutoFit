@@ -2,11 +2,11 @@ import json
 import os
 import shutil
 from os import path
+from pathlib import Path
 from typing import Dict, Optional
 import logging
 
 import dill
-import pickle
 
 from autoconf import conf
 from autofit.text import formatter
@@ -29,7 +29,7 @@ class DirectoryPaths(AbstractPaths):
         return path.join(self._pickle_path, f"{name}.pickle")
 
     def _path_for_json(self, name):
-        return path.join(self._files_path, f"{name}.json")
+        return self._files_path / f"{name}.json"
 
     def save_object(self, name: str, obj: object):
         """
@@ -313,11 +313,11 @@ class DirectoryPaths(AbstractPaths):
         return path.join(self.output_path, "pickles")
 
     @property
-    def _files_path(self) -> str:
+    def _files_path(self) -> Path:
         """
         This is private for a reason, use the save_json etc. methods to save and load json
         """
-        return path.join(self.output_path, "files")
+        return Path(self.output_path) / "files"
 
     def _save_metadata(self, search_name):
         """
@@ -327,7 +327,7 @@ class DirectoryPaths(AbstractPaths):
         with open_(path.join(self.output_path, "metadata"), "a") as f:
             f.write(
                 f"""name={self.name}
-            non_linear_search={search_name}
+                non_linear_search={search_name}
             """
             )
 
@@ -374,13 +374,13 @@ class DirectoryPaths(AbstractPaths):
             parameter_name_and_label += [f"{line}\n"]
 
         formatter.output_list_of_strings_to_file(
-            file=path.join(self._files_path, "model.paramnames"),
+            file=self._files_path / "model.paramnames",
             list_of_strings=parameter_name_and_label,
         )
 
     @property
-    def _info_file(self) -> str:
-        return path.join(self._files_path, "samples_info.json")
+    def _info_file(self) -> Path:
+        return self._files_path / "samples_info.json"
 
     @property
     def _has_completed_path(self) -> str:
