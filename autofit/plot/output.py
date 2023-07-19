@@ -21,7 +21,6 @@ def set_backend():
 
 
 import matplotlib.pyplot as plt
-from os import path
 import os
 
 
@@ -56,7 +55,10 @@ class Output:
         bypass
             Whether to bypass the `plt.show` or `plt.savefig` methods, used when plotting a subplot.
         """
-        self.path = Path(path)
+        if path is not None:
+            path = Path(path)
+
+        self.path = path
 
         if path is not None and path:
             os.makedirs(

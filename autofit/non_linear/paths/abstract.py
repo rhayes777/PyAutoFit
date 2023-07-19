@@ -216,13 +216,14 @@ class AbstractPaths(ABC):
         """
         The path to the output information for a search.
         """
+
         strings = list(
             filter(
                 len,
                 [
                     str(conf.instance.output_path),
-                    self.path_prefix,
-                    self.name,
+                    str(self.path_prefix),
+                    str(self.name),
                 ],
             )
         )

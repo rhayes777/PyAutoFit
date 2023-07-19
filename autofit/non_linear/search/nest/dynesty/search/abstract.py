@@ -364,11 +364,11 @@ class AbstractDynesty(AbstractNest, ABC):
             return bool(f.read())
 
     @property
-    def checkpoint_file(self) -> Path:
+    def checkpoint_file(self) -> str:
         """
         The path to the file used by dynesty for checkpointing.
         """
-        return self.paths.search_internal_path / "savestate.save"
+        return str(self.paths.search_internal_path / "savestate.save")
 
     def config_dict_with_test_mode_settings_from(self, config_dict):
 
