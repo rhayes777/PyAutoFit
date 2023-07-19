@@ -4,6 +4,7 @@ from autoconf import conf
 from autofit.database.sqlalchemy_ import sa
 from autofit.non_linear.search.abstract_search import NonLinearSearch
 from autofit.non_linear.initializer import Initializer
+from autofit.non_linear.samples import SamplesMCMC
 from autofit.non_linear.search.mcmc.auto_correlations import AutoCorrelationsSettings
 
 
@@ -41,3 +42,9 @@ class AbstractMCMC(NonLinearSearch):
     @property
     def config_type(self):
         return conf.instance["non_linear"]["mcmc"]
+
+    def samples_via_csv_from(self, model):
+        return SamplesMCMC.from_csv(
+            paths=self.paths,
+            model=model,
+        )

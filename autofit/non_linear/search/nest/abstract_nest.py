@@ -8,6 +8,7 @@ from autofit.non_linear.initializer import (
     AbstractInitializer,
     SpecificRangeInitializer,
 )
+from autofit.non_linear.samples import SamplesNest
 from autofit.tools.util import IntervalCounter
 
 
@@ -83,3 +84,9 @@ class AbstractNest(NonLinearSearch):
     @property
     def config_type(self):
         return conf.instance["non_linear"]["nest"]
+
+    def samples_via_csv_from(self, model):
+        return SamplesNest.from_csv(
+            paths=self.paths,
+            model=model,
+        )

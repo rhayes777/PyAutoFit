@@ -2,7 +2,7 @@ from abc import ABC
 
 from autoconf import conf
 from autofit.non_linear.search.abstract_search import NonLinearSearch
-
+from autofit.non_linear.samples import Samples
 
 
 class AbstractOptimizer(NonLinearSearch, ABC):
@@ -20,3 +20,9 @@ class AbstractOptimizer(NonLinearSearch, ABC):
             L-BFGS uses the chi-squared value, which is the -2.0*log_posterior.
             """
             return -2.0 * self.log_posterior_from(parameter_list=parameter_list)
+
+    def samples_via_csv_from(self, model):
+        return Samples.from_csv(
+            paths=self.paths,
+            model=model,
+        )

@@ -880,13 +880,10 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             return self.samples_via_csv_from(model=model)
 
     def samples_via_internal_from(self, model):
-        raise NotImplementedError()
+        raise NotImplementedError
 
     def samples_via_csv_from(self, model):
-        return Samples.from_csv(
-            paths=self.paths,
-            model=model,
-        )
+        raise NotImplementedError
 
     @check_cores
     def make_pool(self):
