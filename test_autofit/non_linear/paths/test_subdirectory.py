@@ -17,9 +17,9 @@ def test_directory():
         subdirectory_path,
         SubDirectoryPathsDirectory
     )
-    assert subdirectory_path.output_path == str(Path(
+    assert subdirectory_path.output_path == Path(
         paths.output_path
-    ) / "name")
+    ) / "name"
 
 
 def test_database(session):
@@ -32,9 +32,9 @@ def test_database(session):
         subdirectory_path,
         SubDirectoryPathsDatabase
     )
-    assert subdirectory_path.output_path == str(Path(
+    assert subdirectory_path.output_path == Path(
         paths.output_path
-    ) / "name")
+    ) / "name"
 
 
 def test_is_flat():
