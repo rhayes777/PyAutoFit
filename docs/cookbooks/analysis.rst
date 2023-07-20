@@ -369,17 +369,17 @@ These files can then also be loaded via the database, as described in the databa
             """
             # The path where data.json is saved, e.g. output/dataset_name/unique_id/files/data.json
 
-            file_path = (path.join(paths._files_path, "data.json"),)
+            file_path = paths._files_path / "data.json"
 
             with open(file_path, "w+") as f:
-                json.dump(self.data, f, indent=4)
+                json.dump(self.data.tolist(), f, indent=4)
 
             # The path where noise_map.json is saved, e.g. output/noise_mapset_name/unique_id/files/noise_map.json
 
-            file_path = (path.join(paths._files_path, "noise_map.json"),)
+            file_path = paths._files_path / "noise_map.json"
 
             with open(file_path, "w+") as f:
-                json.dump(self.noise_map, f, indent=4)
+                json.dump(self.noise_map.tolist(), f, indent=4)
 
         def save_results(self, paths: af.DirectoryPaths, result: af.Result):
             """
