@@ -72,15 +72,15 @@ def check_cores(func):
 
 class NonLinearSearch(AbstractFactorOptimiser, ABC):
     def __init__(
-            self,
-            name: Optional[str] = None,
-            path_prefix: Optional[str] = None,
-            unique_tag: Optional[str] = None,
-            initializer: Initializer = None,
-            iterations_per_update: int = None,
-            number_of_cores: int = 1,
-            session: Optional[sa.orm.Session] = None,
-            **kwargs,
+        self,
+        name: Optional[str] = None,
+        path_prefix: Optional[str] = None,
+        unique_tag: Optional[str] = None,
+        initializer: Initializer = None,
+        iterations_per_update: int = None,
+        number_of_cores: int = 1,
+        session: Optional[sa.orm.Session] = None,
+        **kwargs,
     ):
         """
         Abstract base class for non-linear searches.L
@@ -195,14 +195,14 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         self.number_of_cores = number_of_cores
 
         if number_of_cores > 1 and any(
-                os.environ.get(key) != "1"
-                for key in (
-                        "OPENBLAS_NUM_THREADS",
-                        "MKL_NUM_THREADS",
-                        "OMP_NUM_THREADS",
-                        "VECLIB_MAXIMUM_THREADS",
-                        "NUMEXPR_NUM_THREADS",
-                )
+            os.environ.get(key) != "1"
+            for key in (
+                "OPENBLAS_NUM_THREADS",
+                "MKL_NUM_THREADS",
+                "OMP_NUM_THREADS",
+                "VECLIB_MAXIMUM_THREADS",
+                "NUMEXPR_NUM_THREADS",
+            )
         ):
             warnings.warn(
                 exc.SearchWarning(
@@ -247,9 +247,9 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
     __identifier_fields__ = tuple()
 
     def optimise(
-            self,
-            factor_approx: FactorApproximation,
-            status: Status = Status(),
+        self,
+        factor_approx: FactorApproximation,
+        status: Status = Status(),
     ) -> Tuple[MeanField, Status]:
         """
         Perform optimisation for expectation propagation. Currently only
@@ -367,7 +367,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
     class Fitness:
         def __init__(
-                self, paths, model, analysis, samples_from_model, log_likelihood_cap=None
+            self, paths, model, analysis, samples_from_model, log_likelihood_cap=None
         ):
             self.i = 0
 
@@ -453,12 +453,12 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             return -np.inf
 
     def fit_sequential(
-            self,
-            model,
-            analysis: IndexCollectionAnalysis,
-            info=None,
-            pickle_files=None,
-            log_likelihood_cap=None,
+        self,
+        model,
+        analysis: IndexCollectionAnalysis,
+        info=None,
+        pickle_files=None,
+        log_likelihood_cap=None,
     ) -> CombinedResult:
         """
         Fit multiple analyses contained within the analysis sequentially.
@@ -522,13 +522,13 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         return CombinedResult(results)
 
     def fit(
-            self,
-            model,
-            analysis: "Analysis",
-            info=None,
-            pickle_files=None,
-            log_likelihood_cap=None,
-            bypass_nuclear_if_on: bool = False,
+        self,
+        model,
+        analysis: "Analysis",
+        info=None,
+        pickle_files=None,
+        log_likelihood_cap=None,
+        bypass_nuclear_if_on: bool = False,
     ) -> Union["Result", List["Result"]]:
         """
         Fit a model, M with some function f that takes instances of the
@@ -739,7 +739,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         return self._class_config[section][attribute_name]
 
     def perform_update(
-            self, model: Collection, analysis: Analysis, during_analysis: bool
+        self, model: Collection, analysis: Analysis, during_analysis: bool
     ):
         """
         Perform an update of the non-linear search's model-fitting results.

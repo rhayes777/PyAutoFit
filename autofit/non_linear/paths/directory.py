@@ -93,7 +93,7 @@ class DirectoryPaths(AbstractPaths):
         with open_(filename, "rb") as f:
             return dill.load(f)
 
-    def save_results_internal_json(self, results_internal_dict : Dict):
+    def save_results_internal_json(self, results_internal_dict: Dict):
         """
         Save the internal representation of a non-linear search as a pickle or dill file.
 
