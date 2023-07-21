@@ -62,7 +62,7 @@ class SearchOutput(Output):
     @DynamicAttrs
     """
 
-    def __init__(self, directory: str):
+    def __init__(self, directory: str, reference: dict = None):
         """
         Represents the output of a single search. Comprises a metadata file and other dataset files.
 
@@ -75,7 +75,10 @@ class SearchOutput(Output):
         super().__init__(directory)
         self.__search = None
         self.__model = None
+
+        self._reference = reference
         self.file_path = directory / "metadata"
+
         with open(self.file_path) as f:
             self.text = f.read()
             pairs = [line.split("=") for line in self.text.split("\n") if "=" in line]
@@ -144,8 +147,12 @@ class SearchOutput(Output):
         if self.__model is None:
             try:
                 with open(self.files_path / "model.json") as f:
-                    self.__model = AbstractPriorModel.from_dict(json.load(f))
-            except (FileNotFoundError, ModuleNotFoundError):
+                    self.__model = AbstractPriorModel.from_dict(
+                        json.load(f),
+                        reference=self._reference,
+                    )
+            except (FileNotFoundError, ModuleNotFoundError) as e:
+                logging.exception(e)
                 try:
                     with open(self.pickle_path / "model.pickle", "rb") as f:
                         self.__model = pickle.load(f)

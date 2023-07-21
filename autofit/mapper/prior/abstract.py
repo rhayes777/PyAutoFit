@@ -18,7 +18,6 @@ class Prior(Variable, ABC, ArithmeticMixin):
     __database_args__ = ("lower_limit", "upper_limit", "id_")
 
     _ids = itertools.count()
-    _priors_by_id = {}
 
     def __init__(self, message, lower_limit=0.0, upper_limit=1.0, id_=None):
         """
@@ -35,7 +34,6 @@ class Prior(Variable, ABC, ArithmeticMixin):
         super().__init__(id_=id_)
         self.message = message
         message.id_ = self.id
-        self._priors_by_id[self.id] = self
 
         self.lower_limit = float(lower_limit)
         self.upper_limit = float(upper_limit)
@@ -209,6 +207,7 @@ class Prior(Variable, ABC, ArithmeticMixin):
         cls,
         prior_dict: dict,
         reference: Optional[Dict[str, str]] = None,
+        loaded_ids: Optional[Dict[int, "Prior"]] = None,
     ) -> Union["Prior", DeferredArgument]:
         """
         Returns a prior from a JSON representation.
@@ -219,14 +218,17 @@ class Prior(Variable, ABC, ArithmeticMixin):
             A dictionary representation of a prior including a type (e.g. Uniform) and all constructor arguments.
         reference
             A dictionary mapping prior ids to the priors they reference.
+        loaded_ids
+            A dictionary mapping prior ids to the priors they have loaded.
 
         Returns
         -------
         An instance of a child of this class.
         """
+        loaded_ids = {} if loaded_ids is None else loaded_ids
         id_ = prior_dict.get("id")
         try:
-            return cls._priors_by_id[id_]
+            return loaded_ids[id_]
         except KeyError:
             pass
 
@@ -248,14 +250,16 @@ class Prior(Variable, ABC, ArithmeticMixin):
         }
 
         # noinspection PyProtectedMember
-        return prior_type_dict[prior_dict["type"]](
+        prior = prior_type_dict[prior_dict["type"]](
             **{
                 key: value
                 for key, value in prior_dict.items()
                 if key not in ("type", "width_modifier", "gaussian_limits", "id")
             },
-            id_=id_,
         )
+        if id_ is not None:
+            loaded_ids[id_] = prior
+        return prior
 
     def dict(self) -> dict:
         """

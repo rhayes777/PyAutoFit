@@ -383,7 +383,12 @@ class Aggregator(AbstractAggregator):
             return [fit for fit in fits if fit.parent is None]
         return fits
 
-    def add_directory(self, directory: str, auto_commit=True):
+    def add_directory(
+        self,
+        directory: str,
+        auto_commit=True,
+        reference: Optional[dict] = None,
+    ):
         """
         Recursively search a directory for autofit results
         and add them to this database.
@@ -404,8 +409,11 @@ class Aggregator(AbstractAggregator):
         directory
             A directory containing autofit results embedded in a
             file structure
+        reference
+            A dictionary mapping the names of objects in the model
+            to their class path.
         """
-        scraper = Scraper(directory, self.session)
+        scraper = Scraper(directory, self.session, reference=reference)
         scraper.scrape()
 
         if auto_commit:

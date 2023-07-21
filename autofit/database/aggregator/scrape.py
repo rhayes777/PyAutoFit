@@ -26,7 +26,12 @@ def _parent_identifier(directory: str) -> Optional[str]:
 
 
 class Scraper:
-    def __init__(self, directory: Union[Path, str], session: sa.orm.Session):
+    def __init__(
+        self,
+        directory: Union[Path, str],
+        session: sa.orm.Session,
+        reference: Optional[dict] = None,
+    ):
         """
         Facilitates scraping of data output into a directory
         into the database.
@@ -37,9 +42,12 @@ class Scraper:
             A directory in which data has been stored
         session
             A database session
+        reference
+            A dictionary mapping search names to model paths
         """
         self.directory = directory
         self.session = session
+        self.reference = reference
 
     def scrape(self):
         """
@@ -63,7 +71,10 @@ class Scraper:
         logger.info(f"Scraping directory {self.directory}")
         from autofit.aggregator.aggregator import Aggregator as ClassicAggregator
 
-        aggregator = ClassicAggregator(self.directory)
+        aggregator = ClassicAggregator(
+            self.directory,
+            reference=self.reference,
+        )
         logger.info(f"{len(aggregator)} searches found")
         for item in aggregator:
             is_complete = os.path.exists(f"{item.directory}/.completed")
