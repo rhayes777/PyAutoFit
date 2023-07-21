@@ -111,7 +111,12 @@ class ModelObject:
         return str(Identifier(self))
 
     @classmethod
-    def from_dict(cls, d, reference: Optional[Dict[str, str]] = None):
+    def from_dict(
+        cls,
+        d,
+        reference: Optional[Dict[str, str]] = None,
+        loaded_ids: Optional[dict] = None,
+    ):
         """
         Recursively parse a dictionary returning the model, collection or
         instance that is represents.
@@ -133,6 +138,9 @@ class ModelObject:
             a Collection will be used as a placeholder.
 
             This is used to specify the type of a model or instance.
+        loaded_ids
+            A dictionary mapping ids to instances. This is used to ensure that
+            all instances with the same id are the same object.
 
         Returns
         -------
@@ -146,6 +154,8 @@ class ModelObject:
 
         if not isinstance(d, dict):
             return d
+
+        loaded_ids = {} if loaded_ids is None else loaded_ids
 
         type_ = d["type"]
 
@@ -170,7 +180,13 @@ class ModelObject:
             instance = TuplePrior()
         elif type_ == "dict":
             return {
-                key: ModelObject.from_dict(value) for key, value in d.items() if value
+                key: ModelObject.from_dict(
+                    value,
+                    reference=dereference(reference, key),
+                    loaded_ids=loaded_ids,
+                )
+                for key, value in d.items()
+                if value
             }
         elif type_ == "instance":
             class_path = get_class_path()
@@ -181,7 +197,9 @@ class ModelObject:
                 return cls_(
                     **{
                         key: ModelObject.from_dict(
-                            value, reference=dereference(reference, key)
+                            value,
+                            reference=dereference(reference, key),
+                            loaded_ids=loaded_ids,
                         )
                         for key, value in d.items()
                         if value
@@ -197,7 +215,7 @@ class ModelObject:
 
         else:
             try:
-                return Prior.from_dict(d)
+                return Prior.from_dict(d, loaded_ids=loaded_ids)
             except KeyError:
                 cls_ = get_class(type_)
                 instance = object.__new__(cls_)
@@ -210,7 +228,9 @@ class ModelObject:
                     instance,
                     key,
                     AbstractPriorModel.from_dict(
-                        value, reference=dereference(reference, key)
+                        value,
+                        reference=dereference(reference, key),
+                        loaded_ids=loaded_ids,
                     ),
                 )
             except KeyError:
