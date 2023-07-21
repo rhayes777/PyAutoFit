@@ -7,8 +7,8 @@ from autofit.mapper.prior.deferred import DeferredArgument
 
 
 @pytest.fixture(autouse=True)
-def reset_priors_by_id():
-    af.Prior._priors_by_id = {}
+def reset_prior_count():
+    af.Prior._ids = itertools.count()
 
 
 @pytest.fixture(name="uniform_dict")
@@ -39,7 +39,7 @@ def make_gaussian_dict():
         "upper_limit": 10.0,
         "mean": 3,
         "sigma": 4,
-        "id": 2,
+        "id": 0,
     }
 
 

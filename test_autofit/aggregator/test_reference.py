@@ -32,5 +32,5 @@ def test_database(session, directory):
     session.commit()
 
     fit = list(aggregator)[0]
-a    model = fit.model
+    model = fit.model
     assert model.cls is af.Gaussian

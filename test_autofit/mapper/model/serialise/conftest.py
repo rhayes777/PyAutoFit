@@ -2,11 +2,6 @@ import pytest
 import autofit as af
 
 
-@pytest.fixture(autouse=True)
-def reset_priors_by_id():
-    af.Prior._priors_by_id = {}
-
-
 @pytest.fixture(name="model_dict")
 def make_model_dict():
     return {

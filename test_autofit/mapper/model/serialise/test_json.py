@@ -20,7 +20,6 @@ def make_model():
 @pytest.fixture(autouse=True)
 def reset_prior_id():
     af.Prior._ids = itertools.count()
-    af.Prior._priors_by_id = {}
 
 
 class TestTuple:

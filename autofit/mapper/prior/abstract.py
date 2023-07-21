@@ -18,7 +18,6 @@ class Prior(Variable, ABC, ArithmeticMixin):
     __database_args__ = ("lower_limit", "upper_limit", "id_")
 
     _ids = itertools.count()
-    _priors_by_id = {}
 
     def __init__(self, message, lower_limit=0.0, upper_limit=1.0, id_=None):
         """
@@ -35,7 +34,6 @@ class Prior(Variable, ABC, ArithmeticMixin):
         super().__init__(id_=id_)
         self.message = message
         message.id_ = self.id
-        self._priors_by_id[self.id] = self
 
         self.lower_limit = float(lower_limit)
         self.upper_limit = float(upper_limit)
