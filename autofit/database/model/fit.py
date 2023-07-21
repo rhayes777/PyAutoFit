@@ -198,6 +198,10 @@ class Fit(Base):
     _info: List[Info] = sa.orm.relationship("Info")
 
     def __init__(self, **kwargs):
+        try:
+            kwargs["path_prefix"] = kwargs["path_prefix"].as_posix()
+        except (KeyError, AttributeError):
+            pass
         super().__init__(**kwargs)
 
     max_log_likelihood = sa.Column(sa.Float)

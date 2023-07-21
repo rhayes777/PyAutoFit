@@ -7,7 +7,7 @@ from typing import List, Tuple, Union, Type, Optional, Dict
 
 from autofit import exc
 from autofit.mapper import prior as p
-from autofit.non_linear.abstract_search import NonLinearSearch
+from autofit.non_linear.search.abstract_search import NonLinearSearch
 from autofit.non_linear.parallel import Process
 from autofit.text.text_util import padding
 from .job import Job
@@ -48,7 +48,6 @@ class GridSearch:
         """
         self.number_of_steps = number_of_steps
         self.search = search
-        self.prior_passer = search.prior_passer
 
         self._logger = None
 
@@ -255,7 +254,7 @@ class GridSearch:
             self.logger.debug(
                 "Writing results"
             )
-            with open(path.join(self.paths.output_path, "results.csv"), "w+") as f:
+            with open(self.paths.output_path / "results.csv", "w+") as f:
                 writer = csv.writer(f)
                 writer.writerow([
                     ["index"]
@@ -388,14 +387,14 @@ class GridSearch:
         return search_instance
 
 
-def grid(fitness_function, no_dimensions, step_size):
+def grid(fitness, no_dimensions, step_size):
     """
     Grid2D search using a fitness function over a given number of dimensions and a given step size between inclusive
     limits of 0 and 1.
 
     Parameters
     ----------
-    fitness_function: function
+    fitness: function
         A function that takes a tuple of floats as an argument
     no_dimensions: int
         The number of dimensions of the grid search
@@ -411,7 +410,7 @@ def grid(fitness_function, no_dimensions, step_size):
     best_arguments = None
 
     for arguments in make_lists(no_dimensions, step_size):
-        fitness = fitness_function(tuple(arguments))
+        fitness = fitness(tuple(arguments))
         if fitness > best_fitness:
             best_fitness = fitness
             best_arguments = tuple(arguments)

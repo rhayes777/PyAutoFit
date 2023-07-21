@@ -1,9 +1,10 @@
 import logging
 import math
-from typing import List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Tuple, Union
 
 import numpy as np
 
+from autoconf import conf
 from autofit.mapper.model import ModelInstance
 from autofit.mapper.prior_model.abstract import AbstractPriorModel, Path
 from autofit.non_linear.samples.sample import Sample, load_from_table
@@ -21,8 +22,7 @@ class SamplesPDF(Samples):
         self,
         model: AbstractPriorModel,
         sample_list: List[Sample],
-        unconverged_sample_size: int = 100,
-        time: Optional[float] = None,
+        samples_info: Optional[Dict] = None,
         results_internal: Optional = None,
     ):
         """
@@ -45,12 +45,8 @@ class SamplesPDF(Samples):
         sample_list
             The list of `Samples` which contains the paramoeters, likelihood, weights, etc. of every sample taken
             by the non-linear search.
-        unconverged_sample_size
-            If the samples are for a search that is yet to convergence, a reduced set of samples are used to provide
-            a rough estimate of the parameters. The number of samples is set by this parameter.
-        time
-            The time taken to perform the model-fit, which is passed around `Samples` objects for outputting
-            information on the overall fit.
+        samples_info
+            Contains information on the samples (e.g. total iterations, time to run the search, etc.).
         results_internal
             The nested sampler's results in their native internal format for interfacing its visualization library.
         """
@@ -58,11 +54,9 @@ class SamplesPDF(Samples):
         super().__init__(
             model=model,
             sample_list=sample_list,
-            time=time,
+            samples_info=samples_info,
             results_internal=results_internal,
         )
-
-        self._unconverged_sample_size = int(unconverged_sample_size)
 
     def summary(self):
         try:
@@ -102,8 +96,11 @@ class SamplesPDF(Samples):
         unconverted_sample_size. However, if there are fewer samples than this size, we change the size to be the
         the size of the total number of samples.
         """
-        if self.total_samples > self._unconverged_sample_size:
-            return self._unconverged_sample_size
+
+        unconverged_sample_size = conf.instance["general"]["output"]["unconverged_sample_size"]
+
+        if self.total_samples > unconverged_sample_size:
+            return unconverged_sample_size
         return self.total_samples
 
     @property
@@ -357,9 +354,6 @@ class SamplesPDF(Samples):
         The draw is weighted by the sample weights to ensure that the sample is drawn from the PDF (which is important
         for non-linear searches like nested sampling).
         """
-        print(self.sample_list)
-        print(self.weight_list)
-
         sample_index = np.random.choice(
             a=range(len(self.sample_list)), p=self.weight_list
         )

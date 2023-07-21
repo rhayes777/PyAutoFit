@@ -15,10 +15,10 @@ class MockSamples(SamplesPDF):
         self,
         model=None,
         sample_list=None,
+        samples_info=None,
         max_log_likelihood_instance=None,
         log_likelihood_list=None,
         gaussian_tuples=None,
-        unconverged_sample_size=10,
         **kwargs,
     ):
         self._log_likelihood_list = log_likelihood_list
@@ -27,10 +27,12 @@ class MockSamples(SamplesPDF):
 
         sample_list = sample_list or self.default_sample_list
 
+        samples_info = samples_info or {"unconverged_sample_size": 0}
+
         super().__init__(
             model=model,
             sample_list=sample_list,
-            unconverged_sample_size=unconverged_sample_size,
+            samples_info=samples_info,
             **kwargs,
         )
 
@@ -75,16 +77,17 @@ class MockSamples(SamplesPDF):
     def write_table(self, filename):
         pass
 
+    @property
+    def unconverged_sample_size(self):
+        return self.samples_info["unconverged_sample_size"]
+
 
 class MockSamplesNest(SamplesNest):
     def __init__(
         self,
         model,
         sample_list=None,
-        total_samples=10,
-        log_evidence=0.0,
-        number_live_points=5,
-        time: Optional[Union[str, float]] = None,
+        samples_info=None,
     ):
         self.model = model
 
@@ -94,20 +97,5 @@ class MockSamplesNest(SamplesNest):
                 for log_likelihood in self.log_likelihood_list
             ]
 
-        super().__init__(model=model, sample_list=sample_list, time=time)
+        super().__init__(model=model, sample_list=sample_list, samples_info=samples_info)
 
-        self._total_samples = total_samples
-        self._log_evidence = log_evidence
-        self._number_live_points = number_live_points
-
-    @property
-    def total_samples(self):
-        return self._total_samples
-
-    @property
-    def log_evidence(self):
-        return self._log_evidence
-
-    @property
-    def number_live_points(self):
-        return self._number_live_points

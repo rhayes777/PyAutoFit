@@ -29,7 +29,7 @@ def make_analysis():
 
 
 def count_output(paths):
-    return len(os.listdir(Path(str(paths)).parent))
+    return len(os.listdir(Path(str(paths.output_path)).parent))
 
 
 def test_with_model(analysis, model, search):
@@ -55,7 +55,8 @@ def test_combined_analysis(combined_analysis, model, search):
 def test_with_free_parameter(combined_analysis, model, search):
     combined_analysis = combined_analysis.with_free_parameters([model.centre])
     search.fit_sequential(
-        model=model, analysis=combined_analysis,
+        model=model,
+        analysis=combined_analysis,
     )
 
     assert count_output(search.paths) == 10

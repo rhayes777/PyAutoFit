@@ -6,7 +6,7 @@ from autofit import exc
 from autofit.mapper.model_mapper import ModelMapper
 from autofit.graphical import FactorApproximation
 from autofit.graphical.utils import Status
-from autofit.non_linear.abstract_search import NonLinearSearch
+from autofit.non_linear.search.abstract_search import NonLinearSearch
 from autofit.non_linear.mock.mock_result import MockResult
 from autofit.non_linear.mock.mock_samples import MockSamples
 from autofit.non_linear.samples import Sample
@@ -37,7 +37,6 @@ class MockSearch(NonLinearSearch):
         samples=None,
         result=None,
         unique_tag: Optional[str] = None,
-        prior_passer=None,
         fit_fast=True,
         sample_multiplier=1,
         save_for_aggregator=False,
@@ -49,9 +48,6 @@ class MockSearch(NonLinearSearch):
         self.samples = samples or MockSamples(ModelMapper())
 
         self.result = MockResult(samples=samples) if result is None else result
-
-        if prior_passer is not None:
-            self.prior_passer = prior_passer
 
         self.fit_fast = fit_fast
         self.sample_multiplier = sample_multiplier
@@ -88,12 +84,12 @@ class MockSearch(NonLinearSearch):
                 return -2 * log_likelihood
 
         if self.save_for_aggregator:
-            analysis.save_attributes_for_aggregator(paths=self.paths)
+            analysis.save_attributes(paths=self.paths)
 
-        fitness_function = Fitness(model.instance_from_vector, result=self.result)
-        fitness_function([prior.mean for prior in model.priors_ordered_by_id])
+        fitness = Fitness(model.instance_from_vector, result=self.result)
+        fitness([prior.mean for prior in model.priors_ordered_by_id])
 
-        return fitness_function.result
+        return fitness.result
 
     def _fit(self, model, analysis, log_likelihood_cap=None):
 
@@ -151,6 +147,9 @@ class MockSearch(NonLinearSearch):
             ],
             model=model,
         )
+
+    def samples_from(self, model):
+        return self.samples
 
 
 class MockOptimizer(MockSearch):

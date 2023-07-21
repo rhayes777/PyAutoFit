@@ -45,9 +45,6 @@ class ResultBuilder:
                 results.append(
                     Result(
                         samples=job_result.result.samples,
-                        sigma=result.sigma,
-                        use_errors=result.use_errors,
-                        use_widths=result.use_widths,
                     )
                 )
             except KeyError:

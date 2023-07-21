@@ -374,26 +374,11 @@ def test__unconverged_sample_size():
             log_prior_list=[1.0, 1.0, 1.0, 1.0, 1.0],
             weight_list=weight_list,
         ),
-        unconverged_sample_size=2,
+        samples_info={"unconverged_sample_size" : 2},
     )
 
     assert samples_x5.pdf_converged is False
     assert samples_x5.unconverged_sample_size == 2
-
-    samples_x5 = af.m.MockSamples(
-        model=model,
-        sample_list=af.Sample.from_lists(
-            model=model,
-            parameter_lists=5 * [[]],
-            log_likelihood_list=log_likelihood_list,
-            log_prior_list=[1.0, 1.0, 1.0, 1.0, 1.0],
-            weight_list=weight_list,
-        ),
-        unconverged_sample_size=6,
-    )
-
-    assert samples_x5.pdf_converged is False
-    assert samples_x5.unconverged_sample_size == 5
 
 
 def test__offset_values_via_input_values():

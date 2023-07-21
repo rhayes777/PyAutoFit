@@ -27,7 +27,7 @@ class AbstractInitializer(ABC):
         self,
         total_points: int,
         model: AbstractPriorModel,
-        fitness_function,
+        fitness,
         use_prior_medians: bool = False,
         test_mode_samples: bool = True,
     ):
@@ -68,7 +68,7 @@ class AbstractInitializer(ABC):
             )
 
             try:
-                figure_of_merit = fitness_function.figure_of_merit_from(
+                figure_of_merit = fitness.figure_of_merit_from(
                     parameter_list=parameter_list
                 )
 

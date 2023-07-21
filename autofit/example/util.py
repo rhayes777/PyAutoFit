@@ -48,5 +48,5 @@ def plot_profile_1d(
     else:
         if not path.exists(output_path):
             os.makedirs(output_path)
-        plt.savefig(path.join(output_path, f"{output_filename}.png"))
+        plt.savefig(output_path / f"{output_filename}.png")
     plt.clf()

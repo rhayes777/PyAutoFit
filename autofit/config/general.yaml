@@ -18,8 +18,13 @@ output:
   model_results_decimal_places: 3   # Number of decimal places estimated parameter values / errors are output in model.results.
   remove_files: false               # If True, all output files of a non-linear search (e.g. samples, visualization, etc.) are deleted once the model-fit has completed, such that only the .zip file remains.
   samples_to_csv: true              # If True, non-linear search samples are written to a .csv file.
+  unconverged_sample_size : 100     # If outputting results of an unconverged search, the number of samples used to estimate the median PDF values and errors.
 parallel:
   warn_environment_variables: true  # If True, a warning is displayed when the search's number of CPU > 1 and enviromment variables related to threading are also > 1.
+prior_passer:
+  sigma: 3.0                        # For non-linear search chaining and model prior passing, the sigma value of the inferred model parameter used as the sigma of the passed Gaussian prior.
+  use_errors: true                  # If True, the errors of the previous model's results are used when passing priors.
+  use_widths: true                  # If True the width of the model parameters defined in the priors config file are used.
 profiling:
   parallel_profile: false           # If True, the parallelization of the fit is profiled outputting a cPython graph.
   should_profile: false             # If True, the ``profile_log_likelihood_function()`` function of an analysis class is called throughout a model-fit, profiling run times.

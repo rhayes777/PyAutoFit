@@ -4,13 +4,14 @@ from functools import wraps
 import json
 import warnings
 from copy import copy
-from typing import List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Tuple, Union
 
 import numpy as np
 
 from autofit import exc
+from autofit.non_linear.search.mcmc.auto_correlations import AutoCorrelationsSettings
 from autofit.mapper.model import ModelInstance
-from autofit.mapper.prior_model.abstract import AbstractPriorModel, Path
+from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.samples.sample import Sample
 
 from .summary import SamplesSummary
@@ -181,8 +182,7 @@ class Samples(SamplesInterface, ABC):
         self,
         model: AbstractPriorModel,
         sample_list: List[Sample],
-        total_iterations: Optional[int] = None,
-        time: Optional[float] = None,
+        samples_info: Optional[Dict] = None,
         results_internal: Optional = None,
     ):
         """
@@ -205,22 +205,78 @@ class Samples(SamplesInterface, ABC):
         sample_list
             The list of `Samples` which contains the paramoeters, likelihood, weights, etc. of every sample taken
             by the non-linear search.
-        total_iterations
-            The total number of iterations, which often cannot be estimated from the sample list (which contains
-            only accepted samples).
-        time
-            The time taken to perform the model-fit, which is passed around `Samples` objects for outputting
-            information on the overall fit.
+        samples_info
+            Contains information on the samples (e.g. total iterations, time to run the search, etc.).
         results_internal
             The nested sampler's results in their native internal format for interfacing its visualization library.
         """
 
         super().__init__(model=model)
-        self.sample_list = sample_list
 
-        self.total_iterations = total_iterations
-        self.time = time
+        self.sample_list = sample_list
+        self.samples_info = samples_info
         self.results_internal = results_internal
+
+    @classmethod
+    def from_csv(cls, paths, model: AbstractPriorModel):
+        """
+        Returns a `Samples` object from the output paths of a non-linear search.
+
+        This function loads the sample values (e.g. parameters, log likelihoods) from a .csv file, which is a
+        standardized output for all **PyAutoFit** non-linear searches.
+
+        The samples object requires additional information on the non-linear search (e.g. the number of live points),
+        which is loaded from the `samples_info.json` file.
+
+        This function also looks for the internal results of the non-linear search and includes them in the samples if
+        they exists, which allows for the search's internal visualization and analysis tools to be used.
+
+        Parameters
+        ----------
+        paths
+            An object describing the paths for saving data (e.g. hard-disk directories or entries in sqlite database).
+        model
+            An object that represents possible instances of some model with a given dimensionality which is the number
+            of free dimensions of the model.
+
+        Returns
+        -------
+        The samples which have been loaded from hard-disk via .csv.
+        """
+
+        sample_list = paths.load_samples()
+        samples_info = paths.load_samples_info()
+
+        try:
+            auto_correlation_settings = AutoCorrelationsSettings(
+                check_for_convergence=True,
+                check_size=samples_info["check_size"],
+                required_length=samples_info["required_length"],
+                change_threshold=samples_info["change_threshold"],
+            )
+        except KeyError:
+            auto_correlation_settings = None
+
+        try:
+            results_internal = paths.load_results_internal()
+        except FileNotFoundError:
+            results_internal = None
+
+        try:
+            return cls(
+                model=model,
+                sample_list=sample_list,
+                samples_info=samples_info,
+                results_internal=results_internal,
+                auto_correlation_settings=auto_correlation_settings,
+            )
+        except TypeError:
+            return cls(
+                model=model,
+                sample_list=sample_list,
+                samples_info=samples_info,
+                results_internal=results_internal,
+            )
 
     def summary(self):
         return SamplesSummary(
@@ -255,7 +311,6 @@ class Samples(SamplesInterface, ABC):
         return self.__class__(
             model=self.model,
             sample_list=self.sample_list + other.sample_list,
-            time=self.time,
         )
 
     def __radd__(self, other):
@@ -331,6 +386,14 @@ class Samples(SamplesInterface, ABC):
         for each sample in the model
         """
         return [sample.kwargs[path] for sample in self.sample_list]
+
+    @property
+    def total_iterations(self) -> int:
+        return self.samples_info["total_iterations"]
+
+    @property
+    def time(self) -> Optional[float]:
+        return self.samples_info["time"]
 
     @property
     def parameter_lists(self):
@@ -426,13 +489,9 @@ class Samples(SamplesInterface, ABC):
             for row in self._rows:
                 write_row(row)
 
-    @property
-    def info_json(self):
-        return {}
-
     def info_to_json(self, filename):
         with open(filename, "w") as outfile:
-            json.dump(self.info_json, outfile)
+            json.dump(self.samples_info, outfile)
 
     @property
     def max_log_likelihood_sample(self) -> Sample:

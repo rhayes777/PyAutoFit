@@ -1,4 +1,4 @@
-from typing import List, Optional
+from typing import Dict, List, Optional
 
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.samples.sample import Sample
@@ -11,8 +11,7 @@ class SamplesStored(SamplesPDF):
             self,
             model: AbstractPriorModel,
             sample_list: List[Sample],
-            unconverged_sample_size: int = 100,
-            time: Optional[float] = None,
+            samples_info : Optional[Dict] = None,
     ):
         """
         The `Samples` of a non-linear search, specifically the samples of a `NonLinearSearch` which maps out the
@@ -27,7 +26,5 @@ class SamplesStored(SamplesPDF):
         super().__init__(
             model=model,
             sample_list=sample_list,
-            time=time,
+            samples_info=samples_info,
         )
-
-        self._unconverged_sample_size = int(unconverged_sample_size)

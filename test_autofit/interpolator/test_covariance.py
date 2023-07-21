@@ -5,6 +5,12 @@ from autofit.interpolator import CovarianceInterpolator
 import numpy as np
 
 
+@pytest.fixture(autouse=True)
+def do_remove_output(output_directory, remove_output):
+    yield
+    remove_output()
+
+
 def test_covariance_matrix(interpolator):
     assert np.allclose(
         interpolator.covariance_matrix(),

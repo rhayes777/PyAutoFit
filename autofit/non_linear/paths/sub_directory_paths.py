@@ -1,4 +1,5 @@
 from abc import ABC
+from pathlib import Path
 from typing import cast
 
 from autofit.non_linear.paths.abstract import AbstractPaths
@@ -27,12 +28,12 @@ class SubDirectoryPaths(ABC):
         return super(SubDirectoryPaths, cls).__new__(SubDirectoryPathsDirectory)
 
     @property
-    def _output_path(self) -> str:
+    def _output_path(self) -> Path:
         """
         The output path is customised to place output in a named directory in
         the analyses directory.
         """
-        return f"{self.parent.output_path}/{self.analysis_name}"
+        return self.parent.output_path / self.analysis_name
 
 
 class SubDirectoryPathsDirectory(
@@ -70,7 +71,7 @@ class SubDirectoryPathsDirectory(
             self.parent = parent
 
     @property
-    def output_path(self) -> str:
+    def output_path(self) -> Path:
         """
         The output path is customised to place output in a named directory in
         the analyses directory.
@@ -119,7 +120,7 @@ class SubDirectoryPathsDatabase(
             self.parent = parent
 
     @property
-    def output_path(self) -> str:
+    def output_path(self) -> Path:
         """
         The output path is customised to place output in a named directory in
         the analyses directory.

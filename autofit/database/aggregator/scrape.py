@@ -151,7 +151,7 @@ class Scraper:
                 )
 
                 _add_pickles(grid_search, path / "pickles")
-                _add_jsons(grid_search, path / "jsons")
+                _add_jsons(grid_search, path / "files")
 
                 aggregator = ClassicAggregator(root)
                 for item in aggregator:
@@ -251,5 +251,7 @@ def _add_jsons(fit: m.Fit, files_path: Path):
         filenames = []
 
     for filename in filenames:
+        if not filename.endswith(".json"):
+            continue
         with open(files_path / filename) as f:
             fit.set_json(filename.split(".")[0], json.load(f))
