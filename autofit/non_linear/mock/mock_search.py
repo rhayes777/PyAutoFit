@@ -148,6 +148,9 @@ class MockSearch(NonLinearSearch):
             model=model,
         )
 
+    def samples_from(self, model):
+        return self.samples
+
 
 class MockOptimizer(MockSearch):
     def __init__(self, **kwargs):
