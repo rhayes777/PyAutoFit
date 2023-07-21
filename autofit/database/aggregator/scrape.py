@@ -251,5 +251,7 @@ def _add_jsons(fit: m.Fit, files_path: Path):
         filenames = []
 
     for filename in filenames:
+        if not filename.endswith(".json"):
+            continue
         with open(files_path / filename) as f:
             fit.set_json(filename.split(".")[0], json.load(f))
