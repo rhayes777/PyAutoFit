@@ -200,7 +200,7 @@ class Fit(Base):
     def __init__(self, **kwargs):
         try:
             kwargs["path_prefix"] = kwargs["path_prefix"].as_posix()
-        except KeyError:
+        except (KeyError, AttributeError):
             pass
         super().__init__(**kwargs)
 
