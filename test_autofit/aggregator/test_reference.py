@@ -19,7 +19,8 @@ def test_without(directory):
 
 def test_with():
     aggregator = Aggregator(
-        Path(__file__).parent, reference={"": get_class_path(af.Exponential)}
+        Path(__file__).parent,
+        reference={"": get_class_path(af.Exponential)},
     )
     model = list(aggregator)[0].model
     assert model.cls is af.Exponential
