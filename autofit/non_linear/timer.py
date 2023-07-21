@@ -40,6 +40,20 @@ class Timer:
             with open(start_time_path, "w+") as f:
                 f.write(str(start))
 
+    def reset(self):
+        """
+        Reset the timer by deleting the start time file if it exists.
+        """
+            
+        start_time_path = path.join(
+            self.samples_path,
+            ".start_time"
+        )
+        try:
+            os.remove(start_time_path)
+        except FileNotFoundError:
+            pass
+
     def update(self):
         """
         Update the timer of the `NonLinearSearch` so it reflections how long the `NonLinearSearch` ahs been running.
