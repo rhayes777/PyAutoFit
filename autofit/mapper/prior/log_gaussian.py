@@ -8,6 +8,7 @@ from ...messages.transform import log_transform
 
 class LogGaussianPrior(Prior):
     __identifier_fields__ = ("lower_limit", "upper_limit", "mean", "sigma")
+    __database_args__ = ("mean", "sigma", "lower_limit", "upper_limit", "id_")
 
     def __init__(
         self,

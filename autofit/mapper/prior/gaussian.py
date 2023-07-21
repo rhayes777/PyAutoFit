@@ -6,6 +6,7 @@ from .abstract import Prior
 
 class GaussianPrior(Prior):
     __identifier_fields__ = ("lower_limit", "upper_limit", "mean", "sigma")
+    __database_args__ = ("mean", "sigma", "lower_limit", "upper_limit", "id_")
 
     def __init__(
         self,
