@@ -43,3 +43,31 @@ def test_initializer():
         "arguments": {"lower_limit": 0.0, "upper_limit": 1.0},
         "type": "autofit.non_linear.initializer.InitializerBall",
     }
+
+
+class ClassWithType:
+    def __init__(self, type_: type):
+        self.type_ = type_
+
+
+@pytest.fixture(name="type_dict")
+def make_type_dict():
+    return {
+        "type": "test_autofit.non_linear.test_dict.ClassWithType",
+        "arguments": {
+            "type_": {
+                "type": "type",
+                "class_path": "autofit.non_linear.initializer.InitializerBall",
+            }
+        },
+    }
+
+
+def test_type_to_dict(type_dict):
+    cls = ClassWithType(type_=af.InitializerBall)
+    print(to_dict(cls))
+    assert to_dict(cls) == type_dict
+
+
+def test_type_from_dict(type_dict):
+    assert isinstance(from_dict(type_dict), ClassWithType)

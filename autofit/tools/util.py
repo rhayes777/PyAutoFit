@@ -27,6 +27,11 @@ def to_dict(obj):
     """
     if isinstance(obj, (int, float, str, bool, type(None))):
         return obj
+    if inspect.isclass(obj):
+        return {
+            "type": "type",
+            "class_path": get_class_path(obj),
+        }
     if isinstance(obj, dict):
         return {
             ".".join(key) if isinstance(key, tuple) else key: to_dict(value)
@@ -59,6 +64,8 @@ def from_dict(dictionary):
         return dictionary
     if "type" in dictionary:
         type_ = dictionary["type"]
+        if type_ == "type":
+            return get_class(dictionary["class_path"])
         if type_ in (
             "model",
             "collection",
@@ -207,7 +214,9 @@ def suppress_stdout():
             sys.stdout = old_stdout
 
 
-def numpy_array_to_json(array: np.ndarray, file_path: Union[Path, str], overwrite: bool = False):
+def numpy_array_to_json(
+    array: np.ndarray, file_path: Union[Path, str], overwrite: bool = False
+):
     """
     Write a NumPy array to a json file.
 
