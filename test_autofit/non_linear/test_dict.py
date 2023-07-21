@@ -21,7 +21,7 @@ def make_dynesty_dict():
             "slices": 5,
             "facc": 0.5,
             "unique_tag": None,
-            "path_prefix": {"type": "pathlib.PosixPath", "arguments": {}},
+            "path_prefix": None,
             "iterations_per_update": 500,
             "number_of_cores": 1,
         },

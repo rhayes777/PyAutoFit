@@ -106,7 +106,8 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         from autofit.non_linear.paths.database import DatabasePaths
 
-        path_prefix = Path(path_prefix or "")
+        if name:
+            path_prefix = Path(path_prefix or "")
         self.path_prefix = path_prefix
 
         self.path_prefix_no_unique_tag = path_prefix
@@ -115,7 +116,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         logger.info(f"Creating search")
 
-        if unique_tag is not None:
+        if unique_tag is not None and path_prefix is not None:
             path_prefix = path_prefix / unique_tag
 
         self.unique_tag = unique_tag
