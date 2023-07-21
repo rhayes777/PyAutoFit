@@ -270,7 +270,7 @@ class AbstractDynesty(AbstractNest, ABC):
         iterations, total_iterations = self.iterations_from(sampler=sampler)
 
         config_dict_run = {
-            key: value for key, value in self.config_dict_run.items() if not key in ["maxcall", "maxiter"]
+            key: value for key, value in self.config_dict_run.items() if key != "maxcall"
         }
 
         if iterations > 0:
