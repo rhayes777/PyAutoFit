@@ -17,7 +17,7 @@ import zipfile
 from collections import defaultdict
 from os import path
 from shutil import rmtree
-from typing import List, Union, Iterator
+from typing import List, Union, Iterator, Optional
 
 from .predicate import AttributePredicate
 from .search_output import SearchOutput
@@ -237,7 +237,12 @@ class AbstractAggregator:
 
 
 class Aggregator(AbstractAggregator):
-    def __init__(self, directory: Union[str, os.PathLike], completed_only=False):
+    def __init__(
+        self,
+        directory: Union[str, os.PathLike],
+        completed_only=False,
+        reference: Optional[dict] = None,
+    ):
         """
         Class to aggregate phase results for all subdirectories in a given directory.
 
@@ -274,7 +279,7 @@ class Aggregator(AbstractAggregator):
         for root, _, filenames in os.walk(directory):
             if "metadata" in filenames:
                 if not completed_only or ".completed" in filenames:
-                    search_outputs.append(SearchOutput(root))
+                    search_outputs.append(SearchOutput(root, reference=reference))
 
         if len(search_outputs) == 0:
             print(f"\nNo search_outputs found in {directory}\n")
