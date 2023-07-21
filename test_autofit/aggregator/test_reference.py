@@ -27,10 +27,13 @@ def test_with():
 
 def test_database(session, directory):
     aggregator = af.Aggregator(session)
-    aggregator.add_directory(directory)
+    aggregator.add_directory(
+        directory,
+        reference={"": get_class_path(af.Exponential)},
+    )
 
     session.commit()
 
     fit = list(aggregator)[0]
     model = fit.model
-    assert model.cls is af.Gaussian
+    assert model.cls is af.Exponential
