@@ -223,13 +223,13 @@ class AbstractDynesty(AbstractNest, ABC):
 
     def samples_via_internal_from(self, model):
         """
-        Returns a `Samples` object from a Dynesty the dynesty internal results format, which contains the
-        samples of the non-linear search (e.g. the parameters, log likelihoods, etc.).
+        Returns a `Samples` object from the dynesty internal results. 
+        
+        The samples contain all information on the parameter space sampling (e.g. the parameters, 
+        log likelihoods, etc.).
 
-        The internal dynesty results are converted from the native format used by `dynesty` to lists of values,
-        for the samples.
-
-        This classmethod performs this conversion before creating a `SamplesDynesty` object.
+        The internal search results are converted from the native format used by the search to lists of values
+        (e.g. `parameter_lists`, `log_likelihood_list`).
 
         Parameters
         ----------

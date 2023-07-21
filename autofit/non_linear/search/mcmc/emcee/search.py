@@ -212,23 +212,18 @@ class Emcee(AbstractMCMC):
 
     def samples_via_internal_from(self, model):
         """
-        The `Samples` classes in **PyAutoFit** provide an interface between the results of a `NonLinearSearch` (e.g.
-        as files on your hard-disk) and Python.
+        Returns a `Samples` object from the emcee internal results.
 
-        To create a `Samples` object after an `Zeus` model-fit the results must be converted from the
-        native format used by `Zeus` (which is a HDFBackend) to lists of values, the format used by the **PyAutoFit**
-        `Samples` objects.
+        The samples contain all information on the parameter space sampling (e.g. the parameters,
+        log likelihoods, etc.).
 
-        This classmethod performs this conversion before creating a `SamplesZeus` object.
+        The internal search results are converted from the native format used by the search to lists of values
+        (e.g. `parameter_lists`, `log_likelihood_list`).
 
         Parameters
         ----------
-        results_internal
-            The MCMC results in their native internal format from which the samples are computed.
         model
             Maps input vectors of unit parameter values to physical values and model instances via priors.
-        auto_correlation_settings
-            Customizes and performs auto correlation calculations performed during and after the search.
         """
 
         results_internal = self.backend

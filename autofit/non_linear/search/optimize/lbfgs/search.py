@@ -182,7 +182,20 @@ class LBFGS(AbstractOptimizer):
         self.logger.info("L-BFGS sampling complete.")
 
     def samples_via_internal_from(self, model: AbstractPriorModel):
+        """
+        Returns a `Samples` object from the LBFGS internal results.
 
+        The samples contain all information on the parameter space sampling (e.g. the parameters,
+        log likelihoods, etc.).
+
+        The internal search results are converted from the native format used by the search to lists of values
+        (e.g. `parameter_lists`, `log_likelihood_list`).
+
+        Parameters
+        ----------
+        model
+            Maps input vectors of unit parameter values to physical values and model instances via priors.
+        """
         results_internal = self.paths.load_object("x0")
         log_posterior_list = np.array([self.paths.load_object("log_posterior")])
         total_iterations = self.paths.load_object("total_iterations")

@@ -211,7 +211,20 @@ class AbstractPySwarms(AbstractOptimizer):
         self.logger.info("PySwarmsGlobal complete")
 
     def samples_via_internal_from(self, model):
+        """
+        Returns a `Samples` object from the pyswarms internal results.
 
+        The samples contain all information on the parameter space sampling (e.g. the parameters,
+        log likelihoods, etc.).
+
+        The internal search results are converted from the native format used by the search to lists of values
+        (e.g. `parameter_lists`, `log_likelihood_list`).
+
+        Parameters
+        ----------
+        model
+            Maps input vectors of unit parameter values to physical values and model instances via priors.
+        """
         results_internal = self.paths.load_results_internal()
         results_internal_dict = self.paths.load_results_internal_json()
 

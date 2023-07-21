@@ -900,8 +900,26 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
     def samples_via_internal_from(self, model):
         raise NotImplementedError
 
-    def samples_via_csv_from(self, model):
-        raise NotImplementedError
+    def samples_via_csv_from(self, model) -> Samples:
+        """
+        Returns a `Samples` object from the `samples.csv` and `samples_info.json` files.
+
+        The samples contain all information on the parameter space sampling (e.g. the parameters,
+        log likelihoods, etc.).
+
+        The samples in csv format are already converted to the autofit format, where samples are lists of values
+        (e.g. `parameter_lists`, `log_likelihood_list`).
+
+        Parameters
+        ----------
+        model
+            Maps input vectors of unit parameter values to physical values and model instances via priors.
+        """
+
+        return self.samples_cls.from_csv(
+            paths=self.paths,
+            model=model,
+        )
 
     @check_cores
     def make_pool(self):

@@ -85,8 +85,5 @@ class AbstractNest(NonLinearSearch):
     def config_type(self):
         return conf.instance["non_linear"]["nest"]
 
-    def samples_via_csv_from(self, model):
-        return SamplesNest.from_csv(
-            paths=self.paths,
-            model=model,
-        )
+    def samples_cls(self):
+        return SamplesNest

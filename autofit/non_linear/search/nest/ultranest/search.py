@@ -212,20 +212,18 @@ class UltraNest(abstract_nest.AbstractNest):
 
     def samples_via_internal_from(self, model: AbstractPriorModel):
         """
-        Create a `Samples` object from this non-linear search's output files on the hard-disk and model.
+        Returns a `Samples` object from the ultranest internal results.
 
-        For MulitNest, this requires us to load:
+        The samples contain all information on the parameter space sampling (e.g. the parameters,
+        log likelihoods, etc.).
 
-            - The parameter samples, log likelihood values and weight_list from the ultranest.txt file.
-            - The total number of samples (e.g. accepted + rejected) from resume.dat.
-            - The log evidence of the model-fit from the ultranestsummary.txt file (if this is not yet estimated a
-              value of -1.0e99 is used.
+        The internal search results are converted from the native format used by the search to lists of values
+        (e.g. `parameter_lists`, `log_likelihood_list`).
 
         Parameters
         ----------
         model
-            The model which generates instances for different points in parameter space. This maps the points from unit
-            cube values to physical values via the priors.
+            Maps input vectors of unit parameter values to physical values and model instances via priors.
         """
 
         results_internal = self.paths.load_results_internal()

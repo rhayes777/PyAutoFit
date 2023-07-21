@@ -43,8 +43,5 @@ class AbstractMCMC(NonLinearSearch):
     def config_type(self):
         return conf.instance["non_linear"]["mcmc"]
 
-    def samples_via_csv_from(self, model):
-        return SamplesMCMC.from_csv(
-            paths=self.paths,
-            model=model,
-        )
+    def samples_cls(self):
+        return SamplesMCMC

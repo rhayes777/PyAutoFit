@@ -21,8 +21,5 @@ class AbstractOptimizer(NonLinearSearch, ABC):
             """
             return -2.0 * self.log_posterior_from(parameter_list=parameter_list)
 
-    def samples_via_csv_from(self, model):
-        return Samples.from_csv(
-            paths=self.paths,
-            model=model,
-        )
+    def samples_cls(self):
+        return Samples
