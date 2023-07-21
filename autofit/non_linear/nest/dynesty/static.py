@@ -1,3 +1,4 @@
+import os
 from __future__ import annotations
 from typing import TYPE_CHECKING, Optional
 
@@ -145,6 +146,10 @@ class DynestyStatic(AbstractDynesty):
         else:
 
             live_points = self.live_points_init_from(model=model, fitness_function=fitness_function)
+
+            if os.environ.get("PYAUTOFIT_PARALLEL_PROFILE") == "1":
+                self.timer.reset()
+                self.timer.start()
 
             if pool is not None:
 
