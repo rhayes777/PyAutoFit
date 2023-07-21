@@ -1,6 +1,5 @@
 import json
 import logging
-import os
 import pickle
 from os import path
 from pathlib import Path
@@ -122,7 +121,7 @@ class SearchOutput(Output):
         if self.__search is None:
             try:
                 with open(self.files_path / "search.json") as f:
-                    self.__search = from_dict(json.loads(f.read()))
+                    self.__search = from_dict(json.load(f))
             except (FileNotFoundError, ModuleNotFoundError):
                 try:
                     with open(self.pickle_path / "search.pickle", "rb") as f:
@@ -146,8 +145,7 @@ class SearchOutput(Output):
             try:
                 with open(self.files_path / "model.json") as f:
                     self.__model = AbstractPriorModel.from_dict(json.load(f))
-            except (FileNotFoundError, ModuleNotFoundError) as e:
-                logging.exception(e)
+            except (FileNotFoundError, ModuleNotFoundError):
                 try:
                     with open(self.pickle_path / "model.pickle", "rb") as f:
                         self.__model = pickle.load(f)
