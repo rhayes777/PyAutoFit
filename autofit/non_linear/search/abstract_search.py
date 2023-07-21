@@ -875,7 +875,23 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
     def remove_state_files(self):
         pass
 
-    def samples_from(self, model):
+    def samples_from(self, model) -> Samples:
+        """
+        Loads the samples of a non-linear search from its output files.
+
+        The samples can be loaded from one of two files, which are attempted to be loading in the following order:
+
+        1) Load via the internal results of the non-linear search, which are specified to that search's outputs
+           (e.g. the .hdf file output by the MCMC method `emcee`).
+
+        2) Load via the `samples.csv` and `samples_info.json` files of the search, which are outputs that are the
+           same for all non-linear searches as they are homogenized by autofit.
+
+        Parameters
+        ----------
+        model
+            The model which generates instances for different points in parameter space.
+        """
         try:
             return self.samples_via_internal_from(model=model)
         except (FileNotFoundError, NotImplementedError):
