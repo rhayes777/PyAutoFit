@@ -8,6 +8,12 @@ class MockRelationship:
         return 1.0
 
 
+@pytest.fixture(autouse=True)
+def do_remove_output(output_directory, remove_output):
+    yield
+    remove_output()
+
+
 @pytest.fixture(name="path_relationship_map")
 def make_path_relationship_map(interpolator):
     return {interpolator.gaussian.centre: af.Model(MockRelationship)}

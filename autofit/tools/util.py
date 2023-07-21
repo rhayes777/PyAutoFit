@@ -6,6 +6,7 @@ import zipfile
 from contextlib import contextmanager
 from functools import wraps
 from pathlib import Path
+from typing import Union
 
 import numpy as np
 
@@ -206,7 +207,7 @@ def suppress_stdout():
             sys.stdout = old_stdout
 
 
-def numpy_array_to_json(array: np.ndarray, file_path: str, overwrite: bool = False):
+def numpy_array_to_json(array: np.ndarray, file_path: Union[Path, str], overwrite: bool = False):
     """
     Write a NumPy array to a json file.
 
@@ -242,7 +243,7 @@ def numpy_array_to_json(array: np.ndarray, file_path: str, overwrite: bool = Fal
         json.dump(array.tolist(), f)
 
 
-def numpy_array_from_json(file_path: str):
+def numpy_array_from_json(file_path: Union[Path, str]):
     """
     Read a 1D NumPy array from a .json file.
 

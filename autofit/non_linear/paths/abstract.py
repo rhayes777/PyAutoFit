@@ -7,6 +7,7 @@ import zipfile
 from abc import ABC, abstractmethod
 from configparser import NoSectionError
 from os import path
+from pathlib import Path
 from typing import Dict, Optional
 
 from autoconf import conf
@@ -186,42 +187,43 @@ class AbstractPaths(ABC):
         return str(self._identifier)
 
     def save_identifier(self):
-        with open_(f"{self.output_path}/.identifier", "w+") as f:
+        with open_(self.output_path / ".identifier", "w+") as f:
             f.write(self._identifier.description)
 
     @property
-    def search_internal_path(self) -> str:
+    def search_internal_path(self) -> Path:
         """
         The path to the samples folder.
         """
-        return path.join(self.output_path, "search_internal")
+        return self.output_path / "search_internal"
 
     @property
-    def image_path(self) -> str:
+    def image_path(self) -> Path:
         """
         The path to the image folder.
         """
-        return path.join(self.output_path, "image")
+        return self.output_path / "image"
 
     @property
-    def profile_path(self) -> str:
+    def profile_path(self) -> Path:
         """
         The path to the profile folder.
         """
-        return path.join(self.output_path, "profile")
+        return self.output_path / "profile"
 
     @property
-    def output_path(self) -> str:
+    def output_path(self) -> Path:
         """
         The path to the output information for a search.
         """
+
         strings = list(
             filter(
                 len,
                 [
                     str(conf.instance.output_path),
-                    self.path_prefix,
-                    self.name,
+                    str(self.path_prefix),
+                    str(self.name),
                 ],
             )
         )
@@ -229,7 +231,11 @@ class AbstractPaths(ABC):
         if self.is_identifier_in_paths:
             strings.append(self.identifier)
 
-        return path.join("", *strings)
+        return Path(path.join("", *strings))
+
+    @property
+    def _files_path(self) -> Path:
+        raise NotImplementedError
 
     def zip_remove(self):
         """
@@ -283,13 +289,13 @@ class AbstractPaths(ABC):
         """
 
         if os.environ.get("PYAUTOFIT_NUCLEAR_MODE") == "1":
-            file_path = os.path.split(self.output_path)[0]
+            file_path = Path(os.path.split(self.output_path)[0])
 
             file_list = os.listdir(file_path)
             file_list = [file for file in file_list if self.identifier not in file]
 
             for file in file_list:
-                file_to_remove = path.join(file_path, file)
+                file_to_remove = file_path / file
 
                 try:
                     os.remove(file_to_remove)
@@ -405,7 +411,7 @@ class AbstractPaths(ABC):
         pass
 
     def _save_search(self, config_dict):
-        with open_(path.join(self.output_path, "search.json"), "w+") as f:
+        with open_(self.output_path / "search.json", "w+") as f:
             json.dump(dict(config_dict), f, indent=4)
 
     def save_summary(self, samples, log_likelihood_function_time):
@@ -413,7 +419,7 @@ class AbstractPaths(ABC):
             samples=samples,
         )
 
-        filename = path.join(self.output_path, "model.results")
+        filename = self.output_path / "model.results"
 
         with open_(filename, "w") as f:
             f.write(result_info)
@@ -421,17 +427,17 @@ class AbstractPaths(ABC):
         text_util.search_summary_to_file(
             samples=samples,
             log_likelihood_function_time=log_likelihood_function_time,
-            filename=path.join(self.output_path, "search.summary"),
+            filename=self.output_path / "search.summary",
         )
 
     @property
-    def _samples_file(self) -> str:
-        return path.join(self._files_path, "samples.csv")
+    def _samples_file(self) -> Path:
+        return self._files_path / "samples.csv"
 
     @property
-    def _covariance_file(self) -> str:
-        return path.join(self._files_path, "covariance.txt")
+    def _covariance_file(self) -> Path:
+        return self._files_path / "covariance.txt"
 
     @property
-    def _info_file(self) -> str:
-        return path.join(self._files_path, "samples_info.json")
+    def _info_file(self) -> Path:
+        return self._files_path / "samples_info.json"

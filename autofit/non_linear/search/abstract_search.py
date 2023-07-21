@@ -8,6 +8,7 @@ from abc import ABC, abstractmethod
 from collections import Counter
 from functools import wraps
 from os import path
+from pathlib import Path
 from typing import Optional, Union, Tuple, List, Dict
 
 import numpy as np
@@ -71,15 +72,15 @@ def check_cores(func):
 
 class NonLinearSearch(AbstractFactorOptimiser, ABC):
     def __init__(
-            self,
-            name: Optional[str] = None,
-            path_prefix: Optional[str] = None,
-            unique_tag: Optional[str] = None,
-            initializer: Initializer = None,
-            iterations_per_update: int = None,
-            number_of_cores: int = 1,
-            session: Optional[sa.orm.Session] = None,
-            **kwargs,
+        self,
+        name: Optional[str] = None,
+        path_prefix: Optional[str] = None,
+        unique_tag: Optional[str] = None,
+        initializer: Initializer = None,
+        iterations_per_update: int = None,
+        number_of_cores: int = 1,
+        session: Optional[sa.orm.Session] = None,
+        **kwargs,
     ):
         """
         Abstract base class for non-linear searches.L
@@ -105,7 +106,8 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         from autofit.non_linear.paths.database import DatabasePaths
 
-        path_prefix = path_prefix or ""
+        if name:
+            path_prefix = Path(path_prefix or "")
         self.path_prefix = path_prefix
 
         self.path_prefix_no_unique_tag = path_prefix
@@ -114,8 +116,8 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         logger.info(f"Creating search")
 
-        if unique_tag is not None:
-            path_prefix = path.join(path_prefix, unique_tag)
+        if unique_tag is not None and path_prefix is not None:
+            path_prefix = path_prefix / unique_tag
 
         self.unique_tag = unique_tag
 
@@ -194,14 +196,14 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         self.number_of_cores = number_of_cores
 
         if number_of_cores > 1 and any(
-                os.environ.get(key) != "1"
-                for key in (
-                        "OPENBLAS_NUM_THREADS",
-                        "MKL_NUM_THREADS",
-                        "OMP_NUM_THREADS",
-                        "VECLIB_MAXIMUM_THREADS",
-                        "NUMEXPR_NUM_THREADS",
-                )
+            os.environ.get(key) != "1"
+            for key in (
+                "OPENBLAS_NUM_THREADS",
+                "MKL_NUM_THREADS",
+                "OMP_NUM_THREADS",
+                "VECLIB_MAXIMUM_THREADS",
+                "NUMEXPR_NUM_THREADS",
+            )
         ):
             warnings.warn(
                 exc.SearchWarning(
@@ -246,9 +248,9 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
     __identifier_fields__ = tuple()
 
     def optimise(
-            self,
-            factor_approx: FactorApproximation,
-            status: Status = Status(),
+        self,
+        factor_approx: FactorApproximation,
+        status: Status = Status(),
     ) -> Tuple[MeanField, Status]:
         """
         Perform optimisation for expectation propagation. Currently only
@@ -366,7 +368,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
     class Fitness:
         def __init__(
-                self, paths, model, analysis, samples_from_model, log_likelihood_cap=None
+            self, paths, model, analysis, samples_from_model, log_likelihood_cap=None
         ):
             self.i = 0
 
@@ -452,12 +454,12 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             return -np.inf
 
     def fit_sequential(
-            self,
-            model,
-            analysis: IndexCollectionAnalysis,
-            info=None,
-            pickle_files=None,
-            log_likelihood_cap=None,
+        self,
+        model,
+        analysis: IndexCollectionAnalysis,
+        info=None,
+        pickle_files=None,
+        log_likelihood_cap=None,
     ) -> CombinedResult:
         """
         Fit multiple analyses contained within the analysis sequentially.
@@ -521,13 +523,13 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         return CombinedResult(results)
 
     def fit(
-            self,
-            model,
-            analysis: "Analysis",
-            info=None,
-            pickle_files=None,
-            log_likelihood_cap=None,
-            bypass_nuclear_if_on: bool = False,
+        self,
+        model,
+        analysis: "Analysis",
+        info=None,
+        pickle_files=None,
+        log_likelihood_cap=None,
+        bypass_nuclear_if_on: bool = False,
     ) -> Union["Result", List["Result"]]:
         """
         Fit a model, M with some function f that takes instances of the
@@ -738,7 +740,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         return self._class_config[section][attribute_name]
 
     def perform_update(
-            self, model: Collection, analysis: Analysis, during_analysis: bool
+        self, model: Collection, analysis: Analysis, during_analysis: bool
     ):
         """
         Perform an update of the non-linear search's model-fitting results.

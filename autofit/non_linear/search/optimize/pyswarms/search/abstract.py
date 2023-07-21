@@ -255,7 +255,7 @@ class AbstractPySwarms(AbstractOptimizer):
 
         plotter = PySwarmsPlotter(
             samples=samples,
-            output=Output(path=path.join(self.paths.image_path, "search"), format="png")
+            output=Output(path=self.paths.image_path / "search", format="png")
         )
 
         if should_plot("contour"):

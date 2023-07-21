@@ -83,9 +83,15 @@ class Job(AbstractJob):
         self.base_instance = base_instance
         self.perturbation_instance = perturbation_instance
 
-        self.search = search.copy_with_paths(search.paths.for_sub_analysis("[base]",))
+        self.search = search.copy_with_paths(
+            search.paths.for_sub_analysis(
+                "[base]",
+            )
+        )
         self.perturbed_search = search.copy_with_paths(
-            search.paths.for_sub_analysis("[perturbed]",)
+            search.paths.for_sub_analysis(
+                "[perturbed]",
+            )
         )
 
     @cached_property
@@ -304,8 +310,8 @@ class Sensitivity:
         return SensitivityResult(results)
 
     @property
-    def results_path(self):
-        return Path(self.search.paths.output_path) / "results.csv"
+    def results_path(self) -> Path:
+        return self.search.paths.output_path / "results.csv"
 
     @property
     def _lists(self) -> List[List[float]]:
@@ -409,7 +415,9 @@ class Sensitivity:
         """
         paths = self.search.paths
         search_instance = self.search.copy_with_paths(
-            paths.for_sub_analysis(name_path,)
+            paths.for_sub_analysis(
+                name_path,
+            )
         )
 
         return search_instance
@@ -445,7 +453,11 @@ class Sensitivity:
 
 class AnalysisFactory:
     def __init__(
-        self, instance, simulate_function, analysis_class, paths,
+        self,
+        instance,
+        simulate_function,
+        analysis_class,
+        paths,
     ):
         """
         Callable to delay simulation such that it is performed
@@ -459,6 +471,6 @@ class AnalysisFactory:
     def __call__(self):
         dataset = self.simulate_function(
             instance=self.instance,
-            simulate_path=self.paths.image_path.replace("image", "simulate")
+            simulate_path=self.paths.image_path.with_name("simulate"),
         )
         return self.analysis_class(dataset)

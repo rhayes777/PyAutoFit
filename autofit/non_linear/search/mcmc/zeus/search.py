@@ -361,7 +361,7 @@ class Zeus(AbstractMCMC):
         plotter = ZeusPlotter(
             samples=samples,
             output=Output(
-                path=path.join(self.paths.image_path, "search"), format="png"
+                path=self.paths.image_path / "search", format="png"
             ),
         )
 

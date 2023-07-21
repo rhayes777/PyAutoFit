@@ -306,7 +306,7 @@ class UltraNest(abstract_nest.AbstractNest):
 
         plotter = UltraNestPlotter(
             samples=samples,
-            output=Output(path=path.join(self.paths.image_path, "search"), format="png")
+            output=Output(self.paths.image_path / "search", format="png")
         )
 
         if should_plot("cornerplot"):

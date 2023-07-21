@@ -254,7 +254,7 @@ class GridSearch:
             self.logger.debug(
                 "Writing results"
             )
-            with open(path.join(self.paths.output_path, "results.csv"), "w+") as f:
+            with open(self.paths.output_path / "results.csv", "w+") as f:
                 writer = csv.writer(f)
                 writer.writerow([
                     ["index"]

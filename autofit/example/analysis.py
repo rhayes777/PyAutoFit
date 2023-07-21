@@ -1,3 +1,4 @@
+import json
 from os import path
 import os
 import matplotlib.pyplot as plt
@@ -113,7 +114,7 @@ class Analysis(af.Analysis):
         plt.ylabel("Profile normalization")
 
         os.makedirs(paths.image_path, exist_ok=True)
-        plt.savefig(path.join(paths.image_path, "model_fit.png"))
+        plt.savefig(paths.image_path / "model_fit.png")
         plt.clf()
 
     def visualize_combined(
@@ -166,5 +167,16 @@ class Analysis(af.Analysis):
             The PyAutoFit paths object which manages all paths, e.g. where the non-linear search outputs are stored,
             visualization, and the pickled objects used by the aggregator output by this function.
         """
-        paths.save_object("data", self.data)
-        paths.save_object("noise_map", self.noise_map)
+        # The path where data.json is saved, e.g. output/dataset_name/unique_id/files/data.json
+
+        file_path = paths._files_path / "data.json"
+
+        with open(file_path, "w+") as f:
+            json.dump(self.data.tolist(), f, indent=4)
+
+        # The path where noise_map.json is saved, e.g. output/noise_mapset_name/unique_id/files/noise_map.json
+
+        file_path = paths._files_path / "noise_map.json"
+
+        with open(file_path, "w+") as f:
+            json.dump(self.noise_map.tolist(), f, indent=4)

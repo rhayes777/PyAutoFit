@@ -202,7 +202,7 @@ class SneakyProcess(Process):
             except FileExistsError:
                 pass
 
-            sneaky_path = path.join(self.paths.profile_path, f"sneaky_{self.pid}.prof")
+            sneaky_path = self.paths.profile_path / f"sneaky_{self.pid}.prof"
 
             pr.dump_stats(sneaky_path)
             pr.disable()

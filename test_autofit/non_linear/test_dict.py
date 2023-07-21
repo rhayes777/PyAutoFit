@@ -7,24 +7,24 @@ from autofit.tools.util import to_dict, from_dict
 @pytest.fixture(name="dynesty_dict")
 def make_dynesty_dict():
     return {
-        "arguments": {
-            "bootstrap": None,
-            "bound": "multi",
-            "enlarge": None,
-            "facc": 0.5,
-            "fmove": 0.9,
-            "iterations_per_update": 500,
-            "max_move": 100,
-            "name": "",
-            "nlive": 150,
-            "number_of_cores": 1,
-            "path_prefix": "",
-            "sample": "auto",
-            "slices": 5,
-            "unique_tag": None,
-            "walks": 5,
-        },
         "type": "autofit.non_linear.search.nest.dynesty.search.static.DynestyStatic",
+        "arguments": {
+            "bound": "multi",
+            "max_move": 100,
+            "nlive": 150,
+            "fmove": 0.9,
+            "enlarge": None,
+            "bootstrap": None,
+            "walks": 5,
+            "sample": "auto",
+            "name": "",
+            "slices": 5,
+            "facc": 0.5,
+            "unique_tag": None,
+            "path_prefix": None,
+            "iterations_per_update": 500,
+            "number_of_cores": 1,
+        },
     }
 
 

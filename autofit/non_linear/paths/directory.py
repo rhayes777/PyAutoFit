@@ -2,11 +2,11 @@ import json
 import os
 import shutil
 from os import path
+from pathlib import Path
 from typing import Dict, Optional
 import logging
 
 import dill
-import pickle
 
 from autoconf import conf
 from autofit.text import formatter
@@ -25,11 +25,11 @@ class DirectoryPaths(AbstractPaths):
         """
         self.save_object(name, instance)
 
-    def _path_for_pickle(self, name: str):
-        return path.join(self._pickle_path, f"{name}.pickle")
+    def _path_for_pickle(self, name: str) -> Path:
+        return self._pickle_path / f"{name}.pickle"
 
-    def _path_for_json(self, name):
-        return path.join(self._files_path, f"{name}.json")
+    def _path_for_json(self, name) -> Path:
+        return self._files_path / f"{name}.json"
 
     def save_object(self, name: str, obj: object):
         """
@@ -93,7 +93,7 @@ class DirectoryPaths(AbstractPaths):
         with open_(filename, "rb") as f:
             return dill.load(f)
 
-    def save_results_internal_json(self, results_internal_dict : Dict):
+    def save_results_internal_json(self, results_internal_dict: Dict):
         """
         Save the internal representation of a non-linear search as a pickle or dill file.
 
@@ -240,12 +240,12 @@ class DirectoryPaths(AbstractPaths):
                     f.write(self.unique_tag)
 
     @property
-    def _parent_identifier_path(self) -> str:
-        return path.join(self.output_path, ".parent_identifier")
+    def _parent_identifier_path(self) -> Path:
+        return self.output_path / ".parent_identifier"
 
     @property
-    def _grid_search_path(self) -> str:
-        return path.join(self.output_path, ".is_grid_search")
+    def _grid_search_path(self) -> Path:
+        return self.output_path / ".is_grid_search"
 
     @property
     def is_grid_search(self) -> bool:
@@ -306,28 +306,28 @@ class DirectoryPaths(AbstractPaths):
         return SubDirectoryPaths(parent=self, analysis_name=analysis_name)
 
     @property
-    def _pickle_path(self) -> str:
+    def _pickle_path(self) -> Path:
         """
         This is private for a reason, use the save_object etc. methods to save and load pickles
         """
-        return path.join(self.output_path, "pickles")
+        return self.output_path / "pickles"
 
     @property
-    def _files_path(self) -> str:
+    def _files_path(self) -> Path:
         """
         This is private for a reason, use the save_json etc. methods to save and load json
         """
-        return path.join(self.output_path, "files")
+        return self.output_path / "files"
 
     def _save_metadata(self, search_name):
         """
         Save metadata associated with the phase, such as the name of the pipeline, the
         name of the phase and the name of the dataset being fit
         """
-        with open_(path.join(self.output_path, "metadata"), "a") as f:
+        with open_(self.output_path / "metadata", "a") as f:
             f.write(
                 f"""name={self.name}
-            non_linear_search={search_name}
+                non_linear_search={search_name}
             """
             )
 
@@ -344,7 +344,7 @@ class DirectoryPaths(AbstractPaths):
         """
         Save the model.info file, which summarizes every parameter and prior.
         """
-        with open_(path.join(self.output_path, "model.info"), "w+") as f:
+        with open_(self.output_path / "model.info", "w+") as f:
             f.write(model.info)
 
     def _save_parameter_names_file(self, model):
@@ -374,20 +374,20 @@ class DirectoryPaths(AbstractPaths):
             parameter_name_and_label += [f"{line}\n"]
 
         formatter.output_list_of_strings_to_file(
-            file=path.join(self._files_path, "model.paramnames"),
+            file=self._files_path / "model.paramnames",
             list_of_strings=parameter_name_and_label,
         )
 
     @property
-    def _info_file(self) -> str:
-        return path.join(self._files_path, "samples_info.json")
+    def _info_file(self) -> Path:
+        return self._files_path / "samples_info.json"
 
     @property
-    def _has_completed_path(self) -> str:
+    def _has_completed_path(self) -> Path:
         """
         A file indicating that a `NonLinearSearch` has been completed previously
         """
-        return path.join(self.output_path, ".completed")
+        return self.output_path / ".completed"
 
     def _make_path(self) -> str:
         """
@@ -396,7 +396,7 @@ class DirectoryPaths(AbstractPaths):
         The path terminates with the identifier, unless the identifier has already
         been added to the path.
         """
-        path_ = path.join(conf.instance.output_path, self.path_prefix, self.name)
+        path_ = Path(path.join(conf.instance.output_path, self.path_prefix, self.name))
         if self.is_identifier_in_paths:
-            path_ = path.join(path_, self.identifier)
+            path_ = path_ / self.identifier
         return path_

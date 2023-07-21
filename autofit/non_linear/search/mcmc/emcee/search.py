@@ -32,7 +32,7 @@ class Emcee(AbstractMCMC):
         iterations_per_update: int = None,
         number_of_cores: int = None,
         session: Optional[sa.orm.Session] = None,
-        **kwargs
+        **kwargs,
     ):
         """
         An Emcee non-linear search.
@@ -81,7 +81,7 @@ class Emcee(AbstractMCMC):
             iterations_per_update=iterations_per_update,
             number_of_cores=number_of_cores,
             session=session,
-            **kwargs
+            **kwargs,
         )
 
         self.logger.debug("Creating Emcee Search")
@@ -131,7 +131,6 @@ class Emcee(AbstractMCMC):
         )
 
         try:
-
             state = sampler.get_last_sample()
             samples = self.samples_from(model=model)
 
@@ -147,7 +146,6 @@ class Emcee(AbstractMCMC):
                 )
 
         except AttributeError:
-
             (
                 unit_parameter_lists,
                 parameter_lists,
@@ -169,7 +167,6 @@ class Emcee(AbstractMCMC):
             iterations_remaining = self.config_dict_run["nsteps"]
 
         while iterations_remaining > 0:
-
             if self.iterations_per_update > iterations_remaining:
                 iterations = iterations_remaining
             else:
@@ -202,14 +199,13 @@ class Emcee(AbstractMCMC):
 
     @property
     def samples_info(self):
-
         results_internal = self.backend
 
         return {
             "check_size": self.auto_correlations.check_size,
             "required_length": self.auto_correlations.required_length,
             "change_threshold": self.auto_correlations.change_threshold,
-            "total_walkers":  len(results_internal.get_chain()[0, :, 0]),
+            "total_walkers": len(results_internal.get_chain()[0, :, 0]),
             "total_steps": len(results_internal.get_log_prob()),
             "time": self.timer.time,
         }
@@ -239,7 +235,9 @@ class Emcee(AbstractMCMC):
 
         discard = int(3.0 * np.max(self.auto_correlations.times))
         thin = int(np.max(self.auto_correlations.times) / 2.0)
-        samples_after_burn_in = results_internal.get_chain(discard=discard, thin=thin, flat=True)
+        samples_after_burn_in = results_internal.get_chain(
+            discard=discard, thin=thin, flat=True
+        )
 
         parameter_lists = samples_after_burn_in.tolist()
 
@@ -247,12 +245,13 @@ class Emcee(AbstractMCMC):
 
         total_samples = len(parameter_lists)
 
-        log_posterior_list = results_internal.get_log_prob(flat=True)[-total_samples-1:-1].tolist()
+        log_posterior_list = results_internal.get_log_prob(flat=True)[
+            -total_samples - 1 : -1
+        ].tolist()
 
         log_likelihood_list = [
-            log_posterior - log_prior for
-            log_posterior, log_prior in
-            zip(log_posterior_list, log_prior_list)
+            log_posterior - log_prior
+            for log_posterior, log_prior in zip(log_posterior_list, log_prior_list)
         ]
 
         weight_list = len(log_likelihood_list) * [1.0]
@@ -262,7 +261,7 @@ class Emcee(AbstractMCMC):
             parameter_lists=parameter_lists,
             log_likelihood_list=log_likelihood_list,
             log_prior_list=log_prior_list,
-            weight_list=weight_list
+            weight_list=weight_list,
         )
 
         return SamplesMCMC(
@@ -276,13 +275,15 @@ class Emcee(AbstractMCMC):
 
     @property
     def auto_correlations(self):
-
         results_internal = self.backend
 
         times = results_internal.get_autocorr_time(tol=0)
 
         previous_auto_correlation_times = emcee.autocorr.integrated_time(
-            x=results_internal.get_chain()[: -self.auto_correlation_settings.check_size, :, :], tol=0
+            x=results_internal.get_chain()[
+                : -self.auto_correlation_settings.check_size, :, :
+            ],
+            tol=0,
         )
 
         return AutoCorrelations(
@@ -294,7 +295,6 @@ class Emcee(AbstractMCMC):
         )
 
     def config_dict_with_test_mode_settings_from(self, config_dict):
-
         return {
             **config_dict,
             "nwalkers": 20,
@@ -303,7 +303,7 @@ class Emcee(AbstractMCMC):
 
     @property
     def backend_filename(self):
-        return path.join(self.paths.search_internal_path, "results_internal.hdf")
+        return self.paths.search_internal_path / "results_internal.hdf"
 
     @property
     def backend(self) -> emcee.backends.HDFBackend:
@@ -314,11 +314,10 @@ class Emcee(AbstractMCMC):
         """
 
         if os.path.isfile(self.backend_filename):
-            return emcee.backends.HDFBackend(filename=self.backend_filename)
+            return emcee.backends.HDFBackend(filename=str(self.backend_filename))
         else:
             raise FileNotFoundError(
-                "The file results_internal.hdf does not exist at the path "
-                + self.paths.search_internal_path
+                f"The file results_internal.hdf does not exist at the path {self.paths.search_internal_path}"
             )
 
     def plot_results(self, samples):
@@ -327,9 +326,7 @@ class Emcee(AbstractMCMC):
 
         plotter = EmceePlotter(
             samples=samples,
-            output=Output(
-                path=path.join(self.paths.image_path, "search"), format="png"
-            ),
+            output=Output(path=self.paths.image_path / "search", format="png"),
         )
 
         if should_plot("corner"):
