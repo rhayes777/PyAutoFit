@@ -120,6 +120,9 @@ class AbstractAggregator:
     def __len__(self):
         return len(self.search_outputs)
 
+    def __iter__(self):
+        return iter(self.search_outputs)
+
     def __getattr__(self, item):
         return AttributePredicate(item)
 
