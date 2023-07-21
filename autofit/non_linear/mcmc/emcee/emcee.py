@@ -174,6 +174,14 @@ class Emcee(AbstractMCMC):
                 total_iterations = 0
                 iterations_remaining = self.config_dict_run["nsteps"]
 
+            reset_timer = (
+                os.environ.get("PYAUTOFIT_PARALLEL_PROFILE") == "1" and
+                self.is_master
+            )
+            if reset_timer:
+                self.timer.reset()
+                self.timer.start()
+
             while iterations_remaining > 0:
 
                 if self.iterations_per_update > iterations_remaining:

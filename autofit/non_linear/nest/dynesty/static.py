@@ -148,7 +148,11 @@ class DynestyStatic(AbstractDynesty):
 
             live_points = self.live_points_init_from(model=model, fitness_function=fitness_function)
 
-            if os.environ.get("PYAUTOFIT_PARALLEL_PROFILE") == "1":
+            reset_timer = (
+                os.environ.get("PYAUTOFIT_PARALLEL_PROFILE") == "1" and
+                self.is_master
+            )
+            if reset_timer:
                 self.timer.reset()
                 self.timer.start()
 
