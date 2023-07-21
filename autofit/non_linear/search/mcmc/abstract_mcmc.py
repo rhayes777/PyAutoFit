@@ -43,5 +43,6 @@ class AbstractMCMC(NonLinearSearch):
     def config_type(self):
         return conf.instance["non_linear"]["mcmc"]
 
+    @property
     def samples_cls(self):
         return SamplesMCMC

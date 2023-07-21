@@ -85,5 +85,6 @@ class AbstractNest(NonLinearSearch):
     def config_type(self):
         return conf.instance["non_linear"]["nest"]
 
+    @property
     def samples_cls(self):
         return SamplesNest

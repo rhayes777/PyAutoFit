@@ -21,5 +21,6 @@ class AbstractOptimizer(NonLinearSearch, ABC):
             """
             return -2.0 * self.log_posterior_from(parameter_list=parameter_list)
 
+    @property
     def samples_cls(self):
         return Samples
