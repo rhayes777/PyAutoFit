@@ -44,7 +44,7 @@ def test__config__loads_from_file_correctly():
     assert search.auto_correlation_settings.change_threshold == 0.01
     assert search.number_of_cores == 1
 
-def test__samples_from_model():
+def test__samples_via_internal_from():
 
     search = af.Emcee()
     search.paths = af.DirectoryPaths(path_prefix=path.join("non_linear", "emcee"))
@@ -53,7 +53,7 @@ def test__samples_from_model():
     model = af.ModelMapper(mock_class=af.m.MockClassx4)
     model.mock_class.two = af.LogUniformPrior(lower_limit=1e-8, upper_limit=10.0)
 
-    samples = search.samples_from(model=model)
+    samples = search.samples_via_internal_from(model=model)
 
     assert isinstance(samples.parameter_lists, list)
     assert isinstance(samples.parameter_lists[0], list)
