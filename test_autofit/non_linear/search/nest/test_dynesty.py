@@ -23,7 +23,7 @@ class MockDynestySampler:
 
 
 def test__loads_from_config_file_if_not_input():
-    
+
     search = af.DynestyStatic(
         nlive=151,
         dlogz=0.1,
