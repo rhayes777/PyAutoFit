@@ -269,7 +269,9 @@ class AbstractDynesty(AbstractNest, ABC):
 
         iterations, total_iterations = self.iterations_from(sampler=sampler)
 
-        config_dict_run = {key: value for key, value in self.config_dict_run.items() if key != 'maxcall'}
+        config_dict_run = {
+            key: value for key, value in self.config_dict_run.items() if not key in ["maxcall", "maxiter"]
+        }
 
         if iterations > 0:
             sampler.run_nested(
@@ -280,10 +282,12 @@ class AbstractDynesty(AbstractNest, ABC):
             )
 
         iterations_after_run = np.sum(sampler.results.ncall)
+        samples_after_run = sampler.results.niter
 
         return (
             total_iterations == iterations_after_run
             or total_iterations == self.config_dict_run.get("maxcall")
+            or samples_after_run >= self.config_dict_run.get("maxiter")
         )
 
     def write_uses_pool(self, uses_pool: bool) -> str:
