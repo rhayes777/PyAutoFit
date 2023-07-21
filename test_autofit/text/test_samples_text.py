@@ -30,7 +30,7 @@ def make_samples(model):
             log_prior_list=[0.0, 0.0],
             weight_list=log_likelihood_list,
             model=model
-        )
+        ),
     )
 
 
@@ -66,7 +66,7 @@ def test__latex(samples):
             log_prior_list=[0.0, 0.0],
             weight_list=log_likelihood_list,
             model=model
-        )
+        ),
     )
 
     latex_results_at_sigma = samples_text.latex(samples=samples_exp, sigma=3.0, include_quickmath=True)

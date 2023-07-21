@@ -92,9 +92,7 @@ class AbstractAggregator:
         for phase in self.search_outputs:
             split_path = path.split(phase.directory)[0]
 
-            unzipped_path = path.join(split_path)
-
-            rmtree(unzipped_path, ignore_errors=True)
+            rmtree(split_path, ignore_errors=True)
 
     def __getitem__(
         self, item: Union[slice, int]

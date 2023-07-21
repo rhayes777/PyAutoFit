@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from typing import List, Optional
+from typing import Dict, List, Optional
 import warnings
 
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
@@ -15,9 +15,7 @@ class SamplesNest(SamplesPDF):
             self,
             model: AbstractPriorModel,
             sample_list: List[Sample],
-            number_live_points: Optional[int] = None,
-            unconverged_sample_size: int = 100,
-            time: Optional[float] = None,
+            samples_info : Optional[Dict] = None,
             results_internal: Optional = None,
     ):
         """
@@ -40,23 +38,16 @@ class SamplesNest(SamplesPDF):
             by the non-linear search.
         number_live_points
             The number of live points used by the nested sampler.
-        unconverged_sample_size
-            If the samples are for a search that is yet to convergence, a reduced set of samples are used to provide
-            a rough estimate of the parameters. The number of samples is set by this parameter.
-        time
-            The time taken to perform the model-fit, which is passed around `Samples` objects for outputting
-            information on the overall fit.
+        samples_info
+            Contains information on the samples (e.g. total iterations, time to run the search, etc.).
         results_internal
             The nested sampler's results in their native internal format for interfacing its visualization library.
         """
 
-        self._number_live_points = number_live_points
-
         super().__init__(
             model=model,
             sample_list=sample_list,
-            unconverged_sample_size=unconverged_sample_size,
-            time=time,
+            samples_info=samples_info,
             results_internal=results_internal
         )
 
@@ -92,35 +83,21 @@ class SamplesNest(SamplesPDF):
         return self.__class__(
             model=self.model,
             sample_list=self.sample_list + other.sample_list,
-            number_live_points=self._number_live_points,
-            unconverged_sample_size=self.unconverged_sample_size,
-            time=self.time,
+            samples_info=self.samples_info,
             results_internal=None
         )
 
     @property
     def number_live_points(self):
-        return self._number_live_points
+        return self.samples_info["number_live_points"]
 
     @property
-    @abstractmethod
     def log_evidence(self):
-        pass
+        return self.samples_info["log_evidence"]
 
     @property
-    @abstractmethod
     def total_samples(self):
-        pass
-
-    @property
-    def info_json(self):
-        return {
-            "log_evidence": self.log_evidence,
-            "total_samples": self.total_samples,
-            "unconverged_sample_size": self.unconverged_sample_size,
-            "time": self.time,
-            "number_live_points": self.number_live_points
-        }
+        return self.samples_info["total_samples"]
 
     @property
     def total_accepted_samples(self) -> int:
@@ -192,5 +169,5 @@ class SamplesNest(SamplesPDF):
         return SamplesStored(
             model=self.model,
             sample_list=sample_list,
-            unconverged_sample_size=self.unconverged_sample_size,
+            samples_info=self.samples_info,
         )

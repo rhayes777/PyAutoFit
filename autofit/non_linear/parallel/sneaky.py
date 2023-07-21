@@ -36,7 +36,7 @@ def _is_likelihood_function(
     -------
     Is the object a log likelihood function?
     """
-    from autofit.non_linear.abstract_search import NonLinearSearch
+    from autofit.non_linear.search.abstract_search import NonLinearSearch
     return any([
         isinstance(
             function,
@@ -202,7 +202,7 @@ class SneakyProcess(Process):
             except FileExistsError:
                 pass
 
-            sneaky_path = path.join(self.paths.profile_path, f"sneaky_{self.pid}.prof")
+            sneaky_path = self.paths.profile_path / f"sneaky_{self.pid}.prof"
 
             pr.dump_stats(sneaky_path)
             pr.disable()

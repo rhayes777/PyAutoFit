@@ -28,10 +28,8 @@ class Timer:
         recorded.
         """
 
-        start_time_path = path.join(
-            self.samples_path,
-            ".start_time"
-        )
+        start_time_path = self.samples_path / ".start_time"
+
         try:
             with open(start_time_path) as f:
                 float(f.read())
@@ -51,7 +49,7 @@ class Timer:
             return
 
         with open(
-                path.join(self.samples_path, ".time"), "w+"
+                self.samples_path / ".time", "w+"
         ) as f:
             f.write(execution_time)
 
@@ -62,7 +60,7 @@ class Timer:
         """
         try:
             with open(
-                    path.join(self.samples_path, ".start_time"), "r"
+                    self.samples_path / ".start_time", "r"
             ) as f:
                 return f.read()
         except FileNotFoundError:
@@ -75,7 +73,7 @@ class Timer:
         """
         try:
             with open(
-                    path.join(self.samples_path, ".time"), "r"
+                    self.samples_path / ".time", "r"
             ) as f:
                 return f.read()
         except FileNotFoundError:

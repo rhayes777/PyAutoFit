@@ -24,10 +24,12 @@ def test__samples_within_parameter_range(samples_x5):
             log_prior_list=[0.0, 0.0, 0.0, 0.0, 0.0],
             weight_list=[1.0, 1.0, 1.0, 1.0, 1.0],
         ),
-        total_samples=10,
-        log_evidence=0.0,
-        number_live_points=5,
-    )
+        samples_info={
+            "total_samples" : 10,
+            "log_evidence" : 0.0,
+            "number_live_points" : 5,
+            }
+        )
 
     samples_range = samples_x5.samples_within_parameter_range(
         parameter_index=0, parameter_range=[-1.0, 100.0]
@@ -66,9 +68,11 @@ def test__acceptance_ratio_is_correct():
             log_prior_list=5 * [0.0],
             weight_list=5 * [0.0],
         ),
-        total_samples=10,
-        log_evidence=0.0,
-        number_live_points=5,
+        samples_info={
+            "total_samples" : 10,
+            "log_evidence" : 0.0,
+            "number_live_points" : 5,
+            }
     )
 
     assert samples_x5.acceptance_ratio == 0.5

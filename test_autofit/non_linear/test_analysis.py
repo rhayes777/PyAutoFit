@@ -160,7 +160,7 @@ def make_search():
 def test_child_paths(search):
     paths = search.paths
     sub_paths = SubDirectoryPaths(paths, analysis_name="analysis_0")
-    assert sub_paths.output_path == f"{paths.output_path}/analysis_0"
+    assert sub_paths.output_path == paths.output_path / "analysis_0"
 
 
 @pytest.fixture(name="multi_analysis")

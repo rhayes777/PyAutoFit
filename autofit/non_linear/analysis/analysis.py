@@ -97,10 +97,10 @@ class Analysis(ABC):
     ):
         pass
 
-    def save_attributes_for_aggregator(self, paths: AbstractPaths):
+    def save_attributes(self, paths: AbstractPaths):
         pass
 
-    def save_results_for_aggregator(self, paths: AbstractPaths, result: Result):
+    def save_results(self, paths: AbstractPaths, result: Result):
         pass
 
     def modify_before_fit(self, paths: AbstractPaths, model: AbstractPriorModel):
@@ -126,12 +126,9 @@ class Analysis(ABC):
         """
         return self
 
-    def make_result(self, samples, sigma=1.0, use_errors=True, use_widths=False):
+    def make_result(self, samples):
         return Result(
             samples=samples,
-            sigma=sigma,
-            use_errors=use_errors,
-            use_widths=use_widths,
         )
 
     def profile_log_likelihood_function(self, paths: AbstractPaths, instance):

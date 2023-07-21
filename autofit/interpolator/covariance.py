@@ -6,7 +6,7 @@ from autofit.non_linear.samples.pdf import SamplesPDF
 from .abstract import AbstractInterpolator
 from .query import Equality, InterpolatorPath
 from autofit.non_linear.analysis.analysis import Analysis
-from autofit.non_linear.nest.dynesty.static import DynestyStatic
+from autofit.non_linear.search.nest.dynesty.search.static import DynestyStatic
 from autofit.mapper.prior_model.prior_model import Model
 from autofit.mapper.prior_model.collection import Collection
 from autofit.mapper.prior.gaussian import GaussianPrior

@@ -3,10 +3,6 @@ DownhillSimplex:
     method: prior
   printing:
     silence: false
-  prior_passer:
-    sigma: 3.0
-    use_errors: true
-    use_widths: true
   search:
     disp: 1
     ftol: 0.0001
@@ -28,10 +24,6 @@ Drawer:
     method: prior
   printing:
     silence: false
-  prior_passer:
-    sigma: 3.0
-    use_errors: true
-    use_widths: true
   search:
     total_draws: 10
   updates:
@@ -54,10 +46,6 @@ LBFGS:
     maxls: 20
   printing:
     silence: false
-  prior_passer:
-    sigma: 3.0
-    use_errors: true
-    use_widths: true
   search:
     tol: null
   updates:
@@ -75,10 +63,6 @@ PySwarmsGlobal:
     number_of_cores: 1
   printing:
     silence: false
-  prior_passer:
-    sigma: 3.0
-    use_errors: true
-    use_widths: true
   run:
     iters: 2000
   search:
@@ -102,10 +86,6 @@ PySwarmsLocal:
     number_of_cores: 1
   printing:
     silence: false
-  prior_passer:
-    sigma: 3.0
-    use_errors: true
-    use_widths: true
   run:
     iters: 2000
   search:

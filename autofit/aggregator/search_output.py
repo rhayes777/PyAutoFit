@@ -1,13 +1,12 @@
 import json
 import logging
-import os
 import pickle
 from os import path
 from pathlib import Path
 
 import dill
 
-from autofit.non_linear import abstract_search
+from autofit.non_linear.search import abstract_search
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.tools.util import from_dict
 
@@ -72,11 +71,14 @@ class SearchOutput(Output):
         directory
             The directory of the search
         """
-        super().__init__(Path(directory))
+        directory = Path(directory)
+        super().__init__(directory)
         self.__search = None
         self.__model = None
+
         self._reference = reference
-        self.file_path = os.path.join(directory, "metadata")
+        self.file_path = directory / "metadata"
+
         with open(self.file_path) as f:
             self.text = f.read()
             pairs = [line.split("=") for line in self.text.split("\n") if "=" in line]
@@ -122,7 +124,7 @@ class SearchOutput(Output):
         if self.__search is None:
             try:
                 with open(self.files_path / "search.json") as f:
-                    self.__search = from_dict(json.loads(f.read()))
+                    self.__search = from_dict(json.load(f))
             except (FileNotFoundError, ModuleNotFoundError):
                 try:
                     with open(self.pickle_path / "search.pickle", "rb") as f:
