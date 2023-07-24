@@ -66,6 +66,10 @@ class Array(Base):
 
 
 class HDU(Array):
+    """
+    A serialised astropy.io.fits.PrimaryHDU
+    """
+
     __tablename__ = "hdu"
 
     id = sa.Column(sa.Integer, sa.ForeignKey("array.id"), primary_key=True)
@@ -77,7 +81,10 @@ class HDU(Array):
     }
 
     @property
-    def header(self):
+    def header(self) -> Header:
+        """
+        The header of the HDU
+        """
         return Header.fromstring(self._header)
 
     @header.setter
