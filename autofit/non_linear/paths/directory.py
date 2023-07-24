@@ -3,7 +3,7 @@ import os
 import shutil
 from os import path
 from pathlib import Path
-from typing import Dict, Optional
+from typing import Dict, Optional, Union
 import logging
 
 import dill
@@ -14,6 +14,7 @@ from autofit.tools.util import open_, to_dict
 from .abstract import AbstractPaths
 from ..samples import load_from_table
 from autofit.non_linear.samples.pdf import SamplesPDF
+import numpy as np
 
 logger = logging.getLogger(__name__)
 
@@ -31,6 +32,12 @@ class DirectoryPaths(AbstractPaths):
     def _path_for_json(self, name) -> Path:
         return self._files_path / f"{name}.json"
 
+    def _path_for_csv(self, name) -> Path:
+        return self._files_path / f"{name}.csv"
+
+    def _path_for_fits(self, name):
+        return self._files_path / f"{name}.fits"
+
     def save_object(self, name: str, obj: object):
         """
         Serialise an object using dill and save it to the pickles
@@ -46,7 +53,7 @@ class DirectoryPaths(AbstractPaths):
         with open_(self._path_for_pickle(name), "wb") as f:
             dill.dump(obj, f)
 
-    def save_json(self, name, object_dict: dict):
+    def save_json(self, name, object_dict: Union[dict, list]):
         """
         Save a dictionary as a json file in the jsons directory of the search.
 
@@ -59,6 +66,32 @@ class DirectoryPaths(AbstractPaths):
         """
         with open_(self._path_for_json(name), "w+") as f:
             json.dump(object_dict, f, indent=4)
+
+    def save_array(self, name: str, array: np.ndarray):
+        """
+        Save a numpy array as a csv file in the csvs directory of the search.
+
+        Parameters
+        ----------
+        name
+            The name of the csv file
+        array
+            The numpy array to save
+        """
+        np.savetxt(self._path_for_csv(name), array, delimiter=",")
+
+    def save_fits(self, name: str, hdu):
+        """
+        Save an HDU as a fits file in the fits directory of the search.
+
+        Parameters
+        ----------
+        name
+            The name of the fits file
+        hdu
+            The HDU to save
+        """
+        hdu.writeto(self._path_for_fits(name), overwrite=True)
 
     def save_results_internal(self, obj: object):
         """

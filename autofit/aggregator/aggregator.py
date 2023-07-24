@@ -56,7 +56,7 @@ class AggregatorGroup:
     def __len__(self):
         return len(self.groups)
 
-    def values(self, name: str) -> List[List]:
+    def values(self, name: str, parser=lambda o: o) -> List[List]:
         """
         Extract a list of lists values with a certain name from the output objects in
         this group.
@@ -65,12 +65,14 @@ class AggregatorGroup:
         ----------
         name
             The name of the attribute to be extracted
+        parser
+            A function used to parse the output
 
         Returns
         -------
         A list of lists of values.
         """
-        return [group.values(name) for group in self.groups]
+        return [group.values(name, parser=parser) for group in self.groups]
 
 
 class AbstractAggregator:
@@ -148,7 +150,7 @@ class AbstractAggregator:
         print(f"Filter found a total of {str(len(search_outputs))} results")
         return AbstractAggregator(search_outputs=list(search_outputs))
 
-    def values(self, name: str) -> Iterator:
+    def values(self, name: str, parser: lambda o: o) -> Iterator:
         """
         Get values from outputs with a given name.
 
@@ -162,12 +164,15 @@ class AbstractAggregator:
             The name of an attribute expected to be associated with
             phase output. If a pickle file with this name is in the
             phase output directory then that pickle will be loaded.
+        parser
+            A function used to parse the output
 
         Returns
         -------
         A generator of values for the attribute
         """
-        return map(lambda phase: getattr(phase, name), self.search_outputs)
+        for value in map(lambda phase: getattr(phase, name), self.search_outputs):
+            yield parser(value)
 
     def child_values(self, name: str) -> Iterator[List]:
         """

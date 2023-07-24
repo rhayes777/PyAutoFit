@@ -3,6 +3,7 @@ from typing import Dict, Optional
 
 from autofit.database.sqlalchemy_ import sa
 from .abstract import AbstractPaths
+import numpy as np
 
 from autofit.database.model import Fit
 from autofit.tools.util import to_dict
@@ -133,6 +134,32 @@ class DatabasePaths(AbstractPaths):
         """
         self.fit.set_json(name, object_dict)
 
+    def save_array(self, name, array: np.ndarray):
+        """
+        Save an array as a json file in the database
+
+        Parameters
+        ----------
+        name
+            The name of the array
+        array
+            The array to save
+        """
+        self.fit.set_array(name, array)
+
+    def save_fits(self, name: str, hdu):
+        """
+        Save a fits file in the database
+
+        Parameters
+        ----------
+        name
+            The name of the fits file
+        hdu
+            The hdu to save
+        """
+        self.fit.set_fits(name, hdu)
+
     def save_object(self, name: str, obj: object):
         self.fit[name] = obj
 
@@ -145,7 +172,7 @@ class DatabasePaths(AbstractPaths):
     def load_results_internal(self):
         pass
 
-    def save_results_internal_json(self, results_internal_dict : Dict):
+    def save_results_internal_json(self, results_internal_dict: Dict):
         pass
 
     def load_results_internal_json(self) -> Dict:
