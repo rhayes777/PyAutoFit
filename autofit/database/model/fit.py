@@ -3,6 +3,9 @@ import pickle
 from functools import wraps
 from typing import List
 
+import numpy as np
+
+from autoconf.class_path import get_class_path, get_class
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.samples import Samples
 from .model import Base, Object
@@ -72,6 +75,49 @@ class JSON(Base):
     @property
     def value(self):
         return from_dict(self.dict)
+
+
+class Array(Base):
+    """
+    A serialised numpy array
+    """
+
+    __tablename__ = "array"
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    id = sa.Column(sa.Integer, primary_key=True)
+
+    name = sa.Column(sa.String)
+
+    bytes = sa.Column(sa.LargeBinary)
+    dtype = sa.Column(sa.String)
+    _shape = sa.Column(sa.String)
+
+    fit_id = sa.Column(sa.String, sa.ForeignKey("fit.id"))
+    fit = sa.orm.relationship("Fit", uselist=False)
+
+    @property
+    def shape(self):
+        return tuple(map(int, self._shape.split(",")))
+
+    @shape.setter
+    def shape(self, shape):
+        self._shape = ",".join(map(str, shape))
+
+    @property
+    def array(self):
+        return np.frombuffer(
+            self.bytes,
+            dtype=get_class(self.dtype),
+        ).reshape(self.shape)
+
+    @array.setter
+    def array(self, array):
+        self.dtype = get_class_path(getattr(np, array.dtype.name))
+        self.shape = array.shape
+        self.bytes = array.tobytes()
 
 
 class Info(Base):
@@ -281,6 +327,7 @@ class Fit(Base):
 
     pickles: List[Pickle] = sa.orm.relationship("Pickle", lazy="joined")
     jsons: List[JSON] = sa.orm.relationship("JSON", lazy="joined")
+    arrays: List[Array] = sa.orm.relationship("Array", lazy="joined")
 
     def __getitem__(self, item: str):
         """
@@ -299,6 +346,10 @@ class Fit(Base):
         An unpickled object
         """
         for p in self.jsons:
+            if p.name == item:
+                return p.value
+
+        for p in self.arrays:
             if p.name == item:
                 return p.value
 
@@ -341,9 +392,45 @@ class Fit(Base):
                 return p.dict
         raise KeyError(f"JSON {key} not found")
 
+    def set_array(self, key: str, value: np.ndarray):
+        """
+        Add an array to the database. Overwrites any existing array
+        with the same name.
+
+        Parameters
+        ----------
+        key
+            The name of the array
+        value
+            A numpy array
+        """
+        new = Array(name=key, array=value)
+        self.arrays = [p for p in self.arrays if p.name != key] + [new]
+
+    def get_array(self, key: str) -> np.ndarray:
+        """
+        Retrieve an array from the database.
+
+        Parameters
+        ----------
+        key
+            The name of the array
+
+        Returns
+        -------
+        A numpy array
+        """
+        for p in self.arrays:
+            if p.name == key:
+                return p.array
+        raise KeyError(f"Array {key} not found")
+
     def __contains__(self, item):
         for p in self.pickles:
             if p.name == item:
+                return True
+        for a in self.arrays:
+            if a.name == item:
                 return True
         for j in self.jsons:
             if j.name == item:
