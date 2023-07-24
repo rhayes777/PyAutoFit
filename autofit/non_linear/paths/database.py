@@ -147,6 +147,19 @@ class DatabasePaths(AbstractPaths):
         """
         self.fit.set_array(name, array)
 
+    def save_fits(self, name: str, hdu):
+        """
+        Save a fits file in the database
+
+        Parameters
+        ----------
+        name
+            The name of the fits file
+        hdu
+            The hdu to save
+        """
+        self.fit.set_fits(name, hdu)
+
     def save_object(self, name: str, obj: object):
         self.fit[name] = obj
 

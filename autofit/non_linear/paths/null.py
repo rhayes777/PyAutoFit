@@ -15,6 +15,9 @@ class NullPaths(AbstractPaths):
     def save_array(self, name, array):
         pass
 
+    def save_fits(self, name: str, hdu):
+        pass
+
     def __init__(self):
         super().__init__()
         self.objects = dict()

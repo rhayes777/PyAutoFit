@@ -351,6 +351,10 @@ class AbstractPaths(ABC):
         pass
 
     @abstractmethod
+    def save_fits(self, name: str, hdu):
+        pass
+
+    @abstractmethod
     def save_object(self, name: str, obj: object):
         pass
 
