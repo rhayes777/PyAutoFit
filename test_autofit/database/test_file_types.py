@@ -23,5 +23,10 @@ def test_array():
         array=np.array([[1, 2], [3, 4]]),
     )
     assert csv.name == "test"
-    print(csv.array)
     assert (csv.array == [[1, 2], [3, 4]]).all()
+
+
+def test_set_array():
+    fit = db.Fit()
+    fit.set_array("test", np.array([[1, 2], [3, 4]]))
+    assert (fit.get_array("test") == [[1, 2], [3, 4]]).all()
