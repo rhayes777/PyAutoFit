@@ -49,3 +49,10 @@ def test_hdu(hdu):
     loaded = db_hdu.hdu
     assert (loaded.data == [[3, 3], [3, 3]]).all()
     assert loaded.header == hdu.header
+
+
+def test_set_hdu(fit, hdu):
+    fit.set_hdu("test", hdu)
+    loaded = fit.get_hdu("test")
+    assert (loaded.data == [[3, 3], [3, 3]]).all()
+    assert loaded.header == hdu.header

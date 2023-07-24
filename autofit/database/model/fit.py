@@ -4,12 +4,14 @@ from functools import wraps
 from typing import List
 
 import numpy as np
+from astropy.io import fits
+
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.samples import Samples
 from .model import Base, Object
 from ..sqlalchemy_ import sa
 from ...tools.util import from_dict
-from .array import Array
+from .array import Array, HDU
 
 
 class Pickle(Base):
@@ -284,6 +286,7 @@ class Fit(Base):
     pickles: List[Pickle] = sa.orm.relationship("Pickle", lazy="joined")
     jsons: List[JSON] = sa.orm.relationship("JSON", lazy="joined")
     arrays: List[Array] = sa.orm.relationship("Array", lazy="joined")
+    hdus: List[HDU] = sa.orm.relationship("HDU", lazy="joined")
 
     def __getitem__(self, item: str):
         """
@@ -301,15 +304,7 @@ class Fit(Base):
         -------
         An unpickled object
         """
-        for p in self.jsons:
-            if p.name == item:
-                return p.value
-
-        for p in self.arrays:
-            if p.name == item:
-                return p.value
-
-        for p in self.pickles:
+        for p in self.jsons + self.arrays + self.hdus + self.pickles:
             if p.name == item:
                 return p.value
 
@@ -381,15 +376,42 @@ class Fit(Base):
                 return p.array
         raise KeyError(f"Array {key} not found")
 
+    def set_hdu(self, key: str, value: fits.HDUList):
+        """
+        Add an HDU to the database. Overwrites any existing HDU
+        with the same name.
+
+        Parameters
+        ----------
+        key
+            The name of the HDU
+        value
+            A fits HDUList
+        """
+        new = HDU(name=key, hdu=value)
+        self.hdus = [p for p in self.hdus if p.name != key] + [new]
+
+    def get_hdu(self, key: str) -> fits.HDUList:
+        """
+        Retrieve an HDU from the database.
+
+        Parameters
+        ----------
+        key
+            The name of the HDU
+
+        Returns
+        -------
+        A fits HDUList
+        """
+        for p in self.hdus:
+            if p.name == key:
+                return p.hdu
+        raise KeyError(f"HDU {key} not found")
+
     def __contains__(self, item):
-        for p in self.pickles:
-            if p.name == item:
-                return True
-        for a in self.arrays:
-            if a.name == item:
-                return True
-        for j in self.jsons:
-            if j.name == item:
+        for i in self.pickles + self.jsons + self.arrays + self.hdus:
+            if i.name == item:
                 return True
         return False
 
