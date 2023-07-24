@@ -12,6 +12,9 @@ class NullPaths(AbstractPaths):
     def save_json(self, name, object_dict: dict):
         pass
 
+    def save_array(self, name, array):
+        pass
+
     def __init__(self):
         super().__init__()
         self.objects = dict()
@@ -56,7 +59,7 @@ class NullPaths(AbstractPaths):
     def load_results_internal(self):
         pass
 
-    def save_results_internal_json(self, results_internal_dict : Dict):
+    def save_results_internal_json(self, results_internal_dict: Dict):
         pass
 
     def load_results_internal_json(self) -> Dict:

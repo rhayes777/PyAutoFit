@@ -10,6 +10,8 @@ from os import path
 from pathlib import Path
 from typing import Dict, Optional
 
+import numpy as np
+
 from autoconf import conf
 from autofit.mapper.identifier import Identifier, IdentifierField
 from autofit.text import text_util
@@ -345,6 +347,10 @@ class AbstractPaths(ABC):
         pass
 
     @abstractmethod
+    def save_array(self, name, array: np.ndarray):
+        pass
+
+    @abstractmethod
     def save_object(self, name: str, obj: object):
         pass
 
@@ -369,7 +375,7 @@ class AbstractPaths(ABC):
         pass
 
     @abstractmethod
-    def save_results_internal_json(self, results_internal_dict : Dict):
+    def save_results_internal_json(self, results_internal_dict: Dict):
         pass
 
     @abstractmethod
