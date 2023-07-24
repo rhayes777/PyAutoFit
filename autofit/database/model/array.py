@@ -56,6 +56,10 @@ class Array(Base):
         self.shape = array.shape
         self.bytes = array.tobytes()
 
+    @property
+    def value(self):
+        return self.array
+
 
 class HDU(Array):
     __tablename__ = "hdu"
@@ -87,3 +91,7 @@ class HDU(Array):
     def hdu(self, hdu):
         self.array = hdu.data
         self.header = hdu.header
+
+    @property
+    def value(self):
+        return self.hdu
