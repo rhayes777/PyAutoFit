@@ -5,6 +5,8 @@ import pickle
 from pathlib import Path
 from typing import Optional, Union
 
+import numpy as np
+
 from .. import model as m
 from ..sqlalchemy_ import sa
 from ...mapper.model_object import Identifier
@@ -120,13 +122,13 @@ class Scraper:
                 )
 
             _add_pickles(fit, Path(item.pickle_path))
-            _add_jsons(fit, Path(item.files_path))
+            _add_files(fit, Path(item.files_path))
             for i, child_analysis in enumerate(item.child_analyses):
                 child_fit = m.Fit(
                     id=f"{identifier}_{i}",
                 )
                 _add_pickles(child_fit, child_analysis.pickle_path)
-                _add_jsons(child_fit, child_analysis.files_path)
+                _add_files(child_fit, child_analysis.files_path)
                 fit.children.append(child_fit)
 
             yield fit
@@ -162,7 +164,7 @@ class Scraper:
                 )
 
                 _add_pickles(grid_search, path / "pickles")
-                _add_jsons(grid_search, path / "files")
+                _add_files(grid_search, path / "files")
 
                 aggregator = ClassicAggregator(root)
                 for item in aggregator:
@@ -244,9 +246,9 @@ def _add_pickles(fit: m.Fit, pickle_path: Path):
             ) from e
 
 
-def _add_jsons(fit: m.Fit, files_path: Path):
+def _add_files(fit: m.Fit, files_path: Path):
     """
-    Load JSONs from the path and add them to the database.
+    Load files from the path and add them to the database.
 
     Parameters
     ----------
@@ -262,7 +264,12 @@ def _add_jsons(fit: m.Fit, files_path: Path):
         filenames = []
 
     for filename in filenames:
-        if not filename.endswith(".json"):
-            continue
-        with open(files_path / filename) as f:
-            fit.set_json(filename.split(".")[0], json.load(f))
+        filename = files_path / filename
+        name = filename.stem
+        suffix = filename.suffix
+        if suffix == ".json":
+            with open(filename) as f:
+                fit.set_json(name, json.load(f))
+        elif suffix == ".csv":
+            with open(filename) as f:
+                fit.set_array(name, np.loadtxt(f, delimiter=","))
