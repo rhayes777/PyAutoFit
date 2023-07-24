@@ -22,7 +22,7 @@ class Array(Base):
     name = sa.Column(sa.String)
 
     bytes = sa.Column(sa.LargeBinary)
-    dtype = sa.Column(sa.String)
+    _dtype = sa.Column(sa.String)
     _shape = sa.Column(sa.String)
 
     fit_id = sa.Column(sa.String, sa.ForeignKey("fit.id"))
@@ -47,14 +47,18 @@ class Array(Base):
     def array(self):
         return np.frombuffer(
             self.bytes,
-            dtype=get_class(self.dtype),
+            dtype=self.dtype,
         ).reshape(self.shape)
 
     @array.setter
     def array(self, array):
-        self.dtype = get_class_path(getattr(np, array.dtype.name))
+        self._dtype = get_class_path(getattr(np, array.dtype.name))
         self.shape = array.shape
         self.bytes = array.tobytes()
+
+    @property
+    def dtype(self):
+        return get_class(self._dtype)
 
     @property
     def value(self):
@@ -95,3 +99,7 @@ class HDU(Array):
     @property
     def value(self):
         return self.hdu
+
+    @property
+    def dtype(self):
+        return np.dtype(">f8")
