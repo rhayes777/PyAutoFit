@@ -6,7 +6,6 @@ from pathlib import Path
 from typing import Optional, Union
 
 import numpy as np
-from astropy.io import fits
 
 from .. import model as m
 from ..sqlalchemy_ import sa
@@ -279,4 +278,6 @@ def _add_files(fit: m.Fit, files_path: Path):
                 logger.debug(f"Failed to load array from {filename}")
         elif suffix == ".fits":
             with open(filename, "rb") as f:
+                from astropy.io import fits
+
                 fit.set_hdu(name, fits.PrimaryHDU.readfrom(f))

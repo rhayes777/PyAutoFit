@@ -1,6 +1,4 @@
 import numpy as np
-from astropy.io import fits
-from astropy.io.fits import Header
 
 from autoconf.class_path import get_class_path, get_class
 from .model import Base
@@ -81,10 +79,12 @@ class HDU(Array):
     }
 
     @property
-    def header(self) -> Header:
+    def header(self):
         """
         The header of the HDU
         """
+        from astropy.io.fits import Header
+
         return Header.fromstring(self._header)
 
     @header.setter
@@ -93,6 +93,8 @@ class HDU(Array):
 
     @property
     def hdu(self):
+        from astropy.io import fits
+
         return fits.PrimaryHDU(
             self.array,
             self.header,

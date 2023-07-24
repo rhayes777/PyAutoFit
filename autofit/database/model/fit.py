@@ -4,7 +4,6 @@ from functools import wraps
 from typing import List
 
 import numpy as np
-from astropy.io import fits
 
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.samples import Samples
@@ -376,7 +375,7 @@ class Fit(Base):
                 return p.array
         raise KeyError(f"Array {key} not found")
 
-    def set_hdu(self, key: str, value: fits.HDUList):
+    def set_hdu(self, key: str, value):
         """
         Add an HDU to the database. Overwrites any existing HDU
         with the same name.
@@ -391,7 +390,7 @@ class Fit(Base):
         new = HDU(name=key, hdu=value)
         self.hdus = [p for p in self.hdus if p.name != key] + [new]
 
-    def get_hdu(self, key: str) -> fits.HDUList:
+    def get_hdu(self, key: str):
         """
         Retrieve an HDU from the database.
 
