@@ -99,7 +99,7 @@ class AbstractAggregator(ABC):
     def fits(self) -> List[m.Fit]:
         pass
 
-    def values(self, name: str) -> list:
+    def values(self, name: str, parser=lambda o: o) -> list:
         """
         Retrieve the value associated with each fit with the given
         parameter name
@@ -108,6 +108,8 @@ class AbstractAggregator(ABC):
         ----------
         name
             The name of some pickle, such as 'samples'
+        parser
+            A function to parse the value
 
         Returns
         -------
@@ -117,7 +119,7 @@ class AbstractAggregator(ABC):
         for fit in self:
             value = fit[name]
             if value is not None:
-                values.append(value)
+                values.append(parser(value))
 
         return values
 
