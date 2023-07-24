@@ -127,7 +127,7 @@ class UltraNest(abstract_nest.AbstractNest):
                 "You are attempting to perform a model-fit using UltraNest. \n\n"
                 "However, the optional library UltraNest (https://johannesbuchner.github.io/UltraNest/index.html) is "
                 "not installed.\n\n"
-                "Install it via the command `pip install ultranest==3.5.5`.\n\n"
+                "Install it via the command `pip install ultranest==3.6.2`.\n\n"
                 "----------------------"
             )
 

@@ -47,7 +47,7 @@ Using queries to load specific results is described in the following sections:
 Unique Identifiers
 ------------------
 
-Results output to hard-disk by **PyAutoFit** are contained in a folder named via a unique identifier (a
+Results output to hard-disk are contained in a folder named via a unique identifier (a
 random collection of characters, e.g. ``8hds89fhndlsiuhnfiusdh``). The unique identifier changes if the model or
 search change, to ensure different fits to not overwrite one another on hard-disk.
 
@@ -205,12 +205,12 @@ object.
 
     samples_gen = agg.values("samples")
 
-By converting this generator to a list and printing it, it is a list of 3 ``SamplesDynesty`` objects, corresponding to
+By converting this generator to a list and printing it, it is a list of 3 ``SamplesNest`` objects, corresponding to
 the 3 model-fits performed above.
 
 .. code-block:: python
 
-    print("Dynesty Samples:\n")
+    print("Samples:\n")
     print(samples_gen)
     print("Total Samples Objects = ", len(agg), "\n")
 
@@ -414,7 +414,7 @@ second ``Gaussian`` dataset.
     unique_tag = agg.search.unique_tag
     agg_query = agg.query(unique_tag == "gaussian_x1_1")
 
-As expected, this list has only 1 ``SamplesDynesty`` corresponding to the second dataset.
+As expected, this list has only 1 ``SamplesNest`` corresponding to the second dataset.
 
 .. code-block:: python
 
