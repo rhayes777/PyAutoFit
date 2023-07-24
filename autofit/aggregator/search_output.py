@@ -5,6 +5,7 @@ from os import path
 from pathlib import Path
 
 import dill
+import numpy as np
 
 from autofit.non_linear.search import abstract_search
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
@@ -53,6 +54,16 @@ class Output:
         try:
             with open(self.pickle_path / f"{item}.pickle", "rb") as f:
                 return pickle.load(f)
+        except FileNotFoundError:
+            pass
+        try:
+            with open(self.files_path / f"{item}.json") as f:
+                return json.load(f)
+        except FileNotFoundError:
+            pass
+        try:
+            with open(self.files_path / f"{item}.csv") as f:
+                return np.loadtxt(f)
         except FileNotFoundError:
             pass
 
