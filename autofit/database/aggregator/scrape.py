@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Optional, Union
 
 import numpy as np
+from astropy.io import fits
 
 from .. import model as m
 from ..sqlalchemy_ import sa
@@ -273,3 +274,5 @@ def _add_files(fit: m.Fit, files_path: Path):
         elif suffix == ".csv":
             with open(filename) as f:
                 fit.set_array(name, np.loadtxt(f, delimiter=","))
+        elif suffix == ".fits":
+            fit.set_hdu(fits.open(filename))
