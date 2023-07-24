@@ -278,4 +278,5 @@ def _add_files(fit: m.Fit, files_path: Path):
             except ValueError:
                 logger.debug(f"Failed to load array from {filename}")
         elif suffix == ".fits":
-            fit.set_hdu(name, fits.open(filename))
+            with open(filename, "rb") as f:
+                fit.set_hdu(name, fits.PrimaryHDU.readfrom(f))
