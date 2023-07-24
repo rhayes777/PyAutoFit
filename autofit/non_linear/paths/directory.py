@@ -14,6 +14,7 @@ from autofit.tools.util import open_, to_dict
 from .abstract import AbstractPaths
 from ..samples import load_from_table
 from autofit.non_linear.samples.pdf import SamplesPDF
+import numpy as np
 
 logger = logging.getLogger(__name__)
 
@@ -30,6 +31,9 @@ class DirectoryPaths(AbstractPaths):
 
     def _path_for_json(self, name) -> Path:
         return self._files_path / f"{name}.json"
+
+    def _path_for_csv(self, name) -> Path:
+        return self._files_path / f"{name}.csv"
 
     def save_object(self, name: str, obj: object):
         """
@@ -59,6 +63,19 @@ class DirectoryPaths(AbstractPaths):
         """
         with open_(self._path_for_json(name), "w+") as f:
             json.dump(object_dict, f, indent=4)
+
+    def save_csv(self, name: str, array):
+        """
+        Save a numpy array as a csv file in the csvs directory of the search.
+
+        Parameters
+        ----------
+        name
+            The name of the csv file
+        array
+            The numpy array to save
+        """
+        np.savetxt(self._path_for_csv(name), array, delimiter=",")
 
     def save_results_internal(self, obj: object):
         """
