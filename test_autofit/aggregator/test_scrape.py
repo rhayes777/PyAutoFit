@@ -50,3 +50,9 @@ def test_add_files(fit):
         },
         "type": "model",
     }
+
+
+def test_add_recursive(fit):
+    assert fit.jsons["directory.example"] == {
+        "hello": "world",
+    }

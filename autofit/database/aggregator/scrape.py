@@ -246,6 +246,12 @@ def _add_pickles(fit: m.Fit, pickle_path: Path):
             ) from e
 
 
+def names_and_paths(files_path: Path, suffix: str):
+    for file in list(files_path.rglob(f"*{suffix}")):
+        name = ".".join(file.relative_to(files_path).with_suffix("").parts)
+        yield name, file
+
+
 def _add_files(fit: m.Fit, files_path: Path):
     """
     Load files from the path and add them to the database.
@@ -257,27 +263,18 @@ def _add_files(fit: m.Fit, files_path: Path):
     files_path
         The path in which the JSONs are stored
     """
-    try:
-        filenames = os.listdir(files_path)
-    except FileNotFoundError as e:
-        logger.info(e)
-        filenames = []
+    for name, path in names_and_paths(files_path, ".json"):
+        with open(path) as f:
+            fit.set_json(name, json.load(f))
+    for name, path in names_and_paths(files_path, ".csv"):
+        try:
+            with open(path) as f:
+                fit.set_array(name, np.loadtxt(f, delimiter=","))
+        except ValueError:
+            logger.debug(f"Failed to load array from {path}")
 
-    for filename in filenames:
-        filename = files_path / filename
-        name = filename.stem
-        suffix = filename.suffix
-        if suffix == ".json":
-            with open(filename) as f:
-                fit.set_json(name, json.load(f))
-        elif suffix == ".csv":
-            try:
-                with open(filename) as f:
-                    fit.set_array(name, np.loadtxt(f, delimiter=","))
-            except ValueError:
-                logger.debug(f"Failed to load array from {filename}")
-        elif suffix == ".fits":
-            with open(filename, "rb") as f:
-                from astropy.io import fits
+    for name, path in names_and_paths(files_path, ".fits"):
+        from astropy.io import fits
 
-                fit.set_hdu(name, fits.PrimaryHDU.readfrom(f))
+        with open(path, "rb") as f:
+            fit.set_hdu(name, fits.PrimaryHDU.readfrom(f))
