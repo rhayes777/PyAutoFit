@@ -64,7 +64,7 @@ class Output:
         try:
             with open(self.files_path / f"{item}.csv") as f:
                 return np.loadtxt(f)
-        except FileNotFoundError:
+        except (FileNotFoundError, ValueError):
             pass
 
 

@@ -272,7 +272,10 @@ def _add_files(fit: m.Fit, files_path: Path):
             with open(filename) as f:
                 fit.set_json(name, json.load(f))
         elif suffix == ".csv":
-            with open(filename) as f:
-                fit.set_array(name, np.loadtxt(f, delimiter=","))
+            try:
+                with open(filename) as f:
+                    fit.set_array(name, np.loadtxt(f, delimiter=","))
+            except ValueError:
+                logger.debug(f"Failed to load array from {filename}")
         elif suffix == ".fits":
-            fit.set_hdu(fits.open(filename))
+            fit.set_hdu(name, fits.open(filename))
