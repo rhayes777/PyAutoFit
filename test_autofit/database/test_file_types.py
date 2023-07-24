@@ -36,23 +36,28 @@ def test_set_array(fit):
     assert (fit.get_array("test") == [[1, 2], [3, 4]]).all()
 
 
+@pytest.fixture(name="hdu_array")
+def make_hdu_array():
+    return np.array([[3, 3], [3, 3]], dtype=np.dtype(">f8"))
+
+
 @pytest.fixture(name="hdu")
-def make_hdu():
+def make_hdu(hdu_array):
     new_hdr = fits.Header()
-    return fits.PrimaryHDU(3.0 * np.ones(shape=(2, 2)), new_hdr)
+    return fits.PrimaryHDU(hdu_array, new_hdr)
 
 
-def test_hdu(hdu):
+def test_hdu(hdu, hdu_array):
     db_hdu = db.HDU(name="test", hdu=hdu)
     assert db_hdu.name == "test"
 
     loaded = db_hdu.hdu
-    assert (loaded.data == [[3, 3], [3, 3]]).all()
+    assert (loaded.data == hdu_array).all()
     assert loaded.header == hdu.header
 
 
-def test_set_hdu(fit, hdu):
+def test_set_hdu(fit, hdu, hdu_array):
     fit.set_hdu("test", hdu)
     loaded = fit.get_hdu("test")
-    assert (loaded.data == [[3, 3], [3, 3]]).all()
+    assert (loaded.data == hdu_array).all()
     assert loaded.header == hdu.header
