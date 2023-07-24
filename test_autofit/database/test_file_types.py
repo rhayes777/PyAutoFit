@@ -1,8 +1,14 @@
 import numpy as np
+import pytest
 
-from autoconf.class_path import get_class_path, get_class
 from autofit.database import JSON
 from autofit import database as db
+from astropy.io import fits
+
+
+@pytest.fixture(name="fit")
+def make_fit():
+    return db.Fit()
 
 
 def test_json():
@@ -11,8 +17,7 @@ def test_json():
     assert json.dict == {"a": 1}
 
 
-def test_set_json():
-    fit = db.Fit()
+def test_set_json(fit):
     fit.set_json("test", {"a": 1})
     assert fit.get_json("test") == {"a": 1}
 
@@ -26,7 +31,21 @@ def test_array():
     assert (csv.array == [[1, 2], [3, 4]]).all()
 
 
-def test_set_array():
-    fit = db.Fit()
+def test_set_array(fit):
     fit.set_array("test", np.array([[1, 2], [3, 4]]))
     assert (fit.get_array("test") == [[1, 2], [3, 4]]).all()
+
+
+@pytest.fixture(name="hdu")
+def make_hdu():
+    new_hdr = fits.Header()
+    return fits.PrimaryHDU(3.0 * np.ones(shape=(2, 2)), new_hdr)
+
+
+def test_hdu(hdu):
+    db_hdu = db.HDU(name="test", hdu=hdu)
+    assert db_hdu.name == "test"
+
+    loaded = db_hdu.hdu
+    assert (loaded.data == [[3, 3], [3, 3]]).all()
+    assert loaded.header == hdu.header
