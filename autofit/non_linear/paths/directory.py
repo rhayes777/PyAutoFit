@@ -3,7 +3,7 @@ import os
 import shutil
 from os import path
 from pathlib import Path
-from typing import Dict, Optional
+from typing import Dict, Optional, Union
 import logging
 
 import dill
@@ -46,7 +46,7 @@ class DirectoryPaths(AbstractPaths):
         with open_(self._path_for_pickle(name), "wb") as f:
             dill.dump(obj, f)
 
-    def save_json(self, name, object_dict: dict):
+    def save_json(self, name, object_dict: Union[dict, list]):
         """
         Save a dictionary as a json file in the jsons directory of the search.
 
