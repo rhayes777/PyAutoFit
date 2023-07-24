@@ -35,6 +35,9 @@ class DirectoryPaths(AbstractPaths):
     def _path_for_csv(self, name) -> Path:
         return self._files_path / f"{name}.csv"
 
+    def _path_for_fits(self, name):
+        return self._files_path / f"{name}.fits"
+
     def save_object(self, name: str, obj: object):
         """
         Serialise an object using dill and save it to the pickles
@@ -76,6 +79,19 @@ class DirectoryPaths(AbstractPaths):
             The numpy array to save
         """
         np.savetxt(self._path_for_csv(name), array, delimiter=",")
+
+    def save_fits(self, name: str, hdu):
+        """
+        Save an HDU as a fits file in the fits directory of the search.
+
+        Parameters
+        ----------
+        name
+            The name of the fits file
+        hdu
+            The HDU to save
+        """
+        hdu.writeto(self._path_for_fits(name), overwrite=True)
 
     def save_results_internal(self, obj: object):
         """
