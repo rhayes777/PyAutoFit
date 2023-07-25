@@ -7,18 +7,6 @@ from autofit.plot.output import Output
 
 logger = logging.getLogger(__name__)
 
-def log_value_error(func):
-
-    @wraps(func)
-    def wrapper(self, *args, **kwargs):
-
-        try:
-            return func(self, *args, **kwargs)
-        except ValueError:
-            self.log_plot_exception(func.__name__)
-
-    return wrapper
-
 def skip_plot_in_test_mode(func):
     """
     Skips visualization plots of non-linear searches if test mode is on.

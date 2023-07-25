@@ -1,7 +1,19 @@
+from functools import wraps
 from autofit.plot import SamplesPlotter
 
 from autofit.plot.samples_plotters import skip_plot_in_test_mode
-from autofit.plot.samples_plotters import log_value_error
+
+def log_value_error(func):
+
+    @wraps(func)
+    def wrapper(self, *args, **kwargs):
+
+        try:
+            return func(self, *args, **kwargs)
+        except KeyError:
+            self.log_plot_exception(func.__name__)
+
+    return wrapper
 
 class UltraNestPlotter(SamplesPlotter):
 
