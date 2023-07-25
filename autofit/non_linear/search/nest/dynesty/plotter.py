@@ -8,6 +8,7 @@ from autofit.plot.samples_plotters import log_value_error
 class DynestyPlotter(SamplesPlotter):
 
     @skip_plot_in_test_mode
+    @log_value_error
     def boundplot(self, **kwargs):
         """
         Plots the in-built ``dynesty`` plot ``boundplot``.
@@ -28,6 +29,7 @@ class DynestyPlotter(SamplesPlotter):
         self.close()
 
     @skip_plot_in_test_mode
+    @log_value_error
     def cornerbound(self, **kwargs):
         """
         Plots the in-built ``dynesty`` plot ``cornerbound``.
@@ -54,6 +56,7 @@ class DynestyPlotter(SamplesPlotter):
 
         This figure plots a corner plot of the 1-D and 2-D marginalized posteriors.
         """
+
         dyplot.cornerplot(
             results=self.samples.results_internal,
             labels=self.model.parameter_labels_with_superscripts_latex,

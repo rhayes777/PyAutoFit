@@ -1723,7 +1723,7 @@ class AbstractPriorModel(AbstractModel):
 
         prior_paths = map(tuple_filter, prior_paths)
 
-        superscripts = [path[-2] if len(path) > 1 else path[0] for path in prior_paths]
+        superscripts = [path[-2] if len(path) > 1 else None for path in prior_paths]
 
         return [
             superscript if not superscript_overwrite else superscript_overwrite
@@ -1780,7 +1780,7 @@ class AbstractPriorModel(AbstractModel):
         """
 
         return [
-            f"{label}^{{\\rm {superscript}}}"
+            f"{label}^{{\\rm {superscript}}}" if superscript else f"{label}"
             for label, superscript in zip(self.parameter_labels, self.superscripts)
         ]
 
