@@ -9,7 +9,31 @@ def log_value_error(func):
 
     @wraps(func)
     def wrapper(self, *args, **kwargs):
+        """
+        Prevent an exception terminating the run if visualization fails due to convergence not yet being reached.
 
+        Searches attempt to perform visualization every `iterations_per_update`, however these visualization calls
+        may occur before the search has converged on enough of parameter to successfully perform visualization.
+
+        This can lead the search to raise an exception which terminates the Python script, when we instead
+        want the code to continue running, to continue the search and perform visualization on a subsequent iteration
+        once convergence has been achieved.
+
+        This wrapper catches these exceptions, logs them so the user can see visualization failed and then
+        continues the code without raising an exception in a way that terminates the script.
+
+        This wrapper is specific to Dynesty, which raises a `ValueError` when visualization is performed before
+        convergence has been achieved.
+
+        Parameters
+        ----------
+        self
+            An instance of a `SearchPlotter` class.
+        args
+            The arguments used to perform a visualization of the search.
+        kwargs
+            The keyword arguments used to perform a visualization of the search.
+        """
         try:
             return func(self, *args, **kwargs)
         except ValueError:
