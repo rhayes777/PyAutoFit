@@ -420,10 +420,6 @@ class AbstractPaths(ABC):
     def load_samples_info(self):
         pass
 
-    def _save_search(self, config_dict):
-        with open_(self.output_path / "search.json", "w+") as f:
-            json.dump(dict(config_dict), f, indent=4)
-
     def save_summary(self, samples, log_likelihood_function_time):
         result_info = text_util.result_info_from(
             samples=samples,

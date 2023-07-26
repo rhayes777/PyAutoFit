@@ -36,6 +36,9 @@ class DynestyPlotter(SamplesPlotter):
         at a given iteration or (2) a specific dead point during
         the course of a run, projected onto all pairs of dimensions.
         """
+
+        print(self.model.parameter_labels_with_superscripts_latex)
+        fff
         
         dyplot.cornerbound(
             results=self.samples.results_internal,

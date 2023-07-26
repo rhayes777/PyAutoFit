@@ -254,7 +254,7 @@ class Samples(SamplesInterface, ABC):
                 required_length=samples_info["required_length"],
                 change_threshold=samples_info["change_threshold"],
             )
-        except KeyError:
+        except (KeyError, NameError):
             auto_correlation_settings = None
 
         try:
