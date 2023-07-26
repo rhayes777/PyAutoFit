@@ -75,7 +75,8 @@ class AbstractNest(NonLinearSearch):
             self.should_check_terminate = IntervalCounter(1000)
 
         def figure_of_merit_from(self, parameter_list):
-            """The figure of merit is the value that the `NonLinearSearch` uses to sample parameter space.
+            """
+            The figure of merit is the value that the `NonLinearSearch` uses to sample parameter space.
 
             All Nested samplers use the log likelihood.
             """
