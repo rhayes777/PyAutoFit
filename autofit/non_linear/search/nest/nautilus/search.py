@@ -16,6 +16,15 @@ from autofit.plot.output import Output
 class Nautilus(abstract_nest.AbstractNest):
     __identifier_fields__ = (
         "n_live",
+        "n_update",
+        "enlarge_per_dim",
+        "n_points_min",
+        "split_threshold",
+        "n_networks",
+        "n_like_new_bound",
+        "seed",
+        "n_shell",
+        "n_eff"
     )
 
     def __init__(
@@ -142,7 +151,7 @@ class Nautilus(abstract_nest.AbstractNest):
             **self.config_dict_search
         )
 
-        self.sampler.run(verbose=True)
+        self.sampler.run()
 
         self.perform_update(model=model, analysis=analysis, during_analysis=True)
 
