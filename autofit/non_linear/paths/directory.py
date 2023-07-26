@@ -349,7 +349,9 @@ class DirectoryPaths(AbstractPaths):
         """
         This is private for a reason, use the save_json etc. methods to save and load json
         """
-        return self.output_path / "files"
+        files_path = self.output_path / "files"
+        os.makedirs(files_path, exist_ok=True)
+        return files_path
 
     def _save_metadata(self, search_name):
         """

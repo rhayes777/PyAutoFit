@@ -169,8 +169,6 @@ class Analysis(af.Analysis):
         """
         # The path where data.json is saved, e.g. output/dataset_name/unique_id/files/data.json
 
-        os.makedirs(paths._files_path, exist_ok=True)
-
         file_path = paths._files_path / "data.json"
 
         with open(file_path, "w+") as f:
