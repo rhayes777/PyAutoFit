@@ -81,12 +81,12 @@ Nautilus:
     split_threshold: 100            # Threshold used for splitting the multi-ellipsoidal bound used for sampling.
     n_networks: 4                   # Number of networks used in the estimator.
     n_batch: 100                    # Number of likelihood evaluations that are performed at each step. If likelihood evaluations are parallelized, should be multiple of the number of parallel processes.
-    n_like_new_bound: None          # The maximum number of likelihood calls before a new bounds is created. If None, use 10 times n_live.
+    n_like_new_bound:               # The maximum number of likelihood calls before a new bounds is created. If None, use 10 times n_live.
     vectorized: false               # If True, the likelihood function can receive multiple input sets at once.
     seed:                           # Seed for random number generation used for reproducible results accross different runs.
   run:
     f_live: 0.01                    # Maximum fraction of the evidence contained in the live set before building the initial shells terminates.
-    n_shell: None                   # Minimum number of points in each shell. The algorithm will sample from the shells until this is reached. Default is the batch size of the sampler which is 100 unless otherwise specified.
+    n_shell:                        # Minimum number of points in each shell. The algorithm will sample from the shells until this is reached. Default is the batch size of the sampler which is 100 unless otherwise specified.
     n_eff: 10000                    # Minimum effective sample size. The algorithm will sample from the shells until this is reached. Default is 10000.
     discard_exploration: false      # Whether to discard points drawn in the exploration phase. This is required for a fully unbiased posterior and evidence estimate.
     verbose: false                  # Whether to print information about the run.
