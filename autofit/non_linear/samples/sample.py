@@ -32,6 +32,13 @@ class Sample:
             for key, value in (kwargs or dict()).items()
         }
 
+        # TODO : Understand issue }
+        try:
+            self.kwargs.pop("log_posterior")
+        except KeyError:
+            pass
+
+
     def model_dict(self) -> dict:
         """
         A dictionary mapping model paths to values for the sample
