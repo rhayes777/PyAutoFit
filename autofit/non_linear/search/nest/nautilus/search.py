@@ -13,6 +13,12 @@ from autofit.non_linear.samples.nest import SamplesNest
 from autofit.plot import NautilusPlotter
 from autofit.plot.output import Output
 
+def prior_transform(cube, model):
+    return model.vector_from_unit_vector(
+        unit_vector=cube,
+        ignore_prior_limits=True
+    )
+
 class Nautilus(abstract_nest.AbstractNest):
     __identifier_fields__ = (
         "n_live",
@@ -136,22 +142,17 @@ class Nautilus(abstract_nest.AbstractNest):
             log_likelihood_cap=log_likelihood_cap,
         )
 
-        def prior_transform(cube):
-            return model.vector_from_unit_vector(
-                unit_vector=cube,
-                ignore_prior_limits=True
-            )
-
         self.sampler = Sampler(
             prior=prior_transform,
             likelihood=fitness.__call__,
             n_dim=model.prior_count,
-            pool=None,
+            prior_kwargs={"model": model},
             filepath=self.paths.search_internal_path / "checkpoint.hdf5",
+            pool=self.number_of_cores,
             **self.config_dict_search
         )
 
-        self.sampler.run()
+        self.sampler.run(**self.config_dict_run)
 
         self.perform_update(model=model, analysis=analysis, during_analysis=True)
 

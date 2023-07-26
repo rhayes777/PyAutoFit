@@ -57,7 +57,7 @@ class AbstractDynesty(AbstractNest, ABC):
             and also acts as the folder after the path prefix and before the search name.
         iterations_per_update
             The number of iterations performed between every Dynesty back-up (via dumping the Dynesty instance as a
-            pickle).
+            pickle)
         number_of_cores
             The number of cores Emcee sampling is performed using a Python multiprocessing Pool instance. If 1, a
             pool instance is not created and the job runs in serial.

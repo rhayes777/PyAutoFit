@@ -371,13 +371,11 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             self, paths, model, analysis, samples_from_model, log_likelihood_cap=None
         ):
             self.i = 0
-
-            self.paths = paths
+            #
+            # self.paths = paths
             self.analysis = analysis
-
             self.model = model
-            self.samples_from_model = samples_from_model
-
+            # self.samples_from_model = samples_from_model
             self.log_likelihood_cap = log_likelihood_cap
 
         def __call__(self, parameters, *kwargs):
