@@ -32,7 +32,7 @@ class Sample:
             for key, value in (kwargs or dict()).items()
         }
 
-        # TODO : Understand issue }
+        # TODO : Understand issue https://github.com/rhayes777/PyAutoFit/issues/780
         try:
             self.kwargs.pop("log_posterior")
         except KeyError:
