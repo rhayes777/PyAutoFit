@@ -59,8 +59,7 @@ class AbstractDynesty(AbstractNest, ABC):
             The number of iterations performed between every Dynesty back-up (via dumping the Dynesty instance as a
             pickle)
         number_of_cores
-            The number of cores Emcee sampling is performed using a Python multiprocessing Pool instance. If 1, a
-            pool instance is not created and the job runs in serial.
+            The number of cores sampling is performed using a Python multiprocessing Pool instance.
         session
             An SQLalchemy session instance so the results of the model-fit are written to an SQLite database.
         """
@@ -104,7 +103,7 @@ class AbstractDynesty(AbstractNest, ABC):
             log_likelihood_cap: Optional[float] = None,
     ):
         """
-        Fit a model using Dynesty and the Analysis class which contains the data and returns the log likelihood from
+        Fit a model using the search and the Analysis class which contains the data and returns the log likelihood from
         instances of the model, which the `NonLinearSearch` seeks to maximize.
 
         By default, Dynesty runs using an in-built multiprocessing Pool option. This occurs even

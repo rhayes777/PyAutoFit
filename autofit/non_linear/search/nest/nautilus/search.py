@@ -49,11 +49,10 @@ class Nautilus(abstract_nest.AbstractNest):
         Nautilus is an optional requirement and must be installed manually via the command `pip install ultranest`.
         It is optional as it has certain dependencies which are generally straight forward to install (e.g. Cython).
 
-        For a full description of Nautilus and its Python wrapper PyNautilus, checkout its Github and documentation
-        webpages:
+        For a full description of Nautilus checkout its Github and documentation webpages:
 
-        https://github.com/JohannesBuchner/Nautilus
-        https://johannesbuchner.github.io/Nautilus/readme.html
+        https://github.com/johannesulf/nautilus
+        https://nautilus-sampler.readthedocs.io/en/stable/index.html
 
         Parameters
         ----------
@@ -65,11 +64,9 @@ class Nautilus(abstract_nest.AbstractNest):
             The name of a unique tag for this model-fit, which will be given a unique entry in the sqlite database
             and also acts as the folder after the path prefix and before the search name.
         iterations_per_update
-            The number of iterations performed between every Dynesty back-up (via dumping the Dynesty instance as a
-            pickle).
+            The number of iterations performed between update (e.g. output latest model to hard-disk, visualization).
         number_of_cores
-            The number of cores Emcee sampling is performed using a Python multiprocessing Pool instance. If 1, a
-            pool instance is not created and the job runs in serial.
+            The number of cores sampling is performed using a Python multiprocessing Pool instance.
         session
             An SQLalchemy session instance so the results of the model-fit are written to an SQLite database.
         """
@@ -99,13 +96,13 @@ class Nautilus(abstract_nest.AbstractNest):
             If a sample raises a FitException, this value is returned to signify that the point requires resampling or
             should be given a likelihood so low that it is discard.
 
-            -np.inf is an invalid sample value for Dynesty, so we instead use a large negative number.
+            -np.inf is an invalid sample value for Nautilus, so we instead use a large negative number.
             """
             return -1.0e99
 
     def _fit(self, model: AbstractPriorModel, analysis, log_likelihood_cap=None):
         """
-        Fit a model using Dynesty and the Analysis class which contains the data and returns the log likelihood from
+        Fit a model using the search and the Analysis class which contains the data and returns the log likelihood from
         instances of the model, which the `NonLinearSearch` seeks to maximize.
 
         Parameters
@@ -155,6 +152,8 @@ class Nautilus(abstract_nest.AbstractNest):
         self.perform_update(model=model, analysis=analysis, during_analysis=True)
 
         return
+
+        # TODO : Need max iter input (https://github.com/johannesulf/nautilus/issues/23)
 
         # finished = False
         #

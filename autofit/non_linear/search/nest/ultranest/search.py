@@ -57,11 +57,9 @@ class UltraNest(abstract_nest.AbstractNest):
             The name of a unique tag for this model-fit, which will be given a unique entry in the sqlite database
             and also acts as the folder after the path prefix and before the search name.
         iterations_per_update
-            The number of iterations performed between every Dynesty back-up (via dumping the Dynesty instance as a
-            pickle).
+The number of iterations performed between update (e.g. output latest model to hard-disk, visualization).
         number_of_cores
-            The number of cores Emcee sampling is performed using a Python multiprocessing Pool instance. If 1, a
-            pool instance is not created and the job runs in serial.
+            The number of cores sampling is performed using a Python multiprocessing Pool instance.
         session
             An SQLalchemy session instance so the results of the model-fit are written to an SQLite database.
         """
@@ -102,7 +100,7 @@ class UltraNest(abstract_nest.AbstractNest):
 
     def _fit(self, model: AbstractPriorModel, analysis, log_likelihood_cap=None):
         """
-        Fit a model using Dynesty and the Analysis class which contains the data and returns the log likelihood from
+        Fit a model using the search and the Analysis class which contains the data and returns the log likelihood from
         instances of the model, which the `NonLinearSearch` seeks to maximize.
 
         Parameters
