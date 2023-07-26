@@ -75,7 +75,7 @@ DynestyDynamic:
     remove_state_files_at_end: true # Whether to remove the savestate of the seach (e.g. the Emcee hdf5 file) at the end to save hard-disk space (results are still stored as PyAutoFit pickles and loadable).
 Nautilus:
   search:
-    example:
+    n_live: 2000
   run:
     example:
   initialize:                       # The method used to generate where walkers are initialized in parameter space {prior}.

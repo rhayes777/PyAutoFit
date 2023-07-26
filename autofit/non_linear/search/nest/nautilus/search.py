@@ -14,7 +14,9 @@ from autofit.plot import NautilusPlotter
 from autofit.plot.output import Output
 
 class Nautilus(abstract_nest.AbstractNest):
-    __identifier_fields__ = ()
+    __identifier_fields__ = (
+        "n_live",
+    )
 
     def __init__(
             self,
@@ -136,10 +138,11 @@ class Nautilus(abstract_nest.AbstractNest):
             likelihood=fitness.__call__,
             n_dim=model.prior_count,
             pool=None,
-            filepath=self.paths.search_internal_path / "checkpoint.hdf5"
+            filepath=self.paths.search_internal_path / "checkpoint.hdf5",
+            **self.config_dict_search
         )
 
-        self.sampler.run()
+        self.sampler.run(verbose=True)
 
         self.perform_update(model=model, analysis=analysis, during_analysis=True)
 
