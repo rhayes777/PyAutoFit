@@ -368,14 +368,11 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
     class Fitness:
         def __init__(
-            self, paths, model, analysis, samples_from_model, log_likelihood_cap=None
+            self, model, analysis, log_likelihood_cap=None
         ):
-            self.i = 0
-            #
-            # self.paths = paths
+
             self.analysis = analysis
             self.model = model
-            # self.samples_from_model = samples_from_model
             self.log_likelihood_cap = log_likelihood_cap
 
         def __call__(self, parameters, *kwargs):
@@ -438,10 +435,6 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         @staticmethod
         def fitness(cube, model, fitness):
             return fitness(instance=model.instance_from_vector(cube))
-
-        @property
-        def samples(self):
-            return self.samples_from_model(model=self.model)
 
         @property
         def resample_figure_of_merit(self):

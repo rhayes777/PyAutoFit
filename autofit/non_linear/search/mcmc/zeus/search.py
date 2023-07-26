@@ -145,10 +145,8 @@ class Zeus(AbstractMCMC):
         pool = self.make_pool()
 
         fitness = Zeus.Fitness(
-            paths=self.paths,
             model=model,
             analysis=analysis,
-            samples_from_model=self.samples_from,
             log_likelihood_cap=log_likelihood_cap,
         )
 
