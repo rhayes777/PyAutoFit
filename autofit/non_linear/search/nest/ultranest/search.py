@@ -57,7 +57,7 @@ class UltraNest(abstract_nest.AbstractNest):
             The name of a unique tag for this model-fit, which will be given a unique entry in the sqlite database
             and also acts as the folder after the path prefix and before the search name.
         iterations_per_update
-The number of iterations performed between update (e.g. output latest model to hard-disk, visualization).
+            The number of iterations performed between update (e.g. output latest model to hard-disk, visualization).
         number_of_cores
             The number of cores sampling is performed using a Python multiprocessing Pool instance.
         session

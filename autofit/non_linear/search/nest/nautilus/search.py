@@ -137,13 +137,20 @@ class Nautilus(abstract_nest.AbstractNest):
             log_likelihood_cap=log_likelihood_cap,
         )
 
+        if conf.instance["non_linear"]["nest"][self.__class__.__name__][
+            "parallel"
+        ].get("force_x1_cpu") or self.kwargs.get("force_x1_cpu"):
+            pool = None
+        else:
+            pool = self.number_of_cores
+
         self.sampler = Sampler(
             prior=prior_transform,
             likelihood=fitness.__call__,
             n_dim=model.prior_count,
             prior_kwargs={"model": model},
             filepath=self.paths.search_internal_path / "checkpoint.hdf5",
-            pool=self.number_of_cores,
+            pool=pool,
             **self.config_dict_search
         )
 
