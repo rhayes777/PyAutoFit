@@ -3,7 +3,7 @@ import logging
 import os
 import pickle
 from pathlib import Path
-from typing import Optional, Union
+from typing import Optional, Union, Generator, Tuple
 
 import numpy as np
 
@@ -246,7 +246,25 @@ def _add_pickles(fit: m.Fit, pickle_path: Path):
             ) from e
 
 
-def names_and_paths(files_path: Path, suffix: str):
+def names_and_paths(
+    files_path: Path,
+    suffix: str,
+) -> Generator[Tuple[str, Path], None, None]:
+    """
+    Get the names and paths of files with a given suffix in a directory.
+
+    Parameters
+    ----------
+    files_path
+        The path in which the files are stored
+    suffix
+        The suffix of the files to retrieve (e.g. ".json")
+
+    Returns
+    -------
+    A generator of tuples of the form (name, path) where name is the path to the file
+    joined by . without the suffix and path is the path to the file
+    """
     for file in list(files_path.rglob(f"*{suffix}")):
         name = ".".join(file.relative_to(files_path).with_suffix("").parts)
         yield name, file
