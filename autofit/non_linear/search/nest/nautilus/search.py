@@ -125,9 +125,9 @@ class Nautilus(abstract_nest.AbstractNest):
             raise ModuleNotFoundError(
                 "\n--------------------\n"
                 "You are attempting to perform a model-fit using Nautilus. \n\n"
-                "However, the optional library Nautilus (https://johannesbuchner.github.io/Nautilus/index.html) is "
+                "However, the optional library Nautilus (https://nautilus-sampler.readthedocs.io/en/stable/index.html) is "
                 "not installed.\n\n"
-                "Install it via the command `pip install ultranest==3.6.2`.\n\n"
+                "Install it via the command `pip install nautilus-sampler==0.7.2`.\n\n"
                 "----------------------"
             )
 
