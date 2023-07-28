@@ -1,4 +1,5 @@
 import numpy as np
+import logging
 import os
 from typing import Optional
 
@@ -12,6 +13,8 @@ from autofit.non_linear.samples.sample import Sample
 from autofit.non_linear.samples.nest import SamplesNest
 from autofit.plot import NautilusPlotter
 from autofit.plot.output import Output
+
+logger = logging.getLogger(__name__)
 
 def prior_transform(cube, model):
     return model.vector_from_unit_vector(
@@ -151,6 +154,8 @@ class Nautilus(abstract_nest.AbstractNest):
 
             from mpi4py.futures import MPIPoolExecutor
             pool = MPIPoolExecutor(self.number_of_cores)
+
+            logger.info("Nautilus search is using MPI")
 
         sampler = Sampler(
             prior=prior_transform,
