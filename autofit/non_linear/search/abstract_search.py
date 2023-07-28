@@ -539,7 +539,6 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         Parameters
         ----------
-        log_likelihood_cap
         analysis
             An object that encapsulates the data and a log likelihood function which fits the model to the data
             via the non-linear search.
@@ -586,69 +585,26 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             )
 
         if not self.paths.is_complete:
-            self.logger.info("Not complete. Starting non-linear search.")
-
-            self.timer.start()
-
-            model.freeze()
-            self._fit(
-                model=model, analysis=analysis, log_likelihood_cap=log_likelihood_cap
+           result = self.start_resume_fit(
+                analysis=analysis,
+                model=model,
+                log_likelihood_cap=log_likelihood_cap,
             )
-            model.unfreeze()
-
-            self.paths.completed()
-
-            samples = self.perform_update(
-                model=model, analysis=analysis, during_analysis=False
-            )
-
-            result = analysis.make_result(
-                samples=samples,
-            )
-
-            analysis.save_results(paths=self.paths, result=result)
-
-            if not self.skip_save_samples:
-                self.paths.save_json("samples_summary", samples.summary().dict())
-
         else:
-            self.logger.info(f"Already completed, skipping non-linear search.")
-
-            try:
-                samples = self.samples_from(model=model)
-            except (FileNotFoundError, NotImplementedError):
-                samples = self.paths.load_object(name="samples")
-
-            if self.force_visualize_overwrite:
-                self.perform_visualization(
-                    model=model, analysis=analysis, during_analysis=False
-                )
-
-            result = analysis.make_result(
-                samples=samples,
+            result = self.result_via_completed_fit(
+                analysis=analysis,
+                model=model,
             )
 
-            if self.force_pickle_overwrite:
-                self.logger.info("Forcing pickle overwrite")
-                if not self.skip_save_samples:
-                    self.paths.save_json("samples_summary", samples.summary().dict())
+        if self.is_master:
+            analysis = analysis.modify_after_fit(
+                paths=self.paths, model=model, result=result
+            )
 
-                try:
-                    self.paths.save_object("results", samples.results)
-                except AttributeError:
-                    self.paths.save_object("results", samples.results_internal)
-
-                analysis.save_results(paths=self.paths, result=result)
-
-        analysis = analysis.modify_after_fit(
-            paths=self.paths, model=model, result=result
-        )
-
-        self.logger.info("Removing zip file")
-        self.paths.zip_remove()
-
-        if not bypass_nuclear_if_on:
-            self.paths.zip_remove_nuclear()
+            self.post_fit_output(
+                samples=result.samples,
+                bypass_nuclear_if_on=bypass_nuclear_if_on,
+            )
 
         return result
 
@@ -659,9 +615,12 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         The following attributes of a fit may be output before the search begins:
 
         - The model composition, which is output as a .json file (`files/model.json`).
+
         - The non-linear search settings, which are output as a .json file (`files/search.json`).
+
         - Custom attributes of the analysis defined via the `save_attributes` method of the analysis class, for
         example the data (e.g. `files/data.json`).
+
         - Custom Visualization associated with the analysis, defined via the `visualize_before_fit`
         and `visualize_before_fit_combined` methods. This is typically quantities that do not change during the
         model-fit (e.g. the data).
@@ -669,12 +628,14 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         Parameters
         ----------
         analysis
+            An object that encapsulates the data and a log likelihood function which fits the model to the data
+            via the non-linear search.
         model
+            The model that is fitted to the data, which is used by the non-linear search to create instances of
+            the model that are fitted to the data via the log likelihood function.
         info
-
-        Returns
-        -------
-
+            Optional dictionary containing information about the fit that can be saved in the `files` folder
+            (e.g. as `files/info.json`) and can be loaded via the database.
         """
 
         if not self.paths.is_complete or self.force_pickle_overwrite:
@@ -696,6 +657,146 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                 paths=self.paths,
                 model=model,
             )
+
+    def start_resume_fit(self, analysis, model, log_likelihood_cap):
+        """
+        Start a non-linear search from scratch, or resumes one which was previously terminated mid-way through.
+
+        If the search is resumed, the model-fit will begin by loading the samples from the previous search and
+        from where it left off.
+
+        After the search is completed, a `.completed` file is output so that if the search is resumed in the future
+        it is not repeated and results are loaded via the `update_completed_fit` method.
+
+        Results are also output to hard-disk in the `files` folder via the `save_results` method of the analysis class.
+
+        Parameters
+        ----------
+        analysis
+            An object that encapsulates the data and a log likelihood function which fits the model to the data
+            via the non-linear search.
+        model
+            The model that is fitted to the data, which is used by the non-linear search to create instances of
+            the model that are fitted to the data via the log likelihood function.
+
+        Returns
+        -------
+        The result of the non-linear search, which includes the best-fit model instance and best-fit log likelihood
+        and errors on the model parameters.
+        """
+        if self.is_master:
+
+            self.logger.info("Not complete. Starting non-linear search.")
+            self.timer.start()
+
+        model.freeze()
+        self._fit(
+            model=model, analysis=analysis, log_likelihood_cap=log_likelihood_cap
+        )
+        model.unfreeze()
+
+        self.paths.completed()
+
+        samples = self.perform_update(
+            model=model, analysis=analysis, during_analysis=False
+        )
+
+        result = analysis.make_result(
+            samples=samples,
+        )
+
+        if self.is_master:
+
+            analysis.save_results(paths=self.paths, result=result)
+
+            if not self.skip_save_samples:
+                self.paths.save_json("samples_summary", samples.summary().dict())
+
+        return result
+
+    def result_via_completed_fit(self, analysis, model):
+        """
+        Returns the result of the non-linear search of a completed model-fit.
+
+        The result contains the non-linear search samples, which are loaded from the searches internal results,
+        or the `samples.csv` file if the internal results are not available.
+
+        Optional tasks can be performed to update the results of the model-fit on hard-disk depending on the following
+        entries of the `general.yaml` config file's `output` section:
+
+        ` `force_visualize_overwrite=True`: the visualization of the model-fit is performed again (e.g. to
+        add new visualizations or replot figures with a different source code).
+
+        - `force_pickle_overwrite=True`: the output files of the model-fit are recreated (e.g. to add a new attribute
+        that was previously not output).
+
+        Parameters
+        ----------
+        analysis
+            An object that encapsulates the data and a log likelihood function which fits the model to the data
+            via the non-linear search.
+        model
+            The model that is fitted to the data, which is used by the non-linear search to create instances of
+            the model that are fitted to the data via the log likelihood function.
+        Returns
+        -------
+        The result of the non-linear search, which includes the best-fit model instance and best-fit log likelihood
+        and errors on the model parameters.
+        """
+
+        try:
+            samples = self.samples_from(model=model)
+        except (FileNotFoundError, NotImplementedError):
+            samples = self.paths.load_object(name="samples")
+
+        result = analysis.make_result(
+            samples=samples,
+        )
+
+        if self.is_master:
+
+            self.logger.info(f"Already completed, skipping non-linear search.")
+
+            if self.force_visualize_overwrite:
+                self.perform_visualization(model=model, analysis=analysis, during_analysis=False)
+
+            if self.force_pickle_overwrite:
+
+                self.logger.info("Forcing pickle overwrite")
+
+                if not self.skip_save_samples:
+                    self.paths.save_json("samples_summary", samples.summary().dict())
+
+                try:
+                    self.paths.save_object("results", samples.results)
+                except AttributeError:
+                    self.paths.save_object("results", samples.results_internal)
+
+                analysis.save_results(paths=self.paths, result=result)
+
+        return result
+
+    def post_fit_output(self, bypass_nuclear_if_on):
+        """
+        Cleans up the output folderds after a completed non-linear search.
+
+        The main task this performs is removing the folder containing the results of a non-linear search such that only
+        its corresponding `.zip` file is left. This is use for supercomputers, where users often have a file limit on
+        the number of files they can store in their home directory, so storing them all in just a .zip file is
+        advantageous.
+
+        This only occurs if `remove_files=False` in the `general.yaml` config file's `output` section.
+
+        Parameters
+        ----------
+        bypass_nuclear_if_on
+            Whether to use nuclear mode to delete a lot of files (see nuclear mode description).
+        """
+        self.logger.info("Removing zip file")
+        self.paths.zip_remove()
+
+        if not bypass_nuclear_if_on:
+            self.paths.zip_remove_nuclear()
 
     @abstractmethod
     def _fit(self, model, analysis, log_likelihood_cap=None):
