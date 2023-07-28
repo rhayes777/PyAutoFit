@@ -593,11 +593,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             )
             analysis.save_attributes(paths=self.paths)
 
-        # TODO : Dont do this, but instead make results loadable in a general way.
-
-        from autofit.non_linear.search.nest.nautilus.search import Nautilus
-
-        if not self.paths.is_complete or isinstance(self, Nautilus):
+        if not self.paths.is_complete:
             self.logger.info("Not complete. Starting non-linear search.")
 
             self.timer.start()

@@ -1,5 +1,5 @@
-
 import numpy as np
+import os
 from typing import Optional
 
 from autofit.database.sqlalchemy_ import sa
@@ -144,7 +144,7 @@ class Nautilus(abstract_nest.AbstractNest):
         else:
             pool = self.number_of_cores
 
-        self.sampler = Sampler(
+        sampler = Sampler(
             prior=prior_transform,
             likelihood=fitness.__call__,
             n_dim=model.prior_count,
@@ -154,12 +154,29 @@ class Nautilus(abstract_nest.AbstractNest):
             **self.config_dict_search
         )
 
-        if self.paths.is_complete:
-            return
+        sampler.run(**self.config_dict_run)
 
-        self.sampler.run(**self.config_dict_run)
+        parameters, log_weights, log_likelihoods = sampler.posterior()
+
+        parameter_lists = parameters.tolist()
+        log_likelihood_list = log_likelihoods.tolist()
+        weight_list = np.exp(log_weights).tolist()
+
+        results_internal_json = {}
+
+        results_internal_json["parameter_lists"] = parameter_lists
+        results_internal_json["log_likelihood_list"] = log_likelihood_list
+        results_internal_json["weight_list"] = weight_list
+        results_internal_json["log_evidence"] = sampler.evidence()
+        results_internal_json["total_samples"] = int(sampler.n_like)
+        results_internal_json["time"] = self.timer.time
+        results_internal_json["number_live_points"] = int(sampler.n_live)
+
+        self.paths.save_results_internal_json(results_internal_dict=results_internal_json)
 
         self.perform_update(model=model, analysis=analysis, during_analysis=True)
+
+        os.remove(self.paths.search_internal_path / "checkpoint.hdf5")
 
         return
 
@@ -211,13 +228,13 @@ class Nautilus(abstract_nest.AbstractNest):
     @property
     def samples_info(self):
 
-        results_internal = self.sampler
+        results_internal_dict = self.paths.load_results_internal_json()
 
         return {
-            "log_evidence": results_internal.evidence(),
-            "total_samples": int(results_internal.n_like),
+            "log_evidence": results_internal_dict["log_evidence"],
+            "total_samples": results_internal_dict["total_samples"],
             "time": self.timer.time,
-            "number_live_points": int(results_internal.n_live)
+            "number_live_points": results_internal_dict["number_live_points"]
         }
 
     def samples_via_internal_from(self, model: AbstractPriorModel):
@@ -236,20 +253,18 @@ class Nautilus(abstract_nest.AbstractNest):
             Maps input vectors of unit parameter values to physical values and model instances via priors.
         """
 
-        results_internal = self.sampler
+        results_internal_dict = self.paths.load_results_internal_json()
 
-        parameters, log_weights, log_likelihood_list = results_internal.posterior()
-
-        parameters = parameters
-        log_likelihood_list = log_likelihood_list
+        parameter_lists = results_internal_dict["parameter_lists"]
+        log_likelihood_list = results_internal_dict["log_likelihood_list"]
         log_prior_list = [
-            sum(model.log_prior_list_from_vector(vector=vector)) for vector in parameters
+            sum(model.log_prior_list_from_vector(vector=vector)) for vector in parameter_lists
         ]
-        weight_list = np.exp(log_weights)
+        weight_list = results_internal_dict["weight_list"]
 
         sample_list = Sample.from_lists(
             model=model,
-            parameter_lists=parameters,
+            parameter_lists=parameter_lists,
             log_likelihood_list=log_likelihood_list,
             log_prior_list=log_prior_list,
             weight_list=weight_list
@@ -259,7 +274,7 @@ class Nautilus(abstract_nest.AbstractNest):
             model=model,
             sample_list=sample_list,
             samples_info=self.samples_info,
-            results_internal=results_internal,
+            results_internal=None,
         )
 
     def config_dict_with_test_mode_settings_from(self, config_dict):
