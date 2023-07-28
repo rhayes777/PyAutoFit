@@ -23,7 +23,6 @@ class MockSearch(af.m.MockSearch):
             model,
             analysis,
             info=None,
-            pickle_files=None,
             log_likelihood_cap=None,
     ):
         super().fit(model, analysis)

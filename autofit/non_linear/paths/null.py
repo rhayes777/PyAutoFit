@@ -81,9 +81,6 @@ class NullPaths(AbstractPaths):
     def completed(self):
         pass
 
-    def save_all(self, search_config_dict, info, pickle_files):
-        pass
-
     def load_samples(self):
         pass
 

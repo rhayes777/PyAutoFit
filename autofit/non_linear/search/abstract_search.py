@@ -460,7 +460,6 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         model,
         analysis: IndexCollectionAnalysis,
         info=None,
-        pickle_files=None,
         log_likelihood_cap=None,
     ) -> CombinedResult:
         """
@@ -479,9 +478,6 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             model.
         info
             Optional dictionary containing information about the fit that can be loaded by the aggregator.
-        pickle_files : [str]
-            Optional list of strings specifying the path and filename of .pickle files, that are copied to each
-            model-fits pickles folder so they are accessible via the Aggregator.
 
         Returns
         -------
@@ -517,7 +513,6 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                     model=model,
                     analysis=analysis,
                     info=info,
-                    pickle_files=pickle_files,
                     log_likelihood_cap=log_likelihood_cap,
                 )
             )
@@ -529,7 +524,6 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         model,
         analysis: "Analysis",
         info=None,
-        pickle_files=None,
         log_likelihood_cap=None,
         bypass_nuclear_if_on: bool = False,
     ) -> Union["Result", List["Result"]]:
@@ -555,9 +549,6 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         info
             Optional dictionary containing information about the fit that can be saved in the `files` folder
             (e.g. as `files/info.json`) and can be loaded via the database.
-        pickle_files
-            Optional list of strings specifying the path and filename of .pickle files, that are copied to each
-            model-fits pickles folder so they are accessible via the Aggregator.
         bypass_nuclear_if_on
             If nuclear mode is on (environment variable "PYAUTOFIT_NUCLEAR_MODE=1") passing this as True will
             bypass it.
@@ -592,7 +583,6 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                 analysis=analysis,
                 model=model,
                 info=info,
-                pickle_files=pickle_files
             )
 
         if not self.paths.is_complete:
@@ -662,7 +652,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         return result
 
-    def pre_fit_output(self, analysis, model, info, pickle_files):
+    def pre_fit_output(self, analysis, model, info):
         """
         Outputs attributes of fit before the non-linear search begins.
 
@@ -681,7 +671,6 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         analysis
         model
         info
-        pickle_files
 
         Returns
         -------
@@ -694,7 +683,6 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             self.paths.save_all(
                 search_config_dict=self.config_dict_search,
                 info=info,
-                pickle_files=pickle_files,
             )
             analysis.save_attributes(paths=self.paths)
 

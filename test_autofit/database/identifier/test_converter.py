@@ -94,7 +94,7 @@ def test_database(session):
     search = af.DynestyStatic(name="name", session=session)
     search.paths.model = af.Model(af.Gaussian)
     search.paths.save_all(
-        search_config_dict=search.config_dict_search, info={}, pickle_files=[]
+        search_config_dict=search.config_dict_search, info={},
     )
 
     (fit,) = Fit.all(session=session)

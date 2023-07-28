@@ -396,7 +396,7 @@ class AbstractPaths(ABC):
         pass
 
     @abstractmethod
-    def save_all(self, search_config_dict=None, info=None, pickle_files=None):
+    def save_all(self, search_config_dict=None, info=None):
         pass
 
     @abstractmethod
