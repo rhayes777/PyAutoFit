@@ -106,6 +106,19 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         from autofit.non_linear.paths.database import DatabasePaths
 
+        try:
+
+            from mpi4py import MPI
+            comm = MPI.COMM_WORLD
+            self.is_master = comm.Get_rank() == 0
+
+            logger.info(f"Creating search: {comm.Get_rank()}")
+
+        except ModuleNotFoundError:
+
+            self.is_master = True
+            logger.info(f"Creating search")
+
         if name:
             path_prefix = Path(path_prefix or "")
         self.path_prefix = path_prefix
@@ -113,8 +126,6 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         self.path_prefix_no_unique_tag = path_prefix
 
         self._logger = None
-
-        logger.info(f"Creating search")
 
         if unique_tag is not None and path_prefix is not None:
             path_prefix = path_prefix / unique_tag
@@ -535,15 +546,16 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         Parameters
         ----------
         log_likelihood_cap
-        analysis : af.Analysis
-            An object that encapsulates the data and a log likelihood function.
-        model : ModelMapper
-            An object that represents possible instances of some model with a
-            given dimensionality which is the number of free dimensions of the
-            model.
-        info : dict
-            Optional dictionary containing information about the fit that can be loaded by the aggregator.
-        pickle_files : [str]
+        analysis
+            An object that encapsulates the data and a log likelihood function which fits the model to the data
+            via the non-linear search.
+        model
+            The model that is fitted to the data, which is used by the non-linear search to create instances of
+            the model that are fitted to the data via the log likelihood function.
+        info
+            Optional dictionary containing information about the fit that can be saved in the `files` folder
+            (e.g. as `files/info.json`) and can be loaded via the database.
+        pickle_files
             Optional list of strings specifying the path and filename of .pickle files, that are copied to each
             model-fits pickles folder so they are accessible via the Aggregator.
         bypass_nuclear_if_on
@@ -563,35 +575,25 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         """
         self.check_model(model=model)
 
-        self.logger.info("Starting search")
+        if self.is_master:
+            self.logger.info("Starting search")
 
         model = analysis.modify_model(model)
         self.paths.model = model
         self.paths.unique_tag = self.unique_tag
-        self.paths.restore()
+
+        if self.is_master:
+            self.paths.restore()
 
         analysis = analysis.modify_before_fit(paths=self.paths, model=model)
 
-        if analysis.should_visualize(paths=self.paths):
-            analysis.visualize_before_fit(
-                paths=self.paths,
+        if self.is_master:
+            self.pre_fit_output(
+                analysis=analysis,
                 model=model,
-            )
-            analysis.visualize_before_fit_combined(
-                analyses=None,
-                paths=self.paths,
-                model=model,
-            )
-
-        if not self.paths.is_complete or self.force_pickle_overwrite:
-            self.logger.info("Saving path info")
-
-            self.paths.save_all(
-                search_config_dict=self.config_dict_search,
                 info=info,
-                pickle_files=pickle_files,
+                pickle_files=pickle_files
             )
-            analysis.save_attributes(paths=self.paths)
 
         if not self.paths.is_complete:
             self.logger.info("Not complete. Starting non-linear search.")
@@ -659,6 +661,53 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             self.paths.zip_remove_nuclear()
 
         return result
+
+    def pre_fit_output(self, analysis, model, info, pickle_files):
+        """
+        Outputs attributes of fit before the non-linear search begins.
+
+        The following attributes of a fit may be output before the search begins:
+
+        - The model composition, which is output as a .json file (`files/model.json`).
+        - The non-linear search settings, which are output as a .json file (`files/search.json`).
+        - Custom attributes of the analysis defined via the `save_attributes` method of the analysis class, for
+        example the data (e.g. `files/data.json`).
+        - Custom Visualization associated with the analysis, defined via the `visualize_before_fit`
+        and `visualize_before_fit_combined` methods. This is typically quantities that do not change during the
+        model-fit (e.g. the data).
+
+        Parameters
+        ----------
+        analysis
+        model
+        info
+        pickle_files
+
+        Returns
+        -------
+
+        """
+
+        if not self.paths.is_complete or self.force_pickle_overwrite:
+            self.logger.info("Saving path info")
+
+            self.paths.save_all(
+                search_config_dict=self.config_dict_search,
+                info=info,
+                pickle_files=pickle_files,
+            )
+            analysis.save_attributes(paths=self.paths)
+
+        if analysis.should_visualize(paths=self.paths):
+            analysis.visualize_before_fit(
+                paths=self.paths,
+                model=model,
+            )
+            analysis.visualize_before_fit_combined(
+                analyses=None,
+                paths=self.paths,
+                model=model,
+            )
 
     @abstractmethod
     def _fit(self, model, analysis, log_likelihood_cap=None):

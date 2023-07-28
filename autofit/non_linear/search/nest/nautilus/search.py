@@ -41,6 +41,7 @@ class Nautilus(abstract_nest.AbstractNest):
             iterations_per_update: int = None,
             number_of_cores: int = None,
             session: Optional[sa.orm.Session] = None,
+            use_mpi = False,
             **kwargs
     ):
         """
@@ -86,6 +87,8 @@ class Nautilus(abstract_nest.AbstractNest):
             session=session,
             **kwargs
         )
+
+        self.use_mpi = use_mpi
 
         self.logger.debug("Creating Nautilus Search")
 
@@ -143,6 +146,11 @@ class Nautilus(abstract_nest.AbstractNest):
             pool = None
         else:
             pool = self.number_of_cores
+
+        if self.use_mpi:
+
+            from mpi4py.futures import MPIPoolExecutor
+            pool = MPIPoolExecutor(self.number_of_cores)
 
         sampler = Sampler(
             prior=prior_transform,
