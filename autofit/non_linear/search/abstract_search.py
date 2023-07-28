@@ -121,6 +121,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         if name:
             path_prefix = Path(path_prefix or "")
+
         self.path_prefix = path_prefix
 
         self.path_prefix_no_unique_tag = path_prefix
@@ -602,7 +603,6 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             )
 
             self.post_fit_output(
-                samples=result.samples,
                 bypass_nuclear_if_on=bypass_nuclear_if_on,
             )
 

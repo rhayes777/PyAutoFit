@@ -173,7 +173,7 @@ def make_multi_search(search, multi_analysis):
     search.paths.remove_files = False
 
     search.fit(af.Model(af.Gaussian), multi_analysis)
-    search.paths.save_all({}, {}, [])
+    search.paths.save_all({}, {})
     return search
 
 
