@@ -1,5 +1,5 @@
-import copy
-from os import path
+
+import numpy as np
 from typing import Optional
 
 from autofit.database.sqlalchemy_ import sa
@@ -154,6 +154,9 @@ class Nautilus(abstract_nest.AbstractNest):
             **self.config_dict_search
         )
 
+        if self.paths.is_complete:
+            return
+
         self.sampler.run(**self.config_dict_run)
 
         self.perform_update(model=model, analysis=analysis, during_analysis=True)
@@ -235,14 +238,14 @@ class Nautilus(abstract_nest.AbstractNest):
 
         results_internal = self.sampler
 
-        parameters, weights, log_likelihood_list = results_internal.posterior()
+        parameters, log_weights, log_likelihood_list = results_internal.posterior()
 
         parameters = parameters
         log_likelihood_list = log_likelihood_list
         log_prior_list = [
             sum(model.log_prior_list_from_vector(vector=vector)) for vector in parameters
         ]
-        weight_list = weights
+        weight_list = np.exp(log_weights)
 
         sample_list = Sample.from_lists(
             model=model,
