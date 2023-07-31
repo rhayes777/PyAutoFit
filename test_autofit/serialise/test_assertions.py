@@ -1,3 +1,5 @@
+import itertools
+
 import pytest
 
 import autofit as af
@@ -34,6 +36,11 @@ def make_model_dict(assertion_dict):
         },
         "sigma": {"lower_limit": 0.0, "upper_limit": 1.0, "type": "Uniform", "id": 2},
     }
+
+
+@pytest.fixture(autouse=True)
+def reset_ids():
+    af.Prior._ids = itertools.count()
 
 
 @pytest.fixture(name="model")

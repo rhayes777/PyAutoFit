@@ -276,10 +276,17 @@ class ModelObject:
                 f"{self.__class__.__name__} cannot be serialised to dict"
             )
 
+        try:
+            assertions = [assertion.dict() for assertion in self._assertions]
+        except AttributeError:
+            assertions = []
+
         dict_ = {
             "type": type_,
-            "assertions": [assertion.dict() for assertion in self._assertions],
         }
+
+        if assertions:
+            dict_["assertions"] = assertions
 
         for key, value in self._dict.items():
             try:
