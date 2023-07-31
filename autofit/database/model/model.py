@@ -15,42 +15,38 @@ _schema_version = 1
 class Object(Base):
     __tablename__ = "object"
 
-    type = sa.Column(
-        sa.String
-    )
+    type = sa.Column(sa.String)
 
     id = sa.Column(
         sa.Integer,
         primary_key=True,
     )
 
-    parent_id = sa.Column(
-        sa.Integer,
-        sa.ForeignKey(
-            "object.id"
-        )
-    )
-    parent = sa.orm.relationship(
-        "Object",
-        uselist=False,
-        remote_side=[id]
-    )
+    parent_id = sa.Column(sa.Integer, sa.ForeignKey("object.id"))
+    parent = sa.orm.relationship("Object", uselist=False, remote_side=[id])
 
-    samples_for_id = sa.Column(
-        sa.String,
-        sa.ForeignKey(
-            "fit.id"
-        )
-    )
+    samples_for_id = sa.Column(sa.String, sa.ForeignKey("fit.id"))
     samples_for = sa.orm.relationship(
-        "Fit",
-        uselist=False,
-        foreign_keys=[samples_for_id]
+        "Fit", uselist=False, foreign_keys=[samples_for_id]
     )
 
     children: List["Object"] = sa.orm.relationship(
         "Object",
         uselist=True,
+    )
+    greater_assertions: list = sa.orm.relationship(
+        "Assertion",
+        uselist=True,
+        foreign_keys="Assertion.lower_id",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+    )
+    lower_assertions: list = sa.orm.relationship(
+        "Assertion",
+        uselist=True,
+        foreign_keys="Assertion.greater_id",
+        cascade="all, delete-orphan",
+        passive_deletes=True,
     )
 
     def __len__(self):
@@ -58,21 +54,14 @@ class Object(Base):
 
     name = sa.Column(sa.String)
 
-    __mapper_args__ = {
-        'polymorphic_identity': 'object',
-        'polymorphic_on': type
-    }
+    __mapper_args__ = {"polymorphic_identity": "object", "polymorphic_on": type}
 
     def __repr__(self):
         return f"<{self.__class__.__name__} {self.name}>"
 
     # noinspection PyProtectedMember
     @classmethod
-    def from_object(
-            cls,
-            source,
-            name=""
-    ):
+    def from_object(cls, source, name=""):
         """
         Create a database object for an object in a model.
 
@@ -100,61 +89,51 @@ class Object(Base):
         from autofit.mapper.prior_model.collection import Collection
 
         if source is None or isinstance(
-                source,
-                (
-                        np.ndarray,
-                        np.broadcast,
-                        abc.ABCMeta,
-                        np.ufunc,
-                )
+            source,
+            (
+                np.ndarray,
+                np.broadcast,
+                abc.ABCMeta,
+                np.ufunc,
+            ),
         ):
             from .instance import NoneInstance
+
             instance = NoneInstance()
         elif isinstance(source, Model):
             from .prior import Model
-            instance = Model._from_object(
-                source
-            )
+
+            instance = Model._from_object(source)
         elif isinstance(source, Prior):
             from .prior import Prior
-            instance = Prior._from_object(
-                source
-            )
+
+            instance = Prior._from_object(source)
         elif isinstance(source, (float, int)):
             from .instance import Value
-            instance = Value._from_object(
-                source
-            )
+
+            instance = Value._from_object(source)
         elif isinstance(source, (tuple, list)):
             from .instance import Collection
-            instance = Collection._from_object(
-                source
-            )
+
+            instance = Collection._from_object(source)
         elif isinstance(source, (Collection, dict)):
             from .prior import Collection
-            instance = Collection._from_object(
-                source
-            )
+
+            instance = Collection._from_object(source)
         elif isinstance(source, str):
             from .instance import StringValue
-            instance = StringValue._from_object(
-                source
-            )
+
+            instance = StringValue._from_object(source)
         else:
             from .instance import Instance
-            instance = Instance._from_object(
-                source
-            )
+
+            instance = Instance._from_object(source)
         instance.name = name
         return instance
 
     @property
     def _constructor_args(self):
-        return set(
-            inspect.getfullargspec(
-                self.cls
-            ).args[1:]
-        )
+        return set(inspect.getfullargspec(self.cls).args[1:])
 
     def _make_instance(self) -> object:
         """
@@ -176,40 +155,22 @@ class Object(Base):
         called with a dictionary of instantiated children.
         """
         instance = self._make_instance()
-        if hasattr(
-                instance,
-                "__setstate__"
-        ):
-            instance.__setstate__({
-                child.name: child()
-                for child in self.children
-            })
+        if hasattr(instance, "__setstate__"):
+            instance.__setstate__({child.name: child() for child in self.children})
         else:
             for child in self.children:
-                setattr(
-                    instance,
-                    child.name,
-                    child()
-                )
+                setattr(instance, child.name, child())
         from autofit import ModelObject
-        if isinstance(
-                instance,
-                ModelObject
-        ) and (
-                not hasattr(
-                    instance, "id"
-                ) or instance.id is None
+
+        if isinstance(instance, ModelObject) and (
+            not hasattr(instance, "id") or instance.id is None
         ):
             instance.id = instance.next_id()
 
         return instance
 
     def _add_children(
-            self,
-            items: Union[
-                ItemsView[str, Any],
-                Iterable[Tuple[str, Any]]
-            ]
+        self, items: Union[ItemsView[str, Any], Iterable[Tuple[str, Any]]]
     ):
         """
         Add database representations of child attributes
@@ -221,33 +182,19 @@ class Object(Base):
             with the real object
         """
         for key, value in items:
-            if isinstance(
-                    value,
-                    property
-            ) or key.startswith(
-                "__"
-            ) or key == "dtype":
+            if isinstance(value, property) or key.startswith("__") or key == "dtype":
                 continue
-            child = Object.from_object(
-                value,
-                name=key
-            )
-            self.children.append(
-                child
-            )
+            child = Object.from_object(value, name=key)
+            self.children.append(child)
 
-    class_path = sa.Column(
-        sa.String
-    )
+    class_path = sa.Column(sa.String)
 
     @property
     def cls(self) -> Type[object]:
         """
         The class of the real object
         """
-        return get_class(
-            self.class_path
-        )
+        return get_class(self.class_path)
 
     @cls.setter
     def cls(self, cls: type):

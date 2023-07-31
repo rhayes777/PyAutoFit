@@ -413,6 +413,10 @@ class AbstractPriorModel(AbstractModel):
         self._assertions.append(assertion)
 
     @property
+    def assertions(self):
+        return self._assertions
+
+    @property
     def name(self):
         return self.__class__.__name__
 
