@@ -2,15 +2,14 @@ import inspect
 import logging
 from abc import ABC
 from copy import copy
+from typing import Optional, Dict
 
 import numpy as np
 
 from autofit.mapper.prior.arithmetic import ArithmeticMixin
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 
-logger = logging.getLogger(
-    __name__
-)
+logger = logging.getLogger(__name__)
 
 
 def retrieve_name(var):
@@ -25,11 +24,34 @@ def retrieve_name(var):
     return first_name
 
 
-class CompoundPrior(
-    AbstractPriorModel,
-    ArithmeticMixin,
-    ABC
-):
+class Compound:
+    @classmethod
+    def from_dict(
+        cls,
+        d,
+        reference: Optional[Dict[str, str]] = None,
+        loaded_ids: Optional[dict] = None,
+    ):
+        assertion_type = d.pop("compound_type")
+        for subclass in cls.descendants():
+            if subclass.__name__ == assertion_type:
+                return subclass.from_dict(
+                    d,
+                    reference=reference,
+                    loaded_ids=loaded_ids,
+                )
+        raise ValueError(f"Compound type {assertion_type} not recognised")
+
+    @classmethod
+    def descendants(cls):
+        subclasses = cls.__subclasses__()
+
+        for child in subclasses:
+            yield child
+            yield from child.descendants()
+
+
+class CompoundPrior(AbstractPriorModel, ArithmeticMixin, Compound, ABC):
     cls = float
 
     def __init__(self, left, right):
@@ -61,6 +83,34 @@ class CompoundPrior(
         self.left = left
         self.right = right
 
+    def dict(self) -> dict:
+        from autofit import ModelObject
+
+        return {
+            "type": "compound",
+            "compound_type": self.__class__.__name__,
+            "left": self._left.dict()
+            if isinstance(self._left, ModelObject)
+            else self._left,
+            "right": self._right.dict()
+            if isinstance(self._right, ModelObject)
+            else self._right,
+        }
+
+    @classmethod
+    def from_dict(
+        cls,
+        d,
+        reference: Optional[Dict[str, str]] = None,
+        loaded_ids: Optional[dict] = None,
+    ):
+        from autofit import ModelObject
+
+        return cls(
+            ModelObject.from_dict(d["left"], reference, loaded_ids),
+            ModelObject.from_dict(d["right"], reference, loaded_ids),
+        )
+
     @property
     def left(self):
         return self._left
@@ -82,23 +132,16 @@ class CompoundPrior(
     def gaussian_prior_model_for_arguments(self, arguments):
         new = copy(self)
         try:
-            new.left = new.left.gaussian_prior_model_for_arguments(
-                arguments
-            )
+            new.left = new.left.gaussian_prior_model_for_arguments(arguments)
         except AttributeError:
             pass
         try:
-            new.right = new.right.gaussian_prior_model_for_arguments(
-                arguments
-            )
+            new.right = new.right.gaussian_prior_model_for_arguments(arguments)
         except AttributeError:
             pass
         return new
 
-    def left_for_arguments(
-            self,
-            arguments: dict
-    ):
+    def left_for_arguments(self, arguments: dict):
         """
         Instantiate the left object.
 
@@ -112,14 +155,13 @@ class CompoundPrior(
         A value for the left object
         """
         try:
-            return self._left.instance_for_arguments(arguments, )
+            return self._left.instance_for_arguments(
+                arguments,
+            )
         except AttributeError:
             return self._left
 
-    def right_for_arguments(
-            self,
-            arguments: dict
-    ):
+    def right_for_arguments(self, arguments: dict):
         """
         Instantiate the right object.
 
@@ -133,7 +175,9 @@ class CompoundPrior(
         A value for the right object
         """
         try:
-            return self._right.instance_for_arguments(arguments, )
+            return self._right.instance_for_arguments(
+                arguments,
+            )
         except AttributeError:
             return self._right
 
@@ -144,11 +188,7 @@ class SumPrior(CompoundPrior):
     """
 
     def _instance_for_arguments(self, arguments):
-        return self.left_for_arguments(
-            arguments
-        ) + self.right_for_arguments(
-            arguments
-        )
+        return self.left_for_arguments(arguments) + self.right_for_arguments(arguments)
 
     def __str__(self):
         return f"{self._left} + {self._right}"
@@ -163,11 +203,7 @@ class MultiplePrior(CompoundPrior):
         return f"{self._left} * {self._right}"
 
     def _instance_for_arguments(self, arguments):
-        return self.left_for_arguments(
-            arguments
-        ) * self.right_for_arguments(
-            arguments
-        )
+        return self.left_for_arguments(arguments) * self.right_for_arguments(arguments)
 
 
 class DivisionPrior(CompoundPrior):
@@ -176,11 +212,7 @@ class DivisionPrior(CompoundPrior):
     """
 
     def _instance_for_arguments(self, arguments):
-        return self.left_for_arguments(
-            arguments
-        ) / self.right_for_arguments(
-            arguments
-        )
+        return self.left_for_arguments(arguments) / self.right_for_arguments(arguments)
 
 
 class FloorDivPrior(CompoundPrior):
@@ -189,11 +221,7 @@ class FloorDivPrior(CompoundPrior):
     """
 
     def _instance_for_arguments(self, arguments):
-        return self.left_for_arguments(
-            arguments
-        ) // self.right_for_arguments(
-            arguments
-        )
+        return self.left_for_arguments(arguments) // self.right_for_arguments(arguments)
 
 
 class ModPrior(CompoundPrior):
@@ -202,11 +230,7 @@ class ModPrior(CompoundPrior):
     """
 
     def _instance_for_arguments(self, arguments):
-        return self.left_for_arguments(
-            arguments
-        ) % self.right_for_arguments(
-            arguments
-        )
+        return self.left_for_arguments(arguments) % self.right_for_arguments(arguments)
 
 
 class PowerPrior(CompoundPrior):
@@ -215,18 +239,10 @@ class PowerPrior(CompoundPrior):
     """
 
     def _instance_for_arguments(self, arguments):
-        return self.left_for_arguments(
-            arguments
-        ) ** self.right_for_arguments(
-            arguments
-        )
+        return self.left_for_arguments(arguments) ** self.right_for_arguments(arguments)
 
 
-class ModifiedPrior(
-    AbstractPriorModel,
-    ABC,
-    ArithmeticMixin
-):
+class ModifiedPrior(AbstractPriorModel, ABC, ArithmeticMixin):
     def __init__(self, prior):
         super().__init__()
         self._prior_name = retrieve_name(prior)
@@ -254,9 +270,7 @@ class ModifiedPrior(
     def gaussian_prior_model_for_arguments(self, arguments):
         new = copy(self)
         try:
-            new.prior = new.prior.gaussian_prior_model_for_arguments(
-                arguments
-            )
+            new.prior = new.prior.gaussian_prior_model_for_arguments(arguments)
         except AttributeError:
             pass
         return new
@@ -268,7 +282,9 @@ class NegativePrior(ModifiedPrior):
     """
 
     def _instance_for_arguments(self, arguments):
-        return -self.prior.instance_for_arguments(arguments, )
+        return -self.prior.instance_for_arguments(
+            arguments,
+        )
 
 
 class AbsolutePrior(ModifiedPrior):
@@ -277,7 +293,11 @@ class AbsolutePrior(ModifiedPrior):
     """
 
     def _instance_for_arguments(self, arguments):
-        return abs(self.prior.instance_for_arguments(arguments, ))
+        return abs(
+            self.prior.instance_for_arguments(
+                arguments,
+            )
+        )
 
 
 class Log(ModifiedPrior):
@@ -285,11 +305,12 @@ class Log(ModifiedPrior):
     The natural logarithm of an object, computed after realisation.
     """
 
-    def _instance_for_arguments(
-            self,
-            arguments
-    ):
-        return np.log(self.prior.instance_for_arguments(arguments, ))
+    def _instance_for_arguments(self, arguments):
+        return np.log(
+            self.prior.instance_for_arguments(
+                arguments,
+            )
+        )
 
 
 class Log10(ModifiedPrior):
@@ -297,8 +318,9 @@ class Log10(ModifiedPrior):
     The base10 logarithm of an object, computed after realisation.
     """
 
-    def _instance_for_arguments(
-            self,
-            arguments
-    ):
-        return np.log10(self.prior.instance_for_arguments(arguments, ))
+    def _instance_for_arguments(self, arguments):
+        return np.log10(
+            self.prior.instance_for_arguments(
+                arguments,
+            )
+        )
