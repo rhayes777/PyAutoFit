@@ -63,7 +63,6 @@ def make_summary_dict():
             },
         },
         "model": {
-            "assertions": [],
             "class_path": "autofit.example.model.Gaussian",
             "type": "model",
             "centre": {"lower_limit": 0.0, "upper_limit": 1.0, "type": "Uniform"},
