@@ -1,4 +1,5 @@
 import csv
+import inspect
 from copy import copy
 from typing import List, Tuple
 
@@ -31,13 +32,6 @@ class Sample:
             tuple(key.split(".")) if isinstance(key, str) and "." in key else key: value
             for key, value in (kwargs or dict()).items()
         }
-
-        # TODO : Understand issue https://github.com/rhayes777/PyAutoFit/issues/780
-        try:
-            self.kwargs.pop("log_posterior")
-        except KeyError:
-            pass
-
 
     def model_dict(self) -> dict:
         """
@@ -250,6 +244,7 @@ def load_from_table(filename: str) -> List[Sample]:
 
     sample_args = (
         "log_likelihood",
+        "log_posterior",
         "log_prior",
         "weight",
     )
@@ -263,7 +258,11 @@ def load_from_table(filename: str) -> List[Sample]:
 
             samples.append(
                 Sample(
-                    **{key: value for key, value in d.items() if key in sample_args},
+                    **{
+                        key: value
+                        for key, value in d.items()
+                        if key in inspect.getfullargspec(Sample.__init__).args
+                    },
                     kwargs={
                         key: value for key, value in d.items() if key not in sample_args
                     },
