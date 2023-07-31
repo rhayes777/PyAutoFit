@@ -36,9 +36,12 @@ def make_model_dict(assertion_dict):
     }
 
 
-def test_to_dict(model_dict):
-    model = af.Model(af.Gaussian)
+@pytest.fixture(name="model")
+def make_model():
+    return af.Model(af.Gaussian)
 
+
+def test_to_dict(model_dict, model):
     model.add_assertion(model.centre > 0)
 
     assert model.dict() == model_dict
@@ -57,3 +60,19 @@ def test_model_from_dict(model_dict):
 
     (assertion,) = model.assertions
     assert assertion.right is model.centre
+
+
+def test_compound_assertion(model_dict, model):
+    assertion = (model.centre > 0) < 1
+
+    assertion_dict = assertion.dict()
+    assertion = Assertion.from_dict(assertion_dict)
+
+    assertion_1 = assertion.assertion_1
+    assertion_2 = assertion.assertion_2
+
+    assert isinstance(assertion_1, af.GreaterThanLessThanAssertion)
+    assert isinstance(assertion_2, af.GreaterThanLessThanAssertion)
+
+    assert assertion_1.left == 0
+    assert assertion_2.right == 1

@@ -140,6 +140,18 @@ class CompoundAssertion(AbstractPriorModel, Assertion):
             "assertion_2": self.assertion_2.dict(),
         }
 
+    @classmethod
+    def from_dict(
+        cls,
+        d,
+        reference: Optional[Dict[str, str]] = None,
+        loaded_ids: Optional[dict] = None,
+    ):
+        return cls(
+            Assertion.from_dict(d["assertion_1"], reference, loaded_ids),
+            Assertion.from_dict(d["assertion_2"], reference, loaded_ids),
+        )
+
 
 def unwrap(obj):
     try:
