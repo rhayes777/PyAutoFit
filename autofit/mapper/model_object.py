@@ -261,6 +261,7 @@ class ModelObject:
 
         dict_ = {
             "type": type_,
+            "assertions": [assertion.dict() for assertion in self._assertions],
         }
 
         for key, value in self._dict.items():
