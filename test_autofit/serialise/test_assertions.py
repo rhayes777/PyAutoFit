@@ -3,16 +3,16 @@ import itertools
 import pytest
 
 import autofit as af
-from autofit.mapper.prior.arithmetic.assertion import Assertion
+from autofit.mapper.prior.arithmetic.assertion import Compound
 
 
 @pytest.fixture(name="assertion_dict")
 def make_assertion_dict():
     return {
-        "type": "assertion",
-        "assertion_type": "GreaterThanLessThanAssertion",
-        "lower": 0,
-        "greater": {
+        "type": "compound",
+        "compound_type": "GreaterThanLessThanAssertion",
+        "left": 0,
+        "right": {
             "lower_limit": 0.0,
             "upper_limit": 1.0,
             "type": "Uniform",
@@ -38,11 +38,6 @@ def make_model_dict(assertion_dict):
     }
 
 
-@pytest.fixture(autouse=True)
-def reset_ids():
-    af.Prior._ids = itertools.count()
-
-
 @pytest.fixture(name="model")
 def make_model():
     return af.Model(af.Gaussian)
@@ -55,7 +50,7 @@ def test_to_dict(model_dict, model):
 
 
 def test_from_dict(assertion_dict):
-    assertion = Assertion.from_dict(assertion_dict)
+    assertion = Compound.from_dict(assertion_dict)
 
     assert assertion.left == 0
     assert isinstance(assertion, af.GreaterThanLessThanAssertion)
@@ -73,7 +68,7 @@ def test_compound_assertion(model_dict, model):
     assertion = (model.centre > 0) < 1
 
     assertion_dict = assertion.dict()
-    assertion = Assertion.from_dict(assertion_dict)
+    assertion = Compound.from_dict(assertion_dict)
 
     assertion_1 = assertion.assertion_1
     assertion_2 = assertion.assertion_2
