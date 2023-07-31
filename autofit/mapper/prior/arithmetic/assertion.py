@@ -16,17 +16,20 @@ class Assertion:
         assertion_type = d.pop("assertion_type")
         for subclass in cls.descendants():
             if subclass.__name__ == assertion_type:
-                return subclass.from_dict(d)
+                return subclass.from_dict(
+                    d,
+                    reference=reference,
+                    loaded_ids=loaded_ids,
+                )
         raise ValueError(f"Assertion type {assertion_type} not recognised")
 
     @classmethod
     def descendants(cls):
         subclasses = cls.__subclasses__()
-        descendants = set(cls.__subclasses__())
 
         for child in subclasses:
-            descendants.update(child.descendants())
-        return descendants
+            yield child
+            yield from child.descendants()
 
 
 class ComparisonAssertion(CompoundPrior, Assertion, ABC):
@@ -58,8 +61,8 @@ class ComparisonAssertion(CompoundPrior, Assertion, ABC):
         from autofit import ModelObject
 
         return cls(
-            ModelObject.from_dict(d["lower"]),
-            ModelObject.from_dict(d["greater"]),
+            ModelObject.from_dict(d["lower"], reference, loaded_ids),
+            ModelObject.from_dict(d["greater"], reference, loaded_ids),
         )
 
     def __gt__(self, other):

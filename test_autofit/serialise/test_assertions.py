@@ -50,3 +50,10 @@ def test_from_dict(assertion_dict):
     assert assertion.left == 0
     assert isinstance(assertion, af.GreaterThanLessThanAssertion)
     assert isinstance(assertion.right, af.UniformPrior)
+
+
+def test_model_from_dict(model_dict):
+    model = af.Model.from_dict(model_dict)
+
+    (assertion,) = model.assertions
+    assert assertion.right is model.centre
