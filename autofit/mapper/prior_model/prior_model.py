@@ -8,6 +8,10 @@ from autoconf.exc import ConfigException
 from autofit.mapper.model import assert_not_frozen
 from autofit.mapper.model_object import ModelObject
 from autofit.mapper.prior.abstract import Prior
+from autofit.mapper.prior.arithmetic.assertion import (
+    CompoundAssertion,
+    ComparisonAssertion,
+)
 from autofit.mapper.prior.deferred import DeferredInstance
 from autofit.mapper.prior.tuple_prior import TuplePrior
 from autofit.mapper.prior_model.abstract import AbstractPriorModel

@@ -5,7 +5,6 @@ import logging
 import random
 import types
 from collections import defaultdict
-from functools import wraps
 from typing import Tuple, Optional, Dict, List, Iterable, Generator, Union, Type
 
 import numpy as np
@@ -160,6 +159,14 @@ class AbstractPriorModel(AbstractModel):
     def __init__(self, label=None):
         super().__init__(label=label)
         self._assertions = list()
+
+    @property
+    def assertions(self):
+        return self._assertions
+
+    @assertions.setter
+    def assertions(self, assertions):
+        self._assertions = assertions
 
     def check_assertions(self, arguments: Dict[Prior, float]):
         """

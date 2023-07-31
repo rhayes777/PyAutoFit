@@ -1,7 +1,9 @@
 from collections.abc import Iterable
 
+from autofit.mapper.prior.arithmetic.assertion import ComparisonAssertion
 from autofit.mapper.model import ModelInstance, assert_not_frozen
 from autofit.mapper.prior.abstract import Prior
+from autofit.mapper.prior.arithmetic.assertion import CompoundAssertion
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 
 
