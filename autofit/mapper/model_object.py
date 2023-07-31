@@ -151,6 +151,17 @@ class ModelObject:
         from autofit.mapper.prior_model.prior_model import Model
         from autofit.mapper.prior.abstract import Prior
         from autofit.mapper.prior.tuple_prior import TuplePrior
+        from autofit.mapper.prior.arithmetic.assertion import Assertion
+
+        if isinstance(d, list):
+            return [
+                ModelObject.from_dict(
+                    value,
+                    reference=dereference(reference, str(index)),
+                    loaded_ids=loaded_ids,
+                )
+                for index, value in enumerate(d)
+            ]
 
         if not isinstance(d, dict):
             return d
@@ -178,6 +189,12 @@ class ModelObject:
             instance = Collection()
         elif type_ == "tuple_prior":
             instance = TuplePrior()
+        elif type_ == "assertion":
+            return Assertion.from_dict(
+                d,
+                reference=dereference(reference, "assertion"),
+                loaded_ids=loaded_ids,
+            )
         elif type_ == "dict":
             return {
                 key: ModelObject.from_dict(
@@ -261,6 +278,7 @@ class ModelObject:
 
         dict_ = {
             "type": type_,
+            "assertions": [assertion.dict() for assertion in self._assertions],
         }
 
         for key, value in self._dict.items():
