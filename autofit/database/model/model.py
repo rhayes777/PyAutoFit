@@ -6,6 +6,8 @@ import numpy as np
 
 from autoconf.class_path import get_class, get_class_path
 from ..sqlalchemy_ import sa, declarative
+from autofit.mapper.prior.arithmetic.assertion import ComparisonAssertion
+from autofit.mapper.prior.arithmetic.assertion import CompoundAssertion
 
 Base = declarative.declarative_base()
 
@@ -33,20 +35,6 @@ class Object(Base):
     children: List["Object"] = sa.orm.relationship(
         "Object",
         uselist=True,
-    )
-    greater_assertions: list = sa.orm.relationship(
-        "Assertion",
-        uselist=True,
-        foreign_keys="Assertion.lower_id",
-        cascade="all, delete-orphan",
-        passive_deletes=True,
-    )
-    lower_assertions: list = sa.orm.relationship(
-        "Assertion",
-        uselist=True,
-        foreign_keys="Assertion.greater_id",
-        cascade="all, delete-orphan",
-        passive_deletes=True,
     )
 
     def __len__(self):
@@ -88,6 +76,8 @@ class Object(Base):
         from autofit.mapper.prior.abstract import Prior
         from autofit.mapper.prior_model.collection import Collection
 
+        from autofit.mapper.prior.arithmetic.compound import Compound
+
         if source is None or isinstance(
             source,
             (
@@ -124,6 +114,11 @@ class Object(Base):
             from .instance import StringValue
 
             instance = StringValue._from_object(source)
+
+        elif isinstance(source, Compound):
+            from .compound import Compound
+
+            instance = Compound._from_object(source)
         else:
             from .instance import Instance
 
@@ -155,11 +150,35 @@ class Object(Base):
         called with a dictionary of instantiated children.
         """
         instance = self._make_instance()
+        child_instances = {child.name: child() for child in self.children}
+
+        assertions = [
+            child
+            for child in child_instances.values()
+            if isinstance(
+                child,
+                (
+                    ComparisonAssertion,
+                    CompoundAssertion,
+                ),
+            )
+        ]
+
+        child_instances = {
+            name: child
+            for name, child in child_instances.items()
+            if child not in assertions
+        }
+
         if hasattr(instance, "__setstate__"):
-            instance.__setstate__({child.name: child() for child in self.children})
+            instance.__setstate__(child_instances)
         else:
-            for child in self.children:
-                setattr(instance, child.name, child())
+            for name, child in child_instances.items():
+                setattr(instance, name, child)
+
+        if assertions:
+            instance._assertions = assertions
+
         from autofit import ModelObject
 
         if isinstance(instance, ModelObject) and (
