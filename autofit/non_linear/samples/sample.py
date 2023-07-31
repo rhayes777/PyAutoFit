@@ -33,8 +33,6 @@ class Sample:
             for key, value in (kwargs or dict()).items()
         }
 
-        self.kwargs.pop("log_posterior")
-
     def model_dict(self) -> dict:
         """
         A dictionary mapping model paths to values for the sample
