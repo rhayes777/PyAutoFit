@@ -1,7 +1,7 @@
 from autofit.plot import SamplesPlotter
 
-from autofit.plot.samples_plotters import skip_plot_in_test_mode
-from autofit.plot.samples_plotters import log_value_error
+# from autofit.plot.samples_plotters import skip_plot_in_test_mode
+# from autofit.plot.samples_plotters import log_value_error
 
 class NautilusPlotter(SamplesPlotter):
 

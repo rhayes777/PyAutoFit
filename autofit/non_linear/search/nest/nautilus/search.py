@@ -150,24 +150,66 @@ class Nautilus(abstract_nest.AbstractNest):
         else:
             pool = self.number_of_cores
 
+        # if self.use_mpi:
+        #
+        #     from mpi4py import MPI
+        #     comm = MPI.COMM_WORLD
+        #
+        #     logger.info(f"Search beginning with MPI {comm.Get_rank()} / {self.number_of_cores}")
+        #
+        #     from mpi4py.futures import MPIPoolExecutor
+        #     pool = MPIPoolExecutor(self.number_of_cores)
+        #
+        #     sampler = Sampler(
+        #         prior=prior_transform,
+        #         likelihood=fitness.__call__,
+        #         n_dim=model.prior_count,
+        #         prior_kwargs={"model": model},
+        #         filepath=self.paths.search_internal_path / "checkpoint.hdf5",
+        #         pool=pool,
+        #         **self.config_dict_search
+        #     )
+        #
+        #     import copy
+        #
+        #     config_dict_run = copy.copy(self.config_dict_run)
+        #     config_dict_run["n_eff"] = 1000
+        #
+        #     sampler.run(
+        #         **config_dict_run,
+        #     )
+
         if self.use_mpi:
 
-            from mpi4py.futures import MPIPoolExecutor
-            pool = MPIPoolExecutor(self.number_of_cores)
+            from schwimmbad import MPIPool
+            import sys
 
-            logger.info("Nautilus search is using MPI")
+            from mpi4py import MPI
+            comm = MPI.COMM_WORLD
 
-        sampler = Sampler(
-            prior=prior_transform,
-            likelihood=fitness.__call__,
-            n_dim=model.prior_count,
-            prior_kwargs={"model": model},
-            filepath=self.paths.search_internal_path / "checkpoint.hdf5",
-            pool=pool,
-            **self.config_dict_search
-        )
+            logger.info(f"Search beginning with MPI {comm.Get_rank()} / {self.number_of_cores}")
 
-        sampler.run(**self.config_dict_run)
+            with MPIPool() as pool:
+
+                # if not pool.is_master():
+                #     pool.wait()
+                #     sys.exit(0)
+
+                sampler = Sampler(
+                    prior=prior_transform,
+                    likelihood=fitness.__call__,
+                    n_dim=model.prior_count,
+                    prior_kwargs={"model": model},
+                    filepath=self.paths.search_internal_path / "checkpoint.hdf5",
+                    pool=pool,
+                    **self.config_dict_search
+                )
+
+                sampler.run(
+                    **self.config_dict_run,
+                )
+
+        logger.info(f"Search ending with MPI {comm.Get_rank()} / {self.number_of_cores}")
 
         parameters, log_weights, log_likelihoods = sampler.posterior()
 
