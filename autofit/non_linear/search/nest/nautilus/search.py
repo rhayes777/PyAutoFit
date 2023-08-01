@@ -150,6 +150,22 @@ class Nautilus(abstract_nest.AbstractNest):
         else:
             pool = self.number_of_cores
 
+        if self.mpi == "multiprocessing":
+
+            sampler = Sampler(
+                prior=prior_transform,
+                likelihood=fitness.__call__,
+                n_dim=model.prior_count,
+                prior_kwargs={"model": model},
+                filepath=self.paths.search_internal_path / "checkpoint.hdf5",
+                pool=self.number_of_cores,
+                **self.config_dict_search
+            )
+
+            sampler.run(
+                **self.config_dict_run,
+            )
+
         if self.mpi == "futures":
 
             from mpi4py import MPI
