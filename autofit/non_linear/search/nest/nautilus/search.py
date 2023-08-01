@@ -44,7 +44,7 @@ class Nautilus(abstract_nest.AbstractNest):
             iterations_per_update: int = None,
             number_of_cores: int = None,
             session: Optional[sa.orm.Session] = None,
-            use_mpi = False,
+            mpi = None,
             **kwargs
     ):
         """
@@ -91,7 +91,7 @@ class Nautilus(abstract_nest.AbstractNest):
             **kwargs
         )
 
-        self.use_mpi = use_mpi
+        self.mpi = mpi
 
         self.logger.debug("Creating Nautilus Search")
 
@@ -150,50 +150,39 @@ class Nautilus(abstract_nest.AbstractNest):
         else:
             pool = self.number_of_cores
 
-        # if self.use_mpi:
-        #
-        #     from mpi4py import MPI
-        #     comm = MPI.COMM_WORLD
-        #
-        #     logger.info(f"Search beginning with MPI {comm.Get_rank()} / {self.number_of_cores}")
-        #
-        #     from mpi4py.futures import MPIPoolExecutor
-        #     pool = MPIPoolExecutor(self.number_of_cores)
-        #
-        #     sampler = Sampler(
-        #         prior=prior_transform,
-        #         likelihood=fitness.__call__,
-        #         n_dim=model.prior_count,
-        #         prior_kwargs={"model": model},
-        #         filepath=self.paths.search_internal_path / "checkpoint.hdf5",
-        #         pool=pool,
-        #         **self.config_dict_search
-        #     )
-        #
-        #     import copy
-        #
-        #     config_dict_run = copy.copy(self.config_dict_run)
-        #     config_dict_run["n_eff"] = 1000
-        #
-        #     sampler.run(
-        #         **config_dict_run,
-        #     )
-
-        if self.use_mpi:
-
-            from schwimmbad import MPIPool
-            import sys
+        if self.mpi == "futures":
 
             from mpi4py import MPI
             comm = MPI.COMM_WORLD
 
             logger.info(f"Search beginning with MPI {comm.Get_rank()} / {self.number_of_cores}")
 
-            with MPIPool() as pool:
+            from mpi4py.futures import MPIPoolExecutor
+            pool = MPIPoolExecutor(self.number_of_cores)
 
-                # if not pool.is_master():
-                #     pool.wait()
-                #     sys.exit(0)
+            sampler = Sampler(
+                prior=prior_transform,
+                likelihood=fitness.__call__,
+                n_dim=model.prior_count,
+                prior_kwargs={"model": model},
+                filepath=self.paths.search_internal_path / "checkpoint.hdf5",
+                pool=pool,
+                **self.config_dict_search
+            )
+
+            sampler.run(
+                **self.config_dict_run,
+            )
+
+        if self.mpi == "schwimmbad":
+
+            from schwimmbad import MPIPool
+            from mpi4py import MPI
+            comm = MPI.COMM_WORLD
+
+            logger.info(f"Search beginning with MPI {comm.Get_rank()} / {self.number_of_cores}")
+
+            with MPIPool() as pool:
 
                 sampler = Sampler(
                     prior=prior_transform,
