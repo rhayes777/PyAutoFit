@@ -5,9 +5,6 @@ import os
 from os import path
 from typing import Iterable
 
-from dynesty.dynesty import _function_wrapper
-from emcee.ensemble import _FunctionWrapper
-
 from autoconf import conf
 from autofit.non_linear.paths.abstract import AbstractPaths
 from .process import AbstractJob, Process, StopCommand
@@ -37,6 +34,8 @@ def _is_likelihood_function(
     Is the object a log likelihood function?
     """
     from autofit.non_linear.search.abstract_search import NonLinearSearch
+    from dynesty.dynesty import _function_wrapper
+    from emcee.ensemble import _FunctionWrapper
     return any([
         isinstance(
             function,
