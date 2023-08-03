@@ -5,71 +5,41 @@ from autofit import database as db
 from autofit.non_linear.samples import Samples
 
 
-@pytest.fixture(
-    name="model"
-)
+@pytest.fixture(name="model")
 def make_model():
-    return af.Model(
-        af.Gaussian
-    )
+    return af.Model(af.Gaussian)
 
 
-@pytest.fixture(
-    name="serialized_model"
-)
+@pytest.fixture(name="serialized_model")
 def make_serialized_model(model):
-    return db.Object.from_object(
-        model
-    )
+    return db.Object.from_object(model)
 
 
-@pytest.fixture(
-    name="collection"
-)
+@pytest.fixture(name="collection")
 def make_collection(model):
-    return af.Collection(
-        model=model
-    )
+    return af.Collection(model=model)
 
 
-@pytest.fixture(
-    name="serialized_collection"
-)
+@pytest.fixture(name="serialized_collection")
 def make_serialized_collection(collection):
-    return db.Object.from_object(
-        collection
-    )
+    return db.Object.from_object(collection)
 
 
 class TestInstance:
     def test_serialize(self):
-        serialized_instance = db.Object.from_object(
-            af.Gaussian()
-        )
-        assert len(
-            serialized_instance.children
-        ) == 3
+        serialized_instance = db.Object.from_object(af.Gaussian())
+        assert len(serialized_instance.children) == 3
 
     def test_tuple(self):
-        assert db.Object.from_object(
-            (1, 2)
-        )() == (1, 2)
+        assert db.Object.from_object((1, 2))() == (1, 2)
 
 
 class TestModel:
-    def test_serialize(
-            self,
-            serialized_model
-    ):
-        assert isinstance(
-            serialized_model, db.Model
-        )
+    def test_serialize(self, serialized_model):
+        assert isinstance(serialized_model, db.Model)
         assert serialized_model.cls is af.Gaussian
 
-    def test_deserialize(
-            self,
-            serialized_model
-    ):
+    def test_deserialize(self, serialized_model):
         assert serialized_model().cls is af.Gaussian
 
 
@@ -86,16 +56,12 @@ class TestFrozenCache:
         gaussian = af.Model(af.Gaussian)
         gaussian.freeze()
         _ = gaussian.unique_prior_tuples
-        serialized = db.Object.from_object(
-            gaussian
-        )
+        serialized = db.Object.from_object(gaussian)
         deserialized = serialized()
         assert deserialized._frozen_cache == {}
 
     def test_collection_with_cache(self, collection_with_cache):
-        serialized = db.Object.from_object(
-            collection_with_cache
-        )
+        serialized = db.Object.from_object(collection_with_cache)
         deserialized = serialized()
         assert deserialized._frozen_cache == {}
 
@@ -116,21 +82,15 @@ class TestFrozenCache:
 
 class TestPriors:
     def test_serialize(
-            self,
-            serialized_model,
+        self,
+        serialized_model,
     ):
         assert len(serialized_model.children) == 3
 
-    def test_deserialize(
-            self,
-            serialized_model
-    ):
+    def test_deserialize(self, serialized_model):
         model = serialized_model()
         assert len(model.priors) == 3
-        assert isinstance(
-            model.centre,
-            af.UniformPrior
-        )
+        assert isinstance(model.centre, af.UniformPrior)
 
 
 def test_none_id(model):
@@ -140,42 +100,23 @@ def test_none_id(model):
 
 
 class TestCollection:
-    def test_serialize(
-            self,
-            serialized_collection
-    ):
-        assert isinstance(
-            serialized_collection,
-            db.Collection
-        )
-        child, = serialized_collection.children
+    def test_serialize(self, serialized_collection):
+        assert isinstance(serialized_collection, db.Collection)
+        (child,) = serialized_collection.children
         assert len(child.children) == 3
 
-    def test_deserialize(
-            self,
-            serialized_collection
-    ):
+    def test_deserialize(self, serialized_collection):
         collection = serialized_collection()
         assert len(collection) == 1
-        assert isinstance(
-            collection.model,
-            af.Model
-        )
+        assert isinstance(collection.model, af.Model)
 
 
 class TestClasses:
     def test_samples(self):
-        db.Object.from_object(
-            Samples(
-                af.ModelMapper(),
-                None
-            )
-        )()
+        db.Object.from_object(Samples(af.ModelMapper(), None))()
 
     def test_string(self):
-        assert "string" == db.Object.from_object(
-            "string"
-        )()
+        assert "string" == db.Object.from_object("string")()
 
 
 class Serialisable:
@@ -183,21 +124,15 @@ class Serialisable:
         self.value = 1
 
     def __getstate__(self):
-        return {
-            "value": 2 * self.value
-        }
+        return {"value": 2 * self.value}
 
     def __setstate__(self, state):
         state["value"] *= -1
-        self.__dict__.update(
-            state
-        )
+        self.__dict__.update(state)
 
 
 def test_get_set_state():
-    assert db.Object.from_object(
-        Serialisable()
-    )().value == -2
+    assert db.Object.from_object(Serialisable())().value == -2
 
 
 def test_none():
@@ -205,9 +140,15 @@ def test_none():
 
 
 def test_commit(session):
-    model = af.Model(
-        af.Gaussian
-    )
+    model = af.Model(af.Gaussian)
     serialized = db.Object.from_object(model)
     session.add(serialized)
     session.commit()
+
+
+def test_assertions(model):
+    model.add_assertion(model.centre < 1.0)
+    serialized = db.Object.from_object(model)
+    deserialized = serialized()
+
+    assert len(deserialized.assertions) == 1
