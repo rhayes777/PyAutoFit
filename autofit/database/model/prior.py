@@ -56,7 +56,13 @@ class Model(Object):
     ):
         instance = cls()
         instance.cls = model.cls
-        instance._add_children(model.items())
+        instance._add_children(
+            model.items()
+            + [
+                (f"assertion_{i}", assertion)
+                for i, assertion in enumerate(model.assertions)
+            ]
+        )
         return instance
 
     def _make_instance(self):
