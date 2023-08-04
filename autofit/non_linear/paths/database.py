@@ -1,5 +1,5 @@
 import shutil
-from typing import Dict, Optional
+from typing import Dict, Optional, Union
 
 from autofit.database.sqlalchemy_ import sa
 from .abstract import AbstractPaths
@@ -121,7 +121,7 @@ class DatabasePaths(AbstractPaths):
         del d["session"]
         return d
 
-    def save_json(self, name, object_dict: dict):
+    def save_json(self, name, object_dict: Union[dict, list]):
         """
         Save a dictionary as a json file in the database
 

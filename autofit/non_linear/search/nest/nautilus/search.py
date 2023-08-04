@@ -161,6 +161,7 @@ class Nautilus(abstract_nest.AbstractNest):
                 prior_kwargs={"model": model},
                 filepath=self.paths.search_internal_path / "checkpoint.hdf5",
                 pool=None,
+                n_cpu=1,
                 **self.config_dict_search
             )
 
@@ -177,6 +178,7 @@ class Nautilus(abstract_nest.AbstractNest):
                 prior_kwargs={"model": model},
                 filepath=self.paths.search_internal_path / "checkpoint.hdf5",
                 pool=self.number_of_cores,
+                n_cpu=self.number_of_cores,
                 **self.config_dict_search
             )
 
@@ -201,6 +203,7 @@ class Nautilus(abstract_nest.AbstractNest):
                 prior_kwargs={"model": model},
                 filepath=self.paths.search_internal_path / "checkpoint.hdf5",
                 pool=pool,
+                n_cpu=self.number_of_cores,
                 **self.config_dict_search
             )
 
@@ -225,6 +228,7 @@ class Nautilus(abstract_nest.AbstractNest):
                     prior_kwargs={"model": model},
                     filepath=self.paths.search_internal_path / "checkpoint.hdf5",
                     pool=pool,
+                    n_cpu=self.number_of_cores,
                     **self.config_dict_search
                 )
 
@@ -232,7 +236,7 @@ class Nautilus(abstract_nest.AbstractNest):
                     **self.config_dict_run,
                 )
 
-        logger.info(f"Search ending with MPI {comm.Get_rank()} / {self.number_of_cores}")
+#        logger.info(f"Search ending with MPI {comm.Get_rank()} / {self.number_of_cores}")
 
         parameters, log_weights, log_likelihoods = sampler.posterior()
 
