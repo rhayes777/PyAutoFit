@@ -236,6 +236,15 @@ class Nautilus(abstract_nest.AbstractNest):
                     **self.config_dict_run,
                 )
 
+        profile_dict = {
+            "Number CPU" : self.number_of_cores,
+            "LH Time" : sampler.time_log_l,
+            "Bound Time": sampler.time_bound,
+            "Total Time": sampler.time_total,
+        }
+
+        self.paths.save_json(name="nautilus", object_dict=profile_dict)
+
 #        logger.info(f"Search ending with MPI {comm.Get_rank()} / {self.number_of_cores}")
 
         parameters, log_weights, log_likelihoods = sampler.posterior()
