@@ -690,26 +690,20 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             self.timer.start()
 
         model.freeze()
-        self._fit(
+        samples = self._fit(
             model=model, analysis=analysis, log_likelihood_cap=log_likelihood_cap
         )
         model.unfreeze()
 
         self.paths.completed()
 
-        print("Performing update")
-
-        samples = self.perform_update(
-            model=model, analysis=analysis, during_analysis=False
-        )
-
-        print("Making Result")
+        # samples = self.perform_update(
+        #     model=model, analysis=analysis, during_analysis=False
+        # )
 
         result = analysis.make_result(
             samples=samples,
         )
-
-        print("Result Made")
 
         if self.is_master:
 
@@ -904,13 +898,24 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         """
 
         self.iterations += self.iterations_per_update
-        self.logger.info(
-            f"{self.iterations} Iterations: Performing update (Visualization, outputting samples, etc.)."
-        )
+        if during_analysis:
+            self.logger.info(
+                f"{self.iterations} Iterations: Performing update (Visualization, outputting samples, etc.)."
+            )
+        else:
+            self.logger.info(
+                f"Search Finished: Performing final update (Visualization, outputting samples, etc.)."
+            )
+
+        print("Timer")
 
         self.timer.update()
 
+        print("Samples")
+
         samples = self.samples_from(model=model)
+
+        print("Samples to csv")
 
         self.paths.samples_to_csv(samples=samples)
 
@@ -919,9 +924,13 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         except exc.FitException:
             return samples
 
+        print("Max LH")
+
         self.perform_visualization(
             model=model, analysis=analysis, during_analysis=during_analysis
         )
+
+        print("VIsualization")
 
         if self.should_profile:
             self.logger.debug("Profiling Maximum Likelihood Model")
@@ -929,6 +938,8 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                 paths=self.paths,
                 instance=instance,
             )
+
+        print("Profile")
 
         self.logger.debug("Outputting model result")
         try:
@@ -942,6 +953,8 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             )
         except exc.FitException:
             pass
+
+        print("Outputting model result")
 
         if not during_analysis and self.remove_state_files_at_end:
             self.logger.debug("Removing state files")

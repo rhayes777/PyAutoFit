@@ -229,11 +229,11 @@ class Nautilus(abstract_nest.AbstractNest):
 
         self.paths.save_results_internal_json(results_internal_dict=results_internal_json)
 
-        self.perform_update(model=model, analysis=analysis, during_analysis=True)
+        samples = self.perform_update(model=model, analysis=analysis, during_analysis=False)
 
         os.remove(self.paths.search_internal_path / "checkpoint.hdf5")
 
-        return
+        return samples
 
         # TODO : Need max iter input (https://github.com/johannesulf/nautilus/issues/23)
 
