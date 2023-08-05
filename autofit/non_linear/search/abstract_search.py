@@ -697,9 +697,13 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         self.paths.completed()
 
+        print("Performing Update")
+
         samples = self.perform_update(
             model=model, analysis=analysis, during_analysis=False
         )
+
+        print("Making Result")
 
         result = analysis.make_result(
             samples=samples,
@@ -707,7 +711,11 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         if self.is_master:
 
+            print("Saving Result")
+
             analysis.save_results(paths=self.paths, result=result)
+
+            print("Samples Summary")
 
             if not self.skip_save_samples:
                 self.paths.save_json("samples_summary", samples.summary().dict())
