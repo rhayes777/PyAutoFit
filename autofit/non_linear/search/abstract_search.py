@@ -697,13 +697,9 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         self.paths.completed()
 
-        print("Performing Update")
-
         samples = self.perform_update(
             model=model, analysis=analysis, during_analysis=False
         )
-
-        print("Making Result")
 
         result = analysis.make_result(
             samples=samples,
@@ -711,11 +707,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         if self.is_master:
 
-            print("Saving Result")
-
             analysis.save_results(paths=self.paths, result=result)
-
-            print("Samples Summary")
 
             if not self.skip_save_samples:
                 self.paths.save_json("samples_summary", samples.summary().dict())
@@ -910,9 +902,15 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             f"{self.iterations} Iterations: Performing update (Visualization, outputting samples, etc.)."
         )
 
+        print("Timer")
+
         self.timer.update()
 
+        print("Samples")
+
         samples = self.samples_from(model=model)
+
+        print("Samples to csv")
 
         self.paths.samples_to_csv(samples=samples)
 
@@ -921,9 +919,13 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         except exc.FitException:
             return samples
 
+        print("Max LH")
+
         self.perform_visualization(
             model=model, analysis=analysis, during_analysis=during_analysis
         )
+
+        print("VIsualization")
 
         if self.should_profile:
             self.logger.debug("Profiling Maximum Likelihood Model")
@@ -931,6 +933,8 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                 paths=self.paths,
                 instance=instance,
             )
+
+        print("Profile")
 
         self.logger.debug("Outputting model result")
         try:
@@ -945,12 +949,16 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         except exc.FitException:
             pass
 
+        print("Outputting model result")
+
         if not during_analysis and self.remove_state_files_at_end:
             self.logger.debug("Removing state files")
             try:
                 self.remove_state_files()
             except FileNotFoundError:
                 pass
+
+        print("Removing state files")
 
         return samples
 
