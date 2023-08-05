@@ -170,9 +170,10 @@ class Nautilus(abstract_nest.AbstractNest):
 
         elif not self.mpi:
 
+    
             sampler = Sampler(
                 prior=prior_transform,
-                likelihood=fitness,
+                likelihood=fitness.__call__,
                 n_dim=model.prior_count,
                 prior_kwargs={"model": model},
                 filepath=self.paths.search_internal_path / "checkpoint.hdf5",
