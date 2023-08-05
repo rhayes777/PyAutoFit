@@ -44,7 +44,7 @@ class Nautilus(abstract_nest.AbstractNest):
             iterations_per_update: int = None,
             number_of_cores: int = None,
             session: Optional[sa.orm.Session] = None,
-            mpi = None,
+            mpi = False,
             **kwargs
     ):
         """
@@ -168,7 +168,7 @@ class Nautilus(abstract_nest.AbstractNest):
                 **self.config_dict_run,
             )
 
-        elif self.mpi == "multiprocessing":
+        elif not self.mpi:
 
             sampler = Sampler(
                 prior=prior_transform,
@@ -184,7 +184,7 @@ class Nautilus(abstract_nest.AbstractNest):
                 **self.config_dict_run,
             )
 
-        elif self.mpi == "futures":
+        elif self.mpi:
 
             from mpi4py import MPI
             comm = MPI.COMM_WORLD
@@ -207,31 +207,6 @@ class Nautilus(abstract_nest.AbstractNest):
             sampler.run(
                 **self.config_dict_run,
             )
-
-        elif self.mpi == "schwimmbad":
-
-            from schwimmbad import MPIPool
-            from mpi4py import MPI
-            comm = MPI.COMM_WORLD
-
-            logger.info(f"Search beginning with MPI {comm.Get_rank()} / {self.number_of_cores}")
-
-            with MPIPool() as pool:
-
-                sampler = Sampler(
-                    prior=prior_transform,
-                    likelihood=fitness.__call__,
-                    n_dim=model.prior_count,
-                    prior_kwargs={"model": model},
-                    filepath=self.paths.search_internal_path / "checkpoint.hdf5",
-                    pool=pool,
-                    **self.config_dict_search
-                )
-
-                sampler.run(
-                    **self.config_dict_run,
-                )
-
 
 #        logger.info(f"Search ending with MPI {comm.Get_rank()} / {self.number_of_cores}")
 
