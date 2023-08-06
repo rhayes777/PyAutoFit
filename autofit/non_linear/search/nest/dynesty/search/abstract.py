@@ -98,7 +98,6 @@ class AbstractDynesty(AbstractNest, ABC):
             self,
             model: AbstractPriorModel,
             analysis,
-            log_likelihood_cap: Optional[float] = None,
     ):
         """
         Fit a model using the search and the Analysis class which contains the data and returns the log likelihood from
@@ -119,9 +118,6 @@ class AbstractDynesty(AbstractNest, ABC):
         analysis
             Contains the data and the log likelihood function which fits an instance of the model to the data,
             returning the log likelihood dynesty maximizes.
-        log_likelihood_cap
-            An optional cap to the log likelihood values, which means all likelihood evaluations above this value
-            are rounded down to it. This is used to remove numerical instability in an Astronomy based project.
 
         Returns
         -------
@@ -134,7 +130,6 @@ class AbstractDynesty(AbstractNest, ABC):
         fitness = self.Fitness(
             model=model,
             analysis=analysis,
-            log_likelihood_cap=log_likelihood_cap,
         )
 
         if os.path.exists(self.checkpoint_file):

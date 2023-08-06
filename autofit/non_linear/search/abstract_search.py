@@ -378,7 +378,6 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         model,
         analysis: IndexCollectionAnalysis,
         info=None,
-        log_likelihood_cap=None,
     ) -> CombinedResult:
         """
         Fit multiple analyses contained within the analysis sequentially.
@@ -387,7 +386,6 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         Parameters
         ----------
-        log_likelihood_cap
         analysis
             Multiple analyses that are fit sequentially
         model
@@ -431,7 +429,6 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                     model=model,
                     analysis=analysis,
                     info=info,
-                    log_likelihood_cap=log_likelihood_cap,
                 )
             )
         self.paths = _paths
@@ -442,7 +439,6 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         model,
         analysis: "Analysis",
         info=None,
-        log_likelihood_cap=None,
         bypass_nuclear_if_on: bool = False,
     ) -> Union["Result", List["Result"]]:
         """
@@ -503,7 +499,6 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
            result = self.start_resume_fit(
                 analysis=analysis,
                 model=model,
-                log_likelihood_cap=log_likelihood_cap,
             )
         else:
             result = self.result_via_completed_fit(
@@ -574,7 +569,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                 model=model,
             )
 
-    def start_resume_fit(self, analysis, model, log_likelihood_cap):
+    def start_resume_fit(self, analysis, model):
         """
         Start a non-linear search from scratch, or resumes one which was previously terminated mid-way through.
 
@@ -605,7 +600,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         model.freeze()
         self._fit(
-            model=model, analysis=analysis, log_likelihood_cap=log_likelihood_cap
+            model=model, analysis=analysis,
         )
         model.unfreeze()
 
@@ -700,7 +695,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             self.paths.zip_remove_nuclear()
 
     @abstractmethod
-    def _fit(self, model, analysis, log_likelihood_cap=None):
+    def _fit(self, model, analysis):
         pass
 
     def check_model(self, model):

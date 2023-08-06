@@ -59,12 +59,11 @@ class AbstractNest(NonLinearSearch):
 
     class Fitness(NonLinearSearch.Fitness):
         def __init__(
-            self, analysis, model, log_likelihood_cap=None
+            self, analysis, model,
         ):
             super().__init__(
                 analysis=analysis,
                 model=model,
-                log_likelihood_cap=log_likelihood_cap,
             )
 
             self.stagger_accepted_samples = 0

@@ -104,7 +104,7 @@ class Zeus(AbstractMCMC):
 
             return log_posterior
 
-    def _fit(self, model: AbstractPriorModel, analysis, log_likelihood_cap=None):
+    def _fit(self, model: AbstractPriorModel, analysis):
         """
         Fit a model using Zeus and the Analysis class which contains the data and returns the log likelihood from
         instances of the model, which the `NonLinearSearch` seeks to maximize.
@@ -140,7 +140,6 @@ class Zeus(AbstractMCMC):
         fitness = Zeus.Fitness(
             model=model,
             analysis=analysis,
-            log_likelihood_cap=log_likelihood_cap,
         )
 
         try:

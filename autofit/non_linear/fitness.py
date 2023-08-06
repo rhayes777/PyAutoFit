@@ -4,7 +4,7 @@ from autofit import exc
 
 class Fitness:
     def __init__(
-            self, model, analysis, log_likelihood_cap=None
+            self, model, analysis, fom_is_log_likelihood,
     ):
         """
         Interfaces with any non-linear in order to fit a model to the data and return a log likelihood via
@@ -41,11 +41,14 @@ class Fitness:
         model
             The model that is fitted to the data, which is used by the non-linear search to create instances of
             the model that are fitted to the data via the log likelihood function.
+        fom_is_log_likelihood
+            If `True`, the figure of merit returned by the fitness function is the log likelihood. If `False`, the
+            figure of merit is the log posterior.
         """
 
         self.analysis = analysis
         self.model = model
-        self.log_likelihood_cap = log_likelihood_cap
+        self.fom_is_log_likelihood = fom_is_log_likelihood
 
     def __call__(self, parameters, *kwargs):
         """
@@ -67,6 +70,14 @@ class Fitness:
         The figure of merit returned to the non-linear search, which is either the log likelihood or log posterior.
         """
         try:
+
+            instance = self.model.instance_from_vector(vector=parameters)
+
+            if self.fom_is_log_likelihood:
+                fom = self.log_likelihood_from(parameter_list=parameters)
+            else:
+                fom = self.log_posterior_from(parameter_list=parameters)
+
             figure_of_merit = self.figure_of_merit_from(parameter_list=parameters)
 
             if np.isnan(figure_of_merit):
@@ -79,16 +90,6 @@ class Fitness:
 
     def fit_instance(self, instance):
         log_likelihood = self.analysis.log_likelihood_function(instance=instance)
-
-        if self.log_likelihood_cap is not None:
-            if log_likelihood > self.log_likelihood_cap:
-                log_likelihood = self.log_likelihood_cap
-
-        return log_likelihood
-
-    def log_likelihood_from(self, parameter_list):
-        instance = self.model.instance_from_vector(vector=parameter_list)
-        log_likelihood = self.fit_instance(instance)
 
         return log_likelihood
 
@@ -109,7 +110,7 @@ class Fitness:
             - The *MCMC* algorithm *Emcee* uses the log posterior.
             - Nested samplers such as *Dynesty* use the log likelihood.
         """
-        raise NotImplementedError()
+        return
 
     @staticmethod
     def prior(cube, model):

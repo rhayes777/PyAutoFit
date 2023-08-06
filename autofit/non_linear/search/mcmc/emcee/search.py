@@ -92,7 +92,7 @@ class Emcee(AbstractMCMC):
             """
             return self.log_posterior_from(parameter_list=parameter_list)
 
-    def _fit(self, model: AbstractPriorModel, analysis, log_likelihood_cap=None):
+    def _fit(self, model: AbstractPriorModel, analysis):
         """
         Fit a model using Emcee and the Analysis class which contains the data and returns the log likelihood from
         instances of the model, which the `NonLinearSearch` seeks to maximize.
@@ -113,7 +113,6 @@ class Emcee(AbstractMCMC):
         fitness = Emcee.Fitness(
             model=model,
             analysis=analysis,
-            log_likelihood_cap=log_likelihood_cap,
         )
 
         pool = self.make_sneaky_pool(fitness)

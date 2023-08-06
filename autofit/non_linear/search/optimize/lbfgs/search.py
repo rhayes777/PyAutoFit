@@ -85,7 +85,6 @@ class LBFGS(AbstractOptimizer):
         self,
         model: AbstractPriorModel,
         analysis: Analysis,
-        log_likelihood_cap: Optional[float] = None,
     ):
         """
         Fit a model using the scipy L-BFGS method and the Analysis class which contains the data and returns the log
@@ -107,7 +106,6 @@ class LBFGS(AbstractOptimizer):
         fitness = self.Fitness(
             model=model,
             analysis=analysis,
-            log_likelihood_cap=log_likelihood_cap
         )
 
         if self.paths.is_object("x0"):

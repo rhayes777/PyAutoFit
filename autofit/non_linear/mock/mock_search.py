@@ -66,7 +66,7 @@ class MockSearch(NonLinearSearch):
     def config_dict_search(self):
         return {}
 
-    def _fit_fast(self, model, analysis, log_likelihood_cap=None):
+    def _fit_fast(self, model, analysis):
         class Fitness:
             def __init__(self, instance_from_vector, result):
                 self.result = result
@@ -93,7 +93,7 @@ class MockSearch(NonLinearSearch):
 
         return fitness.result
 
-    def _fit(self, model, analysis, log_likelihood_cap=None):
+    def _fit(self, model, analysis):
 
         if self.fit_fast:
             result = self._fit_fast(model=model, analysis=analysis)

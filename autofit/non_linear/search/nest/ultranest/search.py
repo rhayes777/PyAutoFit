@@ -98,7 +98,7 @@ class UltraNest(abstract_nest.AbstractNest):
             """
             return -1.0e99
 
-    def _fit(self, model: AbstractPriorModel, analysis, log_likelihood_cap=None):
+    def _fit(self, model: AbstractPriorModel, analysis):
         """
         Fit a model using the search and the Analysis class which contains the data and returns the log likelihood from
         instances of the model, which the `NonLinearSearch` seeks to maximize.
@@ -132,7 +132,6 @@ class UltraNest(abstract_nest.AbstractNest):
         fitness = self.Fitness(
             model=model,
             analysis=analysis,
-            log_likelihood_cap=log_likelihood_cap,
         )
 
         def prior_transform(cube):
