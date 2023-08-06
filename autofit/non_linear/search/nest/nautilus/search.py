@@ -151,6 +151,17 @@ class Nautilus(abstract_nest.AbstractNest):
         else:
             pool = self.number_of_cores
 
+        checkpoint_file = self.paths.search_internal_path / "checkpoint.hdf5"
+
+        if os.path.exists(checkpoint_file):
+            self.logger.info(
+                "Resuming Nautilus non-linear search (previous samples found)."
+            )
+        else:
+            self.logger.info(
+                "Starting new Nautilus non-linear search (no previous samples found)."
+            )
+
         if conf.instance["non_linear"]["nest"][self.__class__.__name__][
             "parallel"
         ].get("force_x1_cpu") or self.kwargs.get("force_x1_cpu"):
@@ -160,7 +171,7 @@ class Nautilus(abstract_nest.AbstractNest):
                 likelihood=fitness.__call__,
                 n_dim=model.prior_count,
                 prior_kwargs={"model": model},
-                filepath=self.paths.search_internal_path / "checkpoint.hdf5",
+                filepath=checkpoint_file,
                 pool=None,
                 **self.config_dict_search
             )
@@ -170,14 +181,13 @@ class Nautilus(abstract_nest.AbstractNest):
             )
 
         elif not self.mpi:
-
-    
+        
             sampler = Sampler(
                 prior=prior_transform,
                 likelihood=fitness.__call__,
                 n_dim=model.prior_count,
                 prior_kwargs={"model": model},
-                filepath=self.paths.search_internal_path / "checkpoint.hdf5",
+                filepath=checkpoint_file,
                 pool=self.number_of_cores,
                 **self.config_dict_search
             )
@@ -201,7 +211,7 @@ class Nautilus(abstract_nest.AbstractNest):
                 likelihood=fitness.__call__,
                 n_dim=model.prior_count,
                 prior_kwargs={"model": model},
-                filepath=self.paths.search_internal_path / "checkpoint.hdf5",
+                filepath=checkpoint_file,
                 pool=pool,
                 **self.config_dict_search
             )
@@ -230,7 +240,7 @@ class Nautilus(abstract_nest.AbstractNest):
 
         self.paths.save_results_internal_json(results_internal_dict=results_internal_json)
 
-        os.remove(self.paths.search_internal_path / "checkpoint.hdf5")
+        os.remove(checkpoint_file)
 
         # TODO : Need max iter input (https://github.com/johannesulf/nautilus/issues/23)
 
