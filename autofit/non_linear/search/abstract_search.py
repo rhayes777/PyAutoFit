@@ -967,10 +967,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             If the update is during a non-linear search, in which case tasks are only performed after a certain number
             of updates and only a subset of visualization may be performed.
         """
-        try:
-            samples = self.samples_from(model=model)
-        except FileNotFoundError:
-            samples = self.paths.load_object(name="samples")
+        samples = self.samples_from(model=model)
 
         try:
             instance = samples.max_log_likelihood()
