@@ -697,10 +697,6 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         self.paths.completed()
 
-        # samples = self.perform_update(
-        #     model=model, analysis=analysis, during_analysis=False
-        # )
-
         result = analysis.make_result(
             samples=result.samples,
         )
@@ -708,9 +704,6 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         if self.is_master:
 
             analysis.save_results(paths=self.paths, result=result)
-
-            if not self.skip_save_samples:
-                self.paths.save_json("samples_summary", result.samples.summary().dict())
 
         return result
 
@@ -766,6 +759,8 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
                 if not self.skip_save_samples:
                     self.paths.save_json("samples_summary", samples.summary().dict())
+
+                # TODO : Remove
 
                 try:
                     self.paths.save_object("results", samples.results)
@@ -917,8 +912,6 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         self.logger.info("Samples to csv")
 
-        self.paths.samples_to_csv(samples=samples)
-
         try:
             instance = samples.max_log_likelihood()
         except exc.FitException:
@@ -926,44 +919,51 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         self.logger.info("Max LH")
 
-        self.perform_visualization(
-            model=model, analysis=analysis, during_analysis=during_analysis
-        )
+        if self.is_master:
 
-        self.logger.info("VIsualization")
+            self.paths.samples_to_csv(samples=samples)
 
-        if self.should_profile:
-            self.logger.debug("Profiling Maximum Likelihood Model")
-            analysis.profile_log_likelihood_function(
-                paths=self.paths,
-                instance=instance,
+            if not self.skip_save_samples:
+                self.paths.save_json("samples_summary", samples.summary().dict())
+
+            self.perform_visualization(
+                model=model, analysis=analysis, during_analysis=during_analysis
             )
 
-        self.logger.info("Profile")
+            self.logger.info("VIsualization")
 
-        self.logger.debug("Outputting model result")
-        try:
-            start = time.time()
-            analysis.log_likelihood_function(instance=instance)
-            log_likelihood_function_time = time.time() - start
+            if self.should_profile:
+                self.logger.debug("Profiling Maximum Likelihood Model")
+                analysis.profile_log_likelihood_function(
+                    paths=self.paths,
+                    instance=instance,
+                )
 
-            self.paths.save_summary(
-                samples=samples,
-                log_likelihood_function_time=log_likelihood_function_time,
-            )
-        except exc.FitException:
-            pass
+            self.logger.info("Profile")
 
-        self.logger.info("Outputting model result")
-
-        if not during_analysis and self.remove_state_files_at_end:
-            self.logger.debug("Removing state files")
+            self.logger.debug("Outputting model result")
             try:
-                self.remove_state_files()
-            except FileNotFoundError:
+                start = time.time()
+                analysis.log_likelihood_function(instance=instance)
+                log_likelihood_function_time = time.time() - start
+
+                self.paths.save_summary(
+                    samples=samples,
+                    log_likelihood_function_time=log_likelihood_function_time,
+                )
+            except exc.FitException:
                 pass
 
-        self.logger.info("Removing state files")
+            self.logger.info("Outputting model result")
+
+            if not during_analysis and self.remove_state_files_at_end:
+                self.logger.debug("Removing state files")
+                try:
+                    self.remove_state_files()
+                except FileNotFoundError:
+                    pass
+
+            self.logger.info("Removing state files")
 
         return samples
 
