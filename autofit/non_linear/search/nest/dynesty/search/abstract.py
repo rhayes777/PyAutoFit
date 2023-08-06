@@ -200,7 +200,9 @@ class AbstractDynesty(AbstractNest, ABC):
 
                 finished = self.run_sampler(sampler=sampler)
 
-            self.perform_update(model=model, analysis=analysis, during_analysis=True)
+            if not finished:
+
+                self.perform_update(model=model, analysis=analysis, during_analysis=True)
 
         self.paths.save_results_internal(obj=sampler.results)
 

@@ -167,14 +167,14 @@ class LBFGS(AbstractOptimizer):
                 )
                 self.paths.save_object("x0", lbfgs.x)
 
-                self.perform_update(
-                    model=model, analysis=analysis, during_analysis=True
-                )
-
                 x0 = lbfgs.x
 
                 if lbfgs.nit < iterations:
                     return
+
+                self.perform_update(
+                    model=model, analysis=analysis, during_analysis=True
+                )
 
         self.logger.info("L-BFGS sampling complete.")
 

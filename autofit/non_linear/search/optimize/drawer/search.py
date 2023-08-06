@@ -134,8 +134,6 @@ class Drawer(AbstractOptimizer):
         self.paths.save_object("parameter_lists", parameter_lists)
         self.paths.save_object("log_posterior_list", log_posterior_list)
 
-        self.perform_update(model=model, analysis=analysis, during_analysis=False)
-
         self.logger.info("Drawer complete")
 
     def samples_from(self, model):

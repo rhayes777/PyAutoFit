@@ -226,9 +226,7 @@ class Zeus(AbstractMCMC):
             total_iterations += iterations
             iterations_remaining = self.config_dict_run["nsteps"] - total_iterations
 
-            samples = self.perform_update(
-                model=model, analysis=analysis, during_analysis=True
-            )
+            samples = self.samples_from(model=model)
 
             if self.auto_correlation_settings.check_for_convergence:
                 if sampler.iteration > self.auto_correlation_settings.check_size:
@@ -244,6 +242,12 @@ class Zeus(AbstractMCMC):
             if "maxcall" in self.kwargs:
                 if sampler.ncall_total > self.kwargs["maxcall"]:
                     iterations_remaining = 0
+
+            if iterations_remaining > 0:
+
+                self.perform_update(
+                    model=model, analysis=analysis, during_analysis=True
+                )
 
         self.logger.info("Zeus sampling complete.")
 

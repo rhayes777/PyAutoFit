@@ -183,8 +183,6 @@ class UltraNest(abstract_nest.AbstractNest):
 
             self.paths.save_results_internal(obj=sampler.results)
 
-            self.perform_update(model=model, analysis=analysis, during_analysis=True)
-
             iterations_after_run = sampler.ncall
 
             if (
@@ -192,6 +190,10 @@ class UltraNest(abstract_nest.AbstractNest):
                     or iterations_after_run == self.config_dict_run["max_ncalls"]
             ):
                 finished = True
+
+            if not finished:
+
+                self.perform_update(model=model, analysis=analysis, during_analysis=True)
 
     @property
     def samples_info(self):
