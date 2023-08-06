@@ -7,11 +7,8 @@ import warnings
 from abc import ABC, abstractmethod
 from collections import Counter
 from functools import wraps
-from os import path
 from pathlib import Path
 from typing import Optional, Union, Tuple, List, Dict
-
-import numpy as np
 
 from autoconf import conf, cached_property
 from autofit import exc
