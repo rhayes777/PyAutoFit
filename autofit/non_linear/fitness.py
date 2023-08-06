@@ -85,6 +85,7 @@ class Fitness:
         -------
         The figure of merit returned to the non-linear search, which is either the log likelihood or log posterior.
         """
+
         try:
 
             instance = self.model.instance_from_vector(vector=parameters)

@@ -68,9 +68,7 @@ class AbstractInitializer(ABC):
             )
 
             try:
-                figure_of_merit = fitness.figure_of_merit_from(
-                    parameter_list=parameter_list
-                )
+                figure_of_merit = fitness(parameters=parameter_list)
 
                 if np.isnan(figure_of_merit):
                     raise exc.FitException
@@ -81,6 +79,7 @@ class AbstractInitializer(ABC):
                 point_index += 1
             except exc.FitException:
                 pass
+
 
         if total_points > 1 and np.allclose(
             a=figures_of_merit_list[0], b=figures_of_merit_list[1:]

@@ -43,6 +43,10 @@ class FitnessPySwarms(Fitness):
         -------
         The figure of merit returned to the non-linear search, which is either the log likelihood or log posterior.
         """
+
+        if isinstance(parameters[0], float):
+            parameters = [parameters]
+
         figure_of_merit_list = []
 
         for params_of_particle in parameters:
@@ -50,8 +54,8 @@ class FitnessPySwarms(Fitness):
             try:
                 instance = self.model.instance_from_vector(vector=params_of_particle)
                 log_likelihood = self.analysis.log_likelihood_function(instance=instance)
-                log_prior = self.model.log_prior_from_vector(vector=params_of_particle)
-                log_posterior = log_likelihood + log_prior
+                log_prior = self.model.log_prior_list_from_vector(vector=params_of_particle)
+                log_posterior = log_likelihood + sum(log_prior)
                 figure_of_merit = -2.0 * log_posterior
             except exc.FitException:
                 figure_of_merit = -2.0 * self.resample_figure_of_merit

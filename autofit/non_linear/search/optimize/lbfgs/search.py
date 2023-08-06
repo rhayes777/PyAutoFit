@@ -163,10 +163,10 @@ class LBFGS(AbstractOptimizer):
                 total_iterations += lbfgs.nit
 
                 self.paths.save_object("total_iterations", total_iterations)
-                self.paths.save_object(
-                    "log_posterior",
-                    fitness.log_posterior_from(parameter_list=lbfgs.x),
-                )
+
+                log_posterior_list = -0.5 * fitness(parameters=lbfgs.x)
+
+                self.paths.save_object("log_posterior", log_posterior_list)
                 self.paths.save_object("x0", lbfgs.x)
 
                 x0 = lbfgs.x
