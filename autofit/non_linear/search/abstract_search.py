@@ -902,22 +902,14 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                 f"Search Finished: Performing final update (Visualization, outputting samples, etc.)."
             )
 
-        self.logger.info("Timer")
-
         self.timer.update()
 
-        self.logger.info("Samples")
-
         samples = self.samples_from(model=model)
-
-        self.logger.info("Samples to csv")
 
         try:
             instance = samples.max_log_likelihood()
         except exc.FitException:
             return samples
-
-        self.logger.info("Max LH")
 
         if self.is_master:
 
@@ -930,16 +922,12 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                 model=model, analysis=analysis, during_analysis=during_analysis
             )
 
-            self.logger.info("VIsualization")
-
             if self.should_profile:
                 self.logger.debug("Profiling Maximum Likelihood Model")
                 analysis.profile_log_likelihood_function(
                     paths=self.paths,
                     instance=instance,
                 )
-
-            self.logger.info("Profile")
 
             self.logger.debug("Outputting model result")
             try:
@@ -954,16 +942,12 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             except exc.FitException:
                 pass
 
-            self.logger.info("Outputting model result")
-
             if not during_analysis and self.remove_state_files_at_end:
                 self.logger.debug("Removing state files")
                 try:
                     self.remove_state_files()
                 except FileNotFoundError:
                     pass
-
-            self.logger.info("Removing state files")
 
         return samples
 
