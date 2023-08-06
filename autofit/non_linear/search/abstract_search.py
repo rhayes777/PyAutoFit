@@ -566,9 +566,6 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         """
         self.check_model(model=model)
 
-        if self.is_master:
-            self.logger.info("Starting search")
-
         model = analysis.modify_model(model)
         self.paths.model = model
         self.paths.unique_tag = self.unique_tag
@@ -638,8 +635,10 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             (e.g. as `files/info.json`) and can be loaded via the database.
         """
 
+        self.logger.info(f"The output path of this fit is {self.paths.output_path}")
+
         if not self.paths.is_complete or self.force_pickle_overwrite:
-            self.logger.info("Saving path info")
+            self.logger.info(f"Outputting pre-fit files (e.g. model.info, visualization).")
 
             self.paths.save_all(
                 search_config_dict=self.config_dict_search,
@@ -685,8 +684,6 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         and errors on the model parameters.
         """
         if self.is_master:
-
-            self.logger.info("Not complete. Starting non-linear search.")
             self.timer.start()
 
         model.freeze()
@@ -890,11 +887,13 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         self.iterations += self.iterations_per_update
         if during_analysis:
             self.logger.info(
-                f"{self.iterations} Iterations: Performing update (Visualization, outputting samples, etc.)."
+                f"Fit Still Running: Updating results after {self.iterations} iterations (see "
+                f"output folder for latest visualization, samples, etc.)"
             )
         else:
             self.logger.info(
-                f"Search Finished: Performing final update (Visualization, outputting samples, etc.)."
+                f"Fit Complete: Updating final results (see "
+                f"output folder for final visualization, samples, etc.)"
             )
 
         self.timer.update()

@@ -139,11 +139,11 @@ class AbstractDynesty(AbstractNest, ABC):
 
         if os.path.exists(self.checkpoint_file):
             self.logger.info(
-                "Existing Dynesty samples found, resuming non-linear search."
+                "Resuming Dynesty non-linear search (previous samples found)."
             )
         else:
             self.logger.info(
-                "No Dynesty samples found, beginning new non-linear search. "
+                "Starting new Dynesty non-linear search (no previous samples found)."
             )
 
         finished = False
