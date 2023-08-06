@@ -116,7 +116,7 @@ class LBFGS(AbstractOptimizer):
             total_iterations = self.paths.load_object("total_iterations")
 
             self.logger.info(
-                "Existing LBGFS samples found, resuming non-linear search."
+                "Resuming LBFGS non-linear search (previous samples found)."
             )
 
         else:
@@ -134,7 +134,7 @@ class LBFGS(AbstractOptimizer):
             total_iterations = 0
 
             self.logger.info(
-                "No LBFGS samples found, beginning new non-linear search. "
+                "Starting new LBFGS non-linear search (no previous samples found)."
             )
 
         maxiter = self.config_dict_options.get("maxiter", 1e8)

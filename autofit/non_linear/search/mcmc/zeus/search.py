@@ -1,4 +1,3 @@
-import logging
 from typing import Optional
 
 import numpy as np
@@ -15,11 +14,6 @@ from autofit.non_linear.search.mcmc.zeus.plotter import ZeusPlotter
 from autofit.non_linear.samples.sample import Sample
 from autofit.non_linear.samples.mcmc import SamplesMCMC
 from autofit.plot.output import Output
-
-logger = logging.getLogger(
-    __name__
-)
-
 
 class Zeus(AbstractMCMC):
     __identifier_fields__ = (
@@ -166,7 +160,7 @@ class Zeus(AbstractMCMC):
                 iterations_remaining = self.config_dict_run["nsteps"] - total_iterations
 
                 self.logger.info(
-                    "Existing Zeus samples found, resuming non-linear search."
+                    "Resuming Zeus non-linear search (previous samples found)."
                 )
 
         except FileNotFoundError:
@@ -193,7 +187,9 @@ class Zeus(AbstractMCMC):
 
             state = np.zeros(shape=(sampler.nwalkers, model.prior_count))
 
-            self.logger.info("No Zeus samples found, beginning new non-linear search.")
+            self.logger.info(
+                "Starting new Zeus non-linear search (no previous samples found)."
+            )
 
             for index, parameters in enumerate(parameter_lists):
                 state[index, :] = np.asarray(parameters)
@@ -248,8 +244,6 @@ class Zeus(AbstractMCMC):
                 self.perform_update(
                     model=model, analysis=analysis, during_analysis=True
                 )
-
-        self.logger.info("Zeus sampling complete.")
 
     @property
     def samples_info(self):
@@ -329,7 +323,7 @@ class Zeus(AbstractMCMC):
                 samples=results_internal.get_chain()[: - self.auto_correlation_settings.check_size, :, :],
             )
         except IndexError:
-            logger.debug(
+            self.logger.debug(
                 "Unable to compute previous auto correlation times."
             )
             previous_auto_correlation_times = None

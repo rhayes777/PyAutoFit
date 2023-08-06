@@ -181,7 +181,7 @@ class Nautilus(abstract_nest.AbstractNest):
             )
 
         elif not self.mpi:
-        
+
             sampler = Sampler(
                 prior=prior_transform,
                 likelihood=fitness.__call__,

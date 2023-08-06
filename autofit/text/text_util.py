@@ -117,10 +117,13 @@ def search_summary_to_file(samples, log_likelihood_function_time, filename):
         f"Expected Time To Run (seconds) = {expected_time}\n"
     )
 
-    speed_up_factor = float(expected_time.total_seconds()) / float(samples.time)
-    summary.append(
-        f"Speed Up Factor (e.g. due to parallelization) = {speed_up_factor}"
-    )
+    try:
+        speed_up_factor = float(expected_time.total_seconds()) / float(samples.time)
+        summary.append(
+            f"Speed Up Factor (e.g. due to parallelization) = {speed_up_factor}"
+        )
+    except TypeError:
+        pass
     frm.output_list_of_strings_to_file(file=filename, list_of_strings=summary)
 
 

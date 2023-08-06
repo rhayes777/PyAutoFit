@@ -133,7 +133,9 @@ class AbstractPySwarms(AbstractOptimizer):
             init_pos = results_internal[-1]
             total_iterations = results_internal_dict["total_iterations"]
 
-            self.logger.info("Existing PySwarms samples found, resuming non-linear search.")
+            self.logger.info(
+                "Resuming PySwarms non-linear search (previous samples found)."
+            )
 
         except FileNotFoundError:
 
@@ -151,7 +153,9 @@ class AbstractPySwarms(AbstractOptimizer):
 
             total_iterations = 0
 
-            self.logger.info("No PySwarms samples found, beginning new non-linear search. ")
+            self.logger.info(
+                "Starting new PySwarms non-linear search (no previous samples found)."
+            )
 
         ## TODO : Use actual limits
 
@@ -168,8 +172,6 @@ class AbstractPySwarms(AbstractOptimizer):
         upper_bounds = [upper for upper in vector_upper]
 
         bounds = (np.asarray(lower_bounds), np.asarray(upper_bounds))
-
-        self.logger.info("Running PySwarmsGlobal Optimizer...")
 
         while total_iterations < self.config_dict_run["iters"]:
 
@@ -204,8 +206,6 @@ class AbstractPySwarms(AbstractOptimizer):
                 )
 
                 init_pos = pso.pos_history[-1]
-
-        self.logger.info("PySwarmsGlobal complete")
 
     def samples_via_internal_from(self, model):
         """

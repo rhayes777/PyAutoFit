@@ -138,7 +138,7 @@ class Emcee(AbstractMCMC):
                 iterations_remaining = self.config_dict_run["nsteps"] - total_iterations
 
                 self.logger.info(
-                    "Existing Emcee samples found, resuming non-linear search."
+                    "Resuming Emcee non-linear search (previous samples found)."
                 )
 
         except AttributeError:
@@ -154,7 +154,9 @@ class Emcee(AbstractMCMC):
 
             state = np.zeros(shape=(sampler.nwalkers, model.prior_count))
 
-            self.logger.info("No Emcee samples found, beginning new non-linear search.")
+            self.logger.info(
+                "Starting new Emcee non-linear search (no previous samples found)."
+            )
 
             for index, parameters in enumerate(parameter_lists):
                 state[index, :] = np.asarray(parameters)
@@ -194,8 +196,6 @@ class Emcee(AbstractMCMC):
                 self.perform_update(
                     model=model, analysis=analysis, during_analysis=True
                 )
-
-        self.logger.info("Emcee sampling complete.")
 
     @property
     def samples_info(self):

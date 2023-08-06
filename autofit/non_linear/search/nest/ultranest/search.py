@@ -1,4 +1,5 @@
 import copy
+import os
 from typing import Optional
 
 from autofit.database.sqlalchemy_ import sa
@@ -140,11 +141,22 @@ class UltraNest(abstract_nest.AbstractNest):
                 ignore_prior_limits=True
             )
 
+        log_dir = self.paths.search_internal_path
+
+        if os.path.exists(log_dir / "chains"):
+            self.logger.info(
+                "Resuming UltraNest non-linear search (previous samples found)."
+            )
+        else:
+            self.logger.info(
+                "Starting new UltraNest non-linear search (no previous samples found)."
+            )
+
         sampler = ultranest.ReactiveNestedSampler(
             param_names=model.parameter_names,
             loglike=fitness.__call__,
             transform=prior_transform,
-            log_dir=self.paths.search_internal_path,
+            log_dir=log_dir,
             **self.config_dict_search
         )
 
