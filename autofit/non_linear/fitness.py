@@ -4,7 +4,12 @@ from autofit import exc
 
 class Fitness:
     def __init__(
-            self, model, analysis, fom_is_log_likelihood : bool, resample_figure_of_merit : float
+            self,
+            model,
+            analysis,
+            fom_is_log_likelihood : bool,
+            resample_figure_of_merit : float,
+            convert_to_chi_squared : bool = False
     ):
         """
         Interfaces with any non-linear in order to fit a model to the data and return a log likelihood via
@@ -29,6 +34,10 @@ class Fitness:
         typically require that the figure of merit returned is a log posterior, with the prior terms added via this
         fitness function. This is not a strict rule, but is a good default.
 
+        Some methods also require a chi-squared value to be computed (which is minimized), which is the log likelihood
+        multiplied by -2.0. The `Fitness` class can also compute this value, if the `convert_to_chi_squared` bool is
+        `True`.
+
         If a model-fit raises an exception of returns a `np.nan` a `resample_figure_of_merit` value is returned. The
         appropriate value depends on the non-linear search, but is typically either `None`, `-np.inf` or `1.0e99`.
         All values indicate to the non-linear search that the model-fit should be resampled or ignored.
@@ -46,12 +55,16 @@ class Fitness:
             figure of merit is the log posterior.
         resample_figure_of_merit
             The figure of merit returned if the model-fit raises an exception or returns a `np.nan`.
+        convert_to_chi_squared
+            If `True`, the figure of merit returned is the log likelihood multiplied by -2.0, such that it is a
+            chi-squared value that is minimized.
         """
 
         self.analysis = analysis
         self.model = model
         self.fom_is_log_likelihood = fom_is_log_likelihood
         self.resample_figure_of_merit = resample_figure_of_merit
+        self.convert_to_chi_squared = convert_to_chi_squared
 
     def __call__(self, parameters, *kwargs):
         """
@@ -77,6 +90,9 @@ class Fitness:
             instance = self.model.instance_from_vector(vector=parameters)
             log_likelihood = self.analysis.log_likelihood_function(instance=instance)
 
+            if np.isnan(log_likelihood):
+                return self.resample_figure_of_merit
+
         except exc.FitException:
 
             return self.resample_figure_of_merit
@@ -87,11 +103,10 @@ class Fitness:
             log_prior_list = self.model.log_prior_list_from_vector(
                 vector=parameters
             )
-
             figure_of_merit = log_likelihood + sum(log_prior_list)
 
-        if np.isnan(figure_of_merit):
-            return self.resample_figure_of_merit
+        if self.convert_to_chi_squared:
+            figure_of_merit *= -2.0
 
         return figure_of_merit
 
@@ -109,11 +124,3 @@ class Fitness:
     @staticmethod
     def fitness(cube, model, fitness):
         return fitness(instance=model.instance_from_vector(cube))
-
-    @property
-    def resample_figure_of_merit(self):
-        """
-        If a sample raises a FitException, this value is returned to signify that the point requires resampling or
-         should be given a likelihood so low that it is discard.
-        """
-        return -np.inf

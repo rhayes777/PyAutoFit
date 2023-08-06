@@ -22,6 +22,7 @@ from autofit.graphical import (
 from autofit.graphical.utils import Status
 from autofit.mapper.prior_model.collection import Collection
 from autofit.non_linear.initializer import Initializer
+from autofit.non_linear.fitness import Fitness
 from autofit.non_linear.parallel import SneakyPool
 from autofit.non_linear.paths.abstract import AbstractPaths
 from autofit.non_linear.paths.directory import DirectoryPaths

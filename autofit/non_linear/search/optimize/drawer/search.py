@@ -1,10 +1,11 @@
-from os import path
+import numpy as np
 from typing import Optional
 
 from autofit.database.sqlalchemy_ import sa
 
 from autoconf import conf
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
+from autofit.non_linear.fitness import Fitness
 from autofit.non_linear.search.optimize.abstract_optimize import AbstractOptimizer
 from autofit.non_linear.initializer import AbstractInitializer
 from autofit.non_linear.search.optimize.drawer.plotter import DrawerPlotter
@@ -80,15 +81,6 @@ class Drawer(AbstractOptimizer):
 
         self.logger.debug("Creating Drawer Search")
 
-    class Fitness(AbstractOptimizer.Fitness):
-        def figure_of_merit_from(self, parameter_list):
-            """
-            The figure of merit is the value that the `NonLinearSearch` uses to sample parameter space.
-
-            The `Drawer` search can use either the log posterior values or log likelihood values.
-            """
-            return self.log_posterior_from(parameter_list=parameter_list)
-
     def _fit(self, model: AbstractPriorModel, analysis):
         """
         Fit a model using Drawer and the Analysis class which contains the data and returns the log likelihood from
@@ -108,9 +100,12 @@ class Drawer(AbstractOptimizer):
         chains used by the fit.
         """
 
-        fitness = self.Fitness(
+        fitness = Fitness(
             model=model,
             analysis=analysis,
+            fom_is_log_likelihood=False,
+            resample_figure_of_merit=-np.inf,
+            convert_to_chi_squared=False
         )
 
         total_draws = self.config_dict_search["total_draws"]

@@ -6,6 +6,7 @@ from autofit.database.sqlalchemy_ import sa
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.search.optimize.abstract_optimize import AbstractOptimizer
 from autofit.non_linear.analysis import Analysis
+from autofit.non_linear.fitness import Fitness
 from autofit.non_linear.initializer import AbstractInitializer
 from autofit.non_linear.samples.sample import Sample
 from autofit.non_linear.samples.samples import Samples
@@ -103,9 +104,12 @@ class LBFGS(AbstractOptimizer):
         A result object comprising the Samples object that inclues the maximum log likelihood instance and full
         chains used by the fit.
         """
-        fitness = self.Fitness(
+        fitness = Fitness(
             model=model,
             analysis=analysis,
+            fom_is_log_likelihood=False,
+            resample_figure_of_merit=-np.inf,
+            convert_to_chi_squared=True
         )
 
         if self.paths.is_object("x0"):

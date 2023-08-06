@@ -6,6 +6,7 @@ from autoconf import conf
 from autofit.database.sqlalchemy_ import sa
 from autofit.mapper.model_mapper import ModelMapper
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
+from autofit.non_linear.fitness import Fitness
 from autofit.non_linear.initializer import Initializer
 from autofit.non_linear.search.mcmc.abstract_mcmc import AbstractMCMC
 from autofit.non_linear.search.mcmc.auto_correlations import AutoCorrelationsSettings
@@ -90,20 +91,6 @@ class Zeus(AbstractMCMC):
 
         self.logger.debug("Creating Zeus Search")
 
-    class Fitness(AbstractMCMC.Fitness):
-        def figure_of_merit_from(self, parameter_list):
-            """
-            The figure of merit is the value that the `NonLinearSearch` uses to sample parameter space. 
-
-            `Zeus` uses the log posterior.
-            """
-            log_posterior = self.log_posterior_from(parameter_list=parameter_list)
-
-            if np.isnan(log_posterior):
-                return self.resample_figure_of_merit
-
-            return log_posterior
-
     def _fit(self, model: AbstractPriorModel, analysis):
         """
         Fit a model using Zeus and the Analysis class which contains the data and returns the log likelihood from
@@ -137,9 +124,11 @@ class Zeus(AbstractMCMC):
 
         pool = self.make_pool()
 
-        fitness = Zeus.Fitness(
+        fitness = Fitness(
             model=model,
             analysis=analysis,
+            fom_is_log_likelihood=False,
+            resample_figure_of_merit=-np.inf
         )
 
         try:

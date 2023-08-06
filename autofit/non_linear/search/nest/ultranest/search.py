@@ -7,7 +7,7 @@ from autofit.database.sqlalchemy_ import sa
 from autoconf import conf
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.search.nest import abstract_nest
-from autofit.non_linear.search.nest.abstract_nest import AbstractNest
+from autofit.non_linear.fitness import Fitness
 from autofit.non_linear.samples.sample import Sample
 from autofit.non_linear.samples.nest import SamplesNest
 from autofit.plot import UltraNestPlotter
@@ -87,17 +87,6 @@ class UltraNest(abstract_nest.AbstractNest):
 
         self.logger.debug("Creating UltraNest Search")
 
-    class Fitness(AbstractNest.Fitness):
-        @property
-        def resample_figure_of_merit(self):
-            """
-            If a sample raises a FitException, this value is returned to signify that the point requires resampling or
-            should be given a likelihood so low that it is discard.
-
-            -np.inf is an invalid sample value for Dynesty, so we instead use a large negative number.
-            """
-            return -1.0e99
-
     def _fit(self, model: AbstractPriorModel, analysis):
         """
         Fit a model using the search and the Analysis class which contains the data and returns the log likelihood from
@@ -129,9 +118,11 @@ class UltraNest(abstract_nest.AbstractNest):
                 "----------------------"
             )
 
-        fitness = self.Fitness(
+        fitness = Fitness(
             model=model,
             analysis=analysis,
+            fom_is_log_likelihood=True,
+            resample_figure_of_merit=-1.0e99
         )
 
         def prior_transform(cube):

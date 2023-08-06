@@ -7,12 +7,62 @@ from autoconf import conf
 from autofit import exc
 from autofit.database.sqlalchemy_ import sa
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
+from autofit.non_linear.fitness import Fitness
 from autofit.non_linear.initializer import AbstractInitializer
 from autofit.non_linear.search.optimize.abstract_optimize import AbstractOptimizer
 from autofit.non_linear.samples.sample import Sample
 from autofit.non_linear.samples.samples import Samples
 from autofit.plot import PySwarmsPlotter
 from autofit.plot.output import Output
+
+
+class FitnessPySwarms(Fitness):
+
+    def __call__(self, parameters, *kwargs):
+        """
+        Interfaces with any non-linear in order to fit a model to the data and return a log likelihood via
+        an `Analysis` class.
+
+        The interface is described in full in the `__init__` docstring.
+
+        `PySwarms` have a unique interface in that lists of parameters corresponding to multiple particles are
+        passed to the fitness function. A bespoke `__call__` method is therefore required to handle this.
+
+        The figure of merit is the log posterior multiplied by -2.0, which is the chi-squared value that is minimized
+        by the `PySwarms` non-linear search.
+
+        Parameters
+        ----------
+        parameters
+            The parameters (typically a list) chosen by a non-linear search, which are mapped to an instance of the
+            model via its priors and fitted to the data.
+        kwargs
+            Addition key-word arguments that may be necessary for specific non-linear searches.
+
+        Returns
+        -------
+        The figure of merit returned to the non-linear search, which is either the log likelihood or log posterior.
+        """
+        figure_of_merit_list = []
+
+        for params_of_particle in parameters:
+
+            try:
+                instance = self.model.instance_from_vector(vector=params_of_particle)
+                log_likelihood = self.analysis.log_likelihood_function(instance=instance)
+                log_prior = self.model.log_prior_from_vector(vector=params_of_particle)
+                log_posterior = log_likelihood + log_prior
+                figure_of_merit = -2.0 * log_posterior
+            except exc.FitException:
+                figure_of_merit = -2.0 * self.resample_figure_of_merit
+
+            if np.isnan(figure_of_merit):
+                figure_of_merit = -2.0 * self.resample_figure_of_merit
+
+            figure_of_merit_list.append(figure_of_merit)
+
+        return np.asarray(figure_of_merit_list)
+
 
 
 class AbstractPySwarms(AbstractOptimizer):
@@ -71,35 +121,6 @@ class AbstractPySwarms(AbstractOptimizer):
 
         self.logger.debug("Creating PySwarms Search")
 
-    class Fitness(AbstractOptimizer.Fitness):
-        def __call__(self, parameters, *kwargs):
-
-            figures_of_merit = []
-
-            for params_of_particle in parameters:
-
-                try:
-                    figure_of_merit = self.figure_of_merit_from(
-                        parameter_list=params_of_particle
-                    )
-                except exc.FitException:
-                    figure_of_merit = -2.0 * self.resample_figure_of_merit
-
-                if np.isnan(figure_of_merit):
-                    figure_of_merit = -2.0 * self.resample_figure_of_merit
-
-                figures_of_merit.append(figure_of_merit)
-
-            return np.asarray(figures_of_merit)
-
-        def figure_of_merit_from(self, parameter_list):
-            """
-            The figure of merit is the value that the `NonLinearSearch` uses to sample parameter space.
-
-            PySwarms uses the chi-squared value, which is the -2.0*log_posterior.
-            """
-            return -2.0 * self.log_posterior_from(parameter_list=parameter_list)
-
     def _fit(self, model: AbstractPriorModel, analysis):
         """
         Fit a model using PySwarms and the Analysis class which contains the data and returns the log likelihood from
@@ -119,9 +140,12 @@ class AbstractPySwarms(AbstractOptimizer):
         chains used by the fit.
         """
 
-        fitness = self.Fitness(
+        fitness = FitnessPySwarms(
             model=model,
             analysis=analysis,
+            fom_is_log_likelihood=False,
+            resample_figure_of_merit=-np.inf,
+            convert_to_chi_squared=True
         )
 
         try:

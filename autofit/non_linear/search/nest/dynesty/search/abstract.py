@@ -8,6 +8,7 @@ from dynesty import NestedSampler, DynamicNestedSampler
 from autoconf import conf
 from autofit import exc
 from autofit.database.sqlalchemy_ import sa
+from autofit.non_linear.fitness import Fitness
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.search.nest.abstract_nest import AbstractNest
 from autofit.non_linear.samples.sample import Sample
@@ -80,20 +81,6 @@ class AbstractDynesty(AbstractNest, ABC):
 
         self.logger.debug(f"Creating {self.__class__.__name__} Search")
 
-    class Fitness(AbstractNest.Fitness):
-        @property
-        def resample_figure_of_merit(self):
-            """
-            If a sample raises a FitException, this value is returned to signify that the point requires resampling or
-            should be given a likelihood so low that it is discard.
-
-            -np.inf is an invalid sample value for Dynesty, so we instead use a large negative number.
-            """
-            return -1.0e99
-
-        def history_save(self):
-            pass
-
     def _fit(
             self,
             model: AbstractPriorModel,
@@ -127,9 +114,11 @@ class AbstractDynesty(AbstractNest, ABC):
 
         from dynesty.pool import Pool
 
-        fitness = self.Fitness(
+        fitness = Fitness(
             model=model,
             analysis=analysis,
+            fom_is_log_likelihood=True,
+            resample_figure_of_merit=-1.0e99
         )
 
         if os.path.exists(self.checkpoint_file):
