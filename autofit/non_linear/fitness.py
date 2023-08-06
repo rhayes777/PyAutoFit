@@ -7,8 +7,8 @@ class Fitness:
             self,
             model,
             analysis,
-            fom_is_log_likelihood : bool,
-            resample_figure_of_merit : float,
+            fom_is_log_likelihood : bool = True,
+            resample_figure_of_merit : float = -np.inf,
             convert_to_chi_squared : bool = False
     ):
         """
