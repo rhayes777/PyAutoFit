@@ -760,13 +760,6 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                 if not self.skip_save_samples:
                     self.paths.save_json("samples_summary", samples.summary().dict())
 
-                # TODO : Remove
-
-                try:
-                    self.paths.save_object("results", samples.results)
-                except AttributeError:
-                    self.paths.save_object("results", samples.results_internal)
-
                 analysis.save_results(paths=self.paths, result=result)
 
         return result
