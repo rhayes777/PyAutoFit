@@ -1,5 +1,4 @@
 import os
-from os import path
 from typing import Optional
 
 import emcee

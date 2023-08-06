@@ -7,11 +7,11 @@ from autofit.database.sqlalchemy_ import sa
 
 from autoconf import conf
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
+from autofit.non_linear.result import Result
 from autofit.non_linear.search.nest import abstract_nest
 from autofit.non_linear.search.nest.abstract_nest import AbstractNest
 from autofit.non_linear.samples.sample import Sample
 from autofit.non_linear.samples.nest import SamplesNest
-from autofit.non_linear.result import Result
 from autofit.plot import NautilusPlotter
 from autofit.plot.output import Output
 
@@ -230,11 +230,7 @@ class Nautilus(abstract_nest.AbstractNest):
 
         self.paths.save_results_internal_json(results_internal_dict=results_internal_json)
 
-        samples = self.perform_update(model=model, analysis=analysis, during_analysis=False)
-
         os.remove(self.paths.search_internal_path / "checkpoint.hdf5")
-
-        return Result(samples=samples)
 
         # TODO : Need max iter input (https://github.com/johannesulf/nautilus/issues/23)
 

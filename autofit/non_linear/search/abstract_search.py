@@ -690,20 +690,22 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             self.timer.start()
 
         model.freeze()
-        result = self._fit(
+        self._fit(
             model=model, analysis=analysis, log_likelihood_cap=log_likelihood_cap
         )
         model.unfreeze()
 
-        self.paths.completed()
+        samples = self.perform_update(model=model, analysis=analysis, during_analysis=False)
 
         result = analysis.make_result(
-            samples=result.samples,
+            samples=samples,
         )
 
         if self.is_master:
 
             analysis.save_results(paths=self.paths, result=result)
+
+        self.paths.completed()
 
         return result
 

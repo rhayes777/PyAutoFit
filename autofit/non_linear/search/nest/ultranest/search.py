@@ -1,5 +1,4 @@
 import copy
-from os import path
 from typing import Optional
 
 from autofit.database.sqlalchemy_ import sa

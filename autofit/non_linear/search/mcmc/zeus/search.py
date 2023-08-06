@@ -1,5 +1,4 @@
 import logging
-from os import path
 from typing import Optional
 
 import numpy as np
