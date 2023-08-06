@@ -4,7 +4,7 @@ from autofit import exc
 
 class Fitness:
     def __init__(
-            self, model, analysis, fom_is_log_likelihood,
+            self, model, analysis, fom_is_log_likelihood : bool, resample_figure_of_merit : float
     ):
         """
         Interfaces with any non-linear in order to fit a model to the data and return a log likelihood via
@@ -44,11 +44,14 @@ class Fitness:
         fom_is_log_likelihood
             If `True`, the figure of merit returned by the fitness function is the log likelihood. If `False`, the
             figure of merit is the log posterior.
+        resample_figure_of_merit
+            The figure of merit returned if the model-fit raises an exception or returns a `np.nan`.
         """
 
         self.analysis = analysis
         self.model = model
         self.fom_is_log_likelihood = fom_is_log_likelihood
+        self.resample_figure_of_merit = resample_figure_of_merit
 
     def __call__(self, parameters, *kwargs):
         """
@@ -72,45 +75,25 @@ class Fitness:
         try:
 
             instance = self.model.instance_from_vector(vector=parameters)
-
-            if self.fom_is_log_likelihood:
-                fom = self.log_likelihood_from(parameter_list=parameters)
-            else:
-                fom = self.log_posterior_from(parameter_list=parameters)
-
-            figure_of_merit = self.figure_of_merit_from(parameter_list=parameters)
-
-            if np.isnan(figure_of_merit):
-                return self.resample_figure_of_merit
-
-            return figure_of_merit
+            log_likelihood = self.analysis.log_likelihood_function(instance=instance)
 
         except exc.FitException:
+
             return self.resample_figure_of_merit
 
-    def fit_instance(self, instance):
-        log_likelihood = self.analysis.log_likelihood_function(instance=instance)
+        if self.fom_is_log_likelihood:
+            figure_of_merit = log_likelihood
+        else:
+            log_prior_list = self.model.log_prior_list_from_vector(
+                vector=parameters
+            )
 
-        return log_likelihood
+            figure_of_merit = log_likelihood + sum(log_prior_list)
 
-    def log_posterior_from(self, parameter_list):
-        log_likelihood = self.log_likelihood_from(parameter_list=parameter_list)
-        log_prior_list = self.model.log_prior_list_from_vector(
-            vector=parameter_list
-        )
+        if np.isnan(figure_of_merit):
+            return self.resample_figure_of_merit
 
-        return log_likelihood + sum(log_prior_list)
-
-    def figure_of_merit_from(self, parameter_list):
-        """
-        The figure of merit is the value that the `NonLinearSearch` uses to sample parameter space. This varies
-        between different `NonLinearSearch`s, for example:
-
-            - The *Optimizer* *PySwarms* uses the chi-squared value, which is the -2.0*log_posterior.
-            - The *MCMC* algorithm *Emcee* uses the log posterior.
-            - Nested samplers such as *Dynesty* use the log likelihood.
-        """
-        return
+        return figure_of_merit
 
     @staticmethod
     def prior(cube, model):
