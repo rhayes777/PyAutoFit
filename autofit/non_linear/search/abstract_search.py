@@ -736,10 +736,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         and errors on the model parameters.
         """
 
-        try:
-            samples = self.samples_from(model=model)
-        except (FileNotFoundError, NotImplementedError):
-            samples = self.paths.load_object(name="samples")
+        samples = self.samples_from(model=model)
 
         result = analysis.make_result(
             samples=samples,
