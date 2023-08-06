@@ -690,7 +690,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             self.timer.start()
 
         model.freeze()
-        samples = self._fit(
+        result = self._fit(
             model=model, analysis=analysis, log_likelihood_cap=log_likelihood_cap
         )
         model.unfreeze()
@@ -702,7 +702,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         # )
 
         result = analysis.make_result(
-            samples=samples,
+            samples=result.samples,
         )
 
         if self.is_master:
@@ -710,7 +710,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             analysis.save_results(paths=self.paths, result=result)
 
             if not self.skip_save_samples:
-                self.paths.save_json("samples_summary", samples.summary().dict())
+                self.paths.save_json("samples_summary", result.samples.summary().dict())
 
         return result
 

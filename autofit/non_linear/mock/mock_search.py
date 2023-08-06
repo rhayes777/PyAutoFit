@@ -83,6 +83,8 @@ class MockSearch(NonLinearSearch):
                 # Return Chi squared
                 return -2 * log_likelihood
 
+        self.paths.save_object("samples", self.samples)
+
         if self.save_for_aggregator:
             analysis.save_attributes(paths=self.paths)
 
@@ -126,7 +128,7 @@ class MockSearch(NonLinearSearch):
             ],
         )
 
-        self.paths.save_samples(samples)
+        self.paths.save_object("samples", self.samples)
 
         return analysis.make_result(
             samples=samples,

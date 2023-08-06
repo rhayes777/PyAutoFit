@@ -11,6 +11,7 @@ from autofit.non_linear.search.nest import abstract_nest
 from autofit.non_linear.search.nest.abstract_nest import AbstractNest
 from autofit.non_linear.samples.sample import Sample
 from autofit.non_linear.samples.nest import SamplesNest
+from autofit.non_linear.result import Result
 from autofit.plot import NautilusPlotter
 from autofit.plot.output import Output
 
@@ -233,7 +234,7 @@ class Nautilus(abstract_nest.AbstractNest):
 
         os.remove(self.paths.search_internal_path / "checkpoint.hdf5")
 
-        return samples
+        return Result(samples=samples)
 
         # TODO : Need max iter input (https://github.com/johannesulf/nautilus/issues/23)
 
