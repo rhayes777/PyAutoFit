@@ -146,6 +146,9 @@ class Nautilus(abstract_nest.AbstractNest):
             self.logger.info(
                 "Resuming Nautilus non-linear search (previous samples found)."
             )
+
+            self.perform_update(model=model, analysis=analysis, during_analysis=True)
+
         else:
             self.logger.info(
                 "Starting new Nautilus non-linear search (no previous samples found)."
