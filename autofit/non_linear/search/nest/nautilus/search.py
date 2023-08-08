@@ -147,8 +147,6 @@ class Nautilus(abstract_nest.AbstractNest):
                 "Resuming Nautilus non-linear search (previous samples found)."
             )
 
-            self.perform_update(model=model, analysis=analysis, during_analysis=True)
-
         else:
             self.logger.info(
                 "Starting new Nautilus non-linear search (no previous samples found)."
@@ -183,6 +181,28 @@ class Nautilus(abstract_nest.AbstractNest):
                 pool=self.number_of_cores,
                 **self.config_dict_search
             )
+
+            if not os.path.exists(checkpoint_file):
+
+                parameters, log_weights, log_likelihoods = sampler.posterior()
+
+                parameter_lists = parameters.tolist()
+                log_likelihood_list = log_likelihoods.tolist()
+                weight_list = np.exp(log_weights).tolist()
+
+                results_internal_json = {}
+
+                results_internal_json["parameter_lists"] = parameter_lists
+                results_internal_json["log_likelihood_list"] = log_likelihood_list
+                results_internal_json["weight_list"] = weight_list
+                results_internal_json["log_evidence"] = sampler.evidence()
+                results_internal_json["total_samples"] = int(sampler.n_like)
+                results_internal_json["time"] = self.timer.time
+                results_internal_json["number_live_points"] = int(sampler.n_live)
+
+                self.paths.save_results_internal_json(results_internal_dict=results_internal_json)
+
+                self.perform_update(model=model, analysis=analysis, during_analysis=True)
 
             sampler.run(
                 **self.config_dict_run,
