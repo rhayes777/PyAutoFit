@@ -182,7 +182,7 @@ class Nautilus(abstract_nest.AbstractNest):
                 **self.config_dict_search
             )
 
-            if not os.path.exists(checkpoint_file):
+            if os.path.exists(checkpoint_file):
 
                 parameters, log_weights, log_likelihoods = sampler.posterior()
 
