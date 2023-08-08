@@ -689,7 +689,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         bypass_nuclear_if_on
             Whether to use nuclear mode to delete a lot of files (see nuclear mode description).
         """
-        self.logger.info("Removing zip file")
+        self.logger.info("Removing all files except for .zip file")
         self.paths.zip_remove()
 
         if not bypass_nuclear_if_on:
