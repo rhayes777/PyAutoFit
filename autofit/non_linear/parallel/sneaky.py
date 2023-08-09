@@ -416,6 +416,7 @@ class SneakierPool:
         self.processes = processes
         self.pool = None
         self.comm = MPI.COMM_WORLD
+        self.size = self.comm.size
         
         init_args = (
             self.fitness_init, self.prior_transform_init,
@@ -426,11 +427,7 @@ class SneakierPool:
 
     def check_if_mpi(self):
 
-        size = self.comm.size
-
-        use_mpi = size > 1
-
-        return use_mpi
+        return self.size > 1
 
     def is_master(self):
 
