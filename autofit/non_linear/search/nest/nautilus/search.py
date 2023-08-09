@@ -215,7 +215,7 @@ class Nautilus(abstract_nest.AbstractNest):
                 fitness_function=fitness.__call__,
                 prior_transform=prior_transform,
                 fitness_args=(model, fitness.__call__),
-                prior_args=(model,),
+                prior_transform_args=(model,),
             ):
                 
                 if not pool.is_master():
