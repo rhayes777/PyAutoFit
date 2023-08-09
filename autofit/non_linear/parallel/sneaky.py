@@ -416,7 +416,7 @@ class SneakierPool:
         self.processes = processes
         self.pool = None
         self.comm = MPI.COMM_WORLD
-        self.size = self.comm.size
+        self._processes = self.comm.size
         
         init_args = (
             self.fitness_init, self.prior_transform_init,
