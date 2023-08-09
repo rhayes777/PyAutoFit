@@ -427,7 +427,7 @@ class SneakierPool:
 
     def check_if_mpi(self):
 
-        return self.size > 1
+        return self._processes > 1
 
     def is_master(self):
 
