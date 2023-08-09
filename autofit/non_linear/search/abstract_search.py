@@ -23,7 +23,7 @@ from autofit.graphical.utils import Status
 from autofit.mapper.prior_model.collection import Collection
 from autofit.non_linear.initializer import Initializer
 from autofit.non_linear.fitness import Fitness
-from autofit.non_linear.parallel import SneakyPool
+from autofit.non_linear.parallel import SneakyPool, SneakierPool
 from autofit.non_linear.paths.abstract import AbstractPaths
 from autofit.non_linear.paths.directory import DirectoryPaths
 from autofit.non_linear.paths.sub_directory_paths import SubDirectoryPaths
@@ -995,6 +995,25 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         return SneakyPool(
             processes=self.number_of_cores, paths=self.paths, fitness=fitness
         )
+
+    def make_sneakier_pool(
+            self, fitness_function: Fitness, **kwargs
+    ) -> SneakierPool:
+        
+        if self.is_master:
+            self.logger.info(f"number of cores == {self.number_of_cores}")
+
+        if self.is_master:
+            if self.number_of_cores > 1:
+                self.logger.info("Creating SneakierPool...")
+            else:
+                self.logger.info("Creating multiprocessing Pool of size 1...")
+        
+        pool = SneakierPool(
+                processes=self.number_of_cores, fitness=fitness_function, **kwargs
+            )
+        
+        return pool
 
     def __eq__(self, other):
         return isinstance(other, NonLinearSearch) and self.__dict__ == other.__dict__

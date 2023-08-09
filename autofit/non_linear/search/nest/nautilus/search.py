@@ -1,6 +1,7 @@
 import numpy as np
 import logging
 import os
+import sys
 from typing import Optional
 
 from autofit.database.sqlalchemy_ import sa
@@ -210,27 +211,47 @@ class Nautilus(abstract_nest.AbstractNest):
 
         elif self.mpi:
 
-            from mpi4py import MPI
-            comm = MPI.COMM_WORLD
-
-            logger.info(f"Search beginning with MPI {comm.Get_rank()} / {self.number_of_cores}")
-
-            from mpi4py.futures import MPIPoolExecutor
-            pool = MPIPoolExecutor(self.number_of_cores)
-
-            sampler = Sampler(
+            with self.make_sneakier_pool(
+                fitness_function=fitness.__call__,
                 prior=prior_transform,
-                likelihood=fitness.__call__,
-                n_dim=model.prior_count,
-                prior_kwargs={"model": model},
-                filepath=checkpoint_file,
-                pool=pool,
-                **self.config_dict_search
-            )
+                fitness_args=(model, fitness.__call__),
+                prior_args=(model,),
+            ):
+                
+                if not pool.is_master():
+                    pool.wait()
+                    sys.exit(0)
+                
+                sampler = Sampler(
+                    prior=pool.prior_transform,
+                    likelihood=pool.fitness,
+                    n_dim=model.prior_count,
+                    filepath=checkpoint_file,
+                    pool=pool,
+                    **self.config_dict_search
+                )
 
-            sampler.run(
-                **self.config_dict_run,
-            )
+            # from mpi4py import MPI
+            # comm = MPI.COMM_WORLD
+
+            # logger.info(f"Search beginning with MPI {comm.Get_rank()} / {self.number_of_cores}")
+
+            # from mpi4py.futures import MPIPoolExecutor
+            # pool = MPIPoolExecutor(self.number_of_cores)
+
+            # sampler = Sampler(
+            #     prior=prior_transform,
+            #     likelihood=fitness.__call__,
+            #     n_dim=model.prior_count,
+            #     prior_kwargs={"model": model},
+            #     filepath=checkpoint_file,
+            #     pool=pool,
+            #     **self.config_dict_search
+            # )
+
+            # sampler.run(
+            #     **self.config_dict_run,
+            # )
 
 #        logger.info(f"Search ending with MPI {comm.Get_rank()} / {self.number_of_cores}")
 
