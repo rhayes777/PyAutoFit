@@ -231,6 +231,10 @@ class Nautilus(abstract_nest.AbstractNest):
                     **self.config_dict_search
                 )
 
+                sampler.run(
+                    **self.config_dict_run,
+                )
+
             # from mpi4py import MPI
             # comm = MPI.COMM_WORLD
 
