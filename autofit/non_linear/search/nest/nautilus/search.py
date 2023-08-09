@@ -213,7 +213,7 @@ class Nautilus(abstract_nest.AbstractNest):
 
             with self.make_sneakier_pool(
                 fitness_function=fitness.__call__,
-                prior=prior_transform,
+                prior_transform=prior_transform,
                 fitness_args=(model, fitness.__call__),
                 prior_args=(model,),
             ):
