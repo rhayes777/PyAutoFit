@@ -255,25 +255,26 @@ class Nautilus(abstract_nest.AbstractNest):
 
 #        logger.info(f"Search ending with MPI {comm.Get_rank()} / {self.number_of_cores}")
 
-        parameters, log_weights, log_likelihoods = sampler.posterior()
+        if self.is_master:
+            parameters, log_weights, log_likelihoods = sampler.posterior()
 
-        parameter_lists = parameters.tolist()
-        log_likelihood_list = log_likelihoods.tolist()
-        weight_list = np.exp(log_weights).tolist()
+            parameter_lists = parameters.tolist()
+            log_likelihood_list = log_likelihoods.tolist()
+            weight_list = np.exp(log_weights).tolist()
 
-        results_internal_json = {}
+            results_internal_json = {}
 
-        results_internal_json["parameter_lists"] = parameter_lists
-        results_internal_json["log_likelihood_list"] = log_likelihood_list
-        results_internal_json["weight_list"] = weight_list
-        results_internal_json["log_evidence"] = sampler.evidence()
-        results_internal_json["total_samples"] = int(sampler.n_like)
-        results_internal_json["time"] = self.timer.time
-        results_internal_json["number_live_points"] = int(sampler.n_live)
+            results_internal_json["parameter_lists"] = parameter_lists
+            results_internal_json["log_likelihood_list"] = log_likelihood_list
+            results_internal_json["weight_list"] = weight_list
+            results_internal_json["log_evidence"] = sampler.evidence()
+            results_internal_json["total_samples"] = int(sampler.n_like)
+            results_internal_json["time"] = self.timer.time
+            results_internal_json["number_live_points"] = int(sampler.n_live)
 
-        self.paths.save_results_internal_json(results_internal_dict=results_internal_json)
+            self.paths.save_results_internal_json(results_internal_dict=results_internal_json)
 
-        os.remove(checkpoint_file)
+            os.remove(checkpoint_file)
 
         # TODO : Need max iter input (https://github.com/johannesulf/nautilus/issues/23)
 
