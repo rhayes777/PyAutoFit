@@ -202,6 +202,8 @@ class Nautilus(abstract_nest.AbstractNest):
 
                 self.paths.save_results_internal_json(results_internal_dict=results_internal_json)
 
+                return
+
                 self.perform_update(model=model, analysis=analysis, during_analysis=True)
 
             sampler.run(
