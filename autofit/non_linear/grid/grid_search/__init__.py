@@ -22,7 +22,6 @@ class Sequential:
         for job_ in jobs:
             yield job_.perform()
 
-
 class GridSearch:
 
     def __init__(

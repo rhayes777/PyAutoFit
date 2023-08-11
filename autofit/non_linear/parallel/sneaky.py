@@ -6,8 +6,7 @@ import os
 from typing import Iterable, Optional, Callable
 
 from autoconf import conf
-from mpi4py import MPI
-from schwimmbad import MPIPool
+
 from autofit.non_linear.paths.abstract import AbstractPaths
 from .process import AbstractJob, Process, StopCommand
 
@@ -404,7 +403,7 @@ class SneakierPool:
             prior_transform_args: Optional[Iterable] = None,
             prior_transform_kwargs: Optional[dict] = None,
     ):
-        
+
         self.fitness_init = fitness
         self.prior_transform_init = prior_transform
         self.fitness = fitness_cache
@@ -415,7 +414,12 @@ class SneakierPool:
         self.prior_transform_kwargs = prior_transform_kwargs or {}
         self.processes = processes
         self.pool = None
-        self.comm = MPI.COMM_WORLD
+        try:
+            from mpi4py import MPI
+            self.comm = MPI.COMM_WORLD
+        except ModuleNotFoundError:
+            pass
+
         self._processes = self.comm.size
         
         init_args = (
@@ -458,6 +462,9 @@ class SneakierPool:
         use_mpi = self.check_if_mpi()
 
         if use_mpi:
+
+            from schwimmbad import MPIPool
+
             if self.is_master():
                 logger.info("... using Schwimmbad MPIPool")
             self.pool = MPIPool(use_dill=True)
