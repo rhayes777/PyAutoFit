@@ -172,10 +172,6 @@ class Nautilus(abstract_nest.AbstractNest):
                 **self.config_dict_search
             )
 
-            sampler.run(
-                **self.config_dict_run,
-            )
-
         elif not self.mpi:
 
             sampler = Sampler(
@@ -211,7 +207,6 @@ class Nautilus(abstract_nest.AbstractNest):
         if os.path.exists(checkpoint_file):
 
             self.output_sampler_results(sampler=sampler)
-
             self.perform_update(model=model, analysis=analysis, during_analysis=True)
 
         sampler.run(
