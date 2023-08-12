@@ -352,6 +352,9 @@ class GridSearch:
         search_instance = self.search_instance(name_path=name_path)
         search_instance.paths.model = model
 
+        print(search_instance.number_of_cores)
+        ddd
+
         return Job(
             search_instance=search_instance,
             model=model,
@@ -377,8 +380,6 @@ class GridSearch:
                     setattr(search_instance, key, value)
                 except AttributeError:
                     pass
-
-        search_instance.number_of_cores = self.number_of_cores
 
         if self.number_of_cores > 1:
 
