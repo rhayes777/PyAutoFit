@@ -1,6 +1,7 @@
 import numpy as np
 import logging
 import os
+import sys
 from typing import Optional
 
 from autofit.database.sqlalchemy_ import sa
@@ -44,7 +45,6 @@ class Nautilus(abstract_nest.AbstractNest):
             iterations_per_update: int = None,
             number_of_cores: int = None,
             session: Optional[sa.orm.Session] = None,
-            mpi = False,
             **kwargs
     ):
         """
@@ -91,8 +91,6 @@ class Nautilus(abstract_nest.AbstractNest):
             **kwargs
         )
 
-        self.mpi = mpi
-
         self.logger.debug("Creating Nautilus Search")
 
     def _fit(self, model: AbstractPriorModel, analysis):
@@ -133,13 +131,6 @@ class Nautilus(abstract_nest.AbstractNest):
             resample_figure_of_merit=-1.0e99
         )
 
-        if conf.instance["non_linear"]["nest"][self.__class__.__name__][
-            "parallel"
-        ].get("force_x1_cpu") or self.kwargs.get("force_x1_cpu"):
-            pool = None
-        else:
-            pool = self.number_of_cores
-
         checkpoint_file = self.paths.search_internal_path / "checkpoint.hdf5"
 
         if os.path.exists(checkpoint_file):
@@ -172,46 +163,70 @@ class Nautilus(abstract_nest.AbstractNest):
                 **self.config_dict_search
             )
 
-        elif not self.mpi:
+            if os.path.exists(checkpoint_file):
 
-            sampler = Sampler(
-                prior=prior_transform,
-                likelihood=fitness.__call__,
-                n_dim=model.prior_count,
-                prior_kwargs={"model": model},
-                filepath=checkpoint_file,
-                pool=self.number_of_cores,
-                **self.config_dict_search
+                self.output_sampler_results(sampler=sampler)
+                self.perform_update(model=model, analysis=analysis, during_analysis=True)
+
+            sampler.run(
+                **self.config_dict_run,
             )
 
-        elif self.mpi:
+        else:
 
-            from mpi4py import MPI
-            comm = MPI.COMM_WORLD
+            if not self.using_mpi:
 
-            logger.info(f"Search beginning with MPI {comm.Get_rank()} / {self.number_of_cores}")
+                sampler = Sampler(
+                    prior=prior_transform,
+                    likelihood=fitness.__call__,
+                    n_dim=model.prior_count,
+                    prior_kwargs={"model": model},
+                    filepath=checkpoint_file,
+                    pool=self.number_of_cores,
+                    **self.config_dict_search
+                )
 
-            from mpi4py.futures import MPIPoolExecutor
-            pool = MPIPoolExecutor(self.number_of_cores)
+                if os.path.exists(checkpoint_file):
 
-            sampler = Sampler(
-                prior=prior_transform,
-                likelihood=fitness.__call__,
-                n_dim=model.prior_count,
-                prior_kwargs={"model": model},
-                filepath=checkpoint_file,
-                pool=pool,
-                **self.config_dict_search
-            )
+                    self.output_sampler_results(sampler=sampler)
+                    self.perform_update(model=model, analysis=analysis, during_analysis=True)
 
-        if os.path.exists(checkpoint_file):
+                sampler.run(
+                    **self.config_dict_run,
+                )
 
-            self.output_sampler_results(sampler=sampler)
-            self.perform_update(model=model, analysis=analysis, during_analysis=True)
+            else:
 
-        sampler.run(
-            **self.config_dict_run,
-        )
+                with self.make_sneakier_pool(
+                        fitness_function=fitness.__call__,
+                        prior_transform=prior_transform,
+                        fitness_args=(model, fitness.__call__),
+                        prior_transform_args=(model,),
+                ) as pool:
+
+                    if not pool.is_master():
+                        pool.wait()
+                        sys.exit(0)
+
+                    sampler = Sampler(
+                        prior=pool.prior_transform,
+                        likelihood=pool.fitness,
+                        n_dim=model.prior_count,
+                        filepath=checkpoint_file,
+                        pool=pool,
+                        **self.config_dict_search
+                    )
+
+                    if os.path.exists(checkpoint_file):
+
+                        if self.is_master:
+
+                            self.output_sampler_results(sampler=sampler)
+                            self.perform_update(model=model, analysis=analysis, during_analysis=True)
+
+                    sampler.run(
+                        **self.config_dict_run,
+                    )
 
         self.output_sampler_results(sampler=sampler)
 
