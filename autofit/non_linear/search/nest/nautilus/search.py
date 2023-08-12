@@ -156,6 +156,12 @@ class Nautilus(abstract_nest.AbstractNest):
             "parallel"
         ].get("force_x1_cpu") or self.kwargs.get("force_x1_cpu"):
 
+            self.logger.info(
+                """
+                Running search where parallelization is disabled.
+                """
+            )
+
             sampler = Sampler(
                 prior=prior_transform,
                 likelihood=fitness.__call__,
