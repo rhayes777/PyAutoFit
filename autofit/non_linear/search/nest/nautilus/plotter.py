@@ -17,10 +17,10 @@ class NautilusPlotter(SamplesPlotter):
 
         ndim = points.shape[1]
 
-        fig, axes = plt.subplots(ndim, ndim, figsize=(3.5, 3.5))
+        fig, axes = plt.subplots(ndim, ndim, figsize=(3.5*ndim, 3.5*ndim))
 
         corner.corner(
-            points=points,
+            data=points,
             weights=np.exp(self.samples.weight_list),
             bins=20,
             labels=self.model.parameter_labels_with_superscripts_latex,
