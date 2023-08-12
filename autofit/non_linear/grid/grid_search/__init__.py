@@ -352,9 +352,6 @@ class GridSearch:
         search_instance = self.search_instance(name_path=name_path)
         search_instance.paths.model = model
 
-        print(search_instance.number_of_cores)
-        ddd
-
         return Job(
             search_instance=search_instance,
             model=model,
@@ -375,11 +372,12 @@ class GridSearch:
         )
 
         for key, value in self.__dict__.items():
-            if key not in ("model", "instance", "paths", "search"):
-                try:
-                    setattr(search_instance, key, value)
-                except AttributeError:
-                    pass
+            if key != "number_of_cores":
+                if key not in ("model", "instance", "paths", "search"):
+                    try:
+                        setattr(search_instance, key, value)
+                    except AttributeError:
+                        pass
 
         if self.number_of_cores > 1:
 
