@@ -204,23 +204,7 @@ class Nautilus(abstract_nest.AbstractNest):
 
         if os.path.exists(checkpoint_file):
 
-            parameters, log_weights, log_likelihoods = sampler.posterior()
-
-            parameter_lists = parameters.tolist()
-            log_likelihood_list = log_likelihoods.tolist()
-            weight_list = np.exp(log_weights).tolist()
-
-            results_internal_json = {}
-
-            results_internal_json["parameter_lists"] = parameter_lists
-            results_internal_json["log_likelihood_list"] = log_likelihood_list
-            results_internal_json["weight_list"] = weight_list
-            results_internal_json["log_evidence"] = sampler.evidence()
-            results_internal_json["total_samples"] = int(sampler.n_like)
-            results_internal_json["time"] = self.timer.time
-            results_internal_json["number_live_points"] = int(sampler.n_live)
-
-            self.paths.save_results_internal_json(results_internal_dict=results_internal_json)
+            self.output_sampler_results(sampler=sampler)
 
             self.perform_update(model=model, analysis=analysis, during_analysis=True)
 
@@ -228,11 +212,22 @@ class Nautilus(abstract_nest.AbstractNest):
             **self.config_dict_run,
         )
 
-            sampler.run(
-                **self.config_dict_run,
-            )
+        self.output_sampler_results(sampler=sampler)
 
-#        logger.info(f"Search ending with MPI {comm.Get_rank()} / {self.number_of_cores}")
+        os.remove(checkpoint_file)
+
+    def output_sampler_results(self, sampler):
+        """
+        Output the sampler results to hard-disk in a generalized PyAutoFit format.
+
+        The results in this format are loaded by other functions in order to create a `Samples` object, perform updates
+        which visualize the results and write the results to the hard-disk as an output of the model-fit.
+
+        Parameters
+        ----------
+        sampler
+            The nautilus sampler object containing the results of the model-fit.
+        """
 
         parameters, log_weights, log_likelihoods = sampler.posterior()
 
@@ -251,53 +246,6 @@ class Nautilus(abstract_nest.AbstractNest):
         results_internal_json["number_live_points"] = int(sampler.n_live)
 
         self.paths.save_results_internal_json(results_internal_dict=results_internal_json)
-
-        os.remove(checkpoint_file)
-
-        # TODO : Need max iter input (https://github.com/johannesulf/nautilus/issues/23)
-
-        # finished = False
-        #
-        # while not finished:
-        #
-        #     try:
-        #         total_iterations = sampler.ncall
-        #     except AttributeError:
-        #         total_iterations = 0
-        #
-        #     if self.config_dict_run["max_ncalls"] is not None:
-        #         iterations = self.config_dict_run["max_ncalls"]
-        #     else:
-        #         iterations = total_iterations + self.iterations_per_update
-        #
-        #     if iterations > 0:
-        #
-        #         filter_list = ["max_ncalls", "dkl", "lepsilon"]
-        #         config_dict_run = {
-        #             key: value for key, value
-        #             in self.config_dict_run.items()
-        #             if key
-        #             not in filter_list
-        #         }
-        #
-        #         config_dict_run["update_interval_ncall"] = iterations
-        #
-        #         sampler.run(
-        #             max_ncalls=iterations,
-        #             **config_dict_run
-        #         )
-        #
-        #     self.paths.save_results_internal(obj=sampler.results)
-        #
-        #     self.perform_update(model=model, analysis=analysis, during_analysis=True)
-        #
-        #     iterations_after_run = sampler.ncall
-        #
-        #     if (
-        #             total_iterations == iterations_after_run
-        #             or iterations_after_run == self.config_dict_run["max_ncalls"]
-        #     ):
-        #         finished = True
 
     @property
     def samples_info(self):
