@@ -75,9 +75,6 @@ class DynestyPlotter(SamplesPlotter):
         the course of a run, projected onto all pairs of dimensions.
         """
 
-        print(self.model.parameter_labels_with_superscripts_latex)
-        fff
-        
         dyplot.cornerbound(
             results=self.samples.results_internal,
             labels=self.model.parameter_labels_with_superscripts_latex,

@@ -322,3 +322,23 @@ class Nautilus(abstract_nest.AbstractNest):
             "max_iters": 1,
             "max_ncalls": 1,
         }
+
+    def plot_results(self, samples):
+
+        from autofit.non_linear.search.nest.nautilus.plotter import NautilusPlotter
+
+        if not samples.pdf_converged:
+            return
+
+        def should_plot(name):
+            return conf.instance["visualize"]["plots_search"]["dynesty"][name]
+
+        plotter = NautilusPlotter(
+            samples=samples,
+            output=Output(
+                path=self.paths.image_path / "search", format="png"
+            ),
+        )
+
+        if should_plot("cornerplot"):
+            plotter.cornerplot()

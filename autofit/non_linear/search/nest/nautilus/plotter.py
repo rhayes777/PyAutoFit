@@ -1,63 +1,36 @@
-from autofit.plot import SamplesPlotter
+import numpy as np
 
-# from autofit.plot.samples_plotters import skip_plot_in_test_mode
-# from autofit.plot.samples_plotters import log_value_error
+from autofit.plot import SamplesPlotter
 
 class NautilusPlotter(SamplesPlotter):
 
-    pass
+    def cornerplot(self, **kwargs):
+        """
+        Plots the `nautilus` plot `cornerplot`, using the package `corner.py`.
 
-    # @skip_plot_in_test_mode
-    # @log_value_error
-    # def cornerplot(self, **kwargs):
-    #     """
-    #     Plots the in-built ``ultranest`` plot ``cornerplot``.
-    #
-    #     This figure plots a corner plot of the 1-D and 2-D marginalized posteriors.
-    #     """
-    #
-    #     from ultranest import plot
-    #
-    #     plot.cornerplot(
-    #         results=self.samples.results_internal,
-    #         **kwargs
-    #     )
-    #
-    #     self.output.to_figure(structure=None, auto_filename="cornerplot")
-    #     self.close()
-    #
-    # @skip_plot_in_test_mode
-    # @log_value_error
-    # def runplot(self, **kwargs):
-    #     """
-    #     Plots the in-built ``ultranest`` plot ``runplot``.
-    #
-    #     This figure plots live points, ln(likelihood), ln(weight), and ln(evidence) vs. ln(prior volume).
-    #     """
-    #     from ultranest import plot
-    #
-    #     plot.runplot(
-    #         results=self.samples.results_internal,
-    #         **kwargs
-    #     )
-    #
-    #     self.output.to_figure(structure=None, auto_filename="runplot")
-    #     self.close()
-    #
-    # @skip_plot_in_test_mode
-    # @log_value_error
-    # def traceplot(self, **kwargs):
-    #     """
-    #     Plots the in-built ``ultranest`` plot ``traceplot``.
-    #
-    #     This figure plots traces and marginalized posteriors for each parameter.
-    #     """
-    #     from ultranest import plot
-    #
-    #     plot.traceplot(
-    #         results=self.samples.results_internal,
-    #         **kwargs
-    #     )
-    #
-    #     self.output.to_figure(structure=None, auto_filename="traceplot")
-    #     self.close()
+        This figure plots a corner plot of the 1-D and 2-D marginalized posteriors.
+        """
+        import corner
+        import matplotlib.pyplot as plt
+
+        points = np.asarray(self.samples.parameter_lists)
+
+        ndim = points.shape[1]
+
+        fig, axes = plt.subplots(ndim, ndim, figsize=(3.5, 3.5))
+
+        corner.corner(
+            points=points,
+            weights=np.exp(self.samples.weight_list),
+            bins=20,
+            labels=self.model.parameter_labels_with_superscripts_latex,
+            plot_datapoints=False,
+            plot_density=False,
+            fill_contours=True,
+            levels=(0.68, 0.95),
+            range=np.ones(ndim) * 0.999,
+            fig=fig
+        )
+
+        self.output.to_figure(structure=None, auto_filename="cornerplot")
+        self.close()
