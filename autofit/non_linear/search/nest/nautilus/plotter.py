@@ -17,19 +17,24 @@ class NautilusPlotter(SamplesPlotter):
 
         ndim = points.shape[1]
 
-        fig, axes = plt.subplots(ndim, ndim, figsize=(3.5*ndim, 3.5*ndim))
+        panelsize = kwargs.get("panelsize") or 3.5
+        yticksize = kwargs.get("yticksize") or 16
+        xticksize = kwargs.get("xticksize") or 16
+
+        fig, axes = plt.subplots(ndim, ndim, figsize=(panelsize*ndim, panelsize*ndim))
+
+        for i in range(axes.shape[0]):
+            for j in range(axes.shape[1]):
+
+                axes[i,j].tick_params(axis="y", labelsize=yticksize)
+                axes[i,j].tick_params(axis="x", labelsize=xticksize)
 
         corner.corner(
             data=points,
             weights=np.exp(self.samples.weight_list),
-            bins=20,
             labels=self.model.parameter_labels_with_superscripts_latex,
-            plot_datapoints=False,
-            plot_density=False,
-            fill_contours=True,
-            levels=(0.68, 0.95),
-            range=np.ones(ndim) * 0.999,
-            fig=fig
+            fig=fig,
+            **kwargs
         )
 
         self.output.to_figure(structure=None, auto_filename="cornerplot")

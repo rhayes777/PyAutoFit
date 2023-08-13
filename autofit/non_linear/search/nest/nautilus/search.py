@@ -341,4 +341,16 @@ class Nautilus(abstract_nest.AbstractNest):
         )
 
         if should_plot("cornerplot"):
-            plotter.cornerplot()
+            plotter.cornerplot(
+                panelsize=3.5,
+                yticksize=16,
+                xticksize=16,
+                bins=20,
+                plot_datapoints=False,
+                plot_density=False,
+                fill_contours=True,
+                levels=(0.68, 0.95),
+                labelpad=0.02,
+                range=np.ones(samples.model.total_free_parameters) * 0.999,
+                label_kwargs={"fontsize": 24},
+            )
