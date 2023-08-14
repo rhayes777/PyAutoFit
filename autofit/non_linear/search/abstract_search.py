@@ -629,11 +629,10 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             model=model,
             analysis=analysis,
         )
-        model.unfreeze()
-
         samples = self.perform_update(
             model=model, analysis=analysis, during_analysis=False
         )
+        model.unfreeze()
 
         result = analysis.make_result(
             samples=samples,
