@@ -20,6 +20,7 @@ from autofit.graphical import (
     FactorApproximation,
 )
 from autofit.graphical.utils import Status
+from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.mapper.prior_model.collection import Collection
 from autofit.non_linear.initializer import Initializer
 from autofit.non_linear.fitness import Fitness
@@ -398,9 +399,9 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
     def fit_sequential(
         self,
-        model,
+        model : AbstractPriorModel,
         analysis: IndexCollectionAnalysis,
-        info=None,
+        info : Optional[Dict] = None,
     ) -> CombinedResult:
         """
         Fit multiple analyses contained within the analysis sequentially.
@@ -459,9 +460,9 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
     def fit(
         self,
-        model,
-        analysis: "Analysis",
-        info=None,
+        model : AbstractPriorModel,
+        analysis: Analysis,
+        info : Optional[Dict] = None,
         bypass_nuclear_if_on: bool = False,
     ) -> Union["Result", List["Result"]]:
         """
@@ -540,7 +541,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         return result
 
-    def pre_fit_output(self, analysis, model, info):
+    def pre_fit_output(self, analysis: Analysis, model : AbstractPriorModel, info: Optional[Dict] = None):
         """
         Outputs attributes of fit before the non-linear search begins.
 
@@ -592,7 +593,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                 model=model,
             )
 
-    def start_resume_fit(self, analysis, model):
+    def start_resume_fit(self, analysis : Analysis, model: AbstractPriorModel) -> Result:
         """
         Start a non-linear search from scratch, or resumes one which was previously terminated mid-way through.
 
@@ -641,7 +642,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         return result
 
-    def result_via_completed_fit(self, analysis, model):
+    def result_via_completed_fit(self, analysis: Analysis, model: AbstractPriorModel) -> Result:
         """
         Returns the result of the non-linear search of a completed model-fit.
 
@@ -695,7 +696,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         return result
 
-    def post_fit_output(self, bypass_nuclear_if_on):
+    def post_fit_output(self, bypass_nuclear_if_on : bool):
         """
         Cleans up the output folderds after a completed non-linear search.
 
@@ -718,10 +719,10 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             self.paths.zip_remove_nuclear()
 
     @abstractmethod
-    def _fit(self, model, analysis):
+    def _fit(self, model: AbstractPriorModel, analysis : Analysis):
         pass
 
-    def check_model(self, model):
+    def check_model(self, model : AbstractPriorModel):
         if model is not None and model.prior_count == 0:
             raise AssertionError("Model has no priors! Cannot fit a 0 dimension model.")
 
@@ -788,8 +789,8 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         return self._class_config[section][attribute_name]
 
     def perform_update(
-        self, model: Collection, analysis: Analysis, during_analysis: bool
-    ):
+        self, model: AbstractPriorModel, analysis: Analysis, during_analysis: bool
+    ) -> Samples:
         """
         Perform an update of the non-linear search's model-fitting results.
 
@@ -877,7 +878,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         return samples
 
-    def perform_visualization(self, model, analysis, during_analysis):
+    def perform_visualization(self, model: AbstractPriorModel, analysis : AbstractPriorModel, during_analysis : bool):
         """
         Perform visualization of the non-linear search's model-fitting results.
 
@@ -932,7 +933,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
     def remove_state_files(self):
         pass
 
-    def samples_from(self, model) -> Samples:
+    def samples_from(self, model : AbstractPriorModel) -> Samples:
         """
         Loads the samples of a non-linear search from its output files.
 
@@ -954,10 +955,10 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         except (FileNotFoundError, NotImplementedError, AttributeError):
             return self.samples_via_csv_from(model=model)
 
-    def samples_via_internal_from(self, model):
+    def samples_via_internal_from(self, model : AbstractPriorModel):
         raise NotImplementedError
 
-    def samples_via_csv_from(self, model) -> Samples:
+    def samples_via_csv_from(self, model : AbstractPriorModel) -> Samples:
         """
         Returns a `Samples` object from the `samples.csv` and `samples_info.json` files.
 
