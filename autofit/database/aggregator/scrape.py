@@ -9,6 +9,7 @@ import numpy as np
 
 from .. import model as m
 from ..sqlalchemy_ import sa
+from ... import Samples
 from ...mapper.model_object import Identifier
 
 logger = logging.getLogger(__name__)
@@ -281,6 +282,11 @@ def _add_files(fit: m.Fit, files_path: Path):
     files_path
         The path in which the JSONs are stored
     """
+    info_path = files_path / "samples_info.json"
+    samples_path = files_path / "samples.csv"
+    if info_path.exists() and samples_path.exists():
+        Samples
+
     for name, path in names_and_paths(files_path, ".json"):
         with open(path) as f:
             fit.set_json(name, json.load(f))
