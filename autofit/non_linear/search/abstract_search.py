@@ -508,7 +508,9 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         if self.is_master:
             self.paths.restore()
 
+        model.freeze()
         analysis = analysis.modify_before_fit(paths=self.paths, model=model)
+        model.unfreeze()
 
         if self.is_master:
             self.pre_fit_output(
