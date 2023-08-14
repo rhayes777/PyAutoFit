@@ -60,10 +60,8 @@ def make_fitness(
         analysis,
 ):
     return Fitness(
-        paths=paths,
         model=model,
         analysis=analysis,
-        samples_from_model=None
     )
 
 
@@ -219,7 +217,7 @@ def test_sneaky_map(
     "function",
     [
         _FunctionWrapper(lambda: 1, None, None),
-        Fitness(None, None, None, None),
+        Fitness(None, None),
         _function_wrapper(lambda: 1, [], {}, "loglikelihood")
     ]
 )

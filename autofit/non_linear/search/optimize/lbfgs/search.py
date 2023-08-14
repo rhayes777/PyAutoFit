@@ -51,8 +51,7 @@ class LBFGS(AbstractOptimizer):
         initializer
             Generates the initialize samples of non-linear parameter space (see autofit.non_linear.initializer).
         number_of_cores: int
-            The number of cores Emcee sampling is performed using a Python multiprocessing Pool instance. If 1, a
-            pool instance is not created and the job runs in serial.
+            The number of cores sampling is performed using a Python multiprocessing Pool instance.
         session
             An SQLalchemy session instance so the results of the model-fit are written to an SQLite database.
         """
@@ -106,10 +105,8 @@ class LBFGS(AbstractOptimizer):
         chains used by the fit.
         """
         fitness = self.Fitness(
-            paths=self.paths,
             model=model,
             analysis=analysis,
-            samples_from_model=self.samples_from,
             log_likelihood_cap=log_likelihood_cap
         )
 

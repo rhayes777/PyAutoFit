@@ -50,6 +50,9 @@ class NullPaths(AbstractPaths):
     def save_named_instance(self, name: str, instance):
         pass
 
+    def save_all(self, search_config_dict=None, info=None):
+        pass
+
     def save_object(self, name: str, obj: object):
         self.objects[name] = obj
 
@@ -79,9 +82,6 @@ class NullPaths(AbstractPaths):
         return False
 
     def completed(self):
-        pass
-
-    def save_all(self, search_config_dict, info, pickle_files):
         pass
 
     def load_samples(self):

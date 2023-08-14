@@ -59,23 +59,20 @@ class AbstractNest(NonLinearSearch):
 
     class Fitness(NonLinearSearch.Fitness):
         def __init__(
-            self, paths, analysis, model, samples_from_model, log_likelihood_cap=None
+            self, analysis, model, log_likelihood_cap=None
         ):
             super().__init__(
-                paths=paths,
                 analysis=analysis,
                 model=model,
-                samples_from_model=samples_from_model,
                 log_likelihood_cap=log_likelihood_cap,
             )
 
             self.stagger_accepted_samples = 0
             self.resampling_figure_of_merit = -1.0e99
 
-            self.should_check_terminate = IntervalCounter(1000)
-
         def figure_of_merit_from(self, parameter_list):
-            """The figure of merit is the value that the `NonLinearSearch` uses to sample parameter space.
+            """
+            The figure of merit is the value that the `NonLinearSearch` uses to sample parameter space.
 
             All Nested samplers use the log likelihood.
             """

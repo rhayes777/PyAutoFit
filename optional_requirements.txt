@@ -2,5 +2,6 @@ astropy>=5.0
 getdist==1.4
 jax==0.4.10
 jaxlib==0.4.10
+nautilus-sampler==0.7.2
 ultranest==3.6.2
 zeus-mcmc==2.5.4

@@ -45,8 +45,7 @@ class PySwarmsLocal(AbstractPySwarms):
         initializer
             Generates the initialize samples of non-linear parameter space (see autofit.non_linear.initializer).
         number_of_cores
-            The number of cores Emcee sampling is performed using a Python multiprocessing Pool instance. If 1, a
-            pool instance is not created and the job runs in serial.
+            The number of cores sampling is performed using a Python multiprocessing Pool instance.
         """
 
         super().__init__(

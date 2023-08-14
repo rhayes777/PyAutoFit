@@ -109,7 +109,17 @@ def search_summary_from_samples(samples) -> [str]:
 def search_summary_to_file(samples, log_likelihood_function_time, filename):
     summary = search_summary_from_samples(samples=samples)
     summary.append(
-        f"Log Likelihood Function Evaluation Time (seconds) = {log_likelihood_function_time}"
+        f"Log Likelihood Function Evaluation Time (seconds) = {log_likelihood_function_time}\n"
+    )
+
+    expected_time = dt.timedelta(seconds=float(samples.total_samples * log_likelihood_function_time))
+    summary.append(
+        f"Expected Time To Run (seconds) = {expected_time}\n"
+    )
+
+    speed_up_factor = float(expected_time.total_seconds()) / float(samples.time)
+    summary.append(
+        f"Speed Up Factor (e.g. due to parallelization) = {speed_up_factor}"
     )
     frm.output_list_of_strings_to_file(file=filename, list_of_strings=summary)
 

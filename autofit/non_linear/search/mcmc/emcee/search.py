@@ -60,8 +60,7 @@ class Emcee(AbstractMCMC):
         auto_correlation_settings
             Customizes and performs auto correlation calculations performed during and after the search.
         number_of_cores
-            The number of cores Emcee sampling is performed using a Python multiprocessing Pool instance. If 1, a
-            pool instance is not created and the job runs in serial.
+            The number of cores sampling is performed using a Python multiprocessing Pool instance.
         session
             An SQLalchemy session instance so the results of the model-fit are written to an SQLite database.
         """
@@ -113,10 +112,8 @@ class Emcee(AbstractMCMC):
         chains used by the fit.
         """
         fitness = Emcee.Fitness(
-            paths=self.paths,
             model=model,
             analysis=analysis,
-            samples_from_model=self.samples_from,
             log_likelihood_cap=log_likelihood_cap,
         )
 

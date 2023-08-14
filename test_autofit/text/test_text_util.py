@@ -97,5 +97,5 @@ def test__search_summary_to_file(model):
     assert lines[2] == "Acceptance Ratio = 0.2\n"
     assert lines[3] == "Time To Run = 0:00:01\n"
     assert lines[4] == "Time Per Sample (seconds) = 0.1\n"
-    assert lines[5] == "Log Likelihood Function Evaluation Time (seconds) = 1.0"
+    assert lines[5] == "Log Likelihood Function Evaluation Time (seconds) = 1.0\n"
     results.close()

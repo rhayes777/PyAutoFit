@@ -235,10 +235,9 @@ class DirectoryPaths(AbstractPaths):
         with open_(self._info_file) as infile:
             return json.load(infile)
 
-    def save_all(self, search_config_dict=None, info=None, pickle_files=None):
+    def save_all(self, search_config_dict=None, info=None):
         search_config_dict = search_config_dict or {}
         info = info or {}
-        pickle_files = pickle_files or []
 
         self.save_identifier()
         self.save_parent_identifier()
@@ -249,7 +248,6 @@ class DirectoryPaths(AbstractPaths):
         self.save_json("search", to_dict(self.search))
         self.save_json("model", self.model.dict())
         self._save_metadata(search_name=type(self.search).__name__.lower())
-        self._move_pickle_files(pickle_files=pickle_files)
 
     @AbstractPaths.parent.setter
     def parent(self, parent: AbstractPaths):
@@ -364,15 +362,6 @@ class DirectoryPaths(AbstractPaths):
                 non_linear_search={search_name}
             """
             )
-
-    def _move_pickle_files(self, pickle_files):
-        """
-        Move extra files a user has input the full path + filename of from the location specified to the
-        pickles folder of the Aggregator, so that they can be accessed via the aggregator.
-        """
-        os.makedirs(self._pickle_path, exist_ok=True)
-        if pickle_files is not None:
-            [shutil.copy(file, self._pickle_path) for file in pickle_files]
 
     def _save_model_info(self, model):
         """
