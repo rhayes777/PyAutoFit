@@ -1,5 +1,3 @@
-import logging
-from os import path
 from typing import Optional
 
 import numpy as np
@@ -8,6 +6,7 @@ from autoconf import conf
 from autofit.database.sqlalchemy_ import sa
 from autofit.mapper.model_mapper import ModelMapper
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
+from autofit.non_linear.fitness import Fitness
 from autofit.non_linear.initializer import Initializer
 from autofit.non_linear.search.mcmc.abstract_mcmc import AbstractMCMC
 from autofit.non_linear.search.mcmc.auto_correlations import AutoCorrelationsSettings
@@ -16,11 +15,6 @@ from autofit.non_linear.search.mcmc.zeus.plotter import ZeusPlotter
 from autofit.non_linear.samples.sample import Sample
 from autofit.non_linear.samples.mcmc import SamplesMCMC
 from autofit.plot.output import Output
-
-logger = logging.getLogger(
-    __name__
-)
-
 
 class Zeus(AbstractMCMC):
     __identifier_fields__ = (
@@ -97,21 +91,7 @@ class Zeus(AbstractMCMC):
 
         self.logger.debug("Creating Zeus Search")
 
-    class Fitness(AbstractMCMC.Fitness):
-        def figure_of_merit_from(self, parameter_list):
-            """
-            The figure of merit is the value that the `NonLinearSearch` uses to sample parameter space. 
-
-            `Zeus` uses the log posterior.
-            """
-            log_posterior = self.log_posterior_from(parameter_list=parameter_list)
-
-            if np.isnan(log_posterior):
-                return self.resample_figure_of_merit
-
-            return log_posterior
-
-    def _fit(self, model: AbstractPriorModel, analysis, log_likelihood_cap=None):
+    def _fit(self, model: AbstractPriorModel, analysis):
         """
         Fit a model using Zeus and the Analysis class which contains the data and returns the log likelihood from
         instances of the model, which the `NonLinearSearch` seeks to maximize.
@@ -144,10 +124,11 @@ class Zeus(AbstractMCMC):
 
         pool = self.make_pool()
 
-        fitness = Zeus.Fitness(
+        fitness = Fitness(
             model=model,
             analysis=analysis,
-            log_likelihood_cap=log_likelihood_cap,
+            fom_is_log_likelihood=False,
+            resample_figure_of_merit=-np.inf
         )
 
         try:
@@ -167,7 +148,7 @@ class Zeus(AbstractMCMC):
                 iterations_remaining = self.config_dict_run["nsteps"] - total_iterations
 
                 self.logger.info(
-                    "Existing Zeus samples found, resuming non-linear search."
+                    "Resuming Zeus non-linear search (previous samples found)."
                 )
 
         except FileNotFoundError:
@@ -194,7 +175,9 @@ class Zeus(AbstractMCMC):
 
             state = np.zeros(shape=(sampler.nwalkers, model.prior_count))
 
-            self.logger.info("No Zeus samples found, beginning new non-linear search.")
+            self.logger.info(
+                "Starting new Zeus non-linear search (no previous samples found)."
+            )
 
             for index, parameters in enumerate(parameter_lists):
                 state[index, :] = np.asarray(parameters)
@@ -227,9 +210,7 @@ class Zeus(AbstractMCMC):
             total_iterations += iterations
             iterations_remaining = self.config_dict_run["nsteps"] - total_iterations
 
-            samples = self.perform_update(
-                model=model, analysis=analysis, during_analysis=True
-            )
+            samples = self.samples_from(model=model)
 
             if self.auto_correlation_settings.check_for_convergence:
                 if sampler.iteration > self.auto_correlation_settings.check_size:
@@ -246,7 +227,11 @@ class Zeus(AbstractMCMC):
                 if sampler.ncall_total > self.kwargs["maxcall"]:
                     iterations_remaining = 0
 
-        self.logger.info("Zeus sampling complete.")
+            if iterations_remaining > 0:
+
+                self.perform_update(
+                    model=model, analysis=analysis, during_analysis=True
+                )
 
     @property
     def samples_info(self):
@@ -326,7 +311,7 @@ class Zeus(AbstractMCMC):
                 samples=results_internal.get_chain()[: - self.auto_correlation_settings.check_size, :, :],
             )
         except IndexError:
-            logger.debug(
+            self.logger.debug(
                 "Unable to compute previous auto correlation times."
             )
             previous_auto_correlation_times = None

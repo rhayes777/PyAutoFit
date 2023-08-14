@@ -1,17 +1,17 @@
 import numpy as np
 import logging
 import os
+import sys
 from typing import Optional
 
 from autofit.database.sqlalchemy_ import sa
 
 from autoconf import conf
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
+from autofit.non_linear.fitness import Fitness
 from autofit.non_linear.search.nest import abstract_nest
-from autofit.non_linear.search.nest.abstract_nest import AbstractNest
 from autofit.non_linear.samples.sample import Sample
 from autofit.non_linear.samples.nest import SamplesNest
-from autofit.non_linear.result import Result
 from autofit.plot import NautilusPlotter
 from autofit.plot.output import Output
 
@@ -45,7 +45,6 @@ class Nautilus(abstract_nest.AbstractNest):
             iterations_per_update: int = None,
             number_of_cores: int = None,
             session: Optional[sa.orm.Session] = None,
-            mpi = False,
             **kwargs
     ):
         """
@@ -92,22 +91,9 @@ class Nautilus(abstract_nest.AbstractNest):
             **kwargs
         )
 
-        self.mpi = mpi
-
         self.logger.debug("Creating Nautilus Search")
 
-    class Fitness(AbstractNest.Fitness):
-        @property
-        def resample_figure_of_merit(self):
-            """
-            If a sample raises a FitException, this value is returned to signify that the point requires resampling or
-            should be given a likelihood so low that it is discard.
-
-            -np.inf is an invalid sample value for Nautilus, so we instead use a large negative number.
-            """
-            return -1.0e99
-
-    def _fit(self, model: AbstractPriorModel, analysis, log_likelihood_cap=None):
+    def _fit(self, model: AbstractPriorModel, analysis):
         """
         Fit a model using the search and the Analysis class which contains the data and returns the log likelihood from
         instances of the model, which the `NonLinearSearch` seeks to maximize.
@@ -138,79 +124,124 @@ class Nautilus(abstract_nest.AbstractNest):
                 "----------------------"
             )
 
-        fitness = self.Fitness(
+        fitness = Fitness(
             model=model,
             analysis=analysis,
-            log_likelihood_cap=log_likelihood_cap,
+            fom_is_log_likelihood=True,
+            resample_figure_of_merit=-1.0e99
         )
 
-        if conf.instance["non_linear"]["nest"][self.__class__.__name__][
-            "parallel"
-        ].get("force_x1_cpu") or self.kwargs.get("force_x1_cpu"):
-            pool = None
-        else:
-            pool = self.number_of_cores
+        checkpoint_file = self.paths.search_internal_path / "checkpoint.hdf5"
 
-        if conf.instance["non_linear"]["nest"][self.__class__.__name__][
-            "parallel"
-        ].get("force_x1_cpu") or self.kwargs.get("force_x1_cpu"):
+        if os.path.exists(checkpoint_file):
+            self.logger.info(
+                "Resuming Nautilus non-linear search (previous samples found)."
+            )
+
+        else:
+            self.logger.info(
+                "Starting new Nautilus non-linear search (no previous samples found)."
+            )
+
+        if self.config_dict.get("force_x1_cpu") or self.kwargs.get("force_x1_cpu"):
+
+            self.logger.info(
+                """
+                Running search where parallelization is disabled.
+                """
+            )
 
             sampler = Sampler(
                 prior=prior_transform,
                 likelihood=fitness.__call__,
                 n_dim=model.prior_count,
                 prior_kwargs={"model": model},
-                filepath=self.paths.search_internal_path / "checkpoint.hdf5",
+                filepath=checkpoint_file,
                 pool=None,
                 **self.config_dict_search
             )
 
-            sampler.run(
-                **self.config_dict_run,
-            )
+            if os.path.exists(checkpoint_file):
 
-        elif not self.mpi:
-
-    
-            sampler = Sampler(
-                prior=prior_transform,
-                likelihood=fitness.__call__,
-                n_dim=model.prior_count,
-                prior_kwargs={"model": model},
-                filepath=self.paths.search_internal_path / "checkpoint.hdf5",
-                pool=self.number_of_cores,
-                **self.config_dict_search
-            )
+                self.output_sampler_results(sampler=sampler)
+                self.perform_update(model=model, analysis=analysis, during_analysis=True)
 
             sampler.run(
                 **self.config_dict_run,
             )
 
-        elif self.mpi:
+        else:
 
-            from mpi4py import MPI
-            comm = MPI.COMM_WORLD
+            if not self.using_mpi:
 
-            logger.info(f"Search beginning with MPI {comm.Get_rank()} / {self.number_of_cores}")
+                sampler = Sampler(
+                    prior=prior_transform,
+                    likelihood=fitness.__call__,
+                    n_dim=model.prior_count,
+                    prior_kwargs={"model": model},
+                    filepath=checkpoint_file,
+                    pool=self.number_of_cores,
+                    **self.config_dict_search
+                )
 
-            from mpi4py.futures import MPIPoolExecutor
-            pool = MPIPoolExecutor(self.number_of_cores)
+                if os.path.exists(checkpoint_file):
 
-            sampler = Sampler(
-                prior=prior_transform,
-                likelihood=fitness.__call__,
-                n_dim=model.prior_count,
-                prior_kwargs={"model": model},
-                filepath=self.paths.search_internal_path / "checkpoint.hdf5",
-                pool=pool,
-                **self.config_dict_search
-            )
+                    self.output_sampler_results(sampler=sampler)
+                    self.perform_update(model=model, analysis=analysis, during_analysis=True)
 
-            sampler.run(
-                **self.config_dict_run,
-            )
+                sampler.run(
+                    **self.config_dict_run,
+                )
 
-#        logger.info(f"Search ending with MPI {comm.Get_rank()} / {self.number_of_cores}")
+            else:
+
+                with self.make_sneakier_pool(
+                        fitness_function=fitness.__call__,
+                        prior_transform=prior_transform,
+                        fitness_args=(model, fitness.__call__),
+                        prior_transform_args=(model,),
+                ) as pool:
+
+                    if not pool.is_master():
+                        pool.wait()
+                        sys.exit(0)
+
+                    sampler = Sampler(
+                        prior=pool.prior_transform,
+                        likelihood=pool.fitness,
+                        n_dim=model.prior_count,
+                        filepath=checkpoint_file,
+                        pool=pool,
+                        **self.config_dict_search
+                    )
+
+                    if os.path.exists(checkpoint_file):
+
+                        if self.is_master:
+
+                            self.output_sampler_results(sampler=sampler)
+                            self.perform_update(model=model, analysis=analysis, during_analysis=True)
+
+                    sampler.run(
+                        **self.config_dict_run,
+                    )
+
+        self.output_sampler_results(sampler=sampler)
+
+        os.remove(checkpoint_file)
+
+    def output_sampler_results(self, sampler):
+        """
+        Output the sampler results to hard-disk in a generalized PyAutoFit format.
+
+        The results in this format are loaded by other functions in order to create a `Samples` object, perform updates
+        which visualize the results and write the results to the hard-disk as an output of the model-fit.
+
+        Parameters
+        ----------
+        sampler
+            The nautilus sampler object containing the results of the model-fit.
+        """
 
         parameters, log_weights, log_likelihoods = sampler.posterior()
 
@@ -218,68 +249,17 @@ class Nautilus(abstract_nest.AbstractNest):
         log_likelihood_list = log_likelihoods.tolist()
         weight_list = np.exp(log_weights).tolist()
 
-        results_internal_json = {}
-
-        results_internal_json["parameter_lists"] = parameter_lists
-        results_internal_json["log_likelihood_list"] = log_likelihood_list
-        results_internal_json["weight_list"] = weight_list
-        results_internal_json["log_evidence"] = sampler.evidence()
-        results_internal_json["total_samples"] = int(sampler.n_like)
-        results_internal_json["time"] = self.timer.time
-        results_internal_json["number_live_points"] = int(sampler.n_live)
+        results_internal_json = {
+            "parameter_lists": parameter_lists,
+            "log_likelihood_list": log_likelihood_list,
+            "weight_list": weight_list,
+            "log_evidence": sampler.evidence(),
+            "total_samples": int(sampler.n_like),
+            "time": self.timer.time,
+            "number_live_points": int(sampler.n_live)
+        }
 
         self.paths.save_results_internal_json(results_internal_dict=results_internal_json)
-
-        samples = self.perform_update(model=model, analysis=analysis, during_analysis=False)
-
-        os.remove(self.paths.search_internal_path / "checkpoint.hdf5")
-
-        return Result(samples=samples)
-
-        # TODO : Need max iter input (https://github.com/johannesulf/nautilus/issues/23)
-
-        # finished = False
-        #
-        # while not finished:
-        #
-        #     try:
-        #         total_iterations = sampler.ncall
-        #     except AttributeError:
-        #         total_iterations = 0
-        #
-        #     if self.config_dict_run["max_ncalls"] is not None:
-        #         iterations = self.config_dict_run["max_ncalls"]
-        #     else:
-        #         iterations = total_iterations + self.iterations_per_update
-        #
-        #     if iterations > 0:
-        #
-        #         filter_list = ["max_ncalls", "dkl", "lepsilon"]
-        #         config_dict_run = {
-        #             key: value for key, value
-        #             in self.config_dict_run.items()
-        #             if key
-        #             not in filter_list
-        #         }
-        #
-        #         config_dict_run["update_interval_ncall"] = iterations
-        #
-        #         sampler.run(
-        #             max_ncalls=iterations,
-        #             **config_dict_run
-        #         )
-        #
-        #     self.paths.save_results_internal(obj=sampler.results)
-        #
-        #     self.perform_update(model=model, analysis=analysis, during_analysis=True)
-        #
-        #     iterations_after_run = sampler.ncall
-        #
-        #     if (
-        #             total_iterations == iterations_after_run
-        #             or iterations_after_run == self.config_dict_run["max_ncalls"]
-        #     ):
-        #         finished = True
 
     @property
     def samples_info(self):
@@ -333,6 +313,10 @@ class Nautilus(abstract_nest.AbstractNest):
             results_internal=None,
         )
 
+    @property
+    def config_dict(self):
+        return conf.instance["non_linear"]["nest"][self.__class__.__name__]
+
     def config_dict_with_test_mode_settings_from(self, config_dict):
 
         return {
@@ -340,3 +324,35 @@ class Nautilus(abstract_nest.AbstractNest):
             "max_iters": 1,
             "max_ncalls": 1,
         }
+
+    def plot_results(self, samples):
+
+        from autofit.non_linear.search.nest.nautilus.plotter import NautilusPlotter
+
+        if not samples.pdf_converged:
+            return
+
+        def should_plot(name):
+            return conf.instance["visualize"]["plots_search"]["dynesty"][name]
+
+        plotter = NautilusPlotter(
+            samples=samples,
+            output=Output(
+                path=self.paths.image_path / "search", format="png"
+            ),
+        )
+
+        if should_plot("cornerplot"):
+            plotter.cornerplot(
+                panelsize=3.5,
+                yticksize=16,
+                xticksize=16,
+                bins=20,
+                plot_datapoints=False,
+                plot_density=False,
+                fill_contours=True,
+                levels=(0.68, 0.95),
+                labelpad=0.02,
+                range=np.ones(samples.model.total_free_parameters) * 0.999,
+                label_kwargs={"fontsize": 24},
+            )
