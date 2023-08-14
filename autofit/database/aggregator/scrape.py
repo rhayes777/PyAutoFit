@@ -10,9 +10,9 @@ import numpy as np
 
 from .. import model as m
 from ..sqlalchemy_ import sa
-from ... import Samples
+from autofit.non_linear.samples.samples import Samples
 from ...mapper.model_object import Identifier
-from ...non_linear.samples.sample import samples_from_iterator
+from autofit.non_linear.samples.sample import samples_from_iterator
 
 logger = logging.getLogger(__name__)
 
