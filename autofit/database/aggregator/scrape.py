@@ -1,3 +1,4 @@
+import csv
 import json
 import logging
 import os
@@ -11,6 +12,7 @@ from .. import model as m
 from ..sqlalchemy_ import sa
 from ... import Samples
 from ...mapper.model_object import Identifier
+from ...non_linear.samples.sample import samples_from_iterator
 
 logger = logging.getLogger(__name__)
 
@@ -285,7 +287,16 @@ def _add_files(fit: m.Fit, files_path: Path):
     info_path = files_path / "samples_info.json"
     samples_path = files_path / "samples.csv"
     if info_path.exists() and samples_path.exists():
-        Samples
+        with open(info_path) as f:
+            info_json = json.load(f)
+        with open(samples_path) as f:
+            sample_list = samples_from_iterator(csv.reader(f))
+
+        fit.samples = Samples.from_list_info_and_model(
+            sample_list=sample_list,
+            samples_info=info_json,
+            model=fit.model,
+        )
 
     for name, path in names_and_paths(files_path, ".json"):
         with open(path) as f:
