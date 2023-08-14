@@ -632,7 +632,6 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         samples = self.perform_update(
             model=model, analysis=analysis, during_analysis=False
         )
-        model.unfreeze()
 
         result = analysis.make_result(
             samples=samples,
@@ -640,6 +639,8 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         if self.is_master:
             analysis.save_results(paths=self.paths, result=result)
+
+        model.unfreeze()
 
         self.paths.completed()
 
