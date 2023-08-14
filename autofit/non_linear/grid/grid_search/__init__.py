@@ -22,7 +22,6 @@ class Sequential:
         for job_ in jobs:
             yield job_.perform()
 
-
 class GridSearch:
 
     def __init__(
@@ -372,13 +371,11 @@ class GridSearch:
         )
 
         for key, value in self.__dict__.items():
-            if key not in ("model", "instance", "paths", "search"):
+            if key not in ("model", "instance", "paths", "search", "number_of_cores"):
                 try:
                     setattr(search_instance, key, value)
                 except AttributeError:
                     pass
-
-        search_instance.number_of_cores = self.number_of_cores
 
         if self.number_of_cores > 1:
 

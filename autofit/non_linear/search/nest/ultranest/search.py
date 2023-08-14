@@ -1,5 +1,5 @@
 import copy
-from os import path
+import os
 from typing import Optional
 
 from autofit.database.sqlalchemy_ import sa
@@ -7,7 +7,7 @@ from autofit.database.sqlalchemy_ import sa
 from autoconf import conf
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.search.nest import abstract_nest
-from autofit.non_linear.search.nest.abstract_nest import AbstractNest
+from autofit.non_linear.fitness import Fitness
 from autofit.non_linear.samples.sample import Sample
 from autofit.non_linear.samples.nest import SamplesNest
 from autofit.plot import UltraNestPlotter
@@ -87,18 +87,7 @@ class UltraNest(abstract_nest.AbstractNest):
 
         self.logger.debug("Creating UltraNest Search")
 
-    class Fitness(AbstractNest.Fitness):
-        @property
-        def resample_figure_of_merit(self):
-            """
-            If a sample raises a FitException, this value is returned to signify that the point requires resampling or
-            should be given a likelihood so low that it is discard.
-
-            -np.inf is an invalid sample value for Dynesty, so we instead use a large negative number.
-            """
-            return -1.0e99
-
-    def _fit(self, model: AbstractPriorModel, analysis, log_likelihood_cap=None):
+    def _fit(self, model: AbstractPriorModel, analysis):
         """
         Fit a model using the search and the Analysis class which contains the data and returns the log likelihood from
         instances of the model, which the `NonLinearSearch` seeks to maximize.
@@ -129,10 +118,11 @@ class UltraNest(abstract_nest.AbstractNest):
                 "----------------------"
             )
 
-        fitness = self.Fitness(
+        fitness = Fitness(
             model=model,
             analysis=analysis,
-            log_likelihood_cap=log_likelihood_cap,
+            fom_is_log_likelihood=True,
+            resample_figure_of_merit=-1.0e99
         )
 
         def prior_transform(cube):
@@ -141,11 +131,22 @@ class UltraNest(abstract_nest.AbstractNest):
                 ignore_prior_limits=True
             )
 
+        log_dir = self.paths.search_internal_path
+
+        if os.path.exists(log_dir / "chains"):
+            self.logger.info(
+                "Resuming UltraNest non-linear search (previous samples found)."
+            )
+        else:
+            self.logger.info(
+                "Starting new UltraNest non-linear search (no previous samples found)."
+            )
+
         sampler = ultranest.ReactiveNestedSampler(
             param_names=model.parameter_names,
             loglike=fitness.__call__,
             transform=prior_transform,
-            log_dir=self.paths.search_internal_path,
+            log_dir=log_dir,
             **self.config_dict_search
         )
 
@@ -184,8 +185,6 @@ class UltraNest(abstract_nest.AbstractNest):
 
             self.paths.save_results_internal(obj=sampler.results)
 
-            self.perform_update(model=model, analysis=analysis, during_analysis=True)
-
             iterations_after_run = sampler.ncall
 
             if (
@@ -193,6 +192,10 @@ class UltraNest(abstract_nest.AbstractNest):
                     or iterations_after_run == self.config_dict_run["max_ncalls"]
             ):
                 finished = True
+
+            if not finished:
+
+                self.perform_update(model=model, analysis=analysis, during_analysis=True)
 
     @property
     def samples_info(self):

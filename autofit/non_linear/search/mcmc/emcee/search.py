@@ -1,5 +1,4 @@
 import os
-from os import path
 from typing import Optional
 
 import emcee
@@ -9,6 +8,7 @@ from autoconf import conf
 from autofit.database.sqlalchemy_ import sa
 from autofit.mapper.model_mapper import ModelMapper
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
+from autofit.non_linear.fitness import Fitness
 from autofit.non_linear.initializer import Initializer
 from autofit.non_linear.search.mcmc.abstract_mcmc import AbstractMCMC
 from autofit.non_linear.search.mcmc.auto_correlations import AutoCorrelationsSettings
@@ -85,15 +85,7 @@ class Emcee(AbstractMCMC):
 
         self.logger.debug("Creating Emcee Search")
 
-    class Fitness(AbstractMCMC.Fitness):
-        def figure_of_merit_from(self, parameter_list):
-            """
-            The figure of merit is the value that the `NonLinearSearch` uses to sample parameter space. `Emcee`
-            uses the log posterior.
-            """
-            return self.log_posterior_from(parameter_list=parameter_list)
-
-    def _fit(self, model: AbstractPriorModel, analysis, log_likelihood_cap=None):
+    def _fit(self, model: AbstractPriorModel, analysis):
         """
         Fit a model using Emcee and the Analysis class which contains the data and returns the log likelihood from
         instances of the model, which the `NonLinearSearch` seeks to maximize.
@@ -111,10 +103,11 @@ class Emcee(AbstractMCMC):
         A result object comprising the Samples object that inclues the maximum log likelihood instance and full
         chains used by the fit.
         """
-        fitness = Emcee.Fitness(
+        fitness = Fitness(
             model=model,
             analysis=analysis,
-            log_likelihood_cap=log_likelihood_cap,
+            fom_is_log_likelihood=False,
+            resample_figure_of_merit=-np.inf
         )
 
         pool = self.make_sneaky_pool(fitness)
@@ -139,7 +132,7 @@ class Emcee(AbstractMCMC):
                 iterations_remaining = self.config_dict_run["nsteps"] - total_iterations
 
                 self.logger.info(
-                    "Existing Emcee samples found, resuming non-linear search."
+                    "Resuming Emcee non-linear search (previous samples found)."
                 )
 
         except AttributeError:
@@ -155,7 +148,9 @@ class Emcee(AbstractMCMC):
 
             state = np.zeros(shape=(sampler.nwalkers, model.prior_count))
 
-            self.logger.info("No Emcee samples found, beginning new non-linear search.")
+            self.logger.info(
+                "Starting new Emcee non-linear search (no previous samples found)."
+            )
 
             for index, parameters in enumerate(parameter_lists):
                 state[index, :] = np.asarray(parameters)
@@ -183,16 +178,18 @@ class Emcee(AbstractMCMC):
             total_iterations += iterations
             iterations_remaining = self.config_dict_run["nsteps"] - total_iterations
 
-            samples = self.perform_update(
-                model=model, analysis=analysis, during_analysis=True
-            )
+            samples = self.samples_from(model=model)
 
             if self.auto_correlation_settings.check_for_convergence:
                 if sampler.iteration > self.auto_correlation_settings.check_size:
                     if samples.converged:
                         iterations_remaining = 0
 
-        self.logger.info("Emcee sampling complete.")
+            if iterations_remaining > 0:
+
+                self.perform_update(
+                    model=model, analysis=analysis, during_analysis=True
+                )
 
     @property
     def samples_info(self):

@@ -1,7 +1,5 @@
 import os
 from abc import ABC
-from os import path
-from pathlib import Path
 from typing import Optional, Tuple, Union
 
 import numpy as np
@@ -10,6 +8,7 @@ from dynesty import NestedSampler, DynamicNestedSampler
 from autoconf import conf
 from autofit import exc
 from autofit.database.sqlalchemy_ import sa
+from autofit.non_linear.fitness import Fitness
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.search.nest.abstract_nest import AbstractNest
 from autofit.non_linear.samples.sample import Sample
@@ -82,25 +81,10 @@ class AbstractDynesty(AbstractNest, ABC):
 
         self.logger.debug(f"Creating {self.__class__.__name__} Search")
 
-    class Fitness(AbstractNest.Fitness):
-        @property
-        def resample_figure_of_merit(self):
-            """
-            If a sample raises a FitException, this value is returned to signify that the point requires resampling or
-            should be given a likelihood so low that it is discard.
-
-            -np.inf is an invalid sample value for Dynesty, so we instead use a large negative number.
-            """
-            return -1.0e99
-
-        def history_save(self):
-            pass
-
     def _fit(
             self,
             model: AbstractPriorModel,
             analysis,
-            log_likelihood_cap: Optional[float] = None,
     ):
         """
         Fit a model using the search and the Analysis class which contains the data and returns the log likelihood from
@@ -121,9 +105,6 @@ class AbstractDynesty(AbstractNest, ABC):
         analysis
             Contains the data and the log likelihood function which fits an instance of the model to the data,
             returning the log likelihood dynesty maximizes.
-        log_likelihood_cap
-            An optional cap to the log likelihood values, which means all likelihood evaluations above this value
-            are rounded down to it. This is used to remove numerical instability in an Astronomy based project.
 
         Returns
         -------
@@ -133,19 +114,20 @@ class AbstractDynesty(AbstractNest, ABC):
 
         from dynesty.pool import Pool
 
-        fitness = self.Fitness(
+        fitness = Fitness(
             model=model,
             analysis=analysis,
-            log_likelihood_cap=log_likelihood_cap,
+            fom_is_log_likelihood=True,
+            resample_figure_of_merit=-1.0e99
         )
 
         if os.path.exists(self.checkpoint_file):
             self.logger.info(
-                "Existing Dynesty samples found, resuming non-linear search."
+                "Resuming Dynesty non-linear search (previous samples found)."
             )
         else:
             self.logger.info(
-                "No Dynesty samples found, beginning new non-linear search. "
+                "Starting new Dynesty non-linear search (no previous samples found)."
             )
 
         finished = False
@@ -202,7 +184,9 @@ class AbstractDynesty(AbstractNest, ABC):
 
                 finished = self.run_sampler(sampler=sampler)
 
-            self.perform_update(model=model, analysis=analysis, during_analysis=True)
+            if not finished:
+
+                self.perform_update(model=model, analysis=analysis, during_analysis=True)
 
         self.paths.save_results_internal(obj=sampler.results)
 
