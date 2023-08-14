@@ -110,18 +110,3 @@ class Fitness:
             figure_of_merit *= -2.0
 
         return figure_of_merit
-
-    @staticmethod
-    def prior(cube, model):
-        # NEVER EVER REFACTOR THIS LINE! Haha.
-
-        phys_cube = model.vector_from_unit_vector(unit_vector=cube)
-
-        for i in range(len(phys_cube)):
-            cube[i] = phys_cube[i]
-
-        return cube
-
-    @staticmethod
-    def fitness(cube, model, fitness):
-        return fitness(instance=model.instance_from_vector(cube))

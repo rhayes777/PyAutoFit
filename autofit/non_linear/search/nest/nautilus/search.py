@@ -143,9 +143,7 @@ class Nautilus(abstract_nest.AbstractNest):
                 "Starting new Nautilus non-linear search (no previous samples found)."
             )
 
-        if conf.instance["non_linear"]["nest"][self.__class__.__name__][
-            "parallel"
-        ].get("force_x1_cpu") or self.kwargs.get("force_x1_cpu"):
+        if self.config_dict.get("force_x1_cpu") or self.kwargs.get("force_x1_cpu"):
 
             self.logger.info(
                 """
@@ -251,15 +249,15 @@ class Nautilus(abstract_nest.AbstractNest):
         log_likelihood_list = log_likelihoods.tolist()
         weight_list = np.exp(log_weights).tolist()
 
-        results_internal_json = {}
-
-        results_internal_json["parameter_lists"] = parameter_lists
-        results_internal_json["log_likelihood_list"] = log_likelihood_list
-        results_internal_json["weight_list"] = weight_list
-        results_internal_json["log_evidence"] = sampler.evidence()
-        results_internal_json["total_samples"] = int(sampler.n_like)
-        results_internal_json["time"] = self.timer.time
-        results_internal_json["number_live_points"] = int(sampler.n_live)
+        results_internal_json = {
+            "parameter_lists": parameter_lists,
+            "log_likelihood_list": log_likelihood_list,
+            "weight_list": weight_list,
+            "log_evidence": sampler.evidence(),
+            "total_samples": int(sampler.n_like),
+            "time": self.timer.time,
+            "number_live_points": int(sampler.n_live)
+        }
 
         self.paths.save_results_internal_json(results_internal_dict=results_internal_json)
 
@@ -314,6 +312,10 @@ class Nautilus(abstract_nest.AbstractNest):
             samples_info=self.samples_info,
             results_internal=None,
         )
+
+    @property
+    def config_dict(self):
+        return conf.instance["non_linear"]["nest"][self.__class__.__name__]
 
     def config_dict_with_test_mode_settings_from(self, config_dict):
 
