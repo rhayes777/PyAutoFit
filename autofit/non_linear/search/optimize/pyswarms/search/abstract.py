@@ -58,7 +58,7 @@ class FitnessPySwarms(Fitness):
                 log_posterior = log_likelihood + sum(log_prior)
                 figure_of_merit = -2.0 * log_posterior
             except exc.FitException:
-                figure_of_merit = -2.0 * self.resample_figure_of_merit
+                figure_of_merit = np.nan
 
             if np.isnan(figure_of_merit):
                 figure_of_merit = -2.0 * self.resample_figure_of_merit
