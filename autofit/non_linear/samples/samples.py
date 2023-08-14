@@ -248,6 +248,26 @@ class Samples(SamplesInterface, ABC):
         samples_info = paths.load_samples_info()
 
         try:
+            results_internal = paths.load_results_internal()
+        except FileNotFoundError:
+            results_internal = None
+
+        return cls.from_list_info_and_model(
+            sample_list=sample_list,
+            samples_info=samples_info,
+            model=model,
+            results_internal=results_internal,
+        )
+
+    @classmethod
+    def from_list_info_and_model(
+        cls,
+        sample_list,
+        samples_info,
+        model: AbstractPriorModel,
+        results_internal=None,
+    ):
+        try:
             auto_correlation_settings = AutoCorrelationsSettings(
                 check_for_convergence=True,
                 check_size=samples_info["check_size"],
@@ -256,11 +276,6 @@ class Samples(SamplesInterface, ABC):
             )
         except (KeyError, NameError):
             auto_correlation_settings = None
-
-        try:
-            results_internal = paths.load_results_internal()
-        except FileNotFoundError:
-            results_internal = None
 
         try:
             return cls(

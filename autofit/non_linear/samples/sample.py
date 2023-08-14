@@ -227,6 +227,36 @@ class Sample:
         return without_paths
 
 
+def samples_from_iterator(iterator):
+    samples = list()
+
+    sample_args = (
+        "log_likelihood",
+        "log_posterior",
+        "log_prior",
+        "weight",
+    )
+
+    headers = next(iterator)
+    headers = [header.strip() for header in headers]
+    for row in iterator:
+        d = {header: float(value) for header, value in zip(headers, row)}
+
+        samples.append(
+            Sample(
+                **{
+                    key: value
+                    for key, value in d.items()
+                    if key in inspect.getfullargspec(Sample.__init__).args
+                },
+                kwargs={
+                    key: value for key, value in d.items() if key not in sample_args
+                },
+            )
+        )
+    return samples
+
+
 def load_from_table(filename: str) -> List[Sample]:
     """
     Load samples from a table
@@ -240,33 +270,6 @@ def load_from_table(filename: str) -> List[Sample]:
     -------
     A list of samples, one for each row in the CSV
     """
-    samples = list()
-
-    sample_args = (
-        "log_likelihood",
-        "log_posterior",
-        "log_prior",
-        "weight",
-    )
-
     with open(filename, "r+", newline="") as f:
         reader = csv.reader(f)
-        headers = next(reader)
-        headers = [header.strip() for header in headers]
-        for row in reader:
-            d = {header: float(value) for header, value in zip(headers, row)}
-
-            samples.append(
-                Sample(
-                    **{
-                        key: value
-                        for key, value in d.items()
-                        if key in inspect.getfullargspec(Sample.__init__).args
-                    },
-                    kwargs={
-                        key: value for key, value in d.items() if key not in sample_args
-                    },
-                )
-            )
-
-    return samples
+        return samples_from_iterator(reader)

@@ -32,6 +32,9 @@ class Collection(AbstractPriorModel):
     def __contains__(self, item):
         return item in self._dict or item in self._dict.values()
 
+    def keys(self):
+        return self._dict.keys()
+
     def __getitem__(self, item):
         if item in self._dict:
             return self._dict[item]
