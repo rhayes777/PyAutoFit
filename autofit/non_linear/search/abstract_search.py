@@ -104,15 +104,14 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         from autofit.non_linear.paths.database import DatabasePaths
 
         try:
-
             from mpi4py import MPI
+
             comm = MPI.COMM_WORLD
             self.is_master = comm.Get_rank() == 0
 
             logger.info(f"Creating non-linear search: {comm.Get_rank()}")
 
         except ModuleNotFoundError:
-
             self.is_master = True
             logger.info(f"Creating non-linear search")
 
@@ -388,20 +387,19 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         """
 
         try:
-
             from mpi4py import MPI
+
             comm = MPI.COMM_WORLD
             return comm.size > 1
 
         except ModuleNotFoundError:
-
             return False
 
     def fit_sequential(
         self,
-        model : AbstractPriorModel,
+        model: AbstractPriorModel,
         analysis: IndexCollectionAnalysis,
-        info : Optional[Dict] = None,
+        info: Optional[Dict] = None,
     ) -> CombinedResult:
         """
         Fit multiple analyses contained within the analysis sequentially.
@@ -460,9 +458,9 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
     def fit(
         self,
-        model : AbstractPriorModel,
+        model: AbstractPriorModel,
         analysis: Analysis,
-        info : Optional[Dict] = None,
+        info: Optional[Dict] = None,
         bypass_nuclear_if_on: bool = False,
     ) -> Union["Result", List["Result"]]:
         """
@@ -520,7 +518,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             )
 
         if not self.paths.is_complete:
-           result = self.start_resume_fit(
+            result = self.start_resume_fit(
                 analysis=analysis,
                 model=model,
             )
@@ -541,7 +539,9 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         return result
 
-    def pre_fit_output(self, analysis: Analysis, model : AbstractPriorModel, info: Optional[Dict] = None):
+    def pre_fit_output(
+        self, analysis: Analysis, model: AbstractPriorModel, info: Optional[Dict] = None
+    ):
         """
         Outputs attributes of fit before the non-linear search begins.
 
@@ -574,7 +574,9 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         self.logger.info(f"The output path of this fit is {self.paths.output_path}")
 
         if not self.paths.is_complete or self.force_pickle_overwrite:
-            self.logger.info(f"Outputting pre-fit files (e.g. model.info, visualization).")
+            self.logger.info(
+                f"Outputting pre-fit files (e.g. model.info, visualization)."
+            )
 
             self.paths.save_all(
                 search_config_dict=self.config_dict_search,
@@ -593,7 +595,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                 model=model,
             )
 
-    def start_resume_fit(self, analysis : Analysis, model: AbstractPriorModel) -> Result:
+    def start_resume_fit(self, analysis: Analysis, model: AbstractPriorModel) -> Result:
         """
         Start a non-linear search from scratch, or resumes one which was previously terminated mid-way through.
 
@@ -624,25 +626,29 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         model.freeze()
         self._fit(
-            model=model, analysis=analysis,
+            model=model,
+            analysis=analysis,
         )
-        model.unfreeze()
-
-        samples = self.perform_update(model=model, analysis=analysis, during_analysis=False)
+        samples = self.perform_update(
+            model=model, analysis=analysis, during_analysis=False
+        )
 
         result = analysis.make_result(
             samples=samples,
         )
 
         if self.is_master:
-
             analysis.save_results(paths=self.paths, result=result)
+
+        model.unfreeze()
 
         self.paths.completed()
 
         return result
 
-    def result_via_completed_fit(self, analysis: Analysis, model: AbstractPriorModel) -> Result:
+    def result_via_completed_fit(
+        self, analysis: Analysis, model: AbstractPriorModel
+    ) -> Result:
         """
         Returns the result of the non-linear search of a completed model-fit.
 
@@ -679,14 +685,14 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         )
 
         if self.is_master:
-
             self.logger.info(f"Fit Already Completed: skipping non-linear search.")
 
             if self.force_visualize_overwrite:
-                self.perform_visualization(model=model, analysis=analysis, during_analysis=False)
+                self.perform_visualization(
+                    model=model, analysis=analysis, during_analysis=False
+                )
 
             if self.force_pickle_overwrite:
-
                 self.logger.info("Forcing pickle overwrite")
 
                 if not self.skip_save_samples:
@@ -696,7 +702,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         return result
 
-    def post_fit_output(self, bypass_nuclear_if_on : bool):
+    def post_fit_output(self, bypass_nuclear_if_on: bool):
         """
         Cleans up the output folderds after a completed non-linear search.
 
@@ -719,10 +725,10 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             self.paths.zip_remove_nuclear()
 
     @abstractmethod
-    def _fit(self, model: AbstractPriorModel, analysis : Analysis):
+    def _fit(self, model: AbstractPriorModel, analysis: Analysis):
         pass
 
-    def check_model(self, model : AbstractPriorModel):
+    def check_model(self, model: AbstractPriorModel):
         if model is not None and model.prior_count == 0:
             raise AssertionError("Model has no priors! Cannot fit a 0 dimension model.")
 
@@ -839,7 +845,6 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             return samples
 
         if self.is_master:
-
             self.paths.samples_to_csv(samples=samples)
 
             if not self.skip_save_samples:
@@ -878,7 +883,12 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         return samples
 
-    def perform_visualization(self, model: AbstractPriorModel, analysis : AbstractPriorModel, during_analysis : bool):
+    def perform_visualization(
+        self,
+        model: AbstractPriorModel,
+        analysis: AbstractPriorModel,
+        during_analysis: bool,
+    ):
         """
         Perform visualization of the non-linear search's model-fitting results.
 
@@ -933,7 +943,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
     def remove_state_files(self):
         pass
 
-    def samples_from(self, model : AbstractPriorModel) -> Samples:
+    def samples_from(self, model: AbstractPriorModel) -> Samples:
         """
         Loads the samples of a non-linear search from its output files.
 
@@ -955,10 +965,10 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         except (FileNotFoundError, NotImplementedError, AttributeError):
             return self.samples_via_csv_from(model=model)
 
-    def samples_via_internal_from(self, model : AbstractPriorModel):
+    def samples_via_internal_from(self, model: AbstractPriorModel):
         raise NotImplementedError
 
-    def samples_via_csv_from(self, model : AbstractPriorModel) -> Samples:
+    def samples_via_csv_from(self, model: AbstractPriorModel) -> Samples:
         """
         Returns a `Samples` object from the `samples.csv` and `samples_info.json` files.
 
@@ -1019,10 +1029,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             processes=self.number_of_cores, paths=self.paths, fitness=fitness
         )
 
-    def make_sneakier_pool(
-            self, fitness_function: Fitness, **kwargs
-    ) -> SneakierPool:
-        
+    def make_sneakier_pool(self, fitness_function: Fitness, **kwargs) -> SneakierPool:
         if self.is_master:
             self.logger.info(f"number of cores == {self.number_of_cores}")
 
@@ -1031,11 +1038,11 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                 self.logger.info("Creating SneakierPool...")
             else:
                 self.logger.info("Creating multiprocessing Pool of size 1...")
-        
+
         pool = SneakierPool(
-                processes=self.number_of_cores, fitness=fitness_function, **kwargs
-            )
-        
+            processes=self.number_of_cores, fitness=fitness_function, **kwargs
+        )
+
         return pool
 
     def __eq__(self, other):
