@@ -372,13 +372,12 @@ class GridSearch:
         )
 
         for key, value in self.__dict__.items():
-            if key not in ("model", "instance", "paths", "search"):
-                try:
-                    setattr(search_instance, key, value)
-                except AttributeError:
-                    pass
-
-        search_instance.number_of_cores = self.number_of_cores
+            if key != "number_of_cores":
+                if key not in ("model", "instance", "paths", "search"):
+                    try:
+                        setattr(search_instance, key, value)
+                    except AttributeError:
+                        pass
 
         if self.number_of_cores > 1:
 

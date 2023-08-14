@@ -9,7 +9,6 @@ from autofit.non_linear.initializer import (
     SpecificRangeInitializer,
 )
 from autofit.non_linear.samples import SamplesNest
-from autofit.tools.util import IntervalCounter
 
 
 class AbstractNest(NonLinearSearch):
@@ -56,27 +55,6 @@ class AbstractNest(NonLinearSearch):
             session=session,
             **kwargs
         )
-
-    class Fitness(NonLinearSearch.Fitness):
-        def __init__(
-            self, analysis, model, log_likelihood_cap=None
-        ):
-            super().__init__(
-                analysis=analysis,
-                model=model,
-                log_likelihood_cap=log_likelihood_cap,
-            )
-
-            self.stagger_accepted_samples = 0
-            self.resampling_figure_of_merit = -1.0e99
-
-        def figure_of_merit_from(self, parameter_list):
-            """
-            The figure of merit is the value that the `NonLinearSearch` uses to sample parameter space.
-
-            All Nested samplers use the log likelihood.
-            """
-            return self.log_likelihood_from(parameter_list=parameter_list)
 
     @property
     def config_type(self):

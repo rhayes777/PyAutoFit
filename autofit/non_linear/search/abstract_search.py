@@ -7,11 +7,8 @@ import warnings
 from abc import ABC, abstractmethod
 from collections import Counter
 from functools import wraps
-from os import path
 from pathlib import Path
 from typing import Optional, Union, Tuple, List, Dict
-
-import numpy as np
 
 from autoconf import conf, cached_property
 from autofit import exc
@@ -25,6 +22,7 @@ from autofit.graphical import (
 from autofit.graphical.utils import Status
 from autofit.mapper.prior_model.collection import Collection
 from autofit.non_linear.initializer import Initializer
+from autofit.non_linear.fitness import Fitness
 from autofit.non_linear.parallel import SneakyPool
 from autofit.non_linear.paths.abstract import AbstractPaths
 from autofit.non_linear.paths.directory import DirectoryPaths
@@ -376,90 +374,11 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         return search_instance
 
-    class Fitness:
-        def __init__(
-            self, model, analysis, log_likelihood_cap=None
-        ):
-
-            self.analysis = analysis
-            self.model = model
-            self.log_likelihood_cap = log_likelihood_cap
-
-        def __call__(self, parameters, *kwargs):
-            try:
-                figure_of_merit = self.figure_of_merit_from(parameter_list=parameters)
-
-                if np.isnan(figure_of_merit):
-                    return self.resample_figure_of_merit
-
-                return figure_of_merit
-
-            except exc.FitException:
-                return self.resample_figure_of_merit
-
-        def fit_instance(self, instance):
-            log_likelihood = self.analysis.log_likelihood_function(instance=instance)
-
-            if self.log_likelihood_cap is not None:
-                if log_likelihood > self.log_likelihood_cap:
-                    log_likelihood = self.log_likelihood_cap
-
-            return log_likelihood
-
-        def log_likelihood_from(self, parameter_list):
-            instance = self.model.instance_from_vector(vector=parameter_list)
-            log_likelihood = self.fit_instance(instance)
-
-            return log_likelihood
-
-        def log_posterior_from(self, parameter_list):
-            log_likelihood = self.log_likelihood_from(parameter_list=parameter_list)
-            log_prior_list = self.model.log_prior_list_from_vector(
-                vector=parameter_list
-            )
-
-            return log_likelihood + sum(log_prior_list)
-
-        def figure_of_merit_from(self, parameter_list):
-            """
-            The figure of merit is the value that the `NonLinearSearch` uses to sample parameter space. This varies
-            between different `NonLinearSearch`s, for example:
-
-                - The *Optimizer* *PySwarms* uses the chi-squared value, which is the -2.0*log_posterior.
-                - The *MCMC* algorithm *Emcee* uses the log posterior.
-                - Nested samplers such as *Dynesty* use the log likelihood.
-            """
-            raise NotImplementedError()
-
-        @staticmethod
-        def prior(cube, model):
-            # NEVER EVER REFACTOR THIS LINE! Haha.
-
-            phys_cube = model.vector_from_unit_vector(unit_vector=cube)
-
-            for i in range(len(phys_cube)):
-                cube[i] = phys_cube[i]
-
-            return cube
-
-        @staticmethod
-        def fitness(cube, model, fitness):
-            return fitness(instance=model.instance_from_vector(cube))
-
-        @property
-        def resample_figure_of_merit(self):
-            """
-            If a sample raises a FitException, this value is returned to signify that the point requires resampling or
-             should be given a likelihood so low that it is discard.
-            """
-            return -np.inf
-
     def fit_sequential(
         self,
         model,
         analysis: IndexCollectionAnalysis,
         info=None,
-        log_likelihood_cap=None,
     ) -> CombinedResult:
         """
         Fit multiple analyses contained within the analysis sequentially.
@@ -468,7 +387,6 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         Parameters
         ----------
-        log_likelihood_cap
         analysis
             Multiple analyses that are fit sequentially
         model
@@ -512,7 +430,6 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                     model=model,
                     analysis=analysis,
                     info=info,
-                    log_likelihood_cap=log_likelihood_cap,
                 )
             )
         self.paths = _paths
@@ -523,7 +440,6 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         model,
         analysis: "Analysis",
         info=None,
-        log_likelihood_cap=None,
         bypass_nuclear_if_on: bool = False,
     ) -> Union["Result", List["Result"]]:
         """
@@ -584,7 +500,6 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
            result = self.start_resume_fit(
                 analysis=analysis,
                 model=model,
-                log_likelihood_cap=log_likelihood_cap,
             )
         else:
             result = self.result_via_completed_fit(
@@ -655,7 +570,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                 model=model,
             )
 
-    def start_resume_fit(self, analysis, model, log_likelihood_cap):
+    def start_resume_fit(self, analysis, model):
         """
         Start a non-linear search from scratch, or resumes one which was previously terminated mid-way through.
 
@@ -686,7 +601,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         model.freeze()
         self._fit(
-            model=model, analysis=analysis, log_likelihood_cap=log_likelihood_cap
+            model=model, analysis=analysis,
         )
         model.unfreeze()
 
@@ -774,14 +689,14 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         bypass_nuclear_if_on
             Whether to use nuclear mode to delete a lot of files (see nuclear mode description).
         """
-        self.logger.info("Removing zip file")
+        self.logger.info("Removing all files except for .zip file")
         self.paths.zip_remove()
 
         if not bypass_nuclear_if_on:
             self.paths.zip_remove_nuclear()
 
     @abstractmethod
-    def _fit(self, model, analysis, log_likelihood_cap=None):
+    def _fit(self, model, analysis):
         pass
 
     def check_model(self, model):

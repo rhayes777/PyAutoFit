@@ -7,9 +7,8 @@ from autofit.database.sqlalchemy_ import sa
 
 from autoconf import conf
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
-from autofit.non_linear.result import Result
+from autofit.non_linear.fitness import Fitness
 from autofit.non_linear.search.nest import abstract_nest
-from autofit.non_linear.search.nest.abstract_nest import AbstractNest
 from autofit.non_linear.samples.sample import Sample
 from autofit.non_linear.samples.nest import SamplesNest
 from autofit.plot import NautilusPlotter
@@ -96,18 +95,7 @@ class Nautilus(abstract_nest.AbstractNest):
 
         self.logger.debug("Creating Nautilus Search")
 
-    class Fitness(AbstractNest.Fitness):
-        @property
-        def resample_figure_of_merit(self):
-            """
-            If a sample raises a FitException, this value is returned to signify that the point requires resampling or
-            should be given a likelihood so low that it is discard.
-
-            -np.inf is an invalid sample value for Nautilus, so we instead use a large negative number.
-            """
-            return -1.0e99
-
-    def _fit(self, model: AbstractPriorModel, analysis, log_likelihood_cap=None):
+    def _fit(self, model: AbstractPriorModel, analysis):
         """
         Fit a model using the search and the Analysis class which contains the data and returns the log likelihood from
         instances of the model, which the `NonLinearSearch` seeks to maximize.
@@ -138,10 +126,11 @@ class Nautilus(abstract_nest.AbstractNest):
                 "----------------------"
             )
 
-        fitness = self.Fitness(
+        fitness = Fitness(
             model=model,
             analysis=analysis,
-            log_likelihood_cap=log_likelihood_cap,
+            fom_is_log_likelihood=True,
+            resample_figure_of_merit=-1.0e99
         )
 
         if conf.instance["non_linear"]["nest"][self.__class__.__name__][
@@ -157,6 +146,7 @@ class Nautilus(abstract_nest.AbstractNest):
             self.logger.info(
                 "Resuming Nautilus non-linear search (previous samples found)."
             )
+
         else:
             self.logger.info(
                 "Starting new Nautilus non-linear search (no previous samples found)."
@@ -192,10 +182,6 @@ class Nautilus(abstract_nest.AbstractNest):
                 **self.config_dict_search
             )
 
-            sampler.run(
-                **self.config_dict_run,
-            )
-
         elif self.mpi:
 
             from mpi4py import MPI
@@ -215,6 +201,32 @@ class Nautilus(abstract_nest.AbstractNest):
                 pool=pool,
                 **self.config_dict_search
             )
+
+        if os.path.exists(checkpoint_file):
+
+            parameters, log_weights, log_likelihoods = sampler.posterior()
+
+            parameter_lists = parameters.tolist()
+            log_likelihood_list = log_likelihoods.tolist()
+            weight_list = np.exp(log_weights).tolist()
+
+            results_internal_json = {}
+
+            results_internal_json["parameter_lists"] = parameter_lists
+            results_internal_json["log_likelihood_list"] = log_likelihood_list
+            results_internal_json["weight_list"] = weight_list
+            results_internal_json["log_evidence"] = sampler.evidence()
+            results_internal_json["total_samples"] = int(sampler.n_like)
+            results_internal_json["time"] = self.timer.time
+            results_internal_json["number_live_points"] = int(sampler.n_live)
+
+            self.paths.save_results_internal_json(results_internal_dict=results_internal_json)
+
+            self.perform_update(model=model, analysis=analysis, during_analysis=True)
+
+        sampler.run(
+            **self.config_dict_run,
+        )
 
             sampler.run(
                 **self.config_dict_run,

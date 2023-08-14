@@ -7,6 +7,7 @@ from emcee.ensemble import _FunctionWrapper
 
 import autofit as af
 from autoconf.conf import output_path_for_test
+from autofit.non_linear import fitness as f
 from autofit.non_linear.parallel import SneakyPool, SneakyJob
 # noinspection PyProtectedMember
 from autofit.non_linear.parallel.sneaky import _is_likelihood_function
@@ -70,14 +71,10 @@ class Analysis(af.Analysis):
         return -(10 - instance.centre) ** 2
 
 
-class Fitness(af.NonLinearSearch.Fitness):
-    def figure_of_merit_from(self, parameter_list):
-        return -1
+class Fitness(f.Fitness):
 
     def __call__(self, parameter_list):
-        return self.figure_of_merit_from(
-            parameter_list
-        )
+        return -1
 
 
 @pytest.fixture(

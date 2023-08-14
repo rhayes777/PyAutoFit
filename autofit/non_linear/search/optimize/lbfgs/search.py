@@ -6,6 +6,7 @@ from autofit.database.sqlalchemy_ import sa
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.search.optimize.abstract_optimize import AbstractOptimizer
 from autofit.non_linear.analysis import Analysis
+from autofit.non_linear.fitness import Fitness
 from autofit.non_linear.initializer import AbstractInitializer
 from autofit.non_linear.samples.sample import Sample
 from autofit.non_linear.samples.samples import Samples
@@ -85,7 +86,6 @@ class LBFGS(AbstractOptimizer):
         self,
         model: AbstractPriorModel,
         analysis: Analysis,
-        log_likelihood_cap: Optional[float] = None,
     ):
         """
         Fit a model using the scipy L-BFGS method and the Analysis class which contains the data and returns the log
@@ -104,10 +104,12 @@ class LBFGS(AbstractOptimizer):
         A result object comprising the Samples object that inclues the maximum log likelihood instance and full
         chains used by the fit.
         """
-        fitness = self.Fitness(
+        fitness = Fitness(
             model=model,
             analysis=analysis,
-            log_likelihood_cap=log_likelihood_cap
+            fom_is_log_likelihood=False,
+            resample_figure_of_merit=-np.inf,
+            convert_to_chi_squared=True
         )
 
         if self.paths.is_object("x0"):
@@ -161,10 +163,10 @@ class LBFGS(AbstractOptimizer):
                 total_iterations += lbfgs.nit
 
                 self.paths.save_object("total_iterations", total_iterations)
-                self.paths.save_object(
-                    "log_posterior",
-                    fitness.log_posterior_from(parameter_list=lbfgs.x),
-                )
+
+                log_posterior_list = -0.5 * fitness(parameters=lbfgs.x)
+
+                self.paths.save_object("log_posterior", log_posterior_list)
                 self.paths.save_object("x0", lbfgs.x)
 
                 x0 = lbfgs.x
