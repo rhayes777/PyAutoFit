@@ -358,7 +358,7 @@ class FunctionCache:
 
 
 def initializer(
-        fitness,
+        fitness ,
         prior_transform,
         fitness_args,
         fitness_kwargs,
