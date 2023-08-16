@@ -680,6 +680,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         and errors on the model parameters.
         """
 
+        model.freeze()
         samples = self.samples_from(model=model)
 
         result = analysis.make_result(
@@ -701,6 +702,8 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                     self.paths.save_json("samples_summary", samples.summary().dict())
 
                 analysis.save_results(paths=self.paths, result=result)
+
+        model.unfreeze()
 
         return result
 
