@@ -67,6 +67,10 @@ class DirectoryPaths(AbstractPaths):
         with open_(self._path_for_json(name), "w+") as f:
             json.dump(object_dict, f, indent=4)
 
+    def load_json(self, name):
+        with open_(self._path_for_json(name)) as f:
+            return json.load(f)
+
     def save_array(self, name: str, array: np.ndarray):
         """
         Save a numpy array as a csv file in the csvs directory of the search.
