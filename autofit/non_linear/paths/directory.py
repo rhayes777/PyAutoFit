@@ -84,6 +84,9 @@ class DirectoryPaths(AbstractPaths):
         """
         np.savetxt(self._path_for_csv(name), array, delimiter=",")
 
+    def load_array(self, name: str):
+        return np.loadtxt(self._path_for_csv(name), delimiter=",")
+
     def save_fits(self, name: str, hdu):
         """
         Save an HDU as a fits file in the fits directory of the search.

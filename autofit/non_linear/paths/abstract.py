@@ -355,6 +355,10 @@ class AbstractPaths(ABC):
         pass
 
     @abstractmethod
+    def load_array(self, name) -> np.ndarray:
+        pass
+
+    @abstractmethod
     def save_fits(self, name: str, hdu):
         pass
 

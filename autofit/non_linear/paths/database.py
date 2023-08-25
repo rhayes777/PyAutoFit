@@ -162,6 +162,21 @@ class DatabasePaths(AbstractPaths):
         """
         self.fit.set_array(name, array)
 
+    def load_array(self, name: str) -> np.ndarray:
+        """
+        Load an array from the database
+
+        Parameters
+        ----------
+        name
+            The name of the array
+
+        Returns
+        -------
+        The loaded array
+        """
+        return self.fit.get_array(name)
+
     def save_fits(self, name: str, hdu):
         """
         Save a fits file in the database

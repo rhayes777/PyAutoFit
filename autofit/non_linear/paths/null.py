@@ -18,6 +18,9 @@ class NullPaths(AbstractPaths):
     def save_array(self, name, array):
         pass
 
+    def load_array(self, name):
+        pass
+
     def save_fits(self, name: str, hdu):
         pass
 
