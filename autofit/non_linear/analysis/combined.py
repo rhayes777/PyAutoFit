@@ -207,6 +207,13 @@ class CombinedAnalysis(Analysis):
         paths
             An object describing the paths for saving data (e.g. hard-disk directories or entries in sqlite database).
         """
+        if self._analysis_pool:
+            self._analysis_pool.map(
+                "visualize_before_fit",
+                paths,
+                model,
+            )
+            return
 
         def func(child_paths, analysis):
             analysis.visualize_before_fit(child_paths, model)
@@ -254,7 +261,12 @@ class CombinedAnalysis(Analysis):
             Is this visualisation during analysis?
         """
         if self._analysis_pool:
-            self._analysis_pool.visualize(paths, instance, during_analysis)
+            self._analysis_pool.map(
+                "visualize",
+                paths,
+                instance,
+                during_analysis,
+            )
             return
 
         def func(child_paths, analysis):

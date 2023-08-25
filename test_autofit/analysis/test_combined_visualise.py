@@ -9,7 +9,14 @@ class Analysis(af.Analysis):
         assert during_analysis is True
 
         paths.output_path.mkdir(parents=True, exist_ok=True)
-        with open(f"{paths.output_path}/test.txt", "w+") as f:
+        with open(f"{paths.output_path}/visualize.txt", "w+") as f:
+            f.write("test")
+
+    def visualize_before_fit(self, paths, model):
+        assert model.cls is af.Gaussian
+
+        paths.output_path.mkdir(parents=True, exist_ok=True)
+        with open(f"{paths.output_path}/visualize_before_fit.txt", "w+") as f:
             f.write("test")
 
 
@@ -26,7 +33,7 @@ def make_paths():
 def test_visualize(analysis, paths):
     analysis.visualize(paths, af.Gaussian(), True)
 
-    assert (paths.output_path / "test.txt").exists()
+    assert (paths.output_path / "visualize.txt").exists()
 
 
 @pytest.fixture(name="combined")
@@ -37,10 +44,35 @@ def make_combined(analysis):
     combined._analysis_pool.terminate()
 
 
-def test_combined_visualize(combined, paths):
-    combined.visualize(paths, af.Gaussian(), True)
+@pytest.fixture(name="analyses_path")
+def make_analyses_path(paths):
+    return paths.output_path / "analyses"
 
-    analyses_path = paths.output_path / "analyses"
 
-    assert (analyses_path / "analysis_0/test.txt").exists()
-    assert (analyses_path / "analysis_1/test.txt").exists()
+def test_combined_visualize(
+    combined,
+    paths,
+    analyses_path,
+):
+    combined.visualize(
+        paths,
+        af.Gaussian(),
+        True,
+    )
+
+    assert (analyses_path / "analysis_0/visualize.txt").exists()
+    assert (analyses_path / "analysis_1/visualize.txt").exists()
+
+
+def test_visualize_before_fit(
+    combined,
+    paths,
+    analyses_path,
+):
+    combined.visualize_before_fit(
+        paths,
+        af.Model(af.Gaussian),
+    )
+
+    assert (analyses_path / "analysis_0/visualize_before_fit.txt").exists()
+    assert (analyses_path / "analysis_1/visualize_before_fit.txt").exists()

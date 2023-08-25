@@ -161,11 +161,9 @@ class AnalysisPool:
 
         return results
 
-    def visualize(self, paths: AbstractPaths, instance, during_analysis):
+    def map(self, function_name, paths, *args):
         for i, process in enumerate(self.processes):
             child_paths = paths.for_sub_analysis(analysis_name=f"analyses/analysis_{i}")
-            process.instance_queue.put(
-                ("visualize", child_paths, instance, during_analysis)
-            )
+            process.instance_queue.put((function_name, child_paths, *args))
 
         self.results()
