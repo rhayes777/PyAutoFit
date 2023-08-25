@@ -5,19 +5,15 @@ from multiprocessing import Process
 from multiprocessing import Queue
 
 from autofit.non_linear.parallel.sneaky import StopCommand
+from autofit.non_linear.paths.abstract import AbstractPaths
 
-logger = logging.getLogger(
-    __name__
-)
+logger = logging.getLogger(__name__)
 
 
 class AnalysisProcess(Process):
     _id = count()
 
-    def __init__(
-            self,
-            analyses
-    ):
+    def __init__(self, analyses):
         """
         A process that performs one or more analyses on each
         instance passed to it
@@ -34,9 +30,7 @@ class AnalysisProcess(Process):
 
         self.name = f"analysis_process_{next(self._id)}"
 
-        self.logger = logging.getLogger(
-            self.name
-        )
+        self.logger = logging.getLogger(self.name)
         self.logger.info("Created")
 
     def _run(self):
@@ -50,11 +44,12 @@ class AnalysisProcess(Process):
                 return
             for analysis in self.analyses:
                 try:
-                    self.queue.put(
-                        analysis.log_likelihood_function(
-                            instance
-                        )
-                    )
+                    if isinstance(instance, tuple):
+                        command, *args = instance
+                        result = getattr(analysis, command)(*args)
+                    else:
+                        result = analysis.log_likelihood_function(instance)
+                    self.queue.put(result)
                 except Exception as e:
                     self.queue.put(e)
 
@@ -73,11 +68,7 @@ class AnalysisProcess(Process):
 
 
 class AnalysisPool:
-    def __init__(
-            self,
-            analyses,
-            n_cores: int
-    ):
+    def __init__(self, analyses, n_cores: int):
         """
         A pool which distributes analysis evenly across
         n_cores processes.
@@ -95,30 +86,19 @@ class AnalysisPool:
         self.n_cores = n_cores
 
         self.n_analyses = len(analyses)
-        n_processes = min(
-            self.n_analyses,
-            n_cores
-        )
+        n_processes = min(self.n_analyses, n_cores)
 
-        analyses_per_process = math.ceil(
-            self.n_analyses / n_processes
-        )
+        analyses_per_process = math.ceil(self.n_analyses / n_processes)
 
         self.processes = list()
 
-        for n in range(
-                n_processes
-        ):
+        for n in range(n_processes):
             analyses_ = analyses[
-                        n * analyses_per_process: (n + 1) * analyses_per_process
-                        ]
-            process = AnalysisProcess(
-                analyses=analyses_
-            )
+                n * analyses_per_process : (n + 1) * analyses_per_process
+            ]
+            process = AnalysisProcess(analyses=analyses_)
 
-            self.processes.append(
-                process
-            )
+            self.processes.append(process)
             process.start()
 
     def __del__(self):
@@ -128,19 +108,16 @@ class AnalysisPool:
         Tell each process to terminate with a StopCommand and then join
         each process with a timeout of one second.
         """
-        logger.debug(
-            "Deconstructing SneakyMap"
-        )
+        self.terminate()
 
-        logger.debug(
-            "Terminating processes..."
-        )
+    def terminate(self):
+        logger.debug("Deconstructing SneakyMap")
+
+        logger.debug("Terminating processes...")
         for process in self.processes:
             process.instance_queue.put(StopCommand)
 
-        logger.debug(
-            "Joining processes..."
-        )
+        logger.debug("Joining processes...")
         for process in self.processes:
             try:
                 process.join(0.5)
@@ -161,28 +138,34 @@ class AnalysisPool:
         -------
         The total log likelihood
         """
-        log_likelihood = 0
-
-        count_ = 0
-
         for process in self.processes:
-            process.instance_queue.put(
-                instance
-            )
+            process.instance_queue.put(instance)
+
+        return sum(self.results())
+
+    def results(self):
+        count_ = 0
+        results = []
 
         while count_ < self.n_analyses:
             for process in self.processes:
                 if process.queue.empty():
                     continue
                 result = process.queue.get()
+                results.append(result)
 
-                if isinstance(
-                        result,
-                        Exception
-                ):
+                if isinstance(result, Exception):
                     raise result
 
-                log_likelihood += result
                 count_ += 1
 
-        return log_likelihood
+        return results
+
+    def visualize(self, paths: AbstractPaths, instance, during_analysis):
+        for i, process in enumerate(self.processes):
+            child_paths = paths.for_sub_analysis(analysis_name=f"analyses/analysis_{i}")
+            process.instance_queue.put(
+                ("visualize", child_paths, instance, during_analysis)
+            )
+
+        self.results()

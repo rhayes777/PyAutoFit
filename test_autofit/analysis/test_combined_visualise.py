@@ -29,8 +29,15 @@ def test_visualize(analysis, paths):
     assert (paths.output_path / "test.txt").exists()
 
 
-def test_combined_visualize(analysis, paths):
+@pytest.fixture(name="combined")
+def make_combined(analysis):
     combined = analysis + analysis
+    combined.n_cores = 2
+    yield combined
+    combined._analysis_pool.terminate()
+
+
+def test_combined_visualize(combined, paths):
     combined.visualize(paths, af.Gaussian(), True)
 
     analyses_path = paths.output_path / "analyses"
