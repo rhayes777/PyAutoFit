@@ -139,3 +139,13 @@ def test_lists(instance, gaussian, path):
 def test_replace_positional_path(instance, gaussian, path):
     new = instance.replacing_for_path(path, None)
     assert new.ls[0] is None
+
+
+def test_ignore_prior_limits():
+    model = af.Model(af.Gaussian)
+    model.add_assertion(model.centre < 0.0)
+
+    model.instance_from_vector(
+        [0.5, 0.5, 0.5],
+        ignore_prior_limits=True,
+    )

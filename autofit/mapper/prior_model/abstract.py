@@ -762,6 +762,7 @@ class AbstractPriorModel(AbstractModel):
 
         return self.instance_for_arguments(
             arguments,
+            ignore_assertions=ignore_prior_limits,
         )
 
     def has(self, cls: Union[Type, Tuple[Type, ...]]) -> bool:
