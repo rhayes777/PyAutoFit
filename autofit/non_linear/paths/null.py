@@ -24,6 +24,9 @@ class NullPaths(AbstractPaths):
     def save_fits(self, name: str, hdu):
         pass
 
+    def load_fits(self, name: str):
+        pass
+
     def __init__(self):
         super().__init__()
         self.objects = dict()

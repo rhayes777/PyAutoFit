@@ -7,6 +7,7 @@ from typing import Dict, Optional, Union
 import logging
 
 import dill
+from astropy.io import fits
 
 from autoconf import conf
 from autofit.text import formatter
@@ -99,6 +100,23 @@ class DirectoryPaths(AbstractPaths):
             The HDU to save
         """
         hdu.writeto(self._path_for_fits(name), overwrite=True)
+
+    def load_fits(self, name: str):
+        """
+        Load an HDU from a fits file in the fits directory of the search.
+
+        Parameters
+        ----------
+        name
+            The name of the fits file
+
+        Returns
+        -------
+        The loaded HDU
+        """
+        from astropy.io import fits
+
+        return fits.open(self._path_for_fits(name))[0]
 
     def save_results_internal(self, obj: object):
         """

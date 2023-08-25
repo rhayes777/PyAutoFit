@@ -190,6 +190,21 @@ class DatabasePaths(AbstractPaths):
         """
         self.fit.set_fits(name, hdu)
 
+    def load_fits(self, name: str):
+        """
+        Load a fits file from the database
+
+        Parameters
+        ----------
+        name
+            The name of the fits file
+
+        Returns
+        -------
+        The loaded hdu
+        """
+        return self.fit.get_hdu(name)
+
     def save_object(self, name: str, obj: object):
         self.fit[name] = obj
 

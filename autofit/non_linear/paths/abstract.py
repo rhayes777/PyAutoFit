@@ -363,6 +363,10 @@ class AbstractPaths(ABC):
         pass
 
     @abstractmethod
+    def load_fits(self, name: str):
+        pass
+
+    @abstractmethod
     def save_object(self, name: str, obj: object):
         pass
 
