@@ -111,6 +111,9 @@ class AnalysisPool:
         self.terminate()
 
     def terminate(self):
+        """
+        Terminate each process and join it with a timeout of one second.
+        """
         logger.debug("Deconstructing SneakyMap")
 
         logger.debug("Terminating processes...")
@@ -144,6 +147,9 @@ class AnalysisPool:
         return sum(self.results())
 
     def results(self):
+        """
+        Get the results from each process not necessarily in order.
+        """
         count_ = 0
         results = []
 
@@ -161,7 +167,24 @@ class AnalysisPool:
 
         return results
 
-    def map(self, function_name, paths, *args):
+    def map(
+        self,
+        function_name: str,
+        paths: AbstractPaths,
+        *args,
+    ):
+        """
+        Call a function on each analysis in parallel.
+
+        Parameters
+        ----------
+        function_name
+            The name of the function to call
+        paths
+            The paths to the output directory
+        args
+            The arguments to pass to the function
+        """
         for i, process in enumerate(self.processes):
             child_paths = paths.for_sub_analysis(analysis_name=f"analyses/analysis_{i}")
             process.instance_queue.put((function_name, child_paths, *args))
