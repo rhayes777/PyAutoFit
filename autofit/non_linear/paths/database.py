@@ -134,6 +134,21 @@ class DatabasePaths(AbstractPaths):
         """
         self.fit.set_json(name, object_dict)
 
+    def load_json(self, name: str) -> Union[dict, list]:
+        """
+        Load a json file from the database
+
+        Parameters
+        ----------
+        name
+            The name of the json
+
+        Returns
+        -------
+        The loaded dictionary
+        """
+        return self.fit.get_json(name)
+
     def save_array(self, name, array: np.ndarray):
         """
         Save an array as a json file in the database

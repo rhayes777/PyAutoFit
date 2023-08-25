@@ -347,6 +347,10 @@ class AbstractPaths(ABC):
         pass
 
     @abstractmethod
+    def load_json(self, name) -> dict:
+        pass
+
+    @abstractmethod
     def save_array(self, name, array: np.ndarray):
         pass
 

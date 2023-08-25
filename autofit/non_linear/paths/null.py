@@ -12,6 +12,9 @@ class NullPaths(AbstractPaths):
     def save_json(self, name, object_dict: dict):
         pass
 
+    def load_json(self, name) -> dict:
+        pass
+
     def save_array(self, name, array):
         pass
 
