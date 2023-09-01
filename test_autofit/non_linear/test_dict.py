@@ -7,7 +7,8 @@ from autofit.tools.util import to_dict, from_dict
 @pytest.fixture(name="dynesty_dict")
 def make_dynesty_dict():
     return {
-        "type": "autofit.non_linear.search.nest.dynesty.search.static.DynestyStatic",
+        "type": "instance",
+        "class_path": "autofit.non_linear.search.nest.dynesty.search.static.DynestyStatic",
         "arguments": {
             "bound": "multi",
             "max_move": 100,
@@ -41,7 +42,8 @@ def test_initializer():
     initializer = af.InitializerBall(lower_limit=0.0, upper_limit=1.0)
     assert to_dict(initializer) == {
         "arguments": {"lower_limit": 0.0, "upper_limit": 1.0},
-        "type": "autofit.non_linear.initializer.InitializerBall",
+        "type": "instance",
+        "class_path": "autofit.non_linear.initializer.InitializerBall",
     }
 
 
@@ -53,7 +55,8 @@ class ClassWithType:
 @pytest.fixture(name="type_dict")
 def make_type_dict():
     return {
-        "type": "test_autofit.non_linear.test_dict.ClassWithType",
+        "type": "instance",
+        "class_path": "test_autofit.non_linear.test_dict.ClassWithType",
         "arguments": {
             "type_": {
                 "type": "type",
@@ -65,7 +68,6 @@ def make_type_dict():
 
 def test_type_to_dict(type_dict):
     cls = ClassWithType(type_=af.InitializerBall)
-    print(to_dict(cls))
     assert to_dict(cls) == type_dict
 
 

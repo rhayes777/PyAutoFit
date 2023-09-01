@@ -209,7 +209,6 @@ class ModelObject:
             class_path = get_class_path()
             try:
                 cls_ = get_class(class_path)
-                d.pop("type")
                 # noinspection PyArgumentList
                 return cls_(
                     **{
@@ -218,7 +217,7 @@ class ModelObject:
                             reference=dereference(reference, key),
                             loaded_ids=loaded_ids,
                         )
-                        for key, value in d.items()
+                        for key, value in d["arguments"].items()
                         if value
                     }
                 )
