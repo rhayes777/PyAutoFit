@@ -23,32 +23,34 @@ def make_fit(directory):
 
 def test_add_files(fit):
     assert fit.jsons["model"] == {
-        "centre": {
-            "id": 0,
-            "lower_limit": "-inf",
-            "mean": 1.0,
-            "sigma": 1.0,
-            "type": "Gaussian",
-            "upper_limit": "inf",
-        },
         "class_path": "autofit.example.model.Gaussian",
-        "normalization": {
-            "id": 1,
-            "lower_limit": "-inf",
-            "mean": 1.0,
-            "sigma": 1.0,
-            "type": "Gaussian",
-            "upper_limit": "inf",
-        },
-        "sigma": {
-            "id": 2,
-            "lower_limit": "-inf",
-            "mean": 1.0,
-            "sigma": 1.0,
-            "type": "Gaussian",
-            "upper_limit": "inf",
-        },
         "type": "model",
+        "arguments": {
+            "centre": {
+                "lower_limit": "-inf",
+                "upper_limit": "inf",
+                "type": "Gaussian",
+                "id": 0,
+                "mean": 1.0,
+                "sigma": 1.0,
+            },
+            "normalization": {
+                "lower_limit": "-inf",
+                "upper_limit": "inf",
+                "type": "Gaussian",
+                "id": 1,
+                "mean": 1.0,
+                "sigma": 1.0,
+            },
+            "sigma": {
+                "lower_limit": "-inf",
+                "upper_limit": "inf",
+                "type": "Gaussian",
+                "id": 2,
+                "mean": 1.0,
+                "sigma": 1.0,
+            },
+        },
     }
 
 

@@ -26,15 +26,27 @@ def make_model_dict(assertion_dict):
     return {
         "class_path": "autofit.example.model.Gaussian",
         "type": "model",
-        "assertions": [assertion_dict],
-        "centre": {"lower_limit": 0.0, "upper_limit": 1.0, "type": "Uniform", "id": 0},
-        "normalization": {
-            "lower_limit": 0.0,
-            "upper_limit": 1.0,
-            "type": "Uniform",
-            "id": 1,
+        "arguments": {
+            "centre": {
+                "lower_limit": 0.0,
+                "upper_limit": 1.0,
+                "type": "Uniform",
+                "id": 0,
+            },
+            "normalization": {
+                "lower_limit": 0.0,
+                "upper_limit": 1.0,
+                "type": "Uniform",
+                "id": 1,
+            },
+            "sigma": {
+                "lower_limit": 0.0,
+                "upper_limit": 1.0,
+                "type": "Uniform",
+                "id": 2,
+            },
         },
-        "sigma": {"lower_limit": 0.0, "upper_limit": 1.0, "type": "Uniform", "id": 2},
+        "assertions": [assertion_dict],
     }
 
 

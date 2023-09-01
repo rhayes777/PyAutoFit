@@ -249,6 +249,17 @@ class ModelObject:
                 )
             except KeyError:
                 pass
+
+        if "assertions" in d:
+            instance.assertions = [
+                AbstractPriorModel.from_dict(
+                    value,
+                    reference=dereference(reference, "assertions"),
+                    loaded_ids=loaded_ids,
+                )
+                for value in d["assertions"]
+            ]
+
         return instance
 
     def dict(self) -> dict:
