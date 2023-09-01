@@ -5,22 +5,16 @@ import autofit as af
 @pytest.fixture(name="model_dict")
 def make_model_dict():
     return {
-        "type": "model",
         "class_path": "autofit.example.model.Gaussian",
-        "centre": {
-            "lower_limit": 0.0,
-            "type": "Uniform",
-            "upper_limit": 2.0,
-        },
-        "normalization": {
-            "lower_limit": 0.0,
-            "type": "Uniform",
-            "upper_limit": 1.0,
-        },
-        "sigma": {
-            "lower_limit": 0.0,
-            "type": "Uniform",
-            "upper_limit": 1.0,
+        "type": "model",
+        "arguments": {
+            "centre": {"lower_limit": 0.0, "upper_limit": 2.0, "type": "Uniform"},
+            "normalization": {
+                "lower_limit": 0.0,
+                "upper_limit": 1.0,
+                "type": "Uniform",
+            },
+            "sigma": {"lower_limit": 0.0, "upper_limit": 1.0, "type": "Uniform"},
         },
     }
 
@@ -28,11 +22,7 @@ def make_model_dict():
 @pytest.fixture(name="instance_dict")
 def make_instance_dict():
     return {
-        "type": "instance",
         "class_path": "autofit.example.model.Gaussian",
-        "arguments": {
-            "centre": 0.0,
-            "normalization": 0.1,
-            "sigma": 0.01,
-        },
+        "type": "instance",
+        "arguments": {"centre": 0.0, "normalization": 0.1, "sigma": 0.01},
     }

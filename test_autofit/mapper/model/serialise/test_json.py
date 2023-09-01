@@ -10,7 +10,10 @@ from autofit.tools.util import from_dict
 
 @pytest.fixture(name="collection_dict")
 def make_collection_dict(model_dict):
-    return {"gaussian": model_dict, "type": "collection"}
+    return {
+        "arguments": {"gaussian": model_dict},
+        "type": "collection",
+    }
 
 
 @pytest.fixture(name="model")
@@ -77,7 +80,11 @@ class TestToDict:
 
     def test_collection_instance(self, instance_dict):
         collection = af.Collection(gaussian=af.Gaussian())
-        assert collection.dict() == {"gaussian": instance_dict, "type": "collection"}
+        print(collection.dict())
+        assert collection.dict() == {
+            "arguments": {"gaussian": instance_dict},
+            "type": "collection",
+        }
 
     @pytest.mark.parametrize(
         "path",

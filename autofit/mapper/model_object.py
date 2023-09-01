@@ -236,9 +236,7 @@ class ModelObject:
                 cls_ = get_class(type_)
                 instance = object.__new__(cls_)
 
-        d.pop("type")
-
-        for key, value in d.items():
+        for key, value in d["arguments"].items():
             try:
                 setattr(
                     instance,
@@ -287,6 +285,8 @@ class ModelObject:
         if assertions:
             dict_["assertions"] = assertions
 
+        arguments = {}
+
         for key, value in self._dict.items():
             try:
                 if not isinstance(value, ModelObject):
@@ -296,7 +296,9 @@ class ModelObject:
                 pass
             except TypeError:
                 pass
-            dict_[key] = value
+            arguments[key] = value
+
+        dict_["arguments"] = arguments
         return dict_
 
     @property
