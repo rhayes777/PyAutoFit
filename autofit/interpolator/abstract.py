@@ -2,13 +2,12 @@ import copy
 from abc import ABC, abstractmethod
 from typing import List, Dict, cast
 
-from autoconf.dictable import Dictable
 from autofit.mapper.model import ModelInstance
 
 from .query import InterpolatorPath, Equality
 
 
-class AbstractInterpolator(Dictable, ABC):
+class AbstractInterpolator(ABC):
     def __init__(self, instances: List[ModelInstance]):
         """
         A TimeSeries allows interpolation on any variable.
