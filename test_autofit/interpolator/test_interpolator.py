@@ -2,6 +2,7 @@ import pytest
 
 import autofit as af
 from autoconf.dictable import as_dict
+from autofit.tools.util import to_dict, from_dict
 
 
 def test_trivial():
@@ -96,28 +97,35 @@ def test_deeper_attributes():
 
 
 def test_to_dict(linear_interpolator, linear_interpolator_dict):
-    print(linear_interpolator.dict())
-    assert linear_interpolator.dict() == linear_interpolator_dict
+    assert to_dict(linear_interpolator) == linear_interpolator_dict
 
 
 def test_from_dict(linear_interpolator_dict):
-    interpolator = af.LinearInterpolator.from_dict(linear_interpolator_dict)
+    interpolator = from_dict(linear_interpolator_dict)
     assert interpolator[interpolator.t == 1.5].t == 1.5
 
 
 @pytest.fixture(name="instance_dict")
 def make_instance_dict():
     return {
-        "type": "autofit.mapper.model.ModelInstance",
-        "child_items": {
-            "type": "dict",
-            "t": 1.0,
-            "gaussian": {
-                "type": "autofit.example.model.Gaussian",
-                "centre": 0.0,
-                "normalization": 1.0,
-                "sigma": -1.0,
-            },
+        "type": "instance",
+        "class_path": "autofit.mapper.model.ModelInstance",
+        "arguments": {
+            "child_items": {
+                "type": "dict",
+                "arguments": {
+                    "t": 1.0,
+                    "gaussian": {
+                        "type": "instance",
+                        "class_path": "autofit.example.model.Gaussian",
+                        "arguments": {
+                            "centre": 0.0,
+                            "sigma": -1.0,
+                            "normalization": 1.0,
+                        },
+                    },
+                },
+            }
         },
     }
 
@@ -125,44 +133,67 @@ def make_instance_dict():
 @pytest.fixture(name="linear_interpolator_dict")
 def make_linear_interpolator_dict(instance_dict):
     return {
-        "type": "autofit.interpolator.linear.LinearInterpolator",
-        "instances": [
-            {
-                "type": "autofit.mapper.model.ModelInstance",
-                "child_items": {
-                    "type": "dict",
-                    "t": 1.0,
-                    "gaussian": {
-                        "type": "autofit.example.model.Gaussian",
-                        "centre": 0.0,
-                        "normalization": 1.0,
-                        "sigma": -1.0,
+        "type": "instance",
+        "class_path": "autofit.interpolator.linear.LinearInterpolator",
+        "arguments": {
+            "instances": {
+                "type": "list",
+                "values": [
+                    {
+                        "type": "instance",
+                        "class_path": "autofit.mapper.model.ModelInstance",
+                        "arguments": {
+                            "child_items": {
+                                "type": "dict",
+                                "arguments": {
+                                    "t": 1.0,
+                                    "gaussian": {
+                                        "type": "instance",
+                                        "class_path": "autofit.example.model.Gaussian",
+                                        "arguments": {
+                                            "normalization": 1.0,
+                                            "centre": 0.0,
+                                            "sigma": -1.0,
+                                        },
+                                    },
+                                },
+                            }
+                        },
                     },
-                },
-            },
-            {
-                "type": "autofit.mapper.model.ModelInstance",
-                "child_items": {
-                    "type": "dict",
-                    "t": 2.0,
-                    "gaussian": {
-                        "type": "autofit.example.model.Gaussian",
-                        "centre": 1.0,
-                        "normalization": 2.0,
-                        "sigma": -2.0,
+                    {
+                        "type": "instance",
+                        "class_path": "autofit.mapper.model.ModelInstance",
+                        "arguments": {
+                            "child_items": {
+                                "type": "dict",
+                                "arguments": {
+                                    "t": 2.0,
+                                    "gaussian": {
+                                        "type": "instance",
+                                        "class_path": "autofit.example.model.Gaussian",
+                                        "arguments": {
+                                            "normalization": 2.0,
+                                            "centre": 1.0,
+                                            "sigma": -2.0,
+                                        },
+                                    },
+                                },
+                            }
+                        },
                     },
-                },
-            },
-        ],
+                ],
+            }
+        },
     }
 
 
 def test_instance_as_dict(model_instance, instance_dict):
-    assert as_dict(model_instance) == instance_dict
+    print(to_dict(model_instance))
+    assert to_dict(model_instance) == instance_dict
 
 
 def test_instance_from_dict(model_instance, instance_dict):
-    instance = af.ModelInstance.from_dict(instance_dict)
+    instance = from_dict(instance_dict)
     assert instance.t == 1.0
 
     gaussian = instance.gaussian

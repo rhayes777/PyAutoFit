@@ -49,7 +49,7 @@ def to_dict(obj):
         arguments = set(inspect.getfullargspec(obj.__init__).args[1:])
         try:
             arguments |= set(obj.__identifier_fields__)
-        except AttributeError:
+        except (AttributeError, TypeError):
             pass
         return {
             "type": "instance",
