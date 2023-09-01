@@ -5,6 +5,7 @@ import pytest
 import json
 
 import autofit as af
+from autofit.tools.util import from_dict
 
 
 @pytest.fixture(name="collection_dict")
@@ -49,7 +50,7 @@ class TestFromDict:
         assert model.centre.upper_limit == 2.0
 
     def test_instance_from_dict(self, instance_dict):
-        instance = af.Model.from_dict(instance_dict)
+        instance = from_dict(instance_dict)
         assert isinstance(instance, af.Gaussian)
         assert instance.centre == 0.0
         assert instance.normalization == 0.1

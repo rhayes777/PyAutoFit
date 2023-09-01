@@ -30,7 +30,9 @@ def make_instance_dict():
     return {
         "type": "instance",
         "class_path": "autofit.example.model.Gaussian",
-        "centre": 0.0,
-        "normalization": 0.1,
-        "sigma": 0.01,
+        "arguments": {
+            "centre": 0.0,
+            "normalization": 0.1,
+            "sigma": 0.01,
+        },
     }

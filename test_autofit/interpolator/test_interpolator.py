@@ -96,6 +96,7 @@ def test_deeper_attributes():
 
 
 def test_to_dict(linear_interpolator, linear_interpolator_dict):
+    print(linear_interpolator.dict())
     assert linear_interpolator.dict() == linear_interpolator_dict
 
 
@@ -107,46 +108,52 @@ def test_from_dict(linear_interpolator_dict):
 @pytest.fixture(name="instance_dict")
 def make_instance_dict():
     return {
-        "arguments": {
-            "child_items": {
-                "gaussian": {
-                    "arguments": {
-                        "centre": 0.0,
-                        "normalization": 1.0,
-                        "sigma": -1.0,
-                    },
-                    "class_path": "autofit.example.model.Gaussian",
-                    "type": "instance",
-                },
-                "t": 1.0,
-                "type": "dict",
+        "type": "autofit.mapper.model.ModelInstance",
+        "child_items": {
+            "type": "dict",
+            "t": 1.0,
+            "gaussian": {
+                "type": "autofit.example.model.Gaussian",
+                "centre": 0.0,
+                "normalization": 1.0,
+                "sigma": -1.0,
             },
         },
-        "type": "instance",
-        "class_path": "autofit.mapper.model.ModelInstance",
     }
 
 
 @pytest.fixture(name="linear_interpolator_dict")
 def make_linear_interpolator_dict(instance_dict):
     return {
+        "type": "autofit.interpolator.linear.LinearInterpolator",
         "instances": [
-            instance_dict,
             {
+                "type": "autofit.mapper.model.ModelInstance",
                 "child_items": {
+                    "type": "dict",
+                    "t": 1.0,
                     "gaussian": {
+                        "type": "autofit.example.model.Gaussian",
+                        "centre": 0.0,
+                        "normalization": 1.0,
+                        "sigma": -1.0,
+                    },
+                },
+            },
+            {
+                "type": "autofit.mapper.model.ModelInstance",
+                "child_items": {
+                    "type": "dict",
+                    "t": 2.0,
+                    "gaussian": {
+                        "type": "autofit.example.model.Gaussian",
                         "centre": 1.0,
                         "normalization": 2.0,
                         "sigma": -2.0,
-                        "type": "autofit.example.model.Gaussian",
                     },
-                    "t": 2.0,
-                    "type": "dict",
                 },
-                "type": "autofit.mapper.model.ModelInstance",
             },
         ],
-        "type": "autofit.interpolator.linear.LinearInterpolator",
     }
 
 
