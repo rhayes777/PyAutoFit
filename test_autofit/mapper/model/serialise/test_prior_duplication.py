@@ -5,14 +5,26 @@ def test_from_dict():
     model_dict = {
         "class_path": "autofit.example.model.Gaussian",
         "type": "model",
-        "centre": {"lower_limit": 0.0, "upper_limit": 1.0, "type": "Uniform", "id": 2},
-        "normalization": {
-            "lower_limit": 0.0,
-            "upper_limit": 1.0,
-            "type": "Uniform",
-            "id": 1,
+        "arguments": {
+            "centre": {
+                "lower_limit": 0.0,
+                "upper_limit": 1.0,
+                "type": "Uniform",
+                "id": 2,
+            },
+            "normalization": {
+                "lower_limit": 0.0,
+                "upper_limit": 1.0,
+                "type": "Uniform",
+                "id": 1,
+            },
+            "sigma": {
+                "lower_limit": 0.0,
+                "upper_limit": 1.0,
+                "type": "Uniform",
+                "id": 2,
+            },
         },
-        "sigma": {"lower_limit": 0.0, "upper_limit": 1.0, "type": "Uniform", "id": 2},
     }
     model = af.Model.from_dict(model_dict)
     assert model.prior_count == 2

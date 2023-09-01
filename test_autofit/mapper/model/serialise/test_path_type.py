@@ -20,7 +20,7 @@ def make_root_reference():
 
 def test_reference_model(model_dict, reference):
     model_dict.pop("class_path")
-    with_path = {"gaussian": model_dict, "type": "collection"}
+    with_path = {"arguments": {"gaussian": model_dict}, "type": "collection"}
     model = af.AbstractModel.from_dict(
         with_path,
         reference=reference,
@@ -42,7 +42,7 @@ def test_root_reference(model_dict, root_reference):
 def test_instance(instance_dict, reference):
     instance_dict.pop("class_path")
 
-    with_path = {"gaussian": instance_dict, "type": "collection"}
+    with_path = {"arguments": {"gaussian": instance_dict}, "type": "collection"}
     instance = af.AbstractModel.from_dict(
         with_path,
         reference=reference,
@@ -66,9 +66,11 @@ def test_deep_reference(instance_dict, reference):
     instance_dict.pop("class_path")
 
     with_path = {
-        "collection": {
-            "gaussian": instance_dict,
-            "type": "collection",
+        "arguments": {
+            "collection": {
+                "arguments": {"gaussian": instance_dict},
+                "type": "collection",
+            }
         },
         "type": "collection",
     }
