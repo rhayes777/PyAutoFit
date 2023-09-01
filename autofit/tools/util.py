@@ -70,6 +70,8 @@ def from_dict(dictionary):
     if isinstance(dictionary, (int, float, str, bool, type(None))):
         return dictionary
 
+    if isinstance(dictionary, list):
+        return [from_dict(value) for value in dictionary]
     type_ = dictionary["type"]
     if type_ == "type":
         return get_class(dictionary["class_path"])
