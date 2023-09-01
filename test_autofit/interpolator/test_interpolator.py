@@ -107,17 +107,23 @@ def test_from_dict(linear_interpolator_dict):
 @pytest.fixture(name="instance_dict")
 def make_instance_dict():
     return {
-        "child_items": {
-            "gaussian": {
-                "centre": 0.0,
-                "normalization": 1.0,
-                "sigma": -1.0,
-                "type": "autofit.example.model.Gaussian",
+        "arguments": {
+            "child_items": {
+                "gaussian": {
+                    "arguments": {
+                        "centre": 0.0,
+                        "normalization": 1.0,
+                        "sigma": -1.0,
+                    },
+                    "class_path": "autofit.example.model.Gaussian",
+                    "type": "instance",
+                },
+                "t": 1.0,
+                "type": "dict",
             },
-            "t": 1.0,
-            "type": "dict",
         },
-        "type": "autofit.mapper.model.ModelInstance",
+        "type": "instance",
+        "class_path": "autofit.mapper.model.ModelInstance",
     }
 
 
