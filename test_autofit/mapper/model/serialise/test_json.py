@@ -5,11 +5,15 @@ import pytest
 import json
 
 import autofit as af
+from autofit.tools.util import from_dict
 
 
 @pytest.fixture(name="collection_dict")
 def make_collection_dict(model_dict):
-    return {"gaussian": model_dict, "type": "collection"}
+    return {
+        "arguments": {"gaussian": model_dict},
+        "type": "collection",
+    }
 
 
 @pytest.fixture(name="model")
@@ -49,7 +53,7 @@ class TestFromDict:
         assert model.centre.upper_limit == 2.0
 
     def test_instance_from_dict(self, instance_dict):
-        instance = af.Model.from_dict(instance_dict)
+        instance = from_dict(instance_dict)
         assert isinstance(instance, af.Gaussian)
         assert instance.centre == 0.0
         assert instance.normalization == 0.1
@@ -76,7 +80,11 @@ class TestToDict:
 
     def test_collection_instance(self, instance_dict):
         collection = af.Collection(gaussian=af.Gaussian())
-        assert collection.dict() == {"gaussian": instance_dict, "type": "collection"}
+        print(collection.dict())
+        assert collection.dict() == {
+            "arguments": {"gaussian": instance_dict},
+            "type": "collection",
+        }
 
     @pytest.mark.parametrize(
         "path",

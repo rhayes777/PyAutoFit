@@ -54,24 +54,30 @@ def make_summary_dict():
     return {
         "type": "autofit.non_linear.samples.summary.SamplesSummary",
         "max_log_likelihood_sample": {
-            "type": "autofit.non_linear.samples.sample.Sample",
+            "type": "instance",
+            "class_path": "autofit.non_linear.samples.sample.Sample",
             "arguments": {
-                "log_likelihood": 4.0,
-                "kwargs": {"centre": 2.0, "normalization": 4.0, "sigma": 6.0},
                 "weight": 6.0,
                 "log_prior": 5.0,
+                "kwargs": {
+                    "type": "dict",
+                    "arguments": {"centre": 2.0, "normalization": 4.0, "sigma": 6.0},
+                },
+                "log_likelihood": 4.0,
             },
         },
         "model": {
             "class_path": "autofit.example.model.Gaussian",
             "type": "model",
-            "centre": {"lower_limit": 0.0, "upper_limit": 1.0, "type": "Uniform"},
-            "normalization": {
-                "lower_limit": 0.0,
-                "upper_limit": 1.0,
-                "type": "Uniform",
+            "arguments": {
+                "centre": {"lower_limit": 0.0, "upper_limit": 1.0, "type": "Uniform"},
+                "normalization": {
+                    "lower_limit": 0.0,
+                    "upper_limit": 1.0,
+                    "type": "Uniform",
+                },
+                "sigma": {"lower_limit": 0.0, "upper_limit": 1.0, "type": "Uniform"},
             },
-            "sigma": {"lower_limit": 0.0, "upper_limit": 1.0, "type": "Uniform"},
         },
         "covariance_matrix": [
             [2.0, 3.0, 3.9999999999999996],

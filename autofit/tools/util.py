@@ -34,19 +34,26 @@ def to_dict(obj):
         }
     if isinstance(obj, dict):
         return {
-            ".".join(key) if isinstance(key, tuple) else key: to_dict(value)
-            for key, value in obj.items()
+            "type": "dict",
+            "arguments": {
+                ".".join(key) if isinstance(key, tuple) else key: to_dict(value)
+                for key, value in obj.items()
+            },
         }
     if isinstance(obj, list):
-        return [to_dict(value) for value in obj]
+        return {
+            "type": "list",
+            "values": [to_dict(value) for value in obj],
+        }
     if inspect.isclass(type(obj)):
         arguments = set(inspect.getfullargspec(obj.__init__).args[1:])
         try:
             arguments |= set(obj.__identifier_fields__)
-        except AttributeError:
+        except (AttributeError, TypeError):
             pass
         return {
-            "type": get_class_path(type(obj)),
+            "type": "instance",
+            "class_path": get_class_path(type(obj)),
             "arguments": {
                 argument: to_dict(getattr(obj, argument))
                 for argument in arguments
@@ -62,101 +69,38 @@ def from_dict(dictionary):
     """
     if isinstance(dictionary, (int, float, str, bool, type(None))):
         return dictionary
-    if "type" in dictionary:
-        type_ = dictionary["type"]
-        if type_ == "type":
-            return get_class(dictionary["class_path"])
-        if type_ in (
-            "model",
-            "collection",
-            "tuple_prior",
-            "dict",
-            "instance",
-        ):
-            return ModelObject.from_dict(dictionary)
-        cls = get_class(type_)
-        if hasattr(cls, "from_dict"):
-            return cls.from_dict(dictionary)
+
+    if isinstance(dictionary, list):
+        return [from_dict(value) for value in dictionary]
+    type_ = dictionary["type"]
+    if type_ == "type":
+        return get_class(dictionary["class_path"])
+    if type_ == "instance":
+        cls = get_class(dictionary["class_path"])
         return cls(
             **{
                 argument: from_dict(value)
                 for argument, value in dictionary["arguments"].items()
             }
         )
-    elif isinstance(dictionary, dict):
-        return {key: from_dict(value) for key, value in dictionary.items()}
-    elif isinstance(dictionary, list):
-        return [from_dict(value) for value in dictionary]
-    return dictionary
 
+    if type_ == "list":
+        return [from_dict(value) for value in dictionary["values"]]
+    if type_ == "dict":
+        return {key: from_dict(value) for key, value in dictionary["arguments"].items()}
 
-# from autoconf.class_path import get_class_path, get_class
-# from autofit.mapper.model import ModelObject
-#
-#
-# def to_dict(obj):
-#     """
-#     Convert an object to a dictionary.
-#
-#     The dictionary can be converted back to the object using `from_dict`.
-#
-#     The representation is recursive, so dictionaries and lists are also converted.
-#     A type describes the path to the class of the object, and arguments maps
-#     constructor arguments to values of attributes with the same name.
-#     """
-#     if isinstance(obj, (int, float, str, bool, type(None))):
-#         return obj
-#     if inspect.isclass(type(obj)):
-#         arguments = set(inspect.getfullargspec(obj.__init__).args[1:])
-#         try:
-#             arguments |= set(obj.__identifier_fields__)
-#         except AttributeError:
-#             pass
-#         return {
-#             "type": get_class_path(type(obj)),
-#             "arguments": {
-#                 argument: to_dict(getattr(obj, argument))
-#                 for argument in arguments
-#                 if hasattr(obj, argument)
-#             },
-#         }
-#     elif isinstance(obj, dict):
-#         return {key: to_dict(value) for key, value in obj.items()}
-#     elif isinstance(obj, list):
-#         return [to_dict(value) for value in obj]
-#     return obj
-#
-#
-# def from_dict(dictionary):
-#     """
-#     Convert a dictionary to an object.
-#     """
-#     if isinstance(dictionary, (int, float, str, bool, type(None))):
-#         return dictionary
-#     if "type" in dictionary:
-#         type_ = dictionary["type"]
-#         if type_ in (
-#             "model",
-#             "collection",
-#             "tuple_prior",
-#             "dict",
-#             "instance",
-#         ):
-#             return ModelObject.from_dict(dictionary)
-#         cls = get_class(type_)
-#         if hasattr(cls, "from_dict"):
-#             return cls.from_dict(dictionary)
-#         return cls(
-#             **{
-#                 argument: from_dict(value)
-#                 for argument, value in dictionary["arguments"].items()
-#             }
-#         )
-#     elif isinstance(dictionary, dict):
-#         return {key: from_dict(value) for key, value in dictionary.items()}
-#     elif isinstance(dictionary, list):
-#         return [from_dict(value) for value in dictionary]
-#     return dictionary
+    if type_ in (
+        "model",
+        "collection",
+        "tuple_prior",
+        "dict",
+        "instance",
+    ):
+        return ModelObject.from_dict(dictionary)
+    cls = get_class(type_)
+    if hasattr(cls, "from_dict"):
+        return cls.from_dict(dictionary)
+    raise ValueError(f"Cannot convert {dictionary} to an object")
 
 
 def split_paths(func):

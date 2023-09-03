@@ -209,7 +209,6 @@ class ModelObject:
             class_path = get_class_path()
             try:
                 cls_ = get_class(class_path)
-                d.pop("type")
                 # noinspection PyArgumentList
                 return cls_(
                     **{
@@ -218,7 +217,7 @@ class ModelObject:
                             reference=dereference(reference, key),
                             loaded_ids=loaded_ids,
                         )
-                        for key, value in d.items()
+                        for key, value in d["arguments"].items()
                         if value
                     }
                 )
@@ -237,9 +236,7 @@ class ModelObject:
                 cls_ = get_class(type_)
                 instance = object.__new__(cls_)
 
-        d.pop("type")
-
-        for key, value in d.items():
+        for key, value in d["arguments"].items():
             try:
                 setattr(
                     instance,
@@ -252,6 +249,17 @@ class ModelObject:
                 )
             except KeyError:
                 pass
+
+        if "assertions" in d:
+            instance.assertions = [
+                AbstractPriorModel.from_dict(
+                    value,
+                    reference=dereference(reference, "assertions"),
+                    loaded_ids=loaded_ids,
+                )
+                for value in d["assertions"]
+            ]
+
         return instance
 
     def dict(self) -> dict:
@@ -288,6 +296,8 @@ class ModelObject:
         if assertions:
             dict_["assertions"] = assertions
 
+        arguments = {}
+
         for key, value in self._dict.items():
             try:
                 if not isinstance(value, ModelObject):
@@ -297,7 +307,9 @@ class ModelObject:
                 pass
             except TypeError:
                 pass
-            dict_[key] = value
+            arguments[key] = value
+
+        dict_["arguments"] = arguments
         return dict_
 
     @property
