@@ -139,3 +139,21 @@ def test_lists(instance, gaussian, path):
 def test_replace_positional_path(instance, gaussian, path):
     new = instance.replacing_for_path(path, None)
     assert new.ls[0] is None
+
+
+@pytest.fixture(name="model_with_assertion")
+def make_model_with_assertion():
+    model = af.Model(af.Gaussian)
+    model.add_assertion(model.centre < -10)
+    return model
+
+
+def test_instance_from_vector(model_with_assertion):
+    model_with_assertion.instance_from_vector(
+        [0.5, 0.5, 0.5],
+        ignore_prior_limits=True,
+    )
+
+
+def test_random_instance(model_with_assertion):
+    model_with_assertion.random_instance(ignore_prior_limits=True)
