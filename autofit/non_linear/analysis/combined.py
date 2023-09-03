@@ -73,6 +73,7 @@ class CombinedAnalysis(Analysis):
         analyses
         """
         self.analyses = analyses
+        self._analysis_pool = None
         self._n_cores = None
         self._log_likelihood_function = None
         self.n_cores = conf.instance["general"]["analysis"]["n_cores"]
@@ -134,8 +135,8 @@ class CombinedAnalysis(Analysis):
         """
         self._n_cores = n_cores
         if self.n_cores > 1:
-            analysis_pool = AnalysisPool(self.analyses, self.n_cores)
-            self._log_likelihood_function = analysis_pool
+            self._analysis_pool = AnalysisPool(self.analyses, self.n_cores)
+            self._log_likelihood_function = self._analysis_pool
         else:
             self._log_likelihood_function = self._summed_log_likelihood
 
@@ -206,6 +207,13 @@ class CombinedAnalysis(Analysis):
         paths
             An object describing the paths for saving data (e.g. hard-disk directories or entries in sqlite database).
         """
+        if self._analysis_pool:
+            self._analysis_pool.map(
+                "visualize_before_fit",
+                paths,
+                model,
+            )
+            return
 
         def func(child_paths, analysis):
             analysis.visualize_before_fit(child_paths, model)
@@ -252,6 +260,14 @@ class CombinedAnalysis(Analysis):
         during_analysis
             Is this visualisation during analysis?
         """
+        if self._analysis_pool:
+            self._analysis_pool.map(
+                "visualize",
+                paths,
+                instance,
+                during_analysis,
+            )
+            return
 
         def func(child_paths, analysis):
             analysis.visualize(child_paths, instance, during_analysis)
