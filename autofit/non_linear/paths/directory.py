@@ -6,6 +6,7 @@ from typing import Dict, Optional, Union
 import logging
 
 import dill
+from astropy.io import fits
 
 from autoconf import conf
 from autofit.text import formatter
@@ -66,6 +67,10 @@ class DirectoryPaths(AbstractPaths):
         with open_(self._path_for_json(name), "w+") as f:
             json.dump(object_dict, f, indent=4)
 
+    def load_json(self, name):
+        with open_(self._path_for_json(name)) as f:
+            return json.load(f)
+
     def save_array(self, name: str, array: np.ndarray):
         """
         Save a numpy array as a csv file in the csvs directory of the search.
@@ -79,6 +84,9 @@ class DirectoryPaths(AbstractPaths):
         """
         np.savetxt(self._path_for_csv(name), array, delimiter=",")
 
+    def load_array(self, name: str):
+        return np.loadtxt(self._path_for_csv(name), delimiter=",")
+
     def save_fits(self, name: str, hdu):
         """
         Save an HDU as a fits file in the fits directory of the search.
@@ -91,6 +99,23 @@ class DirectoryPaths(AbstractPaths):
             The HDU to save
         """
         hdu.writeto(self._path_for_fits(name), overwrite=True)
+
+    def load_fits(self, name: str):
+        """
+        Load an HDU from a fits file in the fits directory of the search.
+
+        Parameters
+        ----------
+        name
+            The name of the fits file
+
+        Returns
+        -------
+        The loaded HDU
+        """
+        from astropy.io import fits
+
+        return fits.open(self._path_for_fits(name))[0]
 
     def save_results_internal(self, obj: object):
         """

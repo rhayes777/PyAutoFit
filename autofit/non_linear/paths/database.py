@@ -134,6 +134,21 @@ class DatabasePaths(AbstractPaths):
         """
         self.fit.set_json(name, object_dict)
 
+    def load_json(self, name: str) -> Union[dict, list]:
+        """
+        Load a json file from the database
+
+        Parameters
+        ----------
+        name
+            The name of the json
+
+        Returns
+        -------
+        The loaded dictionary
+        """
+        return self.fit.get_json(name)
+
     def save_array(self, name, array: np.ndarray):
         """
         Save an array as a json file in the database
@@ -147,6 +162,21 @@ class DatabasePaths(AbstractPaths):
         """
         self.fit.set_array(name, array)
 
+    def load_array(self, name: str) -> np.ndarray:
+        """
+        Load an array from the database
+
+        Parameters
+        ----------
+        name
+            The name of the array
+
+        Returns
+        -------
+        The loaded array
+        """
+        return self.fit.get_array(name)
+
     def save_fits(self, name: str, hdu):
         """
         Save a fits file in the database
@@ -159,6 +189,21 @@ class DatabasePaths(AbstractPaths):
             The hdu to save
         """
         self.fit.set_fits(name, hdu)
+
+    def load_fits(self, name: str):
+        """
+        Load a fits file from the database
+
+        Parameters
+        ----------
+        name
+            The name of the fits file
+
+        Returns
+        -------
+        The loaded hdu
+        """
+        return self.fit.get_hdu(name)
 
     def save_object(self, name: str, obj: object):
         self.fit[name] = obj
