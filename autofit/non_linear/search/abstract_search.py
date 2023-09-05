@@ -38,6 +38,8 @@ from autofit.non_linear.paths.null import NullPaths
 from autofit.graphical.declarative.abstract import PriorFactor
 from autofit.graphical.expectation_propagation import AbstractFactorOptimiser
 
+from autofit.non_linear.fitness import get_timeout_seconds
+
 logger = logging.getLogger(__name__)
 
 
@@ -596,6 +598,14 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                 paths=self.paths,
                 model=model,
             )
+
+            timeout_seconds = get_timeout_seconds()
+
+            if timeout_seconds is not None:
+
+                logger.info(f"\n\n ***Log Likelihood Function timeout is "
+                            f"turned on and set to {timeout_seconds} seconds.***\n")
+
 
     def start_resume_fit(self, analysis: Analysis, model: AbstractPriorModel) -> Result:
         """

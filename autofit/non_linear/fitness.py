@@ -1,3 +1,4 @@
+import logging
 import numpy as np
 
 from autoconf import conf
@@ -6,10 +7,16 @@ from autofit import exc
 
 from timeout_decorator import timeout
 
-try:
-    timeout_seconds = conf.instance["general"]["test"]["lh_timeout_seconds"]
-except KeyError:
-    timeout_seconds = None
+def get_timeout_seconds():
+
+    try:
+        return conf.instance["general"]["test"]["lh_timeout_seconds"]
+    except KeyError:
+        pass
+
+logger = logging.getLogger(__name__)
+
+timeout_seconds = get_timeout_seconds()
 
 class Fitness:
     def __init__(
