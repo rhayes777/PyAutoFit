@@ -31,4 +31,5 @@ profiling:
   repeats: 1                        # The number of repeat function calls used to measure run-times when profiling.
 test:
   exception_override: false
+  lh_timeout_seconds:               # If a float is input, the log_likelihood_function call is timed out after this many seconds, to diagnose infinite loops. Default is None, meaning no timeout.
   parallel_profile: false
