@@ -1,7 +1,7 @@
 import pytest
 
 import autofit as af
-from autofit.tools.util import to_dict, from_dict
+from autoconf.dictable import to_dict, from_dict
 
 
 @pytest.fixture(name="dynesty_dict")

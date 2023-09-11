@@ -3,6 +3,7 @@ import inspect
 from copy import copy
 from typing import List, Tuple
 
+from autoconf.class_path import get_class_path
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.tools.util import split_paths
 
@@ -31,6 +32,24 @@ class Sample:
         self.kwargs = {
             tuple(key.split(".")) if isinstance(key, str) and "." in key else key: value
             for key, value in (kwargs or dict()).items()
+        }
+
+    def dict(self):
+        return {
+            "type": "instance",
+            "class_path": get_class_path(type(self)),
+            "arguments": {
+                "log_likelihood": self.log_likelihood,
+                "log_prior": self.log_prior,
+                "weight": self.weight,
+                "kwargs": {
+                    "type": "dict",
+                    "arguments": {
+                        ".".join(key) if isinstance(key, tuple) else key: value
+                        for key, value in self.kwargs.items()
+                    },
+                },
+            },
         }
 
     def model_dict(self) -> dict:

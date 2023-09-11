@@ -3,6 +3,7 @@ import pickle
 
 from dill import register
 
+from autoconf.dictable import register_parser
 from .non_linear.grid.grid_search import GridSearch as SearchGridSearch
 from . import conf
 from . import exc
@@ -105,6 +106,21 @@ from autofit.mapper.prior.arithmetic.compound import Log10
 
 from . import example as ex
 from . import database as db
+
+
+for type_ in (
+    "model",
+    "collection",
+    "tuple_prior",
+    "dict",
+    "instance",
+    "Uniform",
+    "LogUniform",
+    "Gaussian",
+    "LogGaussian",
+    "compound",
+):
+    register_parser(type_, ModelObject.from_dict)
 
 
 @register(abc.ABCMeta)

@@ -6,11 +6,12 @@ from typing import Dict, Optional, Union
 import logging
 
 import dill
-from astropy.io import fits
 
 from autoconf import conf
+from autoconf.dictable import to_dict
 from autofit.text import formatter
-from autofit.tools.util import open_, to_dict
+from autofit.tools.util import open_
+
 from .abstract import AbstractPaths
 from ..samples import load_from_table
 from autofit.non_linear.samples.pdf import SamplesPDF

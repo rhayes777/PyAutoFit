@@ -181,7 +181,6 @@ class Result(AbstractResult):
 
     @property
     def model(self):
-
         use_errors = conf.instance["general"]["prior_passer"]["use_errors"]
         use_widths = conf.instance["general"]["prior_passer"]["use_widths"]
 

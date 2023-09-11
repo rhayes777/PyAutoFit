@@ -6,7 +6,7 @@ from .abstract import AbstractPaths
 import numpy as np
 
 from autofit.database.model import Fit
-from autofit.tools.util import to_dict
+from autoconf.dictable import to_dict
 
 
 class DatabasePaths(AbstractPaths):
