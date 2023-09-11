@@ -38,12 +38,17 @@ class Sample:
         return {
             "type": "instance",
             "class_path": get_class_path(type(self)),
-            "log_likelihood": self.log_likelihood,
-            "log_prior": self.log_prior,
-            "weight": self.weight,
-            "kwargs": {
-                ".".join(key) if isinstance(key, tuple) else key: value
-                for key, value in self.kwargs.items()
+            "arguments": {
+                "log_likelihood": self.log_likelihood,
+                "log_prior": self.log_prior,
+                "weight": self.weight,
+                "kwargs": {
+                    "type": "dict",
+                    "arguments": {
+                        ".".join(key) if isinstance(key, tuple) else key: value
+                        for key, value in self.kwargs.items()
+                    },
+                },
             },
         }
 

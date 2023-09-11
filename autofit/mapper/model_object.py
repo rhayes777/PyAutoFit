@@ -218,7 +218,6 @@ class ModelObject:
                             loaded_ids=loaded_ids,
                         )
                         for key, value in d["arguments"].items()
-                        if value
                     }
                 )
             except (ModuleNotFoundError, AttributeError):
