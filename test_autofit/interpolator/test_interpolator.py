@@ -1,7 +1,6 @@
 import pytest
 
 import autofit as af
-from autoconf.dictable import to_dict
 from autoconf.dictable import to_dict, from_dict
 
 
