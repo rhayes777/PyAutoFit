@@ -2,7 +2,7 @@ import pytest
 
 import autofit as af
 from autoconf.dictable import to_dict
-from autofit.tools.util import to_dict, from_dict
+from autoconf.dictable import to_dict, from_dict
 
 
 def test_trivial():

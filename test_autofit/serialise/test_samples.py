@@ -4,7 +4,7 @@ import autofit as af
 import pytest
 
 from autofit.non_linear.samples.summary import SamplesSummary
-from autofit.tools.util import from_dict
+from autoconf.dictable import from_dict
 
 
 @pytest.fixture(name="model")

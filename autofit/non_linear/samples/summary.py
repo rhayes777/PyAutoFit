@@ -1,9 +1,9 @@
 import numpy as np
 
 from autoconf.class_path import get_class_path
+from autoconf.dictable import to_dict, from_dict
 from .interface import SamplesInterface
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
-from autofit.tools.util import to_dict, from_dict
 from .sample import Sample
 
 

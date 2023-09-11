@@ -9,7 +9,7 @@ import numpy as np
 
 from autofit.non_linear.search import abstract_search
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
-from autofit.tools.util import from_dict
+from autoconf.dictable import from_dict
 
 original_create_file_handle = dill._dill._create_filehandle
 

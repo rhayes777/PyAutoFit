@@ -5,7 +5,7 @@ import pytest
 import json
 
 import autofit as af
-from autofit.tools.util import from_dict
+from autoconf.dictable import from_dict
 
 
 @pytest.fixture(name="collection_dict")
