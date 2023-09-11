@@ -1,6 +1,22 @@
+import logging
 import numpy as np
 
+from autoconf import conf
+
 from autofit import exc
+
+from timeout_decorator import timeout
+
+def get_timeout_seconds():
+
+    try:
+        return conf.instance["general"]["test"]["lh_timeout_seconds"]
+    except KeyError:
+        pass
+
+logger = logging.getLogger(__name__)
+
+timeout_seconds = get_timeout_seconds()
 
 class Fitness:
     def __init__(
@@ -66,6 +82,7 @@ class Fitness:
         self.resample_figure_of_merit = resample_figure_of_merit
         self.convert_to_chi_squared = convert_to_chi_squared
 
+    @timeout(timeout_seconds)
     def __call__(self, parameters, *kwargs):
         """
         Interfaces with any non-linear in order to fit a model to the data and return a log likelihood via
