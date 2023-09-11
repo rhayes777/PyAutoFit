@@ -31,7 +31,7 @@ class NautilusPlotter(SamplesPlotter):
 
         corner.corner(
             data=points,
-            weights=np.exp(self.samples.weight_list),
+            weights=self.samples.weight_list,
             labels=self.model.parameter_labels_with_superscripts_latex,
             fig=fig,
             **kwargs
