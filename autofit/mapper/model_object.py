@@ -4,6 +4,7 @@ from typing import Type, Union, Tuple, Optional, Dict
 import logging
 
 from autoconf.class_path import get_class
+from autoconf.dictable import from_dict
 from .identifier import Identifier
 
 logger = logging.getLogger(__name__)
@@ -146,7 +147,6 @@ class ModelObject:
         -------
         An instance
         """
-        from autofit.mapper.prior_model.abstract import AbstractPriorModel
         from autofit.mapper.prior_model.collection import Collection
         from autofit.mapper.prior_model.prior_model import Model
         from autofit.mapper.prior.abstract import Prior
@@ -155,7 +155,7 @@ class ModelObject:
 
         if isinstance(d, list):
             return [
-                ModelObject.from_dict(
+                from_dict(
                     value,
                     reference=dereference(reference, str(index)),
                     loaded_ids=loaded_ids,
@@ -197,12 +197,12 @@ class ModelObject:
             )
         elif type_ == "dict":
             return {
-                key: ModelObject.from_dict(
+                key: from_dict(
                     value,
                     reference=dereference(reference, key),
                     loaded_ids=loaded_ids,
                 )
-                for key, value in d.items()
+                for key, value in d["arguments"].items()
                 if value
             }
         elif type_ == "instance":
@@ -212,7 +212,7 @@ class ModelObject:
                 # noinspection PyArgumentList
                 return cls_(
                     **{
-                        key: ModelObject.from_dict(
+                        key: from_dict(
                             value,
                             reference=dereference(reference, key),
                             loaded_ids=loaded_ids,
@@ -241,7 +241,7 @@ class ModelObject:
                 setattr(
                     instance,
                     key,
-                    AbstractPriorModel.from_dict(
+                    from_dict(
                         value,
                         reference=dereference(reference, key),
                         loaded_ids=loaded_ids,
@@ -252,7 +252,7 @@ class ModelObject:
 
         if "assertions" in d:
             instance.assertions = [
-                AbstractPriorModel.from_dict(
+                from_dict(
                     value,
                     reference=dereference(reference, "assertions"),
                     loaded_ids=loaded_ids,
