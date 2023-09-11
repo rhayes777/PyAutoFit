@@ -114,6 +114,10 @@ for type_ in (
     "tuple_prior",
     "dict",
     "instance",
+    "Uniform",
+    "LogUniform",
+    "Gaussian",
+    "LogGaussian",
 ):
     register_parser(type_, ModelObject.from_dict)
 
