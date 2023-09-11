@@ -118,6 +118,7 @@ for type_ in (
     "LogUniform",
     "Gaussian",
     "LogGaussian",
+    "compound",
 ):
     register_parser(type_, ModelObject.from_dict)
 

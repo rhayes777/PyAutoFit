@@ -11,6 +11,7 @@ from pathlib import Path
 from typing import Optional, Union, Tuple, List, Dict
 
 from autoconf import conf, cached_property
+from autoconf.dictable import to_dict
 from autofit import exc
 from autofit.database.sqlalchemy_ import sa
 from autofit.graphical import (
@@ -853,7 +854,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             self.paths.samples_to_csv(samples=samples)
 
             if not self.skip_save_samples:
-                self.paths.save_json("samples_summary", samples.summary().dict())
+                self.paths.save_json("samples_summary", to_dict(samples.summary()))
 
             self.perform_visualization(
                 model=model, analysis=analysis, during_analysis=during_analysis

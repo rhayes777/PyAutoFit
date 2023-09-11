@@ -97,7 +97,9 @@ class SamplesPDF(Samples):
         the size of the total number of samples.
         """
 
-        unconverged_sample_size = conf.instance["general"]["output"]["unconverged_sample_size"]
+        unconverged_sample_size = conf.instance["general"]["output"][
+            "unconverged_sample_size"
+        ]
 
         if self.total_samples > unconverged_sample_size:
             return unconverged_sample_size
