@@ -1,4 +1,3 @@
-import logging
 import numpy as np
 
 from autoconf import conf
@@ -13,8 +12,6 @@ def get_timeout_seconds():
         return conf.instance["general"]["test"]["lh_timeout_seconds"]
     except KeyError:
         pass
-
-logger = logging.getLogger(__name__)
 
 timeout_seconds = get_timeout_seconds()
 
