@@ -31,12 +31,18 @@ class DirectoryPaths(AbstractPaths):
         return self._pickle_path / f"{name}.pickle"
 
     def _path_for_json(self, name, prefix : str = "") -> Path:
+
+        os.makedirs(self._files_path / prefix, exist_ok=True)
+
         return self._files_path / prefix / f"{name}.json"
 
     def _path_for_csv(self, name) -> Path:
         return self._files_path / f"{name}.csv"
 
     def _path_for_fits(self, name, prefix : str = "") -> Path:
+
+        os.makedirs(self._files_path / prefix, exist_ok=True)
+
         return self._files_path / prefix / f"{name}.fits"
 
     def save_object(self, name: str, obj: object):
