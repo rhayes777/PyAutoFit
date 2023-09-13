@@ -121,7 +121,7 @@ class DatabasePaths(AbstractPaths):
         del d["session"]
         return d
 
-    def save_json(self, name, object_dict: Union[dict, list]):
+    def save_json(self, name, object_dict: Union[dict, list], prefix : str = ""):
         """
         Save a dictionary as a json file in the database
 
@@ -177,7 +177,7 @@ class DatabasePaths(AbstractPaths):
         """
         return self.fit.get_array(name)
 
-    def save_fits(self, name: str, hdu):
+    def save_fits(self, name: str, hdu, prefix : str = ""):
         """
         Save a fits file in the database
 
@@ -188,7 +188,7 @@ class DatabasePaths(AbstractPaths):
         hdu
             The hdu to save
         """
-        self.fit.set_fits(name, hdu)
+        self.fit.set_hdu(name, hdu)
 
     def load_fits(self, name: str):
         """
