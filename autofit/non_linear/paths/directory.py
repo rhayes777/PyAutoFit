@@ -30,8 +30,8 @@ class DirectoryPaths(AbstractPaths):
     def _path_for_pickle(self, name: str) -> Path:
         return self._pickle_path / f"{name}.pickle"
 
-    def _path_for_json(self, name) -> Path:
-        return self._files_path / f"{name}.json"
+    def _path_for_json(self, name, prefix : str = "") -> Path:
+        return self._files_path / prefix / f"{name}.json"
 
     def _path_for_csv(self, name) -> Path:
         return self._files_path / f"{name}.csv"
@@ -54,7 +54,7 @@ class DirectoryPaths(AbstractPaths):
         with open_(self._path_for_pickle(name), "wb") as f:
             dill.dump(obj, f)
 
-    def save_json(self, name, object_dict: Union[dict, list]):
+    def save_json(self, name, object_dict: Union[dict, list], prefix : str = ""):
         """
         Save a dictionary as a json file in the jsons directory of the search.
 
@@ -65,7 +65,7 @@ class DirectoryPaths(AbstractPaths):
         object_dict
             The dictionary to save
         """
-        with open_(self._path_for_json(name), "w+") as f:
+        with open_(self._path_for_json(name, prefix), "w+") as f:
             json.dump(object_dict, f, indent=4)
 
     def load_json(self, name):
