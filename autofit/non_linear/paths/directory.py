@@ -36,8 +36,8 @@ class DirectoryPaths(AbstractPaths):
     def _path_for_csv(self, name) -> Path:
         return self._files_path / f"{name}.csv"
 
-    def _path_for_fits(self, name):
-        return self._files_path / f"{name}.fits"
+    def _path_for_fits(self, name, prefix : str = "") -> Path:
+        return self._files_path / prefix / f"{name}.fits"
 
     def save_object(self, name: str, obj: object):
         """
@@ -88,7 +88,7 @@ class DirectoryPaths(AbstractPaths):
     def load_array(self, name: str):
         return np.loadtxt(self._path_for_csv(name), delimiter=",")
 
-    def save_fits(self, name: str, hdu):
+    def save_fits(self, name: str, hdu, prefix : str = ""):
         """
         Save an HDU as a fits file in the fits directory of the search.
 
@@ -99,7 +99,7 @@ class DirectoryPaths(AbstractPaths):
         hdu
             The HDU to save
         """
-        hdu.writeto(self._path_for_fits(name), overwrite=True)
+        hdu.writeto(self._path_for_fits(name, prefix), overwrite=True)
 
     def load_fits(self, name: str):
         """
