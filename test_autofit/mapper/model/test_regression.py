@@ -1,3 +1,5 @@
+from typing import List
+
 import pytest
 
 import autofit as af
@@ -157,3 +159,13 @@ def test_instance_from_vector(model_with_assertion):
 
 def test_random_instance(model_with_assertion):
     model_with_assertion.random_instance(ignore_prior_limits=True)
+
+
+class TestModel:
+    def __init__(self, items: List[float]):
+        self.items = items
+
+
+def test_typing_annotations():
+    model = af.Model(TestModel)
+    assert model.items == af.Collection()
