@@ -344,11 +344,11 @@ class AbstractPaths(ABC):
         return f"{self.output_path}.zip"
 
     @abstractmethod
-    def save_json(self, name, object_dict: dict):
+    def save_json(self, name, object_dict: dict, use_search_internal : bool = False):
         pass
 
     @abstractmethod
-    def load_json(self, name) -> dict:
+    def load_json(self, name, use_search_internal : bool = False) -> dict:
         pass
 
     @abstractmethod
@@ -368,11 +368,11 @@ class AbstractPaths(ABC):
         pass
 
     @abstractmethod
-    def save_object(self, name: str, obj: object):
+    def save_object(self, name: str, obj: object, use_search_internal : bool = False):
         pass
 
     @abstractmethod
-    def load_object(self, name: str):
+    def load_object(self, name: str,  use_search_internal : bool = False):
         pass
 
     @abstractmethod
@@ -382,72 +382,6 @@ class AbstractPaths(ABC):
     @abstractmethod
     def is_object(self, name: str) -> bool:
         pass
-
-    def save_results_internal(self, obj: object):
-        """
-        Save the internal representation of a non-linear search as a pickle or dill file.
-
-        The results in this representation are required to use a search's in-built tools for visualization,
-        analysing samples and other tasks.
-
-        Parameters
-        ----------
-        results_internal
-            The results of the non-linear search in its internal representation.
-        """
-        filename = f"{self.search_internal_path}/results_internal.dill"
-
-        with open_(filename, "wb") as f:
-            dill.dump(obj, f)
-
-    def load_results_internal(self):
-        """
-        Load the internal representation of a non-linear search from a pickle or dill file.
-
-        The results in this representation are required to use a search's in-built tools for visualization,
-        analysing samples and other tasks.
-
-        Returns
-        -------
-        The results of the non-linear search in its internal representation.
-        """
-        filename = f"{self.search_internal_path}/results_internal.dill"
-
-        with open_(filename, "rb") as f:
-            return dill.load(f)
-
-    def save_results_internal_json(self, results_internal_dict: Dict):
-        """
-        Save the internal representation of a non-linear search as a pickle or dill file.
-
-        The results in this representation are required to use a search's in-built tools for visualization,
-        analysing samples and other tasks.
-
-        Parameters
-        ----------
-        results_internal
-            The results of the non-linear search in its internal representation.
-        """
-        filename = f"{self.search_internal_path}/results_internal.json"
-
-        with open_(filename, "w+") as f:
-            json.dump(results_internal_dict, f, indent=4)
-
-    def load_results_internal_json(self) -> Dict:
-        """
-        Load the internal representation of a non-linear search from a pickle or dill file.
-
-        The results in this representation are required to use a search's in-built tools for visualization,
-        analysing samples and other tasks.
-
-        Returns
-        -------
-        The results of the non-linear search in its internal representation.
-        """
-        filename = f"{self.search_internal_path}/results_internal.json"
-
-        with open_(filename, "rb") as f:
-            return json.load(f)
 
     @property
     @abstractmethod

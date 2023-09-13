@@ -154,8 +154,14 @@ class AbstractPySwarms(AbstractOptimizer):
 
         try:
 
-            results_internal = self.paths.load_results_internal()
-            results_internal_dict = self.paths.load_results_internal_json()
+            results_internal = self.paths.load_object(
+                name="results_internal",
+                use_search_internal=True
+            )
+            results_internal_dict = self.paths.load_json(
+                name="results_internal",
+                use_search_internal=True
+            )
 
             init_pos = results_internal[-1]
             total_iterations = results_internal_dict["total_iterations"]
@@ -225,8 +231,17 @@ class AbstractPySwarms(AbstractOptimizer):
                     "time" : self.timer.time
                 }
 
-                self.paths.save_results_internal(obj=pso.pos_history)
-                self.paths.save_results_internal_json(results_internal_dict=results_internal_dict)
+                self.paths.save_object(
+                    name="results_internal",
+                    obj=pso.pos_history,
+                    use_search_internal=True
+                )
+
+                self.paths.save_json(
+                    name="results_internal",
+                    object_dict=results_internal_dict,
+                    use_search_internal=True
+                )
 
                 self.perform_update(
                     model=model, analysis=analysis, during_analysis=True
@@ -249,8 +264,14 @@ class AbstractPySwarms(AbstractOptimizer):
         model
             Maps input vectors of unit parameter values to physical values and model instances via priors.
         """
-        results_internal = self.paths.load_results_internal()
-        results_internal_dict = self.paths.load_results_internal_json()
+        results_internal = self.paths.load_object(
+            name="results_internal",
+            use_search_internal=True
+        )
+        results_internal_dict = self.paths.load_json(
+            name="results_internal",
+            use_search_internal=True
+        )
 
         parameter_lists = [
             param.tolist() for parameters in results_internal for param in parameters

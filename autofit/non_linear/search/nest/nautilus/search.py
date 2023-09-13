@@ -259,12 +259,19 @@ class Nautilus(abstract_nest.AbstractNest):
             "number_live_points": int(sampler.n_live)
         }
 
-        self.paths.save_results_internal_json(results_internal_dict=results_internal_json)
+        self.paths.save_json(
+            name="results_internal",
+            object_dict=results_internal_json,
+            use_search_internal=True
+        )
 
     @property
     def samples_info(self):
 
-        results_internal_dict = self.paths.load_results_internal_json()
+        results_internal_dict = self.paths.load_json(
+            name="results_internal",
+            use_search_internal=True
+        )
 
         return {
             "log_evidence": results_internal_dict["log_evidence"],
@@ -289,7 +296,10 @@ class Nautilus(abstract_nest.AbstractNest):
             Maps input vectors of unit parameter values to physical values and model instances via priors.
         """
 
-        results_internal_dict = self.paths.load_results_internal_json()
+        results_internal_dict = self.paths.load_json(
+            name="results_internal",
+            use_search_internal=True
+        )
 
         parameter_lists = results_internal_dict["parameter_lists"]
         log_likelihood_list = results_internal_dict["log_likelihood_list"]

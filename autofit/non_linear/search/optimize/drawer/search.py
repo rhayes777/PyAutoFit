@@ -125,8 +125,8 @@ class Drawer(AbstractOptimizer):
             use_prior_medians=True,
         )
 
-        self.paths.save_object("parameter_lists", parameter_lists)
-        self.paths.save_object("log_posterior_list", log_posterior_list)
+        self.paths.save_object("parameter_lists", parameter_lists, use_search_internal=True)
+        self.paths.save_object("log_posterior_list", log_posterior_list, use_search_internal=True)
 
         self.logger.info("Drawer complete")
 

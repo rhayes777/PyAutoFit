@@ -121,7 +121,7 @@ class DatabasePaths(AbstractPaths):
         del d["session"]
         return d
 
-    def save_json(self, name, object_dict: Union[dict, list], prefix : str = ""):
+    def save_json(self, name, object_dict: Union[dict, list], prefix : str = "", use_search_internal : bool = False):
         """
         Save a dictionary as a json file in the database
 
@@ -134,7 +134,7 @@ class DatabasePaths(AbstractPaths):
         """
         self.fit.set_json(name, object_dict)
 
-    def load_json(self, name: str) -> Union[dict, list]:
+    def load_json(self, name: str, use_search_internal : bool = False) -> Union[dict, list]:
         """
         Load a json file from the database
 
@@ -205,17 +205,11 @@ class DatabasePaths(AbstractPaths):
         """
         return self.fit.get_hdu(name)
 
-    def save_object(self, name: str, obj: object):
+    def save_object(self, name: str, obj: object, use_search_internal : bool = False):
         self.fit[name] = obj
 
-    def load_object(self, name: str):
+    def load_object(self, name: str, use_search_internal : bool = False):
         return self.fit[name]
-
-    def save_results_internal(self, obj: object):
-        pass
-
-    def load_results_internal(self):
-        pass
 
     def remove_object(self, name: str):
         del self.fit[name]

@@ -133,7 +133,10 @@ class Zeus(AbstractMCMC):
 
         try:
 
-            sampler = self.paths.load_results_internal()
+            sampler = self.paths.load_object(
+                name="results_internal",
+                use_search_internal=True
+            )
 
             state = sampler.get_last_sample()
             log_posterior_list = sampler.get_last_log_prob()
@@ -202,7 +205,11 @@ class Zeus(AbstractMCMC):
 
             sampler.ncall_total += sampler.ncall
 
-            self.paths.save_results_internal(obj=sampler)
+            self.paths.save_object(
+                name="results_internal",
+                obj=sampler,
+                use_search_internal=True
+            )
 
             state = sampler.get_last_sample()
             log_posterior_list = sampler.get_last_log_prob()
@@ -236,7 +243,10 @@ class Zeus(AbstractMCMC):
     @property
     def samples_info(self):
 
-        results_internal = self.paths.load_results_internal()
+        results_internal = self.paths.load_object(
+                name="results_internal",
+                use_search_internal=True
+            )
 
         return {
             "check_size": self.auto_correlations.check_size,
@@ -263,7 +273,10 @@ class Zeus(AbstractMCMC):
             Maps input vectors of unit parameter values to physical values and model instances via priors.
         """
 
-        results_internal = self.paths.load_results_internal()
+        results_internal = self.paths.load_object(
+            name="results_internal",
+            use_search_internal=True
+        )
 
         discard = int(3.0 * np.max(self.auto_correlations.times))
         thin = int(np.max(self.auto_correlations.times) / 2.0)
@@ -303,7 +316,10 @@ class Zeus(AbstractMCMC):
 
         import zeus
 
-        results_internal = self.paths.load_results_internal()
+        results_internal = self.paths.load_object(
+            name="results_internal",
+            use_search_internal=True
+        )
 
         times = zeus.AutoCorrTime(samples=results_internal.get_chain())
         try:

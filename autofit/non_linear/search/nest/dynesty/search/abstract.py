@@ -188,7 +188,11 @@ class AbstractDynesty(AbstractNest, ABC):
 
                 self.perform_update(model=model, analysis=analysis, during_analysis=True)
 
-        self.paths.save_results_internal(obj=sampler.results)
+        self.paths.save_object(
+            name="results_internal",
+            obj=sampler.results,
+            use_search_internal=True
+        )
 
     @property
     def samples_info(self):
