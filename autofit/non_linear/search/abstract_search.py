@@ -710,7 +710,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                 self.logger.info("Forcing pickle overwrite")
 
                 if not self.skip_save_samples:
-                    self.paths.save_json("samples_summary", samples.summary().dict())
+                    self.paths.save_json("samples_summary", to_dict(samples.summary()))
 
                 analysis.save_results(paths=self.paths, result=result)
 
