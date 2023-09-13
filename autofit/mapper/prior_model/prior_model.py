@@ -1,7 +1,9 @@
 import builtins
+import collections.abc
 import copy
 import inspect
 import logging
+import typing
 
 from autoconf.class_path import get_class_path
 from autoconf.exc import ConfigException
@@ -164,7 +166,20 @@ class Model(AbstractPriorModel):
                 elif hasattr(spec, "__args__") and type(None) in spec.__args__:
                     setattr(self, arg, None)
                 else:
-                    setattr(self, arg, Model(annotations[arg]))
+                    annotation = annotations[arg]
+
+                    if (
+                        hasattr(annotation, "__origin__")
+                        and issubclass(
+                            annotation.__origin__, collections.abc.Collection
+                        )
+                    ) or isinstance(annotation, collections.abc.Collection):
+                        from autofit.mapper.prior_model.collection import Collection
+
+                        value = Collection()
+                    else:
+                        value = Model(annotation)
+                    setattr(self, arg, value)
             else:
                 prior = self.make_prior(arg)
                 if (
