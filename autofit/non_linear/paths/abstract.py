@@ -383,7 +383,6 @@ class AbstractPaths(ABC):
     def is_object(self, name: str) -> bool:
         pass
 
-
     def save_results_internal(self, obj: object):
         """
         Save the internal representation of a non-linear search as a pickle or dill file.

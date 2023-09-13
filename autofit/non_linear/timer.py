@@ -1,6 +1,5 @@
 import datetime as dt
 import os
-from os import path
 import time
 
 
