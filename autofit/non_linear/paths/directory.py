@@ -1,11 +1,10 @@
+import dill
 import json
 import os
 from os import path
 from pathlib import Path
 from typing import Optional, Union
 import logging
-
-import dill
 
 from autoconf import conf
 from autoconf.dictable import to_dict
@@ -75,8 +74,8 @@ class DirectoryPaths(AbstractPaths):
         with open_(self._path_for_json(name, prefix), "w+") as f:
             json.dump(object_dict, f, indent=4)
 
-    def load_json(self, name, path_overwrite : Optional[str] = None):
-        with open_(self._path_for_json(name, path_overwrite)) as f:
+    def load_json(self, name, prefix : str = ""):
+        with open_(self._path_for_json(name, prefix)) as f:
             return json.load(f)
 
     def save_array(self, name: str, array: np.ndarray):
@@ -314,15 +313,6 @@ class DirectoryPaths(AbstractPaths):
         """
         return self.output_path / "pickles"
 
-    @property
-    def _files_path(self) -> Path:
-        """
-        This is private for a reason, use the save_json etc. methods to save and load json
-        """
-        files_path = self.output_path / "files"
-        os.makedirs(files_path, exist_ok=True)
-        return files_path
-
     def _save_metadata(self, search_name):
         """
         Save metadata associated with the phase, such as the name of the pipeline, the
@@ -330,8 +320,7 @@ class DirectoryPaths(AbstractPaths):
         """
         with open_(self.output_path / "metadata", "a") as f:
             f.write(
-                f"""name={self.name}
-                non_linear_search={search_name}
+                f"""name={self.name}\nnon_linear_search={search_name}
             """
             )
 

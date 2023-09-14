@@ -139,7 +139,10 @@ class Drawer(AbstractOptimizer):
         self.logger.info("Drawer complete")
 
     def samples_from(self, model):
-        parameter_lists = self.paths.load_object("parameter_lists")
+        parameter_lists = self.paths.load_object(
+            name="parameter_lists",
+            prefix="search_internal"
+        )
 
         log_prior_list = [
             sum(model.log_prior_list_from_vector(vector=vector))
@@ -148,7 +151,10 @@ class Drawer(AbstractOptimizer):
         log_likelihood_list = [
             lp - prior
             for lp, prior in zip(
-                self.paths.load_object("log_posterior_list"), log_prior_list
+                self.paths.load_object(
+                    name="log_posterior_list",
+                    prefix="search_internal"
+                ), log_prior_list
             )
         ]
 

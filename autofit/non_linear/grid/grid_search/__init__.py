@@ -253,6 +253,9 @@ class GridSearch:
             self.logger.debug(
                 "Writing results"
             )
+
+            os.makedirs(self.paths.output_path, exist_ok=True)
+
             with open(self.paths.output_path / "results.csv", "w+") as f:
                 writer = csv.writer(f)
                 writer.writerow([

@@ -248,9 +248,22 @@ class Samples(SamplesInterface, ABC):
         samples_info = paths.load_samples_info()
 
         try:
-            search_internal = paths.load_search_internal()
+            search_internal = paths.load_json(
+                name="search_internal",
+                prefix="search_internal"
+            )
         except FileNotFoundError:
             search_internal = None
+
+        if search_internal is None:
+
+            try:
+                search_internal = paths.load_object(
+                    name="search_internal",
+                    prefix="search_internal"
+                )
+            except FileNotFoundError:
+                search_internal = None
 
         return cls.from_list_info_and_model(
             sample_list=sample_list,

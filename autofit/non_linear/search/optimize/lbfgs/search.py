@@ -114,8 +114,14 @@ class LBFGS(AbstractOptimizer):
 
         if self.paths.is_object("x0"):
 
-            x0 = self.paths.load_object("x0")
-            total_iterations = self.paths.load_object("total_iterations")
+            x0 = self.paths.load_object(
+                name="x0",
+                prefix="search_internal"
+            )
+            total_iterations = self.paths.load_object(
+                name="total_iterations",
+                prefix="search_internal"
+            )
 
             self.logger.info(
                 "Resuming LBFGS non-linear search (previous samples found)."
@@ -207,9 +213,18 @@ class LBFGS(AbstractOptimizer):
         model
             Maps input vectors of unit parameter values to physical values and model instances via priors.
         """
-        search_internal = self.paths.load_object("x0")
-        log_posterior_list = np.array([self.paths.load_object("log_posterior")])
-        total_iterations = self.paths.load_object("total_iterations")
+        search_internal = self.paths.load_object(
+            name="x0",
+            prefix="search_internal"
+        )
+        log_posterior_list = np.array([self.paths.load_object(
+            name="log_posterior",
+            prefix="search_internal"
+        )])
+        total_iterations = self.paths.load_object(
+            name="total_iterations",
+            prefix="search_internal"
+        )
 
         parameter_lists = [list(search_internal)]
         log_prior_list = model.log_prior_list_from(parameter_lists=parameter_lists)

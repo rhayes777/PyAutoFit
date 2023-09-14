@@ -198,6 +198,9 @@ class AbstractPaths(ABC):
         """
         The path to the samples folder.
         """
+
+        os.makedirs(self._files_path / "search_internal", exist_ok=True)
+
         return self._files_path / "search_internal"
 
     @property
@@ -238,7 +241,12 @@ class AbstractPaths(ABC):
 
     @property
     def _files_path(self) -> Path:
-        raise NotImplementedError
+        """
+        This is private for a reason, use the save_json etc. methods to save and load json
+        """
+        files_path = self.output_path / "files"
+        os.makedirs(files_path, exist_ok=True)
+        return files_path
 
     def zip_remove(self):
         """
