@@ -163,15 +163,23 @@ class LBFGS(AbstractOptimizer):
                 total_iterations += lbfgs.nit
 
                 self.paths.save_object(
-                    "total_iterations",
-                    total_iterations,
-                    use_search_internal=True
+                    name="total_iterations",
+                    obj=total_iterations,
+                    prefix="search_internal"
                 )
 
                 log_posterior_list = -0.5 * fitness(parameters=lbfgs.x)
 
-                self.paths.save_object("log_posterior", log_posterior_list, use_search_internal=True)
-                self.paths.save_object("x0", lbfgs.x, use_search_internal=True)
+                self.paths.save_object(
+                    name="log_posterior",
+                    obj=log_posterior_list,
+                    prefix="search_internal"
+                )
+                self.paths.save_object(
+                    name="x0",
+                    obj=lbfgs.x,
+                    prefix="search_internal"
+                )
 
                 x0 = lbfgs.x
 
@@ -199,11 +207,11 @@ class LBFGS(AbstractOptimizer):
         model
             Maps input vectors of unit parameter values to physical values and model instances via priors.
         """
-        results_internal = self.paths.load_object("x0")
+        search_internal = self.paths.load_object("x0")
         log_posterior_list = np.array([self.paths.load_object("log_posterior")])
         total_iterations = self.paths.load_object("total_iterations")
 
-        parameter_lists = [list(results_internal)]
+        parameter_lists = [list(search_internal)]
         log_prior_list = model.log_prior_list_from(parameter_lists=parameter_lists)
         log_likelihood_list = [
             lp - prior
@@ -229,5 +237,5 @@ class LBFGS(AbstractOptimizer):
             model=model,
             sample_list=sample_list,
             samples_info=samples_info,
-            results_internal=results_internal,
+            search_internal=search_internal,
         )

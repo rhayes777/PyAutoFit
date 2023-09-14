@@ -249,7 +249,7 @@ class Nautilus(abstract_nest.AbstractNest):
         log_likelihood_list = log_likelihoods.tolist()
         weight_list = np.exp(log_weights).tolist()
 
-        results_internal_json = {
+        search_internal_json = {
             "parameter_lists": parameter_lists,
             "log_likelihood_list": log_likelihood_list,
             "weight_list": weight_list,
@@ -260,24 +260,24 @@ class Nautilus(abstract_nest.AbstractNest):
         }
 
         self.paths.save_json(
-            name="results_internal",
-            object_dict=results_internal_json,
-            use_search_internal=True
+            name="search_internal",
+            object_dict=search_internal_json,
+            prefix="search_internal"
         )
 
     @property
     def samples_info(self):
 
-        results_internal_dict = self.paths.load_json(
-            name="results_internal",
-            use_search_internal=True
+        search_internal_dict = self.paths.load_json(
+            name="search_internal",
+            prefix="search_internal"
         )
 
         return {
-            "log_evidence": results_internal_dict["log_evidence"],
-            "total_samples": results_internal_dict["total_samples"],
+            "log_evidence": search_internal_dict["log_evidence"],
+            "total_samples": search_internal_dict["total_samples"],
             "time": self.timer.time,
-            "number_live_points": results_internal_dict["number_live_points"]
+            "number_live_points": search_internal_dict["number_live_points"]
         }
 
     def samples_via_internal_from(self, model: AbstractPriorModel):
@@ -296,17 +296,17 @@ class Nautilus(abstract_nest.AbstractNest):
             Maps input vectors of unit parameter values to physical values and model instances via priors.
         """
 
-        results_internal_dict = self.paths.load_json(
-            name="results_internal",
-            use_search_internal=True
+        search_internal_dict = self.paths.load_json(
+            name="search_internal",
+            prefix="search_internal"
         )
 
-        parameter_lists = results_internal_dict["parameter_lists"]
-        log_likelihood_list = results_internal_dict["log_likelihood_list"]
+        parameter_lists = search_internal_dict["parameter_lists"]
+        log_likelihood_list = search_internal_dict["log_likelihood_list"]
         log_prior_list = [
             sum(model.log_prior_list_from_vector(vector=vector)) for vector in parameter_lists
         ]
-        weight_list = results_internal_dict["weight_list"]
+        weight_list = search_internal_dict["weight_list"]
 
         sample_list = Sample.from_lists(
             model=model,
@@ -320,7 +320,7 @@ class Nautilus(abstract_nest.AbstractNest):
             model=model,
             sample_list=sample_list,
             samples_info=self.samples_info,
-            results_internal=None,
+            search_internal=None,
         )
 
     @property

@@ -189,19 +189,19 @@ class AbstractDynesty(AbstractNest, ABC):
                 self.perform_update(model=model, analysis=analysis, during_analysis=True)
 
         self.paths.save_object(
-            name="results_internal",
+            name="search_internal",
             obj=sampler.results,
-            use_search_internal=True
+            prefix="search_internal"
         )
 
     @property
     def samples_info(self):
 
-        results_internal = self.sampler.results
+        search_internal = self.sampler.results
 
         return {
-            "log_evidence": np.max(results_internal.logz),
-            "total_samples": int(np.sum(results_internal.ncall)),
+            "log_evidence": np.max(search_internal.logz),
+            "total_samples": int(np.sum(search_internal.ncall)),
             "time": self.timer.time,
             "number_live_points": self.number_live_points
         }
@@ -221,18 +221,18 @@ class AbstractDynesty(AbstractNest, ABC):
         model
             Maps input vectors of unit parameter values to physical values and model instances via priors.
         """
-        results_internal = self.sampler.results
+        search_internal = self.sampler.results
 
-        parameter_lists = results_internal.samples.tolist()
+        parameter_lists = search_internal.samples.tolist()
         log_prior_list = model.log_prior_list_from(parameter_lists=parameter_lists)
-        log_likelihood_list = list(results_internal.logl)
+        log_likelihood_list = list(search_internal.logl)
 
         try:
             weight_list = list(
-                np.exp(np.asarray(results_internal.logwt) - results_internal.logz[-1])
+                np.exp(np.asarray(search_internal.logwt) - search_internal.logz[-1])
             )
         except:
-            weight_list = results_internal["weights"]
+            weight_list = search_internal["weights"]
 
         sample_list = Sample.from_lists(
             model=model,
@@ -246,7 +246,7 @@ class AbstractDynesty(AbstractNest, ABC):
             model=model,
             sample_list=sample_list,
             samples_info=self.samples_info,
-            results_internal=results_internal,
+            search_internal=search_internal,
         )
 
     @property

@@ -134,8 +134,8 @@ class Zeus(AbstractMCMC):
         try:
 
             sampler = self.paths.load_object(
-                name="results_internal",
-                use_search_internal=True
+                name="search_internal",
+                prefix="search_internal"
             )
 
             state = sampler.get_last_sample()
@@ -206,9 +206,9 @@ class Zeus(AbstractMCMC):
             sampler.ncall_total += sampler.ncall
 
             self.paths.save_object(
-                name="results_internal",
+                name="search_internal",
                 obj=sampler,
-                use_search_internal=True
+                prefix="search_internal"
             )
 
             state = sampler.get_last_sample()
@@ -243,17 +243,17 @@ class Zeus(AbstractMCMC):
     @property
     def samples_info(self):
 
-        results_internal = self.paths.load_object(
-                name="results_internal",
-                use_search_internal=True
+        search_internal = self.paths.load_object(
+                name="search_internal",
+                prefix="search_internal"
             )
 
         return {
             "check_size": self.auto_correlations.check_size,
             "required_length": self.auto_correlations.required_length,
             "change_threshold": self.auto_correlations.change_threshold,
-            "total_walkers": len(results_internal.get_chain()[0, :, 0]),
-            "total_steps": int(results_internal.ncall_total),
+            "total_walkers": len(search_internal.get_chain()[0, :, 0]),
+            "total_steps": int(search_internal.ncall_total),
             "time": self.timer.time,
         }
 
@@ -273,17 +273,17 @@ class Zeus(AbstractMCMC):
             Maps input vectors of unit parameter values to physical values and model instances via priors.
         """
 
-        results_internal = self.paths.load_object(
-            name="results_internal",
-            use_search_internal=True
+        search_internal = self.paths.load_object(
+            name="search_internal",
+            prefix="search_internal"
         )
 
         discard = int(3.0 * np.max(self.auto_correlations.times))
         thin = int(np.max(self.auto_correlations.times) / 2.0)
-        samples_after_burn_in =  results_internal.get_chain(discard=discard, thin=thin, flat=True)
+        samples_after_burn_in =  search_internal.get_chain(discard=discard, thin=thin, flat=True)
 
         parameter_lists = samples_after_burn_in.tolist()
-        log_posterior_list = results_internal.get_log_prob(flat=True).tolist()
+        log_posterior_list = search_internal.get_log_prob(flat=True).tolist()
         log_prior_list = model.log_prior_list_from(parameter_lists=parameter_lists)
 
         log_likelihood_list = [
@@ -306,7 +306,7 @@ class Zeus(AbstractMCMC):
             model=model,
             sample_list=sample_list,
             samples_info=self.samples_info,
-            results_internal=results_internal,
+            search_internal=search_internal,
             auto_correlation_settings=self.auto_correlation_settings,
             auto_correlations=self.auto_correlations,
         )
@@ -316,15 +316,15 @@ class Zeus(AbstractMCMC):
 
         import zeus
 
-        results_internal = self.paths.load_object(
-            name="results_internal",
-            use_search_internal=True
+        search_internal = self.paths.load_object(
+            name="search_internal",
+            prefix="search_internal"
         )
 
-        times = zeus.AutoCorrTime(samples=results_internal.get_chain())
+        times = zeus.AutoCorrTime(samples=search_internal.get_chain())
         try:
             previous_auto_correlation_times = zeus.AutoCorrTime(
-                samples=results_internal.get_chain()[: - self.auto_correlation_settings.check_size, :, :],
+                samples=search_internal.get_chain()[: - self.auto_correlation_settings.check_size, :, :],
             )
         except IndexError:
             self.logger.debug(

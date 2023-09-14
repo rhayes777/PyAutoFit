@@ -184,9 +184,9 @@ class UltraNest(abstract_nest.AbstractNest):
                 )
 
             self.paths.save_object(
-                name="results_internal",
+                name="search_internal",
                 obj=sampler.results,
-                use_search_internal=True
+                prefix="search_internal"
             )
 
             iterations_after_run = sampler.ncall
@@ -204,14 +204,14 @@ class UltraNest(abstract_nest.AbstractNest):
     @property
     def samples_info(self):
 
-        results_internal = self.paths.load_object(
-            name="results_internal",
-            use_search_internal=True
+        search_internal = self.paths.load_object(
+            name="search_internal",
+            prefix="search_internal"
         )
 
         return {
-            "log_evidence": results_internal["logz"],
-            "total_samples": results_internal["ncall"],
+            "log_evidence": search_internal["logz"],
+            "total_samples": search_internal["ncall"],
             "time": self.timer.time,
             "number_live_points": self.config_dict_run["min_num_live_points"]
         }
@@ -232,17 +232,17 @@ class UltraNest(abstract_nest.AbstractNest):
             Maps input vectors of unit parameter values to physical values and model instances via priors.
         """
 
-        results_internal = self.paths.load_object(
-            name="results_internal",
-            use_search_internal=True
+        search_internal = self.paths.load_object(
+            name="search_internal",
+            prefix="search_internal"
         )
 
-        parameters = results_internal["weighted_samples"]["points"]
-        log_likelihood_list = results_internal["weighted_samples"]["logl"]
+        parameters = search_internal["weighted_samples"]["points"]
+        log_likelihood_list = search_internal["weighted_samples"]["logl"]
         log_prior_list = [
             sum(model.log_prior_list_from_vector(vector=vector)) for vector in parameters
         ]
-        weight_list = results_internal["weighted_samples"]["weights"]
+        weight_list = search_internal["weighted_samples"]["weights"]
 
         sample_list = Sample.from_lists(
             model=model,
@@ -256,7 +256,7 @@ class UltraNest(abstract_nest.AbstractNest):
             model=model,
             sample_list=sample_list,
             samples_info=self.samples_info,
-            results_internal=results_internal,
+            search_internal=search_internal,
         )
 
     def config_dict_with_test_mode_settings_from(self, config_dict):

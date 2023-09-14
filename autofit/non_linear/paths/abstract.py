@@ -344,11 +344,11 @@ class AbstractPaths(ABC):
         return f"{self.output_path}.zip"
 
     @abstractmethod
-    def save_json(self, name, object_dict: dict, use_search_internal : bool = False):
+    def save_json(self, name, object_dict: dict, prefix : str = ""):
         pass
 
     @abstractmethod
-    def load_json(self, name, use_search_internal : bool = False) -> dict:
+    def load_json(self, name, prefix : str = "") -> dict:
         pass
 
     @abstractmethod
@@ -368,11 +368,11 @@ class AbstractPaths(ABC):
         pass
 
     @abstractmethod
-    def save_object(self, name: str, obj: object, use_search_internal : bool = False):
+    def save_object(self, name: str, obj: object, prefix : str = ""):
         pass
 
     @abstractmethod
-    def load_object(self, name: str,  use_search_internal : bool = False):
+    def load_object(self, name: str, prefix : str = ""):
         pass
 
     @abstractmethod

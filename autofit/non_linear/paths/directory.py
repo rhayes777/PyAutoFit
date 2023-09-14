@@ -27,23 +27,11 @@ class DirectoryPaths(AbstractPaths):
         """
         self.save_object(name, instance)
 
-    def _path_for_pickle(self, name: str, use_search_internal : bool = False) -> Path:
-        
-        if use_search_internal:
-            return self.search_internal_path/ f"{name}.pickle"
-        
-        return self._pickle_path / f"{name}.pickle"
+    def _path_for_pickle(self, name: str, prefix : str = "") -> Path:
+        return self._pickle_path / prefix / f"{name}.pickle"
 
-    def _path_for_json(self, name, prefix : str = "", use_search_internal : bool = False) -> Path:
-
-        if use_search_internal:
-            path_json = self.search_internal_path
-        else:
-            path_json = self._files_path / prefix
-
-        os.makedirs(path_json, exist_ok=True)
-
-        return path_json / f"{name}.json"
+    def _path_for_json(self, name, prefix : str = "") -> Path:
+        return self._files_path / prefix / f"{name}.json"
 
     def _path_for_csv(self, name) -> Path:
         return self._files_path / f"{name}.csv"
@@ -54,7 +42,7 @@ class DirectoryPaths(AbstractPaths):
 
         return self._files_path / prefix / f"{name}.fits"
 
-    def save_object(self, name: str, obj: object, use_search_internal : bool = False):
+    def save_object(self, name: str, obj: object, prefix : str = ""):
         """
         Serialise an object using dill and save it to the pickles
         directory of the search.
@@ -66,10 +54,10 @@ class DirectoryPaths(AbstractPaths):
         obj
             A serialisable object
         """
-        with open_(self._path_for_pickle(name, use_search_internal), "wb") as f:
+        with open_(self._path_for_pickle(name, prefix), "wb") as f:
             dill.dump(obj, f)
 
-    def save_json(self, name, object_dict: Union[dict, list], prefix : str = "", use_search_internal : bool = False):
+    def save_json(self, name, object_dict: Union[dict, list], prefix : str = ""):
         """
         Save a dictionary as a json file in the jsons directory of the search.
 
@@ -80,7 +68,7 @@ class DirectoryPaths(AbstractPaths):
         object_dict
             The dictionary to save
         """
-        with open_(self._path_for_json(name, prefix, use_search_internal), "w+") as f:
+        with open_(self._path_for_json(name, prefix), "w+") as f:
             json.dump(object_dict, f, indent=4)
 
     def load_json(self, name, path_overwrite : Optional[str] = None):
@@ -133,7 +121,7 @@ class DirectoryPaths(AbstractPaths):
 
         return fits.open(self._path_for_fits(name))[0]
 
-    def load_object(self, name: str, use_search_internal : bool = False):
+    def load_object(self, name: str, prefix : str = ""):
         """
         Load a serialised object with the given name.
 
@@ -148,7 +136,7 @@ class DirectoryPaths(AbstractPaths):
         -------
         The deserialised object
         """
-        with open_(self._path_for_pickle(name, use_search_internal), "rb") as f:
+        with open_(self._path_for_pickle(name, prefix), "rb") as f:
             return dill.load(f)
 
     def remove_object(self, name: str):
