@@ -198,7 +198,7 @@ class AbstractPaths(ABC):
         """
         The path to the samples folder.
         """
-        return self.output_path / "search_internal"
+        return self._files_path / "search_internal"
 
     @property
     def image_path(self) -> Path:
