@@ -360,11 +360,11 @@ class AbstractPaths(ABC):
         pass
 
     @abstractmethod
-    def save_fits(self, name: str, hdu):
+    def save_fits(self, name: str, hdu, prefix : str = ""):
         pass
 
     @abstractmethod
-    def load_fits(self, name: str):
+    def load_fits(self, name: str, prefix : str = ""):
         pass
 
     @abstractmethod

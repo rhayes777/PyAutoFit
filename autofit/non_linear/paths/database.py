@@ -190,7 +190,7 @@ class DatabasePaths(AbstractPaths):
         """
         self.fit.set_hdu(name, hdu)
 
-    def load_fits(self, name: str):
+    def load_fits(self, name: str, prefix : str = ""):
         """
         Load a fits file from the database
 

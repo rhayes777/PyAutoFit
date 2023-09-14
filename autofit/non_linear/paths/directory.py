@@ -53,6 +53,8 @@ class DirectoryPaths(AbstractPaths):
             The name of the object
         obj
             A serialisable object
+        prefix
+            A prefix to add to the path which is the name of the folder the file is saved in.
         """
         with open_(self._path_for_pickle(name, prefix), "wb") as f:
             dill.dump(obj, f)
@@ -67,6 +69,8 @@ class DirectoryPaths(AbstractPaths):
             The name of the json file
         object_dict
             The dictionary to save
+        prefix
+            A prefix to add to the path which is the name of the folder the file is saved in.
         """
         with open_(self._path_for_json(name, prefix), "w+") as f:
             json.dump(object_dict, f, indent=4)
@@ -101,10 +105,12 @@ class DirectoryPaths(AbstractPaths):
             The name of the fits file
         hdu
             The HDU to save
+        prefix
+            A prefix to add to the path which is the name of the folder the file is saved in.
         """
         hdu.writeto(self._path_for_fits(name, prefix), overwrite=True)
 
-    def load_fits(self, name: str):
+    def load_fits(self, name: str, prefix : str = ""):
         """
         Load an HDU from a fits file in the fits directory of the search.
 
@@ -112,14 +118,16 @@ class DirectoryPaths(AbstractPaths):
         ----------
         name
             The name of the fits file
+        prefix
+            A prefix to add to the path which is the name of the folder the file is saved in.
 
         Returns
         -------
-        The loaded HDU
+        The loaded HDU.
         """
         from astropy.io import fits
 
-        return fits.open(self._path_for_fits(name))[0]
+        return fits.open(self._path_for_fits(name, prefix))[0]
 
     def load_object(self, name: str, prefix : str = ""):
         """
@@ -131,6 +139,8 @@ class DirectoryPaths(AbstractPaths):
         ----------
         name
             The name of a serialised object
+        prefix
+            A prefix to add to the path which is the name of the folder the file is saved in.
 
         Returns
         -------
