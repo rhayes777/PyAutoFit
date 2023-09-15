@@ -249,7 +249,7 @@ class Nautilus(abstract_nest.AbstractNest):
         log_likelihood_list = log_likelihoods.tolist()
         weight_list = np.exp(log_weights).tolist()
 
-        search_internal_json = {
+        search_internal = {
             "parameter_lists": parameter_lists,
             "log_likelihood_list": log_likelihood_list,
             "weight_list": weight_list,
@@ -259,19 +259,14 @@ class Nautilus(abstract_nest.AbstractNest):
             "number_live_points": int(sampler.n_live)
         }
 
-        self.paths.save_json(
-            name="search_internal",
-            object_dict=search_internal_json,
-            prefix="search_internal"
+        self.paths.save_search_internal(
+            obj=search_internal,
         )
 
     @property
     def samples_info(self):
 
-        search_internal_dict = self.paths.load_json(
-            name="search_internal",
-            prefix="search_internal"
-        )
+        search_internal_dict = self.paths.load_search_internal()
 
         return {
             "log_evidence": search_internal_dict["log_evidence"],
@@ -296,10 +291,7 @@ class Nautilus(abstract_nest.AbstractNest):
             Maps input vectors of unit parameter values to physical values and model instances via priors.
         """
 
-        search_internal_dict = self.paths.load_json(
-            name="search_internal",
-            prefix="search_internal"
-        )
+        search_internal_dict = self.paths.load_search_internal()
 
         parameter_lists = search_internal_dict["parameter_lists"]
         log_likelihood_list = search_internal_dict["log_likelihood_list"]

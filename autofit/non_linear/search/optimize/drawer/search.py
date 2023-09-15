@@ -125,24 +125,23 @@ class Drawer(AbstractOptimizer):
             use_prior_medians=True,
         )
 
-        self.paths.save_object(
-            name="parameter_lists",
-            obj=parameter_lists,
-            prefix="search_internal"
-        )
-        self.paths.save_object(
-            name="log_posterior_list",
-            obj=log_posterior_list,
-            prefix="search_internal"
+        search_internal = {
+            "parameter_lists" : parameter_lists,
+            "log_posterior_list" : log_posterior_list
+        }
+
+        self.paths.save_search_internal(
+            obj=search_internal,
         )
 
         self.logger.info("Drawer complete")
 
     def samples_from(self, model):
-        parameter_lists = self.paths.load_object(
-            name="parameter_lists",
-            prefix="search_internal"
-        )
+
+        search_internal_dict = self.paths.load_search_internal()
+
+        parameter_lists = search_internal_dict["parameter_lists"]
+        log_posterior_list = search_internal_dict["log_posterior_list"]
 
         log_prior_list = [
             sum(model.log_prior_list_from_vector(vector=vector))
@@ -151,10 +150,7 @@ class Drawer(AbstractOptimizer):
         log_likelihood_list = [
             lp - prior
             for lp, prior in zip(
-                self.paths.load_object(
-                    name="log_posterior_list",
-                    prefix="search_internal"
-                ), log_prior_list
+                log_posterior_list, log_prior_list
             )
         ]
 

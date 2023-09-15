@@ -81,6 +81,12 @@ class NullPaths(AbstractPaths):
     def completed(self):
         pass
 
+    def save_search_internal(self, obj):
+        pass
+
+    def load_search_internal(self):
+        pass
+
     def load_samples(self):
         pass
 

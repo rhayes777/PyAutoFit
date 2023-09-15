@@ -175,6 +175,39 @@ class DirectoryPaths(AbstractPaths):
         """
         return path.exists(self._has_completed_path)
 
+    def save_search_internal(self, obj):
+        """
+        Save the internal representation of a non-linear search as dill file.
+
+        The results in this representation are required to use a search's in-built tools for visualization,
+        analysing samples and other tasks.
+
+        Parameters
+        ----------
+        search_internal
+            The results of the non-linear search in its internal representation.
+        """
+        filename = self.search_internal_path / "search_internal.dill"
+
+        with open_(filename, "wb") as f:
+            dill.dump(obj, f)
+
+    def load_search_internal(self):
+        """
+        Load the internal representation of a non-linear search from a pickle or dill file.
+
+        The results in this representation are required to use a search's in-built tools for visualization,
+        analysing samples and other tasks.
+
+        Returns
+        -------
+        The results of the non-linear search in its internal representation.
+        """
+        filename = self.search_internal_path / "search_internal.dill"
+
+        with open_(filename, "rb") as f:
+            return dill.load(f)
+
     def completed(self):
         """
         Mark the search as complete by saving a file

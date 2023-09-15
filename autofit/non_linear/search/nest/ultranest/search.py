@@ -183,11 +183,9 @@ class UltraNest(abstract_nest.AbstractNest):
                     **config_dict_run
                 )
 
-            self.paths.save_object(
-                name="search_internal",
-                obj=sampler.results,
-                prefix="search_internal"
-            )
+            self.paths.save_search_internal(
+                  obj=sampler.results,
+              )
 
             iterations_after_run = sampler.ncall
 
@@ -204,10 +202,7 @@ class UltraNest(abstract_nest.AbstractNest):
     @property
     def samples_info(self):
 
-        search_internal = self.paths.load_object(
-            name="search_internal",
-            prefix="search_internal"
-        )
+        search_internal = self.paths.load_search_internal()
 
         return {
             "log_evidence": search_internal["logz"],
@@ -232,10 +227,7 @@ class UltraNest(abstract_nest.AbstractNest):
             Maps input vectors of unit parameter values to physical values and model instances via priors.
         """
 
-        search_internal = self.paths.load_object(
-            name="search_internal",
-            prefix="search_internal"
-        )
+        search_internal = self.paths.load_search_internal()
 
         parameters = search_internal["weighted_samples"]["points"]
         log_likelihood_list = search_internal["weighted_samples"]["logl"]

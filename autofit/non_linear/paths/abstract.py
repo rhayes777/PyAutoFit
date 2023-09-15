@@ -391,6 +391,12 @@ class AbstractPaths(ABC):
     def is_object(self, name: str) -> bool:
         pass
 
+    def save_search_internal(self, obj):
+        raise NotImplementedError
+
+    def load_search_internal(self):
+        raise NotImplementedError
+
     @property
     @abstractmethod
     def is_complete(self) -> bool:

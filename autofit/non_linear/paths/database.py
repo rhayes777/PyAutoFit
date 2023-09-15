@@ -217,6 +217,12 @@ class DatabasePaths(AbstractPaths):
     def is_object(self, name: str) -> bool:
         return name in self.fit
 
+    def save_search_internal(self, obj):
+        pass
+
+    def load_search_internal(self):
+        pass
+
     @property
     def fit(self) -> Fit:
         if self._fit is None:
