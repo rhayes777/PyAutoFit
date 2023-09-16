@@ -170,28 +170,38 @@ class Nautilus(abstract_nest.AbstractNest):
                 **self.config_dict_run,
             )
 
+            self.output_sampler_results(sampler=sampler)
+
         else:
 
             if not self.using_mpi:
 
-                sampler = Sampler(
-                    prior=prior_transform,
-                    likelihood=fitness.__call__,
-                    n_dim=model.prior_count,
-                    prior_kwargs={"model": model},
-                    filepath=checkpoint_file,
-                    pool=self.number_of_cores,
-                    **self.config_dict_search
-                )
+                with self.make_sneakier_pool(
+                        fitness_function=fitness.__call__,
+                        prior_transform=prior_transform,
+                        fitness_args=(model, fitness.__call__),
+                        prior_transform_args=(model,),
+                ) as pool:
 
-                if os.path.exists(checkpoint_file):
+                    sampler = Sampler(
+                        prior=pool.prior_transform,
+                        likelihood=pool.fitness,
+                        n_dim=model.prior_count,
+                        filepath=checkpoint_file,
+                        pool=pool,
+                        **self.config_dict_search
+                    )
+
+                    if os.path.exists(checkpoint_file):
+
+                        self.output_sampler_results(sampler=sampler)
+                        self.perform_update(model=model, analysis=analysis, during_analysis=True)
+
+                    sampler.run(
+                        **self.config_dict_run,
+                    )
 
                     self.output_sampler_results(sampler=sampler)
-                    self.perform_update(model=model, analysis=analysis, during_analysis=True)
-
-                sampler.run(
-                    **self.config_dict_run,
-                )
 
             else:
 
@@ -226,7 +236,9 @@ class Nautilus(abstract_nest.AbstractNest):
                         **self.config_dict_run,
                     )
 
-        self.output_sampler_results(sampler=sampler)
+                    self.output_sampler_results(sampler=sampler)
+
+
 
         os.remove(checkpoint_file)
 

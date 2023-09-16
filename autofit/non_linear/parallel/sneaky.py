@@ -389,8 +389,11 @@ def prior_transform_cache(x):
     """
     Prior transform call
     """
+
     return FunctionCache.prior_transform(x, *FunctionCache.prior_transform_args,
                                          **FunctionCache.prior_transform_kwargs)
+
+
 
 class SneakierPool:
     def __init__(
