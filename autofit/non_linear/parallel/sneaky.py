@@ -420,11 +420,10 @@ class SneakierPool:
         try:
             from mpi4py import MPI
             self.comm = MPI.COMM_WORLD
+            self._processes = self.comm.size
         except ModuleNotFoundError:
-            pass
+            self._processes = 1
 
-        self._processes = self.comm.size
-        
         init_args = (
             self.fitness_init, self.prior_transform_init,
             self.fitness_args, self.fitness_kwargs,
