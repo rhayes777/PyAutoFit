@@ -27,6 +27,7 @@ from autofit.non_linear.initializer import Initializer
 from autofit.non_linear.fitness import Fitness
 from autofit.non_linear.parallel import SneakyPool, SneakierPool
 from autofit.non_linear.paths.abstract import AbstractPaths
+from autofit.non_linear.paths.database import DatabasePaths
 from autofit.non_linear.paths.directory import DirectoryPaths
 from autofit.non_linear.paths.sub_directory_paths import SubDirectoryPaths
 from autofit.non_linear.samples.samples import Samples
@@ -635,7 +636,8 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         and errors on the model parameters.
         """
         if self.is_master:
-            self.timer.start()
+            if not isinstance(self.paths, DatabasePaths):
+                self.timer.start()
 
         model.freeze()
         self._fit(
@@ -710,7 +712,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                 self.logger.info("Forcing pickle overwrite")
 
                 if not self.skip_save_samples:
-                    self.paths.save_json("samples_summary", samples.summary().dict())
+                    self.paths.save_json("samples_summary", to_dict(samples.summary()))
 
                 analysis.save_results(paths=self.paths, result=result)
 
@@ -851,7 +853,8 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                 f"output folder for final visualization, samples, etc.)"
             )
 
-        self.timer.update()
+        if not isinstance(self.paths, DatabasePaths):
+            self.timer.update()
 
         samples = self.samples_from(model=model)
 

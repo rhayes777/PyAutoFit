@@ -6,6 +6,7 @@ from autoconf import conf
 
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.paths.abstract import AbstractPaths
+from autofit.non_linear.paths.database import DatabasePaths
 from autofit.non_linear.result import Result
 
 logger = logging.getLogger(__name__)
@@ -52,7 +53,9 @@ class Analysis(ABC):
         3) Visualization can be forced to run via the `force_visualization_overwrite`, for example if a user
         wants to plot additional images that were not output on the original run.
 
-        4) If PyAutoFit test mode is on visualization is disabled, irrespective of the `force_visualization_overwite`
+        4) If the analysis is running a database session visualization is switched off.
+
+        5) If PyAutoFit test mode is on visualization is disabled, irrespective of the `force_visualization_overwite`
         config input.
 
         Parameters
@@ -68,6 +71,9 @@ class Analysis(ABC):
         """
 
         if os.environ.get("PYAUTOFIT_TEST_MODE") == "1":
+            return False
+
+        if isinstance(paths, DatabasePaths):
             return False
 
         if conf.instance["general"]["output"]["force_visualize_overwrite"]:

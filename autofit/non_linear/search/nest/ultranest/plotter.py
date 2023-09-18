@@ -53,7 +53,7 @@ class UltraNestPlotter(SamplesPlotter):
         from ultranest import plot
 
         plot.cornerplot(
-            results=self.samples.results_internal,
+            results=self.samples.search_internal,
             **kwargs
         )
 
@@ -71,7 +71,7 @@ class UltraNestPlotter(SamplesPlotter):
         from ultranest import plot
 
         plot.runplot(
-            results=self.samples.results_internal,
+            results=self.samples.search_internal,
             **kwargs
         )
 
@@ -89,7 +89,7 @@ class UltraNestPlotter(SamplesPlotter):
         from ultranest import plot
 
         plot.traceplot(
-            results=self.samples.results_internal,
+            results=self.samples.search_internal,
             **kwargs
         )
 

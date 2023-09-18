@@ -74,9 +74,6 @@ class MockSamples(SamplesPDF):
 
         return self._gaussian_tuples
 
-    def write_table(self, filename):
-        pass
-
     @property
     def unconverged_sample_size(self):
         return self.samples_info["unconverged_sample_size"]

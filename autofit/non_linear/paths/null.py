@@ -9,10 +9,10 @@ class NullPaths(AbstractPaths):
     Null version of paths object for avoiding writing of files to disk
     """
 
-    def save_json(self, name, object_dict: dict):
+    def save_json(self, name, object_dict: dict, prefix : str = ""):
         pass
 
-    def load_json(self, name) -> dict:
+    def load_json(self, name, prefix : str = "") -> dict:
         pass
 
     def save_array(self, name, array):
@@ -21,10 +21,10 @@ class NullPaths(AbstractPaths):
     def load_array(self, name):
         pass
 
-    def save_fits(self, name: str, hdu):
+    def save_fits(self, name: str, hdu, prefix : str = ""):
         pass
 
-    def load_fits(self, name: str):
+    def load_fits(self, name: str, prefix : str = ""):
         pass
 
     def __init__(self):
@@ -62,23 +62,11 @@ class NullPaths(AbstractPaths):
     def save_all(self, search_config_dict=None, info=None):
         pass
 
-    def save_object(self, name: str, obj: object):
+    def save_object(self, name: str, obj: object, prefix : str = ""):
         self.objects[name] = obj
 
-    def load_object(self, name: str):
+    def load_object(self, name: str, prefix : str = ""):
         return self.objects[name]
-
-    def save_results_internal(self, obj: object):
-        pass
-
-    def load_results_internal(self):
-        pass
-
-    def save_results_internal_json(self, results_internal_dict: Dict):
-        pass
-
-    def load_results_internal_json(self) -> Dict:
-        pass
 
     def remove_object(self, name: str):
         pass
@@ -91,6 +79,12 @@ class NullPaths(AbstractPaths):
         return False
 
     def completed(self):
+        pass
+
+    def save_search_internal(self, obj):
+        pass
+
+    def load_search_internal(self):
         pass
 
     def load_samples(self):

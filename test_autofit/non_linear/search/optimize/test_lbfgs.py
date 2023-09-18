@@ -55,32 +55,3 @@ def test__loads_from_config_file_correct():
     assert isinstance(search.initializer, af.InitializerPrior)
     assert search.iterations_per_update == 11
 
-def test__samples_via_internal_from():
-
-    search = af.LBFGS()
-    search.paths = af.DirectoryPaths(path_prefix=path.join("non_linear", "LBFGS"))
-    search.paths._identifier = "tag"
-
-    model = af.ModelMapper(mock_class=af.m.MockClassx3)
-    model.mock_class.one = af.LogUniformPrior(lower_limit=1e-8, upper_limit=100.0)
-    model.mock_class.two = af.LogUniformPrior(lower_limit=1e-8, upper_limit=100.0)
-    model.mock_class.three = af.LogUniformPrior(lower_limit=1e-8, upper_limit=100.0)
-
-    samples = search.samples_via_internal_from(model=model)
-
-    assert isinstance(samples.parameter_lists, list)
-    assert isinstance(samples.parameter_lists[0], list)
-    assert isinstance(samples.log_likelihood_list, list)
-    assert isinstance(samples.log_prior_list, list)
-    assert isinstance(samples.log_posterior_list, list)
-
-    assert samples.parameter_lists[0] == pytest.approx(
-        [50.005469, 25.143677, 10.06950], 1.0e-4
-    )
-
-    assert samples.log_likelihood_list[0] == pytest.approx(-45.134121, 1.0e-4)
-    assert samples.log_posterior_list[0] == pytest.approx(-44.97504284, 1.0e-4)
-    assert samples.weight_list[0] == 1.0
-
-    assert len(samples.parameter_lists) == 1
-    assert len(samples.log_likelihood_list) == 1

@@ -183,10 +183,10 @@ class Samples(SamplesInterface, ABC):
         model: AbstractPriorModel,
         sample_list: List[Sample],
         samples_info: Optional[Dict] = None,
-        results_internal: Optional = None,
+        search_internal: Optional = None,
     ):
         """
-        The `Samples` classes in **PyAutoFit** provide an interface between the results_internal of
+        The `Samples` classes in **PyAutoFit** provide an interface between the search_internal of
         a `NonLinearSearch` (e.g. as files on your hard-disk) and Python.
 
         For example, the output class can be used to load an instance of the best-fit model, get an instance of any
@@ -196,7 +196,7 @@ class Samples(SamplesInterface, ABC):
         PySwarms, LBFGS).
 
         To use a library's in-built visualization tools results are optionally stored in their native internal format
-        using the `results_internal` attribute.
+        using the `search_internal` attribute.
 
         Parameters
         ----------
@@ -207,7 +207,7 @@ class Samples(SamplesInterface, ABC):
             by the non-linear search.
         samples_info
             Contains information on the samples (e.g. total iterations, time to run the search, etc.).
-        results_internal
+        search_internal
             The nested sampler's results in their native internal format for interfacing its visualization library.
         """
 
@@ -215,7 +215,7 @@ class Samples(SamplesInterface, ABC):
 
         self.sample_list = sample_list
         self.samples_info = samples_info
-        self.results_internal = results_internal
+        self.search_internal = search_internal
 
     @classmethod
     def from_csv(cls, paths, model: AbstractPriorModel):
@@ -248,15 +248,15 @@ class Samples(SamplesInterface, ABC):
         samples_info = paths.load_samples_info()
 
         try:
-            results_internal = paths.load_results_internal()
+            search_internal = paths.load_search_internal()
         except FileNotFoundError:
-            results_internal = None
+            search_internal = None
 
         return cls.from_list_info_and_model(
             sample_list=sample_list,
             samples_info=samples_info,
             model=model,
-            results_internal=results_internal,
+            search_internal=search_internal,
         )
 
     @classmethod
@@ -265,7 +265,7 @@ class Samples(SamplesInterface, ABC):
         sample_list,
         samples_info,
         model: AbstractPriorModel,
-        results_internal=None,
+        search_internal=None,
     ):
         try:
             auto_correlation_settings = AutoCorrelationsSettings(
@@ -282,7 +282,7 @@ class Samples(SamplesInterface, ABC):
                 model=model,
                 sample_list=sample_list,
                 samples_info=samples_info,
-                results_internal=results_internal,
+                search_internal=search_internal,
                 auto_correlation_settings=auto_correlation_settings,
             )
         except TypeError:
@@ -290,7 +290,7 @@ class Samples(SamplesInterface, ABC):
                 model=model,
                 sample_list=sample_list,
                 samples_info=samples_info,
-                results_internal=results_internal,
+                search_internal=search_internal,
             )
 
     def summary(self):
@@ -316,7 +316,7 @@ class Samples(SamplesInterface, ABC):
 
         self._check_addition(other=other)
 
-        if self.results_internal is not None:
+        if self.search_internal is not None:
             warnings.warn(
                 f"Addition of {self.__class__.__name__} cannot retain results in native format. "
                 "Visualization of summed samples diabled.",

@@ -154,11 +154,12 @@ class AbstractPySwarms(AbstractOptimizer):
 
         try:
 
-            results_internal = self.paths.load_results_internal()
-            results_internal_dict = self.paths.load_results_internal_json()
+            search_internal_dict = self.paths.load_search_internal()
 
-            init_pos = results_internal[-1]
-            total_iterations = results_internal_dict["total_iterations"]
+            search_internal = search_internal_dict["search_internal"]
+
+            init_pos = search_internal[-1]
+            total_iterations = search_internal_dict["total_iterations"]
 
             self.logger.info(
                 "Resuming PySwarms non-linear search (previous samples found)."
@@ -219,14 +220,16 @@ class AbstractPySwarms(AbstractOptimizer):
 
                 total_iterations += iterations
 
-                results_internal_dict = {
+                search_internal = {
+                    "search_internal" : pso.pos_history,
                     "total_iterations": total_iterations,
                     "log_posterior_list": [-0.5 * cost for cost in pso.cost_history],
                     "time" : self.timer.time
                 }
 
-                self.paths.save_results_internal(obj=pso.pos_history)
-                self.paths.save_results_internal_json(results_internal_dict=results_internal_dict)
+                self.paths.save_search_internal(
+                    obj=search_internal,
+                )
 
                 self.perform_update(
                     model=model, analysis=analysis, during_analysis=True
@@ -249,20 +252,27 @@ class AbstractPySwarms(AbstractOptimizer):
         model
             Maps input vectors of unit parameter values to physical values and model instances via priors.
         """
-        results_internal = self.paths.load_results_internal()
-        results_internal_dict = self.paths.load_results_internal_json()
+        search_internal_dict = self.paths.load_search_internal()
+
+        search_internal = search_internal_dict["search_internal"]
+
+        search_internal_dict = {
+            "total_iterations": search_internal_dict["total_iterations"],
+            "log_posterior_list": search_internal_dict["log_posterior_list"],
+            "time": search_internal_dict["time"]
+        }
 
         parameter_lists = [
-            param.tolist() for parameters in results_internal for param in parameters
+            param.tolist() for parameters in search_internal for param in parameters
         ]
-        log_posterior_list = results_internal_dict["log_posterior_list"]
+        log_posterior_list = search_internal_dict["log_posterior_list"]
         log_prior_list = model.log_prior_list_from(parameter_lists=parameter_lists)
         log_likelihood_list = [lp - prior for lp, prior in zip(log_posterior_list, log_prior_list)]
         weight_list = len(log_likelihood_list) * [1.0]
 
         sample_list = Sample.from_lists(
             model=model,
-            parameter_lists=[parameters.tolist()[0] for parameters in results_internal],
+            parameter_lists=[parameters.tolist()[0] for parameters in search_internal],
             log_likelihood_list=log_likelihood_list,
             log_prior_list=log_prior_list,
             weight_list=weight_list
@@ -271,8 +281,8 @@ class AbstractPySwarms(AbstractOptimizer):
         return Samples(
             model=model,
             sample_list=sample_list,
-            samples_info=results_internal_dict,
-            results_internal=results_internal,
+            samples_info=search_internal_dict,
+            search_internal=search_internal,
         )
 
     def config_dict_with_test_mode_settings_from(self, config_dict):

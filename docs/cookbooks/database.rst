@@ -304,6 +304,10 @@ The results accessible via the database (e.g. ``model``, ``samples``) are those 
 By extending an ``Analysis`` class with the methods ``save_attributes`` and ``save_results``,
 custom files can be written to the ``files`` folder and become accessible via the database.
 
+To save the objects in a human readable and loaded .json format, the `data` and `noise_map`, which are natively stored
+as 1D numpy arrays, are converted to a suitable dictionary output format. This uses the **PyAutoConf** method
+`to_dict`.
+
 .. code-block:: python
 
 
@@ -352,10 +356,10 @@ custom files can be written to the ``files`` folder and become accessible via th
                 The PyAutoFit paths object which manages all paths, e.g. where the non-linear search outputs are stored,
                 visualization, and the pickled objects used by the aggregator output by this function.
             """
-            # The path where data.json is saved, e.g. output/dataset_name/unique_id/files/data.json
+            from autoconf.dictable import to_dict
 
-            paths.save_json(name="data", object_dict=self.data.tolist())
-            paths.save_json(name="noise_map", object_dict=self.noise_map.tolist())
+            paths.save_json(name="data", object_dict=to_dict(self.data))
+            paths.save_json(name="noise_map", object_dict=to_dict(self.noise_map))
 
         def save_results(self, paths: af.DirectoryPaths, result: af.Result):
             """

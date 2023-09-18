@@ -112,16 +112,18 @@ class LBFGS(AbstractOptimizer):
             convert_to_chi_squared=True
         )
 
-        if self.paths.is_object("x0"):
+        try:
 
-            x0 = self.paths.load_object("x0")
-            total_iterations = self.paths.load_object("total_iterations")
+            search_internal_dict = self.paths.load_search_internal()
+
+            x0 = search_internal_dict["x0"]
+            total_iterations = search_internal_dict["total_iterations"]
 
             self.logger.info(
                 "Resuming LBFGS non-linear search (previous samples found)."
             )
 
-        else:
+        except FileNotFoundError:
 
             (
                 unit_parameter_lists,
@@ -162,12 +164,15 @@ class LBFGS(AbstractOptimizer):
 
                 total_iterations += lbfgs.nit
 
-                self.paths.save_object("total_iterations", total_iterations)
+                search_internal = {
+                    "total_iterations": total_iterations,
+                    "log_posterior_list": -0.5 * fitness(parameters=lbfgs.x),
+                    "x0": lbfgs.x,
+                }
 
-                log_posterior_list = -0.5 * fitness(parameters=lbfgs.x)
-
-                self.paths.save_object("log_posterior", log_posterior_list)
-                self.paths.save_object("x0", lbfgs.x)
+                self.paths.save_search_internal(
+                    obj=search_internal,
+                )
 
                 x0 = lbfgs.x
 
@@ -195,12 +200,15 @@ class LBFGS(AbstractOptimizer):
         model
             Maps input vectors of unit parameter values to physical values and model instances via priors.
         """
-        results_internal = self.paths.load_object("x0")
-        log_posterior_list = np.array([self.paths.load_object("log_posterior")])
-        total_iterations = self.paths.load_object("total_iterations")
+        search_internal_dict = self.paths.load_search_internal()
 
-        parameter_lists = [list(results_internal)]
+        x0 = search_internal_dict["x0"]
+        total_iterations = search_internal_dict["total_iterations"]
+        log_posterior_list = np.array([search_internal_dict["log_posterior_list"]])
+
+        parameter_lists = [list(x0)]
         log_prior_list = model.log_prior_list_from(parameter_lists=parameter_lists)
+
         log_likelihood_list = [
             lp - prior
             for lp, prior
@@ -225,5 +233,5 @@ class LBFGS(AbstractOptimizer):
             model=model,
             sample_list=sample_list,
             samples_info=samples_info,
-            results_internal=results_internal,
+            search_internal=search_internal_dict["x0"],
         )

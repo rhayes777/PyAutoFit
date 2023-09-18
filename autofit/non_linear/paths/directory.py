@@ -1,11 +1,10 @@
+import dill
 import json
 import os
 from os import path
 from pathlib import Path
-from typing import Dict, Optional, Union
+from typing import Optional, Union
 import logging
-
-import dill
 
 from autoconf import conf
 from autoconf.dictable import to_dict
@@ -27,19 +26,22 @@ class DirectoryPaths(AbstractPaths):
         """
         self.save_object(name, instance)
 
-    def _path_for_pickle(self, name: str) -> Path:
-        return self._pickle_path / f"{name}.pickle"
+    def _path_for_pickle(self, name: str, prefix : str = "") -> Path:
+        return self._pickle_path / prefix / f"{name}.pickle"
 
-    def _path_for_json(self, name) -> Path:
-        return self._files_path / f"{name}.json"
+    def _path_for_json(self, name, prefix : str = "") -> Path:
+        return self._files_path / prefix / f"{name}.json"
 
     def _path_for_csv(self, name) -> Path:
         return self._files_path / f"{name}.csv"
 
-    def _path_for_fits(self, name):
-        return self._files_path / f"{name}.fits"
+    def _path_for_fits(self, name, prefix : str = "") -> Path:
 
-    def save_object(self, name: str, obj: object):
+        os.makedirs(self._files_path / prefix, exist_ok=True)
+
+        return self._files_path / prefix / f"{name}.fits"
+
+    def save_object(self, name: str, obj: object, prefix : str = ""):
         """
         Serialise an object using dill and save it to the pickles
         directory of the search.
@@ -50,11 +52,13 @@ class DirectoryPaths(AbstractPaths):
             The name of the object
         obj
             A serialisable object
+        prefix
+            A prefix to add to the path which is the name of the folder the file is saved in.
         """
-        with open_(self._path_for_pickle(name), "wb") as f:
+        with open_(self._path_for_pickle(name, prefix), "wb") as f:
             dill.dump(obj, f)
 
-    def save_json(self, name, object_dict: Union[dict, list]):
+    def save_json(self, name, object_dict: Union[dict, list], prefix : str = ""):
         """
         Save a dictionary as a json file in the jsons directory of the search.
 
@@ -64,12 +68,14 @@ class DirectoryPaths(AbstractPaths):
             The name of the json file
         object_dict
             The dictionary to save
+        prefix
+            A prefix to add to the path which is the name of the folder the file is saved in.
         """
-        with open_(self._path_for_json(name), "w+") as f:
+        with open_(self._path_for_json(name, prefix), "w+") as f:
             json.dump(object_dict, f, indent=4)
 
-    def load_json(self, name):
-        with open_(self._path_for_json(name)) as f:
+    def load_json(self, name, prefix : str = ""):
+        with open_(self._path_for_json(name, prefix)) as f:
             return json.load(f)
 
     def save_array(self, name: str, array: np.ndarray):
@@ -88,7 +94,7 @@ class DirectoryPaths(AbstractPaths):
     def load_array(self, name: str):
         return np.loadtxt(self._path_for_csv(name), delimiter=",")
 
-    def save_fits(self, name: str, hdu):
+    def save_fits(self, name: str, hdu, prefix : str = ""):
         """
         Save an HDU as a fits file in the fits directory of the search.
 
@@ -98,10 +104,12 @@ class DirectoryPaths(AbstractPaths):
             The name of the fits file
         hdu
             The HDU to save
+        prefix
+            A prefix to add to the path which is the name of the folder the file is saved in.
         """
-        hdu.writeto(self._path_for_fits(name), overwrite=True)
+        hdu.writeto(self._path_for_fits(name, prefix), overwrite=True)
 
-    def load_fits(self, name: str):
+    def load_fits(self, name: str, prefix : str = ""):
         """
         Load an HDU from a fits file in the fits directory of the search.
 
@@ -109,82 +117,18 @@ class DirectoryPaths(AbstractPaths):
         ----------
         name
             The name of the fits file
+        prefix
+            A prefix to add to the path which is the name of the folder the file is saved in.
 
         Returns
         -------
-        The loaded HDU
+        The loaded HDU.
         """
         from astropy.io import fits
 
-        return fits.open(self._path_for_fits(name))[0]
+        return fits.open(self._path_for_fits(name, prefix))[0]
 
-    def save_results_internal(self, obj: object):
-        """
-        Save the internal representation of a non-linear search as a pickle or dill file.
-
-        The results in this representation are required to use a search's in-built tools for visualization,
-        analysing samples and other tasks.
-
-        Parameters
-        ----------
-        results_internal
-            The results of the non-linear search in its internal representation.
-        """
-        filename = f"{self.search_internal_path}/results_internal.dill"
-
-        with open_(filename, "wb") as f:
-            dill.dump(obj, f)
-
-    def load_results_internal(self):
-        """
-        Load the internal representation of a non-linear search from a pickle or dill file.
-
-        The results in this representation are required to use a search's in-built tools for visualization,
-        analysing samples and other tasks.
-
-        Returns
-        -------
-        The results of the non-linear search in its internal representation.
-        """
-        filename = f"{self.search_internal_path}/results_internal.dill"
-
-        with open_(filename, "rb") as f:
-            return dill.load(f)
-
-    def save_results_internal_json(self, results_internal_dict: Dict):
-        """
-        Save the internal representation of a non-linear search as a pickle or dill file.
-
-        The results in this representation are required to use a search's in-built tools for visualization,
-        analysing samples and other tasks.
-
-        Parameters
-        ----------
-        results_internal
-            The results of the non-linear search in its internal representation.
-        """
-        filename = f"{self.search_internal_path}/results_internal.json"
-
-        with open_(filename, "w+") as f:
-            json.dump(results_internal_dict, f, indent=4)
-
-    def load_results_internal_json(self) -> Dict:
-        """
-        Load the internal representation of a non-linear search from a pickle or dill file.
-
-        The results in this representation are required to use a search's in-built tools for visualization,
-        analysing samples and other tasks.
-
-        Returns
-        -------
-        The results of the non-linear search in its internal representation.
-        """
-        filename = f"{self.search_internal_path}/results_internal.json"
-
-        with open_(filename, "rb") as f:
-            return json.load(f)
-
-    def load_object(self, name: str):
+    def load_object(self, name: str, prefix : str = ""):
         """
         Load a serialised object with the given name.
 
@@ -194,12 +138,14 @@ class DirectoryPaths(AbstractPaths):
         ----------
         name
             The name of a serialised object
+        prefix
+            A prefix to add to the path which is the name of the folder the file is saved in.
 
         Returns
         -------
         The deserialised object
         """
-        with open_(self._path_for_pickle(name), "rb") as f:
+        with open_(self._path_for_pickle(name, prefix), "rb") as f:
             return dill.load(f)
 
     def remove_object(self, name: str):
@@ -228,6 +174,39 @@ class DirectoryPaths(AbstractPaths):
         Has the search been completed?
         """
         return path.exists(self._has_completed_path)
+
+    def save_search_internal(self, obj):
+        """
+        Save the internal representation of a non-linear search as dill file.
+
+        The results in this representation are required to use a search's in-built tools for visualization,
+        analysing samples and other tasks.
+
+        Parameters
+        ----------
+        search_internal
+            The results of the non-linear search in its internal representation.
+        """
+        filename = self.search_internal_path / "search_internal.dill"
+
+        with open_(filename, "wb") as f:
+            dill.dump(obj, f)
+
+    def load_search_internal(self):
+        """
+        Load the internal representation of a non-linear search from a pickle or dill file.
+
+        The results in this representation are required to use a search's in-built tools for visualization,
+        analysing samples and other tasks.
+
+        Returns
+        -------
+        The results of the non-linear search in its internal representation.
+        """
+        filename = self.search_internal_path / "search_internal.dill"
+
+        with open_(filename, "rb") as f:
+            return dill.load(f)
 
     def completed(self):
         """
@@ -367,15 +346,6 @@ class DirectoryPaths(AbstractPaths):
         """
         return self.output_path / "pickles"
 
-    @property
-    def _files_path(self) -> Path:
-        """
-        This is private for a reason, use the save_json etc. methods to save and load json
-        """
-        files_path = self.output_path / "files"
-        os.makedirs(files_path, exist_ok=True)
-        return files_path
-
     def _save_metadata(self, search_name):
         """
         Save metadata associated with the phase, such as the name of the pipeline, the
@@ -383,8 +353,7 @@ class DirectoryPaths(AbstractPaths):
         """
         with open_(self.output_path / "metadata", "a") as f:
             f.write(
-                f"""name={self.name}
-                non_linear_search={search_name}
+                f"""name={self.name}\nnon_linear_search={search_name}
             """
             )
 

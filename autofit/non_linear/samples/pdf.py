@@ -23,10 +23,10 @@ class SamplesPDF(Samples):
         model: AbstractPriorModel,
         sample_list: List[Sample],
         samples_info: Optional[Dict] = None,
-        results_internal: Optional = None,
+        search_internal: Optional = None,
     ):
         """
-        The `Samples` classes in **PyAutoFit** provide an interface between the results_internal of
+        The `Samples` classes in **PyAutoFit** provide an interface between the search_internal of
         a `NonLinearSearch` (e.g. as files on your hard-disk) and Python.
 
         For example, the output class can be used to load an instance of the best-fit model, get an instance of any
@@ -36,7 +36,7 @@ class SamplesPDF(Samples):
         model fit (e.g. nested samplers, MCMC).
 
         To use a library's in-built visualization tools results are optionally stored in their native internal format
-        using the `results_internal` attribute.
+        using the `search_internal` attribute.
 
         Parameters
         ----------
@@ -47,7 +47,7 @@ class SamplesPDF(Samples):
             by the non-linear search.
         samples_info
             Contains information on the samples (e.g. total iterations, time to run the search, etc.).
-        results_internal
+        search_internal
             The nested sampler's results in their native internal format for interfacing its visualization library.
         """
 
@@ -55,7 +55,7 @@ class SamplesPDF(Samples):
             model=model,
             sample_list=sample_list,
             samples_info=samples_info,
-            results_internal=results_internal,
+            search_internal=search_internal,
         )
 
     def summary(self):

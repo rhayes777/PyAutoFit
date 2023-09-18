@@ -9,7 +9,7 @@ class PySwarmsPlotter(MCMCPlotter):
     def contour(self, **kwargs):
         from pyswarms.utils import plotters
         plotters.plot_contour(
-            pos_history=self.samples.results_internal,
+            pos_history=self.samples.search_internal,
             **kwargs
         )
 
@@ -28,13 +28,13 @@ class PySwarmsPlotter(MCMCPlotter):
 
     def trajectories(self, **kwargs):
         
-        results_internal = self.samples.results_internal
+        search_internal = self.samples.search_internal
 
         fig, axes = plt.subplots(self.samples.model.prior_count, figsize=(10, 7))
 
         for i in range(self.samples.model.prior_count):
             ax = axes[i]
-            ax.plot(np.asarray(results_internal)[:, -1, i], self.samples.log_posterior_list, "k", alpha=0.3)
+            ax.plot(np.asarray(search_internal)[:, -1, i], self.samples.log_posterior_list, "k", alpha=0.3)
             ax.set_ylabel("Log Likelihood")
             ax.set_xlabel(self.model.parameter_labels_with_superscripts_latex[i])
 
@@ -44,11 +44,11 @@ class PySwarmsPlotter(MCMCPlotter):
     def time_series(self, **kwargs):
 
         fig, axes = plt.subplots(self.samples.model.prior_count, figsize=(10, 7), sharex=True)
-        results_internal = self.samples.results_internal
+        search_internal = self.samples.search_internal
 
         for i in range(self.samples.model.prior_count):
             ax = axes[i]
-            ax.plot(np.asarray(results_internal)[:, -1, i], "k", alpha=0.3)
+            ax.plot(np.asarray(search_internal)[:, -1, i], "k", alpha=0.3)
             ax.set_ylabel(self.model.parameter_labels_with_superscripts_latex[i])
 
         axes[-1].set_xlabel("step number")

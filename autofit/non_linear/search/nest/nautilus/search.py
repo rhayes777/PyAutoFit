@@ -2,6 +2,7 @@ import numpy as np
 import logging
 import os
 import sys
+import timeout_decorator
 from typing import Optional
 
 from autofit.database.sqlalchemy_ import sa
@@ -112,18 +113,6 @@ class Nautilus(abstract_nest.AbstractNest):
         set of accepted ssamples of the fit.
         """
 
-        try:
-            from nautilus import Sampler
-        except ModuleNotFoundError:
-            raise ModuleNotFoundError(
-                "\n--------------------\n"
-                "You are attempting to perform a model-fit using Nautilus. \n\n"
-                "However, the optional library Nautilus (https://nautilus-sampler.readthedocs.io/en/stable/index.html) is "
-                "not installed.\n\n"
-                "Install it via the command `pip install nautilus-sampler==0.7.2`.\n\n"
-                "----------------------"
-            )
-
         fitness = Fitness(
             model=model,
             analysis=analysis,
@@ -131,9 +120,7 @@ class Nautilus(abstract_nest.AbstractNest):
             resample_figure_of_merit=-1.0e99
         )
 
-        checkpoint_file = self.paths.search_internal_path / "checkpoint.hdf5"
-
-        if os.path.exists(checkpoint_file):
+        if os.path.exists(self.checkpoint_file):
             self.logger.info(
                 "Resuming Nautilus non-linear search (previous samples found)."
             )
@@ -144,24 +131,112 @@ class Nautilus(abstract_nest.AbstractNest):
             )
 
         if self.config_dict.get("force_x1_cpu") or self.kwargs.get("force_x1_cpu"):
+            self.fit_x1_cpu(fitness=fitness, model=model, analysis=analysis)
+        else:
+            if not self.using_mpi:
+                self.fit_multiprocessing(fitness=fitness, model=model, analysis=analysis)
+            else:
+                self.fit_mpi(fitness=fitness, model=model, analysis=analysis)
 
-            self.logger.info(
-                """
-                Running search where parallelization is disabled.
-                """
+        os.remove(self.checkpoint_file)
+
+    @property
+    def sampler_cls(self):
+        try:
+            from nautilus import Sampler
+            return Sampler
+        except ModuleNotFoundError:
+            raise ModuleNotFoundError(
+                "\n--------------------\n"
+                "You are attempting to perform a model-fit using Nautilus. \n\n"
+                "However, the optional library Nautilus (https://nautilus-sampler.readthedocs.io/en/stable/index.html) is "
+                "not installed.\n\n"
+                "Install it via the command `pip install nautilus-sampler==0.7.2`.\n\n"
+                "----------------------"
             )
 
-            sampler = Sampler(
-                prior=prior_transform,
-                likelihood=fitness.__call__,
+    @property
+    def checkpoint_file(self):
+        return self.paths.search_internal_path / "checkpoint.hdf5"
+
+    def fit_x1_cpu(self, fitness, model, analysis):
+        """
+        Perform the non-linear search, using one CPU core.
+
+        This is used if the likelihood function calls external libraries that cannot be parallelized or use
+        threading in a way that conflicts with the parallelization of the non-linear search.
+
+        Parameters
+        ----------
+        fitness
+            The function which takes a model instance and returns its log likelihood via the Analysis class
+        model
+            The model which maps parameters chosen via the non-linear search (e.g. via the priors or sampling) to
+            instances of the model, which are passed to the fitness function.
+        analysis
+            Contains the data and the log likelihood function which fits an instance of the model to the data, returning
+            the log likelihood the search maximizes.
+        """
+
+        self.logger.info(
+            """
+            Running search where parallelization is disabled.
+            """
+        )
+
+        sampler = self.sampler_cls(
+            prior=prior_transform,
+            likelihood=fitness.__call__,
+            n_dim=model.prior_count,
+            prior_kwargs={"model": model},
+            filepath=self.checkpoint_file,
+            pool=None,
+            **self.config_dict_search
+        )
+
+        if os.path.exists(self.checkpoint_file):
+            self.output_sampler_results(sampler=sampler)
+            self.perform_update(model=model, analysis=analysis, during_analysis=True)
+
+        self.output_sampler_results(sampler=sampler)
+
+    def fit_multiprocessing(self, fitness, model, analysis):
+        """
+        Perform the non-linear search, using multiple CPU cores parallelized via Python's multiprocessing module.
+
+        This uses PyAutoFit's sneaky pool class, which allows us to use the multiprocessing module in a way that plays
+        nicely with the non-linear search (e.g. exception handling, keyboard interupts, etc.).
+
+        Multiprocessing parallelization can only parallelize across multiple cores on a single device, it cannot be
+        distributed across multiple devices or computing nodes. For that, use the `fit_mpi` method.
+
+        Parameters
+        ----------
+        fitness
+            The function which takes a model instance and returns its log likelihood via the Analysis class
+        model
+            The model which maps parameters chosen via the non-linear search (e.g. via the priors or sampling) to
+            instances of the model, which are passed to the fitness function.
+        analysis
+            Contains the data and the log likelihood function which fits an instance of the model to the data, returning
+            the log likelihood the search maximizes.
+        """
+        with self.make_sneakier_pool(
+                fitness_function=fitness.__call__,
+                prior_transform=prior_transform,
+                fitness_args=(model, fitness.__call__),
+                prior_transform_args=(model,),
+        ) as pool:
+            sampler = self.sampler_cls(
+                prior=pool.prior_transform,
+                likelihood=pool.fitness,
                 n_dim=model.prior_count,
-                prior_kwargs={"model": model},
-                filepath=checkpoint_file,
-                pool=None,
+                filepath=self.checkpoint_file,
+                pool=pool,
                 **self.config_dict_search
             )
 
-            if os.path.exists(checkpoint_file):
+            if os.path.exists(self.checkpoint_file):
 
                 self.output_sampler_results(sampler=sampler)
                 self.perform_update(model=model, analysis=analysis, during_analysis=True)
@@ -170,65 +245,59 @@ class Nautilus(abstract_nest.AbstractNest):
                 **self.config_dict_run,
             )
 
-        else:
+            self.output_sampler_results(sampler=sampler)
 
-            if not self.using_mpi:
+    def fit_mpi(self, fitness, model, analysis):
+        """
+        Perform the non-linear search, using MPI to distribute the model-fit across multiple computing nodes.
 
-                sampler = Sampler(
-                    prior=prior_transform,
-                    likelihood=fitness.__call__,
-                    n_dim=model.prior_count,
-                    prior_kwargs={"model": model},
-                    filepath=checkpoint_file,
-                    pool=self.number_of_cores,
-                    **self.config_dict_search
-                )
+        This uses PyAutoFit's sneaky pool class, which allows us to use the multiprocessing module in a way that plays
+        nicely with the non-linear search (e.g. exception handling, keyboard interupts, etc.).
 
-                if os.path.exists(checkpoint_file):
+        MPI parallelization can be distributed across multiple devices or computing nodes.
 
+        Parameters
+        ----------
+        fitness
+            The function which takes a model instance and returns its log likelihood via the Analysis class
+        model
+            The model which maps parameters chosen via the non-linear search (e.g. via the priors or sampling) to
+            instances of the model, which are passed to the fitness function.
+        analysis
+            Contains the data and the log likelihood function which fits an instance of the model to the data, returning
+            the log likelihood the search maximizes.
+        """
+        with self.make_sneakier_pool(
+                fitness_function=fitness.__call__,
+                prior_transform=prior_transform,
+                fitness_args=(model, fitness.__call__),
+                prior_transform_args=(model,),
+        ) as pool:
+
+            if not pool.is_master():
+                pool.wait()
+                sys.exit(0)
+
+            sampler = self.sampler_cls(
+                prior=pool.prior_transform,
+                likelihood=pool.fitness,
+                n_dim=model.prior_count,
+                filepath=self.checkpoint_file,
+                pool=pool,
+                **self.config_dict_search
+            )
+
+            if os.path.exists(self.checkpoint_file):
+
+                if self.is_master:
                     self.output_sampler_results(sampler=sampler)
                     self.perform_update(model=model, analysis=analysis, during_analysis=True)
 
-                sampler.run(
-                    **self.config_dict_run,
-                )
+            sampler.run(
+                **self.config_dict_run,
+            )
 
-            else:
-
-                with self.make_sneakier_pool(
-                        fitness_function=fitness.__call__,
-                        prior_transform=prior_transform,
-                        fitness_args=(model, fitness.__call__),
-                        prior_transform_args=(model,),
-                ) as pool:
-
-                    if not pool.is_master():
-                        pool.wait()
-                        sys.exit(0)
-
-                    sampler = Sampler(
-                        prior=pool.prior_transform,
-                        likelihood=pool.fitness,
-                        n_dim=model.prior_count,
-                        filepath=checkpoint_file,
-                        pool=pool,
-                        **self.config_dict_search
-                    )
-
-                    if os.path.exists(checkpoint_file):
-
-                        if self.is_master:
-
-                            self.output_sampler_results(sampler=sampler)
-                            self.perform_update(model=model, analysis=analysis, during_analysis=True)
-
-                    sampler.run(
-                        **self.config_dict_run,
-                    )
-
-        self.output_sampler_results(sampler=sampler)
-
-        os.remove(checkpoint_file)
+            self.output_sampler_results(sampler=sampler)
 
     def output_sampler_results(self, sampler):
         """
@@ -249,7 +318,7 @@ class Nautilus(abstract_nest.AbstractNest):
         log_likelihood_list = log_likelihoods.tolist()
         weight_list = np.exp(log_weights).tolist()
 
-        results_internal_json = {
+        search_internal = {
             "parameter_lists": parameter_lists,
             "log_likelihood_list": log_likelihood_list,
             "weight_list": weight_list,
@@ -259,18 +328,20 @@ class Nautilus(abstract_nest.AbstractNest):
             "number_live_points": int(sampler.n_live)
         }
 
-        self.paths.save_results_internal_json(results_internal_dict=results_internal_json)
+        self.paths.save_search_internal(
+            obj=search_internal,
+        )
 
     @property
     def samples_info(self):
 
-        results_internal_dict = self.paths.load_results_internal_json()
+        search_internal_dict = self.paths.load_search_internal()
 
         return {
-            "log_evidence": results_internal_dict["log_evidence"],
-            "total_samples": results_internal_dict["total_samples"],
+            "log_evidence": search_internal_dict["log_evidence"],
+            "total_samples": search_internal_dict["total_samples"],
             "time": self.timer.time,
-            "number_live_points": results_internal_dict["number_live_points"]
+            "number_live_points": search_internal_dict["number_live_points"]
         }
 
     def samples_via_internal_from(self, model: AbstractPriorModel):
@@ -289,14 +360,14 @@ class Nautilus(abstract_nest.AbstractNest):
             Maps input vectors of unit parameter values to physical values and model instances via priors.
         """
 
-        results_internal_dict = self.paths.load_results_internal_json()
+        search_internal_dict = self.paths.load_search_internal()
 
-        parameter_lists = results_internal_dict["parameter_lists"]
-        log_likelihood_list = results_internal_dict["log_likelihood_list"]
+        parameter_lists = search_internal_dict["parameter_lists"]
+        log_likelihood_list = search_internal_dict["log_likelihood_list"]
         log_prior_list = [
             sum(model.log_prior_list_from_vector(vector=vector)) for vector in parameter_lists
         ]
-        weight_list = results_internal_dict["weight_list"]
+        weight_list = search_internal_dict["weight_list"]
 
         sample_list = Sample.from_lists(
             model=model,
@@ -310,7 +381,7 @@ class Nautilus(abstract_nest.AbstractNest):
             model=model,
             sample_list=sample_list,
             samples_info=self.samples_info,
-            results_internal=None,
+            search_internal=None,
         )
 
     @property

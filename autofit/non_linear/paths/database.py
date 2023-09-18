@@ -121,7 +121,7 @@ class DatabasePaths(AbstractPaths):
         del d["session"]
         return d
 
-    def save_json(self, name, object_dict: Union[dict, list]):
+    def save_json(self, name, object_dict: Union[dict, list], prefix : str = ""):
         """
         Save a dictionary as a json file in the database
 
@@ -134,7 +134,7 @@ class DatabasePaths(AbstractPaths):
         """
         self.fit.set_json(name, object_dict)
 
-    def load_json(self, name: str) -> Union[dict, list]:
+    def load_json(self, name: str, prefix : str = "") -> Union[dict, list]:
         """
         Load a json file from the database
 
@@ -177,7 +177,7 @@ class DatabasePaths(AbstractPaths):
         """
         return self.fit.get_array(name)
 
-    def save_fits(self, name: str, hdu):
+    def save_fits(self, name: str, hdu, prefix : str = ""):
         """
         Save a fits file in the database
 
@@ -188,9 +188,9 @@ class DatabasePaths(AbstractPaths):
         hdu
             The hdu to save
         """
-        self.fit.set_fits(name, hdu)
+        self.fit.set_hdu(name, hdu)
 
-    def load_fits(self, name: str):
+    def load_fits(self, name: str, prefix : str = ""):
         """
         Load a fits file from the database
 
@@ -205,29 +205,23 @@ class DatabasePaths(AbstractPaths):
         """
         return self.fit.get_hdu(name)
 
-    def save_object(self, name: str, obj: object):
+    def save_object(self, name: str, obj: object, prefix : str = ""):
         self.fit[name] = obj
 
-    def load_object(self, name: str):
+    def load_object(self, name: str, prefix : str = ""):
         return self.fit[name]
-
-    def save_results_internal(self, obj: object):
-        pass
-
-    def load_results_internal(self):
-        pass
-
-    def save_results_internal_json(self, results_internal_dict: Dict):
-        pass
-
-    def load_results_internal_json(self) -> Dict:
-        pass
 
     def remove_object(self, name: str):
         del self.fit[name]
 
     def is_object(self, name: str) -> bool:
         return name in self.fit
+
+    def save_search_internal(self, obj):
+        pass
+
+    def load_search_internal(self):
+        pass
 
     @property
     def fit(self) -> Fit:
@@ -260,7 +254,6 @@ class DatabasePaths(AbstractPaths):
     def save_summary(self, samples, log_likelihood_function_time):
         self.fit.instance = samples.max_log_likelihood()
         self.fit.max_log_likelihood = samples.max_log_likelihood_sample.log_likelihood
-        super().save_summary(samples, log_likelihood_function_time)
 
     def save_samples(self, samples):
         if not self.save_all_samples:
@@ -286,10 +279,12 @@ class DatabasePaths(AbstractPaths):
         return self._load_samples().samples_info
 
     def save_all(self, info, *_, **kwargs):
-        self.save_identifier()
+
         self.fit.info = info
         self.fit.model = self.model
-
+        if info:
+            self.save_json("info", info)
         self.save_json("search", to_dict(self.search))
+        self.save_json("model", self.model.dict())
 
         self.session.commit()

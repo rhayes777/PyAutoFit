@@ -1,3 +1,4 @@
+import dill
 import json
 import logging
 import os
@@ -197,7 +198,10 @@ class AbstractPaths(ABC):
         """
         The path to the samples folder.
         """
-        return self.output_path / "search_internal"
+
+        os.makedirs(self._files_path / "search_internal", exist_ok=True)
+
+        return self._files_path / "search_internal"
 
     @property
     def image_path(self) -> Path:
@@ -237,7 +241,12 @@ class AbstractPaths(ABC):
 
     @property
     def _files_path(self) -> Path:
-        raise NotImplementedError
+        """
+        This is private for a reason, use the save_json etc. methods to save and load json
+        """
+        files_path = self.output_path / "files"
+        os.makedirs(files_path, exist_ok=True)
+        return files_path
 
     def zip_remove(self):
         """
@@ -343,11 +352,11 @@ class AbstractPaths(ABC):
         return f"{self.output_path}.zip"
 
     @abstractmethod
-    def save_json(self, name, object_dict: dict):
+    def save_json(self, name, object_dict: dict, prefix : str = ""):
         pass
 
     @abstractmethod
-    def load_json(self, name) -> dict:
+    def load_json(self, name, prefix : str = "") -> dict:
         pass
 
     @abstractmethod
@@ -359,19 +368,19 @@ class AbstractPaths(ABC):
         pass
 
     @abstractmethod
-    def save_fits(self, name: str, hdu):
+    def save_fits(self, name: str, hdu, prefix : str = ""):
         pass
 
     @abstractmethod
-    def load_fits(self, name: str):
+    def load_fits(self, name: str, prefix : str = ""):
         pass
 
     @abstractmethod
-    def save_object(self, name: str, obj: object):
+    def save_object(self, name: str, obj: object, prefix : str = ""):
         pass
 
     @abstractmethod
-    def load_object(self, name: str):
+    def load_object(self, name: str, prefix : str = ""):
         pass
 
     @abstractmethod
@@ -382,21 +391,11 @@ class AbstractPaths(ABC):
     def is_object(self, name: str) -> bool:
         pass
 
-    @abstractmethod
-    def save_results_internal(self, obj: object):
-        pass
+    def save_search_internal(self, obj):
+        raise NotImplementedError
 
-    @abstractmethod
-    def load_results_internal(self):
-        pass
-
-    @abstractmethod
-    def save_results_internal_json(self, results_internal_dict: Dict):
-        pass
-
-    @abstractmethod
-    def load_results_internal_json(self) -> Dict:
-        pass
+    def load_search_internal(self):
+        raise NotImplementedError
 
     @property
     @abstractmethod

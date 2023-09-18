@@ -389,8 +389,11 @@ def prior_transform_cache(x):
     """
     Prior transform call
     """
+
     return FunctionCache.prior_transform(x, *FunctionCache.prior_transform_args,
                                          **FunctionCache.prior_transform_kwargs)
+
+
 
 class SneakierPool:
     def __init__(
@@ -417,11 +420,10 @@ class SneakierPool:
         try:
             from mpi4py import MPI
             self.comm = MPI.COMM_WORLD
+            self._processes = self.comm.size
         except ModuleNotFoundError:
-            pass
+            self._processes = 1
 
-        self._processes = self.comm.size
-        
         init_args = (
             self.fitness_init, self.prior_transform_init,
             self.fitness_args, self.fitness_kwargs,

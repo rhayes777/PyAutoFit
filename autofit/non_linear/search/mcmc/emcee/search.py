@@ -193,14 +193,14 @@ class Emcee(AbstractMCMC):
 
     @property
     def samples_info(self):
-        results_internal = self.backend
+        search_internal = self.backend
 
         return {
             "check_size": self.auto_correlations.check_size,
             "required_length": self.auto_correlations.required_length,
             "change_threshold": self.auto_correlations.change_threshold,
-            "total_walkers": len(results_internal.get_chain()[0, :, 0]),
-            "total_steps": len(results_internal.get_log_prob()),
+            "total_walkers": len(search_internal.get_chain()[0, :, 0]),
+            "total_steps": len(search_internal.get_log_prob()),
             "time": self.timer.time,
         }
 
@@ -220,11 +220,11 @@ class Emcee(AbstractMCMC):
             Maps input vectors of unit parameter values to physical values and model instances via priors.
         """
 
-        results_internal = self.backend
+        search_internal = self.backend
 
         discard = int(3.0 * np.max(self.auto_correlations.times))
         thin = int(np.max(self.auto_correlations.times) / 2.0)
-        samples_after_burn_in = results_internal.get_chain(
+        samples_after_burn_in = search_internal.get_chain(
             discard=discard, thin=thin, flat=True
         )
 
@@ -234,7 +234,7 @@ class Emcee(AbstractMCMC):
 
         total_samples = len(parameter_lists)
 
-        log_posterior_list = results_internal.get_log_prob(flat=True)[
+        log_posterior_list = search_internal.get_log_prob(flat=True)[
             -total_samples - 1 : -1
         ].tolist()
 
@@ -257,19 +257,19 @@ class Emcee(AbstractMCMC):
             model=model,
             sample_list=sample_list,
             samples_info=self.samples_info,
-            results_internal=results_internal,
+            search_internal=search_internal,
             auto_correlation_settings=self.auto_correlation_settings,
             auto_correlations=self.auto_correlations,
         )
 
     @property
     def auto_correlations(self):
-        results_internal = self.backend
+        search_internal = self.backend
 
-        times = results_internal.get_autocorr_time(tol=0)
+        times = search_internal.get_autocorr_time(tol=0)
 
         previous_auto_correlation_times = emcee.autocorr.integrated_time(
-            x=results_internal.get_chain()[
+            x=search_internal.get_chain()[
                 : -self.auto_correlation_settings.check_size, :, :
             ],
             tol=0,
@@ -292,7 +292,7 @@ class Emcee(AbstractMCMC):
 
     @property
     def backend_filename(self):
-        return self.paths.search_internal_path / "results_internal.hdf"
+        return self.paths.search_internal_path / "search_internal.hdf"
 
     @property
     def backend(self) -> emcee.backends.HDFBackend:
@@ -306,7 +306,7 @@ class Emcee(AbstractMCMC):
             return emcee.backends.HDFBackend(filename=str(self.backend_filename))
         else:
             raise FileNotFoundError(
-                f"The file results_internal.hdf does not exist at the path {self.paths.search_internal_path}"
+                f"The file search_internal.hdf does not exist at the path {self.paths.search_internal_path}"
             )
 
     def plot_results(self, samples):

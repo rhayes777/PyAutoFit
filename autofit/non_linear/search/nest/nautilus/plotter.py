@@ -13,6 +13,9 @@ class NautilusPlotter(SamplesPlotter):
         import corner
         import matplotlib.pyplot as plt
 
+        import logging
+        logger = logging.getLogger().setLevel(logging.CRITICAL)
+
         points = np.asarray(self.samples.parameter_lists)
 
         ndim = points.shape[1]
@@ -34,8 +37,11 @@ class NautilusPlotter(SamplesPlotter):
             weights=self.samples.weight_list,
             labels=self.model.parameter_labels_with_superscripts_latex,
             fig=fig,
+
             **kwargs
         )
 
         self.output.to_figure(structure=None, auto_filename="cornerplot")
         self.close()
+
+        logger = logging.getLogger().setLevel(logging.INFO)

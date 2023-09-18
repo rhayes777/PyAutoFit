@@ -56,7 +56,7 @@ class DynestyPlotter(SamplesPlotter):
         """
 
         dyplot.boundplot(
-            results=self.samples.results_internal,
+            results=self.samples.search_internal,
             labels=self.model.parameter_labels_with_superscripts_latex,
             **kwargs
         )
@@ -76,7 +76,7 @@ class DynestyPlotter(SamplesPlotter):
         """
 
         dyplot.cornerbound(
-            results=self.samples.results_internal,
+            results=self.samples.search_internal,
             labels=self.model.parameter_labels_with_superscripts_latex,
             **kwargs
         )
@@ -94,7 +94,7 @@ class DynestyPlotter(SamplesPlotter):
         """
 
         dyplot.cornerplot(
-            results=self.samples.results_internal,
+            results=self.samples.search_internal,
             labels=self.model.parameter_labels_with_superscripts_latex,
             **kwargs
         )
@@ -111,7 +111,7 @@ class DynestyPlotter(SamplesPlotter):
         This figure plots a (sub-)corner plot of (weighted) samples.
         """
         dyplot.cornerpoints(
-            results=self.samples.results_internal,
+            results=self.samples.search_internal,
             labels=self.model.parameter_labels_with_superscripts_latex,
             **kwargs
         )
@@ -129,7 +129,7 @@ class DynestyPlotter(SamplesPlotter):
         as a function of ln(prior volume).
         """
         dyplot.runplot(
-            results=self.samples.results_internal,
+            results=self.samples.search_internal,
             **kwargs
         )
 
@@ -145,7 +145,7 @@ class DynestyPlotter(SamplesPlotter):
         This figure plots traces and marginalized posteriors for each parameter.
         """
         dyplot.traceplot(
-            results=self.samples.results_internal,
+            results=self.samples.search_internal,
             **kwargs
         )
 

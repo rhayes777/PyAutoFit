@@ -16,10 +16,10 @@ class SamplesNest(SamplesPDF):
             model: AbstractPriorModel,
             sample_list: List[Sample],
             samples_info : Optional[Dict] = None,
-            results_internal: Optional = None,
+            search_internal: Optional = None,
     ):
         """
-        The `Samples` classes in **PyAutoFit** provide an interface between the results_internal of
+        The `Samples` classes in **PyAutoFit** provide an interface between the search_internal of
         a `NonLinearSearch` (e.g. as files on your hard-disk) and Python.
 
         For example, the output class can be used to load an instance of the best-fit model, get an instance of any
@@ -27,7 +27,7 @@ class SamplesNest(SamplesPDF):
 
         This class stores the samples of nested sampler model-fit (e.g. `dynesty`, `UltraNest`). To use a library's
         in-built visualization tools results are optionally stored in their native internal format using the
-        `results_internal` attribute.
+        `search_internal` attribute.
 
         Parameters
         ----------
@@ -40,7 +40,7 @@ class SamplesNest(SamplesPDF):
             The number of live points used by the nested sampler.
         samples_info
             Contains information on the samples (e.g. total iterations, time to run the search, etc.).
-        results_internal
+        search_internal
             The nested sampler's results in their native internal format for interfacing its visualization library.
         """
 
@@ -48,7 +48,7 @@ class SamplesNest(SamplesPDF):
             model=model,
             sample_list=sample_list,
             samples_info=samples_info,
-            results_internal=results_internal
+            search_internal=search_internal
         )
 
     def __add__(
@@ -60,7 +60,7 @@ class SamplesNest(SamplesPDF):
         computed via their joint PDF.
 
         For UltraNest samples there are no tools for combining results in their native format, therefore these
-        `results_internal` are set to None and support for visualization is disabled.
+        `search_internal` are set to None and support for visualization is disabled.
 
         Parameters
         ----------
@@ -84,7 +84,7 @@ class SamplesNest(SamplesPDF):
             model=self.model,
             sample_list=self.sample_list + other.sample_list,
             samples_info=self.samples_info,
-            results_internal=None
+            search_internal=None
         )
 
     @property
