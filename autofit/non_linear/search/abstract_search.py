@@ -506,11 +506,11 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         if os.environ.get("PYAUTOFIT_TEST_MODE") == "1":
 
-            from autofit.non_linear.search.nest.nautilus import Nautilus
+            from autofit.non_linear.search.nest.nautilus.search import Nautilus
 
             if isinstance(self, Nautilus):
 
-                from autofit.non_linear.search.nest.dynesty import DynestyStatic
+                from autofit.non_linear.search.nest.dynesty.search.static import DynestyStatic
 
                 search = DynestyStatic(
                     name=self.name,
