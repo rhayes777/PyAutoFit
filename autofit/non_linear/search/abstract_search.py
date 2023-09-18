@@ -503,6 +503,18 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         AssertionError
             If the model has 0 dimensions.
         """
+
+        if os.environ.get("PYAUTOFIT_TEST_MODE") == "1":
+
+            from autofit.non_linear.search.nest.dynesty import DynestyStatic
+
+            search = DynestyStatic(
+                name=self.name,
+                unique_tag=self.unique_tag,
+            )
+
+            return search.fit(model=model, analysis=analysis, info=info)
+
         self.check_model(model=model)
 
         model = analysis.modify_model(model)
