@@ -26,22 +26,21 @@ class DirectoryPaths(AbstractPaths):
         """
         self.save_object(name, instance)
 
-    def _path_for_pickle(self, name: str, prefix : str = "") -> Path:
-        return self._pickle_path / prefix / f"{name}.pickle"
+    def _path_for_pickle(self, name: str, prefix: str = "") -> Path:
+        return self._files_path / prefix / f"{name}.pickle"
 
-    def _path_for_json(self, name, prefix : str = "") -> Path:
+    def _path_for_json(self, name, prefix: str = "") -> Path:
         return self._files_path / prefix / f"{name}.json"
 
     def _path_for_csv(self, name) -> Path:
         return self._files_path / f"{name}.csv"
 
-    def _path_for_fits(self, name, prefix : str = "") -> Path:
-
+    def _path_for_fits(self, name, prefix: str = "") -> Path:
         os.makedirs(self._files_path / prefix, exist_ok=True)
 
         return self._files_path / prefix / f"{name}.fits"
 
-    def save_object(self, name: str, obj: object, prefix : str = ""):
+    def save_object(self, name: str, obj: object, prefix: str = ""):
         """
         Serialise an object using dill and save it to the pickles
         directory of the search.
@@ -58,7 +57,7 @@ class DirectoryPaths(AbstractPaths):
         with open_(self._path_for_pickle(name, prefix), "wb") as f:
             dill.dump(obj, f)
 
-    def save_json(self, name, object_dict: Union[dict, list], prefix : str = ""):
+    def save_json(self, name, object_dict: Union[dict, list], prefix: str = ""):
         """
         Save a dictionary as a json file in the jsons directory of the search.
 
@@ -74,7 +73,7 @@ class DirectoryPaths(AbstractPaths):
         with open_(self._path_for_json(name, prefix), "w+") as f:
             json.dump(object_dict, f, indent=4)
 
-    def load_json(self, name, prefix : str = ""):
+    def load_json(self, name, prefix: str = ""):
         with open_(self._path_for_json(name, prefix)) as f:
             return json.load(f)
 
@@ -94,7 +93,7 @@ class DirectoryPaths(AbstractPaths):
     def load_array(self, name: str):
         return np.loadtxt(self._path_for_csv(name), delimiter=",")
 
-    def save_fits(self, name: str, hdu, prefix : str = ""):
+    def save_fits(self, name: str, hdu, prefix: str = ""):
         """
         Save an HDU as a fits file in the fits directory of the search.
 
@@ -109,7 +108,7 @@ class DirectoryPaths(AbstractPaths):
         """
         hdu.writeto(self._path_for_fits(name, prefix), overwrite=True)
 
-    def load_fits(self, name: str, prefix : str = ""):
+    def load_fits(self, name: str, prefix: str = ""):
         """
         Load an HDU from a fits file in the fits directory of the search.
 
@@ -128,7 +127,7 @@ class DirectoryPaths(AbstractPaths):
 
         return fits.open(self._path_for_fits(name, prefix))[0]
 
-    def load_object(self, name: str, prefix : str = ""):
+    def load_object(self, name: str, prefix: str = ""):
         """
         Load a serialised object with the given name.
 
@@ -181,11 +180,6 @@ class DirectoryPaths(AbstractPaths):
 
         The results in this representation are required to use a search's in-built tools for visualization,
         analysing samples and other tasks.
-
-        Parameters
-        ----------
-        search_internal
-            The results of the non-linear search in its internal representation.
         """
         filename = self.search_internal_path / "search_internal.dill"
 
@@ -338,13 +332,6 @@ class DirectoryPaths(AbstractPaths):
         from .sub_directory_paths import SubDirectoryPaths
 
         return SubDirectoryPaths(parent=self, analysis_name=analysis_name)
-
-    @property
-    def _pickle_path(self) -> Path:
-        """
-        This is private for a reason, use the save_object etc. methods to save and load pickles
-        """
-        return self.output_path / "pickles"
 
     def _save_metadata(self, search_name):
         """

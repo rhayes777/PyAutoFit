@@ -38,10 +38,6 @@ class Output:
         self.directory = directory
 
     @property
-    def pickle_path(self):
-        return self.directory / "pickles"
-
-    @property
     def files_path(self):
         return self.directory / "files"
 
@@ -52,7 +48,7 @@ class Output:
         dataset.pickle, meta_dataset.pickle etc.
         """
         try:
-            with open(self.pickle_path / f"{item}.pickle", "rb") as f:
+            with open(self.files_path / f"{item}.pickle", "rb") as f:
                 return pickle.load(f)
         except FileNotFoundError:
             pass
@@ -115,7 +111,7 @@ class SearchOutput(Output):
         """
         A pickled mask object
         """
-        with open(self.pickle_path / "mask.pickle", "rb") as f:
+        with open(self.files_path / "mask.pickle", "rb") as f:
             return dill.load(f)
 
     @property
@@ -138,7 +134,7 @@ class SearchOutput(Output):
                     self.__search = from_dict(json.load(f))
             except (FileNotFoundError, ModuleNotFoundError):
                 try:
-                    with open(self.pickle_path / "search.pickle", "rb") as f:
+                    with open(self.files_path / "search.pickle", "rb") as f:
                         self.__search = pickle.load(f)
                 except (FileNotFoundError, ModuleNotFoundError):
                     logging.warning("Could not load search")
@@ -165,7 +161,7 @@ class SearchOutput(Output):
             except (FileNotFoundError, ModuleNotFoundError) as e:
                 logging.exception(e)
                 try:
-                    with open(self.pickle_path / "model.pickle", "rb") as f:
+                    with open(self.files_path / "model.pickle", "rb") as f:
                         self.__model = pickle.load(f)
                 except (FileNotFoundError, ModuleNotFoundError):
                     logging.warning("Could not load model")
