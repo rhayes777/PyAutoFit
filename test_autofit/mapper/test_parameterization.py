@@ -139,3 +139,22 @@ tuple                                                                           
         assert len(mapper.mock_cls.instance_tuples) == 1
 
         assert len(info.split("\n")) == len(mapper.info.split("\n"))
+
+
+def test_integer_attributes():
+    model = af.Model(af.Gaussian)
+
+    model.centre = 2
+
+    print(model.info)
+
+    assert (
+        model.info
+        == """Total Free Parameters = 2
+
+model                                                                           Gaussian (N=2)
+
+centre                                                                          2
+normalization                                                                   UniformPrior [1], lower_limit = 0.0, upper_limit = 1.0
+sigma                                                                           UniformPrior [2], lower_limit = 0.0, upper_limit = 1.0"""
+    )
