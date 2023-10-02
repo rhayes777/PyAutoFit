@@ -86,9 +86,11 @@ class IndexCollectionAnalysis(CombinedAnalysis):
         """
         child_results = [
             analysis.make_result(
-                samples.subsamples(model),
+                samples.subsamples(analysis.model)
+                if hasattr(analysis, "model")
+                else samples
             )
-            for model, analysis in zip(model, self.analyses)
+            for analysis in self.analyses
         ]
         return CombinedResult(child_results)
 
