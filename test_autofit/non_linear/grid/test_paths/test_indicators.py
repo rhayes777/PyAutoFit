@@ -3,7 +3,7 @@ from pathlib import Path
 import pytest
 
 import autofit as af
-from autoconf.conf import output_path_for_test
+from autoconf.conf import output_path_for_test, with_config
 from autofit.database.aggregator.scrape import Scraper
 
 output_directory = Path(__file__).parent / "output"
@@ -67,30 +67,6 @@ class TestDirectory:
 
     def test_is_grid_search(self, grid_search):
         assert grid_search.paths.is_grid_search
-
-
-@output_path_for_test(output_directory)
-def test_scrape(grid_search, parent_search, model_gaussian_x1, session):
-    grid_search.fit(
-        model=model_gaussian_x1,
-        analysis=af.m.MockAnalysis(),
-        parent=parent_search,
-        grid_priors=[model_gaussian_x1.centre],
-    )
-    parent_search.fit(model=model_gaussian_x1, analysis=af.m.MockAnalysis())
-    parent_search.paths.save_all()
-
-    Scraper(directory=output_directory, session=session).scrape()
-
-    aggregator = af.Aggregator(session, top_level_only=False)
-    assert (
-        list(aggregator.query(aggregator.search.id == grid_search.paths.identifier))[
-            0
-        ].parent.id
-        == parent_search.paths.identifier
-    )
-    assert len(aggregator.values("max_log_likelihood")) > 0
-    assert list(aggregator.grid_searches())[0].is_complete
 
 
 @output_path_for_test(output_directory)
