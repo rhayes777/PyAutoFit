@@ -118,7 +118,7 @@ class Sample:
         are this indicates that they are explicit paths through
         the model.
         """
-        for key in self.kwargs.keys():
+        for key in self.kwargs:
             return isinstance(key, tuple)
         return False
 
