@@ -1546,8 +1546,12 @@ class AbstractPriorModel(AbstractModel):
         formatter = TextFormatter(line_length=info_whitespace())
 
         for t in self.path_instance_tuples_for_class(
-            (Prior, float, tuple), ignore_children=True
+            (Prior, float, int, tuple), ignore_children=True
         ):
+            name = t[0][-1]
+            if name in ("id", "item_number"):
+                continue
+
             formatter.add(*t)
 
         return "\n\n".join(
