@@ -10,7 +10,7 @@ import numpy as np
 
 from .. import model as m
 from ..sqlalchemy_ import sa
-from autofit.non_linear.samples.samples import Samples
+from autofit.non_linear.samples.pdf import SamplesPDF
 from ...mapper.model_object import Identifier
 from autofit.non_linear.samples.sample import samples_from_iterator
 
@@ -259,7 +259,7 @@ def _add_files(fit: m.Fit, files_path: Path):
         with open(samples_path) as f:
             sample_list = samples_from_iterator(csv.reader(f))
 
-        fit.samples = Samples.from_list_info_and_model(
+        fit.samples = SamplesPDF.from_list_info_and_model(
             sample_list=sample_list,
             samples_info=info_json,
             model=fit.model,
