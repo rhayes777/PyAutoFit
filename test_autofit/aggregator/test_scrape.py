@@ -10,6 +10,9 @@ class MockFit:
     def set_json(self, name, json):
         self.jsons[name] = json
 
+    def __setitem__(self, key, value):
+        pass
+
 
 @pytest.fixture(name="fit")
 def make_fit(directory):
