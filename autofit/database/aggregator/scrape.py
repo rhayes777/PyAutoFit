@@ -124,13 +124,11 @@ class Scraper:
                     parent_id=parent_identifier,
                 )
 
-            _add_pickles(fit, Path(item.pickle_path))
             _add_files(fit, Path(item.files_path))
             for i, child_analysis in enumerate(item.child_analyses):
                 child_fit = m.Fit(
                     id=f"{identifier}_{i}",
                 )
-                _add_pickles(child_fit, child_analysis.pickle_path)
                 _add_files(child_fit, child_analysis.files_path)
                 fit.children.append(child_fit)
 
@@ -166,7 +164,6 @@ class Scraper:
                     is_complete=is_complete,
                 )
 
-                _add_pickles(grid_search, path / "pickles")
                 _add_files(grid_search, path / "files")
 
                 aggregator = ClassicAggregator(root)
@@ -217,35 +214,6 @@ def _make_identifier(item) -> str:
     search = item.search
     model = item.model
     return str(Identifier([search, model, search.unique_tag]))
-
-
-def _add_pickles(fit: m.Fit, pickle_path: Path):
-    """
-    Load pickles from the path and add them to the database.
-
-    Parameters
-    ----------
-    fit
-        A fit to which the pickles belong
-    pickle_path
-        The path in which the pickles are stored
-    """
-    try:
-        filenames = os.listdir(pickle_path)
-    except FileNotFoundError as e:
-        filenames = []
-
-    for filename in filenames:
-        try:
-            with open(pickle_path / filename, "r+b") as f:
-                fit[filename.split(".")[0]] = pickle.load(f)
-        except (pickle.UnpicklingError, ModuleNotFoundError) as e:
-            if filename == "dynesty.pickle":
-                continue
-
-            raise pickle.UnpicklingError(
-                f"Failed to unpickle: {pickle_path} {filename}"
-            ) from e
 
 
 def names_and_paths(
@@ -306,6 +274,16 @@ def _add_files(fit: m.Fit, files_path: Path):
                 fit.set_array(name, np.loadtxt(f, delimiter=","))
         except ValueError:
             logger.debug(f"Failed to load array from {path}")
+
+    for name, path in names_and_paths(files_path, ".pickle"):
+        try:
+            with open(path, "r+b") as f:
+                fit[name] = pickle.load(f)
+        except (pickle.UnpicklingError, ModuleNotFoundError) as e:
+            if path.name == "dynesty.pickle":
+                continue
+
+            raise pickle.UnpicklingError(f"Failed to unpickle: {path}") from e
 
     for name, path in names_and_paths(files_path, ".fits"):
         from astropy.io import fits
