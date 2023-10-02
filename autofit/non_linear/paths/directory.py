@@ -234,7 +234,6 @@ class DirectoryPaths(AbstractPaths):
             return json.load(infile)
 
     def save_all(self, search_config_dict=None, info=None):
-        search_config_dict = search_config_dict or {}
         info = info or {}
 
         self.save_identifier()
@@ -244,7 +243,7 @@ class DirectoryPaths(AbstractPaths):
         if info:
             self.save_json("info", info)
         self.save_json("search", to_dict(self.search))
-        self.save_json("model", self.model.dict())
+        self.save_json("model", to_dict(self.model))
         self._save_metadata(search_name=type(self.search).__name__.lower())
 
     @AbstractPaths.parent.setter

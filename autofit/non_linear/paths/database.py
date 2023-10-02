@@ -121,7 +121,7 @@ class DatabasePaths(AbstractPaths):
         del d["session"]
         return d
 
-    def save_json(self, name, object_dict: Union[dict, list], prefix : str = ""):
+    def save_json(self, name, object_dict: Union[dict, list], prefix: str = ""):
         """
         Save a dictionary as a json file in the database
 
@@ -134,7 +134,7 @@ class DatabasePaths(AbstractPaths):
         """
         self.fit.set_json(name, object_dict)
 
-    def load_json(self, name: str, prefix : str = "") -> Union[dict, list]:
+    def load_json(self, name: str, prefix: str = "") -> Union[dict, list]:
         """
         Load a json file from the database
 
@@ -177,7 +177,7 @@ class DatabasePaths(AbstractPaths):
         """
         return self.fit.get_array(name)
 
-    def save_fits(self, name: str, hdu, prefix : str = ""):
+    def save_fits(self, name: str, hdu, prefix: str = ""):
         """
         Save a fits file in the database
 
@@ -190,7 +190,7 @@ class DatabasePaths(AbstractPaths):
         """
         self.fit.set_hdu(name, hdu)
 
-    def load_fits(self, name: str, prefix : str = ""):
+    def load_fits(self, name: str, prefix: str = ""):
         """
         Load a fits file from the database
 
@@ -205,10 +205,10 @@ class DatabasePaths(AbstractPaths):
         """
         return self.fit.get_hdu(name)
 
-    def save_object(self, name: str, obj: object, prefix : str = ""):
+    def save_object(self, name: str, obj: object, prefix: str = ""):
         self.fit[name] = obj
 
-    def load_object(self, name: str, prefix : str = ""):
+    def load_object(self, name: str, prefix: str = ""):
         return self.fit[name]
 
     def remove_object(self, name: str):
@@ -279,12 +279,11 @@ class DatabasePaths(AbstractPaths):
         return self._load_samples().samples_info
 
     def save_all(self, info, *_, **kwargs):
-
         self.fit.info = info
         self.fit.model = self.model
         if info:
             self.save_json("info", info)
         self.save_json("search", to_dict(self.search))
-        self.save_json("model", self.model.dict())
+        self.save_json("model", to_dict(self.model))
 
         self.session.commit()
