@@ -4,7 +4,7 @@ from typing import Type, Union, Tuple, Optional, Dict
 import logging
 
 from autoconf.class_path import get_class
-from autoconf.dictable import from_dict
+from autoconf.dictable import from_dict, to_dict
 from .identifier import Identifier
 
 logger = logging.getLogger(__name__)
@@ -299,9 +299,7 @@ class ModelObject:
 
         for key, value in self._dict.items():
             try:
-                if not isinstance(value, ModelObject):
-                    value = AbstractPriorModel.from_instance(value)
-                value = value.dict()
+                value = to_dict(value)
             except AttributeError:
                 pass
             except TypeError:
