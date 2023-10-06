@@ -198,6 +198,10 @@ class Nautilus(abstract_nest.AbstractNest):
             self.output_sampler_results(sampler=sampler)
             self.perform_update(model=model, analysis=analysis, during_analysis=True)
 
+        sampler.run(
+            **self.config_dict_run,
+        )
+
         self.output_sampler_results(sampler=sampler)
 
     def fit_multiprocessing(self, fitness, model, analysis):
