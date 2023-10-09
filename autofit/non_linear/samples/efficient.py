@@ -1,13 +1,13 @@
 import numpy as np
 from .sample import Sample
+from .pdf import SamplesPDF
 
 
 class EfficientSamples:
-    def __init__(self, samples):
+    def __init__(self, samples: SamplesPDF):
         self.model = samples.model
         self.samples_info = samples.samples_info
         self.search_internal = samples.search_internal
-        self._cls = type(samples)
 
         sample_list = samples.sample_list
         self._kwargs = sample_list[0].kwargs
@@ -19,7 +19,7 @@ class EfficientSamples:
 
     @property
     def samples(self):
-        return self._cls(
+        return SamplesPDF(
             model=self.model,
             samples_info=self.samples_info,
             search_internal=self.search_internal,
