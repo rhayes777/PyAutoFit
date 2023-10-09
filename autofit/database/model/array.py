@@ -23,8 +23,6 @@ class Array(Object):
 
     __mapper_args__ = {"polymorphic_identity": "array"}
 
-    name = sa.Column(sa.String)
-
     bytes = sa.Column(sa.LargeBinary)
     _dtype = sa.Column(sa.String)
     _shape = sa.Column(sa.String)
