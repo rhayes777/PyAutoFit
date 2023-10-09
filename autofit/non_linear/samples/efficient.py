@@ -1,3 +1,5 @@
+from typing import List
+
 import numpy as np
 from .sample import Sample
 from .pdf import SamplesPDF
@@ -5,6 +7,15 @@ from .pdf import SamplesPDF
 
 class EfficientSamples:
     def __init__(self, samples: SamplesPDF):
+        """
+        A representation of samples where values are stored in numpy arrays. This is more
+        efficient for storage and computation.
+
+        Parameters
+        ----------
+        samples
+            A representation of samples where values are in instances of the Sample class.
+        """
         self.model = samples.model
         self.samples_info = samples.samples_info
         self.search_internal = samples.search_internal
@@ -18,7 +29,10 @@ class EfficientSamples:
         self._weights = np.asarray([sample.weight for sample in sample_list])
 
     @property
-    def samples(self):
+    def samples(self) -> SamplesPDF:
+        """
+        Convert the efficient samples back to a SamplesPDF instance.
+        """
         return SamplesPDF(
             model=self.model,
             samples_info=self.samples_info,
@@ -27,7 +41,10 @@ class EfficientSamples:
         )
 
     @property
-    def sample_list(self):
+    def sample_list(self) -> List[Sample]:
+        """
+        Convert the efficient samples back to a list of Sample instances.
+        """
         return [
             Sample(
                 log_likelihood=log_likelihood,
