@@ -1659,7 +1659,7 @@ class AbstractPriorModel(AbstractModel):
         """
         path_modifier = TuplePathModifier(self)
         return [
-            (tuple("_".join(path_modifier(path)) for path in paths), prior)
+            (tuple(".".join(path_modifier(path)) for path in paths), prior)
             for paths, prior in self.all_paths_prior_tuples
         ]
 
@@ -1675,7 +1675,7 @@ class AbstractPriorModel(AbstractModel):
 
         prior_paths = list(map(tuple_filter, prior_paths))
 
-        return ["_".join(path) for path in prior_paths]
+        return [".".join(path) for path in prior_paths]
 
     @property
     def parameter_names(self) -> List[str]:
