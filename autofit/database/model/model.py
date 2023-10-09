@@ -179,8 +179,7 @@ class Object(Base):
             for name, child in child_instances.items():
                 setattr(instance, name, child)
 
-        if assertions:
-            instance._assertions = assertions
+        instance._assertions = assertions
 
         from autofit import ModelObject
 
