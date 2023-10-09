@@ -1659,7 +1659,7 @@ class AbstractPriorModel(AbstractModel):
         """
         path_modifier = TuplePathModifier(self)
         return [
-            (tuple("_".join(path_modifier(path)) for path in paths), prior)
+            (tuple(".".join(path_modifier(path)) for path in paths), prior)
             for paths, prior in self.all_paths_prior_tuples
         ]
 
