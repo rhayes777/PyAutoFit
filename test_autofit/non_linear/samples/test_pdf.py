@@ -91,7 +91,7 @@ def test_format(samples_x5):
 
     assert (
         text
-        == """mock_class_1_one,mock_class_1_two,mock_class_1_three,mock_class_1_four,log_likelihood,log_prior,log_posterior,weight
+        == """mock_class_1.one,mock_class_1.two,mock_class_1.three,mock_class_1.four,log_likelihood,log_prior,log_posterior,weight
              0.0,             1.0,               2.0,              3.0,           1.0,      0.0,          1.0,   1.0
              0.0,             1.0,               2.0,              3.0,           2.0,      0.0,          2.0,   1.0
              0.0,             1.0,               2.0,              3.0,           3.0,      0.0,          3.0,   1.0
@@ -374,7 +374,7 @@ def test__unconverged_sample_size():
             log_prior_list=[1.0, 1.0, 1.0, 1.0, 1.0],
             weight_list=weight_list,
         ),
-        samples_info={"unconverged_sample_size" : 2},
+        samples_info={"unconverged_sample_size": 2},
     )
 
     assert samples_x5.pdf_converged is False

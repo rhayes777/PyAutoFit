@@ -85,12 +85,8 @@ class IndexCollectionAnalysis(CombinedAnalysis):
         Associate each model with an analysis when creating the result.
         """
         child_results = [
-            analysis.make_result(
-                samples.subsamples(analysis.model)
-                if hasattr(analysis, "model")
-                else samples
-            )
-            for analysis in self.analyses
+            analysis.make_result(samples.subsamples(model))
+            for model, analysis in zip(samples.model, self.analyses)
         ]
         return CombinedResult(child_results)
 
