@@ -11,6 +11,7 @@ from autofit.non_linear.samples import Samples
 from .model import Base, Object
 from ..sqlalchemy_ import sa
 from .array import Array, HDU
+from ...non_linear.samples.efficient import EfficientSamples
 
 
 class Pickle(Base):
@@ -255,11 +256,13 @@ class Fit(Base):
     @property
     @try_none
     def samples(self) -> Samples:
-        return self._samples()
+        return self._samples().samples
 
     @samples.setter
     def samples(self, samples):
-        self._samples = Object.from_object(samples)
+        self._samples = Object.from_object(
+            EfficientSamples(samples),
+        )
 
     @property
     def info(self):
