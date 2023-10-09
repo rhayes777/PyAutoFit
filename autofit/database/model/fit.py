@@ -11,6 +11,7 @@ from autofit.non_linear.samples import Samples
 from .model import Base, Object
 from ..sqlalchemy_ import sa
 from .array import Array, HDU
+from ...non_linear.samples.efficient import EfficientSamples
 
 
 class Pickle(Base):
@@ -255,11 +256,13 @@ class Fit(Base):
     @property
     @try_none
     def samples(self) -> Samples:
-        return self._samples()
+        return self._samples().samples
 
     @samples.setter
     def samples(self, samples):
-        self._samples = Object.from_object(samples)
+        self._samples = Object.from_object(
+            EfficientSamples(samples),
+        )
 
     @property
     def info(self):
@@ -284,8 +287,16 @@ class Fit(Base):
 
     pickles: List[Pickle] = sa.orm.relationship("Pickle", lazy="joined")
     jsons: List[JSON] = sa.orm.relationship("JSON", lazy="joined")
-    arrays: List[Array] = sa.orm.relationship("Array", lazy="joined")
-    hdus: List[HDU] = sa.orm.relationship("HDU", lazy="joined")
+    arrays: List[Array] = sa.orm.relationship(
+        "Array",
+        lazy="joined",
+        foreign_keys=[Array.fit_id],
+    )
+    hdus: List[HDU] = sa.orm.relationship(
+        "HDU",
+        lazy="joined",
+        foreign_keys=[HDU.fit_id],
+    )
 
     def __getitem__(self, item: str):
         """

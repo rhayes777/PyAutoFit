@@ -81,7 +81,6 @@ class Object(Base):
         if source is None or isinstance(
             source,
             (
-                np.ndarray,
                 np.broadcast,
                 abc.ABCMeta,
                 np.ufunc,
@@ -90,6 +89,10 @@ class Object(Base):
             from .instance import NoneInstance
 
             instance = NoneInstance()
+        elif isinstance(source, np.ndarray):
+            from .array import Array
+
+            instance = Array(array=source)
         elif isinstance(source, Model):
             from .prior import Model
 

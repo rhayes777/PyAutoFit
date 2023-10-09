@@ -1,11 +1,11 @@
 import numpy as np
 
 from autoconf.class_path import get_class_path, get_class
-from .model import Base
+from .model import Object
 from ..sqlalchemy_ import sa
 
 
-class Array(Base):
+class Array(Object):
     """
     A serialised numpy array
     """
@@ -15,23 +15,20 @@ class Array(Base):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-    id = sa.Column(sa.Integer, primary_key=True)
+    id = sa.Column(
+        sa.Integer,
+        sa.ForeignKey("object.id"),
+        primary_key=True,
+    )
 
-    name = sa.Column(sa.String)
+    __mapper_args__ = {"polymorphic_identity": "array"}
 
     bytes = sa.Column(sa.LargeBinary)
     _dtype = sa.Column(sa.String)
     _shape = sa.Column(sa.String)
 
     fit_id = sa.Column(sa.String, sa.ForeignKey("fit.id"))
-    fit = sa.orm.relationship("Fit", uselist=False)
-
-    array_type = sa.Column(sa.String)
-
-    __mapper_args__ = {
-        "polymorphic_identity": "array",
-        "polymorphic_on": "array_type",
-    }
+    fit = sa.orm.relationship("Fit", uselist=False, foreign_keys=[fit_id])
 
     @property
     def shape(self):
@@ -61,6 +58,9 @@ class Array(Base):
     @property
     def value(self):
         return self.array
+
+    def __call__(self, *args, **kwargs):
+        return self.value
 
 
 class HDU(Array):
