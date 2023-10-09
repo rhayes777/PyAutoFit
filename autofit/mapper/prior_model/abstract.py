@@ -1675,7 +1675,7 @@ class AbstractPriorModel(AbstractModel):
 
         prior_paths = list(map(tuple_filter, prior_paths))
 
-        return ["_".join(path) for path in prior_paths]
+        return [".".join(path) for path in prior_paths]
 
     @property
     def parameter_names(self) -> List[str]:
