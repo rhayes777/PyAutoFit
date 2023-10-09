@@ -21,7 +21,10 @@ class EfficientSamples:
         self.search_internal = samples.search_internal
 
         sample_list = samples.sample_list
-        self._kwargs = sample_list[0].kwargs
+        self._keys = list(sample_list[0].kwargs.keys())
+        self._values = np.asarray(
+            [[sample.kwargs[key] for key in self._keys] for sample in sample_list]
+        )
         self._log_likelihoods = np.asarray(
             [sample.log_likelihood for sample in sample_list]
         )
@@ -50,9 +53,22 @@ class EfficientSamples:
                 log_likelihood=log_likelihood,
                 log_prior=log_prior,
                 weight=weight,
-                kwargs=self._kwargs,
+                kwargs=kwargs,
             )
-            for log_likelihood, log_prior, weight in zip(
-                self._log_likelihoods, self._log_priors, self._weights
+            for log_likelihood, log_prior, weight, kwargs in zip(
+                self._log_likelihoods,
+                self._log_priors,
+                self._weights,
+                self._kwargs,
             )
+        ]
+
+    @property
+    def _kwargs(self) -> List[dict]:
+        """
+        Convert the efficient samples back to a list of dictionaries of kwargs.
+        """
+        return [
+            {key: value for key, value in zip(self._keys, values)}
+            for values in self._values
         ]
