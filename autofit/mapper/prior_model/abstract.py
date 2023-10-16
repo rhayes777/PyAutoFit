@@ -1678,6 +1678,12 @@ class AbstractPriorModel(AbstractModel):
         return [".".join(path) for path in prior_paths]
 
     @property
+    def joined_paths(self) -> List[str]:
+        prior_paths = self.unique_prior_paths
+
+        return [".".join(path) for path in prior_paths]
+
+    @property
     def parameter_names(self) -> List[str]:
         """
         The param_names vector is a list each parameter's analysis_path, and is used
