@@ -73,6 +73,19 @@ class SearchOutput(Output):
     @DynamicAttrs
     """
 
+    def __new__(cls, directory: Path, reference: dict = None):
+        """
+        Represents the output of a single search. Comprises a metadata file and other dataset files.
+
+        Parameters
+        ----------
+        directory
+            The directory of the search
+        """
+        if (directory / ".is_grid_search").exists():
+            return super().__new__(GridSearchOutput)
+        return super().__new__(cls)
+
     def __init__(self, directory: Path, reference: dict = None):
         """
         Represents the output of a single search. Comprises a metadata file and other dataset files.
@@ -221,3 +234,7 @@ class SearchOutput(Output):
 
     def __repr__(self):
         return "<PhaseOutput {}>".format(self)
+
+
+class GridSearchOutput(SearchOutput):
+    pass
