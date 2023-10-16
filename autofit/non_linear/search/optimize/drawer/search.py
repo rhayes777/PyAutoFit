@@ -127,7 +127,8 @@ class Drawer(AbstractOptimizer):
 
         search_internal = {
             "parameter_lists" : parameter_lists,
-            "log_posterior_list" : log_posterior_list
+            "log_posterior_list" : log_posterior_list,
+            "time": self.timer.time
         }
 
         self.paths.save_search_internal(
@@ -164,7 +165,11 @@ class Drawer(AbstractOptimizer):
             weight_list=weight_list,
         )
 
-        return Samples(model=model, sample_list=sample_list)
+        return Samples(
+            model=model,
+            sample_list=sample_list,
+            samples_info=search_internal_dict,
+        )
 
     def plot_results(
         self,
