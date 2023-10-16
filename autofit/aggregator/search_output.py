@@ -38,43 +38,7 @@ def _create_file_handle(*args, **kwargs):
 dill._dill._create_filehandle = _create_file_handle
 
 
-class Output:
-    def __init__(self, directory: Path):
-        self.directory = directory
-
-    @property
-    def files_path(self):
-        return self.directory / "files"
-
-    def __getattr__(self, item):
-        """
-        Attempt to load a pickle by the same name from the search output directory.
-
-        dataset.pickle, meta_dataset.pickle etc.
-        """
-        try:
-            with open(self.files_path / f"{item}.pickle", "rb") as f:
-                return pickle.load(f)
-        except FileNotFoundError:
-            pass
-        try:
-            with open(self.files_path / f"{item}.json") as f:
-                d = json.load(f)
-                if "type" in d:
-                    result = from_dict(d)
-                    if result is not None:
-                        return result
-                return d
-        except FileNotFoundError:
-            pass
-        try:
-            with open(self.files_path / f"{item}.csv") as f:
-                return np.loadtxt(f)
-        except (FileNotFoundError, ValueError):
-            pass
-
-
-class SearchOutput(Output):
+class SearchOutput:
     """
     @DynamicAttrs
     """
@@ -101,17 +65,54 @@ class SearchOutput(Output):
         directory
             The directory of the search
         """
-        super().__init__(directory)
         self.__search = None
         self.__model = None
+
+        self.directory = directory
 
         self._reference = reference
         self.file_path = directory / "metadata"
 
-        with open(self.file_path) as f:
-            self.text = f.read()
-            pairs = [line.split("=") for line in self.text.split("\n") if "=" in line]
-            self.__dict__.update({pair[0]: pair[1] for pair in pairs})
+        try:
+            with open(self.file_path) as f:
+                self.text = f.read()
+                pairs = [
+                    line.split("=") for line in self.text.split("\n") if "=" in line
+                ]
+                self.__dict__.update({pair[0]: pair[1] for pair in pairs})
+        except FileNotFoundError:
+            pass
+
+    @property
+    def files_path(self):
+        return self.directory / "files"
+
+    def __getattr__(self, item):
+        """
+        Attempt to load a pickle by the same name from the search output directory.
+
+        dataset.pickle, meta_dataset.pickle etc.
+        """
+        try:
+            with open(self.files_path / f"{item}.pickle", "rb") as f:
+                return pickle.load(f)
+        except FileNotFoundError:
+            pass
+        try:
+            with open(self.files_path / f"{item}.json") as f:
+                d = json.load(f)
+                if "type" in d:
+                    result = from_dict(d, reference=self._reference)
+                    if result is not None:
+                        return result
+                return d
+        except FileNotFoundError:
+            pass
+        try:
+            with open(self.files_path / f"{item}.csv") as f:
+                return np.loadtxt(f)
+        except (FileNotFoundError, ValueError):
+            pass
 
     @property
     def id(self):
@@ -168,7 +169,7 @@ class SearchOutput(Output):
         """
         A list of child analyses loaded from the analyses directory
         """
-        return list(map(Output, Path(self.directory).glob("analyses/*")))
+        return list(map(SearchOutput, Path(self.directory).glob("analyses/*")))
 
     @property
     def model_results(self) -> str:

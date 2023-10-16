@@ -22,7 +22,8 @@ def test_with():
         Path(__file__).parent,
         reference={"": get_class_path(af.Exponential)},
     )
-    model = list(aggregator)[0].model
+    output = list(aggregator)[0]
+    model = output.model
     assert model.cls is af.Exponential
 
 
