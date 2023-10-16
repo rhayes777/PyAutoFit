@@ -132,7 +132,7 @@ class SearchOutput(Output):
         except FileNotFoundError:
             raise AttributeError("No samples found")
 
-    def _names_and_paths(
+    def names_and_paths(
         self,
         suffix: str,
     ) -> Generator[Tuple[str, Path], None, None]:
