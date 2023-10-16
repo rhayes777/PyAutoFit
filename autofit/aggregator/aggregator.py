@@ -203,7 +203,7 @@ class Aggregator:
         print(f"Filter found a total of {str(len(search_outputs))} results")
         return Aggregator(search_outputs=list(search_outputs))
 
-    def values(self, name: str, parser: lambda o: o) -> Iterator:
+    def values(self, name: str, parser=lambda o: o) -> Iterator:
         """
         Get values from outputs with a given name.
 
