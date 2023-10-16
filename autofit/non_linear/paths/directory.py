@@ -220,7 +220,7 @@ class DirectoryPaths(AbstractPaths):
         """
         if conf.instance["general"]["output"]["samples_to_csv"]:
             samples.write_table(filename=self._samples_file)
-            samples.info_to_json(filename=self._info_file)
+            self.save_json("samples_info", samples.samples_info)
             if isinstance(samples, SamplesPDF):
                 try:
                     samples.save_covariance_matrix(self._covariance_file)
