@@ -449,7 +449,7 @@ class Samples(SamplesInterface, ABC):
         Headers for the samples table
         """
 
-        return self.model.model_component_and_parameter_names + [
+        return self.model.joined_paths + [
             "log_likelihood",
             "log_prior",
             "log_posterior",
