@@ -76,7 +76,7 @@ class Scraper:
         logger.info(f"Scraping directory {self.directory}")
         from autofit.aggregator.aggregator import Aggregator as ClassicAggregator
 
-        aggregator = ClassicAggregator(
+        aggregator = ClassicAggregator.from_directory(
             self.directory,
             reference=self.reference,
         )
@@ -166,7 +166,7 @@ class Scraper:
 
                 _add_files(grid_search, path / "files")
 
-                aggregator = ClassicAggregator(root)
+                aggregator = ClassicAggregator.from_directory(root)
                 for item in aggregator:
                     fit = self._retrieve_model_fit(item)
                     grid_search.children.append(fit)
