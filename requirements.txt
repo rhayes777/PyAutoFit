@@ -14,4 +14,4 @@ scipy<=1.10.0
 astunparse==1.6.3
 threadpoolctl==3.1.0
 timeout-decorator==0.5.0
-xxhash==3.0.0
+xxhash<=3.4.1
