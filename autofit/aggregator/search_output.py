@@ -103,18 +103,21 @@ class SearchOutput(Output):
 
     @property
     def samples(self):
-        info_path = self.files_path / "samples_info.json"
-        samples_path = self.files_path / "samples.csv"
-        with open(info_path) as f:
-            info_json = json.load(f)
-        with open(samples_path) as f:
-            sample_list = samples_from_iterator(csv.reader(f))
+        try:
+            info_path = self.files_path / "samples_info.json"
+            samples_path = self.files_path / "samples.csv"
+            with open(info_path) as f:
+                info_json = json.load(f)
+            with open(samples_path) as f:
+                sample_list = samples_from_iterator(csv.reader(f))
 
-        return SamplesPDF.from_list_info_and_model(
-            sample_list=sample_list,
-            samples_info=info_json,
-            model=self.model,
-        )
+            return SamplesPDF.from_list_info_and_model(
+                sample_list=sample_list,
+                samples_info=info_json,
+                model=self.model,
+            )
+        except FileNotFoundError:
+            raise AttributeError("No samples found")
 
     def _names_and_paths(
         self,
