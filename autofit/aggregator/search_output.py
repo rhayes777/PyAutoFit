@@ -1,12 +1,16 @@
+import csv
 import json
 import logging
 import pickle
 from os import path
 from pathlib import Path
+from typing import Generator, Tuple
 
 import dill
 import numpy as np
 
+from autofit import SamplesPDF
+from autofit.non_linear.samples.sample import samples_from_iterator
 from autofit.non_linear.search import abstract_search
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autoconf.dictable import from_dict
@@ -69,7 +73,7 @@ class SearchOutput(Output):
     @DynamicAttrs
     """
 
-    def __init__(self, directory: str, reference: dict = None):
+    def __init__(self, directory: Path, reference: dict = None):
         """
         Represents the output of a single search. Comprises a metadata file and other dataset files.
 
@@ -78,7 +82,6 @@ class SearchOutput(Output):
         directory
             The directory of the search
         """
-        directory = Path(directory)
         super().__init__(directory)
         self.__search = None
         self.__model = None
@@ -90,6 +93,49 @@ class SearchOutput(Output):
             self.text = f.read()
             pairs = [line.split("=") for line in self.text.split("\n") if "=" in line]
             self.__dict__.update({pair[0]: pair[1] for pair in pairs})
+
+    @property
+    def is_complete(self) -> bool:
+        """
+        Whether the search has completed
+        """
+        return (self.directory / ".completed").exists()
+
+    @property
+    def samples(self):
+        info_path = self.files_path / "samples_info.json"
+        samples_path = self.files_path / "samples.csv"
+        with open(info_path) as f:
+            info_json = json.load(f)
+        with open(samples_path) as f:
+            sample_list = samples_from_iterator(csv.reader(f))
+
+        return SamplesPDF.from_list_info_and_model(
+            sample_list=sample_list,
+            samples_info=info_json,
+            model=self.model,
+        )
+
+    def _names_and_paths(
+        self,
+        suffix: str,
+    ) -> Generator[Tuple[str, Path], None, None]:
+        """
+        Get the names and paths of files with a given suffix.
+
+        Parameters
+        ----------
+        suffix
+            The suffix of the files to retrieve (e.g. ".json")
+
+        Returns
+        -------
+        A generator of tuples of the form (name, path) where name is the path to the file
+        joined by . without the suffix and path is the path to the file
+        """
+        for file in list(self.files_path.rglob(f"*{suffix}")):
+            name = ".".join(file.relative_to(self.files_path).with_suffix("").parts)
+            yield name, file
 
     @property
     def child_analyses(self):
