@@ -36,9 +36,7 @@ class TextFormatter:
         if len(path) == 1:
             node.value = value
         else:
-            self.add_to_dict(
-                path[1:], value, node
-            )
+            self.add_to_dict(path[1:], value, node)
 
     def add(self, path: Tuple[str, ...], value):
         self.add_to_dict(path, value, self.dict)
@@ -49,7 +47,7 @@ class TextFormatter:
             indent_string = self.indent * " "
             if value.value is not None:
                 value_string = str(value.value)
-                space_string = max((line_length - len(key)), 1) * " "
+                space_string = max((line_length - len(str(key))), 1) * " "
                 lines.append(f"{key}{space_string}{value_string}")
 
             if len(value) > 0:
@@ -91,9 +89,9 @@ def format_string_for_parameter_name(parameter_name: str) -> str:
     try:
         # noinspection PyProtectedMember
         for key, value in sorted(
-                label_conf["format"].items(),
-                key=lambda item: len(item[0]),
-                reverse=True,
+            label_conf["format"].items(),
+            key=lambda item: len(item[0]),
+            reverse=True,
         ):
             if key in parameter_name:
                 return value
@@ -131,7 +129,7 @@ def add_whitespace(str0, str1, whitespace):
 
 
 def value_result_string_from(
-        parameter_name, value, values_at_sigma=None, unit=None, format_string=None
+    parameter_name, value, values_at_sigma=None, unit=None, format_string=None
 ):
     format_str = format_string or format_string_for_parameter_name(parameter_name)
     value = format_str.format(value)
@@ -150,15 +148,15 @@ def value_result_string_from(
 
 
 def parameter_result_latex_from(
-        parameter_name,
-        value,
-        errors=None,
-        superscript="",
-        unit=None,
-        format_string=None,
-        name_to_label=False,
-        include_name=True,
-        include_quickmath=False,
+    parameter_name,
+    value,
+    errors=None,
+    superscript="",
+    unit=None,
+    format_string=None,
+    name_to_label=False,
+    include_name=True,
+    include_quickmath=False,
 ):
     format_str = format_string or format_string_for_parameter_name(parameter_name)
     value = format_str.format(value)
@@ -178,18 +176,18 @@ def parameter_result_latex_from(
         superscript = f"^{{\\rm{{{superscript}}}}}"
 
     if errors is None:
-
         if include_name:
             parameter_result_latex = f"{name}{superscript} = {value}{unit}"
         else:
             parameter_result_latex = f"{value}{unit}"
 
     else:
-
         lower_value_at_sigma = format_str.format(errors[0])
         upper_value_at_sigma = format_str.format(errors[1])
 
-        parameter_result = f"{value}^{{+{upper_value_at_sigma}}}_{{-{lower_value_at_sigma}}}{unit}"
+        parameter_result = (
+            f"{value}^{{+{upper_value_at_sigma}}}_{{-{lower_value_at_sigma}}}{unit}"
+        )
 
         if include_name:
             parameter_result_latex = f"{name}{superscript} = {value}^{{+{upper_value_at_sigma}}}_{{-{lower_value_at_sigma}}}{unit}"
@@ -197,15 +195,14 @@ def parameter_result_latex_from(
             parameter_result_latex = parameter_result
 
     if "e" in format_str:
-
         psplit = parameter_result.split("e")
 
         parameter_result_latex = (
-            f"" 
-            f"{psplit[0]}" 
+            f""
+            f"{psplit[0]}"
             f"{psplit[1][3:]}"
-            f"{psplit[2][3:]}" 
-            f"{psplit[3][-1]}" 
+            f"{psplit[2][3:]}"
+            f"{psplit[3][-1]}"
             f" \\times 10^{{{int(psplit[1][1:3])}}}"
         )
 

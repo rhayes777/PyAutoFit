@@ -12,17 +12,18 @@ def make_directory():
 
 
 def test_without(directory):
-    aggregator = Aggregator(directory)
+    aggregator = Aggregator.from_directory(directory)
     model = list(aggregator)[0].model
     assert model.cls is af.Gaussian
 
 
 def test_with():
-    aggregator = Aggregator(
+    aggregator = Aggregator.from_directory(
         Path(__file__).parent,
         reference={"": get_class_path(af.Exponential)},
     )
-    model = list(aggregator)[0].model
+    output = list(aggregator)[0]
+    model = output.model
     assert model.cls is af.Exponential
 
 

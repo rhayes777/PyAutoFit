@@ -11,7 +11,6 @@ import numpy as np
 from .. import model as m
 from ..sqlalchemy_ import sa
 from autofit.non_linear.samples.pdf import SamplesPDF
-from ...mapper.model_object import Identifier
 from autofit.non_linear.samples.sample import samples_from_iterator
 
 logger = logging.getLogger(__name__)
@@ -76,27 +75,23 @@ class Scraper:
         logger.info(f"Scraping directory {self.directory}")
         from autofit.aggregator.aggregator import Aggregator as ClassicAggregator
 
-        aggregator = ClassicAggregator(
+        aggregator = ClassicAggregator.from_directory(
             self.directory,
             reference=self.reference,
         )
         logger.info(f"{len(aggregator)} searches found")
         for item in aggregator:
-            is_complete = os.path.exists(f"{item.directory}/.completed")
-
             parent_identifier = _parent_identifier(directory=item.directory)
 
             model = item.model
             samples = item.samples
-
-            identifier = _make_identifier(item)
 
             logger.info(
                 f"Creating fit for: "
                 f"{item.search.paths.path_prefix} "
                 f"{item.search.unique_tag} "
                 f"{item.search.name} "
-                f"{identifier} "
+                f"{item.id} "
             )
 
             try:
@@ -106,19 +101,19 @@ class Scraper:
 
             try:
                 fit = self._retrieve_model_fit(item)
-                logger.warning(f"Fit already existed with identifier {identifier}")
+                logger.warning(f"Fit already existed with identifier {item.id}")
             except sa.orm.exc.NoResultFound:
                 try:
                     log_likelihood = samples.max_log_likelihood_sample.log_likelihood
                 except AttributeError:
                     log_likelihood = None
                 fit = m.Fit(
-                    id=identifier,
+                    id=item.id,
                     name=item.search.name,
                     unique_tag=item.search.unique_tag,
                     model=model,
                     instance=instance,
-                    is_complete=is_complete,
+                    is_complete=item.is_complete,
                     info=item.info,
                     max_log_likelihood=log_likelihood,
                     parent_id=parent_identifier,
@@ -127,7 +122,7 @@ class Scraper:
             _add_files(fit, Path(item.files_path))
             for i, child_analysis in enumerate(item.child_analyses):
                 child_fit = m.Fit(
-                    id=f"{identifier}_{i}",
+                    id=f"{item.id}_{i}",
                 )
                 _add_files(child_fit, child_analysis.files_path)
                 fit.children.append(child_fit)
@@ -166,7 +161,7 @@ class Scraper:
 
                 _add_files(grid_search, path / "files")
 
-                aggregator = ClassicAggregator(root)
+                aggregator = ClassicAggregator.from_directory(root)
                 for item in aggregator:
                     fit = self._retrieve_model_fit(item)
                     grid_search.children.append(fit)
@@ -190,30 +185,7 @@ class Scraper:
         NoResultFound
             If no fit is found with the identifier
         """
-        return (
-            self.session.query(m.Fit).filter(m.Fit.id == _make_identifier(item)).one()
-        )
-
-
-def _make_identifier(item) -> str:
-    """
-    Create a unique identifier for a SearchOutput.
-
-    This accounts for the Search, Model and unique_tag
-
-    Parameters
-    ----------
-    item
-        An output from the classic aggregator
-
-    Returns
-    -------
-    A unique identifier that is sensitive to changes that affect
-    the search
-    """
-    search = item.search
-    model = item.model
-    return str(Identifier([search, model, search.unique_tag]))
+        return self.session.query(m.Fit).filter(m.Fit.id == item.id).one()
 
 
 def names_and_paths(
