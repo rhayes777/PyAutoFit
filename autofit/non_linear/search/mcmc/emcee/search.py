@@ -222,11 +222,19 @@ class Emcee(AbstractMCMC):
 
         search_internal = self.backend
 
-        discard = int(3.0 * np.max(self.auto_correlations.times))
-        thin = int(np.max(self.auto_correlations.times) / 2.0)
-        samples_after_burn_in = search_internal.get_chain(
-            discard=discard, thin=thin, flat=True
+        if os.environ.get("PYAUTOFIT_TEST_MODE") == "1":
+
+            samples_after_burn_in = search_internal.get_chain(
+            discard=5, thin=5, flat=True
         )
+
+        else:
+
+            discard = int(3.0 * np.max(self.auto_correlations.times))
+            thin = int(np.max(self.auto_correlations.times) / 2.0)
+            samples_after_burn_in = search_internal.get_chain(
+                discard=discard, thin=thin, flat=True
+            )
 
         parameter_lists = samples_after_burn_in.tolist()
 
