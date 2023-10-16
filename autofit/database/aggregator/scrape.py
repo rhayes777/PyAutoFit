@@ -87,14 +87,12 @@ class Scraper:
             model = item.model
             samples = item.samples
 
-            identifier = _make_identifier(item)
-
             logger.info(
                 f"Creating fit for: "
                 f"{item.search.paths.path_prefix} "
                 f"{item.search.unique_tag} "
                 f"{item.search.name} "
-                f"{identifier} "
+                f"{item.id} "
             )
 
             try:
@@ -111,7 +109,7 @@ class Scraper:
                 except AttributeError:
                     log_likelihood = None
                 fit = m.Fit(
-                    id=identifier,
+                    id=item.id,
                     name=item.search.name,
                     unique_tag=item.search.unique_tag,
                     model=model,
@@ -125,7 +123,7 @@ class Scraper:
             _add_files(fit, Path(item.files_path))
             for i, child_analysis in enumerate(item.child_analyses):
                 child_fit = m.Fit(
-                    id=f"{identifier}_{i}",
+                    id=f"{item.id}_{i}",
                 )
                 _add_files(child_fit, child_analysis.files_path)
                 fit.children.append(child_fit)
@@ -188,30 +186,7 @@ class Scraper:
         NoResultFound
             If no fit is found with the identifier
         """
-        return (
-            self.session.query(m.Fit).filter(m.Fit.id == _make_identifier(item)).one()
-        )
-
-
-def _make_identifier(item) -> str:
-    """
-    Create a unique identifier for a SearchOutput.
-
-    This accounts for the Search, Model and unique_tag
-
-    Parameters
-    ----------
-    item
-        An output from the classic aggregator
-
-    Returns
-    -------
-    A unique identifier that is sensitive to changes that affect
-    the search
-    """
-    search = item.search
-    model = item.model
-    return str(Identifier([search, model, search.unique_tag]))
+        return self.session.query(m.Fit).filter(m.Fit.id == item.id).one()
 
 
 def names_and_paths(

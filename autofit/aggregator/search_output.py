@@ -10,6 +10,7 @@ import dill
 import numpy as np
 
 from autofit import SamplesPDF
+from autofit.mapper.identifier import Identifier
 from autofit.non_linear.samples.sample import samples_from_iterator
 from autofit.non_linear.search import abstract_search
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
@@ -106,6 +107,10 @@ class SearchOutput(Output):
             self.text = f.read()
             pairs = [line.split("=") for line in self.text.split("\n") if "=" in line]
             self.__dict__.update({pair[0]: pair[1] for pair in pairs})
+
+    @property
+    def id(self):
+        return str(Identifier([self.search, self.model, self.search.unique_tag]))
 
     @property
     def is_complete(self) -> bool:
