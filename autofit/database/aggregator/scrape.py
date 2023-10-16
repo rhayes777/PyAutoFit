@@ -11,7 +11,6 @@ import numpy as np
 from .. import model as m
 from ..sqlalchemy_ import sa
 from autofit.non_linear.samples.pdf import SamplesPDF
-from ...mapper.model_object import Identifier
 from autofit.non_linear.samples.sample import samples_from_iterator
 
 logger = logging.getLogger(__name__)
@@ -102,7 +101,7 @@ class Scraper:
 
             try:
                 fit = self._retrieve_model_fit(item)
-                logger.warning(f"Fit already existed with identifier {identifier}")
+                logger.warning(f"Fit already existed with identifier {item.id}")
             except sa.orm.exc.NoResultFound:
                 try:
                     log_likelihood = samples.max_log_likelihood_sample.log_likelihood
