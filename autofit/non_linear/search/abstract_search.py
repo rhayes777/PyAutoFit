@@ -515,6 +515,8 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                 search = DynestyStatic(
                     name=self.name,
                     unique_tag=self.unique_tag,
+                    path_prefix=self.paths.path_prefix,
+                    number_of_cores=self.number_of_cores,
                 )
 
                 return search.fit(model=model, analysis=analysis, info=info)
