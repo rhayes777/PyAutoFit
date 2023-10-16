@@ -4,6 +4,7 @@ from pathlib import Path
 import pytest
 
 import autofit as af
+from autofit import SearchOutput
 
 
 @pytest.fixture(name="aggregator")
@@ -30,3 +31,8 @@ def make_aggregator_directory(directory):
     directory = path.dirname(path.realpath(__file__))
 
     return directory.parent / "tools" / "files" / "aggregator"
+
+
+@pytest.fixture(name="search_output")
+def make_search_output(directory):
+    return SearchOutput(directory / "search_output")

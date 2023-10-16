@@ -1,12 +1,17 @@
+import csv
 import json
 import logging
 import pickle
 from os import path
 from pathlib import Path
+from typing import Generator, Tuple, Optional
 
 import dill
 import numpy as np
 
+from autofit import SamplesPDF
+from autofit.mapper.identifier import Identifier
+from autofit.non_linear.samples.sample import samples_from_iterator
 from autofit.non_linear.search import abstract_search
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autoconf.dictable import from_dict
@@ -33,9 +38,50 @@ def _create_file_handle(*args, **kwargs):
 dill._dill._create_filehandle = _create_file_handle
 
 
-class Output:
-    def __init__(self, directory: Path):
+class SearchOutput:
+    """
+    @DynamicAttrs
+    """
+
+    def __new__(cls, directory: Path, reference: dict = None):
+        """
+        Represents the output of a single search. Comprises a metadata file and other dataset files.
+
+        Parameters
+        ----------
+        directory
+            The directory of the search
+        """
+        if (directory / ".is_grid_search").exists():
+            return super().__new__(GridSearchOutput)
+        return super().__new__(cls)
+
+    def __init__(self, directory: Path, reference: dict = None):
+        """
+        Represents the output of a single search. Comprises a metadata file and other dataset files.
+
+        Parameters
+        ----------
+        directory
+            The directory of the search
+        """
+        self.__search = None
+        self.__model = None
+
         self.directory = directory
+
+        self._reference = reference
+        self.file_path = directory / "metadata"
+
+        try:
+            with open(self.file_path) as f:
+                self.text = f.read()
+                pairs = [
+                    line.split("=") for line in self.text.split("\n") if "=" in line
+                ]
+                self.__dict__.update({pair[0]: pair[1] for pair in pairs})
+        except FileNotFoundError:
+            pass
 
     @property
     def files_path(self):
@@ -54,7 +100,12 @@ class Output:
             pass
         try:
             with open(self.files_path / f"{item}.json") as f:
-                return json.load(f)
+                d = json.load(f)
+                if "type" in d:
+                    result = from_dict(d, reference=self._reference)
+                    if result is not None:
+                        return result
+                return d
         except FileNotFoundError:
             pass
         try:
@@ -63,40 +114,62 @@ class Output:
         except (FileNotFoundError, ValueError):
             pass
 
+    @property
+    def id(self):
+        return str(Identifier([self.search, self.model, self.search.unique_tag]))
 
-class SearchOutput(Output):
-    """
-    @DynamicAttrs
-    """
-
-    def __init__(self, directory: str, reference: dict = None):
+    @property
+    def is_complete(self) -> bool:
         """
-        Represents the output of a single search. Comprises a metadata file and other dataset files.
+        Whether the search has completed
+        """
+        return (self.directory / ".completed").exists()
+
+    @property
+    def samples(self):
+        try:
+            info_path = self.files_path / "samples_info.json"
+            samples_path = self.files_path / "samples.csv"
+            with open(info_path) as f:
+                info_json = json.load(f)
+            with open(samples_path) as f:
+                sample_list = samples_from_iterator(csv.reader(f))
+
+            return SamplesPDF.from_list_info_and_model(
+                sample_list=sample_list,
+                samples_info=info_json,
+                model=self.model,
+            )
+        except FileNotFoundError:
+            raise AttributeError("No samples found")
+
+    def names_and_paths(
+        self,
+        suffix: str,
+    ) -> Generator[Tuple[str, Path], None, None]:
+        """
+        Get the names and paths of files with a given suffix.
 
         Parameters
         ----------
-        directory
-            The directory of the search
+        suffix
+            The suffix of the files to retrieve (e.g. ".json")
+
+        Returns
+        -------
+        A generator of tuples of the form (name, path) where name is the path to the file
+        joined by . without the suffix and path is the path to the file
         """
-        directory = Path(directory)
-        super().__init__(directory)
-        self.__search = None
-        self.__model = None
-
-        self._reference = reference
-        self.file_path = directory / "metadata"
-
-        with open(self.file_path) as f:
-            self.text = f.read()
-            pairs = [line.split("=") for line in self.text.split("\n") if "=" in line]
-            self.__dict__.update({pair[0]: pair[1] for pair in pairs})
+        for file in list(self.files_path.rglob(f"*{suffix}")):
+            name = ".".join(file.relative_to(self.files_path).with_suffix("").parts)
+            yield name, file
 
     @property
     def child_analyses(self):
         """
         A list of child analyses loaded from the analyses directory
         """
-        return list(map(Output, Path(self.directory).glob("analyses/*")))
+        return list(map(SearchOutput, Path(self.directory).glob("analyses/*")))
 
     @property
     def model_results(self) -> str:
@@ -146,29 +219,22 @@ class SearchOutput(Output):
         """
         return [getattr(child, name) for child in self.child_analyses]
 
-    @property
-    def model(self):
-        """
-        The model that was used in this phase
-        """
-        if self.__model is None:
-            try:
-                with open(self.files_path / "model.json") as f:
-                    self.__model = AbstractPriorModel.from_dict(
-                        json.load(f),
-                        reference=self._reference,
-                    )
-            except (FileNotFoundError, ModuleNotFoundError) as e:
-                logging.exception(e)
-                try:
-                    with open(self.files_path / "model.pickle", "rb") as f:
-                        self.__model = pickle.load(f)
-                except (FileNotFoundError, ModuleNotFoundError):
-                    logging.warning("Could not load model")
-        return self.__model
-
     def __str__(self):
         return self.text
 
     def __repr__(self):
         return "<PhaseOutput {}>".format(self)
+
+
+class GridSearchOutput(SearchOutput):
+    @property
+    def parent_identifier(self) -> Optional[str]:
+        """
+        Read the parent identifier for a fit in a directory.
+
+        Defaults to None if no .parent_identifier file is found.
+        """
+        try:
+            return (self.directory / ".parent_identifier").read_text()
+        except FileNotFoundError:
+            return None
