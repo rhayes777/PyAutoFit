@@ -16,6 +16,7 @@ import os
 import zipfile
 from collections import defaultdict
 from os import path
+from pathlib import Path
 from shutil import rmtree
 from typing import List, Union, Iterator, Optional
 
@@ -131,7 +132,12 @@ class Aggregator:
         for root, _, filenames in os.walk(directory):
             if "metadata" in filenames:
                 if not completed_only or ".completed" in filenames:
-                    search_outputs.append(SearchOutput(root, reference=reference))
+                    search_outputs.append(
+                        SearchOutput(
+                            Path(root),
+                            reference=reference,
+                        )
+                    )
 
         if len(search_outputs) == 0:
             print(f"\nNo search_outputs found in {directory}\n")
