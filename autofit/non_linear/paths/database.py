@@ -260,6 +260,7 @@ class DatabasePaths(AbstractPaths):
             samples = samples.minimise()
 
         self.fit.samples = samples
+        self.fit.set_json("samples_info", samples.samples_info)
 
     def samples_to_csv(self, samples):
         """
