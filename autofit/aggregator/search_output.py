@@ -59,7 +59,12 @@ class Output:
             pass
         try:
             with open(self.files_path / f"{item}.json") as f:
-                return json.load(f)
+                d = json.load(f)
+                if "type" in d:
+                    result = from_dict(d)
+                    if result is not None:
+                        return result
+                return d
         except FileNotFoundError:
             pass
         try:
@@ -212,27 +217,6 @@ class SearchOutput(Output):
         Get the values of a given key for all children
         """
         return [getattr(child, name) for child in self.child_analyses]
-
-    @property
-    def model(self):
-        """
-        The model that was used in this phase
-        """
-        if self.__model is None:
-            try:
-                with open(self.files_path / "model.json") as f:
-                    self.__model = AbstractPriorModel.from_dict(
-                        json.load(f),
-                        reference=self._reference,
-                    )
-            except (FileNotFoundError, ModuleNotFoundError) as e:
-                logging.exception(e)
-                try:
-                    with open(self.files_path / "model.pickle", "rb") as f:
-                        self.__model = pickle.load(f)
-                except (FileNotFoundError, ModuleNotFoundError):
-                    logging.warning("Could not load model")
-        return self.__model
 
     def __str__(self):
         return self.text
