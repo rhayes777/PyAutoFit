@@ -4,7 +4,7 @@ import logging
 import pickle
 from os import path
 from pathlib import Path
-from typing import Generator, Tuple
+from typing import Generator, Tuple, Optional
 
 import dill
 import numpy as np
@@ -227,4 +227,14 @@ class SearchOutput:
 
 
 class GridSearchOutput(SearchOutput):
-    pass
+    @property
+    def parent_identifier(self) -> Optional[str]:
+        """
+        Read the parent identifier for a fit in a directory.
+
+        Defaults to None if no .parent_identifier file is found.
+        """
+        try:
+            return (self.directory / ".parent_identifier").read_text()
+        except FileNotFoundError:
+            return None
