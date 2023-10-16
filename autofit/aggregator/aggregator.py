@@ -185,7 +185,7 @@ class Aggregator:
     def __getattr__(self, item):
         return AttributePredicate(item)
 
-    def filter(self, *predicates) -> "Aggregator":
+    def query(self, *predicates) -> "Aggregator":
         """
         Filter phase outputs by predicates. A predicate is created using a conditional
         operator.
