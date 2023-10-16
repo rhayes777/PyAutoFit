@@ -82,8 +82,6 @@ class Scraper:
         )
         logger.info(f"{len(aggregator)} searches found")
         for item in aggregator:
-            is_complete = os.path.exists(f"{item.directory}/.completed")
-
             parent_identifier = _parent_identifier(directory=item.directory)
 
             model = item.model
@@ -118,7 +116,7 @@ class Scraper:
                     unique_tag=item.search.unique_tag,
                     model=model,
                     instance=instance,
-                    is_complete=is_complete,
+                    is_complete=item.is_complete,
                     info=item.info,
                     max_log_likelihood=log_likelihood,
                     parent_id=parent_identifier,
