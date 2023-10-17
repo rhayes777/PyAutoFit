@@ -512,10 +512,12 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
                 from autofit.non_linear.search.nest.dynesty.search.static import DynestyStatic
 
+                from pathlib import Path
+
                 search = DynestyStatic(
                     name=self.name,
                     unique_tag=self.unique_tag,
-                    path_prefix=self.paths.path_prefix,
+                    path_prefix=Path(self.paths.path_prefix),
                     number_of_cores=self.number_of_cores,
                 )
 
