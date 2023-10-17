@@ -1,4 +1,5 @@
 import numpy as np
+import os
 
 from autofit.plot import SamplesPlotter
 
@@ -10,6 +11,10 @@ class NautilusPlotter(SamplesPlotter):
 
         This figure plots a corner plot of the 1-D and 2-D marginalized posteriors.
         """
+
+        if os.environ.get("PYAUTOFIT_TEST_MODE") == "1":
+            return
+
         import corner
         import matplotlib.pyplot as plt
 
