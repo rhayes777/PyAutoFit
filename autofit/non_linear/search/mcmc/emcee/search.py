@@ -193,7 +193,10 @@ class Emcee(AbstractMCMC):
             if iterations_remaining > 0:
 
                 self.perform_update(
-                    model=model, analysis=analysis, during_analysis=True
+                    model=model,
+                    analysis=analysis,
+                    search_internal=search_internal,
+                    during_analysis=True
                 )
         return search_internal
 
@@ -240,8 +243,10 @@ class Emcee(AbstractMCMC):
 
         else:
 
-            discard = int(3.0 * np.max(self.auto_correlations.times))
-            thin = int(np.max(self.auto_correlations.times) / 2.0)
+            auto_correlations = self.auto_correlations_from(search_internal=search_internal)
+
+            discard = int(3.0 * np.max(auto_correlations.times))
+            thin = int(np.max(auto_correlations.times) / 2.0)
             samples_after_burn_in = search_internal.get_chain(
                 discard=discard, thin=thin, flat=True
             )
