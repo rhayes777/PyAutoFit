@@ -159,7 +159,7 @@ class AbstractDynesty(AbstractNest, ABC):
                         queue_size=self.number_of_cores,
                     )
 
-                    finished = self.run_sampler(search_internal=search_internal)
+                    finished = self.run_search_internal(search_internal=search_internal)
 
             except RuntimeError:
 
@@ -182,7 +182,7 @@ class AbstractDynesty(AbstractNest, ABC):
                     queue_size=None,
                 )
 
-                finished = self.run_sampler(search_internal=search_internal)
+                finished = self.run_search_internal(search_internal=search_internal)
 
             if not finished:
 
@@ -282,7 +282,7 @@ class AbstractDynesty(AbstractNest, ABC):
             return int(iterations), int(total_iterations)
         return self.iterations_per_update, int(total_iterations)
 
-    def run_sampler(self, search_internal: Union[NestedSampler, DynamicNestedSampler]):
+    def run_search_internal(self, search_internal: Union[NestedSampler, DynamicNestedSampler]):
         """
         Run the Dynesty sampler, which could be either the static of dynamic sampler.
 
