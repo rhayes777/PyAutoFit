@@ -151,7 +151,7 @@ class AbstractDynesty(AbstractNest, ABC):
                         ptform_args=(model,),
                 ) as pool:
 
-                    sampler = self.sampler_from(
+                    search_internal = self.sampler_from(
                         model=model,
                         fitness=fitness,
                         checkpoint_exists=checkpoint_exists,
@@ -159,7 +159,7 @@ class AbstractDynesty(AbstractNest, ABC):
                         queue_size=self.number_of_cores,
                     )
 
-                    finished = self.run_sampler(sampler=sampler)
+                    finished = self.run_sampler(search_internal=search_internal)
 
             except RuntimeError:
 
@@ -174,7 +174,7 @@ class AbstractDynesty(AbstractNest, ABC):
                         """
                     )
 
-                sampler = self.sampler_from(
+                search_internal = self.sampler_from(
                     model=model,
                     fitness=fitness,
                     checkpoint_exists=checkpoint_exists,
@@ -182,19 +182,19 @@ class AbstractDynesty(AbstractNest, ABC):
                     queue_size=None,
                 )
 
-                finished = self.run_sampler(sampler=sampler)
+                finished = self.run_sampler(search_internal=search_internal)
 
             if not finished:
 
                 self.perform_update(model=model, analysis=analysis, during_analysis=True)
 
         self.paths.save_search_internal(
-            obj=sampler.results,
+            obj=search_internal.results,
         )
 
     def samples_info_from(self, search_internal=None):
 
-        search_internal = search_internal or self.sampler.results
+        search_internal = search_internal or self.search_internal.results
 
         return {
             "log_evidence": np.max(search_internal.logz),
@@ -218,7 +218,7 @@ class AbstractDynesty(AbstractNest, ABC):
         model
             Maps input vectors of unit parameter values to physical values and model instances via priors.
         """
-        search_internal = search_internal or self.sampler.results
+        search_internal = search_internal or self.search_internal.results
 
         parameter_lists = search_internal.samples.tolist()
         log_prior_list = model.log_prior_list_from(parameter_lists=parameter_lists)
@@ -247,11 +247,11 @@ class AbstractDynesty(AbstractNest, ABC):
         )
 
     @property
-    def sampler(self):
+    def search_internal(self):
         raise NotImplementedError
 
     def iterations_from(
-            self, sampler: Union[NestedSampler, DynamicNestedSampler]
+            self, search_internal: Union[NestedSampler, DynamicNestedSampler]
     ) -> Tuple[int, int]:
         """
         Returns the next number of iterations that a dynesty call will use and the total number of iterations
@@ -263,7 +263,7 @@ class AbstractDynesty(AbstractNest, ABC):
 
         Parameters
         ----------
-        sampler
+        search_internal
             The Dynesty sampler (static or dynamic) which is run and performs nested sampling.
 
         Returns
@@ -272,7 +272,7 @@ class AbstractDynesty(AbstractNest, ABC):
         it has performed so far.
         """
         try:
-            total_iterations = np.sum(sampler.results.ncall)
+            total_iterations = np.sum(search_internal.results.ncall)
         except AttributeError:
             total_iterations = 0
 
@@ -282,7 +282,7 @@ class AbstractDynesty(AbstractNest, ABC):
             return int(iterations), int(total_iterations)
         return self.iterations_per_update, int(total_iterations)
 
-    def run_sampler(self, sampler: Union[NestedSampler, DynamicNestedSampler]):
+    def run_sampler(self, search_internal: Union[NestedSampler, DynamicNestedSampler]):
         """
         Run the Dynesty sampler, which could be either the static of dynamic sampler.
 
@@ -303,12 +303,12 @@ class AbstractDynesty(AbstractNest, ABC):
 
         """
 
-        iterations, total_iterations = self.iterations_from(sampler=sampler)
+        iterations, total_iterations = self.iterations_from(search_internal=search_internal)
 
         config_dict_run = {key: value for key, value in self.config_dict_run.items() if key != 'maxcall'}
 
         if iterations > 0:
-            sampler.run_nested(
+            search_internal.run_nested(
                 maxcall=iterations,
                 print_progress=not self.silence,
                 checkpoint_file=self.checkpoint_file,

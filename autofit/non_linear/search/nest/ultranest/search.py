@@ -142,7 +142,7 @@ class UltraNest(abstract_nest.AbstractNest):
                 "Starting new UltraNest non-linear search (no previous samples found)."
             )
 
-        sampler = ultranest.ReactiveNestedSampler(
+        search_internal = ultranest.ReactiveNestedSampler(
             param_names=model.parameter_names,
             loglike=fitness.__call__,
             transform=prior_transform,
@@ -150,14 +150,14 @@ class UltraNest(abstract_nest.AbstractNest):
             **self.config_dict_search
         )
 
-        sampler.stepsampler = self.stepsampler
+        search_internal.stepsampler = self.stepsampler
 
         finished = False
 
         while not finished:
 
             try:
-                total_iterations = sampler.ncall
+                total_iterations = search_internal.ncall
             except AttributeError:
                 total_iterations = 0
 
@@ -178,16 +178,16 @@ class UltraNest(abstract_nest.AbstractNest):
 
                 config_dict_run["update_interval_ncall"] = iterations
 
-                sampler.run(
+                search_internal.run(
                     max_ncalls=iterations,
                     **config_dict_run
                 )
 
             self.paths.save_search_internal(
-                  obj=sampler.results,
+                  obj=search_internal.results,
               )
 
-            iterations_after_run = sampler.ncall
+            iterations_after_run = search_internal.ncall
 
             if (
                     total_iterations == iterations_after_run

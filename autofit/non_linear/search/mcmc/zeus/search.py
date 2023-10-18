@@ -133,14 +133,14 @@ class Zeus(AbstractMCMC):
 
         try:
 
-            sampler = self.paths.load_search_internal()
+            search_internal = self.paths.load_search_internal()
 
-            state = sampler.get_last_sample()
-            log_posterior_list = sampler.get_last_log_prob()
+            state = search_internal.get_last_sample()
+            log_posterior_list = search_internal.get_last_log_prob()
 
             samples = self.samples_from(model=model)
 
-            total_iterations = sampler.iteration
+            total_iterations = search_internal.iteration
 
             if samples.converged:
                 iterations_remaining = 0
@@ -153,27 +153,27 @@ class Zeus(AbstractMCMC):
 
         except FileNotFoundError:
 
-            sampler = zeus.EnsembleSampler(
+            search_internal = zeus.EnsembleSampler(
                 nwalkers=self.config_dict_search["nwalkers"],
                 ndim=model.prior_count,
                 logprob_fn=fitness.__call__,
                 pool=pool,
             )
 
-            sampler.ncall_total = 0
+            search_internal.ncall_total = 0
 
             (
                 unit_parameter_lists,
                 parameter_lists,
                 log_posterior_list,
             ) = self.initializer.samples_from_model(
-                total_points=sampler.nwalkers,
+                total_points=search_internal.nwalkers,
                 model=model,
                 fitness=fitness,
                 test_mode_samples=False
             )
 
-            state = np.zeros(shape=(sampler.nwalkers, model.prior_count))
+            state = np.zeros(shape=(search_internal.nwalkers, model.prior_count))
 
             self.logger.info(
                 "Starting new Zeus non-linear search (no previous samples found)."
@@ -192,7 +192,7 @@ class Zeus(AbstractMCMC):
             else:
                 iterations = self.iterations_per_update
 
-            for sample in sampler.sample(
+            for sample in search_internal.sample(
                     start=state,
                     log_prob0=log_posterior_list,
                     iterations=iterations,
@@ -200,14 +200,14 @@ class Zeus(AbstractMCMC):
             ):
                 pass
 
-            sampler.ncall_total += sampler.ncall
+            search_internal.ncall_total += search_internal.ncall
 
             self.paths.save_search_internal(
-                obj=sampler,
+                obj=search_internal,
             )
 
-            state = sampler.get_last_sample()
-            log_posterior_list = sampler.get_last_log_prob()
+            state = search_internal.get_last_sample()
+            log_posterior_list = search_internal.get_last_log_prob()
 
             total_iterations += iterations
             iterations_remaining = self.config_dict_run["nsteps"] - total_iterations
@@ -215,18 +215,18 @@ class Zeus(AbstractMCMC):
             samples = self.samples_from(model=model)
 
             if self.auto_correlation_settings.check_for_convergence:
-                if sampler.iteration > self.auto_correlation_settings.check_size:
+                if search_internal.iteration > self.auto_correlation_settings.check_size:
                     if samples.converged:
                         iterations_remaining = 0
 
-            auto_correlation_time = zeus.AutoCorrTime(samples=sampler.get_chain())
+            auto_correlation_time = zeus.AutoCorrTime(samples=search_internal.get_chain())
 
             discard = int(3.0 * np.max(auto_correlation_time))
             thin = int(np.max(auto_correlation_time) / 2.0)
-            chain = sampler.get_chain(discard=discard, thin=thin, flat=True)
+            chain = search_internal.get_chain(discard=discard, thin=thin, flat=True)
 
             if "maxcall" in self.kwargs:
-                if sampler.ncall_total > self.kwargs["maxcall"]:
+                if search_internal.ncall_total > self.kwargs["maxcall"]:
                     iterations_remaining = 0
 
             if iterations_remaining > 0:

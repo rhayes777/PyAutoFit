@@ -184,7 +184,7 @@ class Nautilus(abstract_nest.AbstractNest):
             """
         )
 
-        sampler = self.sampler_cls(
+        search_internal = self.sampler_cls(
             prior=prior_transform,
             likelihood=fitness.__call__,
             n_dim=model.prior_count,
@@ -195,14 +195,14 @@ class Nautilus(abstract_nest.AbstractNest):
         )
 
         if os.path.exists(self.checkpoint_file):
-            self.output_sampler_results(sampler=sampler)
+            self.output_sampler_results(search_internal=search_internal)
             self.perform_update(model=model, analysis=analysis, during_analysis=True)
 
-        sampler.run(
+        search_internal.run(
             **self.config_dict_run,
         )
 
-        self.output_sampler_results(sampler=sampler)
+        self.output_sampler_results(search_internal=search_internal)
 
     def fit_multiprocessing(self, fitness, model, analysis):
         """
@@ -231,7 +231,7 @@ class Nautilus(abstract_nest.AbstractNest):
                 fitness_args=(model, fitness.__call__),
                 prior_transform_args=(model,),
         ) as pool:
-            sampler = self.sampler_cls(
+            search_internal = self.sampler_cls(
                 prior=pool.prior_transform,
                 likelihood=pool.fitness,
                 n_dim=model.prior_count,
@@ -242,14 +242,14 @@ class Nautilus(abstract_nest.AbstractNest):
 
             if os.path.exists(self.checkpoint_file):
 
-                self.output_sampler_results(sampler=sampler)
+                self.output_sampler_results(search_internal=search_internal)
                 self.perform_update(model=model, analysis=analysis, during_analysis=True)
 
-            sampler.run(
+            search_internal.run(
                 **self.config_dict_run,
             )
 
-            self.output_sampler_results(sampler=sampler)
+            self.output_sampler_results(search_internal=search_internal)
 
     def fit_mpi(self, fitness, model, analysis):
         """
@@ -282,7 +282,7 @@ class Nautilus(abstract_nest.AbstractNest):
                 pool.wait()
                 sys.exit(0)
 
-            sampler = self.sampler_cls(
+            search_internal = self.sampler_cls(
                 prior=pool.prior_transform,
                 likelihood=pool.fitness,
                 n_dim=model.prior_count,
@@ -294,16 +294,16 @@ class Nautilus(abstract_nest.AbstractNest):
             if os.path.exists(self.checkpoint_file):
 
                 if self.is_master:
-                    self.output_sampler_results(sampler=sampler)
+                    self.output_sampler_results(search_internal=search_internal)
                     self.perform_update(model=model, analysis=analysis, during_analysis=True)
 
-            sampler.run(
+            search_internal.run(
                 **self.config_dict_run,
             )
 
-            self.output_sampler_results(sampler=sampler)
+            self.output_sampler_results(search_internal=search_internal)
 
-    def output_sampler_results(self, sampler):
+    def output_sampler_results(self, search_internal):
         """
         Output the sampler results to hard-disk in a generalized PyAutoFit format.
 
@@ -316,7 +316,7 @@ class Nautilus(abstract_nest.AbstractNest):
             The nautilus sampler object containing the results of the model-fit.
         """
 
-        parameters, log_weights, log_likelihoods = sampler.posterior()
+        parameters, log_weights, log_likelihoods = search_internal.posterior()
 
         parameter_lists = parameters.tolist()
         log_likelihood_list = log_likelihoods.tolist()
@@ -326,10 +326,10 @@ class Nautilus(abstract_nest.AbstractNest):
             "parameter_lists": parameter_lists,
             "log_likelihood_list": log_likelihood_list,
             "weight_list": weight_list,
-            "log_evidence": sampler.evidence(),
-            "total_samples": int(sampler.n_like),
+            "log_evidence": search_internal.evidence(),
+            "total_samples": int(search_internal.n_like),
             "time": self.timer.time,
-            "number_live_points": int(sampler.n_live)
+            "number_live_points": int(search_internal.n_live)
         }
 
         self.paths.save_search_internal(
