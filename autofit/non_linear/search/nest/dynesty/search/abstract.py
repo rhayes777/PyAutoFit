@@ -192,10 +192,9 @@ class AbstractDynesty(AbstractNest, ABC):
             obj=sampler.results,
         )
 
-    @property
-    def samples_info(self):
+    def samples_info_from(self, search_internal = None):
 
-        search_internal = self.sampler.results
+        search_internal = search_internal or self.sampler.results
 
         return {
             "log_evidence": np.max(search_internal.logz),

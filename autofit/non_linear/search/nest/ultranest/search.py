@@ -199,10 +199,9 @@ class UltraNest(abstract_nest.AbstractNest):
 
                 self.perform_update(model=model, analysis=analysis, during_analysis=True)
 
-    @property
-    def samples_info(self):
+    def samples_info_from(self, search_internal=None):
 
-        search_internal = self.paths.load_search_internal()
+        search_internal = search_internal or self.paths.load_search_internal()
 
         return {
             "log_evidence": search_internal["logz"],

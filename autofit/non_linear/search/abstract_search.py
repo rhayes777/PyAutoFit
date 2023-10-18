@@ -674,12 +674,15 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                 self.timer.start()
 
         model.freeze()
-        self._fit(
+        search_internal = self._fit(
             model=model,
             analysis=analysis,
         )
         samples = self.perform_update(
-            model=model, analysis=analysis, during_analysis=False
+            model=model,
+            analysis=analysis,
+            search_internal=search_internal,
+            during_analysis=False
         )
 
         result = analysis.make_result(
@@ -696,7 +699,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         return result
 
     def result_via_completed_fit(
-        self, analysis: Analysis, model: AbstractPriorModel
+        self, analysis: Analysis, model: AbstractPriorModel, search_internal = None
     ) -> Result:
         """
         Returns the result of the non-linear search of a completed model-fit.
@@ -739,7 +742,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
             if self.force_visualize_overwrite:
                 self.perform_visualization(
-                    model=model, analysis=analysis, during_analysis=False
+                    model=model, analysis=analysis, search_internal=search_internal, during_analysis=False
                 )
 
             if self.force_pickle_overwrite:
@@ -847,7 +850,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         return self._class_config[section][attribute_name]
 
     def perform_update(
-        self, model: AbstractPriorModel, analysis: Analysis, during_analysis: bool
+        self, model: AbstractPriorModel, analysis: Analysis, during_analysis: bool, search_internal = None,
     ) -> Samples:
         """
         Perform an update of the non-linear search's model-fitting results.
@@ -887,10 +890,10 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                 f"output folder for final visualization, samples, etc.)"
             )
 
-        if not isinstance(self.paths, DatabasePaths):
+        if not isinstance(self.paths, DatabasePaths) and not isinstance(self.paths, NullPaths):
             self.timer.update()
 
-        samples = self.samples_from(model=model)
+        samples = self.samples_from(model=model, search_internal=search_internal)
 
         try:
             instance = samples.max_log_likelihood()
@@ -904,7 +907,10 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                 self.paths.save_json("samples_summary", to_dict(samples.summary()))
 
             self.perform_visualization(
-                model=model, analysis=analysis, during_analysis=during_analysis
+                model=model,
+                analysis=analysis,
+                during_analysis=during_analysis,
+                search_internal=search_internal,
             )
 
             if self.should_profile:
@@ -941,6 +947,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         model: AbstractPriorModel,
         analysis: AbstractPriorModel,
         during_analysis: bool,
+        search_internal = None,
     ):
         """
         Perform visualization of the non-linear search's model-fitting results.
@@ -966,7 +973,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             If the update is during a non-linear search, in which case tasks are only performed after a certain number
             of updates and only a subset of visualization may be performed.
         """
-        samples = self.samples_from(model=model)
+        samples = self.samples_from(model=model, search_internal=search_internal)
 
         try:
             instance = samples.max_log_likelihood()
@@ -996,7 +1003,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
     def remove_state_files(self):
         pass
 
-    def samples_from(self, model: AbstractPriorModel) -> Samples:
+    def samples_from(self, model: AbstractPriorModel, search_internal = None) -> Samples:
         """
         Loads the samples of a non-linear search from its output files.
 
@@ -1014,7 +1021,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             The model which generates instances for different points in parameter space.
         """
         try:
-            return self.samples_via_internal_from(model=model)
+            return self.samples_via_internal_from(model=model, search_internal=search_internal)
         except (FileNotFoundError, NotImplementedError, AttributeError):
             return self.samples_via_csv_from(model=model)
 

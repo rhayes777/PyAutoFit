@@ -336,10 +336,9 @@ class Nautilus(abstract_nest.AbstractNest):
             obj=search_internal,
         )
 
-    @property
-    def samples_info(self):
+    def samples_info_from(self, search_internal = None):
 
-        search_internal_dict = self.paths.load_search_internal()
+        search_internal_dict = search_internal or self.paths.load_search_internal()
 
         return {
             "log_evidence": search_internal_dict["log_evidence"],

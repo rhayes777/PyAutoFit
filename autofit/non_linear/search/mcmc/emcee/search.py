@@ -112,19 +112,24 @@ class Emcee(AbstractMCMC):
 
         pool = self.make_sneaky_pool(fitness)
 
-        sampler = emcee.EnsembleSampler(
+        try:
+            backend = emcee.backends.HDFBackend(filename=self.backend_filename)
+        except TypeError:
+            backend = None
+
+        search_internal = emcee.EnsembleSampler(
             nwalkers=self.config_dict_search["nwalkers"],
             ndim=model.prior_count,
             log_prob_fn=fitness.__call__,
-            backend=emcee.backends.HDFBackend(filename=self.backend_filename),
+            backend=backend,
             pool=pool,
         )
 
         try:
-            state = sampler.get_last_sample()
-            samples = self.samples_from(model=model)
+            state = search_internal.get_last_sample()
+            samples = self.samples_from(model=model, search_internal=search_internal)
 
-            total_iterations = sampler.iteration
+            total_iterations = search_internal.iteration
 
             if samples.converged:
                 iterations_remaining = 0
@@ -141,12 +146,12 @@ class Emcee(AbstractMCMC):
                 parameter_lists,
                 log_posterior_list,
             ) = self.initializer.samples_from_model(
-                total_points=sampler.nwalkers,
+                total_points=search_internal.nwalkers,
                 model=model,
                 fitness=fitness,
             )
 
-            state = np.zeros(shape=(sampler.nwalkers, model.prior_count))
+            state = np.zeros(shape=(search_internal.nwalkers, model.prior_count))
 
             self.logger.info(
                 "Starting new Emcee non-linear search (no previous samples found)."
@@ -164,7 +169,7 @@ class Emcee(AbstractMCMC):
             else:
                 iterations = self.iterations_per_update
 
-            for sample in sampler.sample(
+            for sample in search_internal.sample(
                 initial_state=state,
                 iterations=iterations,
                 progress=True,
@@ -173,15 +178,15 @@ class Emcee(AbstractMCMC):
             ):
                 pass
 
-            state = sampler.get_last_sample()
+            state = search_internal.get_last_sample()
 
             total_iterations += iterations
             iterations_remaining = self.config_dict_run["nsteps"] - total_iterations
 
-            samples = self.samples_from(model=model)
+            samples = self.samples_from(model=model, search_internal=search_internal)
 
             if self.auto_correlation_settings.check_for_convergence:
-                if sampler.iteration > self.auto_correlation_settings.check_size:
+                if search_internal.iteration > self.auto_correlation_settings.check_size:
                     if samples.converged:
                         iterations_remaining = 0
 
@@ -190,21 +195,26 @@ class Emcee(AbstractMCMC):
                 self.perform_update(
                     model=model, analysis=analysis, during_analysis=True
                 )
+        return search_internal
 
-    @property
-    def samples_info(self):
-        search_internal = self.backend
+    def samples_info_from(self, search_internal=None):
+
+        search_internal = search_internal or self.backend
+
+        auto_correlations = self.auto_correlations_from(search_internal=search_internal)
+
+        time = self.timer.time if self.timer else None
 
         return {
-            "check_size": self.auto_correlations.check_size,
-            "required_length": self.auto_correlations.required_length,
-            "change_threshold": self.auto_correlations.change_threshold,
+            "check_size": auto_correlations.check_size,
+            "required_length": auto_correlations.required_length,
+            "change_threshold": auto_correlations.change_threshold,
             "total_walkers": len(search_internal.get_chain()[0, :, 0]),
             "total_steps": len(search_internal.get_log_prob()),
-            "time": self.timer.time,
+            "time": time
         }
 
-    def samples_via_internal_from(self, model):
+    def samples_via_internal_from(self, model, search_internal=None):
         """
         Returns a `Samples` object from the emcee internal results.
 
@@ -220,7 +230,7 @@ class Emcee(AbstractMCMC):
             Maps input vectors of unit parameter values to physical values and model instances via priors.
         """
 
-        search_internal = self.backend
+        search_internal = search_internal or self.backend
 
         if os.environ.get("PYAUTOFIT_TEST_MODE") == "1":
 
@@ -264,15 +274,15 @@ class Emcee(AbstractMCMC):
         return SamplesMCMC(
             model=model,
             sample_list=sample_list,
-            samples_info=self.samples_info,
+            samples_info=self.samples_info_from(search_internal=search_internal),
             search_internal=search_internal,
             auto_correlation_settings=self.auto_correlation_settings,
-            auto_correlations=self.auto_correlations,
+            auto_correlations=self.auto_correlations_from(search_internal=search_internal),
         )
 
-    @property
-    def auto_correlations(self):
-        search_internal = self.backend
+    def auto_correlations_from(self, search_internal=None):
+
+        search_internal = search_internal or self.backend
 
         times = search_internal.get_autocorr_time(tol=0)
 
