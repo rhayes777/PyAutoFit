@@ -1025,7 +1025,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         except (FileNotFoundError, NotImplementedError, AttributeError):
             return self.samples_via_csv_from(model=model)
 
-    def samples_via_internal_from(self, model: AbstractPriorModel):
+    def samples_via_internal_from(self, model: AbstractPriorModel, search_internal=None):
         raise NotImplementedError
 
     def samples_via_csv_from(self, model: AbstractPriorModel) -> Samples:

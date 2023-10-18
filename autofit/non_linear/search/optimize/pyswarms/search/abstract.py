@@ -237,7 +237,7 @@ class AbstractPySwarms(AbstractOptimizer):
 
                 init_pos = pso.pos_history[-1]
 
-    def samples_via_internal_from(self, model):
+    def samples_via_internal_from(self, model, search_internal=None):
         """
         Returns a `Samples` object from the pyswarms internal results.
 

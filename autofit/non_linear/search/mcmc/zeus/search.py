@@ -248,7 +248,7 @@ class Zeus(AbstractMCMC):
             "time": self.timer.time,
         }
 
-    def samples_via_internal_from(self, model):
+    def samples_via_internal_from(self, model, search_internal=None):
         """
         Returns a `Samples` object from the zeus internal results.
 

@@ -210,7 +210,7 @@ class UltraNest(abstract_nest.AbstractNest):
             "number_live_points": self.config_dict_run["min_num_live_points"]
         }
 
-    def samples_via_internal_from(self, model: AbstractPriorModel):
+    def samples_via_internal_from(self, model: AbstractPriorModel, search_internal=None):
         """
         Returns a `Samples` object from the ultranest internal results.
 

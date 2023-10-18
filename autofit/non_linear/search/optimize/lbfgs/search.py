@@ -185,7 +185,7 @@ class LBFGS(AbstractOptimizer):
 
         self.logger.info("L-BFGS sampling complete.")
 
-    def samples_via_internal_from(self, model: AbstractPriorModel):
+    def samples_via_internal_from(self, model: AbstractPriorModel, search_internal=None):
         """
         Returns a `Samples` object from the LBFGS internal results.
 

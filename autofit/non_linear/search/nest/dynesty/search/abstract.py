@@ -203,7 +203,7 @@ class AbstractDynesty(AbstractNest, ABC):
             "number_live_points": self.number_live_points
         }
 
-    def samples_via_internal_from(self, model):
+    def samples_via_internal_from(self, model, search_internal=None):
         """
         Returns a `Samples` object from the dynesty internal results. 
         
