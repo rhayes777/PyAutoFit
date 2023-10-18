@@ -357,8 +357,22 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         return self._logger
 
     @property
-    def timer(self):
-        return Timer(self.paths.search_internal_path)
+    def timer(self) -> Optional[Timer]:
+        """
+        Returns the timer of the search, which is used to output informaiton such as how long the search took and
+        how much parallelization sped up the search time.
+
+        If the search is running in `NullPaths` mode, meaning that no output is written to the hard-disk, the timer
+        is disabled and a `None` is returned.
+
+        Returns
+        -------
+        An object which times the non-linear search.
+        """
+        try:
+            return Timer(self.paths.search_internal_path)
+        except Timer:
+            pass
 
     @property
     def paths(self) -> Optional[AbstractPaths]:
