@@ -192,7 +192,7 @@ class AbstractDynesty(AbstractNest, ABC):
             obj=sampler.results,
         )
 
-    def samples_info_from(self, search_internal = None):
+    def samples_info_from(self, search_internal=None):
 
         search_internal = search_internal or self.sampler.results
 
@@ -242,7 +242,7 @@ class AbstractDynesty(AbstractNest, ABC):
         return SamplesNest(
             model=model,
             sample_list=sample_list,
-            samples_info=self.samples_info,
+            samples_info=self.samples_info_from(search_internal=search_internal),
             search_internal=search_internal,
         )
 
