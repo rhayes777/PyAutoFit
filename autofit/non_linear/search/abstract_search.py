@@ -371,7 +371,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         """
         try:
             return Timer(self.paths.search_internal_path)
-        except Timer:
+        except TypeError:
             pass
 
     @property
