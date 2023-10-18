@@ -670,7 +670,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         and errors on the model parameters.
         """
         if self.is_master:
-            if not isinstance(self.paths, DatabasePaths):
+            if not isinstance(self.paths, DatabasePaths) and not isinstance(self.paths, NullPaths):
                 self.timer.start()
 
         model.freeze()
