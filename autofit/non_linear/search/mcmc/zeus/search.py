@@ -245,7 +245,7 @@ class Zeus(AbstractMCMC):
             "change_threshold": self.auto_correlations.change_threshold,
             "total_walkers": len(search_internal.get_chain()[0, :, 0]),
             "total_steps": int(search_internal.ncall_total),
-            "time": self.timer.time,
+            "time": self.timer.time if self.timer else None,
         }
 
     def samples_via_internal_from(self, model, search_internal=None):

@@ -212,7 +212,7 @@ class AbstractDynesty(AbstractNest, ABC):
         return {
             "log_evidence": np.max(search_internal.results.logz),
             "total_samples": int(np.sum(search_internal.results.ncall)),
-            "time": self.timer.time,
+            "time": self.timer.time if self.timer else None,
             "number_live_points": self.number_live_points
         }
 

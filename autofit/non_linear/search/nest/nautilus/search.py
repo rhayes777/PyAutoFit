@@ -343,7 +343,7 @@ class Nautilus(abstract_nest.AbstractNest):
         return {
             "log_evidence": search_internal_dict["log_evidence"],
             "total_samples": search_internal_dict["total_samples"],
-            "time": self.timer.time,
+            "time": self.timer.time if self.timer else None,
             "number_live_points": search_internal_dict["number_live_points"]
         }
 

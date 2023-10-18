@@ -206,15 +206,13 @@ class Emcee(AbstractMCMC):
 
         auto_correlations = self.auto_correlations_from(search_internal=search_internal)
 
-        time = self.timer.time if self.timer else None
-
         return {
             "check_size": auto_correlations.check_size,
             "required_length": auto_correlations.required_length,
             "change_threshold": auto_correlations.change_threshold,
             "total_walkers": len(search_internal.get_chain()[0, :, 0]),
             "total_steps": len(search_internal.get_log_prob()),
-            "time": time
+            "time": self.timer.time if self.timer else None
         }
 
     def samples_via_internal_from(self, model, search_internal=None):

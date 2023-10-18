@@ -206,7 +206,7 @@ class UltraNest(abstract_nest.AbstractNest):
         return {
             "log_evidence": search_internal["logz"],
             "total_samples": search_internal["ncall"],
-            "time": self.timer.time,
+            "time": self.timer.time if self.timer else None,
             "number_live_points": self.config_dict_run["min_num_live_points"]
         }
 
