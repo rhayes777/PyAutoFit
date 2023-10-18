@@ -347,7 +347,7 @@ class Nautilus(abstract_nest.AbstractNest):
             "number_live_points": search_internal_dict["number_live_points"]
         }
 
-    def samples_via_internal_from(self, model: AbstractPriorMode, search_internal=None):
+    def samples_via_internal_from(self, model: AbstractPriorModel, search_internal=None):
         """
         Returns a `Samples` object from the ultranest internal results.
 

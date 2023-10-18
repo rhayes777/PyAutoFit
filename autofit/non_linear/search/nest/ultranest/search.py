@@ -226,7 +226,7 @@ class UltraNest(abstract_nest.AbstractNest):
             Maps input vectors of unit parameter values to physical values and model instances via priors.
         """
 
-        search_internal = self.paths.load_search_internal()
+        search_internal = search_internal or self.paths.load_search_internal()
 
         parameters = search_internal["weighted_samples"]["points"]
         log_likelihood_list = search_internal["weighted_samples"]["logl"]

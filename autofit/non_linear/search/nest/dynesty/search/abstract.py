@@ -218,7 +218,7 @@ class AbstractDynesty(AbstractNest, ABC):
         model
             Maps input vectors of unit parameter values to physical values and model instances via priors.
         """
-        search_internal = self.sampler.results
+        search_internal = search_internal or self.sampler.results
 
         parameter_lists = search_internal.samples.tolist()
         log_prior_list = model.log_prior_list_from(parameter_lists=parameter_lists)

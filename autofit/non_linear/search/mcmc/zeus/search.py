@@ -264,7 +264,7 @@ class Zeus(AbstractMCMC):
             Maps input vectors of unit parameter values to physical values and model instances via priors.
         """
 
-        search_internal = self.paths.load_search_internal()
+        search_internal = search_internal or self.paths.load_search_internal()
 
         discard = int(3.0 * np.max(self.auto_correlations.times))
         thin = int(np.max(self.auto_correlations.times) / 2.0)
