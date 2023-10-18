@@ -203,7 +203,7 @@ class AbstractPySwarms(AbstractOptimizer):
 
         while total_iterations < self.config_dict_run["iters"]:
 
-            pso = self.sampler_from(
+            pso = self.search_internal_from(
                 model=model,
                 fitness=fitness,
                 bounds=bounds,
@@ -292,7 +292,7 @@ class AbstractPySwarms(AbstractOptimizer):
             "iters": 1,
         }
 
-    def sampler_from(self, model, fitness, bounds, init_pos):
+    def search_internal_from(self, model, fitness, bounds, init_pos):
         raise NotImplementedError()
 
     def plot_results(self, samples):

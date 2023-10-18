@@ -69,7 +69,7 @@ class DynestyDynamic(AbstractDynesty):
     def search_internal(self):
         return DynamicNestedSampler.restore(self.checkpoint_file)
 
-    def sampler_from(
+    def search_internal_from(
             self,
             model: AbstractPriorModel,
             fitness,

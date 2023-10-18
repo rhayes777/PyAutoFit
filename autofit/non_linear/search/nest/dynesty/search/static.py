@@ -74,7 +74,7 @@ class DynestyStatic(AbstractDynesty):
     def search_internal(self):
         return StaticSampler.restore(self.checkpoint_file)
 
-    def sampler_from(
+    def search_internal_from(
         self,
         model: AbstractPriorModel,
         fitness,

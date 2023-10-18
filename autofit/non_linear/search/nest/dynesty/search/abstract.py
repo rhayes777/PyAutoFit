@@ -151,7 +151,7 @@ class AbstractDynesty(AbstractNest, ABC):
                         ptform_args=(model,),
                 ) as pool:
 
-                    search_internal = self.sampler_from(
+                    search_internal = self.search_internal_from(
                         model=model,
                         fitness=fitness,
                         checkpoint_exists=checkpoint_exists,
@@ -174,7 +174,7 @@ class AbstractDynesty(AbstractNest, ABC):
                         """
                     )
 
-                search_internal = self.sampler_from(
+                search_internal = self.search_internal_from(
                     model=model,
                     fitness=fitness,
                     checkpoint_exists=checkpoint_exists,
@@ -315,7 +315,7 @@ class AbstractDynesty(AbstractNest, ABC):
                 **config_dict_run,
             )
 
-        iterations_after_run = np.sum(sampler.results.ncall)
+        iterations_after_run = np.sum(search_internal.results.ncall)
 
         return (
                 total_iterations == iterations_after_run
@@ -412,7 +412,7 @@ class AbstractDynesty(AbstractNest, ABC):
 
         return live_points
 
-    def sampler_from(
+    def search_internal_from(
             self,
             model: AbstractPriorModel,
             fitness,
