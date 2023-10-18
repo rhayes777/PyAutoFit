@@ -334,6 +334,9 @@ class AbstractDynesty(AbstractNest, ABC):
 
         iterations_after_run = np.sum(search_internal.results.ncall)
 
+        if isinstance(self.paths, NullPaths):
+            return True
+
         return (
                 total_iterations == iterations_after_run
                 or total_iterations == self.config_dict_run.get("maxcall")
@@ -466,7 +469,10 @@ class AbstractDynesty(AbstractNest, ABC):
 
     def remove_state_files(self):
 
-        os.remove(self.checkpoint_file)
+        try:
+            os.remove(self.checkpoint_file)
+        except TypeError:
+            pass
 
     @property
     def number_live_points(self):
