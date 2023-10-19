@@ -286,6 +286,11 @@ class AbstractDynesty(AbstractNest, ABC):
         """
 
         if isinstance(self.paths, NullPaths):
+
+            maxcall = self.config_dict_run.get("maxcall")
+
+            if maxcall is not None:
+                return maxcall, maxcall
             return int(1e99), int(1e99)
 
         try:
