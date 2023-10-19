@@ -162,22 +162,25 @@ class LBFGS(AbstractOptimizer):
                     **self.config_dict_search
                 )
 
+
                 total_iterations += search_internal.nit
 
-                search_internal = {
+                search_internal_dict = {
                     "total_iterations": total_iterations,
                     "log_posterior_list": -0.5 * fitness(parameters=search_internal.x),
                     "x0": search_internal.x,
                 }
 
+                search_internal.log_posterior_list = search_internal_dict["log_posterior_list"]
+
                 self.paths.save_search_internal(
-                    obj=search_internal,
+                    obj=search_internal_dict,
                 )
 
                 x0 = search_internal.x
 
                 if search_internal.nit < iterations:
-                    return
+                    return search_internal
 
                 self.perform_update(
                     model=model,
@@ -205,11 +208,20 @@ class LBFGS(AbstractOptimizer):
         model
             Maps input vectors of unit parameter values to physical values and model instances via priors.
         """
-        search_internal_dict = self.paths.load_search_internal()
 
-        x0 = search_internal_dict["x0"]
-        total_iterations = search_internal_dict["total_iterations"]
-        log_posterior_list = np.array([search_internal_dict["log_posterior_list"]])
+        if search_internal is not None:
+
+            x0 = search_internal.x
+            total_iterations = search_internal.nit
+            log_posterior_list = np.array([search_internal.log_posterior_list])
+
+        else:
+
+            search_internal_dict = self.paths.load_search_internal()
+
+            x0 = search_internal_dict["x0"]
+            total_iterations = search_internal_dict["total_iterations"]
+            log_posterior_list = np.array([search_internal_dict["log_posterior_list"]])
 
         parameter_lists = [list(x0)]
         log_prior_list = model.log_prior_list_from(parameter_lists=parameter_lists)
@@ -231,12 +243,12 @@ class LBFGS(AbstractOptimizer):
 
         samples_info = {
             "total_iterations": total_iterations,
-            "time": self.timer.time
+            "time": self.timer.time if self.timer else None,
         }
 
         return Samples(
             model=model,
             sample_list=sample_list,
             samples_info=samples_info,
-            search_internal=search_internal_dict["x0"],
+            search_internal=x0,
         )
