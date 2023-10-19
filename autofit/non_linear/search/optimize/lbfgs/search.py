@@ -123,7 +123,7 @@ class LBFGS(AbstractOptimizer):
                 "Resuming LBFGS non-linear search (previous samples found)."
             )
 
-        except FileNotFoundError:
+        except (FileNotFoundError, TypeError):
 
             (
                 unit_parameter_lists,
@@ -154,7 +154,7 @@ class LBFGS(AbstractOptimizer):
                 config_dict_options = self.config_dict_options
                 config_dict_options["maxiter"] = iterations
 
-                lbfgs = optimize.minimize(
+                search_internal = optimize.minimize(
                     fun=fitness.__call__,
                     x0=x0,
                     method="L-BFGS-B",
@@ -162,28 +162,33 @@ class LBFGS(AbstractOptimizer):
                     **self.config_dict_search
                 )
 
-                total_iterations += lbfgs.nit
+                total_iterations += search_internal.nit
 
                 search_internal = {
                     "total_iterations": total_iterations,
-                    "log_posterior_list": -0.5 * fitness(parameters=lbfgs.x),
-                    "x0": lbfgs.x,
+                    "log_posterior_list": -0.5 * fitness(parameters=search_internal.x),
+                    "x0": search_internal.x,
                 }
 
                 self.paths.save_search_internal(
                     obj=search_internal,
                 )
 
-                x0 = lbfgs.x
+                x0 = search_internal.x
 
-                if lbfgs.nit < iterations:
+                if search_internal.nit < iterations:
                     return
 
                 self.perform_update(
-                    model=model, analysis=analysis, during_analysis=True
+                    model=model,
+                    analysis=analysis,
+                    during_analysis=True,
+                    search_internal=search_internal
                 )
 
         self.logger.info("L-BFGS sampling complete.")
+
+        return search_internal
 
     def samples_via_internal_from(self, model: AbstractPriorModel, search_internal=None):
         """

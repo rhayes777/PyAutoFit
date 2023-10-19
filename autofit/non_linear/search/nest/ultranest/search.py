@@ -133,7 +133,12 @@ class UltraNest(abstract_nest.AbstractNest):
 
         log_dir = self.paths.search_internal_path
 
-        if os.path.exists(log_dir / "chains"):
+        try:
+            checkpoint_exists = os.path.exists(log_dir / "chains")
+        except TypeError:
+            checkpoint_exists = False
+
+        if checkpoint_exists:
             self.logger.info(
                 "Resuming UltraNest non-linear search (previous samples found)."
             )
@@ -197,7 +202,12 @@ class UltraNest(abstract_nest.AbstractNest):
 
             if not finished:
 
-                self.perform_update(model=model, analysis=analysis, during_analysis=True)
+                self.perform_update(
+                    model=model,
+                    analysis=analysis,
+                    during_analysis=True,
+                    search_internal=search_internal
+                )
 
         return search_internal
 
@@ -228,7 +238,7 @@ class UltraNest(abstract_nest.AbstractNest):
             Maps input vectors of unit parameter values to physical values and model instances via priors.
         """
 
-        search_internal = search_internal or self.paths.load_search_internal()
+        search_internal = search_internal.results or self.paths.load_search_internal()
 
         parameters = search_internal["weighted_samples"]["points"]
         log_likelihood_list = search_internal["weighted_samples"]["logl"]
