@@ -199,6 +199,8 @@ class UltraNest(abstract_nest.AbstractNest):
 
                 self.perform_update(model=model, analysis=analysis, during_analysis=True)
 
+        return search_internal
+
     def samples_info_from(self, search_internal=None):
 
         search_internal = search_internal or self.paths.load_search_internal()
@@ -246,7 +248,7 @@ class UltraNest(abstract_nest.AbstractNest):
         return SamplesNest(
             model=model,
             sample_list=sample_list,
-            samples_info=self.samples_info,
+            samples_info=self.samples_info_from(search_internal=search_internal),
             search_internal=search_internal,
         )
 
