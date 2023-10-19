@@ -27,8 +27,8 @@ class UltraNest(abstract_nest.AbstractNest):
 
     def __init__(
             self,
-            name: str = "",
-            path_prefix: str = "",
+            name: Optional[str] = None,
+            path_prefix: Optional[str] = None,
             unique_tag: Optional[str] = None,
             iterations_per_update: int = None,
             number_of_cores: int = None,

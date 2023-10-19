@@ -10,6 +10,7 @@ from autofit.database.sqlalchemy_ import sa
 from autoconf import conf
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.fitness import Fitness
+from autofit.non_linear.paths.null import NullPaths
 from autofit.non_linear.search.nest import abstract_nest
 from autofit.non_linear.samples.sample import Sample
 from autofit.non_linear.samples.nest import SamplesNest
@@ -40,8 +41,8 @@ class Nautilus(abstract_nest.AbstractNest):
 
     def __init__(
             self,
-            name: str = "",
-            path_prefix: str = "",
+            name: Optional[str] = None,
+            path_prefix: Optional[str] = None,
             unique_tag: Optional[str] = None,
             iterations_per_update: int = None,
             number_of_cores: int = None,
@@ -120,7 +121,12 @@ class Nautilus(abstract_nest.AbstractNest):
             resample_figure_of_merit=-1.0e99
         )
 
-        if os.path.exists(self.checkpoint_file):
+        if not isinstance(self.paths, NullPaths):
+            checkpoint_exists = os.path.exists(self.checkpoint_file)
+        else:
+            checkpoint_exists = False
+
+        if checkpoint_exists:
             self.logger.info(
                 "Resuming Nautilus non-linear search (previous samples found)."
             )
@@ -131,14 +137,32 @@ class Nautilus(abstract_nest.AbstractNest):
             )
 
         if self.config_dict.get("force_x1_cpu") or self.kwargs.get("force_x1_cpu"):
-            self.fit_x1_cpu(fitness=fitness, model=model, analysis=analysis)
+            search_internal = self.fit_x1_cpu(
+                fitness=fitness,
+                model=model,
+                analysis=analysis,
+                checkpoint_exists=checkpoint_exists
+            )
         else:
             if not self.using_mpi:
-                self.fit_multiprocessing(fitness=fitness, model=model, analysis=analysis)
+                search_internal = self.fit_multiprocessing(
+                    fitness=fitness,
+                    model=model,
+                    analysis=analysis,
+                    checkpoint_exists=checkpoint_exists
+                )
             else:
-                self.fit_mpi(fitness=fitness, model=model, analysis=analysis)
+                search_internal = self.fit_mpi(
+                    fitness=fitness,
+                    model=model,
+                    analysis=analysis,
+                    checkpoint_exists=checkpoint_exists
+                )
 
-        os.remove(self.checkpoint_file)
+        if self.checkpoint_file is not None:
+            os.remove(self.checkpoint_file)
+
+        return search_internal
 
     @property
     def sampler_cls(self):
@@ -157,9 +181,17 @@ class Nautilus(abstract_nest.AbstractNest):
 
     @property
     def checkpoint_file(self):
-        return self.paths.search_internal_path / "checkpoint.hdf5"
+        """
+        The path to the file used for checkpointing.
 
-    def fit_x1_cpu(self, fitness, model, analysis):
+        If autofit is not outputting results to hard-disk (e.g. paths is `NullPaths`), this function is bypassed.
+        """
+        try:
+            return self.paths.search_internal_path / "checkpoint.hdf5"
+        except TypeError:
+            pass
+
+    def fit_x1_cpu(self, fitness, model, analysis, checkpoint_exists : bool):
         """
         Perform the non-linear search, using one CPU core.
 
@@ -176,6 +208,8 @@ class Nautilus(abstract_nest.AbstractNest):
         analysis
             Contains the data and the log likelihood function which fits an instance of the model to the data, returning
             the log likelihood the search maximizes.
+        checkpoint_exists
+            Does the checkpoint file corresponding do a previous run of this search exist?
         """
 
         self.logger.info(
@@ -194,9 +228,16 @@ class Nautilus(abstract_nest.AbstractNest):
             **self.config_dict_search
         )
 
-        if os.path.exists(self.checkpoint_file):
+        if checkpoint_exists:
+
             self.output_sampler_results(search_internal=search_internal)
-            self.perform_update(model=model, analysis=analysis, during_analysis=True)
+
+            self.perform_update(
+                model=model,
+                analysis=analysis,
+                during_analysis=True,
+                search_internal=search_internal
+            )
 
         search_internal.run(
             **self.config_dict_run,
@@ -204,7 +245,9 @@ class Nautilus(abstract_nest.AbstractNest):
 
         self.output_sampler_results(search_internal=search_internal)
 
-    def fit_multiprocessing(self, fitness, model, analysis):
+        return search_internal
+
+    def fit_multiprocessing(self, fitness, model, analysis, checkpoint_exists : bool):
         """
         Perform the non-linear search, using multiple CPU cores parallelized via Python's multiprocessing module.
 
@@ -224,34 +267,40 @@ class Nautilus(abstract_nest.AbstractNest):
         analysis
             Contains the data and the log likelihood function which fits an instance of the model to the data, returning
             the log likelihood the search maximizes.
+        checkpoint_exists
+            Does the checkpoint file corresponding do a previous run of this search exist?
         """
-        with self.make_sneakier_pool(
-                fitness_function=fitness.__call__,
-                prior_transform=prior_transform,
-                fitness_args=(model, fitness.__call__),
-                prior_transform_args=(model,),
-        ) as pool:
-            search_internal = self.sampler_cls(
-                prior=pool.prior_transform,
-                likelihood=pool.fitness,
-                n_dim=model.prior_count,
-                filepath=self.checkpoint_file,
-                pool=pool,
-                **self.config_dict_search
-            )
 
-            if os.path.exists(self.checkpoint_file):
+        search_internal = self.sampler_cls(
+            prior=prior_transform,
+            likelihood=fitness.__call__,
+            n_dim=model.prior_count,
+            prior_kwargs={"model": model},
+            filepath=self.checkpoint_file,
+            pool=self.number_of_cores,
+            **self.config_dict_search
+        )
 
-                self.output_sampler_results(search_internal=search_internal)
-                self.perform_update(model=model, analysis=analysis, during_analysis=True)
-
-            search_internal.run(
-                **self.config_dict_run,
-            )
+        if checkpoint_exists:
 
             self.output_sampler_results(search_internal=search_internal)
 
-    def fit_mpi(self, fitness, model, analysis):
+            self.perform_update(
+                model=model,
+                analysis=analysis,
+                during_analysis=True,
+                search_internal=search_internal
+            )
+
+        search_internal.run(
+            **self.config_dict_run,
+        )
+
+        self.output_sampler_results(search_internal=search_internal)
+
+        return search_internal
+
+    def fit_mpi(self, fitness, model, analysis, checkpoint_exists : bool):
         """
         Perform the non-linear search, using MPI to distribute the model-fit across multiple computing nodes.
 
@@ -270,6 +319,8 @@ class Nautilus(abstract_nest.AbstractNest):
         analysis
             Contains the data and the log likelihood function which fits an instance of the model to the data, returning
             the log likelihood the search maximizes.
+        checkpoint_exists
+            Does the checkpoint file corresponding do a previous run of this search exist?
         """
         with self.make_sneakier_pool(
                 fitness_function=fitness.__call__,
@@ -291,17 +342,25 @@ class Nautilus(abstract_nest.AbstractNest):
                 **self.config_dict_search
             )
 
-            if os.path.exists(self.checkpoint_file):
+            if checkpoint_exists:
 
                 if self.is_master:
                     self.output_sampler_results(search_internal=search_internal)
-                    self.perform_update(model=model, analysis=analysis, during_analysis=True)
+
+                    self.perform_update(
+                        model=model,
+                        analysis=analysis,
+                        during_analysis=True,
+                        search_internal=search_internal
+                    )
 
             search_internal.run(
                 **self.config_dict_run,
             )
 
             self.output_sampler_results(search_internal=search_internal)
+
+        return search_internal
 
     def output_sampler_results(self, search_internal):
         """
@@ -328,7 +387,7 @@ class Nautilus(abstract_nest.AbstractNest):
             "weight_list": weight_list,
             "log_evidence": search_internal.evidence(),
             "total_samples": int(search_internal.n_like),
-            "time": self.timer.time,
+            "time": self.timer.time if self.timer else None,
             "number_live_points": int(search_internal.n_live)
         }
 
@@ -336,9 +395,18 @@ class Nautilus(abstract_nest.AbstractNest):
             obj=search_internal,
         )
 
-    def samples_info_from(self, search_internal = None):
+    def samples_info_from(self, search_internal=None):
 
         search_internal_dict = search_internal or self.paths.load_search_internal()
+
+        if search_internal is not None:
+
+            return {
+                "log_evidence": search_internal.evidence(),
+                "total_samples": int(search_internal.n_like),
+                "time": self.timer.time if self.timer else None,
+                "number_live_points": int(search_internal.n_live)
+            }
 
         return {
             "log_evidence": search_internal_dict["log_evidence"],
@@ -363,14 +431,25 @@ class Nautilus(abstract_nest.AbstractNest):
             Maps input vectors of unit parameter values to physical values and model instances via priors.
         """
 
-        search_internal_dict = self.paths.load_search_internal()
+        if search_internal is not None:
 
-        parameter_lists = search_internal_dict["parameter_lists"]
-        log_likelihood_list = search_internal_dict["log_likelihood_list"]
+            parameters, log_weights, log_likelihoods = search_internal.posterior()
+
+            parameter_lists = parameters.tolist()
+            log_likelihood_list = log_likelihoods.tolist()
+            weight_list = np.exp(log_weights).tolist()
+
+        else:
+
+            search_internal_dict = self.paths.load_search_internal()
+
+            parameter_lists = search_internal_dict["parameter_lists"]
+            log_likelihood_list = search_internal_dict["log_likelihood_list"]
+            weight_list = search_internal_dict["weight_list"]
+
         log_prior_list = [
             sum(model.log_prior_list_from_vector(vector=vector)) for vector in parameter_lists
         ]
-        weight_list = search_internal_dict["weight_list"]
 
         sample_list = Sample.from_lists(
             model=model,
@@ -383,7 +462,7 @@ class Nautilus(abstract_nest.AbstractNest):
         return SamplesNest(
             model=model,
             sample_list=sample_list,
-            samples_info=self.samples_info,
+            samples_info=self.samples_info_from(search_internal=search_internal),
             search_internal=None,
         )
 

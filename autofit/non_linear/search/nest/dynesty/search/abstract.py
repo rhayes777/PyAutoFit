@@ -26,12 +26,11 @@ def prior_transform(cube, model):
 
     return cube
 
-
 class AbstractDynesty(AbstractNest, ABC):
     def __init__(
             self,
-            name: str = "",
-            path_prefix: str = "",
+            name: Optional[str] = None,
+            path_prefix: Optional[str] = None,
             unique_tag: Optional[str] = None,
             iterations_per_update: int = None,
             number_of_cores: int = None,
@@ -378,7 +377,7 @@ class AbstractDynesty(AbstractNest, ABC):
     @property
     def checkpoint_file(self) -> str:
         """
-        The path to the file used by dynesty for checkpointing.
+        The path to the file used for checkpointing.
 
         If autofit is not outputting results to hard-disk (e.g. paths is `NullPaths`), this function is bypassed.
         """
