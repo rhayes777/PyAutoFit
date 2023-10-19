@@ -113,7 +113,7 @@ class DynestyDynamic(AbstractDynesty):
 
             return search_internal
 
-        except FileNotFoundError:
+        except (FileNotFoundError, TypeError):
 
             if pool is not None:
 

@@ -138,7 +138,7 @@ class Zeus(AbstractMCMC):
             state = search_internal.get_last_sample()
             log_posterior_list = search_internal.get_last_log_prob()
 
-            samples = self.samples_from(model=model)
+            samples = self.samples_from(model=model, search_internal=search_internal)
 
             total_iterations = search_internal.iteration
 
@@ -151,7 +151,7 @@ class Zeus(AbstractMCMC):
                     "Resuming Zeus non-linear search (previous samples found)."
                 )
 
-        except FileNotFoundError:
+        except (FileNotFoundError, AttributeError):
 
             search_internal = zeus.EnsembleSampler(
                 nwalkers=self.config_dict_search["nwalkers"],
@@ -212,7 +212,7 @@ class Zeus(AbstractMCMC):
             total_iterations += iterations
             iterations_remaining = self.config_dict_run["nsteps"] - total_iterations
 
-            samples = self.samples_from(model=model)
+            samples = self.samples_from(model=model, search_internal=search_internal)
 
             if self.auto_correlation_settings.check_for_convergence:
                 if search_internal.iteration > self.auto_correlation_settings.check_size:
@@ -232,17 +232,26 @@ class Zeus(AbstractMCMC):
             if iterations_remaining > 0:
 
                 self.perform_update(
-                    model=model, analysis=analysis, during_analysis=True
+                    model=model,
+                    analysis=analysis,
+                    search_internal=search_internal,
+                    during_analysis=True
                 )
+
+        return search_internal
 
     def samples_info_from(self, search_internal = None):
 
         search_internal = search_internal or self.paths.load_search_internal()
 
+        auto_correlations = self.auto_correlations_from(
+            search_internal=search_internal
+        )
+
         return {
-            "check_size": self.auto_correlations.check_size,
-            "required_length": self.auto_correlations.required_length,
-            "change_threshold": self.auto_correlations.change_threshold,
+            "check_size": auto_correlations.check_size,
+            "required_length": auto_correlations.required_length,
+            "change_threshold": auto_correlations.change_threshold,
             "total_walkers": len(search_internal.get_chain()[0, :, 0]),
             "total_steps": int(search_internal.ncall_total),
             "time": self.timer.time if self.timer else None,
@@ -266,8 +275,12 @@ class Zeus(AbstractMCMC):
 
         search_internal = search_internal or self.paths.load_search_internal()
 
-        discard = int(3.0 * np.max(self.auto_correlations.times))
-        thin = int(np.max(self.auto_correlations.times) / 2.0)
+        auto_correlations = self.auto_correlations_from(
+            search_internal=search_internal
+        )
+
+        discard = int(3.0 * np.max(auto_correlations.times))
+        thin = int(np.max(auto_correlations.times) / 2.0)
         samples_after_burn_in =  search_internal.get_chain(discard=discard, thin=thin, flat=True)
 
         parameter_lists = samples_after_burn_in.tolist()
@@ -293,18 +306,17 @@ class Zeus(AbstractMCMC):
         return SamplesMCMC(
             model=model,
             sample_list=sample_list,
-            samples_info=self.samples_info,
+            samples_info=self.samples_info_from(search_internal=search_internal),
             search_internal=search_internal,
             auto_correlation_settings=self.auto_correlation_settings,
-            auto_correlations=self.auto_correlations,
+            auto_correlations=auto_correlations,
         )
 
-    @property
-    def auto_correlations(self):
+    def auto_correlations_from(self, search_internal=None):
 
         import zeus
 
-        search_internal = self.paths.load_search_internal()
+        search_internal = search_internal or self.paths.load_search_internal()
 
         times = zeus.AutoCorrTime(samples=search_internal.get_chain())
         try:
