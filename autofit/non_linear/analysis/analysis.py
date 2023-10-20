@@ -7,6 +7,7 @@ from autoconf import conf
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.paths.abstract import AbstractPaths
 from autofit.non_linear.paths.database import DatabasePaths
+from autofit.non_linear.paths.null import NullPaths
 from autofit.non_linear.result import Result
 
 logger = logging.getLogger(__name__)
@@ -73,7 +74,7 @@ class Analysis(ABC):
         if os.environ.get("PYAUTOFIT_TEST_MODE") == "1":
             return False
 
-        if isinstance(paths, DatabasePaths):
+        if isinstance(paths, DatabasePaths) or isinstance(paths, NullPaths):
             return False
 
         if conf.instance["general"]["output"]["force_visualize_overwrite"]:

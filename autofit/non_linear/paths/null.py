@@ -99,3 +99,6 @@ class NullPaths(AbstractPaths):
 
     def load_samples_info(self):
         pass
+
+    def zip_remove(self):
+        pass
