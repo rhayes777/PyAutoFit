@@ -156,7 +156,7 @@ class AbstractPySwarms(AbstractOptimizer):
 
             search_internal_dict = self.paths.load_search_internal()
 
-            search_internal = search_internal_dict["search_internal"]
+            search_internal = search_internal_dict["pos_history"]
 
             init_pos = search_internal[-1]
             total_iterations = search_internal_dict["total_iterations"]
@@ -221,7 +221,7 @@ class AbstractPySwarms(AbstractOptimizer):
                 total_iterations += iterations
 
                 search_internal_dict = {
-                    "search_internal" : search_internal.pos_history,
+                    "pos_history" : search_internal.pos_history,
                     "total_iterations": total_iterations,
                     "log_posterior_list": [-0.5 * cost for cost in search_internal.cost_history],
                     "time": self.timer.time if self.timer else None,
@@ -267,11 +267,12 @@ class AbstractPySwarms(AbstractOptimizer):
             }
             parameter_lists = search_internal.pos_history
             parameter_lists_2 = [parameters.tolist()[0] for parameters in search_internal.pos_history]
+            pos_history = search_internal.pos_history
 
         else:
 
             search_internal_dict = self.paths.load_search_internal()
-            search_internal = search_internal_dict["search_internal"]
+            pos_history = search_internal_dict["pos_history"]
 
             search_internal_dict = {
                 "total_iterations": search_internal_dict["total_iterations"],
@@ -300,7 +301,7 @@ class AbstractPySwarms(AbstractOptimizer):
             model=model,
             sample_list=sample_list,
             samples_info=search_internal_dict,
-            search_internal=search_internal,
+            search_internal=pos_history
         )
 
     def config_dict_with_test_mode_settings_from(self, config_dict):
