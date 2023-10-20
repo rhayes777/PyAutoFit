@@ -265,9 +265,9 @@ class AbstractPySwarms(AbstractOptimizer):
                 "log_posterior_list": [-0.5 * cost for cost in search_internal.cost_history],
                 "time": self.timer.time if self.timer else None,
             }
-            parameter_lists = search_internal.pos_history
-            parameter_lists_2 = [parameters.tolist()[0] for parameters in search_internal.pos_history]
             pos_history = search_internal.pos_history
+
+
 
         else:
 
@@ -279,10 +279,11 @@ class AbstractPySwarms(AbstractOptimizer):
                 "log_posterior_list": search_internal_dict["log_posterior_list"],
                 "time": search_internal_dict["time"]
             }
-            parameter_lists = [
-                param.tolist() for parameters in search_internal for param in parameters
-            ]
-            parameter_lists_2 = [parameters.tolist()[0] for parameters in search_internal]
+
+        parameter_lists = [
+            param.tolist() for parameters in pos_history for param in parameters
+        ]
+        parameter_lists_2 = [parameters.tolist()[0] for parameters in pos_history]
 
         log_posterior_list = search_internal_dict["log_posterior_list"]
         log_prior_list = model.log_prior_list_from(parameter_lists=parameter_lists)
