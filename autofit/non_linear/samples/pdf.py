@@ -418,6 +418,9 @@ class SamplesPDF(Samples):
         """
         np.savetxt(filename, self.covariance_matrix(), delimiter=",")
 
+    @property
+    def log_evidence(self):
+        return None
 
 def marginalize(
     parameter_list: List, sigma: float, weight_list: Optional[List] = None
@@ -480,3 +483,4 @@ def quantile(x, q, weights=None):
         cdf /= cdf[-1]
         cdf = np.append(0, cdf)
         return np.interp(q, cdf, x[idx]).tolist()
+
