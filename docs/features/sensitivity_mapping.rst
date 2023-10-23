@@ -144,7 +144,7 @@ gaussian features.
 
 .. code-block:: bash
 
-    def simulate_function(instance):
+    def simulate_function(instance, simulate_path):
 
         """
         Specify the number of pixels used to create the xvalues on which the 1D line of the profile is generated using and
