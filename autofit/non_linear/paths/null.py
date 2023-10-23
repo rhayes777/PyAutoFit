@@ -87,6 +87,10 @@ class NullPaths(AbstractPaths):
     def load_search_internal(self):
         pass
 
+    @property
+    def search_internal_path(self):
+        pass
+
     def load_samples(self):
         pass
 
@@ -94,4 +98,7 @@ class NullPaths(AbstractPaths):
         pass
 
     def load_samples_info(self):
+        pass
+
+    def zip_remove(self):
         pass

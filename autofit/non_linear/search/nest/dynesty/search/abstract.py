@@ -10,6 +10,7 @@ from autofit import exc
 from autofit.database.sqlalchemy_ import sa
 from autofit.non_linear.fitness import Fitness
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
+from autofit.non_linear.paths.null import NullPaths
 from autofit.non_linear.search.nest.abstract_nest import AbstractNest
 from autofit.non_linear.samples.sample import Sample
 from autofit.non_linear.samples.nest import SamplesNest
@@ -25,12 +26,11 @@ def prior_transform(cube, model):
 
     return cube
 
-
 class AbstractDynesty(AbstractNest, ABC):
     def __init__(
             self,
-            name: str = "",
-            path_prefix: str = "",
+            name: Optional[str] = None,
+            path_prefix: Optional[str] = None,
             unique_tag: Optional[str] = None,
             iterations_per_update: int = None,
             number_of_cores: int = None,
@@ -121,7 +121,12 @@ class AbstractDynesty(AbstractNest, ABC):
             resample_figure_of_merit=-1.0e99
         )
 
-        if os.path.exists(self.checkpoint_file):
+        if not isinstance(self.paths, NullPaths):
+            checkpoint_exists = os.path.exists(self.checkpoint_file)
+        else:
+            checkpoint_exists = False
+
+        if checkpoint_exists:
             self.logger.info(
                 "Resuming Dynesty non-linear search (previous samples found)."
             )
@@ -133,8 +138,6 @@ class AbstractDynesty(AbstractNest, ABC):
         finished = False
 
         while not finished:
-
-            checkpoint_exists = os.path.exists(self.checkpoint_file)
 
             try:
 
@@ -151,7 +154,7 @@ class AbstractDynesty(AbstractNest, ABC):
                         ptform_args=(model,),
                 ) as pool:
 
-                    sampler = self.sampler_from(
+                    search_internal = self.search_internal_from(
                         model=model,
                         fitness=fitness,
                         checkpoint_exists=checkpoint_exists,
@@ -159,11 +162,11 @@ class AbstractDynesty(AbstractNest, ABC):
                         queue_size=self.number_of_cores,
                     )
 
-                    finished = self.run_sampler(sampler=sampler)
+                    finished = self.run_search_internal(search_internal=search_internal)
+
+                    checkpoint_exists = True
 
             except RuntimeError:
-
-                checkpoint_exists = os.path.exists(self.checkpoint_file)
 
                 if not checkpoint_exists:
                     self.logger.info(
@@ -174,7 +177,7 @@ class AbstractDynesty(AbstractNest, ABC):
                         """
                     )
 
-                sampler = self.sampler_from(
+                search_internal = self.search_internal_from(
                     model=model,
                     fitness=fitness,
                     checkpoint_exists=checkpoint_exists,
@@ -182,29 +185,37 @@ class AbstractDynesty(AbstractNest, ABC):
                     queue_size=None,
                 )
 
-                finished = self.run_sampler(sampler=sampler)
+                finished = self.run_search_internal(search_internal=search_internal)
+
+                checkpoint_exists = True
 
             if not finished:
 
-                self.perform_update(model=model, analysis=analysis, during_analysis=True)
+                self.perform_update(
+                    model=model,
+                    analysis=analysis,
+                    search_internal=search_internal,
+                    during_analysis=True
+                )
 
         self.paths.save_search_internal(
-            obj=sampler.results,
+            obj=search_internal.results,
         )
 
-    @property
-    def samples_info(self):
+        return search_internal
 
-        search_internal = self.sampler.results
+    def samples_info_from(self, search_internal=None):
+
+        search_internal = search_internal or self.search_internal
 
         return {
-            "log_evidence": np.max(search_internal.logz),
-            "total_samples": int(np.sum(search_internal.ncall)),
-            "time": self.timer.time,
+            "log_evidence": np.max(search_internal.results.logz),
+            "total_samples": int(np.sum(search_internal.results.ncall)),
+            "time": self.timer.time if self.timer else None,
             "number_live_points": self.number_live_points
         }
 
-    def samples_via_internal_from(self, model):
+    def samples_via_internal_from(self, model, search_internal=None):
         """
         Returns a `Samples` object from the dynesty internal results. 
         
@@ -219,18 +230,18 @@ class AbstractDynesty(AbstractNest, ABC):
         model
             Maps input vectors of unit parameter values to physical values and model instances via priors.
         """
-        search_internal = self.sampler.results
+        search_internal = search_internal or self.search_internal
 
-        parameter_lists = search_internal.samples.tolist()
+        parameter_lists = search_internal.results.samples.tolist()
         log_prior_list = model.log_prior_list_from(parameter_lists=parameter_lists)
-        log_likelihood_list = list(search_internal.logl)
+        log_likelihood_list = list(search_internal.results.logl)
 
         try:
             weight_list = list(
-                np.exp(np.asarray(search_internal.logwt) - search_internal.logz[-1])
+                np.exp(np.asarray(search_internal.results.logwt) - search_internal.results.logz[-1])
             )
         except:
-            weight_list = search_internal["weights"]
+            weight_list = search_internal.results["weights"]
 
         sample_list = Sample.from_lists(
             model=model,
@@ -243,16 +254,16 @@ class AbstractDynesty(AbstractNest, ABC):
         return SamplesNest(
             model=model,
             sample_list=sample_list,
-            samples_info=self.samples_info,
+            samples_info=self.samples_info_from(search_internal=search_internal),
             search_internal=search_internal,
         )
 
     @property
-    def sampler(self):
+    def search_internal(self):
         raise NotImplementedError
 
     def iterations_from(
-            self, sampler: Union[NestedSampler, DynamicNestedSampler]
+            self, search_internal: Union[NestedSampler, DynamicNestedSampler]
     ) -> Tuple[int, int]:
         """
         Returns the next number of iterations that a dynesty call will use and the total number of iterations
@@ -264,7 +275,7 @@ class AbstractDynesty(AbstractNest, ABC):
 
         Parameters
         ----------
-        sampler
+        search_internal
             The Dynesty sampler (static or dynamic) which is run and performs nested sampling.
 
         Returns
@@ -272,8 +283,17 @@ class AbstractDynesty(AbstractNest, ABC):
         The next number of iterations that a dynesty run sampling will perform and the total number of iterations
         it has performed so far.
         """
+
+        if isinstance(self.paths, NullPaths):
+
+            maxcall = self.config_dict_run.get("maxcall")
+
+            if maxcall is not None:
+                return maxcall, maxcall
+            return int(1e99), int(1e99)
+
         try:
-            total_iterations = np.sum(sampler.results.ncall)
+            total_iterations = np.sum(search_internal.results.ncall)
         except AttributeError:
             total_iterations = 0
 
@@ -283,7 +303,7 @@ class AbstractDynesty(AbstractNest, ABC):
             return int(iterations), int(total_iterations)
         return self.iterations_per_update, int(total_iterations)
 
-    def run_sampler(self, sampler: Union[NestedSampler, DynamicNestedSampler]):
+    def run_search_internal(self, search_internal: Union[NestedSampler, DynamicNestedSampler]):
         """
         Run the Dynesty sampler, which could be either the static of dynamic sampler.
 
@@ -304,19 +324,22 @@ class AbstractDynesty(AbstractNest, ABC):
 
         """
 
-        iterations, total_iterations = self.iterations_from(sampler=sampler)
+        iterations, total_iterations = self.iterations_from(search_internal=search_internal)
 
         config_dict_run = {key: value for key, value in self.config_dict_run.items() if key != 'maxcall'}
 
         if iterations > 0:
-            sampler.run_nested(
+            search_internal.run_nested(
                 maxcall=iterations,
                 print_progress=not self.silence,
                 checkpoint_file=self.checkpoint_file,
                 **config_dict_run,
             )
 
-        iterations_after_run = np.sum(sampler.results.ncall)
+        iterations_after_run = np.sum(search_internal.results.ncall)
+
+        if isinstance(self.paths, NullPaths):
+            return True
 
         return (
                 total_iterations == iterations_after_run
@@ -329,12 +352,17 @@ class AbstractDynesty(AbstractNest, ABC):
         this causes significant slow down.
 
         This file checks the original pool use so an exception can be raised to avoid this.
+
+        If autofit is not outputting results to hard-disk (e.g. paths is `NullPaths`), this function is bypassed.
         """
-        with open(self.paths.search_internal_path / "uses_pool.save", "w+") as f:
-            if uses_pool:
-                f.write("True")
-            else:
-                f.write("")
+        try:
+            with open(self.paths.search_internal_path / "uses_pool.save", "w+") as f:
+                if uses_pool:
+                    f.write("True")
+                else:
+                    f.write("")
+        except TypeError:
+            pass
 
     def read_uses_pool(self) -> str:
         """
@@ -349,9 +377,14 @@ class AbstractDynesty(AbstractNest, ABC):
     @property
     def checkpoint_file(self) -> str:
         """
-        The path to the file used by dynesty for checkpointing.
+        The path to the file used for checkpointing.
+
+        If autofit is not outputting results to hard-disk (e.g. paths is `NullPaths`), this function is bypassed.
         """
-        return str(self.paths.search_internal_path / "savestate.save")
+        try:
+            return str(self.paths.search_internal_path / "savestate.save")
+        except TypeError:
+            pass
 
     def config_dict_with_test_mode_settings_from(self, config_dict):
 
@@ -413,7 +446,7 @@ class AbstractDynesty(AbstractNest, ABC):
 
         return live_points
 
-    def sampler_from(
+    def search_internal_from(
             self,
             model: AbstractPriorModel,
             fitness,
@@ -440,7 +473,10 @@ class AbstractDynesty(AbstractNest, ABC):
 
     def remove_state_files(self):
 
-        os.remove(self.checkpoint_file)
+        try:
+            os.remove(self.checkpoint_file)
+        except TypeError:
+            pass
 
     @property
     def number_live_points(self):

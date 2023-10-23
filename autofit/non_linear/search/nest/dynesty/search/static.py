@@ -71,10 +71,10 @@ class DynestyStatic(AbstractDynesty):
         self.logger.debug("Creating DynestyStatic Search")
 
     @property
-    def sampler(self):
+    def search_internal(self):
         return StaticSampler.restore(self.checkpoint_file)
 
-    def sampler_from(
+    def search_internal_from(
         self,
         model: AbstractPriorModel,
         fitness,
@@ -106,13 +106,13 @@ class DynestyStatic(AbstractDynesty):
         """
 
         if checkpoint_exists:
-            sampler = StaticSampler.restore(fname=self.checkpoint_file, pool=pool)
+            search_internal = StaticSampler.restore(fname=self.checkpoint_file, pool=pool)
 
             uses_pool = self.read_uses_pool()
 
             self.check_pool(uses_pool=uses_pool, pool=pool)
 
-            return sampler
+            return search_internal
 
         else:
             live_points = self.live_points_init_from(

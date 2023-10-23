@@ -66,10 +66,10 @@ class DynestyDynamic(AbstractDynesty):
         self.logger.debug("Creating DynestyDynamic Search")
 
     @property
-    def sampler(self):
+    def search_internal(self):
         return DynamicNestedSampler.restore(self.checkpoint_file)
 
-    def sampler_from(
+    def search_internal_from(
             self,
             model: AbstractPriorModel,
             fitness,
@@ -102,7 +102,7 @@ class DynestyDynamic(AbstractDynesty):
 
         try:
 
-            sampler = DynamicNestedSampler.restore(
+            search_internal = DynamicNestedSampler.restore(
                 fname=self.checkpoint_file,
                 pool=pool
             )
@@ -111,9 +111,9 @@ class DynestyDynamic(AbstractDynesty):
 
             self.check_pool(uses_pool=uses_pool, pool=pool)
 
-            return sampler
+            return search_internal
 
-        except FileNotFoundError:
+        except (FileNotFoundError, TypeError):
 
             if pool is not None:
 

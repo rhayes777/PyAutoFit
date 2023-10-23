@@ -22,8 +22,8 @@ Ann overview of database functionality is given in the following sections:
 
 - **Unique Identifiers**: How unique identifiers are used to ensure every entry of the database is unique.
 - **Info**: Passing an ``info`` dictionary to the search to include information on the model-fit that is not part of the model-fit itself, which can be loaded via the database.
-- **Session**: Set up a database session so results are written directly to the .sqlite database.
 - **Building Database via Directory**: Build a database from results already written to hard-disk in an output folder.
+- **Writing Directly To Database**: Set up a database session so results are written directly to the .sqlite database.
 - **Files**: The files that are stored in the database that can be loaded and inspected.
 - **Generators**: Why the database uses Python generators to load results.
 
@@ -73,16 +73,21 @@ For fits to large datasets this ensures that all relevant information for interp
 
     info = {"date_of_observation": "01-02-18", "exposure_time": 1000.0}
 
-Session
--------
+Results From Hard Disk
+----------------------
 
-We now perform a simple model-fit to 3 datasets, where the results are written directly a sqlite3 database.
+We now perform a simple model-fit to 3 datasets, where the results are written to hard-disk using the standard
+output directory structure and we will then build the database from these results. This behaviour is governed
+by us inputting ``session=None``.
 
-To do this, we start a session, which includes the name of the database ``.sqlite`` file where results are stored.
+If you have existing results you wish to build a database for, you can therefore adapt this example you to do this.
+
+Later in this example we show how results can also also be output directly to an .sqlite database, saving on hard-disk
+space. This will be acheived by setting ``session`` to something that is not ``None``.
 
 .. code-block:: python
 
-    session = af.db.open_database("database.sqlite")
+    session = None
 
 For each dataset we load it from hard-disc, set up a model and analysis and fit it with a non-linear search.
 
@@ -114,7 +119,7 @@ Note how the ``session`` is passed to the ``Dynesty`` search.
             name="database_example",
             path_prefix=path.join("features", "database"),
             unique_tag=dataset_name,  # This makes the unique identifier use the dataset name
-            session=session,  # This instructs the search to write to the .sqlite database.
+            session=session,  # This can instruct the search to write to the .sqlite database.
             nlive=50,
         )
 
@@ -132,16 +137,17 @@ Note how the ``session`` is passed to the ``Dynesty`` search.
 Building Database via Directory
 -------------------------------
 
-The fits above directly wrote the results to the .sqlite file, which we loaded above. However, you may have results
-already written to hard-disk in an output folder, which you wish to build your .sqlite file from.
+The fits above wrote the results to hard-disk in folders, not as an .sqlite database file.
 
-This can be done via the following code, which is commented out below to avoid us deleting the existing .sqlite file.
+We build the database below, where the ``database_name`` corresponds to the name of your output folder and is also the
+name of the ``.sqlite`` database file that is created.
 
-Below, the ``database_name`` corresponds to the name of your output folder and is also the name of the ``.sqlite`` file
-that is created.
+If you are fitting a relatively small number of datasets (e.g. 10-100) having all results written to hard-disk (e.g.
+for quick visual inspection) and using the database for sample wide analysis is beneficial.
 
-If you are fitting a relatively small number of datasets (e.g. 10-100) having all results written
-to hard-disk (e.g. for quick visual inspection) but using the database for sample-wide analysis may be benefitial.
+We can optionally only include completed model-fits but setting ``completed_only=True``.
+
+If you inspect the ``output`` folder, you will see a ``database.sqlite`` file which contains the results.
 
 .. code-block:: python
 
@@ -152,6 +158,33 @@ to hard-disk (e.g. for quick visual inspection) but using the database for sampl
     )
 
     agg.add_directory(directory=path.join("output", database_name)))
+
+Writing Directly To Database
+----------------------------
+
+Results can be written directly to the .sqlite database file, skipping output to hard-disk entirely, by creating
+a session and passing this to the non-linear search.
+
+The code below shows how to do this.
+
+This is ideal for tasks where model-fits to hundreds or thousands of datasets are performed, as it becomes unfeasible
+to inspect the results of all fits on the hard-disk.
+
+Our recommended workflow is to set up database analysis scripts using ~10 model-fits, and then scaling these up
+to large samples by writing directly to the database.
+
+.. code-block:: python
+
+    session = af.db.open_database("database.sqlite")
+
+    search = af.DynestyStatic(
+        name="database_example",
+        path_prefix=path.join("features", "database"),
+        unique_tag=dataset_name,  # This makes the unique identifier use the dataset name
+        session=session,  # This can instruct the search to write to the .sqlite database.
+        nlive=50,
+    )
+
 
 Files
 -----

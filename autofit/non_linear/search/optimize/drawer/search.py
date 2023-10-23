@@ -122,12 +122,12 @@ class Drawer(AbstractOptimizer):
             total_points=self.config_dict_search["total_draws"],
             model=model,
             fitness=fitness,
-            use_prior_medians=True,
         )
 
         search_internal = {
             "parameter_lists" : parameter_lists,
-            "log_posterior_list" : log_posterior_list
+            "log_posterior_list" : log_posterior_list,
+            "time": self.timer.time
         }
 
         self.paths.save_search_internal(
@@ -136,7 +136,7 @@ class Drawer(AbstractOptimizer):
 
         self.logger.info("Drawer complete")
 
-    def samples_from(self, model):
+    def samples_from(self, model, search_internal):
 
         search_internal_dict = self.paths.load_search_internal()
 
@@ -164,12 +164,16 @@ class Drawer(AbstractOptimizer):
             weight_list=weight_list,
         )
 
-        return Samples(model=model, sample_list=sample_list)
+        return Samples(
+            model=model,
+            sample_list=sample_list,
+            samples_info=search_internal_dict,
+        )
 
     def plot_results(
         self,
         samples,
-        during_analysis,
+        during_analysis : bool = False,
     ):
         def should_plot(name):
             return conf.instance["visualize"]["plots_search"]["drawer"][name]

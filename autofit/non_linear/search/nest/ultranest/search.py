@@ -27,8 +27,8 @@ class UltraNest(abstract_nest.AbstractNest):
 
     def __init__(
             self,
-            name: str = "",
-            path_prefix: str = "",
+            name: Optional[str] = None,
+            path_prefix: Optional[str] = None,
             unique_tag: Optional[str] = None,
             iterations_per_update: int = None,
             number_of_cores: int = None,
@@ -133,7 +133,12 @@ class UltraNest(abstract_nest.AbstractNest):
 
         log_dir = self.paths.search_internal_path
 
-        if os.path.exists(log_dir / "chains"):
+        try:
+            checkpoint_exists = os.path.exists(log_dir / "chains")
+        except TypeError:
+            checkpoint_exists = False
+
+        if checkpoint_exists:
             self.logger.info(
                 "Resuming UltraNest non-linear search (previous samples found)."
             )
@@ -142,7 +147,7 @@ class UltraNest(abstract_nest.AbstractNest):
                 "Starting new UltraNest non-linear search (no previous samples found)."
             )
 
-        sampler = ultranest.ReactiveNestedSampler(
+        search_internal = ultranest.ReactiveNestedSampler(
             param_names=model.parameter_names,
             loglike=fitness.__call__,
             transform=prior_transform,
@@ -150,14 +155,14 @@ class UltraNest(abstract_nest.AbstractNest):
             **self.config_dict_search
         )
 
-        sampler.stepsampler = self.stepsampler
+        search_internal.stepsampler = self.stepsampler
 
         finished = False
 
         while not finished:
 
             try:
-                total_iterations = sampler.ncall
+                total_iterations = search_internal.ncall
             except AttributeError:
                 total_iterations = 0
 
@@ -178,16 +183,16 @@ class UltraNest(abstract_nest.AbstractNest):
 
                 config_dict_run["update_interval_ncall"] = iterations
 
-                sampler.run(
+                search_internal.run(
                     max_ncalls=iterations,
                     **config_dict_run
                 )
 
             self.paths.save_search_internal(
-                  obj=sampler.results,
+                  obj=search_internal.results,
               )
 
-            iterations_after_run = sampler.ncall
+            iterations_after_run = search_internal.ncall
 
             if (
                     total_iterations == iterations_after_run
@@ -197,21 +202,27 @@ class UltraNest(abstract_nest.AbstractNest):
 
             if not finished:
 
-                self.perform_update(model=model, analysis=analysis, during_analysis=True)
+                self.perform_update(
+                    model=model,
+                    analysis=analysis,
+                    during_analysis=True,
+                    search_internal=search_internal
+                )
 
-    @property
-    def samples_info(self):
+        return search_internal
 
-        search_internal = self.paths.load_search_internal()
+    def samples_info_from(self, search_internal=None):
+
+        search_internal = search_internal or self.paths.load_search_internal()
 
         return {
             "log_evidence": search_internal["logz"],
             "total_samples": search_internal["ncall"],
-            "time": self.timer.time,
+            "time": self.timer.time if self.timer else None,
             "number_live_points": self.config_dict_run["min_num_live_points"]
         }
 
-    def samples_via_internal_from(self, model: AbstractPriorModel):
+    def samples_via_internal_from(self, model: AbstractPriorModel, search_internal=None):
         """
         Returns a `Samples` object from the ultranest internal results.
 
@@ -227,7 +238,7 @@ class UltraNest(abstract_nest.AbstractNest):
             Maps input vectors of unit parameter values to physical values and model instances via priors.
         """
 
-        search_internal = self.paths.load_search_internal()
+        search_internal = search_internal.results or self.paths.load_search_internal()
 
         parameters = search_internal["weighted_samples"]["points"]
         log_likelihood_list = search_internal["weighted_samples"]["logl"]
@@ -247,7 +258,7 @@ class UltraNest(abstract_nest.AbstractNest):
         return SamplesNest(
             model=model,
             sample_list=sample_list,
-            samples_info=self.samples_info,
+            samples_info=self.samples_info_from(search_internal=search_internal),
             search_internal=search_internal,
         )
 
