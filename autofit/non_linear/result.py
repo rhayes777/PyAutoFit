@@ -46,7 +46,7 @@ class AbstractResult(ABC):
 
     @property
     def sigma(self):
-        return conf.instance["general"]["prior_passer"]["sigma"]
+        return self.samples.sigma
 
     @property
     @abstractmethod
@@ -110,9 +110,7 @@ class AbstractResult(ABC):
         A model mapper created by taking results from this search and creating priors with the defined absolute
         width.
         """
-        return self.model.mapper_from_gaussian_tuples(
-            self.samples.gaussian_priors_at_sigma(sigma=self.sigma), a=a
-        )
+        return self.samples.model_absolute(a)
 
     def model_relative(self, r: float) -> AbstractPriorModel:
         """
@@ -126,9 +124,7 @@ class AbstractResult(ABC):
         A model mapper created by taking results from this search and creating priors with the defined relative
         width.
         """
-        return self.model.mapper_from_gaussian_tuples(
-            self.samples.gaussian_priors_at_sigma(sigma=self.sigma), r=r
-        )
+        return self.samples.model_relative(r)
 
 
 class Result(AbstractResult):

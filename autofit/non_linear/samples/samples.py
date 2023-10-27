@@ -647,23 +647,3 @@ class Samples(SamplesInterface, ABC):
 
         copied.sample_list = [sample.subsample(path_map) for sample in self.sample_list]
         return copied
-
-    def gaussian_priors_at_sigma(self, sigma: float) -> [List]:
-        """
-        `GaussianPrior`s of every parameter used to link its inferred values and errors to priors used to sample the
-        same (or similar) parameters in a subsequent search, where:
-
-        - The mean is given by maximum log likelihood model values.
-        - Their errors are omitted, as this information is not available from an search. When these priors are
-          used to link to another search, it will thus automatically use the prior config values.
-
-        Parameters
-        ----------
-        sigma
-            The sigma limit within which the PDF is used to estimate errors (e.g. sigma = 1.0 uses 0.6826 of the PDF).
-        """
-        return list(
-            map(
-                lambda vector: (vector, 0.0), self.max_log_likelihood(as_instance=False)
-            )
-        )
