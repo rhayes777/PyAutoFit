@@ -43,19 +43,6 @@ class SearchOutput:
     @DynamicAttrs
     """
 
-    def __new__(cls, directory: Path, reference: dict = None):
-        """
-        Represents the output of a single search. Comprises a metadata file and other dataset files.
-
-        Parameters
-        ----------
-        directory
-            The directory of the search
-        """
-        if (directory / ".is_grid_search").exists():
-            return super().__new__(GridSearchOutput)
-        return super().__new__(cls)
-
     def __init__(self, directory: Path, reference: dict = None):
         """
         Represents the output of a single search. Comprises a metadata file and other dataset files.
@@ -82,6 +69,18 @@ class SearchOutput:
                 self.__dict__.update({pair[0]: pair[1] for pair in pairs})
         except FileNotFoundError:
             pass
+
+    @property
+    def parent_identifier(self) -> Optional[str]:
+        """
+        Read the parent identifier for a fit in a directory.
+
+        Defaults to None if no .parent_identifier file is found.
+        """
+        try:
+            return (self.directory / ".parent_identifier").read_text()
+        except FileNotFoundError:
+            return None
 
     @property
     def files_path(self):
@@ -226,15 +225,6 @@ class SearchOutput:
         return "<PhaseOutput {}>".format(self)
 
 
-class GridSearchOutput(SearchOutput):
-    @property
-    def parent_identifier(self) -> Optional[str]:
-        """
-        Read the parent identifier for a fit in a directory.
-
-        Defaults to None if no .parent_identifier file is found.
-        """
-        try:
-            return (self.directory / ".parent_identifier").read_text()
-        except FileNotFoundError:
-            return None
+class GridSearchOutput:
+    def __init__(self, directory: Path):
+        self.directory = directory

@@ -152,28 +152,6 @@ def empty_args():
     af.m.MockOptimizer.init_args = list()
 
 
-@pytest.fixture(name="sample_name_paths")
-def make_sample_name_paths():
-    return af.DirectoryPaths(name="sample_name")
-
-
-@pytest.fixture(name="grid_search_10_result")
-def make_grid_search_10_result(mapper, sample_name_paths):
-    grid_search = af.SearchGridSearch(
-        search=af.m.MockOptimizer(),
-        number_of_steps=10,
-    )
-    grid_search.search.paths = sample_name_paths
-    return grid_search.fit(
-        model=mapper,
-        analysis=af.m.MockAnalysis(),
-        grid_priors=[
-            mapper.component.one_tuple.one_tuple_0,
-            mapper.component.one_tuple.one_tuple_1,
-        ],
-    )
-
-
 def test_csv_headers(grid_search_10_result, sample_name_paths):
     with open(sample_name_paths.output_path / "results.csv") as f:
         reader = csv.reader(f)
