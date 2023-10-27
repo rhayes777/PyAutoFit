@@ -217,6 +217,10 @@ class Samples(SamplesInterface, ABC):
         self.samples_info = samples_info
         self.search_internal = search_internal
 
+    @property
+    def log_evidence(self):
+        return None
+
     @classmethod
     def from_csv(cls, paths, model: AbstractPriorModel):
         """

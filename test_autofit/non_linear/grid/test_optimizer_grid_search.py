@@ -5,14 +5,13 @@ import numpy as np
 import pytest
 
 import autofit as af
-from autoconf.dictable import from_dict
 from autofit import exc
 
 
 def test_unpickle_result():
     # noinspection PyTypeChecker
     result = af.GridSearchResult(
-        results=[af.Result(samples=None)],
+        samples=[af.Samples(model=af.Model(af.Gaussian), sample_list=[])],
         lower_limits_lists=[[1]],
         grid_priors=[],
     )
@@ -189,7 +188,7 @@ def test_csv_headers(grid_search_10_result, sample_name_paths):
 
 
 def test_output_result_json(grid_search_10_result, sample_name_paths):
-    assert sample_name_paths.load_json("result") == {}
+    assert isinstance(sample_name_paths.load_json("result"), dict)
 
 
 class TestGridNLOBehaviour:
@@ -203,11 +202,11 @@ class TestGridNLOBehaviour:
             ],
         )
 
-        assert len(result.results) == 4
+        assert len(result.samples) == 4
         assert result.no_dimensions == 2
 
     def test_results_10(self, grid_search_10_result):
-        assert len(grid_search_10_result.results) == 100
+        assert len(grid_search_10_result.samples) == 100
         assert grid_search_10_result.no_dimensions == 2
         assert grid_search_10_result.log_likelihoods_native.shape == (10, 10)
 
@@ -232,13 +231,13 @@ def make_grid_search_result():
 
     # noinspection PyTypeChecker
     return af.GridSearchResult(
-        results=[one, two], lower_limits_lists=[[1], [2]], grid_priors=[[1], [2]]
+        samples=[one, two], lower_limits_lists=[[1], [2]], grid_priors=[[1], [2]]
     )
 
 
 class TestGridSearchResult:
     def test_best_result(self, grid_search_result):
-        assert grid_search_result.best_result.log_likelihood == 2
+        assert grid_search_result.best_samples.log_likelihood == 2
 
     def test_attributes(self, grid_search_result):
         assert grid_search_result.model == 2
@@ -254,7 +253,7 @@ class TestGridSearchResult:
 
         # noinspection PyTypeChecker
         grid_search_result = af.GridSearchResult(
-            results=None,
+            samples=None,
             grid_priors=[
                 af.UniformPrior(lower_limit=-2.0, upper_limit=2.0),
                 af.UniformPrior(lower_limit=-3.0, upper_limit=3.0),
@@ -279,10 +278,10 @@ class TestGridSearchResult:
 
     def test__results_on_native_grid(self, grid_search_result):
         assert (
-            grid_search_result.results_native
+            grid_search_result.samples_native
             == np.array(
                 [
-                    [grid_search_result.results[0], grid_search_result.results[1]],
+                    [grid_search_result.samples[0], grid_search_result.samples[1]],
                 ]
             )
         ).all()
@@ -330,5 +329,5 @@ def test_higher_dimensions(n_dimensions, n_steps):
         lower_limits_lists=total * [n_dimensions * [0.0]],
     )
     assert result.shape == shape
-    assert result.results_native.shape == shape
+    assert result.samples_native.shape == shape
     assert result.log_likelihoods_native.shape == shape

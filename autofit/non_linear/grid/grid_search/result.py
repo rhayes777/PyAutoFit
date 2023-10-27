@@ -108,7 +108,7 @@ class GridSearchResult:
         """
         We default to getting attributes from the best sample. This allows promises to reference best samples.
         """
-        return getattr(self.best_sample, item)
+        return getattr(self.best_samples, item)
 
     @property
     def shape(self):
