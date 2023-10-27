@@ -184,7 +184,6 @@ def test_csv_headers(grid_search_10_result, sample_name_paths):
         "component_one_tuple_0",
         "component_one_tuple_1",
         "log_likelihood_increase",
-        "log_evidence_increase",
     ]
 
 

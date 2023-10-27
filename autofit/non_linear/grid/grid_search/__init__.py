@@ -235,24 +235,23 @@ class GridSearch:
 
             os.makedirs(self.paths.output_path, exist_ok=True)
 
+            is_evidence = any(row[-1] is not None for row in results_list)
+
             with open(self.paths.output_path / "results.csv", "w+") as f:
                 writer = csv.writer(f)
-                writer.writerow(
-                    [
-                        "index",
-                        *map(model.name_for_prior, grid_priors),
-                        "log_likelihood_increase",
-                        "log_evidence_increase",
-                    ]
-                )
+                headers = [
+                    "index",
+                    *map(model.name_for_prior, grid_priors),
+                    "log_likelihood_increase",
+                ]
+                if is_evidence:
+                    headers.append("log_evidence")
+                writer.writerow(headers)
 
                 for results in results_list:
-                    writer.writerow(
-                        [
-                            None if value is None else padding(f"{value:.2f}")
-                            for value in results
-                        ]
-                    )
+                    if not is_evidence:
+                        results = results[:1]
+                    writer.writerow([padding(f"{value:.2f}") for value in results])
 
         results_list = []
 
