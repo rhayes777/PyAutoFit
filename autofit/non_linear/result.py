@@ -1,3 +1,4 @@
+import logging
 from abc import ABC, abstractmethod
 import numpy as np
 
@@ -32,14 +33,18 @@ class Placeholder:
     def samples(self):
         return self
 
+    @property
+    def log_likelihood(self):
+        return -np.inf
+
+    def summary(self):
+        return self
+
 
 class AbstractResult(ABC):
-    def __init__(self):
-        self._instance = None
-
     @property
     def sigma(self):
-        return conf.instance["general"]["prior_passer"]["sigma"]
+        return self.samples.sigma
 
     @property
     @abstractmethod
@@ -83,9 +88,11 @@ class AbstractResult(ABC):
 
     @property
     def instance(self):
-        if self._instance is None:
-            self._instance = self.samples.max_log_likelihood()
-        return self._instance
+        try:
+            return self.samples.instance
+        except AttributeError as e:
+            logging.warning(e)
+            return None
 
     @property
     def max_log_likelihood_instance(self):
@@ -103,9 +110,7 @@ class AbstractResult(ABC):
         A model mapper created by taking results from this search and creating priors with the defined absolute
         width.
         """
-        return self.model.mapper_from_gaussian_tuples(
-            self.samples.gaussian_priors_at_sigma(sigma=self.sigma), a=a
-        )
+        return self.samples.model_absolute(a)
 
     def model_relative(self, r: float) -> AbstractPriorModel:
         """
@@ -119,9 +124,7 @@ class AbstractResult(ABC):
         A model mapper created by taking results from this search and creating priors with the defined relative
         width.
         """
-        return self.model.mapper_from_gaussian_tuples(
-            self.samples.gaussian_priors_at_sigma(sigma=self.sigma), r=r
-        )
+        return self.samples.model_relative(r)
 
 
 class Result(AbstractResult):
@@ -142,8 +145,6 @@ class Result(AbstractResult):
         samples
             The samples of the non-linear search
         """
-        super().__init__()
-
         self._samples = samples
 
         self.__model = None

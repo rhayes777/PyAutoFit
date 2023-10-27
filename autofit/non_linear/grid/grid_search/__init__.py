@@ -5,6 +5,7 @@ import os
 from os import path
 from typing import List, Tuple, Union, Type, Optional, Dict
 
+from autoconf.dictable import to_dict
 from autofit import exc
 from autofit.mapper import prior as p
 from autofit.non_linear.search.abstract_search import NonLinearSearch
@@ -228,7 +229,7 @@ class GridSearch:
         self.save_metadata()
 
         def save_results():
-            self.paths.save_object("result", builder())
+            self.paths.save_json("result", to_dict(builder()))
 
         def write_results():
             self.logger.debug("Writing results")

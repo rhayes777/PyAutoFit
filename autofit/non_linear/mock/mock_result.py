@@ -47,3 +47,7 @@ class MockResultGrid(Result):
     @property
     def log_likelihood(self):
         return self._log_likelihood
+
+    @property
+    def best_model(self):
+        return self.model

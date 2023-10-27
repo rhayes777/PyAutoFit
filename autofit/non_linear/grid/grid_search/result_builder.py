@@ -1,5 +1,6 @@
 from typing import List, Union
 
+from autofit.non_linear.samples import Samples
 from autofit.database import Prior
 from autofit.non_linear.result import Result, Placeholder
 from .job import JobResult
@@ -29,7 +30,15 @@ class ResultBuilder:
         Generate a GridSearchResult with all results so far and placeholders
         where no result has been returned yet
         """
-        return GridSearchResult(self.results, self.lists, self.grid_priors)
+        return GridSearchResult(self.sample_summaries, self.lists, self.grid_priors)
+
+    @property
+    def sample_summaries(self) -> List[Union[Samples, Placeholder]]:
+        """
+        A list of results that have been returned with placeholders where no
+        result has been returned in the grid-search order.
+        """
+        return [samples.summary() for samples in self.samples]
 
     @property
     def results(self) -> List[Union[Result, Placeholder]]:
@@ -37,19 +46,31 @@ class ResultBuilder:
         A list of results that have been returned with placeholders where no
         result has been returned in the grid-search order.
         """
-        results = []
+        return [
+            samples
+            if isinstance(samples, Placeholder)
+            else Result(
+                samples=samples,
+            )
+            for samples in self.samples
+        ]
+
+    @property
+    def samples(self) -> List[Union[Samples, Placeholder]]:
+        """
+        A list of results that have been returned with placeholders where no
+        result has been returned in the grid-search order.
+        """
+        samples = []
         for number in range(len(self.lists)):
             try:
                 job_result = self._job_result_dict[number]
-                result = job_result.result
-                results.append(
-                    Result(
-                        samples=job_result.result.samples,
-                    )
+                samples.append(
+                    job_result.result.samples,
                 )
             except KeyError:
-                results.append(Placeholder())
-        return results
+                samples.append(Placeholder())
+        return samples
 
     def add(self, job_result: JobResult):
         """
