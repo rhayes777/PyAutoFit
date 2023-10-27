@@ -247,7 +247,12 @@ class GridSearch:
                 )
 
                 for results in results_list:
-                    writer.writerow([padding(f"{value:.2f}") for value in results])
+                    writer.writerow(
+                        [
+                            None if value is None else padding(f"{value:.2f}")
+                            for value in results
+                        ]
+                    )
 
         results_list = []
 
