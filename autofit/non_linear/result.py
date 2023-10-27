@@ -1,3 +1,4 @@
+import logging
 from abc import ABC, abstractmethod
 import numpy as np
 
@@ -41,9 +42,6 @@ class Placeholder:
 
 
 class AbstractResult(ABC):
-    def __init__(self):
-        self._instance = None
-
     @property
     def sigma(self):
         return self.samples.sigma
@@ -90,9 +88,11 @@ class AbstractResult(ABC):
 
     @property
     def instance(self):
-        if self._instance is None:
-            self._instance = self.samples.max_log_likelihood()
-        return self._instance
+        try:
+            return self.samples.instance
+        except AttributeError as e:
+            logging.warning(e)
+            return None
 
     @property
     def max_log_likelihood_instance(self):
@@ -145,8 +145,6 @@ class Result(AbstractResult):
         samples
             The samples of the non-linear search
         """
-        super().__init__()
-
         self._samples = samples
 
         self.__model = None

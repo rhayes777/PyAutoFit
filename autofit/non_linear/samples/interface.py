@@ -34,6 +34,13 @@ class SamplesInterface(ABC):
 
         self._paths = None
         self._names = None
+        self._instance = None
+
+    @property
+    def instance(self):
+        if self._instance is None:
+            self._instance = self.max_log_likelihood()
+        return self._instance
 
     @property
     def paths(self) -> List[Tuple[Path]]:
