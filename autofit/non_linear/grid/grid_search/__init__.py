@@ -22,14 +22,14 @@ class Sequential:
         for job_ in jobs:
             yield job_.perform()
 
-class GridSearch:
 
+class GridSearch:
     def __init__(
-            self,
-            search,
-            number_of_steps: int = 4,
-            number_of_cores: int = 1,
-            result_output_interval: int = 100,
+        self,
+        search,
+        number_of_steps: int = 4,
+        number_of_cores: int = 1,
+        result_output_interval: int = 100,
     ):
         """
         Performs a non linear optimiser search for each square in a grid. The dimensionality of the search depends on
@@ -50,15 +50,11 @@ class GridSearch:
 
         self._logger = None
 
-        self.logger.info(
-            "Creating grid search"
-        )
+        self.logger.info("Creating grid search")
 
         self.number_of_cores = number_of_cores or 1
 
-        self.logger.info(
-            f"Using {number_of_cores} core(s)"
-        )
+        self.logger.info(f"Using {number_of_cores} core(s)")
 
         self._result_output_interval = result_output_interval
 
@@ -76,9 +72,7 @@ class GridSearch:
     @property
     def logger(self):
         if not hasattr(self, "_logger") or self._logger is None:
-            self._logger = logging.getLogger(
-                f"GridSearch ({self.search.name})"
-            )
+            self._logger = logging.getLogger(f"GridSearch ({self.search.name})")
         return self._logger
 
     @property
@@ -131,16 +125,15 @@ class GridSearch:
         arguments = {}
         for value, grid_prior in zip(values, grid_priors):
             if (
-                    float("-inf") == grid_prior.lower_limit
-                    or float("inf") == grid_prior.upper_limit
+                float("-inf") == grid_prior.lower_limit
+                or float("inf") == grid_prior.upper_limit
             ):
                 raise exc.PriorException(
                     "Priors passed to the grid search must have definite limits"
                 )
             lower_limit = grid_prior.lower_limit + value * grid_prior.width
             upper_limit = (
-                    grid_prior.lower_limit
-                    + (value + self.step_size) * grid_prior.width
+                grid_prior.lower_limit + (value + self.step_size) * grid_prior.width
             )
             prior = p.UniformPrior(lower_limit=lower_limit, upper_limit=upper_limit)
             arguments[grid_prior] = prior
@@ -154,12 +147,12 @@ class GridSearch:
             yield model.mapper_from_partial_prior_arguments(arguments)
 
     def fit(
-            self,
-            model,
-            analysis,
-            grid_priors,
-            info: Optional[Dict] = None,
-            parent: Optional[NonLinearSearch] = None
+        self,
+        model,
+        analysis,
+        grid_priors,
+        info: Optional[Dict] = None,
+        parent: Optional[NonLinearSearch] = None,
     ):
         """
         Fit an analysis with a set of grid priors. The grid priors are priors associated with the model mapper
@@ -186,9 +179,7 @@ class GridSearch:
         if parent is not None:
             self.paths.parent = parent.paths
 
-        self.logger.info(
-            "Running grid search..."
-        )
+        self.logger.info("Running grid search...")
 
         process_class = Process if self.parallel else Sequential
         # noinspection PyArgumentList
@@ -197,16 +188,16 @@ class GridSearch:
             analysis=analysis,
             grid_priors=grid_priors,
             process_class=process_class,
-            info=info
+            info=info,
         )
 
     def _fit(
-            self,
-            model,
-            analysis,
-            grid_priors,
-            process_class=Union[Type[Process], Type[Sequential]],
-            info: Optional[Dict] = None
+        self,
+        model,
+        analysis,
+        grid_priors,
+        process_class=Union[Type[Process], Type[Sequential]],
+        info: Optional[Dict] = None,
     ):
         """
         Perform the grid search in parallel, with all the optimisation for each grid square being performed on a
@@ -227,65 +218,49 @@ class GridSearch:
         result: GridSearchResult
             The result of the grid search
         """
-        self.logger.info(
-            "...in parallel"
-        )
+        self.logger.info("...in parallel")
 
-        grid_priors = model.sort_priors_alphabetically(
-            set(grid_priors)
-        )
+        grid_priors = model.sort_priors_alphabetically(set(grid_priors))
         lists = self.make_lists(grid_priors)
 
-        builder = ResultBuilder(
-            lists=lists,
-            grid_priors=grid_priors
-        )
+        builder = ResultBuilder(lists=lists, grid_priors=grid_priors)
 
         self.save_metadata()
 
         def save_results():
-            self.paths.save_object(
-                "result",
-                builder()
-            )
+            self.paths.save_object("result", builder())
 
         def write_results():
-            self.logger.debug(
-                "Writing results"
-            )
+            self.logger.debug("Writing results")
 
             os.makedirs(self.paths.output_path, exist_ok=True)
 
+            is_evidence = any(row[-1] is not None for row in results_list)
+
             with open(self.paths.output_path / "results.csv", "w+") as f:
                 writer = csv.writer(f)
-                writer.writerow([
-                    ["index"]
-                    + list(map(model.name_for_prior, grid_priors))
-                    + ["likelihood_merit"]
-                ])
+                headers = [
+                    "index",
+                    *map(model.name_for_prior, grid_priors),
+                    "log_likelihood_increase",
+                ]
+                if is_evidence:
+                    headers.append("log_evidence")
+                writer.writerow(headers)
 
                 for results in results_list:
-                    writer.writerow([
-                        padding(f"{value:.2f}")
-                        for value in results
-                    ])
+                    if not is_evidence:
+                        results = results[:1]
+                    writer.writerow([padding(f"{value:.2f}") for value in results])
 
         results_list = []
 
         for i, job_result in enumerate(
-                process_class.run_jobs(
-                    self.make_jobs(
-                        model,
-                        analysis,
-                        grid_priors,
-                        info
-                    ),
-                    self.number_of_cores
-                )
-        ):
-            builder.add(
-                job_result
+            process_class.run_jobs(
+                self.make_jobs(model, analysis, grid_priors, info), self.number_of_cores
             )
+        ):
+            builder.add(job_result)
             results_list.append(job_result.result_list_row)
             write_results()
             if i % self._result_output_interval == 0:
@@ -297,17 +272,12 @@ class GridSearch:
         return builder()
 
     def save_metadata(self):
-
         self.paths.save_parent_identifier()
-        self.paths.save_unique_tag(
-            is_grid_search=True
-        )
+        self.paths.save_unique_tag(is_grid_search=True)
         self.paths.zip_remove_nuclear()
 
     def make_jobs(self, model, analysis, grid_priors, info: Optional[Dict] = None):
-        grid_priors = model.sort_priors_alphabetically(
-            set(grid_priors)
-        )
+        grid_priors = model.sort_priors_alphabetically(set(grid_priors))
         lists = self.make_lists(grid_priors)
 
         jobs = list()
@@ -320,19 +290,13 @@ class GridSearch:
                     grid_priors=grid_priors,
                     values=values,
                     index=index,
-                    info=info
+                    info=info,
                 )
             )
         return jobs
 
     def job_for_analysis_grid_priors_and_values(
-            self,
-            model,
-            analysis,
-            grid_priors,
-            values,
-            index,
-            info: Optional[Dict] = None
+        self, model, analysis, grid_priors, values, index, info: Optional[Dict] = None
     ):
         arguments = self.make_arguments(values=values, grid_priors=grid_priors)
         model = model.mapper_from_partial_prior_arguments(arguments=arguments)
@@ -360,16 +324,15 @@ class GridSearch:
             analysis=analysis,
             arguments=arguments,
             index=index,
-            info=info
+            info=info,
         )
 
     def search_instance(self, name_path):
-
         search_instance = self.search.copy_with_paths(
             self.paths.create_child(
                 name=name_path,
                 path_prefix=self.paths.path_prefix,
-                is_identifier_in_paths=False
+                is_identifier_in_paths=False,
             )
         )
 
@@ -381,7 +344,6 @@ class GridSearch:
                     pass
 
         if self.number_of_cores > 1:
-
             search_instance.number_of_cores = 1
 
         return search_instance
@@ -419,9 +381,7 @@ def grid(fitness, no_dimensions, step_size):
 
 
 def make_lists(
-        no_dimensions: int,
-        step_size: Union[Tuple[float], float],
-        centre_steps=True
+    no_dimensions: int, step_size: Union[Tuple[float], float], centre_steps=True
 ):
     """
         Returns a list of lists of floats covering every combination across no_dimensions of points of integer step size
@@ -441,28 +401,15 @@ def make_lists(
         A list of lists
     """
     if isinstance(step_size, float):
-        step_size = tuple(
-            step_size
-            for _
-            in range(no_dimensions)
-        )
+        step_size = tuple(step_size for _ in range(no_dimensions))
 
     if no_dimensions == 0:
         return [[]]
 
-    sub_lists = make_lists(
-        no_dimensions - 1,
-        step_size[1:],
-        centre_steps=centre_steps
-    )
+    sub_lists = make_lists(no_dimensions - 1, step_size[1:], centre_steps=centre_steps)
     step_size = step_size[0]
     return [
-        [
-            step_size * value + (
-                0.5 * step_size
-                if centre_steps
-                else 0)
-        ] + sub_list
+        [step_size * value + (0.5 * step_size if centre_steps else 0)] + sub_list
         for value in range(int((1 / step_size)))
         for sub_list in sub_lists
     ]

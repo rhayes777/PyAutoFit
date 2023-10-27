@@ -21,7 +21,15 @@ class JobResult(AbstractJobResult):
 
 
 class Job(AbstractJob):
-    def __init__(self, search_instance, model, analysis, arguments, index, info: Optional[Dict] = None):
+    def __init__(
+        self,
+        search_instance,
+        model,
+        analysis,
+        arguments,
+        index,
+        info: Optional[Dict] = None,
+    ):
         """
         A job to be performed in parallel.
 
@@ -34,9 +42,7 @@ class Job(AbstractJob):
         arguments
             The grid search arguments
         """
-        super().__init__(
-            number=index
-        )
+        super().__init__(number=index)
         self.search_instance = search_instance
         self.analysis = analysis
         self.model = model
@@ -49,18 +55,18 @@ class Job(AbstractJob):
             model=self.model,
             analysis=self.analysis,
             info=self.info,
-            bypass_nuclear_if_on=True
+            bypass_nuclear_if_on=True,
         )
         result_list_row = [
             self.index,
             *[
                 prior.lower_limit
-                for prior
-                in self.model.sort_priors_alphabetically(
+                for prior in self.model.sort_priors_alphabetically(
                     self.arguments.values()
                 )
             ],
             result.log_likelihood,
+            result.samples.log_evidence,
         ]
 
         return JobResult(result, result_list_row, self.number)
