@@ -27,3 +27,7 @@ def test_correspondence(grid_search, aggregator):
 def test_attributes(grid_search):
     assert grid_search.is_complete
     assert isinstance(grid_search.unique_tag, str)
+
+
+def test_files(grid_search):
+    pass

@@ -81,7 +81,7 @@ class Scraper:
         )
         logger.info(f"{len(aggregator)} searches found")
         for item in aggregator:
-            parent_identifier = _parent_identifier(directory=item.directory)
+            parent_identifier = item.parent_identifier
 
             model = item.model
             samples = item.samples
