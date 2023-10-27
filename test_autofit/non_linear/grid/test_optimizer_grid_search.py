@@ -151,6 +151,16 @@ def empty_args():
     af.m.MockOptimizer.init_args = list()
 
 
+@pytest.fixture(name="grid_search_10")
+def make_grid_search_10():
+    grid_search = af.SearchGridSearch(
+        search=af.m.MockOptimizer(),
+        number_of_steps=10,
+    )
+    grid_search.search.paths = af.DirectoryPaths(name="sample_name")
+    return grid_search
+
+
 class TestGridNLOBehaviour:
     def test_results(self, grid_search_05, mapper):
         result = grid_search_05.fit(
@@ -165,12 +175,8 @@ class TestGridNLOBehaviour:
         assert len(result.results) == 4
         assert result.no_dimensions == 2
 
-        grid_search = af.SearchGridSearch(
-            search=af.m.MockOptimizer(),
-            number_of_steps=10,
-        )
-        grid_search.search.paths = af.DirectoryPaths(name="sample_name")
-        result = grid_search.fit(
+    def test_results_10(self, grid_search_10, mapper):
+        result = grid_search_10.fit(
             model=mapper,
             analysis=af.m.MockAnalysis(),
             grid_priors=[
