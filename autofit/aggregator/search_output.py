@@ -228,3 +228,13 @@ class SearchOutput:
 class GridSearchOutput:
     def __init__(self, directory: Path):
         self.directory = directory
+
+
+class GridSearch:
+    def __init__(
+        self,
+        grid_search_output,
+        search_outputs,
+    ):
+        self.grid_search_output = grid_search_output
+        self.search_outputs = search_outputs

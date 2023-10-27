@@ -21,7 +21,7 @@ from shutil import rmtree
 from typing import List, Union, Iterator, Optional
 
 from .predicate import AttributePredicate
-from .search_output import SearchOutput, GridSearchOutput
+from .search_output import SearchOutput, GridSearchOutput, GridSearch
 
 
 class AggregatorGroup:
@@ -105,6 +105,22 @@ class Aggregator:
         """
         self.search_outputs = search_outputs
         self.grid_search_outputs = grid_search_outputs
+
+    def grid_searches(self):
+        """
+        A list of grid search outputs
+        """
+        return [
+            GridSearch(
+                output,
+                [
+                    search_output
+                    for search_output in self.search_outputs
+                    if search_output.directory.is_relative_to(output.directory)
+                ],
+            )
+            for output in self.grid_search_outputs
+        ]
 
     @classmethod
     def from_directory(
