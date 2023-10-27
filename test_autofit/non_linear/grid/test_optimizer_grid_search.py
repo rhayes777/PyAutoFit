@@ -1,3 +1,4 @@
+import csv
 import pickle
 
 import numpy as np
@@ -151,14 +152,40 @@ def empty_args():
     af.m.MockOptimizer.init_args = list()
 
 
-@pytest.fixture(name="grid_search_10")
-def make_grid_search_10():
+@pytest.fixture(name="sample_name_paths")
+def make_sample_name_paths():
+    return af.DirectoryPaths(name="sample_name")
+
+
+@pytest.fixture(name="grid_search_10_result")
+def make_grid_search_10_result(mapper, sample_name_paths):
     grid_search = af.SearchGridSearch(
         search=af.m.MockOptimizer(),
         number_of_steps=10,
     )
-    grid_search.search.paths = af.DirectoryPaths(name="sample_name")
-    return grid_search
+    grid_search.search.paths = sample_name_paths
+    return grid_search.fit(
+        model=mapper,
+        analysis=af.m.MockAnalysis(),
+        grid_priors=[
+            mapper.component.one_tuple.one_tuple_0,
+            mapper.component.one_tuple.one_tuple_1,
+        ],
+    )
+
+
+def test_csv_headers(grid_search_10_result, sample_name_paths):
+    with open(sample_name_paths.output_path / "results.csv") as f:
+        reader = csv.reader(f)
+        headers = next(reader)
+
+    assert headers == [
+        "index",
+        "component_one_tuple_0",
+        "component_one_tuple_1",
+        "log_likelihood_increase",
+        "log_evidence_increase",
+    ]
 
 
 class TestGridNLOBehaviour:
@@ -175,19 +202,10 @@ class TestGridNLOBehaviour:
         assert len(result.results) == 4
         assert result.no_dimensions == 2
 
-    def test_results_10(self, grid_search_10, mapper):
-        result = grid_search_10.fit(
-            model=mapper,
-            analysis=af.m.MockAnalysis(),
-            grid_priors=[
-                mapper.component.one_tuple.one_tuple_0,
-                mapper.component.one_tuple.one_tuple_1,
-            ],
-        )
-
-        assert len(result.results) == 100
-        assert result.no_dimensions == 2
-        assert result.log_likelihoods_native.shape == (10, 10)
+    def test_results_10(self, grid_search_10_result):
+        assert len(grid_search_10_result.results) == 100
+        assert grid_search_10_result.no_dimensions == 2
+        assert grid_search_10_result.log_likelihoods_native.shape == (10, 10)
 
     def test_passes_attributes(self):
         search = af.DynestyStatic()
