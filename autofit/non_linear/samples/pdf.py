@@ -68,6 +68,7 @@ class SamplesPDF(Samples):
             max_log_likelihood_sample=self.max_log_likelihood_sample,
             model=self.model,
             covariance_matrix=covariance_matrix,
+            log_evidence=self.log_evidence,
         )
 
     @classmethod
@@ -422,6 +423,7 @@ class SamplesPDF(Samples):
     def log_evidence(self):
         return None
 
+
 def marginalize(
     parameter_list: List, sigma: float, weight_list: Optional[List] = None
 ) -> Tuple[float, float, float]:
@@ -483,4 +485,3 @@ def quantile(x, q, weights=None):
         cdf /= cdf[-1]
         cdf = np.append(0, cdf)
         return np.interp(q, cdf, x[idx]).tolist()
-

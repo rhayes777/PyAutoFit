@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import List, Generator, Callable, ClassVar, Type, Union, Tuple
 
 from autoconf import cached_property
+from autoconf.dictable import to_dict
 from autofit.mapper.model import ModelInstance
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.search.abstract_search import NonLinearSearch
@@ -305,7 +306,7 @@ class Sensitivity:
 
         result = SensitivityResult(results)
 
-        self.search.paths.save_object("result", result)
+        self.search.paths.save_json("result", to_dict(result))
 
         return SensitivityResult(results)
 

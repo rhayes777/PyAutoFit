@@ -32,6 +32,13 @@ class Placeholder:
     def samples(self):
         return self
 
+    @property
+    def log_likelihood(self):
+        return -np.inf
+
+    def summary(self):
+        return self
+
 
 class AbstractResult(ABC):
     def __init__(self):

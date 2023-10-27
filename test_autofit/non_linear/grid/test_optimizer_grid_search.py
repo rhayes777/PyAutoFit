@@ -5,6 +5,7 @@ import numpy as np
 import pytest
 
 import autofit as af
+from autoconf.dictable import from_dict
 from autofit import exc
 
 
@@ -187,6 +188,10 @@ def test_csv_headers(grid_search_10_result, sample_name_paths):
     ]
 
 
+def test_output_result_json(grid_search_10_result, sample_name_paths):
+    assert sample_name_paths.load_json("result") == {}
+
+
 class TestGridNLOBehaviour:
     def test_results(self, grid_search_05, mapper):
         result = grid_search_05.fit(
@@ -307,21 +312,19 @@ def test_higher_dimensions(n_dimensions, n_steps):
     total = n_steps**n_dimensions
     model = af.Model(af.Gaussian)
     result = af.GridSearchResult(
-        results=total
+        samples=total
         * [
-            af.Result(
-                af.SamplesPDF(
-                    model,
-                    [
-                        af.Sample(
-                            1.0,
-                            1.0,
-                            1.0,
-                            {"centre": 1.0, "sigma": 1.0, "normalization": 1.0},
-                        )
-                    ],
-                ),
-            )
+            af.SamplesPDF(
+                model,
+                [
+                    af.Sample(
+                        1.0,
+                        1.0,
+                        1.0,
+                        {"centre": 1.0, "sigma": 1.0, "normalization": 1.0},
+                    )
+                ],
+            ),
         ],
         grid_priors=[],
         lower_limits_lists=total * [n_dimensions * [0.0]],

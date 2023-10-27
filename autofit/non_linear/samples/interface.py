@@ -75,3 +75,12 @@ class SamplesInterface(ABC):
     @abstractmethod
     def max_log_likelihood_sample(self):
         pass
+
+    @property
+    def log_likelihood(self):
+        return self.max_log_likelihood_sample.log_likelihood
+
+    @property
+    @abstractmethod
+    def log_evidence(self):
+        pass
