@@ -62,6 +62,7 @@ def make_summary_dict():
                 "dtype": "float64",
                 "type": "ndarray",
             },
+            "log_evidence": None,
             "max_log_likelihood_sample": {
                 "arguments": {
                     "kwargs": {

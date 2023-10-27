@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from functools import wraps
 from typing import Union, List, Tuple
 
+from autofit import conf
 from autofit.mapper.model import ModelInstance
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.mapper.prior_model.abstract import Path
@@ -33,6 +34,13 @@ class SamplesInterface(ABC):
 
         self._paths = None
         self._names = None
+        self._instance = None
+
+    @property
+    def instance(self):
+        if self._instance is None:
+            self._instance = self.max_log_likelihood()
+        return self._instance
 
     @property
     def paths(self) -> List[Tuple[Path]]:
@@ -75,3 +83,68 @@ class SamplesInterface(ABC):
     @abstractmethod
     def max_log_likelihood_sample(self):
         pass
+
+    @property
+    def log_likelihood(self):
+        return self.max_log_likelihood_sample.log_likelihood
+
+    @property
+    @abstractmethod
+    def log_evidence(self):
+        pass
+
+    def model_absolute(self, a: float) -> AbstractPriorModel:
+        """
+        Parameters
+        ----------
+        a
+            The absolute width of gaussian priors
+
+        Returns
+        -------
+        A model mapper created by taking results from this search and creating priors with the defined absolute
+        width.
+        """
+        return self.model.mapper_from_gaussian_tuples(
+            self.gaussian_priors_at_sigma(sigma=self.sigma), a=a
+        )
+
+    def model_relative(self, r: float) -> AbstractPriorModel:
+        """
+        Parameters
+        ----------
+        r
+            The relative width of gaussian priors
+
+        Returns
+        -------
+        A model mapper created by taking results from this search and creating priors with the defined relative
+        width.
+        """
+        return self.model.mapper_from_gaussian_tuples(
+            self.gaussian_priors_at_sigma(sigma=self.sigma), r=r
+        )
+
+    @property
+    def sigma(self):
+        return conf.instance["general"]["prior_passer"]["sigma"]
+
+    def gaussian_priors_at_sigma(self, sigma: float) -> [List]:
+        """
+        `GaussianPrior`s of every parameter used to link its inferred values and errors to priors used to sample the
+        same (or similar) parameters in a subsequent search, where:
+
+        - The mean is given by maximum log likelihood model values.
+        - Their errors are omitted, as this information is not available from an search. When these priors are
+          used to link to another search, it will thus automatically use the prior config values.
+
+        Parameters
+        ----------
+        sigma
+            The sigma limit within which the PDF is used to estimate errors (e.g. sigma = 1.0 uses 0.6826 of the PDF).
+        """
+        return list(
+            map(
+                lambda vector: (vector, 0.0), self.max_log_likelihood(as_instance=False)
+            )
+        )
