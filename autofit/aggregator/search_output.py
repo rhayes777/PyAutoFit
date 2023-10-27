@@ -38,7 +38,19 @@ def _create_file_handle(*args, **kwargs):
 dill._dill._create_filehandle = _create_file_handle
 
 
-class SearchOutput:
+class AbstractSearchOutput:
+    def __init__(self, directory: Path):
+        self.directory = directory
+
+    @property
+    def is_complete(self) -> bool:
+        """
+        Whether the search has completed
+        """
+        return (self.directory / ".completed").exists()
+
+
+class SearchOutput(AbstractSearchOutput):
     """
     @DynamicAttrs
     """
@@ -52,6 +64,7 @@ class SearchOutput:
         directory
             The directory of the search
         """
+        super().__init__(directory)
         self.__search = None
         self.__model = None
 
@@ -116,13 +129,6 @@ class SearchOutput:
     @property
     def id(self):
         return str(Identifier([self.search, self.model, self.search.unique_tag]))
-
-    @property
-    def is_complete(self) -> bool:
-        """
-        Whether the search has completed
-        """
-        return (self.directory / ".completed").exists()
 
     @property
     def samples(self):
@@ -225,9 +231,11 @@ class SearchOutput:
         return "<PhaseOutput {}>".format(self)
 
 
-class GridSearchOutput:
-    def __init__(self, directory: Path):
-        self.directory = directory
+class GridSearchOutput(AbstractSearchOutput):
+    @property
+    def unique_tag(self):
+        with open(self.directory / ".is_grid_search") as f:
+            return f.read()
 
 
 class GridSearch:
@@ -238,3 +246,6 @@ class GridSearch:
     ):
         self.grid_search_output = grid_search_output
         self.search_outputs = search_outputs
+
+    def __getattr__(self, item):
+        return getattr(self.grid_search_output, item)
