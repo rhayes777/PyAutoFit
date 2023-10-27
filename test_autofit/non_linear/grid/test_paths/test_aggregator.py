@@ -30,4 +30,4 @@ def test_attributes(grid_search):
 
 
 def test_files(grid_search):
-    pass
+    assert grid_search.result

@@ -49,6 +49,37 @@ class AbstractSearchOutput:
         """
         return (self.directory / ".completed").exists()
 
+    @property
+    def files_path(self):
+        return self.directory / "files"
+
+    def __getattr__(self, item):
+        """
+        Attempt to load a pickle by the same name from the search output directory.
+
+        dataset.pickle, meta_dataset.pickle etc.
+        """
+        try:
+            with open(self.files_path / f"{item}.pickle", "rb") as f:
+                return pickle.load(f)
+        except FileNotFoundError:
+            pass
+        try:
+            with open(self.files_path / f"{item}.json") as f:
+                d = json.load(f)
+                if "type" in d:
+                    result = from_dict(d, reference=self._reference)
+                    if result is not None:
+                        return result
+                return d
+        except FileNotFoundError:
+            pass
+        try:
+            with open(self.files_path / f"{item}.csv") as f:
+                return np.loadtxt(f)
+        except (FileNotFoundError, ValueError):
+            pass
+
 
 class SearchOutput(AbstractSearchOutput):
     """
@@ -94,37 +125,6 @@ class SearchOutput(AbstractSearchOutput):
             return (self.directory / ".parent_identifier").read_text()
         except FileNotFoundError:
             return None
-
-    @property
-    def files_path(self):
-        return self.directory / "files"
-
-    def __getattr__(self, item):
-        """
-        Attempt to load a pickle by the same name from the search output directory.
-
-        dataset.pickle, meta_dataset.pickle etc.
-        """
-        try:
-            with open(self.files_path / f"{item}.pickle", "rb") as f:
-                return pickle.load(f)
-        except FileNotFoundError:
-            pass
-        try:
-            with open(self.files_path / f"{item}.json") as f:
-                d = json.load(f)
-                if "type" in d:
-                    result = from_dict(d, reference=self._reference)
-                    if result is not None:
-                        return result
-                return d
-        except FileNotFoundError:
-            pass
-        try:
-            with open(self.files_path / f"{item}.csv") as f:
-                return np.loadtxt(f)
-        except (FileNotFoundError, ValueError):
-            pass
 
     @property
     def id(self):
