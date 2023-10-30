@@ -16,6 +16,7 @@ from autofit.non_linear.samples.sample import Sample
 
 from .summary import SamplesSummary
 from .interface import SamplesInterface, to_instance
+from ...text.formatter import write_table
 
 
 ### TODO: Rich how do I reduce this to one wrapper sensible?
@@ -488,25 +489,11 @@ class Samples(SamplesInterface, ABC):
         filename
             Where the table is to be written
         """
-        column_max_widths = [
-            max(len(str(value)) for value in column)
-            for column in zip(*([self._headers] + list(self._rows)))
-        ]
-
-        with open(filename, "w+") as f:
-            writer = csv.writer(f)
-
-            def write_row(row_):
-                writer.writerow(
-                    [
-                        "{0:>{1}}".format(header, width)
-                        for width, header in zip(column_max_widths, row_)
-                    ]
-                )
-
-            write_row(self._headers)
-            for row in self._rows:
-                write_row(row)
+        write_table(
+            filename=filename,
+            headers=list(self._headers),
+            rows=list(self._rows),
+        )
 
     def info_to_json(self, filename):
         with open(filename, "w") as outfile:

@@ -10,6 +10,7 @@ from autofit import exc
 from autofit.mapper import prior as p
 from autofit.non_linear.search.abstract_search import NonLinearSearch
 from autofit.non_linear.parallel import Process
+from autofit.text.formatter import write_table
 from autofit.text.text_util import padding
 from .job import Job
 from .result import GridSearchResult
@@ -238,21 +239,23 @@ class GridSearch:
 
             is_evidence = any(row[-1] is not None for row in results_list)
 
-            with open(self.paths.output_path / "results.csv", "w+") as f:
-                writer = csv.writer(f)
-                headers = [
-                    "index",
-                    *map(model.name_for_prior, grid_priors),
-                    "log_likelihood_increase",
-                ]
-                if is_evidence:
-                    headers.append("log_evidence")
-                writer.writerow(headers)
+            headers = [
+                "index",
+                *map(model.name_for_prior, grid_priors),
+                "log_likelihood_increase",
+            ]
+            rows = results_list
 
-                for results in results_list:
-                    if not is_evidence:
-                        results = results[:1]
-                    writer.writerow([padding(f"{value:.2f}") for value in results])
+            if is_evidence:
+                headers.append("log_evidence")
+            else:
+                rows = [row[:-1] for row in rows]
+
+            write_table(
+                headers,
+                rows,
+                self.paths.output_path / "results.csv",
+            )
 
         results_list = []
 
