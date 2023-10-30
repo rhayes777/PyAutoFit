@@ -31,3 +31,7 @@ def test_attributes(grid_search):
 
 def test_files(grid_search):
     assert grid_search.result
+
+
+def test_jsons(grid_search):
+    assert len(grid_search.jsons) == 1

@@ -4,12 +4,13 @@ import logging
 import pickle
 from os import path
 from pathlib import Path
-from typing import Generator, Tuple, Optional
+from typing import Generator, Tuple, Optional, List
 
 import dill
 import numpy as np
 
 from autofit import SamplesPDF
+from autofit.aggregator.file_output import FileOutput, JSONOutput
 from autofit.mapper.identifier import Identifier
 from autofit.non_linear.samples.sample import samples_from_iterator
 from autofit.non_linear.search import abstract_search
@@ -52,6 +53,14 @@ class AbstractSearchOutput:
     @property
     def files_path(self):
         return self.directory / "files"
+
+    @property
+    def files(self):
+        return list(map(FileOutput, self.files_path.iterdir()))
+
+    @property
+    def jsons(self):
+        return list(map(JSONOutput, self.files_path.glob("*.json")))
 
     def __getattr__(self, item):
         """
@@ -241,8 +250,8 @@ class GridSearchOutput(AbstractSearchOutput):
 class GridSearch:
     def __init__(
         self,
-        grid_search_output,
-        search_outputs,
+        grid_search_output: GridSearchOutput,
+        search_outputs: List[SearchOutput],
     ):
         self.grid_search_output = grid_search_output
         self.search_outputs = search_outputs
