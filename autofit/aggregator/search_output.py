@@ -62,19 +62,6 @@ class AbstractSearchOutput:
     def jsons(self):
         return list(map(JSONOutput, self.files_path.glob("*.json")))
 
-    @property
-    def samples(self):
-        info_json = JSONOutput(self.files_path / "info.json").dict
-        sample_list = samples_from_iterator(
-            CSVOutput(self.files_path / "samples.csv").value
-        )
-
-        return SamplesPDF.from_list_info_and_model(
-            sample_list=sample_list,
-            samples_info=info_json,
-            model=self.model,
-        )
-
     def __getattr__(self, item):
         """
         Attempt to load a pickle by the same name from the search output directory.
@@ -137,6 +124,13 @@ class SearchOutput(AbstractSearchOutput):
             pass
 
     @property
+    def instance(self):
+        try:
+            return self.samples.max_log_likelihood()
+        except (AttributeError, NotImplementedError):
+            return None
+
+    @property
     def parent_identifier(self) -> Optional[str]:
         """
         Read the parent identifier for a fit in a directory.
@@ -155,12 +149,10 @@ class SearchOutput(AbstractSearchOutput):
     @property
     def samples(self):
         try:
-            info_path = self.files_path / "samples_info.json"
-            samples_path = self.files_path / "samples.csv"
-            with open(info_path) as f:
-                info_json = json.load(f)
-            with open(samples_path) as f:
-                sample_list = samples_from_iterator(csv.reader(f))
+            info_json = JSONOutput(self.files_path / "info.json").dict
+            sample_list = samples_from_iterator(
+                CSVOutput(self.files_path / "samples.csv").value
+            )
 
             return SamplesPDF.from_list_info_and_model(
                 sample_list=sample_list,
