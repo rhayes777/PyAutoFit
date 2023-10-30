@@ -10,7 +10,7 @@ import dill
 import numpy as np
 
 from autofit import SamplesPDF
-from autofit.aggregator.file_output import FileOutput, JSONOutput
+from autofit.aggregator.file_output import FileOutput, JSONOutput, CSVOutput
 from autofit.mapper.identifier import Identifier
 from autofit.non_linear.samples.sample import samples_from_iterator
 from autofit.non_linear.search import abstract_search
@@ -61,6 +61,19 @@ class AbstractSearchOutput:
     @property
     def jsons(self):
         return list(map(JSONOutput, self.files_path.glob("*.json")))
+
+    @property
+    def samples(self):
+        info_json = JSONOutput(self.files_path / "info.json").dict
+        sample_list = samples_from_iterator(
+            CSVOutput(self.files_path / "samples.csv").value
+        )
+
+        return SamplesPDF.from_list_info_and_model(
+            sample_list=sample_list,
+            samples_info=info_json,
+            model=self.model,
+        )
 
     def __getattr__(self, item):
         """
