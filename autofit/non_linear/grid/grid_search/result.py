@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Union
 
 import numpy as np
 
@@ -183,6 +183,16 @@ class GridSearchResult:
         [0, 0]) of the NumPy array.
         """
         return self._list_to_native(lst=[sample for sample in self.samples])
+
+    def attribute_grid(self, attribute_name: str):
+        def _get_attribute(
+            obj: Union[np.ndarray, SamplesInterface],
+        ):
+            if isinstance(obj, np.ndarray):
+                return [_get_attribute(item) for item in obj]
+            return getattr(obj.instance, attribute_name)
+
+        return _get_attribute(self.samples_native)
 
     @property
     def log_likelihoods_native(self):

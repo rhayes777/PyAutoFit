@@ -1,6 +1,7 @@
 import pytest
 
 import autofit as af
+from autofit.non_linear.samples.summary import SamplesSummary
 
 
 @pytest.fixture(name="model")
@@ -13,8 +14,41 @@ def make_model():
 @pytest.fixture(name="result")
 def make_result(model):
     return af.GridSearchResult(
-        samples=[], lower_limits_lists=[[0.0], [0.5]], grid_priors=[model.centre]
+        samples=[
+            SamplesSummary(
+                af.Sample(
+                    1.0,
+                    1.0,
+                    1.0,
+                    {
+                        "centre": 1.0,
+                        "normalization": 2.0,
+                        "sigma": 3.0,
+                    },
+                ),
+                model,
+            ),
+            SamplesSummary(
+                af.Sample(
+                    1.0,
+                    1.0,
+                    1.0,
+                    {
+                        "centre": 2.0,
+                        "normalization": 4.0,
+                        "sigma": 6.0,
+                    },
+                ),
+                model,
+            ),
+        ],
+        lower_limits_lists=[[0.0], [0.5]],
+        grid_priors=[model.centre],
     )
+
+
+def test_instance_attribute_from_path(result):
+    assert result.attribute_grid("centre") == [1.0, 2.0]
 
 
 @pytest.mark.parametrize(
