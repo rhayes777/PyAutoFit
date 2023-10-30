@@ -11,44 +11,60 @@ def make_model():
     )
 
 
+@pytest.fixture(name="samples_1")
+def make_samples_1(model):
+    return SamplesSummary(
+        af.Sample(
+            1.0,
+            1.0,
+            1.0,
+            {
+                "centre": 1.0,
+                "normalization": 2.0,
+                "sigma": 3.0,
+            },
+        ),
+        model,
+    )
+
+
+@pytest.fixture(name="samples_2")
+def make_samples_2(model):
+    return SamplesSummary(
+        af.Sample(
+            1.0,
+            1.0,
+            1.0,
+            {
+                "centre": 2.0,
+                "normalization": 4.0,
+                "sigma": 6.0,
+            },
+        ),
+        model,
+    )
+
+
 @pytest.fixture(name="result")
-def make_result(model):
+def make_result(model, samples_1, samples_2):
     return af.GridSearchResult(
-        samples=[
-            SamplesSummary(
-                af.Sample(
-                    1.0,
-                    1.0,
-                    1.0,
-                    {
-                        "centre": 1.0,
-                        "normalization": 2.0,
-                        "sigma": 3.0,
-                    },
-                ),
-                model,
-            ),
-            SamplesSummary(
-                af.Sample(
-                    1.0,
-                    1.0,
-                    1.0,
-                    {
-                        "centre": 2.0,
-                        "normalization": 4.0,
-                        "sigma": 6.0,
-                    },
-                ),
-                model,
-            ),
-        ],
+        samples=[samples_1, samples_2],
         lower_limits_lists=[[0.0], [0.5]],
         grid_priors=[model.centre],
     )
 
 
 def test_instance_attribute_from_path(result):
-    assert result.attribute_grid("centre") == [1.0, 2.0]
+    assert (result.attribute_grid("centre") == [1.0, 2.0]).all()
+
+
+def test_higher_dimension_instance_attributes(model, samples_1, samples_2):
+    result = af.GridSearchResult(
+        samples=[samples_1, samples_2, samples_1, samples_2],
+        lower_limits_lists=[[0.0, 0.0], [0.0, 0.5], [0.5, 0.0], [0.5, 0.5]],
+        grid_priors=[model.centre, model.normalization],
+    )
+    assert (result.attribute_grid("centre") == [[1.0, 2.0], [1.0, 2.0]]).all()
 
 
 @pytest.mark.parametrize(
