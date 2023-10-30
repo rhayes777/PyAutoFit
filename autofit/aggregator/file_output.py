@@ -20,12 +20,12 @@ class FileOutput(ABC):
             return super().__new__(CSVOutput)
         raise ValueError(f"File {path} is not a valid output file")
 
-    def __init__(self, file_path: Path):
-        self.file_path = file_path
+    def __init__(self, path: Path):
+        self.path = path
 
     @property
     def name(self):
-        return self.file_path.stem
+        return self.path.stem
 
     @property
     @abstractmethod
@@ -36,13 +36,13 @@ class FileOutput(ABC):
 class CSVOutput(FileOutput):
     @property
     def value(self):
-        return np.loadtxt(self.file_path, delimiter=",")
+        return np.loadtxt(self.path, delimiter=",")
 
 
 class JSONOutput(FileOutput):
     @property
     def dict(self):
-        with open(self.file_path) as f:
+        with open(self.path) as f:
             return json.load(f)
 
     @property
@@ -53,5 +53,14 @@ class JSONOutput(FileOutput):
 class PickleOutput(FileOutput):
     @property
     def value(self):
-        with open(self.file_path, "rb") as f:
+        with open(self.path, "rb") as f:
             return dill.load(f)
+
+
+class FitsOutput(FileOutput):
+    @property
+    def value(self):
+        from astropy.io import fits
+
+        with open(self.path, "rb") as f:
+            return fits.PrimaryHDU.readfrom(f)
