@@ -1,6 +1,7 @@
 import json
 from abc import abstractmethod, ABC
 from pathlib import Path
+from typing import Union
 
 import numpy as np
 
@@ -22,7 +23,18 @@ class FileOutput(ABC):
             return super().__new__(HDUOutput)
         raise ValueError(f"File {path} is not a valid output file")
 
-    def __init__(self, name, path: Path):
+    def __init__(self, name: str, path: Path):
+        """
+        An output file from a fit, which is either a pickle, json, csv or fits file.
+
+        Parameters
+        ----------
+        name
+            The name of the output file. This is the path to the file from the root output directory
+            separated by '.' and without a suffix. e.g. output/directory/info.json -> directory.info
+        path
+            The path to the output file
+        """
         self.name = name
         self.path = path
 
@@ -34,24 +46,36 @@ class FileOutput(ABC):
 
 class ArrayOutput(FileOutput):
     @property
-    def value(self):
+    def value(self) -> np.ndarray:
+        """
+        The array stored in the csv file
+        """
         return np.loadtxt(self.path, delimiter=",")
 
 
 class JSONOutput(FileOutput):
     @property
-    def dict(self):
+    def dict(self) -> Union[dict, list]:
+        """
+        The dictionary stored in the json file
+        """
         with open(self.path) as f:
             return json.load(f)
 
     @property
     def value(self):
+        """
+        The object represented by the JSON
+        """
         return from_dict(self.dict)
 
 
 class PickleOutput(FileOutput):
     @property
     def value(self):
+        """
+        The object stored in the pickle file
+        """
         with open(self.path, "rb") as f:
             return dill.load(f)
 
@@ -59,6 +83,9 @@ class PickleOutput(FileOutput):
 class HDUOutput(FileOutput):
     @property
     def value(self):
+        """
+        The contents of the fits file
+        """
         from astropy.io import fits
 
         with open(self.path, "rb") as f:

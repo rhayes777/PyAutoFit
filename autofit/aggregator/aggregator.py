@@ -76,7 +76,10 @@ class AggregatorGroup:
         return [group.values(name, parser=parser) for group in self.groups]
 
 
-def unzip_directory(directory):
+def unzip_directory(directory: str):
+    """
+    Unzip all zip files in a directory recursively.
+    """
     for root, _, filenames in os.walk(directory):
         for filename in filenames:
             if filename.endswith(".zip"):
