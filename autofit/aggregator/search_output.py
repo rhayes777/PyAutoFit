@@ -1,4 +1,3 @@
-import csv
 import json
 import logging
 import pickle
@@ -9,12 +8,15 @@ from typing import Generator, Tuple, Optional, List
 import dill
 import numpy as np
 
-from autofit import SamplesPDF
-from autofit.aggregator.file_output import FileOutput, JSONOutput, CSVOutput
+from autofit.non_linear.samples.pdf import SamplesPDF
+from autofit.aggregator.file_output import (
+    JSONOutput,
+    PickleOutput,
+    HDUOutput,
+    ArrayOutput,
+)
 from autofit.mapper.identifier import Identifier
 from autofit.non_linear.samples.sample import samples_from_iterator
-from autofit.non_linear.search import abstract_search
-from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autoconf.dictable import from_dict
 
 original_create_file_handle = dill._dill._create_filehandle
@@ -55,12 +57,24 @@ class AbstractSearchOutput:
         return self.directory / "files"
 
     @property
-    def files(self):
-        return list(map(FileOutput, self.files_path.iterdir()))
-
-    @property
     def jsons(self):
         return list(map(JSONOutput, self.files_path.glob("*.json")))
+
+    @property
+    def arrays(self):
+        return list(map(ArrayOutput, self.files_path.glob("*.csv")))
+
+    @property
+    def pickles(self):
+        return list(map(PickleOutput, self.files_path.glob("*.pickle")))
+
+    @property
+    def hdus(self):
+        return list(map(HDUOutput, self.files_path.glob("*.fits")))
+
+    @property
+    def log_likelihood(self):
+        return self.samples.max_log_likelihood_sample.log_likelihood
 
     def __getattr__(self, item):
         """
@@ -151,7 +165,7 @@ class SearchOutput(AbstractSearchOutput):
         try:
             info_json = JSONOutput(self.files_path / "info.json").dict
             sample_list = samples_from_iterator(
-                CSVOutput(self.files_path / "samples.csv").value
+                ArrayOutput(self.files_path / "samples.csv").value
             )
 
             return SamplesPDF.from_list_info_and_model(
@@ -216,7 +230,7 @@ class SearchOutput(AbstractSearchOutput):
         return path.join(phase, dataset_name)
 
     @property
-    def search(self) -> abstract_search.NonLinearSearch:
+    def search(self):
         """
         The search object that was used in this phase
         """

@@ -1,32 +1,12 @@
-import csv
-import json
 import logging
-import os
-import pickle
 from pathlib import Path
-from typing import Optional, Union, Generator, Tuple
-
-import numpy as np
+from typing import Optional, Union
 
 from .. import model as m
 from ..sqlalchemy_ import sa
-from autofit.non_linear.samples.pdf import SamplesPDF
-from autofit.non_linear.samples.sample import samples_from_iterator
+from autofit.aggregator.search_output import SearchOutput
 
 logger = logging.getLogger(__name__)
-
-
-def _parent_identifier(directory: str) -> Optional[str]:
-    """
-    Read the parent identifier for a fit in a directory.
-
-    Defaults to None if no .parent_identifier file is found.
-    """
-    try:
-        with open(f"{directory}/.parent_identifier") as f:
-            return f.read()
-    except FileNotFoundError:
-        return None
 
 
 class Scraper:
@@ -82,12 +62,6 @@ class Scraper:
         logger.info(f"Scraping directory {self.directory}")
         logger.info(f"{len(self.aggregator)} searches found")
         for item in self.aggregator:
-            parent_identifier = item.parent_identifier
-
-            model = item.model
-            samples = item.samples
-            instance = item.instance
-
             logger.info(
                 f"Creating fit for: "
                 f"{item.search.paths.path_prefix} "
@@ -100,28 +74,24 @@ class Scraper:
                 fit = self._retrieve_model_fit(item)
                 logger.warning(f"Fit already existed with identifier {item.id}")
             except sa.orm.exc.NoResultFound:
-                try:
-                    log_likelihood = samples.max_log_likelihood_sample.log_likelihood
-                except AttributeError:
-                    log_likelihood = None
                 fit = m.Fit(
                     id=item.id,
                     name=item.search.name,
                     unique_tag=item.search.unique_tag,
-                    model=model,
-                    instance=instance,
+                    model=item.model,
+                    instance=item.instance,
                     is_complete=item.is_complete,
                     info=item.info,
-                    max_log_likelihood=log_likelihood,
-                    parent_id=parent_identifier,
+                    max_log_likelihood=item.log_likelihood,
+                    parent_id=item.parent_identifier,
                 )
 
-            _add_files(fit, Path(item.files_path))
+            _add_files(fit, item)
             for i, child_analysis in enumerate(item.child_analyses):
                 child_fit = m.Fit(
                     id=f"{item.id}_{i}",
                 )
-                _add_files(child_fit, child_analysis.files_path)
+                _add_files(child_fit, child_analysis)
                 fit.children.append(child_fit)
 
             yield fit
@@ -137,32 +107,21 @@ class Scraper:
         ------
         Fit objects representing grid searches with child fits associated
         """
-        from autofit.aggregator.aggregator import Aggregator as ClassicAggregator
+        for item in self.aggregator.grid_searches():
+            grid_search = m.Fit(
+                id=item.id,
+                unique_tag=item.unique_tag,
+                is_grid_search=True,
+                parent_id=item.parent_identifier,
+                is_complete=item.is_complete,
+            )
 
-        for root, _, filenames in os.walk(self.directory):
-            if ".is_grid_search" in filenames:
-                path = Path(root)
+            _add_files(grid_search, item)
 
-                is_complete = (path / ".completed").exists()
-
-                with open(path / ".is_grid_search") as f:
-                    unique_tag = f.read()
-
-                grid_search = m.Fit(
-                    id=path.name,
-                    unique_tag=unique_tag,
-                    is_grid_search=True,
-                    parent_id=_parent_identifier(root),
-                    is_complete=is_complete,
-                )
-
-                _add_files(grid_search, path / "files")
-
-                aggregator = ClassicAggregator.from_directory(root)
-                for item in aggregator:
-                    fit = self._retrieve_model_fit(item)
-                    grid_search.children.append(fit)
-                yield grid_search
+            for search in item.search_outputs:
+                fit = self._retrieve_model_fit(search)
+                grid_search.children.append(fit)
+            yield grid_search
 
     def _retrieve_model_fit(self, item) -> m.Fit:
         """
@@ -185,31 +144,7 @@ class Scraper:
         return self.session.query(m.Fit).filter(m.Fit.id == item.id).one()
 
 
-def names_and_paths(
-    files_path: Path,
-    suffix: str,
-) -> Generator[Tuple[str, Path], None, None]:
-    """
-    Get the names and paths of files with a given suffix in a directory.
-
-    Parameters
-    ----------
-    files_path
-        The path in which the files are stored
-    suffix
-        The suffix of the files to retrieve (e.g. ".json")
-
-    Returns
-    -------
-    A generator of tuples of the form (name, path) where name is the path to the file
-    joined by . without the suffix and path is the path to the file
-    """
-    for file in list(files_path.rglob(f"*{suffix}")):
-        name = ".".join(file.relative_to(files_path).with_suffix("").parts)
-        yield name, file
-
-
-def _add_files(fit: m.Fit, files_path: Path):
+def _add_files(fit: m.Fit, item: SearchOutput):
     """
     Load files from the path and add them to the database.
 
@@ -217,45 +152,20 @@ def _add_files(fit: m.Fit, files_path: Path):
     ----------
     fit
         A fit to which the pickles belong
-    files_path
-        The path in which the JSONs are stored
     """
-    info_path = files_path / "samples_info.json"
-    samples_path = files_path / "samples.csv"
-    if info_path.exists() and samples_path.exists():
-        with open(info_path) as f:
-            info_json = json.load(f)
-        with open(samples_path) as f:
-            sample_list = samples_from_iterator(csv.reader(f))
+    try:
+        fit.samples = item.samples
+    except AttributeError:
+        logger.warning(f"Failed to load samples for {fit.id}")
 
-        fit.samples = SamplesPDF.from_list_info_and_model(
-            sample_list=sample_list,
-            samples_info=info_json,
-            model=fit.model,
-        )
+    for json_output in item.jsons:
+        fit.set_json(json_output.name, json_output.json)
 
-    for name, path in names_and_paths(files_path, ".json"):
-        with open(path) as f:
-            fit.set_json(name, json.load(f))
-    for name, path in names_and_paths(files_path, ".csv"):
-        try:
-            with open(path) as f:
-                fit.set_array(name, np.loadtxt(f, delimiter=","))
-        except ValueError:
-            logger.debug(f"Failed to load array from {path}")
+    for pickle_output in item.pickles:
+        fit.set_pickle(pickle_output.name, pickle_output.pickle)
 
-    for name, path in names_and_paths(files_path, ".pickle"):
-        try:
-            with open(path, "r+b") as f:
-                fit[name] = pickle.load(f)
-        except (pickle.UnpicklingError, ModuleNotFoundError) as e:
-            if path.name == "dynesty.pickle":
-                continue
+    for array_output in item.arrays:
+        fit.set_array(array_output.name, array_output.csv)
 
-            raise pickle.UnpicklingError(f"Failed to unpickle: {path}") from e
-
-    for name, path in names_and_paths(files_path, ".fits"):
-        from astropy.io import fits
-
-        with open(path, "rb") as f:
-            fit.set_hdu(name, fits.PrimaryHDU.readfrom(f))
+    for hdu_output in item.hdus:
+        fit.set_hdu(hdu_output.name, hdu_output.fits)

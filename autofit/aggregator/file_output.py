@@ -33,7 +33,7 @@ class FileOutput(ABC):
         pass
 
 
-class CSVOutput(FileOutput):
+class ArrayOutput(FileOutput):
     @property
     def value(self):
         return np.loadtxt(self.path, delimiter=",")
@@ -57,7 +57,7 @@ class PickleOutput(FileOutput):
             return dill.load(f)
 
 
-class FitsOutput(FileOutput):
+class HDUOutput(FileOutput):
     @property
     def value(self):
         from astropy.io import fits
