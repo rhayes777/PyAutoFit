@@ -11,9 +11,8 @@ import numpy as np
 from autofit.non_linear.samples.pdf import SamplesPDF
 from autofit.aggregator.file_output import (
     JSONOutput,
-    PickleOutput,
-    HDUOutput,
     ArrayOutput,
+    FileOutput,
 )
 from autofit.mapper.identifier import Identifier
 from autofit.non_linear.samples.sample import samples_from_iterator
@@ -56,21 +55,30 @@ class AbstractSearchOutput:
     def files_path(self):
         return self.directory / "files"
 
+    def _outputs(self, suffix):
+        outputs = []
+        for file_path in self.files_path.rglob(f"*{suffix}"):
+            name = ".".join(
+                file_path.relative_to(self.files_path).with_suffix("").parts
+            )
+            outputs.append(FileOutput(name, file_path))
+        return outputs
+
     @property
     def jsons(self):
-        return list(map(JSONOutput, self.files_path.glob("*.json")))
+        return self._outputs(".json")
 
     @property
     def arrays(self):
-        return list(map(ArrayOutput, self.files_path.glob("*.csv")))
+        return self._outputs(".csv")
 
     @property
     def pickles(self):
-        return list(map(PickleOutput, self.files_path.glob("*.pickle")))
+        return self._outputs(".pickle")
 
     @property
     def hdus(self):
-        return list(map(HDUOutput, self.files_path.glob("*.fits")))
+        return self._outputs(".fits")
 
     @property
     def log_likelihood(self):
@@ -163,9 +171,9 @@ class SearchOutput(AbstractSearchOutput):
     @property
     def samples(self):
         try:
-            info_json = JSONOutput(self.files_path / "info.json").dict
+            info_json = JSONOutput("info", self.files_path / "info.json").dict
             sample_list = samples_from_iterator(
-                ArrayOutput(self.files_path / "samples.csv").value
+                ArrayOutput("samples", self.files_path / "samples.csv").value
             )
 
             return SamplesPDF.from_list_info_and_model(

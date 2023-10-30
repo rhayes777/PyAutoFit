@@ -159,13 +159,13 @@ def _add_files(fit: m.Fit, item: SearchOutput):
         logger.warning(f"Failed to load samples for {fit.id}")
 
     for json_output in item.jsons:
-        fit.set_json(json_output.name, json_output.json)
+        fit.set_json(json_output.name, json_output.dict)
 
     for pickle_output in item.pickles:
-        fit.set_pickle(pickle_output.name, pickle_output.pickle)
+        fit.set_pickle(pickle_output.name, pickle_output.value)
 
     for array_output in item.arrays:
-        fit.set_array(array_output.name, array_output.csv)
+        fit.set_array(array_output.name, array_output.value)
 
     for hdu_output in item.hdus:
-        fit.set_hdu(hdu_output.name, hdu_output.fits)
+        fit.set_hdu(hdu_output.name, hdu_output.value)

@@ -10,22 +10,21 @@ from autoconf.dictable import from_dict
 
 
 class FileOutput(ABC):
-    def __new__(cls, path: Path):
+    def __new__(cls, name, path: Path):
         suffix = path.suffix
         if suffix == ".pickle":
             return super().__new__(PickleOutput)
         elif suffix == ".json":
             return super().__new__(JSONOutput)
         elif suffix == ".csv":
-            return super().__new__(CSVOutput)
+            return super().__new__(ArrayOutput)
+        elif suffix == ".fits":
+            return super().__new__(HDUOutput)
         raise ValueError(f"File {path} is not a valid output file")
 
-    def __init__(self, path: Path):
+    def __init__(self, name, path: Path):
+        self.name = name
         self.path = path
-
-    @property
-    def name(self):
-        return self.path.stem
 
     @property
     @abstractmethod
