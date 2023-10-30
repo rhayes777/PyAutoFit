@@ -1,3 +1,4 @@
+import csv
 import json
 import logging
 import pickle
@@ -190,10 +191,10 @@ class SearchOutput(AbstractSearchOutput):
         and a JSON containing metadata.
         """
         try:
-            info_json = JSONOutput("info", self.files_path / "info.json").dict
-            sample_list = samples_from_iterator(
-                ArrayOutput("samples", self.files_path / "samples.csv").value
-            )
+            info_json = JSONOutput("info", self.files_path / "samples_info.json").dict
+
+            with open(self.files_path / "samples.csv") as f:
+                sample_list = samples_from_iterator(csv.reader(f))
 
             return SamplesPDF.from_list_info_and_model(
                 sample_list=sample_list,
