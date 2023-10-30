@@ -1,4 +1,4 @@
-from typing import List, Union
+from typing import List, Union, Iterable
 
 import numpy as np
 
@@ -184,27 +184,33 @@ class GridSearchResult:
         """
         return self._list_to_native(lst=[sample for sample in self.samples])
 
-    def attribute_grid(self, attribute_name: str) -> np.ndarray:
+    def attribute_grid(self, attribute_path: Union[str, Iterable[str]]) -> np.ndarray:
         """
         Get a list of the attribute of the best instance from every search in a numpy array with the native dimensions
         of the grid search.
 
         Parameters
         ----------
-        attribute_name
-            The name of the attribute to get from the instance
+        attribute_path
+            The path to the attribute to get from the instance
 
         Returns
         -------
         A numpy array of the attribute of the best instance from every search in the grid search.
         """
+        if isinstance(attribute_path, str):
+            attribute_path = attribute_path.split(".")
 
         def _get_attribute(
             obj: Union[np.ndarray, SamplesInterface],
         ):
             if isinstance(obj, np.ndarray):
                 return np.array([_get_attribute(item) for item in obj])
-            return getattr(obj.instance, attribute_name)
+
+            item = obj.instance
+            for attribute_name in attribute_path:
+                item = getattr(item, attribute_name)
+            return item
 
         return _get_attribute(self.samples_native)
 

@@ -67,6 +67,34 @@ def test_higher_dimension_instance_attributes(model, samples_1, samples_2):
     assert (result.attribute_grid("centre") == [[1.0, 2.0], [1.0, 2.0]]).all()
 
 
+def test_paths(result):
+    model = af.Collection(
+        gaussian=af.Model(
+            af.Gaussian,
+            centre=af.UniformPrior(lower_limit=0.0, upper_limit=1.0),
+        )
+    )
+    samples = SamplesSummary(
+        af.Sample(
+            1.0,
+            1.0,
+            1.0,
+            {
+                "gaussian.centre": 1.0,
+                "gaussian.normalization": 2.0,
+                "gaussian.sigma": 3.0,
+            },
+        ),
+        model,
+    )
+    result = af.GridSearchResult(
+        samples=[samples, samples],
+        lower_limits_lists=[[0.0], [0.5]],
+        grid_priors=[model.gaussian.centre],
+    )
+    assert (result.attribute_grid("gaussian.centre") == [1.0, 1.0]).all()
+
+
 @pytest.mark.parametrize(
     "upper_limit, physical_value",
     [
