@@ -12,7 +12,6 @@ import numpy as np
 from autofit.non_linear.samples.pdf import SamplesPDF
 from autofit.aggregator.file_output import (
     JSONOutput,
-    ArrayOutput,
     FileOutput,
 )
 from autofit.mapper.identifier import Identifier
@@ -51,6 +50,18 @@ class AbstractSearchOutput:
         Whether the search has completed
         """
         return (self.directory / ".completed").exists()
+
+    @property
+    def parent_identifier(self) -> Optional[str]:
+        """
+        Read the parent identifier for a fit in a directory.
+
+        Defaults to None if no .parent_identifier file is found.
+        """
+        try:
+            return (self.directory / ".parent_identifier").read_text()
+        except FileNotFoundError:
+            return None
 
     @property
     def files_path(self):
@@ -166,18 +177,6 @@ class SearchOutput(AbstractSearchOutput):
         try:
             return self.samples.max_log_likelihood()
         except (AttributeError, NotImplementedError):
-            return None
-
-    @property
-    def parent_identifier(self) -> Optional[str]:
-        """
-        Read the parent identifier for a fit in a directory.
-
-        Defaults to None if no .parent_identifier file is found.
-        """
-        try:
-            return (self.directory / ".parent_identifier").read_text()
-        except FileNotFoundError:
             return None
 
     @property
