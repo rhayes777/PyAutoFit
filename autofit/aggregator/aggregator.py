@@ -92,6 +92,15 @@ def unzip_directory(directory: str):
                     )
 
 
+def is_relative_to(path_a, path_b):
+    """Return True if the path is relative to another path or False."""
+    try:
+        path_a.relative_to(path_b)
+        return True
+    except ValueError:
+        return False
+
+
 class Aggregator:
     def __init__(
         self,
@@ -119,7 +128,7 @@ class Aggregator:
                 [
                     search_output
                     for search_output in self.search_outputs
-                    if search_output.directory.is_relative_to(output.directory)
+                    if is_relative_to(search_output.directory, output.directory)
                 ],
             )
             for output in self.grid_search_outputs
