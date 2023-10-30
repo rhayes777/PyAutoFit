@@ -67,7 +67,8 @@ def test_higher_dimension_instance_attributes(model, samples_1, samples_2):
     assert (result.attribute_grid("centre") == [[1.0, 2.0], [1.0, 2.0]]).all()
 
 
-def test_paths(result):
+@pytest.fixture(name="deep_result")
+def make_deep_result(model, samples_1, samples_2):
     model = af.Collection(
         gaussian=af.Model(
             af.Gaussian,
@@ -87,12 +88,22 @@ def test_paths(result):
         ),
         model,
     )
-    result = af.GridSearchResult(
+    return af.GridSearchResult(
         samples=[samples, samples],
         lower_limits_lists=[[0.0], [0.5]],
         grid_priors=[model.gaussian.centre],
     )
-    assert (result.attribute_grid("gaussian.centre") == [1.0, 1.0]).all()
+
+
+def test_paths(deep_result):
+    assert (deep_result.attribute_grid("gaussian.centre") == [1.0, 1.0]).all()
+
+
+def test_instances(deep_result):
+    assert (
+        deep_result.attribute_grid("gaussian")
+        == [af.Gaussian(1.0, 2.0, 3.0), af.Gaussian(1.0, 2.0, 3.0)]
+    ).all()
 
 
 @pytest.mark.parametrize(
