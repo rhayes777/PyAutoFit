@@ -53,6 +53,13 @@ class Scraper:
         self.session = session
         self.reference = reference
 
+        from autofit.aggregator.aggregator import Aggregator as ClassicAggregator
+
+        self.aggregator = ClassicAggregator.from_directory(
+            self.directory,
+            reference=self.reference,
+        )
+
     def scrape(self):
         """
         Recursively scrape fits from the directory and
@@ -73,18 +80,13 @@ class Scraper:
         Generator yielding Fit database objects
         """
         logger.info(f"Scraping directory {self.directory}")
-        from autofit.aggregator.aggregator import Aggregator as ClassicAggregator
-
-        aggregator = ClassicAggregator.from_directory(
-            self.directory,
-            reference=self.reference,
-        )
-        logger.info(f"{len(aggregator)} searches found")
-        for item in aggregator:
+        logger.info(f"{len(self.aggregator)} searches found")
+        for item in self.aggregator:
             parent_identifier = item.parent_identifier
 
             model = item.model
             samples = item.samples
+            instance = item.instance
 
             logger.info(
                 f"Creating fit for: "
@@ -93,11 +95,6 @@ class Scraper:
                 f"{item.search.name} "
                 f"{item.id} "
             )
-
-            try:
-                instance = samples.max_log_likelihood()
-            except (AttributeError, NotImplementedError):
-                instance = None
 
             try:
                 fit = self._retrieve_model_fit(item)
