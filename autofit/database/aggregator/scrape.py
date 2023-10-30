@@ -165,7 +165,10 @@ def _add_files(fit: m.Fit, item: SearchOutput):
         fit.set_pickle(pickle_output.name, pickle_output.value)
 
     for array_output in item.arrays:
-        fit.set_array(array_output.name, array_output.value)
+        try:
+            fit.set_array(array_output.name, array_output.value)
+        except ValueError:
+            logger.debug(f"Failed to load array {array_output.name} for {fit.id}")
 
     for hdu_output in item.hdus:
         fit.set_hdu(hdu_output.name, hdu_output.value)
