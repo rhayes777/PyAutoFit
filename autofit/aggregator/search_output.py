@@ -66,22 +66,37 @@ class AbstractSearchOutput:
 
     @property
     def jsons(self):
+        """
+        The json files in the search output files directory
+        """
         return self._outputs(".json")
 
     @property
     def arrays(self):
+        """
+        The csv files in the search output files directory
+        """
         return self._outputs(".csv")
 
     @property
     def pickles(self):
+        """
+        The pickle files in the search output files directory
+        """
         return self._outputs(".pickle")
 
     @property
     def hdus(self):
+        """
+        The fits files in the search output files directory
+        """
         return self._outputs(".fits")
 
     @property
-    def log_likelihood(self):
+    def log_likelihood(self) -> float:
+        """
+        The log likelihood of the maximum log likelihood sample
+        """
         return self.samples.max_log_likelihood_sample.log_likelihood
 
     def __getattr__(self, item):
@@ -169,7 +184,11 @@ class SearchOutput(AbstractSearchOutput):
         return str(Identifier([self.search, self.model, self.search.unique_tag]))
 
     @property
-    def samples(self):
+    def samples(self) -> SamplesPDF:
+        """
+        The samples of the search, parsed from a CSV containing individual samples
+        and a JSON containing metadata.
+        """
         try:
             info_json = JSONOutput("info", self.files_path / "info.json").dict
             sample_list = samples_from_iterator(
@@ -269,7 +288,10 @@ class SearchOutput(AbstractSearchOutput):
 
 class GridSearchOutput(AbstractSearchOutput):
     @property
-    def unique_tag(self):
+    def unique_tag(self) -> str:
+        """
+        The unique tag of the grid search.
+        """
         with open(self.directory / ".is_grid_search") as f:
             return f.read()
 
@@ -284,6 +306,17 @@ class GridSearch:
         grid_search_output: GridSearchOutput,
         search_outputs: List[SearchOutput],
     ):
+        """
+        Represents the output of a grid search. Comprises overall information from the grid search
+        and output from each individual search.
+
+        Parameters
+        ----------
+        grid_search_output
+            The output of the grid search
+        search_outputs
+            The outputs of each individual search performed as part of the grid search
+        """
         self.grid_search_output = grid_search_output
         self.search_outputs = search_outputs
 
