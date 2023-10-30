@@ -273,6 +273,10 @@ class GridSearchOutput(AbstractSearchOutput):
         with open(self.directory / ".is_grid_search") as f:
             return f.read()
 
+    @property
+    def id(self):
+        return self.unique_tag
+
 
 class GridSearch:
     def __init__(
