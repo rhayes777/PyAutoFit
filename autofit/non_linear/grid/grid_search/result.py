@@ -201,18 +201,14 @@ class GridSearchResult:
         if isinstance(attribute_path, str):
             attribute_path = attribute_path.split(".")
 
-        def _get_attribute(
-            obj: Union[np.ndarray, SamplesInterface],
-        ):
-            if isinstance(obj, np.ndarray):
-                return np.array([_get_attribute(item) for item in obj])
-
-            item = obj.instance
+        attribute_list = []
+        for sample in self.samples:
+            attribute = sample.instance
             for attribute_name in attribute_path:
-                item = getattr(item, attribute_name)
-            return item
+                attribute = getattr(attribute, attribute_name)
+            attribute_list.append(attribute)
 
-        return _get_attribute(self.samples_native)
+        return self._list_to_native(attribute_list)
 
     @property
     def log_likelihoods_native(self):
