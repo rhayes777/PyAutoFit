@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Union, Iterable
 
 import numpy as np
 
@@ -183,6 +183,32 @@ class GridSearchResult:
         [0, 0]) of the NumPy array.
         """
         return self._list_to_native(lst=[sample for sample in self.samples])
+
+    def attribute_grid(self, attribute_path: Union[str, Iterable[str]]) -> np.ndarray:
+        """
+        Get a list of the attribute of the best instance from every search in a numpy array with the native dimensions
+        of the grid search.
+
+        Parameters
+        ----------
+        attribute_path
+            The path to the attribute to get from the instance
+
+        Returns
+        -------
+        A numpy array of the attribute of the best instance from every search in the grid search.
+        """
+        if isinstance(attribute_path, str):
+            attribute_path = attribute_path.split(".")
+
+        attribute_list = []
+        for sample in self.samples:
+            attribute = sample.instance
+            for attribute_name in attribute_path:
+                attribute = getattr(attribute, attribute_name)
+            attribute_list.append(attribute)
+
+        return self._list_to_native(attribute_list)
 
     @property
     def log_likelihoods_native(self):

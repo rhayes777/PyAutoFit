@@ -1,6 +1,7 @@
 import pytest
 
 import autofit as af
+from autofit.non_linear.samples.summary import SamplesSummary
 
 
 @pytest.fixture(name="model")
@@ -10,11 +11,99 @@ def make_model():
     )
 
 
-@pytest.fixture(name="result")
-def make_result(model):
-    return af.GridSearchResult(
-        samples=[], lower_limits_lists=[[0.0], [0.5]], grid_priors=[model.centre]
+@pytest.fixture(name="samples_1")
+def make_samples_1(model):
+    return SamplesSummary(
+        af.Sample(
+            1.0,
+            1.0,
+            1.0,
+            {
+                "centre": 1.0,
+                "normalization": 2.0,
+                "sigma": 3.0,
+            },
+        ),
+        model,
     )
+
+
+@pytest.fixture(name="samples_2")
+def make_samples_2(model):
+    return SamplesSummary(
+        af.Sample(
+            1.0,
+            1.0,
+            1.0,
+            {
+                "centre": 2.0,
+                "normalization": 4.0,
+                "sigma": 6.0,
+            },
+        ),
+        model,
+    )
+
+
+@pytest.fixture(name="result")
+def make_result(model, samples_1, samples_2):
+    return af.GridSearchResult(
+        samples=[samples_1, samples_2],
+        lower_limits_lists=[[0.0], [0.5]],
+        grid_priors=[model.centre],
+    )
+
+
+def test_instance_attribute_from_path(result):
+    assert (result.attribute_grid("centre") == [1.0, 2.0]).all()
+
+
+def test_higher_dimension_instance_attributes(model, samples_1, samples_2):
+    result = af.GridSearchResult(
+        samples=[samples_1, samples_2, samples_1, samples_2],
+        lower_limits_lists=[[0.0, 0.0], [0.0, 0.5], [0.5, 0.0], [0.5, 0.5]],
+        grid_priors=[model.centre, model.normalization],
+    )
+    assert (result.attribute_grid("centre") == [[1.0, 2.0], [1.0, 2.0]]).all()
+
+
+@pytest.fixture(name="deep_result")
+def make_deep_result(model, samples_1, samples_2):
+    model = af.Collection(
+        gaussian=af.Model(
+            af.Gaussian,
+            centre=af.UniformPrior(lower_limit=0.0, upper_limit=1.0),
+        )
+    )
+    samples = SamplesSummary(
+        af.Sample(
+            1.0,
+            1.0,
+            1.0,
+            {
+                "gaussian.centre": 1.0,
+                "gaussian.normalization": 2.0,
+                "gaussian.sigma": 3.0,
+            },
+        ),
+        model,
+    )
+    return af.GridSearchResult(
+        samples=[samples, samples],
+        lower_limits_lists=[[0.0], [0.5]],
+        grid_priors=[model.gaussian.centre],
+    )
+
+
+def test_paths(deep_result):
+    assert (deep_result.attribute_grid("gaussian.centre") == [1.0, 1.0]).all()
+
+
+def test_instances(deep_result):
+    assert (
+        deep_result.attribute_grid("gaussian")
+        == [af.Gaussian(1.0, 2.0, 3.0), af.Gaussian(1.0, 2.0, 3.0)]
+    ).all()
 
 
 @pytest.mark.parametrize(
