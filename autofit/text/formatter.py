@@ -1,3 +1,4 @@
+import csv
 import logging
 from typing import Tuple
 
@@ -214,3 +215,37 @@ def parameter_result_latex_from(
 def output_list_of_strings_to_file(file, list_of_strings):
     with open_(file, "w") as f:
         f.write("".join(list_of_strings))
+
+
+def write_table(headers, rows, filename: str):
+    """
+    Write a table of parameters, posteriors, priors and likelihoods.
+
+    Parameters
+    ----------
+    filename
+        Where the table is to be written
+    headers
+        The headers of the table
+    rows
+        The rows of the table
+    """
+    column_max_widths = [
+        max(len(str(value)) for value in column)
+        for column in zip(*([headers] + list(rows)))
+    ]
+
+    with open(filename, "w+") as f:
+        writer = csv.writer(f)
+
+        def write_row(row_):
+            writer.writerow(
+                [
+                    "{0:>{1}}".format(header, width)
+                    for width, header in zip(column_max_widths, row_)
+                ]
+            )
+
+        write_row(headers)
+        for row in rows:
+            write_row(row)
