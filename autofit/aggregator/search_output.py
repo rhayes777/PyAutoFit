@@ -4,16 +4,18 @@ import logging
 import pickle
 from os import path
 from pathlib import Path
-from typing import Generator, Tuple, Optional
+from typing import Generator, Tuple, Optional, List
 
 import dill
 import numpy as np
 
-from autofit import SamplesPDF
+from autofit.non_linear.samples.pdf import SamplesPDF
+from autofit.aggregator.file_output import (
+    JSONOutput,
+    FileOutput,
+)
 from autofit.mapper.identifier import Identifier
 from autofit.non_linear.samples.sample import samples_from_iterator
-from autofit.non_linear.search import abstract_search
-from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autoconf.dictable import from_dict
 
 original_create_file_handle = dill._dill._create_filehandle
@@ -38,54 +40,76 @@ def _create_file_handle(*args, **kwargs):
 dill._dill._create_filehandle = _create_file_handle
 
 
-class SearchOutput:
-    """
-    @DynamicAttrs
-    """
-
-    def __new__(cls, directory: Path, reference: dict = None):
-        """
-        Represents the output of a single search. Comprises a metadata file and other dataset files.
-
-        Parameters
-        ----------
-        directory
-            The directory of the search
-        """
-        if (directory / ".is_grid_search").exists():
-            return super().__new__(GridSearchOutput)
-        return super().__new__(cls)
-
-    def __init__(self, directory: Path, reference: dict = None):
-        """
-        Represents the output of a single search. Comprises a metadata file and other dataset files.
-
-        Parameters
-        ----------
-        directory
-            The directory of the search
-        """
-        self.__search = None
-        self.__model = None
-
+class AbstractSearchOutput:
+    def __init__(self, directory: Path):
         self.directory = directory
 
-        self._reference = reference
-        self.file_path = directory / "metadata"
+    @property
+    def is_complete(self) -> bool:
+        """
+        Whether the search has completed
+        """
+        return (self.directory / ".completed").exists()
 
+    @property
+    def parent_identifier(self) -> Optional[str]:
+        """
+        Read the parent identifier for a fit in a directory.
+
+        Defaults to None if no .parent_identifier file is found.
+        """
         try:
-            with open(self.file_path) as f:
-                self.text = f.read()
-                pairs = [
-                    line.split("=") for line in self.text.split("\n") if "=" in line
-                ]
-                self.__dict__.update({pair[0]: pair[1] for pair in pairs})
+            return (self.directory / ".parent_identifier").read_text()
         except FileNotFoundError:
-            pass
+            return None
 
     @property
     def files_path(self):
         return self.directory / "files"
+
+    def _outputs(self, suffix):
+        outputs = []
+        for file_path in self.files_path.rglob(f"*{suffix}"):
+            name = ".".join(
+                file_path.relative_to(self.files_path).with_suffix("").parts
+            )
+            outputs.append(FileOutput(name, file_path))
+        return outputs
+
+    @property
+    def jsons(self):
+        """
+        The json files in the search output files directory
+        """
+        return self._outputs(".json")
+
+    @property
+    def arrays(self):
+        """
+        The csv files in the search output files directory
+        """
+        return self._outputs(".csv")
+
+    @property
+    def pickles(self):
+        """
+        The pickle files in the search output files directory
+        """
+        return self._outputs(".pickle")
+
+    @property
+    def hdus(self):
+        """
+        The fits files in the search output files directory
+        """
+        return self._outputs(".fits")
+
+    @property
+    def log_likelihood(self) -> float:
+        """
+        The log likelihood of the maximum log likelihood sample
+        """
+        return self.samples.max_log_likelihood_sample.log_likelihood
 
     def __getattr__(self, item):
         """
@@ -114,25 +138,61 @@ class SearchOutput:
         except (FileNotFoundError, ValueError):
             pass
 
+
+class SearchOutput(AbstractSearchOutput):
+    """
+    @DynamicAttrs
+    """
+
+    def __init__(self, directory: Path, reference: dict = None):
+        """
+        Represents the output of a single search. Comprises a metadata file and other dataset files.
+
+        Parameters
+        ----------
+        directory
+            The directory of the search
+        """
+        super().__init__(directory)
+        self.__search = None
+        self.__model = None
+
+        self.directory = directory
+
+        self._reference = reference
+        self.file_path = directory / "metadata"
+
+        try:
+            with open(self.file_path) as f:
+                self.text = f.read()
+                pairs = [
+                    line.split("=") for line in self.text.split("\n") if "=" in line
+                ]
+                self.__dict__.update({pair[0]: pair[1] for pair in pairs})
+        except FileNotFoundError:
+            pass
+
+    @property
+    def instance(self):
+        try:
+            return self.samples.max_log_likelihood()
+        except (AttributeError, NotImplementedError):
+            return None
+
     @property
     def id(self):
         return str(Identifier([self.search, self.model, self.search.unique_tag]))
 
     @property
-    def is_complete(self) -> bool:
+    def samples(self) -> SamplesPDF:
         """
-        Whether the search has completed
+        The samples of the search, parsed from a CSV containing individual samples
+        and a JSON containing metadata.
         """
-        return (self.directory / ".completed").exists()
-
-    @property
-    def samples(self):
         try:
-            info_path = self.files_path / "samples_info.json"
-            samples_path = self.files_path / "samples.csv"
-            with open(info_path) as f:
-                info_json = json.load(f)
-            with open(samples_path) as f:
+            info_json = JSONOutput("info", self.files_path / "samples_info.json").dict
+
+            with open(self.files_path / "samples.csv") as f:
                 sample_list = samples_from_iterator(csv.reader(f))
 
             return SamplesPDF.from_list_info_and_model(
@@ -197,7 +257,7 @@ class SearchOutput:
         return path.join(phase, dataset_name)
 
     @property
-    def search(self) -> abstract_search.NonLinearSearch:
+    def search(self):
         """
         The search object that was used in this phase
         """
@@ -226,15 +286,39 @@ class SearchOutput:
         return "<PhaseOutput {}>".format(self)
 
 
-class GridSearchOutput(SearchOutput):
+class GridSearchOutput(AbstractSearchOutput):
     @property
-    def parent_identifier(self) -> Optional[str]:
+    def unique_tag(self) -> str:
         """
-        Read the parent identifier for a fit in a directory.
+        The unique tag of the grid search.
+        """
+        with open(self.directory / ".is_grid_search") as f:
+            return f.read()
 
-        Defaults to None if no .parent_identifier file is found.
+    @property
+    def id(self):
+        return self.unique_tag
+
+
+class GridSearch:
+    def __init__(
+        self,
+        grid_search_output: GridSearchOutput,
+        search_outputs: List[SearchOutput],
+    ):
         """
-        try:
-            return (self.directory / ".parent_identifier").read_text()
-        except FileNotFoundError:
-            return None
+        Represents the output of a grid search. Comprises overall information from the grid search
+        and output from each individual search.
+
+        Parameters
+        ----------
+        grid_search_output
+            The output of the grid search
+        search_outputs
+            The outputs of each individual search performed as part of the grid search
+        """
+        self.grid_search_output = grid_search_output
+        self.search_outputs = search_outputs
+
+    def __getattr__(self, item):
+        return getattr(self.grid_search_output, item)

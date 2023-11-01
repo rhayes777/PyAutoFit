@@ -1,5 +1,6 @@
 import pytest
 
+from autofit import SearchOutput
 from autofit.database.aggregator.scrape import _add_files
 
 
@@ -13,13 +14,22 @@ class MockFit:
     def __setitem__(self, key, value):
         pass
 
+    def set_pickle(self, key, value):
+        pass
+
+    def set_array(self, key, value):
+        pass
+
+    def set_hdu(self, key, value):
+        pass
+
 
 @pytest.fixture(name="fit")
 def make_fit(directory):
     fit = MockFit()
     _add_files(
         fit=fit,
-        files_path=directory / "search_output" / "files",
+        item=SearchOutput(directory / "search_output"),
     )
     return fit
 

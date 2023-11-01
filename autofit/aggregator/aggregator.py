@@ -21,7 +21,7 @@ from shutil import rmtree
 from typing import List, Union, Iterator, Optional
 
 from .predicate import AttributePredicate
-from .search_output import SearchOutput
+from .search_output import SearchOutput, GridSearchOutput, GridSearch
 
 
 class AggregatorGroup:
@@ -76,10 +76,36 @@ class AggregatorGroup:
         return [group.values(name, parser=parser) for group in self.groups]
 
 
+def unzip_directory(directory: str):
+    """
+    Unzip all zip files in a directory recursively.
+    """
+    for root, _, filenames in os.walk(directory):
+        for filename in filenames:
+            if filename.endswith(".zip"):
+                try:
+                    with zipfile.ZipFile(path.join(root, filename), "r") as f:
+                        f.extractall(path.join(root, filename[:-4]))
+                except zipfile.BadZipFile:
+                    raise zipfile.BadZipFile(
+                        f"File is not a zip file: \n " f"{root} \n" f"{filename}"
+                    )
+
+
+def is_relative_to(path_a, path_b):
+    """Return True if the path is relative to another path or False."""
+    try:
+        path_a.relative_to(path_b)
+        return True
+    except ValueError:
+        return False
+
+
 class Aggregator:
     def __init__(
         self,
         search_outputs: List[SearchOutput],
+        grid_search_outputs: List[GridSearchOutput],
     ):
         """
         Class to aggregate phase results for all subdirectories in a given directory.
@@ -90,6 +116,23 @@ class Aggregator:
             A list of search_outputs
         """
         self.search_outputs = search_outputs
+        self.grid_search_outputs = grid_search_outputs
+
+    def grid_searches(self):
+        """
+        A list of grid search outputs
+        """
+        return [
+            GridSearch(
+                output,
+                [
+                    search_output
+                    for search_output in self.search_outputs
+                    if is_relative_to(search_output.directory, output.directory)
+                ],
+            )
+            for output in self.grid_search_outputs
+        ]
 
     @classmethod
     def from_directory(
@@ -116,26 +159,29 @@ class Aggregator:
         """
         print("Aggregator loading search_outputs... could take some time.")
 
+        unzip_directory(directory)
+
         search_outputs = []
+        grid_search_outputs = []
 
         for root, _, filenames in os.walk(directory):
-            for filename in filenames:
-                if filename.endswith(".zip"):
-                    try:
-                        with zipfile.ZipFile(path.join(root, filename), "r") as f:
-                            f.extractall(path.join(root, filename[:-4]))
-                    except zipfile.BadZipFile:
-                        raise zipfile.BadZipFile(
-                            f"File is not a zip file: \n " f"{root} \n" f"{filename}"
-                        )
 
-        for root, _, filenames in os.walk(directory):
+            def should_add():
+                return not completed_only or ".completed" in filenames
+
             if "metadata" in filenames:
-                if not completed_only or ".completed" in filenames:
+                if should_add():
                     search_outputs.append(
                         SearchOutput(
                             Path(root),
                             reference=reference,
+                        )
+                    )
+            if ".is_grid_search" in filenames:
+                if should_add():
+                    grid_search_outputs.append(
+                        GridSearchOutput(
+                            Path(root),
                         )
                     )
 
@@ -146,7 +192,7 @@ class Aggregator:
                 f"\n A total of {str(len(search_outputs))} search_outputs and results were found."
             )
 
-        return cls(search_outputs)
+        return cls(search_outputs, grid_search_outputs)
 
     def remove_unzipped(self):
         """
@@ -173,7 +219,10 @@ class Aggregator:
         An aggregator or phase
         """
         if isinstance(item, slice):
-            return Aggregator(self.search_outputs[item])
+            return Aggregator(
+                self.search_outputs[item],
+                self.grid_search_outputs,
+            )
         return self.search_outputs[item]
 
     def __len__(self):
@@ -207,7 +256,10 @@ class Aggregator:
             search_outputs = predicate.filter(search_outputs)
         search_outputs = list(search_outputs)
         print(f"Filter found a total of {str(len(search_outputs))} results")
-        return Aggregator(search_outputs=list(search_outputs))
+        return Aggregator(
+            search_outputs=list(search_outputs),
+            grid_search_outputs=self.grid_search_outputs,
+        )
 
     def values(self, name: str, parser=lambda o: o) -> Iterator:
         """

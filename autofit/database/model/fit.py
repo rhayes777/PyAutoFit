@@ -368,6 +368,14 @@ class Fit(Base):
         new = Array(name=key, array=value)
         self.arrays = [p for p in self.arrays if p.name != key] + [new]
 
+    def set_pickle(self, key: str, value):
+        new = Pickle(name=key)
+        if isinstance(value, (str, bytes)):
+            new.string = value
+        else:
+            new.value = value
+        self.pickles = [p for p in self.pickles if p.name != key] + [new]
+
     def get_array(self, key: str) -> np.ndarray:
         """
         Retrieve an array from the database.
@@ -439,12 +447,7 @@ class Fit(Base):
         value
             A string, bytes or object
         """
-        new = Pickle(name=key)
-        if isinstance(value, (str, bytes)):
-            new.string = value
-        else:
-            new.value = value
-        self.pickles = [p for p in self.pickles if p.name != key] + [new]
+        self.set_pickle(key, value)
 
     def __delitem__(self, key):
         self.pickles = [p for p in self.pickles if p.name != key]
