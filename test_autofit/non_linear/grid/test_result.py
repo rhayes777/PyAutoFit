@@ -55,7 +55,7 @@ def make_result(model, samples_1, samples_2):
 
 
 def test_instance_attribute_from_path(result):
-    assert (result.attribute_grid("centre") == [1.0, 2.0]).all()
+    assert (result.attribute_grid("centre").native == [1.0, 2.0]).all()
 
 
 def test_higher_dimension_instance_attributes(model, samples_1, samples_2):
@@ -64,7 +64,7 @@ def test_higher_dimension_instance_attributes(model, samples_1, samples_2):
         lower_limits_lists=[[0.0, 0.0], [0.0, 0.5], [0.5, 0.0], [0.5, 0.5]],
         grid_priors=[model.centre, model.normalization],
     )
-    assert (result.attribute_grid("centre") == [[1.0, 2.0], [1.0, 2.0]]).all()
+    assert (result.attribute_grid("centre").native == [[1.0, 2.0], [1.0, 2.0]]).all()
 
 
 @pytest.fixture(name="deep_result")
@@ -96,12 +96,12 @@ def make_deep_result(model, samples_1, samples_2):
 
 
 def test_paths(deep_result):
-    assert (deep_result.attribute_grid("gaussian.centre") == [1.0, 1.0]).all()
+    assert (deep_result.attribute_grid("gaussian.centre").native == [1.0, 1.0]).all()
 
 
 def test_instances(deep_result):
     assert (
-        deep_result.attribute_grid("gaussian")
+        deep_result.attribute_grid("gaussian").native
         == [af.Gaussian(1.0, 2.0, 3.0), af.Gaussian(1.0, 2.0, 3.0)]
     ).all()
 

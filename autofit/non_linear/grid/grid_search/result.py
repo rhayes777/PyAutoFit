@@ -1,4 +1,5 @@
-from typing import List, Union, Iterable
+from functools import wraps
+from typing import List, Union, Iterable, Tuple
 
 import numpy as np
 
@@ -8,14 +9,90 @@ from autofit.mapper.prior.abstract import Prior
 
 from autofit.non_linear.samples.interface import SamplesInterface
 
-LimitLists = List[List[float]]
+
+def return_limit_list(func):
+    """
+    Wrap functions with a function which converts the output list of grid search results to a `LimitList` object.
+
+    Parameters
+    ----------
+    func
+        A function which computes and retrusn a list of grid search results.
+
+    Returns
+    -------
+        A function which converts a list of grid search results to a `LimitList` object.
+    """
+
+    @wraps(func)
+    def wrapper(
+        grid_search_result,
+        shape: Tuple,
+    ) -> List:
+        """
+        This decorator converts the output of a function which computes a list of grid search results to a `LimitList`.
+
+        Parameters
+        ----------
+        grid_search_result
+            The instance of the `GridSearchResult` which is being operated on.
+        shape:
+            The shape of the grid search, used for converting the list to an ndarray.
+
+        Returns
+        -------
+            The function output converted to a `LimitList`.
+        """
+        
+        values = func(grid_search_result)
+        
+        return LimitLists(values=values, shape=shape)
+
+    return wrapper
+
+
+
+class LimitLists(list):
+
+    def __init__(self, values: List, shape : Tuple):
+        """
+        Many quantities of a `GridSearchResult` are stored as lists of lists.
+
+        The number of lists corresponds to the dimensionality of the grid search and the number of elements
+        in each list corresponds to the number of steps in that grid search dimension.
+
+        This class provides a wrapper around lists of lists to provide some convenience methods for accessing
+        the values in the lists. For example, it provides a conversion of the list of list structure to a ndarray.
+
+        For example, for a 2x2 grid search the shape of the Numpy array is (2,2) and it is numerically ordered such
+        that the first search's entries(corresponding to unit priors (0.0, 0.0)) are in the first
+        value (E.g. entry [0, 0]) of the NumPy array.
+
+        Parameters
+        ----------
+        values
+        """
+        super().__init__(values)
+        
+        self.shape = shape
+
+    @property
+    def as_list(self) -> List:
+        return self
+
+    @property
+    def native(self) -> np.ndarray:
+        """
+        The list of lists as an ndarray.
+        """
+        return np.reshape(np.array(self), self.shape)
 
 
 class GridSearchResult:
     def __init__(
         self,
         samples: List[SamplesInterface],
-        lower_limits_lists: LimitLists,
+        lower_limits_lists: Union[List, LimitLists],
         grid_priors: List[Prior],
     ):
         """
@@ -28,10 +105,11 @@ class GridSearchResult:
         lower_limits_lists
             A list of lists of values representing the lower bounds of the grid searched values at each step
         """
-        self.lower_limits_lists = lower_limits_lists
-        self.samples = samples
-        self.no_dimensions = len(self.lower_limits_lists[0])
-        self.no_steps = len(self.lower_limits_lists)
+        self.no_dimensions = len(lower_limits_lists[0])
+        self.no_steps = len(lower_limits_lists)
+
+        self.lower_limits_lists = LimitLists(lower_limits_lists, self.shape)
+        self.samples = LimitLists(samples, self.shape) if samples is not None else None
         self.side_length = int(self.no_steps ** (1 / self.no_dimensions))
         self.step_size = 1 / self.side_length
         self.grid_priors = grid_priors
@@ -41,45 +119,51 @@ class GridSearchResult:
         """
         The lower physical values for each grid square
         """
-        return self._physical_values_for(self.lower_limits_lists)
+        return LimitLists(self._physical_values_for(self.lower_limits_lists), self.shape)
 
     @property
     def physical_centres_lists(self) -> LimitLists:
         """
         The middle physical values for each grid square
         """
-        return self._physical_values_for(self.centres_lists)
+        return LimitLists(self._physical_values_for(self.centres_lists), self.shape)
 
     @property
     def physical_upper_limits_lists(self) -> LimitLists:
         """
         The upper physical values for each grid square
         """
-        return self._physical_values_for(self.upper_limits_lists)
+        return LimitLists(self._physical_values_for(self.upper_limits_lists), self.shape)
 
     @property
     def upper_limits_lists(self) -> LimitLists:
         """
         The upper values for each grid square
         """
-        return [
-            [limit + self.step_size for limit in limits]
-            for limits in self.lower_limits_lists
-        ]
+        return LimitLists(
+            [
+                [limit + self.step_size for limit in limits]
+                for limits in self.lower_limits_lists
+            ],
+            self.shape
+        )
 
     @property
-    def centres_lists(self) -> LimitLists:
+    def centres_lists(self) -> List:
         """
         The centre values for each grid square
         """
-        return [
-            [(upper + lower) / 2 for upper, lower in zip(upper_limits, lower_limits)]
-            for upper_limits, lower_limits in zip(
-                self.lower_limits_lists, self.upper_limits_lists
-            )
-        ]
+        return LimitLists(
+            [
+                [(upper + lower) / 2 for upper, lower in zip(upper_limits, lower_limits)]
+                for upper_limits, lower_limits in zip(
+                    self.lower_limits_lists, self.upper_limits_lists
+                )
+            ],
+            self.shape
+        )
 
-    def _physical_values_for(self, unit_lists: LimitLists) -> LimitLists:
+    def _physical_values_for(self, unit_lists: LimitLists) -> List:
         """
         Compute physical values for lists of lists of unit hypercube
         values.
@@ -170,21 +254,7 @@ class GridSearchResult:
 
         return tuple(physical_step_sizes)
 
-    def _list_to_native(self, lst: List):
-        return np.reshape(np.array(lst), self.shape)
-
-    @property
-    def samples_native(self):
-        """
-        The sample of every grid search on a NumPy array whose shape is the native dimensions of the grid search.
-
-        For example, for a 2x2 grid search the shape of the Numpy array is (2,2) and it is numerically ordered such
-        that the first search's sample (corresponding to unit priors (0.0, 0.0)) are in the first value (E.g. entry
-        [0, 0]) of the NumPy array.
-        """
-        return self._list_to_native(lst=[sample for sample in self.samples])
-
-    def attribute_grid(self, attribute_path: Union[str, Iterable[str]]) -> np.ndarray:
+    def attribute_grid(self, attribute_path: Union[str, Iterable[str]]) -> LimitLists:
         """
         Get a list of the attribute of the best instance from every search in a numpy array with the native dimensions
         of the grid search.
@@ -208,10 +278,10 @@ class GridSearchResult:
                 attribute = getattr(attribute, attribute_name)
             attribute_list.append(attribute)
 
-        return self._list_to_native(attribute_list)
+        return LimitLists(attribute_list, self.shape)
 
     @property
-    def log_likelihoods_native(self):
+    def log_likelihoods(self) -> LimitLists:
         """
         The maximum log likelihood of every grid search on a NumPy array whose shape is the native dimensions of the
         grid search.
@@ -220,12 +290,10 @@ class GridSearchResult:
         that the first search's maximum likelihood (corresponding to unit priors (0.0, 0.0)) are in the first
         value (E.g. entry [0, 0]) of the NumPy array.
         """
-        return self._list_to_native(
-            lst=[sample.log_likelihood for sample in self.samples]
-        )
+        return LimitLists([sample.log_likelihood for sample in self.samples], self.shape)
 
     @property
-    def log_evidences_native(self):
+    def log_evidences(self) -> LimitLists:
         """
         The log evidence of every grid search on a NumPy array whose shape is the native dimensions of the grid search.
 
@@ -233,6 +301,4 @@ class GridSearchResult:
         that the first search's log evidence (corresponding to unit priors (0.0, 0.0)) are in the first value (E.g.
         entry [0, 0]) of the NumPy array.
         """
-        return self._list_to_native(
-            lst=[samples.log_evidence for samples in self.samples]
-        )
+        return LimitLists([samples.log_evidence for samples in self.samples], self.shape)
