@@ -81,7 +81,7 @@ def test_gaps(result_builder, add_results, numbers, t1, t2, t3):
 
 def test_log_likelihoods(result_builder):
     assert (
-        result_builder().log_likelihoods.native
+        result_builder().log_likelihoods().native
         == [float("-inf"), float("-inf"), float("-inf")]
     ).all()
 

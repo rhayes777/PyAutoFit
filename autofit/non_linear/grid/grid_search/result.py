@@ -1,9 +1,10 @@
 from functools import wraps
-from typing import List, Union, Iterable, Tuple
+from typing import List, Optional, Union, Iterable, Tuple
 
 import numpy as np
 
 from autofit import exc
+from autofit.non_linear.search.abstract_search import NonLinearSearch
 from autofit.mapper import model_mapper as mm
 from autofit.mapper.prior.abstract import Prior
 
@@ -51,7 +52,6 @@ def return_limit_list(func):
     return wrapper
 
 
-
 class LimitLists(list):
 
     def __init__(self, values: List, shape : Tuple):
@@ -94,6 +94,7 @@ class GridSearchResult:
         samples: List[SamplesInterface],
         lower_limits_lists: Union[List, LimitLists],
         grid_priors: List[Prior],
+        parent : Optional[NonLinearSearch] = None
     ):
         """
         The sample of a grid search.
@@ -113,6 +114,8 @@ class GridSearchResult:
         self.side_length = int(self.no_steps ** (1 / self.no_dimensions))
         self.step_size = 1 / self.side_length
         self.grid_priors = grid_priors
+
+        self.parent = parent
 
     @property
     def physical_lower_limits_lists(self) -> LimitLists:
@@ -280,8 +283,7 @@ class GridSearchResult:
 
         return LimitLists(attribute_list, self.shape)
 
-    @property
-    def log_likelihoods(self) -> LimitLists:
+    def log_likelihoods(self, remove_zeros : bool = False, relative_to_value : float = 0.0) -> LimitLists:
         """
         The maximum log likelihood of every grid search on a NumPy array whose shape is the native dimensions of the
         grid search.
@@ -290,15 +292,25 @@ class GridSearchResult:
         that the first search's maximum likelihood (corresponding to unit priors (0.0, 0.0)) are in the first
         value (E.g. entry [0, 0]) of the NumPy array.
         """
-        return LimitLists([sample.log_likelihood for sample in self.samples], self.shape)
+        log_likelihoods = [sample.log_likelihood - relative_to_value for sample in self.samples]
 
-    @property
-    def log_evidences(self) -> LimitLists:
+        if remove_zeros:
+            log_likelihoods[log_likelihoods == None] = np.nan
+
+        return LimitLists([log_likelihood for log_likelihood in log_likelihoods], self.shape)
+
+    def log_evidences(self, remove_zeros: bool = False, relative_to_value: float = 0.0) -> LimitLists:
         """
-        The log evidence of every grid search on a NumPy array whose shape is the native dimensions of the grid search.
+        The maximum log evidence of every grid search on a NumPy array whose shape is the native dimensions of the
+        grid search.
 
         For example, for a 2x2 grid search the shape of the Numpy array is (2,2) and it is numerically ordered such
-        that the first search's log evidence (corresponding to unit priors (0.0, 0.0)) are in the first value (E.g.
-        entry [0, 0]) of the NumPy array.
+        that the first search's maximum evidence (corresponding to unit priors (0.0, 0.0)) are in the first
+        value (E.g. entry [0, 0]) of the NumPy array.
         """
-        return LimitLists([samples.log_evidence for samples in self.samples], self.shape)
+        log_evidences = [sample.log_evidence - relative_to_value for sample in self.samples]
+
+        if remove_zeros:
+            log_evidences[log_evidences == None] = np.nan
+
+        return LimitLists([log_evidence for log_evidence in log_evidences], self.shape)

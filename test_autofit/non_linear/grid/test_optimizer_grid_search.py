@@ -186,7 +186,7 @@ class TestGridNLOBehaviour:
     def test_results_10(self, grid_search_10_result):
         assert len(grid_search_10_result.samples) == 100
         assert grid_search_10_result.no_dimensions == 2
-        assert grid_search_10_result.log_likelihoods.native.shape == (10, 10)
+        assert grid_search_10_result.log_likelihoods().native.shape == (10, 10)
 
     def test_passes_attributes(self):
         search = af.DynestyStatic()
@@ -265,7 +265,7 @@ class TestGridSearchResult:
         ).all()
 
         assert (
-            grid_search_result.log_likelihoods.native
+            grid_search_result.log_likelihoods().native
             == np.array(
                 [
                     [1, 2],
@@ -309,4 +309,4 @@ def test_higher_dimensions(n_dimensions, n_steps):
 
     assert result.shape == shape
     assert result.samples.native.shape == shape
-    assert result.log_likelihoods.native.shape == shape
+    assert result.log_likelihoods().native.shape == shape
