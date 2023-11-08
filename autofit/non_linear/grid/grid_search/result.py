@@ -283,7 +283,7 @@ class GridSearchResult:
 
         return LimitLists(attribute_list, self.shape)
 
-    def log_likelihoods(self, remove_no_start : bool = False, relative_to_value : float = 0.0) -> LimitLists:
+    def log_likelihoods(self, relative_to_value : float = 0.0, remove_relative_zeros: bool = False) -> LimitLists:
         """
         The maximum log likelihood of every grid search on a NumPy array whose shape is the native dimensions of the
         grid search.
@@ -294,21 +294,13 @@ class GridSearchResult:
 
         Parameters
         ----------
-        remove_no_start
-            If True, any grid search that has not started (meaning its log likelihood is None) is removed from the
-            array and replaced with a NaN.
         relative_to_value
             The value to subtract from every log likelihood, for example if Bayesian model comparison is performed
             on the grid search and the subtracted value is the maximum log likelihood of a previous search.
         """
-        log_likelihoods = [sample.log_likelihood - relative_to_value for sample in self.samples]
+        return LimitLists([sample.log_likelihood - relative_to_value for sample in self.samples], self.shape)
 
-        if remove_no_start:
-            log_likelihoods[log_likelihoods == None] = np.nan
-
-        return LimitLists([log_likelihood for log_likelihood in log_likelihoods], self.shape)
-
-    def log_evidences(self, remove_no_start: bool = False, relative_to_value: float = 0.0) -> LimitLists:
+    def log_evidences(self, relative_to_value: float = 0.0) -> LimitLists:
         """
         The maximum log evidence of every grid search on a NumPy array whose shape is the native dimensions of the
         grid search.
@@ -319,16 +311,25 @@ class GridSearchResult:
 
         Parameters
         ----------
-        remove_no_start
-            If True, any grid search that has not started (meaning its log evidence is None) is removed from the
-            array and replaced with a NaN.
         relative_to_value
-            The value to subtract from every log evidence, for example if Bayesian model comparison is performed
-            on the grid search and the subtracted value is the maximum log evidence of a previous search.
+            The value to subtract from every log likelihood, for example if Bayesian model comparison is performed
+            on the grid search and the subtracted value is the maximum log likelihood of a previous search.
         """
-        log_evidences = [sample.log_evidence - relative_to_value for sample in self.samples]
+        return LimitLists([sample.log_evidence - relative_to_value for sample in self.samples], self.shape)
 
-        if remove_no_start:
-            log_evidences[log_evidences == None] = np.nan
+    def figure_of_merits(self, use_log_evidences : bool, relative_to_value : float = 0.0) -> LimitLists:
+        """
+        Convenience method to get either the log likelihoods or log evidences of the grid search.
 
-        return LimitLists([log_evidence for log_evidence in log_evidences], self.shape)
+        Parameters
+        ----------
+        use_log_evidences
+            If true, the log evidences are returned, otherwise the log likelihoods are returned.
+        relative_to_value
+            The value to subtract from every log likelihood, for example if Bayesian model comparison is performed
+            on the grid search and the subtracted value is the maximum log likelihood of a previous search.
+        """
+
+        if use_log_evidences:
+            return self.log_evidences(relative_to_value)
+        return self.log_likelihoods(relative_to_value)

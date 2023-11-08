@@ -14,6 +14,7 @@ from .graphical.declarative.factor.analysis import AnalysisFactor
 from .graphical.declarative.collection import FactorGraphModel
 from .graphical.declarative.factor.hierarchical import HierarchicalFactor
 from .graphical.laplace import LaplaceOptimiser
+from .non_linear.grid.grid_search.result import LimitLists
 from .non_linear.samples import SamplesMCMC
 from .non_linear.samples import SamplesNest
 from .non_linear.samples import Samples
