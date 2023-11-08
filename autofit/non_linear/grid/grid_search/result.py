@@ -283,7 +283,7 @@ class GridSearchResult:
 
         return LimitLists(attribute_list, self.shape)
 
-    def log_likelihoods(self, remove_zeros : bool = False, relative_to_value : float = 0.0) -> LimitLists:
+    def log_likelihoods(self, remove_no_start : bool = False, relative_to_value : float = 0.0) -> LimitLists:
         """
         The maximum log likelihood of every grid search on a NumPy array whose shape is the native dimensions of the
         grid search.
@@ -291,15 +291,24 @@ class GridSearchResult:
         For example, for a 2x2 grid search the shape of the Numpy array is (2,2) and it is numerically ordered such
         that the first search's maximum likelihood (corresponding to unit priors (0.0, 0.0)) are in the first
         value (E.g. entry [0, 0]) of the NumPy array.
+
+        Parameters
+        ----------
+        remove_no_start
+            If True, any grid search that has not started (meaning its log likelihood is None) is removed from the
+            array and replaced with a NaN.
+        relative_to_value
+            The value to subtract from every log likelihood, for example if Bayesian model comparison is performed
+            on the grid search and the subtracted value is the maximum log likelihood of a previous search.
         """
         log_likelihoods = [sample.log_likelihood - relative_to_value for sample in self.samples]
 
-        if remove_zeros:
+        if remove_no_start:
             log_likelihoods[log_likelihoods == None] = np.nan
 
         return LimitLists([log_likelihood for log_likelihood in log_likelihoods], self.shape)
 
-    def log_evidences(self, remove_zeros: bool = False, relative_to_value: float = 0.0) -> LimitLists:
+    def log_evidences(self, remove_no_start: bool = False, relative_to_value: float = 0.0) -> LimitLists:
         """
         The maximum log evidence of every grid search on a NumPy array whose shape is the native dimensions of the
         grid search.
@@ -307,10 +316,19 @@ class GridSearchResult:
         For example, for a 2x2 grid search the shape of the Numpy array is (2,2) and it is numerically ordered such
         that the first search's maximum evidence (corresponding to unit priors (0.0, 0.0)) are in the first
         value (E.g. entry [0, 0]) of the NumPy array.
+
+        Parameters
+        ----------
+        remove_no_start
+            If True, any grid search that has not started (meaning its log evidence is None) is removed from the
+            array and replaced with a NaN.
+        relative_to_value
+            The value to subtract from every log evidence, for example if Bayesian model comparison is performed
+            on the grid search and the subtracted value is the maximum log evidence of a previous search.
         """
         log_evidences = [sample.log_evidence - relative_to_value for sample in self.samples]
 
-        if remove_zeros:
+        if remove_no_start:
             log_evidences[log_evidences == None] = np.nan
 
         return LimitLists([log_evidence for log_evidence in log_evidences], self.shape)
