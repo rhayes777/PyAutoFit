@@ -393,11 +393,15 @@ class Sensitivity:
         Each job fits a perturbed image with the original model
         and a model which includes a perturbation.
         """
-        for number, (perturb_instance, perturb_model) in enumerate(
-            zip(self._perturb_instances, self._perturb_models)
+        for number, (perturb_instance, perturb_model, label) in enumerate(
+            zip(self._perturb_instances, self._perturb_models, self._labels)
         ):
             simulate_instance = copy(self.instance)
             simulate_instance.perturbation = perturb_instance
+
+            paths = self.paths.for_sub_analysis(
+                label,
+            )
 
             yield self.job_cls(
                 simulate_instance=simulate_instance,
@@ -407,6 +411,6 @@ class Sensitivity:
                 simulate_cls=self.simulate_cls,
                 base_fit_cls=self.base_fit_cls,
                 perturb_fit_cls=self.perturb_fit_cls,
-                paths=self.paths,
+                paths=paths,
                 number=number,
             )
