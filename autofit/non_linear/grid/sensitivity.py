@@ -4,13 +4,11 @@ import os
 from copy import copy
 from itertools import count
 from pathlib import Path
-from typing import List, Generator, Callable, ClassVar, Type, Union, Tuple
+from typing import List, Generator, Callable, ClassVar, Union, Tuple
 
-from autoconf import cached_property
 from autoconf.dictable import to_dict
 from autofit.mapper.model import ModelInstance
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
-from autofit.non_linear.analysis import Analysis
 from autofit.non_linear.grid.grid_search import make_lists
 from autofit.non_linear.parallel import AbstractJob, Process, AbstractJobResult
 from autofit.non_linear.paths.abstract import AbstractPaths
@@ -48,12 +46,11 @@ class JobResult(AbstractJobResult):
 class Job(AbstractJob):
     _number = count()
 
-    use_instance = False
-
     def __init__(
         self,
-        analysis_factory: "AnalysisFactory",
+        instance: ModelInstance,
         model: AbstractPriorModel,
+        simulate_cls: Callable,
         perturbation_model: AbstractPriorModel,
         base_instance: ModelInstance,
         perturbation_instance: ModelInstance,
@@ -74,25 +71,19 @@ class Job(AbstractJob):
         base_fit_cls
             A class which defines the function which fits the base model to each simulated dataset of the sensitivity
             map.
-        analysis_factory
-            Factory to generate analysis classes which comprise a model and data
         paths
-            The paths defining the output directory structure of the sensitivity analysis.
+            The paths defining the output directory structure of the sensitivity mapping.
         """
         super().__init__(number=number)
 
-        self.analysis_factory = analysis_factory
+        self.instance = instance
         self.model = model
-
+        self.simulate_cls = simulate_cls
         self.perturbation_model = perturbation_model
         self.base_instance = base_instance
         self.perturbation_instance = perturbation_instance
         self.base_fit_cls = base_fit_cls
         self.paths = paths
-
-    @cached_property
-    def analysis(self):
-        return self.analysis_factory()
 
     def perform(self) -> JobResult:
         """
@@ -104,19 +95,19 @@ class Job(AbstractJob):
         An object comprising the results of the two fits
         """
 
-
+        dataset = self.simulate_cls(
+            instance=self.instance,
+            simulate_path=self.paths.image_path.with_name("simulate"),
+        )
 
         result = self.base_fit_cls(
-            model=self.model, analysis=self.analysis, paths=self.paths
+            model=self.model,
+            dataset=dataset,
+            paths=self.paths
         )
 
         perturbed_model = copy(self.model)
         perturbed_model.perturbation = self.perturbation_model
-
-        # TODO : This is what I added so that the Drawer runs use the correct subhalo model.
-
-        # if self.use_instance:
-        #     perturbed_model.perturbation = self.perturbation_instance
 
         perturbed_result = self.perturbation_model_func(perturbed_model=perturbed_model)
         return JobResult(
@@ -124,7 +115,7 @@ class Job(AbstractJob):
         )
 
     def perturbation_model_func(self, perturbed_model):
-        return self.perturbed_search.fit(model=perturbed_model, analysis=self.analysis)
+        return self.perturbed_search.fit(model=perturbed_model)
 
 
 class SensitivityResult:
@@ -179,7 +170,6 @@ class Sensitivity:
         paths,
         simulate_cls: Callable,
         base_fit_cls : Callable,
-        analysis_class: Type[Analysis],
         job_cls: ClassVar = Job,
         number_of_steps: Union[Tuple[int], int] = 4,
         number_of_cores: int = 2,
@@ -209,8 +199,6 @@ class Sensitivity:
             images being generated
         simulate_cls
             A function that can convert an instance into an image
-        analysis_class
-            A class which can compare an image to an instance and evaluate fitness
         number_of_cores
             How many cores does this computer have? Minimum 2.
         limit_scale
@@ -230,10 +218,10 @@ class Sensitivity:
 
         self.paths = paths
 
-        self.analysis_class = analysis_class
-
         self.perturbation_model = perturbation_model
         self.simulate_cls = simulate_cls
+
+        self.base_fit_cls = base_fit_cls
 
         self.job_cls = job_cls
 
@@ -403,41 +391,13 @@ class Sensitivity:
             instance.perturbation = perturbation_instance
 
             yield self.job_cls(
-                analysis_factory=AnalysisFactory(
-                    instance=instance,
-                    simulate_cls=self.simulate_cls,
-                    analysis_class=self.analysis_class,
-                    paths=self.paths,
-                ),
+                instance=instance,
+                simulate_cls=self.simulate_cls,
                 model=self.model,
                 perturbation_model=perturbation_model,
                 base_instance=self.instance,
                 perturbation_instance=perturbation_instance,
+                base_fit_cls=self.base_fit_cls,
                 paths=self.paths,
                 number=number,
             )
-
-
-class AnalysisFactory:
-    def __init__(
-        self,
-        instance,
-        simulate_cls,
-        analysis_class,
-        paths,
-    ):
-        """
-        Callable to delay simulation such that it is performed
-        on the Job subprocess
-        """
-        self.instance = instance
-        self.simulate_cls = simulate_cls
-        self.analysis_class = analysis_class
-        self.paths = paths
-
-    def __call__(self):
-        dataset = self.simulate_cls(
-            instance=self.instance,
-            simulate_path=self.paths.image_path.with_name("simulate"),
-        )
-        return self.analysis_class(dataset)
