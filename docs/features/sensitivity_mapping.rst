@@ -98,12 +98,12 @@ The ``base_model`` corresponds to the ``gaussian_main`` above.
 Perturbation Model
 ------------------
 
-We now define the ``perturbation_model``, which is the model component whose parameters we iterate over to perform
-sensitivity mapping. Many instances of the ``perturbation_model`` are created and used to simulate the many datasets
+We now define the ``perturb_model``, which is the model component whose parameters we iterate over to perform
+sensitivity mapping. Many instances of the ``perturb_model`` are created and used to simulate the many datasets
 that we fit. However, it is only included in half of the model-fits corresponding to the more complex models whose
 Bayesian evidence we compare to the simpler model-fits consisting of just the ``base_model``.
 
-The ``perturbation_model`` is therefore another ``Gaussian`` but now corresponds to the ``gaussian_feature`` above.
+The ``perturb_model`` is therefore another ``Gaussian`` but now corresponds to the ``gaussian_feature`` above.
 
 By fitting both of these models to every simulated dataset, we will therefore infer the Bayesian evidence of every
 model to every dataset. Sensitivity mapping therefore maps out for what values of ``normalization`` in the ``gaussian_feature``
@@ -112,10 +112,10 @@ values ot the ``centre`` and ``sigma`` of the ``Gaussian`` so we only map over i
 
 .. code-block:: bash
 
-    perturbation_model = af.Model(m.Gaussian)
-    perturbation_model.centre = 70.0
-    perturbation_model.sigma = 0.5
-    perturbation_model.normalization = af.UniformPrior(lower_limit=0.01, upper_limit=100.0)
+    perturb_model = af.Model(m.Gaussian)
+    perturb_model.centre = 70.0
+    perturb_model.sigma = 0.5
+    perturb_model.normalization = af.UniformPrior(lower_limit=0.01, upper_limit=100.0)
 
 Simulation
 ----------
@@ -200,11 +200,11 @@ object below are:
 
 - ``base_model``: This is the simpler model that is fitted to every simulated dataset, which in this example is composed of a single ``Gaussian`` called the ``gaussian_main``.
 
-- ``perturbation_model``: This is the extra model component that alongside the ``base_model`` is fitted to every simulated dataset, which in this example  is composed of two ``Gaussians`` called the ``gaussian_main`` and ``gaussian_feature``.
+- ``perturb_model``: This is the extra model component that alongside the ``base_model`` is fitted to every simulated dataset, which in this example  is composed of two ``Gaussians`` called the ``gaussian_main`` and ``gaussian_feature``.
 
-- ``simulate_cls``: This is the function that uses the ``instance`` and many instances of the ``perturbation_model`` to simulate many datasets that are fitted with the ``base_model`` and ``base_model`` + ``perturbation_model``.
+- ``simulate_cls``: This is the function that uses the ``instance`` and many instances of the ``perturb_model`` to simulate many datasets that are fitted with the ``base_model`` and ``base_model`` + ``perturb_model``.
 
-- ``step_size``: The size of steps over which the parameters in the ``perturbation_model`` are iterated. In this example, normalization has a ``LogUniformPrior`` with lower limit 1e-4 and upper limit 1e2, therefore the ``step_size`` of 0.5 will simulate and fit just 2 datasets where the normalization is 1e-4 and 1e2.
+- ``step_size``: The size of steps over which the parameters in the ``perturb_model`` are iterated. In this example, normalization has a ``LogUniformPrior`` with lower limit 1e-4 and upper limit 1e2, therefore the ``step_size`` of 0.5 will simulate and fit just 2 datasets where the normalization is 1e-4 and 1e2.
 
 - ``number_of_cores``: The number of cores over which the sensitivity mapping is performed, enabling parallel processing.
 
@@ -217,7 +217,7 @@ full example script on the ``autofit_workspace``).
         search=search,
         simulation_instance=simulation_instance,
         base_model=base_model,
-        perturbation_model=perturbation_model,
+        perturb_model=perturb_model,
         simulate_cls=simulate_cls,
         analysis_class=Analysis,
         step_size=0.5,

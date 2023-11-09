@@ -17,22 +17,22 @@ from autofit.text.text_util import padding
 
 
 class JobResult(AbstractJobResult):
-    def __init__(self, number: int, result: Result, perturbed_result: Result):
+    def __init__(self, number: int, result: Result, perturb_result: Result):
         """
         The result of a single sensitivity comparison
 
         Parameters
         ----------
         result
-        perturbed_result
+        perturb_result
         """
         super().__init__(number)
         self.result = result
-        self.perturbed_result = perturbed_result
+        self.perturb_result = perturb_result
 
     @property
     def log_likelihood_difference(self):
-        return self.perturbed_result.log_likelihood - self.result.log_likelihood
+        return self.perturb_result.log_likelihood - self.result.log_likelihood
 
     @property
     def log_likelihood_base(self):
@@ -40,7 +40,7 @@ class JobResult(AbstractJobResult):
 
     @property
     def log_likelihood_perturbed(self):
-        return self.perturbed_result.log_likelihood
+        return self.perturb_result.log_likelihood
 
 
 class Job(AbstractJob):
@@ -51,26 +51,29 @@ class Job(AbstractJob):
         instance: ModelInstance,
         model: AbstractPriorModel,
         simulate_cls: Callable,
-        perturbation_model: AbstractPriorModel,
+        perturb_model: AbstractPriorModel,
         base_instance: ModelInstance,
-        perturbation_instance: ModelInstance,
+        perturb_instance: ModelInstance,
         base_fit_cls : Callable,
+        perturb_fit_cls : Callable,
         paths: AbstractPaths,
         number: int,
     ):
         """
-        Job to run non-linear searches comparing how well a model and a model with a perturbation
-        fit the image.
+        Job to run non-linear searches comparing how well a model and a model with a perturbation fit the image.
 
         Parameters
         ----------
         model
             A base model that fits the image without a perturbation
-        perturbation_model
+        perturb_model
             A model of the perturbation which has been added to the underlying image
         base_fit_cls
             A class which defines the function which fits the base model to each simulated dataset of the sensitivity
             map.
+        perturb_fit_cls
+            A class which defines the function which fits the perturbed model to each simulated dataset of the
+            sensitivity map.
         paths
             The paths defining the output directory structure of the sensitivity mapping.
         """
@@ -79,10 +82,11 @@ class Job(AbstractJob):
         self.instance = instance
         self.model = model
         self.simulate_cls = simulate_cls
-        self.perturbation_model = perturbation_model
+        self.perturb_model = perturb_model
         self.base_instance = base_instance
-        self.perturbation_instance = perturbation_instance
+        self.perturb_instance = perturb_instance
         self.base_fit_cls = base_fit_cls
+        self.perturb_fit_cls = perturb_fit_cls
         self.paths = paths
 
     def perform(self) -> JobResult:
@@ -106,16 +110,14 @@ class Job(AbstractJob):
             paths=self.paths
         )
 
-        perturbed_model = copy(self.model)
-        perturbed_model.perturbation = self.perturbation_model
+        perturb_model = copy(self.model)
+        perturb_model.perturbation = self.perturb_model
 
-        perturbed_result = self.perturbation_model_func(perturbed_model=perturbed_model)
+        perturb_result = self.perturb_fit_cls(perturb_model=perturb_model)
+        
         return JobResult(
-            number=self.number, result=result, perturbed_result=perturbed_result
+            number=self.number, result=result, perturb_result=perturb_result
         )
-
-    def perturbation_model_func(self, perturbed_model):
-        return self.perturbed_search.fit(model=perturbed_model)
 
 
 class SensitivityResult:
@@ -165,11 +167,12 @@ class Sensitivity:
     def __init__(
         self,
         base_model: AbstractPriorModel,
-        perturbation_model: AbstractPriorModel,
+        perturb_model: AbstractPriorModel,
         simulation_instance,
         paths,
         simulate_cls: Callable,
         base_fit_cls : Callable,
+        perturb_fit_cls: Callable,
         job_cls: ClassVar = Job,
         number_of_steps: Union[Tuple[int], int] = 4,
         number_of_cores: int = 2,
@@ -180,25 +183,29 @@ class Sensitivity:
         can be detected if it occurs in different parts of an image.
 
         For a range from 0 to 1 with step_size, for each dimension of the
-        perturbation_model, a perturbation is created and used in conjunction
+        perturb_model, a perturbation is created and used in conjunction
         with the instance to create an image.
 
         For each of these images, a fit is run with just the model and with both
-        the model and perturbation_model to compare how much better the image
+        the model and perturb_model to compare how much better the image
         can be fit if the perturbation is included.
 
         Parameters
         ----------
         base_model
             A model that fits the instance well
-        perturbation_model
+        perturb_model
             A model which provides a perturbations to be applied to the instance
             before creating images
         simulation_instance
             An instance of a model to which perturbations are applied prior to
             images being generated
         simulate_cls
-            A function that can convert an instance into an image
+            A class which simulates images from each perturb instance that sensitivity mapping is performed on.
+        base_fit_cls
+            The class which fits the base model to each simulated dataset of the sensitivity map.
+        perturb_fit_cls
+            The class which fits the perturb model to each simulated dataset of the sensitivity map.
         number_of_cores
             How many cores does this computer have? Minimum 2.
         limit_scale
@@ -215,13 +222,13 @@ class Sensitivity:
 
         self.instance = simulation_instance
         self.model = base_model
+        self.perturb_model = perturb_model
 
         self.paths = paths
 
-        self.perturbation_model = perturbation_model
         self.simulate_cls = simulate_cls
-
         self.base_fit_cls = base_fit_cls
+        self.perturb_fit_cls = perturb_fit_cls
 
         self.job_cls = job_cls
 
@@ -303,10 +310,10 @@ class Sensitivity:
     def _lists(self) -> List[List[float]]:
         """
         A list of hypercube vectors, used to instantiate
-        the perturbation_model and create the individual
+        the perturb_model and create the individual
         perturbations.
         """
-        return make_lists(self.perturbation_model.prior_count, step_size=self.step_size)
+        return make_lists(self.perturb_model.prior_count, step_size=self.step_size)
 
     @property
     def _physical_values(self) -> List[List[float]]:
@@ -317,7 +324,7 @@ class Sensitivity:
             [
                 prior.value_for(unit_value)
                 for prior, unit_value in zip(
-                    self.perturbation_model.priors_ordered_by_id, unit_values
+                    self.perturb_model.priors_ordered_by_id, unit_values
                 )
             ]
             for unit_values in self._lists
@@ -328,7 +335,7 @@ class Sensitivity:
         """
         A name for each of the perturbed priors
         """
-        for path, _ in self.perturbation_model.prior_tuples:
+        for path, _ in self.perturb_model.prior_tuples:
             yield path
 
     @property
@@ -340,23 +347,23 @@ class Sensitivity:
         """
         for list_ in self._lists:
             strings = list()
-            for value, prior_tuple in zip(list_, self.perturbation_model.prior_tuples):
+            for value, prior_tuple in zip(list_, self.perturb_model.prior_tuples):
                 path, prior = prior_tuple
                 value = prior.value_for(value)
                 strings.append(f"{path}_{value}")
             yield "_".join(strings)
 
     @property
-    def _perturbation_instances(self) -> Generator[ModelInstance, None, None]:
+    def _perturb_instances(self) -> Generator[ModelInstance, None, None]:
         """
         A list of instances each of which defines a perturbation to
         be applied to the image.
         """
         for list_ in self._lists:
-            yield self.perturbation_model.instance_from_unit_vector(list_)
+            yield self.perturb_model.instance_from_unit_vector(list_)
 
     @property
-    def _perturbation_models(self) -> Generator[AbstractPriorModel, None, None]:
+    def _perturb_models(self) -> Generator[AbstractPriorModel, None, None]:
         """
         A list of models representing a perturbation at each grid square.
 
@@ -372,10 +379,10 @@ class Sensitivity:
                     prior.value_for(min(1.0, centre + half_step)),
                 )
                 for centre, prior in zip(
-                    list_, self.perturbation_model.priors_ordered_by_id
+                    list_, self.perturb_model.priors_ordered_by_id
                 )
             ]
-            yield self.perturbation_model.with_limits(limits)
+            yield self.perturb_model.with_limits(limits)
 
     def _make_jobs(self) -> Generator[Job, None, None]:
         """
@@ -384,20 +391,21 @@ class Sensitivity:
         Each job fits a perturbed image with the original model
         and a model which includes a perturbation.
         """
-        for number, (perturbation_instance, perturbation_model) in enumerate(
-            zip(self._perturbation_instances, self._perturbation_models)
+        for number, (perturb_instance, perturb_model) in enumerate(
+            zip(self._perturb_instances, self._perturb_models)
         ):
             instance = copy(self.instance)
-            instance.perturbation = perturbation_instance
+            instance.perturbation = perturb_instance
 
             yield self.job_cls(
                 instance=instance,
-                simulate_cls=self.simulate_cls,
                 model=self.model,
-                perturbation_model=perturbation_model,
+                perturb_model=perturb_model,
                 base_instance=self.instance,
-                perturbation_instance=perturbation_instance,
+                perturb_instance=perturb_instance,
+                simulate_cls=self.simulate_cls,
                 base_fit_cls=self.base_fit_cls,
+                perturb_fit_cls=self.perturb_fit_cls,
                 paths=self.paths,
                 number=number,
             )

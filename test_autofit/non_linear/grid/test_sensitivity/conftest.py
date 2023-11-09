@@ -38,9 +38,9 @@ class Analysis(af.Analysis):
 
 
 @pytest.fixture(
-    name="perturbation_model"
+    name="perturb_model"
 )
-def make_perturbation_model():
+def make_perturb_model():
     return af.Model(af.Gaussian)
 
 
@@ -55,7 +55,7 @@ def make_search():
     name="sensitivity"
 )
 def make_sensitivity(
-        perturbation_model,
+        perturb_model,
         search
 ):
     # noinspection PyTypeChecker
@@ -66,7 +66,7 @@ def make_sensitivity(
         base_model=af.Collection(
             gaussian=af.Model(af.Gaussian)
         ),
-        perturbation_model=perturbation_model,
+        perturb_model=perturb_model,
         simulate_cls=Simulate(),
         analysis_class=Analysis,
         search=search,
@@ -86,7 +86,7 @@ class MockAnalysisFactory:
     name="job"
 )
 def make_job(
-        perturbation_model,
+        perturb_model,
         search
 ):
     instance = af.ModelInstance()
@@ -99,9 +99,9 @@ def make_job(
         model=af.Collection(
             gaussian=af.Model(af.Gaussian)
         ),
-        perturbation_model=af.Model(af.Gaussian),
+        perturb_model=af.Model(af.Gaussian),
         base_instance=base_instance,
-        perturbation_instance=instance,
+        perturb_instance=instance,
         analysis_factory=MockAnalysisFactory(Analysis(image)),
         search=search,
         number=1
