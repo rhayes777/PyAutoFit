@@ -10,10 +10,10 @@ from autoconf import cached_property
 from autoconf.dictable import to_dict
 from autofit.mapper.model import ModelInstance
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
-from autofit.non_linear.search.abstract_search import NonLinearSearch
 from autofit.non_linear.analysis import Analysis
 from autofit.non_linear.grid.grid_search import make_lists
 from autofit.non_linear.parallel import AbstractJob, Process, AbstractJobResult
+from autofit.non_linear.paths.abstract import AbstractPaths
 from autofit.non_linear.result import Result
 from autofit.text.text_util import padding
 
@@ -57,7 +57,8 @@ class Job(AbstractJob):
         perturbation_model: AbstractPriorModel,
         base_instance: ModelInstance,
         perturbation_instance: ModelInstance,
-        search: NonLinearSearch,
+        base_fit_cls : Callable,
+        paths: AbstractPaths,
         number: int,
     ):
         """
@@ -70,10 +71,13 @@ class Job(AbstractJob):
             A base model that fits the image without a perturbation
         perturbation_model
             A model of the perturbation which has been added to the underlying image
+        base_fit_cls
+            A class which defines the function which fits the base model to each simulated dataset of the sensitivity
+            map.
         analysis_factory
             Factory to generate analysis classes which comprise a model and data
-        search
-            A non-linear search
+        paths
+            The paths defining the output directory structure of the sensitivity analysis.
         """
         super().__init__(number=number)
 
@@ -83,17 +87,8 @@ class Job(AbstractJob):
         self.perturbation_model = perturbation_model
         self.base_instance = base_instance
         self.perturbation_instance = perturbation_instance
-
-        self.search = search.copy_with_paths(
-            search.paths.for_sub_analysis(
-                "[base]",
-            )
-        )
-        self.perturbed_search = search.copy_with_paths(
-            search.paths.for_sub_analysis(
-                "[perturbed]",
-            )
-        )
+        self.base_fit_cls = base_fit_cls
+        self.paths = paths
 
     @cached_property
     def analysis(self):
@@ -108,7 +103,12 @@ class Job(AbstractJob):
         -------
         An object comprising the results of the two fits
         """
-        result = self.base_model_func()
+
+
+
+        result = self.base_fit_cls(
+            model=self.model, analysis=self.analysis, paths=self.paths
+        )
 
         perturbed_model = copy(self.model)
         perturbed_model.perturbation = self.perturbation_model
@@ -122,9 +122,6 @@ class Job(AbstractJob):
         return JobResult(
             number=self.number, result=result, perturbed_result=perturbed_result
         )
-
-    def base_model_func(self):
-        return self.search.fit(model=self.model, analysis=self.analysis)
 
     def perturbation_model_func(self, perturbed_model):
         return self.perturbed_search.fit(model=perturbed_model, analysis=self.analysis)
@@ -179,9 +176,10 @@ class Sensitivity:
         base_model: AbstractPriorModel,
         perturbation_model: AbstractPriorModel,
         simulation_instance,
+        paths,
         simulate_cls: Callable,
+        base_fit_cls : Callable,
         analysis_class: Type[Analysis],
-        search: NonLinearSearch,
         job_cls: ClassVar = Job,
         number_of_steps: Union[Tuple[int], int] = 4,
         number_of_cores: int = 2,
@@ -213,8 +211,6 @@ class Sensitivity:
             A function that can convert an instance into an image
         analysis_class
             A class which can compare an image to an instance and evaluate fitness
-        search
-            A NonLinear search class which is copied and used to evaluate fitness
         number_of_cores
             How many cores does this computer have? Minimum 2.
         limit_scale
@@ -225,14 +221,15 @@ class Sensitivity:
                 A scale of 0.5 means priors have limits smaller than the grid square
                     with width half a grid square.
         """
-        self.logger = logging.getLogger(f"Sensitivity ({search.name})")
+        self.logger = logging.getLogger(f"Sensitivity ({paths.name})")
 
         self.logger.info("Creating")
 
         self.instance = simulation_instance
         self.model = base_model
 
-        self.search = search
+        self.paths = paths
+
         self.analysis_class = analysis_class
 
         self.perturbation_model = perturbation_model
@@ -266,7 +263,7 @@ class Sensitivity:
         """
         self.logger.info("Running")
 
-        self.search.paths.save_unique_tag(is_grid_search=True)
+        self.paths.save_unique_tag(is_grid_search=True)
 
         headers = [
             "index",
@@ -287,7 +284,7 @@ class Sensitivity:
             results.append(result)
             results = sorted(results)
 
-            os.makedirs(self.search.paths.output_path, exist_ok=True)
+            os.makedirs(self.paths.output_path, exist_ok=True)
             with open(self.results_path, "w+") as f:
                 writer = csv.writer(f)
                 writer.writerow(headers)
@@ -306,13 +303,13 @@ class Sensitivity:
 
         result = SensitivityResult(results)
 
-        self.search.paths.save_json("result", to_dict(result))
+        self.paths.save_json("result", to_dict(result))
 
         return SensitivityResult(results)
 
     @property
     def results_path(self) -> Path:
-        return self.search.paths.output_path / "results.csv"
+        return self.paths.output_path / "results.csv"
 
     @property
     def _lists(self) -> List[List[float]]:
@@ -392,37 +389,6 @@ class Sensitivity:
             ]
             yield self.perturbation_model.with_limits(limits)
 
-    @property
-    def _searches(self) -> Generator[NonLinearSearch, None, None]:
-        """
-        A list of non-linear searches, each of which is applied to
-        one perturbation.
-        """
-        for label in self._labels:
-            yield self._search_instance(label)
-
-    def _search_instance(self, name_path: str) -> NonLinearSearch:
-        """
-        Create a search instance, distinguished by its name
-
-        Parameters
-        ----------
-        name_path
-            A path to distinguish this search from other searches
-
-        Returns
-        -------
-        A non linear search, copied from the instance search
-        """
-        paths = self.search.paths
-        search_instance = self.search.copy_with_paths(
-            paths.for_sub_analysis(
-                name_path,
-            )
-        )
-
-        return search_instance
-
     def _make_jobs(self) -> Generator[Job, None, None]:
         """
         Create a list of jobs to be run on separate processes.
@@ -430,8 +396,8 @@ class Sensitivity:
         Each job fits a perturbed image with the original model
         and a model which includes a perturbation.
         """
-        for number, (perturbation_instance, perturbation_model, search) in enumerate(
-            zip(self._perturbation_instances, self._perturbation_models, self._searches)
+        for number, (perturbation_instance, perturbation_model) in enumerate(
+            zip(self._perturbation_instances, self._perturbation_models)
         ):
             instance = copy(self.instance)
             instance.perturbation = perturbation_instance
@@ -441,13 +407,13 @@ class Sensitivity:
                     instance=instance,
                     simulate_cls=self.simulate_cls,
                     analysis_class=self.analysis_class,
-                    paths=search.paths,
+                    paths=self.paths,
                 ),
                 model=self.model,
                 perturbation_model=perturbation_model,
                 base_instance=self.instance,
                 perturbation_instance=perturbation_instance,
-                search=search,
+                paths=self.paths,
                 number=number,
             )
 
