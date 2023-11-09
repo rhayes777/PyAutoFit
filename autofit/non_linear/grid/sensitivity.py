@@ -48,12 +48,11 @@ class Job(AbstractJob):
 
     def __init__(
         self,
-        instance: ModelInstance,
         model: AbstractPriorModel,
         simulate_cls: Callable,
         perturb_model: AbstractPriorModel,
+        simulate_instance : ModelInstance,
         base_instance: ModelInstance,
-        perturb_instance: ModelInstance,
         base_fit_cls : Callable,
         perturb_fit_cls : Callable,
         paths: AbstractPaths,
@@ -79,12 +78,11 @@ class Job(AbstractJob):
         """
         super().__init__(number=number)
 
-        self.instance = instance
         self.model = model
         self.simulate_cls = simulate_cls
         self.perturb_model = perturb_model
+        self.simulate_instance = simulate_instance
         self.base_instance = base_instance
-        self.perturb_instance = perturb_instance
         self.base_fit_cls = base_fit_cls
         self.perturb_fit_cls = perturb_fit_cls
         self.paths = paths
@@ -100,7 +98,7 @@ class Job(AbstractJob):
         """
 
         dataset = self.simulate_cls(
-            instance=self.instance,
+            instance=self.simulate_instance,
             simulate_path=self.paths.image_path.with_name("simulate"),
         )
 
@@ -113,7 +111,11 @@ class Job(AbstractJob):
         perturb_model = copy(self.model)
         perturb_model.perturbation = self.perturb_model
 
-        perturb_result = self.perturb_fit_cls(perturb_model=perturb_model)
+        perturb_result = self.perturb_fit_cls(
+            model=perturb_model,
+            dataset=dataset,
+            paths=self.paths
+        )
         
         return JobResult(
             number=self.number, result=result, perturb_result=perturb_result
@@ -394,15 +396,14 @@ class Sensitivity:
         for number, (perturb_instance, perturb_model) in enumerate(
             zip(self._perturb_instances, self._perturb_models)
         ):
-            instance = copy(self.instance)
-            instance.perturbation = perturb_instance
+            simulate_instance = copy(self.instance)
+            simulate_instance.perturbation = perturb_instance
 
             yield self.job_cls(
-                instance=instance,
+                simulate_instance=simulate_instance,
                 model=self.model,
                 perturb_model=perturb_model,
                 base_instance=self.instance,
-                perturb_instance=perturb_instance,
                 simulate_cls=self.simulate_cls,
                 base_fit_cls=self.base_fit_cls,
                 perturb_fit_cls=self.perturb_fit_cls,

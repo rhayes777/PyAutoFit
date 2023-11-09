@@ -28,26 +28,12 @@ def test_labels(sensitivity):
     ]
 
 
-def test_searches(sensitivity):
-    assert len(list(sensitivity._searches)) == 8
-
 
 def test_perform_job(job):
     result = job.perform()
     assert isinstance(result, s.JobResult)
-    assert isinstance(result.perturbed_result, af.Result)
+    assert isinstance(result.perturb_result, af.Result)
     assert isinstance(result.result, af.Result)
-
-
-def test_job_paths(
-        job,
-        search
-):
-
-    output_path = search.paths.output_path
-
-    assert job.perturbed_search.paths.output_path == output_path / "[perturbed]"
-    assert job.search.paths.output_path == output_path / "[base]"
 
 
 class TestPerturbationModels:

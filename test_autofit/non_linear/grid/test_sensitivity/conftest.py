@@ -25,16 +25,51 @@ class Simulate:
 
 class Analysis(af.Analysis):
 
-    def __init__(self, image: np.array):
-        self.image = image
+    def __init__(self, dataset: np.array):
+        self.dataset = dataset
 
     def log_likelihood_function(self, instance):
 
         simulate = Simulate()
 
-        image = simulate(instance, simulate_path=None)
+        dataset = simulate(instance, simulate_path=None)
 
-        return np.mean(np.multiply(-0.5, np.square(np.subtract(self.image, image))))
+        return np.mean(np.multiply(-0.5, np.square(np.subtract(self.dataset, dataset))))
+
+
+class BaseFit:
+
+    def __init__(self, analysis_cls):
+
+        self.analysis_cls = analysis_cls
+
+    def __call__(self, dataset, model, paths):
+        
+        search = af.m.MockSearch(return_sensitivity_results=True)
+
+        analysis = self.analysis_cls(dataset=dataset)
+
+        return search.fit(
+            model=model, analysis=analysis
+        )
+
+
+class PerturbFit:
+
+    def __init__(self, analysis_cls):
+
+        self.analysis_cls = analysis_cls
+
+    def __call__(self, dataset, model, paths):
+        
+        search = af.m.MockSearch(return_sensitivity_results=True)
+
+        analysis = self.analysis_cls(dataset=dataset)
+
+        return search.fit(
+            model=model, analysis=analysis
+        )
+
 
 
 @pytest.fixture(
@@ -45,18 +80,10 @@ def make_perturb_model():
 
 
 @pytest.fixture(
-    name="search"
-)
-def make_search():
-    return af.m.MockSearch(return_sensitivity_results=True)
-
-
-@pytest.fixture(
     name="sensitivity"
 )
 def make_sensitivity(
         perturb_model,
-        search
 ):
     # noinspection PyTypeChecker
     instance = af.ModelInstance()
@@ -68,18 +95,11 @@ def make_sensitivity(
         ),
         perturb_model=perturb_model,
         simulate_cls=Simulate(),
-        analysis_class=Analysis,
-        search=search,
+        base_fit_cls=BaseFit(Analysis),
+        perturb_fit_cls=PerturbFit(Analysis),
+        paths=af.DirectoryPaths(),
         number_of_steps=2,
     )
-
-
-class MockAnalysisFactory:
-    def __init__(self, analysis):
-        self.analysis = analysis
-
-    def __call__(self):
-        return self.analysis
 
 
 @pytest.fixture(
@@ -87,22 +107,22 @@ class MockAnalysisFactory:
 )
 def make_job(
         perturb_model,
-        search
 ):
     instance = af.ModelInstance()
     instance.gaussian = af.Gaussian()
     base_instance = instance
     instance.perturbation = af.Gaussian()
-    image = Simulate()(instance, "")
     # noinspection PyTypeChecker
     return s.Job(
         model=af.Collection(
             gaussian=af.Model(af.Gaussian)
         ),
         perturb_model=af.Model(af.Gaussian),
+        simulate_instance=instance,
         base_instance=base_instance,
-        perturb_instance=instance,
-        analysis_factory=MockAnalysisFactory(Analysis(image)),
-        search=search,
+        simulate_cls=Simulate(),
+        base_fit_cls=BaseFit(Analysis),
+        perturb_fit_cls=PerturbFit(Analysis),
+        paths=af.DirectoryPaths(),
         number=1
     )
