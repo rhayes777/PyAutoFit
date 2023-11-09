@@ -132,11 +132,11 @@ performed above.
 
     simulation_instance = result_single.instance
 
-We now write the ``simulate_function``, which takes the ``instance`` of our model (defined above) and uses it to
+We now write the ``simulate_cls``, which takes the ``instance`` of our model (defined above) and uses it to
 simulate a dataset which is subsequently fitted.
 
-Note that when this dataset is simulated, the quantity ``instance.perturbation`` is used in the ``simulate_function``.
-This is an instance of the ``gaussian_feature``, and it is different every time the ``simulate_function`` is called.
+Note that when this dataset is simulated, the quantity ``instance.perturbation`` is used in the ``simulate_cls``.
+This is an instance of the ``gaussian_feature``, and it is different every time the ``simulate_cls`` is called.
 
 In this example, this ``instance.perturbation`` corresponds to different ``gaussian_feature``'s with values of
 ``normalization`` ranging over 0.01 -> 100.0, such that our simulated datasets correspond to a very faint and very bright
@@ -144,7 +144,7 @@ gaussian features.
 
 .. code-block:: bash
 
-    def simulate_function(instance, simulate_path):
+    def __call__(instance, simulate_path):
 
         """
         Specify the number of pixels used to create the xvalues on which the 1D line of the profile is generated using and
@@ -202,7 +202,7 @@ object below are:
 
 - ``perturbation_model``: This is the extra model component that alongside the ``base_model`` is fitted to every simulated dataset, which in this example  is composed of two ``Gaussians`` called the ``gaussian_main`` and ``gaussian_feature``.
 
-- ``simulate_function``: This is the function that uses the ``instance`` and many instances of the ``perturbation_model`` to simulate many datasets that are fitted with the ``base_model`` and ``base_model`` + ``perturbation_model``.
+- ``simulate_cls``: This is the function that uses the ``instance`` and many instances of the ``perturbation_model`` to simulate many datasets that are fitted with the ``base_model`` and ``base_model`` + ``perturbation_model``.
 
 - ``step_size``: The size of steps over which the parameters in the ``perturbation_model`` are iterated. In this example, normalization has a ``LogUniformPrior`` with lower limit 1e-4 and upper limit 1e2, therefore the ``step_size`` of 0.5 will simulate and fit just 2 datasets where the normalization is 1e-4 and 1e2.
 
@@ -218,7 +218,7 @@ full example script on the ``autofit_workspace``).
         simulation_instance=simulation_instance,
         base_model=base_model,
         perturbation_model=perturbation_model,
-        simulate_function=simulate_function,
+        simulate_cls=simulate_cls,
         analysis_class=Analysis,
         step_size=0.5,
         number_of_cores=2,

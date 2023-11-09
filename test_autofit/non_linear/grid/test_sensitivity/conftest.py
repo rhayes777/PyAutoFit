@@ -7,12 +7,20 @@ from autofit.non_linear.grid import sensitivity as s
 
 x = np.array(range(10))
 
+class Simulate:
 
-def simulate_function(instance: af.ModelInstance, simulate_path:Optional[str]):
-    image = instance.gaussian(x)
-    if hasattr(instance, "perturbation"):
-        image += instance.perturbation(x)
-    return image
+    def __init__(self):
+
+        pass
+
+    def __call__(self, instance: af.ModelInstance, simulate_path : Optional[str]):
+
+        image = instance.gaussian(x)
+
+        if hasattr(instance, "perturbation"):
+            image += instance.perturbation(x)
+
+        return image
 
 
 class Analysis(af.Analysis):
@@ -21,7 +29,11 @@ class Analysis(af.Analysis):
         self.image = image
 
     def log_likelihood_function(self, instance):
-        image = simulate_function(instance, simulate_path=None)
+
+        simulate = Simulate()
+
+        image = simulate(instance, simulate_path=None)
+
         return np.mean(np.multiply(-0.5, np.square(np.subtract(self.image, image))))
 
 
@@ -55,7 +67,7 @@ def make_sensitivity(
             gaussian=af.Model(af.Gaussian)
         ),
         perturbation_model=perturbation_model,
-        simulate_function=simulate_function,
+        simulate_cls=Simulate(),
         analysis_class=Analysis,
         search=search,
         number_of_steps=2,
@@ -81,7 +93,7 @@ def make_job(
     instance.gaussian = af.Gaussian()
     base_instance = instance
     instance.perturbation = af.Gaussian()
-    image = simulate_function(instance, "")
+    image = Simulate()(instance, "")
     # noinspection PyTypeChecker
     return s.Job(
         model=af.Collection(

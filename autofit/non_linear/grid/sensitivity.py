@@ -179,7 +179,7 @@ class Sensitivity:
         base_model: AbstractPriorModel,
         perturbation_model: AbstractPriorModel,
         simulation_instance,
-        simulate_function: Callable,
+        simulate_cls: Callable,
         analysis_class: Type[Analysis],
         search: NonLinearSearch,
         job_cls: ClassVar = Job,
@@ -209,7 +209,7 @@ class Sensitivity:
         simulation_instance
             An instance of a model to which perturbations are applied prior to
             images being generated
-        simulate_function
+        simulate_cls
             A function that can convert an instance into an image
         analysis_class
             A class which can compare an image to an instance and evaluate fitness
@@ -236,7 +236,7 @@ class Sensitivity:
         self.analysis_class = analysis_class
 
         self.perturbation_model = perturbation_model
-        self.simulate_function = simulate_function
+        self.simulate_cls = simulate_cls
 
         self.job_cls = job_cls
 
@@ -439,7 +439,7 @@ class Sensitivity:
             yield self.job_cls(
                 analysis_factory=AnalysisFactory(
                     instance=instance,
-                    simulate_function=self.simulate_function,
+                    simulate_cls=self.simulate_cls,
                     analysis_class=self.analysis_class,
                     paths=search.paths,
                 ),
@@ -456,7 +456,7 @@ class AnalysisFactory:
     def __init__(
         self,
         instance,
-        simulate_function,
+        simulate_cls,
         analysis_class,
         paths,
     ):
@@ -465,12 +465,12 @@ class AnalysisFactory:
         on the Job subprocess
         """
         self.instance = instance
-        self.simulate_function = simulate_function
+        self.simulate_cls = simulate_cls
         self.analysis_class = analysis_class
         self.paths = paths
 
     def __call__(self):
-        dataset = self.simulate_function(
+        dataset = self.simulate_cls(
             instance=self.instance,
             simulate_path=self.paths.image_path.with_name("simulate"),
         )
