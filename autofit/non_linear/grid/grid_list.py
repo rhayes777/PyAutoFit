@@ -19,7 +19,7 @@ def as_grid_list(func):
     """
 
     @wraps(func)
-    def wrapper(grid_search_result) -> List:
+    def wrapper(grid_search_result, *args, **kwargs) -> List:
         """
         This decorator converts the output of a function which computes a list of grid search results to a `GridList`.
 
@@ -33,7 +33,7 @@ def as_grid_list(func):
             The function output converted to a `GridList`.
         """
 
-        values = func(grid_search_result)
+        values = func(grid_search_result, *args, **kwargs)
 
         return GridList(values=values, shape=grid_search_result.shape)
 
