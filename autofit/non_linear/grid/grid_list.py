@@ -4,7 +4,7 @@ from typing import List, Tuple
 import numpy as np
 
 
-def return_limit_list(func):
+def as_grid_list(func):
     """
     Wrap functions with a function which converts the output list of grid search results to a `GridList` object.
 
@@ -19,10 +19,7 @@ def return_limit_list(func):
     """
 
     @wraps(func)
-    def wrapper(
-            grid_search_result,
-            shape: Tuple,
-    ) -> List:
+    def wrapper(grid_search_result) -> List:
         """
         This decorator converts the output of a function which computes a list of grid search results to a `GridList`.
 
@@ -30,8 +27,6 @@ def return_limit_list(func):
         ----------
         grid_search_result
             The instance of the `GridSearchResult` which is being operated on.
-        shape:
-            The shape of the grid search, used for converting the list to an ndarray.
 
         Returns
         -------
@@ -40,13 +35,12 @@ def return_limit_list(func):
 
         values = func(grid_search_result)
 
-        return GridList(values=values, shape=shape)
+        return GridList(values=values, shape=grid_search_result.shape)
 
     return wrapper
 
 
 class GridList(list):
-
     def __init__(self, values: List, shape: Tuple):
         """
         Many quantities of a `GridSearchResult` are stored as lists of lists.
