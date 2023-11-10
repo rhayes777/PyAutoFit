@@ -1,5 +1,7 @@
 from __future__ import annotations
-from typing import Optional
+
+from pathlib import Path
+from typing import Optional, Union
 
 from dynesty import NestedSampler as StaticSampler
 
@@ -26,7 +28,7 @@ class DynestyStatic(AbstractDynesty):
     def __init__(
         self,
         name: Optional[str] = None,
-        path_prefix: Optional[str] = None,
+        path_prefix: Optional[Union[str, Path]] = None,
         unique_tag: Optional[str] = None,
         iterations_per_update: int = None,
         number_of_cores: int = None,
@@ -106,7 +108,9 @@ class DynestyStatic(AbstractDynesty):
         """
 
         if checkpoint_exists:
-            search_internal = StaticSampler.restore(fname=self.checkpoint_file, pool=pool)
+            search_internal = StaticSampler.restore(
+                fname=self.checkpoint_file, pool=pool
+            )
 
             uses_pool = self.read_uses_pool()
 
@@ -115,9 +119,7 @@ class DynestyStatic(AbstractDynesty):
             return search_internal
 
         else:
-            live_points = self.live_points_init_from(
-                model=model, fitness=fitness
-            )
+            live_points = self.live_points_init_from(model=model, fitness=fitness)
 
             if pool is not None:
                 self.write_uses_pool(uses_pool=True)
