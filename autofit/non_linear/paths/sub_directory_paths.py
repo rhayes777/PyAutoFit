@@ -12,18 +12,15 @@ class SubDirectoryPaths(ABC):
     parent: AbstractPaths
 
     def __new__(
-            cls,
-            parent=None,
-            analysis_name=None,
-            is_flat=False,
+        cls,
+        parent=None,
+        analysis_name=None,
+        is_flat=False,
     ):
         """
         Determine which kind of sub-directory paths to generate
         """
-        if isinstance(
-                parent,
-                DatabasePaths
-        ):
+        if isinstance(parent, DatabasePaths):
             return super(SubDirectoryPaths, cls).__new__(SubDirectoryPathsDatabase)
         return super(SubDirectoryPaths, cls).__new__(SubDirectoryPathsDirectory)
 
@@ -36,15 +33,12 @@ class SubDirectoryPaths(ABC):
         return self.parent.output_path / self.analysis_name
 
 
-class SubDirectoryPathsDirectory(
-    DirectoryPaths,
-    SubDirectoryPaths
-):
+class SubDirectoryPathsDirectory(DirectoryPaths, SubDirectoryPaths):
     def __init__(
-            self,
-            parent: DirectoryPaths,
-            analysis_name: str,
-            is_flat=False,
+        self,
+        parent: DirectoryPaths,
+        analysis_name: str,
+        is_flat=False,
     ):
         """
         Paths for a child directory for a search which generates multiple searches
@@ -62,13 +56,14 @@ class SubDirectoryPathsDirectory(
         """
         self.analysis_name = analysis_name
         super().__init__()
-        if is_flat and isinstance(
-                parent,
-                SubDirectoryPaths
-        ):
+        if is_flat and isinstance(parent, SubDirectoryPaths):
             self.parent = parent.parent
         else:
             self.parent = parent
+
+    @property
+    def unique_tag(self):
+        return self.parent.unique_tag
 
     @property
     def output_path(self) -> Path:
@@ -79,15 +74,12 @@ class SubDirectoryPathsDirectory(
         return self._output_path
 
 
-class SubDirectoryPathsDatabase(
-    DatabasePaths,
-    SubDirectoryPaths
-):
+class SubDirectoryPathsDatabase(DatabasePaths, SubDirectoryPaths):
     def __init__(
-            self,
-            parent: DatabasePaths,
-            analysis_name: str,
-            is_flat=False,
+        self,
+        parent: DatabasePaths,
+        analysis_name: str,
+        is_flat=False,
     ):
         """
         Paths for a child directory for a search which generates multiple searches
@@ -105,17 +97,9 @@ class SubDirectoryPathsDatabase(
             rather than recursively taking a sub-directory parent.
         """
         self.analysis_name = analysis_name
-        super().__init__(
-            parent.session
-        )
-        if is_flat and isinstance(
-                parent,
-                SubDirectoryPaths
-        ):
-            self.parent = cast(
-                DatabasePaths,
-                parent.parent
-            )
+        super().__init__(parent.session)
+        if is_flat and isinstance(parent, SubDirectoryPaths):
+            self.parent = cast(DatabasePaths, parent.parent)
         else:
             self.parent = parent
 
@@ -126,3 +110,7 @@ class SubDirectoryPathsDatabase(
         the analyses directory.
         """
         return self._output_path
+
+    @property
+    def unique_tag(self):
+        return self.parent.unique_tag
