@@ -5,7 +5,7 @@ from autofit.non_linear.grid import sensitivity as s
 
 
 def test_lists(sensitivity):
-    assert len(list(sensitivity._perturbation_instances)) == 8
+    assert len(list(sensitivity._perturb_instances)) == 8
 
 
 def test_tuple_step_size(sensitivity):
@@ -28,26 +28,12 @@ def test_labels(sensitivity):
     ]
 
 
-def test_searches(sensitivity):
-    assert len(list(sensitivity._searches)) == 8
-
 
 def test_perform_job(job):
     result = job.perform()
     assert isinstance(result, s.JobResult)
-    assert isinstance(result.perturbed_result, af.Result)
+    assert isinstance(result.perturb_result, af.Result)
     assert isinstance(result.result, af.Result)
-
-
-def test_job_paths(
-        job,
-        search
-):
-
-    output_path = search.paths.output_path
-
-    assert job.perturbed_search.paths.output_path == output_path / "[perturbed]"
-    assert job.search.paths.output_path == output_path / "[base]"
 
 
 class TestPerturbationModels:
@@ -59,7 +45,7 @@ class TestPerturbationModels:
             (4.0, 0.0, 1.0, 0.0, 1.0,),
         ]
     )
-    def test_perturbation_models(
+    def test_perturb_models(
             self,
             sensitivity,
             limit_scale,
@@ -68,7 +54,7 @@ class TestPerturbationModels:
         sensitivity.limit_scale = limit_scale
         jobs = sensitivity._make_jobs()
         models = [
-            job.perturbation_model
+            job.perturb_model
             for job in jobs
         ]
 
@@ -85,12 +71,12 @@ class TestPerturbationModels:
             self,
             sensitivity
     ):
-        sensitivity.perturbation_model.sigma = af.UniformPrior(
+        sensitivity.perturb_model.sigma = af.UniformPrior(
             upper_limit=10
         )
         model = list(
             sensitivity._make_jobs()
-        )[0].perturbation_model
+        )[0].perturb_model
         assert model.sigma.upper_limit == 5
 
     def test_model_with_limits(self):

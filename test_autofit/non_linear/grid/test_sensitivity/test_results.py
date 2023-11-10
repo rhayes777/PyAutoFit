@@ -12,7 +12,7 @@ def make_result():
     return JobResult(
         number=0,
         result=Result(log_likelihood=1.0),
-        perturbed_result=Result(log_likelihood=2.0),
+        perturb_result=Result(log_likelihood=2.0),
     )
 
 

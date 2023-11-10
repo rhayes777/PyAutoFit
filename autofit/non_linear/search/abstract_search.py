@@ -81,6 +81,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         iterations_per_update: int = None,
         number_of_cores: int = 1,
         session: Optional[sa.orm.Session] = None,
+        paths: Optional[AbstractPaths] = None,
         **kwargs,
     ):
         """
@@ -133,9 +134,11 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         self.unique_tag = unique_tag
 
-        if session is not None:
+        if paths:
+            self.paths = paths
+        elif session is not None:
             logger.debug("Session found. Using database.")
-            paths = DatabasePaths(
+            self.paths = DatabasePaths(
                 name=name,
                 path_prefix=path_prefix,
                 session=session,
@@ -144,13 +147,11 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             )
         elif name is not None or path_prefix:
             logger.debug("Session not found. Using directory output.")
-            paths = DirectoryPaths(
+            self.paths = DirectoryPaths(
                 name=name, path_prefix=path_prefix, unique_tag=unique_tag
             )
         else:
-            paths = NullPaths()
-
-        self.paths: AbstractPaths = paths
+            self.paths = NullPaths()
 
         self.force_pickle_overwrite = conf.instance["general"]["output"][
             "force_pickle_overwrite"
@@ -519,12 +520,12 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         """
 
         if os.environ.get("PYAUTOFIT_TEST_MODE") == "1":
-
             from autofit.non_linear.search.nest.nautilus.search import Nautilus
 
             if isinstance(self, Nautilus):
-
-                from autofit.non_linear.search.nest.dynesty.search.static import DynestyStatic
+                from autofit.non_linear.search.nest.dynesty.search.static import (
+                    DynestyStatic,
+                )
 
                 from pathlib import Path
 
@@ -638,10 +639,10 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             timeout_seconds = get_timeout_seconds()
 
             if timeout_seconds is not None:
-
-                logger.info(f"\n\n ***Log Likelihood Function timeout is "
-                            f"turned on and set to {timeout_seconds} seconds.***\n")
-
+                logger.info(
+                    f"\n\n ***Log Likelihood Function timeout is "
+                    f"turned on and set to {timeout_seconds} seconds.***\n"
+                )
 
     def start_resume_fit(self, analysis: Analysis, model: AbstractPriorModel) -> Result:
         """
@@ -670,7 +671,9 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         and errors on the model parameters.
         """
         if self.is_master:
-            if not isinstance(self.paths, DatabasePaths) and not isinstance(self.paths, NullPaths):
+            if not isinstance(self.paths, DatabasePaths) and not isinstance(
+                self.paths, NullPaths
+            ):
                 self.timer.start()
 
         model.freeze()
@@ -682,7 +685,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             model=model,
             analysis=analysis,
             search_internal=search_internal,
-            during_analysis=False
+            during_analysis=False,
         )
 
         result = analysis.make_result(
@@ -699,7 +702,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         return result
 
     def result_via_completed_fit(
-        self, analysis: Analysis, model: AbstractPriorModel, search_internal = None
+        self, analysis: Analysis, model: AbstractPriorModel, search_internal=None
     ) -> Result:
         """
         Returns the result of the non-linear search of a completed model-fit.
@@ -742,7 +745,10 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
             if self.force_visualize_overwrite:
                 self.perform_visualization(
-                    model=model, analysis=analysis, search_internal=search_internal, during_analysis=False
+                    model=model,
+                    analysis=analysis,
+                    search_internal=search_internal,
+                    during_analysis=False,
                 )
 
             if self.force_pickle_overwrite:
@@ -850,7 +856,11 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         return self._class_config[section][attribute_name]
 
     def perform_update(
-        self, model: AbstractPriorModel, analysis: Analysis, during_analysis: bool, search_internal = None,
+        self,
+        model: AbstractPriorModel,
+        analysis: Analysis,
+        during_analysis: bool,
+        search_internal=None,
     ) -> Samples:
         """
         Perform an update of the non-linear search's model-fitting results.
@@ -890,7 +900,9 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                 f"output folder for final visualization, samples, etc.)"
             )
 
-        if not isinstance(self.paths, DatabasePaths) and not isinstance(self.paths, NullPaths):
+        if not isinstance(self.paths, DatabasePaths) and not isinstance(
+            self.paths, NullPaths
+        ):
             self.timer.update()
 
         samples = self.samples_from(model=model, search_internal=search_internal)
@@ -947,7 +959,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         model: AbstractPriorModel,
         analysis: AbstractPriorModel,
         during_analysis: bool,
-        search_internal = None,
+        search_internal=None,
     ):
         """
         Perform visualization of the non-linear search's model-fitting results.
@@ -1003,7 +1015,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
     def remove_state_files(self):
         pass
 
-    def samples_from(self, model: AbstractPriorModel, search_internal = None) -> Samples:
+    def samples_from(self, model: AbstractPriorModel, search_internal=None) -> Samples:
         """
         Loads the samples of a non-linear search from its output files.
 
@@ -1021,11 +1033,15 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             The model which generates instances for different points in parameter space.
         """
         try:
-            return self.samples_via_internal_from(model=model, search_internal=search_internal)
+            return self.samples_via_internal_from(
+                model=model, search_internal=search_internal
+            )
         except (FileNotFoundError, NotImplementedError, AttributeError):
             return self.samples_via_csv_from(model=model)
 
-    def samples_via_internal_from(self, model: AbstractPriorModel, search_internal=None):
+    def samples_via_internal_from(
+        self, model: AbstractPriorModel, search_internal=None
+    ):
         raise NotImplementedError
 
     def samples_via_csv_from(self, model: AbstractPriorModel) -> Samples:

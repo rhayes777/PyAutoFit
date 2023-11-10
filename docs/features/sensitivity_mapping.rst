@@ -98,12 +98,12 @@ The ``base_model`` corresponds to the ``gaussian_main`` above.
 Perturbation Model
 ------------------
 
-We now define the ``perturbation_model``, which is the model component whose parameters we iterate over to perform
-sensitivity mapping. Many instances of the ``perturbation_model`` are created and used to simulate the many datasets
+We now define the ``perturb_model``, which is the model component whose parameters we iterate over to perform
+sensitivity mapping. Many instances of the ``perturb_model`` are created and used to simulate the many datasets
 that we fit. However, it is only included in half of the model-fits corresponding to the more complex models whose
 Bayesian evidence we compare to the simpler model-fits consisting of just the ``base_model``.
 
-The ``perturbation_model`` is therefore another ``Gaussian`` but now corresponds to the ``gaussian_feature`` above.
+The ``perturb_model`` is therefore another ``Gaussian`` but now corresponds to the ``gaussian_feature`` above.
 
 By fitting both of these models to every simulated dataset, we will therefore infer the Bayesian evidence of every
 model to every dataset. Sensitivity mapping therefore maps out for what values of ``normalization`` in the ``gaussian_feature``
@@ -112,10 +112,10 @@ values ot the ``centre`` and ``sigma`` of the ``Gaussian`` so we only map over i
 
 .. code-block:: bash
 
-    perturbation_model = af.Model(m.Gaussian)
-    perturbation_model.centre = 70.0
-    perturbation_model.sigma = 0.5
-    perturbation_model.normalization = af.UniformPrior(lower_limit=0.01, upper_limit=100.0)
+    perturb_model = af.Model(m.Gaussian)
+    perturb_model.centre = 70.0
+    perturb_model.sigma = 0.5
+    perturb_model.normalization = af.UniformPrior(lower_limit=0.01, upper_limit=100.0)
 
 Simulation
 ----------
@@ -132,19 +132,19 @@ performed above.
 
     simulation_instance = result_single.instance
 
-We now write the ``simulate_function``, which takes the ``instance`` of our model (defined above) and uses it to
+We now write the ``simulate_cls``, which takes the ``instance`` of our model (defined above) and uses it to
 simulate a dataset which is subsequently fitted.
 
-Note that when this dataset is simulated, the quantity ``instance.perturbation`` is used in the ``simulate_function``.
-This is an instance of the ``gaussian_feature``, and it is different every time the ``simulate_function`` is called.
+Note that when this dataset is simulated, the quantity ``instance.perturb`` is used in the ``simulate_cls``.
+This is an instance of the ``gaussian_feature``, and it is different every time the ``simulate_cls`` is called.
 
-In this example, this ``instance.perturbation`` corresponds to different ``gaussian_feature``'s with values of
+In this example, this ``instance.perturb`` corresponds to different ``gaussian_feature``'s with values of
 ``normalization`` ranging over 0.01 -> 100.0, such that our simulated datasets correspond to a very faint and very bright
 gaussian features.
 
 .. code-block:: bash
 
-    def simulate_function(instance, simulate_path):
+    def __call__(instance, simulate_path):
 
         """
         Specify the number of pixels used to create the xvalues on which the 1D line of the profile is generated using and
@@ -161,11 +161,11 @@ gaussian features.
         values of ``centre=70`` and ``sigma=0.5``, whereas the normalization varies over the ``step_size`` based on its prior.
         """
 
-        print(instance.perturbation.centre)
-        print(instance.perturbation.normalization)
-        print(instance.perturbation.sigma)
+        print(instance.perturb.centre)
+        print(instance.perturb.normalization)
+        print(instance.perturb.sigma)
 
-        model_line = instance.gaussian_main.model_data_1d_via_xvalues_from(xvalues=xvalues) + instance.perturbation.model_data_1d_via_xvalues_from(xvalues=xvalues)
+        model_line = instance.gaussian_main.model_data_1d_via_xvalues_from(xvalues=xvalues) + instance.perturb.model_data_1d_via_xvalues_from(xvalues=xvalues)
 
         """Determine the noise (at a specified signal to noise level) in every pixel of our model profile."""
         signal_to_noise_ratio = 25.0
@@ -200,11 +200,11 @@ object below are:
 
 - ``base_model``: This is the simpler model that is fitted to every simulated dataset, which in this example is composed of a single ``Gaussian`` called the ``gaussian_main``.
 
-- ``perturbation_model``: This is the extra model component that alongside the ``base_model`` is fitted to every simulated dataset, which in this example  is composed of two ``Gaussians`` called the ``gaussian_main`` and ``gaussian_feature``.
+- ``perturb_model``: This is the extra model component that alongside the ``base_model`` is fitted to every simulated dataset, which in this example  is composed of two ``Gaussians`` called the ``gaussian_main`` and ``gaussian_feature``.
 
-- ``simulate_function``: This is the function that uses the ``instance`` and many instances of the ``perturbation_model`` to simulate many datasets that are fitted with the ``base_model`` and ``base_model`` + ``perturbation_model``.
+- ``simulate_cls``: This is the function that uses the ``instance`` and many instances of the ``perturb_model`` to simulate many datasets that are fitted with the ``base_model`` and ``base_model`` + ``perturb_model``.
 
-- ``step_size``: The size of steps over which the parameters in the ``perturbation_model`` are iterated. In this example, normalization has a ``LogUniformPrior`` with lower limit 1e-4 and upper limit 1e2, therefore the ``step_size`` of 0.5 will simulate and fit just 2 datasets where the normalization is 1e-4 and 1e2.
+- ``step_size``: The size of steps over which the parameters in the ``perturb_model`` are iterated. In this example, normalization has a ``LogUniformPrior`` with lower limit 1e-4 and upper limit 1e2, therefore the ``step_size`` of 0.5 will simulate and fit just 2 datasets where the normalization is 1e-4 and 1e2.
 
 - ``number_of_cores``: The number of cores over which the sensitivity mapping is performed, enabling parallel processing.
 
@@ -217,8 +217,8 @@ full example script on the ``autofit_workspace``).
         search=search,
         simulation_instance=simulation_instance,
         base_model=base_model,
-        perturbation_model=perturbation_model,
-        simulate_function=simulate_function,
+        perturb_model=perturb_model,
+        simulate_cls=simulate_cls,
         analysis_class=Analysis,
         step_size=0.5,
         number_of_cores=2,
