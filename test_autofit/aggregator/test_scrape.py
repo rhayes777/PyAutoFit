@@ -8,6 +8,8 @@ class MockFit:
     def __init__(self):
         self.jsons = {}
 
+    id = "id"
+
     def set_json(self, name, json):
         self.jsons[name] = json
 

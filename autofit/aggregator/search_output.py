@@ -4,11 +4,11 @@ import logging
 import pickle
 from os import path
 from pathlib import Path
-from typing import Generator, Tuple, Optional, List
+from typing import Generator, Tuple, Optional, List, cast
 
 import dill
-import numpy as np
 
+from autoconf import cached_property
 from autofit.non_linear.samples.pdf import SamplesPDF
 from autofit.aggregator.file_output import (
     JSONOutput,
@@ -18,6 +18,7 @@ from autofit.mapper.identifier import Identifier
 from autofit.non_linear.samples.sample import samples_from_iterator
 from autoconf.dictable import from_dict
 
+# noinspection PyProtectedMember
 original_create_file_handle = dill._dill._create_filehandle
 
 
@@ -41,8 +42,9 @@ dill._dill._create_filehandle = _create_file_handle
 
 
 class AbstractSearchOutput:
-    def __init__(self, directory: Path):
+    def __init__(self, directory: Path, reference: Optional[dict] = None):
         self.directory = directory
+        self._reference = reference
 
     @property
     def is_complete(self) -> bool:
@@ -76,21 +78,21 @@ class AbstractSearchOutput:
             outputs.append(FileOutput(name, file_path))
         return outputs
 
-    @property
-    def jsons(self):
+    @cached_property
+    def jsons(self) -> List[JSONOutput]:
         """
         The json files in the search output files directory
         """
-        return self._outputs(".json")
+        return cast(List[JSONOutput], self._outputs(".json"))
 
-    @property
+    @cached_property
     def arrays(self):
         """
         The csv files in the search output files directory
         """
         return self._outputs(".csv")
 
-    @property
+    @cached_property
     def pickles(self):
         """
         The pickle files in the search output files directory
@@ -105,38 +107,37 @@ class AbstractSearchOutput:
         return self._outputs(".fits")
 
     @property
-    def max_log_likelihood(self) -> float:
+    def max_log_likelihood(self) -> Optional[float]:
         """
         The log likelihood of the maximum log likelihood sample
         """
-        return self.samples.max_log_likelihood_sample.log_likelihood
+        try:
+            return self.samples.max_log_likelihood_sample.log_likelihood
+        except AttributeError:
+            return None
 
-    def __getattr__(self, item):
+    def __getattr__(self, name):
         """
         Attempt to load a pickle by the same name from the search output directory.
 
         dataset.pickle, meta_dataset.pickle etc.
         """
-        try:
-            with open(self.files_path / f"{item}.pickle", "rb") as f:
-                return pickle.load(f)
-        except FileNotFoundError:
-            pass
-        try:
-            with open(self.files_path / f"{item}.json") as f:
-                d = json.load(f)
-                if "type" in d:
-                    result = from_dict(d, reference=self._reference)
-                    if result is not None:
-                        return result
-                return d
-        except FileNotFoundError:
-            pass
-        try:
-            with open(self.files_path / f"{item}.csv") as f:
-                return np.loadtxt(f)
-        except (FileNotFoundError, ValueError):
-            pass
+        result = self.value(name)
+
+        if result is not None:
+            return result
+
+        raise AttributeError(f"No attribute named {name}")
+
+    def value(self, name: str):
+        for item in self.jsons:
+            if item.name == name:
+                return item.value_using_reference(self._reference)
+        for item in self.pickles + self.arrays + self.hdus:
+            if item.name == name:
+                return item.value
+
+        return None
 
 
 class SearchOutput(AbstractSearchOutput):
@@ -155,13 +156,12 @@ class SearchOutput(AbstractSearchOutput):
         directory
             The directory of the search
         """
-        super().__init__(directory)
+        super().__init__(directory, reference)
         self.__search = None
         self.__model = None
 
         self.directory = directory
 
-        self._reference = reference
         self.file_path = directory / "metadata"
 
         try:
@@ -183,7 +183,16 @@ class SearchOutput(AbstractSearchOutput):
 
     @property
     def id(self):
-        return str(Identifier([self.search, self.model, self.search.unique_tag]))
+        return str(Identifier([self.search, self.model, self.unique_tag]))
+
+    @property
+    def model(self):
+        """
+        The model used by the search
+        """
+        if self.__model is None:
+            self.__model = self.value("model")
+        return self.__model
 
     @property
     def samples(self) -> SamplesPDF:
@@ -336,7 +345,7 @@ class GridSearch:
         ----------
         grid_search_output
             The output of the grid search
-        search_outputs
+        children
             The outputs of each individual search performed as part of the grid search
         """
         self.grid_search_output = grid_search_output
