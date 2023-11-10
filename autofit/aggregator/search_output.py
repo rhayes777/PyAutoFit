@@ -105,7 +105,7 @@ class AbstractSearchOutput:
         return self._outputs(".fits")
 
     @property
-    def log_likelihood(self) -> float:
+    def max_log_likelihood(self) -> float:
         """
         The log likelihood of the maximum log likelihood sample
         """
@@ -143,6 +143,8 @@ class SearchOutput(AbstractSearchOutput):
     """
     @DynamicAttrs
     """
+
+    is_grid_search = False
 
     def __init__(self, directory: Path, reference: dict = None):
         """
@@ -279,6 +281,20 @@ class SearchOutput(AbstractSearchOutput):
         """
         return [getattr(child, name) for child in self.child_analyses]
 
+    @property
+    def name(self):
+        """
+        The name of the search
+        """
+        return self.search.name
+
+    @property
+    def unique_tag(self):
+        """
+        The unique tag of the search
+        """
+        return self.search.unique_tag
+
     def __str__(self):
         return self.text
 
@@ -287,6 +303,8 @@ class SearchOutput(AbstractSearchOutput):
 
 
 class GridSearchOutput(AbstractSearchOutput):
+    is_grid_search = True
+
     @property
     def unique_tag(self) -> str:
         """
@@ -304,7 +322,7 @@ class GridSearch:
     def __init__(
         self,
         grid_search_output: GridSearchOutput,
-        search_outputs: List[SearchOutput],
+        children: List[SearchOutput],
     ):
         """
         Represents the output of a grid search. Comprises overall information from the grid search
@@ -318,7 +336,11 @@ class GridSearch:
             The outputs of each individual search performed as part of the grid search
         """
         self.grid_search_output = grid_search_output
-        self.search_outputs = search_outputs
+        self.children = children
+
+    @property
+    def best_fit(self):
+        return max(self.children, key=lambda x: x.instance.log_likelihood)
 
     def __getattr__(self, item):
         return getattr(self.grid_search_output, item)
