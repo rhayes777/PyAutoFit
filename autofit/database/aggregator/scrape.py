@@ -64,9 +64,9 @@ class Scraper:
         for item in self.aggregator:
             logger.info(
                 f"Creating fit for: "
-                f"{item.search.paths.path_prefix} "
-                f"{item.search.unique_tag} "
-                f"{item.search.name} "
+                f"{item.path_prefix} "
+                f"{item.unique_tag} "
+                f"{item.name} "
                 f"{item.id} "
             )
 

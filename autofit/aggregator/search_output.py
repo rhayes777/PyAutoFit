@@ -282,6 +282,10 @@ class SearchOutput(AbstractSearchOutput):
         return [getattr(child, name) for child in self.child_analyses]
 
     @property
+    def path_prefix(self):
+        return self.search.paths.path_prefix
+
+    @property
     def name(self):
         """
         The name of the search
