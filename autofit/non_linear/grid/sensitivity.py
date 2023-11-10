@@ -51,10 +51,10 @@ class Job(AbstractJob):
         model: AbstractPriorModel,
         simulate_cls: Callable,
         perturb_model: AbstractPriorModel,
-        simulate_instance : ModelInstance,
+        simulate_instance: ModelInstance,
         base_instance: ModelInstance,
-        base_fit_cls : Callable,
-        perturb_fit_cls : Callable,
+        base_fit_cls: Callable,
+        perturb_fit_cls: Callable,
         paths: AbstractPaths,
         number: int,
     ):
@@ -102,21 +102,15 @@ class Job(AbstractJob):
             simulate_path=self.paths.image_path.with_name("simulate"),
         )
 
-        result = self.base_fit_cls(
-            model=self.model,
-            dataset=dataset,
-            paths=self.paths
-        )
+        result = self.base_fit_cls(model=self.model, dataset=dataset, paths=self.paths)
 
         perturb_model = copy(self.model)
         perturb_model.perturbation = self.perturb_model
 
         perturb_result = self.perturb_fit_cls(
-            model=perturb_model,
-            dataset=dataset,
-            paths=self.paths
+            model=perturb_model, dataset=dataset, paths=self.paths
         )
-        
+
         return JobResult(
             number=self.number, result=result, perturb_result=perturb_result
         )
@@ -173,7 +167,7 @@ class Sensitivity:
         simulation_instance,
         paths,
         simulate_cls: Callable,
-        base_fit_cls : Callable,
+        base_fit_cls: Callable,
         perturb_fit_cls: Callable,
         job_cls: ClassVar = Job,
         number_of_steps: Union[Tuple[int], int] = 4,
@@ -292,9 +286,9 @@ class Sensitivity:
                         for item in [
                             result_.number,
                             *values,
-                            result_.log_likelihood_base,
-                            result_.log_likelihood_perturbed,
-                            result_.log_likelihood_difference,
+                            float(result_.log_likelihood_base),
+                            float(result_.log_likelihood_perturbed),
+                            float(result_.log_likelihood_difference),
                         ]
                     )
 
@@ -380,9 +374,7 @@ class Sensitivity:
                     prior.value_for(max(0.0, centre - half_step)),
                     prior.value_for(min(1.0, centre + half_step)),
                 )
-                for centre, prior in zip(
-                    list_, self.perturb_model.priors_ordered_by_id
-                )
+                for centre, prior in zip(list_, self.perturb_model.priors_ordered_by_id)
             ]
             yield self.perturb_model.with_limits(limits)
 
