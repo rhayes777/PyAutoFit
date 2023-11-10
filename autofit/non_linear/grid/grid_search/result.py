@@ -4,20 +4,21 @@ import numpy as np
 
 from autofit import exc
 from autofit.non_linear.search.abstract_search import NonLinearSearch
-from autofit.non_linear.grid.grid_list import GridList
+from autofit.non_linear.grid.grid_list import GridList, as_grid_list
 from autofit.mapper import model_mapper as mm
 from autofit.mapper.prior.abstract import Prior
 
 from autofit.non_linear.samples.interface import SamplesInterface
 
 
+# noinspection PyTypeChecker
 class GridSearchResult:
     def __init__(
         self,
         samples: List[SamplesInterface],
         lower_limits_lists: Union[List, GridList],
         grid_priors: List[Prior],
-        parent : Optional[NonLinearSearch] = None
+        parent: Optional[NonLinearSearch] = None,
     ):
         """
         The sample of a grid search.
@@ -41,53 +42,52 @@ class GridSearchResult:
         self.parent = parent
 
     @property
+    @as_grid_list
     def physical_lower_limits_lists(self) -> GridList:
         """
         The lower physical values for each grid square
         """
-        return GridList(self._physical_values_for(self.lower_limits_lists), self.shape)
+        return self._physical_values_for(self.lower_limits_lists)
 
     @property
+    @as_grid_list
     def physical_centres_lists(self) -> GridList:
         """
         The middle physical values for each grid square
         """
-        return GridList(self._physical_values_for(self.centres_lists), self.shape)
+        return self._physical_values_for(self.centres_lists)
 
     @property
+    @as_grid_list
     def physical_upper_limits_lists(self) -> GridList:
         """
         The upper physical values for each grid square
         """
-        return GridList(self._physical_values_for(self.upper_limits_lists), self.shape)
+        return self._physical_values_for(self.upper_limits_lists)
 
     @property
+    @as_grid_list
     def upper_limits_lists(self) -> GridList:
         """
         The upper values for each grid square
         """
-        return GridList(
-            [
-                [limit + self.step_size for limit in limits]
-                for limits in self.lower_limits_lists
-            ],
-            self.shape
-        )
+        return [
+            [limit + self.step_size for limit in limits]
+            for limits in self.lower_limits_lists
+        ]
 
     @property
+    @as_grid_list
     def centres_lists(self) -> List:
         """
         The centre values for each grid square
         """
-        return GridList(
-            [
-                [(upper + lower) / 2 for upper, lower in zip(upper_limits, lower_limits)]
-                for upper_limits, lower_limits in zip(
-                    self.lower_limits_lists, self.upper_limits_lists
-                )
-            ],
-            self.shape
-        )
+        return [
+            [(upper + lower) / 2 for upper, lower in zip(upper_limits, lower_limits)]
+            for upper_limits, lower_limits in zip(
+                self.lower_limits_lists, self.upper_limits_lists
+            )
+        ]
 
     def _physical_values_for(self, unit_lists: GridList) -> List:
         """
@@ -180,6 +180,7 @@ class GridSearchResult:
 
         return tuple(physical_step_sizes)
 
+    @as_grid_list
     def attribute_grid(self, attribute_path: Union[str, Iterable[str]]) -> GridList:
         """
         Get a list of the attribute of the best instance from every search in a numpy array with the native dimensions
@@ -204,9 +205,12 @@ class GridSearchResult:
                 attribute = getattr(attribute, attribute_name)
             attribute_list.append(attribute)
 
-        return GridList(attribute_list, self.shape)
+        return attribute_list
 
-    def log_likelihoods(self, relative_to_value : float = 0.0, remove_relative_zeros: bool = False) -> GridList:
+    @as_grid_list
+    def log_likelihoods(
+        self, relative_to_value: float = 0.0, remove_relative_zeros: bool = False
+    ) -> GridList:
         """
         The maximum log likelihood of every grid search on a NumPy array whose shape is the native dimensions of the
         grid search.
@@ -221,8 +225,9 @@ class GridSearchResult:
             The value to subtract from every log likelihood, for example if Bayesian model comparison is performed
             on the grid search and the subtracted value is the maximum log likelihood of a previous search.
         """
-        return GridList([sample.log_likelihood - relative_to_value for sample in self.samples], self.shape)
+        return [sample.log_likelihood - relative_to_value for sample in self.samples]
 
+    @as_grid_list
     def log_evidences(self, relative_to_value: float = 0.0) -> GridList:
         """
         The maximum log evidence of every grid search on a NumPy array whose shape is the native dimensions of the
@@ -238,9 +243,11 @@ class GridSearchResult:
             The value to subtract from every log likelihood, for example if Bayesian model comparison is performed
             on the grid search and the subtracted value is the maximum log likelihood of a previous search.
         """
-        return GridList([sample.log_evidence - relative_to_value for sample in self.samples], self.shape)
+        return [sample.log_evidence - relative_to_value for sample in self.samples]
 
-    def figure_of_merits(self, use_log_evidences : bool, relative_to_value : float = 0.0) -> GridList:
+    def figure_of_merits(
+        self, use_log_evidences: bool, relative_to_value: float = 0.0
+    ) -> GridList:
         """
         Convenience method to get either the log likelihoods or log evidences of the grid search.
 
