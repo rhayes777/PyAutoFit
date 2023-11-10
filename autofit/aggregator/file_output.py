@@ -1,7 +1,7 @@
 import json
 from abc import abstractmethod, ABC
 from pathlib import Path
-from typing import Union, Optional
+from typing import Union, Optional, Dict
 
 import numpy as np
 
@@ -69,7 +69,7 @@ class JSONOutput(FileOutput):
         """
         return from_dict(self.dict)
 
-    def value_using_reference(self, reference: Optional[dict] = None):
+    def value_using_reference(self, reference: Optional[Dict] = None):
         """
         The object represented by the JSON
         """
