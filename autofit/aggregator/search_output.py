@@ -130,6 +130,25 @@ class AbstractSearchOutput:
         raise AttributeError(f"No attribute named {name}")
 
     def value(self, name: str):
+        """
+        Load the value of some object in the files directory for the search.
+
+        This may be a pickle, json, csv or fits file.
+
+        If the JSON has a specified type it is parsed as that type. See dictable.py
+        in autoconf.
+
+        Returns None if the file does not exist.
+
+        Parameters
+        ----------
+        name
+            The name of the file to load without a file suffix.
+
+        Returns
+        -------
+        The loaded object
+        """
         for item in self.jsons:
             if item.name == name:
                 return item.value_using_reference(self._reference)
@@ -176,13 +195,24 @@ class SearchOutput(AbstractSearchOutput):
 
     @property
     def instance(self):
+        """
+        The instance of the maximum log likelihood sample i.e. the instance
+        with the greatest likelihood.
+
+        None if samples cannot be loaded.
+        """
         try:
             return self.samples.max_log_likelihood()
         except (AttributeError, NotImplementedError):
             return None
 
     @property
-    def id(self):
+    def id(self) -> str:
+        """
+        The unique identifier of the search.
+
+        This is used as a directory name and as a database identifier.
+        """
         return str(Identifier([self.search, self.model, self.unique_tag]))
 
     @property
@@ -327,7 +357,10 @@ class GridSearchOutput(AbstractSearchOutput):
             return f.read()
 
     @property
-    def id(self):
+    def id(self) -> str:
+        """
+        Use the unique tag of the grid search as an identifier.
+        """
         return self.unique_tag
 
 
@@ -352,7 +385,10 @@ class GridSearch:
         self.children = children
 
     @property
-    def best_fit(self):
+    def best_fit(self) -> SearchOutput:
+        """
+        The output for the search in the grid search that had the greatest log likelihood
+        """
         return max(self.children, key=lambda x: x.instance.log_likelihood)
 
     def __getattr__(self, item):
