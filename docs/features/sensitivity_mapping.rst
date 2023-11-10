@@ -135,10 +135,10 @@ performed above.
 We now write the ``simulate_cls``, which takes the ``instance`` of our model (defined above) and uses it to
 simulate a dataset which is subsequently fitted.
 
-Note that when this dataset is simulated, the quantity ``instance.perturbation`` is used in the ``simulate_cls``.
+Note that when this dataset is simulated, the quantity ``instance.perturb`` is used in the ``simulate_cls``.
 This is an instance of the ``gaussian_feature``, and it is different every time the ``simulate_cls`` is called.
 
-In this example, this ``instance.perturbation`` corresponds to different ``gaussian_feature``'s with values of
+In this example, this ``instance.perturb`` corresponds to different ``gaussian_feature``'s with values of
 ``normalization`` ranging over 0.01 -> 100.0, such that our simulated datasets correspond to a very faint and very bright
 gaussian features.
 
@@ -161,11 +161,11 @@ gaussian features.
         values of ``centre=70`` and ``sigma=0.5``, whereas the normalization varies over the ``step_size`` based on its prior.
         """
 
-        print(instance.perturbation.centre)
-        print(instance.perturbation.normalization)
-        print(instance.perturbation.sigma)
+        print(instance.perturb.centre)
+        print(instance.perturb.normalization)
+        print(instance.perturb.sigma)
 
-        model_line = instance.gaussian_main.model_data_1d_via_xvalues_from(xvalues=xvalues) + instance.perturbation.model_data_1d_via_xvalues_from(xvalues=xvalues)
+        model_line = instance.gaussian_main.model_data_1d_via_xvalues_from(xvalues=xvalues) + instance.perturb.model_data_1d_via_xvalues_from(xvalues=xvalues)
 
         """Determine the noise (at a specified signal to noise level) in every pixel of our model profile."""
         signal_to_noise_ratio = 25.0

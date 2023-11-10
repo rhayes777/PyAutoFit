@@ -18,7 +18,7 @@ class Simulate:
         image = instance.gaussian(x)
 
         if hasattr(instance, "perturbation"):
-            image += instance.perturbation(x)
+            image += instance.perturb(x)
 
         return image
 
@@ -111,7 +111,7 @@ def make_job(
     instance = af.ModelInstance()
     instance.gaussian = af.Gaussian()
     base_instance = instance
-    instance.perturbation = af.Gaussian()
+    instance.perturb = af.Gaussian()
     # noinspection PyTypeChecker
     return s.Job(
         model=af.Collection(

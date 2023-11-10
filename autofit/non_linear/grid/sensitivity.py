@@ -397,7 +397,7 @@ class Sensitivity:
             zip(self._perturb_instances, self._perturb_models, self._labels)
         ):
             simulate_instance = copy(self.instance)
-            simulate_instance.perturbation = perturb_instance
+            simulate_instance.perturb = perturb_instance
 
             paths = self.paths.for_sub_analysis(
                 label,
