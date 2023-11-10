@@ -81,6 +81,16 @@ class PickleOutput(FileOutput):
 
 
 class HDUOutput(FileOutput):
+    def __init__(self, name: str, path: Path):
+        super().__init__(name, path)
+        self._file = None
+
+    @property
+    def file(self):
+        if self._file is None:
+            self._file = open(self.path, "rb")
+        return self._file
+
     @property
     def value(self):
         """
@@ -88,5 +98,8 @@ class HDUOutput(FileOutput):
         """
         from astropy.io import fits
 
-        with open(self.path, "rb") as f:
-            return fits.PrimaryHDU.readfrom(f)
+        return fits.PrimaryHDU.readfrom(self.file)
+
+    def __del__(self):
+        if self._file is not None:
+            self._file.close()
