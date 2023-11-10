@@ -1,5 +1,3 @@
-from pathlib import Path
-
 from autoconf.conf import with_config
 
 

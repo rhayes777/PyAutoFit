@@ -7,29 +7,25 @@ from autofit.non_linear.grid import sensitivity as s
 
 x = np.array(range(10))
 
+
 class Simulate:
-
     def __init__(self):
-
         pass
 
-    def __call__(self, instance: af.ModelInstance, simulate_path : Optional[str]):
-
+    def __call__(self, instance: af.ModelInstance, simulate_path: Optional[str]):
         image = instance.gaussian(x)
 
         if hasattr(instance, "perturbation"):
-            image += instance.perturb(x)
+            image += instance.perturbation(x)
 
         return image
 
 
 class Analysis(af.Analysis):
-
     def __init__(self, dataset: np.array):
         self.dataset = dataset
 
     def log_likelihood_function(self, instance):
-
         simulate = Simulate()
 
         dataset = simulate(instance, simulate_path=None)
@@ -38,61 +34,44 @@ class Analysis(af.Analysis):
 
 
 class BaseFit:
-
     def __init__(self, analysis_cls):
-
         self.analysis_cls = analysis_cls
 
     def __call__(self, dataset, model, paths):
-        
         search = af.m.MockSearch(return_sensitivity_results=True)
 
         analysis = self.analysis_cls(dataset=dataset)
 
-        return search.fit(
-            model=model, analysis=analysis
-        )
+        return search.fit(model=model, analysis=analysis)
 
 
 class PerturbFit:
-
     def __init__(self, analysis_cls):
-
         self.analysis_cls = analysis_cls
 
     def __call__(self, dataset, model, paths):
-        
         search = af.m.MockSearch(return_sensitivity_results=True)
 
         analysis = self.analysis_cls(dataset=dataset)
 
-        return search.fit(
-            model=model, analysis=analysis
-        )
+        return search.fit(model=model, analysis=analysis)
 
 
-
-@pytest.fixture(
-    name="perturb_model"
-)
+@pytest.fixture(name="perturb_model")
 def make_perturb_model():
     return af.Model(af.Gaussian)
 
 
-@pytest.fixture(
-    name="sensitivity"
-)
+@pytest.fixture(name="sensitivity")
 def make_sensitivity(
-        perturb_model,
+    perturb_model,
 ):
     # noinspection PyTypeChecker
     instance = af.ModelInstance()
     instance.gaussian = af.Gaussian()
     return s.Sensitivity(
         simulation_instance=instance,
-        base_model=af.Collection(
-            gaussian=af.Model(af.Gaussian)
-        ),
+        base_model=af.Collection(gaussian=af.Model(af.Gaussian)),
         perturb_model=perturb_model,
         simulate_cls=Simulate(),
         base_fit_cls=BaseFit(Analysis),
@@ -102,11 +81,9 @@ def make_sensitivity(
     )
 
 
-@pytest.fixture(
-    name="job"
-)
+@pytest.fixture(name="job")
 def make_job(
-        perturb_model,
+    perturb_model,
 ):
     instance = af.ModelInstance()
     instance.gaussian = af.Gaussian()
@@ -114,9 +91,7 @@ def make_job(
     instance.perturb = af.Gaussian()
     # noinspection PyTypeChecker
     return s.Job(
-        model=af.Collection(
-            gaussian=af.Model(af.Gaussian)
-        ),
+        model=af.Collection(gaussian=af.Model(af.Gaussian)),
         perturb_model=af.Model(af.Gaussian),
         simulate_instance=instance,
         base_instance=base_instance,
@@ -124,5 +99,5 @@ def make_job(
         base_fit_cls=BaseFit(Analysis),
         perturb_fit_cls=PerturbFit(Analysis),
         paths=af.DirectoryPaths(),
-        number=1
+        number=1,
     )
