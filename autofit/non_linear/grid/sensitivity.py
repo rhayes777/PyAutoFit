@@ -102,13 +102,19 @@ class Job(AbstractJob):
             simulate_path=self.paths.image_path.with_name("simulate"),
         )
 
-        result = self.base_fit_cls(model=self.model, dataset=dataset, paths=self.paths)
+        result = self.base_fit_cls(
+            model=self.model,
+            dataset=dataset,
+            paths=self.paths.for_sub_analysis("[base]"),
+        )
 
         perturb_model = copy(self.model)
         perturb_model.perturbation = self.perturb_model
 
         perturb_result = self.perturb_fit_cls(
-            model=perturb_model, dataset=dataset, paths=self.paths
+            model=perturb_model,
+            dataset=dataset,
+            paths=self.paths.for_sub_analysis("[perturb]"),
         )
 
         return JobResult(
