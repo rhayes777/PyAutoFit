@@ -4,7 +4,7 @@ Analysis
 ========
 
 The ``Analysis`` class is the interface between the data and model, whereby a ``log_likelihood_function`` is defined
-and called by the non-linear search fitting to fit the model.
+and called by the non-linear search to fit the model.
 
 This cookbook provides an overview of how to use and extend ``Analysis`` objects in **PyAutoFit**.
 

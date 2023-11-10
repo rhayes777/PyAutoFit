@@ -1,22 +1,24 @@
-from typing import List, Union, Iterable
+from typing import List, Optional, Union, Iterable
 
 import numpy as np
 
 from autofit import exc
+from autofit.non_linear.search.abstract_search import NonLinearSearch
+from autofit.non_linear.grid.grid_list import GridList, as_grid_list
 from autofit.mapper import model_mapper as mm
 from autofit.mapper.prior.abstract import Prior
 
 from autofit.non_linear.samples.interface import SamplesInterface
 
-LimitLists = List[List[float]]
 
-
+# noinspection PyTypeChecker
 class GridSearchResult:
     def __init__(
         self,
         samples: List[SamplesInterface],
-        lower_limits_lists: LimitLists,
+        lower_limits_lists: Union[List, GridList],
         grid_priors: List[Prior],
+        parent: Optional[NonLinearSearch] = None,
     ):
         """
         The sample of a grid search.
@@ -28,37 +30,44 @@ class GridSearchResult:
         lower_limits_lists
             A list of lists of values representing the lower bounds of the grid searched values at each step
         """
-        self.lower_limits_lists = lower_limits_lists
-        self.samples = samples
-        self.no_dimensions = len(self.lower_limits_lists[0])
-        self.no_steps = len(self.lower_limits_lists)
+        self.no_dimensions = len(lower_limits_lists[0])
+        self.no_steps = len(lower_limits_lists)
+
+        self.lower_limits_lists = GridList(lower_limits_lists, self.shape)
+        self.samples = GridList(samples, self.shape) if samples is not None else None
         self.side_length = int(self.no_steps ** (1 / self.no_dimensions))
         self.step_size = 1 / self.side_length
         self.grid_priors = grid_priors
 
+        self.parent = parent
+
     @property
-    def physical_lower_limits_lists(self) -> LimitLists:
+    @as_grid_list
+    def physical_lower_limits_lists(self) -> GridList:
         """
         The lower physical values for each grid square
         """
         return self._physical_values_for(self.lower_limits_lists)
 
     @property
-    def physical_centres_lists(self) -> LimitLists:
+    @as_grid_list
+    def physical_centres_lists(self) -> GridList:
         """
         The middle physical values for each grid square
         """
         return self._physical_values_for(self.centres_lists)
 
     @property
-    def physical_upper_limits_lists(self) -> LimitLists:
+    @as_grid_list
+    def physical_upper_limits_lists(self) -> GridList:
         """
         The upper physical values for each grid square
         """
         return self._physical_values_for(self.upper_limits_lists)
 
     @property
-    def upper_limits_lists(self) -> LimitLists:
+    @as_grid_list
+    def upper_limits_lists(self) -> GridList:
         """
         The upper values for each grid square
         """
@@ -68,7 +77,8 @@ class GridSearchResult:
         ]
 
     @property
-    def centres_lists(self) -> LimitLists:
+    @as_grid_list
+    def centres_lists(self) -> List:
         """
         The centre values for each grid square
         """
@@ -79,7 +89,7 @@ class GridSearchResult:
             )
         ]
 
-    def _physical_values_for(self, unit_lists: LimitLists) -> LimitLists:
+    def _physical_values_for(self, unit_lists: GridList) -> List:
         """
         Compute physical values for lists of lists of unit hypercube
         values.
@@ -170,21 +180,8 @@ class GridSearchResult:
 
         return tuple(physical_step_sizes)
 
-    def _list_to_native(self, lst: List):
-        return np.reshape(np.array(lst), self.shape)
-
-    @property
-    def samples_native(self):
-        """
-        The sample of every grid search on a NumPy array whose shape is the native dimensions of the grid search.
-
-        For example, for a 2x2 grid search the shape of the Numpy array is (2,2) and it is numerically ordered such
-        that the first search's sample (corresponding to unit priors (0.0, 0.0)) are in the first value (E.g. entry
-        [0, 0]) of the NumPy array.
-        """
-        return self._list_to_native(lst=[sample for sample in self.samples])
-
-    def attribute_grid(self, attribute_path: Union[str, Iterable[str]]) -> np.ndarray:
+    @as_grid_list
+    def attribute_grid(self, attribute_path: Union[str, Iterable[str]]) -> GridList:
         """
         Get a list of the attribute of the best instance from every search in a numpy array with the native dimensions
         of the grid search.
@@ -208,10 +205,12 @@ class GridSearchResult:
                 attribute = getattr(attribute, attribute_name)
             attribute_list.append(attribute)
 
-        return self._list_to_native(attribute_list)
+        return attribute_list
 
-    @property
-    def log_likelihoods_native(self):
+    @as_grid_list
+    def log_likelihoods(
+        self, relative_to_value: float = 0.0, remove_relative_zeros: bool = False
+    ) -> GridList:
         """
         The maximum log likelihood of every grid search on a NumPy array whose shape is the native dimensions of the
         grid search.
@@ -219,20 +218,48 @@ class GridSearchResult:
         For example, for a 2x2 grid search the shape of the Numpy array is (2,2) and it is numerically ordered such
         that the first search's maximum likelihood (corresponding to unit priors (0.0, 0.0)) are in the first
         value (E.g. entry [0, 0]) of the NumPy array.
-        """
-        return self._list_to_native(
-            lst=[sample.log_likelihood for sample in self.samples]
-        )
 
-    @property
-    def log_evidences_native(self):
+        Parameters
+        ----------
+        relative_to_value
+            The value to subtract from every log likelihood, for example if Bayesian model comparison is performed
+            on the grid search and the subtracted value is the maximum log likelihood of a previous search.
         """
-        The log evidence of every grid search on a NumPy array whose shape is the native dimensions of the grid search.
+        return [sample.log_likelihood - relative_to_value for sample in self.samples]
+
+    @as_grid_list
+    def log_evidences(self, relative_to_value: float = 0.0) -> GridList:
+        """
+        The maximum log evidence of every grid search on a NumPy array whose shape is the native dimensions of the
+        grid search.
 
         For example, for a 2x2 grid search the shape of the Numpy array is (2,2) and it is numerically ordered such
-        that the first search's log evidence (corresponding to unit priors (0.0, 0.0)) are in the first value (E.g.
-        entry [0, 0]) of the NumPy array.
+        that the first search's maximum evidence (corresponding to unit priors (0.0, 0.0)) are in the first
+        value (E.g. entry [0, 0]) of the NumPy array.
+
+        Parameters
+        ----------
+        relative_to_value
+            The value to subtract from every log likelihood, for example if Bayesian model comparison is performed
+            on the grid search and the subtracted value is the maximum log likelihood of a previous search.
         """
-        return self._list_to_native(
-            lst=[samples.log_evidence for samples in self.samples]
-        )
+        return [sample.log_evidence - relative_to_value for sample in self.samples]
+
+    def figure_of_merits(
+        self, use_log_evidences: bool, relative_to_value: float = 0.0
+    ) -> GridList:
+        """
+        Convenience method to get either the log likelihoods or log evidences of the grid search.
+
+        Parameters
+        ----------
+        use_log_evidences
+            If true, the log evidences are returned, otherwise the log likelihoods are returned.
+        relative_to_value
+            The value to subtract from every log likelihood, for example if Bayesian model comparison is performed
+            on the grid search and the subtracted value is the maximum log likelihood of a previous search.
+        """
+
+        if use_log_evidences:
+            return self.log_evidences(relative_to_value)
+        return self.log_likelihoods(relative_to_value)
