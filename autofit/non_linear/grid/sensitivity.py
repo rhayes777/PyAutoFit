@@ -9,7 +9,7 @@ from typing import List, Generator, Callable, ClassVar, Union, Tuple
 from autoconf.dictable import to_dict
 from autofit.mapper.model import ModelInstance
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
-from autofit.non_linear.grid.grid_search import make_lists
+from autofit.non_linear.grid.grid_search import make_lists, Sequential
 from autofit.non_linear.parallel import AbstractJob, Process, AbstractJobResult
 from autofit.non_linear.paths.abstract import AbstractPaths
 from autofit.non_linear.result import Result
@@ -209,7 +209,7 @@ class Sensitivity:
         perturb_fit_cls
             The class which fits the perturb model to each simulated dataset of the sensitivity map.
         number_of_cores
-            How many cores does this computer have? Minimum 2.
+            How many cores does this computer have?
         limit_scale
             Scales the priors for each perturbation model.
                 A scale of 1 means priors have limits the same size as the grid square.
@@ -235,7 +235,7 @@ class Sensitivity:
         self.job_cls = job_cls
 
         self.number_of_steps = number_of_steps
-        self.number_of_cores = number_of_cores or 2
+        self.number_of_cores = number_of_cores
 
         self.limit_scale = limit_scale
 
@@ -271,8 +271,10 @@ class Sensitivity:
         ]
         physical_values = list(self._physical_values)
 
+        process_class = Process if self.number_of_cores > 1 else Sequential
+
         results = list()
-        for result in Process.run_jobs(
+        for result in process_class.run_jobs(
             self._make_jobs(), number_of_cores=self.number_of_cores
         ):
             if isinstance(result, Exception):
