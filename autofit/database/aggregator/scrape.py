@@ -64,9 +64,9 @@ class Scraper:
         for item in self.aggregator:
             logger.info(
                 f"Creating fit for: "
-                f"{item.search.paths.path_prefix} "
-                f"{item.search.unique_tag} "
-                f"{item.search.name} "
+                f"{item.path_prefix} "
+                f"{item.unique_tag} "
+                f"{item.name} "
                 f"{item.id} "
             )
 
@@ -76,13 +76,13 @@ class Scraper:
             except sa.orm.exc.NoResultFound:
                 fit = m.Fit(
                     id=item.id,
-                    name=item.search.name,
-                    unique_tag=item.search.unique_tag,
+                    name=item.name,
+                    unique_tag=item.unique_tag,
                     model=item.model,
                     instance=item.instance,
                     is_complete=item.is_complete,
                     info=item.info,
-                    max_log_likelihood=item.log_likelihood,
+                    max_log_likelihood=item.max_log_likelihood,
                     parent_id=item.parent_identifier,
                 )
 
@@ -118,7 +118,7 @@ class Scraper:
 
             _add_files(grid_search, item)
 
-            for search in item.search_outputs:
+            for search in item.children:
                 fit = self._retrieve_model_fit(search)
                 grid_search.children.append(fit)
             yield grid_search

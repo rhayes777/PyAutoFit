@@ -1,7 +1,7 @@
 import json
 from abc import abstractmethod, ABC
 from pathlib import Path
-from typing import Union
+from typing import Union, Optional, Dict
 
 import numpy as np
 
@@ -68,6 +68,12 @@ class JSONOutput(FileOutput):
         The object represented by the JSON
         """
         return from_dict(self.dict)
+
+    def value_using_reference(self, reference: Optional[Dict] = None):
+        """
+        The object represented by the JSON
+        """
+        return from_dict(self.dict, reference=reference)
 
 
 class PickleOutput(FileOutput):

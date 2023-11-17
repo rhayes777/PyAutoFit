@@ -194,6 +194,14 @@ class Aggregator:
 
         return cls(search_outputs, grid_search_outputs)
 
+    def add_directory(self, directory: Union[str, Path]):
+        """
+        Add a directory to the aggregator.
+        """
+        aggregator = Aggregator.from_directory(directory)
+        self.search_outputs.extend(aggregator.search_outputs)
+        self.grid_search_outputs.extend(aggregator.grid_search_outputs)
+
     def remove_unzipped(self):
         """
         Removes the unzipped output directory for each phase.

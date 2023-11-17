@@ -20,8 +20,8 @@ def make_grid_search(aggregator):
 
 
 def test_correspondence(grid_search, aggregator):
-    assert len(grid_search.search_outputs) == 100
-    assert grid_search.search_outputs[0] is list(aggregator)[0]
+    assert len(grid_search.children) == 100
+    assert grid_search.children[0] is list(aggregator)[0]
 
 
 def test_attributes(grid_search):
