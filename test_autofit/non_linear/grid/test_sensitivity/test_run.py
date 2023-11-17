@@ -19,3 +19,10 @@ def test_sensitivity(sensitivity):
         )
         assert "     0,  0.25,  0.25,  0.25,   2.0,   2.0,   0.0\n" in all_lines
         assert "     1,  0.25,  0.25,  0.75,   2.0,   2.0,   0.0\n" in all_lines
+
+
+def test_serial(sensitivity):
+    sensitivity.number_of_cores = 1
+
+    results = sensitivity.run()
+    assert len(results) == 8
