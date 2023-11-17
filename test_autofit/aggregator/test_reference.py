@@ -71,4 +71,12 @@ def test_database_info(
     database_aggregator,
     output_directory,
 ):
-    assert (output_directory / "database.info").exists()
+    print((output_directory / "database.info").read_text())
+    assert (
+        (output_directory / "database.info").read_text()
+        == """                         unique_id,name,unique_tag,total_free_parameters,is_complete
+  c4bf344d706947aa66b129ed2e05e1bd,    ,          ,                    4,      False
+c4bf344d706947aa66b129ed2e05e1bd_0,    ,          ,                    0,           
+c4bf344d706947aa66b129ed2e05e1bd_1,    ,          ,                    0,           
+"""
+    )
