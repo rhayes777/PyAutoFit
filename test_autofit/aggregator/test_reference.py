@@ -4,6 +4,7 @@ from autoconf.class_path import get_class_path
 from autofit.aggregator import Aggregator
 from pathlib import Path
 import autofit as af
+from autofit.database.aggregator.info import Info
 
 
 @pytest.fixture(name="directory")
@@ -27,15 +28,37 @@ def test_with():
     assert model.cls is af.Exponential
 
 
-def test_database(session, directory):
-    aggregator = af.Aggregator(session)
+@pytest.fixture(name="database_aggregator")
+def database_aggregator(
+    directory,
+    session,
+    output_directory,
+):
+    aggregator = af.Aggregator(
+        session,
+        filename=output_directory / "database.sqlite",
+    )
     aggregator.add_directory(
         directory,
         reference={"": get_class_path(af.Exponential)},
     )
 
-    session.commit()
+    return aggregator
 
-    fit = list(aggregator)[0]
+
+def test_database(database_aggregator):
+    fit = list(database_aggregator)[0]
     model = fit.model
     assert model.cls is af.Exponential
+
+
+def test_info(database_aggregator):
+    info = Info(database_aggregator.session)
+    assert len(info.fits) == 3
+
+
+def test_database_info(
+    database_aggregator,
+    output_directory,
+):
+    assert (output_directory / "database.info").exists()
