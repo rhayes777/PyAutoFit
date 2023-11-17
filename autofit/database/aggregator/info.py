@@ -1,10 +1,13 @@
 from pathlib import Path
 from typing import List
+import logging
 
 from sqlalchemy.orm import Session
 
 from autofit.database.model.fit import Fit
 from autofit.text.formatter import write_table
+
+logger = logging.getLogger(__name__)
 
 
 class Info:
@@ -67,8 +70,11 @@ class Info:
         """
         Write the info to a file.
         """
-        write_table(
-            self.headers,
-            self.rows,
-            str(self.path),
-        )
+        try:
+            write_table(
+                self.headers,
+                self.rows,
+                str(self.path),
+            )
+        except TypeError:
+            logger.warning("Failed to write database info.")
