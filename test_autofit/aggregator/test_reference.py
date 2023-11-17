@@ -52,9 +52,19 @@ def test_database(database_aggregator):
     assert model.cls is af.Exponential
 
 
-def test_info(database_aggregator):
-    info = Info(database_aggregator.session)
+@pytest.fixture(name="info")
+def make_info(database_aggregator):
+    return Info(database_aggregator.session)
+
+
+def test_query_fits(info):
+    fits = info.fits
     assert len(info.fits) == 3
+    assert fits[0].total_parameters == 4
+
+
+def test_headers_and_rows(info):
+    assert len(info.headers) == len(info.rows[0])
 
 
 def test_database_info(
