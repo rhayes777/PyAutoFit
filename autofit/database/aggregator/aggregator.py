@@ -1,6 +1,5 @@
 import logging
 from abc import ABC, abstractmethod
-from pathlib import Path
 from typing import Optional, List, Union, cast
 
 from ..sqlalchemy_ import sa
@@ -422,8 +421,7 @@ class Aggregator(AbstractAggregator):
 
         if auto_commit:
             self.session.commit()
-            if self.filename:
-                Info(self.session).write(Path(self.filename).with_suffix(".info"))
+            Info(self.session).write()
 
     @classmethod
     def from_database(

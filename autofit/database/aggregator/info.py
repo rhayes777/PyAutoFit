@@ -1,5 +1,5 @@
 from pathlib import Path
-from typing import Union, List
+from typing import List
 
 from sqlalchemy.orm import Session
 
@@ -56,8 +56,19 @@ class Info:
             for fit in self.fits
         ]
 
-    def write(self, filename: Union[str, Path]):
+    @property
+    def path(self) -> Path:
+        """
+        The path to the file where the info will be written.
+        """
+        return Path(self.session.bind.url.database).with_suffix(".info")
+
+    def write(self):
         """
         Write the info to a file.
         """
-        write_table(self.headers, self.rows, filename)
+        write_table(
+            self.headers,
+            self.rows,
+            str(self.path),
+        )

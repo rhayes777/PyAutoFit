@@ -1,3 +1,5 @@
+import os
+
 import pytest
 
 from autoconf.class_path import get_class_path
@@ -28,15 +30,20 @@ def test_with():
     assert model.cls is af.Exponential
 
 
+@pytest.fixture(name="database_path")
+def remove_database(output_directory):
+    database_path = output_directory / "database.sqlite"
+    yield database_path
+    os.remove(database_path)
+
+
 @pytest.fixture(name="database_aggregator")
 def database_aggregator(
     directory,
-    session,
-    output_directory,
+    database_path,
 ):
-    aggregator = af.Aggregator(
-        session,
-        filename=output_directory / "database.sqlite",
+    aggregator = af.Aggregator.from_database(
+        database_path,
     )
     aggregator.add_directory(
         directory,
@@ -65,6 +72,10 @@ def test_query_fits(info):
 
 def test_headers_and_rows(info):
     assert len(info.headers) == len(info.rows[0])
+
+
+def test_info_path(info, output_directory):
+    assert info.path == output_directory / "database.info"
 
 
 def test_database_info(
