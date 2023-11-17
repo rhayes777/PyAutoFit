@@ -15,5 +15,5 @@ def test_placeholder():
 
 
 
-argument                                                                        No prior configuration found."""
+argument                                                                        Prior Missing: Enter Manually or Add to Config"""
     )

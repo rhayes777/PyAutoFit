@@ -417,6 +417,7 @@ class SamplesPDF(Samples):
         filename
             The filename the covariance matrix is saved to.
         """
+        # noinspection PyTypeChecker
         np.savetxt(filename, self.covariance_matrix(), delimiter=",")
 
     @property

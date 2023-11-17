@@ -1,6 +1,7 @@
 import shutil
 from typing import Dict, Optional, Union
 
+from autoconf.output import conditional_output
 from autofit.database.sqlalchemy_ import sa
 from .abstract import AbstractPaths
 import numpy as np
@@ -46,12 +47,6 @@ class DatabasePaths(AbstractPaths):
                 "The parent of search that uses the database must also use the database"
             )
         self._parent = parent
-
-    def save_named_instance(self, name: str, instance):
-        """
-        Save an instance, such as that at a given sigma
-        """
-        self.fit.named_instances[name] = instance
 
     @property
     def is_grid_search(self) -> bool:
@@ -121,6 +116,7 @@ class DatabasePaths(AbstractPaths):
         del d["session"]
         return d
 
+    @conditional_output
     def save_json(self, name, object_dict: Union[dict, list], prefix: str = ""):
         """
         Save a dictionary as a json file in the database
@@ -149,6 +145,7 @@ class DatabasePaths(AbstractPaths):
         """
         return self.fit.get_json(name)
 
+    @conditional_output
     def save_array(self, name, array: np.ndarray):
         """
         Save an array as a json file in the database
@@ -177,6 +174,7 @@ class DatabasePaths(AbstractPaths):
         """
         return self.fit.get_array(name)
 
+    @conditional_output
     def save_fits(self, name: str, hdu, prefix: str = ""):
         """
         Save a fits file in the database
@@ -205,6 +203,7 @@ class DatabasePaths(AbstractPaths):
         """
         return self.fit.get_hdu(name)
 
+    @conditional_output
     def save_object(self, name: str, obj: object, prefix: str = ""):
         self.fit[name] = obj
 

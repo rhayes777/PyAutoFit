@@ -150,12 +150,6 @@ class AbstractPaths(ABC):
     model = IdentifierField()
     unique_tag = IdentifierField()
 
-    @abstractmethod
-    def save_named_instance(self, name: str, instance):
-        """
-        Save an instance, such as that at a given sigma
-        """
-
     @property
     def non_linear_name(self):
         if self._non_linear_name is None:

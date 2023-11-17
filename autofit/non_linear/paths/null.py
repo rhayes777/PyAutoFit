@@ -9,10 +9,10 @@ class NullPaths(AbstractPaths):
     Null version of paths object for avoiding writing of files to disk
     """
 
-    def save_json(self, name, object_dict: dict, prefix : str = ""):
+    def save_json(self, name, object_dict: dict, prefix: str = ""):
         pass
 
-    def load_json(self, name, prefix : str = "") -> dict:
+    def load_json(self, name, prefix: str = "") -> dict:
         pass
 
     def save_array(self, name, array):
@@ -21,10 +21,10 @@ class NullPaths(AbstractPaths):
     def load_array(self, name):
         pass
 
-    def save_fits(self, name: str, hdu, prefix : str = ""):
+    def save_fits(self, name: str, hdu, prefix: str = ""):
         pass
 
-    def load_fits(self, name: str, prefix : str = ""):
+    def load_fits(self, name: str, prefix: str = ""):
         pass
 
     def __init__(self):
@@ -56,16 +56,13 @@ class NullPaths(AbstractPaths):
     ) -> "AbstractPaths":
         return NullPaths()
 
-    def save_named_instance(self, name: str, instance):
-        pass
-
     def save_all(self, search_config_dict=None, info=None):
         pass
 
-    def save_object(self, name: str, obj: object, prefix : str = ""):
+    def save_object(self, name: str, obj: object, prefix: str = ""):
         self.objects[name] = obj
 
-    def load_object(self, name: str, prefix : str = ""):
+    def load_object(self, name: str, prefix: str = ""):
         return self.objects[name]
 
     def remove_object(self, name: str):
