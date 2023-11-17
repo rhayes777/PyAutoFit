@@ -1,7 +1,8 @@
 import csv
 import inspect
 from copy import copy
-from typing import List, Tuple
+from pathlib import Path
+from typing import List, Tuple, Union
 
 from autoconf.class_path import get_class_path
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
@@ -276,7 +277,7 @@ def samples_from_iterator(iterator):
     return samples
 
 
-def load_from_table(filename: str) -> List[Sample]:
+def load_from_table(filename: Union[str, Path]) -> List[Sample]:
     """
     Load samples from a table
 

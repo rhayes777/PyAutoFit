@@ -82,6 +82,7 @@ class DirectoryPaths(AbstractPaths):
         array
             The numpy array to save
         """
+        # noinspection PyTypeChecker
         np.savetxt(self._path_for_csv(name), array, delimiter=",")
 
     def load_array(self, name: str):
