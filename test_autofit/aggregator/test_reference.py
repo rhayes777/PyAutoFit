@@ -71,7 +71,6 @@ def test_database_info(
     database_aggregator,
     output_directory,
 ):
-    print((output_directory / "database.info").read_text())
     assert (
         (output_directory / "database.info").read_text()
         == """                         unique_id,name,unique_tag,total_free_parameters,is_complete
