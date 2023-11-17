@@ -31,7 +31,7 @@ def test_with():
 
 
 @pytest.fixture(name="database_path")
-def remove_database(output_directory):
+def database_path(output_directory):
     database_path = output_directory / "database.sqlite"
     yield database_path
     os.remove(database_path)

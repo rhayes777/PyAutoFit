@@ -7,6 +7,7 @@ import numpy as np
 
 from autofit.database.model import Fit
 from autoconf.dictable import to_dict
+from autofit.database.aggregator.info import Info
 
 
 class DatabasePaths(AbstractPaths):
@@ -112,6 +113,7 @@ class DatabasePaths(AbstractPaths):
         Remove files from both the symlinked folder and the output directory
         """
         self.session.commit()
+        Info(self.session).write()
 
         if self.remove_files:
             shutil.rmtree(self.output_path, ignore_errors=True)
@@ -288,3 +290,4 @@ class DatabasePaths(AbstractPaths):
         self.save_json("model", to_dict(self.model))
 
         self.session.commit()
+        Info(self.session).write()
