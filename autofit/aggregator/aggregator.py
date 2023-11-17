@@ -117,7 +117,9 @@ class Aggregator:
         """
         if len(search_outputs) > 20:
             print(
-                "When aggregating many searches it can be more efficient to use the database."
+                "When aggregating many searches it can be more efficient to use the database.\n"
+                "Checkout the database cookbook at this URL: "
+                "https://pyautofit.readthedocs.io/en/latest/cookbooks/database.html"
             )
         self.search_outputs = search_outputs
         self.grid_search_outputs = grid_search_outputs
