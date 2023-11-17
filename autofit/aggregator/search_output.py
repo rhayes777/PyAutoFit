@@ -122,12 +122,7 @@ class AbstractSearchOutput:
 
         dataset.pickle, meta_dataset.pickle etc.
         """
-        result = self.value(name)
-
-        if result is not None:
-            return result
-
-        raise AttributeError(f"No attribute named {name}")
+        return self.value(name)
 
     def value(self, name: str):
         """
