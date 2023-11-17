@@ -1553,7 +1553,7 @@ class AbstractPriorModel(AbstractModel):
                 continue
 
             if isinstance(t[1], ConfigException):
-                t = (t[0], "No prior configuration found.")
+                t = (t[0], "Prior Missing: Enter Manually or Add to Config")
 
             formatter.add(*t)
 
