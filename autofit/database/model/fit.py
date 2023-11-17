@@ -199,6 +199,10 @@ class Fit(Base):
     def named_instances(self):
         return NamedInstancesWrapper(self)
 
+    @property
+    def total_parameters(self):
+        return self.model.prior_count if self.model else 0
+
     _info: List[Info] = sa.orm.relationship("Info")
 
     def __init__(self, **kwargs):

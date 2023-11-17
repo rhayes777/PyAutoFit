@@ -241,8 +241,8 @@ def write_table(headers, rows, filename: str):
         def write_row(row_):
             writer.writerow(
                 [
-                    "{0:>{1}}".format(header, width)
-                    for width, header in zip(column_max_widths, row_)
+                    "{0:>{1}}".format("" if value is None else str(value), width)
+                    for width, value in zip(column_max_widths, row_)
                 ]
             )
 
