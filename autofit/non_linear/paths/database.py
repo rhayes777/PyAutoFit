@@ -47,12 +47,6 @@ class DatabasePaths(AbstractPaths):
             )
         self._parent = parent
 
-    def save_named_instance(self, name: str, instance):
-        """
-        Save an instance, such as that at a given sigma
-        """
-        self.fit.named_instances[name] = instance
-
     @property
     def is_grid_search(self) -> bool:
         return self.fit.is_grid_search

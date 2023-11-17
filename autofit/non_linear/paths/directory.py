@@ -20,12 +20,6 @@ logger = logging.getLogger(__name__)
 
 
 class DirectoryPaths(AbstractPaths):
-    def save_named_instance(self, name: str, instance):
-        """
-        Save an instance, such as that at a given sigma
-        """
-        self.save_object(name, instance)
-
     def _path_for_pickle(self, name: str, prefix: str = "") -> Path:
         return self._files_path / prefix / f"{name}.pickle"
 
