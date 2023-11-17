@@ -1,0 +1,9 @@
+# Determines whether files saved by the search are output to the hard-disk. This is true both when saving to the
+# directory structure and when saving to database.
+
+# Files can be listed name: bool where the name is the name of the file without a suffix (e.g. model not model.json)
+# and bool is true or false.
+
+# If a given file is not listed then the default value is used.
+
+default: true # If true then files which are not explicitly listed here are output anyway. If false then they are not.

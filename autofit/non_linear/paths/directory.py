@@ -8,6 +8,7 @@ import logging
 
 from autoconf import conf
 from autoconf.dictable import to_dict
+from autoconf.output import conditional_output
 from autofit.text import formatter
 from autofit.tools.util import open_
 
@@ -20,12 +21,6 @@ logger = logging.getLogger(__name__)
 
 
 class DirectoryPaths(AbstractPaths):
-    def save_named_instance(self, name: str, instance):
-        """
-        Save an instance, such as that at a given sigma
-        """
-        self.save_object(name, instance)
-
     def _path_for_pickle(self, name: str, prefix: str = "") -> Path:
         return self._files_path / prefix / f"{name}.pickle"
 
@@ -40,6 +35,7 @@ class DirectoryPaths(AbstractPaths):
 
         return self._files_path / prefix / f"{name}.fits"
 
+    @conditional_output
     def save_object(self, name: str, obj: object, prefix: str = ""):
         """
         Serialise an object using dill and save it to the pickles
@@ -57,6 +53,7 @@ class DirectoryPaths(AbstractPaths):
         with open_(self._path_for_pickle(name, prefix), "wb") as f:
             dill.dump(obj, f)
 
+    @conditional_output
     def save_json(self, name, object_dict: Union[dict, list], prefix: str = ""):
         """
         Save a dictionary as a json file in the jsons directory of the search.
@@ -77,6 +74,7 @@ class DirectoryPaths(AbstractPaths):
         with open_(self._path_for_json(name, prefix)) as f:
             return json.load(f)
 
+    @conditional_output
     def save_array(self, name: str, array: np.ndarray):
         """
         Save a numpy array as a csv file in the csvs directory of the search.
@@ -88,11 +86,13 @@ class DirectoryPaths(AbstractPaths):
         array
             The numpy array to save
         """
+        # noinspection PyTypeChecker
         np.savetxt(self._path_for_csv(name), array, delimiter=",")
 
     def load_array(self, name: str):
         return np.loadtxt(self._path_for_csv(name), delimiter=",")
 
+    @conditional_output
     def save_fits(self, name: str, hdu, prefix: str = ""):
         """
         Save an HDU as a fits file in the fits directory of the search.
