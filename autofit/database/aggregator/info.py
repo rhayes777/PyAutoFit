@@ -1,4 +1,8 @@
+from pathlib import Path
+from typing import Union
+
 from autofit.database.model.fit import Fit
+from autofit.text.formatter import write_table
 
 
 class Info:
@@ -31,3 +35,6 @@ class Info:
             ]
             for fit in self.fits
         ]
+
+    def write(self, filename: Union[str, Path]):
+        write_table(self.headers, self.rows, filename)

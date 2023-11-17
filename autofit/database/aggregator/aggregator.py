@@ -1,10 +1,12 @@
 import logging
 from abc import ABC, abstractmethod
+from pathlib import Path
 from typing import Optional, List, Union, cast
 
 from ..sqlalchemy_ import sa
 
 from autofit.database import query as q
+from autofit.database.aggregator.info import Info
 from .scrape import Scraper
 from autofit.database import model as m
 from ..query.query import AbstractQuery, Attribute
@@ -420,6 +422,8 @@ class Aggregator(AbstractAggregator):
 
         if auto_commit:
             self.session.commit()
+            if self.filename:
+                Info(self.session).write(Path(self.filename).with_suffix(".info"))
 
     @classmethod
     def from_database(
