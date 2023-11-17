@@ -530,9 +530,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                 from pathlib import Path
 
                 search = DynestyStatic(
-                    name=self.name,
-                    unique_tag=self.unique_tag,
-                    path_prefix=Path(self.paths.path_prefix),
+                    paths=self.paths,
                     number_of_cores=self.number_of_cores,
                 )
 
