@@ -1546,11 +1546,14 @@ class AbstractPriorModel(AbstractModel):
         formatter = TextFormatter(line_length=info_whitespace())
 
         for t in self.path_instance_tuples_for_class(
-            (Prior, float, int, tuple), ignore_children=True
+            (Prior, float, int, tuple, ConfigException), ignore_children=True
         ):
             name = t[0][-1]
             if name in ("id", "item_number"):
                 continue
+
+            if isinstance(t[1], ConfigException):
+                t = (t[0], "Prior Missing: Enter Manually or Add to Config")
 
             formatter.add(*t)
 
