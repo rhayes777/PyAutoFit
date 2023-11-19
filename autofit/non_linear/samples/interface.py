@@ -125,6 +125,22 @@ class SamplesInterface(ABC):
             self.gaussian_priors_at_sigma(sigma=self.sigma), r=r
         )
 
+    def model_bounded(self, b: float) -> AbstractPriorModel:
+        """
+        Parameters
+        ----------
+        b
+            The size of the bounds of the uniform prior
+
+        Returns
+        -------
+        A model mapper created by taking results from this search and creating priors with the defined bounded
+        uniform priors.
+        """
+        return self.model.mapper_from_uniform_floats(
+            floats=self.max_log_likelihood(as_instance=False), b=b
+        )
+
     @property
     def sigma(self):
         return conf.instance["general"]["prior_passer"]["sigma"]

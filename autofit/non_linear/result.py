@@ -126,6 +126,19 @@ class AbstractResult(ABC):
         """
         return self.samples.model_relative(r)
 
+    def model_bounded(self, b: float) -> AbstractPriorModel:
+        """
+        Parameters
+        ----------
+        b
+            The bound size of the uniform priors.
+
+        Returns
+        -------
+        A model mapper created by taking results from this search and creating uniform priors with the defined bound
+        width.
+        """
+        return self.samples.model_bounded(b)
 
 class Result(AbstractResult):
     def __init__(self, samples: Samples):

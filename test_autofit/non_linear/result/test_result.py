@@ -9,7 +9,7 @@ def make_result():
     mapper.component = af.m.MockClassx2Tuple
     # noinspection PyTypeChecker
     return af.Result(
-        samples=af.m.MockSamples(gaussian_tuples=[(0, 0), (1, 0)], model=mapper),
+        samples=af.m.MockSamples(max_log_likelihood_instance=[0, 1], gaussian_tuples=[(0, 0), (1, 0)], model=mapper),
     )
 
 
@@ -34,6 +34,16 @@ class TestResult:
         assert component.one_tuple.one_tuple_1.mean == 1
         assert component.one_tuple.one_tuple_0.sigma == 0.0
         assert component.one_tuple.one_tuple_1.sigma == 1.0
+
+    def test_model_bounded(self, result):
+        component = result.model_bounded(b=1.0).component
+
+        print(component.one_tuple.one_tuple_0.lower_limit)
+
+        assert component.one_tuple.one_tuple_0.lower_limit == -1.0
+        assert component.one_tuple.one_tuple_1.lower_limit == 0.0
+        assert component.one_tuple.one_tuple_0.upper_limit == 1.0
+        assert component.one_tuple.one_tuple_1.upper_limit == 2.0
 
     def test_raises(self, result):
         with pytest.raises(af.exc.PriorException):
