@@ -67,6 +67,33 @@ class TestPerturbationModels:
         assert second.sigma.lower_limit == sl
         assert second.sigma.upper_limit == su
 
+    def test__perturb_models__prior_overwrite_via_perturb_model_prior_func(
+            self,
+            sensitivity,
+    ):
+        def perturb_model_prior_func(
+                perturb_instance,
+                perturb_model
+        ):
+
+            perturb_model.centre = af.UniformPrior(lower_limit=-7.0, upper_limit=4.0)
+
+            return perturb_model
+
+        sensitivity.perturb_model_prior_func = perturb_model_prior_func
+        jobs = sensitivity._make_jobs()
+        models = [
+            job.perturb_model
+            for job in jobs
+        ]
+
+        first, second, *_ = models
+
+        assert first is not second
+
+        assert first.centre.lower_limit == -7.0
+        assert first.centre.upper_limit == 4.0
+
     def test_physical(
             self,
             sensitivity

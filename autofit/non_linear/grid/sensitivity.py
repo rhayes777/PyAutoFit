@@ -4,7 +4,7 @@ import os
 from copy import copy
 from itertools import count
 from pathlib import Path
-from typing import List, Generator, Callable, ClassVar, Union, Tuple
+from typing import List, Generator, Callable, ClassVar, Optional, Union, Tuple
 
 from autoconf.dictable import to_dict
 from autofit.mapper.model import ModelInstance
@@ -176,6 +176,7 @@ class Sensitivity:
         base_fit_cls: Callable,
         perturb_fit_cls: Callable,
         job_cls: ClassVar = Job,
+        perturb_model_prior_func : Optional[Callable] = None,
         number_of_steps: Union[Tuple[int], int] = 4,
         number_of_cores: int = 2,
         limit_scale: int = 1,
@@ -231,6 +232,8 @@ class Sensitivity:
         self.simulate_cls = simulate_cls
         self.base_fit_cls = base_fit_cls
         self.perturb_fit_cls = perturb_fit_cls
+
+        self.perturb_model_prior_func = perturb_model_prior_func
 
         self.job_cls = job_cls
 
@@ -396,6 +399,13 @@ class Sensitivity:
         for number, (perturb_instance, perturb_model, label) in enumerate(
             zip(self._perturb_instances, self._perturb_models, self._labels)
         ):
+
+            if self.perturb_model_prior_func is not None:
+                perturb_model = self.perturb_model_prior_func(
+                    perturb_instance=perturb_instance,
+                    perturb_model=perturb_model
+                )
+
             simulate_instance = copy(self.instance)
             simulate_instance.perturb = perturb_instance
 
