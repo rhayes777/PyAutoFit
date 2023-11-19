@@ -8,8 +8,7 @@ quantify which model objectively gives the best-fit following the principles of 
 
 However, a complex model may not be favoured by model comparison not because it is the 'wrong' model, but simply
 because the dataset being fitted is not of a sufficient quality for the more complex model to be favoured. Sensitivity
-mapping allows us to address what quality of data would be needed for the more complex model to be favoured or
-alternatively for what sets of model parameter values it would be favoured for data of a given quality.
+mapping addresses what quality of data would be needed for the more complex model to be favoured.
 
 In order to do this, sensitivity mapping involves us writing a function that uses the model(s) to simulate a dataset.
 We then use this function to simulate many datasets, for many different models, and fit each dataset using the same

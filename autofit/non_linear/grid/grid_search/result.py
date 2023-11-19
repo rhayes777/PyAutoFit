@@ -209,7 +209,7 @@ class GridSearchResult:
 
     @as_grid_list
     def log_likelihoods(
-        self, relative_to_value: float = 0.0, remove_relative_zeros: bool = False
+        self, relative_to_value: float = 0.0,
     ) -> GridList:
         """
         The maximum log likelihood of every grid search on a NumPy array whose shape is the native dimensions of the

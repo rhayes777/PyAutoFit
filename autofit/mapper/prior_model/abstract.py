@@ -15,6 +15,7 @@ from autofit import exc
 from autofit.mapper import model
 from autofit.mapper.model import AbstractModel, frozen_cache
 from autofit.mapper.prior import GaussianPrior
+from autofit.mapper.prior import UniformPrior
 from autofit.mapper.prior.abstract import Prior
 from autofit.mapper.prior.deferred import DeferredArgument
 from autofit.mapper.prior.tuple_prior import TuplePrior
@@ -999,6 +1000,53 @@ class AbstractPriorModel(AbstractModel):
                 for prior, prior_limits in zip(self.priors_ordered_by_id, limits)
             }
         )
+
+    def mapper_from_uniform_floats(
+        self, floats, b
+    ):
+        """
+        The widths of the new priors are taken from the
+        width_config. The new gaussian priors must be provided in the same order as
+        the priors associated with model.
+        If a is not None then all priors are created with an absolute width of a.
+        If r is not None then all priors are created with a relative width of r.
+        Parameters
+        ----------
+        no_limits
+            If `True` generated priors have infinite limits
+        r
+            The relative width to be assigned to gaussian priors
+        a
+            print(tuples[i][1], width)
+            The absolute width to be assigned to gaussian priors
+        use_errors
+            If True, the passed errors of the model components estimated in a previous `NonLinearSearch` (computed
+            at the prior_passer.sigma value) are used to set the pass Gaussian Prior sigma value (if both width and
+            passed errors are used, the maximum of these two values are used).
+        use_widths
+            If True, the minimum prior widths specified in the prior configs of the model components are used to
+            set the passed Gaussian Prior sigma value (if both widths and passed errors are used, the maximum of
+            these two values are used).
+        tuples
+            A list of tuples each containing the mean and width of a prior
+        Returns
+        -------
+        mapper: ModelMapper
+            A new model mapper with all priors replaced by gaussian priors.
+        """
+
+        prior_tuples = self.prior_tuples_ordered_by_id
+        arguments = {}
+
+        for i, prior_tuple in enumerate(prior_tuples):
+            prior = prior_tuple.prior
+
+            new_prior = UniformPrior(lower_limit=floats[i] - b, upper_limit=floats[i] + b)
+            new_prior.id = prior.id
+            arguments[prior] = new_prior
+
+        return self.mapper_from_prior_arguments(arguments)
+
 
     def instance_from_prior_medians(self, ignore_prior_limits=False):
         """
