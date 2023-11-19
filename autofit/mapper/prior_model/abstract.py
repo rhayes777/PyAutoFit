@@ -1005,34 +1005,20 @@ class AbstractPriorModel(AbstractModel):
         self, floats, b
     ):
         """
-        The widths of the new priors are taken from the
-        width_config. The new gaussian priors must be provided in the same order as
-        the priors associated with model.
-        If a is not None then all priors are created with an absolute width of a.
-        If r is not None then all priors are created with a relative width of r.
+        The widths of the new priors are the `floats` value minus and plus the input bound `b`.
+
         Parameters
         ----------
-        no_limits
-            If `True` generated priors have infinite limits
-        r
-            The relative width to be assigned to gaussian priors
-        a
-            print(tuples[i][1], width)
-            The absolute width to be assigned to gaussian priors
-        use_errors
-            If True, the passed errors of the model components estimated in a previous `NonLinearSearch` (computed
-            at the prior_passer.sigma value) are used to set the pass Gaussian Prior sigma value (if both width and
-            passed errors are used, the maximum of these two values are used).
-        use_widths
-            If True, the minimum prior widths specified in the prior configs of the model components are used to
-            set the passed Gaussian Prior sigma value (if both widths and passed errors are used, the maximum of
-            these two values are used).
-        tuples
-            A list of tuples each containing the mean and width of a prior
+        floats
+            A list of floats each containing the centre of the new uniform priors.
+        b
+            The bound value which is subtracted from each float to calculate the `lower_limit` and `upper_limit`
+            of each uniform prior.
+
         Returns
         -------
         mapper: ModelMapper
-            A new model mapper with all priors replaced by gaussian priors.
+            A new model mapper with all priors replaced by uniform priors.
         """
 
         prior_tuples = self.prior_tuples_ordered_by_id
