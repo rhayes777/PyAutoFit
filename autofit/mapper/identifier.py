@@ -128,6 +128,8 @@ class Identifier:
             self.add_value_to_hash_list(d)
         elif isinstance(value, dict):
             for key, value in value.items():
+                if not isinstance(key, str):
+                    key = str(key)
                 if not (key.startswith("_") or key in ("id", "paths")):
                     self.hash_list.append(key)
                     self.add_value_to_hash_list(value)
