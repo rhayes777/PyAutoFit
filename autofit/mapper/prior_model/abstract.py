@@ -15,6 +15,7 @@ from autofit import exc
 from autofit.mapper import model
 from autofit.mapper.model import AbstractModel, frozen_cache
 from autofit.mapper.prior import GaussianPrior
+from autofit.mapper.prior import UniformPrior
 from autofit.mapper.prior.abstract import Prior
 from autofit.mapper.prior.deferred import DeferredArgument
 from autofit.mapper.prior.tuple_prior import TuplePrior
@@ -999,6 +1000,39 @@ class AbstractPriorModel(AbstractModel):
                 for prior, prior_limits in zip(self.priors_ordered_by_id, limits)
             }
         )
+
+    def mapper_from_uniform_floats(
+        self, floats, b
+    ):
+        """
+        The widths of the new priors are the `floats` value minus and plus the input bound `b`.
+
+        Parameters
+        ----------
+        floats
+            A list of floats each containing the centre of the new uniform priors.
+        b
+            The bound value which is subtracted from each float to calculate the `lower_limit` and `upper_limit`
+            of each uniform prior.
+
+        Returns
+        -------
+        mapper: ModelMapper
+            A new model mapper with all priors replaced by uniform priors.
+        """
+
+        prior_tuples = self.prior_tuples_ordered_by_id
+        arguments = {}
+
+        for i, prior_tuple in enumerate(prior_tuples):
+            prior = prior_tuple.prior
+
+            new_prior = UniformPrior(lower_limit=floats[i] - b, upper_limit=floats[i] + b)
+            new_prior.id = prior.id
+            arguments[prior] = new_prior
+
+        return self.mapper_from_prior_arguments(arguments)
+
 
     def instance_from_prior_medians(self, ignore_prior_limits=False):
         """

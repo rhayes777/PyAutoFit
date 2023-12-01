@@ -95,6 +95,14 @@ class SamplesInterface(ABC):
 
     def model_absolute(self, a: float) -> AbstractPriorModel:
         """
+        Returns a model where every free parameter is a `GaussianPrior` with `mean` the previous result's
+        inferred maximum log likelihood parameter values and `sigma` the input absolute value `a`.
+
+        For example, a previous result may infer a parameter to have a maximum log likelihood value of 2.
+
+        If this result is used for search chaining, `model_absolute(a=0.1)` will assign this free parameter
+        `GaussianPrior(mean=2.0, sigma=0.1)` in the new model, where `sigma` is linked to the input `a`.
+
         Parameters
         ----------
         a
@@ -111,6 +119,15 @@ class SamplesInterface(ABC):
 
     def model_relative(self, r: float) -> AbstractPriorModel:
         """
+        Returns a model where every free parameter is a `GaussianPrior` with `mean` the previous result's
+        inferred maximum log likelihood parameter values and `sigma` a relative value from the result `r`.
+
+        For example, a previous result may infer a parameter to have a maximum log likelihood value of 2 and
+        an error at the input `sigma` of 0.5.
+
+        If this result is used for search chaining, `model_relative(r=0.1)` will assign this free parameter
+        `GaussianPrior(mean=2.0, sigma=0.5*0.1)` in the new model, where `sigma` is the inferred error times `r`.
+
         Parameters
         ----------
         r
@@ -125,12 +142,38 @@ class SamplesInterface(ABC):
             self.gaussian_priors_at_sigma(sigma=self.sigma), r=r
         )
 
+    def model_bounded(self, b: float) -> AbstractPriorModel:
+        """
+        Returns a model where every free parameter is a `UniformPrior` with `lower_limit` and `upper_limit the previous
+        result's inferred maximum log likelihood parameter values minus and plus the bound `b`.
+
+        For example, a previous result may infer a parameter to have a maximum log likelihood value of 2.
+
+        If this result is used for search chaining, `model_bound(b=0.1)` will assign this free parameter
+        `UniformPrior(lower_limit=1.9, upper_limit=2.1)` in the new model.
+
+        Parameters
+        ----------
+        b
+            The size of the bounds of the uniform prior
+
+        Returns
+        -------
+        A model mapper created by taking results from this search and creating priors with the defined bounded
+        uniform priors.
+        """
+        return self.model.mapper_from_uniform_floats(
+            floats=self.max_log_likelihood(as_instance=False), b=b
+        )
+
     @property
     def sigma(self):
         return conf.instance["general"]["prior_passer"]["sigma"]
 
     def gaussian_priors_at_sigma(self, sigma: float) -> [List]:
         """
+        Returns `GaussianPrior`'s of every parameter in a fit for use with non-linear search chaining.
+
         `GaussianPrior`s of every parameter used to link its inferred values and errors to priors used to sample the
         same (or similar) parameters in a subsequent search, where:
 

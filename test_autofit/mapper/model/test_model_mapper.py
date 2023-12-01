@@ -565,6 +565,15 @@ class TestPriorReplacement:
         assert result.two.one.mean == 3
         assert result.two.two.mean == 4
 
+    def test__mapper_from_uniform_floats(self):
+        mapper = af.ModelMapper(mock_class=af.m.MockClassx2)
+        result = mapper.mapper_from_uniform_floats([10, 5], b=1.0)
+
+        assert isinstance(result.mock_class.one, af.UniformPrior)
+        assert {prior.id for prior in mapper.priors} == {
+            prior.id for prior in result.priors
+        }
+
 
 class TestArguments:
     def test_same_argument_name(self):
