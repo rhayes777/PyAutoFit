@@ -443,3 +443,7 @@ def test_dynesty_static():
         "max_move",
         "100",
     ]
+
+
+def test_integer_keys():
+    assert str(Identifier({1: 1}))
