@@ -112,7 +112,6 @@ class Scraper:
                 id=item.id,
                 unique_tag=item.unique_tag,
                 is_grid_search=True,
-                parent_id=item.parent_identifier,
                 is_complete=item.is_complete,
             )
 
