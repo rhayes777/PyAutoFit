@@ -6,7 +6,7 @@ from test_autofit.graphical.gaussian.model import Analysis, Gaussian, make_data
 from test_autofit.graphical.gaussian import model
 
 
-def test_jit(monkeypatch):
+def test_jit_likelihood(monkeypatch):
     monkeypatch.setattr(model, "np", np)
 
     x = np.arange(100)
@@ -16,6 +16,6 @@ def test_jit(monkeypatch):
     instance = Gaussian()
     af.Model(Gaussian)
 
-    analysis.log_likelihood_function(instance)
+    jitted = jax.jit(analysis.log_likelihood_function)
 
-    jax.jit(analysis.log_likelihood_function)(instance)
+    assert jitted(instance) == analysis.log_likelihood_function(instance)
