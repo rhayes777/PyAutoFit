@@ -173,17 +173,15 @@ class Sensitivity:
         return tuple(self.number_of_steps for _ in range(self.perturb_model.prior_count))
 
     @property
-    def step_size(self):
+    def step_size(self) -> Union[float, Tuple]:
         """
         Returns
         -------
-        step_size: float
+        step_size
             The size of a step in any given dimension in hyper space.
         """
         if isinstance(self.number_of_steps, tuple):
-            return tuple(
-                [1 / number_of_steps for number_of_steps in self.number_of_steps]
-            )
+            return tuple(1 / number_of_steps for number_of_steps in self.number_of_steps)
         return 1 / self.number_of_steps
 
     @property

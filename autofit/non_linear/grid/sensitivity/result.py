@@ -21,8 +21,8 @@ class SensitivityResult:
         shape
             The shape of the sensitivity mapping grid.
         """
-        self.samples = GridList(samples, shape) if samples is not None else None
-        self.perturb_samples = GridList(perturb_samples, shape) if samples is not None else None
+        self.samples = GridList(samples, shape)
+        self.perturb_samples = GridList(perturb_samples, shape)
         self.shape = shape
 
     def __getitem__(self, item):
