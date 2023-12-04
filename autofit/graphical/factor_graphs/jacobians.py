@@ -1,16 +1,9 @@
-# from itertools import repeat, chain
-# from typing import Tuple, Dict, Callable, Optional, Union, Any
-# from inspect import getfullargspec
+try:
+    import jax
 
-# import numpy as np
-# from sklearn.linear_model import PassiveAggressiveClassifier
-
-# try:
-#     import jax
-#
-#     _HAS_JAX = True
-# except ImportError:
-_HAS_JAX = False
+    _HAS_JAX = True
+except ImportError:
+    _HAS_JAX = False
 
 
 import numpy as np
