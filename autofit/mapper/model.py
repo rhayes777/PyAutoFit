@@ -390,7 +390,7 @@ class ModelInstance(AbstractModel):
 
     __dictable_type__ = "instance"
 
-    def __init__(self, child_items: Optional[Union[List, Dict]] = None):
+    def __init__(self, child_items: Optional[Union[List, Dict]] = None, id_=None):
         """
         An instance of a Collection or Model. This is created by optimisers and correspond
         to a point in the parameter space.
@@ -405,6 +405,7 @@ class ModelInstance(AbstractModel):
         """
         super().__init__()
         self.child_items = child_items
+        self.id = id_
 
     def __eq__(self, other):
         try:
