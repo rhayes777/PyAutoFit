@@ -128,6 +128,16 @@ class TestPerturbationModels:
         assert prior.upper_limit == 4
 
 
-def test_models_with_tuple_steps(sensitivity):
+@pytest.fixture(name="tuple_sensitivity")
+def make_tuple_sensitivity(sensitivity):
     sensitivity.number_of_steps = (2, 2, 4)
-    assert len(list(sensitivity._perturb_models)) == 16
+    return sensitivity
+
+
+def test_models_with_tuple_steps(tuple_sensitivity):
+    tuple_sensitivity.number_of_steps = (2, 2, 4)
+    assert len(list(tuple_sensitivity._perturb_models)) == 16
+
+
+def test_jobs_with_tuple_steps(tuple_sensitivity):
+    assert len(list(tuple_sensitivity._make_jobs())) == 16
