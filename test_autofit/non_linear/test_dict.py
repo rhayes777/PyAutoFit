@@ -24,6 +24,7 @@ def make_dynesty_dict():
             "unique_tag": None,
             "path_prefix": None,
             "iterations_per_update": 500,
+            "use_gradient": True,
             "number_of_cores": 1,
         },
     }
