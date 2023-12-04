@@ -464,7 +464,7 @@ class ModelInstance(AbstractModel):
     @classmethod
     def tree_unflatten(cls, aux_data, children):
         """
-        Create an instance from a flattened tree
+        Create an instance from a flattened PyTree
 
         Parameters
         ----------
