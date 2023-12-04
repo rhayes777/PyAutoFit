@@ -18,8 +18,12 @@ def make_gaussian():
     return af.Gaussian(centre=1.0, sigma=1.0, normalization=1.0)
 
 
-def test_gradient(gaussian, monkeypatch):
+@pytest.fixture(autouse=True)
+def patch_np(monkeypatch):
     monkeypatch.setattr(af.example.model, "np", jnp)
+
+
+def test_gradient(gaussian):
     gradient = grad(gaussian.f)
 
     assert float(gradient(1.0)) == 0.0
