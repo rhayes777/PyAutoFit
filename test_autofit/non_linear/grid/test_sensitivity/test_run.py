@@ -14,11 +14,11 @@ def test_sensitivity(sensitivity):
     with open(path) as f:
         all_lines = set(f)
         assert (
-            "index,centre,normalization,sigma,log_likelihood_base,log_likelihood_perturbed,log_likelihood_difference\n"
+            "index,centre,normalization,sigma,log_evidence_increase,log_likelihood_increase\n"
             in all_lines
         )
-        assert "     0,  0.25,  0.25,  0.25,   2.0,   2.0,   0.0\n" in all_lines
-        assert "     1,  0.25,  0.25,  0.75,   2.0,   2.0,   0.0\n" in all_lines
+        assert "     0,  0.25,  0.25,  0.25,  None,   0.0\n" in all_lines
+        assert "     1,  0.25,  0.25,  0.75,  None,   0.0\n" in all_lines
 
 
 def test_serial(sensitivity):
