@@ -15,6 +15,7 @@ from autofit.non_linear.grid.sensitivity.result import SensitivityResult
 from autofit.non_linear.parallel import Process
 from autofit.text.text_util import padding
 
+
 class Sensitivity:
     def __init__(
         self,
@@ -26,7 +27,7 @@ class Sensitivity:
         base_fit_cls: Callable,
         perturb_fit_cls: Callable,
         job_cls: ClassVar = Job,
-        perturb_model_prior_func : Optional[Callable] = None,
+        perturb_model_prior_func: Optional[Callable] = None,
         number_of_steps: Union[Tuple[int, ...], int] = 4,
         number_of_cores: int = 2,
         limit_scale: int = 1,
@@ -130,7 +131,6 @@ class Sensitivity:
                 writer = csv.writer(f)
                 writer.writerow(headers)
                 for result_ in results:
-
                     values = physical_values[result_.number]
                     writer.writerow(
                         padding(item)
@@ -144,8 +144,10 @@ class Sensitivity:
 
         result = SensitivityResult(
             samples=[result.result.samples.summary() for result in results],
-            perturb_samples=[result.perturb_result.samples.summary() for result in results],
-            shape=self.shape
+            perturb_samples=[
+                result.perturb_result.samples.summary() for result in results
+            ],
+            shape=self.shape,
         )
 
         self.paths.save_json("result", to_dict(result))
@@ -170,7 +172,9 @@ class Sensitivity:
         if isinstance(self.number_of_steps, tuple):
             return self.number_of_steps
 
-        return tuple(self.number_of_steps for _ in range(self.perturb_model.prior_count))
+        return tuple(
+            self.number_of_steps for _ in range(self.perturb_model.prior_count)
+        )
 
     @property
     def step_size(self) -> Union[float, Tuple]:
@@ -181,7 +185,9 @@ class Sensitivity:
             The size of a step in any given dimension in hyper space.
         """
         if isinstance(self.number_of_steps, tuple):
-            return tuple(1 / number_of_steps for number_of_steps in self.number_of_steps)
+            return tuple(
+                1 / number_of_steps for number_of_steps in self.number_of_steps
+            )
         return 1 / self.number_of_steps
 
     @property
@@ -253,14 +259,23 @@ class Sensitivity:
         These limits can be scaled using the limit_scale variable. If the variable
         is 2 then the priors will have width twice the step size.
         """
-        half_step = self.limit_scale * self.step_size / 2
+        if isinstance(self.step_size, tuple):
+            step_sizes = self.step_size
+        else:
+            step_sizes = (self.step_size,) * self.perturb_model.prior_count
+
+        half_steps = [self.limit_scale * step_size / 2 for step_size in step_sizes]
         for list_ in self._lists:
             limits = [
                 (
                     prior.value_for(max(0.0, centre - half_step)),
                     prior.value_for(min(1.0, centre + half_step)),
                 )
-                for centre, prior in zip(list_, self.perturb_model.priors_ordered_by_id)
+                for centre, prior, half_step in zip(
+                    list_,
+                    self.perturb_model.priors_ordered_by_id,
+                    half_steps,
+                )
             ]
             yield self.perturb_model.with_limits(limits)
 
@@ -274,11 +289,9 @@ class Sensitivity:
         for number, (perturb_instance, perturb_model, label) in enumerate(
             zip(self._perturb_instances, self._perturb_models, self._labels)
         ):
-
             if self.perturb_model_prior_func is not None:
                 perturb_model = self.perturb_model_prior_func(
-                    perturb_instance=perturb_instance,
-                    perturb_model=perturb_model
+                    perturb_instance=perturb_instance, perturb_model=perturb_model
                 )
 
             simulate_instance = copy(self.instance)
