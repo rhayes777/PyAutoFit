@@ -3,6 +3,7 @@ import collections.abc
 import copy
 import inspect
 import logging
+from typing import List
 
 from jax._src.tree_util import register_pytree_node_class, register_pytree_node
 
@@ -209,7 +210,11 @@ class Model(AbstractPriorModel):
         return value
 
     @property
-    def direct_argument_names(self):
+    def direct_argument_names(self) -> List[str]:
+        """
+        The names of priors, constants and other attributes that are direct
+        attributes of this model.
+        """
         return [
             t.name
             for t in self.direct_prior_tuples
@@ -220,20 +225,41 @@ class Model(AbstractPriorModel):
         ]
 
     def instance_flatten(self, instance):
+        """
+        Flatten an instance of this model as a PyTree.
+        """
         return (
             [getattr(instance, name) for name in self.direct_argument_names],
             None,
         )
 
     def instance_unflatten(self, aux_data, children):
+        """
+        Unflatten a PyTree into an instance of this model.
+
+        Parameters
+        ----------
+        aux_data
+        children
+
+        Returns
+        -------
+        An instance of this model.
+        """
         return self.cls(**dict(zip(self.direct_argument_names, children)))
 
     def tree_flatten(self):
+        """
+        Flatten this model as a PyTree.
+        """
         names, priors = zip(*self.direct_prior_tuples)
         return priors, (names, self.cls)
 
     @classmethod
     def tree_unflatten(cls, aux_data, children):
+        """
+        Unflatten a PyTree into a model.
+        """
         names, cls_ = aux_data
         arguments = {name: child for name, child in zip(names, children)}
         return cls(cls_, **arguments)
@@ -243,7 +269,10 @@ class Model(AbstractPriorModel):
 
     # noinspection PyAttributeOutsideInit
     @property
-    def constructor_argument_names(self):
+    def constructor_argument_names(self) -> List[str]:
+        """
+        The argument names of the constructor of the class of this model.
+        """
         if self.cls not in class_args_dict:
             try:
                 class_args_dict[self.cls] = inspect.getfullargspec(self.cls).args[1:]
