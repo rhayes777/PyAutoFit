@@ -1,4 +1,5 @@
 import numpy as np
+from jax import jit
 
 from autoconf import conf
 
@@ -6,23 +7,27 @@ from autofit import exc
 
 from timeout_decorator import timeout
 
-def get_timeout_seconds():
+from autofit import jax_wrapper
 
+
+def get_timeout_seconds():
     try:
         return conf.instance["general"]["test"]["lh_timeout_seconds"]
     except KeyError:
         pass
 
+
 timeout_seconds = get_timeout_seconds()
+
 
 class Fitness:
     def __init__(
-            self,
-            model,
-            analysis,
-            fom_is_log_likelihood : bool = True,
-            resample_figure_of_merit : float = -np.inf,
-            convert_to_chi_squared : bool = False
+        self,
+        model,
+        analysis,
+        fom_is_log_likelihood: bool = True,
+        resample_figure_of_merit: float = -np.inf,
+        convert_to_chi_squared: bool = False,
     ):
         """
         Interfaces with any non-linear in order to fit a model to the data and return a log likelihood via
@@ -78,6 +83,10 @@ class Fitness:
         self.fom_is_log_likelihood = fom_is_log_likelihood
         self.resample_figure_of_merit = resample_figure_of_merit
         self.convert_to_chi_squared = convert_to_chi_squared
+        if jax_wrapper.use_jax:
+            self.log_likelihood_function = jit(analysis.log_likelihood_function)
+        else:
+            self.log_likelihood_function = analysis.log_likelihood_function
 
     @timeout(timeout_seconds)
     def __call__(self, parameters, *kwargs):
@@ -101,23 +110,19 @@ class Fitness:
         """
 
         try:
-
             instance = self.model.instance_from_vector(vector=parameters)
-            log_likelihood = self.analysis.log_likelihood_function(instance=instance)
+            log_likelihood = self.log_likelihood_function(instance=instance)
 
             if np.isnan(log_likelihood):
                 return self.resample_figure_of_merit
 
         except exc.FitException:
-
             return self.resample_figure_of_merit
 
         if self.fom_is_log_likelihood:
             figure_of_merit = log_likelihood
         else:
-            log_prior_list = self.model.log_prior_list_from_vector(
-                vector=parameters
-            )
+            log_prior_list = self.model.log_prior_list_from_vector(vector=parameters)
             figure_of_merit = log_likelihood + sum(log_prior_list)
 
         if self.convert_to_chi_squared:

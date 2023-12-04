@@ -2,9 +2,10 @@ import jax
 from jax import numpy as np
 
 import autofit as af
+from autoconf.conf import with_config
+from autofit import jax_wrapper
 from test_autofit.graphical.gaussian.model import Analysis, Gaussian, make_data
 from test_autofit.graphical.gaussian import model as model_module
-
 
 import pytest
 
@@ -37,3 +38,29 @@ def test_jit_likelihood(analysis, instance):
     jitted = jax.jit(analysis.log_likelihood_function)
 
     assert jitted(instance) == analysis.log_likelihood_function(instance)
+
+
+@with_config(
+    "non_linear",
+    "nest",
+    "DynestyStatic",
+    "parallel",
+    "force_x1_cpu",
+    value=True,
+)
+def test_jit_dynesty_static(
+    analysis,
+    model,
+    monkeypatch,
+):
+    monkeypatch.setattr(
+        jax_wrapper,
+        "use_jax",
+        True,
+    )
+    search = af.DynestyStatic(
+        use_gradient=True,
+        number_of_cores=1,
+    )
+
+    print(search.fit(model=model, analysis=analysis))
