@@ -4,12 +4,12 @@ from typing import Tuple, Dict, Any, Callable, Union, List, Optional, TYPE_CHECK
 
 import numpy as np
 
-# try:
-#     import jax
-#
-#     _HAS_JAX = True
-# except ImportError:
-_HAS_JAX = False
+try:
+    import jax
+
+    _HAS_JAX = True
+except ImportError:
+    _HAS_JAX = False
 
 from autofit.graphical.utils import (
     nested_filter,
