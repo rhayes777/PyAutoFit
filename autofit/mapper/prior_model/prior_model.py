@@ -3,7 +3,6 @@ import collections.abc
 import copy
 import inspect
 import logging
-import typing
 
 from jax._src.tree_util import register_pytree_node_class, register_pytree_node
 
@@ -12,10 +11,6 @@ from autoconf.exc import ConfigException
 from autofit.mapper.model import assert_not_frozen
 from autofit.mapper.model_object import ModelObject
 from autofit.mapper.prior.abstract import Prior
-from autofit.mapper.prior.arithmetic.assertion import (
-    CompoundAssertion,
-    ComparisonAssertion,
-)
 from autofit.mapper.prior.deferred import DeferredInstance
 from autofit.mapper.prior.tuple_prior import TuplePrior
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
@@ -198,7 +193,9 @@ class Model(AbstractPriorModel):
         try:
             # noinspection PyTypeChecker
             register_pytree_node(
-                self.cls, self.instance_flatten, self.instance_unflatten,
+                self.cls,
+                self.instance_flatten,
+                self.instance_unflatten,
             )
         except ValueError:
             pass
