@@ -451,7 +451,10 @@ class ModelInstance(AbstractModel):
             and not (isinstance(key, str) and key.startswith("_"))
         }
 
-    def tree_flatten(self):
+    def tree_flatten(self) -> Tuple[List, Tuple]:
+        """
+        Flatten the instance into a tuple of its values and auxiliary information.
+        """
         keys, values = zip(*self.dict.items())
         return values, (
             *keys,
@@ -460,6 +463,21 @@ class ModelInstance(AbstractModel):
 
     @classmethod
     def tree_unflatten(cls, aux_data, children):
+        """
+        Create an instance from a flattened tree
+
+        Parameters
+        ----------
+        aux_data
+            Auxiliary information that remains unchanged including
+            the keys of the dict
+        children
+            Child objects subject to change
+
+        Returns
+        -------
+        An instance of this class
+        """
         *keys, id_ = aux_data
 
         instance = cls(id_=id_)
