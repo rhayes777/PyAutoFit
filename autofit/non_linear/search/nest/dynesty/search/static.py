@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import jax
 from jax import grad
-from typing import TYPE_CHECKING
 
 from autoconf import cached_property
 
@@ -58,7 +57,7 @@ class DynestyStatic(AbstractDynesty):
         iterations_per_update: int = None,
         number_of_cores: int = None,
         session: Optional[sa.orm.Session] = None,
-        use_gradient: bool = True,
+        use_gradient: bool = False,
         **kwargs,
     ):
         """
