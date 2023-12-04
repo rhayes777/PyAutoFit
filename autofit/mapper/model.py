@@ -462,7 +462,11 @@ class ModelInstance(AbstractModel):
         )
 
     @classmethod
-    def tree_unflatten(cls, aux_data, children):
+    def tree_unflatten(
+        cls,
+        aux_data: Tuple,
+        children: List,
+    ):
         """
         Create an instance from a flattened PyTree
 
