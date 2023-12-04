@@ -1,9 +1,14 @@
 import shutil
-from typing import Optional
+from typing import Dict, Optional, Union
 
+from autoconf.output import conditional_output
 from autofit.database.sqlalchemy_ import sa
 from .abstract import AbstractPaths
-from ...database.model import Fit
+import numpy as np
+
+from autofit.database.model import Fit
+from autoconf.dictable import to_dict
+from autofit.database.aggregator.info import Info
 
 
 class DatabasePaths(AbstractPaths):
@@ -44,12 +49,6 @@ class DatabasePaths(AbstractPaths):
             )
         self._parent = parent
 
-    def save_named_instance(self, name: str, instance):
-        """
-        Save an instance, such as that at a given sigma
-        """
-        self.fit.named_instances[name] = instance
-
     @property
     def is_grid_search(self) -> bool:
         return self.fit.is_grid_search
@@ -85,7 +84,9 @@ class DatabasePaths(AbstractPaths):
         """
         self.fit.is_grid_search = True
         if self.fit.instance is None:
-            self.fit.instance = self.model.instance_from_prior_medians()
+            self.fit.instance = self.model.instance_from_prior_medians(
+                ignore_prior_limits=True
+            )
         child = type(self)(
             session=self.session,
             name=name or self.name,
@@ -107,6 +108,7 @@ class DatabasePaths(AbstractPaths):
         Remove files from both the symlinked folder and the output directory
         """
         self.session.commit()
+        Info(self.session).write()
 
         if self.remove_files:
             shutil.rmtree(self.output_path, ignore_errors=True)
@@ -116,10 +118,98 @@ class DatabasePaths(AbstractPaths):
         del d["session"]
         return d
 
-    def save_object(self, name: str, obj: object):
+    @conditional_output
+    def save_json(self, name, object_dict: Union[dict, list], prefix: str = ""):
+        """
+        Save a dictionary as a json file in the database
+
+        Parameters
+        ----------
+        name
+            The name of the json
+        object_dict
+            The dictionary to save
+        """
+        self.fit.set_json(name, object_dict)
+
+    def load_json(self, name: str, prefix: str = "") -> Union[dict, list]:
+        """
+        Load a json file from the database
+
+        Parameters
+        ----------
+        name
+            The name of the json
+
+        Returns
+        -------
+        The loaded dictionary
+        """
+        return self.fit.get_json(name)
+
+    @conditional_output
+    def save_array(self, name, array: np.ndarray):
+        """
+        Save an array as a json file in the database
+
+        Parameters
+        ----------
+        name
+            The name of the array
+        array
+            The array to save
+        """
+        self.fit.set_array(name, array)
+
+    def load_array(self, name: str) -> np.ndarray:
+        """
+        Load an array from the database
+
+        Parameters
+        ----------
+        name
+            The name of the array
+
+        Returns
+        -------
+        The loaded array
+        """
+        return self.fit.get_array(name)
+
+    @conditional_output
+    def save_fits(self, name: str, hdu, prefix: str = ""):
+        """
+        Save a fits file in the database
+
+        Parameters
+        ----------
+        name
+            The name of the fits file
+        hdu
+            The hdu to save
+        """
+        self.fit.set_hdu(name, hdu)
+
+    def load_fits(self, name: str, prefix: str = ""):
+        """
+        Load a fits file from the database
+
+        Parameters
+        ----------
+        name
+            The name of the fits file
+
+        Returns
+        -------
+        The loaded hdu
+        """
+        return self.fit.get_hdu(name)
+
+    @conditional_output
+    def save_object(self, name: str, obj: object, prefix: str = ""):
         self.fit[name] = obj
 
-    def load_object(self, name: str):
+    def load_object(self, name: str, prefix: str = ""):
         return self.fit[name]
 
     def remove_object(self, name: str):
@@ -127,6 +217,12 @@ class DatabasePaths(AbstractPaths):
 
     def is_object(self, name: str) -> bool:
         return name in self.fit
+
+    def save_search_internal(self, obj):
+        pass
+
+    def load_search_internal(self):
+        pass
 
     @property
     def fit(self) -> Fit:
@@ -159,13 +255,13 @@ class DatabasePaths(AbstractPaths):
     def save_summary(self, samples, log_likelihood_function_time):
         self.fit.instance = samples.max_log_likelihood()
         self.fit.max_log_likelihood = samples.max_log_likelihood_sample.log_likelihood
-        super().save_summary(samples, log_likelihood_function_time)
 
     def save_samples(self, samples):
         if not self.save_all_samples:
             samples = samples.minimise()
 
         self.fit.samples = samples
+        self.fit.set_json("samples_info", samples.samples_info)
 
     def samples_to_csv(self, samples):
         """
@@ -182,13 +278,15 @@ class DatabasePaths(AbstractPaths):
         return self._load_samples().sample_list
 
     def load_samples_info(self):
-        return self._load_samples().info_json
+        return self._load_samples().samples_info
 
     def save_all(self, info, *_, **kwargs):
-        self.save_identifier()
         self.fit.info = info
         self.fit.model = self.model
-
-        self.save_object("search", self.search)
+        if info:
+            self.save_json("info", info)
+        self.save_json("search", to_dict(self.search))
+        self.save_json("model", to_dict(self.model))
 
         self.session.commit()
+        Info(self.session).write()

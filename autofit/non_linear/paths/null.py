@@ -1,5 +1,5 @@
 import tempfile
-from typing import Optional
+from typing import Dict, Optional
 
 from .abstract import AbstractPaths
 
@@ -8,6 +8,24 @@ class NullPaths(AbstractPaths):
     """
     Null version of paths object for avoiding writing of files to disk
     """
+
+    def save_json(self, name, object_dict: dict, prefix: str = ""):
+        pass
+
+    def load_json(self, name, prefix: str = "") -> dict:
+        pass
+
+    def save_array(self, name, array):
+        pass
+
+    def load_array(self, name):
+        pass
+
+    def save_fits(self, name: str, hdu, prefix: str = ""):
+        pass
+
+    def load_fits(self, name: str, prefix: str = ""):
+        pass
 
     def __init__(self):
         super().__init__()
@@ -38,13 +56,13 @@ class NullPaths(AbstractPaths):
     ) -> "AbstractPaths":
         return NullPaths()
 
-    def save_named_instance(self, name: str, instance):
+    def save_all(self, search_config_dict=None, info=None):
         pass
 
-    def save_object(self, name: str, obj: object):
+    def save_object(self, name: str, obj: object, prefix: str = ""):
         self.objects[name] = obj
 
-    def load_object(self, name: str):
+    def load_object(self, name: str, prefix: str = ""):
         return self.objects[name]
 
     def remove_object(self, name: str):
@@ -60,7 +78,14 @@ class NullPaths(AbstractPaths):
     def completed(self):
         pass
 
-    def save_all(self, search_config_dict, info, pickle_files):
+    def save_search_internal(self, obj):
+        pass
+
+    def load_search_internal(self):
+        pass
+
+    @property
+    def search_internal_path(self):
         pass
 
     def load_samples(self):
@@ -70,4 +95,7 @@ class NullPaths(AbstractPaths):
         pass
 
     def load_samples_info(self):
+        pass
+
+    def zip_remove(self):
         pass

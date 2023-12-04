@@ -18,21 +18,19 @@ class ModelAnalysis(Analysis):
         self.model = model
 
     def __getattr__(self, item):
+        if item in ("__getstate__", "__setstate__"):
+            raise AttributeError(item)
         return getattr(self.analysis, item)
 
     def log_likelihood_function(self, instance):
         return self.analysis.log_likelihood_function(instance)
 
-    def make_result(self, samples, model, sigma=1.0, use_errors=True, use_widths=False):
+    def make_result(self, samples):
         """
         Return the correct type of result by calling the underlying analysis.
         """
         return self.analysis.make_result(
             samples=samples,
-            model=model,
-            sigma=sigma,
-            use_errors=use_errors,
-            use_widths=use_widths,
         )
 
 

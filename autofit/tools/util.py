@@ -1,3 +1,4 @@
+import inspect
 import json
 import os
 import sys
@@ -5,10 +6,12 @@ import zipfile
 from contextlib import contextmanager
 from functools import wraps
 from pathlib import Path
+from typing import Union
 
 import numpy as np
 
 from autoconf import conf
+
 
 def split_paths(func):
     """
@@ -16,15 +19,10 @@ def split_paths(func):
 
     e.g. "lens.mass.centre" -> ["lens", "mass", "centre"]
     """
+
     @wraps(func)
     def wrapper(self, paths):
-        paths = [
-            path.split(".")
-            if isinstance(
-                path, str
-            ) else path
-            for path in paths
-        ]
+        paths = [path.split(".") if isinstance(path, str) else path for path in paths]
         return func(self, paths)
 
     return wrapper
@@ -42,31 +40,20 @@ class IntervalCounter:
         return self.count % self.interval == 0
 
 
-def zip_directory(
-        source_directory,
-        output=None
-):
+def zip_directory(source_directory, output=None):
     output = output or f"{source_directory}.zip"
     with zipfile.ZipFile(output, "w", zipfile.ZIP_DEFLATED) as f:
         for root, dirs, files in os.walk(source_directory):
-
             for file in files:
                 f.write(
                     os.path.join(root, file),
-                    os.path.join(
-                        root[len(str(source_directory)):], file
-                    ),
+                    os.path.join(root[len(str(source_directory)) :], file),
                 )
 
 
 def open_(filename, *flags):
-    directory = Path(
-        filename
-    )
-    os.makedirs(
-        directory.parent,
-        exist_ok=True
-    )
+    directory = Path(filename)
+    os.makedirs(directory.parent, exist_ok=True)
     return open(filename, *flags)
 
 
@@ -82,7 +69,7 @@ def suppress_stdout():
 
 
 def numpy_array_to_json(
-        array: np.ndarray, file_path: str, overwrite: bool = False
+    array: np.ndarray, file_path: Union[Path, str], overwrite: bool = False
 ):
     """
     Write a NumPy array to a json file.
@@ -94,7 +81,7 @@ def numpy_array_to_json(
     file_path
         The full path of the file that is output, including the file name and `.json` extension.
     overwrite
-        If `True` and a file already exists with the input file_path the .json file is overwritten. If 
+        If `True` and a file already exists with the input file_path the .json file is overwritten. If
         `False`, an error will be raised.
 
     Returns
@@ -119,7 +106,7 @@ def numpy_array_to_json(
         json.dump(array.tolist(), f)
 
 
-def numpy_array_from_json(file_path: str):
+def numpy_array_from_json(file_path: Union[Path, str]):
     """
     Read a 1D NumPy array from a .json file.
 

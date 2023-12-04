@@ -1,9 +1,6 @@
 import math
 
 from autofit.jax_wrapper import numpy as np
-from typing import Dict
-
-from autoconf.dictable import Dictable
 
 """
 The `Gaussian` class in this module is the model components that is fitted to data using a non-linear search. The
@@ -15,7 +12,7 @@ their methods (e.g. model_data_1d_via_xvalues_from) can be used in the log likel
 """
 
 
-class Gaussian(Dictable):
+class Gaussian:
     def __init__(
         self,
         centre: float = 0.0,  # <- PyAutoFit recognises these constructor arguments
@@ -45,6 +42,14 @@ class Gaussian(Dictable):
     @classmethod
     def _tree_unflatten(cls, aux_data, children):
         return Gaussian(*children)
+
+    def __eq__(self, other):
+        return (
+            isinstance(other, Gaussian)
+            and self.centre == other.centre
+            and self.normalization == other.normalization
+            and self.sigma == other.sigma
+        )
 
     def model_data_1d_via_xvalues_from(self, xvalues: np.ndarray) -> np.ndarray:
         """
@@ -83,20 +88,6 @@ class Gaussian(Dictable):
         """
         return self.model_data_1d_via_xvalues_from(xvalues=xvalues)
 
-    def dict(self) -> Dict:
-        """
-        Returns the `Gaussian` as a dictionary which can be straight forwardly written to a `.json` file via the
-        code:
-
-        with open(model_file, "w+") as f:
-            json.dump(gaussian.dict(), f, indent=4)
-
-        Returns
-        -------
-        The `Gaussian` type and model parameters as a dictionary.
-        """
-        return super().dict()
-
     def inverse(self, y):
         """
         For graphical models, the inverse of the Gaussian is used to test certain aspects of the calculation.
@@ -109,7 +100,7 @@ class Gaussian(Dictable):
         return self.centre + self.sigma * math.sqrt(b)
 
 
-class Exponential(Dictable):
+class Exponential:
     def __init__(
         self,
         centre: float = 0.0,  # <- PyAutoFit recognises these constructor arguments are the model
@@ -161,18 +152,3 @@ class Exponential(Dictable):
             The x coordinates in the original reference frame of the grid.
         """
         return self.model_data_1d_via_xvalues_from(xvalues=xvalues)
-
-    def dict(self) -> Dict:
-        """
-        Returns the `Gaussian` as a dictionary which can be straight forwardly written to a `.json` file via the
-        code:
-
-        with open(model_file, "w+") as f:
-            json.dump(gaussian.dict(), f, indent=4)
-
-        Returns
-        -------
-        The `Gaussian` type and model parameters as a dictionary.
-
-        """
-        return super().dict()

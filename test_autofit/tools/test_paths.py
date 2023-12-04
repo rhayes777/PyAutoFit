@@ -5,18 +5,19 @@ from os import path
 import pytest
 
 import autofit as af
+from pathlib import Path
 
-directory = path.dirname(path.realpath(__file__))
+directory = Path(__file__).parent
 
 
 class PatchPaths(af.DirectoryPaths):
     @property
-    def sym_path(self) -> str:
-        return path.join(directory, "sym_path")
+    def sym_path(self) -> Path:
+        return directory / "sym_path"
 
     @property
-    def output_path(self) -> str:
-        return path.join(directory, "phase_output_path")
+    def output_path(self) -> Path:
+        return directory / "phase_output_path"
 
 
 @pytest.fixture(name="paths")
@@ -26,7 +27,7 @@ def make_paths():
 
 def test_restore(paths):
     paths.model = af.Model(af.Gaussian)
-    paths.save_all({}, {}, [])
+    paths.save_all({}, {})
 
     paths.zip_remove()
     paths.restore()

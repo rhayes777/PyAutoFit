@@ -1,14 +1,13 @@
 import math
 import numpy as np
-from typing import List, Optional
+from typing import Dict, List, Optional
 import warnings
 
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
-from autofit.non_linear.mcmc.auto_correlations import AutoCorrelationsSettings
+from autofit.non_linear.search.mcmc.auto_correlations import AutoCorrelations
+from autofit.non_linear.search.mcmc.auto_correlations import AutoCorrelationsSettings
 from autofit.non_linear.samples.pdf import SamplesPDF
-from autofit.non_linear.samples.samples import Samples
 from autofit.non_linear.samples.samples import Sample
-from autofit.non_linear.samples.sample import load_from_table
 
 from autofit.non_linear.samples.samples import to_instance, to_instance_sigma
 
@@ -20,48 +19,45 @@ class SamplesMCMC(SamplesPDF):
             self,
             model: AbstractPriorModel,
             sample_list: List[Sample],
-            auto_correlation_settings: AutoCorrelationsSettings,
-            unconverged_sample_size: int = 100,
-            time: Optional[float] = None,
-            results_internal: Optional = None,
+            samples_info : Optional[Dict] = None,
+            search_internal: Optional = None,
+            auto_correlation_settings: Optional[AutoCorrelationsSettings] = None,
+            auto_correlations : Optional[AutoCorrelations] = None
     ):
         """
-        The `Samples` classes in **PyAutoFit** provide an interface between the results_internal of
+        The `Samples` classes in **PyAutoFit** provide an interface between the search_internal of
         a `NonLinearSearch` (e.g. as files on your hard-disk) and Python.
 
         For example, the output class can be used to load an instance of the best-fit model, get an instance of any
         individual sample by the `NonLinearSearch` and return information on the likelihoods, errors, etc.
 
         This class stores the samples of a MCMC model-fit (e.g. `emcee`, `zeus`). To use a library's in-built
-        visualization tools results_internal are optionally stored in their native internal format using
-        the `results_internal` attribute.
+        visualization tools search_internal are optionally stored in their native internal format using
+        the `search_internal` attribute.
 
         Attributes
         ----------
-        results_internal
+        search_internal
             The MCMC results in their native internal format from which the samples are computed.
         model
             Maps input vectors of unit parameter values to physical values and model instances via priors.
-        auto_correlations_settings
+        auto_correlation_settings
             Customizes and performs auto correlation calculations performed during and after the search.
-        unconverged_sample_size
-            If the samples are for a search that is yet to convergence, a reduced set of samples are used to provide
-            a rough estimate of the parameters. The number of samples is set by this parameter.
         time
             The time taken to perform the model-fit, which is passed around `Samples` objects for outputting
             information on the overall fit.
-        results_internal
+        search_internal
             The MCMC library's results in their native internal format for interfacing its visualization library.
         """
 
+        self.auto_correlations = auto_correlations
         self.auto_correlation_settings = auto_correlation_settings
 
         super().__init__(
             model=model,
             sample_list=sample_list,
-            unconverged_sample_size=unconverged_sample_size,
-            time=time,
-            results_internal=results_internal
+            samples_info=samples_info,
+            search_internal=search_internal
         )
 
     def __add__(
@@ -73,7 +69,7 @@ class SamplesMCMC(SamplesPDF):
         computed via their joint PDF.
 
         For Zeus samples there are no tools for combining results in their native format, therefore these
-        `results_internal` are set to None and support for visualization is disabled.
+        `search_internal` are set to None and support for visualization is disabled.
 
         Parameters
         ----------
@@ -96,53 +92,10 @@ class SamplesMCMC(SamplesPDF):
         return self.__class__(
             model=self.model,
             sample_list=self.sample_list + other.sample_list,
+            samples_info=self.samples_info,
             auto_correlation_settings=self.auto_correlation_settings,
-            unconverged_sample_size=self.unconverged_sample_size,
-            time=self.time,
-            results_internal=None
+            search_internal=None
         )
-
-    @property
-    def total_walkers(self):
-        raise NotImplementedError
-
-    @property
-    def total_steps(self):
-        raise NotImplementedError
-
-    @property
-    def auto_correlations(self):
-        raise NotImplementedError
-
-    @classmethod
-    def from_table(self, filename: str, model: AbstractPriorModel, number_live_points: int = None):
-        """
-        Write a table of parameters, posteriors, priors and likelihoods
-
-        Parameters
-        ----------
-        filename
-            Where the table is to be written
-        """
-
-        sample_list = load_from_table(filename=filename)
-
-        return Samples(
-            model=model,
-            sample_list=sample_list
-        )
-
-    @property
-    def info_json(self):
-        return {
-            "times": None,
-            "check_size": self.auto_correlations.check_size,
-            "required_length": self.auto_correlations.required_length,
-            "change_threshold": self.auto_correlations.change_threshold,
-            "total_walkers": self.total_walkers,
-            "total_steps": self.total_steps,
-            "time": self.time,
-        }
 
     @property
     def pdf_converged(self):
@@ -155,21 +108,11 @@ class SamplesMCMC(SamplesPDF):
         will likely produce inaccurate results.
         """
         try:
-            samples_after_burn_in = self.samples_after_burn_in
-            if len(samples_after_burn_in) == 0:
+            if len(self.parameter_lists) == 0:
                 return False
             return True
         except ValueError:
             return False
-
-    @property
-    def samples_after_burn_in(self) -> [List]:
-        """
-        The emcee samples with the initial burn-in samples removed.
-
-        The burn-in period is estimated using the auto-correlation times of the parameters.
-        """
-        raise NotImplementedError()
 
     @property
     def converged(self) -> bool:
@@ -192,7 +135,7 @@ class SamplesMCMC(SamplesPDF):
 
         if self.pdf_converged:
             return [
-                float(np.percentile(self.samples_after_burn_in[:, i], [50]))
+                float(np.percentile(self.parameters_extract[i, :], [50]))
                 for i in range(self.model.prior_count)
             ]
 
@@ -222,11 +165,11 @@ class SamplesMCMC(SamplesPDF):
         limit = math.erf(0.5 * sigma * math.sqrt(2))
 
         if self.pdf_converged:
-            samples = self.samples_after_burn_in
+            samples = self.parameters_extract
 
             return [
                 tuple(
-                    np.percentile(samples[:, i], [100.0 * (1.0 - limit), 100.0 * limit])
+                    np.percentile(samples[i, :], [100.0 * (1.0 - limit), 100.0 * limit])
                 )
                 for i in range(self.model.prior_count)
             ]
@@ -242,6 +185,14 @@ class SamplesMCMC(SamplesPDF):
             (parameters_min[index], parameters_max[index])
             for index in range(len(parameters_min))
         ]
+
+    @property
+    def total_steps(self) -> int:
+        return self.samples_info["total_steps"]
+
+    @property
+    def total_walkers(self) -> int:
+        return self.samples_info["total_walkers"]
 
     @property
     def log_evidence(self):

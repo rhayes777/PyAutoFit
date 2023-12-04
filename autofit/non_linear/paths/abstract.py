@@ -1,3 +1,4 @@
+import dill
 import json
 import logging
 import os
@@ -7,7 +8,10 @@ import zipfile
 from abc import ABC, abstractmethod
 from configparser import NoSectionError
 from os import path
-from typing import Optional
+from pathlib import Path
+from typing import Dict, Optional
+
+import numpy as np
 
 from autoconf import conf
 from autofit.mapper.identifier import Identifier, IdentifierField
@@ -89,7 +93,7 @@ class AbstractPaths(ABC):
         pass
 
     def __str__(self):
-        return self.output_path
+        return str(self.output_path)
 
     def __repr__(self):
         return f"<{self.__class__.__name__} {self}>"
@@ -146,12 +150,6 @@ class AbstractPaths(ABC):
     model = IdentifierField()
     unique_tag = IdentifierField()
 
-    @abstractmethod
-    def save_named_instance(self, name: str, instance):
-        """
-        Save an instance, such as that at a given sigma
-        """
-
     @property
     def non_linear_name(self):
         if self._non_linear_name is None:
@@ -186,43 +184,63 @@ class AbstractPaths(ABC):
         return str(self._identifier)
 
     def save_identifier(self):
-        with open_(f"{self.output_path}/.identifier", "w+") as f:
+        with open_(self.output_path / ".identifier", "w+") as f:
             f.write(self._identifier.description)
 
     @property
-    def samples_path(self) -> str:
+    def search_internal_path(self) -> Path:
         """
         The path to the samples folder.
         """
-        return path.join(self.output_path, "samples")
+
+        os.makedirs(self._files_path / "search_internal", exist_ok=True)
+
+        return self._files_path / "search_internal"
 
     @property
-    def image_path(self) -> str:
+    def image_path(self) -> Path:
         """
         The path to the image folder.
         """
-        return path.join(self.output_path, "image")
+        return self.output_path / "image"
 
     @property
-    def profile_path(self) -> str:
+    def profile_path(self) -> Path:
         """
         The path to the profile folder.
         """
-        return path.join(self.output_path, "profile")
+        return self.output_path / "profile"
 
     @property
-    def output_path(self) -> str:
+    def output_path(self) -> Path:
         """
         The path to the output information for a search.
         """
+
         strings = list(
-            filter(len, [str(conf.instance.output_path), self.path_prefix, self.name,],)
+            filter(
+                len,
+                [
+                    str(conf.instance.output_path),
+                    str(self.path_prefix),
+                    str(self.name),
+                ],
+            )
         )
 
         if self.is_identifier_in_paths:
             strings.append(self.identifier)
 
-        return path.join("", *strings)
+        return Path(path.join("", *strings))
+
+    @property
+    def _files_path(self) -> Path:
+        """
+        This is private for a reason, use the save_json etc. methods to save and load json
+        """
+        files_path = self.output_path / "files"
+        os.makedirs(files_path, exist_ok=True)
+        return files_path
 
     def zip_remove(self):
         """
@@ -232,13 +250,13 @@ class AbstractPaths(ABC):
         self._zip()
 
     def _zip(self):
-
         try:
             zip_directory(self.output_path, self._zip_path)
 
             if self.remove_files:
                 shutil.rmtree(
-                    self.output_path, ignore_errors=True,
+                    self.output_path,
+                    ignore_errors=True,
                 )
 
         except FileNotFoundError:
@@ -276,15 +294,13 @@ class AbstractPaths(ABC):
         """
 
         if os.environ.get("PYAUTOFIT_NUCLEAR_MODE") == "1":
-
-            file_path = os.path.split(self.output_path)[0]
+            file_path = Path(os.path.split(self.output_path)[0])
 
             file_list = os.listdir(file_path)
             file_list = [file for file in file_list if self.identifier not in file]
 
             for file in file_list:
-
-                file_to_remove = path.join(file_path, file)
+                file_to_remove = file_path / file
 
                 try:
                     os.remove(file_to_remove)
@@ -330,11 +346,35 @@ class AbstractPaths(ABC):
         return f"{self.output_path}.zip"
 
     @abstractmethod
-    def save_object(self, name: str, obj: object):
+    def save_json(self, name, object_dict: dict, prefix: str = ""):
         pass
 
     @abstractmethod
-    def load_object(self, name: str):
+    def load_json(self, name, prefix: str = "") -> dict:
+        pass
+
+    @abstractmethod
+    def save_array(self, name, array: np.ndarray):
+        pass
+
+    @abstractmethod
+    def load_array(self, name) -> np.ndarray:
+        pass
+
+    @abstractmethod
+    def save_fits(self, name: str, hdu, prefix: str = ""):
+        pass
+
+    @abstractmethod
+    def load_fits(self, name: str, prefix: str = ""):
+        pass
+
+    @abstractmethod
+    def save_object(self, name: str, obj: object, prefix: str = ""):
+        pass
+
+    @abstractmethod
+    def load_object(self, name: str, prefix: str = ""):
         pass
 
     @abstractmethod
@@ -344,6 +384,12 @@ class AbstractPaths(ABC):
     @abstractmethod
     def is_object(self, name: str) -> bool:
         pass
+
+    def save_search_internal(self, obj):
+        raise NotImplementedError
+
+    def load_search_internal(self):
+        raise NotImplementedError
 
     @property
     @abstractmethod
@@ -355,7 +401,7 @@ class AbstractPaths(ABC):
         pass
 
     @abstractmethod
-    def save_all(self, search_config_dict=None, info=None, pickle_files=None):
+    def save_all(self, search_config_dict=None, info=None):
         pass
 
     @abstractmethod
@@ -379,16 +425,12 @@ class AbstractPaths(ABC):
     def load_samples_info(self):
         pass
 
-    def _save_search(self, config_dict):
-
-        with open_(path.join(self.output_path, "search.json"), "w+") as f:
-            json.dump(dict(config_dict), f, indent=4)
-
     def save_summary(self, samples, log_likelihood_function_time):
+        result_info = text_util.result_info_from(
+            samples=samples,
+        )
 
-        result_info = text_util.result_info_from(samples=samples,)
-
-        filename = path.join(self.output_path, "model.results")
+        filename = self.output_path / "model.results"
 
         with open_(filename, "w") as f:
             f.write(result_info)
@@ -396,13 +438,17 @@ class AbstractPaths(ABC):
         text_util.search_summary_to_file(
             samples=samples,
             log_likelihood_function_time=log_likelihood_function_time,
-            filename=path.join(self.output_path, "search.summary"),
+            filename=self.output_path / "search.summary",
         )
 
     @property
-    def _samples_file(self) -> str:
-        return path.join(self.samples_path, "samples.csv")
+    def _samples_file(self) -> Path:
+        return self._files_path / "samples.csv"
 
     @property
-    def _info_file(self) -> str:
-        return path.join(self.samples_path, "info.json")
+    def _covariance_file(self) -> Path:
+        return self._files_path / "covariance.csv"
+
+    @property
+    def _info_file(self) -> Path:
+        return self._files_path / "samples_info.json"

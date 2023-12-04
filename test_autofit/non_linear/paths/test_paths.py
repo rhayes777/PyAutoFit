@@ -57,7 +57,7 @@ def test_identifier_file(model):
     paths = af.DirectoryPaths()
     paths.model = model
     paths.search = af.DynestyStatic()
-    paths.save_all({}, {}, [])
+    paths.save_all({}, {})
 
     assert os.path.exists(output_path / paths.identifier / ".identifier")
 

@@ -8,8 +8,8 @@ from .abstract import Prior
 
 @register_pytree_node_class
 class GaussianPrior(Prior):
-
     __identifier_fields__ = ("lower_limit", "upper_limit", "mean", "sigma")
+    __database_args__ = ("mean", "sigma", "lower_limit", "upper_limit", "id_")
 
     def __init__(
         self,
@@ -92,7 +92,8 @@ class GaussianPrior(Prior):
         A new GaussianPrior
         """
         return cls(
-            mean=(lower_limit + upper_limit) / 2, sigma=upper_limit - lower_limit,
+            mean=(lower_limit + upper_limit) / 2,
+            sigma=upper_limit - lower_limit,
         )
 
     def dict(self) -> dict:

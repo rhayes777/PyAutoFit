@@ -24,8 +24,8 @@ class MyAnalysis(af.Analysis):
     def log_likelihood_function(self, instance):
         pass
 
-    def make_result(self, samples, model, sigma=1.0, use_errors=True, use_widths=False):
-        return MyResult(model=model, samples=samples)
+    def make_result(self, samples):
+        return MyResult(samples=samples)
 
     def modify_before_fit(self, paths, model):
         self.is_modified_before = True
@@ -41,7 +41,7 @@ def test_result_type():
 
     analysis = MyAnalysis().with_model(model)
 
-    result = analysis.make_result(None, model)
+    result = analysis.make_result(None)
 
     assert isinstance(result, MyResult)
 
@@ -51,13 +51,20 @@ def make_combined_analysis():
     return MyAnalysis() + MyAnalysis()
 
 
-def test_combined_before_fit(combined_analysis):
-    combined_analysis = combined_analysis.modify_before_fit(None, [None])
+@pytest.fixture(name="paths")
+def make_paths():
+    return af.DirectoryPaths()
+
+
+def test_combined_before_fit(combined_analysis, paths):
+    combined_analysis = combined_analysis.modify_before_fit(paths, [None])
 
     assert combined_analysis[0].is_modified_before
 
 
-def test_combined_after_fit(combined_analysis):
-    combined_analysis = combined_analysis.modify_after_fit(None, [None], None)
+def test_combined_after_fit(combined_analysis, paths):
+    result = combined_analysis.make_result(None)
+
+    combined_analysis = combined_analysis.modify_after_fit(paths, [None], result)
 
     assert combined_analysis[0].is_modified_after

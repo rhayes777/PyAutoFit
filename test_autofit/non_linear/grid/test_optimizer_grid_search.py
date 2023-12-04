@@ -1,16 +1,17 @@
+import csv
 import pickle
 
 import numpy as np
 import pytest
 
 import autofit as af
-from autofit import exc, Result
+from autofit import exc
 
 
 def test_unpickle_result():
     # noinspection PyTypeChecker
     result = af.GridSearchResult(
-        results=[af.Result(samples=None, model=None)],
+        samples=[af.Samples(model=af.Model(af.Gaussian), sample_list=[])],
         lower_limits_lists=[[1]],
         grid_priors=[],
     )
@@ -20,7 +21,6 @@ def test_unpickle_result():
 
 class TestGridSearchablePriors:
     def test_generated_models(self, grid_search, mapper):
-
         mappers = list(
             grid_search.model_mappers(
                 mapper,
@@ -152,6 +152,23 @@ def empty_args():
     af.m.MockOptimizer.init_args = list()
 
 
+def test_csv_headers(grid_search_10_result, sample_name_paths):
+    with open(sample_name_paths.output_path / "results.csv") as f:
+        reader = csv.reader(f)
+        headers = next(reader)
+
+    assert headers == [
+        "index",
+        "component_one_tuple_0",
+        "component_one_tuple_1",
+        "log_likelihood_increase",
+    ]
+
+
+def test_output_result_json(grid_search_10_result, sample_name_paths):
+    assert isinstance(sample_name_paths.load_json("result"), dict)
+
+
 class TestGridNLOBehaviour:
     def test_results(self, grid_search_05, mapper):
         result = grid_search_05.fit(
@@ -163,71 +180,13 @@ class TestGridNLOBehaviour:
             ],
         )
 
-        assert len(result.results) == 4
+        assert len(result.samples) == 4
         assert result.no_dimensions == 2
 
-        grid_search = af.SearchGridSearch(
-            search=af.m.MockOptimizer(), number_of_steps=10,
-        )
-        grid_search.search.paths = af.DirectoryPaths(name="sample_name")
-        result = grid_search.fit(
-            model=mapper,
-            analysis=af.m.MockAnalysis(),
-            grid_priors=[
-                mapper.component.one_tuple.one_tuple_0,
-                mapper.component.one_tuple.one_tuple_1,
-            ],
-        )
-
-        assert len(result.results) == 100
-        assert result.no_dimensions == 2
-        assert result.log_likelihoods_native.shape == (10, 10)
-
-    # def test_results_parallel(self, mapper, container):
-    #     grid_search = af.SearchGridSearch(
-    #         search=container.af.m.MockOptimizer,
-    #         number_of_steps=10,
-    #         paths=af.Paths(name="sample_name"),
-    #         parallel=True,
-    #     )
-    #     result = grid_search.fit(
-    #         container.af.m.MockAnalysis(),
-    #         mapper,
-    #         [mapper.component.one_tuple.one_tuple_0, mapper.component.one_tuple.one_tuple_1],
-    #     )
-    #
-    #     assert len(result.results) == 100
-    #     assert result.no_dimensions == 2
-    #     assert result.likelihood_merit_array.shape == (10, 10)
-
-    # def test_generated_models_with_instances(self, grid_search, container, mapper):
-    #     instance_component = mock.af.m.MockClassx2Tuple()
-    #     mapper.instance_component = instance_component
-    #
-    #     analysis = container.af.m.MockAnalysis()
-    #
-    #     grid_search.fit(analysis, mapper, [mapper.component.one_tuple.one_tuple_0])
-    #
-    #     for instance in container.fit_instances:
-    #         assert isinstance(instance.component, mock.af.m.MockClassx2Tuple)
-    #         assert instance.instance_component == instance_component
-    #
-    # def test_generated_models_with_instance_attributes(
-    #         self, grid_search, mapper, container
-    # ):
-    #     instance = 2.0
-    #     mapper.component.one_tuple.one_tuple_1 = instance
-    #
-    #     analysis = container.af.m.MockAnalysis()
-    #
-    #     grid_search.fit(analysis, mapper, [mapper.component.one_tuple.one_tuple_0])
-    #
-    #     assert len(container.fit_instances) > 0
-    #
-    #     for instance in container.fit_instances:
-    #         assert isinstance(instance.component, mock.af.m.MockClassx2Tuple)
-    #         # noinspection PyUnresolvedReferences
-    #         assert instance.component.centre[1] == 2
+    def test_results_10(self, grid_search_10_result):
+        assert len(grid_search_10_result.samples) == 100
+        assert grid_search_10_result.no_dimensions == 2
+        assert grid_search_10_result.log_likelihoods().native.shape == (10, 10)
 
     def test_passes_attributes(self):
         search = af.DynestyStatic()
@@ -250,13 +209,13 @@ def make_grid_search_result():
 
     # noinspection PyTypeChecker
     return af.GridSearchResult(
-        results=[one, two], lower_limits_lists=[[1], [2]], grid_priors=[[1], [2]]
+        samples=[one, two], lower_limits_lists=[[1], [2]], grid_priors=[[1], [2]]
     )
 
 
 class TestGridSearchResult:
     def test_best_result(self, grid_search_result):
-        assert grid_search_result.best_result.log_likelihood == 2
+        assert grid_search_result.best_samples.log_likelihood == 2
 
     def test_attributes(self, grid_search_result):
         assert grid_search_result.model == 2
@@ -272,7 +231,7 @@ class TestGridSearchResult:
 
         # noinspection PyTypeChecker
         grid_search_result = af.GridSearchResult(
-            results=None,
+            samples=None,
             grid_priors=[
                 af.UniformPrior(lower_limit=-2.0, upper_limit=2.0),
                 af.UniformPrior(lower_limit=-3.0, upper_limit=3.0),
@@ -297,43 +256,57 @@ class TestGridSearchResult:
 
     def test__results_on_native_grid(self, grid_search_result):
         assert (
-            grid_search_result.results_native
+            grid_search_result.samples.native
             == np.array(
-                [[grid_search_result.results[0], grid_search_result.results[1]],]
+                [
+                    [grid_search_result.samples[0], grid_search_result.samples[1]],
+                ]
             )
         ).all()
 
-        assert (grid_search_result.log_likelihoods_native == np.array([[1, 2],])).all()
+        assert (
+            grid_search_result.log_likelihoods().native
+            == np.array(
+                [
+                    [1, 2],
+                ]
+            )
+        ).all()
 
 
 @pytest.mark.parametrize(
-    "n_dimensions, n_steps", [(2, 2), (3, 3), (2, 3), (3, 2), (4, 4),]
+    "n_dimensions, n_steps",
+    [
+        (2, 2),
+        (3, 3),
+        (2, 3),
+        (3, 2),
+        (4, 4),
+    ],
 )
 def test_higher_dimensions(n_dimensions, n_steps):
     shape = n_dimensions * (n_steps,)
-    total = n_steps ** n_dimensions
+    total = n_steps**n_dimensions
     model = af.Model(af.Gaussian)
     result = af.GridSearchResult(
-        results=total
+        samples=total
         * [
-            af.Result(
-                af.SamplesPDF(
-                    model,
-                    [
-                        af.Sample(
-                            1.0,
-                            1.0,
-                            1.0,
-                            {"centre": 1.0, "sigma": 1.0, "normalization": 1.0},
-                        )
-                    ],
-                ),
-                model=model,
-            )
+            af.SamplesPDF(
+                model,
+                [
+                    af.Sample(
+                        1.0,
+                        1.0,
+                        1.0,
+                        {"centre": 1.0, "sigma": 1.0, "normalization": 1.0},
+                    )
+                ],
+            ),
         ],
         grid_priors=[],
         lower_limits_lists=total * [n_dimensions * [0.0]],
     )
+
     assert result.shape == shape
-    assert result.results_native.shape == shape
-    assert result.log_likelihoods_native.shape == shape
+    assert result.samples.native.shape == shape
+    assert result.log_likelihoods().native.shape == shape

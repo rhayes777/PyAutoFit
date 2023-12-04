@@ -1,11 +1,14 @@
+import logging
 from abc import ABC, abstractmethod
 import numpy as np
-from os import path
+
+from autoconf import conf
 
 from autofit import exc
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.samples import Samples
 from autofit.text import text_util
+
 
 class Placeholder:
     def __getattr__(self, item):
@@ -30,11 +33,18 @@ class Placeholder:
     def samples(self):
         return self
 
+    @property
+    def log_likelihood(self):
+        return -np.inf
+
+    def summary(self):
+        return self
+
 
 class AbstractResult(ABC):
-    def __init__(self, sigma):
-        self._instance = None
-        self.sigma = sigma
+    @property
+    def sigma(self):
+        return self.samples.sigma
 
     @property
     @abstractmethod
@@ -78,9 +88,11 @@ class AbstractResult(ABC):
 
     @property
     def instance(self):
-        if self._instance is None:
-            self._instance = self.samples.max_log_likelihood()
-        return self._instance
+        try:
+            return self.samples.instance
+        except AttributeError as e:
+            logging.warning(e)
+            return None
 
     @property
     def max_log_likelihood_instance(self):
@@ -88,6 +100,14 @@ class AbstractResult(ABC):
 
     def model_absolute(self, a: float) -> AbstractPriorModel:
         """
+        Returns a model where every free parameter is a `GaussianPrior` with `mean` the previous result's
+        inferred maximum log likelihood parameter values and `sigma` the input absolute value `a`.
+
+        For example, a previous result may infer a parameter to have a maximum log likelihood value of 2.
+
+        If this result is used for search chaining, `model_absolute(a=0.1)` will assign this free parameter
+        `GaussianPrior(mean=2.0, sigma=0.1)` in the new model, where `sigma` is linked to the input `a`.
+
         Parameters
         ----------
         a
@@ -98,12 +118,19 @@ class AbstractResult(ABC):
         A model mapper created by taking results from this search and creating priors with the defined absolute
         width.
         """
-        return self.model.mapper_from_gaussian_tuples(
-            self.samples.gaussian_priors_at_sigma(sigma=self.sigma), a=a
-        )
+        return self.samples.model_absolute(a)
 
     def model_relative(self, r: float) -> AbstractPriorModel:
         """
+        Returns a model where every free parameter is a `GaussianPrior` with `mean` the previous result's
+        inferred maximum log likelihood parameter values and `sigma` a relative value from the result `r`.
+
+        For example, a previous result may infer a parameter to have a maximum log likelihood value of 2 and
+        an error at the input `sigma` of 0.5.
+
+        If this result is used for search chaining, `model_relative(r=0.1)` will assign this free parameter
+        `GaussianPrior(mean=2.0, sigma=0.5*0.1)` in the new model, where `sigma` is the inferred error times `r`.
+
         Parameters
         ----------
         r
@@ -114,20 +141,32 @@ class AbstractResult(ABC):
         A model mapper created by taking results from this search and creating priors with the defined relative
         width.
         """
-        return self.model.mapper_from_gaussian_tuples(
-            self.samples.gaussian_priors_at_sigma(sigma=self.sigma), r=r
-        )
+        return self.samples.model_relative(r)
 
+    def model_bounded(self, b: float) -> AbstractPriorModel:
+        """
+        Returns a model where every free parameter is a `UniformPrior` with `lower_limit` and `upper_limit the previous
+        result's inferred maximum log likelihood parameter values minus and plus the bound `b`.
+
+        For example, a previous result may infer a parameter to have a maximum log likelihood value of 2.
+
+        If this result is used for search chaining, `model_bound(b=0.1)` will assign this free parameter
+        `UniformPrior(lower_limit=1.9, upper_limit=2.1)` in the new model.
+
+        Parameters
+        ----------
+        b
+            The size of the bounds of the uniform prior
+
+        Returns
+        -------
+        A model mapper created by taking results from this search and creating priors with the defined bounded
+        uniform priors.
+        """
+        return self.samples.model_bounded(b)
 
 class Result(AbstractResult):
-    def __init__(
-            self,
-            samples: Samples,
-            model,
-            sigma=3.0,
-            use_errors=True,
-            use_widths=True
-    ):
+    def __init__(self, samples: Samples):
         """
         The result of a non-linear search, which includes:
 
@@ -141,22 +180,22 @@ class Result(AbstractResult):
 
         Parameters
         ----------
-        model
-            The model mapper from the stage that produced this result
+        samples
+            The samples of the non-linear search
         """
-        super().__init__(sigma)
-        if samples is not None:
-            samples.model = model
-
         self._samples = samples
 
-        self.use_errors = use_errors
-        self.use_widths = use_widths
-
-        self._model = model
         self.__model = None
 
         self.child_results = None
+
+    def dict(self) -> dict:
+        """
+        Human-readable dictionary representation of the results
+        """
+        return {
+            "max_log_likelihood": self.samples.max_log_likelihood_sample.model_dict(),
+        }
 
     @property
     def samples(self):
@@ -172,30 +211,22 @@ class Result(AbstractResult):
         weights = self.samples.weight_list
         arguments = {
             prior: prior.project(
-                samples=np.array(
-                    self.samples.values_for_path(
-                        path
-                    )
-                ),
+                samples=np.array(self.samples.values_for_path(path)),
                 weights=weights,
             )
-            for path, prior
-            in self._model.path_priors_tuples
+            for path, prior in self.samples.model.path_priors_tuples
         }
-        return self._model.mapper_from_prior_arguments(
-            arguments
-        )
+        return self.samples.model.mapper_from_prior_arguments(arguments)
 
     @property
     def model(self):
+        use_errors = conf.instance["general"]["prior_passer"]["use_errors"]
+        use_widths = conf.instance["general"]["prior_passer"]["use_widths"]
+
         if self.__model is None:
-            tuples = self.samples.gaussian_priors_at_sigma(
-                sigma=self.sigma
-            )
-            self.__model = self._model.mapper_from_gaussian_tuples(
-                tuples,
-                use_errors=self.use_errors,
-                use_widths=self.use_widths
+            tuples = self.samples.gaussian_priors_at_sigma(sigma=self.sigma)
+            self.__model = self.samples.model.mapper_from_gaussian_tuples(
+                tuples, use_errors=use_errors, use_widths=use_widths
             )
         return self.__model
 

@@ -12,7 +12,7 @@ epsilon = 1e-14
 
 
 def ndtri(x):
-    x = np.array(x, dtype=np.float)
+    x = np.array(x, dtype=float)
     x[(x <= 0) & (x >= -epsilon)] = epsilon
     x[(x >= 1) & (x <= 1 + epsilon)] = 1 - epsilon
     return ndtri_(x)
@@ -241,7 +241,7 @@ log_transform = FunctionTransform(np.log, np.exp, np.reciprocal, func_grad_hess=
 
 
 def _log_10_inv(x):
-    return 10 ** x
+    return 10**x
 
 
 # TODO: what should func_grad_hess look like? np.log10, ... ?
@@ -278,7 +278,7 @@ def logit_grad_hess(x, scale=1, shift=0):
     ix1 = np.reciprocal(1 - x)
     ix2 = np.square(ix)
     ix12 = np.square(ix1)
-    return (np.log(x) - np.log1p(-x), (ix + ix1) / scale, (ix12 - ix2) / scale ** 2)
+    return (np.log(x) - np.log1p(-x), (ix + ix1) / scale, (ix12 - ix2) / scale**2)
 
 
 logistic_transform = FunctionTransform(
@@ -300,7 +300,7 @@ def ndtri_grad_hess(x):
     f = ndtri(x)
     phi = _norm_pdf(f)
     grad = np.reciprocal(phi)
-    hess = grad ** 2 * f
+    hess = grad**2 * f
     return f, grad, hess
 
 

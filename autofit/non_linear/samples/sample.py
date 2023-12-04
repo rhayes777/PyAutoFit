@@ -1,18 +1,17 @@
 import csv
+import inspect
 from copy import copy
-from typing import List, Tuple
+from pathlib import Path
+from typing import List, Tuple, Union
 
+from autoconf.class_path import get_class_path
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.tools.util import split_paths
 
 
 class Sample:
     def __init__(
-            self,
-            log_likelihood: float,
-            log_prior: float,
-            weight: float,
-            kwargs=None
+        self, log_likelihood: float, log_prior: float, weight: float, kwargs=None
     ):
         """
         One sample taken during a search
@@ -31,7 +30,44 @@ class Sample:
         self.log_likelihood = log_likelihood
         self.log_prior = log_prior
         self.weight = weight
-        self.kwargs = kwargs or dict()
+        self.kwargs = {
+            tuple(key.split(".")) if isinstance(key, str) and "." in key else key: value
+            for key, value in (kwargs or dict()).items()
+        }
+
+    def dict(self):
+        return {
+            "type": "instance",
+            "class_path": get_class_path(type(self)),
+            "arguments": {
+                "log_likelihood": self.log_likelihood,
+                "log_prior": self.log_prior,
+                "weight": self.weight,
+                "kwargs": {
+                    "type": "dict",
+                    "arguments": {
+                        ".".join(key) if isinstance(key, tuple) else key: value
+                        for key, value in self.kwargs.items()
+                    },
+                },
+            },
+        }
+
+    def model_dict(self) -> dict:
+        """
+        A dictionary mapping model paths to values for the sample
+        """
+        model_dict = dict()
+        for key, value in self.kwargs.items():
+            current = model_dict
+            if not isinstance(key, tuple):
+                key = (key,)
+            for part in key[:-1]:
+                if part not in current:
+                    current[part] = dict()
+                current = current[part]
+            current[key[-1]] = value
+        return model_dict
 
     @property
     def log_posterior(self) -> float:
@@ -40,10 +76,7 @@ class Sample:
         """
         return self.log_likelihood + self.log_prior
 
-    def parameter_lists_for_model(
-            self,
-            model: AbstractPriorModel
-    ) -> List[float]:
+    def parameter_lists_for_model(self, model: AbstractPriorModel) -> List[float]:
         """
         Values for instantiating a model, in the same order as priors
         from the model.
@@ -62,24 +95,15 @@ class Sample:
         else:
             paths = model.all_names
 
-        return self.parameter_lists_for_paths(
-            paths
-        )
+        return self.parameter_lists_for_paths(paths)
 
-    def parameter_lists_for_paths(
-            self,
-            paths
-    ):
+    def parameter_lists_for_paths(self, paths):
         result = list()
         for keys in paths:
             is_found = False
             for key in keys:
                 if key in self.kwargs:
-                    result.append(
-                        self.kwargs[
-                            key
-                        ]
-                    )
+                    result.append(self.kwargs[key])
                     is_found = True
                     break
             if not is_found:
@@ -95,10 +119,8 @@ class Sample:
         are this indicates that they are explicit paths through
         the model.
         """
-        for key in self.kwargs.keys():
-            return isinstance(
-                key, tuple
-            )
+        for key in self.kwargs:
+            return isinstance(key, tuple)
         return False
 
     def subsample(self, path_map):
@@ -115,17 +137,17 @@ class Sample:
             log_likelihood=self.log_likelihood,
             log_prior=self.log_prior,
             weight=self.weight,
-            kwargs=arg_dict
+            kwargs=arg_dict,
         )
 
     @classmethod
     def from_lists(
-            cls,
-            model: AbstractPriorModel,
-            parameter_lists: List[List[float]],
-            log_likelihood_list: List[float],
-            log_prior_list: List[float],
-            weight_list: List[float]
+        cls,
+        model: AbstractPriorModel,
+        parameter_lists: List[List[float]],
+        log_likelihood_list: List[float],
+        log_prior_list: List[float],
+        weight_list: List[float],
     ) -> List["Sample"]:
         """
         Convenience method to create a list of samples from lists of contained values
@@ -135,26 +157,16 @@ class Sample:
         paths = model.unique_prior_paths
 
         for params, log_likelihood, log_prior, weight in zip(
-                parameter_lists,
-                log_likelihood_list,
-                log_prior_list,
-                weight_list
+            parameter_lists, log_likelihood_list, log_prior_list, weight_list
         ):
-            arg_dict = {
-                t: param
-                for t, param
-                in zip(
-                    paths,
-                    params
-                )
-            }
+            arg_dict = {t: param for t, param in zip(paths, params)}
 
             samples.append(
                 cls(
                     log_likelihood=log_likelihood,
                     log_prior=log_prior,
                     weight=weight,
-                    kwargs=arg_dict
+                    kwargs=arg_dict,
                 )
             )
         return samples
@@ -174,25 +186,16 @@ class Sample:
         """
         try:
             if self.is_path_kwargs:
-                return model.instance_from_path_arguments(
-                    self.kwargs
-                )
+                return model.instance_from_path_arguments(self.kwargs)
             else:
-                return model.instance_from_prior_name_arguments(
-                    self.kwargs
-                )
+                return model.instance_from_prior_name_arguments(self.kwargs)
 
         except KeyError:
             # TODO: Does this get used? If so, why?
-            return model.instance_from_vector(
-                self.parameter_lists_for_model(model)
-            )
+            return model.instance_from_vector(self.parameter_lists_for_model(model))
 
     @split_paths
-    def with_paths(
-            self,
-            paths: List[Tuple[str, ...]]
-    ) -> "Sample":
+    def with_paths(self, paths: List[Tuple[str, ...]]) -> "Sample":
         """
         Create a copy of this object retaining only the kwargs for which
         there is a matching path in paths.
@@ -209,26 +212,16 @@ class Sample:
         with_paths = copy(self)
         with_paths.kwargs = {
             key: value
-            for key, value
-            in self.kwargs.items()
+            for key, value in self.kwargs.items()
             if any(
-                all(
-                    first == second
-                    for first, second
-                    in zip(
-                        key, path
-                    )
-                )
+                all(first == second for first, second in zip(key, path))
                 for path in paths
             )
         }
         return with_paths
 
     @split_paths
-    def without_paths(
-            self,
-            paths: List[Tuple[str, ...]]
-    ) -> "Sample":
+    def without_paths(self, paths: List[Tuple[str, ...]]) -> "Sample":
         """
         Create a copy of this object retaining only the kwargs for which
         there is no matching path in paths.
@@ -245,23 +238,46 @@ class Sample:
         without_paths = copy(self)
         without_paths.kwargs = {
             key: value
-            for key, value
-            in self.kwargs.items()
+            for key, value in self.kwargs.items()
             if not any(
-                all(
-                    first == second
-                    for first, second
-                    in zip(
-                        key, path
-                    )
-                )
+                all(first == second for first, second in zip(key, path))
                 for path in paths
             )
         }
         return without_paths
 
 
-def load_from_table(filename: str) -> List[Sample]:
+def samples_from_iterator(iterator):
+    samples = list()
+
+    sample_args = (
+        "log_likelihood",
+        "log_posterior",
+        "log_prior",
+        "weight",
+    )
+
+    headers = next(iterator)
+    headers = [header.strip() for header in headers]
+    for row in iterator:
+        d = {header: float(value) for header, value in zip(headers, row)}
+
+        samples.append(
+            Sample(
+                **{
+                    key: value
+                    for key, value in d.items()
+                    if key in inspect.getfullargspec(Sample.__init__).args
+                },
+                kwargs={
+                    key: value for key, value in d.items() if key not in sample_args
+                },
+            )
+        )
+    return samples
+
+
+def load_from_table(filename: Union[str, Path]) -> List[Sample]:
     """
     Load samples from a table
 
@@ -274,42 +290,6 @@ def load_from_table(filename: str) -> List[Sample]:
     -------
     A list of samples, one for each row in the CSV
     """
-    samples = list()
-
-    sample_args = (
-        "log_likelihood",
-        "log_prior",
-        "weight",
-    )
-
     with open(filename, "r+", newline="") as f:
         reader = csv.reader(f)
-        headers = next(reader)
-        for row in reader:
-            d = {
-                header: float(value)
-                for header, value
-                in zip(
-                    headers,
-                    row
-                )
-            }
-
-            samples.append(
-                Sample(
-                    **{
-                        key: value
-                        for key, value
-                        in d.items()
-                        if key in sample_args
-                    },
-                    kwargs={
-                        key: value
-                        for key, value
-                        in d.items()
-                        if key not in sample_args
-                    }
-                )
-            )
-
-    return samples
+        return samples_from_iterator(reader)

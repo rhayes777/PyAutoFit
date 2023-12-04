@@ -25,9 +25,7 @@ class HierarchicalResult(AbstractResult):
         results
             Results from hierarchical factor optimisations
         """
-        super().__init__(
-            results[0].sigma
-        )
+        super().__init__()
         self.results = results
 
     @property

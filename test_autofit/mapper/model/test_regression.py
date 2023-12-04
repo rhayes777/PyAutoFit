@@ -1,3 +1,5 @@
+from typing import List
+
 import pytest
 
 import autofit as af
@@ -27,10 +29,20 @@ def test_mapper_from_prior_arguments_simple_collection():
 
 
 def test_direct_instances_only():
-    child = af.Model(af.Gaussian, centre=0.0, normalization=0.1, sigma=0.01,)
+    child = af.Model(
+        af.Gaussian,
+        centre=0.0,
+        normalization=0.1,
+        sigma=0.01,
+    )
     child.constant = 1.0
 
-    model = af.Model(af.Gaussian, centre=child, normalization=0.1, sigma=0.01,)
+    model = af.Model(
+        af.Gaussian,
+        centre=child,
+        normalization=0.1,
+        sigma=0.01,
+    )
 
     new_model = model.gaussian_prior_model_for_arguments({})
     assert not hasattr(new_model, "constant")
@@ -81,7 +93,12 @@ def test_set_centre():
 def test_passing_priors():
     model = af.Model(af.m.MockWithTuple)
 
-    new_model = model.mapper_from_gaussian_tuples([(1, 1), (1, 1),])
+    new_model = model.mapper_from_gaussian_tuples(
+        [
+            (1, 1),
+            (1, 1),
+        ]
+    )
     assert isinstance(new_model.tup_0, af.GaussianPrior)
     assert isinstance(new_model.tup_1, af.GaussianPrior)
 
@@ -100,3 +117,55 @@ def test_independent_ids():
     prior = af.UniformPrior()
     af.ModelInstance()
     assert af.UniformPrior().id == prior.id + 1
+
+
+@pytest.fixture(name="gaussian")
+def make_gaussian():
+    return af.Gaussian()
+
+
+@pytest.fixture(name="instance")
+def make_instance(gaussian):
+    return af.ModelInstance(dict(ls=[gaussian]))
+
+
+@pytest.fixture(name="path")
+def make_path():
+    return "ls", 0
+
+
+def test_lists(instance, gaussian, path):
+    assert instance.path_instance_tuples_for_class(af.Gaussian) == [(path, gaussian)]
+
+
+def test_replace_positional_path(instance, gaussian, path):
+    new = instance.replacing_for_path(path, None)
+    assert new.ls[0] is None
+
+
+@pytest.fixture(name="model_with_assertion")
+def make_model_with_assertion():
+    model = af.Model(af.Gaussian)
+    model.add_assertion(model.centre < -10)
+    return model
+
+
+def test_instance_from_vector(model_with_assertion):
+    model_with_assertion.instance_from_vector(
+        [0.5, 0.5, 0.5],
+        ignore_prior_limits=True,
+    )
+
+
+def test_random_instance(model_with_assertion):
+    model_with_assertion.random_instance(ignore_prior_limits=True)
+
+
+class TestModel:
+    def __init__(self, items: List[float]):
+        self.items = items
+
+
+def test_typing_annotations():
+    model = af.Model(TestModel)
+    assert model.items == af.Collection()

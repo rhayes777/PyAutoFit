@@ -42,25 +42,63 @@ def test_non_trivial_info(non_trivial_model):
         info
         == """PriorFactors
 
-PriorFactor0 (AnalysisFactor1.sigma)                                                      UniformPrior [6], lower_limit = 0.0, upper_limit = 1.0
-PriorFactor1 (AnalysisFactor1.normalization)                                              UniformPrior [5], lower_limit = 0.0, upper_limit = 1.0
-PriorFactor2 (AnalysisFactor0.centre, AnalysisFactor1.centre)                             UniformPrior [4], lower_limit = 0.0, upper_limit = 1.0
-PriorFactor3 (AnalysisFactor0.sigma)                                                      UniformPrior [3], lower_limit = 0.0, upper_limit = 1.0
-PriorFactor4 (AnalysisFactor0.normalization)                                              UniformPrior [2], lower_limit = 0.0, upper_limit = 1.0
+PriorFactor0 (AnalysisFactor1.sigma)                                                      UniformPrior [5], lower_limit = 0.0, upper_limit = 1.0
+PriorFactor1 (AnalysisFactor1.normalization)                                              UniformPrior [4], lower_limit = 0.0, upper_limit = 1.0
+PriorFactor2 (AnalysisFactor0.centre, AnalysisFactor1.centre)                             UniformPrior [3], lower_limit = 0.0, upper_limit = 1.0
+PriorFactor3 (AnalysisFactor0.sigma)                                                      UniformPrior [2], lower_limit = 0.0, upper_limit = 1.0
+PriorFactor4 (AnalysisFactor0.normalization)                                              UniformPrior [1], lower_limit = 0.0, upper_limit = 1.0
 
 AnalysisFactors
 
 AnalysisFactor0
 
-centre (AnalysisFactor1.centre, PriorFactor2)                                             UniformPrior [4], lower_limit = 0.0, upper_limit = 1.0
-normalization (PriorFactor4)                                                              UniformPrior [2], lower_limit = 0.0, upper_limit = 1.0
-sigma (PriorFactor3)                                                                      UniformPrior [3], lower_limit = 0.0, upper_limit = 1.0
+centre (AnalysisFactor1.centre, PriorFactor2)                                             UniformPrior [3], lower_limit = 0.0, upper_limit = 1.0
+normalization (PriorFactor4)                                                              UniformPrior [1], lower_limit = 0.0, upper_limit = 1.0
+sigma (PriorFactor3)                                                                      UniformPrior [2], lower_limit = 0.0, upper_limit = 1.0
 
 AnalysisFactor1
 
-centre (AnalysisFactor0.centre, PriorFactor2)                                             UniformPrior [4], lower_limit = 0.0, upper_limit = 1.0
-normalization (PriorFactor1)                                                              UniformPrior [5], lower_limit = 0.0, upper_limit = 1.0
-sigma (PriorFactor0)                                                                      UniformPrior [6], lower_limit = 0.0, upper_limit = 1.0"""
+centre (AnalysisFactor0.centre, PriorFactor2)                                             UniformPrior [3], lower_limit = 0.0, upper_limit = 1.0
+normalization (PriorFactor1)                                                              UniformPrior [4], lower_limit = 0.0, upper_limit = 1.0
+sigma (PriorFactor0)                                                                      UniformPrior [5], lower_limit = 0.0, upper_limit = 1.0"""
+    )
+
+
+def test_info_for_prior_factor(declarative_graph_output, prior_factor):
+    assert (
+        declarative_graph_output.info_for_prior_factor(prior_factor)
+        == "PriorFactor0 (AnalysisFactor1.one)                                                        UniformPrior [1], lower_limit = 0.0, upper_limit = 1.0"
+    )
+
+
+def test_info_for_analysis_factor(declarative_graph_output, analysis_factor):
+    info = declarative_graph_output.info_for_analysis_factor(analysis_factor)
+    assert (
+        info
+        == """AnalysisFactor0
+
+one (PriorFactor1)                                                                        UniformPrior [0], lower_limit = 0.0, upper_limit = 1.0"""
+    )
+
+
+def test_graph_info(factor_graph):
+    info = factor_graph.info
+    assert (
+        info
+        == """PriorFactors
+
+PriorFactor0 (AnalysisFactor1.one)                                                        UniformPrior [1], lower_limit = 0.0, upper_limit = 1.0
+PriorFactor1 (AnalysisFactor0.one)                                                        UniformPrior [0], lower_limit = 0.0, upper_limit = 1.0
+
+AnalysisFactors
+
+AnalysisFactor0
+
+one (PriorFactor1)                                                                        UniformPrior [0], lower_limit = 0.0, upper_limit = 1.0
+
+AnalysisFactor1
+
+one (PriorFactor0)                                                                        UniformPrior [1], lower_limit = 0.0, upper_limit = 1.0"""
     )
 
 
@@ -100,43 +138,5 @@ def reset_ids():
     af.Prior._ids = itertools.count()
 
 
-def test_info_for_prior_factor(declarative_graph_output, prior_factor):
-    assert (
-        declarative_graph_output.info_for_prior_factor(prior_factor)
-        == "PriorFactor0 (AnalysisFactor1.one)                                                        UniformPrior [2], lower_limit = 0.0, upper_limit = 1.0"
-    )
-
-
-def test_info_for_analysis_factor(declarative_graph_output, analysis_factor):
-    info = declarative_graph_output.info_for_analysis_factor(analysis_factor)
-    assert (
-        info
-        == """AnalysisFactor0
-
-one (PriorFactor1)                                                                        UniformPrior [1], lower_limit = 0.0, upper_limit = 1.0"""
-    )
-
-
 def test_related_factors(factor_graph, prior_factor):
     assert len(factor_graph.related_factors(list(prior_factor.variables)[0])) == 2
-
-
-def test_graph_info(factor_graph):
-    info = factor_graph.info
-    assert (
-        info
-        == """PriorFactors
-
-PriorFactor0 (AnalysisFactor1.one)                                                        UniformPrior [2], lower_limit = 0.0, upper_limit = 1.0
-PriorFactor1 (AnalysisFactor0.one)                                                        UniformPrior [1], lower_limit = 0.0, upper_limit = 1.0
-
-AnalysisFactors
-
-AnalysisFactor0
-
-one (PriorFactor1)                                                                        UniformPrior [1], lower_limit = 0.0, upper_limit = 1.0
-
-AnalysisFactor1
-
-one (PriorFactor0)                                                                        UniformPrior [2], lower_limit = 0.0, upper_limit = 1.0"""
-    )

@@ -1,3 +1,4 @@
+import itertools
 import multiprocessing
 import os
 import shutil
@@ -12,11 +13,24 @@ from autoconf import conf
 from autofit import database as db
 from autofit import fixtures
 from autofit.database.model import sa
+import autofit as af
 
 if sys.platform == "darwin":
     multiprocessing.set_start_method("fork")
 
 directory = Path(__file__).parent
+
+
+@pytest.fixture(name="remove_ids")
+def make_remove_ids():
+    def remove_ids(d):
+        if isinstance(d, dict):
+            return {k: remove_ids(v) for k, v in d.items() if k != "id"}
+        elif isinstance(d, list):
+            return [remove_ids(v) for v in d]
+        return d
+
+    return remove_ids
 
 
 @pytest.fixture(name="test_directory", scope="session")

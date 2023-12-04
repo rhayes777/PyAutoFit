@@ -33,18 +33,29 @@ class IndexedAnalysis:
         """
         return self.analysis.log_likelihood_function(instance[self.index])
 
+    # TODO : Add before fit methods here?
+
     def visualize(self, paths: AbstractPaths, instance, during_analysis):
         return self.analysis.visualize(paths, instance[self.index], during_analysis)
+
+    def visualize_combined(
+        self, analyses, paths: AbstractPaths, instance, during_analysis
+    ):
+        return self.analysis.visualize_combined(
+            analyses, paths, instance[self.index], during_analysis
+        )
 
     def profile_log_likelihood_function(self, paths: AbstractPaths, instance):
         return self.profile_log_likelihood_function(paths, instance[self.index])
 
     def __getattr__(self, item):
+        if item in ("__getstate__", "__setstate__"):
+            raise AttributeError(item)
         return getattr(self.analysis, item)
 
-    def make_result(self, samples, model, sigma=3.0, use_errors=True, use_widths=True):
+    def make_result(self, samples):
         return self.analysis.make_result(
-            samples, model, sigma=sigma, use_errors=use_errors, use_widths=use_widths,
+            samples,
         )
 
 
@@ -61,24 +72,21 @@ class IndexCollectionAnalysis(CombinedAnalysis):
         """
         super().__init__(
             *[
-                IndexedAnalysis(analysis, index,)
+                IndexedAnalysis(
+                    analysis,
+                    index,
+                )
                 for index, analysis in enumerate(analyses)
             ]
         )
 
-    def make_result(self, samples, model, sigma=1.0, use_errors=True, use_widths=False):
+    def make_result(self, samples):
         """
         Associate each model with an analysis when creating the result.
         """
         child_results = [
-            analysis.make_result(
-                samples.subsamples(model),
-                model,
-                sigma=sigma,
-                use_errors=use_errors,
-                use_widths=use_widths,
-            )
-            for model, analysis in zip(model, self.analyses)
+            analysis.make_result(samples.subsamples(model))
+            for model, analysis in zip(samples.model, self.analyses)
         ]
         return CombinedResult(child_results)
 

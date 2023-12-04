@@ -4,73 +4,22 @@ from functools import wraps
 import json
 import warnings
 from copy import copy
-from typing import List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Tuple, Union
 
 import numpy as np
 
 from autofit import exc
+from autofit.non_linear.search.mcmc.auto_correlations import AutoCorrelationsSettings
 from autofit.mapper.model import ModelInstance
-from autofit.mapper.prior_model.abstract import AbstractPriorModel, Path
+from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.samples.sample import Sample
+
+from .summary import SamplesSummary
+from .interface import SamplesInterface, to_instance
+from ...text.formatter import write_table
 
 
 ### TODO: Rich how do I reduce this to one wrapper sensible?
-
-def to_instance(func):
-    """
-
-    Parameters
-    ----------
-    func
-
-    Returns
-    -------
-        A function that returns a 2D image.
-    """
-
-    @wraps(func)
-    def wrapper(
-        obj,
-        as_instance: bool = True,
-        *args,
-        **kwargs
-    ) -> Union[List, ModelInstance]:
-        """
-        This decorator checks if a light profile is a `LightProfileOperated` class and therefore already has had operations like a
-        PSF convolution performed.
-
-        This is compared to the `only_operated` input to determine if the image of that light profile is returned, or
-        an array of zeros.
-
-        Parameters
-        ----------
-        obj
-            A light profile with an `image_2d_from` function whose class is inspected to determine if the image is
-            operated on.
-        grid
-            A grid_like object of (y,x) coordinates on which the function values are evaluated.
-        operated_only
-            By default this is None and the image is returned irrespecive of light profile class (E.g. it does not matter
-            if it is already operated or not). If this input is included as a bool, the light profile image is only
-            returned if they are or are not already operated.
-
-        Returns
-        -------
-            The 2D image, which is customized depending on whether it has been operated on.
-        """
-
-        vector = func(obj, as_instance, *args, **kwargs)
-
-        if as_instance:
-
-            return obj.model.instance_from_vector(
-                vector=vector,
-                ignore_prior_limits=True
-            )
-
-        return vector
-
-    return wrapper
 
 
 def to_instance_sigma(func):
@@ -87,11 +36,7 @@ def to_instance_sigma(func):
 
     @wraps(func)
     def wrapper(
-        obj,
-        sigma,
-        as_instance : bool = True,
-        *args,
-        **kwargs
+        obj, sigma, as_instance: bool = True, *args, **kwargs
     ) -> Union[List, ModelInstance]:
         """
         This decorator checks if a light profile is a `LightProfileOperated` class and therefore already has had operations like a
@@ -120,10 +65,8 @@ def to_instance_sigma(func):
         vector = func(obj, sigma, as_instance, *args, **kwargs)
 
         if as_instance:
-
             return obj.model.instance_from_vector(
-                vector=vector,
-                ignore_prior_limits=True
+                vector=vector, ignore_prior_limits=True
             )
 
         return vector
@@ -145,11 +88,7 @@ def to_instance_samples(func):
 
     @wraps(func)
     def wrapper(
-        obj,
-        sample_index,
-        as_instance : bool = True,
-        *args,
-        **kwargs
+        obj, sample_index, as_instance: bool = True, *args, **kwargs
     ) -> Union[List, ModelInstance]:
         """
         This decorator checks if a light profile is a `LightProfileOperated` class and therefore already has had operations like a
@@ -178,10 +117,8 @@ def to_instance_samples(func):
         vector = func(obj, sample_index, as_instance, *args, **kwargs)
 
         if as_instance:
-
             return obj.model.instance_from_vector(
-                vector=vector,
-                ignore_prior_limits=True
+                vector=vector, ignore_prior_limits=True
             )
 
         return vector
@@ -203,11 +140,7 @@ def to_instance_input(func):
 
     @wraps(func)
     def wrapper(
-        obj,
-        input_vector,
-        as_instance : bool = True,
-        *args,
-        **kwargs
+        obj, input_vector, as_instance: bool = True, *args, **kwargs
     ) -> Union[List, ModelInstance]:
         """
         This decorator checks if a light profile is a `LightProfileOperated` class and therefore already has had operations like a
@@ -236,10 +169,8 @@ def to_instance_input(func):
         vector = func(obj, input_vector, as_instance, *args, **kwargs)
 
         if as_instance:
-
             return obj.model.instance_from_vector(
-                vector=vector,
-                ignore_prior_limits=True
+                vector=vector, ignore_prior_limits=True
             )
 
         return vector
@@ -247,17 +178,16 @@ def to_instance_input(func):
     return wrapper
 
 
-class Samples(ABC):
+class Samples(SamplesInterface, ABC):
     def __init__(
-            self,
-            model: AbstractPriorModel,
-            sample_list: List[Sample],
-            total_iterations: Optional[int] = None,
-            time: Optional[float] = None,
-            results_internal: Optional = None,
+        self,
+        model: AbstractPriorModel,
+        sample_list: List[Sample],
+        samples_info: Optional[Dict] = None,
+        search_internal: Optional = None,
     ):
         """
-        The `Samples` classes in **PyAutoFit** provide an interface between the results_internal of
+        The `Samples` classes in **PyAutoFit** provide an interface between the search_internal of
         a `NonLinearSearch` (e.g. as files on your hard-disk) and Python.
 
         For example, the output class can be used to load an instance of the best-fit model, get an instance of any
@@ -267,7 +197,7 @@ class Samples(ABC):
         PySwarms, LBFGS).
 
         To use a library's in-built visualization tools results are optionally stored in their native internal format
-        using the `results_internal` attribute.
+        using the `search_internal` attribute.
 
         Parameters
         ----------
@@ -276,29 +206,105 @@ class Samples(ABC):
         sample_list
             The list of `Samples` which contains the paramoeters, likelihood, weights, etc. of every sample taken
             by the non-linear search.
-        total_iterations
-            The total number of iterations, which often cannot be estimated from the sample list (which contains
-            only accepted samples).
-        time
-            The time taken to perform the model-fit, which is passed around `Samples` objects for outputting
-            information on the overall fit.
-        results_internal
+        samples_info
+            Contains information on the samples (e.g. total iterations, time to run the search, etc.).
+        search_internal
             The nested sampler's results in their native internal format for interfacing its visualization library.
         """
-        self.model = model
+
+        super().__init__(model=model)
+
         self.sample_list = sample_list
+        self.samples_info = samples_info
+        self.search_internal = search_internal
 
-        self.total_iterations = total_iterations
-        self.time = time
-        self.results_internal = results_internal
+    @property
+    def log_evidence(self):
+        return None
 
-        self._paths = None
-        self._names = None
+    @classmethod
+    def from_csv(cls, paths, model: AbstractPriorModel):
+        """
+        Returns a `Samples` object from the output paths of a non-linear search.
 
-    def __add__(
-            self,
-            other: "Samples"
-    ) -> "Samples":
+        This function loads the sample values (e.g. parameters, log likelihoods) from a .csv file, which is a
+        standardized output for all **PyAutoFit** non-linear searches.
+
+        The samples object requires additional information on the non-linear search (e.g. the number of live points),
+        which is loaded from the `samples_info.json` file.
+
+        This function also looks for the internal results of the non-linear search and includes them in the samples if
+        they exists, which allows for the search's internal visualization and analysis tools to be used.
+
+        Parameters
+        ----------
+        paths
+            An object describing the paths for saving data (e.g. hard-disk directories or entries in sqlite database).
+        model
+            An object that represents possible instances of some model with a given dimensionality which is the number
+            of free dimensions of the model.
+
+        Returns
+        -------
+        The samples which have been loaded from hard-disk via .csv.
+        """
+
+        sample_list = paths.load_samples()
+        samples_info = paths.load_samples_info()
+
+        try:
+            search_internal = paths.load_search_internal()
+        except FileNotFoundError:
+            search_internal = None
+
+        return cls.from_list_info_and_model(
+            sample_list=sample_list,
+            samples_info=samples_info,
+            model=model,
+            search_internal=search_internal,
+        )
+
+    @classmethod
+    def from_list_info_and_model(
+        cls,
+        sample_list,
+        samples_info,
+        model: AbstractPriorModel,
+        search_internal=None,
+    ):
+        try:
+            auto_correlation_settings = AutoCorrelationsSettings(
+                check_for_convergence=True,
+                check_size=samples_info["check_size"],
+                required_length=samples_info["required_length"],
+                change_threshold=samples_info["change_threshold"],
+            )
+        except (KeyError, NameError):
+            auto_correlation_settings = None
+
+        try:
+            return cls(
+                model=model,
+                sample_list=sample_list,
+                samples_info=samples_info,
+                search_internal=search_internal,
+                auto_correlation_settings=auto_correlation_settings,
+            )
+        except TypeError:
+            return cls(
+                model=model,
+                sample_list=sample_list,
+                samples_info=samples_info,
+                search_internal=search_internal,
+            )
+
+    def summary(self):
+        return SamplesSummary(
+            max_log_likelihood_sample=self.max_log_likelihood_sample,
+            model=self.model,
+        )
+
+    def __add__(self, other: "Samples") -> "Samples":
         """
         Samples can be added together, which combines their `sample_list` meaning that inferred parameters are
         computed via their joint PDF.
@@ -315,17 +321,16 @@ class Samples(ABC):
 
         self._check_addition(other=other)
 
-        if self.results_internal is not None:
+        if self.search_internal is not None:
             warnings.warn(
                 f"Addition of {self.__class__.__name__} cannot retain results in native format. "
                 "Visualization of summed samples diabled.",
-                exc.SamplesWarning
+                exc.SamplesWarning,
             )
 
         return self.__class__(
             model=self.model,
             sample_list=self.sample_list + other.sample_list,
-            time=self.time
         )
 
     def __radd__(self, other):
@@ -352,7 +357,6 @@ class Samples(ABC):
         return len(self.sample_list)
 
     def __setstate__(self, state):
-
         self.__dict__.update(state)
 
     def __copy__(self):
@@ -383,17 +387,10 @@ class Samples(ABC):
                 "Cannot add together two Samples objects which have different models."
             )
 
-        if not isinstance(
-                self,
-                Samples
-        ):
-
+        if not isinstance(self, Samples):
             raise_exc()
 
-        if not isinstance(
-                other,
-                Samples
-        ):
+        if not isinstance(other, Samples):
             raise_exc()
 
         if self.model.prior_count != other.model.prior_count:
@@ -403,56 +400,27 @@ class Samples(ABC):
             if path_self != path_other:
                 raise_exc()
 
-    def values_for_path(
-            self,
-            path: Tuple[str]
-    ) -> List[float]:
+    def values_for_path(self, path: Tuple[str]) -> List[float]:
         """
         Returns the value for a variable with a given path
         for each sample in the model
         """
-        return [
-            sample.kwargs[
-                path
-            ]
-            for sample
-            in self.sample_list
-        ]
+        return [sample.kwargs[path] for sample in self.sample_list]
 
     @property
-    def paths(self) -> List[Tuple[Path]]:
-        """
-        A list of paths to unique priors in the same order as prior
-        ids (and therefore sample columns)
-
-        Uses hasattr to make backwards compatible
-        """
-        if not hasattr(self, "_paths") or self._paths is None:
-            self._paths = self.model.all_paths
-        return self._paths
+    def total_iterations(self) -> int:
+        return self.samples_info["total_iterations"]
 
     @property
-    def names(self) -> List[Tuple[str]]:
-        """
-        A list of names of unique priors in the same order as prior
-        ids (and therefore sample columns)
-
-        Uses hasattr to make backwards compatible
-        """
-        if not hasattr(self, "_names") or self._names is None:
-            self._names = self.model.all_names
-        return self._names
+    def time(self) -> Optional[float]:
+        return self.samples_info["time"]
 
     @property
     def parameter_lists(self):
         result = list()
         for sample in self.sample_list:
             tuples = self.paths if sample.is_path_kwargs else self.names
-            result.append(
-                sample.parameter_lists_for_paths(
-                    tuples
-                )
-            )
+            result.append(sample.parameter_lists_for_paths(tuples))
 
         return result
 
@@ -462,35 +430,19 @@ class Samples(ABC):
 
     @property
     def weight_list(self):
-        return [
-            sample.weight
-            for sample
-            in self.sample_list
-        ]
+        return [sample.weight for sample in self.sample_list]
 
     @property
     def log_likelihood_list(self):
-        return [
-            sample.log_likelihood
-            for sample
-            in self.sample_list
-        ]
+        return [sample.log_likelihood for sample in self.sample_list]
 
     @property
     def log_posterior_list(self):
-        return [
-            sample.log_posterior
-            for sample
-            in self.sample_list
-        ]
+        return [sample.log_posterior for sample in self.sample_list]
 
     @property
     def log_prior_list(self):
-        return [
-            sample.log_prior
-            for sample
-            in self.sample_list
-        ]
+        return [sample.log_prior for sample in self.sample_list]
 
     @property
     def parameters_extract(self):
@@ -502,7 +454,7 @@ class Samples(ABC):
         Headers for the samples table
         """
 
-        return self.model.model_component_and_parameter_names + [
+        return self.model.joined_paths + [
             "log_likelihood",
             "log_prior",
             "log_posterior",
@@ -537,20 +489,15 @@ class Samples(ABC):
         filename
             Where the table is to be written
         """
-
-        with open(filename, "w+", newline="") as f:
-            writer = csv.writer(f)
-            writer.writerow(self._headers)
-            for row in self._rows:
-                writer.writerow(row)
-
-    @property
-    def info_json(self):
-        return {}
+        write_table(
+            filename=filename,
+            headers=list(self._headers),
+            rows=list(self._rows),
+        )
 
     def info_to_json(self, filename):
-        with open(filename, 'w') as outfile:
-            json.dump(self.info_json, outfile)
+        with open(filename, "w") as outfile:
+            json.dump(self.samples_info, outfile)
 
     @property
     def max_log_likelihood_sample(self) -> Sample:
@@ -559,7 +506,10 @@ class Samples(ABC):
         """
         most_likely_sample = None
         for sample in self.sample_list:
-            if most_likely_sample is None or sample.log_likelihood > most_likely_sample.log_likelihood:
+            if (
+                most_likely_sample is None
+                or sample.log_likelihood > most_likely_sample.log_likelihood
+            ):
                 most_likely_sample = sample
         return most_likely_sample
 
@@ -578,9 +528,7 @@ class Samples(ABC):
 
     @property
     def max_log_posterior_sample(self) -> Sample:
-        return self.sample_list[
-            self.max_log_posterior_index
-        ]
+        return self.sample_list[self.max_log_posterior_index]
 
     @property
     def max_log_posterior_index(self) -> int:
@@ -597,7 +545,9 @@ class Samples(ABC):
         return self.parameter_lists[self.max_log_posterior_index]
 
     @to_instance_samples
-    def from_sample_index(self, sample_index : int, as_instance: bool = True) -> ModelInstance:
+    def from_sample_index(
+        self, sample_index: int, as_instance: bool = True
+    ) -> ModelInstance:
         """
         The parameters of an individual sample of the non-linear search, returned as a model instance.
 
@@ -614,16 +564,12 @@ class Samples(ABC):
         """
         samples = copy(self)
         samples.model = None
-        samples.sample_list = list({
-            self.max_log_likelihood_sample,
-            self.max_log_posterior_sample
-        })
+        samples.sample_list = list(
+            {self.max_log_likelihood_sample, self.max_log_posterior_sample}
+        )
         return samples
 
-    def with_paths(
-            self,
-            paths: Union[List[Tuple[str, ...]], List[str]]
-    ) -> "Samples":
+    def with_paths(self, paths: Union[List[Tuple[str, ...]], List[str]]) -> "Samples":
         """
         Create a copy of this object with only attributes specified
         by a list of paths.
@@ -641,18 +587,14 @@ class Samples(ABC):
         A set of samples with a reduced set of attributes
         """
         with_paths = copy(self)
-        with_paths.model = self.model.with_paths(
-            paths
-        )
+        with_paths.model = self.model.with_paths(paths)
         with_paths.sample_list = [
-            sample.with_paths(paths)
-            for sample in self.sample_list
+            sample.with_paths(paths) for sample in self.sample_list
         ]
         return with_paths
 
     def without_paths(
-            self,
-            paths: Union[List[Tuple[str, ...]], List[str]]
+        self, paths: Union[List[Tuple[str, ...]], List[str]]
     ) -> "Samples":
         """
         Create a copy of this object with only attributes not specified
@@ -671,12 +613,9 @@ class Samples(ABC):
         A set of samples with a reduced set of attributes
         """
         with_paths = copy(self)
-        with_paths.model = self.model.without_paths(
-            paths
-        )
+        with_paths.model = self.model.without_paths(paths)
         with_paths.sample_list = [
-            sample.without_paths(paths)
-            for sample in self.sample_list
+            sample.without_paths(paths) for sample in self.sample_list
         ]
         return with_paths
 
@@ -685,9 +624,7 @@ class Samples(ABC):
             return None
 
         path_map = {
-            tuple(self.model.all_paths_for_prior(
-                prior
-            )): path
+            tuple(self.model.all_paths_for_prior(prior)): path
             for path, prior in model.path_priors_tuples
         }
         copied = copy(self)
@@ -695,24 +632,5 @@ class Samples(ABC):
         copied._names = None
         copied.model = model
 
-        copied.sample_list = [
-            sample.subsample(path_map)
-            for sample in self.sample_list
-        ]
+        copied.sample_list = [sample.subsample(path_map) for sample in self.sample_list]
         return copied
-
-    def gaussian_priors_at_sigma(self, sigma: float) -> [List]:
-        """
-        `GaussianPrior`s of every parameter used to link its inferred values and errors to priors used to sample the
-        same (or similar) parameters in a subsequent search, where:
-
-        - The mean is given by maximum log likelihood model values.
-        - Their errors are omitted, as this information is not available from an search. When these priors are
-          used to link to another search, it will thus automatically use the prior config values.
-
-        Parameters
-        ----------
-        sigma
-            The sigma limit within which the PDF is used to estimate errors (e.g. sigma = 1.0 uses 0.6826 of the PDF).
-        """
-        return list(map(lambda vector: (vector, 0.0), self.max_log_likelihood(as_instance=False)))

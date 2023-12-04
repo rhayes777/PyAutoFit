@@ -15,11 +15,11 @@ class StaticSearch(af.NonLinearSearch):
         self.deltas = {}
 
     def fit(
-        self, model, analysis, info=None, pickle_files=None, log_likelihood_cap=None
+        self, model, analysis, info=None,
     ):
         return StaticResult(model)
 
-    def _fit(self, model, analysis, log_likelihood_cap=None):
+    def _fit(self, model, analysis):
         pass
 
     @property

@@ -1,4 +1,4 @@
-.. _empirical_bayes:
+.. _search_chaining:
 
 Search Chaining
 ===============

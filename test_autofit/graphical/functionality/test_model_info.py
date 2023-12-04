@@ -28,9 +28,9 @@ Total Free Parameters = 3
 
 model                                                                           Gaussian (N=3)
 
-centre                                                                          UniformPrior [1], lower_limit = 0.0, upper_limit = 1.0
-normalization                                                                   UniformPrior [2], lower_limit = 0.0, upper_limit = 1.0
-sigma                                                                           UniformPrior [3], lower_limit = 0.0, upper_limit = 1.0"""
+centre                                                                          UniformPrior [0], lower_limit = 0.0, upper_limit = 1.0
+normalization                                                                   UniformPrior [1], lower_limit = 0.0, upper_limit = 1.0
+sigma                                                                           UniformPrior [2], lower_limit = 0.0, upper_limit = 1.0"""
 
 
 def test_analysis_factor(analysis_factor, info):

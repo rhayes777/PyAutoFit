@@ -1,5 +1,3 @@
-from pathlib import Path
-
 from autoconf.conf import with_config
 
 
@@ -8,7 +6,7 @@ def test_sensitivity(sensitivity):
     results = sensitivity.run()
     assert len(results) == 8
 
-    output_path = Path(sensitivity.search.paths.output_path)
+    output_path = sensitivity.paths.output_path
 
     assert (output_path / ".is_grid_search").exists()
     path = output_path / "results.csv"
@@ -21,3 +19,10 @@ def test_sensitivity(sensitivity):
         )
         assert "     0,  0.25,  0.25,  0.25,   2.0,   2.0,   0.0\n" in all_lines
         assert "     1,  0.25,  0.25,  0.75,   2.0,   2.0,   0.0\n" in all_lines
+
+
+def test_serial(sensitivity):
+    sensitivity.number_of_cores = 1
+
+    results = sensitivity.run()
+    assert len(results) == 8

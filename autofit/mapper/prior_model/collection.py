@@ -1,11 +1,11 @@
 from collections.abc import Iterable
 
+
 from jax._src.tree_util import register_pytree_node_class
 
 from autofit.mapper.model import ModelInstance, assert_not_frozen
 from autofit.mapper.prior.abstract import Prior
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
-from autofit.mapper.prior_model.abstract import check_assertions
 
 
 @register_pytree_node_class
@@ -203,7 +203,33 @@ class Collection(AbstractPriorModel):
             if value == item:
                 del self.__dict__[key]
 
-    @check_assertions
+    def gaussian_prior_model_for_arguments(self, arguments):
+        """
+        Create a new collection, updating its priors according to the argument
+        dictionary.
+
+        Parameters
+        ----------
+        arguments
+            A dictionary of arguments
+
+        Returns
+        -------
+        A new collection
+        """
+        collection = Collection()
+
+        for key, value in self.items():
+            if key in ("component_number", "item_number", "id") or key.startswith("_"):
+                continue
+
+            if isinstance(value, AbstractPriorModel):
+                collection[key] = value.gaussian_prior_model_for_arguments(arguments)
+            if isinstance(value, Prior):
+                collection[key] = arguments[value]
+
+        return collection
+
     def _instance_for_arguments(self, arguments):
         """
         Parameters

@@ -35,10 +35,6 @@ DynestyStatic:
     force_x1_cpu: false             # Force Dynesty to not use Python multiprocessing Pool, which can fix issues on certain operating systems.
   printing:
     silence: false                  # If True, the default print output of the non-linear search is silenced and not printed by the Python interpreter.
-  prior_passer:
-    sigma: 3.0                      # For non-linear search chaining and model prior passing, the sigma value of the inferred model parameter used as the sigma of the passed Gaussian prior.
-    use_errors: true                # If True, the errors of the previous model's results are used when passing priors.
-    use_widths: true                # If True the width of the model parameters defined in the priors config file are used.
   updates:
     iterations_per_update: 500      # The number of iterations of the non-linear search performed between every 'update', where an update performs tasks like outputting model.results.
     remove_state_files_at_end: true # Whether to remove the savestate of the seach (e.g. the Emcee hdf5 file) at the end to save hard-disk space (results are still stored as PyAutoFit pickles and loadable).
@@ -72,10 +68,34 @@ DynestyDynamic:
     force_x1_cpu: false             # Force Dynesty to not use Python multiprocessing Pool, which can fix issues on certain operating systems.
   printing:
     silence: false                  # If True, the default print output of the non-linear search is silenced and not printed by the Python interpreter.
-  prior_passer:
-    sigma: 3.0                      # For non-linear search chaining and model prior passing, the sigma value of the inferred model parameter used as the sigma of the passed Gaussian prior.
-    use_errors: true                # If True, the errors of the previous model's results are used when passing priors.
-    use_widths: true                # If True the width of the model parameters defined in the priors config file are used.
+  updates:
+    iterations_per_update: 500      # The number of iterations of the non-linear search performed between every 'update', where an update performs tasks like outputting model.results.
+    remove_state_files_at_end: true # Whether to remove the savestate of the seach (e.g. the Emcee hdf5 file) at the end to save hard-disk space (results are still stored as PyAutoFit pickles and loadable).
+Nautilus:
+  search:
+    n_live: 3000                    # Number of so-called live points. New bounds are constructed so that they encompass the live points.
+    n_update:                       # The maximum number of additions to the live set before a new bound is created
+    enlarge_per_dim: 1.1            # Along each dimension, outer ellipsoidal bounds are enlarged by this factor.
+    n_points_min:                   # The minimum number of points each ellipsoid should have. Effectively, ellipsoids with less than twice that number will not be split further.
+    split_threshold: 100            # Threshold used for splitting the multi-ellipsoidal bound used for sampling.
+    n_networks: 4                   # Number of networks used in the estimator.
+    n_batch: 100                    # Number of likelihood evaluations that are performed at each step. If likelihood evaluations are parallelized, should be multiple of the number of parallel processes.
+    n_like_new_bound:               # The maximum number of likelihood calls before a new bounds is created. If None, use 10 times n_live.
+    vectorized: false               # If True, the likelihood function can receive multiple input sets at once.
+    seed:                           # Seed for random number generation used for reproducible results accross different runs.
+  run:
+    f_live: 0.01                    # Maximum fraction of the evidence contained in the live set before building the initial shells terminates.
+    n_shell:                        # Minimum number of points in each shell. The algorithm will sample from the shells until this is reached. Default is the batch size of the sampler which is 100 unless otherwise specified.
+    n_eff: 500                      # Minimum effective sample size. The algorithm will sample from the shells until this is reached. Default is 10000.
+    discard_exploration: false      # Whether to discard points drawn in the exploration phase. This is required for a fully unbiased posterior and evidence estimate.
+    verbose: true                   # Whether to print information about the run.
+  initialize:                       # The method used to generate where walkers are initialized in parameter space {prior}.
+    method: prior                   # priors: samples are initialized by randomly drawing from each parameter's prior.
+  parallel:
+    number_of_cores: 1              # The number of cores the search is parallelized over by default, using Python multiprocessing.
+    force_x1_cpu: false             # Force Dynesty to not use Python multiprocessing Pool, which can fix issues on certain operating systems.
+  printing:
+    silence: false                  # If True, the default print output of the non-linear search is silenced and not printed by the Python interpreter.
   updates:
     iterations_per_update: 500      # The number of iterations of the non-linear search performed between every 'update', where an update performs tasks like outputting model.results.
     remove_state_files_at_end: true # Whether to remove the savestate of the seach (e.g. the Emcee hdf5 file) at the end to save hard-disk space (results are still stored as PyAutoFit pickles and loadable).
@@ -123,10 +143,7 @@ UltraNest:
     number_of_cores: 1              # The number of cores the search is parallelized over by default, using Python multiprocessing.
   printing:
     silence: false                  # If True, the default print output of the non-linear search is silenced and not printed by the Python interpreter.
-  prior_passer:
-    sigma: 3.0                      # For non-linear search chaining and model prior passing, the sigma value of the inferred model parameter used as the sigma of the passed Gaussian prior.
-    use_errors: true                # If True, the errors of the previous model's results are used when passing priors.
-    use_widths: true                # If True the width of the model parameters defined in the priors config file are used.
+
   updates:
     iterations_per_update: 500      # The number of iterations of the non-linear search performed between every 'update', where an update performs tasks like outputting model.results.
     remove_state_files_at_end: true # Whether to remove the savestate of the seach (e.g. the Emcee hdf5 file) at the end to save hard-disk space (results are still stored as PyAutoFit pickles and loadable).

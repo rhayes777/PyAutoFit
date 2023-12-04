@@ -11,7 +11,6 @@ class SettingsSearch:
             number_of_cores: Optional[int] = 1,
             session: Optional[sa.orm.Session] = None,
             info: Optional[dict] = None,
-            pickle_files: Optional[List[str]] = None,
     ):
         """
         Stores all the input settings that are used in search's and their `fit functions.
@@ -35,8 +34,6 @@ class SettingsSearch:
         info
             Optional dictionary containing information about the model-fit that is stored in the database and can be
             loaded by the aggregator after the model-fit is complete.
-        pickle_files
-            Optional pickle files which are accessible via the database post model-fitting.
         """
 
         self.path_prefix = path_prefix
@@ -45,7 +42,6 @@ class SettingsSearch:
         self.session = session
 
         self.info = info
-        self.pickle_files = pickle_files
 
     @property
     def search_dict(self):
@@ -67,4 +63,4 @@ class SettingsSearch:
 
     @property
     def fit_dict(self):
-        return {"info": self.info, "pickle_files": self.pickle_files}
+        return {"info": self.info}

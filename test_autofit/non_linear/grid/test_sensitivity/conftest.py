@@ -1,5 +1,6 @@
 import numpy as np
 import pytest
+from typing import Optional
 
 import autofit as af
 from autofit.non_linear.grid import sensitivity as s
@@ -7,89 +8,96 @@ from autofit.non_linear.grid import sensitivity as s
 x = np.array(range(10))
 
 
-def image_function(instance: af.ModelInstance):
-    image = instance.gaussian(x)
-    if hasattr(instance, "perturbation"):
-        image += instance.perturbation(x)
-    return image
+class Simulate:
+    def __init__(self):
+        pass
+
+    def __call__(self, instance: af.ModelInstance, simulate_path: Optional[str]):
+        image = instance.gaussian(x)
+
+        if hasattr(instance, "perturbation"):
+            image += instance.perturbation(x)
+
+        return image
 
 
 class Analysis(af.Analysis):
-
-    def __init__(self, image: np.array):
-        self.image = image
+    def __init__(self, dataset: np.array):
+        self.dataset = dataset
 
     def log_likelihood_function(self, instance):
-        image = image_function(instance)
-        return np.mean(np.multiply(-0.5, np.square(np.subtract(self.image, image))))
+        simulate = Simulate()
+
+        dataset = simulate(instance, simulate_path=None)
+
+        return np.mean(np.multiply(-0.5, np.square(np.subtract(self.dataset, dataset))))
 
 
-@pytest.fixture(
-    name="perturbation_model"
-)
-def make_perturbation_model():
+class BaseFit:
+    def __init__(self, analysis_cls):
+        self.analysis_cls = analysis_cls
+
+    def __call__(self, dataset, model, paths):
+        search = af.m.MockSearch(return_sensitivity_results=True)
+
+        analysis = self.analysis_cls(dataset=dataset)
+
+        return search.fit(model=model, analysis=analysis)
+
+
+class PerturbFit:
+    def __init__(self, analysis_cls):
+        self.analysis_cls = analysis_cls
+
+    def __call__(self, dataset, model, paths):
+        search = af.m.MockSearch(return_sensitivity_results=True)
+
+        analysis = self.analysis_cls(dataset=dataset)
+
+        return search.fit(model=model, analysis=analysis)
+
+
+@pytest.fixture(name="perturb_model")
+def make_perturb_model():
     return af.Model(af.Gaussian)
 
 
-@pytest.fixture(
-    name="search"
-)
-def make_search():
-    return af.m.MockSearch(return_sensitivity_results=True)
-
-
-@pytest.fixture(
-    name="sensitivity"
-)
+@pytest.fixture(name="sensitivity")
 def make_sensitivity(
-        perturbation_model,
-        search
+    perturb_model,
 ):
     # noinspection PyTypeChecker
     instance = af.ModelInstance()
     instance.gaussian = af.Gaussian()
     return s.Sensitivity(
         simulation_instance=instance,
-        base_model=af.Collection(
-            gaussian=af.Model(af.Gaussian)
-        ),
-        perturbation_model=perturbation_model,
-        simulate_function=image_function,
-        analysis_class=Analysis,
-        search=search,
+        base_model=af.Collection(gaussian=af.Model(af.Gaussian)),
+        perturb_model=perturb_model,
+        simulate_cls=Simulate(),
+        base_fit_cls=BaseFit(Analysis),
+        perturb_fit_cls=PerturbFit(Analysis),
+        paths=af.DirectoryPaths(),
         number_of_steps=2,
     )
 
 
-class MockAnalysisFactory:
-    def __init__(self, analysis):
-        self.analysis = analysis
-
-    def __call__(self):
-        return self.analysis
-
-
-@pytest.fixture(
-    name="job"
-)
+@pytest.fixture(name="job")
 def make_job(
-        perturbation_model,
-        search
+    perturb_model,
 ):
     instance = af.ModelInstance()
     instance.gaussian = af.Gaussian()
     base_instance = instance
-    instance.perturbation = af.Gaussian()
-    image = image_function(instance)
+    instance.perturb = af.Gaussian()
     # noinspection PyTypeChecker
     return s.Job(
-        model=af.Collection(
-            gaussian=af.Model(af.Gaussian)
-        ),
-        perturbation_model=af.Model(af.Gaussian),
+        model=af.Collection(gaussian=af.Model(af.Gaussian)),
+        perturb_model=af.Model(af.Gaussian),
+        simulate_instance=instance,
         base_instance=base_instance,
-        perturbation_instance=instance,
-        analysis_factory=MockAnalysisFactory(Analysis(image)),
-        search=search,
-        number=1
+        simulate_cls=Simulate(),
+        base_fit_cls=BaseFit(Analysis),
+        perturb_fit_cls=PerturbFit(Analysis),
+        paths=af.DirectoryPaths(),
+        number=1,
     )

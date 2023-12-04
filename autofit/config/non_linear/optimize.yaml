@@ -24,10 +24,6 @@ PySwarmsGlobal:
     number_of_cores: 1              # The number of cores the search is parallelized over by default, using Python multiprocessing.
   printing:
     silence: false                  # If True, the default print output of the non-linear search is silcened and not printed by the Python interpreter.
-  prior_passer:
-    sigma: 3.0                      # For non-linear search chaining and model prior passing, the sigma value of the inferred model parameter used as the sigma of the passed Gaussian prior.
-    use_errors: true                # If True, the errors of the previous model's results are used when passing priors.
-    use_widths: true                # If True the width of the model parameters defined in the priors config file are used.
   updates:
     iterations_per_update: 500      # The number of iterations of the non-linear search performed between every 'update', where an update performs tasks like outputting model.results.
     remove_state_files_at_end: true # Whether to remove the savestate of the seach (e.g. the Emcee hdf5 file) at the end to save hard-disk space (results are still stored as PyAutoFit pickles and loadable).
@@ -50,10 +46,6 @@ PySwarmsLocal:
     number_of_cores: 1              # The number of cores the search is parallelized over by default, using Python multiprocessing.
   printing:
     silence: false                  # If True, the default print output of the non-linear search is silcened and not printed by the Python interpreter.
-  prior_passer:
-    sigma: 3.0                      # For non-linear search chaining and model prior passing, the sigma value of the inferred model parameter used as the sigma of the passed Gaussian prior.
-    use_errors: true                # If True, the errors of the previous model's results are used when passing priors.
-    use_widths: true                # If True the width of the model parameters defined in the priors config file are used.
   updates:
     iterations_per_update: 500      # The number of iterations of the non-linear search performed between every 'update', where an update performs tasks like outputting model.results.
     remove_state_files_at_end: true # Whether to remove the savestate of the seach (e.g. the Emcee hdf5 file) at the end to save hard-disk space (results are still stored as PyAutoFit pickles and loadable).
@@ -78,10 +70,6 @@ LBFGS:
     number_of_cores: 1              # The number of cores the search is parallelized over by default, using Python multiprocessing.
   printing:
     silence: false                  # If True, the default print output of the non-linear search is silcened and not printed by the Python interpreter.
-  prior_passer:
-    sigma: 3.0                      # For non-linear search chaining and model prior passing, the sigma value of the inferred model parameter used as the sigma of the passed Gaussian prior.
-    use_errors: true                # If True, the errors of the previous model's results are used when passing priors.
-    use_widths: true                # If True the width of the model parameters defined in the priors config file are used.
   updates:
     iterations_per_update: 500      # The number of iterations of the non-linear search performed between every 'update', where an update performs tasks like outputting model.results.
     remove_state_files_at_end: true # Whether to remove the savestate of the seach (e.g. the Emcee hdf5 file) at the end to save hard-disk space (results are still stored as PyAutoFit pickles and loadable).
@@ -96,10 +84,6 @@ Drawer:
     number_of_cores: 1              # The number of cores the search is parallelized over by default, using Python multiprocessing.
   printing:
     silence: false                  # If True, the default print output of the non-linear search is silcened and not printed by the Python interpreter.
-  prior_passer:
-    sigma: 3.0                      # For non-linear search chaining and model prior passing, the sigma value of the inferred model parameter used as the sigma of the passed Gaussian prior.
-    use_errors: true                # If True, the errors of the previous model's results are used when passing priors.
-    use_widths: true                # If True the width of the model parameters defined in the priors config file are used.
   updates:
     iterations_per_update: 500      # The number of iterations of the non-linear search performed between every 'update', where an update performs tasks like outputting model.results.
     remove_state_files_at_end: true # Whether to remove the savestate of the seach (e.g. the Emcee hdf5 file) at the end to save hard-disk space (results are still stored as PyAutoFit pickles and loadable).

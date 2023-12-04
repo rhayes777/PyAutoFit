@@ -27,7 +27,7 @@ class AbstractInitializer(ABC):
         self,
         total_points: int,
         model: AbstractPriorModel,
-        fitness_function,
+        fitness,
         use_prior_medians: bool = False,
         test_mode_samples: bool = True,
     ):
@@ -68,9 +68,7 @@ class AbstractInitializer(ABC):
             )
 
             try:
-                figure_of_merit = fitness_function.figure_of_merit_from(
-                    parameter_list=parameter_list
-                )
+                figure_of_merit = fitness(parameters=parameter_list)
 
                 if np.isnan(figure_of_merit):
                     raise exc.FitException
@@ -81,6 +79,7 @@ class AbstractInitializer(ABC):
                 point_index += 1
             except exc.FitException:
                 pass
+
 
         if total_points > 1 and np.allclose(
             a=figures_of_merit_list[0], b=figures_of_merit_list[1:]
@@ -133,7 +132,6 @@ class AbstractInitializer(ABC):
         figure_of_merit = -1.0e99
 
         while point_index < total_points:
-
             try:
                 unit_parameter_list = self._generate_unit_parameter_list(model)
                 parameter_list = model.vector_from_unit_vector(
@@ -230,19 +228,15 @@ class Initializer(AbstractInitializer):
         """
 
         try:
-
             initializer = config("initialize", "method")
 
         except configparser.NoSectionError:
-
             return None
 
         if initializer in "prior":
-
             return InitializerPrior()
 
         elif initializer in "ball":
-
             ball_lower_limit = config("initialize", "ball_lower_limit")
             ball_upper_limit = config("initialize", "ball_upper_limit")
 

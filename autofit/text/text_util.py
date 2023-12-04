@@ -4,6 +4,7 @@ from autoconf import conf
 from autofit.text import formatter as frm, samples_text
 from autofit.tools.util import info_whitespace
 
+
 def padding(item, target=6):
     string = str(item)
     difference = target - len(string)
@@ -20,12 +21,11 @@ def result_info_from(samples) -> str:
 
     if hasattr(samples, "log_evidence"):
         if samples.log_evidence is not None:
-
             results += [
                 frm.add_whitespace(
                     str0="Bayesian Evidence ",
                     str1="{:.8f}".format(samples.log_evidence),
-                    whitespace=info_whitespace()
+                    whitespace=info_whitespace(),
                 )
             ]
             results += ["\n"]
@@ -34,7 +34,7 @@ def result_info_from(samples) -> str:
         frm.add_whitespace(
             str0="Maximum Log Likelihood ",
             str1="{:.8f}".format(max(samples.log_likelihood_list)),
-            whitespace=info_whitespace()
+            whitespace=info_whitespace(),
         )
     ]
     results += ["\n"]
@@ -42,7 +42,7 @@ def result_info_from(samples) -> str:
         frm.add_whitespace(
             str0="Maximum Log Posterior ",
             str1="{:.8f}".format(max(samples.log_posterior_list)),
-            whitespace=info_whitespace()
+            whitespace=info_whitespace(),
         )
     ]
     results += ["\n"]
@@ -53,27 +53,33 @@ def result_info_from(samples) -> str:
 
     formatter = frm.TextFormatter(line_length=info_whitespace())
 
-    for i, prior_path in enumerate(samples.model.unique_prior_paths):
-        formatter.add(
-            prior_path, format_str().format(samples.max_log_likelihood(as_instance=False)[i])
-        )
+    max_log_likelihood_sample = samples.max_log_likelihood(as_instance=False)
+
+    for prior_path, value in zip(
+        samples.model.unique_prior_paths,
+        max_log_likelihood_sample,
+    ):
+        formatter.add(prior_path, format_str().format(value))
     results += [formatter.text + "\n"]
 
     if hasattr(samples, "pdf_converged"):
-
         if samples.pdf_converged:
-
-            results += samples_text.summary(samples=samples, sigma=3.0, indent=4, line_length=info_whitespace())
+            results += samples_text.summary(
+                samples=samples, sigma=3.0, indent=4, line_length=info_whitespace()
+            )
             results += ["\n"]
-            results += samples_text.summary(samples=samples, sigma=1.0, indent=4, line_length=info_whitespace())
+            results += samples_text.summary(
+                samples=samples, sigma=1.0, indent=4, line_length=info_whitespace()
+            )
 
         else:
-
             results += [
                 "\n WARNING: The samples have not converged enough to compute a PDF and model errors. \n "
                 "The model below over estimates errors. \n\n"
             ]
-            results += samples_text.summary(samples=samples, sigma=1.0, indent=4, line_length=info_whitespace())
+            results += samples_text.summary(
+                samples=samples, sigma=1.0, indent=4, line_length=info_whitespace()
+            )
 
         results += ["\n\ninstances\n"]
 
@@ -94,13 +100,30 @@ def search_summary_from_samples(samples) -> [str]:
         line.append(f"Acceptance Ratio = {samples.acceptance_ratio}\n")
     if samples.time is not None:
         line.append(f"Time To Run = {dt.timedelta(seconds=float(samples.time))}\n")
-        line.append(f"Time Per Sample (seconds) = {float(samples.time) / samples.total_samples}\n")
+        line.append(
+            f"Time Per Sample (seconds) = {float(samples.time) / samples.total_samples}\n"
+        )
     return line
 
 
 def search_summary_to_file(samples, log_likelihood_function_time, filename):
     summary = search_summary_from_samples(samples=samples)
-    summary.append(f"Log Likelihood Function Evaluation Time (seconds) = {log_likelihood_function_time}")
+    summary.append(
+        f"Log Likelihood Function Evaluation Time (seconds) = {log_likelihood_function_time}\n"
+    )
+
+    expected_time = dt.timedelta(seconds=float(samples.total_samples * log_likelihood_function_time))
+    summary.append(
+        f"Expected Time To Run (seconds) = {expected_time}\n"
+    )
+
+    try:
+        speed_up_factor = float(expected_time.total_seconds()) / float(samples.time)
+        summary.append(
+            f"Speed Up Factor (e.g. due to parallelization) = {speed_up_factor}"
+        )
+    except TypeError:
+        pass
     frm.output_list_of_strings_to_file(file=filename, list_of_strings=summary)
 
 

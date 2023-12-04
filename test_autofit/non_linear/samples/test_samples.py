@@ -8,10 +8,10 @@ pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
 
 def test__table__headers(samples_x5):
     assert samples_x5._headers == [
-        "mock_class_1_one",
-        "mock_class_1_two",
-        "mock_class_1_three",
-        "mock_class_1_four",
+        "mock_class_1.one",
+        "mock_class_1.two",
+        "mock_class_1.three",
+        "mock_class_1.four",
         "log_likelihood",
         "log_prior",
         "log_posterior",
@@ -31,7 +31,6 @@ def test__table__rows(samples_x5):
 
 
 def test__table__write_table():
-
     model = af.Collection(mock_class_1=af.m.MockClassx4)
 
     parameters = [
@@ -61,7 +60,6 @@ def test__table__write_table():
 
 
 def test__max_log_likelihood(samples_x5):
-
     assert samples_x5.max_log_likelihood(as_instance=False) == [21.0, 22.0, 23.0, 24.0]
 
     instance = samples_x5.max_log_likelihood(as_instance=True)
@@ -171,7 +169,6 @@ def test__instance_from_sample_index():
 
 
 def test__addition_of_samples(samples_x5):
-
     samples = samples_x5 + samples_x5
 
     assert len(samples.sample_list) == 10
@@ -180,8 +177,8 @@ def test__addition_of_samples(samples_x5):
     assert samples.sample_list[5].log_likelihood == 1.0
     assert samples.sample_list[9].log_likelihood == 5.0
 
-def test__sum_of_samples(samples_x5):
 
+def test__sum_of_samples(samples_x5):
     samples = sum([samples_x5, samples_x5, samples_x5])
 
     assert len(samples.sample_list) == 15
@@ -192,8 +189,8 @@ def test__sum_of_samples(samples_x5):
     assert samples.sample_list[10].log_likelihood == 1.0
     assert samples.sample_list[14].log_likelihood == 5.0
 
-def test__addition_of_samples__raises_error_if_model_mismatch(samples_x5):
 
+def test__addition_of_samples__raises_error_if_model_mismatch(samples_x5):
     model = af.Collection(mock_class_1=af.m.MockClassx2)
 
     parameters = [

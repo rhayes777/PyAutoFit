@@ -9,7 +9,7 @@ off of our astronomy software `PyAutoLens <https://github.com/Jammy2211/PyAutoLe
 
 The schematic below depicts a strong gravitational lens:
 
-.. image:: https://raw.githubusercontent.com/Jammy2211/PyAutoLens/main/docs/overview/images/lensing/schematic.jpg
+.. image:: https://raw.githubusercontent.com/Jammy2211/PyAutoLens/main/docs/overview/images/overview_1_lensing/schematic.jpg
   :width: 600
   :alt: Alternative text
 

@@ -1,7 +1,7 @@
 import copy
 import logging
 from functools import wraps
-from typing import Optional, Union, Tuple, List, Iterable, Type
+from typing import Optional, Union, Tuple, List, Iterable, Type, Dict
 
 from jax._src.tree_util import register_pytree_node_class
 
@@ -32,7 +32,11 @@ def frozen_cache(func):
     @wraps(func)
     def cache(self, *args, **kwargs):
         if hasattr(self, "_is_frozen") and self._is_frozen:
-            key = (func.__name__, self, *args,) + tuple(kwargs.items())
+            key = (
+                func.__name__,
+                self,
+                *args,
+            ) + tuple(kwargs.items())
 
             if key not in self._frozen_cache:
                 self._frozen_cache[key] = func(self, *args, **kwargs)
@@ -224,7 +228,9 @@ class AbstractModel(ModelObject):
 
     @frozen_cache
     def models_with_type(
-        self, cls: Union[Type, Tuple[Type, ...]], include_zero_dimension=False,
+        self,
+        cls: Union[Type, Tuple[Type, ...]],
+        include_zero_dimension=False,
     ) -> List["AbstractModel"]:
         """
         Return all models of a given type in the model tree.
@@ -340,6 +346,15 @@ def path_instances_of_class(
         results.append((tuple(), obj))
         if ignore_children:
             return results
+
+    if isinstance(obj, list):
+        for i, item in enumerate(obj):
+            for path, instance in path_instances_of_class(
+                item, cls, ignore_class=ignore_class, ignore_children=ignore_children
+            ):
+                results.append(((i,) + path, instance))
+        return results
+
     try:
         from autofit.mapper.prior_model.annotation import AnnotationPriorModel
 
@@ -367,24 +382,35 @@ def path_instances_of_class(
 @register_pytree_node_class
 class ModelInstance(AbstractModel):
     """
-    An object to hold model instances produced by providing arguments to a model mapper.
+    An instance of a Collection or Model. This is created by optimisers and correspond
+    to a point in the parameter space.
 
     @DynamicAttrs
     """
 
-    def __init__(
-        self, items=None, id_=None,
-    ):
-        super().__init__(id_=id_)
-        if isinstance(items, list):
-            for i, item in enumerate(items):
-                self[i] = item
-        if isinstance(items, dict):
-            for key, value in items.items():
-                self[key] = value
+    __dictable_type__ = "instance"
+
+    def __init__(self, child_items: Optional[Union[List, Dict]] = None):
+        """
+        An instance of a Collection or Model. This is created by optimisers and correspond
+        to a point in the parameter space.
+
+        Parameters
+        ----------
+        child_items
+            The child items of the instance. This can be a list or dict.
+
+            If a list, the items are assigned to the instance in order.
+            If a dict, the items are assigned to the instance by key and accessed by attribute.
+        """
+        super().__init__()
+        self.child_items = child_items
 
     def __eq__(self, other):
-        return self.__dict__ == other.__dict__
+        try:
+            return self.__dict__ == other.__dict__
+        except AttributeError:
+            return False
 
     def __getitem__(self, item):
         if isinstance(item, int):
@@ -395,6 +421,19 @@ class ModelInstance(AbstractModel):
 
     def __setitem__(self, key, value):
         self.__dict__[key] = value
+
+    @property
+    def child_items(self):
+        return self.dict
+
+    @child_items.setter
+    def child_items(self, child_items):
+        if isinstance(child_items, list):
+            for i, item in enumerate(child_items):
+                self[i] = item
+        if isinstance(child_items, dict):
+            for key, value in child_items.items():
+                self[key] = value
 
     def items(self):
         return self.dict.items()
@@ -413,7 +452,10 @@ class ModelInstance(AbstractModel):
 
     def tree_flatten(self):
         keys, values = zip(*self.dict.items())
-        return values, (*keys, self.id,)
+        return values, (
+            *keys,
+            self.id,
+        )
 
     @classmethod
     def tree_unflatten(cls, aux_data, children):
@@ -431,8 +473,30 @@ class ModelInstance(AbstractModel):
     def __len__(self):
         return len(self.values())
 
-    def as_model(self, model_classes=tuple()):
+    def as_model(
+        self,
+        model_classes: Union[type, Iterable[type]] = tuple(),
+        excluded_classes: Union[type, Iterable[type]] = tuple(),
+    ):
+        """
+        Convert this instance to a model
+
+        Parameters
+        ----------
+        model_classes
+            The classes to convert to models
+        excluded_classes
+            The classes to exclude from conversion
+
+        Returns
+        -------
+        A model
+        """
 
         from autofit.mapper.prior_model.abstract import AbstractPriorModel
 
-        return AbstractPriorModel.from_instance(self, model_classes)
+        return AbstractPriorModel.from_instance(
+            self,
+            model_classes,
+            excluded_classes,
+        )

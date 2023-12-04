@@ -61,12 +61,12 @@ class TestRegression:
         mm.one.one.id = mm.two.three.id + 1
 
         assert mm.model_component_and_parameter_names == [
-            "one_two",
-            "one_three",
-            "two_one",
-            "two_two",
-            "two_three",
-            "one_one",
+            "one.two",
+            "one.three",
+            "two.one",
+            "two.two",
+            "two.three",
+            "one.one",
         ]
 
     def test_parameter_name_list(self):
@@ -85,12 +85,12 @@ class TestRegression:
             ]
         )
         assert mm.model_component_and_parameter_names == [
-            "ls_0_one",
-            "ls_0_two",
-            "ls_0_three",
-            "ls_1_one",
-            "ls_1_two",
-            "ls_1_three",
+            "ls.0.one",
+            "ls.0.two",
+            "ls.0.three",
+            "ls.1.one",
+            "ls.1.two",
+            "ls.1.three",
         ]
 
     def test__parameter_labels(self):
@@ -564,6 +564,15 @@ class TestPriorReplacement:
         assert result.one.two.mean == 2
         assert result.two.one.mean == 3
         assert result.two.two.mean == 4
+
+    def test__mapper_from_uniform_floats(self):
+        mapper = af.ModelMapper(mock_class=af.m.MockClassx2)
+        result = mapper.mapper_from_uniform_floats([10, 5], b=1.0)
+
+        assert isinstance(result.mock_class.one, af.UniformPrior)
+        assert {prior.id for prior in mapper.priors} == {
+            prior.id for prior in result.priors
+        }
 
 
 class TestArguments:

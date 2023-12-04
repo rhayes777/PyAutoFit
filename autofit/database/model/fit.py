@@ -1,11 +1,17 @@
+import json
 import pickle
 from functools import wraps
 from typing import List
 
+import numpy as np
+
+from autoconf.dictable import from_dict
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.samples import Samples
 from .model import Base, Object
 from ..sqlalchemy_ import sa
+from .array import Array, HDU
+from ...non_linear.samples.efficient import EfficientSamples
 
 
 class Pickle(Base):
@@ -40,6 +46,36 @@ class Pickle(Base):
             self.string = pickle.dumps(value)
         except pickle.PicklingError:
             pass
+
+
+class JSON(Base):
+    """
+    A JSON serialised python object that was found in the jsons directory
+    """
+
+    __tablename__ = "json"
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+    id = sa.Column(sa.Integer, primary_key=True)
+
+    name = sa.Column(sa.String)
+    string = sa.Column(sa.String)
+    fit_id = sa.Column(sa.String, sa.ForeignKey("fit.id"))
+    fit = sa.orm.relationship("Fit", uselist=False)
+
+    @property
+    def dict(self):
+        return json.loads(self.string)
+
+    @dict.setter
+    def dict(self, d):
+        self.string = json.dumps(d)
+
+    @property
+    def value(self):
+        return from_dict(self.dict)
 
 
 class Info(Base):
@@ -139,7 +175,10 @@ class NamedInstancesWrapper:
 class Fit(Base):
     __tablename__ = "fit"
 
-    id = sa.Column(sa.String, primary_key=True,)
+    id = sa.Column(
+        sa.String,
+        primary_key=True,
+    )
     is_complete = sa.Column(sa.Boolean)
 
     _named_instances: List[NamedInstance] = sa.orm.relationship("NamedInstance")
@@ -160,9 +199,17 @@ class Fit(Base):
     def named_instances(self):
         return NamedInstancesWrapper(self)
 
+    @property
+    def total_parameters(self):
+        return self.model.prior_count if self.model else 0
+
     _info: List[Info] = sa.orm.relationship("Info")
 
     def __init__(self, **kwargs):
+        try:
+            kwargs["path_prefix"] = kwargs["path_prefix"].as_posix()
+        except (KeyError, AttributeError):
+            pass
         super().__init__(**kwargs)
 
     max_log_likelihood = sa.Column(sa.Float)
@@ -172,6 +219,12 @@ class Fit(Base):
     children: List["Fit"] = sa.orm.relationship(
         "Fit", backref=sa.orm.backref("parent", remote_side=[id])
     )
+
+    def child_values(self, name):
+        """
+        Get the values of a given key for all children
+        """
+        return [child[name] for child in self.children]
 
     @property
     def best_fit(self) -> "Fit":
@@ -207,11 +260,13 @@ class Fit(Base):
     @property
     @try_none
     def samples(self) -> Samples:
-        return self._samples()
+        return self._samples().samples
 
     @samples.setter
     def samples(self, samples):
-        self._samples = Object.from_object(samples)
+        self._samples = Object.from_object(
+            EfficientSamples(samples),
+        )
 
     @property
     def info(self):
@@ -235,6 +290,17 @@ class Fit(Base):
         self.__model = Object.from_object(model)
 
     pickles: List[Pickle] = sa.orm.relationship("Pickle", lazy="joined")
+    jsons: List[JSON] = sa.orm.relationship("JSON", lazy="joined")
+    arrays: List[Array] = sa.orm.relationship(
+        "Array",
+        lazy="joined",
+        foreign_keys=[Array.fit_id],
+    )
+    hdus: List[HDU] = sa.orm.relationship(
+        "HDU",
+        lazy="joined",
+        foreign_keys=[HDU.fit_id],
+    )
 
     def __getitem__(self, item: str):
         """
@@ -252,14 +318,122 @@ class Fit(Base):
         -------
         An unpickled object
         """
-        for p in self.pickles:
+        for p in self.jsons + self.arrays + self.hdus + self.pickles:
             if p.name == item:
                 return p.value
+
         return getattr(self, item)
 
+    def set_json(self, key: str, value: dict):
+        """
+        Add a JSON object to the database. Overwrites any existing JSON
+        object with the same name.
+
+        Parameters
+        ----------
+        key
+            The name of the JSON object
+        value
+            A dictionary to be serialised
+        """
+        new = JSON(name=key, dict=value)
+        self.jsons = [p for p in self.jsons if p.name != key] + [new]
+
+    def get_json(self, key: str) -> dict:
+        """
+        Retrieve a JSON object from the database.
+
+        Parameters
+        ----------
+        key
+            The name of the JSON object
+
+        Returns
+        -------
+        A dictionary
+        """
+        for p in self.jsons:
+            if p.name == key:
+                return p.dict
+        raise KeyError(f"JSON {key} not found")
+
+    def set_array(self, key: str, value: np.ndarray):
+        """
+        Add an array to the database. Overwrites any existing array
+        with the same name.
+
+        Parameters
+        ----------
+        key
+            The name of the array
+        value
+            A numpy array
+        """
+        new = Array(name=key, array=value)
+        self.arrays = [p for p in self.arrays if p.name != key] + [new]
+
+    def set_pickle(self, key: str, value):
+        new = Pickle(name=key)
+        if isinstance(value, (str, bytes)):
+            new.string = value
+        else:
+            new.value = value
+        self.pickles = [p for p in self.pickles if p.name != key] + [new]
+
+    def get_array(self, key: str) -> np.ndarray:
+        """
+        Retrieve an array from the database.
+
+        Parameters
+        ----------
+        key
+            The name of the array
+
+        Returns
+        -------
+        A numpy array
+        """
+        for p in self.arrays:
+            if p.name == key:
+                return p.array
+        raise KeyError(f"Array {key} not found")
+
+    def set_hdu(self, key: str, value):
+        """
+        Add an HDU to the database. Overwrites any existing HDU
+        with the same name.
+
+        Parameters
+        ----------
+        key
+            The name of the HDU
+        value
+            A fits HDUList
+        """
+        new = HDU(name=key, hdu=value)
+        self.hdus = [p for p in self.hdus if p.name != key] + [new]
+
+    def get_hdu(self, key: str):
+        """
+        Retrieve an HDU from the database.
+
+        Parameters
+        ----------
+        key
+            The name of the HDU
+
+        Returns
+        -------
+        A fits HDUList
+        """
+        for p in self.hdus:
+            if p.name == key:
+                return p.hdu
+        raise KeyError(f"HDU {key} not found")
+
     def __contains__(self, item):
-        for p in self.pickles:
-            if p.name == item:
+        for i in self.pickles + self.jsons + self.arrays + self.hdus:
+            if i.name == item:
                 return True
         return False
 
@@ -277,12 +451,7 @@ class Fit(Base):
         value
             A string, bytes or object
         """
-        new = Pickle(name=key)
-        if isinstance(value, (str, bytes)):
-            new.string = value
-        else:
-            new.value = value
-        self.pickles = [p for p in self.pickles if p.name != key] + [new]
+        self.set_pickle(key, value)
 
     def __delitem__(self, key):
         self.pickles = [p for p in self.pickles if p.name != key]

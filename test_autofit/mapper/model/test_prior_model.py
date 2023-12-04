@@ -433,3 +433,7 @@ class TestCopy:
         # noinspection PyUnresolvedReferences
         assert one.prior_count == one.one.prior_count
         assert copy.deepcopy(one).prior_count == one.prior_count
+
+
+def test_composition(simple_model):
+    assert simple_model.composition == ["simple.one", "simple.two"]

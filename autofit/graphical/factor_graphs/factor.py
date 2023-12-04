@@ -13,6 +13,8 @@ _HAS_JAX = False
 
 from autofit.graphical.utils import (
     nested_filter,
+    to_variabledata,
+    nested_zip,
     is_variable,
     try_getitem,
 )
@@ -192,7 +194,6 @@ class Factor(AbstractFactor):
             **kwargs,
         )
 
-        # self.factor_out = factor_out
         self.eps = eps
         self._set_factor(factor)
         self._set_jacobians(
@@ -322,7 +323,7 @@ class Factor(AbstractFactor):
         where the values of the deterministic values are stored in a dict
         attribute `FactorValue.deterministic_values`
         """
-        det_values = VariableData(nested_filter(is_variable, self.factor_out, raw_fval))
+        det_values = to_variabledata(self.factor_out, raw_fval)
         fval = det_values.pop(FactorValue, 0.0)
         return FactorValue(fval, det_values)
 
@@ -330,8 +331,8 @@ class Factor(AbstractFactor):
         """Calls the factor with the values specified by the dictionary of
         values passed, returns a FactorValue with the value returned by the
         factor, and any deterministic factors"""
-        args = [values[v] for v in self.args]
-        key = self._key("__call__", *args)
+        args = self.resolve_args(values)
+        key = self._key("__call__", *(val for _, val in nested_zip(self.args, args)))
 
         if key not in self._cache:
             raw_fval = self._factor_args(*args)
@@ -355,7 +356,7 @@ class Factor(AbstractFactor):
             VectorJacobianProduct,
         )
 
-        raw_fval, fvjp = self._factor_vjp(*(values[v] for v in self.args))
+        raw_fval, fvjp = self._factor_vjp(*self.resolve_args(values))
         fval = self._factor_value(raw_fval)
 
         fvjp_op = VectorJacobianProduct(
@@ -383,7 +384,7 @@ class Factor(AbstractFactor):
     def _jvp_func_jacobian(
         self, values: VariableData, **kwargs
     ) -> Tuple[FactorValue, "JacobianVectorProduct"]:
-        args = list(values[k] for k in self.args)
+        args = self.resolve_args(values)
         key = self._key("_jvp_func_jacobian", *args)
 
         if key not in self._cache:
@@ -405,7 +406,7 @@ class Factor(AbstractFactor):
         jac = {}
         for v0, vjac in nested_filter(is_variable, self.factor_out, raw_jac):
             jac[v0] = VariableData()
-            for v1, j in zip(self.args, vjac):
+            for v1, j in nested_zip(self.args, vjac):
                 jac[v0][v1] = j
 
         return jac

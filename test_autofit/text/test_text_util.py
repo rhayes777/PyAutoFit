@@ -55,10 +55,16 @@ def test__search_summary_to_file(model):
             weight_list=log_likelihood_list,
             model=model
         ),
-        time=None,
+        samples_info={
+            "time": "1",
+        }
     )
 
-    text_util.search_summary_to_file(samples=samples, log_likelihood_function_time=1.0, filename=file_search_summary)
+    text_util.search_summary_to_file(
+        samples=samples,
+        log_likelihood_function_time=1.0,
+        filename=file_search_summary
+    )
 
     results = open(file_search_summary)
     lines = results.readlines()
@@ -74,10 +80,12 @@ def test__search_summary_to_file(model):
             weight_list=log_likelihood_list,
             model=model
         ),
-        total_samples=10,
-        time="1",
-        number_live_points=1,
-        log_evidence=1.0,
+        samples_info={
+            "total_samples": 10,
+            "time": "1",
+            "number_live_points": 1,
+            "log_evidence": 1.0
+        }
     )
 
     text_util.search_summary_to_file(samples=samples, log_likelihood_function_time=1.0, filename=file_search_summary)
@@ -89,5 +97,5 @@ def test__search_summary_to_file(model):
     assert lines[2] == "Acceptance Ratio = 0.2\n"
     assert lines[3] == "Time To Run = 0:00:01\n"
     assert lines[4] == "Time Per Sample (seconds) = 0.1\n"
-    assert lines[5] == "Log Likelihood Function Evaluation Time (seconds) = 1.0"
+    assert lines[5] == "Log Likelihood Function Evaluation Time (seconds) = 1.0\n"
     results.close()

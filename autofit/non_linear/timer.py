@@ -1,24 +1,23 @@
 import datetime as dt
 import os
-from os import path
 import time
 
 
 class Timer:
 
-    def __init__(self, samples_path: str):
+    def __init__(self, timer_path: str):
         """Times the run-time of the non-linear searches, by outputting a start-time file to the hard-disk and using
         this to determine the total run time when a `NonLinearSearch` update is performed.
 
         Parameters
         ----------
-        samples_path
+        timer_path
             The directory in which the timer should save results
         """
 
-        self.samples_path = samples_path
+        self.timer_path = timer_path
         os.makedirs(
-            samples_path,
+            timer_path,
             exist_ok=True
         )
 
@@ -28,10 +27,8 @@ class Timer:
         recorded.
         """
 
-        start_time_path = path.join(
-            self.samples_path,
-            ".start_time"
-        )
+        start_time_path = self.timer_path / ".start_time"
+
         try:
             with open(start_time_path) as f:
                 float(f.read())
@@ -51,7 +48,7 @@ class Timer:
             return
 
         with open(
-                path.join(self.samples_path, ".time"), "w+"
+                self.timer_path / ".time", "w+"
         ) as f:
             f.write(execution_time)
 
@@ -62,7 +59,7 @@ class Timer:
         """
         try:
             with open(
-                    path.join(self.samples_path, ".start_time"), "r"
+                    self.timer_path / ".start_time", "r"
             ) as f:
                 return f.read()
         except FileNotFoundError:
@@ -75,7 +72,7 @@ class Timer:
         """
         try:
             with open(
-                    path.join(self.samples_path, ".time"), "r"
+                    self.timer_path / ".time", "r"
             ) as f:
                 return f.read()
         except FileNotFoundError:

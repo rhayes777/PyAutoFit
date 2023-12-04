@@ -8,6 +8,8 @@ emcee:
   likelihood_series: true  # Output Emcee likelihood series figure during a non-linear search fit?
   time_series: true        # Output Emcee time series figure during a non-linear search fit?
   trajectories: true       # Output Emcee trajectories figure during a non-linear search fit?
+nautilus:
+  cornerplot: true         # Output Nautilus cornerplot figure during a non-linear search fit?
 pyswarms:
   contour: true            # Output PySwarms contour figure during a non-linear search fit?
   cost_history: true       # Output PySwarms cost_history figure during a non-linear search fit?

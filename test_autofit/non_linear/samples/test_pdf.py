@@ -1,3 +1,5 @@
+import os
+
 import numpy as np
 import pytest
 
@@ -8,8 +10,8 @@ import autofit as af
 pytestmark = pytest.mark.filterwarnings("ignore::FutureWarning")
 
 
-def test__from_csv_table():
-
+@pytest.fixture(name="samples_x5")
+def make_samples_x5():
     model = af.ModelMapper(mock_class_1=af.m.MockClassx4)
 
     parameters = [
@@ -20,7 +22,7 @@ def test__from_csv_table():
         [0.0, 1.0, 2.0, 3.0],
     ]
 
-    samples_x5 = af.Samples(
+    return af.SamplesPDF(
         model=model,
         sample_list=af.Sample.from_lists(
             model=model,
@@ -31,6 +33,37 @@ def test__from_csv_table():
         ),
     )
 
+
+@pytest.fixture(autouse=True)
+def remove_csv_output():
+    yield
+    try:
+        os.remove("samples.csv")
+    except FileNotFoundError:
+        pass
+    try:
+        os.remove("covariance.csv")
+    except FileNotFoundError:
+        pass
+
+
+def test_save_covariance_matrix(samples_x5):
+    samples_x5.save_covariance_matrix("covariance.csv")
+    with open("covariance.csv") as f:
+        string = f.read()
+        print(string)
+
+    assert (
+        string
+        == """8.820000000000000284e+01,8.820000000000000284e+01,8.820000000000000284e+01,8.820000000000000284e+01
+8.820000000000000284e+01,8.820000000000000284e+01,8.820000000000000284e+01,8.820000000000000284e+01
+8.820000000000000284e+01,8.820000000000000284e+01,8.820000000000000284e+01,8.820000000000000284e+01
+8.820000000000000284e+01,8.820000000000000284e+01,8.820000000000000284e+01,8.820000000000000284e+01
+"""
+    )
+
+
+def test__from_csv_table(samples_x5):
     filename = "samples.csv"
     samples_x5.write_table(filename=filename)
 
@@ -47,6 +80,25 @@ def test__from_csv_table():
     assert samples_x5.log_prior_list == [0.0, 0.0, 0.0, 0.0, 0.0]
     assert samples_x5.log_posterior_list == [1.0, 2.0, 3.0, 10.0, 5.0]
     assert samples_x5.weight_list == [1.0, 1.0, 1.0, 1.0, 1.0]
+
+
+def test_format(samples_x5):
+    filename = "samples.csv"
+    samples_x5.write_table(filename=filename)
+
+    with open(filename) as f:
+        text = f.read()
+
+    assert (
+        text
+        == """mock_class_1.one,mock_class_1.two,mock_class_1.three,mock_class_1.four,log_likelihood,log_prior,log_posterior,weight
+             0.0,             1.0,               2.0,              3.0,           1.0,      0.0,          1.0,   1.0
+             0.0,             1.0,               2.0,              3.0,           2.0,      0.0,          2.0,   1.0
+             0.0,             1.0,               2.0,              3.0,           3.0,      0.0,          3.0,   1.0
+            21.0,            22.0,              23.0,             24.0,          10.0,      0.0,         10.0,   1.0
+             0.0,             1.0,               2.0,              3.0,           5.0,      0.0,          5.0,   1.0
+"""
+    )
 
 
 def test__median_pdf__converged():
@@ -322,26 +374,11 @@ def test__unconverged_sample_size():
             log_prior_list=[1.0, 1.0, 1.0, 1.0, 1.0],
             weight_list=weight_list,
         ),
-        unconverged_sample_size=2,
+        samples_info={"unconverged_sample_size": 2},
     )
 
     assert samples_x5.pdf_converged is False
     assert samples_x5.unconverged_sample_size == 2
-
-    samples_x5 = af.m.MockSamples(
-        model=model,
-        sample_list=af.Sample.from_lists(
-            model=model,
-            parameter_lists=5 * [[]],
-            log_likelihood_list=log_likelihood_list,
-            log_prior_list=[1.0, 1.0, 1.0, 1.0, 1.0],
-            weight_list=weight_list,
-        ),
-        unconverged_sample_size=6,
-    )
-
-    assert samples_x5.pdf_converged is False
-    assert samples_x5.unconverged_sample_size == 5
 
 
 def test__offset_values_via_input_values():
@@ -413,23 +450,31 @@ def test__draw_randomly_via_pdf():
     assert instance.mock_class_1.four == 24.0
 
 
-def test__covariance_matrix():
-    log_likelihood_list = list(range(3))
+@pytest.fixture(name="make_samples")
+def make_samples_fixture():
+    def make_samples(parameters, weight_list=None):
+        log_likelihood_list = list(range(len(parameters)))
 
-    weight_list = 3 * [0.1]
+        weight_list = weight_list or len(parameters) * [0.1]
 
-    parameters = [[2.0, 2.0], [1.0, 1.0], [0.0, 0.0]]
-
-    model = af.ModelMapper(mock_class=af.m.MockClassx2)
-    samples_x5 = af.m.MockSamples(
-        model=model,
-        sample_list=af.Sample.from_lists(
+        model = af.ModelMapper(mock_class=af.m.MockClassx2)
+        return af.m.MockSamples(
             model=model,
-            parameter_lists=parameters,
-            log_likelihood_list=log_likelihood_list,
-            log_prior_list=3 * [0.0],
-            weight_list=weight_list,
-        ),
+            sample_list=af.Sample.from_lists(
+                model=model,
+                parameter_lists=parameters,
+                log_likelihood_list=log_likelihood_list,
+                log_prior_list=3 * [0.0],
+                weight_list=weight_list,
+            ),
+        )
+
+    return make_samples
+
+
+def test__covariance_matrix(make_samples):
+    samples_x5 = make_samples(
+        parameters=[[2.0, 2.0], [1.0, 1.0], [0.0, 0.0]],
     )
 
     assert samples_x5.covariance_matrix() == pytest.approx(
@@ -438,34 +483,15 @@ def test__covariance_matrix():
 
     parameters = [[0.0, 2.0], [1.0, 1.0], [2.0, 0.0]]
 
-    model = af.ModelMapper(mock_class=af.m.MockClassx2)
-    samples_x5 = af.m.MockSamples(
-        model=model,
-        sample_list=af.Sample.from_lists(
-            model=model,
-            parameter_lists=parameters,
-            log_likelihood_list=log_likelihood_list,
-            log_prior_list=3 * [0.0],
-            weight_list=weight_list,
-        ),
-    )
+    samples_x5 = make_samples(parameters)
 
     assert samples_x5.covariance_matrix() == pytest.approx(
         np.array([[1.0, -1.0], [-1.0, 1.0]]), 1.0e-4
     )
 
-    weight_list = [0.1, 0.2, 0.3]
-
-    model = af.ModelMapper(mock_class=af.m.MockClassx2)
-    samples_x5 = af.m.MockSamples(
-        model=model,
-        sample_list=af.Sample.from_lists(
-            model=model,
-            parameter_lists=parameters,
-            log_likelihood_list=log_likelihood_list,
-            log_prior_list=10 * [0.0],
-            weight_list=weight_list,
-        ),
+    samples_x5 = make_samples(
+        parameters,
+        weight_list=[0.1, 0.2, 0.3],
     )
 
     assert samples_x5.covariance_matrix() == pytest.approx(

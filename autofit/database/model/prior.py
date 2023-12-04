@@ -18,36 +18,18 @@ class Collection(Object):
 
     id = sa.Column(
         sa.Integer,
-        sa.ForeignKey(
-            "object.id"
-        ),
+        sa.ForeignKey("object.id"),
         primary_key=True,
     )
 
-    __mapper_args__ = {
-        'polymorphic_identity': 'collection_prior_model'
-    }
+    __mapper_args__ = {"polymorphic_identity": "collection_prior_model"}
 
     @classmethod
-    def _from_object(
-            cls,
-            source: Union[
-                collection.Collection,
-                list,
-                dict
-            ]
-    ):
+    def _from_object(cls, source: Union[collection.Collection, list, dict]):
         instance = cls()
-        if not isinstance(
-                source,
-                collection.Collection
-        ):
-            source = collection.Collection(
-                source
-            )
-        instance._add_children(
-            source.items()
-        )
+        if not isinstance(source, collection.Collection):
+            source = collection.Collection(source)
+        instance._add_children(source.items())
         instance.cls = collection.Collection
         return instance
 
@@ -61,24 +43,26 @@ class Model(Object):
 
     id = sa.Column(
         sa.Integer,
-        sa.ForeignKey(
-            "object.id"
-        ),
+        sa.ForeignKey("object.id"),
         primary_key=True,
     )
 
-    __mapper_args__ = {
-        'polymorphic_identity': 'prior_model'
-    }
+    __mapper_args__ = {"polymorphic_identity": "prior_model"}
 
     @classmethod
     def _from_object(
-            cls,
-            model: prior_model.Model,
+        cls,
+        model: prior_model.Model,
     ):
         instance = cls()
         instance.cls = model.cls
-        instance._add_children(model.items())
+        instance._add_children(
+            model.items()
+            + [
+                (f"assertion_{i}", assertion)
+                for i, assertion in enumerate(model.assertions)
+            ]
+        )
         return instance
 
     def _make_instance(self):
@@ -97,29 +81,19 @@ class Prior(Object):
 
     id = sa.Column(
         sa.Integer,
-        sa.ForeignKey(
-            "object.id"
-        ),
+        sa.ForeignKey("object.id"),
         primary_key=True,
     )
 
-    __mapper_args__ = {
-        'polymorphic_identity': 'prior'
-    }
+    __mapper_args__ = {"polymorphic_identity": "prior"}
 
     @classmethod
-    def _from_object(
-            cls,
-            model: abstract.Prior
-    ):
+    def _from_object(cls, model: abstract.Prior):
         instance = cls()
         instance.cls = type(model)
-        instance._add_children([
-            (key, value)
-            for key, value
-            in model.__dict__.items()
-            if key in model.__database_args__
-        ])
+        instance._add_children(
+            [(key, getattr(model, key)) for key in model.__database_args__]
+        )
         return instance
 
     def __call__(self):
@@ -130,10 +104,5 @@ class Prior(Object):
         If the instance implements __setstate__ then this is
         called with a dictionary of instantiated children.
         """
-        arguments = {
-            child.name: child()
-            for child in self.children
-        }
-        return self.cls(
-            **arguments
-        )
+        arguments = {child.name: child() for child in self.children}
+        return self.cls(**arguments)

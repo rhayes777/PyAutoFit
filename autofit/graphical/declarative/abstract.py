@@ -224,6 +224,8 @@ class AbstractDeclarativeFactor(Analysis, ABC):
             updated_ep_mean_field=updated_ep_mean_field,
         )
 
+    # TODO : Visualize method before fit?
+
     def visualize(
             self,
             paths: AbstractPaths,
@@ -249,6 +251,12 @@ class AbstractDeclarativeFactor(Analysis, ABC):
                 instance
         ):
             model_factor.visualize(
+                paths,
+                instance,
+                during_analysis
+            )
+            model_factor.visualize_combined(
+                None,
                 paths,
                 instance,
                 during_analysis

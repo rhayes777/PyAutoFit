@@ -13,7 +13,9 @@ def test_unique_tag_is_used():
 
 
 def test_class_path():
-    identifier = Identifier(Class,)
+    identifier = Identifier(
+        Class,
+    )
     (string,) = identifier.hash_list
     assert "test_autofit.database.identifier.test_identifiers.Class" in string
 
@@ -148,7 +150,8 @@ def test_unique_tag():
     search = af.m.MockSearch(unique_tag="dataset")
 
     search.fit(
-        model=af.Model(af.Gaussian), analysis=af.m.MockAnalysis(),
+        model=af.Model(af.Gaussian),
+        analysis=af.m.MockAnalysis(),
     )
 
     assert search.paths.identifier != identifier
@@ -166,9 +169,7 @@ def test_model():
     assert identifier == af.Model(af.Gaussian, centre=af.UniformPrior()).identifier
     assert (
         identifier
-        != af.Model(
-            af.Gaussian, centre=af.UniformPrior(upper_limit=0.5)
-        ).identifier
+        != af.Model(af.Gaussian, centre=af.UniformPrior(upper_limit=0.5)).identifier
     )
 
 
@@ -193,10 +194,7 @@ def test_collection():
 def test_instance():
     identifier = af.Collection(gaussian=af.Gaussian()).identifier
     assert identifier == af.Collection(gaussian=af.Gaussian()).identifier
-    assert (
-        identifier
-        != af.Collection(gaussian=af.Gaussian(centre=0.5)).identifier
-    )
+    assert identifier != af.Collection(gaussian=af.Gaussian(centre=0.5)).identifier
 
 
 def test__identifier_description():
@@ -294,10 +292,11 @@ def test__identifier_description__after_model_and_instance():
     samples = af.m.MockSamples(
         max_log_likelihood_instance=max_log_likelihood_instance,
         gaussian_tuples=[(1.0, 2.0), (3.0, 4.0), (5.0, 6.0)],
+        model=model,
     )
 
     result = af.Result(
-        samples=samples, model=model, sigma=1.0, use_errors=True, use_widths=False
+        samples=samples,
     )
 
     model.gaussian.centre = result.model.gaussian.centre
@@ -444,3 +443,7 @@ def test_dynesty_static():
         "max_move",
         "100",
     ]
+
+
+def test_integer_keys():
+    assert str(Identifier({1: 1}))

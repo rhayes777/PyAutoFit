@@ -3,6 +3,7 @@ import pickle
 
 from dill import register
 
+from autoconf.dictable import register_parser
 from .non_linear.grid.grid_search import GridSearch as SearchGridSearch
 from . import conf
 from . import exc
@@ -13,6 +14,7 @@ from .graphical.declarative.factor.analysis import AnalysisFactor
 from .graphical.declarative.collection import FactorGraphModel
 from .graphical.declarative.factor.hierarchical import HierarchicalFactor
 from .graphical.laplace import LaplaceOptimiser
+from .non_linear.grid.grid_list import GridList
 from .non_linear.samples import SamplesMCMC
 from .non_linear.samples import SamplesNest
 from .non_linear.samples import Samples
@@ -59,35 +61,41 @@ from .mapper.prior_model.collection import Collection
 from .mapper.prior_model.prior_model import Model
 from .mapper.prior_model.prior_model import Model
 from .mapper.prior_model.util import PriorModelNameValue
-from .non_linear.abstract_search import NonLinearSearch
-from .non_linear.abstract_search import PriorPasser
+from .non_linear.search.abstract_search import NonLinearSearch
 from .non_linear.analysis.analysis import Analysis
+from .non_linear.analysis.combined import CombinedAnalysis
 from .non_linear.grid.grid_search import GridSearchResult
+from .non_linear.grid.sensitivity import Sensitivity
 from .non_linear.initializer import InitializerBall
 from .non_linear.initializer import InitializerPrior
 from .non_linear.initializer import SpecificRangeInitializer
-from .non_linear.mcmc.auto_correlations import AutoCorrelationsSettings
-from .non_linear.mcmc.emcee.emcee import Emcee
-from .non_linear.mcmc.zeus.zeus import Zeus
-from .non_linear.nest.dynesty import DynestyDynamic
-from .non_linear.nest.dynesty import DynestyStatic
-from .non_linear.nest.ultranest.ultranest import UltraNest
-from .non_linear.optimize.drawer.drawer import Drawer
-from .non_linear.optimize.lbfgs.lbfgs import LBFGS
-from .non_linear.optimize.pyswarms.globe import PySwarmsGlobal
-from .non_linear.optimize.pyswarms.local import PySwarmsLocal
+from .non_linear.search.mcmc.auto_correlations import AutoCorrelationsSettings
+from .non_linear.search.mcmc.emcee.search import Emcee
+from .non_linear.search.mcmc.zeus.search import Zeus
+from .non_linear.search.nest.nautilus.search import Nautilus
+from .non_linear.search.nest.dynesty.search.dynamic import DynestyDynamic
+from .non_linear.search.nest.dynesty.search.static import DynestyStatic
+from .non_linear.search.nest.ultranest.search import UltraNest
+from .non_linear.search.optimize.drawer.search import Drawer
+from .non_linear.search.optimize.lbfgs.search import LBFGS
+from .non_linear.search.optimize.pyswarms.search.globe import PySwarmsGlobal
+from .non_linear.search.optimize.pyswarms.search.local import PySwarmsLocal
 from .non_linear.paths import DirectoryPaths
 from .non_linear.paths import DatabasePaths
 from .non_linear.result import Result
 from .non_linear.result import ResultsCollection
 from .non_linear.settings import SettingsSearch
 from .non_linear.samples.pdf import marginalize
-from .example.model import Gaussian
+from .example.model import Gaussian, Exponential
 from .text import formatter
 from .text import samples_text
-from .interpolator import LinearInterpolator
+from .interpolator import (
+    LinearInterpolator,
+    SplineInterpolator,
+    CovarianceInterpolator,
+    LinearRelationship,
+)
 from .tools import util
-
 
 from autofit.mapper.prior.arithmetic.compound import SumPrior as Add
 from autofit.mapper.prior.arithmetic.compound import MultiplePrior as Multiply
@@ -102,6 +110,21 @@ from . import example as ex
 from . import database as db
 
 
+for type_ in (
+    "model",
+    "collection",
+    "tuple_prior",
+    "dict",
+    "instance",
+    "Uniform",
+    "LogUniform",
+    "Gaussian",
+    "LogGaussian",
+    "compound",
+):
+    register_parser(type_, ModelObject.from_dict)
+
+
 @register(abc.ABCMeta)
 def save_abc(pickler, obj):
     pickle._Pickler.save_type(pickler, obj)
@@ -109,4 +132,4 @@ def save_abc(pickler, obj):
 
 conf.instance.register(__file__)
 
-__version__ = "2023.1.15.1"
+__version__ = "2023.9.18.4"
