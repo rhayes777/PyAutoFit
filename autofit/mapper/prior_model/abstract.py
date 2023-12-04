@@ -1001,9 +1001,7 @@ class AbstractPriorModel(AbstractModel):
             }
         )
 
-    def mapper_from_uniform_floats(
-        self, floats, b
-    ):
+    def mapper_from_uniform_floats(self, floats, b):
         """
         The widths of the new priors are the `floats` value minus and plus the input bound `b`.
 
@@ -1027,12 +1025,13 @@ class AbstractPriorModel(AbstractModel):
         for i, prior_tuple in enumerate(prior_tuples):
             prior = prior_tuple.prior
 
-            new_prior = UniformPrior(lower_limit=floats[i] - b, upper_limit=floats[i] + b)
+            new_prior = UniformPrior(
+                lower_limit=floats[i] - b, upper_limit=floats[i] + b
+            )
             new_prior.id = prior.id
             arguments[prior] = new_prior
 
         return self.mapper_from_prior_arguments(arguments)
-
 
     def instance_from_prior_medians(self, ignore_prior_limits=False):
         """

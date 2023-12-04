@@ -1,4 +1,7 @@
-import numpy as np
+import numpy
+
+from autofit.jax_wrapper import numpy as np
+
 # TODO: Use autofit class?
 from scipy import stats
 
@@ -34,10 +37,10 @@ class Profile:
 
 class Gaussian(Profile):
     def __init__(
-            self,
-            centre=0.0,  # <- PyAutoFit recognises these constructor arguments
-            normalization=0.1,  # <- are the Gaussian's model parameters.
-            sigma=0.01,
+        self,
+        centre=0.0,  # <- PyAutoFit recognises these constructor arguments
+        normalization=0.1,  # <- are the Gaussian's model parameters.
+        sigma=0.01,
     ):
         """Represents a 1D Gaussian profile, which may be treated as a model-component of PyAutoFit the
         parameters of which are fitted for by a non-linear search.
@@ -75,13 +78,13 @@ class Gaussian(Profile):
 def make_data(gaussian, x):
     model_line = gaussian(xvalues=x)
     signal_to_noise_ratio = 25.0
-    noise = np.random.normal(0.0, 1.0 / signal_to_noise_ratio, len(x))
+    noise = numpy.random.normal(0.0, 1.0 / signal_to_noise_ratio, len(x))
     y = model_line + noise
     return y
 
 
 class Analysis(af.Analysis):
-    def __init__(self, x, y, sigma=.04):
+    def __init__(self, x, y, sigma=0.04):
         self.x = x
         self.y = y
         self.sigma = sigma
@@ -92,4 +95,4 @@ class Analysis(af.Analysis):
         likelihood that it fits the data.
         """
         y_model = instance(self.x)
-        return np.sum(_likelihood(y_model, self.y) / self.sigma ** 2)
+        return np.sum(_likelihood(y_model, self.y) / self.sigma**2)
