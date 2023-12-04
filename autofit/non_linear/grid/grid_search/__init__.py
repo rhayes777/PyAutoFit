@@ -1,5 +1,4 @@
 import copy
-import csv
 import logging
 import os
 from os import path
@@ -8,10 +7,8 @@ from typing import List, Tuple, Union, Type, Optional, Dict
 from autoconf.dictable import to_dict
 from autofit import exc
 from autofit.mapper import prior as p
-from autofit.non_linear.search.abstract_search import NonLinearSearch
 from autofit.non_linear.parallel import Process
 from autofit.text.formatter import write_table
-from autofit.text.text_util import padding
 from .job import Job
 from .result import GridSearchResult
 from .result_builder import ResultBuilder
@@ -154,7 +151,6 @@ class GridSearch:
         analysis,
         grid_priors,
         info: Optional[Dict] = None,
-        parent: Optional[NonLinearSearch] = None,
     ):
         """
         Fit an analysis with a set of grid priors. The grid priors are priors associated with the model mapper
@@ -162,9 +158,7 @@ class GridSearch:
 
         Parameters
         ----------
-        parent
-            Optionally specify a parent, for example a search performed prior
-            to this grid search
+        info
         model
         analysis: autofit.non_linear.non_linear.Analysis
             An analysis used to determine the fitness of a given model instance
@@ -178,8 +172,6 @@ class GridSearch:
         """
         self.paths.model = model
         self.paths.search = self
-        if parent is not None:
-            self.paths.parent = parent.paths
 
         self.logger.info("Running grid search...")
 
@@ -276,7 +268,6 @@ class GridSearch:
         return builder()
 
     def save_metadata(self):
-        self.paths.save_parent_identifier()
         self.paths.save_unique_tag(is_grid_search=True)
         self.paths.zip_remove_nuclear()
 
