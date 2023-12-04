@@ -47,18 +47,19 @@ class Prior(Variable, ABC, ArithmeticMixin):
     @classmethod
     def tree_unflatten(cls, aux_data, children):
         """
-        Create a new instance of this prior from the passed aux_data and children.
+        Create a prior from a flattened PyTree
 
         Parameters
         ----------
         aux_data
-            The aux_data of the prior
+            Auxiliary information that remains unchanged including
+            the keys of the dict
         children
-
+            Child objects subject to change
 
         Returns
         -------
-
+        An instance of this class
         """
         return cls(*children, id_=aux_data[0])
 

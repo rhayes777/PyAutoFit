@@ -453,7 +453,7 @@ class ModelInstance(AbstractModel):
 
     def tree_flatten(self) -> Tuple[List, Tuple]:
         """
-        Flatten the instance into a tuple of its values and auxiliary information.
+        Flatten the instance into a PyTree
         """
         keys, values = zip(*self.dict.items())
         return values, (
