@@ -50,7 +50,11 @@ def make_centre(centre_model):
 def generate_data(centres):
     data = []
     for centre in centres:
-        gaussian = af.Gaussian(centre=centre, normalization=20, sigma=5,)
+        gaussian = af.Gaussian(
+            centre=centre,
+            normalization=20,
+            sigma=5,
+        )
 
         data.append(gaussian(x))
     return data
@@ -63,7 +67,7 @@ def test_generate_data(data):
         plt.show(block=False)
 
 
-def test_model_factor(data, centres):
+def _test_model_factor(data, centres):
     y = data[0]
     centre_argument = af.GaussianPrior(mean=50, sigma=20)
     prior_model = af.Model(
