@@ -2,6 +2,7 @@ import numpy as np
 import pytest
 from jax import grad, vmap
 from jax._src.tree_util import _registry
+from jax import numpy as jnp
 
 import autofit as af
 
@@ -17,7 +18,8 @@ def make_gaussian():
     return af.Gaussian(centre=1.0, sigma=1.0, normalization=1.0)
 
 
-def test_gradient(gaussian):
+def test_gradient(gaussian, monkeypatch):
+    monkeypatch.setattr(af.example.model, "np", jnp)
     gradient = grad(gaussian.f)
 
     assert float(gradient(1.0)) == 0.0
