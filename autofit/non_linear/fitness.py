@@ -96,14 +96,9 @@ class Fitness:
     @property
     def log_likelihood_function(self):
         if self._log_likelihood_function is None:
-            if jax_wrapper.use_jax:
-                from jax import jit
-
-                self._log_likelihood_function = jit(
-                    self.analysis.log_likelihood_function
-                )
-            else:
-                self._log_likelihood_function = self.analysis.log_likelihood_function
+            self._log_likelihood_function = jax_wrapper.jit(
+                self.analysis.log_likelihood_function
+            )
 
         return self._log_likelihood_function
 

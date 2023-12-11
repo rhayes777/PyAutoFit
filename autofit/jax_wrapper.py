@@ -7,15 +7,23 @@ from os import environ
 
 use_jax = environ.get("USE_JAX", "0") == "1"
 
+import numpy  # noqa
+
+
+def jit(function, *_, **__):
+    return function
+
+
 if use_jax:
     try:
         import jax
         from jax import numpy
+
+        def jit(function, *args, **kwargs):
+            return jax.jit(function, *args, **kwargs)
 
         print("JAX mode enabled")
     except ImportError:
         raise ImportError(
             "JAX is not installed. Please install it with `pip install jax`."
         )
-else:
-    import numpy  # noqa
