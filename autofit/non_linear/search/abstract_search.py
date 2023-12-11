@@ -939,6 +939,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                 log_likelihood_function = jax_wrapper.jit(
                     analysis.log_likelihood_function,
                 )
+                log_likelihood_function(instance=instance)
 
                 start = time.time()
                 log_likelihood_function(instance=instance)
