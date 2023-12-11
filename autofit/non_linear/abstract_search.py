@@ -13,7 +13,7 @@ from typing import Dict, Optional, Union, Tuple, List
 from autofit.jax_wrapper import numpy as np
 
 from autoconf import conf, cached_property
-from autofit import exc
+from autofit import exc, jax_wrapper
 from autofit.database.sqlalchemy_ import sa
 from autofit.graphical import (
     MeanField,
@@ -389,15 +389,11 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         @property
         def log_likelihood_function(self):
-            if use_jax:
-                if self._log_likelihood_function is None:
-                    import jax
-
-                    self._log_likelihood_function = jax.jit(
-                        self.analysis.log_likelihood_function
-                    )
-                return self._log_likelihood_function
-            return self.analysis.log_likelihood_function
+            if self._log_likelihood_function is None:
+                self._log_likelihood_function = jax_wrapper.jit(
+                    self.analysis.log_likelihood_function
+                )
+            return self._log_likelihood_function
 
         def fit_instance(self, instance):
             log_likelihood = self.log_likelihood_function(instance=instance)

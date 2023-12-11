@@ -1,3 +1,5 @@
+import pickle
+
 import jax
 from jax import numpy as np
 
@@ -56,3 +58,6 @@ def test_jit_dynesty_static(
     )
 
     print(search.fit(model=model, analysis=analysis))
+
+    loaded = pickle.loads(pickle.dumps(search))
+    assert isinstance(loaded, af.DynestyStatic)

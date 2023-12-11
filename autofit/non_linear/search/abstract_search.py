@@ -936,8 +936,12 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
             self.logger.debug("Outputting model result")
             try:
+                log_likelihood_function = jax_wrapper.jit(
+                    analysis.log_likelihood_function,
+                )
+
                 start = time.time()
-                analysis.log_likelihood_function(instance=instance)
+                log_likelihood_function(instance=instance)
                 log_likelihood_function_time = time.time() - start
 
                 self.paths.save_summary(
