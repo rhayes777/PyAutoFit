@@ -1,9 +1,12 @@
 from typing import Optional
 
+from jax._src.tree_util import register_pytree_node_class
+
 from autofit.messages.normal import NormalMessage
 from .abstract import Prior
 
 
+@register_pytree_node_class
 class GaussianPrior(Prior):
     __identifier_fields__ = ("lower_limit", "upper_limit", "mean", "sigma")
     __database_args__ = ("mean", "sigma", "lower_limit", "upper_limit", "id_")
@@ -60,6 +63,9 @@ class GaussianPrior(Prior):
             ),
             id_=id_,
         )
+
+    def tree_flatten(self):
+        return (self.mean, self.sigma, self.lower_limit, self.upper_limit), (self.id,)
 
     @classmethod
     def with_limits(cls, lower_limit: float, upper_limit: float) -> "GaussianPrior":

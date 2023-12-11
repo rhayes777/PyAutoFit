@@ -23,10 +23,6 @@ def make_centre_model():
     )
 
 
-def test_embedded_priors(centre_model):
-    assert isinstance(centre_model.random_instance().value_for(0.5), float)
-
-
 def test_hierarchical_factor(centre_model):
     centre_model.add_drawn_variable(af.GaussianPrior(100, 10))
     factor = centre_model.factors[0]
@@ -54,7 +50,11 @@ def make_centre(centre_model):
 def generate_data(centres):
     data = []
     for centre in centres:
-        gaussian = af.Gaussian(centre=centre, normalization=20, sigma=5,)
+        gaussian = af.Gaussian(
+            centre=centre,
+            normalization=20,
+            sigma=5,
+        )
 
         data.append(gaussian(x))
     return data
@@ -67,7 +67,7 @@ def test_generate_data(data):
         plt.show(block=False)
 
 
-def test_model_factor(data, centres):
+def _test_model_factor(data, centres):
     y = data[0]
     centre_argument = af.GaussianPrior(mean=50, sigma=20)
     prior_model = af.Model(

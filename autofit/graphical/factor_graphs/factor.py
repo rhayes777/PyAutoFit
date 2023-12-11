@@ -13,8 +13,8 @@ except ImportError:
 
 from autofit.graphical.utils import (
     nested_filter,
-    to_variabledata, 
-    nested_zip, 
+    to_variabledata,
+    nested_zip,
     is_variable,
     try_getitem,
 )
@@ -24,7 +24,8 @@ from autofit.graphical.factor_graphs.abstract import FactorValue, AbstractFactor
 
 if TYPE_CHECKING:
     from autofit.graphical.factor_graphs.jacobians import (
-        VectorJacobianProduct, JacobianVectorProduct
+        VectorJacobianProduct,
+        JacobianVectorProduct,
     )
 
 
@@ -154,20 +155,20 @@ class Factor(AbstractFactor):
     """
 
     def __init__(
-            self,
-            factor,
-            *args: Variable,
-            name="",
-            arg_names=None,
-            factor_out=FactorValue,
-            plates: Tuple[Plate, ...] = (),
-            vjp=False,
-            factor_vjp=None,
-            factor_jacobian=None,
-            jacobian=None,
-            numerical_jacobian=True,
-            jacfwd=True,
-            eps=1e-8,
+        self,
+        factor,
+        *args: Variable,
+        name="",
+        arg_names=None,
+        factor_out=FactorValue,
+        plates: Tuple[Plate, ...] = (),
+        vjp=False,
+        factor_vjp=None,
+        factor_jacobian=None,
+        jacobian=None,
+        numerical_jacobian=True,
+        jacfwd=True,
+        eps=1e-8,
     ):
         if not arg_names:
             arg_names = [arg for arg in getfullargspec(factor).args]
@@ -175,7 +176,7 @@ class Factor(AbstractFactor):
                 arg_names = arg_names[1:]
 
         # Make sure arg_names matches length of args
-        for v in args[len(arg_names):]:
+        for v in args[len(arg_names) :]:
             arg_name = v.name
             # Make sure arg_name is unique
             while arg_name in arg_names:
@@ -224,14 +225,14 @@ class Factor(AbstractFactor):
         return ()
 
     def __getitem__(
-            self, plates_index: Dict[Plate, Union[List[int], range, slice]]
+        self, plates_index: Dict[Plate, Union[List[int], range, slice]]
     ) -> "Factor":
         return self.subset(plates_index)
 
     def subset(
-            self,
-            plates_index: Dict[Plate, Union[List[int], range, slice]],
-            plate_sizes: Optional[Dict[Plate, int]] = None,
+        self,
+        plates_index: Dict[Plate, Union[List[int], range, slice]],
+        plate_sizes: Optional[Dict[Plate, int]] = None,
     ) -> "Factor":
         if not self.plates:
             return self
@@ -256,7 +257,7 @@ class Factor(AbstractFactor):
             factor_vjp = None
             if self._factor_vjp != self._jax_factor_vjp:
                 factor_vjp = try_getitem(
-                    self._factor_vjp, index, getattr(subset_factor, 'factor_vjp', None)
+                    self._factor_vjp, index, getattr(subset_factor, "factor_vjp", None)
                 )
 
             jac_kws["factor_vjp"] = factor_vjp
@@ -265,11 +266,13 @@ class Factor(AbstractFactor):
             jacobian = None
             if self._factor_jacobian != Factor._factor_jacobian:
                 factor_jacobian = try_getitem(
-                    self._factor_jacobian, index, getattr(subset_factor, 'factor_jacobian', None)
+                    self._factor_jacobian,
+                    index,
+                    getattr(subset_factor, "factor_jacobian", None),
                 )
             elif self._jacobian != Factor._jacobian:
                 jacobian = try_getitem(
-                    self.jacobian, index, getattr(subset_factor, 'jacobian', None)
+                    self.jacobian, index, getattr(subset_factor, "jacobian", None)
                 )
             elif self._factor_jacobian != self._numerical_factor_jacobian:
                 jac_kws["jacfwd"] = self._jacfwd
@@ -280,13 +283,13 @@ class Factor(AbstractFactor):
         return jac_kws
 
     def _set_jacobians(
-            self,
-            vjp=False,
-            factor_vjp=None,
-            factor_jacobian=None,
-            jacobian=None,
-            numerical_jacobian=True,
-            jacfwd=True,
+        self,
+        vjp=False,
+        factor_vjp=None,
+        factor_jacobian=None,
+        jacobian=None,
+        numerical_jacobian=True,
+        jacfwd=True,
     ):
         self._vjp = vjp
         self._jacfwd = jacfwd
@@ -342,7 +345,7 @@ class Factor(AbstractFactor):
     _factor_vjp = _jax_factor_vjp
 
     def _vjp_func_jacobian(
-            self, values: VariableData
+        self, values: VariableData
     ) -> Tuple[FactorValue, "VectorJacobianProduct"]:
         """Calls the factor and returns the factor value with deterministic
         values, and a `VectorJacobianProduct` operator that allows the
@@ -352,6 +355,7 @@ class Factor(AbstractFactor):
         from autofit.graphical.factor_graphs.jacobians import (
             VectorJacobianProduct,
         )
+
         raw_fval, fvjp = self._factor_vjp(*self.resolve_args(values))
         fval = self._factor_value(raw_fval)
 
@@ -365,7 +369,6 @@ class Factor(AbstractFactor):
 
     @staticmethod
     def _key(*args):
-
         import xxhash as xxhash
 
         h = xxhash.xxh64()
@@ -379,7 +382,7 @@ class Factor(AbstractFactor):
         return h.intdigest()
 
     def _jvp_func_jacobian(
-            self, values: VariableData, **kwargs
+        self, values: VariableData, **kwargs
     ) -> Tuple[FactorValue, "JacobianVectorProduct"]:
         args = self.resolve_args(values)
         key = self._key("_jvp_func_jacobian", *args)
@@ -409,11 +412,12 @@ class Factor(AbstractFactor):
         return jac
 
     def _jac_out_to_jvp(
-            self, raw_jac: Any, values: VariableData
+        self, raw_jac: Any, values: VariableData
     ) -> "JacobianVectorProduct":
         from autofit.graphical.factor_graphs.jacobians import (
             JacobianVectorProduct,
         )
+
         jac = self._unpack_jacobian_out(raw_jac)
         return JacobianVectorProduct.from_dense(jac, values=values)
 
@@ -459,20 +463,20 @@ class FactorKW(Factor):
     """
 
     def __init__(
-            self,
-            factor,
-            name="",
-            arg_names=None,
-            factor_out=FactorValue,
-            plates: Tuple[Plate, ...] = (),
-            vjp=False,
-            factor_vjp=None,
-            factor_jacobian=None,
-            jacobian=None,
-            numerical_jacobian=True,
-            jacfwd=True,
-            eps=1e-8,
-            **kwargs: Variable,
+        self,
+        factor,
+        name="",
+        arg_names=None,
+        factor_out=FactorValue,
+        plates: Tuple[Plate, ...] = (),
+        vjp=False,
+        factor_vjp=None,
+        factor_jacobian=None,
+        jacobian=None,
+        numerical_jacobian=True,
+        jacfwd=True,
+        eps=1e-8,
+        **kwargs: Variable,
     ):
         args = tuple(kwargs.values())
         arg_names = tuple(kwargs.keys())

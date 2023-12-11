@@ -3,6 +3,8 @@ import logging
 from functools import wraps
 from typing import Optional, Union, Tuple, List, Iterable, Type, Dict
 
+from jax._src.tree_util import register_pytree_node_class
+
 from autofit.mapper.model_object import ModelObject
 from autofit.mapper.prior_model.recursion import DynamicRecursionCache
 
@@ -78,10 +80,10 @@ def assert_not_frozen(func):
 
 
 class AbstractModel(ModelObject):
-    def __init__(self, label=None):
+    def __init__(self, label=None, id_=None):
         self._is_frozen = False
         self._frozen_cache = dict()
-        super().__init__(label=label)
+        super().__init__(label=label, id_=id_)
 
     def __getstate__(self):
         return {
@@ -377,6 +379,7 @@ def path_instances_of_class(
         return results
 
 
+@register_pytree_node_class
 class ModelInstance(AbstractModel):
     """
     An instance of a Collection or Model. This is created by optimisers and correspond
@@ -387,7 +390,7 @@ class ModelInstance(AbstractModel):
 
     __dictable_type__ = "instance"
 
-    def __init__(self, child_items: Optional[Union[List, Dict]] = None):
+    def __init__(self, child_items: Optional[Union[List, Dict]] = None, id_=None):
         """
         An instance of a Collection or Model. This is created by optimisers and correspond
         to a point in the parameter space.
@@ -402,6 +405,7 @@ class ModelInstance(AbstractModel):
         """
         super().__init__()
         self.child_items = child_items
+        self.id = id_
 
     def __eq__(self, other):
         try:
@@ -446,6 +450,45 @@ class ModelInstance(AbstractModel):
             if key not in ("id", "component_number", "item_number")
             and not (isinstance(key, str) and key.startswith("_"))
         }
+
+    def tree_flatten(self) -> Tuple[List, Tuple]:
+        """
+        Flatten the instance into a PyTree
+        """
+        keys, values = zip(*self.dict.items())
+        return values, (
+            *keys,
+            self.id,
+        )
+
+    @classmethod
+    def tree_unflatten(
+        cls,
+        aux_data: Tuple,
+        children: List,
+    ):
+        """
+        Create an instance from a flattened PyTree
+
+        Parameters
+        ----------
+        aux_data
+            Auxiliary information that remains unchanged including
+            the keys of the dict
+        children
+            Child objects subject to change
+
+        Returns
+        -------
+        An instance of this class
+        """
+        *keys, id_ = aux_data
+
+        instance = cls(id_=id_)
+
+        for key, value in zip(keys, children):
+            instance[key] = value
+        return instance
 
     def values(self):
         return self.dict.values()

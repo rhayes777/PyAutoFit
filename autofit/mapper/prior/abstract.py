@@ -44,6 +44,25 @@ class Prior(Variable, ABC, ArithmeticMixin):
 
         self.width_modifier = None
 
+    @classmethod
+    def tree_unflatten(cls, aux_data, children):
+        """
+        Create a prior from a flattened PyTree
+
+        Parameters
+        ----------
+        aux_data
+            Auxiliary information that remains unchanged including
+            the keys of the dict
+        children
+            Child objects subject to change
+
+        Returns
+        -------
+        An instance of this class
+        """
+        return cls(*children, id_=aux_data[0])
+
     @property
     def lower_unit_limit(self) -> float:
         """

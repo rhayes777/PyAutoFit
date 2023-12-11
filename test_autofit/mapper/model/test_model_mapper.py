@@ -274,15 +274,15 @@ class TestInstances:
             [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
         )
 
-        assert model_map.mock_cls_0.tup == (0.1, 0.2)
-        assert model_map.mock_cls_0.one == 0.6
-        assert model_map.mock_cls_0.two == 0.8
+        assert model_map.mock_cls_0.tup == pytest.approx((0.1, 0.2))
+        assert model_map.mock_cls_0.one == pytest.approx(0.6)
+        assert model_map.mock_cls_0.two == pytest.approx(0.8)
 
-        assert model_map.mock_cls_1.tup == (0.5, 0.6)
+        assert model_map.mock_cls_1.tup == pytest.approx((0.5, 0.6))
 
-        assert model_map.mock_cls_2.tup == (0.7, 0.8)
-        assert model_map.mock_cls_2.one == 1.8
-        assert model_map.mock_cls_2.two == 2.0
+        assert model_map.mock_cls_2.tup == pytest.approx((0.7, 0.8))
+        assert model_map.mock_cls_2.one == pytest.approx(1.8)
+        assert model_map.mock_cls_2.two == pytest.approx(2.0)
 
     def test__check_order_for_different_unit_values(self):
         mapper = af.ModelMapper(
@@ -308,15 +308,15 @@ class TestInstances:
             [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0]
         )
 
-        assert model_map.mock_cls_0.tup == (0.1, 0.2)
-        assert model_map.mock_cls_0.one == 0.3
-        assert model_map.mock_cls_0.two == 0.4
+        assert model_map.mock_cls_0.tup == pytest.approx((0.1, 0.2))
+        assert model_map.mock_cls_0.one == pytest.approx(0.3)
+        assert model_map.mock_cls_0.two == pytest.approx(0.4)
 
-        assert model_map.mock_cls_1.tup == (0.5, 0.6)
+        assert model_map.mock_cls_1.tup == pytest.approx((0.5, 0.6))
 
-        assert model_map.mock_cls_2.tup == (0.7, 0.8)
-        assert model_map.mock_cls_2.one == 0.9
-        assert model_map.mock_cls_2.two == 1.0
+        assert model_map.mock_cls_2.tup == pytest.approx((0.7, 0.8))
+        assert model_map.mock_cls_2.one == pytest.approx(0.9)
+        assert model_map.mock_cls_2.two == pytest.approx(1.0)
 
     def test__check_order_for_different_unit_values_and_set_priors_equal_to_one_another(
         self,
@@ -347,15 +347,15 @@ class TestInstances:
             [0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9]
         )
 
-        assert model_map.mock_cls_0.tup == (0.2, 0.3)
-        assert model_map.mock_cls_0.one == 0.4
-        assert model_map.mock_cls_0.two == 0.4
+        assert model_map.mock_cls_0.tup == pytest.approx((0.2, 0.3))
+        assert model_map.mock_cls_0.one == pytest.approx(0.4)
+        assert model_map.mock_cls_0.two == pytest.approx(0.4)
 
-        assert model_map.mock_cls_1.tup == (0.5, 0.6)
+        assert model_map.mock_cls_1.tup == pytest.approx((0.5, 0.6))
 
-        assert model_map.mock_cls_2.tup == (0.7, 0.6)
-        assert model_map.mock_cls_2.one == 0.8
-        assert model_map.mock_cls_2.two == 0.9
+        assert model_map.mock_cls_2.tup == pytest.approx((0.7, 0.6))
+        assert model_map.mock_cls_2.one == pytest.approx(0.8)
+        assert model_map.mock_cls_2.two == pytest.approx(0.9)
 
     def test__instance_from_vector__check_order(self):
         mapper = af.ModelMapper(

@@ -3,17 +3,15 @@ import collections.abc
 import copy
 import inspect
 import logging
-import typing
+from typing import List
+
+from jax._src.tree_util import register_pytree_node_class, register_pytree_node
 
 from autoconf.class_path import get_class_path
 from autoconf.exc import ConfigException
 from autofit.mapper.model import assert_not_frozen
 from autofit.mapper.model_object import ModelObject
 from autofit.mapper.prior.abstract import Prior
-from autofit.mapper.prior.arithmetic.assertion import (
-    CompoundAssertion,
-    ComparisonAssertion,
-)
 from autofit.mapper.prior.deferred import DeferredInstance
 from autofit.mapper.prior.tuple_prior import TuplePrior
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
@@ -24,6 +22,7 @@ logger = logging.getLogger(__name__)
 class_args_dict = dict()
 
 
+@register_pytree_node_class
 class Model(AbstractPriorModel):
     """
     @DynamicAttrs
@@ -142,8 +141,7 @@ class Model(AbstractPriorModel):
 
                     setattr(self, arg, ls)
                 else:
-                    if inspect.isclass(keyword_arg):
-                        keyword_arg = Model(keyword_arg)
+                    keyword_arg = self._convert_value(keyword_arg)
                     setattr(self, arg, keyword_arg)
             elif arg in defaults and isinstance(defaults[arg], tuple):
                 tuple_prior = TuplePrior()
@@ -191,14 +189,90 @@ class Model(AbstractPriorModel):
                 setattr(self, arg, prior)
         for key, value in kwargs.items():
             if not hasattr(self, key):
-                setattr(self, key, Model(value) if inspect.isclass(value) else value)
+                setattr(self, key, self._convert_value(value))
+
+        try:
+            # noinspection PyTypeChecker
+            register_pytree_node(
+                self.cls,
+                self.instance_flatten,
+                self.instance_unflatten,
+            )
+        except ValueError:
+            pass
+
+    @staticmethod
+    def _convert_value(value):
+        if inspect.isclass(value):
+            value = Model(value)
+        if isinstance(value, int):
+            value = float(value)
+        return value
+
+    @property
+    def direct_argument_names(self) -> List[str]:
+        """
+        The names of priors, constants and other attributes that are direct
+        attributes of this model.
+        """
+        return [
+            t.name
+            for t in self.direct_prior_tuples
+            + self.direct_prior_model_tuples
+            + self.direct_instance_tuples
+            + self.direct_deferred_tuples
+            + self.direct_prior_tuples
+        ]
+
+    def instance_flatten(self, instance):
+        """
+        Flatten an instance of this model as a PyTree.
+        """
+        return (
+            [getattr(instance, name) for name in self.direct_argument_names],
+            None,
+        )
+
+    def instance_unflatten(self, aux_data, children):
+        """
+        Unflatten a PyTree into an instance of this model.
+
+        Parameters
+        ----------
+        aux_data
+        children
+
+        Returns
+        -------
+        An instance of this model.
+        """
+        return self.cls(**dict(zip(self.direct_argument_names, children)))
+
+    def tree_flatten(self):
+        """
+        Flatten this model as a PyTree.
+        """
+        names, priors = zip(*self.direct_prior_tuples)
+        return priors, (names, self.cls)
+
+    @classmethod
+    def tree_unflatten(cls, aux_data, children):
+        """
+        Unflatten a PyTree into a model.
+        """
+        names, cls_ = aux_data
+        arguments = {name: child for name, child in zip(names, children)}
+        return cls(cls_, **arguments)
 
     def dict(self):
         return {"class_path": get_class_path(self.cls), **super().dict()}
 
     # noinspection PyAttributeOutsideInit
     @property
-    def constructor_argument_names(self):
+    def constructor_argument_names(self) -> List[str]:
+        """
+        The argument names of the constructor of the class of this model.
+        """
         if self.cls not in class_args_dict:
             try:
                 class_args_dict[self.cls] = inspect.getfullargspec(self.cls).args[1:]

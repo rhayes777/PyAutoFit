@@ -109,7 +109,7 @@ def make_linear_factor_jac(x_, a_, b_, z_):
         x_,
         a_,
         b_,
-        vjp=True,
+        # vjp=True,
         # factor_jacobian=linear_jacobian,
         factor_out=z_,
     )

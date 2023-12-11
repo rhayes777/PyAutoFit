@@ -39,7 +39,14 @@ def make_model():
     def linear(x, a, b):
         return x.dot(a) + b
 
-    linear_factor = graph.Factor(linear, x_, a_, b_, factor_out=z_, vjp=True,)
+    linear_factor = graph.Factor(
+        linear,
+        x_,
+        a_,
+        b_,
+        factor_out=z_,
+        vjp=False,
+    )
 
     likelihood_factor = messages.NormalMessage(y, np.full_like(y, error_std)).as_factor(
         z_

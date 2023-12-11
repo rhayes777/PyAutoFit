@@ -1,12 +1,14 @@
 from collections.abc import Iterable
 
-from autofit.mapper.prior.arithmetic.assertion import ComparisonAssertion
+
+from jax._src.tree_util import register_pytree_node_class
+
 from autofit.mapper.model import ModelInstance, assert_not_frozen
 from autofit.mapper.prior.abstract import Prior
-from autofit.mapper.prior.arithmetic.assertion import CompoundAssertion
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 
 
+@register_pytree_node_class
 class Collection(AbstractPriorModel):
     def name_for_prior(self, prior: Prior) -> str:
         """
@@ -28,6 +30,18 @@ class Collection(AbstractPriorModel):
         for name, direct_prior in self.direct_prior_tuples:
             if prior == direct_prior:
                 return name
+
+    def tree_flatten(self):
+        keys, values = zip(*self.items())
+        return values, keys
+
+    @classmethod
+    def tree_unflatten(cls, aux_data, children):
+        instance = cls()
+
+        for key, value in zip(aux_data, children):
+            setattr(instance, key, value)
+        return instance
 
     def __contains__(self, item):
         return item in self._dict or item in self._dict.values()
@@ -238,6 +252,33 @@ class Collection(AbstractPriorModel):
                 value = arguments[value]
             setattr(result, key, value)
         return result
+
+    def gaussian_prior_model_for_arguments(self, arguments):
+        """
+        Create a new collection, updating its priors according to the argument
+        dictionary.
+
+        Parameters
+        ----------
+        arguments
+            A dictionary of arguments
+
+        Returns
+        -------
+        A new collection
+        """
+        collection = Collection()
+
+        for key, value in self.items():
+            if key in ("component_number", "item_number", "id") or key.startswith("_"):
+                continue
+
+            if isinstance(value, AbstractPriorModel):
+                collection[key] = value.gaussian_prior_model_for_arguments(arguments)
+            if isinstance(value, Prior):
+                collection[key] = arguments[value]
+
+        return collection
 
     @property
     def prior_class_dict(self):

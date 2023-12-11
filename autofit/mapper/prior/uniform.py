@@ -1,3 +1,4 @@
+from jax._src.tree_util import register_pytree_node_class
 from typing import Optional
 
 from autofit.messages.normal import UniformNormalMessage
@@ -7,6 +8,7 @@ from ...messages.composed_transform import TransformedMessage
 from ...messages.transform import LinearShiftTransform
 
 
+@register_pytree_node_class
 class UniformPrior(Prior):
     __identifier_fields__ = ("lower_limit", "upper_limit")
 
@@ -58,6 +60,9 @@ class UniformPrior(Prior):
             upper_limit=upper_limit,
             id_=id_,
         )
+
+    def tree_flatten(self):
+        return (self.lower_limit, self.upper_limit), (self.id,)
 
     def logpdf(self, x):
         # TODO: handle x as a numpy array

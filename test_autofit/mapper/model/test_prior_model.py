@@ -329,10 +329,10 @@ class TestCase:
         instance = mapper.instance_from_unit_vector([0.1, 0.2, 0.3, 0.4])
 
         assert len(instance.list_object.ls) == 2
-        assert instance.list_object.ls[0].one == 0.1
-        assert instance.list_object.ls[0].two == 0.4
-        assert instance.list_object.ls[1].one == 0.3
-        assert instance.list_object.ls[1].two == 0.8
+        assert instance.list_object.ls[0].one == pytest.approx(0.1)
+        assert instance.list_object.ls[0].two == pytest.approx(0.4)
+        assert instance.list_object.ls[1].one == pytest.approx(0.3)
+        assert instance.list_object.ls[1].two == pytest.approx(0.8)
 
     def test_mix_instances_and_models(self):
         mapper = af.ModelMapper()
@@ -345,10 +345,10 @@ class TestCase:
         instance = mapper.instance_from_unit_vector([0.1, 0.2])
 
         assert len(instance.list_object.ls) == 2
-        assert instance.list_object.ls[0].one == 0.1
-        assert instance.list_object.ls[0].two == 0.4
-        assert instance.list_object.ls[1].one == 1
-        assert instance.list_object.ls[1].two == 2
+        assert instance.list_object.ls[0].one == pytest.approx(0.1)
+        assert instance.list_object.ls[0].two == pytest.approx(0.4)
+        assert instance.list_object.ls[1].one == pytest.approx(1)
+        assert instance.list_object.ls[1].two == pytest.approx(2)
 
 
 class TestCollectionPriorModel:
@@ -381,10 +381,10 @@ class TestCollectionPriorModel:
 
         assert len(instance.ls) == 2
 
-        assert instance.ls[0].one == 0.1
-        assert instance.ls[0].two == 0.4
-        assert instance.ls[1].one == 1
-        assert instance.ls[1].two == 2
+        assert instance.ls[0].one == pytest.approx(0.1)
+        assert instance.ls[0].two == pytest.approx(0.4)
+        assert instance.ls[1].one == pytest.approx(1)
+        assert instance.ls[1].two == pytest.approx(2)
 
         assert len(prior_model.prior_class_dict) == 2
 

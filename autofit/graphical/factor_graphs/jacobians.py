@@ -1,10 +1,3 @@
-# from itertools import repeat, chain
-# from typing import Tuple, Dict, Callable, Optional, Union, Any
-# from inspect import getfullargspec
-
-# import numpy as np
-# from sklearn.linear_model import PassiveAggressiveClassifier
-
 try:
     import jax
 
@@ -141,7 +134,11 @@ class JacobianVectorProduct(AbstractJacobian, RectVariableOperator):
 
 class VectorJacobianProduct(AbstractJacobian):
     def __init__(
-            self, factor_out, vjp: Callable, *args: Variable, out_shapes=None
+        self,
+        factor_out,
+        vjp: Callable,
+        *args: Variable,
+        out_shapes=None,
     ):
         self.factor_out = factor_out
         self.vjp = vjp
@@ -149,9 +146,9 @@ class VectorJacobianProduct(AbstractJacobian):
         self._variables = tuple(v for v, in nested_filter(is_variable, args))
         self.out_shapes = out_shapes
 
-    @property 
+    @property
     def args(self):
-        return self._args 
+        return self._args
 
     @property
     def variables(self):

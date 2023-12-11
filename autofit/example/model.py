@@ -1,7 +1,6 @@
 import math
-from typing import Dict
 
-import numpy as np
+from autofit.jax_wrapper import numpy as np
 
 """
 The `Gaussian` class in this module is the model components that is fitted to data using a non-linear search. The
@@ -37,6 +36,13 @@ class Gaussian:
         self.normalization = normalization
         self.sigma = sigma
 
+    def _tree_flatten(self):
+        return (self.centre, self.normalization, self.sigma), None
+
+    @classmethod
+    def _tree_unflatten(cls, aux_data, children):
+        return Gaussian(*children)
+
     def __eq__(self, other):
         return (
             isinstance(other, Gaussian)
@@ -61,6 +67,13 @@ class Gaussian:
         return np.multiply(
             np.divide(self.normalization, self.sigma * np.sqrt(2.0 * np.pi)),
             np.exp(-0.5 * np.square(np.divide(transformed_xvalues, self.sigma))),
+        )
+
+    def f(self, x: float):
+        return (
+            self.normalization
+            / (self.sigma * np.sqrt(2 * math.pi))
+            * np.exp(-0.5 * ((x - self.centre) / self.sigma) ** 2)
         )
 
     def __call__(self, xvalues: np.ndarray) -> np.ndarray:
