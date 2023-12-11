@@ -10,7 +10,6 @@ from functools import wraps
 from os import path
 from typing import Dict, Optional, Union, Tuple, List
 
-import jax
 from autofit.jax_wrapper import numpy as np
 
 from autoconf import conf, cached_property
@@ -392,6 +391,8 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         def log_likelihood_function(self):
             if use_jax:
                 if self._log_likelihood_function is None:
+                    import jax
+
                     self._log_likelihood_function = jax.jit(
                         self.analysis.log_likelihood_function
                     )
