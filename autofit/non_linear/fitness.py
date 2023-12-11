@@ -1,5 +1,4 @@
 import numpy as np
-from jax import jit
 
 from autoconf import conf
 
@@ -98,6 +97,8 @@ class Fitness:
     def log_likelihood_function(self):
         if self._log_likelihood_function is None:
             if jax_wrapper.use_jax:
+                from jax import jit
+
                 self._log_likelihood_function = jit(
                     self.analysis.log_likelihood_function
                 )
