@@ -379,9 +379,6 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             try:
                 figure_of_merit = self.figure_of_merit_from(parameter_list=parameters)
 
-                # if jnp.isnan(figure_of_merit):
-                #     return self.resample_figure_of_merit
-
                 return figure_of_merit
 
             except exc.FitException:
