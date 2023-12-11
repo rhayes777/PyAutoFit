@@ -17,5 +17,5 @@ if use_jax:
         raise ImportError(
             "JAX is not installed. Please install it with `pip install jax`."
         )
-
-import numpy  # noqa
+else:
+    import numpy  # noqa
