@@ -12,7 +12,7 @@ from typing import Optional, Union, Tuple, List, Dict
 
 from autoconf import conf, cached_property
 from autoconf.dictable import to_dict
-from autofit import exc
+from autofit import exc, jax_wrapper
 from autofit.database.sqlalchemy_ import sa
 from autofit.graphical import (
     MeanField,
@@ -205,6 +205,10 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                 setattr(self, key, value)
         except KeyError:
             pass
+
+        if jax_wrapper.use_jax:
+            self.number_of_cores = 1
+            logger.warning(f"JAX is enabled. Setting number of cores to 1.")
 
         self.number_of_cores = number_of_cores
 

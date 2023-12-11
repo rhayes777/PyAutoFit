@@ -1,3 +1,4 @@
+from abc import ABC
 from typing import Optional
 
 from autoconf import conf
@@ -11,7 +12,7 @@ from autofit.non_linear.initializer import (
 from autofit.non_linear.samples import SamplesNest
 
 
-class AbstractNest(NonLinearSearch):
+class AbstractNest(NonLinearSearch, ABC):
     def __init__(
         self,
         name: Optional[str] = None,

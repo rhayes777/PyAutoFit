@@ -11,8 +11,7 @@ from os import path
 from typing import Dict, Optional, Union, Tuple, List
 
 import jax
-from autofit.jax_wrapper import numpy as jnp
-import numpy as np
+from autofit.jax_wrapper import numpy as np
 
 from autoconf import conf, cached_property
 from autofit import exc
@@ -379,9 +378,6 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         def __call__(self, parameters, *kwargs):
             try:
                 figure_of_merit = self.figure_of_merit_from(parameter_list=parameters)
-
-                # if jnp.isnan(figure_of_merit):
-                #     return self.resample_figure_of_merit
 
                 return figure_of_merit
 
