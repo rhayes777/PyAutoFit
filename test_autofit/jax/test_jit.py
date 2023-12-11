@@ -40,14 +40,6 @@ def test_jit_likelihood(analysis, instance):
     assert jitted(instance) == analysis.log_likelihood_function(instance)
 
 
-@with_config(
-    "non_linear",
-    "nest",
-    "DynestyStatic",
-    "parallel",
-    "force_x1_cpu",
-    value=True,
-)
 def test_jit_dynesty_static(
     analysis,
     model,
