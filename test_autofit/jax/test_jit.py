@@ -60,4 +60,4 @@ def test_jit_dynesty_static(
     print(search.fit(model=model, analysis=analysis))
 
     loaded = pickle.loads(pickle.dumps(search))
-    isinstance(loaded, af.DynestyStatic)
+    assert isinstance(loaded, af.DynestyStatic)

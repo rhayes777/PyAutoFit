@@ -83,10 +83,28 @@ class Fitness:
         self.fom_is_log_likelihood = fom_is_log_likelihood
         self.resample_figure_of_merit = resample_figure_of_merit
         self.convert_to_chi_squared = convert_to_chi_squared
-        if jax_wrapper.use_jax:
-            self.log_likelihood_function = jit(analysis.log_likelihood_function)
-        else:
-            self.log_likelihood_function = analysis.log_likelihood_function
+        self._log_likelihood_function = None
+
+    def __getstate__(self):
+        state = self.__dict__.copy()
+        del state["_log_likelihood_function"]
+        return state
+
+    def __setstate__(self, state):
+        self.__dict__.update(state)
+        self._log_likelihood_function = None
+
+    @property
+    def log_likelihood_function(self):
+        if self._log_likelihood_function is None:
+            if jax_wrapper.use_jax:
+                self._log_likelihood_function = jit(
+                    self.analysis.log_likelihood_function
+                )
+            else:
+                self._log_likelihood_function = self.analysis.log_likelihood_function
+
+        return self._log_likelihood_function
 
     @timeout(timeout_seconds)
     def __call__(self, parameters, *kwargs):
