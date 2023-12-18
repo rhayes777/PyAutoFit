@@ -1,9 +1,8 @@
 import math
-from jax._src.scipy.special import erfinv
 from typing import Tuple, Union
 
 import numpy as np
-from scipy.special.cython_special import erfcinv
+from autofit.jax_wrapper import erfinv
 from scipy.stats import norm
 
 from autoconf import cached_property
@@ -30,7 +29,7 @@ class NormalMessage(AbstractMessage):
     @cached_property
     def log_partition(self):
         eta1, eta2 = self.natural_parameters
-        return -(eta1 ** 2) / 4 / eta2 - np.log(-2 * eta2) / 2
+        return -(eta1**2) / 4 / eta2 - np.log(-2 * eta2) / 2
 
     log_base_measure = -0.5 * np.log(2 * np.pi)
     _support = ((-np.inf, np.inf),)
@@ -70,7 +69,7 @@ class NormalMessage(AbstractMessage):
 
     @staticmethod
     def calc_natural_parameters(mu, sigma):
-        precision = 1 / sigma ** 2
+        precision = 1 / sigma**2
         return np.array([mu * precision, -precision / 2])
 
     @staticmethod
@@ -82,17 +81,17 @@ class NormalMessage(AbstractMessage):
 
     @staticmethod
     def to_canonical_form(x):
-        return np.array([x, x ** 2])
+        return np.array([x, x**2])
 
     @classmethod
     def invert_sufficient_statistics(cls, suff_stats):
         m1, m2 = suff_stats
-        sigma = np.sqrt(m2 - m1 ** 2)
+        sigma = np.sqrt(m2 - m1**2)
         return cls.calc_natural_parameters(m1, sigma)
 
     @cached_property
     def variance(self):
-        return self.sigma ** 2
+        return self.sigma**2
 
     def sample(self, n_samples=None):
         if n_samples:
@@ -107,7 +106,7 @@ class NormalMessage(AbstractMessage):
     def kl(self, dist):
         return (
             np.log(dist.sigma / self.sigma)
-            + (self.sigma ** 2 + (self.mean - dist.mean) ** 2) / 2 / dist.sigma ** 2
+            + (self.sigma**2 + (self.mean - dist.mean) ** 2) / 2 / dist.sigma**2
             - 1 / 2
         )
 
@@ -129,7 +128,7 @@ class NormalMessage(AbstractMessage):
         if shape:
             x = np.asanyarray(x)
             deltax = x - self.mean
-            hess_logl = -self.sigma ** -2
+            hess_logl = -self.sigma**-2
             grad_logl = deltax * hess_logl
             eta_t = 0.5 * grad_logl * deltax
             logl = self.log_base_measure + eta_t - np.log(self.sigma)
@@ -141,7 +140,7 @@ class NormalMessage(AbstractMessage):
 
         else:
             deltax = x - self.mean
-            hess_logl = -self.sigma ** -2
+            hess_logl = -self.sigma**-2
             grad_logl = deltax * hess_logl
             eta_t = 0.5 * grad_logl * deltax
             logl = self.log_base_measure + eta_t - np.log(self.sigma)
@@ -192,7 +191,7 @@ class NormalMessage(AbstractMessage):
         value
             The physical value of this prior's corresponding parameter in a `NonLinearSearch` sample.
         """
-        return (value - self.mean) ** 2.0 / (2 * self.sigma ** 2.0)
+        return (value - self.mean) ** 2.0 / (2 * self.sigma**2.0)
 
     def __str__(self):
         """
@@ -207,11 +206,11 @@ class NormalMessage(AbstractMessage):
                 self.id, self.mean, self.sigma, self.lower_limit, self.upper_limit
             )
         )
-    
+
     @property
     def natural(self):
         return NaturalNormal.from_natural_parameters(
-            self.natural_parameters * 0., **self._init_kwargs
+            self.natural_parameters * 0.0, **self._init_kwargs
         )
 
     def zeros_like(self) -> "AbstractMessage":
@@ -248,7 +247,7 @@ class NaturalNormal(NormalMessage):
     @cached_property
     def sigma(self):
         precision = -2 * self.parameters[1]
-        return precision ** -0.5
+        return precision**-0.5
 
     @cached_property
     def mean(self):
@@ -265,7 +264,7 @@ class NaturalNormal(NormalMessage):
     @classmethod
     def invert_sufficient_statistics(cls, suff_stats):
         m1, m2 = suff_stats
-        precision = 1 / (m2 - m1 ** 2)
+        precision = 1 / (m2 - m1**2)
         return cls.calc_natural_parameters(m1 * precision, -precision / 2)
 
     @staticmethod
@@ -285,11 +284,11 @@ class NaturalNormal(NormalMessage):
         return cls(mode * precision, -precision / 2, **kwargs)
 
     zeros_like = AbstractMessage.zeros_like
-    
+
     @property
     def natural(self):
         return self
-    
+
 
 UniformNormalMessage = TransformedMessage(NormalMessage(0, 1), phi_transform)
 

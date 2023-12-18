@@ -5,7 +5,7 @@ import inspect
 import logging
 from typing import List
 
-from jax._src.tree_util import register_pytree_node_class, register_pytree_node
+from autofit.jax_wrapper import register_pytree_node_class, register_pytree_node
 
 from autoconf.class_path import get_class_path
 from autoconf.exc import ConfigException
