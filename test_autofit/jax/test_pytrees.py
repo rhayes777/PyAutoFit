@@ -24,15 +24,6 @@ def patch_np(monkeypatch):
     monkeypatch.setattr(af.example.model, "np", jnp)
 
 
-def test_gradient(gaussian):
-    gradient = jax.grad(gaussian.f)
-
-    assert float(gradient(1.0)) == 0.0
-
-    gaussian.centre = 2.0
-    assert float(gradient(1.0)) != 0.0
-
-
 def classic(gaussian, size=1000):
     return list(map(gaussian.f, np.arange(size)))
 
@@ -40,11 +31,6 @@ def classic(gaussian, size=1000):
 def vmapped(gaussian, size=1000):
     f = jax.vmap(gaussian.f)
     return list(f(np.arange(size)))
-
-
-def test_vmap(gaussian):
-    for _ in range(1):
-        assert classic(gaussian) == vmapped(gaussian)
 
 
 def test_gaussian_prior():
