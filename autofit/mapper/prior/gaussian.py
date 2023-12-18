@@ -1,6 +1,6 @@
 from typing import Optional
 
-from jax._src.tree_util import register_pytree_node_class
+from autofit.jax_wrapper import register_pytree_node_class
 
 from autofit.messages.normal import NormalMessage
 from .abstract import Prior

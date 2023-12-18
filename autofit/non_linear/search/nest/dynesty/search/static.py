@@ -1,8 +1,5 @@
 from __future__ import annotations
 
-import jax
-from jax import grad
-
 from autoconf import cached_property
 
 from pathlib import Path
@@ -22,6 +19,9 @@ class GradWrapper:
 
     @cached_property
     def grad(self):
+        import jax
+        from jax import grad
+
         print("Compiling gradient")
         return jax.jit(grad(self.function))
 

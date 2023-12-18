@@ -12,7 +12,7 @@ def log_sigmoid(x):
 
 
 def log_phi(x):
-    return -(x ** 2) / 2 - 0.5 * np.log(2 * np.pi)
+    return -(x**2) / 2 - 0.5 * np.log(2 * np.pi)
 
 
 def plus_two(x):
@@ -80,15 +80,15 @@ def test_factor_jacobian():
 def test_nested_factor():
     def func(a, b):
         a0 = a[0]
-        c = a[1]['c']
+        c = a[1]["c"]
         return a0 * c * b
 
     a, b, c = graph.variables("a, b, c")
 
-    f = func((1, {'c': 2}), 3)
-    values = {a: 1., b: 3., c: 2.}
+    f = func((1, {"c": 2}), 3)
+    values = {a: 1.0, b: 3.0, c: 2.0}
 
-    factor = graph.Factor(func, [a, {'c': c}], b)
+    factor = graph.Factor(func, [a, {"c": c}], b)
 
     assert factor(values) == pytest.approx(f)
 
@@ -103,15 +103,17 @@ def test_nested_factor():
 def test_nested_factor_jax():
     def func(a, b):
         a0 = a[0]
-        c = a[1]['c']
+        c = a[1]["c"]
         return a0 * c * b
 
     a, b, c = graph.variables("a, b, c")
 
-    f = func((1, {'c': 2}), 3)
-    values = {a: 1., b: 3., c: 2.}
-    
-    factor = graph.Factor(func, (a, {'c': c}), b, vjp=True)
+    f = func((1, {"c": 2}), 3)
+    values = {a: 1.0, b: 3.0, c: 2.0}
+
+    pytest.importorskip("jax")
+
+    factor = graph.Factor(func, (a, {"c": c}), b, vjp=True)
 
     assert factor(values) == pytest.approx(f)
 

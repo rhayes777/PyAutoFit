@@ -1,15 +1,15 @@
 import pickle
 
-import jax
-from jax import numpy as np
+from autofit.jax_wrapper import numpy as np, jit
 
 import autofit as af
-from autoconf.conf import with_config
 from autofit import jax_wrapper
 from test_autofit.graphical.gaussian.model import Analysis, Gaussian, make_data
 from test_autofit.graphical.gaussian import model as model_module
 
 import pytest
+
+jax = pytest.importorskip("jax")
 
 
 @pytest.fixture(autouse=True)
@@ -37,7 +37,7 @@ def make_instance():
 def test_jit_likelihood(analysis, instance):
     instance = Gaussian()
 
-    jitted = jax.jit(analysis.log_likelihood_function)
+    jitted = jit(analysis.log_likelihood_function)
 
     assert jitted(instance) == analysis.log_likelihood_function(instance)
 
