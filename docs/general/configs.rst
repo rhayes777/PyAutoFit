@@ -22,6 +22,6 @@ command (the path to the ``output`` folder where the results of a non-linear sea
     from autoconf import conf
 
     conf.instance.push(
-        config_path="path/to/config",
+        new_path="path/to/config",
         output_path=f"path/to/output"
     )

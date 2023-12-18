@@ -2,8 +2,9 @@ import json
 from os import path
 import os
 import matplotlib.pyplot as plt
-import numpy as np
 from typing import List
+
+from autofit.jax_wrapper import numpy as np
 
 import autofit as af
 

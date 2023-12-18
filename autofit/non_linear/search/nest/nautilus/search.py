@@ -482,7 +482,7 @@ class Nautilus(abstract_nest.AbstractNest):
             return
 
         def should_plot(name):
-            return conf.instance["visualize"]["plots_search"]["dynesty"][name]
+            return conf.instance["visualize"]["plots_search"]["nautilus"][name]
 
         plotter = NautilusPlotter(
             samples=samples,
