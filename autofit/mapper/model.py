@@ -3,7 +3,7 @@ import logging
 from functools import wraps
 from typing import Optional, Union, Tuple, List, Iterable, Type, Dict
 
-from jax._src.tree_util import register_pytree_node_class
+from autofit.jax_wrapper import register_pytree_node_class
 
 from autofit.mapper.model_object import ModelObject
 from autofit.mapper.prior_model.recursion import DynamicRecursionCache

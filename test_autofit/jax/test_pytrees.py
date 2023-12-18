@@ -1,10 +1,13 @@
 import numpy as np
 import pytest
-from jax import grad, vmap
-from jax._src.tree_util import _registry
-from jax import numpy as jnp
+from autofit.jax_wrapper import numpy as jnp
 
 import autofit as af
+
+
+grad = pytest.importorskip("jax.grad")
+vmap = pytest.importorskip("jax.vmap")
+_registry = pytest.importorskip("jax._src.tree_util._registry")
 
 
 def recreate(o):

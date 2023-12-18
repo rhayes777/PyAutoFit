@@ -1,7 +1,6 @@
 from collections.abc import Iterable
 
-
-from jax._src.tree_util import register_pytree_node_class
+from autofit.jax_wrapper import register_pytree_node_class
 
 from autofit.mapper.model import ModelInstance, assert_not_frozen
 from autofit.mapper.prior.abstract import Prior
