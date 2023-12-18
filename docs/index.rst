@@ -165,6 +165,7 @@ model and marginalized probability density functions.
    :hidden:
 
    features/graphical
+   features/interpolate
    features/search_chaining
    features/search_grid_search
    features/sensitivity_mapping
