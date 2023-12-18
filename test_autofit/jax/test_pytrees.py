@@ -5,13 +5,11 @@ from autofit.jax_wrapper import numpy as jnp
 import autofit as af
 
 
-grad = pytest.importorskip("jax.grad")
-vmap = pytest.importorskip("jax.vmap")
-_registry = pytest.importorskip("jax._src.tree_util._registry")
+jax = pytest.importorskip("jax")
 
 
 def recreate(o):
-    flatten_func, unflatten_func = _registry[type(o)]
+    flatten_func, unflatten_func = jax._src.tree_util._registry[type(o)]
     children, aux_data = flatten_func(o)
     return unflatten_func(aux_data, children)
 
@@ -27,7 +25,7 @@ def patch_np(monkeypatch):
 
 
 def test_gradient(gaussian):
-    gradient = grad(gaussian.f)
+    gradient = jax.grad(gaussian.f)
 
     assert float(gradient(1.0)) == 0.0
 
@@ -40,7 +38,7 @@ def classic(gaussian, size=1000):
 
 
 def vmapped(gaussian, size=1000):
-    f = vmap(gaussian.f)
+    f = jax.vmap(gaussian.f)
     return list(f(np.arange(size)))
 
 
