@@ -10,7 +10,7 @@
 
 DynestyStatic:
   search:
-    bootstrap: null
+#    bootstrap: null
     bound: multi
     enlarge: null
     facc: 0.2

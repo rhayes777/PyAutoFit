@@ -273,13 +273,15 @@ class UltraNest(abstract_nest.AbstractNest):
     @property
     def config_dict_stepsampler(self):
 
-        config_dict = copy.copy(self.config_type[self.__class__.__name__]["stepsampler"])
+        config_dict = {}
 
-        for key, value in config_dict.items():
+        config_dict_step = self.config_type[self.__class__.__name__]["stepsampler"]
+
+        for key, value in config_dict_step.items():
             try:
                 config_dict[key] = self.kwargs[key]
             except KeyError:
-                pass
+                config_dict[key] = value
 
         return config_dict
 
