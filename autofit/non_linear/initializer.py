@@ -70,7 +70,7 @@ class AbstractInitializer(ABC):
             try:
                 figure_of_merit = fitness(parameters=parameter_list)
 
-                if np.isnan(figure_of_merit):
+                if np.isnan(figure_of_merit) or figure_of_merit < -1e98:
                     raise exc.FitException
 
                 unit_parameter_lists.append(unit_parameter_list)
