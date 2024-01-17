@@ -262,7 +262,9 @@ def samples_from_iterator(iterator):
             Sample(
                 **{key: value for key, value in d.items() if key in sample_args},
                 kwargs={
-                    key: value for key, value in d.items() if key not in sample_args
+                    key: value
+                    for key, value in d.items()
+                    if key not in (sample_args | {"log_posterior"})
                 },
             )
         )
