@@ -4,6 +4,7 @@ import copy
 import inspect
 import logging
 from typing import List
+import typing
 
 from autofit.jax_wrapper import register_pytree_node_class, register_pytree_node
 
@@ -144,18 +145,15 @@ class Model(AbstractPriorModel):
                     keyword_arg = self._convert_value(keyword_arg)
                     setattr(self, arg, keyword_arg)
             elif arg in defaults and isinstance(defaults[arg], tuple):
-                tuple_prior = TuplePrior()
-                for i in range(len(defaults[arg])):
-                    attribute_name = "{}_{}".format(arg, i)
-                    setattr(
-                        tuple_prior, attribute_name, self.make_prior(attribute_name)
-                    )
-                setattr(self, arg, tuple_prior)
+                setattr(self, arg, self.make_tuple_prior(arg, len(defaults[arg])))
             elif arg in annotations and annotations[arg] is not float:
                 spec = annotations[arg]
 
+                if isinstance(spec, typing._GenericAlias) and spec.__origin__ is tuple:
+                    setattr(self, arg, self.make_tuple_prior(arg, len(spec.__args__)))
+
                 # noinspection PyUnresolvedReferences
-                if inspect.isclass(spec) and issubclass(spec, float):
+                elif inspect.isclass(spec) and issubclass(spec, float):
                     from autofit.mapper.prior_model.annotation import (
                         AnnotationPriorModel,
                     )
@@ -323,6 +321,13 @@ class Model(AbstractPriorModel):
             return Prior.for_class_and_attribute_name(cls, attribute_name)
         except ConfigException as e:
             return e
+
+    def make_tuple_prior(self, name, length):
+        tuple_prior = TuplePrior()
+        for i in range(length):
+            attribute_name = "{}_{}".format(name, i)
+            setattr(tuple_prior, attribute_name, self.make_prior(attribute_name))
+        return tuple_prior
 
     @assert_not_frozen
     def __setattr__(self, key, value):

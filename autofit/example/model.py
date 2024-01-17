@@ -1,4 +1,5 @@
 import math
+from typing import Tuple
 
 from autofit.jax_wrapper import numpy as np
 
@@ -152,3 +153,17 @@ class Exponential:
             The x coordinates in the original reference frame of the grid.
         """
         return self.model_data_1d_via_xvalues_from(xvalues=xvalues)
+
+
+class PhysicalNFW:
+    def __init__(
+        self,
+        centre: Tuple[float, float],
+        ell_comps: Tuple[float, float],
+        log10m: float,
+        concentration: float,
+    ):
+        self.centre = centre
+        self.ell_comps = ell_comps
+        self.log10m = log10m
+        self.concentration = concentration
