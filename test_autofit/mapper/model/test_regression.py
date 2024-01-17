@@ -4,6 +4,7 @@ import pytest
 
 import autofit as af
 from autoconf.exc import ConfigException
+from autofit.example.model import PhysicalNFW
 from autofit.mapper.model_object import Identifier
 
 
@@ -169,3 +170,8 @@ class TestModel:
 def test_typing_annotations():
     model = af.Model(TestModel)
     assert model.items == af.Collection()
+
+
+def test_no_default_tuple_priors():
+    model = af.Model(PhysicalNFW)
+    assert model.prior_count == 6
