@@ -247,7 +247,7 @@ class Sample:
         return without_paths
 
 
-sample_args = inspect.getfullargspec(Sample.__init__).args
+sample_args = set(inspect.getfullargspec(Sample.__init__).args)
 
 
 def samples_from_iterator(iterator):
