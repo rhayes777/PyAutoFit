@@ -114,11 +114,11 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             comm = MPI.COMM_WORLD
             self.is_master = comm.Get_rank() == 0
 
-            logger.info(f"Creating non-linear search: {comm.Get_rank()}")
+            logger.debug(f"Creating non-linear search: {comm.Get_rank()}")
 
         except ModuleNotFoundError:
             self.is_master = True
-            logger.info(f"Creating non-linear search")
+            logger.debug(f"Creating non-linear search")
 
         if name:
             path_prefix = Path(path_prefix or "")
