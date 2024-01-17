@@ -247,15 +247,11 @@ class Sample:
         return without_paths
 
 
+sample_args = inspect.getfullargspec(Sample.__init__).args
+
+
 def samples_from_iterator(iterator):
     samples = list()
-
-    sample_args = (
-        "log_likelihood",
-        "log_posterior",
-        "log_prior",
-        "weight",
-    )
 
     headers = next(iterator)
     headers = [header.strip() for header in headers]
@@ -264,11 +260,7 @@ def samples_from_iterator(iterator):
 
         samples.append(
             Sample(
-                **{
-                    key: value
-                    for key, value in d.items()
-                    if key in inspect.getfullargspec(Sample.__init__).args
-                },
+                **{key: value for key, value in d.items() if key in sample_args},
                 kwargs={
                     key: value for key, value in d.items() if key not in sample_args
                 },
