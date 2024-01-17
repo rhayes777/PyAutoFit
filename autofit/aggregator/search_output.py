@@ -173,6 +173,7 @@ class SearchOutput(AbstractSearchOutput):
         super().__init__(directory, reference)
         self.__search = None
         self.__model = None
+        self._samples = None
 
         self.directory = directory
 
@@ -225,19 +226,23 @@ class SearchOutput(AbstractSearchOutput):
         The samples of the search, parsed from a CSV containing individual samples
         and a JSON containing metadata.
         """
-        try:
-            info_json = JSONOutput("info", self.files_path / "samples_info.json").dict
+        if not self._samples:
+            try:
+                info_json = JSONOutput(
+                    "info", self.files_path / "samples_info.json"
+                ).dict
 
-            with open(self.files_path / "samples.csv") as f:
-                sample_list = samples_from_iterator(csv.reader(f))
+                with open(self.files_path / "samples.csv") as f:
+                    sample_list = samples_from_iterator(csv.reader(f))
 
-            return SamplesPDF.from_list_info_and_model(
-                sample_list=sample_list,
-                samples_info=info_json,
-                model=self.model,
-            )
-        except FileNotFoundError:
-            raise AttributeError("No samples found")
+                self._samples = SamplesPDF.from_list_info_and_model(
+                    sample_list=sample_list,
+                    samples_info=info_json,
+                    model=self.model,
+                )
+            except FileNotFoundError:
+                raise AttributeError("No samples found")
+        return self._samples
 
     def names_and_paths(
         self,
