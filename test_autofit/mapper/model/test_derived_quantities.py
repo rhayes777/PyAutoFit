@@ -1,5 +1,7 @@
+import pytest
+
 import autofit as af
-from autofit import Samples
+from autofit import Samples, DirectoryPaths, DatabasePaths
 
 
 def test_derived_quantities():
@@ -11,9 +13,7 @@ def test_derived_quantities():
     assert gaussian.upper_bound == 0.1
 
 
-def test_model_derived_quantities():
-    model = af.Model(af.Gaussian)
-
+def test_model_derived_quantities(model):
     assert set(model.derived_quantities) == {
         ("upper_bound",),
         ("lower_bound",),
@@ -50,9 +50,15 @@ def test_multiple_levels():
     }
 
 
-def test_samples():
-    samples = Samples(
-        model=af.Model(af.Gaussian),
+@pytest.fixture(name="model")
+def make_model():
+    return af.Model(af.Gaussian)
+
+
+@pytest.fixture(name="samples")
+def make_samples(model):
+    return Samples(
+        model=model,
         sample_list=[
             af.Sample(
                 log_likelihood=1.0,
@@ -66,5 +72,23 @@ def test_samples():
             ),
         ],
     )
+
+
+def test_samples(samples):
     derived_quantities = samples.derived_quantities_list[0]
     assert derived_quantities == [-5.0, 5.0]
+
+
+def test_persist(samples, model):
+    paths = DirectoryPaths()
+    paths.model = model
+    paths.save_derived_quantities(samples)
+    assert paths._derived_quantities_file.exists()
+
+
+def test_persist_database(samples, model, session):
+    paths = DatabasePaths(session)
+    paths.model = model
+    paths.save_derived_quantities(samples)
+
+    assert paths.fit["derived_quantities"].shape == (1, 2)

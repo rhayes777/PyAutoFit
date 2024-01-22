@@ -266,10 +266,11 @@ class DatabasePaths(AbstractPaths):
     def save_derived_quantities(self, samples):
         if not self.save_all_samples:
             samples = samples.minimise()
+            samples.model = self.model
 
         self.fit.set_array(
             "derived_quantities",
-            np.array(samples.derived_quantities),
+            np.array(samples.derived_quantities_list),
         )
 
     def _load_samples(self):
