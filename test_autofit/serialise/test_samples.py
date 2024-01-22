@@ -53,15 +53,6 @@ def test_summary(summary, model, sample):
 def make_summary_dict():
     return {
         "arguments": {
-            "covariance_matrix": {
-                "array": [
-                    [2.0, 3.0, 3.9999999999999996],
-                    [3.0, 4.5, 6.0],
-                    [4.0, 6.0, 7.999999999999999],
-                ],
-                "dtype": "float64",
-                "type": "ndarray",
-            },
             "log_evidence": None,
             "max_log_likelihood_sample": {
                 "arguments": {
