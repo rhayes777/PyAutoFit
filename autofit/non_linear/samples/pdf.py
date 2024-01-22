@@ -1,5 +1,6 @@
 import logging
 import math
+import pathlib
 from typing import Dict, List, Optional, Tuple, Union
 
 import numpy as np
@@ -409,7 +410,7 @@ class SamplesPDF(Samples):
             return np.eye(1)
         return np.cov(m=self.parameter_lists, rowvar=False, aweights=self.weight_list)
 
-    def save_covariance_matrix(self, filename: Union[Path, str]):
+    def save_covariance_matrix(self, filename: Union[pathlib.Path, str]):
         """
         Save the covariance matrix as a CSV file.
 
