@@ -13,6 +13,10 @@ def padding(item, target=6):
 
 
 def derived_info_from(samples) -> str:
+    """
+    Format a string describing the values of derived quantities associated with the model
+    at the maximum log likelihood model, 1 sigma and 3 sigma error estimates.
+    """
     results = ["Maximum Log Likelihood Model:\n\n"]
 
     formatter = frm.TextFormatter(line_length=info_whitespace())
