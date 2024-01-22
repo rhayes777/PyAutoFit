@@ -14,3 +14,12 @@ def test_model_derived_quantities():
     model = af.Model(af.Gaussian)
 
     assert len(model.derived_quantities) == 2
+
+
+def test_embedded_derived_quantities():
+    collection = af.Collection(
+        one=af.Gaussian,
+        two=af.Gaussian,
+    )
+
+    assert len(collection.derived_quantities) == 4

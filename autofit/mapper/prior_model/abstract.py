@@ -205,6 +205,14 @@ class AbstractPriorModel(AbstractModel):
                 f"{number_of_failed_assertions} assertions failed!\n{name_string}"
             )
 
+    @property
+    def derived_quantities(self):
+        return [
+            derived_quantity
+            for prior_model in self.direct_prior_model_tuples
+            for derived_quantity in prior_model[1].derived_quantities
+        ]
+
     def cast(
         self,
         value_dict: Dict["AbstractModel", dict],
