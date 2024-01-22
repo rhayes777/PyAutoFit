@@ -126,3 +126,12 @@ Summary (1.0 sigma limits):
 lower_bound                                                                     -5.0000 (-5.0000, -5.0000)
 upper_bound                                                                     5.0000 (5.0000, 5.0000)"""
     )
+
+
+def test_derived_quantities_summary_dict(samples):
+    assert samples.derived_quantities_summary_dict == {
+        "max_log_likelihood_sample": {
+            "lower_bound": -5.0,
+            "upper_bound": 5.0,
+        },
+    }

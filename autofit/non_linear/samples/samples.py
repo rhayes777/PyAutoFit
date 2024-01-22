@@ -60,6 +60,9 @@ class Samples(SamplesInterface, ABC):
 
     @property
     def instances(self):
+        """
+        One model instance for each sample
+        """
         return [
             self.model.instance_from_vector(
                 sample.parameter_lists_for_paths(
@@ -69,10 +72,34 @@ class Samples(SamplesInterface, ABC):
             for sample in self.sample_list
         ]
 
-    def derived_quantities_for_instances(self, instances):
+    def derived_quantities_for_instances(self, instances) -> List[List[float]]:
+        """
+        The derived quantities of the model for each sample
+
+        Parameters
+        ----------
+        instances
+            The model instances for each sample
+
+        Returns
+        -------
+        The derived quantities of the model for each sample
+        """
         return list(map(self.derived_quantities_for_instance, instances))
 
-    def derived_quantities_for_instance(self, instance):
+    def derived_quantities_for_instance(self, instance) -> List[float]:
+        """
+        The derived quantities of the model for a single sample
+
+        Parameters
+        ----------
+        instance
+            The model instance for a single sample
+
+        Returns
+        -------
+        The derived quantities of the model for a single sample
+        """
         instance_derived_quantities = []
         for derived_quantity in self.model.derived_quantities:
             obj = instance
@@ -82,8 +109,26 @@ class Samples(SamplesInterface, ABC):
         return instance_derived_quantities
 
     @property
-    def derived_quantities_list(self):
+    def derived_quantities_list(self) -> List[List[float]]:
+        """
+        The derived quantities of the model for each sample
+        """
         return self.derived_quantities_for_instances(self.instances)
+
+    @property
+    def derived_quantities_summary_dict(self) -> dict:
+        """
+        A summary of the derived quantities of the model.
+        """
+        return {
+            "max_log_likelihood_sample": {
+                ".".join(derived_quantity): value
+                for derived_quantity, value in zip(
+                    self.model.derived_quantities,
+                    self.derived_quantities_for_instance(self.max_log_likelihood()),
+                )
+            }
+        }
 
     @property
     def log_evidence(self):
