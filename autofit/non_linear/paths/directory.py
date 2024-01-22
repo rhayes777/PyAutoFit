@@ -17,8 +17,8 @@ from ..samples import load_from_table
 from autofit.non_linear.samples.pdf import SamplesPDF
 import numpy as np
 
-from ... import Samples
-from ...text.formatter import write_table
+from autofit.non_linear.samples.samples import Samples
+from autofit.text.formatter import write_table
 
 logger = logging.getLogger(__name__)
 
