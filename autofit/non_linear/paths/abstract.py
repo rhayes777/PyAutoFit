@@ -417,7 +417,16 @@ class AbstractPaths(ABC):
 
     @abstractmethod
     def save_derived_quantities(self, samples):
-        pass
+        """
+        Write out the derived quantities of the model.
+
+        This is like samples, but for the derived quantities of the model.
+
+        Parameters
+        ----------
+        samples
+            An object comprising each sample and a model which is used to compute the derived quantities.
+        """
 
     @abstractmethod
     def load_samples_info(self):
