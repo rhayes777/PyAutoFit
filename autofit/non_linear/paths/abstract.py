@@ -14,6 +14,7 @@ import numpy as np
 from autoconf import conf
 from autofit.mapper.identifier import Identifier, IdentifierField
 from autofit.text import text_util
+from autofit.text.text_util import derived_info_from
 from autofit.tools.util import open_, zip_directory
 
 logger = logging.getLogger(__name__)
@@ -431,6 +432,13 @@ class AbstractPaths(ABC):
 
         with open_(filename, "w") as f:
             f.write(result_info)
+
+        derived_info = derived_info_from(samples=samples)
+
+        filename = self.output_path / "derived.results"
+
+        with open_(filename, "w") as f:
+            f.write(derived_info)
 
         text_util.search_summary_to_file(
             samples=samples,
