@@ -3,6 +3,7 @@ import pytest
 import autofit as af
 from autofit import Samples, DirectoryPaths, DatabasePaths, SamplesPDF
 from autofit.text.samples_text import derived_quantity_summary
+from autofit.text.text_util import derived_info_from
 
 
 def test_derived_quantities():
@@ -104,4 +105,24 @@ Summary (3.0 sigma limits):
 
 lower_bound        -5.0000 (-5.0000, -5.0000)
 upper_bound        5.0000 (5.0000, 5.0000)"""
+    )
+
+
+def test_derived_info_from(samples):
+    assert (
+        derived_info_from(samples)
+        == """Maximum Log Likelihood Model:
+
+lower_bound                                                                     -5.000
+upper_bound                                                                     5.000
+
+ WARNING: The samples have not converged enough to compute a PDF and model errors. 
+ The model below over estimates errors. 
+
+
+
+Summary (1.0 sigma limits):
+
+lower_bound                                                                     -5.0000 (-5.0000, -5.0000)
+upper_bound                                                                     5.0000 (5.0000, 5.0000)"""
     )

@@ -47,7 +47,13 @@ def summary(
     return f"\n\nSummary ({sigma} sigma limits):\n\n{sigma_formatter.text}"
 
 
-def derived_quantity_summary(samples, sigma=3.0, median_pdf_model=True) -> str:
+def derived_quantity_summary(
+    samples,
+    sigma=3.0,
+    indent=1,
+    median_pdf_model=True,
+    line_length=None,
+) -> str:
     """
     Create a string summarizing the results of the `NonLinearSearch` at an input sigma value.
 
@@ -72,8 +78,12 @@ def derived_quantity_summary(samples, sigma=3.0, median_pdf_model=True) -> str:
 
     parameter_names = list(zip(*samples.model.derived_quantities))[-1]
 
+    if line_length is None:
+        line_length = len(max(parameter_names, key=len)) + 8
+
     sigma_formatter = frm.TextFormatter(
-        indent=1, line_length=len(max(parameter_names, key=len)) + 8
+        indent=indent,
+        line_length=line_length,
     )
 
     for i, prior_path in enumerate(samples.model.derived_quantities):
