@@ -226,7 +226,7 @@ class Model(AbstractPriorModel):
     @property
     def derived_quantities(self) -> List[str]:
         return super().derived_quantities + [
-            key
+            (key,)
             for key, value in self.cls.__dict__.items()
             if isinstance(value, derived_quantity)
         ]

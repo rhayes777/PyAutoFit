@@ -13,7 +13,10 @@ def test_derived_quantities():
 def test_model_derived_quantities():
     model = af.Model(af.Gaussian)
 
-    assert len(model.derived_quantities) == 2
+    assert set(model.derived_quantities) == {
+        ("upper_bound",),
+        ("lower_bound",),
+    }
 
 
 def test_embedded_derived_quantities():
@@ -22,4 +25,25 @@ def test_embedded_derived_quantities():
         two=af.Gaussian,
     )
 
-    assert len(collection.derived_quantities) == 4
+    assert set(collection.derived_quantities) == {
+        ("one", "upper_bound"),
+        ("one", "lower_bound"),
+        ("two", "upper_bound"),
+        ("two", "lower_bound"),
+    }
+
+
+def test_multiple_levels():
+    collection = af.Collection(
+        one=af.Gaussian,
+        two=af.Collection(
+            three=af.Gaussian,
+        ),
+    )
+
+    assert set(collection.derived_quantities) == {
+        ("one", "upper_bound"),
+        ("one", "lower_bound"),
+        ("two", "three", "upper_bound"),
+        ("two", "three", "lower_bound"),
+    }
