@@ -9,20 +9,20 @@ from autofit.non_linear.search.mcmc.auto_correlations import AutoCorrelationsSet
 from autofit.non_linear.samples.pdf import SamplesPDF
 from autofit.non_linear.samples.samples import Sample
 
-from autofit.non_linear.samples.samples import to_instance, to_instance_sigma
+from autofit.non_linear.samples.samples import to_instance
 
 from autofit import exc
 
-class SamplesMCMC(SamplesPDF):
 
+class SamplesMCMC(SamplesPDF):
     def __init__(
-            self,
-            model: AbstractPriorModel,
-            sample_list: List[Sample],
-            samples_info : Optional[Dict] = None,
-            search_internal: Optional = None,
-            auto_correlation_settings: Optional[AutoCorrelationsSettings] = None,
-            auto_correlations : Optional[AutoCorrelations] = None
+        self,
+        model: AbstractPriorModel,
+        sample_list: List[Sample],
+        samples_info: Optional[Dict] = None,
+        search_internal: Optional = None,
+        auto_correlation_settings: Optional[AutoCorrelationsSettings] = None,
+        auto_correlations: Optional[AutoCorrelations] = None,
     ):
         """
         The `Samples` classes in **PyAutoFit** provide an interface between the search_internal of
@@ -57,13 +57,10 @@ class SamplesMCMC(SamplesPDF):
             model=model,
             sample_list=sample_list,
             samples_info=samples_info,
-            search_internal=search_internal
+            search_internal=search_internal,
         )
 
-    def __add__(
-            self,
-            other: "SamplesMCMC"
-    ) -> "SamplesMCMC":
+    def __add__(self, other: "SamplesMCMC") -> "SamplesMCMC":
         """
         Samples can be added together, which combines their `sample_list` meaning that inferred parameters are
         computed via their joint PDF.
@@ -86,7 +83,7 @@ class SamplesMCMC(SamplesPDF):
         warnings.warn(
             f"Addition of {self.__class__.__name__} cannot retain results in native format. "
             "Visualization of summed samples diabled.",
-            exc.SamplesWarning
+            exc.SamplesWarning,
         )
 
         return self.__class__(
@@ -94,7 +91,7 @@ class SamplesMCMC(SamplesPDF):
             sample_list=self.sample_list + other.sample_list,
             samples_info=self.samples_info,
             auto_correlation_settings=self.auto_correlation_settings,
-            search_internal=None
+            search_internal=None,
         )
 
     @property
@@ -141,8 +138,8 @@ class SamplesMCMC(SamplesPDF):
 
         return self.max_log_likelihood(as_instance=False)
 
-    @to_instance_sigma
-    def values_at_sigma(self, sigma: float, as_instance: bool = True) -> [float]:
+    @to_instance
+    def values_at_sigma(self, sigma: float) -> [float]:
         """
         The value of every parameter marginalized in 1D at an input sigma value of its probability density function
         (PDF), returned as two lists of values corresponding to the lower and upper values parameter values.
@@ -175,10 +172,10 @@ class SamplesMCMC(SamplesPDF):
             ]
 
         parameters_min = list(
-            np.min(self.parameter_lists[-self.unconverged_sample_size:], axis=0)
+            np.min(self.parameter_lists[-self.unconverged_sample_size :], axis=0)
         )
         parameters_max = list(
-            np.max(self.parameter_lists[-self.unconverged_sample_size:], axis=0)
+            np.max(self.parameter_lists[-self.unconverged_sample_size :], axis=0)
         )
 
         return [

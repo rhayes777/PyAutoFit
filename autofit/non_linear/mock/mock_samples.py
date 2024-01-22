@@ -1,5 +1,3 @@
-from typing import Optional, Union
-
 from autofit.non_linear.samples import SamplesPDF, Sample, SamplesNest
 
 
@@ -68,7 +66,6 @@ class MockSamples(SamplesPDF):
         return self._max_log_likelihood_instance
 
     def gaussian_priors_at_sigma(self, sigma=None):
-
         if self._gaussian_tuples is None:
             return super().gaussian_priors_at_sigma(sigma=sigma)
 
@@ -94,5 +91,6 @@ class MockSamplesNest(SamplesNest):
                 for log_likelihood in self.log_likelihood_list
             ]
 
-        super().__init__(model=model, sample_list=sample_list, samples_info=samples_info)
-
+        super().__init__(
+            model=model, sample_list=sample_list, samples_info=samples_info
+        )

@@ -1,4 +1,5 @@
 import autofit as af
+from autofit import Samples
 
 
 def test_derived_quantities():
@@ -47,3 +48,21 @@ def test_multiple_levels():
         ("two", "three", "upper_bound"),
         ("two", "three", "lower_bound"),
     }
+
+
+def test_samples():
+    samples = Samples(
+        model=af.Model(af.Gaussian),
+        sample_list=[
+            af.Sample(
+                log_likelihood=1.0,
+                log_prior=2.0,
+                weight=3.0,
+                kwargs={
+                    "centre": 0.0,
+                },
+            ),
+        ],
+    )
+    derived_quantities = samples.derived_quantities_list[0]
+    assert derived_quantities["upper_bound"] == 0.05
