@@ -122,7 +122,7 @@ class CovarianceInterpolator(AbstractInterpolator):
 
         This comprises covariance matrices for each sample, subsumed along the diagonal
         """
-        matrices = [samples.covariance_matrix() for samples in self.samples_list]
+        matrices = [samples.covariance_matrix for samples in self.samples_list]
         prior_count = self.samples_list[0].model.prior_count
         size = prior_count * len(self.samples_list)
         array = np.zeros((size, size))
