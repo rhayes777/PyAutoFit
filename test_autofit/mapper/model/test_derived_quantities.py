@@ -1,7 +1,7 @@
 import pytest
 
 import autofit as af
-from autofit import Samples, DirectoryPaths, DatabasePaths, SamplesPDF
+from autofit import DirectoryPaths, DatabasePaths, SamplesPDF
 from autofit.text.samples_text import derived_quantity_summary
 from autofit.text.text_util import derived_info_from
 
