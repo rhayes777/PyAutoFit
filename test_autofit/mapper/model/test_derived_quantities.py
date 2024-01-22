@@ -60,9 +60,11 @@ def test_samples():
                 weight=3.0,
                 kwargs={
                     "centre": 0.0,
+                    "normalization": 1.0,
+                    "sigma": 1.0,
                 },
             ),
         ],
     )
     derived_quantities = samples.derived_quantities_list[0]
-    assert derived_quantities["upper_bound"] == 0.05
+    assert derived_quantities == [-5.0, 5.0]

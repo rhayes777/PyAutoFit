@@ -59,8 +59,28 @@ class Samples(SamplesInterface, ABC):
         self.search_internal = search_internal
 
     @property
+    def instances(self):
+        return [
+            self.model.instance_from_vector(
+                sample.parameter_lists_for_paths(
+                    self.paths if sample.is_path_kwargs else self.names
+                )
+            )
+            for sample in self.sample_list
+        ]
+
+    @property
     def derived_quantities_list(self):
-        return [sample for sample in self.sample_list]
+        derived_quantities_list = []
+        for instance in self.instances:
+            instance_derived_quantities = []
+            for derived_quantity in self.model.derived_quantities:
+                obj = instance
+                for name in derived_quantity:
+                    obj = getattr(obj, name)
+                instance_derived_quantities.append(obj)
+            derived_quantities_list.append(instance_derived_quantities)
+        return derived_quantities_list
 
     @property
     def log_evidence(self):
