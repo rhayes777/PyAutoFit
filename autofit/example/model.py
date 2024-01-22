@@ -2,6 +2,7 @@ import math
 from typing import Tuple
 
 from autofit.jax_wrapper import numpy as np
+from autofit.mapper.derived_quantity import derived_quantity
 
 """
 The `Gaussian` class in this module is the model components that is fitted to data using a non-linear search. The
@@ -36,6 +37,14 @@ class Gaussian:
         self.centre = centre
         self.normalization = normalization
         self.sigma = sigma
+
+    @derived_quantity
+    def lower_bound(self):
+        return self.centre - 5 * self.sigma
+
+    @derived_quantity
+    def upper_bound(self):
+        return self.centre + 5 * self.sigma
 
     def _tree_flatten(self):
         return (self.centre, self.normalization, self.sigma), None
