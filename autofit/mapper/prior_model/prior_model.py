@@ -224,7 +224,11 @@ class Model(AbstractPriorModel):
         ]
 
     @property
-    def derived_quantities(self) -> List[str]:
+    def derived_quantities(self) -> List[typing.Tuple[str, ...]]:
+        """
+        The paths to attributes of the model which are derived (i.e.
+        methods marked with the derived_quantity decorator)
+        """
         return super().derived_quantities + [
             (key,)
             for key, value in self.cls.__dict__.items()

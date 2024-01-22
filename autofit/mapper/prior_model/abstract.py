@@ -206,7 +206,11 @@ class AbstractPriorModel(AbstractModel):
             )
 
     @property
-    def derived_quantities(self):
+    def derived_quantities(self) -> List[Tuple[str, ...]]:
+        """
+        The paths to attributes of the model which are derived (i.e.
+        methods marked with the derived_quantity decorator)
+        """
         return [
             (name,) + derived_quantity
             for name, prior_model in self.direct_prior_model_tuples
