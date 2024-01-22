@@ -1,5 +1,3 @@
-import dill
-import json
 import logging
 import os
 import re
@@ -9,7 +7,7 @@ from abc import ABC, abstractmethod
 from configparser import NoSectionError
 from os import path
 from pathlib import Path
-from typing import Dict, Optional
+from typing import Optional
 
 import numpy as np
 
@@ -414,11 +412,6 @@ class AbstractPaths(ABC):
     def save_samples(self, samples):
         """
         Save samples to the database
-        """
-
-    def samples_to_csv(self, samples):
-        """
-        Save the final-result samples associated with the phase as a pickle
         """
 
     @abstractmethod

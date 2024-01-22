@@ -263,12 +263,6 @@ class DatabasePaths(AbstractPaths):
         self.fit.samples = samples
         self.fit.set_json("samples_info", samples.samples_info)
 
-    def samples_to_csv(self, samples):
-        """
-        Save the final-result samples associated with the phase as a pickle
-        """
-        pass
-
     def _load_samples(self):
         samples = self.fit.samples
         samples.model = self.model

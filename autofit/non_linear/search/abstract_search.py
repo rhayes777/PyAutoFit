@@ -916,7 +916,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             return samples
 
         if self.is_master:
-            self.paths.samples_to_csv(samples=samples)
+            self.paths.save_samples(samples=samples)
 
             if not self.skip_save_samples:
                 self.paths.save_json("samples_summary", to_dict(samples.summary()))

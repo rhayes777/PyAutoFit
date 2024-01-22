@@ -212,9 +212,6 @@ class DirectoryPaths(AbstractPaths):
         return load_from_table(filename=self._samples_file)
 
     def save_samples(self, samples):
-        pass
-
-    def samples_to_csv(self, samples):
         """
         Save the final-result samples associated with the phase as a pickle
         """
