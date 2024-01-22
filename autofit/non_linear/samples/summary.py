@@ -28,11 +28,8 @@ class SamplesSummary(SamplesInterface):
         """
         super().__init__(model=model)
         self._max_log_likelihood_sample = max_log_likelihood_sample
-        self._covariance_matrix = covariance_matrix
+        self.covariance_matrix = covariance_matrix
         self._log_evidence = log_evidence
-
-    def covariance_matrix(self) -> np.ndarray:
-        return self._covariance_matrix
 
     @property
     def max_log_likelihood_sample(self):
