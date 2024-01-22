@@ -70,16 +70,16 @@ class Samples(SamplesInterface, ABC):
         ]
 
     def derived_quantities_for_instances(self, instances):
-        derived_quantities_list = []
-        for instance in instances:
-            instance_derived_quantities = []
-            for derived_quantity in self.model.derived_quantities:
-                obj = instance
-                for name in derived_quantity:
-                    obj = getattr(obj, name)
-                instance_derived_quantities.append(obj)
-            derived_quantities_list.append(instance_derived_quantities)
-        return derived_quantities_list
+        return list(map(self.derived_quantities_for_instance, instances))
+
+    def derived_quantities_for_instance(self, instance):
+        instance_derived_quantities = []
+        for derived_quantity in self.model.derived_quantities:
+            obj = instance
+            for name in derived_quantity:
+                obj = getattr(obj, name)
+            instance_derived_quantities.append(obj)
+        return instance_derived_quantities
 
     @property
     def derived_quantities_list(self):

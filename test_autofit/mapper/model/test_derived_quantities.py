@@ -1,7 +1,8 @@
 import pytest
 
 import autofit as af
-from autofit import Samples, DirectoryPaths, DatabasePaths
+from autofit import Samples, DirectoryPaths, DatabasePaths, SamplesPDF
+from autofit.text.samples_text import derived_quantity_summary
 
 
 def test_derived_quantities():
@@ -57,7 +58,7 @@ def make_model():
 
 @pytest.fixture(name="samples")
 def make_samples(model):
-    return Samples(
+    return SamplesPDF(
         model=model,
         sample_list=[
             af.Sample(
@@ -92,3 +93,15 @@ def test_persist_database(samples, model, session):
     paths.save_derived_quantities(samples)
 
     assert paths.fit["derived_quantities"].shape == (1, 2)
+
+
+def test_summary(samples):
+    assert (
+        derived_quantity_summary(samples, median_pdf_model=False)
+        == """
+
+Summary (3.0 sigma limits):
+
+lower_bound        -5.0000 (-5.0000, -5.0000)
+upper_bound        5.0000 (5.0000, 5.0000)"""
+    )
