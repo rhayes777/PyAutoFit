@@ -433,12 +433,13 @@ class AbstractPaths(ABC):
         with open_(filename, "w") as f:
             f.write(result_info)
 
-        derived_info = derived_info_from(samples=samples)
+        if self.model.derived_quantities:
+            derived_info = derived_info_from(samples=samples)
 
-        filename = self.output_path / "derived.results"
+            filename = self.output_path / "derived.results"
 
-        with open_(filename, "w") as f:
-            f.write(derived_info)
+            with open_(filename, "w") as f:
+                f.write(derived_info)
 
         text_util.search_summary_to_file(
             samples=samples,
