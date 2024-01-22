@@ -60,7 +60,7 @@ class SamplesPDF(Samples):
 
     def summary(self):
         try:
-            covariance_matrix = self.covariance_matrix()
+            covariance_matrix = self.covariance_matrix
         except Exception as e:
             logging.warning(f"Could not create covariance matrix: {e}")
             covariance_matrix = None
@@ -389,6 +389,7 @@ class SamplesPDF(Samples):
             )
         )
 
+    @property
     def covariance_matrix(self) -> np.ndarray:
         """
         Compute the covariance matrix of the non-linear search samples, using the method `np.cov()` which is described
@@ -418,7 +419,7 @@ class SamplesPDF(Samples):
             The filename the covariance matrix is saved to.
         """
         # noinspection PyTypeChecker
-        np.savetxt(filename, self.covariance_matrix(), delimiter=",")
+        np.savetxt(filename, self.covariance_matrix, delimiter=",")
 
     @property
     def log_evidence(self):

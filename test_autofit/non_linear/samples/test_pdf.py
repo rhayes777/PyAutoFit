@@ -477,7 +477,7 @@ def test__covariance_matrix(make_samples):
         parameters=[[2.0, 2.0], [1.0, 1.0], [0.0, 0.0]],
     )
 
-    assert samples_x5.covariance_matrix() == pytest.approx(
+    assert samples_x5.covariance_matrix == pytest.approx(
         np.array([[1.0, 1.0], [1.0, 1.0]]), 1.0e-4
     )
 
@@ -485,7 +485,7 @@ def test__covariance_matrix(make_samples):
 
     samples_x5 = make_samples(parameters)
 
-    assert samples_x5.covariance_matrix() == pytest.approx(
+    assert samples_x5.covariance_matrix == pytest.approx(
         np.array([[1.0, -1.0], [-1.0, 1.0]]), 1.0e-4
     )
 
@@ -494,6 +494,6 @@ def test__covariance_matrix(make_samples):
         weight_list=[0.1, 0.2, 0.3],
     )
 
-    assert samples_x5.covariance_matrix() == pytest.approx(
+    assert samples_x5.covariance_matrix == pytest.approx(
         np.array([[0.90909, -0.90909], [-0.90909, 0.90909]]), 1.0e-4
     )
