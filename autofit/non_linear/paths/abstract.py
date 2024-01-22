@@ -415,6 +415,10 @@ class AbstractPaths(ABC):
         """
 
     @abstractmethod
+    def save_derived_quantities(self, samples):
+        pass
+
+    @abstractmethod
     def load_samples_info(self):
         pass
 
@@ -437,6 +441,10 @@ class AbstractPaths(ABC):
     @property
     def _samples_file(self) -> Path:
         return self._files_path / "samples.csv"
+
+    @property
+    def _derived_quantities_file(self) -> Path:
+        return self._files_path / "derived_quantities.csv"
 
     @property
     def _covariance_file(self) -> Path:

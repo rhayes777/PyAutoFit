@@ -69,10 +69,9 @@ class Samples(SamplesInterface, ABC):
             for sample in self.sample_list
         ]
 
-    @property
-    def derived_quantities_list(self):
+    def derived_quantities_for_instances(self, instances):
         derived_quantities_list = []
-        for instance in self.instances:
+        for instance in instances:
             instance_derived_quantities = []
             for derived_quantity in self.model.derived_quantities:
                 obj = instance
@@ -81,6 +80,10 @@ class Samples(SamplesInterface, ABC):
                 instance_derived_quantities.append(obj)
             derived_quantities_list.append(instance_derived_quantities)
         return derived_quantities_list
+
+    @property
+    def derived_quantities_list(self):
+        return self.derived_quantities_for_instances(self.instances)
 
     @property
     def log_evidence(self):

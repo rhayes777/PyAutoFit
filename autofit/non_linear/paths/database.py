@@ -263,6 +263,15 @@ class DatabasePaths(AbstractPaths):
         self.fit.samples = samples
         self.fit.set_json("samples_info", samples.samples_info)
 
+    def save_derived_quantities(self, samples):
+        if not self.save_all_samples:
+            samples = samples.minimise()
+
+        self.fit.set_array(
+            "derived_quantities",
+            np.array(samples.derived_quantities),
+        )
+
     def _load_samples(self):
         samples = self.fit.samples
         samples.model = self.model

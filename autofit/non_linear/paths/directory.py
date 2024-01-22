@@ -17,6 +17,9 @@ from ..samples import load_from_table
 from autofit.non_linear.samples.pdf import SamplesPDF
 import numpy as np
 
+from ... import Samples
+from ...text.formatter import write_table
+
 logger = logging.getLogger(__name__)
 
 
@@ -225,6 +228,16 @@ class DirectoryPaths(AbstractPaths):
                     logger.warning(
                         f"Could not save covariance matrix because of the following error:\n{e}"
                     )
+
+    def save_derived_quantities(self, samples: Samples):
+        write_table(
+            filename=str(self._derived_quantities_file),
+            headers=[
+                ".".join(derived_quantity)
+                for derived_quantity in self.model.derived_quantities
+            ],
+            rows=samples.derived_quantities_list,
+        )
 
     def load_samples_info(self):
         with open_(self._info_file) as infile:
