@@ -11,7 +11,11 @@ from autofit.tools.util import split_paths
 
 class Sample:
     def __init__(
-        self, log_likelihood: float, log_prior: float, weight: float, kwargs=None
+        self,
+        log_likelihood: float,
+        log_prior: float,
+        weight: float,
+        kwargs=None,
     ):
         """
         One sample taken during a search
