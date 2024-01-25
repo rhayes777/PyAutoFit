@@ -407,6 +407,7 @@ class SamplesPDF(Samples):
         """
         if len(self.parameter_lists) == 1:
             return np.eye(1)
+        
         return np.cov(m=self.parameter_lists, rowvar=False, aweights=self.weight_list)
 
     def save_covariance_matrix(self, filename: Union[Path, str]):
