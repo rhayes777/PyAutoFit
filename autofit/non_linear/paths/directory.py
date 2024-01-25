@@ -239,7 +239,6 @@ class DirectoryPaths(AbstractPaths):
         self.save_identifier()
         self.save_parent_identifier()
         self._save_model_info(model=self.model)
-        self._save_parameter_names_file(model=self.model)
         if info:
             self.save_json("info", info)
         self.save_json("search", to_dict(self.search))
