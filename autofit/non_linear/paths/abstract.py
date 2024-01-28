@@ -1,5 +1,3 @@
-import dill
-import json
 import logging
 import os
 import re
@@ -9,13 +7,14 @@ from abc import ABC, abstractmethod
 from configparser import NoSectionError
 from os import path
 from pathlib import Path
-from typing import Dict, Optional
+from typing import Optional
 
 import numpy as np
 
 from autoconf import conf
 from autofit.mapper.identifier import Identifier, IdentifierField
 from autofit.text import text_util
+from autofit.text.text_util import derived_info_from
 from autofit.tools.util import open_, zip_directory
 
 logger = logging.getLogger(__name__)
@@ -416,9 +415,17 @@ class AbstractPaths(ABC):
         Save samples to the database
         """
 
-    def samples_to_csv(self, samples):
+    @abstractmethod
+    def save_derived_quantities(self, samples):
         """
-        Save the final-result samples associated with the phase as a pickle
+        Write out the derived quantities of the model.
+
+        This is like samples, but for the derived quantities of the model.
+
+        Parameters
+        ----------
+        samples
+            An object comprising each sample and a model which is used to compute the derived quantities.
         """
 
     @abstractmethod
@@ -435,6 +442,14 @@ class AbstractPaths(ABC):
         with open_(filename, "w") as f:
             f.write(result_info)
 
+        if self.model.derived_quantities:
+            derived_info = derived_info_from(samples=samples)
+
+            filename = self.output_path / "derived.results"
+
+            with open_(filename, "w") as f:
+                f.write(derived_info)
+
         text_util.search_summary_to_file(
             samples=samples,
             log_likelihood_function_time=log_likelihood_function_time,
@@ -444,6 +459,10 @@ class AbstractPaths(ABC):
     @property
     def _samples_file(self) -> Path:
         return self._files_path / "samples.csv"
+
+    @property
+    def _derived_quantities_file(self) -> Path:
+        return self._files_path / "derived_quantities.csv"
 
     @property
     def _covariance_file(self) -> Path:

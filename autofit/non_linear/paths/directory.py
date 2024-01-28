@@ -17,6 +17,9 @@ from ..samples import load_from_table
 from autofit.non_linear.samples.pdf import SamplesPDF
 import numpy as np
 
+from autofit.non_linear.samples.samples import Samples
+from autofit.text.formatter import write_table
+
 logger = logging.getLogger(__name__)
 
 
@@ -212,9 +215,6 @@ class DirectoryPaths(AbstractPaths):
         return load_from_table(filename=self._samples_file)
 
     def save_samples(self, samples):
-        pass
-
-    def samples_to_csv(self, samples):
         """
         Save the final-result samples associated with the phase as a pickle
         """
@@ -228,6 +228,26 @@ class DirectoryPaths(AbstractPaths):
                     logger.warning(
                         f"Could not save covariance matrix because of the following error:\n{e}"
                     )
+
+    def save_derived_quantities(self, samples: Samples):
+        """
+        Write out the derived quantities of the model to a file.
+
+        This is like the samples.csv file, but for the derived quantities of the model.
+
+        Parameters
+        ----------
+        samples
+            An object comprising each sample and a model which is used to compute the derived quantities.
+        """
+        write_table(
+            filename=str(self._derived_quantities_file),
+            headers=[
+                ".".join(derived_quantity)
+                for derived_quantity in self.model.derived_quantities
+            ],
+            rows=samples.derived_quantities_list,
+        )
 
     def load_samples_info(self):
         with open_(self._info_file) as infile:

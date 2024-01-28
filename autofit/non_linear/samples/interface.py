@@ -11,9 +11,9 @@ from autofit.mapper.prior_model.abstract import Path
 def to_instance(func):
     @wraps(func)
     def wrapper(
-        obj, as_instance: bool = True, *args, **kwargs
+        obj, *args, as_instance: bool = True, **kwargs
     ) -> Union[List, ModelInstance]:
-        vector = func(obj, as_instance, *args, **kwargs)
+        vector = func(obj, *args, **kwargs)
 
         if as_instance:
             return obj.model.instance_from_vector(

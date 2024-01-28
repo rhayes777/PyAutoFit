@@ -759,6 +759,9 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
                 if not self.skip_save_samples:
                     self.paths.save_json("samples_summary", to_dict(samples.summary()))
+                    self.paths.save_json(
+                        "derived_summary", samples.derived_quantities_summary_dict
+                    )
 
                 analysis.save_results(paths=self.paths, result=result)
 
@@ -916,10 +919,16 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             return samples
 
         if self.is_master:
-            self.paths.samples_to_csv(samples=samples)
+            self.paths.save_samples(samples=samples)
+
+            if not during_analysis:
+                self.paths.save_derived_quantities(samples=samples)
 
             if not self.skip_save_samples:
                 self.paths.save_json("samples_summary", to_dict(samples.summary()))
+                self.paths.save_json(
+                    "derived_summary", samples.derived_quantities_summary_dict
+                )
 
             self.perform_visualization(
                 model=model,

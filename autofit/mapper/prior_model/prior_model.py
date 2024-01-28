@@ -10,6 +10,7 @@ from autofit.jax_wrapper import register_pytree_node_class, register_pytree_node
 
 from autoconf.class_path import get_class_path
 from autoconf.exc import ConfigException
+from autofit.mapper.derived_quantity import derived_quantity
 from autofit.mapper.model import assert_not_frozen
 from autofit.mapper.model_object import ModelObject
 from autofit.mapper.prior.abstract import Prior
@@ -220,6 +221,18 @@ class Model(AbstractPriorModel):
             + self.direct_instance_tuples
             + self.direct_deferred_tuples
             + self.direct_prior_tuples
+        ]
+
+    @property
+    def derived_quantities(self) -> List[typing.Tuple[str, ...]]:
+        """
+        The paths to attributes of the model which are derived (i.e.
+        methods marked with the derived_quantity decorator)
+        """
+        return super().derived_quantities + [
+            (key,)
+            for key, value in self.cls.__dict__.items()
+            if isinstance(value, derived_quantity)
         ]
 
     def instance_flatten(self, instance):

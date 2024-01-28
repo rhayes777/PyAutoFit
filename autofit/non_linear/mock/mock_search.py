@@ -83,7 +83,7 @@ class MockSearch(NonLinearSearch):
                 # Return Chi squared
                 return -2 * log_likelihood
 
-        self.paths.samples_to_csv(self.samples)
+        self.paths.save_samples(self.samples)
 
         if self.save_for_aggregator:
             analysis.save_attributes(paths=self.paths)
@@ -127,7 +127,7 @@ class MockSearch(NonLinearSearch):
             ],
         )
 
-        self.paths.samples_to_csv(self.samples)
+        self.paths.save_samples(self.samples)
 
         return analysis.make_result(
             samples=samples,
@@ -135,7 +135,7 @@ class MockSearch(NonLinearSearch):
 
     def perform_update(self, model, analysis, during_analysis, search_internal=None):
         if self.samples is not None and not self.return_sensitivity_results:
-            self.paths.samples_to_csv(self.samples)
+            self.paths.save_samples(self.samples)
             return self.samples
 
         return MockSamples(
