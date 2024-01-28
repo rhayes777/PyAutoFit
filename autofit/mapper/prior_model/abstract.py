@@ -205,6 +205,18 @@ class AbstractPriorModel(AbstractModel):
                 f"{number_of_failed_assertions} assertions failed!\n{name_string}"
             )
 
+    @property
+    def derived_quantities(self) -> List[Tuple[str, ...]]:
+        """
+        The paths to attributes of the model which are derived (i.e.
+        methods marked with the derived_quantity decorator)
+        """
+        return [
+            (name,) + derived_quantity
+            for name, prior_model in self.direct_prior_model_tuples
+            for derived_quantity in prior_model.derived_quantities
+        ]
+
     def cast(
         self,
         value_dict: Dict["AbstractModel", dict],

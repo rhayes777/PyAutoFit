@@ -9,14 +9,14 @@ from autofit.non_linear.samples.stored import SamplesStored
 
 from autofit import exc
 
-class SamplesNest(SamplesPDF):
 
+class SamplesNest(SamplesPDF):
     def __init__(
-            self,
-            model: AbstractPriorModel,
-            sample_list: List[Sample],
-            samples_info : Optional[Dict] = None,
-            search_internal: Optional = None,
+        self,
+        model: AbstractPriorModel,
+        sample_list: List[Sample],
+        samples_info: Optional[Dict] = None,
+        search_internal: Optional = None,
     ):
         """
         The `Samples` classes in **PyAutoFit** provide an interface between the search_internal of
@@ -48,13 +48,10 @@ class SamplesNest(SamplesPDF):
             model=model,
             sample_list=sample_list,
             samples_info=samples_info,
-            search_internal=search_internal
+            search_internal=search_internal,
         )
 
-    def __add__(
-            self,
-            other: "SamplesNest"
-    ) -> "SamplesNest":
+    def __add__(self, other: "SamplesNest") -> "SamplesNest":
         """
         Samples can be added together, which combines their `sample_list` meaning that inferred parameters are
         computed via their joint PDF.
@@ -77,14 +74,14 @@ class SamplesNest(SamplesPDF):
         warnings.warn(
             f"Addition of {self.__class__.__name__} cannot retain results in native format. "
             "Visualization of summed samples diabled.",
-            exc.SamplesWarning
+            exc.SamplesWarning,
         )
 
         return self.__class__(
             model=self.model,
             sample_list=self.sample_list + other.sample_list,
             samples_info=self.samples_info,
-            search_internal=None
+            search_internal=None,
         )
 
     @property
@@ -114,9 +111,7 @@ class SamplesNest(SamplesPDF):
         return self.total_accepted_samples / self.total_samples
 
     def samples_within_parameter_range(
-            self,
-            parameter_index: int,
-            parameter_range: [float, float]
+        self, parameter_index: int, parameter_range: [float, float]
     ) -> "SamplesStored":
         """
         Returns a new set of Samples where all points without parameter values inside a specified range removed.
@@ -147,12 +142,11 @@ class SamplesNest(SamplesPDF):
         weight_list = []
 
         for sample in self.sample_list:
-
             parameters = sample.parameter_lists_for_model(model=self.model)
 
             if (parameters[parameter_index] > parameter_range[0]) and (
-                    parameters[parameter_index] < parameter_range[1]):
-
+                parameters[parameter_index] < parameter_range[1]
+            ):
                 parameter_list.append(parameters)
                 log_likelihood_list.append(sample.log_likelihood)
                 log_prior_list.append(sample.log_prior)
@@ -163,7 +157,7 @@ class SamplesNest(SamplesPDF):
             parameter_lists=parameter_list,
             log_likelihood_list=log_likelihood_list,
             log_prior_list=log_prior_list,
-            weight_list=weight_list
+            weight_list=weight_list,
         )
 
         return SamplesStored(

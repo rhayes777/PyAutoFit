@@ -1,18 +1,15 @@
 import logging
 import math
+import pathlib
 from typing import Dict, List, Optional, Tuple, Union
 
 import numpy as np
 
 from autoconf import conf
 from autofit.mapper.model import ModelInstance
-from autofit.mapper.prior_model.abstract import AbstractPriorModel, Path
+from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.samples.sample import Sample, load_from_table
-from autofit.non_linear.samples.samples import (
-    to_instance,
-    to_instance_sigma,
-    to_instance_input,
-)
+from autofit.non_linear.samples.samples import to_instance
 from .samples import Samples
 from .summary import SamplesSummary
 
@@ -124,7 +121,7 @@ class SamplesPDF(Samples):
         return True
 
     @to_instance
-    def median_pdf(self, as_instance: bool = True) -> List[float]:
+    def median_pdf(self) -> List[float]:
         """
         The median of the probability density function (PDF) of every parameter marginalized in 1D, returned
         as a model instance or list of values.
@@ -136,10 +133,8 @@ class SamplesPDF(Samples):
             ]
         return self.max_log_likelihood(as_instance=False)
 
-    @to_instance_sigma
-    def values_at_sigma(
-        self, sigma: float, as_instance: bool = True
-    ) -> [Tuple, ModelInstance]:
+    @to_instance
+    def values_at_sigma(self, sigma: float) -> [Tuple, ModelInstance]:
         """
         The value of every parameter marginalized in 1D at an input sigma value of its probability density function
         (PDF), returned as two lists of values corresponding to the lower and upper values parameter values.
@@ -187,10 +182,8 @@ class SamplesPDF(Samples):
             for index in range(len(parameters_min))
         ]
 
-    @to_instance_sigma
-    def values_at_upper_sigma(
-        self, sigma: float, as_instance: bool = True
-    ) -> Union[List, ModelInstance]:
+    @to_instance
+    def values_at_upper_sigma(self, sigma: float) -> Union[List, ModelInstance]:
         """
         The upper value of every parameter marginalized in 1D at an input sigma value of its probability density
         function (PDF), returned as a list.
@@ -206,10 +199,8 @@ class SamplesPDF(Samples):
             map(lambda param: param[1], self.values_at_sigma(sigma, as_instance=False))
         )
 
-    @to_instance_sigma
-    def values_at_lower_sigma(
-        self, sigma: float, as_instance: bool = True
-    ) -> Union[List, ModelInstance]:
+    @to_instance
+    def values_at_lower_sigma(self, sigma: float) -> Union[List, ModelInstance]:
         """
         The lower value of every parameter marginalized in 1D at an input sigma value of its probability density
         function (PDF), returned as a list.
@@ -225,7 +216,7 @@ class SamplesPDF(Samples):
             map(lambda param: param[0], self.values_at_sigma(sigma, as_instance=False))
         )
 
-    @to_instance_sigma
+    @to_instance
     def errors_at_sigma(
         self, sigma: float, as_instance: bool = True
     ) -> [Tuple, ModelInstance]:
@@ -247,7 +238,7 @@ class SamplesPDF(Samples):
             for lower, upper in zip(error_vector_lower, error_vector_upper)
         ]
 
-    @to_instance_sigma
+    @to_instance
     def errors_at_upper_sigma(
         self, sigma: float, as_instance: bool = True
     ) -> Union[List, ModelInstance]:
@@ -271,10 +262,8 @@ class SamplesPDF(Samples):
             )
         )
 
-    @to_instance_sigma
-    def errors_at_lower_sigma(
-        self, sigma: float, as_instance: bool = True
-    ) -> Union[List, ModelInstance]:
+    @to_instance
+    def errors_at_lower_sigma(self, sigma: float) -> Union[List, ModelInstance]:
         """
         The lower error of every parameter marginalized in 1D at an input sigma value of its probability density
         function (PDF), returned as a list.
@@ -295,10 +284,8 @@ class SamplesPDF(Samples):
             )
         )
 
-    @to_instance_sigma
-    def error_magnitudes_at_sigma(
-        self, sigma: float, as_instance: bool = True
-    ) -> Union[List, ModelInstance]:
+    @to_instance
+    def error_magnitudes_at_sigma(self, sigma: float) -> Union[List, ModelInstance]:
         """
         The magnitude of every error after marginalization in 1D at an input sigma value of the probability density
         function (PDF), returned as two lists of values corresponding to the lower and upper errors.
@@ -347,9 +334,7 @@ class SamplesPDF(Samples):
         return list(map(lambda mean, sigma: (mean, sigma), means, sigmas))
 
     @to_instance
-    def draw_randomly_via_pdf(
-        self, as_instance: bool = True
-    ) -> Union[List, ModelInstance]:
+    def draw_randomly_via_pdf(self) -> Union[List, ModelInstance]:
         """
         The parameter vector of an individual sample of the non-linear search drawn randomly from the PDF, returned as
         a 1D list.
@@ -364,9 +349,9 @@ class SamplesPDF(Samples):
 
         return self.parameter_lists[sample_index][:]
 
-    @to_instance_input
+    @to_instance
     def offset_values_via_input_values(
-        self, input_vector: List, as_instance: bool = True
+        self, input_vector: List
     ) -> Union[List, ModelInstance]:
         """
         The values of an input_vector offset by the median_pdf(as_instance=False) (the PDF medians).
@@ -409,7 +394,7 @@ class SamplesPDF(Samples):
             return np.eye(1)
         return np.cov(m=self.parameter_lists, rowvar=False, aweights=self.weight_list)
 
-    def save_covariance_matrix(self, filename: Union[Path, str]):
+    def save_covariance_matrix(self, filename: Union[pathlib.Path, str]):
         """
         Save the covariance matrix as a CSV file.
 
