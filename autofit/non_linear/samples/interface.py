@@ -9,6 +9,21 @@ from autofit.mapper.prior_model.abstract import Path
 
 
 def to_instance(func):
+    """
+    Decorator for methods that return a vector of parameters, which can be converted to a model instance.
+
+    If derived quantities are defined, they are added to the instance.
+
+    Parameters
+    ----------
+    func
+        A method that returns a vector of parameters
+
+    Returns
+    -------
+    A wrapper that converts the vector to a model instance
+    """
+
     @wraps(func)
     def wrapper(
         self, *args, as_instance: bool = True, **kwargs

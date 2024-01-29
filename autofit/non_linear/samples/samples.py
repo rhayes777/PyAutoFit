@@ -61,7 +61,14 @@ class Samples(SamplesInterface, ABC):
         self._derived_quantities_list = derived_quantities_list
 
     @cached_property
-    def parameters_derived_map(self):
+    def parameters_derived_map(
+        self,
+    ) -> Optional[Dict[Tuple[float], Dict[Tuple[str, ...], float]]]:
+        """
+        Maps unique sets of parameters to dictionaries of derived quantities.
+
+        This is used to associated derived quantities with instances efficiently.
+        """
         if self._derived_quantities_list is None:
             return None
         return {
