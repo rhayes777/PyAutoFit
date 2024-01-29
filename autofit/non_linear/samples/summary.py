@@ -1,10 +1,14 @@
 from typing import Optional
+import logging
 
 import numpy as np
 
 from .interface import SamplesInterface, apply_derived_quantities
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from .sample import Sample
+
+
+logger = logging.getLogger(__name__)
 
 
 class SamplesSummary(SamplesInterface):
@@ -41,7 +45,23 @@ class SamplesSummary(SamplesInterface):
     def log_evidence(self):
         return self._log_evidence
 
-    def max_log_likelihood(self, as_instance=True):
+    def max_log_likelihood(self, as_instance: bool = True):
+        """
+        The instance or parameters which gave the highest likelihood.
+
+        If derived quantities have been provided via the derived_summary.json file,
+        these are applied to the instance.
+
+        Parameters
+        ----------
+        as_instance
+            Whether to return the parameters or the instance of the model
+
+        Returns
+        -------
+        The parameters or instance of the model that gave the highest likelihood
+        or the instance of the model that gave the highest likelihood.
+        """
         instance = super().max_log_likelihood(as_instance=as_instance)
         try:
             derived_quantities = {
@@ -52,6 +72,6 @@ class SamplesSummary(SamplesInterface):
             }
             apply_derived_quantities(instance, derived_quantities)
 
-        except (KeyError, TypeError):
-            pass
+        except (KeyError, TypeError) as e:
+            logger.debug(e)
         return instance
