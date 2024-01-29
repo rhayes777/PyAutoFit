@@ -190,6 +190,14 @@ class SearchOutput(AbstractSearchOutput):
             pass
 
     @property
+    def samples_summary(self):
+        samples_summary = self.value("samples_summary")
+        derived_summary = self.value("derived_summary")
+        if derived_summary and samples_summary:
+            samples_summary.derived_summary = derived_summary
+        return samples_summary
+
+    @property
     def instance(self):
         """
         The instance of the maximum log likelihood sample i.e. the instance

@@ -31,22 +31,19 @@ def to_instance(func):
         vector = func(self, *args, **kwargs)
 
         if as_instance:
-            instance = self.model.instance_from_vector(
-                vector=vector, ignore_prior_limits=True
-            )
-            if self.parameters_derived_map is not None:
-                derived_quantities = self.parameters_derived_map[tuple(vector)]
-                for path, value in derived_quantities.items():
-                    obj = instance
-                    for attr in path[:-1]:
-                        obj = getattr(obj, attr)
-                    setattr(obj, path[-1], value)
-
-            return instance
+            return self._instance_from_vector(vector)
 
         return vector
 
     return wrapper
+
+
+def apply_derived_quantities(instance, derived_quantities):
+    for path, value in derived_quantities.items():
+        obj = instance
+        for attr in path[:-1]:
+            obj = getattr(obj, attr)
+        setattr(obj, path[-1], value)
 
 
 class SamplesInterface(ABC):
@@ -59,10 +56,6 @@ class SamplesInterface(ABC):
         self._paths = None
         self._names = None
         self._instance = None
-
-    @property
-    def parameters_derived_map(self):
-        return None
 
     @property
     def instance(self):
@@ -219,3 +212,6 @@ class SamplesInterface(ABC):
                 lambda vector: (vector, 0.0), self.max_log_likelihood(as_instance=False)
             )
         )
+
+    def _instance_from_vector(self, vector: List[float]) -> ModelInstance:
+        return self.model.instance_from_vector(vector=vector, ignore_prior_limits=True)

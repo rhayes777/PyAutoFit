@@ -1,7 +1,8 @@
 from typing import Optional
 
 import numpy as np
-from .interface import SamplesInterface
+
+from .interface import SamplesInterface, apply_derived_quantities
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from .sample import Sample
 
@@ -30,6 +31,7 @@ class SamplesSummary(SamplesInterface):
         self._max_log_likelihood_sample = max_log_likelihood_sample
         self.covariance_matrix = covariance_matrix
         self._log_evidence = log_evidence
+        self.derived_summary = None
 
     @property
     def max_log_likelihood_sample(self):
@@ -38,3 +40,18 @@ class SamplesSummary(SamplesInterface):
     @property
     def log_evidence(self):
         return self._log_evidence
+
+    def max_log_likelihood(self, as_instance=True):
+        instance = super().max_log_likelihood(as_instance=as_instance)
+        try:
+            derived_quantities = {
+                tuple(key.split(".")): value
+                for key, value in self.derived_summary[
+                    "max_log_likelihood_sample"
+                ].items()
+            }
+            apply_derived_quantities(instance, derived_quantities)
+
+        except (KeyError, TypeError):
+            pass
+        return instance
