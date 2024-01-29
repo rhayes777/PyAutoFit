@@ -11,12 +11,12 @@ from autofit.mapper.prior_model.abstract import Path
 def to_instance(func):
     @wraps(func)
     def wrapper(
-        obj, *args, as_instance: bool = True, **kwargs
+        self, *args, as_instance: bool = True, **kwargs
     ) -> Union[List, ModelInstance]:
-        vector = func(obj, *args, **kwargs)
+        vector = func(self, *args, **kwargs)
 
         if as_instance:
-            return obj.model.instance_from_vector(
+            return self.model.instance_from_vector(
                 vector=vector, ignore_prior_limits=True
             )
 
