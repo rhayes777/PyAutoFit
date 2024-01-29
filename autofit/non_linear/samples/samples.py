@@ -7,8 +7,8 @@ from typing import Dict, List, Optional, Tuple, Union
 
 import numpy as np
 
+from autoconf import cached_property
 from autofit import exc
-from autofit.non_linear.search.mcmc.auto_correlations import AutoCorrelationsSettings
 from autofit.mapper.model import ModelInstance
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.samples.sample import Sample
@@ -25,6 +25,7 @@ class Samples(SamplesInterface, ABC):
         sample_list: List[Sample],
         samples_info: Optional[Dict] = None,
         search_internal: Optional = None,
+        derived_quantities_list: Optional[List] = None,
     ):
         """
         The `Samples` classes in **PyAutoFit** provide an interface between the search_internal of
@@ -57,6 +58,18 @@ class Samples(SamplesInterface, ABC):
         self.sample_list = sample_list
         self.samples_info = samples_info
         self.search_internal = search_internal
+        self._derived_quantities_list = derived_quantities_list
+
+    @cached_property
+    def parameters_derived_map(self):
+        if self._derived_quantities_list is None:
+            return None
+        return {
+            tuple(parameters): derived_quantities
+            for parameters, derived_quantities in zip(
+                self.parameter_lists, self.derived_quantities_list
+            )
+        }
 
     def __str__(self):
         return f"{self.__class__.__name__}({len(self.sample_list)})"
@@ -119,7 +132,11 @@ class Samples(SamplesInterface, ABC):
         """
         The derived quantities of the model for each sample
         """
-        return self.derived_quantities_for_instances(self.instances)
+        if self._derived_quantities_list is None:
+            self._derived_quantities_list = self.derived_quantities_for_instances(
+                self.instances
+            )
+        return self._derived_quantities_list
 
     @property
     def derived_quantities_summary_dict(self) -> dict:
@@ -189,12 +206,14 @@ class Samples(SamplesInterface, ABC):
         samples_info,
         model: AbstractPriorModel,
         search_internal=None,
+        derived_quantities_list=None,
     ):
         return cls(
             model=model,
             sample_list=sample_list,
             samples_info=samples_info,
             search_internal=search_internal,
+            derived_quantities_list=derived_quantities_list,
         )
 
     def summary(self):

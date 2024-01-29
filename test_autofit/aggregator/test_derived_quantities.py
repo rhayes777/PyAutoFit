@@ -10,4 +10,4 @@ def make_search_output(directory):
 
 def test(search_output):
     samples = search_output.samples
-    print(samples)
+    assert samples.instance.fwhm == 10.0
