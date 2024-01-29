@@ -58,6 +58,12 @@ class Samples(SamplesInterface, ABC):
         self.samples_info = samples_info
         self.search_internal = search_internal
 
+    def __str__(self):
+        return f"{self.__class__.__name__}({len(self.sample_list)})"
+
+    def __repr__(self):
+        return str(self)
+
     @property
     def instances(self):
         """
