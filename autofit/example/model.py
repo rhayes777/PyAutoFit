@@ -39,12 +39,8 @@ class Gaussian:
         self.sigma = sigma
 
     @derived_quantity
-    def lower_bound(self):
-        return self.centre - 5 * self.sigma
-
-    @derived_quantity
-    def upper_bound(self):
-        return self.centre + 5 * self.sigma
+    def fwhm(self):
+        return 2 * np.sqrt(2 * np.log(2)) * self.sigma
 
     def _tree_flatten(self):
         return (self.centre, self.normalization, self.sigma), None
