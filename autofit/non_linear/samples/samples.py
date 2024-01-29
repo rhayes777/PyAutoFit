@@ -190,31 +190,12 @@ class Samples(SamplesInterface, ABC):
         model: AbstractPriorModel,
         search_internal=None,
     ):
-        try:
-            auto_correlation_settings = AutoCorrelationsSettings(
-                check_for_convergence=True,
-                check_size=samples_info["check_size"],
-                required_length=samples_info["required_length"],
-                change_threshold=samples_info["change_threshold"],
-            )
-        except (KeyError, NameError):
-            auto_correlation_settings = None
-
-        try:
-            return cls(
-                model=model,
-                sample_list=sample_list,
-                samples_info=samples_info,
-                search_internal=search_internal,
-                auto_correlation_settings=auto_correlation_settings,
-            )
-        except TypeError:
-            return cls(
-                model=model,
-                sample_list=sample_list,
-                samples_info=samples_info,
-                search_internal=search_internal,
-            )
+        return cls(
+            model=model,
+            sample_list=sample_list,
+            samples_info=samples_info,
+            search_internal=search_internal,
+        )
 
     def summary(self):
         return SamplesSummary(

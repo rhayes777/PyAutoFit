@@ -94,6 +94,32 @@ class SamplesMCMC(SamplesPDF):
             search_internal=None,
         )
 
+    @classmethod
+    def from_list_info_and_model(
+        cls,
+        sample_list,
+        samples_info,
+        model: AbstractPriorModel,
+        search_internal=None,
+    ):
+        try:
+            auto_correlation_settings = AutoCorrelationsSettings(
+                check_for_convergence=True,
+                check_size=samples_info["check_size"],
+                required_length=samples_info["required_length"],
+                change_threshold=samples_info["change_threshold"],
+            )
+        except (KeyError, NameError):
+            auto_correlation_settings = None
+
+        return cls(
+            model=model,
+            sample_list=sample_list,
+            samples_info=samples_info,
+            search_internal=search_internal,
+            auto_correlation_settings=auto_correlation_settings,
+        )
+
     @property
     def pdf_converged(self):
         """
