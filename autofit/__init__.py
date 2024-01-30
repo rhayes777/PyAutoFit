@@ -96,7 +96,7 @@ from .interpolator import (
     LinearRelationship,
 )
 from .tools import util
-
+from autofit.mapper.derived_quantity import derived_quantity
 from autofit.mapper.prior.arithmetic.compound import SumPrior as Add
 from autofit.mapper.prior.arithmetic.compound import MultiplePrior as Multiply
 from autofit.mapper.prior.arithmetic.compound import DivisionPrior as Divide

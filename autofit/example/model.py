@@ -39,6 +39,10 @@ class Gaussian:
         self.sigma = sigma
 
     @derived_quantity
+    def fwhm(self):
+        return 2.0 * np.sqrt(2.0 * np.log(2.0)) * self.sigma
+
+    @derived_quantity
     def lower_bound(self):
         return self.centre - 5 * self.sigma
 
