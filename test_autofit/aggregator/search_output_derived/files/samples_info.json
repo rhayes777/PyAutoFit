@@ -1,0 +1,8 @@
+{
+    "check_size": 100,
+    "required_length": 50,
+    "change_threshold": 0.01,
+    "total_walkers": 50,
+    "total_steps": 1500,
+    "time": "5.6052281856536865"
+}

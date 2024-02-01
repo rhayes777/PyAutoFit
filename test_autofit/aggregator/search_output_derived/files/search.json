@@ -1,0 +1,34 @@
+{
+    "type": "instance",
+    "class_path": "autofit.non_linear.search.mcmc.emcee.search.Emcee",
+    "arguments": {
+        "path_prefix": {
+            "type": "instance",
+            "class_path": "pathlib.PosixPath",
+            "arguments": {}
+        },
+        "unique_tag": null,
+        "number_of_cores": 1,
+        "nwalkers": 50,
+        "auto_correlation_settings": {
+            "type": "instance",
+            "class_path": "autofit.non_linear.search.mcmc.auto_correlations.AutoCorrelationsSettings",
+            "arguments": {
+                "change_threshold": 0.01,
+                "required_length": 50,
+                "check_size": 100,
+                "check_for_convergence": true
+            }
+        },
+        "initializer": {
+            "type": "instance",
+            "class_path": "autofit.non_linear.initializer.InitializerBall",
+            "arguments": {
+                "upper_limit": 0.51,
+                "lower_limit": 0.49
+            }
+        },
+        "name": "tutorial_3_non_linear_search",
+        "iterations_per_update": 500
+    }
+}

@@ -391,6 +391,7 @@ class Aggregator(AbstractAggregator):
         directory: str,
         auto_commit=True,
         reference: Optional[dict] = None,
+        completed_only: bool = False,
     ):
         """
         Recursively search a directory for autofit results
@@ -415,8 +416,15 @@ class Aggregator(AbstractAggregator):
         reference
             A dictionary mapping the names of objects in the model
             to their class path.
+        completed_only
+            If true only searches that have completed are added
         """
-        scraper = Scraper(directory, self.session, reference=reference)
+        scraper = Scraper(
+            directory,
+            self.session,
+            reference=reference,
+            completed_only=completed_only,
+        )
         scraper.scrape()
 
         if auto_commit:

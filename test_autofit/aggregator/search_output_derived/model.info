@@ -1,0 +1,7 @@
+Total Free Parameters = 3
+
+model                                                                           Gaussian (N=3)
+
+centre                                                                          UniformPrior [6], lower_limit = 0.0, upper_limit = 100.0
+normalization                                                                   LogUniformPrior [7], lower_limit = 1e-06, upper_limit = 1000000.0
+sigma                                                                           UniformPrior [8], lower_limit = 0.0, upper_limit = 25.0

@@ -17,6 +17,7 @@ from autofit.aggregator.file_output import (
 from autofit.mapper.identifier import Identifier
 from autofit.non_linear.samples.sample import samples_from_iterator
 from autoconf.dictable import from_dict
+from autofit.non_linear.samples.summary import SamplesSummary
 
 # noinspection PyProtectedMember
 original_create_file_handle = dill._dill._create_filehandle
@@ -190,6 +191,20 @@ class SearchOutput(AbstractSearchOutput):
             pass
 
     @property
+    def samples_summary(self) -> SamplesSummary:
+        """
+        The summary of the samples, which includes the maximum log likelihood sample and the log evidence.
+
+        This is loaded from a JSON file. If derived_summary.json is also present then this is loaded
+        and added to the samples summary.
+        """
+        samples_summary = self.value("samples_summary")
+        derived_summary = self.value("derived_summary")
+        if derived_summary and samples_summary:
+            samples_summary.derived_summary = derived_summary
+        return samples_summary
+
+    @property
     def instance(self):
         """
         The instance of the maximum log likelihood sample i.e. the instance
@@ -235,10 +250,24 @@ class SearchOutput(AbstractSearchOutput):
                 with open(self.files_path / "samples.csv") as f:
                     sample_list = samples_from_iterator(csv.reader(f))
 
+                try:
+                    with open(self.files_path / "derived_quantities.csv") as f:
+                        reader = csv.reader(f)
+                        headers = [
+                            tuple(part.strip() for part in header.split("."))
+                            for header in next(reader)
+                        ]
+                        derived_quantities_list = [
+                            dict(zip(headers, map(float, row))) for row in reader
+                        ]
+                except FileNotFoundError:
+                    derived_quantities_list = None
+
                 self._samples = SamplesPDF.from_list_info_and_model(
                     sample_list=sample_list,
                     samples_info=info_json,
                     model=self.model,
+                    derived_quantities_list=derived_quantities_list,
                 )
             except FileNotFoundError:
                 raise AttributeError("No samples found")

@@ -1,0 +1,69 @@
+{
+    "type": "instance",
+    "class_path": "autofit.non_linear.samples.summary.SamplesSummary",
+    "arguments": {
+        "log_evidence": null,
+        "covariance_matrix": {
+            "type": "ndarray",
+            "array": [
+                [
+                    0.01754680576242605,
+                    0.00023508242935929216,
+                    0.00011084703540349183
+                ],
+                [
+                    0.00023508242935929216,
+                    0.08551239156803224,
+                    0.022207912950712175
+                ],
+                [
+                    0.00011084703540349183,
+                    0.022207912950712175,
+                    0.018328024891714957
+                ]
+            ],
+            "dtype": "float64"
+        },
+        "model": {
+            "class_path": "autofit.example.model.Gaussian",
+            "type": "model",
+            "arguments": {
+                "centre": {
+                    "lower_limit": 0.0,
+                    "upper_limit": 100.0,
+                    "type": "Uniform",
+                    "id": 6
+                },
+                "normalization": {
+                    "lower_limit": 1e-06,
+                    "upper_limit": 1000000.0,
+                    "type": "LogUniform",
+                    "id": 7
+                },
+                "sigma": {
+                    "lower_limit": 0.0,
+                    "upper_limit": 25.0,
+                    "type": "Uniform",
+                    "id": 8
+                }
+            }
+        },
+        "max_log_likelihood_sample": {
+            "type": "instance",
+            "class_path": "autofit.non_linear.samples.sample.Sample",
+            "arguments": {
+                "log_likelihood": 182.5127553145817,
+                "log_prior": 0.03962272827953348,
+                "weight": 1.0,
+                "kwargs": {
+                    "type": "dict",
+                    "arguments": {
+                        "centre": 50.08256853054789,
+                        "normalization": 25.238039969007758,
+                        "sigma": 10.109227317589907
+                    }
+                }
+            }
+        }
+    }
+}
