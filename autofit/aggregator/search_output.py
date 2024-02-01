@@ -235,10 +235,24 @@ class SearchOutput(AbstractSearchOutput):
                 with open(self.files_path / "samples.csv") as f:
                     sample_list = samples_from_iterator(csv.reader(f))
 
+                try:
+                    with open(self.files_path / "derived_quantities.csv") as f:
+                        reader = csv.reader(f)
+                        headers = [
+                            tuple(part.strip() for part in header.split("."))
+                            for header in next(reader)
+                        ]
+                        derived_quantities_list = [
+                            dict(zip(headers, map(float, row))) for row in reader
+                        ]
+                except FileNotFoundError:
+                    derived_quantities_list = None
+
                 self._samples = SamplesPDF.from_list_info_and_model(
                     sample_list=sample_list,
                     samples_info=info_json,
                     model=self.model,
+                    derived_quantities_list=derived_quantities_list,
                 )
             except FileNotFoundError:
                 raise AttributeError("No samples found")

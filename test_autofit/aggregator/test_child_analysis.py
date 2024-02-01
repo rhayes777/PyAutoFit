@@ -31,7 +31,10 @@ def test_child_analysis_pickles(child_analyses):
 
 
 def test_child_analysis_values(directory):
-    aggregator = Aggregator.from_directory(directory)
+    aggregator = Aggregator.from_directory(
+        directory,
+        completed_only=True,
+    )
 
     assert list(aggregator.child_values("example")) == [["hello world", "hello world"]]
     assert list(aggregator)[0].child_values("example") == ["hello world", "hello world"]
@@ -40,7 +43,10 @@ def test_child_analysis_values(directory):
 @pytest.fixture(name="aggregator")
 def make_aggregator(session, directory):
     aggregator = af.Aggregator(session)
-    aggregator.add_directory(directory)
+    aggregator.add_directory(
+        directory,
+        completed_only=True,
+    )
     return aggregator
 
 

@@ -1,0 +1,24 @@
+{
+    "class_path": "autofit.example.model.Gaussian",
+    "type": "model",
+    "arguments": {
+        "centre": {
+            "lower_limit": 0.0,
+            "upper_limit": 100.0,
+            "type": "Uniform",
+            "id": 6
+        },
+        "normalization": {
+            "lower_limit": 1e-06,
+            "upper_limit": 1000000.0,
+            "type": "LogUniform",
+            "id": 7
+        },
+        "sigma": {
+            "lower_limit": 0.0,
+            "upper_limit": 25.0,
+            "type": "Uniform",
+            "id": 8
+        }
+    }
+}

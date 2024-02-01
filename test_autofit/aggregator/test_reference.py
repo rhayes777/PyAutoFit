@@ -48,6 +48,7 @@ def database_aggregator(
     aggregator.add_directory(
         directory,
         reference={"": get_class_path(af.Exponential)},
+        completed_only=True,
     )
 
     return aggregator
@@ -85,7 +86,7 @@ def test_database_info(
     assert (
         (output_directory / "database.info").read_text()
         == """                         unique_id,name,unique_tag,total_free_parameters,is_complete
-  c4bf344d706947aa66b129ed2e05e1bd,    ,          ,                    4,      False
+  c4bf344d706947aa66b129ed2e05e1bd,    ,          ,                    4,       True
 c4bf344d706947aa66b129ed2e05e1bd_0,    ,          ,                    0,           
 c4bf344d706947aa66b129ed2e05e1bd_1,    ,          ,                    0,           
 """

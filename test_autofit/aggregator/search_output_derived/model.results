@@ -1,0 +1,27 @@
+Maximum Log Likelihood                                                          182.51275531
+Maximum Log Posterior                                                           182.55237804
+
+model                                                                           Gaussian (N=3)
+
+Maximum Log Likelihood Model:
+
+centre                                                                          50.083
+normalization                                                                   25.238
+sigma                                                                           10.109
+
+
+Summary (3.0 sigma limits):
+
+centre                                                                          50.04 (49.65, 50.40)
+normalization                                                                   24.90 (24.07, 25.72)
+sigma                                                                           9.96 (9.62, 10.38)
+
+
+Summary (1.0 sigma limits):
+
+centre                                                                          50.04 (49.98, 50.11)
+normalization                                                                   24.90 (24.75, 25.03)
+sigma                                                                           9.96 (9.90, 10.03)
+
+instances
+

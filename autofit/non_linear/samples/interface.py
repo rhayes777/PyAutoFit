@@ -9,16 +9,40 @@ from autofit.mapper.prior_model.abstract import Path
 
 
 def to_instance(func):
+    """
+    Decorator for methods that return a vector of parameters, which can be converted to a model instance.
+
+    If derived quantities are defined, they are added to the instance.
+
+    Parameters
+    ----------
+    func
+        A method that returns a vector of parameters
+
+    Returns
+    -------
+    A wrapper that converts the vector to a model instance
+    """
+
     @wraps(func)
     def wrapper(
-        obj, *args, as_instance: bool = True, **kwargs
+        self, *args, as_instance: bool = True, **kwargs
     ) -> Union[List, ModelInstance]:
-        vector = func(obj, *args, **kwargs)
+        vector = func(self, *args, **kwargs)
 
         if as_instance:
-            return obj.model.instance_from_vector(
+            instance = self.model.instance_from_vector(
                 vector=vector, ignore_prior_limits=True
             )
+            if self.parameters_derived_map is not None:
+                derived_quantities = self.parameters_derived_map[tuple(vector)]
+                for path, value in derived_quantities.items():
+                    obj = instance
+                    for attr in path[:-1]:
+                        obj = getattr(obj, attr)
+                    setattr(obj, path[-1], value)
+
+            return instance
 
         return vector
 
@@ -35,6 +59,10 @@ class SamplesInterface(ABC):
         self._paths = None
         self._names = None
         self._instance = None
+
+    @property
+    def parameters_derived_map(self):
+        return None
 
     @property
     def instance(self):

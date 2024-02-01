@@ -15,6 +15,7 @@ class Scraper:
         directory: Union[Path, str],
         session: sa.orm.Session,
         reference: Optional[dict] = None,
+        completed_only: bool = True,
     ):
         """
         Facilitates scraping of data output into a directory
@@ -28,6 +29,8 @@ class Scraper:
             A database session
         reference
             A dictionary mapping search names to model paths
+        completed_only
+            If True, only completed fits will be scraped
         """
         self.directory = directory
         self.session = session
@@ -38,6 +41,7 @@ class Scraper:
         self.aggregator = ClassicAggregator.from_directory(
             self.directory,
             reference=self.reference,
+            completed_only=completed_only,
         )
 
     def scrape(self):
