@@ -38,6 +38,12 @@ class FileOutput(ABC):
         self.name = name
         self.path = path
 
+    def __str__(self):
+        return f"{self.name} ({self.path})"
+
+    def __repr__(self):
+        return f"<{self.__class__.__name__} {self}>"
+
     @property
     @abstractmethod
     def value(self):

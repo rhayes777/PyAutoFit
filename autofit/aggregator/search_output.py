@@ -17,6 +17,7 @@ from autofit.aggregator.file_output import (
 from autofit.mapper.identifier import Identifier
 from autofit.non_linear.samples.sample import samples_from_iterator
 from autoconf.dictable import from_dict
+from autofit.non_linear.samples.summary import SamplesSummary
 
 # noinspection PyProtectedMember
 original_create_file_handle = dill._dill._create_filehandle
@@ -188,6 +189,20 @@ class SearchOutput(AbstractSearchOutput):
                 self.__dict__.update({pair[0]: pair[1] for pair in pairs})
         except FileNotFoundError:
             pass
+
+    @property
+    def samples_summary(self) -> SamplesSummary:
+        """
+        The summary of the samples, which includes the maximum log likelihood sample and the log evidence.
+
+        This is loaded from a JSON file. If derived_summary.json is also present then this is loaded
+        and added to the samples summary.
+        """
+        samples_summary = self.value("samples_summary")
+        derived_summary = self.value("derived_summary")
+        if derived_summary and samples_summary:
+            samples_summary.derived_summary = derived_summary
+        return samples_summary
 
     @property
     def instance(self):

@@ -14,7 +14,7 @@ from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.samples.sample import Sample
 
 from .summary import SamplesSummary
-from .interface import SamplesInterface, to_instance
+from .interface import SamplesInterface, to_instance, apply_derived_quantities
 from ...text.formatter import write_table
 
 
@@ -59,6 +59,14 @@ class Samples(SamplesInterface, ABC):
         self.samples_info = samples_info
         self.search_internal = search_internal
         self._derived_quantities_list = derived_quantities_list
+
+    def _instance_from_vector(self, vector: List[float]) -> ModelInstance:
+        instance = super()._instance_from_vector(vector)
+        if self.parameters_derived_map is not None:
+            derived_quantities = self.parameters_derived_map[tuple(vector)]
+            apply_derived_quantities(instance, derived_quantities)
+
+        return instance
 
     @cached_property
     def parameters_derived_map(
