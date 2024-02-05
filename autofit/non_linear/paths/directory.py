@@ -19,6 +19,7 @@ import numpy as np
 
 from autofit.non_linear.samples.samples import Samples
 from autofit.text.formatter import write_table
+from ...visualise import VisualiseGraph
 
 logger = logging.getLogger(__name__)
 
@@ -259,6 +260,9 @@ class DirectoryPaths(AbstractPaths):
         self.save_identifier()
         self.save_parent_identifier()
         self._save_model_info(model=self.model)
+        VisualiseGraph(
+            model=self.model,
+        ).save(str(self.output_path / "model_graph.html"))
         if info:
             self.save_json("info", info)
         self.save_json("search", to_dict(self.search))

@@ -2,19 +2,18 @@ from typing import Dict
 
 import networkx as nx
 from pyvis.network import Network
+import colorsys
 
 from autoconf import cached_property
-from autofit import (
-    AbstractPriorModel,
-    Model,
-    Collection,
-    UniformPrior,
-    GaussianPrior,
-    LogGaussianPrior,
-    LogUniformPrior,
-    ModelObject,
-)
-import colorsys
+
+from autofit.mapper.prior_model.abstract import AbstractPriorModel
+from autofit.mapper.prior.uniform import UniformPrior
+from autofit.mapper.prior.gaussian import GaussianPrior
+from autofit.mapper.prior.log_gaussian import LogGaussianPrior
+from autofit.mapper.prior.log_uniform import LogUniformPrior
+from autofit.mapper.prior_model.prior_model import ModelObject
+from autofit.mapper.prior_model.prior_model import Model
+from autofit.mapper.prior_model.collection import Collection
 
 
 def str_for_object(obj: ModelObject) -> str:
@@ -153,7 +152,7 @@ class VisualiseGraph:
             net.add_node(
                 str_for_object(obj),
                 shape="square",
-                color=self.colours[model.cls],
+                color=self.colours[obj.cls],
                 size=15,
                 **kwargs,
             )
