@@ -121,7 +121,10 @@ class VisualiseGraph:
 
         for _, model in self.model.attribute_tuples_with_type(Model):
             add_model(model)
-        for _, collection in self.model.attribute_tuples_with_type(Collection):
+        for _, collection in self.model.attribute_tuples_with_type(
+            Collection,
+            ignore_children=False,
+        ):
             add_collection(collection)
         for _, prior in self.model.prior_tuples:
             net.add_node(

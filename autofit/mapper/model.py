@@ -286,7 +286,10 @@ class AbstractModel(ModelObject):
 
     @frozen_cache
     def attribute_tuples_with_type(
-        self, class_type, ignore_class=None, ignore_children=True
+        self,
+        class_type,
+        ignore_class=None,
+        ignore_children=True,
     ) -> List[tuple]:
         """
         Tuples describing the name and instance for attributes in the model
@@ -308,7 +311,9 @@ class AbstractModel(ModelObject):
         return [
             (path[-1] if len(path) > 0 else "", value)
             for path, value in self.path_instance_tuples_for_class(
-                class_type, ignore_class=ignore_class, ignore_children=ignore_children
+                class_type,
+                ignore_class=ignore_class,
+                ignore_children=ignore_children,
             )
         ]
 
