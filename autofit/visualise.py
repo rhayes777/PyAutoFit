@@ -1,4 +1,4 @@
-from typing import Dict
+from typing import Dict, List
 
 import networkx as nx
 from pyvis.network import Network
@@ -46,7 +46,7 @@ def str_for_object(obj: ModelObject) -> str:
     return repr(obj)
 
 
-def generate_n_colors(n: int) -> list[str]:
+def generate_n_colors(n: int) -> List[str]:
     """
     Generate n distinct colors.
     """
