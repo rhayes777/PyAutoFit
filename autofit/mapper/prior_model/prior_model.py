@@ -55,7 +55,14 @@ class Model(AbstractPriorModel):
             )
         return super().__add__(other)
 
-    def __init__(self, cls, custom_derived_quantities=None, **kwargs):
+    def __init__(
+        self,
+        cls,
+        custom_derived_quantities: typing.Optional[
+            typing.Dict[str, typing.Callable]
+        ] = None,
+        **kwargs,
+    ):
         """
         The object a Python class is input into to create a model-component, which has free parameters that are fitted
         by a non-linear search.
