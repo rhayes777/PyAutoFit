@@ -15,10 +15,12 @@ def reset_ids():
 
 @pytest.fixture
 def model():
-    return af.Collection(
+    collection = af.Collection(
         first=af.Model(af.Gaussian),
         second=af.Model(af.Gaussian),
     )
+    collection.first.centre = collection.second.centre
+    return collection
 
 
 @pytest.fixture
@@ -48,7 +50,6 @@ def test_nodes(graph, node):
     [
         ("2:Collection(2)", "0:Model(Gaussian)"),
         ("2:Collection(2)", "1:Model(Gaussian)"),
-        ("0:Model(Gaussian)", "0:UniformPrior(0.0, 1.0)"),
         ("0:Model(Gaussian)", "1:UniformPrior(0.0, 1.0)"),
     ],
 )
