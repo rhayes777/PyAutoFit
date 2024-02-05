@@ -26,7 +26,7 @@ class AbstractPaths(ABC):
     def __init__(
         self,
         name: Optional[str] = None,
-        path_prefix: Optional[str] = None,
+        path_prefix: Optional[os.PathLike] = None,
         is_identifier_in_paths=True,
         parent: Optional["AbstractPaths"] = None,
         unique_tag: Optional[str] = None,
