@@ -81,7 +81,11 @@ class VisualiseGraph:
             GaussianPrior,
             LogGaussianPrior,
             LogUniformPrior,
-        } | {model.cls for _, model in self.model.prior_model_tuples}
+        } | {
+            model.cls
+            for _, model in self.model.prior_model_tuples
+            if isinstance(model, Model)
+        }
         if isinstance(self.model, Model):
             types.add(self.model.cls)
         return {
@@ -117,7 +121,10 @@ class VisualiseGraph:
             add_collection(self.model)
 
         for _, model in self.model.prior_model_tuples:
-            add_model(model)
+            if isinstance(model, Model):
+                add_model(model)
+            else:
+                add_collection(model)
         for _, prior in self.model.prior_tuples:
             net.add_node(
                 str_for_object(prior),
@@ -125,8 +132,6 @@ class VisualiseGraph:
                 color=self.colours[type(prior)],
                 size=10,
             )
-        for _, model in self.model.path_instance_tuples_for_class(Collection):
-            add_collection(model)
 
         net.from_nx(self.graph())
 

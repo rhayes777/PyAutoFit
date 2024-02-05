@@ -55,3 +55,25 @@ def test_nodes(graph, node):
 )
 def test_edges(graph, edge):
     assert edge in graph.edges
+
+
+def test_complex_object():
+    second = af.Model(af.Gaussian)
+    exp = af.Model(af.Exponential)
+    third = af.Model(af.Gaussian)
+
+    collection = af.Collection(
+        first=af.Collection(
+            second=second,
+            exp=exp,
+        ),
+        third=third,
+    )
+    third.centres = second.centre
+    second.sigma = third.sigma
+
+    visualise_graph = VisualiseGraph(collection)
+    graph_path = Path("graph.html")
+    visualise_graph.save(str(graph_path))
+
+    assert graph_path.exists()
