@@ -15,3 +15,10 @@ def test_visualise(model):
     VisualiseGraph(model).save(str(graph_path))
 
     assert graph_path.exists()
+
+
+def test_top_node():
+    model = af.Model(af.Gaussian)
+    graph = VisualiseGraph(model).graph()
+
+    assert "Model(Gaussian)" in graph.nodes

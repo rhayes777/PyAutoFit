@@ -1,5 +1,3 @@
-import os
-
 import networkx as nx
 from pyvis.network import Network
 
@@ -11,20 +9,21 @@ class VisualiseGraph:
         self.model = model
 
     def graph(self):
-        # Create a graph object
-        G = nx.Graph()
+        graph = nx.Graph()
 
-        # Add nodes
-        G.add_node("A")
-        G.add_node("B")
-        G.add_node("C")
+        graph.add_node(f"Model({self.model.cls.__name__})")
 
-        # Add edges
-        G.add_edge("A", "B")
-        G.add_edge("B", "C")
-        G.add_edge("C", "A")
+        # # Add nodes
+        # G.add_node("A")
+        # G.add_node("B")
+        # G.add_node("C")
+        #
+        # # Add edges
+        # G.add_edge("A", "B")
+        # G.add_edge("B", "C")
+        # G.add_edge("C", "A")
 
-        return G
+        return graph
 
     def save(self, path: str):
         net = Network()
