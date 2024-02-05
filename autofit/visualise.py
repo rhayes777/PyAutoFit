@@ -1,3 +1,5 @@
+from typing import Dict
+
 import networkx as nx
 from pyvis.network import Network
 
@@ -10,11 +12,25 @@ from autofit import (
     GaussianPrior,
     LogGaussianPrior,
     LogUniformPrior,
+    ModelObject,
 )
 import colorsys
 
 
-def str_for_object(obj):
+def str_for_object(obj: ModelObject) -> str:
+    """
+    Get a string representation of an object, including its id, type
+    and important parameters. Used as labels for nodes.
+
+    Parameters
+    ----------
+    obj
+        Some component of the model.
+
+    Returns
+    -------
+    A string representation of the object.
+    """
     if isinstance(obj, Collection):
         return f"{obj.id}:Collection({len(obj)})"
     if isinstance(obj, Model):
@@ -31,7 +47,10 @@ def str_for_object(obj):
     return repr(obj)
 
 
-def generate_n_colors(n):
+def generate_n_colors(n: int) -> list[str]:
+    """
+    Generate n distinct colors.
+    """
     colors = []
     for i in range(n):
         hue = i / n
@@ -45,9 +64,22 @@ def generate_n_colors(n):
 
 class VisualiseGraph:
     def __init__(self, model: AbstractPriorModel):
+        """
+        Visualise the graph of a model. Models and Priors are nodes
+        and edges are the relationships between them.
+
+        Parameters
+        ----------
+        model
+            The model to visualise.
+        """
         self.model = model
 
-    def graph(self):
+    def graph(self) -> nx.DiGraph:
+        """
+        Generate a graph of the model with just edges. Could
+        be superseded by the network method.
+        """
         graph = nx.DiGraph()
 
         def add_model(model):
@@ -74,7 +106,10 @@ class VisualiseGraph:
         return graph
 
     @cached_property
-    def colours(self):
+    def colours(self) -> Dict[type, str]:
+        """
+        Generate a dictionary of colours for each type of object.
+        """
         types = {
             Collection,
             UniformPrior,
@@ -92,7 +127,23 @@ class VisualiseGraph:
             )
         }
 
-    def network(self, notebook: bool = False):
+    def network(self, notebook: bool = False) -> Network:
+        """
+        Generate a network of the model including stylised nodes and edges.
+
+        Models and Priors are nodes and edges are the relationships between them.
+
+        Parameters
+        ----------
+        notebook
+            Whether to display the network in a notebook. Must be true when calling
+            the show method.
+
+        Returns
+        -------
+        A network of the model.
+        """
+
         net = Network(
             notebook=notebook,
             directed=True,
@@ -141,7 +192,18 @@ class VisualiseGraph:
         return net
 
     def save(self, path: str):
+        """
+        Save the network to a file. This should be an html file.
+
+        Parameters
+        ----------
+        path
+            The path to save the network to.
+        """
         self.network().save_graph(path)
 
-    def show(self, name):
+    def show(self, name: str):
+        """
+        Show the network.
+        """
         self.network(notebook=True).show(f"{name}.html")
