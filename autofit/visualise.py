@@ -98,26 +98,28 @@ class VisualiseGraph:
             directed=True,
         )
 
-        def add_model(obj):
+        def add_model(obj, **kwargs):
             net.add_node(
                 str_for_object(obj),
                 shape="square",
                 color=self.colours[model.cls],
                 size=15,
+                **kwargs,
             )
 
-        def add_collection(obj):
+        def add_collection(obj, **kwargs):
             net.add_node(
                 str_for_object(obj),
                 shape="hexagon",
                 color=self.colours[Collection],
                 size=15,
+                **kwargs,
             )
 
         if isinstance(self.model, Model):
-            add_model(self.model)
+            add_model(self.model, borderWidth=5)
         else:
-            add_collection(self.model)
+            add_collection(self.model, borderWidth=5)
 
         for _, model in self.model.attribute_tuples_with_type(Model):
             add_model(model)
