@@ -28,6 +28,7 @@ from .database.aggregator import Query
 from .database.model.fit import Fit
 from .aggregator.search_output import SearchOutput
 from .mapper import prior
+from .mapper.derived_quantity import derived_quantity
 from .mapper.model import AbstractModel
 from .mapper.model import ModelInstance
 from .mapper.model import ModelInstance as Instance
