@@ -69,7 +69,7 @@ def test_complex_object():
         ),
         third=third,
     )
-    third.centres = second.centre
+    third.centres = exp.centre
     second.sigma = third.sigma
 
     visualise_graph = VisualiseGraph(collection)
