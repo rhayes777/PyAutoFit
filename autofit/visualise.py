@@ -81,11 +81,7 @@ class VisualiseGraph:
             GaussianPrior,
             LogGaussianPrior,
             LogUniformPrior,
-        } | {
-            model.cls
-            for _, model in self.model.prior_model_tuples
-            if isinstance(model, Model)
-        }
+        } | {model.cls for _, model in self.model.attribute_tuples_with_type(Model)}
         if isinstance(self.model, Model):
             types.add(self.model.cls)
         return {
@@ -120,11 +116,10 @@ class VisualiseGraph:
         else:
             add_collection(self.model)
 
-        for _, model in self.model.prior_model_tuples:
-            if isinstance(model, Model):
-                add_model(model)
-            else:
-                add_collection(model)
+        for _, model in self.model.attribute_tuples_with_type(Model):
+            add_model(model)
+        for _, collection in self.model.attribute_tuples_with_type(Collection):
+            add_collection(collection)
         for _, prior in self.model.prior_tuples:
             net.add_node(
                 str_for_object(prior),
