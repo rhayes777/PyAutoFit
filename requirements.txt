@@ -15,3 +15,5 @@ astunparse==1.6.3
 threadpoolctl>=3.1.0,<=3.2.0
 timeout-decorator==0.5.0
 xxhash<=3.4.1
+networkx==3.1
+pyvis==0.3.2

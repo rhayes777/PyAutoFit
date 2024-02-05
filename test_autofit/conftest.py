@@ -13,7 +13,6 @@ from autoconf import conf
 from autofit import database as db
 from autofit import fixtures
 from autofit.database.model import sa
-import autofit as af
 
 if sys.platform == "darwin":
     multiprocessing.set_start_method("fork")
