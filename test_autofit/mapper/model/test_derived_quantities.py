@@ -125,12 +125,24 @@ def test_derived_quantities_summary_dict(samples):
     }
 
 
-def test_custom_derived_quantity():
-    model = af.Model(
+@pytest.fixture(name="custom_model")
+def make_custom_model():
+    return af.Model(
         af.Gaussian,
         custom_derived_quantities={
-            "custom": lambda instance: 1.0,
+            "custom": lambda instance: 2 * instance.centre,
         },
     )
-    instance = model.instance_from_prior_medians()
+
+
+def test_custom_derived_quantity(custom_model):
+    instance = custom_model.instance_from_prior_medians()
+    assert instance.centre == 0.5
     assert instance.custom == 1.0
+
+
+def test_custom_derived_in_list(custom_model):
+    assert set(custom_model.derived_quantities) == {
+        ("fwhm",),
+        ("custom",),
+    }

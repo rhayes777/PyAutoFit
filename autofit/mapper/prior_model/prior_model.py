@@ -87,6 +87,9 @@ class Model(AbstractPriorModel):
         ----------
         cls
             The class associated with this instance
+        custom_derived_quantities
+            A dictionary of quantities that can be derived from the model and should
+            be output as derived quantities.
 
         Examples
         --------
@@ -239,11 +242,15 @@ class Model(AbstractPriorModel):
         The paths to attributes of the model which are derived (i.e.
         methods marked with the derived_quantity decorator)
         """
-        return super().derived_quantities + [
-            (key,)
-            for key, value in self.cls.__dict__.items()
-            if isinstance(value, derived_quantity)
-        ]
+        return (
+            super().derived_quantities
+            + [
+                (key,)
+                for key, value in self.cls.__dict__.items()
+                if isinstance(value, derived_quantity)
+            ]
+            + [(key,) for key in self._custom_derived_quantities.keys()]
+        )
 
     def instance_flatten(self, instance):
         """
