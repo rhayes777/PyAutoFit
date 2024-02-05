@@ -1,3 +1,5 @@
+import itertools
+
 import pytest
 from pathlib import Path
 
@@ -5,20 +7,34 @@ import autofit as af
 from autofit.visualise import VisualiseGraph
 
 
+@pytest.fixture(autouse=True)
+def reset_ids():
+    af.Prior._ids = itertools.count()
+
+
 @pytest.fixture
 def model():
     return af.Model(af.Gaussian)
 
 
-def test_visualise(model):
+@pytest.fixture
+def visualise_graph(model):
+    return VisualiseGraph(model)
+
+
+def test_visualise(model, visualise_graph):
     graph_path = Path("graph.html")
-    VisualiseGraph(model).save(str(graph_path))
+    visualise_graph.save(str(graph_path))
 
     assert graph_path.exists()
 
 
-def test_top_node():
-    model = af.Model(af.Gaussian)
-    graph = VisualiseGraph(model).graph()
+@pytest.fixture
+def graph(visualise_graph):
+    return visualise_graph.graph()
 
-    assert "Model(Gaussian)" in graph.nodes
+
+@pytest.mark.parametrize("node", ["Model(Gaussian)", "UniformPrior_0(0.0, 1.0)"])
+def test_nodes(graph, node):
+    print(graph.nodes)
+    assert node in graph.nodes
