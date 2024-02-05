@@ -63,30 +63,14 @@ class Model(Object):
                 for i, assertion in enumerate(model.assertions)
             ]
         )
-        if model.custom_derived_quantities:
-            instance._add_children(
-                [
-                    (
-                        "custom_derived_quantities",
-                        Collection.from_object(
-                            model.custom_derived_quantities,
-                            name="custom_derived_quantities",
-                        ),
-                    )
-                ]
-            )
         return instance
 
     def _make_instance(self):
         instance = object.__new__(prior_model.Model)
         instance.cls = self.cls
         instance._assertions = []
-        try:
-            instance._custom_derived_quantities = (
-                self.custom_derived_quantities.children
-            )
-        except AttributeError:
-            instance._custom_derived_quantities = {}
+
+        instance._custom_derived_quantities = {}
         return instance
 
 
