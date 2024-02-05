@@ -163,6 +163,10 @@ class AbstractPriorModel(AbstractModel):
         self._custom_derived_quantities = custom_derived_quantities or dict()
 
     @property
+    def custom_derived_quantities(self):
+        return self._custom_derived_quantities
+
+    @property
     def assertions(self):
         return self._assertions
 
@@ -1317,7 +1321,7 @@ class AbstractPriorModel(AbstractModel):
         instance = self._instance_for_arguments(
             arguments,
         )
-        for key, value in self._custom_derived_quantities.items():
+        for key, value in self.custom_derived_quantities.items():
             setattr(instance, key, value(instance))
         return instance
 

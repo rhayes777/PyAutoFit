@@ -249,7 +249,7 @@ class Model(AbstractPriorModel):
                 for key, value in self.cls.__dict__.items()
                 if isinstance(value, derived_quantity)
             ]
-            + [(key,) for key in self._custom_derived_quantities.keys()]
+            + [(key,) for key in self.custom_derived_quantities.keys()]
         )
 
     def instance_flatten(self, instance):
