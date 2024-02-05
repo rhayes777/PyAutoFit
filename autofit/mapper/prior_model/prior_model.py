@@ -55,7 +55,7 @@ class Model(AbstractPriorModel):
             )
         return super().__add__(other)
 
-    def __init__(self, cls, **kwargs):
+    def __init__(self, cls, custom_derived_quantities=None, **kwargs):
         """
         The object a Python class is input into to create a model-component, which has free parameters that are fitted
         by a non-linear search.
@@ -98,7 +98,10 @@ class Model(AbstractPriorModel):
 
         model = af.Model(Gaussian)
         """
-        super().__init__(label=namer(cls.__name__) if inspect.isclass(cls) else None)
+        super().__init__(
+            label=namer(cls.__name__) if inspect.isclass(cls) else None,
+            custom_derived_quantities=custom_derived_quantities,
+        )
         if cls is self:
             return
 

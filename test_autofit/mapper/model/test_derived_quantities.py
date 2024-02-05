@@ -123,3 +123,14 @@ def test_derived_quantities_summary_dict(samples):
             "fwhm": 2.3548200450309493,
         },
     }
+
+
+def test_custom_derived_quantity():
+    model = af.Model(
+        af.Gaussian,
+        custom_derived_quantities={
+            "custom": lambda instance: 1.0,
+        },
+    )
+    instance = model.instance_from_prior_medians()
+    assert instance.custom == 1.0
