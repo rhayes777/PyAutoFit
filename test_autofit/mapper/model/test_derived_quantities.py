@@ -146,3 +146,22 @@ def test_custom_derived_in_list(custom_model):
         ("fwhm",),
         ("custom",),
     }
+
+
+def test_custom_derived_samples(samples, custom_model):
+    samples.model = custom_model
+    derived_quantities = samples.derived_quantities_list[0]
+    assert derived_quantities == [2.3548200450309493, 0.0]
+
+
+def test_custom_derived_summary(samples, custom_model):
+    samples.model = custom_model
+    assert (
+        derived_quantity_summary(samples, median_pdf_model=False)
+        == """
+
+Summary (3.0 sigma limits):
+
+fwhm          2.3548 (2.3548, 2.3548)
+custom        0.0000 (0.0000, 0.0000)"""
+    )
