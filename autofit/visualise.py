@@ -33,10 +33,17 @@ class VisualiseGraph:
     def graph(self):
         graph = nx.Graph()
 
-        graph.add_node(str_for_object(self.model))
+        model_name = str_for_object(self.model)
+        graph.add_node(model_name)
 
-        for prior in self.model.priors:
-            graph.add_node(str_for_object(prior))
+        for name, prior in self.model.direct_prior_tuples:
+            prior_name = str_for_object(prior)
+            graph.add_node(prior_name)
+            graph.add_edge(
+                model_name,
+                prior_name,
+                label=name,
+            )
 
         # # Add nodes
         # G.add_node("A")

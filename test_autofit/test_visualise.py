@@ -36,5 +36,9 @@ def graph(visualise_graph):
 
 @pytest.mark.parametrize("node", ["Model(Gaussian)", "UniformPrior_0(0.0, 1.0)"])
 def test_nodes(graph, node):
-    print(graph.nodes)
     assert node in graph.nodes
+
+
+@pytest.mark.parametrize("edge", [("Model(Gaussian)", "UniformPrior_0(0.0, 1.0)")])
+def test_edges(graph, edge):
+    assert edge in graph.edges
