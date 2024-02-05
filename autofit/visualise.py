@@ -59,24 +59,15 @@ class VisualiseGraph:
 
         add_model(self.model)
 
-        # # Add nodes
-        # G.add_node("A")
-        # G.add_node("B")
-        # G.add_node("C")
-        #
-        # # Add edges
-        # G.add_edge("A", "B")
-        # G.add_edge("B", "C")
-        # G.add_edge("C", "A")
-
         return graph
 
-    def save(self, path: str):
-        net = Network()
+    def network(self, notebook: bool = False):
+        net = Network(notebook=notebook)
         net.from_nx(self.graph())
-        net.save_graph(path)
+        return net
+
+    def save(self, path: str):
+        self.network().save_graph(path)
 
     def show(self, name):
-        net = Network()
-        net.from_nx(self.graph())
-        net.show(f"{name}.html")
+        self.network(notebook=True).show(f"{name}.html")
