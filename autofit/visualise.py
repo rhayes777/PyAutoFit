@@ -48,7 +48,7 @@ class VisualiseGraph:
         self.model = model
 
     def graph(self):
-        graph = nx.Graph()
+        graph = nx.DiGraph()
 
         def add_model(model):
             model_name = str_for_object(model)
@@ -93,7 +93,10 @@ class VisualiseGraph:
         }
 
     def network(self, notebook: bool = False):
-        net = Network(notebook=notebook)
+        net = Network(
+            notebook=notebook,
+            directed=True,
+        )
 
         def add_model(obj):
             net.add_node(
