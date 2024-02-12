@@ -101,9 +101,7 @@ class UniformPrior(Prior):
             super().value_for(unit, ignore_prior_limits=ignore_prior_limits), 14
         )
 
-    # noinspection PyUnusedLocal
-    @staticmethod
-    def log_prior_from_value(value):
+    def log_prior_from_value(self, value):
         """
         Returns the log prior of a physical value, so the log likelihood of a model evaluation can be converted to a
         posterior as log_prior + log_likelihood.

@@ -98,8 +98,7 @@ class LogUniformPrior(Prior):
 
     __identifier_fields__ = ("lower_limit", "upper_limit")
 
-    @staticmethod
-    def log_prior_from_value(value) -> float:
+    def log_prior_from_value(self, value) -> float:
         """
         Returns the log prior of a physical value, so the log likelihood of a model evaluation can be converted to a
         posterior as log_prior + log_likelihood.
