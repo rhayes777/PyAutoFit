@@ -260,7 +260,6 @@ class TestUniformPrior:
 
 
 class TestLogUniformPrior:
-
     def test__simple_assumptions(self):
         log_uniform_simple = af.LogUniformPrior(lower_limit=1.0e-8, upper_limit=1.0)
 
@@ -327,37 +326,28 @@ class TestGaussianPrior:
         assert gaussian_half.value_for(0.9) == pytest.approx(3.0631031, 1.0e-4)
         assert gaussian_half.value_for(0.5) == 0.5
 
-    def test__log_prior_from_value(self):
-        gaussian_simple = af.GaussianPrior(mean=0.0, sigma=1.0)
+    @pytest.mark.parametrize(
+        "mean, sigma, value, expected",
+        [
+            (0.0, 1.0, 0.0, 0.0),
+            (0.0, 1.0, 1.0, 0.5),
+            (0.0, 1.0, 2.0, 2.0),
+            (1.0, 2.0, 0.0, 0.125),
+            (1.0, 2.0, 1.0, 0.0),
+            (1.0, 2.0, 2.0, 0.125),
+            (30.0, 60.0, 2.0, pytest.approx(0.108888, 1.0e-4)),
+        ],
+    )
+    def test__log_prior_from_value(self, mean, sigma, value, expected):
+        gaussian = af.GaussianPrior(mean=mean, sigma=sigma)
+        log_prior = gaussian.log_prior_from_value(value=value)
+        assert log_prior == expected
 
-        log_prior = gaussian_simple.log_prior_from_value(value=0.0)
 
-        assert log_prior == 0.0
+def test_log_gaussian_prior_log_prior_from_value():
+    log_gaussian_prior = af.LogGaussianPrior(
+        mean=0.0, sigma=1.0, lower_limit=0.0, upper_limit=1.0
+    )
 
-        log_prior = gaussian_simple.log_prior_from_value(value=1.0)
-
-        assert log_prior == 0.5
-
-        log_prior = gaussian_simple.log_prior_from_value(value=2.0)
-
-        assert log_prior == 2.0
-
-        gaussian_simple = af.GaussianPrior(mean=1.0, sigma=2.0)
-
-        log_prior = gaussian_simple.log_prior_from_value(value=0.0)
-
-        assert log_prior == 0.125
-
-        log_prior = gaussian_simple.log_prior_from_value(value=1.0)
-
-        assert log_prior == 0.0
-
-        log_prior = gaussian_simple.log_prior_from_value(value=2.0)
-
-        assert log_prior == 0.125
-
-        gaussian_simple = af.GaussianPrior(mean=30.0, sigma=60.0)
-
-        log_prior = gaussian_simple.log_prior_from_value(value=2.0)
-
-        assert log_prior == pytest.approx(0.108888, 1.0e-4)
+    assert log_gaussian_prior.log_prior_from_value(value=0.0) == float("-inf")
+    assert log_gaussian_prior.log_prior_from_value(value=0.5) == 0.9333736875190459

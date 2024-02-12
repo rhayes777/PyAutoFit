@@ -1,5 +1,7 @@
 from typing import Optional
 
+import numpy as np
+
 from autofit.messages.normal import NormalMessage
 from .abstract import Prior
 from ...messages.composed_transform import TransformedMessage
@@ -101,3 +103,11 @@ class LogGaussianPrior(Prior):
     @property
     def parameter_string(self) -> str:
         return f"mean = {self.mean}, sigma = {self.sigma}"
+
+    def log_prior_from_value(self, value):
+        if value <= 0:
+            return float("-inf")
+
+        return self.message.base_message.log_prior_from_value(np.log(value)) - np.log(
+            value
+        )
