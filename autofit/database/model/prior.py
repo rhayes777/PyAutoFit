@@ -69,6 +69,8 @@ class Model(Object):
         instance = object.__new__(prior_model.Model)
         instance.cls = self.cls
         instance._assertions = []
+
+        instance._custom_derived_quantities = {}
         return instance
 
 

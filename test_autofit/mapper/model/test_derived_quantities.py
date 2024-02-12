@@ -123,3 +123,45 @@ def test_derived_quantities_summary_dict(samples):
             "fwhm": 2.3548200450309493,
         },
     }
+
+
+@pytest.fixture(name="custom_model")
+def make_custom_model():
+    return af.Model(
+        af.Gaussian,
+        custom_derived_quantities={
+            "custom": lambda instance: 2 * instance.centre,
+        },
+    )
+
+
+def test_custom_derived_quantity(custom_model):
+    instance = custom_model.instance_from_prior_medians()
+    assert instance.centre == 0.5
+    assert instance.custom == 1.0
+
+
+def test_custom_derived_in_list(custom_model):
+    assert set(custom_model.derived_quantities) == {
+        ("fwhm",),
+        ("custom",),
+    }
+
+
+def test_custom_derived_samples(samples, custom_model):
+    samples.model = custom_model
+    derived_quantities = samples.derived_quantities_list[0]
+    assert derived_quantities == [2.3548200450309493, 0.0]
+
+
+def test_custom_derived_summary(samples, custom_model):
+    samples.model = custom_model
+    assert (
+        derived_quantity_summary(samples, median_pdf_model=False)
+        == """
+
+Summary (3.0 sigma limits):
+
+fwhm          2.3548 (2.3548, 2.3548)
+custom        0.0000 (0.0000, 0.0000)"""
+    )

@@ -157,9 +157,14 @@ class AbstractPriorModel(AbstractModel):
     @DynamicAttrs
     """
 
-    def __init__(self, label=None):
+    def __init__(self, label=None, custom_derived_quantities=None):
         super().__init__(label=label)
         self._assertions = list()
+        self._custom_derived_quantities = custom_derived_quantities or dict()
+
+    @property
+    def custom_derived_quantities(self):
+        return self._custom_derived_quantities
 
     @property
     def assertions(self):
@@ -1313,9 +1318,12 @@ class AbstractPriorModel(AbstractModel):
             self.check_assertions(arguments)
 
         logger.debug(f"Creating an instance for arguments")
-        return self._instance_for_arguments(
+        instance = self._instance_for_arguments(
             arguments,
         )
+        for key, value in self.custom_derived_quantities.items():
+            setattr(instance, key, value(instance))
+        return instance
 
     def path_for_name(self, name: str) -> Tuple[str, ...]:
         """

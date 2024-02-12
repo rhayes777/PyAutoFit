@@ -55,7 +55,14 @@ class Model(AbstractPriorModel):
             )
         return super().__add__(other)
 
-    def __init__(self, cls, **kwargs):
+    def __init__(
+        self,
+        cls,
+        custom_derived_quantities: typing.Optional[
+            typing.Dict[str, typing.Callable]
+        ] = None,
+        **kwargs,
+    ):
         """
         The object a Python class is input into to create a model-component, which has free parameters that are fitted
         by a non-linear search.
@@ -80,6 +87,9 @@ class Model(AbstractPriorModel):
         ----------
         cls
             The class associated with this instance
+        custom_derived_quantities
+            A dictionary of quantities that can be derived from the model and should
+            be output as derived quantities.
 
         Examples
         --------
@@ -98,7 +108,10 @@ class Model(AbstractPriorModel):
 
         model = af.Model(Gaussian)
         """
-        super().__init__(label=namer(cls.__name__) if inspect.isclass(cls) else None)
+        super().__init__(
+            label=namer(cls.__name__) if inspect.isclass(cls) else None,
+            custom_derived_quantities=custom_derived_quantities,
+        )
         if cls is self:
             return
 
@@ -229,11 +242,15 @@ class Model(AbstractPriorModel):
         The paths to attributes of the model which are derived (i.e.
         methods marked with the derived_quantity decorator)
         """
-        return super().derived_quantities + [
-            (key,)
-            for key, value in self.cls.__dict__.items()
-            if isinstance(value, derived_quantity)
-        ]
+        return (
+            super().derived_quantities
+            + [
+                (key,)
+                for key, value in self.cls.__dict__.items()
+                if isinstance(value, derived_quantity)
+            ]
+            + [(key,) for key in self.custom_derived_quantities.keys()]
+        )
 
     def instance_flatten(self, instance):
         """
