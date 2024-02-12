@@ -7,26 +7,38 @@ from autoconf.dictable import to_dict, from_dict
 @pytest.fixture(name="dynesty_dict")
 def make_dynesty_dict():
     return {
-        "type": "instance",
-        "class_path": "autofit.non_linear.search.nest.dynesty.search.static.DynestyStatic",
         "arguments": {
-            "bound": "multi",
-            "max_move": 100,
-            "nlive": 150,
-            "fmove": 0.9,
-            "enlarge": None,
             "bootstrap": None,
-            "walks": 5,
-            "sample": "auto",
-            "name": "",
-            "slices": 5,
+            "bound": "multi",
+            "enlarge": None,
             "facc": 0.5,
-            "unique_tag": None,
-            "path_prefix": None,
+            "fmove": 0.9,
+            "initial_values": {"arguments": {}, "type": "dict"},
+            "initializer": {
+                "arguments": {},
+                "class_path": "autofit.non_linear.initializer.InitializerPrior",
+                "type": "instance",
+            },
+            "inplace": False,
             "iterations_per_update": 500,
-            "use_gradient": False,
+            "max_move": 100,
+            "name": "",
+            "nlive": 150,
             "number_of_cores": 1,
+            "path_prefix": None,
+            "paths": {
+                "arguments": {},
+                "class_path": "autofit.non_linear.paths.null.NullPaths",
+                "type": "instance",
+            },
+            "sample": "auto",
+            "slices": 5,
+            "unique_tag": None,
+            "use_gradient": False,
+            "walks": 5,
         },
+        "class_path": "autofit.non_linear.search.nest.dynesty.search.static.DynestyStatic",
+        "type": "instance",
     }
 
 

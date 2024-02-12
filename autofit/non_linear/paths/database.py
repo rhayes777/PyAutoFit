@@ -33,6 +33,8 @@ class DatabasePaths(AbstractPaths):
         self.save_all_samples = save_all_samples
         self.unique_tag = unique_tag
 
+    __nullify_fields__ = ("session",)
+
     parent: "DatabasePaths"
 
     @AbstractPaths.parent.setter
