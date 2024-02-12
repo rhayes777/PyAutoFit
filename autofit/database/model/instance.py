@@ -7,15 +7,12 @@ class NoneInstance(Object):
 
     id = sa.Column(
         sa.Integer,
-        sa.ForeignKey(
-            "object.id"
-        ),
+        sa.ForeignKey("object.id"),
         primary_key=True,
+        index=True,
     )
 
-    __mapper_args__ = {
-        'polymorphic_identity': 'none'
-    }
+    __mapper_args__ = {"polymorphic_identity": "none"}
 
     def __call__(self):
         return None
@@ -30,40 +27,27 @@ class Collection(Object):
 
     id = sa.Column(
         sa.Integer,
-        sa.ForeignKey(
-            "object.id"
-        ),
-        primary_key=True
+        sa.ForeignKey("object.id"),
+        primary_key=True,
+        index=True,
     )
 
-    __mapper_args__ = {
-        'polymorphic_identity': 'collection'
-    }
+    __mapper_args__ = {"polymorphic_identity": "collection"}
 
     @classmethod
-    def _from_object(
-            cls,
-            source
-    ):
+    def _from_object(cls, source):
         instance = cls()
         instance.cls = type(source)
-        instance._add_children([
-            (str(i), item)
-            for i, item in enumerate(
-                source
-            )
-        ])
+        instance._add_children([(str(i), item) for i, item in enumerate(source)])
         return instance
 
     def __call__(self):
-        return self.cls([
-            child()
-            for child
-            in sorted(
-                self.children,
-                key=lambda child: int(child.name)
-            )
-        ])
+        return self.cls(
+            [
+                child()
+                for child in sorted(self.children, key=lambda child: int(child.name))
+            ]
+        )
 
 
 class Instance(Object):
@@ -75,37 +59,21 @@ class Instance(Object):
 
     id = sa.Column(
         sa.Integer,
-        sa.ForeignKey(
-            "object.id"
-        ),
+        sa.ForeignKey("object.id"),
         primary_key=True,
+        index=True,
     )
 
-    __mapper_args__ = {
-        'polymorphic_identity': 'instance'
-    }
+    __mapper_args__ = {"polymorphic_identity": "instance"}
 
     @classmethod
-    def _from_object(
-            cls,
-            source
-    ):
+    def _from_object(cls, source):
         instance = cls()
         instance.cls = type(source)
-        if hasattr(
-                source,
-                "__getstate__"
-        ):
-            instance._add_children(
-                source.__getstate__().items()
-            )
-        elif hasattr(
-                source,
-                "__dict__"
-        ):
-            instance._add_children(
-                source.__dict__.items()
-            )
+        if hasattr(source, "__getstate__"):
+            instance._add_children(source.__getstate__().items())
+        elif hasattr(source, "__dict__"):
+            instance._add_children(source.__dict__.items())
         return instance
 
 
@@ -116,25 +84,19 @@ class Value(Object):
 
     __tablename__ = "value"
 
-    __mapper_args__ = {
-        'polymorphic_identity': 'value'
-    }
+    __mapper_args__ = {"polymorphic_identity": "value"}
 
     id = sa.Column(
         sa.Integer,
-        sa.ForeignKey(
-            "object.id"
-        ),
+        sa.ForeignKey("object.id"),
         primary_key=True,
+        index=True,
     )
 
     value = sa.Column(sa.Float)
 
     @classmethod
-    def _from_object(
-            cls,
-            source
-    ):
+    def _from_object(cls, source):
         instance = cls()
         instance.value = source
         return instance
@@ -150,25 +112,19 @@ class StringValue(Object):
 
     __tablename__ = "string_value"
 
-    __mapper_args__ = {
-        'polymorphic_identity': 'string_value'
-    }
+    __mapper_args__ = {"polymorphic_identity": "string_value"}
 
     id = sa.Column(
         sa.Integer,
-        sa.ForeignKey(
-            "object.id"
-        ),
+        sa.ForeignKey("object.id"),
         primary_key=True,
+        index=True,
     )
 
     value = sa.Column(sa.String)
 
     @classmethod
-    def _from_object(
-            cls,
-            source
-    ):
+    def _from_object(cls, source):
         instance = cls()
         instance.value = source
         return instance

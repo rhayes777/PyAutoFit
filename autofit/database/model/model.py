@@ -22,9 +22,14 @@ class Object(Base):
     id = sa.Column(
         sa.Integer,
         primary_key=True,
+        index=True,
     )
 
-    parent_id = sa.Column(sa.Integer, sa.ForeignKey("object.id"))
+    parent_id = sa.Column(
+        sa.Integer,
+        sa.ForeignKey("object.id"),
+        index=True,
+    )
     parent = sa.orm.relationship("Object", uselist=False, remote_side=[id])
 
     samples_for_id = sa.Column(sa.String, sa.ForeignKey("fit.id"))

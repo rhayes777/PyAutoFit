@@ -20,6 +20,7 @@ class Collection(Object):
         sa.Integer,
         sa.ForeignKey("object.id"),
         primary_key=True,
+        index=True,
     )
 
     __mapper_args__ = {"polymorphic_identity": "collection_prior_model"}
@@ -45,6 +46,7 @@ class Model(Object):
         sa.Integer,
         sa.ForeignKey("object.id"),
         primary_key=True,
+        index=True,
     )
 
     __mapper_args__ = {"polymorphic_identity": "prior_model"}
@@ -85,6 +87,7 @@ class Prior(Object):
         sa.Integer,
         sa.ForeignKey("object.id"),
         primary_key=True,
+        index=True,
     )
 
     __mapper_args__ = {"polymorphic_identity": "prior"}

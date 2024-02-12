@@ -9,6 +9,7 @@ class Compound(Object):
         sa.Integer,
         sa.ForeignKey("object.id"),
         primary_key=True,
+        index=True,
     )
     compound_type = sa.Column(sa.String)
 

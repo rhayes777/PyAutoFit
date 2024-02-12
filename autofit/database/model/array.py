@@ -19,6 +19,7 @@ class Array(Object):
         sa.Integer,
         sa.ForeignKey("object.id"),
         primary_key=True,
+        index=True,
     )
 
     __mapper_args__ = {"polymorphic_identity": "array"}
@@ -70,7 +71,12 @@ class HDU(Array):
 
     __tablename__ = "hdu"
 
-    id = sa.Column(sa.Integer, sa.ForeignKey("array.id"), primary_key=True)
+    id = sa.Column(
+        sa.Integer,
+        sa.ForeignKey("array.id"),
+        primary_key=True,
+        index=True,
+    )
 
     _header = sa.Column(sa.String)
 
