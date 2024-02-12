@@ -107,6 +107,7 @@ class LogGaussianPrior(Prior):
     def log_prior_from_value(self, value):
         if value <= 0:
             return float("-inf")
-        return -np.log(value * self.sigma * np.sqrt(2 * np.pi)) - (
-            np.log(value) - self.mean
-        ) ** 2 / (2 * self.sigma**2)
+
+        return self.message.base_message.log_prior_from_value(np.log(value)) - np.log(
+            value
+        )

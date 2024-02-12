@@ -350,4 +350,4 @@ def test_log_gaussian_prior_log_prior_from_value():
     )
 
     assert log_gaussian_prior.log_prior_from_value(value=0.0) == float("-inf")
-    assert log_gaussian_prior.log_prior_from_value(value=0.5) == -0.466017859603828
+    assert log_gaussian_prior.log_prior_from_value(value=0.5) == 0.9333736875190459
