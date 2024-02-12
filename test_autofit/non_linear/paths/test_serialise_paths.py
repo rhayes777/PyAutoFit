@@ -34,4 +34,4 @@ def test_serialise_search():
         path_prefix=Path("searches"),
     )
 
-    assert "paths" in to_dict(search)
+    assert "paths" in to_dict(search)["arguments"]
