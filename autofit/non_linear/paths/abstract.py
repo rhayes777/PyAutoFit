@@ -70,7 +70,8 @@ class AbstractPaths(ABC):
         self.unique_tag = unique_tag
 
         self._non_linear_name = None
-        self.__identifier = identifier or None
+        self.__custom_identifier = identifier
+        self.__identifier = None
 
         self.is_identifier_in_paths = is_identifier_in_paths
 
@@ -160,6 +161,8 @@ class AbstractPaths(ABC):
 
     @property
     def _identifier(self):
+        if self.__custom_identifier is not None:
+            return self.__custom_identifier
         if self.__identifier is None:
             if None in (self.model, self.search):
                 logger.debug(
