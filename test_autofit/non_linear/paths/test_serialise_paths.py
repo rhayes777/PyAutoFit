@@ -35,3 +35,10 @@ def test_serialise_search():
     )
 
     assert "paths" in to_dict(search)["arguments"]
+
+
+def test_serialise_database_paths(session):
+    paths = af.DatabasePaths(session)
+    paths = from_dict(to_dict(paths))
+
+    assert paths.session is None
