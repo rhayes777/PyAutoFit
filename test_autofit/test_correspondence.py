@@ -53,7 +53,7 @@ def test_to_canonical_form(message):
 
 def test_factor(message):
     x = 15
-    assert message.factor(x) == -4.14213901831845
+    assert np.isclose(message.factor(x), - np.log(20), atol=1e-10)
 
 
 def test_value_for(message, x):

@@ -193,10 +193,23 @@ class TransformedMessage(MessageInterface):
             x = _transform.inv_transform(x)
         return x
 
-    def transform_det(self, x):
-        for _transform in self.transforms:
-            x = _transform.log_det(x)
-        return x
+    def _transform_det(self, x):
+        logd = 0
+        for _transform in reversed(self.transforms):
+            x, _logd = _transform.transform_det(x)
+            logd += _logd
+        return x, logd
+    
+    def _transform_det_jac(self, x):
+        logd = 0
+        logd_jacs = []
+        for _transform in reversed(self.transforms):
+            x, _logd, _logd_grad, _jac = _transform.transform_det_jac(x)
+            logd += _logd
+            logd_jacs.append((_logd_grad, _jac))
+
+        return x, logd, logd_jacs
+
 
     def invert_natural_parameters(
         self, natural_parameters: np.ndarray,
@@ -247,14 +260,6 @@ class TransformedMessage(MessageInterface):
     def _sample(self, n_samples) -> np.ndarray:
         return self.base_message._sample(n_samples)
 
-    def _factor(self, _, x: Union[np.ndarray, float],) -> np.ndarray:
-        log_det = self.transform_det(x)
-        x = self._transform(x)
-        eta = self.base_message._broadcast_natural_parameters(x)
-        t = self.base_message.to_canonical_form(x)
-        log_base = self.calc_log_base_measure(x) + log_det
-        return self.base_message.natural_logpdf(eta, t, log_base, self.log_partition)
-
     def factor(self, x: Union[float, np.ndarray]) -> Union[np.ndarray, float]:
         """
         Call the factor. The closer to the mean a given value is the higher
@@ -269,7 +274,32 @@ class TransformedMessage(MessageInterface):
         -------
         The probability this value is correct
         """
-        return self._factor(self, x)
+        x, logd = self._transform_det(x)
+        return self.base_message.logpdf(x) + logd
+    
+    def factor_gradient(self, x: Union[float, np.ndarray]) -> Tuple[Union[np.ndarray, float],Union[np.ndarray, float]]:
+        """
+        Call the factor. The closer to the mean a given value is the higher
+        the probability returned.
+
+        Parameters
+        ----------
+        x
+            A value in the space of the transformed message.
+
+        Returns
+        -------
+        The probability this value is correct
+        """
+        x, logd, logd_grad, jacs = self._transform_det_jac(x)
+        logp, grad = self.base_message.logpdf_gradient(x)
+        for jac in reversed(jacs):
+            grad = grad * jac 
+        return logp + logd, grad + logd_grad
+    
+
+
+    
 
     @property
     def multivariate(self):

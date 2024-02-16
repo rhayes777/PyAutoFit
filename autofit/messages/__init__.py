@@ -7,6 +7,7 @@ from .normal import (
     NaturalNormal, 
     UniformNormalMessage,
     LogNormalMessage,
+    Log10NormalMessage,
     MultiLogitNormalMessage,
     Log10UniformNormalMessage,
 )

@@ -295,6 +295,7 @@ UniformNormalMessage = TransformedMessage(NormalMessage(0, 1), phi_transform)
 Log10UniformNormalMessage = TransformedMessage(UniformNormalMessage, log_10_transform)
 
 LogNormalMessage = TransformedMessage(NormalMessage(0, 1), log_transform)
+Log10NormalMessage = TransformedMessage(NormalMessage(0, 1), log_10_transform)
 
 # Support is the simplex
 MultiLogitNormalMessage = TransformedMessage(
