@@ -218,6 +218,7 @@ class DirectoryPaths(AbstractPaths):
         This folder can often have a large filesize, thus deleting it can reduce hard-disk use of the model-fit.
         """
         shutil.rmtree(self.search_internal_path)
+        os.rmdir(self.search_internal_path)
 
     def completed(self):
         """
