@@ -393,6 +393,9 @@ class AbstractPaths(ABC):
     def load_search_internal(self):
         raise NotImplementedError
 
+    def remove_search_internal(self):
+        raise NotImplementedError
+
     @property
     @abstractmethod
     def is_complete(self) -> bool:

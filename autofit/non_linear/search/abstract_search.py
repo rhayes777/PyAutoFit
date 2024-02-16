@@ -581,6 +581,8 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                 bypass_nuclear_if_on=bypass_nuclear_if_on,
             )
 
+
+
         return result
 
     def pre_fit_output(
@@ -922,7 +924,10 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             self.paths.save_samples(samples=samples)
 
             if not during_analysis:
-                self.paths.save_derived_quantities(samples=samples)
+                try:
+                    self.paths.save_derived_quantities(samples=samples)
+                except exc.FitException:
+                    pass
 
             if not self.skip_save_samples:
                 self.paths.save_json("samples_summary", to_dict(samples.summary()))

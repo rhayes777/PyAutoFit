@@ -1,3 +1,5 @@
+import shutil
+
 import dill
 import json
 import os
@@ -205,6 +207,18 @@ class DirectoryPaths(AbstractPaths):
 
         with open_(filename, "rb") as f:
             return dill.load(f)
+
+    def remove_search_internal(self):
+        """
+        Remove the internal representation of a non-linear search.
+
+        This deletes the entire `search_internal` folder, including a .pickle / .dill file containing the interal
+        results and files with the timer values.
+
+        This folder can often have a large filesize, thus deleting it can reduce hard-disk use of the model-fit.
+        """
+        shutil.rmtree(self.search_internal_path)
+
 
     def completed(self):
         """
