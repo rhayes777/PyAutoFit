@@ -785,7 +785,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         bypass_nuclear_if_on
             Whether to use nuclear mode to delete a lot of files (see nuclear mode description).
         """
-        if conf.instance["general"]["output"]["remove_search_internal"]:
+        if not conf.instance["output"]["search_internal"]:
             self.logger.info("Removing search internal folder.")
             self.paths.remove_search_internal()
 

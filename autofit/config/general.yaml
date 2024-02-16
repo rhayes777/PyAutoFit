@@ -17,7 +17,7 @@ output:
   log_file: output.log              # The name of the file the logged output is written to (in the non-linear search output folder)
   model_results_decimal_places: 3   # Number of decimal places estimated parameter values / errors are output in model.results.
   remove_files: false               # If True, all output files of a non-linear search (e.g. samples, visualization, etc.) are deleted once the model-fit has completed, such that only the .zip file remains.
-  remove_search_internal : false    # If True, the search internal folder which contains a saved state of the non-linear search is delete, saving on hard-disk space.
+  search_internal : false    # If True, the search internal folder which contains a saved state of the non-linear search is delete, saving on hard-disk space.
   samples_to_csv: true              # If True, non-linear search samples are written to a .csv file.
   unconverged_sample_size : 100     # If outputting results of an unconverged search, the number of samples used to estimate the median PDF values and errors.
 parallel:

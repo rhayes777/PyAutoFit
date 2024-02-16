@@ -7,3 +7,7 @@
 # If a given file is not listed then the default value is used.
 
 default: true # If true then files which are not explicitly listed here are output anyway. If false then they are not.
+
+covariance: true # Output `covariance.csv` which is the [free parameters x free parameters] covariance matrix.
+
+search_internal : true # If False, the search internal folder which contains a saved state of the non-linear search is deleted after the fit, saving on hard-disk space.
