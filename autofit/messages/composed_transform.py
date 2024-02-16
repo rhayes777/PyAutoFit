@@ -3,7 +3,7 @@ from typing import Tuple, Optional, Union
 
 import numpy as np
 
-from autofit.messages.abstract import MessageInterface
+from autofit.messages.abstract import MessageInterface, AbstractMessage
 from autofit.messages.transform import AbstractDensityTransform
 
 
@@ -93,6 +93,13 @@ class TransformedMessage(MessageInterface):
 
         self.lower_limit = lower_limit
         self.upper_limit = upper_limit
+
+        x0, x1 = zip(*base_message._support)
+        z0 = self._inverse_transform(np.array(x0))
+        z1 = self._inverse_transform(np.array(x1))
+        self._support = tuple(zip(z0, z1))
+
+    log_normalisation = AbstractMessage.log_normalisation
 
     def from_natural_parameters(self, new_params, **kwargs):
         return self.with_base(
@@ -259,6 +266,9 @@ class TransformedMessage(MessageInterface):
     @inverse_transform
     def _sample(self, n_samples) -> np.ndarray:
         return self.base_message._sample(n_samples)
+    
+    def exp_factor(self, x):
+        return np.exp(np.nan_to_num(self.factor(x), nan=-np.inf))
 
     def factor(self, x: Union[float, np.ndarray]) -> Union[np.ndarray, float]:
         """

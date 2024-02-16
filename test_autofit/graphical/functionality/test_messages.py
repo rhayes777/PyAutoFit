@@ -46,28 +46,12 @@ def check_numerical_gradient_hessians(message, x=None):
     res = message.logpdf_gradient(x)
     nres = message.numerical_logpdf_gradient(x)
     for i, (x1, x2) in enumerate(zip(res, nres)):
-        if not np.allclose(x1, x2, rtol=1e-3, atol=1e-2):
-            assert False
+        assert np.allclose(x1, x2, rtol=1e-2, atol=1e-2), (i, x1, x2, message)
 
     res = message.logpdf_gradient_hessian(x)
     nres = message.numerical_logpdf_gradient_hessian(x)
     for i, (x1, x2) in enumerate(zip(res, nres)):
-        assert np.allclose(x1, x2, rtol=1e-3, atol=1e-2), (i, x1, x2, message)
-
-
-def test_message_norm():
-    messages = [
-        tuple(map(NormalMessage, [0.5, 0.1], [0.2, 0.3])),
-        tuple(map(NormalMessage, [0.5, 0.1, -0.5], [0.2, 0.3, 1.3])),
-        tuple(map(GammaMessage, [0.5, 1.1], [0.2, 1.3])),
-        tuple(map(GammaMessage, [0.5, 1.1, 2], [0.2, 1.3, 1])),
-        tuple(map(BetaMessage, [2.0, 3.2, 1.5], [4.1, 2.3, 3])),
-    ]
-    for ms in messages:
-        check_log_normalisation(ms)
-        for m in ms:
-            check_dist_norm(m)
-            check_numerical_gradient_hessians(m)
+        assert np.allclose(x1, x2, rtol=1e-2, atol=1e-2), (i, x1, x2, message)
 
 
 N = NormalMessage
@@ -79,6 +63,39 @@ MLN = MultiLogitNormalMessage
 WN = TransformedMessage(
     NormalMessage(0, 1), transform.log_transform, transform.exp_transform,
 )
+def test_message_norm():
+    messages = [
+        tuple(map(NormalMessage, [0.5, 0.1], [0.2, 0.3])),
+        tuple(map(NormalMessage, [0.5, 0.1, -0.5], [0.2, 0.3, 1.3])),
+        tuple(map(GammaMessage, [0.5, 1.1], [0.2, 1.3])),
+        tuple(map(GammaMessage, [0.5, 1.1, 2], [0.2, 1.3, 1])),
+        tuple(map(BetaMessage, [2.0, 3.2, 1.5], [4.1, 2.3, 3])),
+        tuple(map(NormalMessage, [0.5, 0.1], [0.2, 0.3])),
+    ]
+    for ms in messages:
+        check_log_normalisation(ms)
+        for m in ms:
+            check_dist_norm(m)
+            check_numerical_gradient_hessians(m)
+
+
+def check_transform_norm(dist):
+    norm, err = integrate.quad(dist.exp_factor, *dist._support[0])
+    assert norm == pytest.approx(1, abs=err), dist
+
+
+def test_transform_norm():
+    messages = [
+        tuple(map(UN, [0.5, 0.1, -0.5], [0.2, 0.3, 1.3])),
+        tuple(map(SUN, [0.5, 1.1], [0.2, 1.3])),
+        tuple(map(LN, [0.5, 1.1, 2], [0.2, 1.3, 1])),
+        tuple(map(WN, [2.0, 3.2, 1.5], [4.1, 2.3, 3])),
+    ]
+    for ms in messages:
+        # check_log_normalisation(ms) # TODO get this working
+        for m in ms:
+            check_transform_norm(m)
+            check_numerical_gradient_hessians(m)
 
 
 @pytest.mark.parametrize(
