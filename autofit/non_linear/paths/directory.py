@@ -219,7 +219,6 @@ class DirectoryPaths(AbstractPaths):
         """
         shutil.rmtree(self.search_internal_path)
 
-
     def completed(self):
         """
         Mark the search as complete by saving a file

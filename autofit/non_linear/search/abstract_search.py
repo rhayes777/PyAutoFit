@@ -581,8 +581,6 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                 bypass_nuclear_if_on=bypass_nuclear_if_on,
             )
 
-
-
         return result
 
     def pre_fit_output(
@@ -787,6 +785,10 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         bypass_nuclear_if_on
             Whether to use nuclear mode to delete a lot of files (see nuclear mode description).
         """
+        if conf.instance["general"]["output"]["remove_search_internal"]:
+            self.logger.info("Removing search internal folder.")
+            self.paths.remove_search_internal()
+
         self.logger.info("Removing all files except for .zip file")
         self.paths.zip_remove()
 
