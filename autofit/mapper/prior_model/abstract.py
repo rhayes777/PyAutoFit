@@ -906,7 +906,7 @@ class AbstractPriorModel(AbstractModel):
         raise NotImplementedError()
 
     def mapper_from_gaussian_tuples(
-        self, tuples, a=None, r=None, use_widths=True, no_limits=False
+        self, tuples, a=None, r=None, no_limits=False
     ):
         """
         The widths of the new priors are taken from the
@@ -923,10 +923,6 @@ class AbstractPriorModel(AbstractModel):
         a
             print(tuples[i][1], width)
             The absolute width to be assigned to gaussian priors
-        use_widths
-            If True, the minimum prior widths specified in the prior configs of the model components are used to
-            set the passed Gaussian Prior sigma value (if both widths and passed errors are used, the maximum of
-            these two values are used).
         tuples
             A list of tuples each containing the mean and width of a prior
         Returns
@@ -974,13 +970,7 @@ class AbstractPriorModel(AbstractModel):
                 except ConfigException:
                     limits = prior.limits
 
-            if use_widths:
-                sigma = width
-            else:
-                raise exc.PriorException(
-                    "use_passed_errors and use_widths are both False, meaning there is no "
-                    "way to pass priors to set up the new model's Gaussian Priors."
-                )
+            sigma = width
 
             new_prior = GaussianPrior(mean, sigma, *limits)
             new_prior.id = prior.id
