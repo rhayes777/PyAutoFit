@@ -906,7 +906,7 @@ class AbstractPriorModel(AbstractModel):
         raise NotImplementedError()
 
     def mapper_from_gaussian_tuples(
-        self, tuples, a=None, r=None, use_errors=True, use_widths=True, no_limits=False
+        self, tuples, a=None, r=None, use_widths=True, no_limits=False
     ):
         """
         The widths of the new priors are taken from the
@@ -923,10 +923,6 @@ class AbstractPriorModel(AbstractModel):
         a
             print(tuples[i][1], width)
             The absolute width to be assigned to gaussian priors
-        use_errors
-            If True, the passed errors of the model components estimated in a previous `NonLinearSearch` (computed
-            at the prior_passer.sigma value) are used to set the pass Gaussian Prior sigma value (if both width and
-            passed errors are used, the maximum of these two values are used).
         use_widths
             If True, the minimum prior widths specified in the prior configs of the model components are used to
             set the passed Gaussian Prior sigma value (if both widths and passed errors are used, the maximum of
@@ -978,12 +974,8 @@ class AbstractPriorModel(AbstractModel):
                 except ConfigException:
                     limits = prior.limits
 
-            if use_errors and not use_widths:
-                sigma = tuples[i][1]
-            elif not use_errors and use_widths:
+            if use_widths:
                 sigma = width
-            elif use_errors and use_widths:
-                sigma = max(tuples[i][1], width)
             else:
                 raise exc.PriorException(
                     "use_passed_errors and use_widths are both False, meaning there is no "
