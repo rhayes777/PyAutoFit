@@ -195,6 +195,12 @@ class CombinedAnalysis(Analysis):
 
         self._for_each_analysis(func, paths, result)
 
+    def save_results_combined(self, paths: AbstractPaths, result: Result):
+        self.analyses[0].save_results_combined(
+            paths=paths,
+            result=result,
+        )
+
     def visualize_before_fit(self, paths: AbstractPaths, model: AbstractPriorModel):
         """
         Visualise the model before fitting.

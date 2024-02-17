@@ -697,6 +697,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         if self.is_master:
             analysis.save_results(paths=self.paths, result=result)
+            analysis.save_results_combined(paths=self.paths, result=result)
 
         model.unfreeze()
 
@@ -764,6 +765,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                     )
 
                 analysis.save_results(paths=self.paths, result=result)
+                analysis.save_results_combined(paths=self.paths, result=result)
 
         model.unfreeze()
 
