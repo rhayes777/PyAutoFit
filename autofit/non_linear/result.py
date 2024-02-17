@@ -223,7 +223,7 @@ class Result(AbstractResult):
 
         if self.__model is None:
 
-            self.__model = self.samples.model.mapper_from_gaussian_tuples(
+            self.__model = self.samples.model.mapper_from_prior_means(
                 means=self.samples.prior_means
             )
 

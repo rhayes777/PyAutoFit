@@ -134,7 +134,7 @@ class SamplesInterface(ABC):
         A model mapper created by taking results from this search and creating priors with the defined absolute
         width.
         """
-        return self.model.mapper_from_gaussian_tuples(
+        return self.model.mapper_from_prior_means(
             means=self.prior_means, a=a
         )
 
@@ -159,7 +159,7 @@ class SamplesInterface(ABC):
         A model mapper created by taking results from this search and creating priors with the defined relative
         width.
         """
-        return self.model.mapper_from_gaussian_tuples(
+        return self.model.mapper_from_prior_means(
             means=self.prior_means, r=r
         )
 

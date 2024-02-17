@@ -905,7 +905,7 @@ class AbstractPriorModel(AbstractModel):
     def gaussian_prior_model_for_arguments(self, arguments):
         raise NotImplementedError()
 
-    def mapper_from_gaussian_tuples(
+    def mapper_from_prior_means(
         self, means, a=None, r=None, no_limits=False
     ):
         """

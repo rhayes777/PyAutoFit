@@ -65,7 +65,7 @@ class TestResult:
 
     def test_raises(self, result):
         with pytest.raises(af.exc.PriorException):
-            result.model.mapper_from_gaussian_tuples(
+            result.model.mapper_from_prior_means(
                 result.samples.prior_means, a=2.0, r=1.0
             )
 

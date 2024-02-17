@@ -94,7 +94,7 @@ class TestPriorLimits:
         mm = af.ModelMapper()
         mm.mock_class_gaussian = af.m.MockClassx2
 
-        new_mapper = mm.mapper_from_gaussian_tuples(
+        new_mapper = mm.mapper_from_prior_means(
             means=[0.0, 0.0],
         )
 
@@ -110,7 +110,7 @@ class TestPriorLimits:
         mm = af.ModelMapper()
         mm.mock_class_gaussian = af.m.MockClassx2
 
-        new_mapper = mm.mapper_from_gaussian_tuples(
+        new_mapper = mm.mapper_from_prior_means(
             means=[5.0, 5.0],
         )
 
@@ -126,7 +126,7 @@ class TestPriorLimits:
         mm = af.ModelMapper()
         mm.mock_class_gaussian = af.m.MockClassx2
 
-        new_mapper = mm.mapper_from_gaussian_tuples(
+        new_mapper = mm.mapper_from_prior_means(
             [(0.0, 0.5), (0.0, 1)], no_limits=True
         )
 
