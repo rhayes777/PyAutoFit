@@ -95,7 +95,7 @@ class TestPriorLimits:
         mm.mock_class_gaussian = af.m.MockClassx2
 
         new_mapper = mm.mapper_from_gaussian_tuples(
-            tuples=[(0.0, 0.5), (0.0, 1)], use_widths=True, use_errors=True
+            means=[0.0, 0.0],
         )
 
         prior_tuples = new_mapper.prior_tuples_ordered_by_id
@@ -106,28 +106,12 @@ class TestPriorLimits:
         assert prior_tuples[1].prior.lower_limit == 0
         assert prior_tuples[1].prior.upper_limit == 2
 
-    def test__only_use_passed_errors_to_set_up_gaussian_prior(self):
-        mm = af.ModelMapper()
-        mm.mock_class_gaussian = af.m.MockClassx2
-
-        new_mapper = mm.mapper_from_gaussian_tuples(
-            tuples=[(0.1, 0.2), (0.3, 0.4)], use_widths=False, use_errors=True
-        )
-
-        prior_tuples = new_mapper.prior_tuples_ordered_by_id
-
-        assert prior_tuples[0].prior.mean == 0.1
-        assert prior_tuples[0].prior.sigma == 0.2
-
-        assert prior_tuples[1].prior.mean == 0.3
-        assert prior_tuples[1].prior.sigma == 0.4
-
     def test__only_use_widths_to_pass_priors(self):
         mm = af.ModelMapper()
         mm.mock_class_gaussian = af.m.MockClassx2
 
         new_mapper = mm.mapper_from_gaussian_tuples(
-            tuples=[(5.0, 5.0), (5.0, 5.0)], use_widths=True, use_errors=False
+            means=[5.0, 5.0],
         )
 
         prior_tuples = new_mapper.prior_tuples_ordered_by_id
@@ -137,22 +121,6 @@ class TestPriorLimits:
 
         assert prior_tuples[1].prior.mean == 5.0
         assert prior_tuples[1].prior.sigma == 2.0
-
-    def test__use_max_of_widths_and_passed_errors_to_pass_priors(self):
-        mm = af.ModelMapper()
-        mm.mock_class_gaussian = af.m.MockClassx2
-
-        new_mapper = mm.mapper_from_gaussian_tuples(
-            tuples=[(5.0, 0.2), (5.0, 5.0)], use_widths=True, use_errors=True
-        )
-
-        prior_tuples = new_mapper.prior_tuples_ordered_by_id
-
-        assert prior_tuples[0].prior.mean == 5.0
-        assert prior_tuples[0].prior.sigma == 1.0
-
-        assert prior_tuples[1].prior.mean == 5.0
-        assert prior_tuples[1].prior.sigma == 5.0
 
     def test_from_gaussian_no_limits(self):
         mm = af.ModelMapper()
