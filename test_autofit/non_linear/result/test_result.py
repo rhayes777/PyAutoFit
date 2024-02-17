@@ -48,7 +48,7 @@ class TestResult:
     def test_raises(self, result):
         with pytest.raises(af.exc.PriorException):
             result.model.mapper_from_gaussian_tuples(
-                result.samples._gaussian_tuples, a=2.0, r=1.0
+                result.samples.prior_means, a=2.0, r=1.0
             )
 
 

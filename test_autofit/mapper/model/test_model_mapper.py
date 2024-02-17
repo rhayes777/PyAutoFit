@@ -530,7 +530,7 @@ class TestUtility:
 class TestPriorReplacement:
     def test_prior_replacement(self):
         mapper = af.ModelMapper(mock_class=af.m.MockClassx2)
-        result = mapper.mapper_from_gaussian_tuples([(10, 3), (5, 3)])
+        result = mapper.mapper_from_gaussian_tuples([10, 5])
 
         assert isinstance(result.mock_class.one, af.GaussianPrior)
         assert {prior.id for prior in mapper.priors} == {
@@ -539,13 +539,13 @@ class TestPriorReplacement:
 
     def test_replace_priors_with_gaussians_from_tuples(self):
         mapper = af.ModelMapper(mock_class=af.m.MockClassx2)
-        result = mapper.mapper_from_gaussian_tuples([(10, 3), (5, 3)])
+        result = mapper.mapper_from_gaussian_tuples([10, 5])
 
         assert isinstance(result.mock_class.one, af.GaussianPrior)
 
     def test_replacing_priors_for_profile(self):
         mapper = af.ModelMapper(mock_class=af.m.MockClassx3TupleFloat)
-        result = mapper.mapper_from_gaussian_tuples([(10, 3), (5, 3), (5, 3)])
+        result = mapper.mapper_from_gaussian_tuples([10, 5, 5])
 
         assert isinstance(
             result.mock_class.one_tuple.unique_prior_tuples[0][1], af.GaussianPrior
@@ -558,7 +558,7 @@ class TestPriorReplacement:
     def test_replace_priors_for_two_classes(self):
         mapper = af.ModelMapper(one=af.m.MockClassx2, two=af.m.MockClassx2)
 
-        result = mapper.mapper_from_gaussian_tuples([(1, 1), (2, 1), (3, 1), (4, 1)])
+        result = mapper.mapper_from_gaussian_tuples([1, 2, 3, 4])
 
         assert result.one.one.mean == 1
         assert result.one.two.mean == 2
@@ -631,7 +631,7 @@ class TestListPriorModel:
         mapper.list = list_prior_model
 
         gaussian_mapper = mapper.mapper_from_gaussian_tuples(
-            [(1, 5), (2, 5), (3, 5), (4, 5)]
+            [1, 2, 3, 4]
         )
 
         assert len(gaussian_mapper.list) == 2
@@ -639,10 +639,10 @@ class TestListPriorModel:
         assert gaussian_mapper.list[0].two.mean == 2
         assert gaussian_mapper.list[1].one.mean == 3
         assert gaussian_mapper.list[1].two.mean == 4
-        assert gaussian_mapper.list[0].one.sigma == 5
-        assert gaussian_mapper.list[0].two.sigma == 5
-        assert gaussian_mapper.list[1].one.sigma == 5
-        assert gaussian_mapper.list[1].two.sigma == 5
+        assert gaussian_mapper.list[0].one.sigma == 1
+        assert gaussian_mapper.list[0].two.sigma == 2
+        assert gaussian_mapper.list[1].one.sigma == 1
+        assert gaussian_mapper.list[1].two.sigma == 2
 
     def test_prior_results_for_gaussian_tuples__include_override_from_width_file(
         self, list_prior_model
@@ -651,7 +651,7 @@ class TestListPriorModel:
         mapper.list = list_prior_model
 
         gaussian_mapper = mapper.mapper_from_gaussian_tuples(
-            [(1, 0), (2, 0), (3, 0), (4, 0)]
+            [1, 2, 3, 4]
         )
 
         assert len(gaussian_mapper.list) == 2
@@ -758,7 +758,7 @@ def make_mapper_with_list():
 class TestGaussianWidthConfig:
     def test_relative_widths(self, mapper):
         mapper.relative_width = af.m.MockClassRelativeWidth
-        new_mapper = mapper.mapper_from_gaussian_tuples([(1, 0), (1, 0), (1, 0)])
+        new_mapper = mapper.mapper_from_gaussian_tuples([1, 1, 1])
 
         assert new_mapper.relative_width.one.mean == 1.0
         assert new_mapper.relative_width.one.sigma == 0.1

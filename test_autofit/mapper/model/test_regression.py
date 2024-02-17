@@ -94,12 +94,7 @@ def test_set_centre():
 def test_passing_priors():
     model = af.Model(af.m.MockWithTuple)
 
-    new_model = model.mapper_from_gaussian_tuples(
-        [
-            (1, 1),
-            (1, 1),
-        ]
-    )
+    new_model = model.mapper_from_gaussian_tuples([1, 1])
     assert isinstance(new_model.tup_0, af.GaussianPrior)
     assert isinstance(new_model.tup_1, af.GaussianPrior)
 

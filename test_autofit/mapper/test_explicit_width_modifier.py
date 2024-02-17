@@ -13,7 +13,7 @@ def make_updated_model(width_modifier):
     model = af.Model(af.Gaussian)
     model.centre.width_modifier = width_modifier
 
-    return model.mapper_from_gaussian_tuples([(1.0, 1.0), (1.0, 1.0), (1.0, 1.0),])
+    return model.mapper_from_gaussian_tuples([1.0, 1.0, 1.0])
 
 
 def test_explicit_width_modifier(updated_model):
