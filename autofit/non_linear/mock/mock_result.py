@@ -21,7 +21,7 @@ class MockResult(Result):
             max_log_likelihood_instance=self.instance, model=model or ModelMapper()
         )
 
-        self.gaussian_tuples = None
+        self.prior_means = None
         self.analysis = analysis
         self.search = search
         self.model = model

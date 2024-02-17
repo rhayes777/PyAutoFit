@@ -906,7 +906,7 @@ class AbstractPriorModel(AbstractModel):
         raise NotImplementedError()
 
     def mapper_from_gaussian_tuples(
-        self, tuples, a=None, r=None, no_limits=False
+        self, means, a=None, r=None, no_limits=False
     ):
         """
         The widths of the new priors are taken from the
@@ -916,6 +916,8 @@ class AbstractPriorModel(AbstractModel):
         If r is not None then all priors are created with a relative width of r.
         Parameters
         ----------
+        means
+            The median PDF value of every Gaussian, which centres each `GaussianPrior`.
         no_limits
             If `True` generated priors have infinite limits
         r
@@ -938,7 +940,6 @@ class AbstractPriorModel(AbstractModel):
         for i, prior_tuple in enumerate(prior_tuples):
             prior = prior_tuple.prior
             cls = prior_class_dict[prior]
-            mean, sigma = tuples[i]
 
             name = prior_tuple.name
             # Use the name of the collection for configuration when a prior's name
@@ -958,9 +959,9 @@ class AbstractPriorModel(AbstractModel):
             if a is not None:
                 width = a
             elif r is not None:
-                width = r * mean
+                width = r * means[i]
             else:
-                width = width_modifier(mean)
+                width = width_modifier(means[i])
 
             if no_limits:
                 limits = (float("-inf"), float("inf"))
@@ -972,7 +973,7 @@ class AbstractPriorModel(AbstractModel):
 
             sigma = width
 
-            new_prior = GaussianPrior(mean, sigma, *limits)
+            new_prior = GaussianPrior(means[i], sigma, *limits)
             new_prior.id = prior.id
             new_prior.width_modifier = prior.width_modifier
             arguments[prior] = new_prior

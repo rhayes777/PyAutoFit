@@ -121,9 +121,8 @@ class MockSearch(NonLinearSearch):
                 self.sample_multiplier * fit, _make_samples(model)
             ),
             model=model,
-            gaussian_tuples=[
-                (prior.mean, prior.width if math.isfinite(prior.width) else 1.0)
-                for prior in sorted(model.priors, key=lambda prior: prior.id)
+            prior_means=[
+                prior.mean for prior in sorted(model.priors, key=lambda prior: prior.id)
             ],
         )
 
@@ -142,9 +141,8 @@ class MockSearch(NonLinearSearch):
             sample_list=samples_with_log_likelihood_list(
                 [1.0, 2.0], _make_samples(model)
             ),
-            gaussian_tuples=[
-                (prior.mean, prior.width if math.isfinite(prior.width) else 1.0)
-                for prior in sorted(model.priors, key=lambda prior: prior.id)
+            prior_means=[
+                prior.mean for prior in sorted(model.priors, key=lambda prior: prior.id)
             ],
             model=model,
         )

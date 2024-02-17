@@ -222,10 +222,11 @@ class Result(AbstractResult):
     def model(self):
 
         if self.__model is None:
-            tuples = self.samples.gaussian_priors_at_sigma(sigma=self.sigma)
+
             self.__model = self.samples.model.mapper_from_gaussian_tuples(
-                tuples,
+                means=self.samples.prior_means
             )
+
         return self.__model
 
     @model.setter

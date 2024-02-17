@@ -135,7 +135,7 @@ class SamplesInterface(ABC):
         width.
         """
         return self.model.mapper_from_gaussian_tuples(
-            self.gaussian_priors_at_sigma(sigma=self.sigma), a=a
+            means=self.prior_means, a=a
         )
 
     def model_relative(self, r: float) -> AbstractPriorModel:
@@ -160,7 +160,7 @@ class SamplesInterface(ABC):
         width.
         """
         return self.model.mapper_from_gaussian_tuples(
-            self.gaussian_priors_at_sigma(sigma=self.sigma), r=r
+            means=self.prior_means, r=r
         )
 
     def model_bounded(self, b: float) -> AbstractPriorModel:
@@ -187,31 +187,21 @@ class SamplesInterface(ABC):
             floats=self.max_log_likelihood(as_instance=False), b=b
         )
 
-    @property
-    def sigma(self):
-        return conf.instance["general"]["prior_passer"]["sigma"]
-
-    def gaussian_priors_at_sigma(self, sigma: float) -> [List]:
-        """
-        Returns `GaussianPrior`'s of every parameter in a fit for use with non-linear search chaining.
-
-        `GaussianPrior`s of every parameter used to link its inferred values and errors to priors used to sample the
-        same (or similar) parameters in a subsequent search, where:
-
-        - The mean is given by maximum log likelihood model values.
-        - Their errors are omitted, as this information is not available from an search. When these priors are
-          used to link to another search, it will thus automatically use the prior config values.
-
-        Parameters
-        ----------
-        sigma
-            The sigma limit within which the PDF is used to estimate errors (e.g. sigma = 1.0 uses 0.6826 of the PDF).
-        """
-        return list(
-            map(
-                lambda vector: (vector, 0.0), self.max_log_likelihood(as_instance=False)
-            )
-        )
-
     def _instance_from_vector(self, vector: List[float]) -> ModelInstance:
         return self.model.instance_from_vector(vector=vector, ignore_prior_limits=True)
+
+    @property
+    def prior_means(self) -> [List]:
+        """
+        The mean of every parameter used to link its inferred values and errors to priors used to sample the
+        same (or similar) parameters in a subsequent search, where:
+
+        - The mean is given by their most-probable values median PDF values if using a sampler that provides this
+          information(using median_pdf(as_instance=False)).
+        - The man is given by the maximum log likelihood values otherwise (e.g. for a maximum likelihood estimator).
+        """
+
+        try:
+            return self.median_pdf(as_instance=False)
+        except AttributeError:
+            return self.max_log_likelihood(as_instance=False)
