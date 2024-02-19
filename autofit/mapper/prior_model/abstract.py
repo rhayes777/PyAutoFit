@@ -937,7 +937,7 @@ class AbstractPriorModel(AbstractModel):
         prior_class_dict = self.prior_class_dict
         arguments = {}
 
-        for i, prior_tuple in enumerate(prior_tuples):
+        for prior_tuple, mean in zip(prior_tuples, means):
             prior = prior_tuple.prior
             cls = prior_class_dict[prior]
 
@@ -959,9 +959,9 @@ class AbstractPriorModel(AbstractModel):
             if a is not None:
                 width = a
             elif r is not None:
-                width = r * means[i]
+                width = r * mean
             else:
-                width = width_modifier(means[i])
+                width = width_modifier(means)
 
             if no_limits:
                 limits = (float("-inf"), float("inf"))
@@ -973,7 +973,7 @@ class AbstractPriorModel(AbstractModel):
 
             sigma = width
 
-            new_prior = GaussianPrior(means[i], sigma, *limits)
+            new_prior = GaussianPrior(mean, sigma, *limits)
             new_prior.id = prior.id
             new_prior.width_modifier = prior.width_modifier
             arguments[prior] = new_prior
