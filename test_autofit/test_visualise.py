@@ -1,7 +1,6 @@
 import itertools
 
 import pytest
-from pathlib import Path
 
 import autofit as af
 from autofit.visualise import VisualiseGraph
