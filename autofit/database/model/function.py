@@ -6,7 +6,7 @@ from ..sqlalchemy_ import sa
 
 class Function(Object):
     """
-    An instance, such as a class instance
+    A function or callable
     """
 
     __tablename__ = "function"
@@ -20,7 +20,10 @@ class Function(Object):
     serialised_function = sa.Column(sa.String)
 
     @property
-    def function(self):
+    def function(self) -> callable:
+        """
+        The function is stored as a serialised dill string
+        """
         return dill.loads(self.serialised_function)
 
     @function.setter
