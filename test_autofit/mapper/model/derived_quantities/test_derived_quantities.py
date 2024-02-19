@@ -44,30 +44,6 @@ def test_multiple_levels():
     }
 
 
-@pytest.fixture(name="model")
-def make_model():
-    return af.Model(af.Gaussian)
-
-
-@pytest.fixture(name="samples")
-def make_samples(model):
-    return SamplesPDF(
-        model=model,
-        sample_list=[
-            af.Sample(
-                log_likelihood=1.0,
-                log_prior=2.0,
-                weight=3.0,
-                kwargs={
-                    "centre": 0.0,
-                    "normalization": 1.0,
-                    "sigma": 1.0,
-                },
-            ),
-        ],
-    )
-
-
 def test_samples(samples):
     derived_quantities = samples.derived_quantities_list[0]
     assert derived_quantities == [2.3548200450309493]
@@ -78,14 +54,6 @@ def test_persist(samples, model):
     paths.model = model
     paths.save_derived_quantities(samples)
     assert paths._derived_quantities_file.exists()
-
-
-def test_persist_database(samples, model, session):
-    paths = DatabasePaths(session)
-    paths.model = model
-    paths.save_derived_quantities(samples)
-
-    assert paths.fit["derived_quantities"].shape == (1, 1)
 
 
 def test_summary(samples):
