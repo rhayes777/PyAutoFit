@@ -21,3 +21,21 @@ def test_object_to_instance(model):
         db.Object.from_object(model)().instance_from_prior_medians(),
         af.Gaussian,
     )
+
+
+def test_model_with_parameterless_component():
+    child = af.Gaussian()
+    model = af.Model(
+        af.Gaussian,
+        centre=child,
+    )
+    assert ("centre", child) in model.items()
+
+    model = db.Object.from_object(model)()
+    instance = model.instance_from_prior_medians()
+    assert isinstance(instance.centre, af.Gaussian)
+
+
+def test_instance_in_collection():
+    collection = af.Collection(gaussian=af.Gaussian())
+    assert list(collection.items()) == [("gaussian", af.Gaussian())]
