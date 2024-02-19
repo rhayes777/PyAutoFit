@@ -34,3 +34,8 @@ def test_model_with_parameterless_component():
     model = db.Object.from_object(model)()
     instance = model.instance_from_prior_medians()
     assert isinstance(instance.centre, af.Gaussian)
+
+
+def test_instance_in_collection():
+    collection = af.Collection(gaussian=af.Gaussian())
+    assert list(collection.items()) == [("gaussian", af.Gaussian())]
