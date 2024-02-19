@@ -1290,6 +1290,7 @@ class AbstractPriorModel(AbstractModel):
     def _instance_for_arguments(
         self,
         arguments: Dict[Prior, float],
+        ignore_assertions: bool = False,
     ):
         raise NotImplementedError()
 
@@ -1320,6 +1321,7 @@ class AbstractPriorModel(AbstractModel):
         logger.debug(f"Creating an instance for arguments")
         instance = self._instance_for_arguments(
             arguments,
+            ignore_assertions=ignore_assertions,
         )
         for key, value in self.custom_derived_quantities.items():
             setattr(instance, key, value(instance))
