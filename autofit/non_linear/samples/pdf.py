@@ -6,6 +6,7 @@ from typing import Dict, List, Optional, Tuple, Union
 import numpy as np
 
 from autoconf import conf
+from autoconf.output import should_output
 from autofit.mapper.model import ModelInstance
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.samples.sample import Sample, load_from_table
@@ -363,7 +364,7 @@ class SamplesPDF(Samples):
         """
         if len(self.parameter_lists) == 1:
             return np.eye(1)
-        
+
         return np.cov(m=self.parameter_lists, rowvar=False, aweights=self.weight_list)
 
     def save_covariance_matrix(self, filename: Union[pathlib.Path, str]):
@@ -375,6 +376,8 @@ class SamplesPDF(Samples):
         filename
             The filename the covariance matrix is saved to.
         """
+        if not should_output("covariance"):
+            return
         # noinspection PyTypeChecker
         np.savetxt(filename, self.covariance_matrix, delimiter=",")
 
