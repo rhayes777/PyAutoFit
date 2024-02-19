@@ -6,8 +6,6 @@ import numpy as np
 
 from autoconf.class_path import get_class, get_class_path
 from ..sqlalchemy_ import sa, declarative
-from autofit.mapper.prior.arithmetic.assertion import ComparisonAssertion
-from autofit.mapper.prior.arithmetic.assertion import CompoundAssertion
 
 Base = declarative.declarative_base()
 
@@ -97,6 +95,7 @@ class Object(Base):
         elif isinstance(source, np.ndarray):
             from .array import Array
 
+            # noinspection PyArgumentList
             instance = Array(array=source)
         elif isinstance(source, Model):
             from .prior import Model

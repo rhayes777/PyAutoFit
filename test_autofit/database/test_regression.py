@@ -21,3 +21,13 @@ def test_object_to_instance(model):
         db.Object.from_object(model)().instance_from_prior_medians(),
         af.Gaussian,
     )
+
+
+def test_model_with_parameterless_component():
+    model = af.Model(
+        af.Gaussian,
+        centre=af.Gaussian(),
+    )
+    model = db.Object.from_object(model)()
+    instance = model.instance_from_prior_medians()
+    assert isinstance(instance.centre, af.Gaussian)

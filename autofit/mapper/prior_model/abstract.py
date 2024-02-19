@@ -1178,12 +1178,11 @@ class AbstractPriorModel(AbstractModel):
         return result
 
     def items(self):
-        return (
-            self.direct_prior_tuples
-            + self.direct_instance_tuples
-            + self.direct_prior_model_tuples
-            + self.direct_tuple_priors
-        )
+        return [
+            (key, value)
+            for key, value in self.__dict__.items()
+            if not key.startswith("_") and key not in ("cls", "id")
+        ]
 
     @property
     @cast_collection(PriorNameValue)
