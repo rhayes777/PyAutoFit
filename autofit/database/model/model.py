@@ -127,6 +127,10 @@ class Object(Base):
             from .compound import Compound
 
             instance = Compound._from_object(source)
+        elif inspect.isfunction(source):
+            from .function import Function
+
+            instance = Function._from_object(source)
         else:
             from .instance import Instance
 
