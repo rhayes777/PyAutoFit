@@ -15,9 +15,22 @@ def test_persist_database(samples, model, paths):
     assert paths.fit["derived_quantities"].shape == (1, 1)
 
 
-def test_custom_derived_quantities(session):
+def test_custom_derived_quantities():
     model = af.Model(
         af.Gaussian,
+        custom_derived_quantities={"custom": lambda instance: 2 * instance.centre},
+    )
+
+    obj = af.db.Object.from_object(model)
+
+    assert "custom" in obj().custom_derived_quantities
+
+
+def test_custom_derived_quantities_collection():
+    model = af.Collection(
+        gaussian=af.Model(
+            af.Gaussian,
+        ),
         custom_derived_quantities={"custom": lambda instance: 2 * instance.centre},
     )
 

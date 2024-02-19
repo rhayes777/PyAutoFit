@@ -88,7 +88,12 @@ class Collection(AbstractPriorModel):
             }
         )
 
-    def __init__(self, *arguments, **kwargs):
+    def __init__(
+        self,
+        *arguments,
+        custom_derived_quantities=None,
+        **kwargs,
+    ):
         """
         The object multiple Python classes are input into to create model-components, which has free parameters that
         are fitted by a non-linear search.
@@ -138,7 +143,9 @@ class Collection(AbstractPriorModel):
 
         model = af.Collection(gaussian_0=Gaussian, gaussian_1=Gaussian)
         """
-        super().__init__()
+        super().__init__(
+            custom_derived_quantities=custom_derived_quantities,
+        )
         self.item_number = 0
         arguments = list(arguments)
         if len(arguments) == 0:
