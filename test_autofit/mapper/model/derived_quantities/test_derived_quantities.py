@@ -1,6 +1,7 @@
 import pytest
 
 import autofit as af
+from autoconf.conf import with_config
 from autofit import DirectoryPaths, DatabasePaths, SamplesPDF
 from autofit.text.samples_text import derived_quantity_summary
 from autofit.text.text_util import derived_info_from
@@ -54,6 +55,18 @@ def test_persist(samples, model):
     paths.model = model
     paths.save_derived_quantities(samples)
     assert paths._derived_quantities_file.exists()
+
+
+@with_config(
+    "output",
+    "derived_quantities",
+    value=False,
+)
+def test_conditional_persist(samples, model):
+    paths = DirectoryPaths()
+    paths.model = model
+    paths.save_derived_quantities(samples)
+    assert not paths._derived_quantities_file.exists()
 
 
 def test_summary(samples):

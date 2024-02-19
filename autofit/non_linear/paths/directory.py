@@ -10,7 +10,7 @@ import logging
 
 from autoconf import conf
 from autoconf.dictable import to_dict
-from autoconf.output import conditional_output
+from autoconf.output import conditional_output, should_output
 from autofit.text import formatter
 from autofit.tools.util import open_
 
@@ -187,6 +187,9 @@ class DirectoryPaths(AbstractPaths):
         The results in this representation are required to use a search's in-built tools for visualization,
         analysing samples and other tasks.
         """
+        if not should_output("search_internal"):
+            return
+
         filename = self.search_internal_path / "search_internal.dill"
 
         with open_(filename, "wb") as f:
@@ -232,7 +235,9 @@ class DirectoryPaths(AbstractPaths):
         """
         Save the final-result samples associated with the phase as a pickle
         """
-        if conf.instance["general"]["output"]["samples_to_csv"]:
+        if conf.instance["general"]["output"]["samples_to_csv"] and should_output(
+            "samples"
+        ):
             samples.write_table(filename=self._samples_file)
             self.save_json("samples_info", samples.samples_info)
             if isinstance(samples, SamplesPDF):
@@ -254,6 +259,9 @@ class DirectoryPaths(AbstractPaths):
         samples
             An object comprising each sample and a model which is used to compute the derived quantities.
         """
+        if not should_output("derived_quantities"):
+            return
+
         write_table(
             filename=str(self._derived_quantities_file),
             headers=[
