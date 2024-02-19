@@ -243,9 +243,16 @@ log_transform = FunctionTransform(np.log, np.exp, np.reciprocal, func_grad_hess=
 def _log_10_inv(x):
     return 10**x
 
+LOG10 = np.log(10)
+def _log10_recip(x):
+    return np.reciprocal(x) / LOG10
+
+def log10_3(x):
+    ix = _log10_recip(x)
+    return np.log10(x), ix, -ix/x
 
 # TODO: what should func_grad_hess look like? np.log10, ... ?
-log_10_transform = FunctionTransform(np.log10, _log_10_inv, np.reciprocal)
+log_10_transform = FunctionTransform(np.log10, _log_10_inv, _log10_recip, func_grad_hess=log10_3)
 
 
 def sigmoid(x, scale=1, shift=0):
