@@ -905,9 +905,7 @@ class AbstractPriorModel(AbstractModel):
     def gaussian_prior_model_for_arguments(self, arguments):
         raise NotImplementedError()
 
-    def mapper_from_prior_means(
-        self, means, a=None, r=None, no_limits=False
-    ):
+    def mapper_from_prior_means(self, means, a=None, r=None, no_limits=False):
         """
         The widths of the new priors are taken from the
         width_config. The new gaussian priors must be provided in the same order as
@@ -961,7 +959,7 @@ class AbstractPriorModel(AbstractModel):
             elif r is not None:
                 width = r * mean
             else:
-                width = width_modifier(means)
+                width = width_modifier(mean)
 
             if no_limits:
                 limits = (float("-inf"), float("inf"))
