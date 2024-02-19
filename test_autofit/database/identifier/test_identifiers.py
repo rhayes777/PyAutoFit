@@ -291,7 +291,7 @@ def test__identifier_description__after_model_and_instance():
 
     samples = af.m.MockSamples(
         max_log_likelihood_instance=max_log_likelihood_instance,
-        gaussian_tuples=[(1.0, 2.0), (3.0, 4.0), (5.0, 6.0)],
+        prior_means=[1.0, 3.0, 5.0],
         model=model,
     )
 
@@ -323,7 +323,7 @@ upper_limit
 mean
 1.0
 sigma
-2.0
+1.0
 normalization
 0.00316228
 sigma

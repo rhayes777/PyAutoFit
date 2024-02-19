@@ -1,5 +1,3 @@
-import json
-from os import path
 import os
 import matplotlib.pyplot as plt
 from typing import List

@@ -226,6 +226,9 @@ class DatabasePaths(AbstractPaths):
     def load_search_internal(self):
         pass
 
+    def remove_search_internal(self):
+        pass
+
     @property
     def fit(self) -> Fit:
         if self._fit is None:

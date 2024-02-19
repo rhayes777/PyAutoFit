@@ -697,6 +697,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         if self.is_master:
             analysis.save_results(paths=self.paths, result=result)
+            analysis.save_results_combined(paths=self.paths, result=result)
 
         model.unfreeze()
 
@@ -764,6 +765,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                     )
 
                 analysis.save_results(paths=self.paths, result=result)
+                analysis.save_results_combined(paths=self.paths, result=result)
 
         model.unfreeze()
 
@@ -785,6 +787,10 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         bypass_nuclear_if_on
             Whether to use nuclear mode to delete a lot of files (see nuclear mode description).
         """
+        if not conf.instance["output"]["search_internal"]:
+            self.logger.info("Removing search internal folder.")
+            self.paths.remove_search_internal()
+
         self.logger.info("Removing all files except for .zip file")
         self.paths.zip_remove()
 
@@ -922,7 +928,10 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             self.paths.save_samples(samples=samples)
 
             if not during_analysis:
-                self.paths.save_derived_quantities(samples=samples)
+                try:
+                    self.paths.save_derived_quantities(samples=samples)
+                except exc.FitException:
+                    pass
 
             if not self.skip_save_samples:
                 self.paths.save_json("samples_summary", to_dict(samples.summary()))

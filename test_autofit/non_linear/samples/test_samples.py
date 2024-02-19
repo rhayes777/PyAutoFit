@@ -104,40 +104,6 @@ def test__max_log_posterior():
     assert instance.mock_class_1.four == 24.0
 
 
-def test__gaussian_priors():
-    parameters = [
-        [1.0, 2.0, 3.0, 4.0],
-        [1.0, 2.0, 3.0, 4.1],
-        [1.0, 2.0, 3.0, 4.1],
-        [0.88, 1.88, 2.88, 3.88],
-        [1.12, 2.12, 3.12, 4.32],
-    ]
-
-    model = af.Collection(mock_class=af.m.MockClassx4)
-    samples_x5 = af.m.MockSamples(
-        model=model,
-        sample_list=af.Sample.from_lists(
-            model=model,
-            parameter_lists=parameters,
-            log_likelihood_list=[10.0, 0.0, 0.0, 0.0, 0.0],
-            log_prior_list=[0.0, 0.0, 0.0, 0.0, 0.0],
-            weight_list=[1.0, 1.0, 1.0, 1.0, 1.0],
-        ),
-    )
-
-    gaussian_priors = samples_x5.gaussian_priors_at_sigma(sigma=1.0)
-
-    assert gaussian_priors[0][0] == 1.0
-    assert gaussian_priors[1][0] == 2.0
-    assert gaussian_priors[2][0] == 3.0
-    assert gaussian_priors[3][0] == 4.0
-
-    assert gaussian_priors[0][1] == pytest.approx(0.12, 1.0e-4)
-    assert gaussian_priors[1][1] == pytest.approx(0.12, 1.0e-4)
-    assert gaussian_priors[2][1] == pytest.approx(0.12, 1.0e-4)
-    assert gaussian_priors[3][1] == pytest.approx(0.32, 1.0e-4)
-
-
 def test__instance_from_sample_index():
     model = af.Collection(mock_class=af.m.MockClassx4)
 

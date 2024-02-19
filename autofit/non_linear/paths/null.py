@@ -87,6 +87,9 @@ class NullPaths(AbstractPaths):
     def load_search_internal(self):
         pass
 
+    def remove_search_internal(self):
+        pass
+
     @property
     def search_internal_path(self):
         pass

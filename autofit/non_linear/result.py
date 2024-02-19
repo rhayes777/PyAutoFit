@@ -220,14 +220,13 @@ class Result(AbstractResult):
 
     @property
     def model(self):
-        use_errors = conf.instance["general"]["prior_passer"]["use_errors"]
-        use_widths = conf.instance["general"]["prior_passer"]["use_widths"]
 
         if self.__model is None:
-            tuples = self.samples.gaussian_priors_at_sigma(sigma=self.sigma)
-            self.__model = self.samples.model.mapper_from_gaussian_tuples(
-                tuples, use_errors=use_errors, use_widths=use_widths
+
+            self.__model = self.samples.model.mapper_from_prior_means(
+                means=self.samples.prior_means
             )
+
         return self.__model
 
     @model.setter

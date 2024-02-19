@@ -110,6 +110,9 @@ class Analysis(ABC):
     def save_results(self, paths: AbstractPaths, result: Result):
         pass
 
+    def save_results_combined(self, paths: AbstractPaths, result: Result):
+        pass
+
     def modify_before_fit(self, paths: AbstractPaths, model: AbstractPriorModel):
         """
         Overwrite this method to modify the attributes of the `Analysis` class before the non-linear search begins.

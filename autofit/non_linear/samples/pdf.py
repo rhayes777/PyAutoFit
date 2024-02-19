@@ -304,37 +304,6 @@ class SamplesPDF(Samples):
         lowers = self.values_at_lower_sigma(sigma=sigma, as_instance=False)
         return list(map(lambda upper, lower: upper - lower, uppers, lowers))
 
-    def gaussian_priors_at_sigma(self, sigma: float) -> [List]:
-        """
-        `GaussianPrior`s of every parameter used to link its inferred values and errors to priors used to sample the
-        same (or similar) parameters in a subsequent search, where:
-
-        - The mean is given by their most-probable values (using median_pdf(as_instance=False)).
-        - Their errors are computed at an input sigma value (using errors_at_sigma).
-
-        Parameters
-        ----------
-        sigma
-            The sigma within which the PDF is used to estimate errors (e.g. sigma = 1.0 uses 0.6826 of the PDF).
-        """
-
-        means = self.median_pdf(as_instance=False)
-
-        uppers = self.values_at_upper_sigma(sigma=sigma, as_instance=False)
-        lowers = self.values_at_lower_sigma(sigma=sigma, as_instance=False)
-
-        # noinspection PyArgumentList
-        sigmas = list(
-            map(
-                lambda mean, upper, lower: max([upper - mean, mean - lower]),
-                means,
-                uppers,
-                lowers,
-            )
-        )
-
-        return list(map(lambda mean, sigma: (mean, sigma), means, sigmas))
-
     @to_instance
     def draw_randomly_via_pdf(self) -> Union[List, ModelInstance]:
         """

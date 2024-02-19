@@ -16,7 +16,7 @@ class MockSamples(SamplesPDF):
         samples_info=None,
         max_log_likelihood_instance=None,
         log_likelihood_list=None,
-        gaussian_tuples=None,
+        prior_means=None,
         **kwargs,
     ):
         self._log_likelihood_list = log_likelihood_list
@@ -35,7 +35,7 @@ class MockSamples(SamplesPDF):
         )
 
         self._max_log_likelihood_instance = max_log_likelihood_instance
-        self._gaussian_tuples = gaussian_tuples
+        self._prior_means = prior_means
 
     @property
     def default_sample_list(self):
@@ -65,11 +65,12 @@ class MockSamples(SamplesPDF):
 
         return self._max_log_likelihood_instance
 
-    def gaussian_priors_at_sigma(self, sigma=None):
-        if self._gaussian_tuples is None:
-            return super().gaussian_priors_at_sigma(sigma=sigma)
+    @property
+    def prior_means(self):
+        if self._prior_means is None:
+            return super().prior_means
 
-        return self._gaussian_tuples
+        return self._prior_means
 
     @property
     def unconverged_sample_size(self):

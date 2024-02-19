@@ -905,8 +905,8 @@ class AbstractPriorModel(AbstractModel):
     def gaussian_prior_model_for_arguments(self, arguments):
         raise NotImplementedError()
 
-    def mapper_from_gaussian_tuples(
-        self, tuples, a=None, r=None, use_errors=True, use_widths=True, no_limits=False
+    def mapper_from_prior_means(
+        self, means, a=None, r=None, no_limits=False
     ):
         """
         The widths of the new priors are taken from the
@@ -916,6 +916,8 @@ class AbstractPriorModel(AbstractModel):
         If r is not None then all priors are created with a relative width of r.
         Parameters
         ----------
+        means
+            The median PDF value of every Gaussian, which centres each `GaussianPrior`.
         no_limits
             If `True` generated priors have infinite limits
         r
@@ -923,14 +925,6 @@ class AbstractPriorModel(AbstractModel):
         a
             print(tuples[i][1], width)
             The absolute width to be assigned to gaussian priors
-        use_errors
-            If True, the passed errors of the model components estimated in a previous `NonLinearSearch` (computed
-            at the prior_passer.sigma value) are used to set the pass Gaussian Prior sigma value (if both width and
-            passed errors are used, the maximum of these two values are used).
-        use_widths
-            If True, the minimum prior widths specified in the prior configs of the model components are used to
-            set the passed Gaussian Prior sigma value (if both widths and passed errors are used, the maximum of
-            these two values are used).
         tuples
             A list of tuples each containing the mean and width of a prior
         Returns
@@ -943,10 +937,9 @@ class AbstractPriorModel(AbstractModel):
         prior_class_dict = self.prior_class_dict
         arguments = {}
 
-        for i, prior_tuple in enumerate(prior_tuples):
+        for prior_tuple, mean in zip(prior_tuples, means):
             prior = prior_tuple.prior
             cls = prior_class_dict[prior]
-            mean, sigma = tuples[i]
 
             name = prior_tuple.name
             # Use the name of the collection for configuration when a prior's name
@@ -968,7 +961,7 @@ class AbstractPriorModel(AbstractModel):
             elif r is not None:
                 width = r * mean
             else:
-                width = width_modifier(mean)
+                width = width_modifier(means)
 
             if no_limits:
                 limits = (float("-inf"), float("inf"))
@@ -978,17 +971,7 @@ class AbstractPriorModel(AbstractModel):
                 except ConfigException:
                     limits = prior.limits
 
-            if use_errors and not use_widths:
-                sigma = tuples[i][1]
-            elif not use_errors and use_widths:
-                sigma = width
-            elif use_errors and use_widths:
-                sigma = max(tuples[i][1], width)
-            else:
-                raise exc.PriorException(
-                    "use_passed_errors and use_widths are both False, meaning there is no "
-                    "way to pass priors to set up the new model's Gaussian Priors."
-                )
+            sigma = width
 
             new_prior = GaussianPrior(mean, sigma, *limits)
             new_prior.id = prior.id
