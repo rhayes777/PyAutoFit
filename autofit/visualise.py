@@ -146,6 +146,7 @@ class VisualiseGraph:
         net = Network(
             notebook=notebook,
             directed=True,
+            cdn_resources="remote",
         )
 
         def add_model(obj, **kwargs):
