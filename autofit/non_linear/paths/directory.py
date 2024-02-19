@@ -187,9 +187,6 @@ class DirectoryPaths(AbstractPaths):
         The results in this representation are required to use a search's in-built tools for visualization,
         analysing samples and other tasks.
         """
-        if not should_output("search_internal"):
-            return
-
         filename = self.search_internal_path / "search_internal.dill"
 
         with open_(filename, "wb") as f:
