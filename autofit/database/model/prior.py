@@ -11,8 +11,9 @@ from .model import Object
 
 def extra_children(source):
     return [
-        (f"assertion_{i}", assertion) for i, assertion in enumerate(source.assertions)
-    ] + [(f"_custom_derived_quantities", source.custom_derived_quantities)]
+        (f"_custom_derived_quantities", source.custom_derived_quantities),
+        (f"_assertions", source.assertions),
+    ]
 
 
 class Collection(Object):
