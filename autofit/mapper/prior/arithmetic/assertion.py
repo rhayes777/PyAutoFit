@@ -24,7 +24,7 @@ class ComparisonAssertion(CompoundPrior, Compound, ABC):
 
 
 class GreaterThanLessThanAssertion(ComparisonAssertion):
-    def _instance_for_arguments(self, arguments):
+    def _instance_for_arguments(self, arguments, ignore_assertions=False):
         """
         Assert that the value in the dictionary associated with the lower
         prior is lower than the value associated with the greater prior.
@@ -39,13 +39,23 @@ class GreaterThanLessThanAssertion(ComparisonAssertion):
         FitException
             If the assertion is not met
         """
-        lower = self.left_for_arguments(arguments)
-        greater = self.right_for_arguments(arguments)
+        lower = self.left_for_arguments(
+            arguments,
+            ignore_assertions=ignore_assertions,
+        )
+        greater = self.right_for_arguments(
+            arguments,
+            ignore_assertions=ignore_assertions,
+        )
         return lower < greater
 
 
 class GreaterThanLessThanEqualAssertion(ComparisonAssertion):
-    def _instance_for_arguments(self, arguments):
+    def _instance_for_arguments(
+        self,
+        arguments,
+        ignore_assertions=False,
+    ):
         """
         Assert that the value in the dictionary associated with the lower
         prior is lower than the value associated with the greater prior.
@@ -60,7 +70,13 @@ class GreaterThanLessThanEqualAssertion(ComparisonAssertion):
         FitException
             If the assertion is not met
         """
-        return self.left_for_arguments(arguments) <= self.right_for_arguments(arguments)
+        return self.left_for_arguments(
+            arguments,
+            ignore_assertions=ignore_assertions,
+        ) <= self.right_for_arguments(
+            arguments,
+            ignore_assertions=ignore_assertions,
+        )
 
 
 class CompoundAssertion(AbstractPriorModel, Compound):
@@ -70,11 +86,17 @@ class CompoundAssertion(AbstractPriorModel, Compound):
         self.assertion_2 = assertion_2
         self._name = name
 
-    def _instance_for_arguments(self, arguments):
+    def _instance_for_arguments(
+        self,
+        arguments,
+        ignore_assertions=False,
+    ):
         return self.assertion_1.instance_for_arguments(
             arguments,
+            ignore_assertions,
         ) and self.assertion_2.instance_for_arguments(
             arguments,
+            ignore_assertions,
         )
 
     def dict(self) -> dict:

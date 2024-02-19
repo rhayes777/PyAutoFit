@@ -168,7 +168,12 @@ class Prior(Variable, ABC, ArithmeticMixin):
             self.assert_within_limits(result)
         return result
 
-    def instance_for_arguments(self, arguments):
+    def instance_for_arguments(
+        self,
+        arguments,
+        ignore_assertions=False,
+    ):
+        _ = ignore_assertions
         return arguments[self]
 
     def project(self, samples, weights):

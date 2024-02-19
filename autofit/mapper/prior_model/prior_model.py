@@ -414,7 +414,11 @@ class Model(AbstractPriorModel):
         return len(self.direct_deferred_tuples) > 0
 
     # noinspection PyUnresolvedReferences
-    def _instance_for_arguments(self, arguments: {ModelObject: object}):
+    def _instance_for_arguments(
+        self,
+        arguments: {ModelObject: object},
+        ignore_assertions=False,
+    ):
         """
         Returns an instance of the associated class for a set of arguments
 
@@ -444,6 +448,7 @@ class Model(AbstractPriorModel):
                 prior_model_tuple.name
             ] = prior_model.instance_for_arguments(
                 arguments,
+                ignore_assertions=ignore_assertions,
             )
 
         prior_arguments = dict()
@@ -478,7 +483,10 @@ class Model(AbstractPriorModel):
                 and not key.startswith("_")
             ):
                 if isinstance(value, Model):
-                    value = value.instance_for_arguments(arguments)
+                    value = value.instance_for_arguments(
+                        arguments,
+                        ignore_assertions=ignore_assertions,
+                    )
                 elif isinstance(value, Prior):
                     value = arguments[value]
                 try:

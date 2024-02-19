@@ -190,7 +190,7 @@ class AbstractModel(ModelObject):
     def path_instance_tuples_for_class(
         self,
         cls: Union[Tuple, Type],
-        ignore_class: bool = None,
+        ignore_class: Optional[type] = None,
         ignore_children: bool = True,
     ):
         """

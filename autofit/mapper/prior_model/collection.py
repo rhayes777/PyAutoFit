@@ -229,7 +229,11 @@ class Collection(AbstractPriorModel):
 
         return collection
 
-    def _instance_for_arguments(self, arguments):
+    def _instance_for_arguments(
+        self,
+        arguments,
+        ignore_assertions=False,
+    ):
         """
         Parameters
         ----------
@@ -246,7 +250,10 @@ class Collection(AbstractPriorModel):
             if key.startswith("_"):
                 continue
             if isinstance(value, AbstractPriorModel):
-                value = value.instance_for_arguments(arguments)
+                value = value.instance_for_arguments(
+                    arguments,
+                    ignore_assertions=ignore_assertions,
+                )
             elif isinstance(value, Prior):
                 value = arguments[value]
             setattr(result, key, value)
