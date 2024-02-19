@@ -27,7 +27,7 @@ class Function(Object):
     def function(self, function):
         self.serialised_function = dill.dumps(function)
 
-    __mapper_args__ = {"polymorphic_identity": "instance"}
+    __mapper_args__ = {"polymorphic_identity": "function"}
 
     @classmethod
     def _from_object(cls, source):
