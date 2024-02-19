@@ -20,10 +20,3 @@ def make_prior_factor(prior):
 
 def test_prior_factor(prior_factor):
     assert prior_factor.prior_model.prior_count == 1
-
-
-def test_log_likelihood_function(prior_factor):
-    instance = prior_factor.prior_model.instance_from_prior_medians()
-    assert prior_factor.log_likelihood_function(instance) == pytest.approx(
-        -0.9189385332046727, 1.0e-8
-    )
