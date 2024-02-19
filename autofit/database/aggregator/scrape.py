@@ -90,12 +90,12 @@ class Scraper:
                     parent_id=item.parent_identifier,
                 )
 
-            _add_files(fit, item)
+            _add_files_fit(fit, item)
             for i, child_analysis in enumerate(item.child_analyses):
                 child_fit = m.Fit(
                     id=f"{item.id}_{i}",
                 )
-                _add_files(child_fit, child_analysis)
+                _add_files_fit(child_fit, child_analysis)
                 fit.children.append(child_fit)
 
             yield fit
@@ -147,6 +147,14 @@ class Scraper:
         return self.session.query(m.Fit).filter(m.Fit.id == item.id).one()
 
 
+def _add_files_fit(fit: m.Fit, item: SearchOutput):
+    try:
+        fit.samples = item.samples
+    except AttributeError:
+        logger.warning(f"Failed to load samples for {fit.id}")
+    _add_files(fit, item)
+
+
 def _add_files(fit: m.Fit, item: SearchOutput):
     """
     Load files from the path and add them to the database.
@@ -156,11 +164,6 @@ def _add_files(fit: m.Fit, item: SearchOutput):
     fit
         A fit to which the pickles belong
     """
-    try:
-        fit.samples = item.samples
-    except AttributeError:
-        logger.warning(f"Failed to load samples for {fit.id}")
-
     for json_output in item.jsons:
         fit.set_json(json_output.name, json_output.dict)
 
