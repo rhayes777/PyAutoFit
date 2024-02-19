@@ -166,6 +166,10 @@ class AbstractPriorModel(AbstractModel):
     def custom_derived_quantities(self):
         return self._custom_derived_quantities
 
+    @custom_derived_quantities.setter
+    def custom_derived_quantities(self, custom_derived_quantities):
+        self._custom_derived_quantities = custom_derived_quantities
+
     @property
     def assertions(self):
         return self._assertions
