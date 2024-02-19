@@ -9,6 +9,13 @@ from autofit.mapper.prior_model import collection
 from .model import Object
 
 
+def extra_children(source):
+    return [
+        (f"_custom_derived_quantities", source.custom_derived_quantities),
+        (f"_assertions", source.assertions),
+    ]
+
+
 class Collection(Object):
     """
     A collection
@@ -28,9 +35,14 @@ class Collection(Object):
     @classmethod
     def _from_object(cls, source: Union[collection.Collection, list, dict]):
         instance = cls()
-        if not isinstance(source, collection.Collection):
+        if isinstance(source, collection.Collection):
+            extra_children_ = extra_children(source)
+            instance._add_children(extra_children_)
+        else:
             source = collection.Collection(source)
+
         instance._add_children(source.items())
+
         instance.cls = collection.Collection
         return instance
 
@@ -58,13 +70,7 @@ class Model(Object):
     ):
         instance = cls()
         instance.cls = model.cls
-        instance._add_children(
-            model.items()
-            + [
-                (f"assertion_{i}", assertion)
-                for i, assertion in enumerate(model.assertions)
-            ]
-        )
+        instance._add_children(model.items() + extra_children(model))
         return instance
 
     def _make_instance(self):

@@ -127,6 +127,10 @@ class Object(Base):
             from .compound import Compound
 
             instance = Compound._from_object(source)
+        elif inspect.isfunction(source):
+            from .function import Function
+
+            instance = Function._from_object(source)
         else:
             from .instance import Instance
 
@@ -160,31 +164,11 @@ class Object(Base):
         instance = self._make_instance()
         child_instances = {child.name: child() for child in self.children}
 
-        assertions = [
-            child
-            for child in child_instances.values()
-            if isinstance(
-                child,
-                (
-                    ComparisonAssertion,
-                    CompoundAssertion,
-                ),
-            )
-        ]
-
-        child_instances = {
-            name: child
-            for name, child in child_instances.items()
-            if child not in assertions
-        }
-
         if hasattr(instance, "__setstate__"):
             instance.__setstate__(child_instances)
         else:
             for name, child in child_instances.items():
                 setattr(instance, name, child)
-
-        instance._assertions = assertions
 
         from autofit import ModelObject
 
