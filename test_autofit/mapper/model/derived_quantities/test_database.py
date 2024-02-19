@@ -1,4 +1,3 @@
-import dill
 import pytest
 
 import autofit as af

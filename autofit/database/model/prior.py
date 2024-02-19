@@ -1,4 +1,3 @@
-import dill
 from typing import Union
 
 from ..sqlalchemy_ import sa
@@ -65,10 +64,7 @@ class Model(Object):
                 (f"assertion_{i}", assertion)
                 for i, assertion in enumerate(model.assertions)
             ]
-            + [
-                (f"custom_derived_quantity_{key}", value)
-                for key, value in model.custom_derived_quantities.items()
-            ]
+            + [(f"_custom_derived_quantities", model.custom_derived_quantities)]
         )
         return instance
 
