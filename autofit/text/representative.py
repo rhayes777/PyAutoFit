@@ -5,28 +5,59 @@ import autofit as af
 
 
 class Representative:
-    def __init__(self, children):
-        self.children = children
+    def __init__(self, items):
+        self.items = items
+
+    @property
+    def keys(self):
+        return [key for key, _ in self.items]
+
+    @property
+    def children(self):
+        return [obj for _, obj in self.items]
+
+    @property
+    def key(self):
+        keys = sorted(self.keys)
+        return f"{keys[0]} - {keys[-1]}"
+
+    @property
+    def representative(self):
+        return self.items[0][1]
+
+    def __getattr__(self, item):
+        return getattr(self.representative, item)
+
+    def __len__(self):
+        return len(self.representative)
 
     @classmethod
-    def find_representatives(cls, collection):
+    def find_representatives(cls, items):
         representative_dict: Dict[tuple, list] = defaultdict(list)
-        for model in collection:
-            blueprint = cls.get_blueprint(model)
-            representative_dict[blueprint].append(model)
+        for key, obj in items:
+            blueprint = cls.get_blueprint(obj)
+            representative_dict[blueprint].append((key, obj))
 
         representatives = []
-        for blueprint, models in representative_dict.items():
-            if len(models) > 1:
-                representatives.append(Representative(models))
+        for blueprint, items in representative_dict.items():
+            if len(items) > 1:
+                representative = Representative(items)
+                representatives.append((representative.key, representative))
             else:
-                representatives.extend(models)
+                representatives.extend(items)
 
         return representatives
 
     @classmethod
     def get_blueprint(cls, obj):
-        if isinstance(obj, (float, int, tuple)):
+        from autofit.text.formatter import FormatNode
+
+        if obj is None:
+            return None
+
+        if isinstance(obj, FormatNode):
+            return cls.get_blueprint(obj.value)
+        if isinstance(obj, (float, int, tuple, str)):
             return obj
         if isinstance(obj, af.Prior):
             return type(obj), obj.parameter_string

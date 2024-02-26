@@ -14,9 +14,10 @@ def test_model_info(collection):
 
 
 def test_representative(collection):
-    (representative,) = Representative.find_representatives(collection)
+    ((key, representative),) = Representative.find_representatives(collection.items())
 
     assert len(representative.children) == 20
+    assert key == "0 - 9"
 
 
 def test_get_blueprint():

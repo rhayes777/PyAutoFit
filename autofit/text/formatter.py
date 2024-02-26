@@ -1,10 +1,10 @@
 import csv
 import logging
-from collections import defaultdict
 from dataclasses import dataclass
 from typing import Tuple
 
 from autoconf import conf
+from autofit.text.representative import Representative
 from autofit.tools.util import open_
 
 logger = logging.getLogger(__name__)
@@ -16,14 +16,6 @@ def group_name(keys):
 
     keys = sorted(keys)
     return f"{keys[0]} - {keys[-1]}"
-
-
-@dataclass
-class Representation:
-    value: str
-
-    def __len__(self):
-        return 0
 
 
 class FormatNode:
@@ -43,21 +35,11 @@ class FormatNode:
         return self._dict.items()
 
     def groups(self):
-        if any(value.value is None or len(value) > 0 for value in self._dict.values()):
-            return self._dict.items()
-
-        groups = defaultdict(list)
-        for key, value in self._dict.items():
-            groups[str(value.value)].append(key)
-
-        return [
-            (group_name(keys), Representation(representation))
-            for representation, keys in groups.items()
-        ]
+        return Representative.find_representatives(self.items())
 
     def list(self, indent=4, line_length=90):
         lines = []
-        for key, value in self.items():
+        for key, value in self.groups():
             indent_string = indent * " "
             if value.value is not None:
                 value_string = str(value.value)
