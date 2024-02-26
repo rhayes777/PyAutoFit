@@ -121,6 +121,16 @@ class Representative:
                 )
                 if path != ("id",)
             )
+            path_priors = obj.path_instance_tuples_for_class(
+                af.Prior, ignore_children=True
+            )
+            min_id = min(pp[1].id for pp in path_priors)
+            blueprint += tuple(
+                (path, prior.id - min_id, cls.get_blueprint(prior))
+                for path, prior in obj.path_instance_tuples_for_class(
+                    af.Prior, ignore_children=True
+                )
+            )
             if isinstance(obj, af.Model):
                 return blueprint + (obj.cls,)
             return blueprint

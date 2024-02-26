@@ -40,13 +40,11 @@ def test_representative(collection):
     assert key == "0 - 9"
 
 
-def test_get_blueprint():
-    assert Representative.get_blueprint(af.Model(af.Gaussian)) == (
-        (("centre",), (af.UniformPrior, "lower_limit = 0.0, upper_limit = 1.0")),
-        (("normalization",), (af.UniformPrior, "lower_limit = 0.0, upper_limit = 1.0")),
-        (("sigma",), (af.UniformPrior, "lower_limit = 0.0, upper_limit = 1.0")),
-        af.Gaussian,
-    )
+def test_find_representatives(collection):
+    assert len(Representative.find_representatives(collection.items())) == 1
+
+    collection[0].centre = collection[1].centre
+    assert len(Representative.find_representatives(collection.items())) == 2
 
 
 @pytest.fixture(name="samples")
