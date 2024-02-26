@@ -5,6 +5,7 @@ import pytest
 
 from autofit.text.representative import Representative
 from autofit.text.text_util import result_info_from
+from autofit.visualise import VisualiseGraph
 
 
 @pytest.fixture(autouse=True)
@@ -99,3 +100,7 @@ instances
 
 """
     )
+
+
+def test_visualise(collection):
+    VisualiseGraph(collection).save("test.html")
