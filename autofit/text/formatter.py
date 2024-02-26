@@ -55,6 +55,26 @@ class FormatNode:
             for representation, keys in groups.items()
         ]
 
+    def list(self, indent=4, line_length=90):
+        lines = []
+        for key, value in self.items():
+            indent_string = indent * " "
+            if value.value is not None:
+                value_string = str(value.value)
+                space_string = max((line_length - len(str(key))), 1) * " "
+                lines.append(f"{key}{space_string}{value_string}")
+
+            if len(value) > 0:
+                sub_lines = value.list(
+                    indent=indent,
+                    line_length=line_length - indent,
+                )
+                if value.value is None:
+                    lines.append(key)
+                for line in sub_lines:
+                    lines.append(f"{indent_string}{line}")
+        return lines
+
 
 class TextFormatter:
     def __init__(self, line_length=90, indent=4):
@@ -73,32 +93,16 @@ class TextFormatter:
     def add(self, path: Tuple[str, ...], value):
         self.add_to_dict(path, value, self.dict)
 
-    def dict_to_list(self, info_dict, line_length):
-        lines = []
-        for key, value in info_dict.groups():
-            indent_string = self.indent * " "
-            if value.value is not None:
-                value_string = str(value.value)
-                space_string = max((line_length - len(str(key))), 1) * " "
-                lines.append(f"{key}{space_string}{value_string}")
-
-            if len(value) > 0:
-                sub_lines = self.dict_to_list(
-                    value, line_length=line_length - self.indent
-                )
-                if value.value is None:
-                    lines.append(key)
-                for line in sub_lines:
-                    lines.append(f"{indent_string}{line}")
-        return lines
-
-    @property
-    def list(self):
-        return self.dict_to_list(self.dict, line_length=self.line_length)
-
     @property
     def text(self):
         return "\n".join(self.list)
+
+    @property
+    def list(self):
+        return self.dict.list(
+            indent=self.indent,
+            line_length=self.line_length,
+        )
 
 
 def format_string_for_parameter_name(parameter_name: str) -> str:
