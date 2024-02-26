@@ -1,4 +1,5 @@
-from typing import List, Iterable
+from collections import defaultdict
+from typing import Dict, List, Iterable
 
 import autofit as af
 
@@ -79,7 +80,7 @@ class Representative:
                 representatives.extend(current_items)
 
         for key, obj in sorted(items):
-            blueprint = Blueprint(obj).blueprint
+            blueprint = cls.get_blueprint(obj)
             if blueprint == last_blue_print:
                 current_items.append((key, obj))
             else:
@@ -91,16 +92,8 @@ class Representative:
 
         return representatives
 
-
-class Blueprint:
-    def __init__(self, top_level):
-        from autofit.text.formatter import FormatNode
-
-        if isinstance(top_level, FormatNode):
-            top_level = top_level.value
-        self.top_level = top_level
-
-    def get_blueprint(self, obj):
+    @classmethod
+    def get_blueprint(cls, obj):
         """
         Get a blueprint for an object. This is a tuple of tuples of the form
         (path, value) where path is a tuple of strings and value is a float, int,
@@ -118,24 +111,20 @@ class Blueprint:
         -------
         A blueprint for the object.
         """
+        from autofit.text.formatter import FormatNode
+
         if obj is None:
             return None
 
+        if isinstance(obj, FormatNode):
+            return cls.get_blueprint(obj.value)
         if isinstance(obj, (float, int, tuple, str)):
             return obj
         if isinstance(obj, af.Prior):
-            blueprint = (
-                type(obj),
-                obj.parameter_string,
-            )
-            try:
-                blueprint += tuple(self.top_level.all_paths_to_child(obj))
-            except AttributeError:
-                pass
-            return blueprint
+            return type(obj), obj.parameter_string
         if isinstance(obj, af.AbstractModel):
             blueprint = tuple(
-                (path, self.get_blueprint(value))
+                (path, cls.get_blueprint(value))
                 for path, value in obj.path_instance_tuples_for_class(
                     (float, int, tuple, af.Prior), ignore_children=True
                 )
@@ -146,7 +135,7 @@ class Blueprint:
             )
             min_id = min(pp[1].id for pp in path_priors)
             blueprint += tuple(
-                (path, prior.id - min_id, self.get_blueprint(prior))
+                (path, prior.id - min_id, cls.get_blueprint(prior))
                 for path, prior in obj.path_instance_tuples_for_class(
                     af.Prior, ignore_children=True
                 )
@@ -155,10 +144,3 @@ class Blueprint:
                 return blueprint + (obj.cls,)
             return blueprint
         raise ValueError(f"Cannot get blueprint for {obj} of type {type(obj)}")
-
-    @property
-    def blueprint(self):
-        """
-        A dictionary of blueprints for each object in the model.
-        """
-        return self.get_blueprint(self.top_level)

@@ -98,25 +98,6 @@ class AbstractModel(ModelObject):
         _, values = zip(*self.attribute_tuples_with_type(type(child)))
         return values.count(child)
 
-    def all_paths_to_child(self, child):
-        """
-        Get all paths to a child in the model tree.
-
-        Parameters
-        ----------
-        child
-            The child to find
-
-        Returns
-        -------
-        A list of paths to the child
-        """
-        paths = []
-        for path, value in self.path_instance_tuples_for_class(type(child)):
-            if value is child:
-                paths.append(path)
-        return paths
-
     def freeze(self):
         """
         Freeze this object.
