@@ -32,7 +32,7 @@ class Representative:
         return len(self.representative)
 
     @classmethod
-    def find_representatives(cls, items):
+    def find_representatives(cls, items, minimum=4):
         representative_dict: Dict[tuple, list] = defaultdict(list)
         for key, obj in items:
             blueprint = cls.get_blueprint(obj)
@@ -40,7 +40,7 @@ class Representative:
 
         representatives = []
         for blueprint, items in representative_dict.items():
-            if len(items) > 1:
+            if len(items) >= minimum:
                 representative = Representative(items)
                 representatives.append((representative.key, representative))
             else:

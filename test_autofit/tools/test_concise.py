@@ -10,7 +10,18 @@ def make_collection():
 
 
 def test_model_info(collection):
-    print(collection.info)
+    assert (
+        collection.info
+        == """Total Free Parameters = 60
+
+model                                                                           Collection (N=60)
+    0 - 9                                                                       Gaussian (N=3)
+
+0 - 9
+    centre                                                                      UniformPrior [0], lower_limit = 0.0, upper_limit = 1.0
+    normalization                                                               UniformPrior [1], lower_limit = 0.0, upper_limit = 1.0
+    sigma                                                                       UniformPrior [2], lower_limit = 0.0, upper_limit = 1.0"""
+    )
 
 
 def test_representative(collection):
