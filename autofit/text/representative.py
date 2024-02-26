@@ -68,18 +68,27 @@ class Representative:
         -------
         A list of representatives and items that are not part of a representative.
         """
-        representative_dict: Dict[tuple, list] = defaultdict(list)
-        for key, obj in items:
-            blueprint = cls.get_blueprint(obj)
-            representative_dict[blueprint].append((key, obj))
-
         representatives = []
-        for blueprint, items in representative_dict.items():
-            if len(items) >= minimum:
-                representative = Representative(items)
+        last_blue_print = None
+        current_items = []
+
+        def add():
+            if len(current_items) >= minimum:
+                representative = Representative(current_items)
                 representatives.append((representative.key, representative))
             else:
-                representatives.extend(items)
+                representatives.extend(current_items)
+
+        for key, obj in sorted(items):
+            blueprint = cls.get_blueprint(obj)
+            if blueprint == last_blue_print:
+                current_items.append((key, obj))
+            else:
+                add()
+                current_items = [(key, obj)]
+                last_blue_print = blueprint
+
+        add()
 
         return representatives
 

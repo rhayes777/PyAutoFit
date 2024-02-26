@@ -47,6 +47,11 @@ def test_find_representatives(collection):
     assert len(Representative.find_representatives(collection.items())) == 2
 
 
+def test_mid_collection_anomaly(collection):
+    collection[5].centre = collection[1].centre
+    assert len(Representative.find_representatives(collection.items())) == 3
+
+
 @pytest.fixture(name="samples")
 def make_samples(collection):
     parameters = [len(collection) * [1.0, 2.0, 3.0]]
