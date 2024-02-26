@@ -1,3 +1,5 @@
+import os
+
 import pytest
 
 import autofit as af
@@ -65,6 +67,10 @@ def test_persist(samples, model):
 def test_conditional_persist(samples, model):
     paths = DirectoryPaths()
     paths.model = model
+    try:
+        os.remove(paths._derived_quantities_file)
+    except FileNotFoundError:
+        pass
     paths.save_derived_quantities(samples)
     assert not paths._derived_quantities_file.exists()
 
