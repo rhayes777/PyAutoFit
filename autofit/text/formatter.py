@@ -1,6 +1,5 @@
 import csv
 import logging
-from dataclasses import dataclass
 from typing import Tuple
 
 from autoconf import conf
@@ -8,14 +7,6 @@ from autofit.text.representative import Representative
 from autofit.tools.util import open_
 
 logger = logging.getLogger(__name__)
-
-
-def group_name(keys):
-    if len(keys) == 1:
-        return keys[0]
-
-    keys = sorted(keys)
-    return f"{keys[0]} - {keys[-1]}"
 
 
 class FormatNode:
