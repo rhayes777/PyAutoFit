@@ -38,7 +38,10 @@ class Representative:
         """
         The first object in the group represents the group.
         """
-        return self.items[0][1]
+        try:
+            return sorted(self.children)[0]
+        except TypeError:
+            return self.children[0]
 
     def __getattr__(self, item):
         return getattr(self.representative, item)
