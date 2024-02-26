@@ -1,6 +1,5 @@
 from typing import Dict, List
 
-import networkx as nx
 from pyvis.network import Network
 import colorsys
 
@@ -14,6 +13,7 @@ from autofit.mapper.prior.log_uniform import LogUniformPrior
 from autofit.mapper.prior_model.prior_model import ModelObject
 from autofit.mapper.prior_model.prior_model import Model
 from autofit.mapper.prior_model.collection import Collection
+from autofit.text.representative import Representative
 
 
 def str_for_object(obj: ModelObject) -> str:
@@ -30,6 +30,8 @@ def str_for_object(obj: ModelObject) -> str:
     -------
     A string representation of the object.
     """
+    if isinstance(obj, Representative):
+        return str_for_object(obj.representative)
     if isinstance(obj, Collection):
         return f"{obj.id}:Collection({len(obj)})"
     if isinstance(obj, Model):
@@ -145,10 +147,17 @@ class VisualiseGraph:
             elif isinstance(component, Collection):
                 add_collection(component)
 
-            for name, prior in component.direct_prior_tuples:
+            for name, representative in Representative.find_representatives(
+                component.direct_prior_tuples
+            ):
+                try:
+                    prior = representative.representative
+                except AttributeError:
+                    prior = representative
+
                 prior_name = str_for_object(prior)
                 net.add_node(
-                    str_for_object(prior),
+                    prior_name,
                     shape="dot",
                     color=self.colours[type(prior)],
                     size=10,
@@ -159,7 +168,14 @@ class VisualiseGraph:
                     label=name,
                 )
 
-            for name, child_model in component.direct_prior_model_tuples:
+            for name, representative in Representative.find_representatives(
+                component.direct_prior_model_tuples
+            ):
+                try:
+                    child_model = representative.representative
+                except AttributeError:
+                    child_model = representative
+
                 add_component(child_model)
                 net.add_edge(
                     model_name,
