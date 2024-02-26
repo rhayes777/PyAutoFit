@@ -102,5 +102,8 @@ instances
     )
 
 
-def test_visualise(collection):
-    VisualiseGraph(collection).save("test.html")
+def test_visualise(collection, output_directory):
+    output_path = output_directory / "test.html"
+    VisualiseGraph(collection).save(str(output_path))
+
+    assert output_path.exists()
