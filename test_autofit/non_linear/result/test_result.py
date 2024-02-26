@@ -1,6 +1,7 @@
 import pytest
 
 import autofit as af
+from autofit import Sample
 
 
 @pytest.fixture(name="result")
@@ -9,7 +10,22 @@ def make_result():
     mapper.component = af.m.MockClassx2Tuple
     # noinspection PyTypeChecker
     return af.Result(
-        samples=af.m.MockSamples(max_log_likelihood_instance=[0, 1], prior_means=[0, 1], model=mapper),
+        samples=af.m.MockSamples(
+            sample_list=[
+                Sample(
+                    log_likelihood=1.0,
+                    log_prior=0.0,
+                    weight=0.0,
+                    kwargs={
+                        "component.one_tuple.one_tuple_0": 0,
+                        "component.one_tuple.one_tuple_1": 1,
+                    },
+                ),
+            ],
+            max_log_likelihood_instance=[0, 1],
+            prior_means=[0, 1],
+            model=mapper,
+        ),
     )
 
 
