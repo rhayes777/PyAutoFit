@@ -1,7 +1,14 @@
+import itertools
+
 import autofit as af
 import pytest
 
 from autofit.text.representative import Representative
+
+
+@pytest.fixture(autouse=True)
+def reset_ids():
+    af.Prior._ids = itertools.count()
 
 
 @pytest.fixture(name="collection")
