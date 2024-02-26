@@ -43,4 +43,5 @@ def test_get_blueprint():
         (("centre",), (af.UniformPrior, "lower_limit = 0.0, upper_limit = 1.0")),
         (("normalization",), (af.UniformPrior, "lower_limit = 0.0, upper_limit = 1.0")),
         (("sigma",), (af.UniformPrior, "lower_limit = 0.0, upper_limit = 1.0")),
+        af.Gaussian,
     )
