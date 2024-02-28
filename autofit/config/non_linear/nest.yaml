@@ -1,8 +1,7 @@
 # Configuration files that customize the default behaviour of non-linear searches.
 
-# **PyAutoFit** supports the following nested sampling algorithms:
-
 # - Dynesty: https://github.com/joshspeagle/dynesty / https://dynesty.readthedocs.io/en/latest/index.html
+# - Nautilus https://https://github.com/johannesulf/nautilus / https://nautilus-sampler.readthedocs.io/en/stable/index.html
 # - UltraNest: https://github.com/JohannesBuchner/UltraNest / https://johannesbuchner.github.io/UltraNest/readme.html
 
 # Settings in the [search] and [run] entries are specific to each nested algorithm and should be determined by
@@ -87,6 +86,7 @@ Nautilus:
     f_live: 0.01                    # Maximum fraction of the evidence contained in the live set before building the initial shells terminates.
     n_shell:                        # Minimum number of points in each shell. The algorithm will sample from the shells until this is reached. Default is the batch size of the sampler which is 100 unless otherwise specified.
     n_eff: 500                      # Minimum effective sample size. The algorithm will sample from the shells until this is reached. Default is 10000.
+    n_like_max: .inf                # Maximum number of likelihood evaluations. Regardless of progress, the sampler will stop if this value is reached. Default is infinity.
     discard_exploration: false      # Whether to discard points drawn in the exploration phase. This is required for a fully unbiased posterior and evidence estimate.
     verbose: true                   # Whether to print information about the run.
   initialize:                       # The method used to generate where walkers are initialized in parameter space {prior}.
@@ -143,7 +143,6 @@ UltraNest:
     number_of_cores: 1              # The number of cores the search is parallelized over by default, using Python multiprocessing.
   printing:
     silence: false                  # If True, the default print output of the non-linear search is silenced and not printed by the Python interpreter.
-
   updates:
     iterations_per_update: 500      # The number of iterations of the non-linear search performed between every 'update', where an update performs tasks like outputting model.results.
     remove_state_files_at_end: true # Whether to remove the savestate of the seach (e.g. the Emcee hdf5 file) at the end to save hard-disk space (results are still stored as PyAutoFit pickles and loadable).
