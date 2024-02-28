@@ -2,7 +2,7 @@ import numpy as np
 import logging
 import os
 import sys
-from typing import Optional
+from typing import Dict, Optional
 
 from autofit import jax_wrapper
 from autofit.database.sqlalchemy_ import sa
@@ -293,8 +293,6 @@ class Nautilus(abstract_nest.AbstractNest):
                 search_internal=search_internal,
             )
 
-        print(self.config_dict_run)
-
         search_internal.run(
             **self.config_dict_run,
         )
@@ -470,11 +468,27 @@ class Nautilus(abstract_nest.AbstractNest):
     def config_dict(self):
         return conf.instance["non_linear"]["nest"][self.__class__.__name__]
 
-    def config_dict_with_test_mode_settings_from(self, config_dict):
+    def config_dict_test_mode_from(self, config_dict : Dict) -> Dict:
+        """
+        Returns a configuration dictionary for test mode meaning that the sampler terminates as quickly as possible.
+
+        Entries which set the total number of samples of the sampler (e.g. maximum calls, maximum likelihood
+        evaluations) are reduced to low values meaning it terminates nearly immediately.
+
+        Parameters
+        ----------
+        config_dict
+            The original configuration dictionary for this sampler which includes entries controlling how fast the
+            sampler terminates.
+
+        Returns
+        -------
+        A configuration dictionary where settings which control the sampler's number of samples are reduced so it
+        terminates as quickly as possible.
+        """
         return {
             **config_dict,
-            "max_iters": 1,
-            "max_ncalls": 1,
+            "n_like_max": 1,
         }
 
     def plot_results(self, samples):
