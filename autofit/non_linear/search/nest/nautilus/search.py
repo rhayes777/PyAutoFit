@@ -293,6 +293,8 @@ class Nautilus(abstract_nest.AbstractNest):
                 search_internal=search_internal,
             )
 
+        print(self.config_dict_run)
+
         search_internal.run(
             **self.config_dict_run,
         )
