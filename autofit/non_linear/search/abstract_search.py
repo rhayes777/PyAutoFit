@@ -522,25 +522,6 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         AssertionError
             If the model has 0 dimensions.
         """
-
-        if os.environ.get("PYAUTOFIT_TEST_MODE") == "1":
-            from autofit.non_linear.search.nest.nautilus.search import Nautilus
-
-            if isinstance(self, Nautilus):
-                from autofit.non_linear.search.nest.dynesty.search.static import (
-                    DynestyStatic,
-                )
-
-                from pathlib import Path
-
-                search = DynestyStatic(
-                    paths=self.paths,
-                    unique_tag=self.unique_tag,
-                    number_of_cores=self.number_of_cores,
-                )
-
-                return search.fit(model=model, analysis=analysis, info=info)
-
         self.check_model(model=model)
 
         model = analysis.modify_model(model)
@@ -805,8 +786,8 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         if model is not None and model.prior_count == 0:
             raise AssertionError("Model has no priors! Cannot fit a 0 dimension model.")
 
-    def config_dict_with_test_mode_settings_from(self, config_dict: Dict) -> Dict:
-        return config_dict
+    def config_dict_test_mode_from(self, config_dict: Dict) -> Dict:
+        raise NotImplementedError
 
     @property
     def _class_config(self) -> Dict:
@@ -837,7 +818,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         if os.environ.get("PYAUTOFIT_TEST_MODE") == "1":
             logger.warning(f"TEST MODE ON: SEARCH WILL SKIP SAMPLING\n\n")
 
-            config_dict = self.config_dict_with_test_mode_settings_from(
+            config_dict = self.config_dict_test_mode_from(
                 config_dict=config_dict
             )
 

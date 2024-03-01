@@ -1,5 +1,5 @@
 import os
-from typing import Optional
+from typing import Dict, Optional
 
 import emcee
 import numpy as np
@@ -304,7 +304,24 @@ class Emcee(AbstractMCMC):
             previous_times=previous_auto_correlation_times,
         )
 
-    def config_dict_with_test_mode_settings_from(self, config_dict):
+    def config_dict_test_mode_from(self, config_dict: Dict) -> Dict:
+        """
+        Returns a configuration dictionary for test mode meaning that the sampler terminates as quickly as possible.
+
+        Entries which set the total number of samples of the sampler (e.g. maximum calls, maximum likelihood
+        evaluations) are reduced to low values meaning it terminates nearly immediately.
+
+        Parameters
+        ----------
+        config_dict
+            The original configuration dictionary for this sampler which includes entries controlling how fast the
+            sampler terminates.
+
+        Returns
+        -------
+        A configuration dictionary where settings which control the sampler's number of samples are reduced so it
+        terminates as quickly as possible.
+        """
         return {
             **config_dict,
             "nwalkers": 20,
