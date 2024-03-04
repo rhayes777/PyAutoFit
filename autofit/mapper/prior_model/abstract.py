@@ -1655,7 +1655,11 @@ class AbstractPriorModel(AbstractModel):
                 else:
                     name = type(obj).__name__
 
-                formatter.add(("model",) + path, f"{name} (N={n})")
+                formatter.add(
+                    ("model",) + path,
+                    obj,
+                    string_value=f"{name} (N={n})",
+                )
 
         return formatter.text
 

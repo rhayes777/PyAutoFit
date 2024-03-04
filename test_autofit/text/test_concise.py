@@ -134,7 +134,8 @@ def test_visualise(collection, output_directory):
     assert output_path.exists()
 
 
-def test_wavelength_example():
+@pytest.fixture(name="multi_wavelength_model")
+def make_multi_wavelength_model():
     wavelength_list = [464, 658, 806]
 
     lens = af.Collection(
@@ -171,5 +172,58 @@ def test_wavelength_example():
                 }
             )
         )
+    return collection
 
-    VisualiseGraph(collection).save("test.html")
+
+def test_wavelength_info(multi_wavelength_model):
+    print(multi_wavelength_model.info)
+    assert (
+        multi_wavelength_model.info
+        == """Total Free Parameters = 14
+
+model                                                                           Collection (N=14)
+    0                                                                           Collection (N=14)
+        galaxies                                                                Collection (N=14)
+            lens                                                                Collection (N=10)
+                bulge                                                           Gaussian (N=4)
+                    normalization                                               SumPrior (N=2)
+                        self                                                    MultiplePrior (N=1)
+                mass - shear                                                    Gaussian (N=3)
+            source                                                              Collection (N=4)
+                bulge                                                           Exponential (N=4)
+                    normalization                                               SumPrior (N=2)
+                        self                                                    MultiplePrior (N=1)
+    1                                                                           Collection (N=14)
+        galaxies                                                                Collection (N=14)
+            lens                                                                Collection (N=10)
+                bulge                                                           Gaussian (N=4)
+                    normalization                                               SumPrior (N=2)
+                        self                                                    MultiplePrior (N=1)
+                mass - shear                                                    Gaussian (N=3)
+            source                                                              Collection (N=4)
+                bulge                                                           Exponential (N=4)
+                    normalization                                               SumPrior (N=2)
+                        self                                                    MultiplePrior (N=1)
+    2                                                                           Collection (N=14)
+        galaxies                                                                Collection (N=14)
+            lens                                                                Collection (N=10)
+                bulge                                                           Gaussian (N=4)
+                    normalization                                               SumPrior (N=2)
+                        self                                                    MultiplePrior (N=1)
+                mass - shear                                                    Gaussian (N=3)
+            source                                                              Collection (N=4)
+                bulge                                                           Exponential (N=4)
+                    normalization                                               SumPrior (N=2)
+                        self                                                    MultiplePrior (N=1)
+
+0 - 2
+    galaxies
+        lens - source
+            bulge - shear
+                centre - normalization                                          UniformPrior [0], lower_limit = 0.0, upper_limit = 1.0
+                sigma                                                           UniformPrior [2], lower_limit = 0.0, upper_limit = 1.0"""
+    )
+
+
+def test_wavelength_visualise(multi_wavelength_model):
+    VisualiseGraph(multi_wavelength_model).save("test.html")

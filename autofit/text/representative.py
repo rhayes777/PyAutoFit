@@ -5,6 +5,18 @@ import autofit as af
 from autofit.mapper.prior.abstract import Prior
 
 
+def is_prior(obj):
+    from autofit.text.formatter import FormatNode
+    from autofit.mapper.prior.arithmetic.compound import CompoundPrior
+
+    if isinstance(obj, FormatNode):
+        try:
+            return is_prior(obj.value)
+        except AttributeError:
+            return False
+    return isinstance(obj, (Prior, CompoundPrior))
+
+
 class Representative:
     def __init__(self, items: List[tuple]):
         """
@@ -51,7 +63,7 @@ class Representative:
         return len(self.representative)
 
     @classmethod
-    def find_representatives(cls, items: Iterable[tuple], minimum: int = 4) -> list:
+    def find_representatives(cls, items: Iterable[tuple], minimum: int = 2) -> list:
         """
         Find representatives in a list of items. This includes items from
         the original list where there are not enough repetitions to form
@@ -84,7 +96,7 @@ class Representative:
 
         for key, obj in sorted(items):
             try:
-                if any(
+                if is_prior(obj) or any(
                     prior in shared_priors
                     for _, prior in obj.path_instance_tuples_for_class(af.Prior)
                 ):
@@ -96,7 +108,7 @@ class Representative:
                 pass
 
             blueprint = cls.get_blueprint(obj)
-            if blueprint == last_blue_print:
+            if blueprint is not None and blueprint == last_blue_print:
                 current_items.append((key, obj))
             else:
                 add()

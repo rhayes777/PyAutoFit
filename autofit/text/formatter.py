@@ -12,7 +12,16 @@ logger = logging.getLogger(__name__)
 class FormatNode:
     def __init__(self):
         self._dict = dict()
-        self.value = None
+        self._value = None
+        self._string_value = None
+
+    @property
+    def value(self):
+        return self._value
+
+    @value.setter
+    def value(self, value):
+        self._value = value
 
     def __getitem__(self, item):
         if item not in self._dict:
@@ -33,7 +42,7 @@ class FormatNode:
         for key, value in self.groups():
             indent_string = indent * " "
             if value.value is not None:
-                value_string = str(value.value)
+                value_string = value.string_value or str(value.value)
                 space_string = max((line_length - len(str(key))), 1) * " "
                 lines.append(f"{key}{space_string}{value_string}")
 
@@ -61,16 +70,23 @@ class TextFormatter:
         self.line_length = line_length
         self.indent = indent
 
-    def add_to_dict(self, path: Tuple[str, ...], value: str, info_dict: FormatNode):
+    def add_to_dict(
+        self,
+        path: Tuple[str, ...],
+        value: str,
+        info_dict: FormatNode,
+        string_value=None,
+    ):
         key = path[0]
         node = info_dict[key]
         if len(path) == 1:
             node.value = value
+            node.string_value = string_value
         else:
-            self.add_to_dict(path[1:], value, node)
+            self.add_to_dict(path[1:], value, node, string_value)
 
-    def add(self, path: Tuple[str, ...], value):
-        self.add_to_dict(path, value, self.dict)
+    def add(self, path: Tuple[str, ...], value, string_value=None):
+        self.add_to_dict(path, value, self.dict, string_value)
 
     @property
     def text(self):
