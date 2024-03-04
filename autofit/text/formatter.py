@@ -12,16 +12,8 @@ logger = logging.getLogger(__name__)
 class FormatNode:
     def __init__(self):
         self._dict = dict()
-        self._value = None
-        self._string_value = None
-
-    @property
-    def value(self):
-        return self._value
-
-    @value.setter
-    def value(self, value):
-        self._value = value
+        self.value = None
+        self.string_value = None
 
     def __getitem__(self, item):
         if item not in self._dict:
@@ -57,11 +49,11 @@ class FormatNode:
                     lines.append(f"{indent_string}{line}")
         return lines
 
-    def __getattr__(self, item):
-        try:
-            return getattr(self.value, item)
-        except AttributeError:
-            raise AttributeError(f"Attribute {item} not found in {self}")
+    # def __getattr__(self, item):
+    #     try:
+    #         return getattr(self.value, item)
+    #     except AttributeError:
+    #         raise AttributeError(f"Attribute {item} not found in {self}")
 
 
 class TextFormatter:
@@ -80,8 +72,8 @@ class TextFormatter:
         key = path[0]
         node = info_dict[key]
         if len(path) == 1:
-            node.value = value
             node.string_value = string_value
+            node.value = value
         else:
             self.add_to_dict(path[1:], value, node, string_value)
 

@@ -141,12 +141,16 @@ class Representative:
         from autofit.text.formatter import FormatNode
 
         if obj is None:
-            return None
+            return ()
 
         if isinstance(obj, FormatNode):
-            return cls.get_blueprint(obj.value)
+            blueprint = cls.get_blueprint(obj.value)
+            for key, value in obj.items():
+                blueprint += (key,)
+                blueprint += cls.get_blueprint(value)
+            return blueprint
         if isinstance(obj, (float, int, tuple, str)):
-            return obj
+            return (obj,)
         if isinstance(obj, af.Prior):
             return type(obj), obj.parameter_string
         if isinstance(obj, af.AbstractModel):
