@@ -8,6 +8,7 @@ from .non_linear.grid.grid_search import GridSearch as SearchGridSearch
 from . import conf
 from . import exc
 from . import mock as m
+from .aggregator.base import AggBase
 from .database.aggregator.aggregator import GridSearchAggregator
 from .graphical.expectation_propagation.history import EPHistory
 from .graphical.declarative.factor.analysis import AnalysisFactor
