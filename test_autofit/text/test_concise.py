@@ -50,12 +50,12 @@ def test_reference_count(collection):
 def test_find_representatives(collection):
     assert len(Representative.find_representatives(collection.items())) == 1
 
-    collection[0].centre = af.UniformPrior(0.0, 1.0)
+    collection[0].centre = af.UniformPrior(0.0, 2.0)
     assert len(Representative.find_representatives(collection.items())) == 2
 
 
 def test_mid_collection_anomaly(collection):
-    collection[5].centre = af.UniformPrior(0.0, 1.0)
+    collection[5].centre = af.UniformPrior(0.0, 2.0)
     assert len(Representative.find_representatives(collection.items())) == 3
 
 
@@ -85,11 +85,11 @@ def test_shared_external_blueprint(shared_collection):
 
 
 def test_shared_descendents(collection):
-    assert Representative.shared_descendents(collection) == set()
+    assert RepresentativesFinder(collection.items()).shared_descendents == set()
 
     shared = collection[1].centre
     collection[0].centre = shared
-    assert Representative.shared_descendents(collection) == {shared}
+    assert RepresentativesFinder(collection.items()).shared_descendents == {shared}
 
 
 @pytest.fixture(name="samples")
@@ -239,12 +239,7 @@ model                                                                           
     galaxies
         lens
             bulge
-                centre                                                          UniformPrior [0], lower_limit = 0.0, upper_limit = 1.0
-                normalization
-                    lens_c                                                      UniformPrior [13], lower_limit = -10.0, upper_limit = 10.0
-                    self
-                        lens_m                                                  UniformPrior [12], lower_limit = -0.1, upper_limit = 0.1
-                        wavelength                                              464
+                centre - normalization                                          UniformPrior [0], lower_limit = 0.0, upper_limit = 1.0
                 sigma                                                           UniformPrior [2], lower_limit = 0.0, upper_limit = 1.0
             mass - shear
                 centre                                                          UniformPrior [3], lower_limit = 0.0, upper_limit = 1.0
@@ -252,23 +247,13 @@ model                                                                           
                 sigma                                                           UniformPrior [5], lower_limit = 0.0, upper_limit = 1.0
         source
             bulge
-                centre                                                          UniformPrior [9], lower_limit = 0.0, upper_limit = 100.0
-                normalization
-                    self
-                        source_m                                                UniformPrior [14], lower_limit = -0.1, upper_limit = 0.1
-                        wavelength                                              464
-                    source_c                                                    UniformPrior [15], lower_limit = -10.0, upper_limit = 10.0
+                centre - normalization                                          UniformPrior [9], lower_limit = 0.0, upper_limit = 100.0
                 rate                                                            UniformPrior [11], lower_limit = 0.0, upper_limit = 10.0
 1
     galaxies
         lens
             bulge
-                centre                                                          UniformPrior [0], lower_limit = 0.0, upper_limit = 1.0
-                normalization
-                    lens_c                                                      UniformPrior [13], lower_limit = -10.0, upper_limit = 10.0
-                    self
-                        lens_m                                                  UniformPrior [12], lower_limit = -0.1, upper_limit = 0.1
-                        wavelength                                              658
+                centre - normalization                                          UniformPrior [0], lower_limit = 0.0, upper_limit = 1.0
                 sigma                                                           UniformPrior [2], lower_limit = 0.0, upper_limit = 1.0
             mass - shear
                 centre                                                          UniformPrior [3], lower_limit = 0.0, upper_limit = 1.0
@@ -276,23 +261,13 @@ model                                                                           
                 sigma                                                           UniformPrior [5], lower_limit = 0.0, upper_limit = 1.0
         source
             bulge
-                centre                                                          UniformPrior [9], lower_limit = 0.0, upper_limit = 100.0
-                normalization
-                    self
-                        source_m                                                UniformPrior [14], lower_limit = -0.1, upper_limit = 0.1
-                        wavelength                                              658
-                    source_c                                                    UniformPrior [15], lower_limit = -10.0, upper_limit = 10.0
+                centre - normalization                                          UniformPrior [9], lower_limit = 0.0, upper_limit = 100.0
                 rate                                                            UniformPrior [11], lower_limit = 0.0, upper_limit = 10.0
 2
     galaxies
         lens
             bulge
-                centre                                                          UniformPrior [0], lower_limit = 0.0, upper_limit = 1.0
-                normalization
-                    lens_c                                                      UniformPrior [13], lower_limit = -10.0, upper_limit = 10.0
-                    self
-                        lens_m                                                  UniformPrior [12], lower_limit = -0.1, upper_limit = 0.1
-                        wavelength                                              806
+                centre - normalization                                          UniformPrior [0], lower_limit = 0.0, upper_limit = 1.0
                 sigma                                                           UniformPrior [2], lower_limit = 0.0, upper_limit = 1.0
             mass - shear
                 centre                                                          UniformPrior [3], lower_limit = 0.0, upper_limit = 1.0
@@ -300,12 +275,7 @@ model                                                                           
                 sigma                                                           UniformPrior [5], lower_limit = 0.0, upper_limit = 1.0
         source
             bulge
-                centre                                                          UniformPrior [9], lower_limit = 0.0, upper_limit = 100.0
-                normalization
-                    self
-                        source_m                                                UniformPrior [14], lower_limit = -0.1, upper_limit = 0.1
-                        wavelength                                              806
-                    source_c                                                    UniformPrior [15], lower_limit = -10.0, upper_limit = 10.0
+                centre - normalization                                          UniformPrior [9], lower_limit = 0.0, upper_limit = 100.0
                 rate                                                            UniformPrior [11], lower_limit = 0.0, upper_limit = 10.0"""
     )
 
