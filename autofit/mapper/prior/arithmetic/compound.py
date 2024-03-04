@@ -16,7 +16,7 @@ def retrieve_name(var):
     first_name = None
     frame = inspect.currentframe()
     while frame is not None:
-        for name, value in list(frame.f_locals.items()):
+        for name, value in frame.f_locals.items():
             if var is value:
                 first_name = name
         frame = frame.f_back

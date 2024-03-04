@@ -5,7 +5,6 @@ import pytest
 
 from autofit.text.representative import Representative
 from autofit.text.text_util import result_info_from
-from autofit.visualise import VisualiseGraph
 
 
 @pytest.fixture(autouse=True)
@@ -40,36 +39,13 @@ def test_representative(collection):
     assert key == "0 - 9"
 
 
-def test_reference_count(collection):
-    assert collection.reference_count(collection[0].centre) == 1
-
-    collection[5].centre = collection[0].centre
-    assert collection.reference_count(collection[0].centre) == 2
-
-
-def test_find_representatives(collection):
-    assert len(Representative.find_representatives(collection.items())) == 1
-
-    collection[0].centre = af.UniformPrior(0.0, 1.0)
-    assert len(Representative.find_representatives(collection.items())) == 2
-
-
-def test_mid_collection_anomaly(collection):
-    collection[5].centre = af.UniformPrior(0.0, 1.0)
-    assert len(Representative.find_representatives(collection.items())) == 3
-
-
-def test_shared_prior(collection):
-    collection[5].centre = collection[0].centre
-    assert len(Representative.find_representatives(collection.items())) == 4
-
-
-def test_shared_descendents(collection):
-    assert Representative.shared_descendents(collection) == set()
-
-    shared = collection[1].centre
-    collection[0].centre = shared
-    assert Representative.shared_descendents(collection) == {shared}
+def test_get_blueprint():
+    assert Representative.get_blueprint(af.Model(af.Gaussian)) == (
+        (("centre",), (af.UniformPrior, "lower_limit = 0.0, upper_limit = 1.0")),
+        (("normalization",), (af.UniformPrior, "lower_limit = 0.0, upper_limit = 1.0")),
+        (("sigma",), (af.UniformPrior, "lower_limit = 0.0, upper_limit = 1.0")),
+        af.Gaussian,
+    )
 
 
 @pytest.fixture(name="samples")
@@ -123,12 +99,3 @@ instances
 
 """
     )
-
-
-def test_visualise(collection, output_directory):
-    collection[5].centre = collection[1].centre
-
-    output_path = output_directory / "test.html"
-    VisualiseGraph(collection).save(str(output_path))
-
-    assert output_path.exists()

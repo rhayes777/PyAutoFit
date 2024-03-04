@@ -94,10 +94,6 @@ class AbstractModel(ModelObject):
         self.__dict__.update(state)
         self._frozen_cache = {}
 
-    def reference_count(self, child):
-        _, values = zip(*self.attribute_tuples_with_type(type(child)))
-        return values.count(child)
-
     def freeze(self):
         """
         Freeze this object.
