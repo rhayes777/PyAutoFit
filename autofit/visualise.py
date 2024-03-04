@@ -148,12 +148,19 @@ class VisualiseGraph:
         -------
         A network of the model.
         """
-
         net = Network(
             notebook=notebook,
             directed=True,
             cdn_resources="remote",
         )
+        added_edges = set()
+
+        def add_edge(from_, to, label):
+            key = (from_, to, label)
+            if key in added_edges:
+                return
+            added_edges.add(key)
+            net.add_edge(from_, to, label=label)
 
         def add_model(obj, **kwargs):
             net.add_node(
@@ -207,7 +214,7 @@ class VisualiseGraph:
                     color=self.colours[type(prior)],
                     size=10,
                 )
-                net.add_edge(
+                add_edge(
                     model_name,
                     prior_name,
                     label=name,
@@ -222,7 +229,7 @@ class VisualiseGraph:
                     child_model = representative
 
                 add_component(child_model)
-                net.add_edge(
+                add_edge(
                     model_name,
                     str_for_object(child_model),
                     label=name,
