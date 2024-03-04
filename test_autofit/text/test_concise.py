@@ -176,7 +176,6 @@ def make_multi_wavelength_model():
 
 
 def test_wavelength_info(multi_wavelength_model):
-    print(multi_wavelength_model.info)
     assert (
         multi_wavelength_model.info
         == """Total Free Parameters = 14
@@ -216,12 +215,78 @@ model                                                                           
                     normalization                                               SumPrior (N=2)
                         self                                                    MultiplePrior (N=1)
 
-0 - 2
+0
     galaxies
-        lens - source
-            bulge - shear
-                centre - normalization                                          UniformPrior [0], lower_limit = 0.0, upper_limit = 1.0
-                sigma                                                           UniformPrior [2], lower_limit = 0.0, upper_limit = 1.0"""
+        lens
+            bulge
+                centre                                                          UniformPrior [0], lower_limit = 0.0, upper_limit = 1.0
+                normalization
+                    lens_c                                                      UniformPrior [13], lower_limit = -10.0, upper_limit = 10.0
+                    self
+                        lens_m                                                  UniformPrior [12], lower_limit = -0.1, upper_limit = 0.1
+                        wavelength                                              464
+                sigma                                                           UniformPrior [2], lower_limit = 0.0, upper_limit = 1.0
+            mass - shear
+                centre                                                          UniformPrior [3], lower_limit = 0.0, upper_limit = 1.0
+                normalization                                                   UniformPrior [4], lower_limit = 0.0, upper_limit = 1.0
+                sigma                                                           UniformPrior [5], lower_limit = 0.0, upper_limit = 1.0
+        source
+            bulge
+                centre                                                          UniformPrior [9], lower_limit = 0.0, upper_limit = 100.0
+                normalization
+                    self
+                        source_m                                                UniformPrior [14], lower_limit = -0.1, upper_limit = 0.1
+                        wavelength                                              464
+                    source_c                                                    UniformPrior [15], lower_limit = -10.0, upper_limit = 10.0
+                rate                                                            UniformPrior [11], lower_limit = 0.0, upper_limit = 10.0
+1
+    galaxies
+        lens
+            bulge
+                centre                                                          UniformPrior [0], lower_limit = 0.0, upper_limit = 1.0
+                normalization
+                    lens_c                                                      UniformPrior [13], lower_limit = -10.0, upper_limit = 10.0
+                    self
+                        lens_m                                                  UniformPrior [12], lower_limit = -0.1, upper_limit = 0.1
+                        wavelength                                              658
+                sigma                                                           UniformPrior [2], lower_limit = 0.0, upper_limit = 1.0
+            mass - shear
+                centre                                                          UniformPrior [3], lower_limit = 0.0, upper_limit = 1.0
+                normalization                                                   UniformPrior [4], lower_limit = 0.0, upper_limit = 1.0
+                sigma                                                           UniformPrior [5], lower_limit = 0.0, upper_limit = 1.0
+        source
+            bulge
+                centre                                                          UniformPrior [9], lower_limit = 0.0, upper_limit = 100.0
+                normalization
+                    self
+                        source_m                                                UniformPrior [14], lower_limit = -0.1, upper_limit = 0.1
+                        wavelength                                              658
+                    source_c                                                    UniformPrior [15], lower_limit = -10.0, upper_limit = 10.0
+                rate                                                            UniformPrior [11], lower_limit = 0.0, upper_limit = 10.0
+2
+    galaxies
+        lens
+            bulge
+                centre                                                          UniformPrior [0], lower_limit = 0.0, upper_limit = 1.0
+                normalization
+                    lens_c                                                      UniformPrior [13], lower_limit = -10.0, upper_limit = 10.0
+                    self
+                        lens_m                                                  UniformPrior [12], lower_limit = -0.1, upper_limit = 0.1
+                        wavelength                                              806
+                sigma                                                           UniformPrior [2], lower_limit = 0.0, upper_limit = 1.0
+            mass - shear
+                centre                                                          UniformPrior [3], lower_limit = 0.0, upper_limit = 1.0
+                normalization                                                   UniformPrior [4], lower_limit = 0.0, upper_limit = 1.0
+                sigma                                                           UniformPrior [5], lower_limit = 0.0, upper_limit = 1.0
+        source
+            bulge
+                centre                                                          UniformPrior [9], lower_limit = 0.0, upper_limit = 100.0
+                normalization
+                    self
+                        source_m                                                UniformPrior [14], lower_limit = -0.1, upper_limit = 0.1
+                        wavelength                                              806
+                    source_c                                                    UniformPrior [15], lower_limit = -10.0, upper_limit = 10.0
+                rate                                                            UniformPrior [11], lower_limit = 0.0, upper_limit = 10.0"""
     )
 
 
