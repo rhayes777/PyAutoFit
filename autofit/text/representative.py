@@ -1,7 +1,8 @@
-from collections import defaultdict
-from typing import Dict, List, Iterable
+from collections import Counter
+from typing import List, Iterable, Set
 
 import autofit as af
+from autofit.mapper.prior.abstract import Prior
 
 
 class Representative:
@@ -144,3 +145,26 @@ class Representative:
                 return blueprint + (obj.cls,)
             return blueprint
         raise ValueError(f"Cannot get blueprint for {obj} of type {type(obj)}")
+
+    @classmethod
+    def shared_descendents(cls, objects) -> Set[Prior]:
+        """
+        Find all priors which are shared by more than one object in a list of items.
+
+        Parameters
+        ----------
+        objects
+            A list of objects.
+
+        Returns
+        -------
+        A set of priors shared by more than one object.
+        """
+        counts = Counter()
+        for obj in objects:
+            for _, prior in obj.path_instance_tuples_for_class(
+                af.Prior, ignore_children=True
+            ):
+                counts[prior] += 1
+
+        return {prior for prior, count in counts.items() if count > 1}

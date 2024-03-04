@@ -50,13 +50,26 @@ def test_reference_count(collection):
 def test_find_representatives(collection):
     assert len(Representative.find_representatives(collection.items())) == 1
 
-    collection[0].centre = collection[1].centre
+    collection[0].centre = af.UniformPrior(0.0, 1.0)
     assert len(Representative.find_representatives(collection.items())) == 2
 
 
 def test_mid_collection_anomaly(collection):
-    collection[5].centre = collection[1].centre
+    collection[5].centre = af.UniformPrior(0.0, 1.0)
     assert len(Representative.find_representatives(collection.items())) == 3
+
+
+def test_shared_prior(collection):
+    collection[5].centre = collection[0].centre
+    assert len(Representative.find_representatives(collection.items())) == 4
+
+
+def test_shared_descendents(collection):
+    assert Representative.shared_descendents(collection) == set()
+
+    shared = collection[1].centre
+    collection[0].centre = shared
+    assert Representative.shared_descendents(collection) == {shared}
 
 
 @pytest.fixture(name="samples")
