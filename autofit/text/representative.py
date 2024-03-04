@@ -2,6 +2,7 @@ from collections import Counter
 from typing import List, Iterable, Set
 
 import autofit as af
+from autoconf import cached_property
 from autofit.mapper.prior.abstract import Prior
 
 
@@ -63,7 +64,7 @@ class Representative:
         return len(self.representative)
 
     @classmethod
-    def find_representatives(cls, items: Iterable[tuple], minimum: int = 2) -> list:
+    def find_representatives(cls, items: Iterable[tuple], minimum: int = 2):
         """
         Find representatives in a list of items. This includes items from
         the original list where there are not enough repetitions to form
@@ -81,25 +82,51 @@ class Representative:
         -------
         A list of representatives and items that are not part of a representative.
         """
+        return RepresentativesFinder(items, minimum).find_representatives()
+
+
+class RepresentativesFinder:
+    def __init__(self, items: Iterable[tuple], minimum: int = 2):
+        """
+        Find representatives in a list of items. This includes items from
+        the original list where there are not enough repetitions to form
+        a representative.
+
+        Parameters
+        ----------
+        items
+            A list of tuples of the form (key, object)
+        minimum
+            The minimum number of items that must be the same for a representative
+            to be formed.
+        """
+        self.items = items
+        self.minimum = minimum
+
+    def find_representatives(self) -> list:
+        """
+        Find representatives in a list of items. This includes items from
+        the original list where there are not enough repetitions to form
+        a representative.
+
+        Returns
+        -------
+        A list of representatives and items that are not part of a representative.
+        """
         representatives = []
         last_blue_print = None
         current_items = []
 
         def add():
-            if len(current_items) >= minimum:
+            if len(current_items) >= self.minimum:
                 representative = Representative(current_items)
                 representatives.append((representative.key, representative))
             else:
                 representatives.extend(current_items)
 
-        shared_priors = cls.shared_descendents(obj for _, obj in items)
-
-        for key, obj in sorted(items):
+        for key, obj in sorted(self.items):
             try:
-                if is_prior(obj) or any(
-                    prior in shared_priors
-                    for _, prior in obj.path_instance_tuples_for_class(af.Prior)
-                ):
+                if is_prior(obj):
                     add()
                     current_items = [(key, obj)]
                     last_blue_print = None
@@ -107,20 +134,19 @@ class Representative:
             except AttributeError:
                 pass
 
-            blueprint = cls.get_blueprint(obj)
-            if blueprint is not None and blueprint == last_blue_print:
+            blueprint = self.get_blueprint(obj)
+            if last_blue_print is None or blueprint == last_blue_print:
                 current_items.append((key, obj))
             else:
                 add()
                 current_items = [(key, obj)]
-                last_blue_print = blueprint
+            last_blue_print = blueprint
 
         add()
 
         return representatives
 
-    @classmethod
-    def get_blueprint(cls, obj):
+    def get_blueprint(self, obj):
         """
         Get a blueprint for an object. This is a tuple of tuples of the form
         (path, value) where path is a tuple of strings and value is a float, int,
@@ -144,32 +170,28 @@ class Representative:
             return ()
 
         if isinstance(obj, FormatNode):
-            blueprint = cls.get_blueprint(obj.value)
+            blueprint = self.get_blueprint(obj.value)
             for key, value in obj.items():
                 blueprint += (key,)
-                blueprint += cls.get_blueprint(value)
+                blueprint += self.get_blueprint(value)
             return blueprint
         if isinstance(obj, (float, int, tuple, str)):
             return (obj,)
         if isinstance(obj, af.Prior):
-            return type(obj), obj.parameter_string
+            blueprint = (type(obj), obj.parameter_string)
+            if obj in self.shared_descendents:
+                blueprint += (obj.id,)
+            return blueprint
         if isinstance(obj, af.AbstractModel):
             blueprint = tuple(
-                (path, cls.get_blueprint(value))
+                (path, self.get_blueprint(value))
                 for path, value in obj.path_instance_tuples_for_class(
                     (float, int, tuple, af.Prior), ignore_children=True
                 )
                 if path != ("id",)
             )
-            path_priors = obj.path_instance_tuples_for_class(
-                af.Prior, ignore_children=True
-            )
-            try:
-                min_id = min(pp[1].id for pp in path_priors)
-            except ValueError:
-                min_id = 0
             blueprint += tuple(
-                (path, prior.id - min_id, cls.get_blueprint(prior))
+                (path, self.get_blueprint(prior))
                 for path, prior in obj.path_instance_tuples_for_class(
                     af.Prior, ignore_children=True
                 )
@@ -184,22 +206,21 @@ class Representative:
             if key != "id" and isinstance(value, (float, int))
         )
 
-    @classmethod
-    def shared_descendents(cls, objects) -> Set[Prior]:
+    @property
+    def objects(self):
+        return [obj for _, obj in self.items]
+
+    @cached_property
+    def shared_descendents(self) -> Set[Prior]:
         """
         Find all priors which are shared by more than one object in a list of items.
-
-        Parameters
-        ----------
-        objects
-            A list of objects.
 
         Returns
         -------
         A set of priors shared by more than one object.
         """
         counts = Counter()
-        for obj in objects:
+        for obj in self.objects:
             try:
                 for _, prior in obj.path_instance_tuples_for_class(
                     af.Prior, ignore_children=True

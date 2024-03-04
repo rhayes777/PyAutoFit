@@ -3,7 +3,7 @@ import itertools
 import autofit as af
 import pytest
 
-from autofit.text.representative import Representative
+from autofit.text.representative import Representative, RepresentativesFinder
 from autofit.text.text_util import result_info_from
 from autofit.visualise import VisualiseGraph
 
@@ -62,6 +62,26 @@ def test_mid_collection_anomaly(collection):
 def test_shared_prior(collection):
     collection[5].centre = collection[0].centre
     assert len(Representative.find_representatives(collection.items())) == 4
+
+
+@pytest.fixture(name="shared_collection")
+def make_shared_collection(collection):
+    prior = af.UniformPrior(0.0, 1.0)
+    collection[0].centre = prior
+    collection[1].centre = prior
+    return collection
+
+
+def test_shared_external_prior(shared_collection):
+    assert len(Representative.find_representatives(shared_collection.items())) == 2
+
+
+def test_shared_external_blueprint(shared_collection):
+    finder = RepresentativesFinder(shared_collection.items())
+    assert len(finder.shared_descendents) == 1
+    assert finder.get_blueprint(shared_collection[0].centre) == finder.get_blueprint(
+        shared_collection[1].centre
+    )
 
 
 def test_shared_descendents(collection):
