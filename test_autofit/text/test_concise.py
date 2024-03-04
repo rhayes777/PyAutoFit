@@ -128,7 +128,7 @@ instances
 def test_visualise(collection, output_directory):
     collection[5].centre = collection[1].centre
 
-    # output_path = output_directory / "test.html"
-    VisualiseGraph(collection).save("test.html")
+    output_path = output_directory / "test.html"
+    VisualiseGraph(collection).save(str(output_path))
 
-    # assert output_path.exists()
+    assert output_path.exists()
