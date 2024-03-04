@@ -80,7 +80,21 @@ class Representative:
             else:
                 representatives.extend(current_items)
 
+        shared_priors = cls.shared_descendents(obj for _, obj in items)
+
         for key, obj in sorted(items):
+            try:
+                if any(
+                    prior in shared_priors
+                    for _, prior in obj.path_instance_tuples_for_class(af.Prior)
+                ):
+                    add()
+                    current_items = [(key, obj)]
+                    last_blue_print = None
+                    continue
+            except AttributeError:
+                pass
+
             blueprint = cls.get_blueprint(obj)
             if blueprint == last_blue_print:
                 current_items.append((key, obj))
@@ -162,9 +176,12 @@ class Representative:
         """
         counts = Counter()
         for obj in objects:
-            for _, prior in obj.path_instance_tuples_for_class(
-                af.Prior, ignore_children=True
-            ):
-                counts[prior] += 1
+            try:
+                for _, prior in obj.path_instance_tuples_for_class(
+                    af.Prior, ignore_children=True
+                ):
+                    counts[prior] += 1
+            except AttributeError:
+                pass
 
         return {prior for prior, count in counts.items() if count > 1}

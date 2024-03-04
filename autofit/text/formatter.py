@@ -48,6 +48,12 @@ class FormatNode:
                     lines.append(f"{indent_string}{line}")
         return lines
 
+    def __getattr__(self, item):
+        try:
+            return getattr(self.value, item)
+        except AttributeError:
+            raise AttributeError(f"Attribute {item} not found in {self}")
+
 
 class TextFormatter:
     def __init__(self, line_length=90, indent=4):
