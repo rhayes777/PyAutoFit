@@ -149,6 +149,6 @@ def test_custom_derived_summary(samples, custom_model):
 
 Summary (3.0 sigma limits):
 
-fwhm          2.3548 (2.3548, 2.3548)
-custom        0.0000 (0.0000, 0.0000)"""
+custom        0.0000 (0.0000, 0.0000)
+fwhm          2.3548 (2.3548, 2.3548)"""
     )

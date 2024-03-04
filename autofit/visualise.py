@@ -1,6 +1,5 @@
 from typing import Dict, List
 
-import networkx as nx
 from pyvis.network import Network
 import colorsys
 
@@ -14,6 +13,7 @@ from autofit.mapper.prior.log_uniform import LogUniformPrior
 from autofit.mapper.prior_model.prior_model import ModelObject
 from autofit.mapper.prior_model.prior_model import Model
 from autofit.mapper.prior_model.collection import Collection
+from autofit.text.representative import Representative
 
 
 def str_for_object(obj: ModelObject) -> str:
@@ -30,6 +30,8 @@ def str_for_object(obj: ModelObject) -> str:
     -------
     A string representation of the object.
     """
+    if isinstance(obj, Representative):
+        return str_for_object(obj.representative)
     if isinstance(obj, Collection):
         return f"{obj.id}:Collection({len(obj)})"
     if isinstance(obj, Model):
@@ -73,36 +75,6 @@ class VisualiseGraph:
             The model to visualise.
         """
         self.model = model
-
-    def graph(self) -> nx.DiGraph:
-        """
-        Generate a graph of the model with just edges. Could
-        be superseded by the network method.
-        """
-        graph = nx.DiGraph()
-
-        def add_model(model):
-            model_name = str_for_object(model)
-
-            for name, prior in model.direct_prior_tuples:
-                prior_name = str_for_object(prior)
-                graph.add_edge(
-                    model_name,
-                    prior_name,
-                    label=name,
-                )
-
-            for name, child_model in model.direct_prior_model_tuples:
-                add_model(child_model)
-                graph.add_edge(
-                    model_name,
-                    str_for_object(child_model),
-                    label=name,
-                )
-
-        add_model(self.model)
-
-        return graph
 
     @cached_property
     def colours(self) -> Dict[type, str]:
@@ -167,27 +139,51 @@ class VisualiseGraph:
                 **kwargs,
             )
 
-        if isinstance(self.model, Model):
-            add_model(self.model, borderWidth=5)
-        else:
-            add_collection(self.model, borderWidth=5)
+        def add_component(component):
+            model_name = str_for_object(component)
 
-        for _, model in self.model.attribute_tuples_with_type(Model):
-            add_model(model)
-        for _, collection in self.model.attribute_tuples_with_type(
-            Collection,
-            ignore_children=False,
-        ):
-            add_collection(collection)
-        for _, prior in self.model.prior_tuples:
-            net.add_node(
-                str_for_object(prior),
-                shape="dot",
-                color=self.colours[type(prior)],
-                size=10,
-            )
+            if isinstance(component, Model):
+                add_model(component)
+            elif isinstance(component, Collection):
+                add_collection(component)
 
-        net.from_nx(self.graph())
+            for name, representative in Representative.find_representatives(
+                component.direct_prior_tuples
+            ):
+                try:
+                    prior = representative.representative
+                except AttributeError:
+                    prior = representative
+
+                prior_name = str_for_object(prior)
+                net.add_node(
+                    prior_name,
+                    shape="dot",
+                    color=self.colours[type(prior)],
+                    size=10,
+                )
+                net.add_edge(
+                    model_name,
+                    prior_name,
+                    label=name,
+                )
+
+            for name, representative in Representative.find_representatives(
+                component.direct_prior_model_tuples
+            ):
+                try:
+                    child_model = representative.representative
+                except AttributeError:
+                    child_model = representative
+
+                add_component(child_model)
+                net.add_edge(
+                    model_name,
+                    str_for_object(child_model),
+                    label=name,
+                )
+
+        add_component(self.model)
 
         return net
 

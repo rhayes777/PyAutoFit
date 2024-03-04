@@ -34,6 +34,9 @@ class AttributeNameValue:
             return self.tuple == other
         return False
 
+    def __lt__(self, other):
+        return tuple(self) < tuple(other)
+
     def __hash__(self):
         return hash(self.tuple)
 

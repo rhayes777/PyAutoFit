@@ -1,7 +1,8 @@
-from collections import defaultdict
-from typing import Dict, List, Iterable
+from collections import Counter
+from typing import List, Iterable, Set
 
 import autofit as af
+from autofit.mapper.prior.abstract import Prior
 
 
 class Representative:
@@ -38,7 +39,10 @@ class Representative:
         """
         The first object in the group represents the group.
         """
-        return self.items[0][1]
+        try:
+            return sorted(self.children)[0]
+        except TypeError:
+            return self.children[0]
 
     def __getattr__(self, item):
         return getattr(self.representative, item)
@@ -65,18 +69,41 @@ class Representative:
         -------
         A list of representatives and items that are not part of a representative.
         """
-        representative_dict: Dict[tuple, list] = defaultdict(list)
-        for key, obj in items:
-            blueprint = cls.get_blueprint(obj)
-            representative_dict[blueprint].append((key, obj))
-
         representatives = []
-        for blueprint, items in representative_dict.items():
-            if len(items) >= minimum:
-                representative = Representative(items)
+        last_blue_print = None
+        current_items = []
+
+        def add():
+            if len(current_items) >= minimum:
+                representative = Representative(current_items)
                 representatives.append((representative.key, representative))
             else:
-                representatives.extend(items)
+                representatives.extend(current_items)
+
+        shared_priors = cls.shared_descendents(obj for _, obj in items)
+
+        for key, obj in sorted(items):
+            try:
+                if any(
+                    prior in shared_priors
+                    for _, prior in obj.path_instance_tuples_for_class(af.Prior)
+                ):
+                    add()
+                    current_items = [(key, obj)]
+                    last_blue_print = None
+                    continue
+            except AttributeError:
+                pass
+
+            blueprint = cls.get_blueprint(obj)
+            if blueprint == last_blue_print:
+                current_items.append((key, obj))
+            else:
+                add()
+                current_items = [(key, obj)]
+                last_blue_print = blueprint
+
+        add()
 
         return representatives
 
@@ -118,7 +145,43 @@ class Representative:
                 )
                 if path != ("id",)
             )
+            path_priors = obj.path_instance_tuples_for_class(
+                af.Prior, ignore_children=True
+            )
+            min_id = min(pp[1].id for pp in path_priors)
+            blueprint += tuple(
+                (path, prior.id - min_id, cls.get_blueprint(prior))
+                for path, prior in obj.path_instance_tuples_for_class(
+                    af.Prior, ignore_children=True
+                )
+            )
             if isinstance(obj, af.Model):
                 return blueprint + (obj.cls,)
             return blueprint
         raise ValueError(f"Cannot get blueprint for {obj} of type {type(obj)}")
+
+    @classmethod
+    def shared_descendents(cls, objects) -> Set[Prior]:
+        """
+        Find all priors which are shared by more than one object in a list of items.
+
+        Parameters
+        ----------
+        objects
+            A list of objects.
+
+        Returns
+        -------
+        A set of priors shared by more than one object.
+        """
+        counts = Counter()
+        for obj in objects:
+            try:
+                for _, prior in obj.path_instance_tuples_for_class(
+                    af.Prior, ignore_children=True
+                ):
+                    counts[prior] += 1
+            except AttributeError:
+                pass
+
+        return {prior for prior, count in counts.items() if count > 1}
