@@ -24,15 +24,11 @@ AnalysisFactors
 
 AnalysisFactor0
 
-centre (AnalysisFactor1.centre, PriorFactor2)                                             0.5
-normalization (PriorFactor4)                                                              0.5
-sigma (PriorFactor3)                                                                      0.5
+centre (AnalysisFactor1.centre, PriorFactor2) - sigma (PriorFactor3)                      0.5
 
 AnalysisFactor1
 
-centre (AnalysisFactor0.centre, PriorFactor2)                                             0.5
-normalization (PriorFactor1)                                                              0.5
-sigma (PriorFactor0)                                                                      0.5"""
+centre (AnalysisFactor0.centre, PriorFactor2) - sigma (PriorFactor0)                      0.5"""
     )
 
 
