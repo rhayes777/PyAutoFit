@@ -290,5 +290,11 @@ model                                                                           
     )
 
 
-def test_wavelength_visualise(multi_wavelength_model):
-    VisualiseGraph(multi_wavelength_model).save("test.html")
+def test_wavelength_visualise(
+    output_directory,
+    multi_wavelength_model,
+):
+    output_path = output_directory / "test.html"
+    VisualiseGraph(multi_wavelength_model).save(str(output_path))
+
+    assert output_path.exists()
