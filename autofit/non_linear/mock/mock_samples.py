@@ -63,7 +63,9 @@ class MockSamples(SamplesPDF):
             except (KeyError, AttributeError):
                 pass
 
-        return self._max_log_likelihood_instance
+        if as_instance:
+            return self._max_log_likelihood_instance
+        return list(self.sample_list[0].kwargs.values())
 
     @property
     def prior_means(self):
