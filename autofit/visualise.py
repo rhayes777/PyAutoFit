@@ -4,7 +4,20 @@ from pyvis.network import Network
 import colorsys
 
 from autoconf import cached_property
-from autofit.mapper.prior.arithmetic.compound import CompoundPrior
+from autofit.mapper.prior.arithmetic.compound import (
+    CompoundPrior,
+    SumPrior,
+    MultiplePrior,
+    DivisionPrior,
+    FloorDivPrior,
+    ModPrior,
+    PowerPrior,
+    ModifiedPrior,
+    NegativePrior,
+    AbsolutePrior,
+    Log,
+    Log10,
+)
 
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.mapper.prior.uniform import UniformPrior
@@ -15,6 +28,20 @@ from autofit.mapper.prior_model.prior_model import ModelObject
 from autofit.mapper.prior_model.prior_model import Model
 from autofit.mapper.prior_model.collection import Collection
 from autofit.text.representative import Representative
+
+operation_map = {
+    SumPrior: "+",
+    MultiplePrior: "*",
+    DivisionPrior: "/",
+    FloorDivPrior: "//",
+    ModPrior: "%",
+    PowerPrior: "**",
+    ModifiedPrior: "modified",
+    NegativePrior: "-",
+    AbsolutePrior: "abs",
+    Log: "log",
+    Log10: "log10",
+}
 
 
 def str_for_object(obj: ModelObject) -> str:
@@ -31,6 +58,11 @@ def str_for_object(obj: ModelObject) -> str:
     -------
     A string representation of the object.
     """
+    try:
+        return operation_map[obj.__class__]
+    except KeyError:
+        pass
+
     if isinstance(obj, Representative):
         return str_for_object(obj.representative)
     if isinstance(obj, Collection):

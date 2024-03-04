@@ -217,6 +217,8 @@ class SumPrior(CompoundPrior):
     def __str__(self):
         return f"{self._left} + {self._right}"
 
+    __repr__ = __str__
+
 
 class MultiplePrior(CompoundPrior):
     """
@@ -225,6 +227,8 @@ class MultiplePrior(CompoundPrior):
 
     def __str__(self):
         return f"{self._left} * {self._right}"
+
+    __repr__ = __str__
 
     def _instance_for_arguments(
         self,
@@ -258,6 +262,11 @@ class DivisionPrior(CompoundPrior):
             ignore_assertions=ignore_assertions,
         )
 
+    def __str__(self):
+        return f"{self._left} / {self._right}"
+
+    __repr__ = __str__
+
 
 class FloorDivPrior(CompoundPrior):
     """
@@ -276,6 +285,11 @@ class FloorDivPrior(CompoundPrior):
             arguments,
             ignore_assertions=ignore_assertions,
         )
+
+    def __str__(self):
+        return f"{self._left} // {self._right}"
+
+    __repr__ = __str__
 
 
 class ModPrior(CompoundPrior):
@@ -296,6 +310,11 @@ class ModPrior(CompoundPrior):
             ignore_assertions=ignore_assertions,
         )
 
+    def __str__(self):
+        return f"{self._left} % {self._right}"
+
+    __repr__ = __str__
+
 
 class PowerPrior(CompoundPrior):
     """
@@ -314,6 +333,11 @@ class PowerPrior(CompoundPrior):
             arguments,
             ignore_assertions=ignore_assertions,
         )
+
+    def __str__(self):
+        return f"{self._left} ** {self._right}"
+
+    __repr__ = __str__
 
 
 class ModifiedPrior(AbstractPriorModel, ABC, ArithmeticMixin):
@@ -349,6 +373,11 @@ class ModifiedPrior(AbstractPriorModel, ABC, ArithmeticMixin):
             pass
         return new
 
+    def __str__(self):
+        return f"{self.prior}"
+
+    __repr__ = __str__
+
 
 class NegativePrior(ModifiedPrior):
     """
@@ -364,6 +393,11 @@ class NegativePrior(ModifiedPrior):
             arguments,
             ignore_assertions=ignore_assertions,
         )
+
+    def __str__(self):
+        return f"-{self.prior}"
+
+    __repr__ = __str__
 
 
 class AbsolutePrior(ModifiedPrior):
@@ -383,6 +417,11 @@ class AbsolutePrior(ModifiedPrior):
             )
         )
 
+    def __str__(self):
+        return f"abs({self.prior})"
+
+    __repr__ = __str__
+
 
 class Log(ModifiedPrior):
     """
@@ -401,6 +440,11 @@ class Log(ModifiedPrior):
             )
         )
 
+    def __str__(self):
+        return f"log({self.prior})"
+
+    __repr__ = __str__
+
 
 class Log10(ModifiedPrior):
     """
@@ -418,3 +462,8 @@ class Log10(ModifiedPrior):
                 ignore_assertions=ignore_assertions,
             )
         )
+
+    def __str__(self):
+        return f"log10({self.prior})"
+
+    __repr__ = __str__
