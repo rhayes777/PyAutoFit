@@ -4,6 +4,7 @@ from pyvis.network import Network
 import colorsys
 
 from autoconf import cached_property
+from autofit.mapper.prior.arithmetic.compound import CompoundPrior
 
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.mapper.prior.uniform import UniformPrior
@@ -87,6 +88,7 @@ class VisualiseGraph:
             GaussianPrior,
             LogGaussianPrior,
             LogUniformPrior,
+            CompoundPrior,
         } | {model.cls for _, model in self.model.attribute_tuples_with_type(Model)}
         if isinstance(self.model, Model):
             types.add(self.model.cls)
@@ -139,6 +141,15 @@ class VisualiseGraph:
                 **kwargs,
             )
 
+        def add_compound_prior(obj, **kwargs):
+            net.add_node(
+                str_for_object(obj),
+                shape="triangle",
+                color=self.colours[CompoundPrior],
+                size=15,
+                **kwargs,
+            )
+
         def add_component(component):
             model_name = str_for_object(component)
 
@@ -146,6 +157,8 @@ class VisualiseGraph:
                 add_model(component)
             elif isinstance(component, Collection):
                 add_collection(component)
+            elif isinstance(component, CompoundPrior):
+                add_compound_prior(component)
 
             for name, representative in Representative.find_representatives(
                 component.direct_prior_tuples
