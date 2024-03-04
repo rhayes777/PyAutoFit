@@ -34,6 +34,28 @@ def test_visualise(model, visualise_graph, graph_path):
 
 
 @pytest.fixture
+def graph(visualise_graph):
+    return visualise_graph.graph()
+
+
+@pytest.mark.parametrize("node", ["0:Model(Gaussian)", "3:UniformPrior(0.0, 1.0)"])
+def test_nodes(graph, node):
+    assert node in graph.nodes
+
+
+@pytest.mark.parametrize(
+    "edge",
+    [
+        ("2:Collection(2)", "0:Model(Gaussian)"),
+        ("2:Collection(2)", "1:Model(Gaussian)"),
+        ("0:Model(Gaussian)", "1:UniformPrior(0.0, 1.0)"),
+    ],
+)
+def test_edges(graph, edge):
+    assert edge in graph.edges
+
+
+@pytest.fixture
 def graph_path(output_directory):
     return output_directory / "graph.html"
 

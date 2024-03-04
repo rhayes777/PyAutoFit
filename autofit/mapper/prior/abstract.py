@@ -190,10 +190,7 @@ class Prior(Variable, ABC, ArithmeticMixin):
     def __getattr__(self, item):
         if item in ("__setstate__", "__getstate__"):
             raise AttributeError(item)
-        try:
-            return getattr(self.message, item)
-        except AttributeError:
-            raise AttributeError(f"Attribute {item} not found in {self}")
+        return getattr(self.message, item)
 
     def __eq__(self, other):
         try:
