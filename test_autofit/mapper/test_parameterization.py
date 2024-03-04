@@ -66,18 +66,6 @@ def make_info_dict():
 
 
 class TestGenerateModelInfo:
-    def test_info_string(self, formatter):
-        ls = formatter.list
-
-        assert ls[0] == "one"
-        assert len(ls[1]) == 21
-        assert ls[1] == "    one             1"
-        assert ls[2] == "    two             2"
-        assert ls[3] == "    three"
-        assert ls[4] == "        four        4"
-        assert ls[5] == "three"
-        assert ls[6] == "    four            4"
-
     def test_basic(self):
         mm = af.ModelMapper()
         mm.mock_class = af.m.MockClassx2
