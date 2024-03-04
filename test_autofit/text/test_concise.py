@@ -132,3 +132,44 @@ def test_visualise(collection, output_directory):
     VisualiseGraph(collection).save(str(output_path))
 
     assert output_path.exists()
+
+
+def test_wavelength_example():
+    wavelength_list = [464, 658, 806]
+
+    lens = af.Collection(
+        redshift=0.5,
+        bulge=af.Gaussian,
+        mass=af.Gaussian,
+        shear=af.Gaussian,
+    )
+
+    source = af.Collection(
+        redshift=1.0,
+        bulge=af.Exponential,
+    )
+
+    model = af.Collection(galaxies=af.Collection(lens=lens, source=source))
+
+    lens_m = af.UniformPrior(lower_limit=-0.1, upper_limit=0.1)
+    lens_c = af.UniformPrior(lower_limit=-10.0, upper_limit=10.0)
+
+    source_m = af.UniformPrior(lower_limit=-0.1, upper_limit=0.1)
+    source_c = af.UniformPrior(lower_limit=-10.0, upper_limit=10.0)
+
+    collection = af.Collection()
+
+    for wavelength in wavelength_list:
+        lens_normalization = (wavelength * lens_m) + lens_c
+        source_normalization = (wavelength * source_m) + source_c
+
+        collection.append(
+            model.replacing(
+                {
+                    model.galaxies.lens.bulge.normalization: lens_normalization,
+                    model.galaxies.source.bulge.normalization: source_normalization,
+                }
+            )
+        )
+
+    VisualiseGraph(collection).save("test.html")
