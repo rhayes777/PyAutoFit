@@ -164,7 +164,10 @@ class Representative:
             path_priors = obj.path_instance_tuples_for_class(
                 af.Prior, ignore_children=True
             )
-            min_id = min(pp[1].id for pp in path_priors)
+            try:
+                min_id = min(pp[1].id for pp in path_priors)
+            except ValueError:
+                min_id = 0
             blueprint += tuple(
                 (path, prior.id - min_id, cls.get_blueprint(prior))
                 for path, prior in obj.path_instance_tuples_for_class(
@@ -174,7 +177,12 @@ class Representative:
             if isinstance(obj, af.Model):
                 return blueprint + (obj.cls,)
             return blueprint
-        raise ValueError(f"Cannot get blueprint for {obj} of type {type(obj)}")
+
+        return (type(obj),) + tuple(
+            (key, value)
+            for key, value in obj.__dict__.items()
+            if key != "id" and isinstance(value, (float, int))
+        )
 
     @classmethod
     def shared_descendents(cls, objects) -> Set[Prior]:
