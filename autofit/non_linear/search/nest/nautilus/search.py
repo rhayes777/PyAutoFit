@@ -194,7 +194,7 @@ class Nautilus(abstract_nest.AbstractNest):
         except TypeError:
             pass
 
-    def fit_x1_cpu(self, fitness, model, analysis, checkpoint_exists: bool):
+    def fit_x1_cpu(self, fitness, model, analysis):
         """
         Perform the non-linear search, using one CPU core.
 
@@ -231,25 +231,9 @@ class Nautilus(abstract_nest.AbstractNest):
             **self.config_dict_search,
         )
 
-        if checkpoint_exists:
-            self.output_sampler_results(search_internal=search_internal)
+        return self.call_search(search_internal=search_internal, model=model, analysis=analysis)
 
-            self.perform_update(
-                model=model,
-                analysis=analysis,
-                during_analysis=True,
-                search_internal=search_internal,
-            )
-
-        search_internal.run(
-            **self.config_dict_run,
-        )
-
-        self.output_sampler_results(search_internal=search_internal)
-
-        return search_internal
-
-    def fit_multiprocessing(self, fitness, model, analysis, checkpoint_exists: bool):
+    def fit_multiprocessing(self, fitness, model, analysis):
         """
         Perform the non-linear search, using multiple CPU cores parallelized via Python's multiprocessing module.
 
@@ -282,6 +266,32 @@ class Nautilus(abstract_nest.AbstractNest):
             pool=self.number_of_cores,
             **self.config_dict_search,
         )
+
+        return self.call_search(search_internal=search_internal, model=model, analysis=analysis)
+
+    def call_search(self, search_internal, model, analysis):
+        """
+        The x1 CPU and multiprocessing searches both call this function to perform the non-linear search.
+
+        This function calls the search a reduced number of times, corresponding to the `iterations_per_update` of the
+        search. This allows the search to output results on-the-fly, for example writing to the hard-disk the latest
+        model and samples.
+
+        It tracks how often to do this update alongside the maximum number of iterations the search will perform.
+        This ensures that on-the-fly output is performed at regular intervals and that the search does not perform more
+        iterations than the `n_like_max` input variable.
+
+        Parameters
+        ----------
+        search_internal
+            The single CPU or multiprocessing search which is run and performs nested sampling.
+        model
+            The model which maps parameters chosen via the non-linear search (e.g. via the priors or sampling) to
+            instances of the model, which are passed to the fitness function.
+        analysis
+            Contains the data and the log likelihood function which fits an instance of the model to the data, returning
+            the log likelihood the search maximizes.
+        """
 
         finished = False
 
