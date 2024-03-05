@@ -301,9 +301,7 @@ class Nautilus(abstract_nest.AbstractNest):
                 n_like_max=iterations,
             )
 
-            iterations_after_run = self.iterations_from(
-                search_internal=search_internal
-            )[0]
+            iterations_after_run = self.iterations_from(search_internal=search_internal)[1]
 
             if (
                     total_iterations == iterations_after_run
@@ -311,7 +309,16 @@ class Nautilus(abstract_nest.AbstractNest):
             ):
                 finished = True
 
-        self.output_sampler_results(search_internal=search_internal)
+            if not finished:
+
+                self.perform_update(
+                    model=model,
+                    analysis=analysis,
+                    during_analysis=True,
+                    search_internal=search_internal
+                )
+
+                self.output_sampler_results(search_internal=search_internal)
 
         return search_internal
 
