@@ -2,7 +2,7 @@ import numpy as np
 import logging
 import os
 import sys
-from typing import Dict, Optional
+from typing import Dict, Optional, Tuple
 
 from autofit import jax_wrapper
 from autofit.database.sqlalchemy_ import sa
@@ -360,6 +360,46 @@ class Nautilus(abstract_nest.AbstractNest):
             self.output_sampler_results(search_internal=search_internal)
 
         return search_internal
+
+    def iterations_from(
+        self, search_internal
+    ) -> Tuple[int, int]:
+        """
+        Returns the next number of iterations that a dynesty call will use and the total number of iterations
+        that have been performed so far.
+
+        This is used so that the `iterations_per_update` input leads to on-the-fly output of dynesty results.
+
+        It also ensures dynesty does not perform more samples than the `n_like_max` input variable.
+
+        Parameters
+        ----------
+        search_internal
+            The Dynesty sampler (static or dynamic) which is run and performs nested sampling.
+
+        Returns
+        -------
+        The next number of iterations that a dynesty run sampling will perform and the total number of iterations
+        it has performed so far.
+        """
+
+        if isinstance(self.paths, NullPaths):
+            n_like_max = self.config_dict_run.get("n_like_max")
+
+            if n_like_max is not None:
+                return n_like_max, n_like_max
+            return int(1e99), int(1e99)
+
+        try:
+            total_iterations = np.sum(search_internal.results.ncall)
+        except AttributeError:
+            total_iterations = 0
+
+        if self.config_dict_run.get("n_like_max") is not None:
+            iterations = self.config_dict_run["n_like_max"] - total_iterations
+
+            return int(iterations), int(total_iterations)
+        return self.iterations_per_update, int(total_iterations)
 
     def output_sampler_results(self, search_internal):
         """
