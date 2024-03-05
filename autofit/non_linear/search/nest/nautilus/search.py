@@ -283,19 +283,33 @@ class Nautilus(abstract_nest.AbstractNest):
             **self.config_dict_search,
         )
 
-        if checkpoint_exists:
-            self.output_sampler_results(search_internal=search_internal)
+        finished = False
 
-            self.perform_update(
-                model=model,
-                analysis=analysis,
-                during_analysis=True,
-                search_internal=search_internal,
+        while not finished:
+
+            iterations, total_iterations = self.iterations_from(
+                search_internal=search_internal
             )
 
-        search_internal.run(
-            **self.config_dict_run,
-        )
+            config_dict_run = {
+                key: value
+                for key, value in self.config_dict_run.items()
+                if key != "n_like_max"
+            }
+            search_internal.run(
+                **config_dict_run,
+                n_like_max=iterations,
+            )
+
+            iterations_after_run = self.iterations_from(
+                search_internal=search_internal
+            )[0]
+
+            if (
+                    total_iterations == iterations_after_run
+                    or iterations_after_run == self.config_dict_run["n_like_max"]
+            ):
+                finished = True
 
         self.output_sampler_results(search_internal=search_internal)
 
@@ -391,15 +405,17 @@ class Nautilus(abstract_nest.AbstractNest):
             return int(1e99), int(1e99)
 
         try:
-            total_iterations = np.sum(search_internal.results.ncall)
-        except AttributeError:
+            total_iterations = len(search_internal.posterior()[1])
+        except ValueError:
             total_iterations = 0
 
-        if self.config_dict_run.get("n_like_max") is not None:
-            iterations = self.config_dict_run["n_like_max"] - total_iterations
+        iterations = total_iterations + self.iterations_per_update
 
-            return int(iterations), int(total_iterations)
-        return self.iterations_per_update, int(total_iterations)
+        if self.config_dict_run["n_like_max"] is not None:
+            if iterations > self.config_dict_run["n_like_max"]:
+                iterations = self.config_dict_run["n_like_max"]
+
+        return iterations, total_iterations
 
     def output_sampler_results(self, search_internal):
         """
