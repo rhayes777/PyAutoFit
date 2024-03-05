@@ -143,7 +143,6 @@ class Nautilus(abstract_nest.AbstractNest):
                 fitness=fitness,
                 model=model,
                 analysis=analysis,
-                checkpoint_exists=checkpoint_exists,
             )
         else:
             if not self.using_mpi:
@@ -151,7 +150,6 @@ class Nautilus(abstract_nest.AbstractNest):
                     fitness=fitness,
                     model=model,
                     analysis=analysis,
-                    checkpoint_exists=checkpoint_exists,
                 )
             else:
                 search_internal = self.fit_mpi(
@@ -211,8 +209,6 @@ class Nautilus(abstract_nest.AbstractNest):
         analysis
             Contains the data and the log likelihood function which fits an instance of the model to the data, returning
             the log likelihood the search maximizes.
-        checkpoint_exists
-            Does the checkpoint file corresponding do a previous run of this search exist?
         """
 
         self.logger.info(
@@ -253,8 +249,6 @@ class Nautilus(abstract_nest.AbstractNest):
         analysis
             Contains the data and the log likelihood function which fits an instance of the model to the data, returning
             the log likelihood the search maximizes.
-        checkpoint_exists
-            Does the checkpoint file corresponding do a previous run of this search exist?
         """
 
         search_internal = self.sampler_cls(
