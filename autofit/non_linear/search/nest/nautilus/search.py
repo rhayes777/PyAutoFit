@@ -2,7 +2,7 @@ import numpy as np
 import logging
 import os
 import sys
-from typing import Dict, Optional
+from typing import Dict, Optional, Tuple
 
 from autofit import jax_wrapper
 from autofit.database.sqlalchemy_ import sa
@@ -143,7 +143,6 @@ class Nautilus(abstract_nest.AbstractNest):
                 fitness=fitness,
                 model=model,
                 analysis=analysis,
-                checkpoint_exists=checkpoint_exists,
             )
         else:
             if not self.using_mpi:
@@ -151,7 +150,6 @@ class Nautilus(abstract_nest.AbstractNest):
                     fitness=fitness,
                     model=model,
                     analysis=analysis,
-                    checkpoint_exists=checkpoint_exists,
                 )
             else:
                 search_internal = self.fit_mpi(
@@ -194,7 +192,7 @@ class Nautilus(abstract_nest.AbstractNest):
         except TypeError:
             pass
 
-    def fit_x1_cpu(self, fitness, model, analysis, checkpoint_exists: bool):
+    def fit_x1_cpu(self, fitness, model, analysis):
         """
         Perform the non-linear search, using one CPU core.
 
@@ -211,8 +209,6 @@ class Nautilus(abstract_nest.AbstractNest):
         analysis
             Contains the data and the log likelihood function which fits an instance of the model to the data, returning
             the log likelihood the search maximizes.
-        checkpoint_exists
-            Does the checkpoint file corresponding do a previous run of this search exist?
         """
 
         self.logger.info(
@@ -231,25 +227,9 @@ class Nautilus(abstract_nest.AbstractNest):
             **self.config_dict_search,
         )
 
-        if checkpoint_exists:
-            self.output_sampler_results(search_internal=search_internal)
+        return self.call_search(search_internal=search_internal, model=model, analysis=analysis)
 
-            self.perform_update(
-                model=model,
-                analysis=analysis,
-                during_analysis=True,
-                search_internal=search_internal,
-            )
-
-        search_internal.run(
-            **self.config_dict_run,
-        )
-
-        self.output_sampler_results(search_internal=search_internal)
-
-        return search_internal
-
-    def fit_multiprocessing(self, fitness, model, analysis, checkpoint_exists: bool):
+    def fit_multiprocessing(self, fitness, model, analysis):
         """
         Perform the non-linear search, using multiple CPU cores parallelized via Python's multiprocessing module.
 
@@ -269,8 +249,6 @@ class Nautilus(abstract_nest.AbstractNest):
         analysis
             Contains the data and the log likelihood function which fits an instance of the model to the data, returning
             the log likelihood the search maximizes.
-        checkpoint_exists
-            Does the checkpoint file corresponding do a previous run of this search exist?
         """
 
         search_internal = self.sampler_cls(
@@ -283,21 +261,68 @@ class Nautilus(abstract_nest.AbstractNest):
             **self.config_dict_search,
         )
 
-        if checkpoint_exists:
-            self.output_sampler_results(search_internal=search_internal)
+        return self.call_search(search_internal=search_internal, model=model, analysis=analysis)
 
-            self.perform_update(
-                model=model,
-                analysis=analysis,
-                during_analysis=True,
-                search_internal=search_internal,
+    def call_search(self, search_internal, model, analysis):
+        """
+        The x1 CPU and multiprocessing searches both call this function to perform the non-linear search.
+
+        This function calls the search a reduced number of times, corresponding to the `iterations_per_update` of the
+        search. This allows the search to output results on-the-fly, for example writing to the hard-disk the latest
+        model and samples.
+
+        It tracks how often to do this update alongside the maximum number of iterations the search will perform.
+        This ensures that on-the-fly output is performed at regular intervals and that the search does not perform more
+        iterations than the `n_like_max` input variable.
+
+        Parameters
+        ----------
+        search_internal
+            The single CPU or multiprocessing search which is run and performs nested sampling.
+        model
+            The model which maps parameters chosen via the non-linear search (e.g. via the priors or sampling) to
+            instances of the model, which are passed to the fitness function.
+        analysis
+            Contains the data and the log likelihood function which fits an instance of the model to the data, returning
+            the log likelihood the search maximizes.
+        """
+
+        finished = False
+
+        while not finished:
+
+            iterations, total_iterations = self.iterations_from(
+                search_internal=search_internal
             )
 
-        search_internal.run(
-            **self.config_dict_run,
-        )
+            config_dict_run = {
+                key: value
+                for key, value in self.config_dict_run.items()
+                if key != "n_like_max"
+            }
+            search_internal.run(
+                **config_dict_run,
+                n_like_max=iterations,
+            )
 
-        self.output_sampler_results(search_internal=search_internal)
+            iterations_after_run = self.iterations_from(search_internal=search_internal)[1]
+
+            if (
+                    total_iterations == iterations_after_run
+                    or iterations_after_run == self.config_dict_run["n_like_max"]
+            ):
+                finished = True
+
+            if not finished:
+
+                self.perform_update(
+                    model=model,
+                    analysis=analysis,
+                    during_analysis=True,
+                    search_internal=search_internal
+                )
+
+                self.output_sampler_results(search_internal=search_internal)
 
         return search_internal
 
@@ -360,6 +385,48 @@ class Nautilus(abstract_nest.AbstractNest):
             self.output_sampler_results(search_internal=search_internal)
 
         return search_internal
+
+    def iterations_from(
+        self, search_internal
+    ) -> Tuple[int, int]:
+        """
+        Returns the next number of iterations that a dynesty call will use and the total number of iterations
+        that have been performed so far.
+
+        This is used so that the `iterations_per_update` input leads to on-the-fly output of dynesty results.
+
+        It also ensures dynesty does not perform more samples than the `n_like_max` input variable.
+
+        Parameters
+        ----------
+        search_internal
+            The Dynesty sampler (static or dynamic) which is run and performs nested sampling.
+
+        Returns
+        -------
+        The next number of iterations that a dynesty run sampling will perform and the total number of iterations
+        it has performed so far.
+        """
+
+        if isinstance(self.paths, NullPaths):
+            n_like_max = self.config_dict_run.get("n_like_max")
+
+            if n_like_max is not None:
+                return n_like_max, n_like_max
+            return int(1e99), int(1e99)
+
+        try:
+            total_iterations = len(search_internal.posterior()[1])
+        except ValueError:
+            total_iterations = 0
+
+        iterations = total_iterations + self.iterations_per_update
+
+        if self.config_dict_run["n_like_max"] is not None:
+            if iterations > self.config_dict_run["n_like_max"]:
+                iterations = self.config_dict_run["n_like_max"]
+
+        return iterations, total_iterations
 
     def output_sampler_results(self, search_internal):
         """
