@@ -1,5 +1,6 @@
 from dynesty import plotting as dyplot
 from functools import wraps
+import numpy as np
 
 from autofit.plot import SamplesPlotter
 
@@ -56,6 +57,7 @@ class DynestyPlotter(SamplesPlotter):
         """
 
         dyplot.boundplot(
+            dims=self.model.total_free_parameters,
             results=self.samples.search_internal.results,
             labels=self.model.parameter_labels_with_superscripts_latex,
             **kwargs
@@ -75,14 +77,31 @@ class DynestyPlotter(SamplesPlotter):
         the course of a run, projected onto all pairs of dimensions.
         """
 
-        dyplot.cornerbound(
-            results=self.samples.search_internal.results,
+        import os
+
+        if os.environ.get("PYAUTOFIT_TEST_MODE") == "1":
+            return
+
+        import corner
+
+        corner.corner(
+            data=np.asarray(self.samples.parameter_lists),
+            weight_list=self.samples.weight_list,
             labels=self.model.parameter_labels_with_superscripts_latex,
             **kwargs
         )
 
-        self.output.to_figure(structure=None, auto_filename="cornerbound")
+        self.output.to_figure(structure=None, auto_filename="corner")
         self.close()
+
+        # dyplot.cornerbound(
+        #     results=self.samples.search_internal.results,
+        #     labels=self.model.parameter_labels_with_superscripts_latex,
+        #     **kwargs
+        # )
+        #
+        # self.output.to_figure(structure=None, auto_filename="cornerbound")
+        # self.close()
 
     @skip_plot_in_test_mode
     @log_value_error
@@ -93,13 +112,21 @@ class DynestyPlotter(SamplesPlotter):
         This figure plots a corner plot of the 1-D and 2-D marginalized posteriors.
         """
 
-        dyplot.cornerplot(
-            results=self.samples.search_internal.results,
+        import os
+
+        if os.environ.get("PYAUTOFIT_TEST_MODE") == "1":
+            return
+
+        import corner
+
+        corner.corner(
+            data=np.asarray(self.samples.parameter_lists),
+            weight_list=self.samples.weight_list,
             labels=self.model.parameter_labels_with_superscripts_latex,
             **kwargs
         )
 
-        self.output.to_figure(structure=None, auto_filename="cornerplot")
+        self.output.to_figure(structure=None, auto_filename="corner")
         self.close()
 
     @skip_plot_in_test_mode

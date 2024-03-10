@@ -848,6 +848,39 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         """
         return self._class_config[section][attribute_name]
 
+    def plot_results(self, samples):
+
+        def should_plot(name):
+            return conf.instance["visualize"]["plots_search"][self.__class__.__name__][name]
+
+        from autofit.plot.samples_plotters import SamplesPlotter
+        from autofit.plot.output import Output
+
+        plotter = SamplesPlotter(
+            samples=samples,
+            output=Output(path=self.paths.image_path / "search", format="png"),
+        )
+
+        if should_plot("cornerplot"):
+            plotter.cornerplot()
+
+
+        # if should_plot("cornerplot"):
+        #     plotter.cornerplot(
+        #         panelsize=3.5,
+        #         yticksize=16,
+        #         xticksize=16,
+        #         bins=20,
+        #         plot_datapoints=False,
+        #         plot_density=False,
+        #         fill_contours=True,
+        #         levels=(0.68, 0.95),
+        #         labelpad=0.02,
+        #         range=np.ones(samples.model.total_free_parameters) * 0.999,
+        #         label_kwargs={"fontsize": 24},
+        #     )
+
+
     def perform_update(
         self,
         model: AbstractPriorModel,

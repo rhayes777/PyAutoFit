@@ -88,6 +88,28 @@ class SamplesPlotter:
             "should be produced in later update, once posterior estimate is updated."
         )
 
+    def cornerplot(self, **kwargs):
+        """
+        Plots the `nautilus` plot `cornerplot`, using the package `corner.py`.
+
+        This figure plots a corner plot of the 1-D and 2-D marginalized posteriors.
+        """
+
+        if os.environ.get("PYAUTOFIT_TEST_MODE") == "1":
+            return
+
+        import corner
+
+        corner.corner(
+            data=np.asarray(self.samples.parameter_lists),
+            weight_list=self.samples.weight_list,
+            labels=self.model.parameter_labels_with_superscripts_latex,
+            **kwargs
+        )
+
+        self.output.to_figure(structure=None, auto_filename="corner")
+        self.close()
+
 class MCMCPlotter(SamplesPlotter):
 
     def _plot_trajectories(self, samples, log_posterior_list, **kwargs):
