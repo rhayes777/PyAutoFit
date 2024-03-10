@@ -3,14 +3,11 @@ from typing import Dict, Optional
 
 from autofit.database.sqlalchemy_ import sa
 
-from autoconf import conf
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.search.nest import abstract_nest
 from autofit.non_linear.fitness import Fitness
 from autofit.non_linear.samples.sample import Sample
 from autofit.non_linear.samples.nest import SamplesNest
-from autofit.plot import UltraNestPlotter
-from autofit.non_linear.plot.output import Output
 
 class UltraNest(abstract_nest.AbstractNest):
     __identifier_fields__ = (

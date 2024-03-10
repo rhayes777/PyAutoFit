@@ -2,7 +2,6 @@ from typing import Dict, Optional
 
 import numpy as np
 
-from autoconf import conf
 from autofit import exc
 from autofit.database.sqlalchemy_ import sa
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
@@ -11,8 +10,6 @@ from autofit.non_linear.initializer import AbstractInitializer
 from autofit.non_linear.search.optimize.abstract_optimize import AbstractOptimizer
 from autofit.non_linear.samples.sample import Sample
 from autofit.non_linear.samples.samples import Samples
-from autofit.plot import PySwarmsPlotter
-from autofit.non_linear.plot.output import Output
 
 
 class FitnessPySwarms(Fitness):
