@@ -7,7 +7,7 @@ logger = logging.getLogger(__name__)
 
 class MCMCPlotter(SamplesPlotter):
 
-    def plot_trajectories(self, **kwargs):
+    def trajectories(self, **kwargs):
 
         fig, axes = plt.subplots(self.model.prior_count, figsize=(10, 7))
 
@@ -24,7 +24,7 @@ class MCMCPlotter(SamplesPlotter):
         self.output.to_figure(structure=None, auto_filename="tracjectories")
         self.close()
 
-    def plot_likelihood_series(self, **kwargs):
+    def likelihood_series(self, **kwargs):
 
         fig, axes = plt.subplots(1, figsize=(10, 7))
 
@@ -38,7 +38,7 @@ class MCMCPlotter(SamplesPlotter):
         self.output.to_figure(structure=None, auto_filename="likelihood_series")
         self.close()
 
-    def plot_time_series(self, samples, **kwargs):
+    def time_series(self, samples, **kwargs):
 
         fig, axes = plt.subplots(self.samples.model.prior_count, figsize=(10, 7), sharex=True)
 
