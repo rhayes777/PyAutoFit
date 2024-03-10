@@ -673,7 +673,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         )
 
         result = analysis.make_result(
-            samples=samples,
+            samples=samples, search_internal=search_internal
         )
 
         if self.is_master:
@@ -687,7 +687,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         return result
 
     def result_via_completed_fit(
-        self, analysis: Analysis, model: AbstractPriorModel, search_internal=None
+        self, analysis: Analysis, model: AbstractPriorModel,
     ) -> Result:
         """
         Returns the result of the non-linear search of a completed model-fit.
@@ -712,6 +712,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         model
             The model that is fitted to the data, which is used by the non-linear search to create instances of
             the model that are fitted to the data via the log likelihood function.
+
         Returns
         -------
         The result of the non-linear search, which includes the best-fit model instance and best-fit log likelihood
@@ -720,9 +721,13 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         model.freeze()
         samples = self.samples_from(model=model)
+        try:
+            search_internal = self.paths.load_search_internal()
+        except FileNotFoundError:
+            search_internal = None
 
         result = analysis.make_result(
-            samples=samples,
+            samples=samples, search_internal=search_internal
         )
 
         if self.is_master:

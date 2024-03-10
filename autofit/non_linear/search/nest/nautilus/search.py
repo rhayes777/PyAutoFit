@@ -161,6 +161,8 @@ class Nautilus(abstract_nest.AbstractNest):
         if self.checkpoint_file is not None:
             os.remove(self.checkpoint_file)
 
+
+
         return search_internal
 
     @property
@@ -321,7 +323,7 @@ class Nautilus(abstract_nest.AbstractNest):
                     search_internal=search_internal
                 )
 
-                self.output_sampler_results(search_internal=search_internal)
+                self.output_search_internal(search_internal=search_internal)
 
         return search_internal
 
@@ -368,7 +370,7 @@ class Nautilus(abstract_nest.AbstractNest):
 
             if checkpoint_exists:
                 if self.is_master:
-                    self.output_sampler_results(search_internal=search_internal)
+                    self.output_search_internal(search_internal=search_internal)
 
                     self.perform_update(
                         model=model,
@@ -381,7 +383,7 @@ class Nautilus(abstract_nest.AbstractNest):
                 **self.config_dict_run,
             )
 
-            self.output_sampler_results(search_internal=search_internal)
+            self.output_search_internal(search_internal=search_internal)
 
         return search_internal
 
@@ -427,12 +429,12 @@ class Nautilus(abstract_nest.AbstractNest):
 
         return iterations, total_iterations
 
-    def output_sampler_results(self, search_internal):
+    def output_search_internal(self, search_internal):
         """
-        Output the sampler results to hard-disk in a generalized PyAutoFit format.
+        Output the sampler results to hard-disk in their internal format.
 
-        The results in this format are loaded by other functions in order to create a `Samples` object, perform updates
-        which visualize the results and write the results to the hard-disk as an output of the model-fit.
+        The multiprocessing `Pool` object cannot be pickled and thus the sampler cannot be saved to hard-disk. This
+        function therefore extracts the necessary information from the sampler and saves it to hard-disk.
 
         Parameters
         ----------
@@ -440,42 +442,25 @@ class Nautilus(abstract_nest.AbstractNest):
             The nautilus sampler object containing the results of the model-fit.
         """
 
-        parameters, log_weights, log_likelihoods = search_internal.posterior()
+        pool_l = search_internal.pool_l
+        pool_s = search_internal.pool_s
 
-        parameter_lists = parameters.tolist()
-        log_likelihood_list = log_likelihoods.tolist()
-        weight_list = np.exp(log_weights).tolist()
-
-        search_internal = {
-            "parameter_lists": parameter_lists,
-            "log_likelihood_list": log_likelihood_list,
-            "weight_list": weight_list,
-            "log_evidence": search_internal.evidence(),
-            "total_samples": int(search_internal.n_like),
-            "time": self.timer.time if self.timer else None,
-            "number_live_points": int(search_internal.n_live),
-        }
+        search_internal.pool_l = None
+        search_internal.pool_s = None
 
         self.paths.save_search_internal(
             obj=search_internal,
         )
 
+        search_internal.pool_l = pool_l
+        search_internal.pool_s = pool_s
+
     def samples_info_from(self, search_internal=None):
-        search_internal_dict = search_internal or self.paths.load_search_internal()
-
-        if search_internal is not None:
-            return {
-                "log_evidence": search_internal.evidence(),
-                "total_samples": int(search_internal.n_like),
-                "time": self.timer.time if self.timer else None,
-                "number_live_points": int(search_internal.n_live),
-            }
-
         return {
-            "log_evidence": search_internal_dict["log_evidence"],
-            "total_samples": search_internal_dict["total_samples"],
+            "log_evidence": search_internal.evidence(),
+            "total_samples": int(search_internal.n_like),
             "time": self.timer.time if self.timer else None,
-            "number_live_points": search_internal_dict["number_live_points"],
+            "number_live_points": int(search_internal.n_live),
         }
 
     def samples_via_internal_from(
@@ -496,19 +481,14 @@ class Nautilus(abstract_nest.AbstractNest):
             Maps input vectors of unit parameter values to physical values and model instances via priors.
         """
 
-        if search_internal is not None:
-            parameters, log_weights, log_likelihoods = search_internal.posterior()
+        if search_internal is None:
+            search_internal = self.paths.load_search_internal()
 
-            parameter_lists = parameters.tolist()
-            log_likelihood_list = log_likelihoods.tolist()
-            weight_list = np.exp(log_weights).tolist()
+        parameters, log_weights, log_likelihoods = search_internal.posterior()
 
-        else:
-            search_internal_dict = self.paths.load_search_internal()
-
-            parameter_lists = search_internal_dict["parameter_lists"]
-            log_likelihood_list = search_internal_dict["log_likelihood_list"]
-            weight_list = search_internal_dict["weight_list"]
+        parameter_lists = parameters.tolist()
+        log_likelihood_list = log_likelihoods.tolist()
+        weight_list = np.exp(log_weights).tolist()
 
         log_prior_list = [
             sum(model.log_prior_list_from_vector(vector=vector))

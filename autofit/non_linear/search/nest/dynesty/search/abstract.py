@@ -200,7 +200,7 @@ class AbstractDynesty(AbstractNest, ABC):
                 )
 
         self.paths.save_search_internal(
-            obj=search_internal.results,
+            obj=search_internal,
         )
 
         return search_internal
