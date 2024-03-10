@@ -64,6 +64,10 @@ class SamplesPlotter:
     def model(self):
         return self.samples.model
 
+    @property
+    def log_posterior_list(self):
+        return self.samples.log_posterior_list
+
     def close(self):
         if plt.fignum_exists(num=1):
             plt.close()
