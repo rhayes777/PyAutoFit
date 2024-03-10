@@ -11,7 +11,6 @@ from autofit.non_linear.initializer import Initializer
 from autofit.non_linear.search.mcmc.abstract_mcmc import AbstractMCMC
 from autofit.non_linear.search.mcmc.auto_correlations import AutoCorrelationsSettings
 from autofit.non_linear.search.mcmc.auto_correlations import AutoCorrelations
-from autofit.non_linear.search.mcmc.zeus.plotter import ZeusPlotter
 from autofit.non_linear.samples.sample import Sample
 from autofit.non_linear.samples.mcmc import SamplesMCMC
 from autofit.non_linear.plot.output import Output
@@ -360,26 +359,3 @@ class Zeus(AbstractMCMC):
             "nwalkers": 20,
             "nsteps": 10,
         }
-
-    def plot_results(self, samples):
-        def should_plot(name):
-            return conf.instance["visualize"]["plots_search"]["zeus"][name]
-
-        plotter = ZeusPlotter(
-            samples=samples,
-            output=Output(
-                path=self.paths.image_path / "search", format="png"
-            ),
-        )
-
-        if should_plot("corner"):
-            plotter.corner()
-
-        if should_plot("trajectories"):
-            plotter.trajectories()
-
-        if should_plot("likelihood_series"):
-            plotter.likelihood_series()
-
-        if should_plot("time_series"):
-            plotter.time_series()

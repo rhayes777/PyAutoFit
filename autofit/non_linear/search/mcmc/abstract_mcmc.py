@@ -6,7 +6,8 @@ from autofit.non_linear.search.abstract_search import NonLinearSearch
 from autofit.non_linear.initializer import Initializer
 from autofit.non_linear.samples import SamplesMCMC
 from autofit.non_linear.search.mcmc.auto_correlations import AutoCorrelationsSettings
-
+from autofit.non_linear.plot.mcmc_plotters import MCMCPlotter
+from autofit.non_linear.plot.output import Output
 
 class AbstractMCMC(NonLinearSearch):
 
@@ -46,3 +47,29 @@ class AbstractMCMC(NonLinearSearch):
     @property
     def samples_cls(self):
         return SamplesMCMC
+
+    @property
+    def plotter_cls(self):
+        return MCMCPlotter
+
+    def plot_results(self, samples):
+
+        def should_plot(name):
+            return conf.instance["visualize"]["plots_search"][self.__class__.__name__][name]
+
+        plotter = self.plotter_cls(
+            samples=samples,
+            output=Output(path=self.paths.image_path / "search", format="png"),
+        )
+
+        if should_plot("corner"):
+            plotter.corner()
+
+        if should_plot("trajectories"):
+            plotter.trajectories()
+
+        if should_plot("likelihood_series"):
+            plotter.likelihood_series()
+
+        if should_plot("time_series"):
+            plotter.time_series()
