@@ -1,25 +1,35 @@
-dynesty:
-  corner: true         # Output Dynesty corner figure during a non-linear search fit?
+DynestyStatic:
+  corner: true             # Output Dynesty corner figure during a non-linear search fit?
   cornerpoints: false      # Output Dynesty cornerpoints figure during a non-linear search fit?
   runplot: true            # Output Dynesty runplot figure during a non-linear search fit?
   traceplot: true          # Output Dynesty traceplot figure during a non-linear search fit?
-emcee:
+DynestyDynamic:
+  corner: true             # Output Dynesty corner figure during a non-linear search fit?
+  cornerpoints: false      # Output Dynesty cornerpoints figure during a non-linear search fit?
+  runplot: true            # Output Dynesty runplot figure during a non-linear search fit?
+  traceplot: true          # Output Dynesty traceplot figure during a non-linear search fit?
+Emcee:
   corner: true             # Output Emcee corner figure during a non-linear search fit?
   likelihood_series: true  # Output Emcee likelihood series figure during a non-linear search fit?
   time_series: true        # Output Emcee time series figure during a non-linear search fit?
   trajectories: true       # Output Emcee trajectories figure during a non-linear search fit?
-nautilus:
-  corner: true         # Output Nautilus corner figure during a non-linear search fit?
-pyswarms:
+Nautilus:
+  corner: true             # Output Nautilus corner figure during a non-linear search fit?
+PySwarmsLobal:
   contour: true            # Output PySwarms contour figure during a non-linear search fit?
   cost_history: true       # Output PySwarms cost_history figure during a non-linear search fit?
   time_series: true        # Output PySwarms time_series figure during a non-linear search fit?
   trajectories: true       # Output PySwarms trajectories figure during a non-linear search fit?
-ultranest:
+PySwarmsGlobal:
+  contour: true            # Output PySwarms contour figure during a non-linear search fit?
+  cost_history: true       # Output PySwarms cost_history figure during a non-linear search fit?
+  time_series: true        # Output PySwarms time_series figure during a non-linear search fit?
+  trajectories: true       # Output PySwarms trajectories figure during a non-linear search fit?
+UltraNest:
   corner: true         # Output Ultranest corner figure during a non-linear search fit?
   runplot: true            # Output Ultranest runplot figure during a non-linear search fit?
   traceplot: true          # Output Ultranest traceplot figure during a non-linear search fit?
-zeus:
+Zeus:
   corner: true             # Output Zeus corner figure during a non-linear search fit?
   likelihood_series: true  # Output Zeus likelihood series figure during a non-linear search fit?
   time_series: true        # Output Zeus time series figure during a non-linear search fit?
