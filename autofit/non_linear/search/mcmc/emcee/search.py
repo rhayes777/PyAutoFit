@@ -195,6 +195,7 @@ class Emcee(AbstractMCMC):
                     search_internal=search_internal,
                     during_analysis=True
                 )
+
         return search_internal
 
     def samples_info_from(self, search_internal=None):

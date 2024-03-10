@@ -2,7 +2,6 @@ from typing import Dict, Optional
 
 import numpy as np
 
-from autoconf import conf
 from autofit.database.sqlalchemy_ import sa
 from autofit.mapper.model_mapper import ModelMapper
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
@@ -13,7 +12,6 @@ from autofit.non_linear.search.mcmc.auto_correlations import AutoCorrelationsSet
 from autofit.non_linear.search.mcmc.auto_correlations import AutoCorrelations
 from autofit.non_linear.samples.sample import Sample
 from autofit.non_linear.samples.mcmc import SamplesMCMC
-from autofit.non_linear.plot.output import Output
 
 class Zeus(AbstractMCMC):
     __identifier_fields__ = (

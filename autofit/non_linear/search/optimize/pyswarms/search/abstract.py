@@ -150,12 +150,10 @@ class AbstractPySwarms(AbstractOptimizer):
 
         try:
 
-            search_internal_dict = self.paths.load_search_internal()
+            search_internal = self.paths.load_search_internal()
 
-            search_internal = search_internal_dict["pos_history"]
-
-            init_pos = search_internal[-1]
-            total_iterations = search_internal_dict["total_iterations"]
+            init_pos = search_internal.pos_history[-1]
+            total_iterations = len(search_internal.cost_history)
 
             self.logger.info(
                 "Resuming PySwarms non-linear search (previous samples found)."
@@ -216,15 +214,8 @@ class AbstractPySwarms(AbstractOptimizer):
 
                 total_iterations += iterations
 
-                search_internal_dict = {
-                    "pos_history" : search_internal.pos_history,
-                    "total_iterations": total_iterations,
-                    "log_posterior_list": [-0.5 * cost for cost in search_internal.cost_history],
-                    "time": self.timer.time if self.timer else None,
-                }
-
                 self.paths.save_search_internal(
-                    obj=search_internal_dict,
+                    obj=search_internal,
                 )
 
                 self.perform_update(
@@ -254,27 +245,16 @@ class AbstractPySwarms(AbstractOptimizer):
             Maps input vectors of unit parameter values to physical values and model instances via priors.
         """
 
-        if search_internal is not None:
+        if search_internal is None:
 
-            search_internal_dict = {
-                "total_iterations": None,
-                "log_posterior_list": [-0.5 * cost for cost in search_internal.cost_history],
-                "time": self.timer.time if self.timer else None,
-            }
-            pos_history = search_internal.pos_history
+            search_internal = self.paths.load_search_internal()
 
-
-
-        else:
-
-            search_internal_dict = self.paths.load_search_internal()
-            pos_history = search_internal_dict["pos_history"]
-
-            search_internal_dict = {
-                "total_iterations": search_internal_dict["total_iterations"],
-                "log_posterior_list": search_internal_dict["log_posterior_list"],
-                "time": search_internal_dict["time"]
-            }
+        search_internal_dict = {
+            "total_iterations": None,
+            "log_posterior_list": [-0.5 * cost for cost in search_internal.cost_history],
+            "time": self.timer.time if self.timer else None,
+        }
+        pos_history = search_internal.pos_history
 
         parameter_lists = [
             param.tolist() for parameters in pos_history for param in parameters
