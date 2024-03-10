@@ -1836,7 +1836,7 @@ class AbstractPriorModel(AbstractModel):
         This file can also be used to overwrite superscripts, that are assigned based on the model component name.
 
         This is used for displaying model results as text and for visualization, for example labelling parameters on a
-        cornerplot.
+        corner.
         """
 
         return [
@@ -1853,7 +1853,7 @@ class AbstractPriorModel(AbstractModel):
         This file can also be used to overwrite superscripts, that are assigned based on the model component name.
 
         This is used for displaying model results as text and for visualization, for example labelling parameters on a
-        cornerplot.
+        corner.
         """
 
         return [f"${label}$" for label in self.parameter_labels_with_superscripts]

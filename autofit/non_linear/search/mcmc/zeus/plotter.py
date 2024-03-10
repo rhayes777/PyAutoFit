@@ -8,7 +8,7 @@ class ZeusPlotter(MCMCPlotter):
         import zeus
 
         try:
-            zeus.cornerplot(
+            zeus.corner(
                 samples=self.samples.search_internal.get_chain(flat=True),
                 weight_list=self.samples.weight_list,
                 labels=self.model.parameter_labels_with_superscripts_latex,

@@ -88,9 +88,9 @@ class SamplesPlotter:
             "should be produced in later update, once posterior estimate is updated."
         )
 
-    def cornerplot(self, **kwargs):
+    def corner(self, **kwargs):
         """
-        Plots the `nautilus` plot `cornerplot`, using the package `corner.py`.
+        Plots the `nautilus` plot `corner`, using the package `corner.py`.
 
         This figure plots a corner plot of the 1-D and 2-D marginalized posteriors.
         """

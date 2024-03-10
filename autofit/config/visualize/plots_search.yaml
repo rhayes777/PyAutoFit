@@ -1,5 +1,5 @@
 dynesty:
-  cornerplot: true         # Output Dynesty cornerplot figure during a non-linear search fit?
+  corner: true         # Output Dynesty corner figure during a non-linear search fit?
   cornerpoints: false      # Output Dynesty cornerpoints figure during a non-linear search fit?
   runplot: true            # Output Dynesty runplot figure during a non-linear search fit?
   traceplot: true          # Output Dynesty traceplot figure during a non-linear search fit?
@@ -9,14 +9,14 @@ emcee:
   time_series: true        # Output Emcee time series figure during a non-linear search fit?
   trajectories: true       # Output Emcee trajectories figure during a non-linear search fit?
 nautilus:
-  cornerplot: true         # Output Nautilus cornerplot figure during a non-linear search fit?
+  corner: true         # Output Nautilus corner figure during a non-linear search fit?
 pyswarms:
   contour: true            # Output PySwarms contour figure during a non-linear search fit?
   cost_history: true       # Output PySwarms cost_history figure during a non-linear search fit?
   time_series: true        # Output PySwarms time_series figure during a non-linear search fit?
   trajectories: true       # Output PySwarms trajectories figure during a non-linear search fit?
 ultranest:
-  cornerplot: true         # Output Ultranest cornerplot figure during a non-linear search fit?
+  corner: true         # Output Ultranest corner figure during a non-linear search fit?
   runplot: true            # Output Ultranest runplot figure during a non-linear search fit?
   traceplot: true          # Output Ultranest traceplot figure during a non-linear search fit?
 zeus:

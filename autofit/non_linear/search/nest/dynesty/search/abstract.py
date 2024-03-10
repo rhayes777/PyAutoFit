@@ -519,8 +519,8 @@ class AbstractDynesty(AbstractNest, ABC):
             output=Output(path=self.paths.image_path / "search", format="png"),
         )
 
-        if should_plot("cornerplot"):
-            plotter.cornerplot()
+        if should_plot("corner"):
+            plotter.corner()
 
         if should_plot("traceplot"):
             plotter.traceplot()

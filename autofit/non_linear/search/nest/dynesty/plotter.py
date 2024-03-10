@@ -105,9 +105,9 @@ class DynestyPlotter(SamplesPlotter):
 
     @skip_plot_in_test_mode
     @log_value_error
-    def cornerplot(self, **kwargs):
+    def corner(self, **kwargs):
         """
-        Plots the in-built ``dynesty`` plot ``cornerplot``.
+        Plots the in-built ``dynesty`` plot ``corner``.
 
         This figure plots a corner plot of the 1-D and 2-D marginalized posteriors.
         """

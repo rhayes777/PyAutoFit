@@ -43,21 +43,21 @@ class UltraNestPlotter(SamplesPlotter):
 
     @skip_plot_in_test_mode
     @log_value_error
-    def cornerplot(self, **kwargs):
+    def corner(self, **kwargs):
         """
-        Plots the in-built ``ultranest`` plot ``cornerplot``.
+        Plots the in-built ``ultranest`` plot ``corner``.
 
         This figure plots a corner plot of the 1-D and 2-D marginalized posteriors.
         """
 
         from ultranest import plot
 
-        plot.cornerplot(
+        plot.corner(
             results=self.samples.search_internal,
             **kwargs
         )
 
-        self.output.to_figure(structure=None, auto_filename="cornerplot")
+        self.output.to_figure(structure=None, auto_filename="corner")
         self.close()
 
     @skip_plot_in_test_mode

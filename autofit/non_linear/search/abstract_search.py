@@ -861,12 +861,12 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             output=Output(path=self.paths.image_path / "search", format="png"),
         )
 
-        if should_plot("cornerplot"):
-            plotter.cornerplot()
+        if should_plot("corner"):
+            plotter.corner()
 
 
-        # if should_plot("cornerplot"):
-        #     plotter.cornerplot(
+        # if should_plot("corner"):
+        #     plotter.corner(
         #         panelsize=3.5,
         #         yticksize=16,
         #         xticksize=16,
@@ -895,7 +895,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         The update performs the following tasks (if the settings indicate they should be performed):
 
-        1) Visualize the search results (e.g. a cornerplot).
+        1) Visualize the search results (e.g. a corner).
         2) Visualize the maximum log likelihood model using model-specific visualization implented via the `Analysis`
            object.
         3) Perform profiling of the analysis object `log_likelihood_function` and ouptut run-time information.
@@ -1010,7 +1010,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         The update performs the following tasks (if the settings indicate they should be performed):
 
-        1) Visualize the search results (e.g. a cornerplot).
+        1) Visualize the search results (e.g. a corner).
         2) Visualize the maximum log likelihood model using model-specific visualization implented via the `Analysis`
            object.
 
