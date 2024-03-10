@@ -35,7 +35,7 @@ def log_value_error(func):
         """
         try:
             return func(self, *args, **kwargs)
-        except ValueError:
+        except (ValueError, KeyError, AssertionError):
             self.log_plot_exception(func.__name__)
 
     return wrapper

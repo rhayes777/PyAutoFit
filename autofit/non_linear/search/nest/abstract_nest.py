@@ -10,6 +10,7 @@ from autofit.non_linear.initializer import (
     SpecificRangeInitializer,
 )
 from autofit.non_linear.samples import SamplesNest
+from autofit.non_linear.plot.nest_plotters import NestPlotter
 
 
 class AbstractNest(NonLinearSearch, ABC):
@@ -64,3 +65,7 @@ class AbstractNest(NonLinearSearch, ABC):
     @property
     def samples_cls(self):
         return SamplesNest
+
+    @property
+    def plotter_cls(self):
+        return NestPlotter
