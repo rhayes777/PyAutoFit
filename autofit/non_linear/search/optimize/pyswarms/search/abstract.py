@@ -329,25 +329,3 @@ class AbstractPySwarms(AbstractOptimizer):
 
     def search_internal_from(self, model, fitness, bounds, init_pos):
         raise NotImplementedError()
-
-    def plot_results(self, samples):
-
-        def should_plot(name):
-            return conf.instance["visualize"]["plots_search"]["pyswarms"][name]
-
-        plotter = PySwarmsPlotter(
-            samples=samples,
-            output=Output(path=self.paths.image_path / "search", format="png")
-        )
-
-        if should_plot("contour"):
-            plotter.contour()
-
-        if should_plot("cost_history"):
-            plotter.cost_history()
-
-        if should_plot("trajectories"):
-            plotter.trajectories()
-
-        if should_plot("time_series"):
-            plotter.time_series()
