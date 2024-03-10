@@ -54,6 +54,9 @@ class AbstractMCMC(NonLinearSearch):
 
     def plot_results(self, samples):
 
+        if not samples.pdf_converged:
+            return
+
         def should_plot(name):
             return conf.instance["visualize"]["plots_search"][self.__class__.__name__][name]
 

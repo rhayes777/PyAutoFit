@@ -15,7 +15,6 @@ from autofit.non_linear.paths.null import NullPaths
 from autofit.non_linear.search.nest.abstract_nest import AbstractNest
 from autofit.non_linear.samples.sample import Sample
 from autofit.non_linear.samples.nest import SamplesNest
-from autofit.non_linear.plot.output import Output
 
 
 def prior_transform(cube, model):
@@ -504,33 +503,3 @@ class AbstractDynesty(AbstractNest, ABC):
     @property
     def number_live_points(self):
         raise NotImplementedError()
-
-    def plot_results(self, samples):
-        from autofit.non_linear.search.nest.dynesty.plotter import DynestyPlotter
-
-        if not samples.pdf_converged:
-            return
-
-        def should_plot(name):
-            return conf.instance["visualize"]["plots_search"]["dynesty"][name]
-
-        plotter = DynestyPlotter(
-            samples=samples,
-            output=Output(path=self.paths.image_path / "search", format="png"),
-        )
-
-        if should_plot("corner"):
-            plotter.corner()
-
-        if should_plot("traceplot"):
-            plotter.traceplot()
-
-        # There is currently a bug internal in dynesty where the matplotlib figure produced after these plots
-        # is not closed, and has weird extra stuff on. I have commented these out for now, in the hope that dynesty
-        # fix this bug in the future.
-
-        # if should_plot("runplot"):
-        #     plotter.runplot()
-
-        # if should_plot("cornerpoints"):
-        #     plotter.cornerpoints()

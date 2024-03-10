@@ -169,18 +169,3 @@ class Drawer(AbstractOptimizer):
             sample_list=sample_list,
             samples_info=search_internal_dict,
         )
-
-    def plot_results(
-        self,
-        samples,
-        during_analysis : bool = False,
-    ):
-        def should_plot(name):
-            return conf.instance["visualize"]["plots_search"]["drawer"][name]
-
-        plotter = DrawerPlotter(
-            samples=samples,
-            output=Output(
-                path=self.paths.image_path / "search", format="png"
-            ),
-        )

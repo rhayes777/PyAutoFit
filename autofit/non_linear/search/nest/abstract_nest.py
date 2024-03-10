@@ -11,6 +11,7 @@ from autofit.non_linear.initializer import (
 )
 from autofit.non_linear.samples import SamplesNest
 from autofit.non_linear.plot.nest_plotters import NestPlotter
+from autofit.non_linear.plot.output import Output
 
 
 class AbstractNest(NonLinearSearch, ABC):
@@ -69,3 +70,31 @@ class AbstractNest(NonLinearSearch, ABC):
     @property
     def plotter_cls(self):
         return NestPlotter
+
+    def plot_results(self, samples):
+
+        if not samples.pdf_converged:
+            return
+
+        def should_plot(name):
+            return conf.instance["visualize"]["plots_search"][self.__class__.__name__][name]
+
+        plotter = self.plotter_cls(
+            samples=samples,
+            output=Output(path=self.paths.image_path / "search", format="png"),
+        )
+        if should_plot("corner"):
+            plotter.corner()
+
+        if should_plot("traceplot"):
+            plotter.traceplot()
+
+        # There is currently a bug internal in dynesty where the matplotlib figure produced after these plots
+        # is not closed, and has weird extra stuff on. I have commented these out for now, in the hope that dynesty
+        # fix this bug in the future.
+
+        # if should_plot("runplot"):
+        #     plotter.runplot()
+
+        # if should_plot("cornerpoints"):
+        #     plotter.cornerpoints()

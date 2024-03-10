@@ -322,25 +322,3 @@ class UltraNest(abstract_nest.AbstractNest):
             return stepsampler.CubeSliceSampler(**config_dict_stepsampler)
         elif stepsampler_cls == "RegionSliceSampler":
             return stepsampler.RegionSliceSampler(**config_dict_stepsampler)
-
-    def plot_results(self, samples):
-
-        if not samples.pdf_converged:
-            return
-
-        def should_plot(name):
-            return conf.instance["visualize"]["plots_search"]["ultranest"][name]
-
-        plotter = UltraNestPlotter(
-            samples=samples,
-            output=Output(self.paths.image_path / "search", format="png")
-        )
-
-        if should_plot("corner"):
-            plotter.corner()
-
-        if should_plot("runplot"):
-            plotter.runplot()
-
-        if should_plot("traceplot"):
-            plotter.traceplot()
