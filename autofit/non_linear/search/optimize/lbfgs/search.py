@@ -250,5 +250,4 @@ class LBFGS(AbstractOptimizer):
             model=model,
             sample_list=sample_list,
             samples_info=samples_info,
-            search_internal=x0,
         )

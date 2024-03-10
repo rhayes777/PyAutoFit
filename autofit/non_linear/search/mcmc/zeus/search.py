@@ -306,7 +306,6 @@ class Zeus(AbstractMCMC):
             model=model,
             sample_list=sample_list,
             samples_info=self.samples_info_from(search_internal=search_internal),
-            search_internal=search_internal,
             auto_correlation_settings=self.auto_correlation_settings,
             auto_correlations=auto_correlations,
         )

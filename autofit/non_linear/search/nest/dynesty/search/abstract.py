@@ -257,8 +257,7 @@ class AbstractDynesty(AbstractNest, ABC):
         return SamplesNest(
             model=model,
             sample_list=sample_list,
-            samples_info=self.samples_info_from(search_internal=search_internal),
-            search_internal=search_internal,
+            samples_info=self.samples_info_from(search_internal=search_internal)
         )
 
     @property

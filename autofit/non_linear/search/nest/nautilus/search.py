@@ -14,7 +14,6 @@ from autofit.non_linear.paths.null import NullPaths
 from autofit.non_linear.search.nest import abstract_nest
 from autofit.non_linear.samples.sample import Sample
 from autofit.non_linear.samples.nest import SamplesNest
-from autofit.non_linear.plot.output import Output
 
 logger = logging.getLogger(__name__)
 
@@ -528,7 +527,6 @@ class Nautilus(abstract_nest.AbstractNest):
             model=model,
             sample_list=sample_list,
             samples_info=self.samples_info_from(search_internal=search_internal),
-            search_internal=None,
         )
 
     @property

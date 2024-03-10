@@ -24,21 +24,17 @@ class Samples(SamplesInterface, ABC):
         model: AbstractPriorModel,
         sample_list: List[Sample],
         samples_info: Optional[Dict] = None,
-        search_internal: Optional = None,
         derived_quantities_list: Optional[List] = None,
     ):
         """
-        The `Samples` classes in **PyAutoFit** provide an interface between the search_internal of
-        a `NonLinearSearch` (e.g. as files on your hard-disk) and Python.
+        Contains the samples of the non-linear search, including parameter values, log likelihoods,
+        weights and other quantites.
 
         For example, the output class can be used to load an instance of the best-fit model, get an instance of any
         individual sample by the `NonLinearSearch` and return information on the likelihoods, errors, etc.
 
         This class stores samples of searches which provide maximum likelihood estimates of the  model-fit (e.g.
         PySwarms, LBFGS).
-
-        To use a library's in-built visualization tools results are optionally stored in their native internal format
-        using the `search_internal` attribute.
 
         Parameters
         ----------
@@ -49,15 +45,12 @@ class Samples(SamplesInterface, ABC):
             by the non-linear search.
         samples_info
             Contains information on the samples (e.g. total iterations, time to run the search, etc.).
-        search_internal
-            The nested sampler's results in their native internal format for interfacing its visualization library.
         """
 
         super().__init__(model=model)
 
         self.sample_list = sample_list
         self.samples_info = samples_info
-        self.search_internal = search_internal
         self._derived_quantities_list = derived_quantities_list
 
     def _instance_from_vector(self, vector: List[float]) -> ModelInstance:
@@ -203,16 +196,10 @@ class Samples(SamplesInterface, ABC):
         sample_list = paths.load_samples()
         samples_info = paths.load_samples_info()
 
-        try:
-            search_internal = paths.load_search_internal()
-        except FileNotFoundError:
-            search_internal = None
-
         return cls.from_list_info_and_model(
             sample_list=sample_list,
             samples_info=samples_info,
             model=model,
-            search_internal=search_internal,
         )
 
     @classmethod
@@ -221,14 +208,12 @@ class Samples(SamplesInterface, ABC):
         sample_list,
         samples_info,
         model: AbstractPriorModel,
-        search_internal=None,
         derived_quantities_list=None,
     ):
         return cls(
             model=model,
             sample_list=sample_list,
             samples_info=samples_info,
-            search_internal=search_internal,
             derived_quantities_list=derived_quantities_list,
         )
 
@@ -254,13 +239,6 @@ class Samples(SamplesInterface, ABC):
         """
 
         self._check_addition(other=other)
-
-        if self.search_internal is not None:
-            warnings.warn(
-                f"Addition of {self.__class__.__name__} cannot retain results in native format. "
-                "Visualization of summed samples diabled.",
-                exc.SamplesWarning,
-            )
 
         return self.__class__(
             model=self.model,

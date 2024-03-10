@@ -255,7 +255,6 @@ class UltraNest(abstract_nest.AbstractNest):
             model=model,
             sample_list=sample_list,
             samples_info=self.samples_info_from(search_internal=search_internal),
-            search_internal=search_internal,
         )
 
     def config_dict_test_mode_from(self, config_dict: Dict) -> Dict:

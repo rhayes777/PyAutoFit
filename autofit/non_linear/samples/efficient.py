@@ -18,7 +18,6 @@ class EfficientSamples:
         """
         self.model = samples.model
         self.samples_info = samples.samples_info
-        self.search_internal = samples.search_internal
 
         sample_list = samples.sample_list
         self._keys = list(sample_list[0].kwargs.keys())
@@ -39,7 +38,6 @@ class EfficientSamples:
         return SamplesPDF(
             model=self.model,
             samples_info=self.samples_info,
-            search_internal=self.search_internal,
             sample_list=self.sample_list,
         )
 
