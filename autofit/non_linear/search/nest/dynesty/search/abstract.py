@@ -15,7 +15,7 @@ from autofit.non_linear.paths.null import NullPaths
 from autofit.non_linear.search.nest.abstract_nest import AbstractNest
 from autofit.non_linear.samples.sample import Sample
 from autofit.non_linear.samples.nest import SamplesNest
-from autofit.plot.output import Output
+from autofit.non_linear.plot.output import Output
 
 
 def prior_transform(cube, model):

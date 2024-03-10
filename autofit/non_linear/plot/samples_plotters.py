@@ -3,7 +3,7 @@ from functools import wraps
 import logging
 import os
 
-from autofit.plot.output import Output
+from autofit.non_linear.plot.output import Output
 
 logger = logging.getLogger(__name__)
 

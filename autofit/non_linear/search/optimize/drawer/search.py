@@ -10,7 +10,7 @@ from autofit.non_linear.search.optimize.abstract_optimize import AbstractOptimiz
 from autofit.non_linear.initializer import AbstractInitializer
 from autofit.non_linear.search.optimize.drawer.plotter import DrawerPlotter
 from autofit.non_linear.samples import Samples, Sample
-from autofit.plot.output import Output
+from autofit.non_linear.plot.output import Output
 
 
 class Drawer(AbstractOptimizer):

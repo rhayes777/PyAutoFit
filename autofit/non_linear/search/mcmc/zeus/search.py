@@ -14,7 +14,7 @@ from autofit.non_linear.search.mcmc.auto_correlations import AutoCorrelations
 from autofit.non_linear.search.mcmc.zeus.plotter import ZeusPlotter
 from autofit.non_linear.samples.sample import Sample
 from autofit.non_linear.samples.mcmc import SamplesMCMC
-from autofit.plot.output import Output
+from autofit.non_linear.plot.output import Output
 
 class Zeus(AbstractMCMC):
     __identifier_fields__ = (

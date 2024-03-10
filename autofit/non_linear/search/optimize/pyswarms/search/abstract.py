@@ -12,7 +12,7 @@ from autofit.non_linear.search.optimize.abstract_optimize import AbstractOptimiz
 from autofit.non_linear.samples.sample import Sample
 from autofit.non_linear.samples.samples import Samples
 from autofit.plot import PySwarmsPlotter
-from autofit.plot.output import Output
+from autofit.non_linear.plot.output import Output
 
 
 class FitnessPySwarms(Fitness):

@@ -853,8 +853,8 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         def should_plot(name):
             return conf.instance["visualize"]["plots_search"][self.__class__.__name__][name]
 
-        from autofit.plot.samples_plotters import SamplesPlotter
-        from autofit.plot.output import Output
+        from autofit.non_linear.plot.samples_plotters import SamplesPlotter
+        from autofit.non_linear.plot.output import Output
 
         plotter = SamplesPlotter(
             samples=samples,

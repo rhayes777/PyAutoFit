@@ -4,7 +4,7 @@ import numpy as np
 
 from autofit.plot import SamplesPlotter
 
-from autofit.plot.samples_plotters import skip_plot_in_test_mode
+from autofit.non_linear.plot.samples_plotters import skip_plot_in_test_mode
 
 def log_value_error(func):
 

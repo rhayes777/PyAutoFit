@@ -1,7 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-from autofit.plot.samples_plotters import MCMCPlotter
+from autofit.non_linear.plot.samples_plotters import MCMCPlotter
 
 
 class PySwarmsPlotter(MCMCPlotter):
