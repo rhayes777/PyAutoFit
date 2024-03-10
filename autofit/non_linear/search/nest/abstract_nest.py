@@ -73,9 +73,6 @@ class AbstractNest(NonLinearSearch, ABC):
 
     def plot_results(self, samples):
 
-        if not samples.pdf_converged:
-            return
-
         def should_plot(name):
             return conf.instance["visualize"]["plots_search"][self.__class__.__name__][name]
 
@@ -85,16 +82,3 @@ class AbstractNest(NonLinearSearch, ABC):
         )
         if should_plot("corner"):
             plotter.corner()
-
-        if should_plot("traceplot"):
-            plotter.traceplot()
-
-        # There is currently a bug internal in dynesty where the matplotlib figure produced after these plots
-        # is not closed, and has weird extra stuff on. I have commented these out for now, in the hope that dynesty
-        # fix this bug in the future.
-
-        # if should_plot("runplot"):
-        #     plotter.runplot()
-
-        # if should_plot("cornerpoints"):
-        #     plotter.cornerpoints()

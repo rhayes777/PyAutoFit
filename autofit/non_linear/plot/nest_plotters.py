@@ -1,5 +1,7 @@
-from dynesty import plotting as dyplot
+from anesthetic.samples import NestedSamples
+from anesthetic import make_2d_axes
 from functools import wraps
+import numpy as np
 
 from autofit.non_linear.plot import SamplesPlotter
 from autofit.non_linear.plot.samples_plotters import skip_plot_in_test_mode
@@ -35,7 +37,7 @@ def log_value_error(func):
         """
         try:
             return func(self, *args, **kwargs)
-        except (ValueError, KeyError, AssertionError):
+        except (ValueError, KeyError, AssertionError, np.linalg.LinAlgError):
             self.log_plot_exception(func.__name__)
 
     return wrapper
@@ -45,109 +47,28 @@ class NestPlotter(SamplesPlotter):
 
     @skip_plot_in_test_mode
     @log_value_error
-    def boundplot(self, **kwargs):
-        """
-        Plots the in-built ``dynesty`` plot ``boundplot``.
-
-        This figure plots the bounding distribution used to propose either (1) live points
-        at a given iteration or (2) a specific dead point during
-        the course of a run, projected onto the two dimensions specified
-        by `dims`.
-        """
-
-        dyplot.boundplot(
-            results=self.samples.search_internal.results,
-            labels=self.model.parameter_labels_with_superscripts_latex,
-            **kwargs
-        )
-
-        self.output.to_figure(structure=None, auto_filename="boundplot")
-        self.close()
-
-    @skip_plot_in_test_mode
-    @log_value_error
-    def cornerbound(self, **kwargs):
-        """
-        Plots the in-built ``dynesty`` plot ``cornerbound``.
-
-        This figure plots the bounding distribution used to propose either (1) live points
-        at a given iteration or (2) a specific dead point during
-        the course of a run, projected onto all pairs of dimensions.
-        """
-
-        dyplot.cornerbound(
-            results=self.samples.search_internal.results,
-            labels=self.model.parameter_labels_with_superscripts_latex,
-            **kwargs
-        )
-
-        self.output.to_figure(structure=None, auto_filename="cornerbound")
-        self.close()
-
-    @skip_plot_in_test_mode
-    @log_value_error
-    def cornerplot(self, **kwargs):
+    def corner(self, **kwargs):
         """
         Plots the in-built ``dynesty`` plot ``cornerplot``.
 
         This figure plots a corner plot of the 1-D and 2-D marginalized posteriors.
         """
 
-        dyplot.cornerplot(
-            results=self.samples.search_internal.results,
-            labels=self.model.parameter_labels_with_superscripts_latex,
-            **kwargs
+        samples = NestedSamples(
+            np.asarray(self.samples.parameter_lists),
+            weights=self.samples.weight_list,
+            columns=self.model.parameter_labels_with_superscripts_latex
         )
 
-        self.output.to_figure(structure=None, auto_filename="cornerplot")
-        self.close()
-
-    @skip_plot_in_test_mode
-    @log_value_error
-    def cornerpoints(self, **kwargs):
-        """
-        Plots the in-built ``dynesty`` plot ``cornerpoints``.
-
-        This figure plots a (sub-)corner plot of (weighted) samples.
-        """
-        dyplot.cornerpoints(
-            results=self.samples.search_internal.results,
-            labels=self.model.parameter_labels_with_superscripts_latex,
-            **kwargs
+        # prior = samples.prior()
+        fig, axes = make_2d_axes(
+            self.model.parameter_labels_with_superscripts_latex,
+            figsize=(12, 12),
+            facecolor='w'
         )
+    #    prior.plot_2d(axes, alpha=0.9, label="prior")
+        samples.plot_2d(axes, alpha=0.9, label="posterior")
+        axes.iloc[-1, 0].legend(bbox_to_anchor=(len(axes) / 2, len(axes)), loc='lower center', ncols=2)
 
-        self.output.to_figure(structure=None, auto_filename="cornerpoints")
-        self.close()
-
-    @skip_plot_in_test_mode
-    @log_value_error
-    def runplot(self, **kwargs):
-        """
-        Plots the in-built ``dynesty`` plot ``runplot``.
-
-        This figure plots live points, ln(likelihood), ln(weight), and ln(evidence)
-        as a function of ln(prior volume).
-        """
-        dyplot.runplot(
-            results=self.samples.search_internal.results,
-            **kwargs
-        )
-
-        self.output.to_figure(structure=None, auto_filename="runplot")
-        self.close()
-
-    @skip_plot_in_test_mode
-    @log_value_error
-    def traceplot(self, **kwargs):
-        """
-        Plots the in-built ``dynesty`` plot ``traceplot``.
-
-        This figure plots traces and marginalized posteriors for each parameter.
-        """
-        dyplot.traceplot(
-            results=self.samples.search_internal.results,
-            **kwargs
-        )
-
-        self.output.to_figure(structure=None, auto_filename="traceplot")
+        self.output.to_figure(structure=None, auto_filename="corner")
         self.close()

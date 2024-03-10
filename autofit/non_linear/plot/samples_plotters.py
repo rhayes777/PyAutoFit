@@ -88,9 +88,10 @@ class SamplesPlotter:
         """
 
         logger.info(
-            f"{self.__class__.__name__} unable to produce {plot_name} visual: posterior estimate therefore"
-            "not yet sufficient for this model-fit is not yet robust enough to do this. Visual"
-            "should be produced in later update, once posterior estimate is updated."
+            f"""{self.__class__.__name__} unable to produce {plot_name} visual: posterior estimate therefore
+            not yet sufficient for this model-fit is not yet robust enough to do this. 
+            Visuals should be produced in later update, once posterior estimate is updated.
+        """
         )
 
     def corner(self, **kwargs):

@@ -29,15 +29,3 @@ class AbstractOptimizer(NonLinearSearch, ABC):
             samples=samples,
             output=Output(path=self.paths.image_path / "search", format="png")
         )
-
-        if should_plot("contour"):
-            plotter.contour()
-
-        if should_plot("cost_history"):
-            plotter.cost_history()
-
-        if should_plot("trajectories"):
-            plotter.trajectories()
-
-        if should_plot("time_series"):
-            plotter.time_series()

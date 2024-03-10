@@ -67,12 +67,3 @@ class AbstractMCMC(NonLinearSearch):
 
         if should_plot("corner"):
             plotter.corner()
-
-        if should_plot("trajectories"):
-            plotter.trajectories()
-
-        if should_plot("likelihood_series"):
-            plotter.likelihood_series()
-
-        if should_plot("time_series"):
-            plotter.time_series()
