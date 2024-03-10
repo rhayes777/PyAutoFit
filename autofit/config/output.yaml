@@ -36,7 +36,7 @@ samples: true
 # quantities specific to the non-linear search that you are interested in inspecting. Deleting the folder means this
 # information is list.
 
-search_internal: true
+search_internal: false
 
 # Other Files:
 
