@@ -1,6 +1,7 @@
 import pytest
 
 import autofit as af
+from autofit import DirectoryPaths
 from autofit.exc import SamplesException
 from autofit.non_linear.analysis.custom_quantities import CustomQuantities
 
@@ -51,3 +52,15 @@ def test_analysis_custom_quantities():
     custom_quantities = analysis.custom_quantities
     assert custom_quantities.names == ["centre"]
     assert custom_quantities.values == [[instance.centre]]
+
+
+def test_set_directory_paths(output_directory):
+    directory_paths = DirectoryPaths(output_path=output_directory)
+    custom_quantities = CustomQuantities(names=["centre"], values=[[1.0]])
+    directory_paths.save_custom_quantities(
+        custom_quantities=custom_quantities,
+        samples=None,
+    )
+    loaded = directory_paths.load_custom_quantities()
+    assert loaded.names == ["centre"]
+    assert loaded.values == [[1.0]]

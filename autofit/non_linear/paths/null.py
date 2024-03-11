@@ -9,6 +9,9 @@ class NullPaths(AbstractPaths):
     Null version of paths object for avoiding writing of files to disk
     """
 
+    def save_custom_quantities(self, custom_quantities, samples):
+        pass
+
     def save_derived_quantities(self, samples):
         pass
 

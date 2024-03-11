@@ -32,6 +32,7 @@ class AbstractPaths(ABC):
         parent: Optional["AbstractPaths"] = None,
         unique_tag: Optional[str] = None,
         identifier: str = None,
+        output_path: Optional[os.PathLike] = None,
     ):
         """
         Manages the path structure for `NonLinearSearch` output, for analyses both not using and using the search
@@ -78,6 +79,8 @@ class AbstractPaths(ABC):
 
         self._parent = None
         self.parent = parent
+
+        self._output_path = output_path or conf.instance.output_path
 
         try:
             self.remove_files = conf.instance["general"]["output"]["remove_files"]
@@ -224,7 +227,7 @@ class AbstractPaths(ABC):
             filter(
                 len,
                 [
-                    str(conf.instance.output_path),
+                    str(self._output_path),
                     str(self.path_prefix),
                     str(self.name),
                 ],

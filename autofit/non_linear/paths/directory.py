@@ -1,3 +1,4 @@
+import csv
 import shutil
 
 import dill
@@ -15,7 +16,8 @@ from autofit.text import formatter
 from autofit.tools.util import open_
 
 from .abstract import AbstractPaths
-from ..analysis.custom_quantities import CustomQuantities
+
+# from ..analysis.custom_quantities import CustomQuantities
 from ..samples import load_from_table
 from autofit.non_linear.samples.pdf import SamplesPDF
 import numpy as np
@@ -248,7 +250,7 @@ class DirectoryPaths(AbstractPaths):
 
     def save_custom_quantities(
         self,
-        custom_quantities: CustomQuantities,
+        custom_quantities,
         samples,
     ):
         write_table(
@@ -256,6 +258,15 @@ class DirectoryPaths(AbstractPaths):
             headers=custom_quantities.names,
             rows=custom_quantities.values,
         )
+
+    def load_custom_quantities(self):
+        with open(self._custom_quantities_file, "r+", newline="") as f:
+            reader = csv.reader(f)
+            names = list(next(reader))
+            values = [list(map(float, row)) for row in reader]
+        from autofit.tools.custom_quantities import CustomQuantities
+
+        return CustomQuantities(names=names, values=values)
 
     def save_derived_quantities(self, samples: Samples):
         """
