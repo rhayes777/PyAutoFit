@@ -79,7 +79,6 @@ class Output:
 
     def to_figure(
         self,
-        structure,
         auto_filename: Optional[str] = None,
     ):
         """
@@ -101,12 +100,6 @@ class Output:
                     plt.savefig(self.path / f"{filename}.png")
                 elif format == "pdf":
                     plt.savefig(self.path / f"{filename}.pdf")
-                elif format == "fits":
-                    if structure is not None:
-                        structure.output_to_fits(
-                            file_path=self.path / f"{filename}.fits",
-                            overwrite=True,
-                        )
 
     def subplot_to_figure(self, auto_filename=None):
         """

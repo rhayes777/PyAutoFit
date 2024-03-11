@@ -70,5 +70,5 @@ class NestPlotter(SamplesPlotter):
         samples.plot_2d(axes, alpha=0.9, label="posterior")
         axes.iloc[-1, 0].legend(bbox_to_anchor=(len(axes) / 2, len(axes)), loc='lower center', ncols=2)
 
-        self.output.to_figure(structure=None, auto_filename="corner")
+        self.output.to_figure(auto_filename="corner")
         self.close()

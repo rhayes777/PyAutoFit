@@ -113,7 +113,7 @@ class SamplesPlotter:
             **kwargs
         )
 
-        self.output.to_figure(structure=None, auto_filename="corner")
+        self.output.to_figure(auto_filename="corner")
         self.close()
 
 
