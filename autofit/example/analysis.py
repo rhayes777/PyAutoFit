@@ -1,6 +1,6 @@
 import os
 import matplotlib.pyplot as plt
-from typing import List
+from typing import List, Optional
 
 from autofit.jax_wrapper import numpy as np
 
@@ -60,7 +60,12 @@ class Analysis(af.Analysis):
         chi_squared_map = (residual_map / self.noise_map) ** 2.0
         log_likelihood = -0.5 * sum(chi_squared_map)
 
+        self.save_latent_variables(
+            fwmh=instance.fwhm
+        )
+
         return log_likelihood
+
 
     def visualize(self, paths: af.DirectoryPaths, instance: af.ModelInstance, during_analysis : bool):
         """
