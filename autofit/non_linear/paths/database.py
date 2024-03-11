@@ -271,6 +271,10 @@ class DatabasePaths(AbstractPaths):
         self.fit.set_json("samples_info", samples.samples_info)
 
     def save_custom_quantities(self, custom_quantities, samples):
+        if not self.save_all_samples:
+            custom_quantities = custom_quantities.minimise(
+                samples.max_log_likelihood_index
+            )
         self.fit.custom_quantities = custom_quantities
 
     def load_custom_quantities(self):

@@ -75,11 +75,16 @@ def test_efficient(custom_quantities):
     assert custom_quantities.efficient().values == np.array([[1.0]])
 
 
+class MockSamples:
+    @property
+    def max_log_likelihood_index(self):
+        return 0
+
+
 def test_set_database_paths(session, custom_quantities):
     database_paths = af.DatabasePaths(session)
     database_paths.save_custom_quantities(
-        custom_quantities=custom_quantities,
-        samples=None,
+        custom_quantities=custom_quantities, samples=MockSamples()
     )
     loaded = database_paths.load_custom_quantities()
     assert loaded.names == ["centre"]
@@ -90,3 +95,8 @@ def test_iter(custom_quantities):
     assert list(custom_quantities) == [{"centre": 1.0}]
     assert custom_quantities[0] == {"centre": 1.0}
     assert custom_quantities["centre"] == [1.0]
+
+
+def test_minimise(custom_quantities):
+    custom_quantities.minimise(0)
+    assert custom_quantities.values == [[1.0]]

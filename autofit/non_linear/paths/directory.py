@@ -253,6 +253,16 @@ class DirectoryPaths(AbstractPaths):
         custom_quantities,
         samples,
     ):
+        """
+        Write out the custom quantities of the model to a file.
+
+        Parameters
+        ----------
+        custom_quantities
+            The custom quantities of the model
+        samples
+            The samples of the model
+        """
         write_table(
             filename=str(self._custom_quantities_file),
             headers=custom_quantities.names,

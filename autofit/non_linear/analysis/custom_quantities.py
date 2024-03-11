@@ -103,3 +103,14 @@ class CustomQuantities:
     def __iter__(self):
         for values in self.values:
             yield self._convert_values_to_dict(values)
+
+    def minimise(self, index: int):
+        """
+        Minimise the custom quantities to a single row.
+
+        Parameters
+        ----------
+        index
+            The row number to keep.
+        """
+        return CustomQuantities(names=self.names, values=[self.values[index]])
