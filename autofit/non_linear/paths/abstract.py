@@ -423,9 +423,9 @@ class AbstractPaths(ABC):
         """
 
     @abstractmethod
-    def save_custom_quantities(self, custom_quantities, samples):
+    def save_latent_variables(self, latent_variables, samples):
         """
-        Save custom quantities. These are values computed from an instance and output
+        Save latent variables. These are values computed from an instance and output
         during analysis.
         """
 
@@ -475,8 +475,8 @@ class AbstractPaths(ABC):
         return self._files_path / "samples.csv"
 
     @property
-    def _custom_quantities_file(self) -> Path:
-        return self._files_path / "custom_quantities.csv"
+    def _latent_variables_file(self) -> Path:
+        return self._files_path / "latent_variables.csv"
 
     @property
     def _derived_quantities_file(self) -> Path:

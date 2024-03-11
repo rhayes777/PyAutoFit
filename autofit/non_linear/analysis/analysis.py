@@ -6,7 +6,7 @@ from typing import Optional
 from autoconf import conf
 
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
-from autofit.non_linear.analysis.custom_quantities import CustomQuantities
+from autofit.non_linear.analysis.latent_variables import LatentVariables
 from autofit.non_linear.paths.abstract import AbstractPaths
 from autofit.non_linear.paths.database import DatabasePaths
 from autofit.non_linear.paths.null import NullPaths
@@ -23,37 +23,37 @@ class Analysis(ABC):
     """
 
     @property
-    def custom_quantities(self) -> Optional[CustomQuantities]:
+    def latent_variables(self) -> Optional[LatentVariables]:
         """
         Custom quantities that are computed during the analysis.
 
-        If no custom quantities have been saved, this will return None.
+        If no latent variables have been saved, this will return None.
         """
         try:
-            return self._custom_quantities
+            return self._latent_variables
         except AttributeError:
             return None
 
-    def save_custom_quantities(self, **kwargs: float):
+    def save_latent_variables(self, **kwargs: float):
         """
-        Save custom quantities that are computed during the analysis.
+        Save latent variables that are computed during the analysis.
 
-        This should only be called once per a fit and must always be passed the same custom quantities.
+        This should only be called once per a fit and must always be passed the same latent variables.
 
         Parameters
         ----------
         kwargs
-            The custom quantities to save.
+            The latent variables to save.
 
         Raises
         ------
         SamplesException
-            If the same custom quantities are not passed to `add` each iteration.
+            If the same latent variables are not passed to `add` each iteration.
         """
-        if not hasattr(self, "_custom_quantities"):
+        if not hasattr(self, "_latent_variables"):
             # noinspection PyAttributeOutsideInit
-            self._custom_quantities = CustomQuantities()
-        self._custom_quantities.add(**kwargs)
+            self._latent_variables = LatentVariables()
+        self._latent_variables.add(**kwargs)
 
     def with_model(self, model):
         """

@@ -906,10 +906,10 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         if self.is_master:
             self.paths.save_samples(samples=samples)
 
-            custom_quantities = analysis.custom_quantities
-            if custom_quantities:
-                self.paths.save_custom_quantities(
-                    custom_quantities,
+            latent_variables = analysis.latent_variables
+            if latent_variables:
+                self.paths.save_latent_variables(
+                    latent_variables,
                     samples=samples,
                 )
 

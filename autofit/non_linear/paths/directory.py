@@ -17,7 +17,7 @@ from autofit.tools.util import open_
 
 from .abstract import AbstractPaths
 
-# from ..analysis.custom_quantities import CustomQuantities
+# from ..analysis.latent_variables import LatentVariables
 from ..samples import load_from_table
 from autofit.non_linear.samples.pdf import SamplesPDF
 import numpy as np
@@ -248,36 +248,36 @@ class DirectoryPaths(AbstractPaths):
                         f"Could not save covariance matrix because of the following error:\n{e}"
                     )
 
-    def save_custom_quantities(
+    def save_latent_variables(
         self,
-        custom_quantities,
+        latent_variables,
         samples,
     ):
         """
-        Write out the custom quantities of the model to a file.
+        Write out the latent variables of the model to a file.
 
         Parameters
         ----------
-        custom_quantities
-            The custom quantities of the model
+        latent_variables
+            The latent variables of the model
         samples
             The samples of the model
         """
         write_table(
-            filename=str(self._custom_quantities_file),
-            headers=custom_quantities.names,
-            rows=custom_quantities.values,
+            filename=str(self._latent_variables_file),
+            headers=latent_variables.names,
+            rows=latent_variables.values,
         )
 
-    def load_custom_quantities(self):
-        with open(self._custom_quantities_file, "r+", newline="") as f:
+    def load_latent_variables(self):
+        with open(self._latent_variables_file, "r+", newline="") as f:
             reader = csv.reader(f)
             names = list(next(reader))
             values = [list(map(float, row)) for row in reader]
 
-        from autofit.non_linear.analysis.custom_quantities import CustomQuantities
+        from autofit.non_linear.analysis.latent_variables import LatentVariables
 
-        return CustomQuantities(names=names, values=values)
+        return LatentVariables(names=names, values=values)
 
     def save_derived_quantities(self, samples: Samples):
         """

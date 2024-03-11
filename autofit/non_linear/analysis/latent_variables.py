@@ -5,21 +5,21 @@ import numpy as np
 from autofit import exc
 
 
-class CustomQuantities:
+class LatentVariables:
     def __init__(
         self,
         names: Optional[List[str]] = None,
         values=None,
     ):
         """
-        A collection of custom quantities computed during an optimisation.
+        A collection of latent variables computed during an optimisation.
 
         Parameters
         ----------
         names
-            The names of the custom quantities.
+            The names of the latent variables.
         values
-            The values of the custom quantities.
+            The values of the latent variables.
         """
         self.names = names or []
         self.values = values or []
@@ -43,22 +43,22 @@ class CustomQuantities:
 
     def add(self, **kwargs: float):
         """
-        Add custom quantities to the collection. This should be called once
-        per a fit and must always be passed the same custom quantities.
+        Add latent variables to the collection. This should be called once
+        per a fit and must always be passed the same latent variables.
 
         Parameters
         ----------
         kwargs
-            The custom quantities to add.
+            The latent variables to add.
 
         Raises
         ------
         SamplesException
-            If the same custom quantities are not passed to `add` each iteration.
+            If the same latent variables are not passed to `add` each iteration.
         """
         if self.names and set(kwargs.keys()) != set(self.names):
             raise exc.SamplesException(
-                "The same custom quantities must be passed to `add` each iteration."
+                "The same latent variables must be passed to `add` each iteration."
             )
 
         for name in kwargs:
@@ -67,11 +67,11 @@ class CustomQuantities:
 
         self.values.append([kwargs[name] for name in self.names])
 
-    def efficient(self) -> "CustomQuantities":
+    def efficient(self) -> "LatentVariables":
         """
         Convert the values to a numpy array for efficient storage in the database.
         """
-        return CustomQuantities(
+        return LatentVariables(
             names=self.names,
             values=np.array(self.values),
         )
@@ -81,7 +81,7 @@ class CustomQuantities:
 
     def __getitem__(self, item: Union[int, str]) -> Union[dict, List[float]]:
         """
-        Retrieve a dictionary of custom quantities given a row number or a list of
+        Retrieve a dictionary of latent variables given a row number or a list of
         values for a specific custom quantity given its name.
 
         Parameters
@@ -91,7 +91,7 @@ class CustomQuantities:
 
         Returns
         -------
-        The custom quantities.
+        The latent variables.
         """
         if isinstance(item, str):
             return [value_list[self._position(item)] for value_list in self.values]
@@ -106,11 +106,11 @@ class CustomQuantities:
 
     def minimise(self, index: int):
         """
-        Minimise the custom quantities to a single row.
+        Minimise the latent variables to a single row.
 
         Parameters
         ----------
         index
             The row number to keep.
         """
-        return CustomQuantities(names=self.names, values=[self.values[index]])
+        return LatentVariables(names=self.names, values=[self.values[index]])

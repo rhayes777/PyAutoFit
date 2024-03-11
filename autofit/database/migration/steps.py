@@ -18,7 +18,7 @@ steps = [
         "CREATE TABLE hdu (id INTEGER NOT NULL, array_type VARCHAR, _header VARCHAR, PRIMARY KEY (id), FOREIGN KEY (id) REFERENCES array (id));"
     ),
     Step(
-        "ALTER TABLE object ADD COLUMN custom_quantities_for_id INTEGER;",
+        "ALTER TABLE object ADD COLUMN latent_variables_for_id INTEGER;",
     ),
 ]
 

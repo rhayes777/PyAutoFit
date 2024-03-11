@@ -10,7 +10,7 @@ from autofit.database.model import Fit
 from autoconf.dictable import to_dict
 from autofit.database.aggregator.info import Info
 
-# from autofit.non_linear.analysis.custom_quantities import CustomQuantities
+# from autofit.non_linear.analysis.latent_variables import LatentVariables
 
 
 class DatabasePaths(AbstractPaths):
@@ -270,15 +270,15 @@ class DatabasePaths(AbstractPaths):
         self.fit.samples = samples
         self.fit.set_json("samples_info", samples.samples_info)
 
-    def save_custom_quantities(self, custom_quantities, samples):
+    def save_latent_variables(self, latent_variables, samples):
         if not self.save_all_samples:
-            custom_quantities = custom_quantities.minimise(
+            latent_variables = latent_variables.minimise(
                 samples.max_log_likelihood_index
             )
-        self.fit.custom_quantities = custom_quantities
+        self.fit.latent_variables = latent_variables
 
-    def load_custom_quantities(self):
-        return self.fit.custom_quantities
+    def load_latent_variables(self):
+        return self.fit.latent_variables
 
     def save_derived_quantities(self, samples):
         """

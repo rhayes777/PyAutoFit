@@ -275,16 +275,16 @@ class SearchOutput(AbstractSearchOutput):
         return self._samples
 
     @property
-    def custom_quantities(self):
+    def latent_variables(self):
         """
-        The custom quantities of the search, parsed from a CSV file.
+        The latent variables of the search, parsed from a CSV file.
         """
-        with open(self.files_path / "custom_quantities.csv") as f:
+        with open(self.files_path / "latent_variables.csv") as f:
             reader = csv.reader(f)
             headers = next(reader)
-            from autofit.non_linear.analysis.custom_quantities import CustomQuantities
+            from autofit.non_linear.analysis.latent_variables import LatentVariables
 
-            return CustomQuantities(headers, [list(map(float, row)) for row in reader])
+            return LatentVariables(headers, [list(map(float, row)) for row in reader])
 
     def names_and_paths(
         self,
