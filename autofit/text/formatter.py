@@ -3,7 +3,6 @@ import logging
 from typing import Tuple
 
 from autoconf import conf
-from autofit.text.representative import Representative
 from autofit.tools.util import open_
 
 logger = logging.getLogger(__name__)
@@ -25,12 +24,9 @@ class FormatNode:
     def items(self):
         return self._dict.items()
 
-    def groups(self):
-        return Representative.find_representatives(self.items())
-
     def list(self, indent=4, line_length=90):
         lines = []
-        for key, value in self.groups():
+        for key, value in self.items():
             indent_string = indent * " "
             if value.value is not None:
                 value_string = str(value.value)
