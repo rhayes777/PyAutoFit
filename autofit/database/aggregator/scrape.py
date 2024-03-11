@@ -152,6 +152,11 @@ def _add_files_fit(fit: m.Fit, item: SearchOutput):
         fit.samples = item.samples
     except AttributeError:
         logger.warning(f"Failed to load samples for {fit.id}")
+    try:
+        fit.custom_quantities = item.custom_quantities
+    except AttributeError:
+        logger.warning(f"Failed to load custom quantities for {fit.id}")
+
     _add_files(fit, item)
 
 
@@ -171,6 +176,8 @@ def _add_files(fit: m.Fit, item: SearchOutput):
         fit.set_pickle(pickle_output.name, pickle_output.value)
 
     for array_output in item.arrays:
+        if array_output.name in ("samples", "custom_quantities"):
+            continue
         try:
             fit.set_array(array_output.name, array_output.value)
         except ValueError:

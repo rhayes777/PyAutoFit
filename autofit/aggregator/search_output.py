@@ -10,7 +10,6 @@ import dill
 
 from autoconf import cached_property
 
-# from autofit.non_linear.analysis.custom_quantities import CustomQuantities
 from autofit.non_linear.samples.pdf import SamplesPDF
 from autofit.aggregator.file_output import (
     JSONOutput,
@@ -285,7 +284,7 @@ class SearchOutput(AbstractSearchOutput):
             headers = next(reader)
             from autofit.non_linear.analysis.custom_quantities import CustomQuantities
 
-            return CustomQuantities(headers, reader)
+            return CustomQuantities(headers, [list(map(float, row)) for row in reader])
 
     def names_and_paths(
         self,
