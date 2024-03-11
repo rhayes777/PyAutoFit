@@ -154,7 +154,7 @@ def _add_files_fit(fit: m.Fit, item: SearchOutput):
         logger.warning(f"Failed to load samples for {fit.id}")
     try:
         fit.custom_quantities = item.custom_quantities
-    except AttributeError:
+    except FileNotFoundError:
         logger.warning(f"Failed to load custom quantities for {fit.id}")
 
     _add_files(fit, item)
