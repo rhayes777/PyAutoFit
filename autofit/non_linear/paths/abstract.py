@@ -13,6 +13,7 @@ import numpy as np
 
 from autoconf import conf
 from autofit.mapper.identifier import Identifier, IdentifierField
+from autofit.non_linear.analysis.custom_quantities import CustomQuantities
 from autofit.text import text_util
 from autofit.text.text_util import derived_info_from
 from autofit.tools.util import open_, zip_directory
@@ -422,6 +423,13 @@ class AbstractPaths(ABC):
         """
 
     @abstractmethod
+    def save_custom_quantities(self, custom_quantities: CustomQuantities, samples):
+        """
+        Save custom quantities. These are values computed from an instance and output
+        during analysis.
+        """
+
+    @abstractmethod
     def save_derived_quantities(self, samples):
         """
         Write out the derived quantities of the model.
@@ -465,6 +473,10 @@ class AbstractPaths(ABC):
     @property
     def _samples_file(self) -> Path:
         return self._files_path / "samples.csv"
+
+    @property
+    def _custom_quantities_file(self) -> Path:
+        return self._files_path / "custom_quantities.csv"
 
     @property
     def _derived_quantities_file(self) -> Path:

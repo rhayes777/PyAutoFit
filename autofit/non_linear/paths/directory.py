@@ -15,6 +15,7 @@ from autofit.text import formatter
 from autofit.tools.util import open_
 
 from .abstract import AbstractPaths
+from ..analysis.custom_quantities import CustomQuantities
 from ..samples import load_from_table
 from autofit.non_linear.samples.pdf import SamplesPDF
 import numpy as np
@@ -244,6 +245,17 @@ class DirectoryPaths(AbstractPaths):
                     logger.warning(
                         f"Could not save covariance matrix because of the following error:\n{e}"
                     )
+
+    def save_custom_quantities(
+        self,
+        custom_quantities: CustomQuantities,
+        samples,
+    ):
+        write_table(
+            filename=str(self._custom_quantities_file),
+            headers=custom_quantities.names,
+            rows=custom_quantities.values,
+        )
 
     def save_derived_quantities(self, samples: Samples):
         """

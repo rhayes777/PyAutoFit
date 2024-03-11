@@ -818,9 +818,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         if os.environ.get("PYAUTOFIT_TEST_MODE") == "1":
             logger.warning(f"TEST MODE ON: SEARCH WILL SKIP SAMPLING\n\n")
 
-            config_dict = self.config_dict_test_mode_from(
-                config_dict=config_dict
-            )
+            config_dict = self.config_dict_test_mode_from(config_dict=config_dict)
 
         return config_dict
 
@@ -907,6 +905,13 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         if self.is_master:
             self.paths.save_samples(samples=samples)
+
+            custom_quantities = analysis.custom_quantities
+            if custom_quantities:
+                self.paths.save_custom_quantities(
+                    custom_quantities,
+                    samples=samples,
+                )
 
             if not during_analysis:
                 try:

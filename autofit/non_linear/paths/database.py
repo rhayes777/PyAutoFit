@@ -9,6 +9,7 @@ import numpy as np
 from autofit.database.model import Fit
 from autoconf.dictable import to_dict
 from autofit.database.aggregator.info import Info
+from ..analysis.custom_quantities import CustomQuantities
 
 
 class DatabasePaths(AbstractPaths):
@@ -267,6 +268,9 @@ class DatabasePaths(AbstractPaths):
 
         self.fit.samples = samples
         self.fit.set_json("samples_info", samples.samples_info)
+
+    def save_custom_quantities(self, custom_quantities: CustomQuantities, samples):
+        self.fit.custom_quantities = custom_quantities
 
     def save_derived_quantities(self, samples):
         """

@@ -102,7 +102,7 @@ class Samples(SamplesInterface, ABC):
                 sample.parameter_lists_for_paths(
                     self.paths if sample.is_path_kwargs else self.names
                 ),
-                ignore_prior_limits=True
+                ignore_prior_limits=True,
             )
             for sample in self.sample_list
         ]
@@ -446,6 +446,13 @@ class Samples(SamplesInterface, ABC):
             ):
                 most_likely_sample = sample
         return most_likely_sample
+
+    @property
+    def max_log_likelihood_index(self) -> int:
+        """
+        The index of the sample with the highest log likelihood.
+        """
+        return int(np.argmax(self.log_likelihood_list))
 
     @to_instance
     def max_log_likelihood(self) -> List[float]:
