@@ -21,8 +21,8 @@ def find_groups(path_value_tuples):
         root_name, *rest = path
         groups[(tuple(rest), value_hash(value))].append(root_name)
     return [
-        ((f"{min(group)} - {max(group)}", *rest), value)
-        for (rest, value), group in groups.items()
+        ((f"{min(names)} - {max(names)}" if len(names) > 1 else names[0], *rest), value)
+        for (rest, value), names in groups.items()
     ]
 
 
