@@ -1,8 +1,33 @@
 import autofit as af
 
 
-def test_representative():
+def test_simple_keys():
     collection = af.Collection([af.Model(af.Gaussian) for _ in range(10)])
     representative = af.Representative(collection)
 
-    assert representative.prior_count == 3
+    keys, _ = zip(*representative.info_tuples)
+    assert keys == (
+        ("0 - 9", "centre"),
+        ("0 - 9", "normalization"),
+        ("0 - 9", "sigma"),
+    )
+
+
+def test_different_centres():
+    collection = af.Collection(
+        [
+            af.Model(
+                af.Gaussian,
+                centre=i,
+            )
+            for i in range(10)
+        ]
+    )
+    representative = af.Representative(collection)
+
+    keys, _ = zip(*representative.info_tuples)
+    assert keys == (
+        ("0 - 9", "centre"),
+        ("0 - 9", "normalization"),
+        ("0 - 9", "sigma"),
+    ) + tuple((str(i), "centre") for i in range(10))

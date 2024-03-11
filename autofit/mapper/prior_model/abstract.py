@@ -1584,6 +1584,19 @@ class AbstractPriorModel(AbstractModel):
 
         formatter = TextFormatter(line_length=info_whitespace())
 
+        for t in self.info_tuples:
+            formatter.add(*t)
+
+        return "\n\n".join(
+            [
+                f"Total Free Parameters = {self.prior_count}",
+                f"{self.parameterization}",
+                formatter.text,
+            ]
+        )
+
+    @property
+    def info_tuples(self) -> List[Tuple]:
         for t in self.path_instance_tuples_for_class(
             (Prior, float, int, tuple, ConfigException), ignore_children=True
         ):
@@ -1594,15 +1607,7 @@ class AbstractPriorModel(AbstractModel):
             if isinstance(t[1], ConfigException):
                 t = (t[0], "Prior Missing: Enter Manually or Add to Config")
 
-            formatter.add(*t)
-
-        return "\n\n".join(
-            [
-                f"Total Free Parameters = {self.prior_count}",
-                f"{self.parameterization}",
-                formatter.text,
-            ]
-        )
+            yield t
 
     @property
     def order_no(self) -> str:
