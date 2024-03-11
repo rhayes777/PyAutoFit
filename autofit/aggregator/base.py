@@ -35,7 +35,7 @@ class AggBase(ABC):
         self, fit: af.Fit, instance: Optional[af.ModelInstance] = None
     ) -> object:
         """
-        For example, in the `PlaneAgg` object, this function is overwritten such that it creates a `Plane` from a
+        For example, in the `GalaxiesAgg` object, this function is overwritten such that it creates a `Plane` from a
         `ModelInstance` that contains the galaxies of a sample from a non-linear search.
 
         Parameters
