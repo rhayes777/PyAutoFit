@@ -273,6 +273,9 @@ class DatabasePaths(AbstractPaths):
     def save_custom_quantities(self, custom_quantities, samples):
         self.fit.custom_quantities = custom_quantities
 
+    def load_custom_quantities(self):
+        return self.fit.custom_quantities
+
     def save_derived_quantities(self, samples):
         """
         Write out the derived quantities of the model.

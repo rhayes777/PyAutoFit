@@ -64,3 +64,15 @@ def test_set_directory_paths(output_directory):
     loaded = directory_paths.load_custom_quantities()
     assert loaded.names == ["centre"]
     assert loaded.values == [[1.0]]
+
+
+def test_set_database_paths(session):
+    database_paths = af.DatabasePaths(session)
+    custom_quantities = CustomQuantities(names=["centre"], values=[[1.0]])
+    database_paths.save_custom_quantities(
+        custom_quantities=custom_quantities,
+        samples=None,
+    )
+    loaded = database_paths.load_custom_quantities()
+    assert loaded.names == ["centre"]
+    assert loaded.values == [[1.0]]
