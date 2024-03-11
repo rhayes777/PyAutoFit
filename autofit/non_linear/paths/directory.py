@@ -279,29 +279,6 @@ class DirectoryPaths(AbstractPaths):
 
         return LatentVariables(names=names, values=values)
 
-    def save_derived_quantities(self, samples: Samples):
-        """
-        Write out the derived quantities of the model to a file.
-
-        This is like the samples.csv file, but for the derived quantities of the model.
-
-        Parameters
-        ----------
-        samples
-            An object comprising each sample and a model which is used to compute the derived quantities.
-        """
-        if not should_output("derived_quantities"):
-            return
-
-        write_table(
-            filename=str(self._derived_quantities_file),
-            headers=[
-                ".".join(derived_quantity)
-                for derived_quantity in self.model.derived_quantities
-            ],
-            rows=samples.derived_quantities_list,
-        )
-
     def load_samples_info(self):
         with open_(self._info_file) as infile:
             return json.load(infile)

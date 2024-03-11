@@ -157,18 +157,9 @@ class AbstractPriorModel(AbstractModel):
     @DynamicAttrs
     """
 
-    def __init__(self, label=None, custom_derived_quantities=None):
+    def __init__(self, label=None):
         super().__init__(label=label)
         self._assertions = list()
-        self._custom_derived_quantities = custom_derived_quantities or dict()
-
-    @property
-    def custom_derived_quantities(self):
-        return self._custom_derived_quantities
-
-    @custom_derived_quantities.setter
-    def custom_derived_quantities(self, custom_derived_quantities):
-        self._custom_derived_quantities = custom_derived_quantities
 
     @property
     def assertions(self):
@@ -213,18 +204,6 @@ class AbstractPriorModel(AbstractModel):
             raise exc.FitException(
                 f"{number_of_failed_assertions} assertions failed!\n{name_string}"
             )
-
-    @property
-    def derived_quantities(self) -> List[Tuple[str, ...]]:
-        """
-        The paths to attributes of the model which are derived (i.e.
-        methods marked with the derived_quantity decorator)
-        """
-        return [
-            (name,) + derived_quantity
-            for name, prior_model in self.direct_prior_model_tuples
-            for derived_quantity in prior_model.derived_quantities
-        ]
 
     def cast(
         self,
@@ -1303,13 +1282,10 @@ class AbstractPriorModel(AbstractModel):
             self.check_assertions(arguments)
 
         logger.debug(f"Creating an instance for arguments")
-        instance = self._instance_for_arguments(
+        return self._instance_for_arguments(
             arguments,
             ignore_assertions=ignore_assertions,
         )
-        for key, value in self.custom_derived_quantities.items():
-            setattr(instance, key, value(instance))
-        return instance
 
     def path_for_name(self, name: str) -> Tuple[str, ...]:
         """

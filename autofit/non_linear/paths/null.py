@@ -12,9 +12,6 @@ class NullPaths(AbstractPaths):
     def save_latent_variables(self, latent_variables, samples):
         pass
 
-    def save_derived_quantities(self, samples):
-        pass
-
     def save_json(self, name, object_dict: dict, prefix: str = ""):
         pass
 

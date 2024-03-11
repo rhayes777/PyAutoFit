@@ -17,7 +17,6 @@ class SamplesNest(SamplesPDF):
         sample_list: List[Sample],
         samples_info: Optional[Dict] = None,
         search_internal: Optional = None,
-        derived_quantities_list: Optional[List] = None,
     ):
         """
         The `Samples` classes in **PyAutoFit** provide an interface between the search_internal of
@@ -50,7 +49,6 @@ class SamplesNest(SamplesPDF):
             sample_list=sample_list,
             samples_info=samples_info,
             search_internal=search_internal,
-            derived_quantities_list=derived_quantities_list,
         )
 
     def __add__(self, other: "SamplesNest") -> "SamplesNest":

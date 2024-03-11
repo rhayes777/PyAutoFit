@@ -23,7 +23,6 @@ class SamplesMCMC(SamplesPDF):
         search_internal: Optional = None,
         auto_correlation_settings: Optional[AutoCorrelationsSettings] = None,
         auto_correlations: Optional[AutoCorrelations] = None,
-        derived_quantities_list: Optional[List] = None,
     ):
         """
         The `Samples` classes in **PyAutoFit** provide an interface between the search_internal of
@@ -59,7 +58,6 @@ class SamplesMCMC(SamplesPDF):
             sample_list=sample_list,
             samples_info=samples_info,
             search_internal=search_internal,
-            derived_quantities_list=derived_quantities_list,
         )
 
     def __add__(self, other: "SamplesMCMC") -> "SamplesMCMC":
@@ -103,7 +101,6 @@ class SamplesMCMC(SamplesPDF):
         samples_info,
         model: AbstractPriorModel,
         search_internal=None,
-        derived_quantities_list=None,
     ):
         try:
             auto_correlation_settings = AutoCorrelationsSettings(
@@ -121,7 +118,6 @@ class SamplesMCMC(SamplesPDF):
             samples_info=samples_info,
             search_internal=search_internal,
             auto_correlation_settings=auto_correlation_settings,
-            derived_quantities_list=derived_quantities_list,
         )
 
     @property

@@ -15,7 +15,6 @@ from autoconf import conf
 from autofit.mapper.identifier import Identifier, IdentifierField
 
 from autofit.text import text_util
-from autofit.text.text_util import derived_info_from
 from autofit.tools.util import open_, zip_directory
 
 logger = logging.getLogger(__name__)
@@ -430,19 +429,6 @@ class AbstractPaths(ABC):
         """
 
     @abstractmethod
-    def save_derived_quantities(self, samples):
-        """
-        Write out the derived quantities of the model.
-
-        This is like samples, but for the derived quantities of the model.
-
-        Parameters
-        ----------
-        samples
-            An object comprising each sample and a model which is used to compute the derived quantities.
-        """
-
-    @abstractmethod
     def load_samples_info(self):
         pass
 
@@ -455,14 +441,6 @@ class AbstractPaths(ABC):
 
         with open_(filename, "w") as f:
             f.write(result_info)
-
-        if self.model.derived_quantities:
-            derived_info = derived_info_from(samples=samples)
-
-            filename = self.output_path / "derived.results"
-
-            with open_(filename, "w") as f:
-                f.write(derived_info)
 
         text_util.search_summary_to_file(
             samples=samples,
@@ -477,10 +455,6 @@ class AbstractPaths(ABC):
     @property
     def _latent_variables_file(self) -> Path:
         return self._files_path / "latent_variables.csv"
-
-    @property
-    def _derived_quantities_file(self) -> Path:
-        return self._files_path / "derived_quantities.csv"
 
     @property
     def _covariance_file(self) -> Path:

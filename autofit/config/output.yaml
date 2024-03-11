@@ -41,7 +41,6 @@ search_internal: true
 # Other Files:
 
 covariance: true # `covariance.csv`: The [free parameters x free parameters] covariance matrix.
-derived_quantities: true # `derived_quantities.csv`: Values of every derived quantity, which are not model free parameter but values computed from them.
 data: true # `data.json`: The value of every data point in the data.
 noise_map: true # `noise_map.json`: The value of every RMS noise map value.
 

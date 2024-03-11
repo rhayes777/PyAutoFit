@@ -280,26 +280,6 @@ class DatabasePaths(AbstractPaths):
     def load_latent_variables(self):
         return self.fit.latent_variables
 
-    def save_derived_quantities(self, samples):
-        """
-        Write out the derived quantities of the model.
-
-        This is like samples, but for the derived quantities of the model.
-
-        Parameters
-        ----------
-        samples
-            An object comprising each sample and a model which is used to compute the derived quantities.
-        """
-        if not self.save_all_samples:
-            samples = samples.minimise()
-            samples.model = self.model
-
-        self.fit.set_array(
-            "derived_quantities",
-            np.array(samples.derived_quantities_list),
-        )
-
     def _load_samples(self):
         samples = self.fit.samples
         samples.model = self.model
