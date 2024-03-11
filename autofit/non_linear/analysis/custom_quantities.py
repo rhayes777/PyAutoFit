@@ -1,3 +1,6 @@
+from autofit import exc
+
+
 class CustomQuantities:
     def __init__(self):
         self.names = []
@@ -9,8 +12,13 @@ class CustomQuantities:
         return self.names.index(name)
 
     def add(self, **kwargs):
-        for name in kwargs:
-            if name not in self.names:
-                self.names.append(name)
+        try:
+            for name in kwargs:
+                if name not in self.names:
+                    self.names.append(name)
 
-        self.values.append([kwargs[name] for name in self.names])
+            self.values.append([kwargs[name] for name in self.names])
+        except KeyError:
+            raise exc.SamplesException(
+                "The same custom quantities must be added once each fit."
+            )
