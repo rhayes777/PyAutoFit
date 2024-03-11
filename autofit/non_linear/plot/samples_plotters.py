@@ -24,7 +24,6 @@ def skip_plot_in_test_mode(func):
 
     @wraps(func)
     def wrapper(
-        obj: object,
         *args,
         **kwargs
     ):
@@ -44,7 +43,7 @@ def skip_plot_in_test_mode(func):
         if os.environ.get("PYAUTOFIT_TEST_MODE") == "1":
             return
 
-        return func(obj, *args, **kwargs)
+        return func(*args, **kwargs)
 
     return wrapper
 
