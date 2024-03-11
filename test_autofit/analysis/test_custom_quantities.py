@@ -21,4 +21,6 @@ def test_analysis_custom_quantities():
     instance = af.Gaussian()
     analysis.log_likelihood_function(instance=instance)
 
-    assert analysis.custom_quantities == [{"centre": instance.centre}]
+    custom_quantities = analysis.custom_quantities
+    assert custom_quantities.names == ["centre"]
+    assert custom_quantities.values == [[instance.centre]]

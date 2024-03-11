@@ -1,10 +1,12 @@
 import logging
 from abc import ABC
 import os
+from typing import Optional
 
 from autoconf import conf
 
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
+from autofit.non_linear.analysis.custom_quantities import CustomQuantities
 from autofit.non_linear.paths.abstract import AbstractPaths
 from autofit.non_linear.paths.database import DatabasePaths
 from autofit.non_linear.paths.null import NullPaths
@@ -19,6 +21,19 @@ class Analysis(ABC):
     must be implemented to define a class that compute the
     likelihood that some instance fits some data.
     """
+
+    @property
+    def custom_quantities(self) -> Optional[CustomQuantities]:
+        try:
+            return self._custom_quantities
+        except AttributeError:
+            return None
+
+    def save_custom_quantities(self, **kwargs):
+        if not hasattr(self, "_custom_quantities"):
+            # noinspection PyAttributeOutsideInit
+            self._custom_quantities = CustomQuantities()
+        self._custom_quantities.add(**kwargs)
 
     def with_model(self, model):
         """
