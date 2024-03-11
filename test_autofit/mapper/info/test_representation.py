@@ -1,4 +1,5 @@
 import autofit as af
+from autofit.mapper.prior_model.representative import find_groups
 
 
 def test_simple_keys():
@@ -31,3 +32,22 @@ def test_different_centres():
         ("0 - 9", "normalization"),
         ("0 - 9", "sigma"),
     ) + tuple((str(i), "centre") for i in range(10))
+
+
+def test_find_groups():
+    info_paths = [
+        (
+            (1, 2),
+            1,
+        ),
+        (
+            (2, 2),
+            1,
+        ),
+        (
+            (3, 2),
+            1,
+        ),
+    ]
+    groups = find_groups(info_paths)
+    assert groups == [(("1 - 3", 2), 1)]

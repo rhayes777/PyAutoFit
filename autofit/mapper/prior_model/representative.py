@@ -20,7 +20,10 @@ def find_groups(path_value_tuples):
     for path, value in path_value_tuples:
         root_name, *rest = path
         groups[(tuple(rest), value_hash(value))].append(root_name)
-    return groups
+    return [
+        ((f"{min(group)} - {max(group)}", *rest), value)
+        for (rest, value), group in groups.items()
+    ]
 
 
 class Representative(Collection):
