@@ -9,6 +9,8 @@ from typing import Generator, Tuple, Optional, List, cast
 import dill
 
 from autoconf import cached_property
+
+# from autofit.non_linear.analysis.custom_quantities import CustomQuantities
 from autofit.non_linear.samples.pdf import SamplesPDF
 from autofit.aggregator.file_output import (
     JSONOutput,
@@ -272,6 +274,15 @@ class SearchOutput(AbstractSearchOutput):
             except FileNotFoundError:
                 raise AttributeError("No samples found")
         return self._samples
+
+    @property
+    def custom_quantities(self):
+        with open(self.files_path / "custom_quantities.csv") as f:
+            reader = csv.reader(f)
+            headers = next(reader)
+            from autofit.non_linear.analysis.custom_quantities import CustomQuantities
+
+            return CustomQuantities(headers, reader)
 
     def names_and_paths(
         self,

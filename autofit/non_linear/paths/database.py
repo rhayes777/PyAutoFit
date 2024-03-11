@@ -1,5 +1,5 @@
 import shutil
-from typing import Dict, Optional, Union
+from typing import Optional, Union
 
 from autoconf.output import conditional_output
 from autofit.database.sqlalchemy_ import sa
@@ -9,7 +9,8 @@ import numpy as np
 from autofit.database.model import Fit
 from autoconf.dictable import to_dict
 from autofit.database.aggregator.info import Info
-from ..analysis.custom_quantities import CustomQuantities
+
+# from autofit.non_linear.analysis.custom_quantities import CustomQuantities
 
 
 class DatabasePaths(AbstractPaths):
@@ -269,7 +270,7 @@ class DatabasePaths(AbstractPaths):
         self.fit.samples = samples
         self.fit.set_json("samples_info", samples.samples_info)
 
-    def save_custom_quantities(self, custom_quantities: CustomQuantities, samples):
+    def save_custom_quantities(self, custom_quantities, samples):
         self.fit.custom_quantities = custom_quantities
 
     def save_derived_quantities(self, samples):
