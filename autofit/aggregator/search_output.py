@@ -277,6 +277,9 @@ class SearchOutput(AbstractSearchOutput):
 
     @property
     def custom_quantities(self):
+        """
+        The custom quantities of the search, parsed from a CSV file.
+        """
         with open(self.files_path / "custom_quantities.csv") as f:
             reader = csv.reader(f)
             headers = next(reader)

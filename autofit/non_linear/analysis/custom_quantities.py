@@ -1,3 +1,5 @@
+import numpy as np
+
 from autofit import exc
 
 
@@ -22,3 +24,9 @@ class CustomQuantities:
             raise exc.SamplesException(
                 "The same custom quantities must be added once each fit."
             )
+
+    def efficient(self):
+        return CustomQuantities(
+            names=self.names,
+            values=np.array(self.values),
+        )

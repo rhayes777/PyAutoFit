@@ -264,7 +264,8 @@ class DirectoryPaths(AbstractPaths):
             reader = csv.reader(f)
             names = list(next(reader))
             values = [list(map(float, row)) for row in reader]
-        from autofit.tools.custom_quantities import CustomQuantities
+
+        from autofit.non_linear.analysis.custom_quantities import CustomQuantities
 
         return CustomQuantities(names=names, values=values)
 

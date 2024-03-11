@@ -1,4 +1,5 @@
 import pytest
+import numpy as np
 
 import autofit as af
 from autofit import DirectoryPaths
@@ -54,9 +55,13 @@ def test_analysis_custom_quantities():
     assert custom_quantities.values == [[instance.centre]]
 
 
-def test_set_directory_paths(output_directory):
-    directory_paths = DirectoryPaths(output_path=output_directory)
-    custom_quantities = CustomQuantities(names=["centre"], values=[[1.0]])
+@pytest.fixture(name="custom_quantities")
+def make_custom_quantities():
+    return CustomQuantities(names=["centre"], values=[[1.0]])
+
+
+def test_set_directory_paths(output_directory, custom_quantities):
+    directory_paths = DirectoryPaths()
     directory_paths.save_custom_quantities(
         custom_quantities=custom_quantities,
         samples=None,
@@ -66,9 +71,12 @@ def test_set_directory_paths(output_directory):
     assert loaded.values == [[1.0]]
 
 
-def test_set_database_paths(session):
+def test_efficient(custom_quantities):
+    assert custom_quantities.efficient().values == np.array([[1.0]])
+
+
+def test_set_database_paths(session, custom_quantities):
     database_paths = af.DatabasePaths(session)
-    custom_quantities = CustomQuantities(names=["centre"], values=[[1.0]])
     database_paths.save_custom_quantities(
         custom_quantities=custom_quantities,
         samples=None,
