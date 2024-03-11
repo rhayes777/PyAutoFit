@@ -136,7 +136,7 @@ class Analysis(ABC):
         """
         return self
 
-    def make_result(self, samples, search_internal):
+    def make_result(self, samples, search_internal=None):
         return Result(
             samples=samples,
             search_internal=search_internal,

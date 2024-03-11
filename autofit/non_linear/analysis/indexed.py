@@ -53,7 +53,7 @@ class IndexedAnalysis:
             raise AttributeError(item)
         return getattr(self.analysis, item)
 
-    def make_result(self, samples, search_internal):
+    def make_result(self, samples, search_internal=None):
         return self.analysis.make_result(
             samples, search_internal
         )

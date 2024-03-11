@@ -162,19 +162,12 @@ class LBFGS(AbstractOptimizer):
                     **self.config_dict_search
                 )
 
-
                 total_iterations += search_internal.nit
 
-                search_internal_dict = {
-                    "total_iterations": total_iterations,
-                    "log_posterior_list": -0.5 * fitness(parameters=search_internal.x),
-                    "x0": search_internal.x,
-                }
-
-                search_internal.log_posterior_list = search_internal_dict["log_posterior_list"]
+                search_internal.log_posterior_list = -0.5 * fitness(parameters=search_internal.x)
 
                 self.paths.save_search_internal(
-                    obj=search_internal_dict,
+                    obj=search_internal,
                 )
 
                 x0 = search_internal.x
@@ -209,19 +202,13 @@ class LBFGS(AbstractOptimizer):
             Maps input vectors of unit parameter values to physical values and model instances via priors.
         """
 
-        if search_internal is not None:
+        if search_internal is None:
 
-            x0 = search_internal.x
-            total_iterations = search_internal.nit
-            log_posterior_list = np.array([search_internal.log_posterior_list])
+            search_internal = self.paths.load_search_internal()
 
-        else:
-
-            search_internal_dict = self.paths.load_search_internal()
-
-            x0 = search_internal_dict["x0"]
-            total_iterations = search_internal_dict["total_iterations"]
-            log_posterior_list = np.array([search_internal_dict["log_posterior_list"]])
+        x0 = search_internal.x
+        total_iterations = search_internal.nit
+        log_posterior_list = np.array([search_internal.log_posterior_list])
 
         parameter_lists = [list(x0)]
         log_prior_list = model.log_prior_list_from(parameter_lists=parameter_lists)

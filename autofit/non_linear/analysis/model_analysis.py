@@ -25,7 +25,7 @@ class ModelAnalysis(Analysis):
     def log_likelihood_function(self, instance):
         return self.analysis.log_likelihood_function(instance)
 
-    def make_result(self, samples, search_internal):
+    def make_result(self, samples, search_internal=None):
         """
         Return the correct type of result by calling the underlying analysis.
         """

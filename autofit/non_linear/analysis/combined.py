@@ -339,7 +339,7 @@ class CombinedAnalysis(Analysis):
 
         self._for_each_analysis(func, paths)
 
-    def make_result(self, samples, search_internal):
+    def make_result(self, samples, search_internal=None):
         child_results = [
             analysis.make_result(
                 samples, search_internal

@@ -166,7 +166,7 @@ class AbstractResult(ABC):
         return self.samples.model_bounded(b)
 
 class Result(AbstractResult):
-    def __init__(self, samples: Samples, search_internal):
+    def __init__(self, samples: Samples, search_internal = None):
         """
         The result of a non-linear search, which includes:
 
