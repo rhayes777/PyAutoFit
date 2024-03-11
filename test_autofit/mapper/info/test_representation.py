@@ -35,19 +35,6 @@ def test_different_centres():
 
 
 def test_find_groups():
-    info_paths = [
-        (
-            (1, 2),
-            1,
-        ),
-        (
-            (2, 2),
-            1,
-        ),
-        (
-            (3, 2),
-            1,
-        ),
-    ]
+    info_paths = [((i, 1), 2) for i in range(3)]
     groups = find_groups(info_paths)
-    assert groups == [(("1 - 3", 2), 1)]
+    assert groups == [(("0 - 2", 1), 2)]
