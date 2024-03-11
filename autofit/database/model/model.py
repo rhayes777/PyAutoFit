@@ -35,6 +35,11 @@ class Object(Base):
         "Fit", uselist=False, foreign_keys=[samples_for_id]
     )
 
+    custom_quantities_for_id = sa.Column(sa.String, sa.ForeignKey("fit.id"))
+    custom_quantities_for = sa.orm.relationship(
+        "Fit", uselist=False, foreign_keys=[custom_quantities_for_id]
+    )
+
     children: List["Object"] = sa.orm.relationship(
         "Object",
         uselist=True,

@@ -256,6 +256,9 @@ class Fit(Base):
     _samples = sa.orm.relationship(
         Object, uselist=False, foreign_keys=[Object.samples_for_id]
     )
+    _custom_quantities = sa.orm.relationship(
+        Object, uselist=False, foreign_keys=[Object.custom_quantities_for_id]
+    )
 
     @property
     @try_none
@@ -267,6 +270,15 @@ class Fit(Base):
         self._samples = Object.from_object(
             EfficientSamples(samples),
         )
+
+    @property
+    @try_none
+    def custom_quantities(self) -> dict:
+        return self._custom_quantities()
+
+    @custom_quantities.setter
+    def custom_quantities(self, custom_quantities):
+        self._custom_quantities = Object.from_object(custom_quantities.efficient())
 
     @property
     def info(self):
