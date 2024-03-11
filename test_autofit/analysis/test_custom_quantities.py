@@ -84,3 +84,9 @@ def test_set_database_paths(session, custom_quantities):
     loaded = database_paths.load_custom_quantities()
     assert loaded.names == ["centre"]
     assert loaded.values == [[1.0]]
+
+
+def test_iter(custom_quantities):
+    assert list(custom_quantities) == [{"centre": 1.0}]
+    assert custom_quantities[0] == {"centre": 1.0}
+    assert custom_quantities["centre"] == [1.0]

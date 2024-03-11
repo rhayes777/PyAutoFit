@@ -30,3 +30,18 @@ class CustomQuantities:
             names=self.names,
             values=np.array(self.values),
         )
+
+    def _convert_values_to_dict(self, values):
+        return {name: value for name, value in zip(self.names, values)}
+
+    def __getitem__(self, item):
+        if isinstance(item, str):
+            return [value_list[self._position(item)] for value_list in self.values]
+        return self._convert_values_to_dict(self.values[item])
+
+    def __len__(self):
+        return len(self.values)
+
+    def __iter__(self):
+        for values in self.values:
+            yield self._convert_values_to_dict(values)
