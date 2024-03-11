@@ -174,6 +174,7 @@ class Analysis(ABC):
     def make_result(self, samples):
         return Result(
             samples=samples,
+            latent_variables=self.latent_variables,
         )
 
     def profile_log_likelihood_function(self, paths: AbstractPaths, instance):
