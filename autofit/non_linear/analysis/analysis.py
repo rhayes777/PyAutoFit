@@ -24,12 +24,32 @@ class Analysis(ABC):
 
     @property
     def custom_quantities(self) -> Optional[CustomQuantities]:
+        """
+        Custom quantities that are computed during the analysis.
+
+        If no custom quantities have been saved, this will return None.
+        """
         try:
             return self._custom_quantities
         except AttributeError:
             return None
 
-    def save_custom_quantities(self, **kwargs):
+    def save_custom_quantities(self, **kwargs: float):
+        """
+        Save custom quantities that are computed during the analysis.
+
+        This should only be called once per a fit and must always be passed the same custom quantities.
+
+        Parameters
+        ----------
+        kwargs
+            The custom quantities to save.
+
+        Raises
+        ------
+        SamplesException
+            If the same custom quantities are not passed to `add` each iteration.
+        """
         if not hasattr(self, "_custom_quantities"):
             # noinspection PyAttributeOutsideInit
             self._custom_quantities = CustomQuantities()
