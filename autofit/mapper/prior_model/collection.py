@@ -69,6 +69,9 @@ class Collection(AbstractPriorModel):
     def items(self):
         return self._dict.items()
 
+    def keys(self):
+        return self._dict.keys()
+
     def with_prefix(self, prefix: str):
         """
         Filter members of the collection, only returning those that start
