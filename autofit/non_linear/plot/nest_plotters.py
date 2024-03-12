@@ -80,8 +80,8 @@ class NestPlotter(SamplesPlotter):
             facecolor=config_dict["facecolor"],
         )
 
-        prior = samples.prior()
-        prior.plot_2d(axes, alpha=0.9, label="prior")
+        # prior = samples.prior()
+        # prior.plot_2d(axes, alpha=0.9, label="prior")
         samples.plot_2d(
             axes,
             alpha=config_dict["alpha"],

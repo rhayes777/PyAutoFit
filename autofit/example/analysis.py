@@ -66,7 +66,6 @@ class Analysis(af.Analysis):
 
         return log_likelihood
 
-
     def visualize(self, paths: af.DirectoryPaths, instance: af.ModelInstance, during_analysis : bool):
         """
         During a model-fit, the `visualize` method is called throughout the non-linear search and is used to output
