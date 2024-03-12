@@ -724,7 +724,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         try:
             search_internal = self.backend
-        except AttributeError:
+        except (AttributeError, FileNotFoundError):
             search_internal = None
 
         if search_internal is None:

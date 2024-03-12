@@ -4,6 +4,8 @@ from functools import wraps
 import logging
 import os
 
+from autoconf import conf
+
 from autofit.non_linear.plot.output import Output
 
 logger = logging.getLogger(__name__)
@@ -103,13 +105,19 @@ class SamplesPlotter:
         if os.environ.get("PYAUTOFIT_TEST_MODE") == "1":
             return
 
+        import matplotlib.pylab as pylab
+
+        config_dict = conf.instance["visualize"]["plots_settings"]["corner_cornerpy"]
+
+        params = {'font.size' : int(config_dict["fontsize"])}
+        pylab.rcParams.update(params)
+
         import corner
 
         corner.corner(
             data=np.asarray(self.samples.parameter_lists),
             weight_list=self.samples.weight_list,
             labels=self.model.parameter_labels_with_superscripts_latex,
-            **kwargs
         )
 
         self.output.to_figure(auto_filename="corner")

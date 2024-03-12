@@ -3,6 +3,8 @@ from anesthetic import make_2d_axes
 from functools import wraps
 import numpy as np
 
+from autoconf import conf
+
 from autofit.non_linear.plot import SamplesPlotter
 from autofit.non_linear.plot.samples_plotters import skip_plot_in_test_mode
 
@@ -54,6 +56,18 @@ class NestPlotter(SamplesPlotter):
         This plots a corner plot including the 1-D and 2-D marginalized posteriors.
         """
 
+        config_dict = conf.instance["visualize"]["plots_settings"]["corner_anesthetic"]
+
+        import matplotlib.pylab as pylab
+
+        params = {'font.size' : int(config_dict["fontsize"])}
+        pylab.rcParams.update(params)
+
+        figsize = (
+            self.model.total_free_parameters * config_dict["figsize_per_parammeter"],
+            self.model.total_free_parameters * config_dict["figsize_per_parammeter"]
+        )
+
         samples = NestedSamples(
             np.asarray(self.samples.parameter_lists),
             weights=self.samples.weight_list,
@@ -63,12 +77,21 @@ class NestPlotter(SamplesPlotter):
         # prior = samples.prior()
         fig, axes = make_2d_axes(
             self.model.parameter_labels_with_superscripts_latex,
-            figsize=(12, 12),
-            facecolor='w'
+            figsize=figsize,
+            facecolor=config_dict["facecolor"],
         )
+
     #    prior.plot_2d(axes, alpha=0.9, label="prior")
-        samples.plot_2d(axes, alpha=0.9, label="posterior")
-        axes.iloc[-1, 0].legend(bbox_to_anchor=(len(axes) / 2, len(axes)), loc='lower center', ncols=2)
+        samples.plot_2d(
+            axes,
+            alpha=config_dict["alpha"],
+            label="posterior",
+        )
+        axes.iloc[-1, 0].legend(
+            bbox_to_anchor=(len(axes) / 2, len(axes)),
+            loc='lower center',
+            ncols=2
+        )
 
         self.output.to_figure(auto_filename="corner_anesthetic")
         self.close()
