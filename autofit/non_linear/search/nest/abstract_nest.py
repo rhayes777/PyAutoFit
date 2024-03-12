@@ -74,11 +74,11 @@ class AbstractNest(NonLinearSearch, ABC):
     def plot_results(self, samples):
 
         def should_plot(name):
-            return conf.instance["visualize"]["plots_search"][self.__class__.__name__][name]
+            return conf.instance["visualize"]["plots_search"]["nest"][name]
 
         plotter = self.plotter_cls(
             samples=samples,
             output=Output(path=self.paths.image_path / "search", format="png"),
         )
-        if should_plot("corner"):
-            plotter.corner()
+        if should_plot("corner_anesthetic"):
+            plotter.corner_anesthetic()

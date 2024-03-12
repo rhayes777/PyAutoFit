@@ -874,7 +874,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         The update performs the following tasks (if the settings indicate they should be performed):
 
-        1) Visualize the search results (e.g. a corner).
+        1) Visualize the search results.
         2) Visualize the maximum log likelihood model using model-specific visualization implented via the `Analysis`
            object.
         3) Perform profiling of the analysis object `log_likelihood_function` and ouptut run-time information.
@@ -989,7 +989,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         The update performs the following tasks (if the settings indicate they should be performed):
 
-        1) Visualize the search results (e.g. a corner).
+        1) Visualize the search results.
         2) Visualize the maximum log likelihood model using model-specific visualization implented via the `Analysis`
            object.
 

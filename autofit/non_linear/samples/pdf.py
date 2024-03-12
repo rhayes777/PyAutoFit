@@ -83,8 +83,7 @@ class SamplesPDF(Samples):
     @property
     def unconverged_sample_size(self):
         """
-        If a set of samples are unconverged, alternative methods to compute their means, errors, etc are used as
-        an alternative to corner.py.
+        If a set of samples are unconverged, alternative methods to compute their means, errors, etc are used.
 
         These use a subset of samples spanning the range from the most recent sample to the valaue of the
         unconverted_sample_size. However, if there are fewer samples than this size, we change the size to be the
@@ -142,7 +141,7 @@ class SamplesPDF(Samples):
         whereby x decreases as y gets larger to give the same PDF, this function will still return both at their
         upper values. Thus, caution is advised when using the function to reperform a model-fits.
 
-        For Dynesty, this is estimated using corner.py if the samples have converged, by sampling the density
+        This is estimated using the `quantile` function if the samples have converged, by sampling the density
         function at an input PDF %. If not converged, a crude estimate using the range of values of the current
         physical live points is used.
 

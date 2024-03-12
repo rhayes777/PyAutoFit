@@ -1,14 +1,6 @@
-DynestyStatic:
-  corner: true             # Output corner figure (using anestetic) during a non-linear search fit?
-DynestyDynamic:
-  corner: true             # Output corner figure (using anestetic) during a non-linear search fit?
-Emcee:
+nest:
+  corner_anesthetic: true   # Output corner figure (using anestetic) during a non-linear search fit?
+mcmc:
   corner: true             # Output corner figure (using corner.py) during a non-linear search fit?
-Nautilus:
-  corner: true             # Output corner figure (using anestetic) during a non-linear search fit?
-PySwarmsLobal:
-PySwarmsGlobal:
-UltraNest:
-  corner: true             # Output corner figure (using anestetic) during a non-linear search fit?
-Zeus:
+optimize:
   corner: true             # Output corner figure (using corner.py) during a non-linear search fit?

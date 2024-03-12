@@ -111,12 +111,14 @@ class SamplesMCMC(SamplesPDF):
     @property
     def pdf_converged(self):
         """
-        To analyse and visualize samples using corner.py, the analysis must be sufficiently converged to produce
-        smooth enough PDF for analysis. This property checks whether the non-linear search's samples are sufficiently
-        converged for corner.py use.
+        To analyse and visualize samples, the analysis must be sufficiently converged to produce smooth enough PDF
+        for analysis.
 
-        Emcee samples can be analysed by corner.py irrespective of how long the sampler has run, albeit low run times
-        will likely produce inaccurate results.
+        This property checks whether the non-linear search's samples are sufficiently converged for analysis and
+        visualization.
+
+        Emcee samples can be analysed irrespective of how long the sampler has run, albeit low run times will likely
+        produce inaccurate results.
         """
         try:
             if len(self.parameter_lists) == 0:

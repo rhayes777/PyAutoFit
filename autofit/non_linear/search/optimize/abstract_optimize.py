@@ -23,7 +23,7 @@ class AbstractOptimizer(NonLinearSearch, ABC):
     def plot_results(self, samples):
 
         def should_plot(name):
-            return conf.instance["visualize"]["plots_search"][self.__class__.__name__][name]
+            return conf.instance["visualize"]["plots_search"]["optimize"][name]
 
         plotter = OptimizePlotter(
             samples=samples,

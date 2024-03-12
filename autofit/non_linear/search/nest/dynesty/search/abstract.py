@@ -236,15 +236,12 @@ class AbstractDynesty(AbstractNest, ABC):
         log_prior_list = model.log_prior_list_from(parameter_lists=parameter_lists)
         log_likelihood_list = list(search_internal.results.logl)
 
-        try:
-            weight_list = list(
-                np.exp(
-                    np.asarray(search_internal.results.logwt)
-                    - search_internal.results.logz[-1]
-                )
+        weight_list = list(
+            np.exp(
+                np.asarray(search_internal.results.logwt)
+                - search_internal.results.logz[-1]
             )
-        except:
-            weight_list = search_internal.results["weights"]
+        )
 
         sample_list = Sample.from_lists(
             model=model,

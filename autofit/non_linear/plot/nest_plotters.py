@@ -47,11 +47,11 @@ class NestPlotter(SamplesPlotter):
 
     @skip_plot_in_test_mode
     @log_value_error
-    def corner(self, **kwargs):
+    def corner_anesthetic(self, **kwargs):
         """
-        Plots the in-built ``dynesty`` plot ``cornerplot``.
+        Plots a corner plot via the visualization library `anesthetic`.
 
-        This figure plots a corner plot of the 1-D and 2-D marginalized posteriors.
+        This plots a corner plot including the 1-D and 2-D marginalized posteriors.
         """
 
         samples = NestedSamples(
@@ -70,5 +70,5 @@ class NestPlotter(SamplesPlotter):
         samples.plot_2d(axes, alpha=0.9, label="posterior")
         axes.iloc[-1, 0].legend(bbox_to_anchor=(len(axes) / 2, len(axes)), loc='lower center', ncols=2)
 
-        self.output.to_figure(auto_filename="corner")
+        self.output.to_figure(auto_filename="corner_anesthetic")
         self.close()

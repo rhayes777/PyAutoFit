@@ -90,14 +90,14 @@ class SamplesPlotter:
             f"""{self.__class__.__name__} unable to produce {plot_name} visual: posterior estimate therefore
             not yet sufficient for this model-fit is not yet robust enough to do this. 
             Visuals should be produced in later update, once posterior estimate is updated.
-        """
+            """
         )
 
     def corner(self, **kwargs):
         """
-        Plots the `nautilus` plot `corner`, using the package `corner.py`.
+        Plots a corner plot via the visualization library `corner.py`.
 
-        This figure plots a corner plot of the 1-D and 2-D marginalized posteriors.
+        This plots a corner plot including the 1-D and 2-D marginalized posteriors.
         """
 
         if os.environ.get("PYAUTOFIT_TEST_MODE") == "1":
