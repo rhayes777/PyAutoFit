@@ -10,6 +10,7 @@ from autofit import jax_wrapper
 
 
 def get_timeout_seconds():
+
     try:
         return conf.instance["general"]["test"]["lh_timeout_seconds"]
     except KeyError:

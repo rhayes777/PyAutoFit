@@ -20,25 +20,18 @@ class SamplesMCMC(SamplesPDF):
         model: AbstractPriorModel,
         sample_list: List[Sample],
         samples_info: Optional[Dict] = None,
-        search_internal: Optional = None,
         auto_correlation_settings: Optional[AutoCorrelationsSettings] = None,
         auto_correlations: Optional[AutoCorrelations] = None,
     ):
         """
-        The `Samples` classes in **PyAutoFit** provide an interface between the search_internal of
-        a `NonLinearSearch` (e.g. as files on your hard-disk) and Python.
+        Contains the samples of the non-linear search, including parameter values, log likelihoods,
+        weights and other quantites.
 
         For example, the output class can be used to load an instance of the best-fit model, get an instance of any
         individual sample by the `NonLinearSearch` and return information on the likelihoods, errors, etc.
 
-        This class stores the samples of a MCMC model-fit (e.g. `emcee`, `zeus`). To use a library's in-built
-        visualization tools search_internal are optionally stored in their native internal format using
-        the `search_internal` attribute.
-
         Attributes
         ----------
-        search_internal
-            The MCMC results in their native internal format from which the samples are computed.
         model
             Maps input vectors of unit parameter values to physical values and model instances via priors.
         auto_correlation_settings
@@ -46,8 +39,6 @@ class SamplesMCMC(SamplesPDF):
         time
             The time taken to perform the model-fit, which is passed around `Samples` objects for outputting
             information on the overall fit.
-        search_internal
-            The MCMC library's results in their native internal format for interfacing its visualization library.
         """
 
         self.auto_correlations = auto_correlations
@@ -57,16 +48,13 @@ class SamplesMCMC(SamplesPDF):
             model=model,
             sample_list=sample_list,
             samples_info=samples_info,
-            search_internal=search_internal,
+            derived_quantities_list=derived_quantities_list,
         )
 
     def __add__(self, other: "SamplesMCMC") -> "SamplesMCMC":
         """
         Samples can be added together, which combines their `sample_list` meaning that inferred parameters are
         computed via their joint PDF.
-
-        For Zeus samples there are no tools for combining results in their native format, therefore these
-        `search_internal` are set to None and support for visualization is disabled.
 
         Parameters
         ----------
@@ -91,7 +79,6 @@ class SamplesMCMC(SamplesPDF):
             sample_list=self.sample_list + other.sample_list,
             samples_info=self.samples_info,
             auto_correlation_settings=self.auto_correlation_settings,
-            search_internal=None,
         )
 
     @classmethod
@@ -100,7 +87,7 @@ class SamplesMCMC(SamplesPDF):
         sample_list,
         samples_info,
         model: AbstractPriorModel,
-        search_internal=None,
+        derived_quantities_list=None,
     ):
         try:
             auto_correlation_settings = AutoCorrelationsSettings(
@@ -116,19 +103,20 @@ class SamplesMCMC(SamplesPDF):
             model=model,
             sample_list=sample_list,
             samples_info=samples_info,
-            search_internal=search_internal,
             auto_correlation_settings=auto_correlation_settings,
         )
 
     @property
     def pdf_converged(self):
         """
-        To analyse and visualize samples using corner.py, the analysis must be sufficiently converged to produce
-        smooth enough PDF for analysis. This property checks whether the non-linear search's samples are sufficiently
-        converged for corner.py use.
+        To analyse and visualize samples, the analysis must be sufficiently converged to produce smooth enough PDF
+        for analysis.
 
-        Emcee samples can be analysed by corner.py irrespective of how long the sampler has run, albeit low run times
-        will likely produce inaccurate results.
+        This property checks whether the non-linear search's samples are sufficiently converged for analysis and
+        visualization.
+
+        Emcee samples can be analysed irrespective of how long the sampler has run, albeit low run times will likely
+        produce inaccurate results.
         """
         try:
             if len(self.parameter_lists) == 0:
