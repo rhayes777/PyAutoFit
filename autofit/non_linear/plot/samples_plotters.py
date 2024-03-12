@@ -93,7 +93,7 @@ class SamplesPlotter:
             """
         )
 
-    def corner(self, **kwargs):
+    def corner_cornerpy(self, **kwargs):
         """
         Plots a corner plot via the visualization library `corner.py`.
 

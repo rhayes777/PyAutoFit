@@ -65,5 +65,5 @@ class AbstractMCMC(NonLinearSearch):
             output=Output(path=self.paths.image_path / "search", format="png"),
         )
 
-        if should_plot("corner"):
-            plotter.corner()
+        if should_plot("corner_cornerpy"):
+            plotter.corner_cornerpy()

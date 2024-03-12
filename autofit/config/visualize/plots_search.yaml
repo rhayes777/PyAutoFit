@@ -1,6 +1,6 @@
 nest:
   corner_anesthetic: true   # Output corner figure (using anestetic) during a non-linear search fit?
 mcmc:
-  corner: true             # Output corner figure (using corner.py) during a non-linear search fit?
+  corner_cornerpy: true     # Output corner figure (using corner.py) during a non-linear search fit?
 optimize:
-  corner: true             # Output corner figure (using corner.py) during a non-linear search fit?
+  corner_cornerpy: true     # Output corner figure (using corner.py) during a non-linear search fit?
