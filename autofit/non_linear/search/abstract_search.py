@@ -673,7 +673,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         )
 
         result = analysis.make_result(
-            samples=samples,
+            samples=samples, search_internal=search_internal
         )
 
         if self.is_master:
@@ -687,7 +687,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         return result
 
     def result_via_completed_fit(
-        self, analysis: Analysis, model: AbstractPriorModel, search_internal=None
+        self, analysis: Analysis, model: AbstractPriorModel,
     ) -> Result:
         """
         Returns the result of the non-linear search of a completed model-fit.
@@ -712,6 +712,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         model
             The model that is fitted to the data, which is used by the non-linear search to create instances of
             the model that are fitted to the data via the log likelihood function.
+
         Returns
         -------
         The result of the non-linear search, which includes the best-fit model instance and best-fit log likelihood
@@ -721,8 +722,19 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         model.freeze()
         samples = self.samples_from(model=model)
 
+        try:
+            search_internal = self.backend
+        except (AttributeError, FileNotFoundError):
+            search_internal = None
+
+        if search_internal is None:
+            try:
+                search_internal = self.paths.load_search_internal()
+            except FileNotFoundError:
+                search_internal = None
+
         result = analysis.make_result(
-            samples=samples,
+            samples=samples, search_internal=search_internal
         )
 
         if self.is_master:
@@ -862,7 +874,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         The update performs the following tasks (if the settings indicate they should be performed):
 
-        1) Visualize the search results (e.g. a cornerplot).
+        1) Visualize the search results.
         2) Visualize the maximum log likelihood model using model-specific visualization implented via the `Analysis`
            object.
         3) Perform profiling of the analysis object `log_likelihood_function` and ouptut run-time information.
@@ -977,7 +989,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         The update performs the following tasks (if the settings indicate they should be performed):
 
-        1) Visualize the search results (e.g. a cornerplot).
+        1) Visualize the search results.
         2) Visualize the maximum log likelihood model using model-specific visualization implented via the `Analysis`
            object.
 
@@ -1132,4 +1144,4 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         return isinstance(other, NonLinearSearch) and self.__dict__ == other.__dict__
 
     def plot_results(self, samples):
-        pass
+        raise NotImplementedError

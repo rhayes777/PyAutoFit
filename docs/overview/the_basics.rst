@@ -501,16 +501,16 @@ This includes parameter samples, log likelihood values, posterior information an
 algorithm (e.g. the internal dynesty samples).
 
 This is described fully in the results overview, below we use the samples to plot the probability density function
-cornerplot of the results.
+corner of the results.
 
 .. code-block:: python
 
     search_plotter = aplt.DynestyPlotter(samples=result.samples)
-    search_plotter.cornerplot()
+    search_plotter.corner()
 
 The plot appears as follows:
 
-.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/feature/docs_update/docs/images/cornerplot.png
+.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/feature/docs_update/docs/images/corner.png
   :width: 600
   :alt: Alternative text
 
