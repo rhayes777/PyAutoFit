@@ -3,8 +3,8 @@ general:
     backend: default         # The matploblib backend used for visualization. `default` uses the system default, can specifiy specific backend (e.g. TKAgg, Qt5Agg, WXAgg).
 plots_search:
   dynesty:
-    cornerplot: false
-    cornerpoints: false      # Whether to output the Dynesty cornerplot figure during a non-linear search fit.
+    corner: false
+    cornerpoints: false      # Whether to output the Dynesty corner figure during a non-linear search fit.
     runplot: false            # Whether to output the Dynesty runplot figure during a non-linear search fit.
     traceplot: false          # Whether to output the Dynesty traceplot figure during a non-linear search fit.
   emcee:
@@ -18,7 +18,7 @@ plots_search:
     time_series: false        # Whether to output the PySwarms time_series figure during a non-linear search fit.
     trajectories: false       # Whether to output the PySwarms trajectories figure during a non-linear search fit.
   ultranest:
-    cornerplot: false         # Whether to output the Ultranest cornerplot figure during a non-linear search fit.
+    corner: false         # Whether to output the Ultranest corner figure during a non-linear search fit.
     runplot: false            # Whether to output the Ultranest runplot figure during a non-linear search fit.
     traceplot: false          # Whether to output the Ultranest traceplot figure during a non-linear search fit.
   zeus:

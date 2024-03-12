@@ -16,19 +16,14 @@ class SamplesNest(SamplesPDF):
         model: AbstractPriorModel,
         sample_list: List[Sample],
         samples_info: Optional[Dict] = None,
-        search_internal: Optional = None,
         derived_quantities_list: Optional[List] = None,
     ):
         """
-        The `Samples` classes in **PyAutoFit** provide an interface between the search_internal of
-        a `NonLinearSearch` (e.g. as files on your hard-disk) and Python.
+        Contains the samples of the non-linear search, including parameter values, log likelihoods,
+        weights and other quantites.
 
         For example, the output class can be used to load an instance of the best-fit model, get an instance of any
         individual sample by the `NonLinearSearch` and return information on the likelihoods, errors, etc.
-
-        This class stores the samples of nested sampler model-fit (e.g. `dynesty`, `UltraNest`). To use a library's
-        in-built visualization tools results are optionally stored in their native internal format using the
-        `search_internal` attribute.
 
         Parameters
         ----------
@@ -41,15 +36,12 @@ class SamplesNest(SamplesPDF):
             The number of live points used by the nested sampler.
         samples_info
             Contains information on the samples (e.g. total iterations, time to run the search, etc.).
-        search_internal
-            The nested sampler's results in their native internal format for interfacing its visualization library.
         """
 
         super().__init__(
             model=model,
             sample_list=sample_list,
             samples_info=samples_info,
-            search_internal=search_internal,
             derived_quantities_list=derived_quantities_list,
         )
 
@@ -57,9 +49,6 @@ class SamplesNest(SamplesPDF):
         """
         Samples can be added together, which combines their `sample_list` meaning that inferred parameters are
         computed via their joint PDF.
-
-        For UltraNest samples there are no tools for combining results in their native format, therefore these
-        `search_internal` are set to None and support for visualization is disabled.
 
         Parameters
         ----------
@@ -83,7 +72,6 @@ class SamplesNest(SamplesPDF):
             model=self.model,
             sample_list=self.sample_list + other.sample_list,
             samples_info=self.samples_info,
-            search_internal=None,
         )
 
     @property

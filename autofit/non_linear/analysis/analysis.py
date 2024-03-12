@@ -171,10 +171,11 @@ class Analysis(ABC):
         """
         return self
 
-    def make_result(self, samples):
+    def make_result(self, samples, search_internal=None):
         return Result(
             samples=samples,
             latent_variables=self.latent_variables,
+            search_internal=search_internal,
         )
 
     def profile_log_likelihood_function(self, paths: AbstractPaths, instance):

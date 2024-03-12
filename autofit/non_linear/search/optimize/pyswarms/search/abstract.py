@@ -2,7 +2,6 @@ from typing import Dict, Optional
 
 import numpy as np
 
-from autoconf import conf
 from autofit import exc
 from autofit.database.sqlalchemy_ import sa
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
@@ -11,8 +10,6 @@ from autofit.non_linear.initializer import AbstractInitializer
 from autofit.non_linear.search.optimize.abstract_optimize import AbstractOptimizer
 from autofit.non_linear.samples.sample import Sample
 from autofit.non_linear.samples.samples import Samples
-from autofit.plot import PySwarmsPlotter
-from autofit.plot.output import Output
 
 
 class FitnessPySwarms(Fitness):
@@ -153,12 +150,10 @@ class AbstractPySwarms(AbstractOptimizer):
 
         try:
 
-            search_internal_dict = self.paths.load_search_internal()
+            search_internal = self.paths.load_search_internal()
 
-            search_internal = search_internal_dict["pos_history"]
-
-            init_pos = search_internal[-1]
-            total_iterations = search_internal_dict["total_iterations"]
+            init_pos = search_internal.pos_history[-1]
+            total_iterations = len(search_internal.cost_history)
 
             self.logger.info(
                 "Resuming PySwarms non-linear search (previous samples found)."
@@ -219,15 +214,8 @@ class AbstractPySwarms(AbstractOptimizer):
 
                 total_iterations += iterations
 
-                search_internal_dict = {
-                    "pos_history" : search_internal.pos_history,
-                    "total_iterations": total_iterations,
-                    "log_posterior_list": [-0.5 * cost for cost in search_internal.cost_history],
-                    "time": self.timer.time if self.timer else None,
-                }
-
                 self.paths.save_search_internal(
-                    obj=search_internal_dict,
+                    obj=search_internal,
                 )
 
                 self.perform_update(
@@ -257,27 +245,16 @@ class AbstractPySwarms(AbstractOptimizer):
             Maps input vectors of unit parameter values to physical values and model instances via priors.
         """
 
-        if search_internal is not None:
+        if search_internal is None:
 
-            search_internal_dict = {
-                "total_iterations": None,
-                "log_posterior_list": [-0.5 * cost for cost in search_internal.cost_history],
-                "time": self.timer.time if self.timer else None,
-            }
-            pos_history = search_internal.pos_history
+            search_internal = self.paths.load_search_internal()
 
-
-
-        else:
-
-            search_internal_dict = self.paths.load_search_internal()
-            pos_history = search_internal_dict["pos_history"]
-
-            search_internal_dict = {
-                "total_iterations": search_internal_dict["total_iterations"],
-                "log_posterior_list": search_internal_dict["log_posterior_list"],
-                "time": search_internal_dict["time"]
-            }
+        search_internal_dict = {
+            "total_iterations": None,
+            "log_posterior_list": [-0.5 * cost for cost in search_internal.cost_history],
+            "time": self.timer.time if self.timer else None,
+        }
+        pos_history = search_internal.pos_history
 
         parameter_lists = [
             param.tolist() for parameters in pos_history for param in parameters
@@ -301,7 +278,6 @@ class AbstractPySwarms(AbstractOptimizer):
             model=model,
             sample_list=sample_list,
             samples_info=search_internal_dict,
-            search_internal=pos_history
         )
 
     def config_dict_test_mode_from(self, config_dict: Dict) -> Dict:
@@ -329,25 +305,3 @@ class AbstractPySwarms(AbstractOptimizer):
 
     def search_internal_from(self, model, fitness, bounds, init_pos):
         raise NotImplementedError()
-
-    def plot_results(self, samples):
-
-        def should_plot(name):
-            return conf.instance["visualize"]["plots_search"]["pyswarms"][name]
-
-        plotter = PySwarmsPlotter(
-            samples=samples,
-            output=Output(path=self.paths.image_path / "search", format="png")
-        )
-
-        if should_plot("contour"):
-            plotter.contour()
-
-        if should_plot("cost_history"):
-            plotter.cost_history()
-
-        if should_plot("trajectories"):
-            plotter.trajectories()
-
-        if should_plot("time_series"):
-            plotter.time_series()

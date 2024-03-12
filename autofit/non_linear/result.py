@@ -167,7 +167,7 @@ class AbstractResult(ABC):
 
 
 class Result(AbstractResult):
-    def __init__(self, samples: Samples, latent_variables=None):
+    def __init__(self, samples: Samples, search_internal = None, latent_variables=None):
         """
         The result of a non-linear search, which includes:
 
@@ -177,15 +177,20 @@ class Result(AbstractResult):
         - The model used to fit the data, which uses the samples to create specific instances of the model (e.g.
         an instance of the maximum log likelihood model).
 
-        - The non-linear search used to perform the model fit.
+        - The non-linear search used to perform the model fit in its internal format (e.g. the Dynesty sampler used
+        by dynesty itself as opposed to PyAutoFit abstract classes).
 
         Parameters
         ----------
         samples
             The samples of the non-linear search
+        search_internal
+            The non-linear search used to perform the model fit in its internal format.
         """
         self._samples = samples
         self.latent_variables = latent_variables
+
+        self.search_internal = search_internal
 
         self.__model = None
 

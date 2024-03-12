@@ -1,5 +1,6 @@
 import matplotlib
 from pathlib import Path
+from os import path
 from typing import List, Optional, Union
 
 from autoconf import conf
@@ -79,7 +80,6 @@ class Output:
 
     def to_figure(
         self,
-        structure,
         auto_filename: Optional[str] = None,
     ):
         """
@@ -94,6 +94,8 @@ class Output:
         filename = auto_filename if self.filename is None else self.filename
 
         for format in self.format_list:
+            if os.environ.get("PYAUTOARRAY_OUTPUT_MODE") == "1":
+                return self.to_figure_output_mode(filename=filename)
             if not self.bypass:
                 if format == "show":
                     plt.show()
@@ -101,12 +103,6 @@ class Output:
                     plt.savefig(self.path / f"{filename}.png")
                 elif format == "pdf":
                     plt.savefig(self.path / f"{filename}.pdf")
-                elif format == "fits":
-                    if structure is not None:
-                        structure.output_to_fits(
-                            file_path=self.path / f"{filename}.fits",
-                            overwrite=True,
-                        )
 
     def subplot_to_figure(self, auto_filename=None):
         """
@@ -116,9 +112,31 @@ class Output:
         filename = auto_filename if self.filename is None else self.filename
 
         for format in self.format_list:
+            if os.environ.get("PYAUTOARRAY_OUTPUT_MODE") == "1":
+                return self.to_figure_output_mode(filename=filename)
             if format == "show":
                 plt.show()
             elif format == "png":
                 plt.savefig(self.path / f"{filename}.png")
             elif format == "pdf":
                 plt.savefig(self.path / f"{filename}.pdf")
+
+
+    def to_figure_output_mode(self, filename: str):
+        global COUNT
+
+        try:
+            COUNT += 1
+        except NameError:
+            COUNT = 0
+
+        import sys
+
+        script_name = path.split(sys.argv[0])[-1].replace(".py", "")
+
+        output_path = path.join(os.getcwd(), "output_mode", script_name)
+        os.makedirs(output_path, exist_ok=True)
+
+        plt.savefig(
+            path.join(output_path, f"{COUNT}_{filename}.png"),
+        )
