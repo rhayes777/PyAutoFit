@@ -21,7 +21,6 @@ class SamplesPDF(Samples):
         model: AbstractPriorModel,
         sample_list: List[Sample],
         samples_info: Optional[Dict] = None,
-        derived_quantities_list: Optional[List] = None,
     ):
         """
         Contains the samples of the non-linear search, including parameter values, log likelihoods,
@@ -47,8 +46,7 @@ class SamplesPDF(Samples):
         super().__init__(
             model=model,
             sample_list=sample_list,
-            samples_info=samples_info,
-            derived_quantities_list=derived_quantities_list,
+            samples_info=samples_info
         )
 
     def summary(self):
@@ -65,7 +63,7 @@ class SamplesPDF(Samples):
         )
 
     @classmethod
-    def from_table(cls, filename: str, model, number_live_points=None):
+    def from_table(cls, filename: str, model):
         """
         Write a table of parameters, posteriors, priors and likelihoods
 

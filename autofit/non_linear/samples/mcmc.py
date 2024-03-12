@@ -48,7 +48,6 @@ class SamplesMCMC(SamplesPDF):
             model=model,
             sample_list=sample_list,
             samples_info=samples_info,
-            derived_quantities_list=derived_quantities_list,
         )
 
     def __add__(self, other: "SamplesMCMC") -> "SamplesMCMC":
@@ -87,7 +86,6 @@ class SamplesMCMC(SamplesPDF):
         sample_list,
         samples_info,
         model: AbstractPriorModel,
-        derived_quantities_list=None,
     ):
         try:
             auto_correlation_settings = AutoCorrelationsSettings(
