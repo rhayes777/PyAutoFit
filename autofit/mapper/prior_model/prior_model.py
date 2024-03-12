@@ -10,7 +10,6 @@ from autofit.jax_wrapper import register_pytree_node_class, register_pytree_node
 
 from autoconf.class_path import get_class_path
 from autoconf.exc import ConfigException
-from autofit.mapper.derived_quantity import derived_quantity
 from autofit.mapper.model import assert_not_frozen
 from autofit.mapper.model_object import ModelObject
 from autofit.mapper.prior.abstract import Prior
@@ -58,9 +57,6 @@ class Model(AbstractPriorModel):
     def __init__(
         self,
         cls,
-        custom_derived_quantities: typing.Optional[
-            typing.Dict[str, typing.Callable]
-        ] = None,
         **kwargs,
     ):
         """
@@ -87,9 +83,6 @@ class Model(AbstractPriorModel):
         ----------
         cls
             The class associated with this instance
-        custom_derived_quantities
-            A dictionary of quantities that can be derived from the model and should
-            be output as derived quantities.
 
         Examples
         --------
@@ -110,7 +103,6 @@ class Model(AbstractPriorModel):
         """
         super().__init__(
             label=namer(cls.__name__) if inspect.isclass(cls) else None,
-            custom_derived_quantities=custom_derived_quantities,
         )
         if cls is self:
             return
@@ -235,22 +227,6 @@ class Model(AbstractPriorModel):
             + self.direct_deferred_tuples
             + self.direct_prior_tuples
         ]
-
-    @property
-    def derived_quantities(self) -> List[typing.Tuple[str, ...]]:
-        """
-        The paths to attributes of the model which are derived (i.e.
-        methods marked with the derived_quantity decorator)
-        """
-        return (
-            super().derived_quantities
-            + [
-                (key,)
-                for key, value in self.cls.__dict__.items()
-                if isinstance(value, derived_quantity)
-            ]
-            + [(key,) for key in self.custom_derived_quantities.keys()]
-        )
 
     def instance_flatten(self, instance):
         """

@@ -85,7 +85,7 @@ class TestPriors:
         self,
         serialized_model,
     ):
-        assert len(serialized_model.children) == 5
+        assert len(serialized_model.children) == 4
 
     def test_deserialize(self, serialized_model):
         model = serialized_model()
@@ -102,8 +102,8 @@ def test_none_id(model):
 class TestCollection:
     def test_serialize(self, serialized_collection):
         assert isinstance(serialized_collection, db.Collection)
-        (_, _, child) = serialized_collection.children
-        assert len(child.children) == 5
+        (_, child) = serialized_collection.children
+        assert len(child.children) == 4
 
     def test_deserialize(self, serialized_collection):
         collection = serialized_collection()

@@ -16,7 +16,6 @@ class SamplesNest(SamplesPDF):
         model: AbstractPriorModel,
         sample_list: List[Sample],
         samples_info: Optional[Dict] = None,
-        derived_quantities_list: Optional[List] = None,
     ):
         """
         Contains the samples of the non-linear search, including parameter values, log likelihoods,
@@ -42,7 +41,6 @@ class SamplesNest(SamplesPDF):
             model=model,
             sample_list=sample_list,
             samples_info=samples_info,
-            derived_quantities_list=derived_quantities_list,
         )
 
     def __add__(self, other: "SamplesNest") -> "SamplesNest":

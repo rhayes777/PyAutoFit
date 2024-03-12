@@ -753,9 +753,6 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
                 if not self.skip_save_samples:
                     self.paths.save_json("samples_summary", to_dict(samples.summary()))
-                    self.paths.save_json(
-                        "derived_summary", samples.derived_quantities_summary_dict
-                    )
 
                 analysis.save_results(paths=self.paths, result=result)
                 analysis.save_results_combined(paths=self.paths, result=result)
@@ -830,9 +827,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         if os.environ.get("PYAUTOFIT_TEST_MODE") == "1":
             logger.warning(f"TEST MODE ON: SEARCH WILL SKIP SAMPLING\n\n")
 
-            config_dict = self.config_dict_test_mode_from(
-                config_dict=config_dict
-            )
+            config_dict = self.config_dict_test_mode_from(config_dict=config_dict)
 
         return config_dict
 
@@ -920,17 +915,15 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         if self.is_master:
             self.paths.save_samples(samples=samples)
 
-            if not during_analysis:
-                try:
-                    self.paths.save_derived_quantities(samples=samples)
-                except exc.FitException:
-                    pass
+            latent_variables = analysis.latent_variables
+            if latent_variables:
+                self.paths.save_latent_variables(
+                    latent_variables,
+                    samples=samples,
+                )
 
             if not self.skip_save_samples:
                 self.paths.save_json("samples_summary", to_dict(samples.summary()))
-                self.paths.save_json(
-                    "derived_summary", samples.derived_quantities_summary_dict
-                )
 
             self.perform_visualization(
                 model=model,

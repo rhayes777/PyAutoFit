@@ -165,8 +165,9 @@ class AbstractResult(ABC):
         """
         return self.samples.model_bounded(b)
 
+
 class Result(AbstractResult):
-    def __init__(self, samples: Samples, search_internal = None):
+    def __init__(self, samples: Samples, search_internal = None, latent_variables=None):
         """
         The result of a non-linear search, which includes:
 
@@ -187,6 +188,7 @@ class Result(AbstractResult):
             The non-linear search used to perform the model fit in its internal format.
         """
         self._samples = samples
+        self.latent_variables = latent_variables
 
         self.search_internal = search_internal
 
@@ -225,9 +227,7 @@ class Result(AbstractResult):
 
     @property
     def model(self):
-
         if self.__model is None:
-
             self.__model = self.samples.model.mapper_from_prior_means(
                 means=self.samples.prior_means
             )

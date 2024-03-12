@@ -22,7 +22,6 @@ class SamplesMCMC(SamplesPDF):
         samples_info: Optional[Dict] = None,
         auto_correlation_settings: Optional[AutoCorrelationsSettings] = None,
         auto_correlations: Optional[AutoCorrelations] = None,
-        derived_quantities_list: Optional[List] = None,
     ):
         """
         Contains the samples of the non-linear search, including parameter values, log likelihoods,
@@ -49,7 +48,6 @@ class SamplesMCMC(SamplesPDF):
             model=model,
             sample_list=sample_list,
             samples_info=samples_info,
-            derived_quantities_list=derived_quantities_list,
         )
 
     def __add__(self, other: "SamplesMCMC") -> "SamplesMCMC":
@@ -88,7 +86,6 @@ class SamplesMCMC(SamplesPDF):
         sample_list,
         samples_info,
         model: AbstractPriorModel,
-        derived_quantities_list=None,
     ):
         try:
             auto_correlation_settings = AutoCorrelationsSettings(
@@ -105,7 +102,6 @@ class SamplesMCMC(SamplesPDF):
             sample_list=sample_list,
             samples_info=samples_info,
             auto_correlation_settings=auto_correlation_settings,
-            derived_quantities_list=derived_quantities_list,
         )
 
     @property

@@ -1,10 +1,12 @@
 import logging
 from abc import ABC
 import os
+from typing import Optional
 
 from autoconf import conf
 
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
+from autofit.non_linear.analysis.latent_variables import LatentVariables
 from autofit.non_linear.paths.abstract import AbstractPaths
 from autofit.non_linear.paths.database import DatabasePaths
 from autofit.non_linear.paths.null import NullPaths
@@ -19,6 +21,39 @@ class Analysis(ABC):
     must be implemented to define a class that compute the
     likelihood that some instance fits some data.
     """
+
+    @property
+    def latent_variables(self) -> Optional[LatentVariables]:
+        """
+        Custom quantities that are computed during the analysis.
+
+        If no latent variables have been saved, this will return None.
+        """
+        try:
+            return self._latent_variables
+        except AttributeError:
+            return None
+
+    def save_latent_variables(self, **kwargs: float):
+        """
+        Save latent variables that are computed during the analysis.
+
+        This should only be called once per a fit and must always be passed the same latent variables.
+
+        Parameters
+        ----------
+        kwargs
+            The latent variables to save.
+
+        Raises
+        ------
+        SamplesException
+            If the same latent variables are not passed to `add` each iteration.
+        """
+        if not hasattr(self, "_latent_variables"):
+            # noinspection PyAttributeOutsideInit
+            self._latent_variables = LatentVariables()
+        self._latent_variables.add(**kwargs)
 
     def with_model(self, model):
         """
@@ -139,6 +174,7 @@ class Analysis(ABC):
     def make_result(self, samples, search_internal=None):
         return Result(
             samples=samples,
+            latent_variables=self.latent_variables,
             search_internal=search_internal,
         )
 
