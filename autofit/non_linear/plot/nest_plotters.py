@@ -74,14 +74,14 @@ class NestPlotter(SamplesPlotter):
             columns=self.model.parameter_labels_with_superscripts_latex
         )
 
-        # prior = samples.prior()
         fig, axes = make_2d_axes(
             self.model.parameter_labels_with_superscripts_latex,
             figsize=figsize,
             facecolor=config_dict["facecolor"],
         )
 
-    #    prior.plot_2d(axes, alpha=0.9, label="prior")
+        prior = samples.prior()
+        prior.plot_2d(axes, alpha=0.9, label="prior")
         samples.plot_2d(
             axes,
             alpha=config_dict["alpha"],
