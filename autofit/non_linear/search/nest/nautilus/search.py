@@ -459,6 +459,7 @@ class Nautilus(abstract_nest.AbstractNest):
         return {
             "log_evidence": search_internal.evidence(),
             "total_samples": int(search_internal.n_like),
+            "total_accepted_samples": int(search_internal.n_like),
             "time": self.timer.time if self.timer else None,
             "number_live_points": int(search_internal.n_live),
         }
