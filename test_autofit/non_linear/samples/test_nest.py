@@ -72,6 +72,7 @@ def test__acceptance_ratio_is_correct():
             "total_samples" : 10,
             "log_evidence" : 0.0,
             "number_live_points" : 5,
+            "total_accepted_samples": 2
             }
     )
 

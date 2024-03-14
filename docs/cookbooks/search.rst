@@ -11,6 +11,7 @@ It first covers standard options available for all non-linear searches:
 
 - **Example Fit**: A simple example of a non-linear search to remind us how it works.
 - **Output To Hard-Disk**: Output results to hard-disk so they can be inspected and used to restart a crashed search.
+- **Output Customization**: Customize the output of a non-linear search to hard-disk.
 - **Unique Identifier**: Ensure results are output in unique folders, so tthey do not overwrite each other.
 - **Iterations Per Update**: Control how often non-linear searches output results to hard-disk.
 - **Parallelization**: Use parallel processing to speed up the sampling of parameter space.
@@ -77,6 +78,20 @@ These outputs are fully described in the scientific workflow example.
 .. code-block:: python
 
     search = af.Emcee(path_prefix=path.join("folder_0", "folder_1"), name="example_mcmc")
+
+Output Customization
+--------------------
+
+For large model fitting problems outputs may use up a lot of hard-disk space, therefore full customization of the
+outputs is supported.
+
+This is controlled by the `output.yaml` config file found in the `config` folder of the workspace. This file contains
+a full description of all customization options.
+
+A few examples of the options available include:
+
+- Control over every file which is output to the `files` folder (e.g. `model.json`, `samples.csv`, etc.)
+- For the `samples.csv` file, all samples with a weight below a certain value can be automatically removed.
 
 Unique Identifier
 -----------------

@@ -57,6 +57,7 @@ def test__search_summary_to_file(model):
         ),
         samples_info={
             "time": "1",
+            "total_accepted_samples" : 2
         }
     )
 
