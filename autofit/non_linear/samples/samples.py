@@ -382,6 +382,37 @@ class Samples(SamplesInterface, ABC):
         """
         return self.parameter_lists[sample_index]
 
+    def samples_above_weight_threshold_from(self, weight_threshold: float) -> "Samples":
+        """
+        Returns a new `Samples` object containing only the samples with a weight above the input threshold.
+
+        This function can be used after a non-linear search is complete, to reduce the samples to only the high weight
+        values. The benefit of this is that the corresponding `samples.csv` file will be reduced in hard-disk size.
+
+        For large libraries of results can significantly reduce the overall hard-disk space used and speed up the
+        time taken to load the samples from a .csv file and perform analysis on them.
+
+        For a sufficiently low threshold, this has a neglible impact on the numerical accuracy of the results, and
+        even higher values can be used for aggresive use cases where hard-disk space is at a premium.
+
+        Parameters
+        ----------
+        weight_threshold
+            The threshold of weight at which a sample is included in the new `Samples` object.
+        """
+        sample_list = []
+
+        for sample in self.sample_list:
+            if sample.weight > weight_threshold:
+                sample_list.append(sample)
+
+        return self.__class__(
+            model=self.model,
+            sample_list=sample_list,
+            samples_info=self.samples_info,
+        )
+
+
     def minimise(self) -> "Samples":
         """
         A copy of this object with only important samples retained

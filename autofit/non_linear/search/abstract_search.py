@@ -913,6 +913,9 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             return samples
 
         if self.is_master:
+
+
+
             self.paths.save_samples(samples=samples)
 
             latent_variables = analysis.latent_variables
