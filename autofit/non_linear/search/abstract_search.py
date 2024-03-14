@@ -907,6 +907,9 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         samples = self.samples_from(model=model, search_internal=search_internal)
 
+        samples = samples.samples_above_weight_threshold_from(
+            weight_threshold=conf.instance["output"]["samples_weight_threshold"]
+        )
 
         try:
             instance = samples.max_log_likelihood()
