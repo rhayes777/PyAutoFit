@@ -60,9 +60,12 @@ class Analysis(af.Analysis):
         chi_squared_map = (residual_map / self.noise_map) ** 2.0
         log_likelihood = -0.5 * sum(chi_squared_map)
 
-        self.save_latent_variables(
-            fwmh=instance.fwhm
-        )
+        try:
+            self.save_latent_variables(
+                fwmh=instance.fwhm
+            )
+        except AttributeError:
+            pass
 
         return log_likelihood
 
