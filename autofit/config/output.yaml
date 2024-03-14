@@ -21,6 +21,21 @@ default: true # If true then files which are not explicitly listed here are outp
 
 samples: true
 
+# The `samples.csv` file contains every accepted sampled value of every free parameter with its log likelihood and
+# weight. For certain searches, the majority of samples have a very low weight, which has no numerical impact on the
+# results of the model-fit. However, these samples are still output to the `samples.csv` file, taking up hard-disk space
+# and slowing down analysis of the samples (e.g. via the database).
+
+# The `samples_weight_threshold` below specifies the threshold value of the weight such that samples with a weight
+# below this value are not output to the `samples.csv` file. This can be used to reduce the size of the `samples.csv`
+# file and speed up analysis of the samples.
+
+# Note that for many searches (e.g. MCMC) all samples have equal weight, and thus this threshold has no impact and
+# there is no simple way to save hard-disk space. However, for nested sampling, the majority of samples have a very
+# low weight and this threshold can be used to save hard-disk space.
+
+samples_weight_threshold: 1.0e-10
+
 ### Search Internal ###
 
 # The search internal folder which contains a saved state of the non-linear search, as a .pickle or .dill file.

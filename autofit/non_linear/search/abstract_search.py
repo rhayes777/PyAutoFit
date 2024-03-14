@@ -907,14 +907,13 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         samples = self.samples_from(model=model, search_internal=search_internal)
 
+
         try:
             instance = samples.max_log_likelihood()
         except exc.FitException:
             return samples
 
         if self.is_master:
-
-
 
             self.paths.save_samples(samples=samples)
 
