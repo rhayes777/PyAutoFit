@@ -560,6 +560,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
             self.post_fit_output(
                 bypass_nuclear_if_on=bypass_nuclear_if_on,
+                search_internal=result.search_internal
             )
 
         return result
@@ -761,7 +762,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         return result
 
-    def post_fit_output(self, bypass_nuclear_if_on: bool):
+    def post_fit_output(self, search_internal, bypass_nuclear_if_on: bool):
         """
         Cleans up the output folderds after a completed non-linear search.
 
@@ -780,6 +781,8 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         if not conf.instance["output"]["search_internal"]:
             self.logger.info("Removing search internal folder.")
             self.paths.remove_search_internal()
+        else:
+            self.output_search_internal(search_internal=search_internal)
 
         self.logger.info("Removing all files except for .zip file")
         self.paths.zip_remove()
@@ -854,6 +857,11 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             An attribute for the key with the specified type.
         """
         return self._class_config[section][attribute_name]
+
+    def output_search_internal(self, search_internal):
+        self.paths.save_search_internal(
+            obj=search_internal,
+        )
 
     def perform_update(
         self,
