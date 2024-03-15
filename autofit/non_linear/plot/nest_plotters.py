@@ -2,6 +2,7 @@ from anesthetic.samples import NestedSamples
 from anesthetic import make_2d_axes
 from functools import wraps
 import numpy as np
+import warnings
 
 from autoconf import conf
 
@@ -74,11 +75,16 @@ class NestPlotter(SamplesPlotter):
             columns=self.model.parameter_labels_with_superscripts_latex
         )
 
+        from pandas.errors import SettingWithCopyWarning
+        warnings.filterwarnings("ignore", category=SettingWithCopyWarning)
+
         fig, axes = make_2d_axes(
             self.model.parameter_labels_with_superscripts_latex,
             figsize=figsize,
             facecolor=config_dict["facecolor"],
         )
+
+        warnings.filterwarnings("default", category=SettingWithCopyWarning)
 
         # prior = samples.prior()
         # prior.plot_2d(axes, alpha=0.9, label="prior")
