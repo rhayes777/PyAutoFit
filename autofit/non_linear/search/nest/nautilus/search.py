@@ -159,9 +159,8 @@ class Nautilus(abstract_nest.AbstractNest):
                 )
 
         if self.checkpoint_file is not None:
+
             os.remove(self.checkpoint_file)
-
-
 
         return search_internal
 
@@ -323,8 +322,6 @@ class Nautilus(abstract_nest.AbstractNest):
                     search_internal=search_internal
                 )
 
-                self.output_search_internal(search_internal=search_internal)
-
         return search_internal
 
     def fit_mpi(self, fitness, model, analysis, checkpoint_exists: bool):
@@ -370,7 +367,6 @@ class Nautilus(abstract_nest.AbstractNest):
 
             if checkpoint_exists:
                 if self.is_master:
-                    self.output_search_internal(search_internal=search_internal)
 
                     self.perform_update(
                         model=model,
@@ -382,8 +378,6 @@ class Nautilus(abstract_nest.AbstractNest):
             search_internal.run(
                 **self.config_dict_run,
             )
-
-            self.output_search_internal(search_internal=search_internal)
 
         return search_internal
 

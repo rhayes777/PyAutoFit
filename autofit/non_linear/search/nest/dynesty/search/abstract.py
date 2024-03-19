@@ -199,10 +199,6 @@ class AbstractDynesty(AbstractNest, ABC):
                     during_analysis=True,
                 )
 
-        self.paths.save_search_internal(
-            obj=search_internal,
-        )
-
         return search_internal
 
     def samples_info_from(self, search_internal=None):

@@ -198,6 +198,20 @@ class Emcee(AbstractMCMC):
 
         return search_internal
 
+    def output_search_internal(self, search_internal):
+        """
+        Output the sampler results to hard-disk in their internal format.
+
+        Emcee uses a backend to store and load results, therefore the outputting of the search internal to a
+        dill file is disabled.
+
+        Parameters
+        ----------
+        sampler
+            The nautilus sampler object containing the results of the model-fit.
+        """
+        pass
+
     def samples_info_from(self, search_internal=None):
 
         search_internal = search_internal or self.backend
