@@ -3,7 +3,11 @@ from collections import defaultdict
 from ..prior.abstract import Prior
 
 
-def _value_hash(value):
+def _value_hash(value) -> int:
+    """
+    When hashing values priors are hashed by their attributes, so that priors with the same attributes hash to the same
+    value. This is important for the grouping of priors in the model representation.
+    """
     if isinstance(value, Prior):
         return hash(
             tuple(
@@ -14,6 +18,23 @@ def _value_hash(value):
 
 
 def find_groups(path_value_tuples, limit=0):
+    """
+    Groups path-value tuples by their path, up to a limit. This is used to group priors in the model representation.
+
+    If multiple paths share the same suffix they are grouped together.
+
+    Parameters
+    ----------
+    path_value_tuples
+        A list of tuples of paths and values in the model
+    limit
+        How far from the end of paths grouping should terminate. This can be used to prevent grouping of
+        priors and attributes.
+
+    Returns
+    -------
+    A list of tuples of paths and values, where paths are grouped by their suffix.
+    """
     try:
         maximum_path_length = max(len(path) for path, _ in path_value_tuples)
     except ValueError:
