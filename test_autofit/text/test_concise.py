@@ -3,7 +3,6 @@ import itertools
 import autofit as af
 import pytest
 
-from autofit.text.representative import Representative
 from autofit.text.text_util import result_info_from
 
 
@@ -29,22 +28,6 @@ model                                                                           
     centre                                                                      UniformPrior [0], lower_limit = 0.0, upper_limit = 1.0
     normalization                                                               UniformPrior [1], lower_limit = 0.0, upper_limit = 1.0
     sigma                                                                       UniformPrior [2], lower_limit = 0.0, upper_limit = 1.0"""
-    )
-
-
-def test_representative(collection):
-    ((key, representative),) = Representative.find_representatives(collection.items())
-
-    assert len(representative.children) == 20
-    assert key == "0 - 9"
-
-
-def test_get_blueprint():
-    assert Representative.get_blueprint(af.Model(af.Gaussian)) == (
-        (("centre",), (af.UniformPrior, "lower_limit = 0.0, upper_limit = 1.0")),
-        (("normalization",), (af.UniformPrior, "lower_limit = 0.0, upper_limit = 1.0")),
-        (("sigma",), (af.UniformPrior, "lower_limit = 0.0, upper_limit = 1.0")),
-        af.Gaussian,
     )
 
 
