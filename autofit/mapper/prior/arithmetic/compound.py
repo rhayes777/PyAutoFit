@@ -196,6 +196,9 @@ class CompoundPrior(AbstractPriorModel, ArithmeticMixin, Compound, ABC):
         except AttributeError:
             return self._right
 
+    def __add__(self, other):
+        return ArithmeticMixin.__add__(self, other)
+
 
 class SumPrior(CompoundPrior):
     """

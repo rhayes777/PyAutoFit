@@ -1,5 +1,7 @@
 import json
 
+import pytest
+
 from autoconf.dictable import to_dict, from_dict
 from autofit.mapper.mock.mock_model import MockClassx2Tuple
 import autofit as af
@@ -21,11 +23,25 @@ def test_embedded():
     from_dict(to_dict(model))
 
 
-def test_serialise_compound():
-    alpha = af.GaussianPrior(mean=1, sigma=0.03)
-    gamma = 0.0
-    beta = 1.0 + gamma - 2 * alpha
+@pytest.fixture(name="alpha")
+def make_alpha():
+    return af.GaussianPrior(mean=1, sigma=0.03)
 
+
+@pytest.fixture(name="gamma")
+def make_gamma():
+    return 0.0
+
+
+def test_serialise_compound(alpha, gamma):
+    beta = 1.0 + gamma - 2 * alpha
+    assert from_dict(to_dict(beta)).instance_from_prior_medians() == -1
+
+
+def test_add_gamma(alpha, gamma):
+    beta = 1.0 + -2 * alpha + gamma
     assert beta.instance_from_prior_medians() == -1
 
-    assert from_dict(to_dict(beta)).instance_from_prior_medians() == -1
+
+def test_negative_addition(alpha):
+    assert (-alpha + 1).instance_from_prior_medians() == 0.0
