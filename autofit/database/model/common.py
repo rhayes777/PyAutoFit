@@ -11,7 +11,7 @@ from .model import Object
 
 class Dict(Object):
     """
-    A dictionary
+    Represents a Python dictionary in the database
     """
 
     __tablename__ = "dict"
