@@ -26,6 +26,18 @@ class Analysis(ABC):
     def compute_all_latent_variables(
         self, samples: Samples
     ) -> Optional[LatentVariables]:
+        """
+        Internal method that manages computation of latent variables from samples.
+
+        Parameters
+        ----------
+        samples
+            The samples from the non-linear search.
+
+        Returns
+        -------
+        The computed latent variables or None if compute_latent_variable is not implemented.
+        """
         try:
             latent_variables = LatentVariables()
             model = samples.model
@@ -39,7 +51,7 @@ class Analysis(ABC):
 
     def compute_latent_variable(self, instance) -> Dict[str, float]:
         """
-        Compute latent variables from the instance.
+        Override to compute latent variables from the instance.
 
         Parameters
         ----------
