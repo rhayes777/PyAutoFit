@@ -1569,6 +1569,7 @@ class AbstractPriorModel(AbstractModel):
                 )
                 if t[0][-1] not in ("id", "item_number")
             ],
+            limit=1,
         ):
             if isinstance(t[1], ConfigException):
                 t = (t[0], "Prior Missing: Enter Manually or Add to Config")
@@ -1612,6 +1613,8 @@ class AbstractPriorModel(AbstractModel):
 
         formatter = TextFormatter(line_length=info_whitespace())
 
+        paths = []
+
         for t in self.path_instance_tuples_for_class(
             (
                 Prior,
@@ -1634,7 +1637,10 @@ class AbstractPriorModel(AbstractModel):
                 else:
                     name = type(obj).__name__
 
-                formatter.add(("model",) + path, f"{name} (N={n})")
+                paths.append((("model",) + path, f"{name} (N={n})"))
+
+        for group in find_groups(paths):
+            formatter.add(*group)
 
         return formatter.text
 

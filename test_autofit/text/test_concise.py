@@ -17,6 +17,7 @@ def make_collection():
 
 
 def test_model_info(collection):
+    print(collection.info)
     assert (
         collection.info
         == """Total Free Parameters = 60

@@ -13,9 +13,9 @@ def _value_hash(value):
     return hash(value)
 
 
-def find_groups(path_value_tuples):
+def find_groups(path_value_tuples, limit=0):
     maximum_path_length = max(len(path) for path, _ in path_value_tuples)
-    for position in range(maximum_path_length - 1):
+    for position in range(maximum_path_length - limit):
         path_value_tuples = _find_groups(path_value_tuples, position)
     return path_value_tuples
 
@@ -39,7 +39,7 @@ def _find_groups(path_value_tuples, position):
         (
             (
                 *before,
-                f"{min(names)} - {max(names)}" if len(names) > 1 else names[0],
+                f"{min(names)} - {max(names)}" if len(set(names)) > 1 else names[0],
                 *after,
             ),
             value_map[value_hash],
