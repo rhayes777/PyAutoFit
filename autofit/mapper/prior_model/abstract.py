@@ -27,6 +27,7 @@ from autofit.mapper.prior_model.attribute_pair import (
     InstanceNameValue,
 )
 from autofit.mapper.prior_model.recursion import DynamicRecursionCache
+from autofit.mapper.prior_model.representative import find_groups
 from autofit.mapper.prior_model.util import PriorModelNameValue
 from autofit.text import formatter as frm
 from autofit.text.formatter import TextFormatter
@@ -1560,13 +1561,16 @@ class AbstractPriorModel(AbstractModel):
 
         formatter = TextFormatter(line_length=info_whitespace())
 
-        for t in self.path_instance_tuples_for_class(
-            (Prior, float, int, tuple, ConfigException), ignore_children=True
+        for t in find_groups(
+            [
+                t
+                for t in self.path_instance_tuples_for_class(
+                    (Prior, float, int, tuple, ConfigException), ignore_children=True
+                )
+                if t[0][-1] not in ("id", "item_number")
+            ],
+            limit=1,
         ):
-            name = t[0][-1]
-            if name in ("id", "item_number"):
-                continue
-
             if isinstance(t[1], ConfigException):
                 t = (t[0], "Prior Missing: Enter Manually or Add to Config")
 
@@ -1609,6 +1613,8 @@ class AbstractPriorModel(AbstractModel):
 
         formatter = TextFormatter(line_length=info_whitespace())
 
+        paths = []
+
         for t in self.path_instance_tuples_for_class(
             (
                 Prior,
@@ -1631,7 +1637,10 @@ class AbstractPriorModel(AbstractModel):
                 else:
                     name = type(obj).__name__
 
-                formatter.add(("model",) + path, f"{name} (N={n})")
+                paths.append((("model",) + path, f"{name} (N={n})"))
+
+        for group in find_groups(paths, limit=0):
+            formatter.add(*group)
 
         return formatter.text
 
