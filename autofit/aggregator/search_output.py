@@ -9,6 +9,8 @@ from typing import Generator, Tuple, Optional, List, cast
 import dill
 
 from autoconf import cached_property
+from autoconf.class_path import get_class
+from autofit.non_linear.samples import Samples
 
 from autofit.non_linear.samples.pdf import SamplesPDF
 from autofit.aggregator.file_output import (
@@ -246,7 +248,9 @@ class SearchOutput(AbstractSearchOutput):
                 with open(self.files_path / "samples.csv") as f:
                     sample_list = samples_from_iterator(csv.reader(f))
 
-                self._samples = SamplesPDF.from_list_info_and_model(
+                cls = cast(Samples, get_class(info_json["type"]))
+
+                self._samples = cls.from_list_info_and_model(
                     sample_list=sample_list,
                     samples_info=info_json,
                     model=self.model,

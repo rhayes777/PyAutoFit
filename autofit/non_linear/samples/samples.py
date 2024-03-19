@@ -7,6 +7,7 @@ from typing import Dict, List, Optional, Tuple, Union
 
 import numpy as np
 
+from autoconf.class_path import get_class_path
 from autofit import exc
 from autofit.mapper.model import ModelInstance
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
@@ -48,7 +49,10 @@ class Samples(SamplesInterface, ABC):
         super().__init__(model=model)
 
         self.sample_list = sample_list
-        self.samples_info = samples_info
+        self.samples_info = {
+            **(samples_info or {}),
+            "type": get_class_path(self.__class__),
+        }
 
     def __str__(self):
         return f"{self.__class__.__name__}({len(self.sample_list)})"
