@@ -1,7 +1,7 @@
 import logging
 from abc import ABC
 import os
-from typing import Optional
+from typing import Optional, Dict, List
 
 from autoconf import conf
 
@@ -11,6 +11,7 @@ from autofit.non_linear.paths.abstract import AbstractPaths
 from autofit.non_linear.paths.database import DatabasePaths
 from autofit.non_linear.paths.null import NullPaths
 from autofit.non_linear.result import Result
+from autofit.non_linear.samples.samples import Samples
 
 logger = logging.getLogger(__name__)
 
@@ -54,6 +55,35 @@ class Analysis(ABC):
             # noinspection PyAttributeOutsideInit
             self._latent_variables = LatentVariables()
         self._latent_variables.add(**kwargs)
+
+    def compute_all_latent_variables(
+        self, samples: Samples
+    ) -> Optional[LatentVariables]:
+        try:
+            latent_variables = LatentVariables()
+            model = samples.model
+            for sample in samples.sample_list:
+                latent_variables.add(
+                    **self.compute_latent_variable(sample.instance_for_model(model))
+                )
+            return latent_variables
+        except NotImplementedError:
+            return None
+
+    def compute_latent_variable(self, instance) -> Dict[str, float]:
+        """
+        Compute latent variables from the instance.
+
+        Parameters
+        ----------
+        instance
+            An instance of the model.
+
+        Returns
+        -------
+        The computed latent variables.
+        """
+        raise NotImplementedError()
 
     def with_model(self, model):
         """
