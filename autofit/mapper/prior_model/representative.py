@@ -32,17 +32,14 @@ def _find_groups(path_value_tuples, position):
             value_hash = _value_hash(value)
             if value_hash not in value_map:
                 value_map[value_hash] = value
-            groups[(tuple(before), tuple(after), value_hash)].append(root_name)
+            groups[(tuple(before), tuple(after), value_hash)].append((root_name, value))
         except IndexError:
             paths.append((path, value))
-    return paths + [
-        (
-            (
-                *before,
-                f"{min(names)} - {max(names)}" if len(set(names)) > 1 else names[0],
-                *after,
-            ),
-            value_map[value_hash],
+
+    for (before, after, _), name_values in groups.items():
+        names, values = zip(*name_values)
+        representative_key = (
+            f"{min(names)} - {max(names)}" if len(set(names)) > 1 else names[0]
         )
-        for (before, after, value_hash), names in groups.items()
-    ]
+        paths.append(((*before, representative_key, *after), values[0]))
+    return paths
