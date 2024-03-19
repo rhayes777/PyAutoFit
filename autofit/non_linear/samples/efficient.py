@@ -1,7 +1,10 @@
-from typing import List
+from typing import List, cast, Type
 
 import numpy as np
+
+from autoconf.class_path import get_class
 from .sample import Sample
+from .samples import Samples
 from .pdf import SamplesPDF
 
 
@@ -20,7 +23,10 @@ class EfficientSamples:
         self.samples_info = samples.samples_info
 
         sample_list = samples.sample_list
-        self._keys = list(sample_list[0].kwargs.keys())
+        try:
+            self._keys = list(sample_list[0].kwargs.keys())
+        except IndexError:
+            self._keys = []
         self._values = np.asarray(
             [[sample.kwargs[key] for key in self._keys] for sample in sample_list]
         )
@@ -31,11 +37,12 @@ class EfficientSamples:
         self._weights = np.asarray([sample.weight for sample in sample_list])
 
     @property
-    def samples(self) -> SamplesPDF:
+    def samples(self) -> Samples:
         """
         Convert the efficient samples back to a SamplesPDF instance.
         """
-        return SamplesPDF(
+        cls = cast(Type[Samples], get_class(self.samples_info["type"]))
+        return cls(
             model=self.model,
             samples_info=self.samples_info,
             sample_list=self.sample_list,
