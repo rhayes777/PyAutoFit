@@ -15,7 +15,8 @@ def test_two_groups():
 
 
 def test_equal_prior_values():
-    info_paths = [((i, 1), af.UniformPrior(0.0, 1.0)) for i in range(3)]
+    prior = af.UniformPrior(0.0, 1.0)
+    info_paths = [((i, 1), prior) for i in range(3)]
     groups = find_groups(info_paths)
     assert len(groups) == 1
     ((path, _),) = groups
