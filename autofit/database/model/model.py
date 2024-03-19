@@ -118,7 +118,11 @@ class Object(Base):
             from .instance import Collection
 
             instance = Collection._from_object(source)
-        elif isinstance(source, (Collection, dict)):
+        elif isinstance(source, dict):
+            from .common import Dict
+
+            instance = Dict._from_object(source)
+        elif isinstance(source, Collection):
             from .prior import Collection
 
             instance = Collection._from_object(source)
