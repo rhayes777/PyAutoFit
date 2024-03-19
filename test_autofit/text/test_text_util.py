@@ -57,6 +57,7 @@ def test__search_summary_to_file(model):
         ),
         samples_info={
             "time": "1",
+            "total_accepted_samples" : 2
         }
     )
 
@@ -82,6 +83,7 @@ def test__search_summary_to_file(model):
         ),
         samples_info={
             "total_samples": 10,
+            "total_accepted_samples": 2,
             "time": "1",
             "number_live_points": 1,
             "log_evidence": 1.0

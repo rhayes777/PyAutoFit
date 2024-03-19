@@ -89,7 +89,7 @@ class SamplesNest(SamplesPDF):
         """
         The total number of accepted samples performed by the nested sampler.
         """
-        return len(self.log_likelihood_list)
+        return self.samples_info["total_accepted_samples"]
 
     @property
     def acceptance_ratio(self) -> float:

@@ -891,13 +891,13 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         self.iterations += self.iterations_per_update
         if during_analysis:
             self.logger.info(
-                f"Fit Still Running: Updating results after {self.iterations} iterations (see "
-                f"output folder for latest visualization, samples, etc.)"
+                f"""Fit Still Running: Updating results after {self.iterations} iterations (see
+                output folder for latest visualization, samples, etc.)"""
             )
         else:
             self.logger.info(
-                f"Fit Complete: Updating final results (see "
-                f"output folder for final visualization, samples, etc.)"
+                "Fit Complete: Updating final results (see "
+                "output folder for final visualization, samples, etc.)"
             )
 
         if not isinstance(self.paths, DatabasePaths) and not isinstance(
@@ -913,7 +913,22 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             return samples
 
         if self.is_master:
-            self.paths.save_samples(samples=samples)
+
+            samples_for_csv = samples
+
+            samples_weight_threshold = conf.instance["output"]["samples_weight_threshold"]
+
+            if samples_weight_threshold is not None:
+                samples_for_csv = samples_for_csv.samples_above_weight_threshold_from(
+                    weight_threshold=samples_weight_threshold
+                )
+
+                logger.info(
+                    f"Samples with weight less than {samples_weight_threshold} removed from samples.csv and not used to "
+                    f"compute parameter estimates errors, etc."
+                )
+
+            self.paths.save_samples(samples=samples_for_csv)
 
             latent_variables = analysis.latent_variables
             if latent_variables:
