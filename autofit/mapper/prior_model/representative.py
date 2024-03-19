@@ -15,14 +15,23 @@ def value_hash(value):
     return hash(value)
 
 
-def find_groups(path_value_tuples):
+def find_groups(path_value_tuples, position=0):
     groups = defaultdict(list)
     for path, value in path_value_tuples:
-        root_name, *rest = path
-        groups[(tuple(rest), value_hash(value))].append(root_name)
+        root_name = path[position]
+        before = path[:position]
+        after = path[position + 1 :]
+        groups[(tuple(before), tuple(after), value_hash(value))].append(root_name)
     return [
-        ((f"{min(names)} - {max(names)}" if len(names) > 1 else names[0], *rest), value)
-        for (rest, value), names in groups.items()
+        (
+            (
+                *before,
+                f"{min(names)} - {max(names)}" if len(names) > 1 else names[0],
+                *after,
+            ),
+            value,
+        )
+        for (before, after, value), names in groups.items()
     ]
 
 
