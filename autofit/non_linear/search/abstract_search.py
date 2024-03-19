@@ -891,13 +891,13 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         self.iterations += self.iterations_per_update
         if during_analysis:
             self.logger.info(
-                f"Fit Still Running: Updating results after {self.iterations} iterations (see "
-                f"output folder for latest visualization, samples, etc.)"
+                f"""Fit Still Running: Updating results after {self.iterations} iterations (see
+                output folder for latest visualization, samples, etc.)"""
             )
         else:
             self.logger.info(
-                f"Fit Complete: Updating final results (see "
-                f"output folder for final visualization, samples, etc.)"
+                "Fit Complete: Updating final results (see "
+                "output folder for final visualization, samples, etc.)"
             )
 
         if not isinstance(self.paths, DatabasePaths) and not isinstance(
