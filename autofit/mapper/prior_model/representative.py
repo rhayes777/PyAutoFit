@@ -30,7 +30,8 @@ def _find_groups(path_value_tuples, position):
             before = path[:position]
             after = path[position + 1 :]
             value_hash = _value_hash(value)
-            value_map[value_hash] = value
+            if value_hash not in value_map:
+                value_map[value_hash] = value
             groups[(tuple(before), tuple(after), value_hash)].append(root_name)
         except IndexError:
             paths.append((path, value))
