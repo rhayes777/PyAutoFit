@@ -3,7 +3,6 @@ import itertools
 import autofit as af
 import pytest
 
-from autofit.text.representative import Representative
 from autofit.text.text_util import result_info_from
 
 
@@ -14,37 +13,34 @@ def reset_ids():
 
 @pytest.fixture(name="collection")
 def make_collection():
-    return af.Collection([af.Model(af.Gaussian) for _ in range(20)])
+    centre = af.UniformPrior(0.0, 1.0)
+    normalization = af.UniformPrior(0.0, 1.0)
+    sigma = af.UniformPrior(0.0, 1.0)
+    return af.Collection(
+        [
+            af.Model(
+                af.Gaussian,
+                centre=centre,
+                normalization=normalization,
+                sigma=sigma,
+            )
+            for _ in range(20)
+        ]
+    )
 
 
 def test_model_info(collection):
     assert (
         collection.info
-        == """Total Free Parameters = 60
+        == """Total Free Parameters = 3
 
-model                                                                           Collection (N=60)
+model                                                                           Collection (N=3)
     0 - 9                                                                       Gaussian (N=3)
 
 0 - 9
     centre                                                                      UniformPrior [0], lower_limit = 0.0, upper_limit = 1.0
     normalization                                                               UniformPrior [1], lower_limit = 0.0, upper_limit = 1.0
     sigma                                                                       UniformPrior [2], lower_limit = 0.0, upper_limit = 1.0"""
-    )
-
-
-def test_representative(collection):
-    ((key, representative),) = Representative.find_representatives(collection.items())
-
-    assert len(representative.children) == 20
-    assert key == "0 - 9"
-
-
-def test_get_blueprint():
-    assert Representative.get_blueprint(af.Model(af.Gaussian)) == (
-        (("centre",), (af.UniformPrior, "lower_limit = 0.0, upper_limit = 1.0")),
-        (("normalization",), (af.UniformPrior, "lower_limit = 0.0, upper_limit = 1.0")),
-        (("sigma",), (af.UniformPrior, "lower_limit = 0.0, upper_limit = 1.0")),
-        af.Gaussian,
     )
 
 
@@ -73,12 +69,12 @@ def test_model_results(samples):
         == """Maximum Log Likelihood                                                          1.00000000
 Maximum Log Posterior                                                           1.00000000
 
-model                                                                           Collection (N=60)
+model                                                                           Collection (N=3)
     0 - 9                                                                       Gaussian (N=3)
 
 Maximum Log Likelihood Model:
 
-0 - 9
+19
     centre                                                                      1.000
     normalization                                                               2.000
     sigma                                                                       3.000
@@ -90,7 +86,7 @@ Maximum Log Likelihood Model:
 
 Summary (1.0 sigma limits):
 
-0 - 9
+19
     centre                                                                      1.00 (1.00, 1.00)
     normalization                                                               2.00 (2.00, 2.00)
     sigma                                                                       3.00 (3.00, 3.00)
