@@ -1,11 +1,9 @@
 from collections import defaultdict
-from typing import List, Tuple
 
-from .collection import Collection
 from ..prior.abstract import Prior
 
 
-def value_hash(value):
+def _value_hash(value):
     if isinstance(value, Prior):
         return hash(
             tuple(
@@ -17,26 +15,33 @@ def value_hash(value):
 
 def find_groups(path_value_tuples):
     maximum_path_length = max(len(path) for path, _ in path_value_tuples)
-    for position in range(maximum_path_length):
+    for position in range(maximum_path_length - 1):
         path_value_tuples = _find_groups(path_value_tuples, position)
     return path_value_tuples
 
 
 def _find_groups(path_value_tuples, position):
     groups = defaultdict(list)
+    value_map = {}
+    paths = []
     for path, value in path_value_tuples:
-        root_name = path[position]
-        before = path[:position]
-        after = path[position + 1 :]
-        groups[(tuple(before), tuple(after), value_hash(value))].append(root_name)
-    return [
+        try:
+            root_name = path[position]
+            before = path[:position]
+            after = path[position + 1 :]
+            value_hash = _value_hash(value)
+            value_map[value_hash] = value
+            groups[(tuple(before), tuple(after), value_hash)].append(root_name)
+        except IndexError:
+            paths.append((path, value))
+    return paths + [
         (
             (
                 *before,
                 f"{min(names)} - {max(names)}" if len(names) > 1 else names[0],
                 *after,
             ),
-            value,
+            value_map[value_hash],
         )
-        for (before, after, value), names in groups.items()
+        for (before, after, value_hash), names in groups.items()
     ]
