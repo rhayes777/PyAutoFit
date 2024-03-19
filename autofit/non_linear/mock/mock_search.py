@@ -129,7 +129,7 @@ class MockSearch(NonLinearSearch):
         self.paths.save_samples(self.samples)
 
         return analysis.make_result(
-            samples=samples,
+            samples=samples, search_internal=None
         )
 
     def perform_update(self, model, analysis, during_analysis, search_internal=None):

@@ -1,4 +1,4 @@
-# The notation configs define the labels of every model parameter and its derived quantities, which are used when
+# The notation configs define the labels of every model parameter which are used when
 # visualizing results (for example labeling the axis of the PDF triangle plots output by a non-linear search).
 
 

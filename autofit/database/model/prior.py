@@ -11,7 +11,6 @@ from .model import Object
 
 def extra_children(source):
     return [
-        (f"_custom_derived_quantities", source.custom_derived_quantities),
         (f"_assertions", source.assertions),
     ]
 
@@ -78,7 +77,6 @@ class Model(Object):
         instance.cls = self.cls
         instance._assertions = []
 
-        instance._custom_derived_quantities = {}
         return instance
 
 

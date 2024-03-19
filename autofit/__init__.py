@@ -29,7 +29,6 @@ from .database.aggregator import Query
 from .database.model.fit import Fit
 from .aggregator.search_output import SearchOutput
 from .mapper import prior
-from .mapper.derived_quantity import derived_quantity
 from .mapper.model import AbstractModel
 from .mapper.model import ModelInstance
 from .mapper.model import ModelInstance as Instance
@@ -66,6 +65,7 @@ from .mapper.prior_model.util import PriorModelNameValue
 from .non_linear.search.abstract_search import NonLinearSearch
 from .non_linear.analysis.analysis import Analysis
 from .non_linear.analysis.combined import CombinedAnalysis
+from .non_linear.analysis.latent_variables import LatentVariables
 from .non_linear.grid.grid_search import GridSearchResult
 from .non_linear.grid.sensitivity import Sensitivity
 from .non_linear.initializer import InitializerBall

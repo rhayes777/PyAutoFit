@@ -157,18 +157,9 @@ class AbstractPriorModel(AbstractModel):
     @DynamicAttrs
     """
 
-    def __init__(self, label=None, custom_derived_quantities=None):
+    def __init__(self, label=None):
         super().__init__(label=label)
         self._assertions = list()
-        self._custom_derived_quantities = custom_derived_quantities or dict()
-
-    @property
-    def custom_derived_quantities(self):
-        return self._custom_derived_quantities
-
-    @custom_derived_quantities.setter
-    def custom_derived_quantities(self, custom_derived_quantities):
-        self._custom_derived_quantities = custom_derived_quantities
 
     @property
     def assertions(self):
@@ -213,18 +204,6 @@ class AbstractPriorModel(AbstractModel):
             raise exc.FitException(
                 f"{number_of_failed_assertions} assertions failed!\n{name_string}"
             )
-
-    @property
-    def derived_quantities(self) -> List[Tuple[str, ...]]:
-        """
-        The paths to attributes of the model which are derived (i.e.
-        methods marked with the derived_quantity decorator)
-        """
-        return [
-            (name,) + derived_quantity
-            for name, prior_model in self.direct_prior_model_tuples
-            for derived_quantity in prior_model.derived_quantities
-        ]
 
     def cast(
         self,
@@ -1303,13 +1282,10 @@ class AbstractPriorModel(AbstractModel):
             self.check_assertions(arguments)
 
         logger.debug(f"Creating an instance for arguments")
-        instance = self._instance_for_arguments(
+        return self._instance_for_arguments(
             arguments,
             ignore_assertions=ignore_assertions,
         )
-        for key, value in self.custom_derived_quantities.items():
-            setattr(instance, key, value(instance))
-        return instance
 
     def path_for_name(self, name: str) -> Tuple[str, ...]:
         """
@@ -1712,10 +1688,12 @@ class AbstractPriorModel(AbstractModel):
 
     @property
     def model_component_and_parameter_names(self) -> List[str]:
-        """The param_names vector is a list each parameter's analysis_path, and is used
-        for *corner.py* visualization.
-        The parameter names are determined from the class instance names of the
-        model_mapper. Latex tags are properties of each model class."""
+        """
+        Lists each parameter's name and path, and is used for labeling visualization with parameter labels.
+
+        The parameter names are determined from the class instance names of the model_mapper. Latex tags are properties
+        of each model class.
+        """
         prior_paths = self.unique_prior_paths
 
         tuple_filter = TuplePathModifier(self)
@@ -1733,20 +1711,21 @@ class AbstractPriorModel(AbstractModel):
     @property
     def parameter_names(self) -> List[str]:
         """
-        The param_names vector is a list each parameter's analysis_path, and is used
-        for *corner.py* visualization.
+        Returns a list of labels containing the name of every parameter in a model.
 
-        The parameter names are determined from the class instance names of the
-        model_mapper. Latex tags are properties of each model class.
+        This is used for displaying model results as text and for visualization.
+
+        The parameter labels are defined for every parameter of every model component in the config files label.ini and
+        label_format.ini.
         """
         return [parameter_name[-1] for parameter_name in self.unique_prior_paths]
 
     @property
     def parameter_labels(self) -> List[str]:
         """
-        Returns a list of the label of every parameter in a model.
+        Returns a list of labels containing latex labels of every parameter in a model.
 
-        This is used for displaying model results as text and for visualization with *corner.py*.
+        This is used for displaying model results as text and for visualization.
 
         The parameter labels are defined for every parameter of every model component in the config files label.ini and
         label_format.ini.
@@ -1840,8 +1819,7 @@ class AbstractPriorModel(AbstractModel):
         The parameter labels are defined for every parameter of every model component in the config file `label.ini`.
         This file can also be used to overwrite superscripts, that are assigned based on the model component name.
 
-        This is used for displaying model results as text and for visualization, for example labelling parameters on a
-        cornerplot.
+        This is used for displaying model results as text and for visualization, for example labelling parameters.
         """
 
         return [
@@ -1857,8 +1835,7 @@ class AbstractPriorModel(AbstractModel):
         The parameter labels are defined for every parameter of every model component in the config file `label.ini`.
         This file can also be used to overwrite superscripts, that are assigned based on the model component name.
 
-        This is used for displaying model results as text and for visualization, for example labelling parameters on a
-        cornerplot.
+        This is used for displaying model results as text and for visualization, for example labelling parameters.
         """
 
         return [f"${label}$" for label in self.parameter_labels_with_superscripts]

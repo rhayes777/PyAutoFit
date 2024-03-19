@@ -94,7 +94,6 @@ class Collection(AbstractPriorModel):
     def __init__(
         self,
         *arguments,
-        custom_derived_quantities=None,
         **kwargs,
     ):
         """
@@ -146,9 +145,7 @@ class Collection(AbstractPriorModel):
 
         model = af.Collection(gaussian_0=Gaussian, gaussian_1=Gaussian)
         """
-        super().__init__(
-            custom_derived_quantities=custom_derived_quantities,
-        )
+        super().__init__()
         self.item_number = 0
         arguments = list(arguments)
         if len(arguments) == 0:

@@ -17,6 +17,9 @@ steps = [
     Step(
         "CREATE TABLE hdu (id INTEGER NOT NULL, array_type VARCHAR, _header VARCHAR, PRIMARY KEY (id), FOREIGN KEY (id) REFERENCES array (id));"
     ),
+    Step(
+        "ALTER TABLE object ADD COLUMN latent_variables_for_id INTEGER;",
+    ),
 ]
 
 migrator = Migrator(*steps)

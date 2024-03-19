@@ -12,47 +12,6 @@ def padding(item, target=6):
     return f"{prefix}{string}"
 
 
-def derived_info_from(samples) -> str:
-    """
-    Format a string describing the values of derived quantities associated with the model
-    at the maximum log likelihood model, 1 sigma and 3 sigma error estimates.
-    """
-    results = ["Maximum Log Likelihood Model:\n\n"]
-
-    formatter = frm.TextFormatter(line_length=info_whitespace())
-
-    max_log_likelihood_instance = samples.max_log_likelihood()
-    quantities = samples.derived_quantities_for_instance(max_log_likelihood_instance)
-
-    for path, value in zip(
-        samples.model.derived_quantities,
-        quantities,
-    ):
-        formatter.add(path, format_str().format(value))
-    results += [formatter.text + "\n"]
-
-    if hasattr(samples, "pdf_converged"):
-        if samples.pdf_converged:
-            results += samples_text.derived_quantity_summary(
-                samples=samples, sigma=3.0, indent=4, line_length=info_whitespace()
-            )
-            results += ["\n"]
-            results += samples_text.derived_quantity_summary(
-                samples=samples, sigma=1.0, indent=4, line_length=info_whitespace()
-            )
-
-        else:
-            results += [
-                "\n WARNING: The samples have not converged enough to compute a PDF and model errors. \n "
-                "The model below over estimates errors. \n\n"
-            ]
-            results += samples_text.derived_quantity_summary(
-                samples=samples, sigma=1.0, indent=4, line_length=info_whitespace()
-            )
-
-    return "".join(results)
-
-
 def result_info_from(samples) -> str:
     """
     Output the full model.results file, which include the most-likely model, most-probable model at 1 and 3

@@ -1,3 +1,4 @@
+import csv
 import shutil
 
 import dill
@@ -15,6 +16,8 @@ from autofit.text import formatter
 from autofit.tools.util import open_
 
 from .abstract import AbstractPaths
+
+# from ..analysis.latent_variables import LatentVariables
 from ..samples import load_from_table
 from autofit.non_linear.samples.pdf import SamplesPDF
 import numpy as np
@@ -245,28 +248,36 @@ class DirectoryPaths(AbstractPaths):
                         f"Could not save covariance matrix because of the following error:\n{e}"
                     )
 
-    def save_derived_quantities(self, samples: Samples):
+    def save_latent_variables(
+        self,
+        latent_variables,
+        samples,
+    ):
         """
-        Write out the derived quantities of the model to a file.
-
-        This is like the samples.csv file, but for the derived quantities of the model.
+        Write out the latent variables of the model to a file.
 
         Parameters
         ----------
+        latent_variables
+            The latent variables of the model
         samples
-            An object comprising each sample and a model which is used to compute the derived quantities.
+            The samples of the model
         """
-        if not should_output("derived_quantities"):
-            return
-
         write_table(
-            filename=str(self._derived_quantities_file),
-            headers=[
-                ".".join(derived_quantity)
-                for derived_quantity in self.model.derived_quantities
-            ],
-            rows=samples.derived_quantities_list,
+            filename=str(self._latent_variables_file),
+            headers=latent_variables.names,
+            rows=latent_variables.values,
         )
+
+    def load_latent_variables(self):
+        with open(self._latent_variables_file, "r+", newline="") as f:
+            reader = csv.reader(f)
+            names = list(next(reader))
+            values = [list(map(float, row)) for row in reader]
+
+        from autofit.non_linear.analysis.latent_variables import LatentVariables
+
+        return LatentVariables(names=names, values=values)
 
     def load_samples_info(self):
         with open_(self._info_file) as infile:

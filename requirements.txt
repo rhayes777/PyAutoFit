@@ -1,3 +1,4 @@
+anesthetic==2.8.1
 corner==2.2.1
 decorator>=4.2.1
 dill>=0.3.1.1

@@ -2,7 +2,6 @@ import math
 from typing import Tuple
 
 from autofit.jax_wrapper import numpy as np
-from autofit.mapper.derived_quantity import derived_quantity
 
 """
 The `Gaussian` class in this module is the model components that is fitted to data using a non-linear search. The
@@ -38,7 +37,7 @@ class Gaussian:
         self.normalization = normalization
         self.sigma = sigma
 
-    @derived_quantity
+    @property
     def fwhm(self):
         return 2 * np.sqrt(2 * np.log(2)) * self.sigma
 

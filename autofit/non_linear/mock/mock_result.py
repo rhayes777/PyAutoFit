@@ -14,7 +14,7 @@ class MockResult(Result):
         search=None,
         model=None,
     ):
-        super().__init__(samples)
+        super().__init__(samples, search_internal=None)
 
         self._instance = instance or ModelInstance()
         self._samples = samples or MockSamples(

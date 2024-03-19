@@ -3,14 +3,11 @@ from typing import Dict, Optional
 
 from autofit.database.sqlalchemy_ import sa
 
-from autoconf import conf
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.search.nest import abstract_nest
 from autofit.non_linear.fitness import Fitness
 from autofit.non_linear.samples.sample import Sample
 from autofit.non_linear.samples.nest import SamplesNest
-from autofit.plot import UltraNestPlotter
-from autofit.plot.output import Output
 
 class UltraNest(abstract_nest.AbstractNest):
     __identifier_fields__ = (
@@ -258,7 +255,6 @@ class UltraNest(abstract_nest.AbstractNest):
             model=model,
             sample_list=sample_list,
             samples_info=self.samples_info_from(search_internal=search_internal),
-            search_internal=search_internal,
         )
 
     def config_dict_test_mode_from(self, config_dict: Dict) -> Dict:
@@ -322,25 +318,3 @@ class UltraNest(abstract_nest.AbstractNest):
             return stepsampler.CubeSliceSampler(**config_dict_stepsampler)
         elif stepsampler_cls == "RegionSliceSampler":
             return stepsampler.RegionSliceSampler(**config_dict_stepsampler)
-
-    def plot_results(self, samples):
-
-        if not samples.pdf_converged:
-            return
-
-        def should_plot(name):
-            return conf.instance["visualize"]["plots_search"]["ultranest"][name]
-
-        plotter = UltraNestPlotter(
-            samples=samples,
-            output=Output(self.paths.image_path / "search", format="png")
-        )
-
-        if should_plot("cornerplot"):
-            plotter.cornerplot()
-
-        if should_plot("runplot"):
-            plotter.runplot()
-
-        if should_plot("traceplot"):
-            plotter.traceplot()

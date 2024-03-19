@@ -4,7 +4,6 @@ from typing import Dict, Optional
 import emcee
 import numpy as np
 
-from autoconf import conf
 from autofit.database.sqlalchemy_ import sa
 from autofit.mapper.model_mapper import ModelMapper
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
@@ -15,8 +14,6 @@ from autofit.non_linear.search.mcmc.auto_correlations import AutoCorrelationsSet
 from autofit.non_linear.search.mcmc.auto_correlations import AutoCorrelations
 from autofit.non_linear.samples.sample import Sample
 from autofit.non_linear.samples.mcmc import SamplesMCMC
-from autofit.plot import EmceePlotter
-from autofit.plot.output import Output
 
 
 class Emcee(AbstractMCMC):
@@ -198,6 +195,7 @@ class Emcee(AbstractMCMC):
                     search_internal=search_internal,
                     during_analysis=True
                 )
+
         return search_internal
 
     def samples_info_from(self, search_internal=None):
@@ -278,7 +276,6 @@ class Emcee(AbstractMCMC):
             model=model,
             sample_list=sample_list,
             samples_info=self.samples_info_from(search_internal=search_internal),
-            search_internal=search_internal,
             auto_correlation_settings=self.auto_correlation_settings,
             auto_correlations=self.auto_correlations_from(search_internal=search_internal),
         )
@@ -346,24 +343,3 @@ class Emcee(AbstractMCMC):
             raise FileNotFoundError(
                 f"The file search_internal.hdf does not exist at the path {self.paths.search_internal_path}"
             )
-
-    def plot_results(self, samples):
-        def should_plot(name):
-            return conf.instance["visualize"]["plots_search"]["emcee"][name]
-
-        plotter = EmceePlotter(
-            samples=samples,
-            output=Output(path=self.paths.image_path / "search", format="png"),
-        )
-
-        if should_plot("corner"):
-            plotter.corner()
-
-        if should_plot("trajectories"):
-            plotter.trajectories()
-
-        if should_plot("likelihood_series"):
-            plotter.likelihood_series()
-
-        if should_plot("time_series"):
-            plotter.time_series()

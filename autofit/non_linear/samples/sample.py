@@ -38,7 +38,6 @@ class Sample:
             tuple(key.split(".")) if isinstance(key, str) and "." in key else key: value
             for key, value in (kwargs or dict()).items()
         }
-        self.derived_quantities = {}
 
     def dict(self):
         return {

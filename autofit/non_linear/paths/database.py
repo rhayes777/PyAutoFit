@@ -1,5 +1,5 @@
 import shutil
-from typing import Dict, Optional, Union
+from typing import Optional, Union
 
 from autoconf.output import conditional_output
 from autofit.database.sqlalchemy_ import sa
@@ -9,6 +9,8 @@ import numpy as np
 from autofit.database.model import Fit
 from autoconf.dictable import to_dict
 from autofit.database.aggregator.info import Info
+
+# from autofit.non_linear.analysis.latent_variables import LatentVariables
 
 
 class DatabasePaths(AbstractPaths):
@@ -268,25 +270,15 @@ class DatabasePaths(AbstractPaths):
         self.fit.samples = samples
         self.fit.set_json("samples_info", samples.samples_info)
 
-    def save_derived_quantities(self, samples):
-        """
-        Write out the derived quantities of the model.
-
-        This is like samples, but for the derived quantities of the model.
-
-        Parameters
-        ----------
-        samples
-            An object comprising each sample and a model which is used to compute the derived quantities.
-        """
+    def save_latent_variables(self, latent_variables, samples):
         if not self.save_all_samples:
-            samples = samples.minimise()
-            samples.model = self.model
+            latent_variables = latent_variables.minimise(
+                samples.max_log_likelihood_index
+            )
+        self.fit.latent_variables = latent_variables
 
-        self.fit.set_array(
-            "derived_quantities",
-            np.array(samples.derived_quantities_list),
-        )
+    def load_latent_variables(self):
+        return self.fit.latent_variables
 
     def _load_samples(self):
         samples = self.fit.samples

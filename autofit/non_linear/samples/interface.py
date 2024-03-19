@@ -2,7 +2,6 @@ from abc import ABC, abstractmethod
 from functools import wraps
 from typing import Union, List, Tuple
 
-from autofit import conf
 from autofit.mapper.model import ModelInstance
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.mapper.prior_model.abstract import Path
@@ -11,8 +10,6 @@ from autofit.mapper.prior_model.abstract import Path
 def to_instance(func):
     """
     Decorator for methods that return a vector of parameters, which can be converted to a model instance.
-
-    If derived quantities are defined, they are added to the instance.
 
     Parameters
     ----------
@@ -36,14 +33,6 @@ def to_instance(func):
         return vector
 
     return wrapper
-
-
-def apply_derived_quantities(instance, derived_quantities):
-    for path, value in derived_quantities.items():
-        obj = instance
-        for attr in path[:-1]:
-            obj = getattr(obj, attr)
-        setattr(obj, path[-1], value)
 
 
 class SamplesInterface(ABC):
@@ -134,9 +123,7 @@ class SamplesInterface(ABC):
         A model mapper created by taking results from this search and creating priors with the defined absolute
         width.
         """
-        return self.model.mapper_from_prior_means(
-            means=self.prior_means, a=a
-        )
+        return self.model.mapper_from_prior_means(means=self.prior_means, a=a)
 
     def model_relative(self, r: float) -> AbstractPriorModel:
         """
@@ -159,9 +146,7 @@ class SamplesInterface(ABC):
         A model mapper created by taking results from this search and creating priors with the defined relative
         width.
         """
-        return self.model.mapper_from_prior_means(
-            means=self.prior_means, r=r
-        )
+        return self.model.mapper_from_prior_means(means=self.prior_means, r=r)
 
     def model_bounded(self, b: float) -> AbstractPriorModel:
         """

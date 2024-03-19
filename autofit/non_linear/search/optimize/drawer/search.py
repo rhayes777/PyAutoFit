@@ -3,14 +3,11 @@ from typing import Optional
 
 from autofit.database.sqlalchemy_ import sa
 
-from autoconf import conf
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.fitness import Fitness
 from autofit.non_linear.search.optimize.abstract_optimize import AbstractOptimizer
 from autofit.non_linear.initializer import AbstractInitializer
-from autofit.non_linear.search.optimize.drawer.plotter import DrawerPlotter
 from autofit.non_linear.samples import Samples, Sample
-from autofit.plot.output import Output
 
 
 class Drawer(AbstractOptimizer):
@@ -168,19 +165,4 @@ class Drawer(AbstractOptimizer):
             model=model,
             sample_list=sample_list,
             samples_info=search_internal_dict,
-        )
-
-    def plot_results(
-        self,
-        samples,
-        during_analysis : bool = False,
-    ):
-        def should_plot(name):
-            return conf.instance["visualize"]["plots_search"]["drawer"][name]
-
-        plotter = DrawerPlotter(
-            samples=samples,
-            output=Output(
-                path=self.paths.image_path / "search", format="png"
-            ),
         )

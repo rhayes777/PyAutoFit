@@ -349,7 +349,7 @@ tool ``corner.py``, which is wrapped via the ``EmceePlotter`` object.
 
 This plot appears as follows:
 
-.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/main/docs/images/cornerplot.png
+.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/main/docs/images/corner.png
   :width: 600
   :alt: Alternative text
 
