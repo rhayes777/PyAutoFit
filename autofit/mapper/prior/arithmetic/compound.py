@@ -6,6 +6,7 @@ from typing import Optional, Dict
 
 import numpy as np
 
+from autofit.mapper.model_object import dereference
 from autofit.mapper.prior.arithmetic import ArithmeticMixin
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 
@@ -316,15 +317,45 @@ class PowerPrior(CompoundPrior):
         )
 
 
-class ModifiedPrior(AbstractPriorModel, ABC, ArithmeticMixin):
-    def __init__(self, prior):
+class ModifiedPrior(AbstractPriorModel, ABC, ArithmeticMixin, Compound):
+    def __init__(self, prior, name=None):
         super().__init__()
-        self._prior_name = retrieve_name(prior)
+        self._prior_name = name or retrieve_name(prior)
 
         if self._prior_name == "prior":
             self._prior_name = "prior_"
 
         self.prior = prior
+
+    def dict(self):
+        return {
+            "type": "modified",
+            "modified_type": self.__class__.__name__,
+            "name": self._prior_name,
+            "prior": self.prior.dict()
+            if isinstance(self.prior, AbstractPriorModel)
+            else self.prior,
+        }
+
+    @classmethod
+    def from_dict(
+        cls,
+        d,
+        reference: Optional[Dict[str, str]] = None,
+        loaded_ids: Optional[dict] = None,
+    ):
+        modified_type = d.pop("modified_type")
+        for subclass in cls.descendants():
+            if subclass.__name__ == modified_type:
+                return subclass(
+                    AbstractPriorModel.from_dict(
+                        d["prior"],
+                        reference=dereference(reference, "prior"),
+                        loaded_ids=loaded_ids,
+                    ),
+                    name=d["name"],
+                )
+        raise ValueError(f"Modified type {modified_type} not recognised")
 
     def __add__(self, other):
         return ArithmeticMixin.__add__(self, other)

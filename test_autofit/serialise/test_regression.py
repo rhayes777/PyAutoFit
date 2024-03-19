@@ -18,5 +18,14 @@ class AttributeNotInInit:
 def test_embedded():
     model = af.Collection(instance=AttributeNotInInit())
 
-    print(to_dict(model))
     from_dict(to_dict(model))
+
+
+def test_serialise_compound():
+    alpha = af.GaussianPrior(mean=1, sigma=0.03)
+    gamma = 0.0
+    beta = 1.0 + gamma - 2 * alpha
+
+    assert beta.instance_from_prior_medians() == -1
+
+    assert from_dict(to_dict(beta)).instance_from_prior_medians() == -1
