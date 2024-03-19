@@ -9,7 +9,6 @@ from autofit.non_linear.analysis.latent_variables import LatentVariables
 
 class Analysis(af.Analysis):
     def log_likelihood_function(self, instance):
-        self.save_latent_variables(centre=instance.centre)
         return 1.0
 
     def compute_latent_variable(self, instance):
@@ -46,16 +45,6 @@ def test_split_addition():
     latent_variables.add(centre=1.0)
     with pytest.raises(SamplesException):
         latent_variables.add(intensity=2.0)
-
-
-def test_analysis_latent_variables():
-    analysis = Analysis()
-    instance = af.Gaussian()
-    analysis.log_likelihood_function(instance=instance)
-
-    latent_variables = analysis.latent_variables
-    assert latent_variables.names == ["centre"]
-    assert latent_variables.values == [[instance.centre]]
 
 
 @pytest.fixture(name="latent_variables")

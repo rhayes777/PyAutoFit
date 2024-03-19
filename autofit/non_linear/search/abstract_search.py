@@ -560,7 +560,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
             self.post_fit_output(
                 bypass_nuclear_if_on=bypass_nuclear_if_on,
-                search_internal=result.search_internal
+                search_internal=result.search_internal,
             )
 
         return result
@@ -673,9 +673,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             during_analysis=False,
         )
 
-        result = analysis.make_result(
-            samples=samples, search_internal=search_internal
-        )
+        result = analysis.make_result(samples=samples, search_internal=search_internal)
 
         if self.is_master:
             analysis.save_results(paths=self.paths, result=result)
@@ -688,7 +686,9 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         return result
 
     def result_via_completed_fit(
-        self, analysis: Analysis, model: AbstractPriorModel,
+        self,
+        analysis: Analysis,
+        model: AbstractPriorModel,
     ) -> Result:
         """
         Returns the result of the non-linear search of a completed model-fit.
@@ -734,9 +734,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             except FileNotFoundError:
                 search_internal = None
 
-        result = analysis.make_result(
-            samples=samples, search_internal=search_internal
-        )
+        result = analysis.make_result(samples=samples, search_internal=search_internal)
 
         if self.is_master:
             self.logger.info(f"Fit Already Completed: skipping non-linear search.")
@@ -921,10 +919,11 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             return samples
 
         if self.is_master:
-
             samples_for_csv = samples
 
-            samples_weight_threshold = conf.instance["output"]["samples_weight_threshold"]
+            samples_weight_threshold = conf.instance["output"][
+                "samples_weight_threshold"
+            ]
 
             if samples_weight_threshold is not None:
                 samples_for_csv = samples_for_csv.samples_above_weight_threshold_from(
@@ -938,7 +937,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
             self.paths.save_samples(samples=samples_for_csv)
 
-            latent_variables = analysis.latent_variables
+            latent_variables = analysis.compute_all_latent_variables(samples)
             if latent_variables:
                 self.paths.save_latent_variables(
                     latent_variables,

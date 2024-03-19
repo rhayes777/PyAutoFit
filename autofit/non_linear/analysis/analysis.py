@@ -23,39 +23,6 @@ class Analysis(ABC):
     likelihood that some instance fits some data.
     """
 
-    @property
-    def latent_variables(self) -> Optional[LatentVariables]:
-        """
-        Custom quantities that are computed during the analysis.
-
-        If no latent variables have been saved, this will return None.
-        """
-        try:
-            return self._latent_variables
-        except AttributeError:
-            return None
-
-    def save_latent_variables(self, **kwargs: float):
-        """
-        Save latent variables that are computed during the analysis.
-
-        This should only be called once per a fit and must always be passed the same latent variables.
-
-        Parameters
-        ----------
-        kwargs
-            The latent variables to save.
-
-        Raises
-        ------
-        SamplesException
-            If the same latent variables are not passed to `add` each iteration.
-        """
-        if not hasattr(self, "_latent_variables"):
-            # noinspection PyAttributeOutsideInit
-            self._latent_variables = LatentVariables()
-        self._latent_variables.add(**kwargs)
-
     def compute_all_latent_variables(
         self, samples: Samples
     ) -> Optional[LatentVariables]:
@@ -204,7 +171,7 @@ class Analysis(ABC):
     def make_result(self, samples, search_internal=None):
         return Result(
             samples=samples,
-            latent_variables=self.latent_variables,
+            latent_variables=self.compute_all_latent_variables(samples),
             search_internal=search_internal,
         )
 
