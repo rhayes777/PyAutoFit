@@ -1,7 +1,7 @@
 import logging
 from abc import ABC
 import os
-from typing import Optional, Dict, List
+from typing import Optional, Dict
 
 from autoconf import conf
 
