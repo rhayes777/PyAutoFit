@@ -15,7 +15,14 @@ def value_hash(value):
     return hash(value)
 
 
-def find_groups(path_value_tuples, position=0):
+def find_groups(path_value_tuples):
+    maximum_path_length = max(len(path) for path, _ in path_value_tuples)
+    for position in range(maximum_path_length):
+        path_value_tuples = _find_groups(path_value_tuples, position)
+    return path_value_tuples
+
+
+def _find_groups(path_value_tuples, position):
     groups = defaultdict(list)
     for path, value in path_value_tuples:
         root_name = path[position]

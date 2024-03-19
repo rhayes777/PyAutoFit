@@ -40,5 +40,5 @@ def test_exception():
 
 def test_prefix():
     info_paths = [((0, i, 1), 2) for i in range(3)]
-    groups = find_groups(info_paths, position=1)
+    groups = find_groups(info_paths)
     assert groups == [((0, "0 - 2", 1), 2)]
