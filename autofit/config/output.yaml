@@ -36,7 +36,7 @@ samples: true
 
 # Set value to empty (e.g. delete 1.0e-10 below) to disable this feature.
 
-samples_weight_threshold: 1.0e-10
+samples_weight_threshold: 
 
 ### Search Internal ###
 
