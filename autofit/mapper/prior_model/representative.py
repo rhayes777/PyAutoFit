@@ -17,7 +17,7 @@ def _value_hash(value) -> int:
     return hash(value)
 
 
-def find_groups(path_value_tuples, limit=0):
+def find_groups(path_value_tuples, limit=1):
     """
     Groups path-value tuples by their path, up to a limit. This is used to group priors in the model representation.
 

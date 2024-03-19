@@ -1639,7 +1639,7 @@ class AbstractPriorModel(AbstractModel):
 
                 paths.append((("model",) + path, f"{name} (N={n})"))
 
-        for group in find_groups(paths):
+        for group in find_groups(paths, limit=0):
             formatter.add(*group)
 
         return formatter.text

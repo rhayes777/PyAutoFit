@@ -11,7 +11,7 @@ def test_find_groups():
 def test_two_groups():
     info_paths = [((i, 1), 2) for i in range(3)] + [((i, 2), 2) for i in range(3)]
     groups = find_groups(info_paths)
-    assert groups == [(("0 - 2", "1 - 2"), 2)]
+    assert groups == [(("0 - 2", 1), 2), (("0 - 2", 2), 2)]
 
 
 def test_equal_prior_values():
