@@ -174,7 +174,7 @@ Checkout the ``plot`` package for a complete description of the plots that can b
 
     samples = result.samples
 
-    search_plotter = aplt.EmceePlotter(samples=samples)
+    search_plotter = aplt.MCMCPlotter(samples=samples)
 
     search_plotter.corner(
         bins=20,
