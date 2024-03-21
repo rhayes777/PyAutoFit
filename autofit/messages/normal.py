@@ -178,7 +178,11 @@ class NormalMessage(AbstractMessage):
 
         physical_value = prior.value_for(unit=0.5)
         """
-        inv = erfinv(1 - 2.0 * (1.0 - unit))
+        try:
+            inv = erfinv(1 - 2.0 * (1.0 - unit))
+        except TypeError:
+            from scipy.special import erfinv as scipy_erfinv
+            inv = scipy_erfinv(1 - 2.0 * (1.0 - unit))
         return self.mean + (self.sigma * np.sqrt(2) * inv)
 
     def log_prior_from_value(self, value):
