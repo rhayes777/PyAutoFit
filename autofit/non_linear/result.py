@@ -1,16 +1,20 @@
 import logging
 from abc import ABC, abstractmethod
 import numpy as np
+from typing import Optional
 
 from autoconf import conf
 
 from autofit import exc
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
+from autofit.non_linear.paths.abstract import AbstractPaths
 from autofit.non_linear.samples import Samples
+from autofit.non_linear.samples.summary import SamplesSummary
 from autofit.text import text_util
 
 
 class Placeholder:
+
     def __getattr__(self, item):
         """
         Placeholders return None to represent the missing result's value
@@ -43,10 +47,10 @@ class Placeholder:
 
 class AbstractResult(ABC):
 
-    @property
-    @abstractmethod
-    def samples_summary(self):
-        pass
+    def __init__(self, samples_summary, paths):
+
+        self.samples_summary = samples_summary
+        self.paths = paths
 
     @property
     @abstractmethod
@@ -169,7 +173,14 @@ class AbstractResult(ABC):
 
 
 class Result(AbstractResult):
-    def __init__(self, samples_summary, samples: Samples, search_internal = None, latent_variables=None):
+    def __init__(
+            self,
+            samples_summary : SamplesSummary,
+            paths : AbstractPaths,
+            samples: Optional[Samples] = None,
+            search_internal : Optional[object] = None,
+            latent_variables=None
+    ):
         """
         The result of a non-linear search, which includes:
 
@@ -189,10 +200,14 @@ class Result(AbstractResult):
         search_internal
             The non-linear search used to perform the model fit in its internal format.
         """
-        self._samples_summary = samples_summary
+        super().__init__(
+            samples_summary=samples_summary,
+            paths=paths
+        )
 
         self._samples = samples
-        self.search_internal = search_internal
+        self._search_internal = search_internal
+
         self.latent_variables = latent_variables
 
         self.__model = None
@@ -210,7 +225,34 @@ class Result(AbstractResult):
 
     @property
     def samples(self):
-        return self._samples
+
+        if self._samples is not None:
+            return self._samples
+
+        try:
+            Samples.from_csv(
+                paths=self.paths,
+                model=self.model,
+            )
+        except FileNotFoundError:
+            pass
+
+    @property
+    def search_internal(self):
+
+        if self._search_internal is not None:
+            return self._search_internal
+
+        #
+        # try:
+        #     search_internal = self.backend
+        # except (AttributeError, FileNotFoundError):
+        #     search_internal = None
+
+        try:
+            return self.paths.load_search_internal()
+        except FileNotFoundError:
+            pass
 
     @property
     def projected_model(self) -> AbstractPriorModel:
