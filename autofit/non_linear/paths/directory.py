@@ -10,19 +10,18 @@ from typing import Optional, Union
 import logging
 
 from autoconf import conf
-from autoconf.dictable import to_dict
+from autoconf.dictable import to_dict, from_dict
 from autoconf.output import conditional_output, should_output
 from autofit.text import formatter
 from autofit.tools.util import open_
 
 from .abstract import AbstractPaths
 
-# from ..analysis.latent_variables import LatentVariables
 from ..samples import load_from_table
 from autofit.non_linear.samples.pdf import SamplesPDF
+from autofit.non_linear.samples.summary import SamplesSummary
 import numpy as np
 
-from autofit.non_linear.samples.samples import Samples
 from autofit.text.formatter import write_table
 from ...visualise import VisualiseGraph
 
@@ -247,6 +246,21 @@ class DirectoryPaths(AbstractPaths):
                     logger.warning(
                         f"Could not save covariance matrix because of the following error:\n{e}"
                     )
+
+    def save_samples_summary(self, samples_summary : SamplesSummary):
+
+        model = samples_summary.model
+
+        samples_summary.model = None
+        self.save_json("samples_summary", to_dict(samples_summary))
+        samples_summary.model = model
+
+    def load_samples_summary(self) -> SamplesSummary:
+
+        samples_summary = from_dict(self.load_json(name="samples_summary"))
+        samples_summary.model = self.model
+
+        return samples_summary
 
     def save_latent_variables(
         self,

@@ -10,6 +10,8 @@ from autofit.non_linear.analysis.latent_variables import LatentVariables
 from autofit.non_linear.paths.abstract import AbstractPaths
 from autofit.non_linear.paths.database import DatabasePaths
 from autofit.non_linear.paths.null import NullPaths
+from autofit.non_linear.samples.summary import SamplesSummary
+from autofit.non_linear.samples.pdf import SamplesPDF
 from autofit.non_linear.result import Result
 
 logger = logging.getLogger(__name__)
@@ -171,7 +173,13 @@ class Analysis(ABC):
         """
         return self
 
-    def make_result(self, samples_summary, paths, samples, search_internal=None):
+    def make_result(
+        self,
+        samples_summary: SamplesSummary,
+        paths: AbstractPaths,
+        samples: Optional[SamplesPDF] = None,
+        search_internal: Optional[object] = None,
+    ) -> Result:
         return Result(
             samples_summary=samples_summary,
             paths=paths,

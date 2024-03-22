@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import Optional, Union, Tuple, List, Dict
 
 from autoconf import conf, cached_property
-from autoconf.dictable import to_dict
+from autoconf.dictable import to_dict, from_dict
 from autofit import exc, jax_wrapper
 from autofit.database.sqlalchemy_ import sa
 from autofit.graphical import (
@@ -31,6 +31,7 @@ from autofit.non_linear.paths.database import DatabasePaths
 from autofit.non_linear.paths.directory import DirectoryPaths
 from autofit.non_linear.paths.sub_directory_paths import SubDirectoryPaths
 from autofit.non_linear.samples.samples import Samples
+from autofit.non_linear.samples.summary import SamplesSummary
 from autofit.non_linear.result import Result
 from autofit.non_linear.timer import Timer
 from autofit.non_linear.analysis import Analysis
@@ -719,11 +720,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         """
 
         model.freeze()
-
-        samples_summary = self.paths.load_json(name="samples_summary")
-
-        print(samples_summary)
-        dd
+        samples_summary = self.paths.load_samples_summary()
 
         result = analysis.make_result(
             samples_summary=samples_summary,
@@ -737,14 +734,12 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                 self.perform_visualization(
                     model=model,
                     analysis=analysis,
-                    search_internal=search_internal,
+                    samples_summary=samples_summary,
                     during_analysis=False,
                 )
 
             if self.force_pickle_overwrite:
                 self.logger.info("Forcing pickle overwrite")
-
-                self.paths.save_json("samples_summary", to_dict(samples.summary()))
 
                 analysis.save_results(paths=self.paths, result=result)
                 analysis.save_results_combined(paths=self.paths, result=result)
@@ -906,8 +901,10 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         samples = self.samples_from(model=model, search_internal=search_internal)
 
+        samples_summary = samples.summary()
+
         try:
-            instance = samples.max_log_likelihood()
+            instance = samples_summary.instance
         except exc.FitException:
             return samples
 
@@ -931,6 +928,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                 )
 
             self.paths.save_samples(samples=samples_for_csv)
+            self.paths.save_samples_summary(samples_summary=samples_summary)
 
             latent_variables = analysis.latent_variables
             if latent_variables:
@@ -939,11 +937,10 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                     samples=samples,
                 )
 
-            self.paths.save_json("samples_summary", to_dict(samples.summary()))
-
             self.perform_visualization(
                 model=model,
                 analysis=analysis,
+                samples_summary=samples_summary,
                 during_analysis=during_analysis,
                 search_internal=search_internal,
             )
@@ -986,6 +983,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         self,
         model: AbstractPriorModel,
         analysis: AbstractPriorModel,
+        samples_summary : SamplesSummary,
         during_analysis: bool,
         search_internal=None,
     ):
@@ -998,9 +996,9 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         The update performs the following tasks (if the settings indicate they should be performed):
 
-        1) Visualize the search results.
-        2) Visualize the maximum log likelihood model using model-specific visualization implented via the `Analysis`
+        1) Visualize the maximum log likelihood model using model-specific visualization implented via the `Analysis`
            object.
+        2) Visualize the search results.
 
         Parameters
         ----------
@@ -1013,28 +1011,29 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             If the update is during a non-linear search, in which case tasks are only performed after a certain number
             of updates and only a subset of visualization may be performed.
         """
-        samples = self.samples_from(model=model, search_internal=search_internal)
-
-        try:
-            instance = samples.max_log_likelihood()
-        except exc.FitException:
-            return samples
-
-        if analysis.should_visualize(paths=self.paths, during_analysis=during_analysis):
-            if not isinstance(self.paths, NullPaths):
-                self.plot_results(samples=samples)
 
         self.logger.debug("Visualizing")
+
         if analysis.should_visualize(paths=self.paths, during_analysis=during_analysis):
             analysis.visualize(
-                paths=self.paths, instance=instance, during_analysis=during_analysis
+                paths=self.paths,
+                instance=samples_summary.instance,
+                during_analysis=during_analysis
             )
             analysis.visualize_combined(
                 analyses=None,
                 paths=self.paths,
-                instance=instance,
+                instance=samples_summary.instance,
                 during_analysis=during_analysis,
             )
+
+        if analysis.should_visualize(paths=self.paths, during_analysis=during_analysis):
+
+            if not isinstance(self.paths, NullPaths):
+
+                samples = self.samples_from(model=model, search_internal=search_internal)
+
+                self.plot_results(samples=samples)
 
     @property
     def samples_cls(self):

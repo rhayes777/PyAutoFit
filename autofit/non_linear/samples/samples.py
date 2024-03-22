@@ -129,10 +129,19 @@ class Samples(SamplesInterface, ABC):
         )
 
     def summary(self):
+
+        median_pdf_sample = Sample.from_lists(
+            model=self.model,
+            parameter_lists=[self.median_pdf(as_instance=False)],
+            log_likelihood_list=[self.max_log_likelihood_sample.log_likelihood],
+            log_prior_list=[self.max_log_likelihood_sample.log_prior],
+            weight_list=[self.max_log_likelihood_sample.weight],
+        )[0]
+
         return SamplesSummary(
             model=self.model,
             max_log_likelihood_sample=self.max_log_likelihood_sample,
-            median_pdf=self.median_pdf,
+            median_pdf_sample=median_pdf_sample,
         )
 
     def __add__(self, other: "Samples") -> "Samples":

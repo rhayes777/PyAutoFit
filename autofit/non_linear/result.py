@@ -3,8 +3,6 @@ from abc import ABC, abstractmethod
 import numpy as np
 from typing import Optional
 
-from autoconf import conf
-
 from autofit import exc
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.paths.abstract import AbstractPaths
@@ -94,6 +92,7 @@ class AbstractResult(ABC):
 
     @property
     def instance(self):
+
         try:
             return self.samples_summary.instance
         except AttributeError as e:
@@ -274,7 +273,7 @@ class Result(AbstractResult):
     @property
     def model(self):
         if self.__model is None:
-            self.__model = self.model.mapper_from_prior_means(
+            self.__model = self.samples_summary.model.mapper_from_prior_means(
                 means=self.samples_summary.prior_means
             )
 
