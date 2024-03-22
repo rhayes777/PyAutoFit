@@ -46,6 +46,16 @@ class Placeholder:
 class AbstractResult(ABC):
 
     def __init__(self, samples_summary, paths):
+        """
+        Abstract result of a non-linear search.
+
+        Parameters
+        ----------
+        samples_summary
+            A summary of the most important samples of the non-linear search (e.g. maximum log likelihood, median PDF).
+        paths
+            The paths to the results of the search.
+        """
 
         self._samples_summary = samples_summary
         self.paths = paths
@@ -185,23 +195,51 @@ class Result(AbstractResult):
         latent_variables=None
     ):
         """
-        The result of a non-linear search, which includes:
+        The result of a non-linear search.
+
+        The default behaviour is for all key results to be in the `samples_summary` attribute, which is a concise
+        summary of the results of the non-linear search. The reasons for this to be the main attribute are:
+
+        - It is concise and therefore has minimal I/O overhead, which is important because when runs are resumed
+        the results are loaded often, which can become very slow for large results via a `samples.csv`.
+
+        - The `output.yaml` config files can be used to disable the output of the `samples.csv` file
+        and `search_internal.dill` files. This means in order for results to be loaded in a way that allows a run to
+        resume, the `samples_summary` must contain all results necessary to resume the run.
+
+        For this reason, the `samples` and `search_internal` attributes are optional. On the first run of a model-fit,
+        they will always contain values as they are passed in via memory from the results of the search. However, if
+        a run is resumed they are no longer available in memory, and they will only be available if their corresponding
+        `samples.csv` and `search_internal.dill` files are output on disk and available to load.
+
+        This object includes:
+
+        - The `samples_summary` attribute, which is a summary of the results of the non-linear search.
+
+        - The `paths` attribute, which contains the path structure to the results of the search on the hard-disk and
+        is used to load the samples and search internal attributes if they are required and not available in memory.
 
         - The samples of the non-linear search (E.g. MCMC chains, nested sampling samples) which are used to compute
         the maximum likelihood model, posteriors and other properties.
 
-        - The model used to fit the data, which uses the samples to create specific instances of the model (e.g.
-        an instance of the maximum log likelihood model).
-
         - The non-linear search used to perform the model fit in its internal format (e.g. the Dynesty sampler used
         by dynesty itself as opposed to PyAutoFit abstract classes).
 
+        - The latent variables of the model-fit, which are the free parameters of the model that are not sampled
+
         Parameters
         ----------
+        samples_summary
+            A summary of the most important samples of the non-linear search (e.g. maximum log likelihood, median PDF).
+        paths
+            The paths to the results of the search, used to load the samples and search internal attributes if they are
+            required and not available in memory.
         samples
-            The samples of the non-linear search
+            The samples of the non-linear search, for example the MCMC chains or nested sampling samples.
         search_internal
             The non-linear search used to perform the model fit in its internal format.
+        latent_variables
+            The latent variables of the model-fit, which are the free parameters of the model that are not sampled.
         """
         super().__init__(
             samples_summary=samples_summary,
@@ -227,7 +265,23 @@ class Result(AbstractResult):
         }
 
     @property
-    def samples(self):
+    def samples(self) -> Samples:
+        """
+        Returns the samples of the non-linear search, for example the MCMC chains or nested sampling samples.
+
+        When a model-fit is run the first time, the samples are passed into the result via memory and therefore
+        always available.
+
+        However, if a model-fit is resumed the samples are not available in memory and they only way to load them is
+        via the `samples.csv` file output on the hard-disk. This property handles the loading of the samples from
+        the `samples.csv` file if they are not available in memory.
+
+        Returns
+        -------
+        The samples of the non-linear search.
+        """
+
+        # TODO : This needs to load a samples class based on the samples type.
 
         if self._samples is not None:
             return self._samples
@@ -242,7 +296,20 @@ class Result(AbstractResult):
 
     @property
     def search_internal(self):
+        """
+        Returns the non-linear search used to perform the model fit in its internal sampler format.
 
+        When a model-fit is run the first time, the search internal is passed into the result via memory and therefore
+        always available.
+
+        However, if a model-fit is resumed the search internal is not available in memory and they only way to load
+        it is via the `search_internal.dill` file output on the hard-disk. This property handles the loading of
+        the search internal from the `search_internal.dill` file if it is not available in memory.
+
+        Returns
+        -------
+        The non-linear search used to perform the model fit in its internal sampler format.
+        """
         if self._search_internal is not None:
             return self._search_internal
 
