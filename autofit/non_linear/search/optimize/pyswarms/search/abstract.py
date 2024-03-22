@@ -159,7 +159,7 @@ class AbstractPySwarms(AbstractOptimizer):
                 "Resuming PySwarms non-linear search (previous samples found)."
             )
 
-        except (FileNotFoundError, TypeError):
+        except (FileNotFoundError, TypeError, AttributeError):
 
             unit_parameter_lists, parameter_lists, log_posterior_list = self.initializer.samples_from_model(
                 total_points=self.config_dict_search["n_particles"],

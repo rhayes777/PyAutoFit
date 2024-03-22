@@ -926,6 +926,9 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
             samples_weight_threshold = conf.instance["output"]["samples_weight_threshold"]
 
+            if os.environ.get("PYAUTOFIT_TEST_MODE") == "1":
+                samples_weight_threshold = None
+
             if samples_weight_threshold is not None:
                 samples_for_csv = samples_for_csv.samples_above_weight_threshold_from(
                     weight_threshold=samples_weight_threshold
