@@ -171,8 +171,9 @@ class Analysis(ABC):
         """
         return self
 
-    def make_result(self, samples, search_internal=None):
+    def make_result(self, samples_summary, samples, search_internal=None):
         return Result(
+            samples_summary=samples_summary,
             samples=samples,
             latent_variables=self.latent_variables,
             search_internal=search_internal,

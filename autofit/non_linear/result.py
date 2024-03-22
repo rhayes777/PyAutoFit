@@ -42,9 +42,11 @@ class Placeholder:
 
 
 class AbstractResult(ABC):
+
     @property
-    def sigma(self):
-        return self.samples.sigma
+    @abstractmethod
+    def samples_summary(self):
+        pass
 
     @property
     @abstractmethod
@@ -89,7 +91,7 @@ class AbstractResult(ABC):
     @property
     def instance(self):
         try:
-            return self.samples.instance
+            return self.samples_summary.instance
         except AttributeError as e:
             logging.warning(e)
             return None
@@ -167,7 +169,7 @@ class AbstractResult(ABC):
 
 
 class Result(AbstractResult):
-    def __init__(self, samples: Samples, search_internal = None, latent_variables=None):
+    def __init__(self, samples_summary, samples: Samples, search_internal = None, latent_variables=None):
         """
         The result of a non-linear search, which includes:
 
@@ -187,10 +189,11 @@ class Result(AbstractResult):
         search_internal
             The non-linear search used to perform the model fit in its internal format.
         """
-        self._samples = samples
-        self.latent_variables = latent_variables
+        self._samples_summary = samples_summary
 
+        self._samples = samples
         self.search_internal = search_internal
+        self.latent_variables = latent_variables
 
         self.__model = None
 

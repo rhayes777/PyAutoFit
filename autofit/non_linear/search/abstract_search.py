@@ -721,24 +721,40 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         """
 
         model.freeze()
-        try:
-            samples = self.samples_from(model=model)
-        except FileNotFoundError:
-            samples = None
 
-        try:
-            search_internal = self.backend
-        except (AttributeError, FileNotFoundError):
-            search_internal = None
+        from autoconf.dictable import from_json
+        from autofit.non_linear.samples.summary import SamplesSummary
 
-        if search_internal is None:
-            try:
-                search_internal = self.paths.load_search_internal()
-            except FileNotFoundError:
-                search_internal = None
+        samples_summary = from_json(
+            file_path=self.paths._path_for_json("samples_summary")
+        )
+
+        print(samples_summary)
+#        dd
+
+        # try:
+        #     samples = self.samples_from(model=model)
+        # except FileNotFoundError:
+        #     samples = None
+        #
+        # try:
+        #     search_internal = self.backend
+        # except (AttributeError, FileNotFoundError):
+        #     search_internal = None
+        #
+        # if search_internal is None:
+        #     try:
+        #         search_internal = self.paths.load_search_internal()
+        #     except FileNotFoundError:
+        #         search_internal = None
+
+        samples = None
+        search_internal = None
 
         result = analysis.make_result(
-            samples=samples, search_internal=search_internal
+            samples_summary=samples_summary,
+            samples=samples,
+            search_internal=search_internal
         )
 
         if self.is_master:
