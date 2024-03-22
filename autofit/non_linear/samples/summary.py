@@ -34,13 +34,17 @@ class SamplesSummary(SamplesInterface):
         super().__init__(model=model)
 
         self._max_log_likelihood_sample = max_log_likelihood_sample
-        self.median_pdf = median_pdf
+        self._median_pdf = median_pdf
         self._log_evidence = log_evidence
         self.derived_summary = None
 
     @property
     def max_log_likelihood_sample(self):
         return self._max_log_likelihood_sample
+
+    @property
+    def median_pdf(self):
+        return self._median_pdf
 
     @property
     def log_evidence(self):
