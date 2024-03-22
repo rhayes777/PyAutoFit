@@ -1,7 +1,5 @@
-import math
 from typing import Optional, Tuple
 
-import autofit
 from autoconf import conf
 from autofit import exc
 from autofit.mapper.model_mapper import ModelMapper
@@ -36,7 +34,7 @@ class MockSearch(NonLinearSearch):
     def __init__(
         self,
         name="",
-        samples=None,
+        samples_summary=None,
         result=None,
         unique_tag: Optional[str] = None,
         fit_fast=True,
@@ -47,7 +45,7 @@ class MockSearch(NonLinearSearch):
     ):
         super().__init__(name=name, unique_tag=unique_tag, **kwargs)
 
-        self.samples = samples or MockSamples(ModelMapper())
+        self.samples_summary = samples_summary
 
         self.result = MockResult(
             samples_summary=MockSamplesSummary(),
@@ -87,7 +85,7 @@ class MockSearch(NonLinearSearch):
                 # Return Chi squared
                 return -2 * log_likelihood
 
-        self.paths.save_samples(self.samples)
+        self.paths.save_samples_summary(self.samples_summary)
 
         if self.save_for_aggregator:
             analysis.save_attributes(paths=self.paths)
@@ -120,42 +118,40 @@ class MockSearch(NonLinearSearch):
                 if unit_vector[index] >= 1:
                     raise e
                 index = (index + 1) % model.prior_count
-        samples = MockSamples(
-            sample_list=samples_with_log_likelihood_list(
-                self.sample_multiplier * fit, _make_samples(model)
-            ),
+
+        samples_summary = MockSamplesSummary(
+ #           sample_list=samples_with_log_likelihood_list(
+ #               self.sample_multiplier * fit, _make_samples(model)
+ #           ),
             model=model,
             prior_means=[
                 prior.mean for prior in sorted(model.priors, key=lambda prior: prior.id)
             ],
         )
 
-        self.paths.save_samples(self.samples)
+        self.paths.save_samples_summary(self.samples_summary)
 
         return analysis.make_result(
-            samples_summary=samples,
-            samples=samples,
-            search_internal=None
+            samples_summary=samples_summary,
         )
 
     def perform_update(self, model, analysis, during_analysis, search_internal=None):
-        if self.samples is not None and not self.return_sensitivity_results:
-            self.paths.save_samples(self.samples)
-            return self.samples
 
-        return MockSamples(
-            sample_list=samples_with_log_likelihood_list(
-                [1.0, 2.0], _make_samples(model)
-            ),
-            prior_means=[
-                prior.mean for prior in sorted(model.priors, key=lambda prior: prior.id)
-            ],
-            model=model,
-        )
+        if self.samples_summary is not None and not self.return_sensitivity_results:
 
-    def samples_from(self, model):
-        return self.samples
+            self.paths.save_samples_summary(self.samples_summary)
 
+#            return self.samples_summary
+
+        # return MockSamples(
+        #     sample_list=samples_with_log_likelihood_list(
+        #         [1.0, 2.0], _make_samples(model)
+        #     ),
+        #     prior_means=[
+        #         prior.mean for prior in sorted(model.priors, key=lambda prior: prior.id)
+        #     ],
+        #     model=model,
+        # )
 
 class MockOptimizer(MockSearch):
     def __init__(self, **kwargs):

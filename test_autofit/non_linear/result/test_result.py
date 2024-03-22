@@ -9,7 +9,7 @@ def make_result():
     mapper = af.ModelMapper()
     mapper.component = af.m.MockClassx2Tuple
     # noinspection PyTypeChecker
-    return af.Result(
+    return af.mock.MockResult(
         samples=af.m.MockSamples(
             sample_list=[
                 Sample(

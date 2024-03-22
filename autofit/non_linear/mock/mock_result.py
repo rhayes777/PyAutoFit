@@ -38,11 +38,17 @@ class MockResult(Result):
         self.search = search
         self.model = model
 
-    def model_absolute(self, absolute):
-        return self.model
+    def model_absolute(self, a):
+        try:
+            return self.samples_summary.model_absolute(a)
+        except AttributeError:
+            return self.model
 
-    def model_relative(self, relative):
-        return self.model
+    def model_relative(self, r):
+        try:
+            return self.samples_summary.model_relative(r)
+        except AttributeError:
+            return self.model
 
     @property
     def last(self):

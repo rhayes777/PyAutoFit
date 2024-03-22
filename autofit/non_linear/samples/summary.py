@@ -16,8 +16,8 @@ logger = logging.getLogger(__name__)
 class SamplesSummary(SamplesInterface):
     def __init__(
         self,
-        model: AbstractPriorModel,
         max_log_likelihood_sample: Sample,
+        model: AbstractPriorModel = None,
         median_pdf_sample : Optional[Sample] = None,
         log_evidence: Optional[float] = None,
     ):

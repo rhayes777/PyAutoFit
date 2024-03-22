@@ -15,6 +15,7 @@ class MockSamples(SamplesPDF):
         sample_list=None,
         samples_info=None,
         log_likelihood_list=None,
+        prior_means=None,
         **kwargs,
     ):
         self._log_likelihood_list = log_likelihood_list
@@ -45,6 +46,7 @@ class MockSamples(SamplesPDF):
             return super().log_likelihood_list
 
         return self._log_likelihood_list
+
 
     @property
     def unconverged_sample_size(self):
