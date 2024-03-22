@@ -86,7 +86,7 @@ class AbstractResult(ABC):
 
     @property
     def log_likelihood(self):
-        return max(self.samples.log_likelihood_list)
+        return self.samples_summary.max_log_likelihood_sample.log_likelihood
 
     @property
     def instance(self):
