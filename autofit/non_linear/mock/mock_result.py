@@ -1,24 +1,36 @@
+from typing import Union
+
 from autofit.mapper.model import ModelInstance
 from autofit.mapper.model_mapper import ModelMapper
 from autofit.non_linear.result import Result
 
+from autofit.non_linear.mock.mock_samples_summary import MockSamplesSummary
 from autofit.non_linear.mock.mock_samples import MockSamples
 
 
 class MockResult(Result):
     def __init__(
         self,
+        samples_summary : MockSamplesSummary,
+        paths=None,
         samples=None,
         instance=None,
         analysis=None,
         search=None,
         model=None,
     ):
-        super().__init__(samples, search_internal=None)
+
+        super().__init__(
+            samples_summary=samples_summary,
+            paths=paths,
+            samples=samples,
+            search_internal=None
+        )
 
         self._instance = instance or ModelInstance()
         self._samples = samples or MockSamples(
-            max_log_likelihood_instance=self.instance, model=model or ModelMapper()
+           # max_log_likelihood_instance=self.instance,
+            model=model or ModelMapper()
         )
 
         self.prior_means = None

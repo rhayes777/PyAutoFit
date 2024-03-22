@@ -47,8 +47,12 @@ class AbstractResult(ABC):
 
     def __init__(self, samples_summary, paths):
 
-        self.samples_summary = samples_summary
+        self._samples_summary = samples_summary
         self.paths = paths
+
+    @property
+    def samples_summary(self):
+        return self._samples_summary
 
     @property
     @abstractmethod
@@ -219,7 +223,7 @@ class Result(AbstractResult):
         """
         return {
             "max_log_likelihood": self.samples_summary.max_log_likelihood_sample.model_dict(),
-            "median pdf": self.samples_summary.median_pdf.model_dict(),
+            "median pdf": self.samples_summary.median_pdf_sample.model_dict(),
         }
 
     @property

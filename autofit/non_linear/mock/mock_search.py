@@ -1,6 +1,7 @@
 import math
 from typing import Optional, Tuple
 
+import autofit
 from autoconf import conf
 from autofit import exc
 from autofit.mapper.model_mapper import ModelMapper
@@ -9,6 +10,7 @@ from autofit.graphical.utils import Status
 from autofit.non_linear.search.abstract_search import NonLinearSearch
 from autofit.non_linear.mock.mock_result import MockResult
 from autofit.non_linear.mock.mock_samples import MockSamples
+from autofit.non_linear.mock.mock_samples_summary import MockSamplesSummary
 from autofit.non_linear.samples import Sample
 
 
@@ -47,7 +49,9 @@ class MockSearch(NonLinearSearch):
 
         self.samples = samples or MockSamples(ModelMapper())
 
-        self.result = MockResult(samples=samples) if result is None else result
+        self.result = MockResult(
+            samples_summary=MockSamplesSummary(),
+        ) if result is None else result
 
         self.fit_fast = fit_fast
         self.sample_multiplier = sample_multiplier
@@ -78,7 +82,7 @@ class MockSearch(NonLinearSearch):
                 log_likelihood = analysis.log_likelihood_function(instance)
 
                 if self.result.instance is None:
-                    self.result.instance = instance
+                    self.result.samples_summary._instance = instance
 
                 # Return Chi squared
                 return -2 * log_likelihood
@@ -129,7 +133,9 @@ class MockSearch(NonLinearSearch):
         self.paths.save_samples(self.samples)
 
         return analysis.make_result(
-            samples=samples, search_internal=None
+            samples_summary=samples,
+            samples=samples,
+            search_internal=None
         )
 
     def perform_update(self, model, analysis, during_analysis, search_internal=None):
