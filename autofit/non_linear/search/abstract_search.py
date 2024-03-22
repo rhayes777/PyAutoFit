@@ -721,7 +721,10 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         """
 
         model.freeze()
-        samples = self.samples_from(model=model)
+        try:
+            samples = self.samples_from(model=model)
+        except FileNotFoundError:
+            samples = None
 
         try:
             search_internal = self.backend
