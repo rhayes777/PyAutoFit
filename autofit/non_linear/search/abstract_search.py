@@ -903,7 +903,6 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             self.timer.update()
 
         samples = self.samples_from(model=model, search_internal=search_internal)
-
         samples_summary = samples.summary()
 
         try:
@@ -913,24 +912,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         if self.is_master:
 
-            samples_for_csv = samples
-
-            samples_weight_threshold = conf.instance["output"]["samples_weight_threshold"]
-
-            if os.environ.get("PYAUTOFIT_TEST_MODE") == "1":
-                samples_weight_threshold = None
-
-            if samples_weight_threshold is not None:
-                samples_for_csv = samples_for_csv.samples_above_weight_threshold_from(
-                    weight_threshold=samples_weight_threshold
-                )
-
-                logger.info(
-                    f"Samples with weight less than {samples_weight_threshold} removed from samples.csv and not used to "
-                    f"compute parameter estimates errors, etc."
-                )
-
-            self.paths.save_samples(samples=samples_for_csv)
+            self.paths.save_samples(samples=samples)
             self.paths.save_samples_summary(samples_summary=samples_summary)
 
             latent_variables = analysis.latent_variables

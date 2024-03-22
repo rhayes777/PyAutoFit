@@ -237,8 +237,8 @@ class DirectoryPaths(AbstractPaths):
         if conf.instance["general"]["output"]["samples_to_csv"] and should_output(
             "samples"
         ):
-            samples.write_table(filename=self._samples_file)
             self.save_json("samples_info", samples.samples_info)
+
             if isinstance(samples, SamplesPDF):
                 try:
                     samples.save_covariance_matrix(self._covariance_file)
@@ -246,6 +246,23 @@ class DirectoryPaths(AbstractPaths):
                     logger.warning(
                         f"Could not save covariance matrix because of the following error:\n{e}"
                     )
+
+            samples_weight_threshold = conf.instance["output"]["samples_weight_threshold"]
+
+            if os.environ.get("PYAUTOFIT_TEST_MODE") == "1":
+                samples_weight_threshold = None
+
+            if samples_weight_threshold is not None:
+                samples = samples.samples_above_weight_threshold_from(
+                    weight_threshold=samples_weight_threshold
+                )
+
+                logger.info(
+                    f"Samples with weight less than {samples_weight_threshold} removed from samples.csv and not used to "
+                    f"compute parameter estimates errors, etc."
+                )
+
+            samples.write_table(filename=self._samples_file)
 
     def save_samples_summary(self, samples_summary : SamplesSummary):
 
