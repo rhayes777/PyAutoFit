@@ -120,7 +120,7 @@ class AbstractResult(ABC):
         A model mapper created by taking results from this search and creating priors with the defined absolute
         width.
         """
-        return self.samples.model_absolute(a)
+        return self.samples_summary.model_absolute(a)
 
     def model_relative(self, r: float) -> AbstractPriorModel:
         """
@@ -143,7 +143,7 @@ class AbstractResult(ABC):
         A model mapper created by taking results from this search and creating priors with the defined relative
         width.
         """
-        return self.samples.model_relative(r)
+        return self.samples_summary.model_relative(r)
 
     def model_bounded(self, b: float) -> AbstractPriorModel:
         """
@@ -165,7 +165,7 @@ class AbstractResult(ABC):
         A model mapper created by taking results from this search and creating priors with the defined bounded
         uniform priors.
         """
-        return self.samples.model_bounded(b)
+        return self.samples_summary.model_bounded(b)
 
 
 class Result(AbstractResult):
@@ -204,7 +204,8 @@ class Result(AbstractResult):
         Human-readable dictionary representation of the results
         """
         return {
-            "max_log_likelihood": self.samples.max_log_likelihood_sample.model_dict(),
+            "max_log_likelihood": self.samples_summary.max_log_likelihood_sample.model_dict(),
+            "median pdf": self.samples_summary.median_pdf.model_dict(),
         }
 
     @property
@@ -231,8 +232,8 @@ class Result(AbstractResult):
     @property
     def model(self):
         if self.__model is None:
-            self.__model = self.samples.model.mapper_from_prior_means(
-                means=self.samples.prior_means
+            self.__model = self.model.mapper_from_prior_means(
+                means=self.samples_summary.prior_means
             )
 
         return self.__model
