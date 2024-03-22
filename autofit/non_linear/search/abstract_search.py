@@ -156,11 +156,6 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         self.force_pickle_overwrite = conf.instance["general"]["output"][
             "force_pickle_overwrite"
         ]
-        self.skip_save_samples = kwargs.get("skip_save_samples")
-        if self.skip_save_samples is None:
-            self.skip_save_samples = conf.instance["general"]["output"].get(
-                "skip_save_samples"
-            )
 
         self.force_visualize_overwrite = conf.instance["general"]["output"][
             "force_visualize_overwrite"
@@ -771,8 +766,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             if self.force_pickle_overwrite:
                 self.logger.info("Forcing pickle overwrite")
 
-                if not self.skip_save_samples:
-                    self.paths.save_json("samples_summary", to_dict(samples.summary()))
+                self.paths.save_json("samples_summary", to_dict(samples.summary()))
 
                 analysis.save_results(paths=self.paths, result=result)
                 analysis.save_results_combined(paths=self.paths, result=result)
@@ -967,8 +961,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                     samples=samples,
                 )
 
-            if not self.skip_save_samples:
-                self.paths.save_json("samples_summary", to_dict(samples.summary()))
+            self.paths.save_json("samples_summary", to_dict(samples.summary()))
 
             self.perform_visualization(
                 model=model,
