@@ -692,8 +692,11 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         """
         Returns the result of the non-linear search of a completed model-fit.
 
-        The result contains the non-linear search samples, which are loaded from the searches internal results,
-        or the `samples.csv` file if the internal results are not available.
+        The result contains the non-linear search samples summary, which contains the maximum log likelihood instance
+        that is used for visualization and prior passing via the search chaining API.
+
+        This funciton may also load the full samples of the completed fit, for example if visualization of the
+        seatch chains (e.g. a corner plot) is performed. This task is optional and be slow due to loading times.
 
         Optional tasks can be performed to update the results of the model-fit on hard-disk depending on the following
         entries of the `general.yaml` config file's `output` section:
