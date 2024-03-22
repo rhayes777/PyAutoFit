@@ -11,7 +11,7 @@ from autofit.non_linear.mock.mock_samples import MockSamples
 class MockResult(Result):
     def __init__(
         self,
-        samples_summary : MockSamplesSummary,
+        samples_summary : MockSamplesSummary = None,
         paths=None,
         samples=None,
         instance=None,

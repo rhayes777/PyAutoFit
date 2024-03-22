@@ -52,7 +52,7 @@ def test_projected_model():
             for _ in range(100)
         ],
     )
-    result = af.Result(samples=samples)
+    result = af.mock.MockResult(samples=samples)
     projected_model = result.projected_model
 
     assert projected_model.prior_count == 3
