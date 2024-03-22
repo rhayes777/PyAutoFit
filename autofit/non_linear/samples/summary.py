@@ -14,8 +14,9 @@ logger = logging.getLogger(__name__)
 class SamplesSummary(SamplesInterface):
     def __init__(
         self,
-        max_log_likelihood_sample: Sample,
         model: AbstractPriorModel,
+        max_log_likelihood_sample: Sample,
+        median_pdf : Optional[Sample] = None,
         covariance_matrix: Optional[np.ndarray] = None,
         log_evidence: Optional[float] = None,
     ):
@@ -32,7 +33,9 @@ class SamplesSummary(SamplesInterface):
             The covariance matrix of the samples
         """
         super().__init__(model=model)
+
         self._max_log_likelihood_sample = max_log_likelihood_sample
+        self.median_pdf = median_pdf
         self.covariance_matrix = covariance_matrix
         self._log_evidence = log_evidence
         self.derived_summary = None

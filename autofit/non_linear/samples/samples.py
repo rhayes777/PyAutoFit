@@ -130,8 +130,9 @@ class Samples(SamplesInterface, ABC):
 
     def summary(self):
         return SamplesSummary(
-            max_log_likelihood_sample=self.max_log_likelihood_sample,
             model=self.model,
+            max_log_likelihood_sample=self.max_log_likelihood_sample,
+            median_pdf=self.median_pdf,
         )
 
     def __add__(self, other: "Samples") -> "Samples":

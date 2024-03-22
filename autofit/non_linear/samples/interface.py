@@ -176,6 +176,11 @@ class SamplesInterface(ABC):
         return self.model.instance_from_vector(vector=vector, ignore_prior_limits=True)
 
     @property
+    @abstractmethod
+    def median_pdf(self):
+        pass
+
+    @property
     def prior_means(self) -> [List]:
         """
         The mean of every parameter used to link its inferred values and errors to priors used to sample the
