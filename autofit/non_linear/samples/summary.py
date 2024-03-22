@@ -17,7 +17,6 @@ class SamplesSummary(SamplesInterface):
         model: AbstractPriorModel,
         max_log_likelihood_sample: Sample,
         median_pdf : Optional[Sample] = None,
-        covariance_matrix: Optional[np.ndarray] = None,
         log_evidence: Optional[float] = None,
     ):
         """
@@ -25,18 +24,17 @@ class SamplesSummary(SamplesInterface):
 
         Parameters
         ----------
-        max_log_likelihood_sample
-            The parameters from a non-linear search that gave the highest likelihood
         model
             A model used to map the samples to physical values
-        covariance_matrix
-            The covariance matrix of the samples
+        max_log_likelihood_sample
+            The parameters from a non-linear search that gave the highest likelihood
+        median_pdf
+            The median PDF of the samples which are used for prior linking via the search chaining API.
         """
         super().__init__(model=model)
 
         self._max_log_likelihood_sample = max_log_likelihood_sample
         self.median_pdf = median_pdf
-        self.covariance_matrix = covariance_matrix
         self._log_evidence = log_evidence
         self.derived_summary = None
 
