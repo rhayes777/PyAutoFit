@@ -177,12 +177,12 @@ class AbstractResult(ABC):
 
 class Result(AbstractResult):
     def __init__(
-            self,
-            samples_summary : SamplesSummary,
-            paths : AbstractPaths,
-            samples: Optional[Samples] = None,
-            search_internal : Optional[object] = None,
-            latent_variables=None
+        self,
+        samples_summary : SamplesSummary,
+        paths : AbstractPaths,
+        samples: Optional[Samples] = None,
+        search_internal : Optional[object] = None,
+        latent_variables=None
     ):
         """
         The result of a non-linear search, which includes:
@@ -245,12 +245,6 @@ class Result(AbstractResult):
 
         if self._search_internal is not None:
             return self._search_internal
-
-        #
-        # try:
-        #     search_internal = self.backend
-        # except (AttributeError, FileNotFoundError):
-        #     search_internal = None
 
         try:
             return self.paths.load_search_internal()

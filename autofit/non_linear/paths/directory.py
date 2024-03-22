@@ -205,6 +205,15 @@ class DirectoryPaths(AbstractPaths):
         -------
         The results of the non-linear search in its internal representation.
         """
+
+        # This is a nasty hack to load emcee backends. It will be removed once the source code is more stable.
+
+        import emcee
+
+        backend_filename = self.search_internal_path / "search_internal.hdf"
+        if os.path.isfile(backend_filename):
+            return emcee.backends.HDFBackend(filename=str(backend_filename))
+
         filename = self.search_internal_path / "search_internal.dill"
 
         with open_(filename, "rb") as f:
