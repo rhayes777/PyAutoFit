@@ -26,10 +26,18 @@ class MockSamplesSummary(SamplesSummary):
 
     @property
     def max_log_likelihood_sample(self):
+
+        if self._max_log_likelihood_sample is not None:
+            return self._max_log_likelihood_sample
+
         return Sample(log_likelihood=1.0, log_prior=0.0, weight=0.0)
 
     @property
     def median_pdf_sample(self):
+
+        if self._median_pdf_sample is not None:
+            return self._median_pdf_sample
+
         return Sample(log_likelihood=1.0, log_prior=0.0, weight=0.0)
 
     def max_log_likelihood(self, as_instance: bool = True):
