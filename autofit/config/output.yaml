@@ -60,7 +60,7 @@ search_internal: false
 # which is not directly sampled but related to the Gaussian's sigma value.
 
 # By overwritting an Analysis class's `compute_latent_variable` method one can manuually specify the latent variables
-# that are calculated and output to a `latent_variables.csv` file which mirrors the `samples.csv` file (including
+# that are calculated and output to a `latent.csv` file which mirrors the `samples.csv` file (including
 # weight resampling set by the `samples_weight_threshold` above. There can also be a `latent.results`
 #  and `latent_summary.json` files output.
 
@@ -71,7 +71,7 @@ search_internal: false
 # output and perform it manually. This will ensure computation run time is not wasted computing latent variables
 # during a model-fit (which may go to an inaccurate solution).
 
-latent_during_fit: false # Whether to output the `latent.csv`, `latent.results` and `latent_summary.json` files during the fit when it performs on-the-fly output.
+latent_during_fit: true # Whether to output the `latent.csv`, `latent.results` and `latent_summary.json` files during the fit when it performs on-the-fly output.
 latent_after_fit: true # If `latent_during_fit` is False, whether to output the `latent.csv`, `latent.results` and `latent_summary.json` files after the fit is complete.
 latent_csv: true # Whether to ouptut the `latent.csv` file.
 latent_results: true # Whether to output the `latent.results` file.

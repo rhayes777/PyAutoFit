@@ -937,12 +937,18 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
             self.paths.save_samples(samples=samples_for_csv)
 
-            latent_variables = analysis.compute_all_latent_variables(samples)
-            if latent_variables:
-                self.paths.save_latent_variables(
-                    latent_variables,
-                    samples=samples,
-                )
+            if (
+                    (during_analysis and conf.instance["output"]["latent_during_fit"]) or
+                    (not during_analysis and conf.instance["output"]["latent_after_fit"])
+            ):
+
+                latent_variables = analysis.compute_all_latent_variables(samples_for_csv)
+
+                if latent_variables:
+                    self.paths.save_latent_variables(
+                        latent_variables,
+                        samples=samples,
+                    )
 
             if not self.skip_save_samples:
                 self.paths.save_json("samples_summary", to_dict(samples.summary()))
