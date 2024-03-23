@@ -55,21 +55,25 @@ search_internal: false
 
 ### Latent Variables ###
 
-# A latent variable is a parameter related to the model that one may be interested in knowing the estimate and errors
-# of. For example, for the simple 1D Gaussian example, it could be the full-width half maximum (FWHM) of the Gaussian,
-# which is not directly sampled but related to the Gaussian's sigma value.
+# A latent variable is not a model parameter but can be derived from the model. Its value and errors may be of interest
+# and aid in the interpretation of a model-fit.
 
-# By overwritting an Analysis class's `compute_latent_variable` method one can manuually specify the latent variables
-# that are calculated and output to a `latent.csv` file which mirrors the `samples.csv` file (including
-# weight resampling set by the `samples_weight_threshold` above. There can also be a `latent.results`
-#  and `latent_summary.json` files output.
+# For example, for the simple 1D Gaussian example, it could be the full-width half maximum (FWHM) of the Gaussian. This
+# is not included in the model but can be easily derived from the Gaussian's sigma value.
 
-# The inputs below control how often latent variables are computed and what files are output.
+# By overwriting an Analysis class's `compute_latent_variable` method we can manually specify latent variables that
+# are calculated and output to a `latent.csv` file, which mirrors the `samples.csv` file. The `latent.csv` file has
+# the same weight resampling performed on the `samples.csv` file, controlled via the `samples_weight_threshold` above.
 
-# Outputting latent variables manually is very simple, it simply requires calling the analysis object's
-# `compute_all_latent_variables` function. For many users, the best set up may be to disable autofit latent variable
-# output and perform it manually. This will ensure computation run time is not wasted computing latent variables
-# during a model-fit (which may go to an inaccurate solution).
+# There may also be a `latent.results` and `latent_summary.json` files output, which the inputs below control whether
+# they are output and how often.
+
+# Outputting latent variables manually after a fit is complete is simple, just call
+# the `analysis.compute_all_latent_variables()` function.
+
+# For many use cases, the best set up may be to disable autofit latent variable output during the fit and perform it
+# manually after completing a successful model-fit. This will save computational run time by not computing latent
+# variables during a any model-fit which is unsuccessful.
 
 latent_during_fit: true # Whether to output the `latent.csv`, `latent.results` and `latent_summary.json` files during the fit when it performs on-the-fly output.
 latent_after_fit: true # If `latent_during_fit` is False, whether to output the `latent.csv`, `latent.results` and `latent_summary.json` files after the fit is complete.
