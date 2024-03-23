@@ -1,13 +1,6 @@
 # Determines whether files saved by the search are output to the hard-disk. This is true both when saving to the
 # directory structure and when saving to database.
 
-# Files can be listed name: bool where the name is the name of the file without a suffix (e.g. model not model.json)
-# and bool is true or false.
-
-# If a given file is not listed then the default value is used.
-
-default: true # If true then files which are not explicitly listed here are output anyway. If false then they are not.
-
 ### Samples ###
 
 # The `samples.csv`file contains every sampled value of every free parameter with its log likelihood and weight.
@@ -22,17 +15,17 @@ default: true # If true then files which are not explicitly listed here are outp
 samples: true
 
 # The `samples.csv` file contains every accepted sampled value of every free parameter with its log likelihood and
-# weight. For certain searches, the majority of samples have a very low weight, which has no numerical impact on the
-# results of the model-fit. However, these samples are still output to the `samples.csv` file, taking up hard-disk space
-# and slowing down analysis of the samples (e.g. via the database).
+# weight. For certain searches, the majority of samples have a very low weight and have no numerical impact on the
+# results of the model-fit. However, these samples are still output to the `samples.csv` file, taking up hard-disk
+# space and slowing down analysis of the samples (e.g. via the database).
 
 # The `samples_weight_threshold` below specifies the threshold value of the weight such that samples with a weight
 # below this value are not output to the `samples.csv` file. This can be used to reduce the size of the `samples.csv`
 # file and speed up analysis of the samples.
 
-# Note that for many searches (e.g. MCMC) all samples have equal weight, and thus this threshold has no impact and
-# there is no simple way to save hard-disk space. However, for nested sampling, the majority of samples have a very
-# low weight and this threshold can be used to save hard-disk space.
+# For many searches (e.g. MCMC) all samples have an equal weight of 1.0, and this threshold therefore has no impact.
+# For these searches, there is no simple way to save hard-disk space. This input is more suited to nested sampling,
+# where the majority of samples have a very low weight..
 
 # Set value to empty (e.g. delete 1.0e-10 below) to disable this feature.
 
@@ -40,7 +33,11 @@ samples_weight_threshold: 1.0e-10
 
 ### Search Internal ###
 
-# The search internal folder which contains a saved state of the non-linear search, as a .pickle or .dill file.
+# The search internal folder which contains a saved state of the non-linear search in its internal reprsenetation,
+# as a .pickle or .dill file.
+
+# For example, for the nested sampling dynesty, this .dill file is the `DynestySampler` object which is used to
+# perform sampling, and it therefore contains all internal dynesty representations of the results, samples, weights, etc.
 
 # If the entry below is false, the folder is still output during the model-fit, as it is required to resume the fit
 # from where it left off. Therefore, settings `false` below does not impact model-fitting checkpointing and resumption.
@@ -49,11 +46,35 @@ samples_weight_threshold: 1.0e-10
 # The search internal folder file is often large, therefore deleting it after a fit is complete can significantly
 # reduce hard-disk space use.
 
-# The search internal representation (e.g. what you can load from the output .pickle file) may have additional
-# quantities specific to the non-linear search that you are interested in inspecting. Deleting the folder means this
-# information is list.
+# The search internal representation that can be loaded from the .dill file has many additional quantities specific to
+# the non-linear search that the standardized autofit forms do not. For example, for emcee, it contains information on
+# every walker. This information is required to do certain analyes and make certain plots, therefore deleting the
+# folder means this information is list.
 
 search_internal: false
+
+### Latent Variables ###
+
+# A latent variable is a parameter related to the model that one may be interested in knowing the estimate and errors
+# of. For example, for the simple 1D Gaussian example, it could be the full-width half maximum (FWHM) of the Gaussian,
+# which is not directly sampled but related to the Gaussian's sigma value.
+
+# By overwritting an Analysis class's `compute_latent_variable` method one can manuually specify the latent variables
+# that are calculated and output to a `latent_variables.csv` file which mirrors the `samples.csv` file (including
+# weight resampling set by the `samples_weight_threshold` above. There can also be a `latent.results`
+#  and `latent_summary.json` files output.
+
+# The inputs below control how often latent variables are computed and what files are output.
+
+# Outputting latent variables manually is very simple, it simply requires calling the analysis object's
+# `compute_all_latent_variables` function. For many users, the best set up may be to disable autofit latent variable
+# output and perform it manually. This will ensure computation run time is not wasted computing latent variables
+# during a model-fit (which may go to an inaccurate solution).
+
+latent_during_fit: false # Whether to output the `latent.csv`, `latent.results` and `latent_summary.json` files during the fit when it performs on-the-fly output.
+latent_after_fit: true # If `latent_during_fit` is False, whether to output the `latent.csv`, `latent.results` and `latent_summary.json` files after the fit is complete.
+latent_csv: true # Whether to ouptut the `latent.csv` file.
+latent_results: true # Whether to output the `latent.results` file.
 
 # Other Files:
 
