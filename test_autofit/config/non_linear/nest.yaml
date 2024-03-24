@@ -12,7 +12,6 @@ DynestyDynamic:
     maxcall_init: null
     maxiter: null
     maxiter_init: null
-    n_effective_init: .inf
     nlive_init: 5
   search:
     bootstrap: 1
@@ -45,7 +44,6 @@ DynestyStatic:
     logl_max: .inf
     maxcall: null
     maxiter: null
-    n_effective: 0
   search:
     bootstrap: null
     bound: multi
