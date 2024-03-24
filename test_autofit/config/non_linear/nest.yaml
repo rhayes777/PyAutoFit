@@ -38,7 +38,7 @@ DynestyStatic:
     force_x1_cpu: false
     number_of_cores: 1
   printing:
-    silence: false
+    silence: true
   run:
     dlogz: null
     logl_max: .inf

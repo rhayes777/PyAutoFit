@@ -1,6 +1,6 @@
 import multiprocessing as mp
-
 import pytest
+import warnings
 
 # noinspection PyProtectedMember
 from dynesty.dynesty import _function_wrapper
@@ -131,7 +131,13 @@ def test_raising_error(pool):
 
 @output_path_for_test()
 def test_sneaky_map(search, model, analysis):
-    result = search.fit(model, analysis)
+
+    # Dynesty with few samples raises warning on poor likelihood samples, which does not matter for this unit test.
+
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+
+        result = search.fit(model, analysis)
 
     assert isinstance(result.instance, af.Gaussian)
 
