@@ -174,9 +174,9 @@ class LinearShiftTransform(LinearTransform):
         super().__init__(DiagonalMatrix(np.reciprocal(self.scale)))
 
     def inv_transform(self, x: np.ndarray) -> np.ndarray:
-        print(x, self.shift, self.scale)
-        ddd
-        return x * self.scale + self.shift
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            return x * self.scale + self.shift
 
     def transform(self, x: np.ndarray) -> np.ndarray:
         return (x - self.shift) / self.scale
