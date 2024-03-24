@@ -1,3 +1,4 @@
+import warnings
 from abc import ABC, abstractmethod
 from functools import wraps
 from typing import Tuple
@@ -349,8 +350,9 @@ class MultinomialLogitTransform(AbstractDensityTransform):
 
     def inv_transform(self, x):
         expx = np.exp(x)
-        print(expx)
-        return expx / (expx.sum(axis=self.axis, keepdims=True) + 1)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            return expx / (expx.sum(axis=self.axis, keepdims=True) + 1)
 
     def jacobian(self, p):
         p = np.asanyarray(p)
