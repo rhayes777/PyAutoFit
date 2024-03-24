@@ -1,9 +1,14 @@
 import numpy as np
 import os
+from typing import Optional
 
 from autoconf import conf
 
 from autofit import exc
+
+from autofit.mapper.prior_model.abstract import AbstractPriorModel
+from autofit.non_linear.paths.abstract import AbstractPaths
+from autofit.non_linear.analysis import Analysis
 
 from timeout_decorator import timeout
 
@@ -24,42 +29,42 @@ timeout_seconds = get_timeout_seconds()
 class Fitness:
     def __init__(
         self,
-        model,
-        analysis,
-        paths = None,
+        model : AbstractPriorModel,
+        analysis : Analysis,
+        paths : Optional[AbstractPaths] = None,
         fom_is_log_likelihood: bool = True,
         resample_figure_of_merit: float = -np.inf,
         convert_to_chi_squared: bool = False,
     ):
         """
-        Interfaces with any non-linear in order to fit a model to the data and return a log likelihood via
-        an `Analysis` class.
+        Interfaces with any non-linear search to fit the model to the data and return a log likelihood via
+        the analysis.
 
-        The interface of a non-linear search and a fitness function can be summarized as follows:
+        The interface of a non-linear search and fitness function is summarized as follows:
 
-        1) The non-linear search chooses a new set of parameters for the model, which are passed to the fitness
+        1) The non-linear search samples a new set of model parameters, which are passed to the fitness
         function's `__call__` method.
 
-        2) The parameter values (typically a list) are mapped to an instance of the model (via its priors if
-        appropriate for the non-linear search).
+        2) The list of parameter values are mapped to an instance of the model.
 
         3) The instance is passed to the analysis class's log likelihood function, which fits the model to the
         data and returns the log likelihood.
 
         4) A final figure-of-merit is computed and returned to the non-linear search, which is either the log
-        likelihood or log posterior depending on the type of non-linear search.
+        likelihood or log posterior (e.g. adding the log prior to the log likelihood).
 
-        It is common for nested sampling algorithms to require that the figure of merit returned is a log likelihood
-        as priors are often built into the mapping of values from a unit hyper-cube. Optimizers and MCMC methods
-        typically require that the figure of merit returned is a log posterior, with the prior terms added via this
-        fitness function. This is not a strict rule, but is a good default.
+        Certain searches (commonly nested samplers) require the parameters to be mapped from unit values to physical
+        values, which is performed internally by the fitness object in step 2.
 
-        Some methods also require a chi-squared value to be computed (which is minimized), which is the log likelihood
-        multiplied by -2.0. The `Fitness` class can also compute this value, if the `convert_to_chi_squared` bool is
-        `True`.
+        Certain searches require the returned figure of merit to be a log posterior (often MCMC methods) whereas
+        others require it to be a log likelihood (often nested samples which account for priors internally) in step 4.
+        Which values is returned by the `fom_is_log_likelihood` bool.
 
-        If a model-fit raises an exception of returns a `np.nan` a `resample_figure_of_merit` value is returned. The
-        appropriate value depends on the non-linear search, but is typically either `None`, `-np.inf` or `1.0e99`.
+        Some searches require a chi-squared value (which they minimized), given by the log likelihood multiplied
+        by -2.0. This is returned by the fitness if the `convert_to_chi_squared` bool is `True`.
+
+        If a model-fit raises an exception or returns a `np.nan`, a `resample_figure_of_merit` value is returned
+        instead. The appropriate value depends on the search, but is typically either `None`, `-np.inf` or `1.0e99`.
         All values indicate to the non-linear search that the model-fit should be resampled or ignored.
 
         Parameters
@@ -70,6 +75,9 @@ class Fitness:
         model
             The model that is fitted to the data, which is used by the non-linear search to create instances of
             the model that are fitted to the data via the log likelihood function.
+        paths
+            The paths of the search, which if the search is being resumed from an old run is used to check that
+            the likelihood function has not changed from the previous run.
         fom_is_log_likelihood
             If `True`, the figure of merit returned by the fitness function is the log likelihood. If `False`, the
             figure of merit is the log posterior.
@@ -88,7 +96,8 @@ class Fitness:
         self.convert_to_chi_squared = convert_to_chi_squared
         self._log_likelihood_function = None
 
-        self.check_log_likelihood(fitness=self)
+        if self.paths is not None:
+            self.check_log_likelihood(fitness=self)
 
     def __getstate__(self):
         state = self.__dict__.copy()
@@ -169,7 +178,7 @@ class Fitness:
         Parameters
         ----------
         paths
-            The PyAutoFit paths object which manages all paths, e.g. where the non-linear search outputs are stored,
+            certain searches the non-linear search outputs are stored,
             visualization, and pickled objects used by the database and aggregator.
         result
             The result containing the maximum log likelihood fit of the model.
