@@ -19,7 +19,6 @@ output:
   samples_to_csv: false
 parallel:
   warn_environment_variables: false # If True, a warning is displayed when the search's number of CPU > 1 and enviromment variables related to threading are also > 1.
-
 profiling:
   parallel_profile: false           # If True, the parallelization of the fit is profiled outputting a cPython graph.
   should_profile: false             # If True, the ``profile_log_likelihood_function()`` function of an analysis class is called throughout a model-fit, profiling run times.
