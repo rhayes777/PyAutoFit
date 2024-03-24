@@ -195,7 +195,11 @@ class FunctionTransform(AbstractDensityTransform):
         self.func_grad_hess = func_grad_hess
 
     def transform(self, x):
-        return self.func(x, *self.args)
+
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+
+            return self.func(x, *self.args)
 
     def inv_transform(self, x):
         return self.inv_func(x, *self.args)
@@ -204,8 +208,11 @@ class FunctionTransform(AbstractDensityTransform):
         return DiagonalMatrix(self.grad(x, *self.args))
 
     def log_det(self, x: np.ndarray) -> np.ndarray:
-        gs = self.grad(x, *self.args)
-        return np.log(gs)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+
+            gs = self.grad(x, *self.args)
+            return np.log(gs)
 
     def log_det_grad(self, x: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
         if self.func_grad_hess:
