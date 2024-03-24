@@ -4,6 +4,7 @@ from typing import Dict, Optional, Tuple, Union
 
 import numpy as np
 from dynesty import NestedSampler, DynamicNestedSampler
+import warnings
 
 from autoconf import conf
 from autofit import exc
@@ -333,12 +334,16 @@ class AbstractDynesty(AbstractNest, ABC):
         }
 
         if iterations > 0:
-            search_internal.run_nested(
-                maxcall=iterations,
-                print_progress=not self.silence,
-                checkpoint_file=self.checkpoint_file,
-                **config_dict_run,
-            )
+
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore")
+
+                search_internal.run_nested(
+                    maxcall=iterations,
+                    print_progress=not self.silence,
+                    checkpoint_file=self.checkpoint_file,
+                    **config_dict_run,
+                )
 
         iterations_after_run = np.sum(search_internal.results.ncall)
 
