@@ -1,4 +1,5 @@
 import numpy as np
+import os
 
 from autoconf import conf
 
@@ -25,6 +26,7 @@ class Fitness:
         self,
         model,
         analysis,
+        paths = None,
         fom_is_log_likelihood: bool = True,
         resample_figure_of_merit: float = -np.inf,
         convert_to_chi_squared: bool = False,
@@ -80,10 +82,13 @@ class Fitness:
 
         self.analysis = analysis
         self.model = model
+        self.paths = paths
         self.fom_is_log_likelihood = fom_is_log_likelihood
         self.resample_figure_of_merit = resample_figure_of_merit
         self.convert_to_chi_squared = convert_to_chi_squared
         self._log_likelihood_function = None
+
+        self.check_log_likelihood(fitness=self)
 
     def __getstate__(self):
         state = self.__dict__.copy()
@@ -144,3 +149,58 @@ class Fitness:
             figure_of_merit *= -2.0
 
         return figure_of_merit
+
+    def check_log_likelihood(
+            self, fitness
+    ):
+        """
+        Changes to the PyAutoGalaxy source code may inadvertantly change the numerics of how a log likelihood is
+        computed. Equally, one may set off a model-fit that resumes from previous results, but change the settings of
+        the pixelization or inversion in a way that changes the log likelihood function.
+
+        This function performs an optional sanity check, which raises an exception if the log likelihood calculation
+        changes, to ensure a model-fit is not resumed with a different likelihood calculation to the previous run.
+
+        If the model-fit has not been performed before (e.g. it is not a resume) this function outputs
+        the `figure_of_merit` (e.g. the log likelihood) of the maximum log likelihood model at the end of the model-fit.
+
+        If the model-fit is a resume, it loads this `figure_of_merit` and compares it against a new value computed for
+        the resumed run (again using the maximum log likelihood model inferred). If the two likelihoods do not agree
+        and therefore the log likelihood function has changed, an exception is raised and the code execution terminated.
+
+        Parameters
+        ----------
+        paths
+            The PyAutoFit paths object which manages all paths, e.g. where the non-linear search outputs are stored,
+            visualization, and pickled objects used by the database and aggregator.
+        result
+            The result containing the maximum log likelihood fit of the model.
+        """
+
+        if os.environ.get("PYAUTOFIT_TEST_MODE") == "1":
+            return
+
+        if not conf.instance["general"]["test"]["check_figure_of_merit_sanity"]:
+            return
+
+        try:
+            samples_summary = self.paths.load_samples_summary()
+        except FileNotFoundError:
+            return
+
+        max_log_likelihood_sample = samples_summary.max_log_likelihood_sample
+        log_likelihood_old = samples_summary.max_log_likelihood_sample.log_likelihood
+
+        log_likelihood_new = fitness(parameters=max_log_likelihood_sample)
+
+        if not np.isclose(log_likelihood_old, log_likelihood_new):
+            raise exc.SearchException(
+                f"""
+                Figure of merit sanity check failed. 
+
+                This means that the existing results of a model fit used a different
+                likelihood function compared to the one implemented now.
+                Old Figure of Merit = {log_likelihood_old}
+                New Figure of Merit = {log_likelihood_new}
+                """
+            )

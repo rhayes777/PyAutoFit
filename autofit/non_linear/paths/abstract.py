@@ -427,7 +427,7 @@ class AbstractPaths(ABC):
         Save samples summary to the database.
         """
 
-    def load_samples_summary(self):
+    def load_samples_summary(self) -> SamplesSummary:
         """
         Load samples summary from the database.
         """

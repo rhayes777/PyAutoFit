@@ -1,6 +1,7 @@
 import copy
 import logging
 import multiprocessing as mp
+import numpy as np
 import os
 import time
 import warnings
@@ -11,7 +12,6 @@ from pathlib import Path
 from typing import Optional, Union, Tuple, List, Dict
 
 from autoconf import conf, cached_property
-from autoconf.dictable import to_dict, from_dict
 from autofit import exc, jax_wrapper
 from autofit.database.sqlalchemy_ import sa
 from autofit.graphical import (
