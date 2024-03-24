@@ -202,7 +202,11 @@ class FunctionTransform(AbstractDensityTransform):
             return self.func(x, *self.args)
 
     def inv_transform(self, x):
-        return self.inv_func(x, *self.args)
+
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+
+            return self.inv_func(x, *self.args)
 
     def jacobian(self, x):
         return DiagonalMatrix(self.grad(x, *self.args))
