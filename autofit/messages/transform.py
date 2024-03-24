@@ -39,11 +39,11 @@ class AbstractDensityTransform(ABC):
     This class allows the transformation of a probability density function, p(x)
     whilst preserving the measure of the distribution, i.e.
 
-    \int p(x) dx = 1
+    int p(x) dx = 1
 
     p'(f) = p(f(x)) * |df/dx|
 
-    \inf p'(f) df = 1
+    inf p'(f) df = 1
 
     Methods
     -------
