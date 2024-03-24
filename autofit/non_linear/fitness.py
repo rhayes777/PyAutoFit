@@ -150,9 +150,7 @@ class Fitness:
 
         return figure_of_merit
 
-    def check_log_likelihood(
-            self, fitness
-    ):
+    def check_log_likelihood(self, fitness):
         """
         Changes to the PyAutoGalaxy source code may inadvertantly change the numerics of how a log likelihood is
         computed. Equally, one may set off a model-fit that resumes from previous results, but change the settings of
@@ -180,7 +178,7 @@ class Fitness:
         if os.environ.get("PYAUTOFIT_TEST_MODE") == "1":
             return
 
-        if not conf.instance["general"]["test"]["check_figure_of_merit_sanity"]:
+        if not conf.instance["general"]["test"]["check_likelihood_function"]:
             return
 
         try:
@@ -191,7 +189,9 @@ class Fitness:
         max_log_likelihood_sample = samples_summary.max_log_likelihood_sample
         log_likelihood_old = samples_summary.max_log_likelihood_sample.log_likelihood
 
-        log_likelihood_new = fitness(parameters=max_log_likelihood_sample)
+        parameters = max_log_likelihood_sample.parameter_lists_for_model(model=self.model)
+
+        log_likelihood_new = fitness(parameters=parameters)
 
         if not np.isclose(log_likelihood_old, log_likelihood_new):
             raise exc.SearchException(
@@ -204,3 +204,5 @@ class Fitness:
                 New Figure of Merit = {log_likelihood_new}
                 """
             )
+
+
