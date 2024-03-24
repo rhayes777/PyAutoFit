@@ -47,3 +47,4 @@ class Visualise:
         evidence_plot.legend()
         kl_plot.legend()
         plt.savefig(str(self.output_path / "graph.png"))
+        plt.close()

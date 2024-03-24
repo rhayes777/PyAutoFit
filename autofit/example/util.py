@@ -50,3 +50,4 @@ def plot_profile_1d(
             os.makedirs(output_path)
         plt.savefig(output_path / f"{output_filename}.png")
     plt.clf()
+    plt.close()
