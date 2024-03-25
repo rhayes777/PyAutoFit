@@ -44,11 +44,14 @@ class MockSearch(NonLinearSearch):
     ):
         super().__init__(name=name, unique_tag=unique_tag, **kwargs)
 
+        if samples_summary is None:
+            samples_summary = MockSamplesSummary.default()
+
         self.samples_summary = samples_summary
 
         self.result = (
             MockResult(
-                samples_summary=MockSamplesSummary(),
+                samples_summary=samples_summary,
             )
             if result is None
             else result
