@@ -100,7 +100,12 @@ def test_make_result():
     analysis_1 = Analysis()
     analysis_2 = Analysis()
 
-    result = (analysis_1 + analysis_2).make_result(samples=None)
+    result = (analysis_1 + analysis_2).make_result(
+        samples=af.Samples(
+            model=af.Model(af.Gaussian),
+            sample_list=[],
+        )
+    )
 
     assert len(result) == 2
 
