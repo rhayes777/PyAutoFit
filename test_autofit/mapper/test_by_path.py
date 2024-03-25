@@ -169,15 +169,15 @@ def make_samples_summary(model):
     return af.SamplesSummary(
         model=model,
         max_log_likelihood_sample=af.Sample(
-        log_likelihood=1.0,
-        log_prior=1.0,
-        weight=1.0,
-        kwargs={
-            ("gaussian", "centre"): 0.1,
-            ("gaussian", "normalization"): 0.2,
-            ("gaussian", "sigma"): 0.3,
+            log_likelihood=1.0,
+            log_prior=1.0,
+            weight=1.0,
+            kwargs={
+                ("gaussian", "centre"): 0.1,
+                ("gaussian", "normalization"): 0.2,
+                ("gaussian", "sigma"): 0.3,
             },
-        )
+        ),
     )
 
 
@@ -189,15 +189,28 @@ def make_samples_summary(model):
         (("gaussian", "sigma"), [0.3]),
     ],
 )
-def test_values_for_path(samples_summary, path, value):
-    assert samples_summary.values_for_path(path) == value
+def test_values_for_path(path, value, model):
+    samples = af.Samples(
+        model,
+        [
+            af.Sample(
+                log_likelihood=1.0,
+                log_prior=1.0,
+                weight=1.0,
+                kwargs={
+                    ("gaussian", "centre"): 0.1,
+                    ("gaussian", "normalization"): 0.2,
+                    ("gaussian", "sigma"): 0.3,
+                },
+            )
+        ],
+    )
+    assert samples.values_for_path(path) == value
 
 
 @pytest.fixture(name="result")
 def make_result(model, samples_summary):
-    return af.mock.MockResult(
-        samples_summary=samples_summary
-    )
+    return af.mock.MockResult(samples_summary=samples_summary)
 
 
 @pytest.fixture(name="modified_result")
