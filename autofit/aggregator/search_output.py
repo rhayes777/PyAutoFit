@@ -248,7 +248,7 @@ class SearchOutput(AbstractSearchOutput):
                 with open(self.files_path / "samples.csv") as f:
                     sample_list = samples_from_iterator(csv.reader(f))
 
-                cls = cast(Samples, get_class(info_json["type"]))
+                cls = cast(Samples, get_class(info_json["class_path"]))
 
                 self._samples = cls.from_list_info_and_model(
                     sample_list=sample_list,

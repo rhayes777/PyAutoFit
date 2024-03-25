@@ -41,7 +41,7 @@ class EfficientSamples:
         """
         Convert the efficient samples back to a SamplesPDF instance.
         """
-        cls = cast(Type[Samples], get_class(self.samples_info["type"]))
+        cls = cast(Type[Samples], get_class(self.samples_info["class_path"]))
         return cls(
             model=self.model,
             samples_info=self.samples_info,

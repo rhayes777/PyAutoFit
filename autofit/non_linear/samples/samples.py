@@ -51,7 +51,7 @@ class Samples(SamplesInterface, ABC):
         self.sample_list = sample_list
         self.samples_info = {
             **(samples_info or {}),
-            "type": get_class_path(self.__class__),
+            "class_path": get_class_path(self.__class__),
         }
 
     def __str__(self):
@@ -415,7 +415,6 @@ class Samples(SamplesInterface, ABC):
             sample_list=sample_list,
             samples_info=self.samples_info,
         )
-
 
     def minimise(self) -> "Samples":
         """
