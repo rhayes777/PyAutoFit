@@ -38,12 +38,15 @@ class ModelAnalysis(Analysis):
         """
         Return the correct type of result by calling the underlying analysis.
         """
-        return self.analysis.make_result(
-            samples_summary=samples_summary,
-            paths=paths,
-            samples=samples,
-            search_internal=search_internal,
-        )
+        try:
+            return self.analysis.make_result(
+                samples_summary=samples_summary,
+                paths=paths,
+                samples=samples,
+                search_internal=search_internal,
+            )
+        except TypeError:
+            raise
 
 
 class CombinedModelAnalysis(IndexCollectionAnalysis):
