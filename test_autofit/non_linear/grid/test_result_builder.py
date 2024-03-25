@@ -10,7 +10,7 @@ from autofit.non_linear.samples.summary import SamplesSummary
 
 @pytest.fixture(name="result_builder")
 def make_result_builder():
-    return ResultBuilder(lists=[[1], [2], [3]], grid_priors=[])
+    return ResultBuilder(lists=[[1], [2], [3]], grid_priors=[], paths=[])
 
 
 @pytest.fixture(name="add_results")

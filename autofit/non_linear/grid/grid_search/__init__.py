@@ -217,7 +217,13 @@ class GridSearch:
         grid_priors = model.sort_priors_alphabetically(set(grid_priors))
         lists = self.make_lists(grid_priors)
 
-        builder = ResultBuilder(lists=lists, grid_priors=grid_priors)
+        jobs = self.make_jobs(model, analysis, grid_priors, info)
+
+        builder = ResultBuilder(
+            lists=lists,
+            grid_priors=grid_priors,
+            paths=[j.search_instance.paths for j in jobs],
+        )
 
         self.save_metadata()
 
@@ -252,9 +258,7 @@ class GridSearch:
         results_list = []
 
         for i, job_result in enumerate(
-            process_class.run_jobs(
-                self.make_jobs(model, analysis, grid_priors, info), self.number_of_cores
-            )
+            process_class.run_jobs(jobs, self.number_of_cores)
         ):
             builder.add(job_result)
             results_list.append(job_result.result_list_row)
