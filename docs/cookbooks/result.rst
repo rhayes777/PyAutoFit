@@ -344,8 +344,8 @@ tool ``corner.py``, which is wrapped via the ``EmceePlotter`` object.
 
 .. code-block:: python
 
-    search_plotter = aplt.MCMCPlotter(samples=result.samples)
-    search_plotter.corner()
+    plotter = aplt.MCMCPlotter(samples=result.samples)
+    plotter.corner()
 
 This plot appears as follows:
 

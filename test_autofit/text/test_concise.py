@@ -59,7 +59,7 @@ def make_samples(collection):
             weight_list=log_likelihood_list,
             model=collection,
         ),
-        max_log_likelihood_instance=collection.instance_from_prior_medians(),
+        # max_log_likelihood_instance=collection.instance_from_prior_medians(),
     )
 
 

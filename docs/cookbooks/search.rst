@@ -174,9 +174,9 @@ Checkout the ``plot`` package for a complete description of the plots that can b
 
     samples = result.samples
 
-    search_plotter = aplt.MCMCPlotter(samples=samples)
+    plotter = aplt.MCMCPlotter(samples=samples)
 
-    search_plotter.corner(
+    plotter.corner(
         bins=20,
         range=None,
         color="k",
