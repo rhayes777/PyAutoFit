@@ -23,20 +23,31 @@ class MockSamplesSummary(SamplesSummary):
 
         self._max_log_likelihood_instance = max_log_likelihood_instance
         self._prior_means = prior_means
+        self._kwargs = {path: 1.0 for path in self.model.paths} if self.model else {}
 
     @property
     def max_log_likelihood_sample(self):
         if self._max_log_likelihood_sample is not None:
             return self._max_log_likelihood_sample
 
-        return Sample(log_likelihood=1.0, log_prior=0.0, weight=0.0)
+        return Sample(
+            log_likelihood=1.0,
+            log_prior=0.0,
+            weight=0.0,
+            kwargs=self._kwargs,
+        )
 
     @property
     def median_pdf_sample(self):
         if self._median_pdf_sample is not None:
             return self._median_pdf_sample
 
-        return Sample(log_likelihood=1.0, log_prior=0.0, weight=0.0)
+        return Sample(
+            log_likelihood=1.0,
+            log_prior=0.0,
+            weight=0.0,
+            kwargs=self._kwargs,
+        )
 
     def max_log_likelihood(self, as_instance: bool = True):
         if self._max_log_likelihood_instance is None:

@@ -92,7 +92,7 @@ class MockSearch(NonLinearSearch):
                 # Return Chi squared
                 return -2 * log_likelihood
 
-        # self.paths.save_samples_summary(self.samples_summary)
+        self.paths.save_samples_summary(self.samples_summary)
 
         if self.save_for_aggregator:
             analysis.save_attributes(paths=self.paths)
@@ -104,8 +104,7 @@ class MockSearch(NonLinearSearch):
 
     def _fit(self, model, analysis):
         if self.fit_fast:
-            result = self._fit_fast(model=model, analysis=analysis)
-            return result
+            return self._fit_fast(model=model, analysis=analysis)
 
         if model.prior_count == 0:
             raise AssertionError("There are no priors associated with the model!")
