@@ -158,6 +158,7 @@ def make_results(hierarchical_factor):
         af.mock.MockResult(
             samples=generate_samples(factor.prior_model),
             model=factor.prior_model,
+            instance=factor.prior_model.instance_from_prior_medians(),
         )
         for factor in hierarchical_factor.factors
     ]

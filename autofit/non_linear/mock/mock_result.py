@@ -20,7 +20,10 @@ class MockResult(Result):
         super().__init__(
             samples_summary=samples_summary
             or MockSamplesSummary(
-                model=model or ModelMapper(),
+                model=model
+                or ModelMapper(
+                    instance=instance or ModelInstance(),
+                ),
             ),
             paths=paths,
             samples=samples,
