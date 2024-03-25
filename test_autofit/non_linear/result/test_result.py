@@ -68,8 +68,6 @@ class TestResult:
     def test_model_bounded(self, result):
         component = result.model_bounded(b=1.0).component
 
-        print(component.one_tuple.one_tuple_0.lower_limit)
-
         assert component.one_tuple.one_tuple_0.lower_limit == -1.0
         assert component.one_tuple.one_tuple_1.lower_limit == 0.0
         assert component.one_tuple.one_tuple_0.upper_limit == 1.0
