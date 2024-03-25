@@ -20,10 +20,7 @@ class MockResult(Result):
         super().__init__(
             samples_summary=samples_summary
             or MockSamplesSummary(
-                model=model
-                or ModelMapper(
-                    instance=instance or ModelInstance(),
-                ),
+                model=model or ModelMapper(),
             ),
             paths=paths,
             samples=samples,
@@ -62,7 +59,7 @@ class MockResult(Result):
 class MockResultGrid(Result):
     def __init__(self, log_likelihood):
         # noinspection PyTypeChecker
-        super().__init__(None)
+        super().__init__(None, None)
         self._log_likelihood = log_likelihood
         self.model = log_likelihood
 

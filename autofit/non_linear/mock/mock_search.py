@@ -52,6 +52,7 @@ class MockSearch(NonLinearSearch):
         self.result = (
             MockResult(
                 samples_summary=samples_summary,
+                model=samples_summary.model,
             )
             if result is None
             else result

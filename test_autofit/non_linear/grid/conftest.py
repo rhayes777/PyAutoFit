@@ -1,6 +1,7 @@
 import pytest
 
 import autofit as af
+from autofit.non_linear.mock.mock_samples_summary import MockSamplesSummary
 
 
 @pytest.fixture(name="mapper")
@@ -24,7 +25,11 @@ def make_sample_name_paths():
 @pytest.fixture(name="grid_search_10_result")
 def make_grid_search_10_result(mapper, sample_name_paths):
     grid_search = af.SearchGridSearch(
-        search=af.m.MockOptimizer(),
+        search=af.m.MockOptimizer(
+            samples_summary=MockSamplesSummary(
+                model=mapper,
+            )
+        ),
         number_of_steps=10,
     )
     grid_search.search.paths = sample_name_paths
