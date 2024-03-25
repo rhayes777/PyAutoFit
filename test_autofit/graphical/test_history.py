@@ -157,6 +157,7 @@ def make_results(hierarchical_factor):
     return [
         af.mock.MockResult(
             samples=generate_samples(factor.prior_model),
+            model=factor.prior_model,
         )
         for factor in hierarchical_factor.factors
     ]
