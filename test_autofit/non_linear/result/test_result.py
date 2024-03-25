@@ -2,6 +2,7 @@ import pytest
 
 import autofit as af
 from autofit import Sample
+from autofit.non_linear.mock.mock_samples_summary import MockSamplesSummary
 
 
 @pytest.fixture(name="result")
@@ -22,9 +23,22 @@ def make_result():
                     },
                 ),
             ],
-            max_log_likelihood_instance=[0, 1],
+            # max_log_likelihood_instance=[0, 1],
             prior_means=[0, 1],
             model=mapper,
+        ),
+        samples_summary=MockSamplesSummary(
+            model=mapper,
+            max_log_likelihood_instance=[0, 1],
+            median_pdf_sample=Sample(
+                log_likelihood=1.0,
+                log_prior=0.0,
+                weight=0.0,
+                kwargs={
+                    "component.one_tuple.one_tuple_0": 0,
+                    "component.one_tuple.one_tuple_1": 1,
+                },
+            ),
         ),
     )
 

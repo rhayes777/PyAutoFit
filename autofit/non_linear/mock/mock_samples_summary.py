@@ -45,8 +45,7 @@ class MockSamplesSummary(SamplesSummary):
             except (KeyError, AttributeError):
                 pass
 
-        if as_instance:
-            return self._max_log_likelihood_instance
+        return self._max_log_likelihood_instance
 
     @property
     def prior_means(self):
