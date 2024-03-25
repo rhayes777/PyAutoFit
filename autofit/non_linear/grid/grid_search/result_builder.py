@@ -50,6 +50,7 @@ class ResultBuilder:
             samples
             if isinstance(samples, Placeholder)
             else Result(
+                samples_summary=samples.summary(),
                 samples=samples,
             )
             for samples in self.samples
