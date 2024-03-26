@@ -188,5 +188,5 @@ class SamplesInterface(ABC):
 
         try:
             return self.median_pdf(as_instance=False)
-        except AttributeError:
+        except (AttributeError, IndexError):
             return self.max_log_likelihood(as_instance=False)
