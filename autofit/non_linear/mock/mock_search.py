@@ -34,6 +34,7 @@ class MockSearch(NonLinearSearch):
         self,
         name="",
         samples_summary=None,
+        samples=None,
         result=None,
         unique_tag: Optional[str] = None,
         fit_fast=True,
@@ -48,6 +49,7 @@ class MockSearch(NonLinearSearch):
             samples_summary = MockSamplesSummary.default()
 
         self.samples_summary = samples_summary
+        self.samples = samples
 
         self.result = (
             MockResult(
@@ -93,6 +95,7 @@ class MockSearch(NonLinearSearch):
                 return -2 * log_likelihood
 
         self.paths.save_samples_summary(self.samples_summary)
+        self.paths.save_samples(samples=self.samples)
 
         if self.save_for_aggregator:
             analysis.save_attributes(paths=self.paths)
