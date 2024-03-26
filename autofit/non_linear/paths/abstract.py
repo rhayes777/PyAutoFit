@@ -242,7 +242,10 @@ class AbstractPaths(ABC):
         This is private for a reason, use the save_json etc. methods to save and load json
         """
         files_path = self.output_path / "files"
-        os.makedirs(files_path, exist_ok=True)
+        try:
+            os.makedirs(files_path, exist_ok=True)
+        except FileExistsError:
+            pass
         return files_path
 
     def zip_remove(self):
