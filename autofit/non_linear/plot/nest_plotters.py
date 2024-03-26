@@ -41,7 +41,7 @@ def log_value_error(func):
         try:
             return func(self, *args, **kwargs)
         except (ValueError, KeyError, AssertionError, IndexError, TypeError, np.linalg.LinAlgError):
-            self.log_plot_exception(func.__name__)
+            pass
 
     return wrapper
 

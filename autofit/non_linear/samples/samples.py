@@ -2,10 +2,13 @@ from abc import ABC
 
 import json
 from copy import copy
+import logging
+import os
 from typing import Dict, List, Optional, Tuple, Union
 
 import numpy as np
 
+from autoconf import conf
 from autoconf.class_path import get_class_path
 from autofit import exc
 from autofit.mapper.model import ModelInstance
@@ -16,6 +19,7 @@ from .summary import SamplesSummary
 from .interface import SamplesInterface, to_instance
 from ...text.formatter import write_table
 
+logger = logging.getLogger(__name__)
 
 class Samples(SamplesInterface, ABC):
     def __init__(
@@ -385,7 +389,11 @@ class Samples(SamplesInterface, ABC):
         """
         return self.parameter_lists[sample_index]
 
-    def samples_above_weight_threshold_from(self, weight_threshold: float) -> "Samples":
+    def samples_above_weight_threshold_from(
+            self,
+            weight_threshold: Optional[float] = None,
+            log_message : bool = False
+    ) -> "Samples":
         """
         Returns a new `Samples` object containing only the samples with a weight above the input threshold.
 
@@ -403,11 +411,28 @@ class Samples(SamplesInterface, ABC):
         weight_threshold
             The threshold of weight at which a sample is included in the new `Samples` object.
         """
+
+        if weight_threshold is None:
+            weight_threshold = conf.instance["output"][
+                "samples_weight_threshold"
+            ]
+
+        if os.environ.get("PYAUTOFIT_TEST_MODE") == "1":
+            weight_threshold = None
+
+        if weight_threshold is None:
+            return self
+
         sample_list = []
 
         for sample in self.sample_list:
             if sample.weight > weight_threshold:
                 sample_list.append(sample)
+
+        if log_message:
+            logger.info(
+                f"Samples with weight less than {weight_threshold} removed from samples.csv."
+            )
 
         return self.__class__(
             model=self.model,
