@@ -11,10 +11,7 @@ from autofit.non_linear.samples.samples import Samples
 
 
 class HierarchicalResult(AbstractResult):
-    def __init__(
-            self,
-            results: List[AbstractResult]
-    ):
+    def __init__(self, results: List[AbstractResult]):
         """
         One true factor is created per each variable drawn from the declarative
         hierarchical factor. One result for each of those factors is in this
@@ -25,10 +22,7 @@ class HierarchicalResult(AbstractResult):
         results
             Results from hierarchical factor optimisations
         """
-        super().__init__(
-            samples_summary=None,
-            paths=None
-        )
+        super().__init__(samples_summary=None, paths=None)
         self.results = results
 
     @property
@@ -36,11 +30,7 @@ class HierarchicalResult(AbstractResult):
         """
         All samples from all underlying optimisations are summed together.
         """
-        return sum(
-            result.samples
-            for result
-            in self.results
-        )
+        return sum(result.samples for result in self.results)
 
     @property
     def model(self) -> AbstractPriorModel:
@@ -52,9 +42,7 @@ class HierarchicalResult(AbstractResult):
         The distribution model is returned.
         """
         return AbstractPriorModel.product(
-            result.model
-            for result
-            in self.results
+            result.model for result in self.results
         ).distribution_model
 
     @property
@@ -63,15 +51,15 @@ class HierarchicalResult(AbstractResult):
         Return the instance (e.g. prior) describing the distribution
         from which samples are drawn.
         """
-        return super().instance.distribution_model
+        return self.samples.instance.distribution_model
 
 
 class EPResult:
     def __init__(
-            self,
-            ep_history: EPHistory,
-            declarative_factor,
-            updated_ep_mean_field: EPMeanField,
+        self,
+        ep_history: EPHistory,
+        declarative_factor,
+        updated_ep_mean_field: EPMeanField,
     ):
         """
         The result of an EP Optimisation including its history, a declarative
@@ -98,24 +86,18 @@ class EPResult:
         the EP Optimisation. Each item in the collection represents a single
         factor in the optimisation.
         """
-        collection = Collection({
-            factor.name: factor.prior_model
-            for factor
-            in self.declarative_factor.model_factors
-        })
+        collection = Collection(
+            {
+                factor.name: factor.prior_model
+                for factor in self.declarative_factor.model_factors
+            }
+        )
         arguments = {
-            prior: prior.with_message(
-                self.updated_ep_mean_field.mean_field[
-                    prior
-                ]
-            )
-            for prior
-            in collection.priors
+            prior: prior.with_message(self.updated_ep_mean_field.mean_field[prior])
+            for prior in collection.priors
         }
 
-        return collection.gaussian_prior_model_for_arguments(
-            arguments
-        )
+        return collection.gaussian_prior_model_for_arguments(arguments)
 
     @property
     def latest_results(self) -> List[Result]:
@@ -134,10 +116,7 @@ class EPResult:
         """
         return self.model.instance_from_prior_medians()
 
-    def latest_for(
-            self,
-            factor: Union[Factor, HierarchicalFactor]
-    ) -> AbstractResult:
+    def latest_for(self, factor: Union[Factor, HierarchicalFactor]) -> AbstractResult:
         """
         Return the latest result for a factor.
 
@@ -156,8 +135,7 @@ class EPResult:
         if isinstance(factor, HierarchicalFactor):
             results = [
                 self.ep_history[child_factor].latest_result
-                for child_factor
-                in factor.factors
+                for child_factor in factor.factors
             ]
             return HierarchicalResult(results)
         return self.ep_history[factor].latest_result

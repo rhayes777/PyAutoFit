@@ -4,6 +4,7 @@ from typing import Optional
 
 import autofit as af
 from autofit.non_linear.grid import sensitivity as s
+from autofit.non_linear.mock.mock_samples_summary import MockSamplesSummary
 
 x = np.array(range(10))
 
@@ -38,7 +39,10 @@ class BaseFit:
         self.analysis_cls = analysis_cls
 
     def __call__(self, dataset, model, paths):
-        search = af.m.MockSearch(return_sensitivity_results=True)
+        search = af.m.MockSearch(
+            return_sensitivity_results=True,
+            samples_summary=MockSamplesSummary(model=model),
+        )
 
         analysis = self.analysis_cls(dataset=dataset)
 
@@ -50,7 +54,10 @@ class PerturbFit:
         self.analysis_cls = analysis_cls
 
     def __call__(self, dataset, model, paths):
-        search = af.m.MockSearch(return_sensitivity_results=True)
+        search = af.m.MockSearch(
+            return_sensitivity_results=True,
+            samples_summary=MockSamplesSummary(model=model),
+        )
 
         analysis = self.analysis_cls(dataset=dataset)
 

@@ -256,7 +256,9 @@ class DirectoryPaths(AbstractPaths):
                         f"Could not save covariance matrix because of the following error:\n{e}"
                     )
 
-            samples_weight_threshold = conf.instance["output"]["samples_weight_threshold"]
+            samples_weight_threshold = conf.instance["output"][
+                "samples_weight_threshold"
+            ]
 
             if os.environ.get("PYAUTOFIT_TEST_MODE") == "1":
                 samples_weight_threshold = None
@@ -273,8 +275,7 @@ class DirectoryPaths(AbstractPaths):
 
             samples.write_table(filename=self._samples_file)
 
-    def save_samples_summary(self, samples_summary : SamplesSummary):
-
+    def save_samples_summary(self, samples_summary: SamplesSummary):
         model = samples_summary.model
 
         samples_summary.model = None
@@ -282,7 +283,6 @@ class DirectoryPaths(AbstractPaths):
         samples_summary.model = model
 
     def load_samples_summary(self) -> SamplesSummary:
-
         samples_summary = from_dict(self.load_json(name="samples_summary"))
         samples_summary.model = self.model
 

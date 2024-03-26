@@ -36,7 +36,12 @@ class MockSamples(SamplesPDF):
     @property
     def default_sample_list(self):
         return [
-            Sample(log_likelihood=log_likelihood, log_prior=0.0, weight=0.0)
+            Sample(
+                log_likelihood=log_likelihood,
+                log_prior=0.0,
+                weight=0.0,
+                kwargs={path: 1.0 for path in self.model.paths} if self.model else {},
+            )
             for log_likelihood in range(3)
         ]
 
@@ -46,7 +51,6 @@ class MockSamples(SamplesPDF):
             return super().log_likelihood_list
 
         return self._log_likelihood_list
-
 
     @property
     def unconverged_sample_size(self):
