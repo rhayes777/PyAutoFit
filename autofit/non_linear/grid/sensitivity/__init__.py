@@ -143,9 +143,9 @@ class Sensitivity:
                     )
 
         result = SensitivityResult(
-            samples=[result.result.samples.summary() for result in results],
+            samples=[result.result.samples_summary for result in results],
             perturb_samples=[
-                result.perturb_result.samples.summary() for result in results
+                result.perturb_result.samples_summary for result in results
             ],
             shape=self.shape,
         )

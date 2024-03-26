@@ -1,27 +1,33 @@
 import pytest
 
 import autofit as af
-from autofit import Result
 from autofit.non_linear.grid.grid_search import ResultBuilder
 from autofit.non_linear.grid.grid_search.job import JobResult
 from autofit.non_linear.grid.grid_search.result_builder import Placeholder
+from autofit.non_linear.mock.mock_samples_summary import MockSamplesSummary
 from autofit.non_linear.samples.summary import SamplesSummary
 
 
 @pytest.fixture(name="result_builder")
 def make_result_builder():
-    return ResultBuilder(lists=[[1], [2], [3]], grid_priors=[])
+    return ResultBuilder(lists=[[1], [2], [3]], grid_priors=[], paths=[])
 
 
 @pytest.fixture(name="add_results")
 def make_add_results(result_builder):
     def add_results(*numbers):
         for number in numbers:
+            model = af.Model(af.Gaussian)
+            samples_summary = MockSamplesSummary(model=model)
             result_builder.add(
                 JobResult(
                     af.m.MockResult(
-                        search=af.m.MockSearch(name=str(number)),
-                        model=af.Model(af.Gaussian),
+                        search=af.m.MockSearch(
+                            name=str(number),
+                            samples_summary=samples_summary,
+                        ),
+                        model=model,
+                        samples_summary=samples_summary,
                     ),
                     [],
                     number,

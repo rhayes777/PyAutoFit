@@ -2,29 +2,34 @@ import pytest
 
 import autofit as af
 from autofit import Sample
+from autofit.non_linear.mock.mock_samples_summary import MockSamplesSummary
 
 
 @pytest.fixture(name="result")
 def make_result():
     mapper = af.ModelMapper()
     mapper.component = af.m.MockClassx2Tuple
+    sample = Sample(
+        log_likelihood=1.0,
+        log_prior=0.0,
+        weight=0.0,
+        kwargs={
+            "component.one_tuple.one_tuple_0": 0,
+            "component.one_tuple.one_tuple_1": 1,
+        },
+    )
     # noinspection PyTypeChecker
-    return af.Result(
+    return af.mock.MockResult(
         samples=af.m.MockSamples(
-            sample_list=[
-                Sample(
-                    log_likelihood=1.0,
-                    log_prior=0.0,
-                    weight=0.0,
-                    kwargs={
-                        "component.one_tuple.one_tuple_0": 0,
-                        "component.one_tuple.one_tuple_1": 1,
-                    },
-                ),
-            ],
-            max_log_likelihood_instance=[0, 1],
+            sample_list=[sample],
+            # max_log_likelihood_instance=[0, 1],
             prior_means=[0, 1],
             model=mapper,
+        ),
+        samples_summary=MockSamplesSummary(
+            model=mapper,
+            max_log_likelihood_instance=[0, 1],
+            median_pdf_sample=sample,
         ),
     )
 
@@ -53,8 +58,6 @@ class TestResult:
 
     def test_model_bounded(self, result):
         component = result.model_bounded(b=1.0).component
-
-        print(component.one_tuple.one_tuple_0.lower_limit)
 
         assert component.one_tuple.one_tuple_0.lower_limit == -1.0
         assert component.one_tuple.one_tuple_1.lower_limit == 0.0

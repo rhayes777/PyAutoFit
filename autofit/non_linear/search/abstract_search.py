@@ -11,7 +11,6 @@ from pathlib import Path
 from typing import Optional, Union, Tuple, List, Dict
 
 from autoconf import conf, cached_property
-from autoconf.dictable import to_dict
 from autofit import exc, jax_wrapper
 from autofit.database.sqlalchemy_ import sa
 from autofit.graphical import (
@@ -31,6 +30,7 @@ from autofit.non_linear.paths.database import DatabasePaths
 from autofit.non_linear.paths.directory import DirectoryPaths
 from autofit.non_linear.paths.sub_directory_paths import SubDirectoryPaths
 from autofit.non_linear.samples.samples import Samples
+from autofit.non_linear.samples.summary import SamplesSummary
 from autofit.non_linear.result import Result
 from autofit.non_linear.timer import Timer
 from autofit.non_linear.analysis import Analysis
@@ -156,11 +156,6 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         self.force_pickle_overwrite = conf.instance["general"]["output"][
             "force_pickle_overwrite"
         ]
-        self.skip_save_samples = kwargs.get("skip_save_samples")
-        if self.skip_save_samples is None:
-            self.skip_save_samples = conf.instance["general"]["output"].get(
-                "skip_save_samples"
-            )
 
         self.force_visualize_overwrite = conf.instance["general"]["output"][
             "force_visualize_overwrite"
@@ -222,43 +217,44 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                 "NUMEXPR_NUM_THREADS",
             )
         ):
-            warnings.warn(
-                exc.SearchWarning(
-                    """
-                    The non-linear search is using multiprocessing (number_of_cores>1). 
-
-                    However, the following environment variables have not been set to 1:
-
-                    OPENBLAS_NUM_THREADS
-                    MKL_NUM_THREADS
-                    OMP_NUM_THREADS
-                    VECLIB_MAXIMUM_THREADS
-                    NUMEXPR_NUM_THREADS
-
-                    This can lead to performance issues, because both the non-linear search and libraries that may be
-                    used in your `log_likelihood_function` evaluation (e.g. NumPy, SciPy, scikit-learn) may attempt to
-                    parallelize over all cores available.
-
-                    This will lead to slow-down, due to overallocation of tasks over the CPUs.
-
-                    To mitigate this, set the environment variables to 1 via the following command on your
-                    bash terminal / command line:
-
-                    export OPENBLAS_NUM_THREADS=1
-                    export MKL_NUM_THREADS=1
-                    export OMP_NUM_THREADS=1
-                    export VECLIB_MAXIMUM_THREADS=1
-                    export NUMEXPR_NUM_THREADS=1
-
-                    This means only the non-linear search is parallelized over multiple cores.
-
-                    If you "know what you are doing" and do not want these environment variables to be set to one, you 
-                    can disable this warning by changing the following entry in the config files:
-
-                    `config -> general.yaml -> parallel: -> warn_environment_variable=False`
-                    """
+            if conf.instance["general"]["parallel"]["warn_environment_variables"]:
+                warnings.warn(
+                    exc.SearchWarning(
+                        """
+                        The non-linear search is using multiprocessing (number_of_cores>1). 
+    
+                        However, the following environment variables have not been set to 1:
+    
+                        OPENBLAS_NUM_THREADS
+                        MKL_NUM_THREADS
+                        OMP_NUM_THREADS
+                        VECLIB_MAXIMUM_THREADS
+                        NUMEXPR_NUM_THREADS
+    
+                        This can lead to performance issues, because both the non-linear search and libraries that may be
+                        used in your `log_likelihood_function` evaluation (e.g. NumPy, SciPy, scikit-learn) may attempt to
+                        parallelize over all cores available.
+    
+                        This will lead to slow-down, due to overallocation of tasks over the CPUs.
+    
+                        To mitigate this, set the environment variables to 1 via the following command on your
+                        bash terminal / command line:
+    
+                        export OPENBLAS_NUM_THREADS=1
+                        export MKL_NUM_THREADS=1
+                        export OMP_NUM_THREADS=1
+                        export VECLIB_MAXIMUM_THREADS=1
+                        export NUMEXPR_NUM_THREADS=1
+    
+                        This means only the non-linear search is parallelized over multiple cores.
+    
+                        If you "know what you are doing" and do not want these environment variables to be set to one, you 
+                        can disable this warning by changing the following entry in the config files:
+    
+                        `config -> general.yaml -> parallel: -> warn_environment_variables=False`
+                        """
+                    )
                 )
-            )
 
         self.optimisation_counter = Counter()
 
@@ -560,7 +556,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
             self.post_fit_output(
                 bypass_nuclear_if_on=bypass_nuclear_if_on,
-                search_internal=result.search_internal
+                search_internal=result.search_internal,
             )
 
         return result
@@ -674,7 +670,10 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         )
 
         result = analysis.make_result(
-            samples=samples, search_internal=search_internal
+            samples_summary=samples.summary(),
+            paths=self.paths,
+            samples=samples,
+            search_internal=search_internal
         )
 
         if self.is_master:
@@ -688,13 +687,18 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         return result
 
     def result_via_completed_fit(
-        self, analysis: Analysis, model: AbstractPriorModel,
+        self,
+        analysis: Analysis,
+        model: AbstractPriorModel,
     ) -> Result:
         """
         Returns the result of the non-linear search of a completed model-fit.
 
-        The result contains the non-linear search samples, which are loaded from the searches internal results,
-        or the `samples.csv` file if the internal results are not available.
+        The result contains the non-linear search samples summary, which contains the maximum log likelihood instance
+        that is used for visualization and prior passing via the search chaining API.
+
+        This funciton may also load the full samples of the completed fit, for example if visualization of the
+        seatch chains (e.g. a corner plot) is performed. This task is optional and be slow due to loading times.
 
         Optional tasks can be performed to update the results of the model-fit on hard-disk depending on the following
         entries of the `general.yaml` config file's `output` section:
@@ -721,24 +725,11 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         """
 
         model.freeze()
-        try:
-            samples = self.samples_from(model=model)
-        except FileNotFoundError:
-            samples = None
-
-        try:
-            search_internal = self.backend
-        except (AttributeError, FileNotFoundError):
-            search_internal = None
-
-        if search_internal is None:
-            try:
-                search_internal = self.paths.load_search_internal()
-            except FileNotFoundError:
-                search_internal = None
+        samples_summary = self.paths.load_samples_summary()
 
         result = analysis.make_result(
-            samples=samples, search_internal=search_internal
+            samples_summary=samples_summary,
+            paths=self.paths
         )
 
         if self.is_master:
@@ -748,15 +739,12 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                 self.perform_visualization(
                     model=model,
                     analysis=analysis,
-                    search_internal=search_internal,
+                    samples_summary=samples_summary,
                     during_analysis=False,
                 )
 
             if self.force_pickle_overwrite:
                 self.logger.info("Forcing pickle overwrite")
-
-                if not self.skip_save_samples:
-                    self.paths.save_json("samples_summary", to_dict(samples.summary()))
 
                 analysis.save_results(paths=self.paths, result=result)
                 analysis.save_results_combined(paths=self.paths, result=result)
@@ -902,13 +890,11 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         self.iterations += self.iterations_per_update
         if during_analysis:
             self.logger.info(
-                f"""Fit Still Running: Updating results after {self.iterations} iterations (see
-                output folder for latest visualization, samples, etc.)"""
+                f"""Fit Running: Updating results after {self.iterations} iterations (see output folder)."""
             )
         else:
             self.logger.info(
-                "Fit Complete: Updating final results (see "
-                "output folder for final visualization, samples, etc.)"
+                "Fit Complete: Updating final results (see output folder)."
             )
 
         if not isinstance(self.paths, DatabasePaths) and not isinstance(
@@ -917,46 +903,37 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             self.timer.update()
 
         samples = self.samples_from(model=model, search_internal=search_internal)
+        samples_summary = samples.summary()
 
         try:
-            instance = samples.max_log_likelihood()
+            instance = samples_summary.instance
         except exc.FitException:
             return samples
 
         if self.is_master:
 
-            samples_for_csv = samples
+            self.paths.save_samples_summary(samples_summary=samples_summary)
 
-            samples_weight_threshold = conf.instance["output"]["samples_weight_threshold"]
+            samples = samples.samples_above_weight_threshold_from(log_message=not during_analysis)
+            self.paths.save_samples(samples=samples)
 
-            if os.environ.get("PYAUTOFIT_TEST_MODE") == "1":
-                samples_weight_threshold = None
+            if (
+                    (during_analysis and conf.instance["output"]["latent_during_fit"]) or
+                    (not during_analysis and conf.instance["output"]["latent_after_fit"])
+            ):
 
-            if samples_weight_threshold is not None:
-                samples_for_csv = samples_for_csv.samples_above_weight_threshold_from(
-                    weight_threshold=samples_weight_threshold
-                )
+                latent_variables = analysis.compute_all_latent_variables(samples)
 
-                logger.info(
-                    f"Samples with weight less than {samples_weight_threshold} removed from samples.csv and not used to "
-                    f"compute parameter estimates errors, etc."
-                )
-
-            self.paths.save_samples(samples=samples_for_csv)
-
-            latent_variables = analysis.latent_variables
-            if latent_variables:
-                self.paths.save_latent_variables(
-                    latent_variables,
-                    samples=samples,
-                )
-
-            if not self.skip_save_samples:
-                self.paths.save_json("samples_summary", to_dict(samples.summary()))
+                if latent_variables:
+                    self.paths.save_latent_variables(
+                        latent_variables,
+                        samples=samples,
+                    )
 
             self.perform_visualization(
                 model=model,
                 analysis=analysis,
+                samples_summary=samples_summary,
                 during_analysis=during_analysis,
                 search_internal=search_internal,
             )
@@ -999,6 +976,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         self,
         model: AbstractPriorModel,
         analysis: AbstractPriorModel,
+        samples_summary : SamplesSummary,
         during_analysis: bool,
         search_internal=None,
     ):
@@ -1011,9 +989,9 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         The update performs the following tasks (if the settings indicate they should be performed):
 
-        1) Visualize the search results.
-        2) Visualize the maximum log likelihood model using model-specific visualization implented via the `Analysis`
+        1) Visualize the maximum log likelihood model using model-specific visualization implented via the `Analysis`
            object.
+        2) Visualize the search results.
 
         Parameters
         ----------
@@ -1026,28 +1004,29 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             If the update is during a non-linear search, in which case tasks are only performed after a certain number
             of updates and only a subset of visualization may be performed.
         """
-        samples = self.samples_from(model=model, search_internal=search_internal)
-
-        try:
-            instance = samples.max_log_likelihood()
-        except exc.FitException:
-            return samples
-
-        if analysis.should_visualize(paths=self.paths, during_analysis=during_analysis):
-            if not isinstance(self.paths, NullPaths):
-                self.plot_results(samples=samples)
 
         self.logger.debug("Visualizing")
+
         if analysis.should_visualize(paths=self.paths, during_analysis=during_analysis):
             analysis.visualize(
-                paths=self.paths, instance=instance, during_analysis=during_analysis
+                paths=self.paths,
+                instance=samples_summary.instance,
+                during_analysis=during_analysis
             )
             analysis.visualize_combined(
                 analyses=None,
                 paths=self.paths,
-                instance=instance,
+                instance=samples_summary.instance,
                 during_analysis=during_analysis,
             )
+
+        if analysis.should_visualize(paths=self.paths, during_analysis=during_analysis):
+
+            if not isinstance(self.paths, NullPaths):
+
+                samples = self.samples_from(model=model, search_internal=search_internal)
+
+                self.plot_results(samples=samples)
 
     @property
     def samples_cls(self):

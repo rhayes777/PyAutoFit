@@ -1,6 +1,6 @@
 import os
 import matplotlib.pyplot as plt
-from typing import List, Optional
+from typing import Dict, List
 
 from autofit.jax_wrapper import numpy as np
 
@@ -60,13 +60,6 @@ class Analysis(af.Analysis):
         chi_squared_map = (residual_map / self.noise_map) ** 2.0
         log_likelihood = -0.5 * sum(chi_squared_map)
 
-        try:
-            self.save_latent_variables(
-                fwmh=instance.fwhm
-            )
-        except AttributeError:
-            pass
-
         return log_likelihood
 
     def visualize(self, paths: af.DirectoryPaths, instance: af.ModelInstance, during_analysis : bool):
@@ -122,6 +115,7 @@ class Analysis(af.Analysis):
         os.makedirs(paths.image_path, exist_ok=True)
         plt.savefig(paths.image_path / "model_fit.png")
         plt.clf()
+        plt.close()
 
     def visualize_combined(
         self,
@@ -176,4 +170,32 @@ class Analysis(af.Analysis):
         paths.save_json(name="data", object_dict=self.data.tolist(), prefix="dataset")
         paths.save_json(name="noise_map", object_dict=self.noise_map.tolist(), prefix="dataset")
 
+    def compute_latent_variable(self, instance) -> Dict[str, float]:
+        """
+        A latent variable is not a model parameter but can be derived from the model. Its value and errors may be
+        of interest and aid in the interpretation of a model-fit.
 
+        For example, for the simple 1D Gaussian example, it could be the full-width half maximum (FWHM) of the
+        Gaussian. This is not included in the model but can be easily derived from the Gaussian's sigma value.
+
+        By overwriting this method we can manually specify latent variables that are calculated and output to
+        a `latent.csv` file, which mirrors the `samples.csv` file.
+
+        In the example below, the `latent.csv` file will contain one column with the FWHM of every Gausian model
+        sampled by the non-linear search.
+
+        This function is called for every non-linear search sample, where the `instance` passed in corresponds to
+        each sample.
+
+        Parameters
+        ----------
+        instance
+            The instances of the model which the latent variable is derived from.
+
+        Returns
+        -------
+
+        """
+        return {
+            "fwhm": instance.fwhm
+        }
