@@ -336,7 +336,10 @@ class AbstractPaths(ABC):
                     f"Unable to restore the zip file at the path {self._zip_path}"
                 ) from e
 
-            os.remove(self._zip_path)
+            try:
+                os.remove(self._zip_path)
+            except FileNotFoundError:
+                pass
 
     def __eq__(self, other):
         return isinstance(other, AbstractPaths) and all(

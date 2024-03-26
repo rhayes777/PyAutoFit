@@ -1,5 +1,6 @@
-import autofit as af
+import pytest
 
+import autofit as af
 
 from autoconf.conf import with_config
 from autofit import graphical as g, DirectoryPaths

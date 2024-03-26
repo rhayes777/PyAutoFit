@@ -80,8 +80,6 @@ def make_summary_dict():
 
 
 def test_dict(summary, summary_dict, remove_ids):
-    print(remove_ids(to_dict(summary)))
-
     assert remove_ids(to_dict(summary)) == summary_dict
 
 
@@ -89,11 +87,6 @@ def test_from_dict(summary_dict):
     summary = from_dict(summary_dict)
     assert isinstance(summary, SamplesSummary)
 
-
-#   assert isinstance(summary.model, af.Model)
-#   assert isinstance(summary.max_log_likelihood_sample, af.Sample)
-
-#   assert isinstance(summary.max_log_likelihood(), af.Gaussian)
 
 
 def test_generic_from_dict(summary_dict):
