@@ -329,8 +329,11 @@ class AbstractPaths(ABC):
             shutil.rmtree(self.output_path, ignore_errors=True)
 
             try:
-                with zipfile.ZipFile(self._zip_path, "r") as f:
-                    f.extractall(self.output_path)
+                try:
+                    with zipfile.ZipFile(self._zip_path, "r") as f:
+                        f.extractall(self.output_path)
+                except FileExistsError:
+                    pass
             except zipfile.BadZipFile as e:
                 raise zipfile.BadZipFile(
                     f"Unable to restore the zip file at the path {self._zip_path}"

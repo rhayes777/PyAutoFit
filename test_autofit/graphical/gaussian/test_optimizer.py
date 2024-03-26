@@ -34,7 +34,7 @@ def test_default(factor_model, laplace):
     assert model.normalization.mean == pytest.approx(25, rel=0.1)
     assert model.sigma.mean == pytest.approx(10, rel=0.1)
 
-
+@pytest.mark.filterwarnings('ignore::RuntimeWarning')
 def test_set_model_identifier(dynesty, prior_model, analysis):
     dynesty.fit(prior_model, analysis)
 
@@ -48,11 +48,13 @@ def test_set_model_identifier(dynesty, prior_model, analysis):
 
 
 class TestDynesty:
+    @pytest.mark.filterwarnings('ignore::RuntimeWarning')
     @output_path_for_test()
     def test_optimisation(self, factor_model, laplace, dynesty):
         factor_model.optimiser = dynesty
         factor_model.optimise(laplace)
 
+    @pytest.mark.filterwarnings('ignore::RuntimeWarning')
     def test_null_paths(self, factor_model):
         optimizer = af.DynestyStatic(maxcall=10)
         result, status = optimizer.optimise(
@@ -62,6 +64,7 @@ class TestDynesty:
         assert isinstance(result, g.MeanField)
         assert isinstance(status, Status)
 
+    @pytest.mark.filterwarnings('ignore::RuntimeWarning')
     @output_path_for_test()
     def test_optimise(self, factor_model, dynesty):
         result, status = dynesty.optimise(
