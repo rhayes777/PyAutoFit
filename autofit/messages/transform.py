@@ -349,6 +349,7 @@ class MultinomialLogitTransform(AbstractDensityTransform):
 
     def inv_transform(self, x):
         expx = np.exp(x)
+        print(expx)
         return expx / (expx.sum(axis=self.axis, keepdims=True) + 1)
 
     def jacobian(self, p):

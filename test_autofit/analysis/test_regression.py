@@ -12,7 +12,7 @@ def test_pickle(Analysis):
     assert isinstance(loaded, CombinedAnalysis)
 
 
-class MyResult(af.Result):
+class MyResult(af.mock.MockResult):
     pass
 
 

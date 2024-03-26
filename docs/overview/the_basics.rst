@@ -505,8 +505,8 @@ corner of the results.
 
 .. code-block:: python
 
-    search_plotter = aplt.NestPlotter(samples=result.samples)
-    search_plotter.corner()
+    plotter = aplt.NestPlotter(samples=result.samples)
+    plotter.corner()
 
 The plot appears as follows:
 
