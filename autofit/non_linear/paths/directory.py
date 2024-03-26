@@ -10,19 +10,18 @@ from typing import Optional, Union
 import logging
 
 from autoconf import conf
-from autoconf.dictable import to_dict
+from autoconf.dictable import to_dict, from_dict
 from autoconf.output import conditional_output, should_output
 from autofit.text import formatter
 from autofit.tools.util import open_
 
 from .abstract import AbstractPaths
 
-# from ..analysis.latent_variables import LatentVariables
 from ..samples import load_from_table
 from autofit.non_linear.samples.pdf import SamplesPDF
+from autofit.non_linear.samples.summary import SamplesSummary
 import numpy as np
 
-from autofit.non_linear.samples.samples import Samples
 from autofit.text.formatter import write_table
 from ...visualise import VisualiseGraph
 
@@ -206,6 +205,15 @@ class DirectoryPaths(AbstractPaths):
         -------
         The results of the non-linear search in its internal representation.
         """
+
+        # This is a nasty hack to load emcee backends. It will be removed once the source code is more stable.
+
+        import emcee
+
+        backend_filename = self.search_internal_path / "search_internal.hdf"
+        if os.path.isfile(backend_filename):
+            return emcee.backends.HDFBackend(filename=str(backend_filename))
+
         filename = self.search_internal_path / "search_internal.dill"
 
         with open_(filename, "rb") as f:
@@ -238,8 +246,8 @@ class DirectoryPaths(AbstractPaths):
         if conf.instance["general"]["output"]["samples_to_csv"] and should_output(
             "samples"
         ):
-            samples.write_table(filename=self._samples_file)
             self.save_json("samples_info", samples.samples_info)
+
             if isinstance(samples, SamplesPDF):
                 try:
                     samples.save_covariance_matrix(self._covariance_file)
@@ -247,6 +255,21 @@ class DirectoryPaths(AbstractPaths):
                     logger.warning(
                         f"Could not save covariance matrix because of the following error:\n{e}"
                     )
+
+            samples.write_table(filename=self._samples_file)
+
+    def save_samples_summary(self, samples_summary: SamplesSummary):
+        model = samples_summary.model
+
+        samples_summary.model = None
+        self.save_json("samples_summary", to_dict(samples_summary))
+        samples_summary.model = model
+
+    def load_samples_summary(self) -> SamplesSummary:
+        samples_summary = from_dict(self.load_json(name="samples_summary"))
+        samples_summary.model = self.model
+
+        return samples_summary
 
     def save_latent_variables(
         self,

@@ -122,6 +122,7 @@ class Analysis(af.Analysis):
         os.makedirs(paths.image_path, exist_ok=True)
         plt.savefig(paths.image_path / "model_fit.png")
         plt.clf()
+        plt.close()
 
     def visualize_combined(
         self,

@@ -1,7 +1,7 @@
 import functools
-from typing import Tuple, Optional, Union
-
 import numpy as np
+import warnings
+from typing import Tuple, Optional, Union
 
 from autofit.messages.abstract import MessageInterface, AbstractMessage
 from autofit.messages.transform import AbstractDensityTransform
@@ -201,11 +201,15 @@ class TransformedMessage(MessageInterface):
         return x
 
     def _transform_det(self, x):
-        logd = 0
-        for _transform in reversed(self.transforms):
-            x, _logd = _transform.transform_det(x)
-            logd += _logd
-        return x, logd
+
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+
+            logd = 0
+            for _transform in reversed(self.transforms):
+                x, _logd = _transform.transform_det(x)
+                logd += _logd
+            return x, logd
     
     def _transform_det_jac(self, x):
         logd = 0

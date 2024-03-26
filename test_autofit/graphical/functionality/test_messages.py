@@ -26,7 +26,7 @@ def check_dist_norms(dist):
     )
     assert np.allclose(vals, 1, atol=err), dist
 
-
+@pytest.mark.filterwarnings('ignore')
 def check_log_normalisation(ms):
     m1, *m2s = ms
     A = np.exp(m1.log_normalisation(*m2s))
@@ -39,7 +39,7 @@ def check_log_normalisation(ms):
     # verify within tolerance
     assert np.abs(A - i12) < ierr < 1e-1, m1
 
-
+@pytest.mark.filterwarnings('ignore')
 def check_numerical_gradient_hessians(message, x=None):
     x = message.sample() if x is None else x
 
@@ -63,6 +63,7 @@ MLN = MultiLogitNormalMessage
 WN = TransformedMessage(
     NormalMessage(0, 1), transform.log_transform, transform.exp_transform,
 )
+
 def test_message_norm():
     messages = [
         tuple(map(NormalMessage, [0.5, 0.1], [0.2, 0.3])),
@@ -83,7 +84,7 @@ def check_transform_norm(dist):
     norm, err = integrate.quad(dist.exp_factor, *dist._support[0])
     assert norm == pytest.approx(1, abs=err), dist
 
-
+@pytest.mark.filterwarnings('ignore')
 def test_transform_norm():
     messages = [
         tuple(map(UN, [0.5, 0.1, -0.5], [0.2, 0.3, 1.3])),

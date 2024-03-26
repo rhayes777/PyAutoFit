@@ -187,7 +187,6 @@ def make_linear_interpolator_dict(instance_dict):
 
 
 def test_instance_as_dict(model_instance, instance_dict):
-    print(to_dict(model_instance))
     assert to_dict(model_instance) == instance_dict
 
 

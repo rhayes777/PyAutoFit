@@ -114,6 +114,7 @@ class Nautilus(abstract_nest.AbstractNest):
         fitness = Fitness(
             model=model,
             analysis=analysis,
+            paths=self.paths,
             fom_is_log_likelihood=True,
             resample_figure_of_merit=-1.0e99,
         )
