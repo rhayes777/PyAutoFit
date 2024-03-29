@@ -15,7 +15,7 @@ the non-linear search) fits the dataset and returns the log likelihood of that m
 class Analysis(af.Analysis):
 
     """
-    This is the result object returned by a fit using this analysis class.
+    This overwrite means the `ResultExample` class is returned after the model-fit.
 
     This result has been extended, based on the model that is input into the analysis, to include a property
     `max_log_likelihood_model_data`, which is the model data of the best-fit model.
@@ -204,7 +204,6 @@ class Analysis(af.Analysis):
         paths.save_json(name="data", object_dict=self.data.tolist(), prefix="dataset")
         paths.save_json(name="noise_map", object_dict=self.noise_map.tolist(), prefix="dataset")
 
-
     def make_result(
         self,
         samples_summary: af.SamplesSummary,
@@ -266,7 +265,7 @@ class Analysis(af.Analysis):
             paths=paths,
             samples=samples,
             search_internal=search_internal,
-            analysis=None
+            analysis=self
         )
 
     def compute_latent_variable(self, instance) -> Dict[str, float]:
