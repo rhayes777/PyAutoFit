@@ -1,6 +1,8 @@
 # Determines whether files saved by the search are output to the hard-disk. This is true both when saving to the
 # directory structure and when saving to database.
 
+default: true # If true then files which are not explicitly listed here are output anyway. If false then they are not.
+
 ### Samples ###
 
 # The `samples.csv`file contains every sampled value of every free parameter with its log likelihood and weight.

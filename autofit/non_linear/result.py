@@ -3,6 +3,7 @@ import logging
 from abc import ABC, abstractmethod
 import numpy as np
 from typing import TYPE_CHECKING, Optional
+import warnings
 
 if TYPE_CHECKING:
     from autofit.non_linear.analysis.analysis import Analysis
@@ -63,6 +64,17 @@ class AbstractResult(ABC):
 
         self._samples_summary = samples_summary
         self.paths = paths
+
+    def __getattr__(self, name):
+        """
+        The Result object may be overwritten and extended by projects wrapping autofit.
+
+        lint errpors commonly occur because the Result object does not contain the attribute that is being accessed.
+
+        This method is used to disable these errors.
+        """
+        warnings.warn('No member "%s" contained Result.' % name)
+        return super().__getattribute__(name)
 
     @property
     def samples_summary(self):
@@ -256,6 +268,8 @@ class Result(AbstractResult):
         self.__model = None
 
         self.child_results = None
+
+
 
     def dict(self) -> dict:
         """
