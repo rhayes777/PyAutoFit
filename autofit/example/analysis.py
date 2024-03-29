@@ -295,6 +295,9 @@ class Analysis(af.Analysis):
         -------
 
         """
-        return {
-            "fwhm": instance.fwhm
-        }
+        try:
+            return {
+                "fwhm": instance.fwhm
+            }
+        except AttributeError:
+            return {}
