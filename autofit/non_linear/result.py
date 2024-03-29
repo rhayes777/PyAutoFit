@@ -1,7 +1,11 @@
+from __future__ import annotations
 import logging
 from abc import ABC, abstractmethod
 import numpy as np
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
+
+if TYPE_CHECKING:
+    from autofit.non_linear.analysis.analysis import Analysis
 
 from autofit import exc
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
@@ -189,9 +193,10 @@ class Result(AbstractResult):
     def __init__(
         self,
         samples_summary : SamplesSummary,
-        paths : AbstractPaths,
+        paths : Optional[AbstractPaths] = None,
         samples: Optional[Samples] = None,
         search_internal : Optional[object] = None,
+        analysis : Optional[Analysis] = None
     ):
         """
         The result of a non-linear search.
@@ -224,8 +229,6 @@ class Result(AbstractResult):
         - The non-linear search used to perform the model fit in its internal format (e.g. the Dynesty sampler used
         by dynesty itself as opposed to PyAutoFit abstract classes).
 
-        - The latent variables of the model-fit, which are the free parameters of the model that are not sampled
-
         Parameters
         ----------
         samples_summary
@@ -234,9 +237,11 @@ class Result(AbstractResult):
             The paths to the results of the search, used to load the samples and search internal attributes if they are
             required and not available in memory.
         samples
-            The samples of the non-linear search, for example the MCMC chains or nested sampling samples.
+            The samples of the non-linear search, for example the MCMC chains.
         search_internal
             The non-linear search used to perform the model fit in its internal format.
+        analysis
+            The `Analysis` object that was used to perform the model-fit from which this result is inferred.
         """
         super().__init__(
             samples_summary=samples_summary,
@@ -245,6 +250,8 @@ class Result(AbstractResult):
 
         self._samples = samples
         self._search_internal = search_internal
+
+        self.analysis = analysis
 
         self.__model = None
 

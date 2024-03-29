@@ -347,6 +347,7 @@ class CombinedAnalysis(Analysis):
         paths: AbstractPaths,
         samples: Optional[SamplesPDF] = None,
         search_internal: Optional[object] = None,
+        analysis: Optional[object] = None,
     ):
         child_results = [
             analysis.make_result(
@@ -354,6 +355,7 @@ class CombinedAnalysis(Analysis):
                 paths,
                 samples,
                 search_internal,
+                analysis
             )
             for analysis in self.analyses
         ]

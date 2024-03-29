@@ -25,6 +25,8 @@ class Analysis(ABC):
     likelihood that some instance fits some data.
     """
 
+    Result = Result
+
     def compute_all_latent_variables(
         self, samples: Samples
     ) -> Optional[LatentVariables]:
@@ -188,12 +190,55 @@ class Analysis(ABC):
         paths: AbstractPaths,
         samples: Optional[SamplesPDF] = None,
         search_internal: Optional[object] = None,
+        analysis: Optional[object] = None,
     ) -> Result:
+        """
+        Returns the `Result` of the non-linear search after it is completed.
 
-        return Result(
+        The result type is defined as a class variable in the `Analysis` class. It can be manually overwritten
+        by a user to return a user-defined result object, which can be extended with additional methods and attributes
+        specific to the model-fit.
+
+        The standard `Result` object may include:
+
+        - The samples summary, which contains the maximum log likelihood instance and median PDF model.
+
+        - The paths of the search, which are used for loading the samples and search internal below when a search
+        is resumed.
+
+        - The samples of the non-linear search (e.g. MCMC chains) also stored in `samples.csv`.
+
+        - The non-linear search used for the fit in its internal representation, which is used for resuming a search
+        and making bespoke visualization using the search's internal results.
+
+        - The analysis used to fit the model (default disabled to save memory, but option may be useful for certain
+        projects).
+
+        Parameters
+        ----------
+        samples_summary
+            The summary of the samples of the non-linear search, which include the maximum log likelihood instance and
+            median PDF model.
+        paths
+            An object describing the paths for saving data (e.g. hard-disk directories or entries in sqlite database).
+        samples
+            The samples of the non-linear search, for example the chains of an MCMC run.
+        search_internal
+            The internal representation of the non-linear search used to perform the model-fit.
+        analysis
+            The analysis used to fit the model.
+
+        Returns
+        -------
+        Result
+            The result of the non-linear search, which is defined as a class variable in the `Analysis` class.
+        """
+        return self.Result(
             samples_summary=samples_summary,
             paths=paths,
             samples=samples,
+            search_internal=search_internal,
+            analysis=None
         )
 
     def profile_log_likelihood_function(self, paths: AbstractPaths, instance):

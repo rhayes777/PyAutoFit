@@ -1,3 +1,4 @@
+from __future__ import annotations
 import copy
 import logging
 import multiprocessing as mp
@@ -8,7 +9,10 @@ from abc import ABC, abstractmethod
 from collections import Counter
 from functools import wraps
 from pathlib import Path
-from typing import Optional, Union, Tuple, List, Dict
+from typing import TYPE_CHECKING, Optional, Union, Tuple, List, Dict
+
+if TYPE_CHECKING:
+    from autofit.non_linear.result import Result
 
 from autoconf import conf, cached_property
 from autofit import exc, jax_wrapper
@@ -31,7 +35,6 @@ from autofit.non_linear.paths.directory import DirectoryPaths
 from autofit.non_linear.paths.sub_directory_paths import SubDirectoryPaths
 from autofit.non_linear.samples.samples import Samples
 from autofit.non_linear.samples.summary import SamplesSummary
-from autofit.non_linear.result import Result
 from autofit.non_linear.timer import Timer
 from autofit.non_linear.analysis import Analysis
 from autofit.non_linear.analysis.combined import CombinedResult
@@ -481,7 +484,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         analysis: Analysis,
         info: Optional[Dict] = None,
         bypass_nuclear_if_on: bool = False,
-    ) -> Union["Result", List["Result"]]:
+    ) -> Union[Result, List[Result]]:
         """
         Fit a model, M with some function f that takes instances of the
         class represented by model M and gives a score for their fitness.
