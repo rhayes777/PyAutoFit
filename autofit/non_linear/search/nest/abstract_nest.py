@@ -1,5 +1,6 @@
 from abc import ABC
 from typing import Optional
+import warnings
 
 from autoconf import conf
 from autofit.database.sqlalchemy_ import sa
@@ -81,4 +82,6 @@ class AbstractNest(NonLinearSearch, ABC):
             output=Output(path=self.paths.image_path / "search", format="png"),
         )
         if should_plot("corner_anesthetic"):
-            plotter.corner_anesthetic()
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore")
+                plotter.corner_anesthetic()

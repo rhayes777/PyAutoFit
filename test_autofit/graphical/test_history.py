@@ -36,7 +36,7 @@ def make_history(factor):
 @pytest.fixture(name="result")
 def make_result(model):
     # noinspection PyTypeChecker
-    return af.Result(None)
+    return af.mock.MockResult(None)
 
 
 @pytest.fixture(name="good_history")
@@ -155,8 +155,10 @@ def generate_samples(model):
 @pytest.fixture(name="results")
 def make_results(hierarchical_factor):
     return [
-        af.Result(
+        af.mock.MockResult(
             samples=generate_samples(factor.prior_model),
+            model=factor.prior_model,
+            instance=factor.prior_model.instance_from_prior_medians(),
         )
         for factor in hierarchical_factor.factors
     ]

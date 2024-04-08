@@ -1,6 +1,7 @@
 import logging
 import math
 import pathlib
+import warnings
 from typing import Dict, List, Optional, Tuple, Union
 
 import numpy as np
@@ -50,15 +51,19 @@ class SamplesPDF(Samples):
         )
 
     def summary(self):
-        try:
-            covariance_matrix = self.covariance_matrix
-        except Exception as e:
-            logging.warning(f"Could not create covariance matrix: {e}")
-            covariance_matrix = None
-        return SamplesSummary(
-            max_log_likelihood_sample=self.max_log_likelihood_sample,
+
+        median_pdf_sample = Sample.from_lists(
             model=self.model,
-            covariance_matrix=covariance_matrix,
+            parameter_lists=[self.median_pdf(as_instance=False)],
+            log_likelihood_list=[self.max_log_likelihood_sample.log_likelihood],
+            log_prior_list=[self.max_log_likelihood_sample.log_prior],
+            weight_list=[self.max_log_likelihood_sample.weight],
+        )[0]
+
+        return SamplesSummary(
+            model=self.model,
+            max_log_likelihood_sample=self.max_log_likelihood_sample,
+            median_pdf_sample=median_pdf_sample,
             log_evidence=self.log_evidence,
         )
 
@@ -346,6 +351,10 @@ class SamplesPDF(Samples):
 
         Follow that link for a description of what the covariance matrix is.
 
+        This function may be called during a non-linear search, before the samples contain high likelihood regions
+        that enable a robust covariance matrix to be computed. To reduce command line noise, the warning associated
+        with this behaviour is suppressed.
+
         Returns
         -------
         ndarray
@@ -355,7 +364,9 @@ class SamplesPDF(Samples):
         if len(self.parameter_lists) == 1:
             return np.eye(1)
 
-        return np.cov(m=self.parameter_lists, rowvar=False, aweights=self.weight_list)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            return np.cov(m=self.parameter_lists, rowvar=False, aweights=self.weight_list)
 
     def save_covariance_matrix(self, filename: Union[pathlib.Path, str]):
         """

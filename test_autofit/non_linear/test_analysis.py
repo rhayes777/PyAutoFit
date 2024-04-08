@@ -101,10 +101,9 @@ def test_make_result():
     analysis_2 = Analysis()
 
     result = (analysis_1 + analysis_2).make_result(
-        samples=af.Samples(
-            model=af.Model(af.Gaussian),
-            sample_list=[],
-        )
+        samples_summary=None,
+        paths=None,
+        samples=None,
     )
 
     assert len(result) == 2

@@ -1,5 +1,5 @@
 import logging
-from typing import Union, List
+from typing import Union, List, Optional
 
 from autoconf import conf
 from autofit.mapper.prior.abstract import Prior
@@ -9,6 +9,8 @@ from autofit.non_linear.analysis.multiprocessing import AnalysisPool
 from autofit.non_linear.paths.abstract import AbstractPaths
 from autofit.non_linear.result import Result
 from .analysis import Analysis
+from autofit.non_linear.samples.summary import SamplesSummary
+from autofit.non_linear.samples import SamplesPDF
 
 logger = logging.getLogger(__name__)
 
@@ -339,10 +341,21 @@ class CombinedAnalysis(Analysis):
 
         self._for_each_analysis(func, paths)
 
-    def make_result(self, samples, search_internal=None):
+    def make_result(
+        self,
+        samples_summary: SamplesSummary,
+        paths: AbstractPaths,
+        samples: Optional[SamplesPDF] = None,
+        search_internal: Optional[object] = None,
+        analysis: Optional[object] = None,
+    ):
         child_results = [
             analysis.make_result(
-                samples, search_internal
+                samples_summary,
+                paths,
+                samples,
+                search_internal,
+                analysis
             )
             for analysis in self.analyses
         ]

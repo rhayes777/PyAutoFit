@@ -66,7 +66,7 @@ class Job(AbstractJob):
                 )
             ],
             result.log_likelihood,
-            result.samples.log_evidence,
+            result.samples_summary.log_evidence,
         ]
 
         return JobResult(result, result_list_row, self.number)

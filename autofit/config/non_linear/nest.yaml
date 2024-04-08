@@ -26,7 +26,6 @@ DynestyStatic:
     logl_max: .inf
     maxcall: null
     maxiter: null
-    n_effective: null
   initialize:                       # The method used to generate where walkers are initialized in parameter space {prior}.
     method: prior                   # priors: samples are initialized by randomly drawing from each parameter's prior.
   parallel:
@@ -57,8 +56,6 @@ DynestyDynamic:
     maxcall_init: null
     maxiter: null
     maxiter_init: null
-    n_effective: .inf
-    n_effective_init: .inf
     nlive_init: 500
   initialize:                       # The method used to generate where walkers are initialized in parameter space {prior}.
     method: prior                   # priors: samples are initialized by randomly drawing from each parameter's prior.

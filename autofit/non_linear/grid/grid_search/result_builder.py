@@ -1,5 +1,6 @@
 from typing import List, Union
 
+from autofit.non_linear.paths.abstract import AbstractPaths
 from autofit.non_linear.samples import Samples
 from autofit.database import Prior
 from autofit.non_linear.result import Result, Placeholder
@@ -8,7 +9,12 @@ from .result import GridSearchResult
 
 
 class ResultBuilder:
-    def __init__(self, lists: List[List[float]], grid_priors: List[Prior]):
+    def __init__(
+        self,
+        lists: List[List[float]],
+        grid_priors: List[Prior],
+        paths: List[AbstractPaths],
+    ):
         """
         Builds GridSearchResults including all results so far computed
         and Placeholders where no result has yet been computed.
@@ -24,6 +30,7 @@ class ResultBuilder:
         self.lists = lists
         self.grid_priors = grid_priors
         self._job_result_dict = {}
+        self.paths = paths
 
     def __call__(self) -> GridSearchResult:
         """
@@ -33,30 +40,23 @@ class ResultBuilder:
         return GridSearchResult(self.sample_summaries, self.lists, self.grid_priors)
 
     @property
-    def sample_summaries(self) -> List[Union[Samples, Placeholder]]:
-        """
-        A list of results that have been returned with placeholders where no
-        result has been returned in the grid-search order.
-        """
-        return [samples.summary() for samples in self.samples]
-
-    @property
     def results(self) -> List[Union[Result, Placeholder]]:
         """
         A list of results that have been returned with placeholders where no
         result has been returned in the grid-search order.
         """
         return [
-            samples
-            if isinstance(samples, Placeholder)
+            summary
+            if isinstance(summary, Placeholder)
             else Result(
-                samples=samples,
+                samples_summary=summary,
+                paths=paths,
             )
-            for samples in self.samples
+            for summary, paths in zip(self.sample_summaries, self.paths)
         ]
 
     @property
-    def samples(self) -> List[Union[Samples, Placeholder]]:
+    def sample_summaries(self) -> List[Union[Samples, Placeholder]]:
         """
         A list of results that have been returned with placeholders where no
         result has been returned in the grid-search order.
@@ -66,7 +66,7 @@ class ResultBuilder:
             try:
                 job_result = self._job_result_dict[number]
                 samples.append(
-                    job_result.result.samples,
+                    job_result.result.samples_summary,
                 )
             except KeyError:
                 samples.append(Placeholder())

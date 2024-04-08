@@ -10,8 +10,11 @@ from autofit.non_linear.analysis.latent_variables import LatentVariables
 from autofit.non_linear.paths.abstract import AbstractPaths
 from autofit.non_linear.paths.database import DatabasePaths
 from autofit.non_linear.paths.null import NullPaths
+from autofit.non_linear.samples.summary import SamplesSummary
+from autofit.non_linear.samples.pdf import SamplesPDF
 from autofit.non_linear.result import Result
 from autofit.non_linear.samples.samples import Samples
+from .visualize import Visualizer
 
 logger = logging.getLogger(__name__)
 
@@ -22,6 +25,27 @@ class Analysis(ABC):
     must be implemented to define a class that compute the
     likelihood that some instance fits some data.
     """
+
+    Result = Result
+    Visualizer = Visualizer
+
+    def __getattr__(self, item: str):
+        """
+        If a method starts with 'visualize_' then we assume it is associated with
+        the Visualizer and forward the call to the visualizer.
+
+        It may be desirable to remove this behaviour as the visualizer component of
+        the system becomes more sophisticated.
+        """
+        if item.startswith("visualize"):
+            _method = getattr(Visualizer, item)
+        else:
+            raise AttributeError(f"Analysis has no attribute {item}")
+
+        def method(*args, **kwargs):
+            return _method(self, *args, **kwargs)
+
+        return method
 
     def compute_all_latent_variables(
         self, samples: Samples
@@ -132,22 +156,6 @@ class Analysis(ABC):
     def log_likelihood_function(self, instance):
         raise NotImplementedError()
 
-    def visualize_before_fit(self, paths: AbstractPaths, model: AbstractPriorModel):
-        pass
-
-    def visualize(self, paths: AbstractPaths, instance, during_analysis):
-        pass
-
-    def visualize_before_fit_combined(
-        self, analyses, paths: AbstractPaths, model: AbstractPriorModel
-    ):
-        pass
-
-    def visualize_combined(
-        self, analyses, paths: AbstractPaths, instance, during_analysis
-    ):
-        pass
-
     def save_attributes(self, paths: AbstractPaths):
         pass
 
@@ -180,11 +188,61 @@ class Analysis(ABC):
         """
         return self
 
-    def make_result(self, samples, search_internal=None):
-        return Result(
+    def make_result(
+        self,
+        samples_summary: SamplesSummary,
+        paths: AbstractPaths,
+        samples: Optional[SamplesPDF] = None,
+        search_internal: Optional[object] = None,
+        analysis: Optional[object] = None,
+    ) -> Result:
+        """
+        Returns the `Result` of the non-linear search after it is completed.
+
+        The result type is defined as a class variable in the `Analysis` class. It can be manually overwritten
+        by a user to return a user-defined result object, which can be extended with additional methods and attributes
+        specific to the model-fit.
+
+        The standard `Result` object may include:
+
+        - The samples summary, which contains the maximum log likelihood instance and median PDF model.
+
+        - The paths of the search, which are used for loading the samples and search internal below when a search
+        is resumed.
+
+        - The samples of the non-linear search (e.g. MCMC chains) also stored in `samples.csv`.
+
+        - The non-linear search used for the fit in its internal representation, which is used for resuming a search
+        and making bespoke visualization using the search's internal results.
+
+        - The analysis used to fit the model (default disabled to save memory, but option may be useful for certain
+        projects).
+
+        Parameters
+        ----------
+        samples_summary
+            The summary of the samples of the non-linear search, which include the maximum log likelihood instance and
+            median PDF model.
+        paths
+            An object describing the paths for saving data (e.g. hard-disk directories or entries in sqlite database).
+        samples
+            The samples of the non-linear search, for example the chains of an MCMC run.
+        search_internal
+            The internal representation of the non-linear search used to perform the model-fit.
+        analysis
+            The analysis used to fit the model.
+
+        Returns
+        -------
+        Result
+            The result of the non-linear search, which is defined as a class variable in the `Analysis` class.
+        """
+        return self.Result(
+            samples_summary=samples_summary,
+            paths=paths,
             samples=samples,
-            latent_variables=self.compute_all_latent_variables(samples),
             search_internal=search_internal,
+            analysis=None,
         )
 
     def profile_log_likelihood_function(self, paths: AbstractPaths, instance):

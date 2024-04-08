@@ -1,4 +1,5 @@
 import os
+import warnings
 from pathlib import Path
 from random import random
 
@@ -35,7 +36,9 @@ def count_output(paths):
 def test_with_model(analysis, model, search):
     combined_analysis = sum([analysis.with_model(model) for _ in range(10)])
 
-    result = search.fit_sequential(model=model, analysis=combined_analysis)
+    with warnings.catch_warnings():
+        warnings.simplefilter("ignore")
+        result = search.fit_sequential(model=model, analysis=combined_analysis)
 
     assert count_output(search.paths) == 10
     assert len(result.child_results) == 10
