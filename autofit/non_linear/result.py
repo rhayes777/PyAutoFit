@@ -281,7 +281,7 @@ class Result(AbstractResult):
         }
 
     @property
-    def samples(self) -> Samples:
+    def samples(self) -> Optional[Samples]:
         """
         Returns the samples of the non-linear search, for example the MCMC chains or nested sampling samples.
 
