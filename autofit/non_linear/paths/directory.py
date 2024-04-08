@@ -289,15 +289,8 @@ class DirectoryPaths(AbstractPaths):
 
         return samples_summary
 
-    def load_latent_variables(self):
-        with open(self._latent_variables_file, "r+", newline="") as f:
-            reader = csv.reader(f)
-            names = list(next(reader))
-            values = [list(map(float, row)) for row in reader]
-
-        from autofit.non_linear.analysis.latent_variables import LatentVariables
-
-        return LatentVariables(names=names, values=values)
+    def load_latent_samples(self):
+        return load_from_table(filename=self._files_path / "latent_samples.csv")
 
     def load_samples_info(self):
         with open_(self._info_file) as infile:
