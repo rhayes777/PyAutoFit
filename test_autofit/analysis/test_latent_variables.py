@@ -2,7 +2,7 @@ import pytest
 
 import autofit as af
 from autoconf.conf import with_config
-from autofit import DirectoryPaths, Samples
+from autofit import DirectoryPaths, Samples, SamplesPDF
 from autofit.text.text_util import result_info_from
 
 
@@ -48,7 +48,7 @@ def test_set_database_paths(session, latent_samples):
 def make_latent_samples():
     analysis = Analysis()
     return analysis.compute_latent_samples(
-        Samples(
+        SamplesPDF(
             model=af.Model(af.Gaussian),
             sample_list=[
                 af.Sample(
@@ -83,6 +83,17 @@ model                                                                           
 Maximum Log Likelihood Model:
 
 fwhm                                                                            7.064
+
+ WARNING: The samples have not converged enough to compute a PDF and model errors. 
+ The model below over estimates errors. 
+
+
+
+Summary (1.0 sigma limits):
+
+fwhm                                                                            7.0645 (7.0645, 7.0645)
+
+instances
 
 """
     )
