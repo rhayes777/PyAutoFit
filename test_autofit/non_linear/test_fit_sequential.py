@@ -37,7 +37,7 @@ def test_with_model(analysis, model, search):
 
     result = search.fit_sequential(model=model, analysis=combined_analysis)
 
-    assert count_output(search.paths) == 11
+    assert count_output(search.paths) == 10
     assert len(result.child_results) == 10
 
 
@@ -49,7 +49,7 @@ def make_combined_analysis(analysis):
 def test_combined_analysis(combined_analysis, model, search):
     search.fit_sequential(model=model, analysis=combined_analysis)
 
-    assert count_output(search.paths) == 11
+    assert count_output(search.paths) == 10
 
 
 def test_with_free_parameter(combined_analysis, model, search):
@@ -59,7 +59,7 @@ def test_with_free_parameter(combined_analysis, model, search):
         analysis=combined_analysis,
     )
 
-    assert count_output(search.paths) == 11
+    assert count_output(search.paths) == 10
 
 
 def test_singular_analysis(analysis, model, search):
