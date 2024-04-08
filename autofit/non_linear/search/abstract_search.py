@@ -73,6 +73,21 @@ def check_cores(func):
 
 
 def configure_handler(func):
+    """
+    Add a file handler for logging during the course of the search.
+
+    Optionally outputs 'search.log' to the search's output directory. Can be
+    turned on or off in the output.yaml file.
+
+    Parameters
+    ----------
+    func
+        Some function for which logging should be output to file
+
+    Returns
+    -------
+    A decorated version of the function
+    """
     root_logger = logging.getLogger()
 
     def decorated(self, *args, **kwargs):
