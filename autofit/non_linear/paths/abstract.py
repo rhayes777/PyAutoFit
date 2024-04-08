@@ -465,7 +465,7 @@ class AbstractPaths(ABC):
 
     @property
     def _latent_variables_file(self) -> Path:
-        return self._files_path / "latent_variables.csv"
+        return self._files_path / "latent.csv"
 
     @property
     def _covariance_file(self) -> Path:
