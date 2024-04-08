@@ -91,7 +91,7 @@ def configure_handler(func):
     root_logger = logging.getLogger()
 
     def decorated(self, *args, **kwargs):
-        if not should_output("log"):
+        if not should_output("search_log"):
             return func(self, *args, **kwargs)
         try:
             os.makedirs(
@@ -520,7 +520,6 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         self.paths = _paths
         return CombinedResult(results)
 
-    @configure_handler
     def fit(
         self,
         model: AbstractPriorModel,
@@ -671,6 +670,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                     f"turned on and set to {timeout_seconds} seconds.***\n"
                 )
 
+    @configure_handler
     def start_resume_fit(self, analysis: Analysis, model: AbstractPriorModel) -> Result:
         """
         Start a non-linear search from scratch, or resumes one which was previously terminated mid-way through.
