@@ -12,6 +12,7 @@ from typing import Optional, Union, Tuple, List, Dict
 
 from autoconf import conf, cached_property
 from autoconf.dictable import to_dict
+from autoconf.output import should_output
 from autofit import exc, jax_wrapper
 from autofit.database.sqlalchemy_ import sa
 from autofit.graphical import (
@@ -75,12 +76,14 @@ def configure_handler(func):
     root_logger = logging.getLogger()
 
     def decorated(self, *args, **kwargs):
+        if not should_output("log"):
+            return func(self, *args, **kwargs)
         try:
             os.makedirs(
                 self.paths.output_path,
                 exist_ok=True,
             )
-            handler = logging.FileHandler(self.paths.output_path / "root.log")
+            handler = logging.FileHandler(self.paths.output_path / "search.log")
             root_logger.addHandler(handler)
         except AttributeError:
             return func(self, *args, **kwargs)
