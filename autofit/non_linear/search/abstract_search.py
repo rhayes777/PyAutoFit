@@ -16,7 +16,6 @@ if TYPE_CHECKING:
 
 from autoconf import conf, cached_property
 
-from autoconf.dictable import to_dict
 from autoconf.output import should_output
 
 from autofit import exc, jax_wrapper
