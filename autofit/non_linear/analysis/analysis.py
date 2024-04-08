@@ -29,6 +29,17 @@ class Analysis(ABC):
     Result = Result
     Visualizer = Visualizer
 
+    def __getattr__(self, item):
+        if item.startswith("visualize"):
+            _method = getattr(Visualizer, item)
+        else:
+            raise AttributeError(f"Analysis has no attribute {item}")
+
+        def method(*args, **kwargs):
+            return _method(self, *args, **kwargs)
+
+        return method
+
     def compute_all_latent_variables(
         self, samples: Samples
     ) -> Optional[LatentVariables]:
