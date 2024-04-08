@@ -676,7 +676,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             samples_summary=samples.summary(),
             paths=self.paths,
             samples=samples,
-            search_internal=search_internal
+            search_internal=search_internal,
         )
 
         if self.is_master:
@@ -730,10 +730,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         model.freeze()
         samples_summary = self.paths.load_samples_summary()
 
-        result = analysis.make_result(
-            samples_summary=samples_summary,
-            paths=self.paths
-        )
+        result = analysis.make_result(samples_summary=samples_summary, paths=self.paths)
 
         if self.is_master:
             self.logger.info(f"Fit Already Completed: skipping non-linear search.")
@@ -912,19 +909,18 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             instance = samples_summary.instance
         except exc.FitException:
             return samples
-          
-        if self.is_master:
 
+        if self.is_master:
             self.paths.save_samples_summary(samples_summary=samples_summary)
 
-            samples = samples.samples_above_weight_threshold_from(log_message=not during_analysis)
+            samples = samples.samples_above_weight_threshold_from(
+                log_message=not during_analysis
+            )
             self.paths.save_samples(samples=samples)
 
-            if (
-                    (during_analysis and conf.instance["output"]["latent_during_fit"]) or
-                    (not during_analysis and conf.instance["output"]["latent_after_fit"])
+            if (during_analysis and conf.instance["output"]["latent_during_fit"]) or (
+                not during_analysis and conf.instance["output"]["latent_after_fit"]
             ):
-
                 latent_variables = analysis.compute_all_latent_variables(samples)
 
                 if latent_variables:
@@ -979,7 +975,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         self,
         model: AbstractPriorModel,
         analysis: AbstractPriorModel,
-        samples_summary : SamplesSummary,
+        samples_summary: SamplesSummary,
         during_analysis: bool,
         search_internal=None,
     ):
@@ -1014,7 +1010,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             analysis.visualize(
                 paths=self.paths,
                 instance=samples_summary.instance,
-                during_analysis=during_analysis
+                during_analysis=during_analysis,
             )
             analysis.visualize_combined(
                 analyses=None,
@@ -1024,10 +1020,10 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             )
 
         if analysis.should_visualize(paths=self.paths, during_analysis=during_analysis):
-
             if not isinstance(self.paths, NullPaths):
-
-                samples = self.samples_from(model=model, search_internal=search_internal)
+                samples = self.samples_from(
+                    model=model, search_internal=search_internal
+                )
 
                 self.plot_results(samples=samples)
 
