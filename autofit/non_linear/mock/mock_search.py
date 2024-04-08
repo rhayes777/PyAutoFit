@@ -129,9 +129,6 @@ class MockSearch(NonLinearSearch):
                 index = (index + 1) % model.prior_count
 
         samples_summary = MockSamplesSummary(
-            #           sample_list=samples_with_log_likelihood_list(
-            #               self.sample_multiplier * fit, _make_samples(model)
-            #           ),
             model=model,
             prior_means=[
                 prior.mean for prior in sorted(model.priors, key=lambda prior: prior.id)

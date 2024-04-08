@@ -29,7 +29,6 @@ class MockResult(Result):
 
         self._instance = instance or ModelInstance()
         self._samples = samples or MockSamples(
-            # max_log_likelihood_instance=self.instance,
             model=model
             or ModelMapper()
         )

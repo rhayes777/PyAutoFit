@@ -1,7 +1,8 @@
 import os
 import matplotlib.pyplot as plt
-from typing import Dict, List
+from typing import Dict, List, Optional
 
+from autofit.example.result import ResultExample
 from autofit.jax_wrapper import numpy as np
 
 import autofit as af
@@ -12,6 +13,15 @@ the non-linear search) fits the dataset and returns the log likelihood of that m
 """
 
 class Analysis(af.Analysis):
+
+    """
+    This overwrite means the `ResultExample` class is returned after the model-fit.
+
+    This result has been extended, based on the model that is input into the analysis, to include a property
+    `max_log_likelihood_model_data`, which is the model data of the best-fit model.
+    """
+    Result = ResultExample
+
     def __init__(self, data: np.ndarray, noise_map:np.ndarray):
         """
         In this example the `Analysis` object only contains the data and noise-map. It can be easily extended,
@@ -43,6 +53,34 @@ class Analysis(af.Analysis):
         -------
         The log likelihood value indicating how well this model fit the dataset.
         """
+        model_data_1d = self.model_data_1d_from(instance=instance)
+
+        residual_map = self.data - model_data_1d
+        chi_squared_map = (residual_map / self.noise_map) ** 2.0
+        log_likelihood = -0.5 * sum(chi_squared_map)
+
+        return log_likelihood
+
+    def model_data_1d_from(self, instance : af.ModelInstance) -> np.ndarray:
+        """
+        Returns the model data of a the 1D profiles.
+
+        The way this is generated changes depending on if the model is a `Model` (therefore having only one profile)
+        or a `Collection` (therefore having multiple profiles).
+
+        If its a model, the model component's `model_data_1d_via_xvalues_from` is called and the output returned.
+        For a collection, each components `model_data_1d_via_xvalues_from` is called, iterated through and summed
+        to return the combined model data.
+
+        Parameters
+        ----------
+        instance
+            The model instance of the profile or collection of profiles.
+
+        Returns
+        -------
+        The model data of the profiles.
+        """
 
         xvalues = np.arange(self.data.shape[0])
         model_data_1d = np.zeros(self.data.shape[0])
@@ -56,11 +94,7 @@ class Analysis(af.Analysis):
         except TypeError:
             model_data_1d += instance.model_data_1d_via_xvalues_from(xvalues=xvalues)
 
-        residual_map = self.data - model_data_1d
-        chi_squared_map = (residual_map / self.noise_map) ** 2.0
-        log_likelihood = -0.5 * sum(chi_squared_map)
-
-        return log_likelihood
+        return model_data_1d
 
     def visualize(self, paths: af.DirectoryPaths, instance: af.ModelInstance, during_analysis : bool):
         """
@@ -170,6 +204,70 @@ class Analysis(af.Analysis):
         paths.save_json(name="data", object_dict=self.data.tolist(), prefix="dataset")
         paths.save_json(name="noise_map", object_dict=self.noise_map.tolist(), prefix="dataset")
 
+    def make_result(
+        self,
+        samples_summary: af.SamplesSummary,
+        paths: af.AbstractPaths,
+        samples: Optional[af.SamplesPDF] = None,
+        search_internal: Optional[object] = None,
+        analysis: Optional[object] = None,
+    ) -> Result:
+        """
+        Returns the `Result` of the non-linear search after it is completed.
+
+        The result type is defined as a class variable in the `Analysis` class (see top of code under the python code
+        `class Analysis(af.Analysis)`.
+
+        The result can be manually overwritten by a user to return a user-defined result object, which can be extended
+        with additional methods and attribute specific to the model-fit.
+
+        This example class does example this, whereby the analysis result has been over written with the `ResultExample`
+        class, which contains a property `max_log_likelihood_model_data_1d` that returns the model data of the
+        best-fit model. This API means you can customize your result object to include whatever attributes you want
+        and therefore make a result object specific to your model-fit and model-fitting problem.
+
+        The `Result` object you return can be customized to include:
+
+        - The samples summary, which contains the maximum log likelihood instance and median PDF model.
+
+        - The paths of the search, which are used for loading the samples and search internal below when a search
+        is resumed.
+
+        - The samples of the non-linear search (e.g. MCMC chains) also stored in `samples.csv`.
+
+        - The non-linear search used for the fit in its internal representation, which is used for resuming a search
+        and making bespoke visualization using the search's internal results.
+
+        - The analysis used to fit the model (default disabled to save memory, but option may be useful for certain
+        projects).
+
+        Parameters
+        ----------
+        samples_summary
+            The summary of the samples of the non-linear search, which include the maximum log likelihood instance and
+            median PDF model.
+        paths
+            An object describing the paths for saving data (e.g. hard-disk directories or entries in sqlite database).
+        samples
+            The samples of the non-linear search, for example the chains of an MCMC run.
+        search_internal
+            The internal representation of the non-linear search used to perform the model-fit.
+        analysis
+            The analysis used to fit the model.
+
+        Returns
+        -------
+        Result
+            The result of the non-linear search, which is defined as a class variable in the `Analysis` class.
+        """
+        return self.Result(
+            samples_summary=samples_summary,
+            paths=paths,
+            samples=samples,
+            search_internal=search_internal,
+            analysis=self
+        )
+
     def compute_latent_variable(self, instance) -> Dict[str, float]:
         """
         A latent variable is not a model parameter but can be derived from the model. Its value and errors may be
@@ -196,6 +294,9 @@ class Analysis(af.Analysis):
         -------
 
         """
-        return {
-            "fwhm": instance.fwhm
-        }
+        try:
+            return {
+                "fwhm": instance.fwhm
+            }
+        except AttributeError:
+            return {}

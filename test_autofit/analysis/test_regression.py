@@ -30,6 +30,7 @@ class MyAnalysis(af.Analysis):
         paths,
         samples=None,
         search_internal=None,
+        analysis=None,
     ):
         return MyResult(samples=samples)
 

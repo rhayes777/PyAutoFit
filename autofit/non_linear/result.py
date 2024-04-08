@@ -1,7 +1,12 @@
+from __future__ import annotations
 import logging
 from abc import ABC, abstractmethod
 import numpy as np
-from typing import Optional
+from typing import TYPE_CHECKING, Optional
+import warnings
+
+if TYPE_CHECKING:
+    from autofit.non_linear.analysis.analysis import Analysis
 
 from autofit import exc
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
@@ -59,6 +64,17 @@ class AbstractResult(ABC):
 
         self._samples_summary = samples_summary
         self.paths = paths
+
+    def __getattr__(self, name):
+        """
+        The Result object may be overwritten and extended by projects wrapping autofit.
+
+        lint errpors commonly occur because the Result object does not contain the attribute that is being accessed.
+
+        This method is used to disable these errors.
+        """
+        warnings.warn('No member "%s" contained Result.' % name)
+        return super().__getattribute__(name)
 
     @property
     def samples_summary(self):
@@ -189,9 +205,10 @@ class Result(AbstractResult):
     def __init__(
         self,
         samples_summary : SamplesSummary,
-        paths : AbstractPaths,
+        paths : Optional[AbstractPaths] = None,
         samples: Optional[Samples] = None,
         search_internal : Optional[object] = None,
+        analysis : Optional[Analysis] = None
     ):
         """
         The result of a non-linear search.
@@ -224,8 +241,6 @@ class Result(AbstractResult):
         - The non-linear search used to perform the model fit in its internal format (e.g. the Dynesty sampler used
         by dynesty itself as opposed to PyAutoFit abstract classes).
 
-        - The latent variables of the model-fit, which are the free parameters of the model that are not sampled
-
         Parameters
         ----------
         samples_summary
@@ -234,9 +249,11 @@ class Result(AbstractResult):
             The paths to the results of the search, used to load the samples and search internal attributes if they are
             required and not available in memory.
         samples
-            The samples of the non-linear search, for example the MCMC chains or nested sampling samples.
+            The samples of the non-linear search, for example the MCMC chains.
         search_internal
             The non-linear search used to perform the model fit in its internal format.
+        analysis
+            The `Analysis` object that was used to perform the model-fit from which this result is inferred.
         """
         super().__init__(
             samples_summary=samples_summary,
@@ -246,9 +263,13 @@ class Result(AbstractResult):
         self._samples = samples
         self._search_internal = search_internal
 
+        self.analysis = analysis
+
         self.__model = None
 
         self.child_results = None
+
+
 
     def dict(self) -> dict:
         """
@@ -260,7 +281,7 @@ class Result(AbstractResult):
         }
 
     @property
-    def samples(self) -> Samples:
+    def samples(self) -> Optional[Samples]:
         """
         Returns the samples of the non-linear search, for example the MCMC chains or nested sampling samples.
 
@@ -276,13 +297,11 @@ class Result(AbstractResult):
         The samples of the non-linear search.
         """
 
-        # TODO : This needs to load a samples class based on the samples type.
-
         if self._samples is not None:
             return self._samples
 
         try:
-            Samples.from_csv(
+            return Samples.from_csv(
                 paths=self.paths,
                 model=self.model,
             )

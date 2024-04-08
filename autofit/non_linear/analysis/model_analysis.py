@@ -34,6 +34,7 @@ class ModelAnalysis(Analysis):
         paths: AbstractPaths,
         samples: Optional[SamplesPDF] = None,
         search_internal: Optional[object] = None,
+        analysis: Optional[object] = None,
     ):
         """
         Return the correct type of result by calling the underlying analysis.
