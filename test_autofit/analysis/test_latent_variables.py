@@ -2,7 +2,7 @@ import pytest
 
 import autofit as af
 from autoconf.conf import with_config
-from autofit import DirectoryPaths, Samples, SamplesPDF
+from autofit import DirectoryPaths, SamplesPDF
 from autofit.text.text_util import result_info_from
 
 
@@ -97,3 +97,44 @@ instances
 
 """
     )
+
+
+class ComplexAnalysis(af.Analysis):
+    def log_likelihood_function(self, instance):
+        return 1.0
+
+    def compute_latent_variable(self, instance):
+        return {
+            "lens.mass": 1.0,
+            "lens.brightness": 2.0,
+            "source.brightness": 3.0,
+        }
+
+
+def test_complex_model():
+    analysis = ComplexAnalysis()
+    latent_samples = analysis.compute_latent_samples(
+        SamplesPDF(
+            model=af.Model(af.Gaussian),
+            sample_list=[
+                af.Sample(
+                    log_likelihood=1.0,
+                    log_prior=0.0,
+                    weight=1.0,
+                    kwargs={
+                        "centre": 1.0,
+                        "normalization": 2.0,
+                        "sigma": 3.0,
+                    },
+                )
+            ],
+        ),
+    )
+
+    instance = latent_samples.model.instance_from_prior_medians()
+
+    lens = instance.lens
+    assert lens.mass == 1.0
+    assert lens.brightness == 2.0
+
+    assert instance.source.brightness == 3.0
