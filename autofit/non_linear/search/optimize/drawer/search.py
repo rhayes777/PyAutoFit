@@ -100,6 +100,7 @@ class Drawer(AbstractOptimizer):
         fitness = Fitness(
             model=model,
             analysis=analysis,
+            paths=self.paths,
             fom_is_log_likelihood=False,
             resample_figure_of_merit=-np.inf,
             convert_to_chi_squared=False

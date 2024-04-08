@@ -37,9 +37,12 @@ def test__environment_variable_override():
     os.environ["VECLIB_MAXIMUM_THREADS"] = "2"
     os.environ["NUMEXPR_NUM_THREADS"] = "2"
 
+    conf.instance["general"]["parallel"]["warn_environment_variables"] = True
+
     with pytest.warns(af.exc.SearchWarning):
         af.mock.MockSearch(number_of_cores=2)
 
+    conf.instance["general"]["parallel"]["warn_environment_variables"] = False
 
 class TestResult:
     def test_model(self, result):

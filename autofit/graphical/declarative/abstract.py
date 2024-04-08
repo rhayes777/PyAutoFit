@@ -151,6 +151,7 @@ class AbstractDeclarativeFactor(Analysis, ABC):
             **kwargs
         )
         plt.show()
+        plt.close()
 
     @property
     def plates(self):

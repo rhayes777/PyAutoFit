@@ -11,7 +11,6 @@ from pathlib import Path
 from typing import Optional, Union, Tuple, List, Dict
 
 from autoconf import conf, cached_property
-from autoconf.dictable import to_dict, from_dict
 from autofit import exc, jax_wrapper
 from autofit.database.sqlalchemy_ import sa
 from autofit.graphical import (
@@ -218,43 +217,44 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                 "NUMEXPR_NUM_THREADS",
             )
         ):
-            warnings.warn(
-                exc.SearchWarning(
-                    """
-                    The non-linear search is using multiprocessing (number_of_cores>1). 
-
-                    However, the following environment variables have not been set to 1:
-
-                    OPENBLAS_NUM_THREADS
-                    MKL_NUM_THREADS
-                    OMP_NUM_THREADS
-                    VECLIB_MAXIMUM_THREADS
-                    NUMEXPR_NUM_THREADS
-
-                    This can lead to performance issues, because both the non-linear search and libraries that may be
-                    used in your `log_likelihood_function` evaluation (e.g. NumPy, SciPy, scikit-learn) may attempt to
-                    parallelize over all cores available.
-
-                    This will lead to slow-down, due to overallocation of tasks over the CPUs.
-
-                    To mitigate this, set the environment variables to 1 via the following command on your
-                    bash terminal / command line:
-
-                    export OPENBLAS_NUM_THREADS=1
-                    export MKL_NUM_THREADS=1
-                    export OMP_NUM_THREADS=1
-                    export VECLIB_MAXIMUM_THREADS=1
-                    export NUMEXPR_NUM_THREADS=1
-
-                    This means only the non-linear search is parallelized over multiple cores.
-
-                    If you "know what you are doing" and do not want these environment variables to be set to one, you 
-                    can disable this warning by changing the following entry in the config files:
-
-                    `config -> general.yaml -> parallel: -> warn_environment_variable=False`
-                    """
+            if conf.instance["general"]["parallel"]["warn_environment_variables"]:
+                warnings.warn(
+                    exc.SearchWarning(
+                        """
+                        The non-linear search is using multiprocessing (number_of_cores>1). 
+    
+                        However, the following environment variables have not been set to 1:
+    
+                        OPENBLAS_NUM_THREADS
+                        MKL_NUM_THREADS
+                        OMP_NUM_THREADS
+                        VECLIB_MAXIMUM_THREADS
+                        NUMEXPR_NUM_THREADS
+    
+                        This can lead to performance issues, because both the non-linear search and libraries that may be
+                        used in your `log_likelihood_function` evaluation (e.g. NumPy, SciPy, scikit-learn) may attempt to
+                        parallelize over all cores available.
+    
+                        This will lead to slow-down, due to overallocation of tasks over the CPUs.
+    
+                        To mitigate this, set the environment variables to 1 via the following command on your
+                        bash terminal / command line:
+    
+                        export OPENBLAS_NUM_THREADS=1
+                        export MKL_NUM_THREADS=1
+                        export OMP_NUM_THREADS=1
+                        export VECLIB_MAXIMUM_THREADS=1
+                        export NUMEXPR_NUM_THREADS=1
+    
+                        This means only the non-linear search is parallelized over multiple cores.
+    
+                        If you "know what you are doing" and do not want these environment variables to be set to one, you 
+                        can disable this warning by changing the following entry in the config files:
+    
+                        `config -> general.yaml -> parallel: -> warn_environment_variables=False`
+                        """
+                    )
                 )
-            )
 
         self.optimisation_counter = Counter()
 
@@ -890,13 +890,11 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         self.iterations += self.iterations_per_update
         if during_analysis:
             self.logger.info(
-                f"""Fit Still Running: Updating results after {self.iterations} iterations (see
-                output folder for latest visualization, samples, etc.)"""
+                f"""Fit Running: Updating results after {self.iterations} iterations (see output folder)."""
             )
         else:
             self.logger.info(
-                "Fit Complete: Updating final results (see "
-                "output folder for final visualization, samples, etc.)"
+                "Fit Complete: Updating final results (see output folder)."
             )
 
         if not isinstance(self.paths, DatabasePaths) and not isinstance(
@@ -911,18 +909,20 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             instance = samples_summary.instance
         except exc.FitException:
             return samples
-
+          
         if self.is_master:
 
-            self.paths.save_samples(samples=samples)
             self.paths.save_samples_summary(samples_summary=samples_summary)
+
+            samples = samples.samples_above_weight_threshold_from(log_message=not during_analysis)
+            self.paths.save_samples(samples=samples)
 
             if (
                     (during_analysis and conf.instance["output"]["latent_during_fit"]) or
                     (not during_analysis and conf.instance["output"]["latent_after_fit"])
             ):
 
-                latent_variables = analysis.compute_all_latent_variables(samples_for_csv)
+                latent_variables = analysis.compute_all_latent_variables(samples)
 
                 if latent_variables:
                     self.paths.save_latent_variables(

@@ -242,7 +242,10 @@ class AbstractPaths(ABC):
         This is private for a reason, use the save_json etc. methods to save and load json
         """
         files_path = self.output_path / "files"
-        os.makedirs(files_path, exist_ok=True)
+        try:
+            os.makedirs(files_path, exist_ok=True)
+        except FileExistsError:
+            pass
         return files_path
 
     def zip_remove(self):
@@ -326,14 +329,20 @@ class AbstractPaths(ABC):
             shutil.rmtree(self.output_path, ignore_errors=True)
 
             try:
-                with zipfile.ZipFile(self._zip_path, "r") as f:
-                    f.extractall(self.output_path)
+                try:
+                    with zipfile.ZipFile(self._zip_path, "r") as f:
+                        f.extractall(self.output_path)
+                except FileExistsError:
+                    pass
             except zipfile.BadZipFile as e:
                 raise zipfile.BadZipFile(
                     f"Unable to restore the zip file at the path {self._zip_path}"
                 ) from e
 
-            os.remove(self._zip_path)
+            try:
+                os.remove(self._zip_path)
+            except FileNotFoundError:
+                pass
 
     def __eq__(self, other):
         return isinstance(other, AbstractPaths) and all(
@@ -427,7 +436,7 @@ class AbstractPaths(ABC):
         Save samples summary to the database.
         """
 
-    def load_samples_summary(self):
+    def load_samples_summary(self) -> SamplesSummary:
         """
         Load samples summary from the database.
         """
