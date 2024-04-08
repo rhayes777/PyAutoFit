@@ -192,7 +192,6 @@ class Result(AbstractResult):
         paths : AbstractPaths,
         samples: Optional[Samples] = None,
         search_internal : Optional[object] = None,
-        latent_variables=None
     ):
         """
         The result of a non-linear search.
@@ -238,8 +237,6 @@ class Result(AbstractResult):
             The samples of the non-linear search, for example the MCMC chains or nested sampling samples.
         search_internal
             The non-linear search used to perform the model fit in its internal format.
-        latent_variables
-            The latent variables of the model-fit, which are the free parameters of the model that are not sampled.
         """
         super().__init__(
             samples_summary=samples_summary,
@@ -248,8 +245,6 @@ class Result(AbstractResult):
 
         self._samples = samples
         self._search_internal = search_internal
-
-        self.latent_variables = latent_variables
 
         self.__model = None
 

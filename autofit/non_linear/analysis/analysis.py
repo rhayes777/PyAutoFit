@@ -189,12 +189,11 @@ class Analysis(ABC):
         samples: Optional[SamplesPDF] = None,
         search_internal: Optional[object] = None,
     ) -> Result:
+
         return Result(
             samples_summary=samples_summary,
             paths=paths,
             samples=samples,
-            search_internal=search_internal,
-            latent_variables=self.latent_variables,
         )
 
     def profile_log_likelihood_function(self, paths: AbstractPaths, instance):
