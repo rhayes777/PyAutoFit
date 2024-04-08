@@ -5,7 +5,6 @@ import autofit as af
 from autoconf.conf import with_config
 from autofit import DirectoryPaths, Samples
 from autofit.exc import SamplesException
-from autofit.non_linear.analysis.latent_variables import LatentVariables
 
 
 class Analysis(af.Analysis):
@@ -14,43 +13,6 @@ class Analysis(af.Analysis):
 
     def compute_latent_variable(self, instance):
         return {"fwhm": instance.fwhm}
-
-
-def test_latent_variables():
-    latent_variables = LatentVariables()
-    latent_variables.add(centre=1.0)
-
-    assert latent_variables.names == ["centre"]
-    assert latent_variables.values == [[1.0]]
-
-
-def test_multiple_quantities():
-    latent_variables = LatentVariables()
-    latent_variables.add(centre=1.0, intensity=2.0)
-
-    assert latent_variables.names == ["centre", "intensity"]
-    assert latent_variables.values == [[1.0, 2.0]]
-
-
-def test_multiple_iterations():
-    latent_variables = LatentVariables()
-    latent_variables.add(centre=1.0, intensity=2.0)
-    latent_variables.add(centre=3.0, intensity=4.0)
-
-    assert latent_variables.names == ["centre", "intensity"]
-    assert latent_variables.values == [[1.0, 2.0], [3.0, 4.0]]
-
-
-def test_split_addition():
-    latent_variables = LatentVariables()
-    latent_variables.add(centre=1.0)
-    with pytest.raises(SamplesException):
-        latent_variables.add(intensity=2.0)
-
-
-@pytest.fixture(name="latent_variables")
-def make_latent_variables():
-    return LatentVariables(names=["centre"], values=[[1.0]])
 
 
 @with_config(
@@ -68,10 +30,6 @@ def test_set_directory_paths(output_directory, latent_samples):
     assert len(loaded) == 1
 
 
-def test_efficient(latent_variables):
-    assert latent_variables.efficient().values == np.array([[1.0]])
-
-
 class MockSamples:
     @property
     def max_log_likelihood_index(self):
@@ -85,17 +43,6 @@ def test_set_database_paths(session, latent_samples):
     )
     loaded = database_paths.load_latent_samples()
     assert loaded.max_log_likelihood_sample.kwargs == {"fwhm": 7.0644601350928475}
-
-
-def test_iter(latent_variables):
-    assert list(latent_variables) == [{"centre": 1.0}]
-    assert latent_variables[0] == {"centre": 1.0}
-    assert latent_variables["centre"] == [1.0]
-
-
-def test_minimise(latent_variables):
-    latent_variables.minimise(0)
-    assert latent_variables.values == [[1.0]]
 
 
 @pytest.fixture(name="latent_samples")
