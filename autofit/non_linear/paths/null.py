@@ -9,7 +9,7 @@ class NullPaths(AbstractPaths):
     Null version of paths object for avoiding writing of files to disk
     """
 
-    def save_latent_variables(self, latent_variables, samples):
+    def save_latent_samples(self, latent_samples):
         pass
 
     def save_json(self, name, object_dict: dict, prefix: str = ""):

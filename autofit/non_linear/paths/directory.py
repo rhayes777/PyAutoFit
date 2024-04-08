@@ -239,14 +239,32 @@ class DirectoryPaths(AbstractPaths):
     def load_samples(self):
         return load_from_table(filename=self._samples_file)
 
+    def save_latent_samples(
+        self,
+        latent_samples,
+    ):
+        """
+        Write out the latent variables of the model to a file.
+
+        Parameters
+        ----------
+        latent_samples
+            Samples describing the latent variables of the model
+        """
+        self._save_samples("latent_samples", latent_samples)
+
     def save_samples(self, samples):
         """
         Save the final-result samples associated with the phase as a pickle
         """
-        if conf.instance["general"]["output"]["samples_to_csv"] and should_output(
-            "samples"
-        ):
-            self.save_json("samples_info", samples.samples_info)
+        self._save_samples("samples", samples)
+
+    def _save_samples(self, name, samples):
+        """
+        Save the final-result samples associated with the phase as a pickle
+        """
+        if conf.instance["general"]["output"]["samples_to_csv"] and should_output(name):
+            self.save_json(f"{name}_info", samples.samples_info)
 
             if isinstance(samples, SamplesPDF):
                 try:
@@ -256,7 +274,7 @@ class DirectoryPaths(AbstractPaths):
                         f"Could not save covariance matrix because of the following error:\n{e}"
                     )
 
-            samples.write_table(filename=self._samples_file)
+            samples.write_table(filename=self._files_path / f"{name}.csv")
 
     def save_samples_summary(self, samples_summary: SamplesSummary):
         model = samples_summary.model
@@ -270,27 +288,6 @@ class DirectoryPaths(AbstractPaths):
         samples_summary.model = self.model
 
         return samples_summary
-
-    def save_latent_variables(
-        self,
-        latent_variables,
-        samples,
-    ):
-        """
-        Write out the latent variables of the model to a file.
-
-        Parameters
-        ----------
-        latent_variables
-            The latent variables of the model
-        samples
-            The samples of the model
-        """
-        write_table(
-            filename=str(self._latent_variables_file),
-            headers=latent_variables.names,
-            rows=latent_variables.values,
-        )
 
     def load_latent_variables(self):
         with open(self._latent_variables_file, "r+", newline="") as f:

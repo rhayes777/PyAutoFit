@@ -431,7 +431,7 @@ class AbstractPaths(ABC):
         Save samples to the database
         """
 
-    def save_samples_summary(self, samples_summary : SamplesSummary):
+    def save_samples_summary(self, samples_summary: SamplesSummary):
         """
         Save samples summary to the database.
         """
@@ -442,7 +442,7 @@ class AbstractPaths(ABC):
         """
 
     @abstractmethod
-    def save_latent_variables(self, latent_variables, samples):
+    def save_latent_samples(self, latent_samples):
         """
         Save latent variables. These are values computed from an instance and output
         during analysis.

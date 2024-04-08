@@ -7,6 +7,7 @@ import os
 from typing import Dict, List, Optional, Tuple, Union
 
 import numpy as np
+from pathlib import Path
 
 from autoconf import conf
 from autoconf.class_path import get_class_path
@@ -307,7 +308,7 @@ class Samples(SamplesInterface, ABC):
                 weight_list[index],
             ]
 
-    def write_table(self, filename: str):
+    def write_table(self, filename: Union[str, Path]):
         """
         Write a table of parameters, posteriors, priors and likelihoods.
 

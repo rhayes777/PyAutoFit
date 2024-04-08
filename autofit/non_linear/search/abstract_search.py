@@ -967,7 +967,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                 latent_variables = analysis.compute_latent_samples(samples)
 
                 if latent_variables:
-                    self.paths.save_latent_variables(
+                    self.paths.save_latent_samples(
                         latent_variables,
                         samples=samples,
                     )

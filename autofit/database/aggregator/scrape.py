@@ -153,7 +153,7 @@ def _add_files_fit(fit: m.Fit, item: SearchOutput):
     except AttributeError:
         logger.warning(f"Failed to load samples for {fit.id}")
     try:
-        fit.latent_variables = item.latent_variables
+        fit.latent_samples = item.latent_variables
     except FileNotFoundError:
         logger.warning(f"Failed to load latent variables for {fit.id}")
 
