@@ -268,7 +268,7 @@ class SearchOutput(AbstractSearchOutput):
                 model=self.model,
             )
         except FileNotFoundError:
-            raise AttributeError("No samples found")
+            raise AttributeError(f"No {name} found")
 
     def names_and_paths(
         self,
