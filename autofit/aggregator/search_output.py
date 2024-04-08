@@ -264,7 +264,7 @@ class SearchOutput(AbstractSearchOutput):
         """
         The latent variables of the search, parsed from a CSV file.
         """
-        with open(self.files_path / "latent_variables.csv") as f:
+        with open(self.files_path / "latent.csv") as f:
             reader = csv.reader(f)
             headers = next(reader)
             from autofit.non_linear.analysis.latent_variables import LatentVariables

@@ -1,7 +1,7 @@
 import logging
 from abc import ABC
 import os
-from typing import Optional
+from typing import Optional, Dict
 
 from autoconf import conf
 
@@ -11,6 +11,7 @@ from autofit.non_linear.paths.abstract import AbstractPaths
 from autofit.non_linear.paths.database import DatabasePaths
 from autofit.non_linear.paths.null import NullPaths
 from autofit.non_linear.result import Result
+from autofit.non_linear.samples.samples import Samples
 
 logger = logging.getLogger(__name__)
 
@@ -22,38 +23,46 @@ class Analysis(ABC):
     likelihood that some instance fits some data.
     """
 
-    @property
-    def latent_variables(self) -> Optional[LatentVariables]:
+    def compute_all_latent_variables(
+        self, samples: Samples
+    ) -> Optional[LatentVariables]:
         """
-        Custom quantities that are computed during the analysis.
-
-        If no latent variables have been saved, this will return None.
-        """
-        try:
-            return self._latent_variables
-        except AttributeError:
-            return None
-
-    def save_latent_variables(self, **kwargs: float):
-        """
-        Save latent variables that are computed during the analysis.
-
-        This should only be called once per a fit and must always be passed the same latent variables.
+        Internal method that manages computation of latent variables from samples.
 
         Parameters
         ----------
-        kwargs
-            The latent variables to save.
+        samples
+            The samples from the non-linear search.
 
-        Raises
-        ------
-        SamplesException
-            If the same latent variables are not passed to `add` each iteration.
+        Returns
+        -------
+        The computed latent variables or None if compute_latent_variable is not implemented.
         """
-        if not hasattr(self, "_latent_variables"):
-            # noinspection PyAttributeOutsideInit
-            self._latent_variables = LatentVariables()
-        self._latent_variables.add(**kwargs)
+        try:
+            latent_variables = LatentVariables()
+            model = samples.model
+            for sample in samples.sample_list:
+                latent_variables.add(
+                    **self.compute_latent_variable(sample.instance_for_model(model))
+                )
+            return latent_variables
+        except NotImplementedError:
+            return None
+
+    def compute_latent_variable(self, instance) -> Dict[str, float]:
+        """
+        Override to compute latent variables from the instance.
+
+        Parameters
+        ----------
+        instance
+            An instance of the model.
+
+        Returns
+        -------
+        The computed latent variables.
+        """
+        raise NotImplementedError()
 
     def with_model(self, model):
         """
@@ -174,7 +183,7 @@ class Analysis(ABC):
     def make_result(self, samples, search_internal=None):
         return Result(
             samples=samples,
-            latent_variables=self.latent_variables,
+            latent_variables=self.compute_all_latent_variables(samples),
             search_internal=search_internal,
         )
 
