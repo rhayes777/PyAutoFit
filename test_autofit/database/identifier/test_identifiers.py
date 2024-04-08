@@ -289,14 +289,14 @@ def test__identifier_description__after_model_and_instance():
 
     max_log_likelihood_instance = model.instance_from_prior_medians()
 
-    samples = af.m.MockSamples(
+    samples_summary = af.m.MockSamplesSummary(
+        model=model,
         max_log_likelihood_instance=max_log_likelihood_instance,
         prior_means=[1.0, 3.0, 5.0],
-        model=model,
     )
 
-    result = af.Result(
-        samples=samples,
+    result = af.mock.MockResult(
+        samples_summary=samples_summary,
     )
 
     model.gaussian.centre = result.model.gaussian.centre

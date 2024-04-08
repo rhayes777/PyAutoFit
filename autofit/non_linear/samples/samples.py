@@ -1,7 +1,6 @@
 from abc import ABC
 
 import json
-import warnings
 from copy import copy
 from typing import Dict, List, Optional, Tuple, Union
 
@@ -130,8 +129,8 @@ class Samples(SamplesInterface, ABC):
 
     def summary(self):
         return SamplesSummary(
-            max_log_likelihood_sample=self.max_log_likelihood_sample,
             model=self.model,
+            max_log_likelihood_sample=self.max_log_likelihood_sample,
         )
 
     def __add__(self, other: "Samples") -> "Samples":

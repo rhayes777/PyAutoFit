@@ -22,10 +22,10 @@ def make_result():
     mapper = af.ModelMapper()
     mapper.component = af.m.MockClassx2Tuple
     # noinspection PyTypeChecker
-    return af.Result(
-        samples=af.m.MockSamples(
-            prior_means=[0, 1],
+    return af.mock.MockResult(
+        samples_summary=af.m.MockSamplesSummary(
             model=mapper,
+            prior_means=[0, 1],
         ),
     )
 
@@ -43,6 +43,7 @@ def test__environment_variable_override():
 
 class TestResult:
     def test_model(self, result):
+
         component = result.model.component
         assert component.one_tuple.one_tuple_0.mean == 0
         assert component.one_tuple.one_tuple_1.mean == 1
@@ -66,7 +67,7 @@ class TestResult:
     def test_raises(self, result):
         with pytest.raises(af.exc.PriorException):
             result.model.mapper_from_prior_means(
-                result.samples.prior_means, a=2.0, r=1.0
+                result.samples_summary.prior_means, a=2.0, r=1.0
             )
 
 

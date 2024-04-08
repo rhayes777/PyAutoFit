@@ -12,7 +12,7 @@ def test_pickle(Analysis):
     assert isinstance(loaded, CombinedAnalysis)
 
 
-class MyResult(af.Result):
+class MyResult(af.mock.MockResult):
     pass
 
 
@@ -24,7 +24,13 @@ class MyAnalysis(af.Analysis):
     def log_likelihood_function(self, instance):
         pass
 
-    def make_result(self, samples, search_internal=None):
+    def make_result(
+        self,
+        samples_summary,
+        paths,
+        samples=None,
+        search_internal=None,
+    ):
         return MyResult(samples=samples)
 
     def modify_before_fit(self, paths, model):
@@ -41,7 +47,7 @@ def test_result_type():
 
     analysis = MyAnalysis().with_model(model)
 
-    result = analysis.make_result(None)
+    result = analysis.make_result(None, None)
 
     assert isinstance(result, MyResult)
 
@@ -63,7 +69,7 @@ def test_combined_before_fit(combined_analysis, paths):
 
 
 def test_combined_after_fit(combined_analysis, paths):
-    result = combined_analysis.make_result(None)
+    result = combined_analysis.make_result(None, None)
 
     combined_analysis = combined_analysis.modify_after_fit(paths, [None], result)
 

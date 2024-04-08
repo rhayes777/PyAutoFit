@@ -16,6 +16,7 @@ from .graphical.declarative.collection import FactorGraphModel
 from .graphical.declarative.factor.hierarchical import HierarchicalFactor
 from .graphical.laplace import LaplaceOptimiser
 from .non_linear.grid.grid_list import GridList
+from .non_linear.samples.summary import SamplesSummary
 from .non_linear.samples import SamplesMCMC
 from .non_linear.samples import SamplesNest
 from .non_linear.samples import Samples
@@ -82,6 +83,7 @@ from .non_linear.search.optimize.drawer.search import Drawer
 from .non_linear.search.optimize.lbfgs.search import LBFGS
 from .non_linear.search.optimize.pyswarms.search.globe import PySwarmsGlobal
 from .non_linear.search.optimize.pyswarms.search.local import PySwarmsLocal
+from .non_linear.paths.abstract import AbstractPaths
 from .non_linear.paths import DirectoryPaths
 from .non_linear.paths import DatabasePaths
 from .non_linear.result import Result

@@ -1,7 +1,10 @@
+from typing import Optional
+
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.mapper.prior_model.collection import Collection
 from .analysis import Analysis
 from .indexed import IndexCollectionAnalysis
+from ... import SamplesSummary, AbstractPaths, SamplesPDF
 
 
 class ModelAnalysis(Analysis):
@@ -25,14 +28,25 @@ class ModelAnalysis(Analysis):
     def log_likelihood_function(self, instance):
         return self.analysis.log_likelihood_function(instance)
 
-    def make_result(self, samples, search_internal=None):
+    def make_result(
+        self,
+        samples_summary: SamplesSummary,
+        paths: AbstractPaths,
+        samples: Optional[SamplesPDF] = None,
+        search_internal: Optional[object] = None,
+    ):
         """
         Return the correct type of result by calling the underlying analysis.
         """
-        return self.analysis.make_result(
-            samples=samples,
-            search_internal=search_internal
-        )
+        try:
+            return self.analysis.make_result(
+                samples_summary=samples_summary,
+                paths=paths,
+                samples=samples,
+                search_internal=search_internal,
+            )
+        except TypeError:
+            raise
 
 
 class CombinedModelAnalysis(IndexCollectionAnalysis):

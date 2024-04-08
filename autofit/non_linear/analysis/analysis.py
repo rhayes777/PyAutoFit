@@ -10,6 +10,8 @@ from autofit.non_linear.analysis.latent_variables import LatentVariables
 from autofit.non_linear.paths.abstract import AbstractPaths
 from autofit.non_linear.paths.database import DatabasePaths
 from autofit.non_linear.paths.null import NullPaths
+from autofit.non_linear.samples.summary import SamplesSummary
+from autofit.non_linear.samples.pdf import SamplesPDF
 from autofit.non_linear.result import Result
 from autofit.non_linear.samples.samples import Samples
 
@@ -180,11 +182,19 @@ class Analysis(ABC):
         """
         return self
 
-    def make_result(self, samples, search_internal=None):
+    def make_result(
+        self,
+        samples_summary: SamplesSummary,
+        paths: AbstractPaths,
+        samples: Optional[SamplesPDF] = None,
+        search_internal: Optional[object] = None,
+    ) -> Result:
         return Result(
+            samples_summary=samples_summary,
+            paths=paths,
             samples=samples,
-            latent_variables=self.compute_all_latent_variables(samples),
             search_internal=search_internal,
+            latent_variables=self.latent_variables,
         )
 
     def profile_log_likelihood_function(self, paths: AbstractPaths, instance):

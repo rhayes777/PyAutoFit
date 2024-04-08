@@ -13,6 +13,7 @@ import numpy as np
 
 from autoconf import conf
 from autofit.mapper.identifier import Identifier, IdentifierField
+from autofit.non_linear.samples.summary import SamplesSummary
 
 from autofit.text import text_util
 from autofit.tools.util import open_, zip_directory
@@ -419,6 +420,16 @@ class AbstractPaths(ABC):
     def save_samples(self, samples):
         """
         Save samples to the database
+        """
+
+    def save_samples_summary(self, samples_summary : SamplesSummary):
+        """
+        Save samples summary to the database.
+        """
+
+    def load_samples_summary(self):
+        """
+        Load samples summary from the database.
         """
 
     @abstractmethod

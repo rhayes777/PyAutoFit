@@ -11,7 +11,7 @@ from pathlib import Path
 from typing import Optional, Union, Tuple, List, Dict
 
 from autoconf import conf, cached_property
-from autoconf.dictable import to_dict
+from autoconf.dictable import to_dict, from_dict
 from autofit import exc, jax_wrapper
 from autofit.database.sqlalchemy_ import sa
 from autofit.graphical import (
@@ -31,6 +31,7 @@ from autofit.non_linear.paths.database import DatabasePaths
 from autofit.non_linear.paths.directory import DirectoryPaths
 from autofit.non_linear.paths.sub_directory_paths import SubDirectoryPaths
 from autofit.non_linear.samples.samples import Samples
+from autofit.non_linear.samples.summary import SamplesSummary
 from autofit.non_linear.result import Result
 from autofit.non_linear.timer import Timer
 from autofit.non_linear.analysis import Analysis
@@ -156,11 +157,6 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         self.force_pickle_overwrite = conf.instance["general"]["output"][
             "force_pickle_overwrite"
         ]
-        self.skip_save_samples = kwargs.get("skip_save_samples")
-        if self.skip_save_samples is None:
-            self.skip_save_samples = conf.instance["general"]["output"].get(
-                "skip_save_samples"
-            )
 
         self.force_visualize_overwrite = conf.instance["general"]["output"][
             "force_visualize_overwrite"
@@ -673,7 +669,12 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             during_analysis=False,
         )
 
-        result = analysis.make_result(samples=samples, search_internal=search_internal)
+        result = analysis.make_result(
+            samples_summary=samples.summary(),
+            paths=self.paths,
+            samples=samples,
+            search_internal=search_internal
+        )
 
         if self.is_master:
             analysis.save_results(paths=self.paths, result=result)
@@ -693,8 +694,11 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         """
         Returns the result of the non-linear search of a completed model-fit.
 
-        The result contains the non-linear search samples, which are loaded from the searches internal results,
-        or the `samples.csv` file if the internal results are not available.
+        The result contains the non-linear search samples summary, which contains the maximum log likelihood instance
+        that is used for visualization and prior passing via the search chaining API.
+
+        This funciton may also load the full samples of the completed fit, for example if visualization of the
+        seatch chains (e.g. a corner plot) is performed. This task is optional and be slow due to loading times.
 
         Optional tasks can be performed to update the results of the model-fit on hard-disk depending on the following
         entries of the `general.yaml` config file's `output` section:
@@ -721,23 +725,12 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         """
 
         model.freeze()
-        try:
-            samples = self.samples_from(model=model)
-        except FileNotFoundError:
-            samples = None
+        samples_summary = self.paths.load_samples_summary()
 
-        try:
-            search_internal = self.backend
-        except (AttributeError, FileNotFoundError):
-            search_internal = None
-
-        if search_internal is None:
-            try:
-                search_internal = self.paths.load_search_internal()
-            except FileNotFoundError:
-                search_internal = None
-
-        result = analysis.make_result(samples=samples, search_internal=search_internal)
+        result = analysis.make_result(
+            samples_summary=samples_summary,
+            paths=self.paths
+        )
 
         if self.is_master:
             self.logger.info(f"Fit Already Completed: skipping non-linear search.")
@@ -746,15 +739,12 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                 self.perform_visualization(
                     model=model,
                     analysis=analysis,
-                    search_internal=search_internal,
+                    samples_summary=samples_summary,
                     during_analysis=False,
                 )
 
             if self.force_pickle_overwrite:
                 self.logger.info("Forcing pickle overwrite")
-
-                if not self.skip_save_samples:
-                    self.paths.save_json("samples_summary", to_dict(samples.summary()))
 
                 analysis.save_results(paths=self.paths, result=result)
                 analysis.save_results_combined(paths=self.paths, result=result)
@@ -915,33 +905,17 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             self.timer.update()
 
         samples = self.samples_from(model=model, search_internal=search_internal)
+        samples_summary = samples.summary()
 
         try:
-            instance = samples.max_log_likelihood()
+            instance = samples_summary.instance
         except exc.FitException:
             return samples
 
         if self.is_master:
-            samples_for_csv = samples
 
-            samples_weight_threshold = conf.instance["output"][
-                "samples_weight_threshold"
-            ]
-
-            if os.environ.get("PYAUTOFIT_TEST_MODE") == "1":
-                samples_weight_threshold = None
-
-            if samples_weight_threshold is not None:
-                samples_for_csv = samples_for_csv.samples_above_weight_threshold_from(
-                    weight_threshold=samples_weight_threshold
-                )
-
-                logger.info(
-                    f"Samples with weight less than {samples_weight_threshold} removed from samples.csv and not used to "
-                    f"compute parameter estimates errors, etc."
-                )
-
-            self.paths.save_samples(samples=samples_for_csv)
+            self.paths.save_samples(samples=samples)
+            self.paths.save_samples_summary(samples_summary=samples_summary)
 
             if (
                     (during_analysis and conf.instance["output"]["latent_during_fit"]) or
@@ -956,12 +930,10 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                         samples=samples,
                     )
 
-            if not self.skip_save_samples:
-                self.paths.save_json("samples_summary", to_dict(samples.summary()))
-
             self.perform_visualization(
                 model=model,
                 analysis=analysis,
+                samples_summary=samples_summary,
                 during_analysis=during_analysis,
                 search_internal=search_internal,
             )
@@ -1004,6 +976,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         self,
         model: AbstractPriorModel,
         analysis: AbstractPriorModel,
+        samples_summary : SamplesSummary,
         during_analysis: bool,
         search_internal=None,
     ):
@@ -1016,9 +989,9 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         The update performs the following tasks (if the settings indicate they should be performed):
 
-        1) Visualize the search results.
-        2) Visualize the maximum log likelihood model using model-specific visualization implented via the `Analysis`
+        1) Visualize the maximum log likelihood model using model-specific visualization implented via the `Analysis`
            object.
+        2) Visualize the search results.
 
         Parameters
         ----------
@@ -1031,28 +1004,29 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             If the update is during a non-linear search, in which case tasks are only performed after a certain number
             of updates and only a subset of visualization may be performed.
         """
-        samples = self.samples_from(model=model, search_internal=search_internal)
-
-        try:
-            instance = samples.max_log_likelihood()
-        except exc.FitException:
-            return samples
-
-        if analysis.should_visualize(paths=self.paths, during_analysis=during_analysis):
-            if not isinstance(self.paths, NullPaths):
-                self.plot_results(samples=samples)
 
         self.logger.debug("Visualizing")
+
         if analysis.should_visualize(paths=self.paths, during_analysis=during_analysis):
             analysis.visualize(
-                paths=self.paths, instance=instance, during_analysis=during_analysis
+                paths=self.paths,
+                instance=samples_summary.instance,
+                during_analysis=during_analysis
             )
             analysis.visualize_combined(
                 analyses=None,
                 paths=self.paths,
-                instance=instance,
+                instance=samples_summary.instance,
                 during_analysis=during_analysis,
             )
+
+        if analysis.should_visualize(paths=self.paths, during_analysis=during_analysis):
+
+            if not isinstance(self.paths, NullPaths):
+
+                samples = self.samples_from(model=model, search_internal=search_internal)
+
+                self.plot_results(samples=samples)
 
     @property
     def samples_cls(self):

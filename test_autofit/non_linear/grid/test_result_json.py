@@ -74,17 +74,15 @@ def test_embedded_sample_model_dict():
 
 def test_result_json(sample):
     model = af.Model(af.Gaussian)
-    result = af.Result(
-        samples=af.Samples(
-            sample_list=[sample],
+    result = af.mock.MockResult(
+        samples_summary=af.m.MockSamplesSummary(
             model=model,
+            max_log_likelihood_sample=sample,
         ),
     )
 
-    assert result.dict() == {
-        "max_log_likelihood": {
+    assert result.dict()["max_log_likelihood"] == {
             "centre": 1.0,
             "intensity": 2.0,
             "sigma": 3.0,
         }
-    }

@@ -50,15 +50,19 @@ class SamplesPDF(Samples):
         )
 
     def summary(self):
-        try:
-            covariance_matrix = self.covariance_matrix
-        except Exception as e:
-            logging.warning(f"Could not create covariance matrix: {e}")
-            covariance_matrix = None
-        return SamplesSummary(
-            max_log_likelihood_sample=self.max_log_likelihood_sample,
+
+        median_pdf_sample = Sample.from_lists(
             model=self.model,
-            covariance_matrix=covariance_matrix,
+            parameter_lists=[self.median_pdf(as_instance=False)],
+            log_likelihood_list=[self.max_log_likelihood_sample.log_likelihood],
+            log_prior_list=[self.max_log_likelihood_sample.log_prior],
+            weight_list=[self.max_log_likelihood_sample.weight],
+        )[0]
+
+        return SamplesSummary(
+            model=self.model,
+            max_log_likelihood_sample=self.max_log_likelihood_sample,
+            median_pdf_sample=median_pdf_sample,
             log_evidence=self.log_evidence,
         )
 
