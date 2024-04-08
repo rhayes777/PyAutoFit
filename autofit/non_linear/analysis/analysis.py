@@ -14,9 +14,10 @@ from autofit.non_linear.samples.pdf import SamplesPDF
 from autofit.non_linear.result import Result
 from autofit.non_linear.samples.samples import Samples
 from autofit.non_linear.samples.sample import Sample
+from autofit.mapper.prior_model.collection import Collection
+from autofit.mapper.prior.gaussian import GaussianPrior
 
 from .visualize import Visualizer
-from ..samples.latent import LatentSamples
 
 logger = logging.getLogger(__name__)
 
@@ -49,7 +50,7 @@ class Analysis(ABC):
 
         return method
 
-    def compute_latent_samples(self, samples: Samples) -> Optional[LatentSamples]:
+    def compute_latent_samples(self, samples: Samples) -> Optional[Samples]:
         """
         Internal method that manages computation of latent variables from samples.
 
@@ -76,7 +77,18 @@ class Analysis(ABC):
                         ),
                     )
                 )
-            return LatentSamples(sample_list=latent_samples)
+
+            kwargs = latent_samples[0].kwargs
+            model = Collection()
+            for key, value in kwargs.items():
+                model[key] = GaussianPrior(
+                    mean=value,
+                    sigma=0.0,
+                )
+            return type(samples)(
+                sample_list=latent_samples,
+                model=model,
+            )
         except NotImplementedError:
             return None
 
