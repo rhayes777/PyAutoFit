@@ -71,6 +71,28 @@ def check_cores(func):
     return wrapper
 
 
+def configure_handler(func):
+    root_logger = logging.getLogger()
+
+    def decorated(self, *args, **kwargs):
+        try:
+            os.makedirs(
+                self.paths.output_path,
+                exist_ok=True,
+            )
+            handler = logging.FileHandler(self.paths.output_path / "root.log")
+            root_logger.addHandler(handler)
+        except AttributeError:
+            return func(self, *args, **kwargs)
+
+        try:
+            return func(self, *args, **kwargs)
+        finally:
+            root_logger.removeHandler(handler)
+
+    return decorated
+
+
 class NonLinearSearch(AbstractFactorOptimiser, ABC):
     def __init__(
         self,
@@ -418,6 +440,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         except ModuleNotFoundError:
             return False
 
+    @configure_handler
     def fit_sequential(
         self,
         model: AbstractPriorModel,
@@ -479,6 +502,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         self.paths = _paths
         return CombinedResult(results)
 
+    @configure_handler
     def fit(
         self,
         model: AbstractPriorModel,
@@ -943,12 +967,12 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
             self.paths.save_samples(samples=samples_for_csv)
 
-            if (
-                    (during_analysis and conf.instance["output"]["latent_during_fit"]) or
-                    (not during_analysis and conf.instance["output"]["latent_after_fit"])
+            if (during_analysis and conf.instance["output"]["latent_during_fit"]) or (
+                not during_analysis and conf.instance["output"]["latent_after_fit"]
             ):
-
-                latent_variables = analysis.compute_all_latent_variables(samples_for_csv)
+                latent_variables = analysis.compute_all_latent_variables(
+                    samples_for_csv
+                )
 
                 if latent_variables:
                     self.paths.save_latent_variables(
