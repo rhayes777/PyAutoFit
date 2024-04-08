@@ -961,6 +961,8 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             )
             self.paths.save_samples(samples=samples)
 
+            latent_samples = None
+
             if (during_analysis and conf.instance["output"]["latent_during_fit"]) or (
                 not during_analysis and conf.instance["output"]["latent_after_fit"]
             ):
@@ -999,6 +1001,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
                 self.paths.save_summary(
                     samples=samples,
+                    latent_samples=latent_samples,
                     log_likelihood_function_time=log_likelihood_function_time,
                 )
             except exc.FitException:

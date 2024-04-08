@@ -452,15 +452,26 @@ class AbstractPaths(ABC):
     def load_samples_info(self):
         pass
 
-    def save_summary(self, samples, log_likelihood_function_time):
+    def save_summary(
+        self,
+        samples,
+        latent_samples,
+        log_likelihood_function_time,
+    ):
         result_info = text_util.result_info_from(
             samples=samples,
         )
-
         filename = self.output_path / "model.results"
-
         with open_(filename, "w") as f:
             f.write(result_info)
+
+        if latent_samples:
+            result_info = text_util.result_info_from(
+                samples=latent_samples,
+            )
+            filename = self.output_path / "latent.results"
+            with open_(filename, "w") as f:
+                f.write(result_info)
 
         text_util.search_summary_to_file(
             samples=samples,
