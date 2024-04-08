@@ -178,6 +178,7 @@ class SearchOutput(AbstractSearchOutput):
         self.__search = None
         self.__model = None
         self._samples = None
+        self._latent_samples = None
 
         self.directory = directory
 
@@ -240,36 +241,34 @@ class SearchOutput(AbstractSearchOutput):
         and a JSON containing metadata.
         """
         if not self._samples:
-            try:
-                info_json = JSONOutput(
-                    "info", self.files_path / "samples_info.json"
-                ).dict
-
-                with open(self.files_path / "samples.csv") as f:
-                    sample_list = samples_from_iterator(csv.reader(f))
-
-                cls = cast(Samples, get_class(info_json["class_path"]))
-
-                self._samples = cls.from_list_info_and_model(
-                    sample_list=sample_list,
-                    samples_info=info_json,
-                    model=self.model,
-                )
-            except FileNotFoundError:
-                raise AttributeError("No samples found")
+            self._samples = self._load_samples("samples")
         return self._samples
 
     @property
-    def latent_variables(self):
+    def latent_samples(self):
         """
         The latent variables of the search, parsed from a CSV file.
         """
-        with open(self.files_path / "latent.csv") as f:
-            reader = csv.reader(f)
-            headers = next(reader)
-            from autofit.non_linear.analysis.latent_variables import LatentVariables
+        if not self._latent_samples:
+            self._latent_samples = self._load_samples("latent_samples")
+        return self._latent_samples
 
-            return LatentVariables(headers, [list(map(float, row)) for row in reader])
+    def _load_samples(self, name):
+        try:
+            info_json = JSONOutput("info", self.files_path / f"{name}_info.json").dict
+
+            with open(self.files_path / f"{name}.csv") as f:
+                sample_list = samples_from_iterator(csv.reader(f))
+
+            cls = cast(Samples, get_class(info_json["class_path"]))
+
+            return cls.from_list_info_and_model(
+                sample_list=sample_list,
+                samples_info=info_json,
+                model=self.model,
+            )
+        except FileNotFoundError:
+            raise AttributeError("No samples found")
 
     def names_and_paths(
         self,
