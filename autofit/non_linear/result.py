@@ -297,13 +297,11 @@ class Result(AbstractResult):
         The samples of the non-linear search.
         """
 
-        # TODO : This needs to load a samples class based on the samples type.
-
         if self._samples is not None:
             return self._samples
 
         try:
-            Samples.from_csv(
+            return Samples.from_csv(
                 paths=self.paths,
                 model=self.model,
             )
