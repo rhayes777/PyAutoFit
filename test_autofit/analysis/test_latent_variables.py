@@ -95,7 +95,7 @@ def test_minimise(latent_variables):
     assert latent_variables.values == [[1.0]]
 
 
-def test_compute_all_latent_variables():
+def test_compute_latent_samples():
     analysis = Analysis()
     latent_samples = analysis.compute_latent_samples(
         Samples(
@@ -115,3 +115,4 @@ def test_compute_all_latent_variables():
         ),
     )
     assert latent_samples.sample_list[0].kwargs == {"fwhm": 7.0644601350928475}
+    assert latent_samples.model.instance_from_vector([1.0]).fwhm == 1.0
