@@ -458,7 +458,6 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         except ModuleNotFoundError:
             return False
 
-    @configure_handler
     def fit_sequential(
         self,
         model: AbstractPriorModel,
