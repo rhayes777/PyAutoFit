@@ -12,6 +12,7 @@ The `analysis.py` module contains the dataset and log likelihood function which 
 the non-linear search) fits the dataset and returns the log likelihood of that model.
 """
 
+
 class Analysis(af.Analysis):
 
     """
@@ -20,9 +21,10 @@ class Analysis(af.Analysis):
     This result has been extended, based on the model that is input into the analysis, to include a property
     `max_log_likelihood_model_data`, which is the model data of the best-fit model.
     """
+
     Result = ResultExample
 
-    def __init__(self, data: np.ndarray, noise_map:np.ndarray):
+    def __init__(self, data: np.ndarray, noise_map: np.ndarray):
         """
         In this example the `Analysis` object only contains the data and noise-map. It can be easily extended,
         for more complex data-sets and model fitting problems.
@@ -61,7 +63,7 @@ class Analysis(af.Analysis):
 
         return log_likelihood
 
-    def model_data_1d_from(self, instance : af.ModelInstance) -> np.ndarray:
+    def model_data_1d_from(self, instance: af.ModelInstance) -> np.ndarray:
         """
         Returns the model data of a the 1D profiles.
 
@@ -88,7 +90,9 @@ class Analysis(af.Analysis):
         try:
             for profile in instance:
                 try:
-                    model_data_1d += profile.model_data_1d_via_xvalues_from(xvalues=xvalues)
+                    model_data_1d += profile.model_data_1d_via_xvalues_from(
+                        xvalues=xvalues
+                    )
                 except AttributeError:
                     pass
         except TypeError:
@@ -96,7 +100,12 @@ class Analysis(af.Analysis):
 
         return model_data_1d
 
-    def visualize(self, paths: af.DirectoryPaths, instance: af.ModelInstance, during_analysis : bool):
+    def visualize(
+        self,
+        paths: af.DirectoryPaths,
+        instance: af.ModelInstance,
+        during_analysis: bool,
+    ):
         """
         During a model-fit, the `visualize` method is called throughout the non-linear search and is used to output
         images indicating the quality of the fit so far..
@@ -126,7 +135,9 @@ class Analysis(af.Analysis):
         try:
             for profile in instance:
                 try:
-                    model_data_1d += profile.model_data_1d_via_xvalues_from(xvalues=xvalues)
+                    model_data_1d += profile.model_data_1d_via_xvalues_from(
+                        xvalues=xvalues
+                    )
                 except AttributeError:
                     pass
         except TypeError:
@@ -202,7 +213,9 @@ class Analysis(af.Analysis):
             visualization, and the pickled objects used by the aggregator output by this function.
         """
         paths.save_json(name="data", object_dict=self.data.tolist(), prefix="dataset")
-        paths.save_json(name="noise_map", object_dict=self.noise_map.tolist(), prefix="dataset")
+        paths.save_json(
+            name="noise_map", object_dict=self.noise_map.tolist(), prefix="dataset"
+        )
 
     def make_result(
         self,
@@ -265,10 +278,10 @@ class Analysis(af.Analysis):
             paths=paths,
             samples=samples,
             search_internal=search_internal,
-            analysis=self
+            analysis=self,
         )
 
-    def compute_latent_variable(self, instance) -> Dict[str, float]:
+    def compute_latent_variables(self, instance) -> Dict[str, float]:
         """
         A latent variable is not a model parameter but can be derived from the model. Its value and errors may be
         of interest and aid in the interpretation of a model-fit.
@@ -295,8 +308,6 @@ class Analysis(af.Analysis):
 
         """
         try:
-            return {
-                "fwhm": instance.fwhm
-            }
+            return {"fwhm": instance.fwhm}
         except AttributeError:
             return {}

@@ -72,7 +72,7 @@ class Analysis(ABC):
                         log_likelihood=sample.log_likelihood,
                         log_prior=sample.log_prior,
                         weight=sample.weight,
-                        kwargs=self.compute_latent_variable(
+                        kwargs=self.compute_latent_variables(
                             sample.instance_for_model(model)
                         ),
                     )
@@ -104,7 +104,7 @@ class Analysis(ABC):
         except NotImplementedError:
             return None
 
-    def compute_latent_variable(self, instance) -> Dict[str, float]:
+    def compute_latent_variables(self, instance) -> Dict[str, float]:
         """
         Override to compute latent variables from the instance.
 

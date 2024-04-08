@@ -10,7 +10,7 @@ class Analysis(af.Analysis):
     def log_likelihood_function(self, instance):
         return 1.0
 
-    def compute_latent_variable(self, instance):
+    def compute_latent_variables(self, instance):
         return {"fwhm": instance.fwhm}
 
 
@@ -103,7 +103,7 @@ class ComplexAnalysis(af.Analysis):
     def log_likelihood_function(self, instance):
         return 1.0
 
-    def compute_latent_variable(self, instance):
+    def compute_latent_variables(self, instance):
         return {
             "lens.mass": 1.0,
             "lens.brightness": 2.0,
