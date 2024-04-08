@@ -52,7 +52,7 @@ class Analysis(ABC):
 
     def compute_latent_samples(self, samples: Samples) -> Optional[Samples]:
         """
-        Internal method that manages computation of latent variables from samples.
+        Internal method that manages computation of latent samples from samples.
 
         Parameters
         ----------
@@ -61,7 +61,7 @@ class Analysis(ABC):
 
         Returns
         -------
-        The computed latent variables or None if compute_latent_variable is not implemented.
+        The computed latent samples or None if compute_latent_variable is not implemented.
         """
         try:
             latent_samples = []
@@ -107,6 +107,13 @@ class Analysis(ABC):
     def compute_latent_variable(self, instance) -> Dict[str, float]:
         """
         Override to compute latent variables from the instance.
+
+        Latent variables are expressed as a dictionary:
+        {"name": value}
+
+        More complex models can be expressed by separating variables
+        names by '.'
+        {"name.attribute": value}
 
         Parameters
         ----------
