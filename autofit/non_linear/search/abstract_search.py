@@ -15,6 +15,10 @@ if TYPE_CHECKING:
     from autofit.non_linear.result import Result
 
 from autoconf import conf, cached_property
+
+from autoconf.dictable import to_dict
+from autoconf.output import should_output
+
 from autofit import exc, jax_wrapper
 from autofit.database.sqlalchemy_ import sa
 from autofit.graphical import (
@@ -72,6 +76,45 @@ def check_cores(func):
         return func(self, *args, **kwargs)
 
     return wrapper
+
+
+def configure_handler(func):
+    """
+    Add a file handler for logging during the course of the search.
+
+    Optionally outputs 'search.log' to the search's output directory. Can be
+    turned on or off in the output.yaml file.
+
+    Parameters
+    ----------
+    func
+        Some function for which logging should be output to file
+
+    Returns
+    -------
+    A decorated version of the function
+    """
+    root_logger = logging.getLogger()
+
+    def decorated(self, *args, **kwargs):
+        if not should_output("search_log"):
+            return func(self, *args, **kwargs)
+        try:
+            os.makedirs(
+                self.paths.output_path,
+                exist_ok=True,
+            )
+            handler = logging.FileHandler(self.paths.output_path / "search.log")
+            root_logger.addHandler(handler)
+        except AttributeError:
+            return func(self, *args, **kwargs)
+
+        try:
+            return func(self, *args, **kwargs)
+        finally:
+            root_logger.removeHandler(handler)
+
+    return decorated
 
 
 class NonLinearSearch(AbstractFactorOptimiser, ABC):
@@ -628,6 +671,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                     f"turned on and set to {timeout_seconds} seconds.***\n"
                 )
 
+    @configure_handler
     def start_resume_fit(self, analysis: Analysis, model: AbstractPriorModel) -> Result:
         """
         Start a non-linear search from scratch, or resumes one which was previously terminated mid-way through.
