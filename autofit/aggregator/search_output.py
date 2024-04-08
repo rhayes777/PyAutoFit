@@ -248,7 +248,7 @@ class SearchOutput(AbstractSearchOutput):
                 with open(self.files_path / "samples.csv") as f:
                     sample_list = samples_from_iterator(csv.reader(f))
 
-                cls = cast(Samples, get_class(info_json["type"]))
+                cls = cast(Samples, get_class(info_json["class_path"]))
 
                 self._samples = cls.from_list_info_and_model(
                     sample_list=sample_list,
@@ -264,7 +264,7 @@ class SearchOutput(AbstractSearchOutput):
         """
         The latent variables of the search, parsed from a CSV file.
         """
-        with open(self.files_path / "latent_variables.csv") as f:
+        with open(self.files_path / "latent.csv") as f:
             reader = csv.reader(f)
             headers = next(reader)
             from autofit.non_linear.analysis.latent_variables import LatentVariables

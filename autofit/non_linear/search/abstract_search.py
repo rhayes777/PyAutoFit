@@ -556,7 +556,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
             self.post_fit_output(
                 bypass_nuclear_if_on=bypass_nuclear_if_on,
-                search_internal=result.search_internal
+                search_internal=result.search_internal,
             )
 
         return result
@@ -687,7 +687,9 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         return result
 
     def result_via_completed_fit(
-        self, analysis: Analysis, model: AbstractPriorModel,
+        self,
+        analysis: Analysis,
+        model: AbstractPriorModel,
     ) -> Result:
         """
         Returns the result of the non-linear search of a completed model-fit.
@@ -907,7 +909,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             instance = samples_summary.instance
         except exc.FitException:
             return samples
-
+          
         if self.is_master:
 
             self.paths.save_samples_summary(samples_summary=samples_summary)
@@ -915,12 +917,18 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             samples = samples.samples_above_weight_threshold_from(log_message=not during_analysis)
             self.paths.save_samples(samples=samples)
 
-            latent_variables = analysis.latent_variables
-            if latent_variables:
-                self.paths.save_latent_variables(
-                    latent_variables,
-                    samples=samples,
-                )
+            if (
+                    (during_analysis and conf.instance["output"]["latent_during_fit"]) or
+                    (not during_analysis and conf.instance["output"]["latent_after_fit"])
+            ):
+
+                latent_variables = analysis.compute_all_latent_variables(samples)
+
+                if latent_variables:
+                    self.paths.save_latent_variables(
+                        latent_variables,
+                        samples=samples,
+                    )
 
             self.perform_visualization(
                 model=model,

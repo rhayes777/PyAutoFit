@@ -54,7 +54,7 @@ class Samples(SamplesInterface, ABC):
         self.sample_list = sample_list
         self.samples_info = {
             **(samples_info or {}),
-            "type": get_class_path(self.__class__),
+            "class_path": get_class_path(self.__class__),
         }
 
     def __str__(self):
