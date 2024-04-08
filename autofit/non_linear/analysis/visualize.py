@@ -2,7 +2,7 @@ from autofit.non_linear.paths.abstract import AbstractPaths
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 
 
-class Visualiser:
+class Visualizer:
     @staticmethod
     def visualize_before_fit(
         analysis,

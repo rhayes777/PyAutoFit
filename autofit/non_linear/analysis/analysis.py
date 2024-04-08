@@ -14,7 +14,7 @@ from autofit.non_linear.samples.summary import SamplesSummary
 from autofit.non_linear.samples.pdf import SamplesPDF
 from autofit.non_linear.result import Result
 from autofit.non_linear.samples.samples import Samples
-from .visualise import Visualiser
+from .visualize import Visualizer
 
 logger = logging.getLogger(__name__)
 
@@ -27,7 +27,7 @@ class Analysis(ABC):
     """
 
     Result = Result
-    Visualiser = Visualiser
+    Visualizer = Visualizer
 
     def compute_all_latent_variables(
         self, samples: Samples

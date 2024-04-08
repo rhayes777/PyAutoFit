@@ -610,11 +610,11 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             analysis.save_attributes(paths=self.paths)
 
         if analysis.should_visualize(paths=self.paths):
-            analysis.Visualiser.visualize_before_fit(
+            analysis.visualize_before_fit(
                 paths=self.paths,
                 model=model,
             )
-            analysis.visualiser.visualize_before_fit_combined(
+            analysis.visualize_before_fit_combined(
                 analyses=None,
                 paths=self.paths,
                 model=model,
