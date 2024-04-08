@@ -1,10 +1,9 @@
 import pytest
-import numpy as np
 
 import autofit as af
 from autoconf.conf import with_config
 from autofit import DirectoryPaths, Samples
-from autofit.exc import SamplesException
+from autofit.text.text_util import result_info_from
 
 
 class Analysis(af.Analysis):
@@ -70,3 +69,20 @@ def make_latent_samples():
 def test_compute_latent_samples(latent_samples):
     assert latent_samples.sample_list[0].kwargs == {"fwhm": 7.0644601350928475}
     assert latent_samples.model.instance_from_vector([1.0]).fwhm == 1.0
+
+
+def test_info(latent_samples):
+    info = result_info_from(latent_samples)
+    assert (
+        info
+        == """Maximum Log Likelihood                                                          1.00000000
+Maximum Log Posterior                                                           1.00000000
+
+model                                                                           Collection (N=1)
+
+Maximum Log Likelihood Model:
+
+fwhm                                                                            7.064
+
+"""
+    )
