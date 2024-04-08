@@ -14,6 +14,7 @@ from autofit.non_linear.samples.summary import SamplesSummary
 from autofit.non_linear.samples.pdf import SamplesPDF
 from autofit.non_linear.result import Result
 from autofit.non_linear.samples.samples import Samples
+from .visualise import Visualiser
 
 logger = logging.getLogger(__name__)
 
@@ -26,6 +27,7 @@ class Analysis(ABC):
     """
 
     Result = Result
+    Visualiser = Visualiser
 
     def compute_all_latent_variables(
         self, samples: Samples
@@ -136,22 +138,6 @@ class Analysis(ABC):
     def log_likelihood_function(self, instance):
         raise NotImplementedError()
 
-    def visualize_before_fit(self, paths: AbstractPaths, model: AbstractPriorModel):
-        pass
-
-    def visualize(self, paths: AbstractPaths, instance, during_analysis):
-        pass
-
-    def visualize_before_fit_combined(
-        self, analyses, paths: AbstractPaths, model: AbstractPriorModel
-    ):
-        pass
-
-    def visualize_combined(
-        self, analyses, paths: AbstractPaths, instance, during_analysis
-    ):
-        pass
-
     def save_attributes(self, paths: AbstractPaths):
         pass
 
@@ -238,7 +224,7 @@ class Analysis(ABC):
             paths=paths,
             samples=samples,
             search_internal=search_internal,
-            analysis=None
+            analysis=None,
         )
 
     def profile_log_likelihood_function(self, paths: AbstractPaths, instance):
