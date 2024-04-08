@@ -3,6 +3,11 @@ from autofit.mapper.prior_model.abstract import AbstractPriorModel
 
 
 class Visualizer:
+    """
+    Methods associated with visualising analysis, model and data before, during
+    or after an optimisation.
+    """
+
     @staticmethod
     def visualize_before_fit(
         analysis,
