@@ -964,7 +964,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             if (during_analysis and conf.instance["output"]["latent_during_fit"]) or (
                 not during_analysis and conf.instance["output"]["latent_after_fit"]
             ):
-                latent_variables = analysis.compute_all_latent_variables(samples)
+                latent_variables = analysis.compute_latent_samples(samples)
 
                 if latent_variables:
                     self.paths.save_latent_variables(

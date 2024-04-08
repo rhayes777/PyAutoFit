@@ -97,7 +97,7 @@ def test_minimise(latent_variables):
 
 def test_compute_all_latent_variables():
     analysis = Analysis()
-    latent_variables = analysis.compute_all_latent_variables(
+    latent_samples = analysis.compute_latent_samples(
         Samples(
             model=af.Model(af.Gaussian),
             sample_list=[
@@ -114,4 +114,4 @@ def test_compute_all_latent_variables():
             ],
         ),
     )
-    assert latent_variables.names == ["fwhm"]
+    assert latent_samples.sample_list[0].kwargs == {"fwhm": 7.0644601350928475}

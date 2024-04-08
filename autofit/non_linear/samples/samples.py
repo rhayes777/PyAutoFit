@@ -21,6 +21,7 @@ from ...text.formatter import write_table
 
 logger = logging.getLogger(__name__)
 
+
 class Samples(SamplesInterface, ABC):
     def __init__(
         self,
@@ -390,9 +391,7 @@ class Samples(SamplesInterface, ABC):
         return self.parameter_lists[sample_index]
 
     def samples_above_weight_threshold_from(
-            self,
-            weight_threshold: Optional[float] = None,
-            log_message : bool = False
+        self, weight_threshold: Optional[float] = None, log_message: bool = False
     ) -> "Samples":
         """
         Returns a new `Samples` object containing only the samples with a weight above the input threshold.
@@ -413,9 +412,7 @@ class Samples(SamplesInterface, ABC):
         """
 
         if weight_threshold is None:
-            weight_threshold = conf.instance["output"][
-                "samples_weight_threshold"
-            ]
+            weight_threshold = conf.instance["output"]["samples_weight_threshold"]
 
         if os.environ.get("PYAUTOFIT_TEST_MODE") == "1":
             weight_threshold = None

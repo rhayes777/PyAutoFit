@@ -6,7 +6,6 @@ from typing import Optional, Dict
 from autoconf import conf
 
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
-from autofit.non_linear.analysis.latent_variables import LatentVariables
 from autofit.non_linear.paths.abstract import AbstractPaths
 from autofit.non_linear.paths.database import DatabasePaths
 from autofit.non_linear.paths.null import NullPaths
@@ -14,7 +13,10 @@ from autofit.non_linear.samples.summary import SamplesSummary
 from autofit.non_linear.samples.pdf import SamplesPDF
 from autofit.non_linear.result import Result
 from autofit.non_linear.samples.samples import Samples
+from autofit.non_linear.samples.sample import Sample
+
 from .visualize import Visualizer
+from ..samples.latent import LatentSamples
 
 logger = logging.getLogger(__name__)
 
@@ -47,9 +49,7 @@ class Analysis(ABC):
 
         return method
 
-    def compute_all_latent_variables(
-        self, samples: Samples
-    ) -> Optional[LatentVariables]:
+    def compute_latent_samples(self, samples: Samples) -> Optional[LatentSamples]:
         """
         Internal method that manages computation of latent variables from samples.
 
@@ -63,13 +63,20 @@ class Analysis(ABC):
         The computed latent variables or None if compute_latent_variable is not implemented.
         """
         try:
-            latent_variables = LatentVariables()
+            latent_samples = []
             model = samples.model
             for sample in samples.sample_list:
-                latent_variables.add(
-                    **self.compute_latent_variable(sample.instance_for_model(model))
+                latent_samples.append(
+                    Sample(
+                        log_likelihood=sample.log_likelihood,
+                        log_prior=sample.log_prior,
+                        weight=sample.weight,
+                        kwargs=self.compute_latent_variable(
+                            sample.instance_for_model(model)
+                        ),
+                    )
                 )
-            return latent_variables
+            return LatentSamples(sample_list=latent_samples)
         except NotImplementedError:
             return None
 
