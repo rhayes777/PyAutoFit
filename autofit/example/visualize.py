@@ -59,12 +59,12 @@ class VisualizerExample(af.Visualizer):
         plt.clf()
         plt.close()
 
+    @staticmethod
     def visualize(
-            self,
-            analysis,
-            paths: af.DirectoryPaths,
-            instance: af.ModelInstance,
-            during_analysis : bool
+        analysis,
+        paths: af.DirectoryPaths,
+        instance: af.ModelInstance,
+        during_analysis : bool
     ):
         """
         During a model-fit, the `visualize` method is called throughout the non-linear search and is used to output
@@ -163,12 +163,12 @@ class VisualizerExample(af.Visualizer):
         """
         pass
 
+    @staticmethod
     def visualize_combined(
-            self,
-            analyses: List[af.Analysis],
-            paths: af.DirectoryPaths,
-            instance: af.ModelInstance,
-            during_analysis: bool,
+        analyses: List[af.Analysis],
+        paths: af.DirectoryPaths,
+        instance: af.ModelInstance,
+        during_analysis: bool,
     ):
         """
         Multiple instances of the `Analysis` class can be summed together, meaning that the model is fitted to all
