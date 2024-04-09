@@ -39,8 +39,6 @@ class VisualizerExample(af.Visualizer):
             The model which is fitted to the data, which may be used to customize the visualization.
         """
 
-        aaa
-
         xvalues = np.arange(analysis.data.shape[0])
 
         plt.errorbar(

@@ -25,23 +25,23 @@ class Analysis(ABC):
     Result = Result
     Visualizer = Visualizer
 
-    def __getattr__(self, item: str):
-        """
-        If a method starts with 'visualize_' then we assume it is associated with
-        the Visualizer and forward the call to the visualizer.
-
-        It may be desirable to remove this behaviour as the visualizer component of
-        the system becomes more sophisticated.
-        """
-        if item.startswith("visualize"):
-            _method = getattr(Visualizer, item)
-        else:
-            raise AttributeError(f"Analysis has no attribute {item}")
-
-        def method(*args, **kwargs):
-            return _method(self, *args, **kwargs)
-
-        return method
+    # def __getattr__(self, item: str):
+    #     """
+    #     If a method starts with 'visualize_' then we assume it is associated with
+    #     the Visualizer and forward the call to the visualizer.
+    #
+    #     It may be desirable to remove this behaviour as the visualizer component of
+    #     the system becomes more sophisticated.
+    #     """
+    #     if item.startswith("visualize"):
+    #         _method = getattr(Visualizer, item)
+    #     else:
+    #         raise AttributeError(f"Analysis has no attribute {item}")
+    #
+    #     def method(*args, **kwargs):
+    #         return _method(self, *args, **kwargs)
+    #
+    #     return method
 
     def compute_all_latent_variables(
         self, samples: Samples
@@ -194,6 +194,9 @@ class Analysis(ABC):
             search_internal=search_internal,
             analysis=None,
         )
+
+    def make_visualizer(self):
+        return self.Visualizer()
 
     def profile_log_likelihood_function(self, paths: AbstractPaths, instance):
         """
