@@ -25,10 +25,6 @@ class Analysis(ABC):
     Result = Result
     Visualizer = Visualizer
 
-    # TODO : Remove once we have a better way to handle this
-
-    should_visualize = Visualizer.should_visualize
-
     def __getattr__(self, item: str):
         """
         If a method starts with 'visualize_' then we assume it is associated with
@@ -37,7 +33,7 @@ class Analysis(ABC):
         It may be desirable to remove this behaviour as the visualizer component of
         the system becomes more sophisticated.
         """
-        if item.startswith("visualize"):
+        if item.startswith("visualize") or item.startswith("should_visualize"):
             _method = getattr(self.Visualizer, item)
         else:
             raise AttributeError(f"Analysis has no attribute {item}")
@@ -196,7 +192,7 @@ class Analysis(ABC):
             paths=paths,
             samples=samples,
             search_internal=search_internal,
-            analysis=None,
+            analysis=analysis,
         )
 
     def profile_log_likelihood_function(self, paths: AbstractPaths, instance):

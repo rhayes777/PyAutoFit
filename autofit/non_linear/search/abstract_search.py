@@ -663,8 +663,6 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                 model=model,
             )
 
-        bbb
-
         timeout_seconds = get_timeout_seconds()
 
         if timeout_seconds is not None:

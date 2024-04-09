@@ -229,7 +229,7 @@ class CombinedAnalysis(Analysis):
         self._for_each_analysis(func, paths)
 
     def visualize_before_fit_combined(
-        self, analyses, paths: AbstractPaths, model: AbstractPriorModel
+        self, paths: AbstractPaths, model: AbstractPriorModel
     ):
         """
         Visualise images and quantities which are shared across all analyses.
@@ -246,7 +246,8 @@ class CombinedAnalysis(Analysis):
         paths
             An object describing the paths for saving data (e.g. hard-disk directories or entries in sqlite database).
         """
-        self.analyses[0].visualize_before_fit_combined(
+
+        self.analyses[0].Visualizer.visualize_before_fit_combined(
             analyses=self.analyses,
             paths=paths,
             model=model,
@@ -284,7 +285,6 @@ class CombinedAnalysis(Analysis):
 
     def visualize_combined(
         self,
-        analyses: List["Analysis"],
         instance,
         paths: AbstractPaths,
         during_analysis,
@@ -308,7 +308,7 @@ class CombinedAnalysis(Analysis):
         during_analysis
             Is this visualisation during analysis?
         """
-        self.analyses[0].visualize_combined(
+        self.analyses[0].Visualizer.visualize_combined(
             analyses=self.analyses,
             paths=paths,
             instance=instance,
