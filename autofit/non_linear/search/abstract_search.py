@@ -652,13 +652,18 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             )
             analysis.save_attributes(paths=self.paths)
 
-        visualizer = analysis.make_visualizer()
+        if analysis.should_visualize(paths=self.paths):
 
-        visualizer.perform_visualization_before(
-            analysis=analysis,
-            model=model,
-            paths=self.paths,
-        )
+            analysis.visualize_before_fit(
+                paths=self.paths,
+                model=model,
+            )
+            analysis.visualize_before_fit_combined(
+                paths=self.paths,
+                model=model,
+            )
+
+        bbb
 
         timeout_seconds = get_timeout_seconds()
 
@@ -1054,7 +1059,6 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                 during_analysis=during_analysis,
             )
             analysis.visualize_combined(
-                analyses=None,
                 paths=self.paths,
                 instance=samples_summary.instance,
                 during_analysis=during_analysis,

@@ -2,38 +2,12 @@ import os
 
 from autoconf import conf
 
-
 from autofit.non_linear.paths.abstract import AbstractPaths
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.paths.database import DatabasePaths
 from autofit.non_linear.paths.null import NullPaths
 
 class Visualizer:
-
-    def __init__(self):
-
-        pass
-
-    def perform_visualization_before(
-            self,
-            analysis,
-            paths: AbstractPaths,
-            model: AbstractPriorModel,
-            analyses = None,
-    ):
-
-        if self.should_visualize(paths=paths):
-
-            self.visualize_before_fit(
-                analysis=analysis,
-                paths=paths,
-                model=model,
-            )
-            self.visualize_before_fit_combined(
-                analyses=analyses,
-                paths=paths,
-                model=model,
-            )
 
     def should_visualize(
         self, paths: AbstractPaths, during_analysis: bool = True
