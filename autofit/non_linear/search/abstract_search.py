@@ -663,13 +663,13 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                 model=model,
             )
 
-            timeout_seconds = get_timeout_seconds()
+        timeout_seconds = get_timeout_seconds()
 
-            if timeout_seconds is not None:
-                logger.info(
-                    f"\n\n ***Log Likelihood Function timeout is "
-                    f"turned on and set to {timeout_seconds} seconds.***\n"
-                )
+        if timeout_seconds is not None:
+            logger.info(
+                f"\n\n ***Log Likelihood Function timeout is "
+                f"turned on and set to {timeout_seconds} seconds.***\n"
+            )
 
     @configure_handler
     def start_resume_fit(self, analysis: Analysis, model: AbstractPriorModel) -> Result:

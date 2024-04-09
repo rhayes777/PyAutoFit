@@ -6,8 +6,6 @@ from typing import Optional, Dict
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.analysis.latent_variables import LatentVariables
 from autofit.non_linear.paths.abstract import AbstractPaths
-from autofit.non_linear.paths.database import DatabasePaths
-from autofit.non_linear.paths.null import NullPaths
 from autofit.non_linear.samples.summary import SamplesSummary
 from autofit.non_linear.samples.pdf import SamplesPDF
 from autofit.non_linear.result import Result
