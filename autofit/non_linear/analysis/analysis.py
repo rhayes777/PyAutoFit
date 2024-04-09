@@ -1,9 +1,7 @@
 import logging
 from abc import ABC
-import os
 from typing import Optional, Dict
 
-from autoconf import conf
 
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.analysis.latent_variables import LatentVariables
@@ -106,52 +104,6 @@ class Analysis(ABC):
         from .model_analysis import ModelAnalysis
 
         return ModelAnalysis(analysis=self, model=model)
-
-    def should_visualize(
-        self, paths: AbstractPaths, during_analysis: bool = True
-    ) -> bool:
-        """
-        Whether a visualize method should be called perform visualization, which depends on the following:
-
-        1) If a model-fit has already completed, the default behaviour is for visualization to be bypassed in order
-        to make model-fits run faster.
-
-        2) If a model-fit has completed, but it is the final visualization output where `during_analysis` is False,
-        it should be performed.
-
-        3) Visualization can be forced to run via the `force_visualization_overwrite`, for example if a user
-        wants to plot additional images that were not output on the original run.
-
-        4) If the analysis is running a database session visualization is switched off.
-
-        5) If PyAutoFit test mode is on visualization is disabled, irrespective of the `force_visualization_overwite`
-        config input.
-
-        Parameters
-        ----------
-        paths
-            The PyAutoFit paths object which manages all paths, e.g. where the non-linear search outputs are stored,
-            visualization and the pickled objects used by the aggregator output by this function.
-
-
-        Returns
-        -------
-        A bool determining whether visualization should be performed or not.
-        """
-
-        if os.environ.get("PYAUTOFIT_TEST_MODE") == "1":
-            return False
-
-        if isinstance(paths, DatabasePaths) or isinstance(paths, NullPaths):
-            return False
-
-        if conf.instance["general"]["output"]["force_visualize_overwrite"]:
-            return True
-
-        if not during_analysis:
-            return True
-
-        return not paths.is_complete
 
     def log_likelihood_function(self, instance):
         raise NotImplementedError()
