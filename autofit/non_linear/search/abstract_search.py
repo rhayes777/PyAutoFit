@@ -957,20 +957,21 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         if self.is_master:
             self.paths.save_samples_summary(samples_summary=samples_summary)
 
-            samples = samples.samples_above_weight_threshold_from(
+            samples_save = samples
+            samples_save = samples_save.samples_above_weight_threshold_from(
                 log_message=not during_analysis
             )
-            self.paths.save_samples(samples=samples)
+            self.paths.save_samples(samples=samples_save)
 
             if (during_analysis and conf.instance["output"]["latent_during_fit"]) or (
                 not during_analysis and conf.instance["output"]["latent_after_fit"]
             ):
-                latent_variables = analysis.compute_all_latent_variables(samples)
+                latent_variables = analysis.compute_all_latent_variables(samples_save)
 
                 if latent_variables:
                     self.paths.save_latent_variables(
                         latent_variables,
-                        samples=samples,
+                        samples=samples_save,
                     )
 
             self.perform_visualization(

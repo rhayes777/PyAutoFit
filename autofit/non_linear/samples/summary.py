@@ -57,6 +57,9 @@ class SamplesSummary(SamplesInterface):
 
         sample = self.median_pdf_sample
 
+        print(sample)
+        vvv
+
         return sample.parameter_lists_for_paths(
             self.paths if sample.is_path_kwargs else self.names
         )
