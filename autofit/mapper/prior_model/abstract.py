@@ -20,15 +20,8 @@ from autofit.mapper.prior.abstract import Prior
 from autofit.mapper.prior.deferred import DeferredArgument
 from autofit.mapper.prior.tuple_prior import TuplePrior
 from autofit.mapper.prior.width_modifier import WidthModifier
-from autofit.mapper.prior_model.attribute_pair import DeferredNameValue
-from autofit.mapper.prior_model.attribute_pair import (
-    cast_collection,
-    PriorNameValue,
-    InstanceNameValue,
-)
 from autofit.mapper.prior_model.recursion import DynamicRecursionCache
 from autofit.mapper.prior_model.representative import find_groups
-from autofit.mapper.prior_model.util import PriorModelNameValue
 from autofit.text import formatter as frm
 from autofit.text.formatter import TextFormatter
 from autofit.tools.util import info_whitespace
@@ -553,7 +546,6 @@ class AbstractPriorModel(AbstractModel):
         )
 
     @property
-    @cast_collection(PriorNameValue)
     @frozen_cache
     def unique_prior_tuples(self):
         """
@@ -570,7 +562,6 @@ class AbstractPriorModel(AbstractModel):
         )
 
     @property
-    @cast_collection(PriorNameValue)
     @frozen_cache
     def prior_tuples_ordered_by_id(self):
         """
@@ -580,7 +571,7 @@ class AbstractPriorModel(AbstractModel):
             An ordered list of unique priors associated with this mapper
         """
         return sorted(
-            list(self.unique_prior_tuples), key=lambda prior_tuple: prior_tuple.prior.id
+            list(self.unique_prior_tuples), key=lambda prior_tuple: prior_tuple[1].id
         )
 
     @property
@@ -605,7 +596,7 @@ class AbstractPriorModel(AbstractModel):
         """
         return list(
             map(
-                lambda prior_tuple, unit: prior_tuple.prior.value_for(
+                lambda prior_tuple, unit: prior_tuple[1].value_for(
                     unit, ignore_prior_limits=ignore_prior_limits
                 ),
                 self.prior_tuples_ordered_by_id,
@@ -752,7 +743,7 @@ class AbstractPriorModel(AbstractModel):
             )
         arguments = dict(
             map(
-                lambda prior_tuple, physical_unit: (prior_tuple.prior, physical_unit),
+                lambda prior_tuple, physical_unit: (prior_tuple[1], physical_unit),
                 self.prior_tuples_ordered_by_id,
                 vector,
             )
@@ -1165,32 +1156,26 @@ class AbstractPriorModel(AbstractModel):
         ]
 
     @property
-    @cast_collection(PriorNameValue)
     def direct_prior_tuples(self):
         return self.direct_tuples_with_type(Prior)
 
     @property
-    @cast_collection(InstanceNameValue)
     def direct_instance_tuples(self):
         return self.direct_tuples_with_type(float)
 
     @property
-    @cast_collection(PriorModelNameValue)
     def prior_model_tuples(self):
         return self.direct_tuples_with_type(AbstractPriorModel)
 
     @property
-    @cast_collection(PriorModelNameValue)
     def direct_prior_model_tuples(self):
         return self.direct_tuples_with_type(AbstractPriorModel)
 
     @property
-    @cast_collection(PriorModelNameValue)
     def direct_tuple_priors(self):
         return self.direct_tuples_with_type(TuplePrior)
 
     @property
-    @cast_collection(PriorNameValue)
     def tuple_prior_tuples(self):
         """
         Returns
@@ -1200,7 +1185,6 @@ class AbstractPriorModel(AbstractModel):
         return self.direct_tuples_with_type(TuplePrior)
 
     @property
-    @cast_collection(PriorNameValue)
     def direct_prior_tuples(self):
         """
         Returns
@@ -1210,12 +1194,10 @@ class AbstractPriorModel(AbstractModel):
         return self.direct_tuples_with_type(Prior)
 
     @property
-    @cast_collection(DeferredNameValue)
     def direct_deferred_tuples(self):
         return self.direct_tuples_with_type(DeferredArgument)
 
     @property
-    @cast_collection(PriorNameValue)
     def prior_tuples(self):
         """
         Returns
@@ -1232,7 +1214,6 @@ class AbstractPriorModel(AbstractModel):
         )
 
     @property
-    @cast_collection(InstanceNameValue)
     def instance_tuples(self):
         """
         Returns
