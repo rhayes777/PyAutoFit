@@ -253,7 +253,7 @@ class AbstractDynesty(AbstractNest, ABC):
         return SamplesNest(
             model=model,
             sample_list=sample_list,
-            samples_info=self.samples_info_from(search_internal=search_internal)
+            samples_info=self.samples_info_from(search_internal=search_internal),
         )
 
     @property
@@ -334,7 +334,6 @@ class AbstractDynesty(AbstractNest, ABC):
         }
 
         if iterations > 0:
-
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")
 
@@ -444,6 +443,7 @@ class AbstractDynesty(AbstractNest, ABC):
             total_points=self.number_live_points,
             model=model,
             fitness=fitness,
+            paths=self.paths,
         )
 
         init_unit_parameters = np.zeros(
