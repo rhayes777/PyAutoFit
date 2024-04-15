@@ -45,25 +45,26 @@ def test_covariance_matrix(interpolator):
 # def test_interpolate(interpolator):
 #     assert isinstance(interpolator[interpolator.t == 0.5].gaussian.centre, float)
 
+
 #
 # def test_interpolate_other_field(interpolator):
 #     assert isinstance(
 #         interpolator[interpolator.gaussian.centre == 0.5].gaussian.centre,
 #         float,
 #     )
-#
-#
-# def test_linear_analysis_for_value(interpolator):
-#     analysis = interpolator._analysis_for_value(interpolator.t == 0.5)
-#     assert (analysis.x == np.array([0, 1, 2])).all()
-#     assert (analysis.y == np.array([0, 0, 0, 1, 1, 1, 2, 2, 2])).all()
-#
-#
-# def test_model(interpolator):
-#     model = interpolator.model()
-#     assert model.prior_count == 6
-#
-#
+
+
+def test_linear_analysis_for_value(interpolator):
+    analysis = interpolator._analysis_for_value(interpolator.t == 0.5)
+    assert (analysis.x == np.array([0, 1, 2])).all()
+    assert (analysis.y == np.array([0, 0, 0, 1, 1, 1, 2, 2, 2])).all()
+
+
+def test_model(interpolator):
+    model = interpolator.model()
+    assert model.prior_count == 6
+
+
 # def test_single_variable():
 #     samples_list = [
 #         af.SamplesPDF(

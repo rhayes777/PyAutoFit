@@ -17,7 +17,6 @@ from autofit.text import text_util
 
 
 class Placeholder:
-
     def __getattr__(self, item):
         """
         Placeholders return None to represent the missing result's value
@@ -49,6 +48,9 @@ class Placeholder:
 
 
 class AbstractResult(ABC):
+    """
+    @DynamicAttrs
+    """
 
     def __init__(self, samples_summary, paths):
         """
@@ -64,17 +66,6 @@ class AbstractResult(ABC):
 
         self._samples_summary = samples_summary
         self.paths = paths
-
-    def __getattr__(self, name):
-        """
-        The Result object may be overwritten and extended by projects wrapping autofit.
-
-        lint errpors commonly occur because the Result object does not contain the attribute that is being accessed.
-
-        This method is used to disable these errors.
-        """
-        warnings.warn('No member "%s" contained Result.' % name)
-        return super().__getattribute__(name)
 
     @property
     def samples_summary(self):
@@ -122,7 +113,6 @@ class AbstractResult(ABC):
 
     @property
     def instance(self):
-
         try:
             return self.samples_summary.instance
         except AttributeError as e:
@@ -204,11 +194,11 @@ class AbstractResult(ABC):
 class Result(AbstractResult):
     def __init__(
         self,
-        samples_summary : SamplesSummary,
-        paths : Optional[AbstractPaths] = None,
+        samples_summary: SamplesSummary,
+        paths: Optional[AbstractPaths] = None,
         samples: Optional[Samples] = None,
-        search_internal : Optional[object] = None,
-        analysis : Optional[Analysis] = None
+        search_internal: Optional[object] = None,
+        analysis: Optional[Analysis] = None,
     ):
         """
         The result of a non-linear search.
@@ -255,10 +245,7 @@ class Result(AbstractResult):
         analysis
             The `Analysis` object that was used to perform the model-fit from which this result is inferred.
         """
-        super().__init__(
-            samples_summary=samples_summary,
-            paths=paths
-        )
+        super().__init__(samples_summary=samples_summary, paths=paths)
 
         self._samples = samples
         self._search_internal = search_internal
@@ -268,8 +255,6 @@ class Result(AbstractResult):
         self.__model = None
 
         self.child_results = None
-
-
 
     def dict(self) -> dict:
         """
