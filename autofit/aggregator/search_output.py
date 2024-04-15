@@ -202,7 +202,9 @@ class SearchOutput(AbstractSearchOutput):
 
         This is loaded from a JSON file.
         """
-        return self.value("samples_summary")
+        summary = self.value("samples_summary")
+        summary.model = self.model
+        return summary
 
     @property
     def instance(self):
