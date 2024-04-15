@@ -1,6 +1,7 @@
 import pytest
 
 import autofit as af
+from autoconf.conf import with_config
 from autofit.interpolator import CovarianceInterpolator
 import numpy as np
 
@@ -42,8 +43,16 @@ def test_covariance_matrix(interpolator):
 #     )
 
 
-# def test_interpolate(interpolator):
-#     assert isinstance(interpolator[interpolator.t == 0.5].gaussian.centre, float)
+@with_config(
+    "non_linear",
+    "nest",
+    "DynestyStatic",
+    "parallel",
+    "force_x1_cpu",
+    value=True,
+)
+def test_interpolate(interpolator):
+    assert isinstance(interpolator[interpolator.t == 0.5].gaussian.centre, float)
 
 
 #
