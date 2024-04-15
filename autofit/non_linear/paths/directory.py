@@ -1,4 +1,3 @@
-import csv
 import shutil
 
 import dill
@@ -22,7 +21,6 @@ from autofit.non_linear.samples.pdf import SamplesPDF
 from autofit.non_linear.samples.summary import SamplesSummary
 import numpy as np
 
-from autofit.text.formatter import write_table
 from ...visualise import VisualiseGraph
 
 logger = logging.getLogger(__name__)
@@ -33,6 +31,8 @@ class DirectoryPaths(AbstractPaths):
         return self._files_path / prefix / f"{name}.pickle"
 
     def _path_for_json(self, name, prefix: str = "") -> Path:
+        if isinstance(name, Path):
+            return name
         return self._files_path / prefix / f"{name}.json"
 
     def _path_for_csv(self, name) -> Path:
@@ -239,24 +239,48 @@ class DirectoryPaths(AbstractPaths):
     def load_samples(self):
         return load_from_table(filename=self._samples_file)
 
+    def save_latent_samples(
+        self,
+        latent_samples,
+    ):
+        """
+        Write out the latent variables of the model to a file.
+
+        Parameters
+        ----------
+        latent_samples
+            Samples describing the latent variables of the model
+        """
+        self._save_samples(latent_samples, name="latent")
+
     def save_samples(self, samples):
         """
         Save the final-result samples associated with the phase as a pickle
         """
-        if conf.instance["general"]["output"]["samples_to_csv"] and should_output(
-            "samples"
-        ):
-            self.save_json("samples_info", samples.samples_info)
+        self._save_samples(samples)
+
+    def _save_samples(self, samples, name=None):
+        """
+        Save the final-result samples associated with the phase as a pickle
+        """
+
+        if name is not None:
+            directory = self._files_path / name
+        else:
+            directory = self._files_path
+            name = "samples"
+        if conf.instance["general"]["output"]["samples_to_csv"] and should_output(name):
+            self.save_json(directory / "samples_info.json", samples.samples_info)
 
             if isinstance(samples, SamplesPDF):
                 try:
-                    samples.save_covariance_matrix(self._covariance_file)
+                    samples.save_covariance_matrix(directory / "covariance.csv")
                 except (ValueError, ZeroDivisionError) as e:
                     logger.warning(
                         f"Could not save covariance matrix because of the following error:\n{e}"
                     )
 
-            samples.write_table(filename=self._samples_file)
+            samples.write_table(filename=directory / "samples.csv")
 
     def save_samples_summary(self, samples_summary: SamplesSummary):
         model = samples_summary.model
@@ -271,36 +295,8 @@ class DirectoryPaths(AbstractPaths):
 
         return samples_summary
 
-    def save_latent_variables(
-        self,
-        latent_variables,
-        samples,
-    ):
-        """
-        Write out the latent variables of the model to a file.
-
-        Parameters
-        ----------
-        latent_variables
-            The latent variables of the model
-        samples
-            The samples of the model
-        """
-        write_table(
-            filename=str(self._latent_variables_file),
-            headers=latent_variables.names,
-            rows=latent_variables.values,
-        )
-
-    def load_latent_variables(self):
-        with open(self._latent_variables_file, "r+", newline="") as f:
-            reader = csv.reader(f)
-            names = list(next(reader))
-            values = [list(map(float, row)) for row in reader]
-
-        from autofit.non_linear.analysis.latent_variables import LatentVariables
-
-        return LatentVariables(names=names, values=values)
+    def load_latent_samples(self):
+        return load_from_table(filename=self._files_path / "latent/samples.csv")
 
     def load_samples_info(self):
         with open_(self._info_file) as infile:

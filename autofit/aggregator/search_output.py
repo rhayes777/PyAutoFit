@@ -4,7 +4,7 @@ import logging
 import pickle
 from os import path
 from pathlib import Path
-from typing import Generator, Tuple, Optional, List, cast
+from typing import Generator, Tuple, Optional, List, cast, Type
 
 import dill
 
@@ -21,6 +21,7 @@ from autofit.mapper.identifier import Identifier
 from autofit.non_linear.samples.sample import samples_from_iterator
 from autoconf.dictable import from_dict
 from autofit.non_linear.samples.summary import SamplesSummary
+from autofit.non_linear.samples.util import simple_model_for_kwargs
 
 # noinspection PyProtectedMember
 original_create_file_handle = dill._dill._create_filehandle
@@ -178,6 +179,7 @@ class SearchOutput(AbstractSearchOutput):
         self.__search = None
         self.__model = None
         self._samples = None
+        self._latent_samples = None
 
         self.directory = directory
 
@@ -200,7 +202,9 @@ class SearchOutput(AbstractSearchOutput):
 
         This is loaded from a JSON file.
         """
-        return self.value("samples_summary")
+        summary = self.value("samples_summary")
+        summary.model = self.model
+        return summary
 
     @property
     def instance(self):
@@ -240,36 +244,49 @@ class SearchOutput(AbstractSearchOutput):
         and a JSON containing metadata.
         """
         if not self._samples:
-            try:
-                info_json = JSONOutput(
-                    "info", self.files_path / "samples_info.json"
-                ).dict
-
-                with open(self.files_path / "samples.csv") as f:
-                    sample_list = samples_from_iterator(csv.reader(f))
-
-                cls = cast(Samples, get_class(info_json["class_path"]))
-
-                self._samples = cls.from_list_info_and_model(
-                    sample_list=sample_list,
-                    samples_info=info_json,
-                    model=self.model,
-                )
-            except FileNotFoundError:
-                raise AttributeError("No samples found")
+            self._samples = self._load_samples(
+                model=self.model,
+            )
         return self._samples
 
     @property
-    def latent_variables(self):
+    def latent_samples(self):
         """
         The latent variables of the search, parsed from a CSV file.
         """
-        with open(self.files_path / "latent.csv") as f:
-            reader = csv.reader(f)
-            headers = next(reader)
-            from autofit.non_linear.analysis.latent_variables import LatentVariables
+        if not self._latent_samples:
+            self._latent_samples = self._load_samples("latent")
+        return self._latent_samples
 
-            return LatentVariables(headers, [list(map(float, row)) for row in reader])
+    def _load_samples(self, name=None, model=None):
+        if name:
+            directory = self.files_path / name
+        else:
+            directory = self.files_path
+        try:
+            info_json = JSONOutput("info", directory / "samples_info.json").dict
+
+            with open(directory / "samples.csv") as f:
+                sample_list = samples_from_iterator(csv.reader(f))
+
+            if model is None:
+                try:
+                    model = simple_model_for_kwargs(sample_list[0].kwargs)
+                except IndexError:
+                    model = None
+
+            cls = cast(
+                Type[Samples],
+                get_class(info_json["class_path"]),
+            )
+
+            return cls.from_list_info_and_model(
+                sample_list=sample_list,
+                samples_info=info_json,
+                model=model,
+            )
+        except FileNotFoundError:
+            raise AttributeError(f"No {name} found")
 
     def names_and_paths(
         self,

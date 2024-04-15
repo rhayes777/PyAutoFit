@@ -431,7 +431,7 @@ class AbstractPaths(ABC):
         Save samples to the database
         """
 
-    def save_samples_summary(self, samples_summary : SamplesSummary):
+    def save_samples_summary(self, samples_summary: SamplesSummary):
         """
         Save samples summary to the database.
         """
@@ -442,7 +442,7 @@ class AbstractPaths(ABC):
         """
 
     @abstractmethod
-    def save_latent_variables(self, latent_variables, samples):
+    def save_latent_samples(self, latent_samples):
         """
         Save latent variables. These are values computed from an instance and output
         during analysis.
@@ -452,15 +452,26 @@ class AbstractPaths(ABC):
     def load_samples_info(self):
         pass
 
-    def save_summary(self, samples, log_likelihood_function_time):
+    def save_summary(
+        self,
+        samples,
+        latent_samples,
+        log_likelihood_function_time,
+    ):
         result_info = text_util.result_info_from(
             samples=samples,
         )
-
         filename = self.output_path / "model.results"
-
         with open_(filename, "w") as f:
             f.write(result_info)
+
+        if latent_samples:
+            result_info = text_util.result_info_from(
+                samples=latent_samples,
+            )
+            filename = self.output_path / "latent.results"
+            with open_(filename, "w") as f:
+                f.write(result_info)
 
         text_util.search_summary_to_file(
             samples=samples,

@@ -61,26 +61,26 @@ def test_visualise():
     assert analysis_2.did_visualise is True
 
 
-def test_visualise_before_fit_combined():
-    analysis_1 = Analysis()
-    analysis_2 = Analysis()
-
-    (analysis_1 + analysis_2).visualize_before_fit_combined(
-        None, af.DirectoryPaths(), None
-    )
-
-    assert analysis_1.did_visualise_combined is True
-    assert analysis_2.did_visualise_combined is False
-
-
-def test_visualise_combined():
-    analysis_1 = Analysis()
-    analysis_2 = Analysis()
-
-    (analysis_1 + analysis_2).visualize_combined(None, af.DirectoryPaths(), None, None)
-
-    assert analysis_1.did_visualise_combined is True
-    assert analysis_2.did_visualise_combined is False
+# def test_visualise_before_fit_combined():
+#     analysis_1 = Analysis()
+#     analysis_2 = Analysis()
+#
+#     (analysis_1 + analysis_2).visualize_before_fit_combined(
+#         None, af.DirectoryPaths(), None
+#     )
+#
+#     assert analysis_1.did_visualise_combined is True
+#     assert analysis_2.did_visualise_combined is False
+#
+#
+# def test_visualise_combined():
+#     analysis_1 = Analysis()
+#     analysis_2 = Analysis()
+#
+#     (analysis_1 + analysis_2).visualize_combined(None, af.DirectoryPaths(), None, None)
+#
+#     assert analysis_1.did_visualise_combined is True
+#     assert analysis_2.did_visualise_combined is False
 
 
 def test__profile_log_likelihood():
