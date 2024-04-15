@@ -113,96 +113,6 @@ class Analysis(af.Analysis):
 
         return model_data_1d
 
-    def visualize(
-        self,
-        paths: af.DirectoryPaths,
-        instance: af.ModelInstance,
-        during_analysis: bool,
-    ):
-        """
-        During a model-fit, the `visualize` method is called throughout the non-linear search and is used to output
-        images indicating the quality of the fit so far..
-
-        The `instance` passed into the visualize method is maximum log likelihood solution obtained by the model-fit
-        so far and it can be used to provide on-the-fly images showing how the model-fit is going.
-
-        For your model-fitting problem this function will be overwritten with plotting functions specific to your
-        problem.
-
-        Parameters
-        ----------
-        paths
-            The PyAutoFit paths object which manages all paths, e.g. where the non-linear search outputs are stored,
-            visualization, and the pickled objects used by the aggregator output by this function.
-        instance
-            An instance of the model that is being fitted to the data by this analysis (whose parameters have been set
-            via a non-linear search).
-        during_analysis
-            If True the visualization is being performed midway through the non-linear search before it is finished,
-            which may change which images are output.
-        """
-
-        xvalues = np.arange(self.data.shape[0])
-        model_data_1d = np.zeros(self.data.shape[0])
-
-        try:
-            for profile in instance:
-                try:
-                    model_data_1d += profile.model_data_1d_via_xvalues_from(
-                        xvalues=xvalues
-                    )
-                except AttributeError:
-                    pass
-        except TypeError:
-            model_data_1d += instance.model_data_1d_via_xvalues_from(xvalues=xvalues)
-
-        plt.errorbar(
-            x=xvalues,
-            y=self.data,
-            yerr=self.noise_map,
-            color="k",
-            ecolor="k",
-            elinewidth=1,
-            capsize=2,
-        )
-        plt.plot(range(self.data.shape[0]), model_data_1d, color="r")
-        plt.title("Dynesty model fit to 1D Gaussian + Exponential dataset.")
-        plt.xlabel("x values of profile")
-        plt.ylabel("Profile normalization")
-
-        os.makedirs(paths.image_path, exist_ok=True)
-        plt.savefig(paths.image_path / "model_fit.png")
-        plt.clf()
-        plt.close()
-
-    def visualize_combined(
-        self,
-        analyses: List[af.Analysis],
-        paths: af.DirectoryPaths,
-        instance: af.ModelInstance,
-        during_analysis: bool,
-    ):
-        """
-        Visualise the instance using images and quantities which are shared across all analyses.
-
-        For example, each Analysis may have a different dataset, where the fit to each dataset is intended to all
-        be plotted on the same matplotlib subplot. This function can be overwritten to allow the visualization of such
-        a plot.
-
-        Only the first analysis is used to visualize the combined results, where it is assumed that it uses the
-        `analyses` property to access the other analyses and perform visualization.
-
-        Parameters
-        ----------
-        paths
-            An object describing the paths for saving data (e.g. hard-disk directories or entries in sqlite database).
-        instance
-            The maximum likelihood instance of the model so far in the non-linear search.
-        during_analysis
-            Is this visualisation during analysis?
-        """
-        pass
-
     def save_attributes(self, paths: af.DirectoryPaths):
         """
         Before the model-fit via the non-linear search begins, this routine saves attributes of the `Analysis` object
@@ -323,4 +233,4 @@ class Analysis(af.Analysis):
         try:
             return {"fwhm": instance.fwhm}
         except AttributeError:
-            return {}
+            return {"gaussian.fwhm": instance[0].fwhm}

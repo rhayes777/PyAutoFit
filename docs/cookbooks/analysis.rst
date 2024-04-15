@@ -561,7 +561,7 @@ contains settings customizing what files are output and how often.
 Outputting latent variables manually after a fit is complete is simple, just call
 the ``analysis.compute_all_latent_variables()`` function.
 
-For many use cases, the best set up may be to disable autofit latent variable output during a fit via
+For many use cases, the best set disables autofit latent variable output during a fit via
 the ``output.yaml`` file and perform it manually after completing a successful model-fit. This will save computational
 run time by not computing latent variables during a any model-fit which is unsuccessful.
 
@@ -573,7 +573,13 @@ run time by not computing latent variables during a any model-fit which is unsuc
 
     analysis.compute_all_latent_variables(samples=result.samples)
 
-Analysing and interpreting latent variables is described in the result cookbook.
+Analysing and interpreting latent variables is described fully in the result cookbook.
+
+However, in brief, the `latent_samples` object is a `Samples` object and uses the same API as samples objects.
+
+.. code-block:: python
+
+    print(latent_samples.median_pdf().fwhm)
 
 Custom Output
 -------------

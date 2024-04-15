@@ -971,7 +971,8 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
                 if latent_samples:
                     self.paths.save_latent_samples(
-                        latent_samples,
+                        latent_samples
+                    )
 
             self.perform_visualization(
                 model=model,
