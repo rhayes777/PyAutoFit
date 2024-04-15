@@ -1,8 +1,6 @@
 import pytest
 
-import autofit as af
 from autoconf.conf import with_config
-from autofit.interpolator import CovarianceInterpolator
 import numpy as np
 
 
