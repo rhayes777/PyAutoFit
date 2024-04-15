@@ -251,32 +251,32 @@ class DirectoryPaths(AbstractPaths):
         latent_samples
             Samples describing the latent variables of the model
         """
-        self._save_samples("latent_samples", latent_samples)
+        self._save_samples("latent_", latent_samples)
 
     def save_samples(self, samples):
         """
         Save the final-result samples associated with the phase as a pickle
         """
-        self._save_samples("samples", samples)
+        self._save_samples("", samples)
 
     def _save_samples(self, name, samples):
         """
         Save the final-result samples associated with the phase as a pickle
         """
         if conf.instance["general"]["output"]["samples_to_csv"] and should_output(name):
-            self.save_json(f"{name}_info", samples.samples_info)
+            self.save_json(f"{name}samples_info", samples.samples_info)
 
             if isinstance(samples, SamplesPDF):
                 try:
                     samples.save_covariance_matrix(
-                        self._files_path / f"{name}_covariance.csv"
+                        self._files_path / f"{name}covariance.csv"
                     )
                 except (ValueError, ZeroDivisionError) as e:
                     logger.warning(
                         f"Could not save covariance matrix because of the following error:\n{e}"
                     )
 
-            samples.write_table(filename=self._files_path / f"{name}.csv")
+            samples.write_table(filename=self._files_path / f"{name}samples.csv")
 
     def save_samples_summary(self, samples_summary: SamplesSummary):
         model = samples_summary.model
