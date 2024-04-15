@@ -96,6 +96,7 @@ class Analysis(ABC):
             return type(samples)(
                 sample_list=latent_samples,
                 model=model,
+                samples_info=samples.samples_info,
             )
         except NotImplementedError:
             return None
