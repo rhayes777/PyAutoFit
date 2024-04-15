@@ -103,7 +103,7 @@ class Drawer(AbstractOptimizer):
             paths=self.paths,
             fom_is_log_likelihood=False,
             resample_figure_of_merit=-np.inf,
-            convert_to_chi_squared=False
+            convert_to_chi_squared=False,
         )
 
         total_draws = self.config_dict_search["total_draws"]
@@ -120,12 +120,14 @@ class Drawer(AbstractOptimizer):
             total_points=self.config_dict_search["total_draws"],
             model=model,
             fitness=fitness,
+            paths=self.paths,
+            n_cores=self.number_of_cores,
         )
 
         search_internal = {
-            "parameter_lists" : parameter_lists,
-            "log_posterior_list" : log_posterior_list,
-            "time": self.timer.time
+            "parameter_lists": parameter_lists,
+            "log_posterior_list": log_posterior_list,
+            "time": self.timer.time,
         }
 
         self.paths.save_search_internal(
@@ -135,7 +137,6 @@ class Drawer(AbstractOptimizer):
         self.logger.info("Drawer complete")
 
     def samples_from(self, model, search_internal):
-
         search_internal_dict = self.paths.load_search_internal()
 
         parameter_lists = search_internal_dict["parameter_lists"]
@@ -146,10 +147,7 @@ class Drawer(AbstractOptimizer):
             for vector in parameter_lists
         ]
         log_likelihood_list = [
-            lp - prior
-            for lp, prior in zip(
-                log_posterior_list, log_prior_list
-            )
+            lp - prior for lp, prior in zip(log_posterior_list, log_prior_list)
         ]
 
         weight_list = len(log_likelihood_list) * [1.0]

@@ -17,7 +17,6 @@ import numpy as np
 
 
 class LBFGS(AbstractOptimizer):
-
     __identifier_fields__ = ()
 
     def __init__(
@@ -71,7 +70,6 @@ class LBFGS(AbstractOptimizer):
 
     @cached_property
     def config_dict_options(self):
-
         config_dict = copy.deepcopy(self._class_config["options"])
 
         for key, value in config_dict.items():
@@ -110,11 +108,10 @@ class LBFGS(AbstractOptimizer):
             paths=self.paths,
             fom_is_log_likelihood=False,
             resample_figure_of_merit=-np.inf,
-            convert_to_chi_squared=True
+            convert_to_chi_squared=True,
         )
 
         try:
-
             search_internal_dict = self.paths.load_search_internal()
 
             x0 = search_internal_dict["x0"]
@@ -125,13 +122,16 @@ class LBFGS(AbstractOptimizer):
             )
 
         except (FileNotFoundError, TypeError):
-
             (
                 unit_parameter_lists,
                 parameter_lists,
                 log_posterior_list,
             ) = self.initializer.samples_from_model(
-                total_points=1, model=model, fitness=fitness,
+                total_points=1,
+                model=model,
+                fitness=fitness,
+                paths=self.paths,
+                n_cores=self.number_of_cores,
             )
 
             x0 = np.asarray(parameter_lists[0])
@@ -145,13 +145,11 @@ class LBFGS(AbstractOptimizer):
         maxiter = self.config_dict_options.get("maxiter", 1e8)
 
         while total_iterations < maxiter:
-
             iterations_remaining = maxiter - total_iterations
 
             iterations = min(self.iterations_per_update, iterations_remaining)
 
             if iterations > 0:
-
                 config_dict_options = self.config_dict_options
                 config_dict_options["maxiter"] = iterations
 
@@ -165,7 +163,9 @@ class LBFGS(AbstractOptimizer):
 
                 total_iterations += search_internal.nit
 
-                search_internal.log_posterior_list = -0.5 * fitness(parameters=search_internal.x)
+                search_internal.log_posterior_list = -0.5 * fitness(
+                    parameters=search_internal.x
+                )
 
                 self.paths.save_search_internal(
                     obj=search_internal,
@@ -180,14 +180,16 @@ class LBFGS(AbstractOptimizer):
                     model=model,
                     analysis=analysis,
                     during_analysis=True,
-                    search_internal=search_internal
+                    search_internal=search_internal,
                 )
 
         self.logger.info("L-BFGS sampling complete.")
 
         return search_internal
 
-    def samples_via_internal_from(self, model: AbstractPriorModel, search_internal=None):
+    def samples_via_internal_from(
+        self, model: AbstractPriorModel, search_internal=None
+    ):
         """
         Returns a `Samples` object from the LBFGS internal results.
 
@@ -204,7 +206,6 @@ class LBFGS(AbstractOptimizer):
         """
 
         if search_internal is None:
-
             search_internal = self.paths.load_search_internal()
 
         x0 = search_internal.x
@@ -215,9 +216,7 @@ class LBFGS(AbstractOptimizer):
         log_prior_list = model.log_prior_list_from(parameter_lists=parameter_lists)
 
         log_likelihood_list = [
-            lp - prior
-            for lp, prior
-            in zip(log_posterior_list, log_prior_list)
+            lp - prior for lp, prior in zip(log_posterior_list, log_prior_list)
         ]
         weight_list = len(log_likelihood_list) * [1.0]
 
@@ -226,7 +225,7 @@ class LBFGS(AbstractOptimizer):
             parameter_lists=parameter_lists,
             log_likelihood_list=log_likelihood_list,
             log_prior_list=log_prior_list,
-            weight_list=weight_list
+            weight_list=weight_list,
         )
 
         samples_info = {
