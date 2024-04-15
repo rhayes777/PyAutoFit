@@ -52,12 +52,12 @@ def test_covariance_matrix(interpolator):
 #         interpolator[interpolator.gaussian.centre == 0.5].gaussian.centre,
 #         float,
 #     )
-#
-#
-# def test_linear_analysis_for_value(interpolator):
-#     analysis = interpolator._analysis_for_value(interpolator.t == 0.5)
-#     assert (analysis.x == np.array([0, 1, 2])).all()
-#     assert (analysis.y == np.array([0, 0, 0, 1, 1, 1, 2, 2, 2])).all()
+
+
+def test_linear_analysis_for_value(interpolator):
+    analysis = interpolator._analysis_for_value(interpolator.t == 0.5)
+    assert (analysis.x == np.array([0, 1, 2])).all()
+    assert (analysis.y == np.array([0, 0, 0, 1, 1, 1, 2, 2, 2])).all()
 
 
 def test_model(interpolator):
