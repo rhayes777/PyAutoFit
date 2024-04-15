@@ -23,3 +23,5 @@ def simple_model_for_kwargs(kwargs: Dict[Union[str, Tuple[str, ...]], float]):
             mean=value,
             sigma=0.0,
         )
+
+    return model
