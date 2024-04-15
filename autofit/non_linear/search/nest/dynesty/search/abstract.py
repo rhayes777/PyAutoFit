@@ -444,6 +444,7 @@ class AbstractDynesty(AbstractNest, ABC):
             model=model,
             fitness=fitness,
             paths=self.paths,
+            n_cores=self.number_of_cores,
         )
 
         init_unit_parameters = np.zeros(

@@ -13,7 +13,6 @@ from autofit.non_linear.samples.samples import Samples
 
 
 class FitnessPySwarms(Fitness):
-
     def __call__(self, parameters, *kwargs):
         """
         Interfaces with any non-linear in order to fit a model to the data and return a log likelihood via
@@ -46,11 +45,14 @@ class FitnessPySwarms(Fitness):
         figure_of_merit_list = []
 
         for params_of_particle in parameters:
-
             try:
                 instance = self.model.instance_from_vector(vector=params_of_particle)
-                log_likelihood = self.analysis.log_likelihood_function(instance=instance)
-                log_prior = self.model.log_prior_list_from_vector(vector=params_of_particle)
+                log_likelihood = self.analysis.log_likelihood_function(
+                    instance=instance
+                )
+                log_prior = self.model.log_prior_list_from_vector(
+                    vector=params_of_particle
+                )
                 log_posterior = log_likelihood + sum(log_prior)
                 figure_of_merit = -2.0 * log_posterior
             except exc.FitException:
@@ -64,18 +66,17 @@ class FitnessPySwarms(Fitness):
         return np.asarray(figure_of_merit_list)
 
 
-
 class AbstractPySwarms(AbstractOptimizer):
     def __init__(
-            self,
-            name: Optional[str] = None,
-            path_prefix: Optional[str] = None,
-            unique_tag: Optional[str] = None,
-            initializer: Optional[AbstractInitializer] = None,
-            iterations_per_update: int = None,
-            number_of_cores: int = None,
-            session: Optional[sa.orm.Session] = None,
-            **kwargs
+        self,
+        name: Optional[str] = None,
+        path_prefix: Optional[str] = None,
+        unique_tag: Optional[str] = None,
+        initializer: Optional[AbstractInitializer] = None,
+        iterations_per_update: int = None,
+        number_of_cores: int = None,
+        session: Optional[sa.orm.Session] = None,
+        **kwargs
     ):
         """
         A PySwarms Particle Swarm Optimizer global non-linear search.
@@ -145,11 +146,10 @@ class AbstractPySwarms(AbstractOptimizer):
             analysis=analysis,
             fom_is_log_likelihood=False,
             resample_figure_of_merit=-np.inf,
-            convert_to_chi_squared=True
+            convert_to_chi_squared=True,
         )
 
         try:
-
             search_internal = self.paths.load_search_internal()
 
             init_pos = search_internal.pos_history[-1]
@@ -160,17 +160,23 @@ class AbstractPySwarms(AbstractOptimizer):
             )
 
         except (FileNotFoundError, TypeError, AttributeError):
-
-            unit_parameter_lists, parameter_lists, log_posterior_list = self.initializer.samples_from_model(
+            (
+                unit_parameter_lists,
+                parameter_lists,
+                log_posterior_list,
+            ) = self.initializer.samples_from_model(
                 total_points=self.config_dict_search["n_particles"],
                 model=model,
                 fitness=fitness,
+                paths=self.paths,
+                n_cores=self.number_of_cores,
             )
 
-            init_pos = np.zeros(shape=(self.config_dict_search["n_particles"], model.prior_count))
+            init_pos = np.zeros(
+                shape=(self.config_dict_search["n_particles"], model.prior_count)
+            )
 
             for index, parameters in enumerate(parameter_lists):
-
                 init_pos[index, :] = np.asarray(parameters)
 
             total_iterations = 0
@@ -182,12 +188,10 @@ class AbstractPySwarms(AbstractOptimizer):
         ## TODO : Use actual limits
 
         vector_lower = model.vector_from_unit_vector(
-            unit_vector=[1e-6] * model.prior_count,
-            ignore_prior_limits=True
+            unit_vector=[1e-6] * model.prior_count, ignore_prior_limits=True
         )
         vector_upper = model.vector_from_unit_vector(
-            unit_vector=[0.9999999] * model.prior_count,
-            ignore_prior_limits=True
+            unit_vector=[0.9999999] * model.prior_count, ignore_prior_limits=True
         )
 
         lower_bounds = [lower for lower in vector_lower]
@@ -196,12 +200,8 @@ class AbstractPySwarms(AbstractOptimizer):
         bounds = (np.asarray(lower_bounds), np.asarray(upper_bounds))
 
         while total_iterations < self.config_dict_run["iters"]:
-
             search_internal = self.search_internal_from(
-                model=model,
-                fitness=fitness,
-                bounds=bounds,
-                init_pos=init_pos
+                model=model, fitness=fitness, bounds=bounds, init_pos=init_pos
             )
 
             iterations_remaining = self.config_dict_run["iters"] - total_iterations
@@ -209,8 +209,9 @@ class AbstractPySwarms(AbstractOptimizer):
             iterations = min(self.iterations_per_update, iterations_remaining)
 
             if iterations > 0:
-
-                search_internal.optimize(objective_func=fitness.__call__, iters=iterations)
+                search_internal.optimize(
+                    objective_func=fitness.__call__, iters=iterations
+                )
 
                 total_iterations += iterations
 
@@ -222,7 +223,7 @@ class AbstractPySwarms(AbstractOptimizer):
                     model=model,
                     analysis=analysis,
                     during_analysis=True,
-                    search_internal=search_internal
+                    search_internal=search_internal,
                 )
 
                 init_pos = search_internal.pos_history[-1]
@@ -246,12 +247,13 @@ class AbstractPySwarms(AbstractOptimizer):
         """
 
         if search_internal is None:
-
             search_internal = self.paths.load_search_internal()
 
         search_internal_dict = {
             "total_iterations": None,
-            "log_posterior_list": [-0.5 * cost for cost in search_internal.cost_history],
+            "log_posterior_list": [
+                -0.5 * cost for cost in search_internal.cost_history
+            ],
             "time": self.timer.time if self.timer else None,
         }
         pos_history = search_internal.pos_history
@@ -263,7 +265,9 @@ class AbstractPySwarms(AbstractOptimizer):
 
         log_posterior_list = search_internal_dict["log_posterior_list"]
         log_prior_list = model.log_prior_list_from(parameter_lists=parameter_lists)
-        log_likelihood_list = [lp - prior for lp, prior in zip(log_posterior_list, log_prior_list)]
+        log_likelihood_list = [
+            lp - prior for lp, prior in zip(log_posterior_list, log_prior_list)
+        ]
         weight_list = len(log_likelihood_list) * [1.0]
 
         sample_list = Sample.from_lists(
@@ -271,7 +275,7 @@ class AbstractPySwarms(AbstractOptimizer):
             parameter_lists=parameter_lists_2,
             log_likelihood_list=log_likelihood_list,
             log_prior_list=log_prior_list,
-            weight_list=weight_list
+            weight_list=weight_list,
         )
 
         return Samples(

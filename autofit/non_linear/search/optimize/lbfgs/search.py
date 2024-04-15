@@ -131,6 +131,7 @@ class LBFGS(AbstractOptimizer):
                 model=model,
                 fitness=fitness,
                 paths=self.paths,
+                n_cores=self.number_of_cores,
             )
 
             x0 = np.asarray(parameter_lists[0])
