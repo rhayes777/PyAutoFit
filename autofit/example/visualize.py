@@ -115,7 +115,7 @@ class VisualizerExample(af.Visualizer):
             elinewidth=1,
             capsize=2,
         )
-        plt.plot(range(analysis.shape[0]), model_data_1d, color="r")
+        plt.plot(xvalues, model_data_1d, color="r")
         plt.title("Model fit to 1D Gaussian + Exponential dataset.")
         plt.xlabel("x values of profile")
         plt.ylabel("Profile normalization")
