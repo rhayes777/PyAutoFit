@@ -1,11 +1,12 @@
-import os
-import matplotlib.pyplot as plt
+
 from typing import Dict, List, Optional
 
-from autofit.example.result import ResultExample
 from autofit.jax_wrapper import numpy as np
 
 import autofit as af
+
+from autofit.example.result import ResultExample
+from autofit.example.visualize import VisualizerExample
 
 """
 The `analysis.py` module contains the dataset and log likelihood function which given a model instance (set up by
@@ -16,10 +17,22 @@ the non-linear search) fits the dataset and returns the log likelihood of that m
 class Analysis(af.Analysis):
 
     """
-    This overwrite means the `ResultExample` class is returned after the model-fit.
+    This over-write means the `Visualizer` class is used for visualization throughout the model-fit.
 
-    This result has been extended, based on the model that is input into the analysis, to include a property
-    `max_log_likelihood_model_data`, which is the model data of the best-fit model.
+    This `VisualizerExample` object is in the `autofit.example.visualize` module and is used to customize the
+    plots output during the model-fit.
+
+    It has been extended with visualize methods that output visuals specific to the fitting of `1D` data.
+    """
+    Visualizer = VisualizerExample
+
+    """
+    This over-write means the `ResultExample` class is returned after the model-fit.
+
+    This `ResultExample` object in the `autofit.example.result` module. 
+    
+    It has been extended, based on the model that is input into the analysis, to include a 
+    property `max_log_likelihood_model_data`, which is the model data of the best-fit model.
     """
 
     Result = ResultExample

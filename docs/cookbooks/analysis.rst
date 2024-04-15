@@ -12,7 +12,7 @@ This cookbook provides an overview of how to use and extend ``Analysis`` objects
 
 - **Example**: A simple example of an analysis class which can be adapted for you use-case.
 - **Customization**: Customizing an analysis class with different data inputs and editing the ``log_likelihood_function``.
-- **Visualization**: Adding a ``visualize`` method to the analysis so that model-specific visuals are output to hard-disk.
+- **Visualization**: Using a `visualize` method so that model-specific visuals are output to hard-disk.
 - **Custom Result**: Return a custom Result object with methods specific to your model fitting problem.
 - **Latent Variables**: Adding a `compute_latent_variable` method to the analysis to output latent variables to hard-disk.
 - **Custom Output**: Add methods which output model-specific results to hard-disk in the ``files`` folder (e.g. as .json files) to aid in the interpretation of results.
@@ -181,7 +181,10 @@ Visualization
 
 If a ``name`` is input into a non-linear search, all results are output to hard-disk in a folder.
 
-By extending the ``Analysis`` class with a ``visualize_before_fit`` and / or ``visualize`` function, model specific
+By overwriting the ``Visualizer`` object of an ``Analysis`` class with a custom `Visualizer` class, custom results of the
+model-fit can be visualized during the model-fit.
+
+The ``Visualizer`` below has the methods ``visualize_before_fit`` and ``visualize``, which perform model specific
 visualization will also be output into an ``image`` folder, for example as ``.png`` files.
 
 This uses the maximum log likelihood model of the model-fit inferred so far.
@@ -191,7 +194,123 @@ Function", are also automatically output during the model-fit on the fly.
 
 .. code-block:: python
 
+     class Visualizer(af.Visualizer):
+
+        @staticmethod
+        def visualize_before_fit(
+            analysis,
+            paths: af.DirectoryPaths,
+            model: af.AbstractPriorModel
+        ):
+            """
+            Before a model-fit, the `visualize_before_fit` method is called to perform visualization.
+
+            The function receives as input an instance of the `Analysis` class which is being used to perform the fit,
+            which is used to perform the visualization (e.g. it contains the data and noise map which are plotted).
+
+            This can output visualization of quantities which do not change during the model-fit, for example the
+            data and noise-map.
+
+            The `paths` object contains the path to the folder where the visualization should be output, which is determined
+            by the non-linear search `name` and other inputs.
+            """
+
+            import matplotlib.pyplot as plt
+
+            xvalues = np.arange(analysis.data.shape[0])
+
+            plt.errorbar(
+                x=xvalues,
+                y=analysis.data,
+                yerr=analysis.noise_map,
+                color="k",
+                ecolor="k",
+                elinewidth=1,
+                capsize=2,
+            )
+            plt.title("Maximum Likelihood Fit")
+            plt.xlabel("x value of profile")
+            plt.ylabel("Profile Normalization")
+            plt.savefig(path.join(paths.image_path, f"data.png"))
+            plt.clf()
+
+        @staticmethod
+        def visualize(
+            analysis,
+            paths: af.DirectoryPaths,
+            instance,
+            during_analysis
+        ):
+            """
+            During a model-fit, the `visualize` method is called throughout the non-linear search.
+
+            The function receives as input an instance of the `Analysis` class which is being used to perform the fit,
+            which is used to perform the visualization (e.g. it generates the model data which is plotted).
+
+            The `instance` passed into the visualize method is maximum log likelihood solution obtained by the model-fit
+            so far and it can be used to provide on-the-fly images showing how the model-fit is going.
+
+            The `paths` object contains the path to the folder where the visualization should be output, which is determined
+            by the non-linear search `name` and other inputs.
+            """
+            xvalues = np.arange(analysis.data.shape[0])
+
+            model_data = instance.model_data_1d_via_xvalues_from(xvalues=xvalues)
+            residual_map = analysis.data - model_data
+
+            """
+            The visualizer now outputs images of the best-fit results to hard-disk (checkout `visualizer.py`).
+            """
+            import matplotlib.pyplot as plt
+
+            plt.errorbar(
+                x=xvalues,
+                y=analysis.data,
+                yerr=analysis.noise_map,
+                color="k",
+                ecolor="k",
+                elinewidth=1,
+                capsize=2,
+            )
+            plt.plot(xvalues, model_data, color="r")
+            plt.title("Maximum Likelihood Fit")
+            plt.xlabel("x value of profile")
+            plt.ylabel("Profile Normalization")
+            plt.savefig(path.join(paths.image_path, f"model_fit.png"))
+            plt.clf()
+
+            plt.errorbar(
+                x=xvalues,
+                y=residual_map,
+                yerr=analysis.noise_map,
+                color="k",
+                ecolor="k",
+                elinewidth=1,
+                capsize=2,
+            )
+            plt.title("Residuals of Maximum Likelihood Fit")
+            plt.xlabel("x value of profile")
+            plt.ylabel("Residual")
+            plt.savefig(path.join(paths.image_path, f"model_fit.png"))
+            plt.clf()
+
+The `Analysis` class is defined following the same API as before, but now with its `Visualizer` class attribute
+overwritten with the `Visualizer` class above.
+
+.. code-block:: python
+
     class Analysis(af.Analysis):
+
+        """
+        This over-write means the `Visualizer` class is used for visualization throughout the model-fit.
+
+        This `VisualizerExample` object is in the `autofit.example.visualize` module and is used to customize the
+        plots output during the model-fit.
+
+        It has been extended with visualize methods that output visuals specific to the fitting of `1D` data.
+        """
+        Visualizer = Visualizer
+
         def __init__(self, data, noise_map):
             """
             An Analysis class which illustrates visualization.
@@ -215,95 +334,6 @@ Function", are also automatically output during the model-fit on the fly.
             log_likelihood = -0.5 * (chi_squared + noise_normalization)
 
             return log_likelihood
-
-        def visualize_before_fit(
-            self, paths: af.DirectoryPaths, model: af.AbstractPriorModel
-        ):
-            """
-            Before a model-fit, the `visualize_before_fit` method is called t
-            o perform visualization.
-
-            This can output visualization of quantities which do not change
-            during the model-fit, for example the data and noise-map.
-
-            The `paths` object contains the path to the folder where the
-            visualization should be output, which is determined
-            by the non-linear search `name` and other inputs.
-            """
-
-            import matplotlib.pyplot as plt
-
-            xvalues = np.arange(self.data.shape[0])
-
-            plt.errorbar(
-                x=xvalues,
-                y=self.data,
-                yerr=self.noise_map,
-                color="k",
-                ecolor="k",
-                elinewidth=1,
-                capsize=2,
-            )
-            plt.title("Maximum Likelihood Fit")
-            plt.xlabel("x value of profile")
-            plt.ylabel("Profile Normalization")
-            plt.savefig(path.join(paths.image_path, f"data.png"))
-            plt.clf()
-
-        def visualize(self, paths: af.DirectoryPaths, instance, during_analysis):
-            """
-            During a model-fit, the `visualize` method is called throughout the
-            non-linear search.
-
-            The `instance` passed into the visualize method is maximum log
-            likelihood solution obtained by the model-fit so far and it can
-            be used to provide on-the-fly images showing how the model-fit is going.
-
-            The `paths` object contains the path to the folder where the
-            visualization should be output, which is determined by the
-            non-linear search `name` and other inputs.
-            """
-            xvalues = np.arange(self.data.shape[0])
-
-            model_data = instance.model_data_1d_via_xvalues_from(xvalues=xvalues)
-            residual_map = self.data - model_data
-
-            """
-            The visualizer now outputs images of the best-fit results to
-            hard-disk (checkout `visualizer.py`).
-            """
-            import matplotlib.pyplot as plt
-
-            plt.errorbar(
-                x=xvalues,
-                y=self.data,
-                yerr=self.noise_map,
-                color="k",
-                ecolor="k",
-                elinewidth=1,
-                capsize=2,
-            )
-            plt.plot(xvalues, model_data, color="r")
-            plt.title("Maximum Likelihood Fit")
-            plt.xlabel("x value of profile")
-            plt.ylabel("Profile Normalization")
-            plt.savefig(path.join(paths.image_path, f"model_fit.png"))
-            plt.clf()
-
-            plt.errorbar(
-                x=xvalues,
-                y=residual_map,
-                yerr=self.noise_map,
-                color="k",
-                ecolor="k",
-                elinewidth=1,
-                capsize=2,
-            )
-            plt.title("Residuals of Maximum Likelihood Fit")
-            plt.xlabel("x value of profile")
-            plt.ylabel("Residual")
-            plt.savefig(path.join(paths.image_path, f"model_fit.png"))
-            plt.clf()
 
 Custom Result
 -------------
