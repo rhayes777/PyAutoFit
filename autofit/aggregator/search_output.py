@@ -245,7 +245,6 @@ class SearchOutput(AbstractSearchOutput):
         """
         if not self._samples:
             self._samples = self._load_samples(
-                "samples",
                 model=self.model,
             )
         return self._samples
@@ -259,11 +258,15 @@ class SearchOutput(AbstractSearchOutput):
             self._latent_samples = self._load_samples("latent_samples")
         return self._latent_samples
 
-    def _load_samples(self, name, model=None):
+    def _load_samples(self, name=None, model=None):
+        if name:
+            directory = self.files_path / name
+        else:
+            directory = self.files_path
         try:
-            info_json = JSONOutput("info", self.files_path / f"{name}_info.json").dict
+            info_json = JSONOutput("info", directory / "samples_info.json").dict
 
-            with open(self.files_path / f"{name}.csv") as f:
+            with open(directory / "samples.csv") as f:
                 sample_list = samples_from_iterator(csv.reader(f))
 
             if model is None:
