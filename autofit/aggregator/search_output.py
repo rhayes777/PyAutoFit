@@ -4,7 +4,7 @@ import logging
 import pickle
 from os import path
 from pathlib import Path
-from typing import Generator, Tuple, Optional, List, cast
+from typing import Generator, Tuple, Optional, List, cast, Type
 
 import dill
 
@@ -21,6 +21,7 @@ from autofit.mapper.identifier import Identifier
 from autofit.non_linear.samples.sample import samples_from_iterator
 from autoconf.dictable import from_dict
 from autofit.non_linear.samples.summary import SamplesSummary
+from autofit.non_linear.samples.util import simple_model_for_kwargs
 
 # noinspection PyProtectedMember
 original_create_file_handle = dill._dill._create_filehandle
@@ -241,7 +242,10 @@ class SearchOutput(AbstractSearchOutput):
         and a JSON containing metadata.
         """
         if not self._samples:
-            self._samples = self._load_samples("samples")
+            self._samples = self._load_samples(
+                "samples",
+                model=self.model,
+            )
         return self._samples
 
     @property
@@ -253,19 +257,25 @@ class SearchOutput(AbstractSearchOutput):
             self._latent_samples = self._load_samples("latent_samples")
         return self._latent_samples
 
-    def _load_samples(self, name):
+    def _load_samples(self, name, model=None):
         try:
             info_json = JSONOutput("info", self.files_path / f"{name}_info.json").dict
 
             with open(self.files_path / f"{name}.csv") as f:
                 sample_list = samples_from_iterator(csv.reader(f))
 
-            cls = cast(Samples, get_class(info_json["class_path"]))
+            if model is None:
+                model = simple_model_for_kwargs(sample_list[0].kwargs)
+
+            cls = cast(
+                Type[Samples],
+                get_class(info_json["class_path"]),
+            )
 
             return cls.from_list_info_and_model(
                 sample_list=sample_list,
                 samples_info=info_json,
-                model=self.model,
+                model=model,
             )
         except FileNotFoundError:
             raise AttributeError(f"No {name} found")
