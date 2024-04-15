@@ -268,7 +268,9 @@ class DirectoryPaths(AbstractPaths):
 
             if isinstance(samples, SamplesPDF):
                 try:
-                    samples.save_covariance_matrix(self._covariance_file)
+                    samples.save_covariance_matrix(
+                        self._files_path / f"{name}_covariance.csv"
+                    )
                 except (ValueError, ZeroDivisionError) as e:
                     logger.warning(
                         f"Could not save covariance matrix because of the following error:\n{e}"
