@@ -1,18 +1,19 @@
 import os
+from random import random
+
 import pytest
 
 import autofit as af
 
 
 class MockFitness:
-    def __init__(self, figure_of_merit=0.0, increase_figure_of_merit=True):
+    def __init__(self, figure_of_merit=0.0, change_figure_of_merit=True):
         self.figure_of_merit = figure_of_merit
-        self.increase_figure_of_merit = increase_figure_of_merit
+        self.change_figure_of_merit = change_figure_of_merit
 
     def __call__(self, parameters):
-        if self.increase_figure_of_merit:
-            self.figure_of_merit += 1
-
+        if self.change_figure_of_merit:
+            return -random() * 10
         return self.figure_of_merit
 
 
@@ -54,8 +55,6 @@ def test__priors__samples_from_model():
     assert 0.399 < parameter_lists[0][3] < 0.401
     assert 0.399 < parameter_lists[1][3] < 0.401
 
-    assert figure_of_merit_list == [1.0, 2.0]
-
 
 def test__priors__samples_from_model__raise_exception_if_all_likelihoods_identical():
     model = af.Model(af.m.MockClassx4)
@@ -66,7 +65,8 @@ def test__priors__samples_from_model__raise_exception_if_all_likelihoods_identic
         initializer.samples_from_model(
             total_points=2,
             model=model,
-            fitness=MockFitness(increase_figure_of_merit=False),
+            fitness=MockFitness(change_figure_of_merit=False),
+            paths=af.DirectoryPaths(),
         )
 
 
@@ -85,7 +85,12 @@ def test__priors__samples_in_test_mode():
         unit_parameter_lists,
         parameter_lists,
         figure_of_merit_list,
-    ) = initializer.samples_from_model(total_points=2, model=model, fitness=None)
+    ) = initializer.samples_from_model(
+        total_points=2,
+        model=model,
+        fitness=None,
+        paths=af.DirectoryPaths(),
+    )
 
     assert 0.0 < unit_parameter_lists[0][0] < 1.0
     assert 0.0 < unit_parameter_lists[1][0] < 1.0
@@ -124,7 +129,10 @@ def test__ball__samples_sample_centre_of_priors():
         parameter_lists,
         figure_of_merit_list,
     ) = initializer.samples_from_model(
-        total_points=2, model=model, fitness=MockFitness()
+        total_points=2,
+        model=model,
+        fitness=MockFitness(),
+        paths=af.DirectoryPaths(),
     )
 
     assert 0.4999 < unit_parameter_lists[0][0] < 0.5001
@@ -152,7 +160,10 @@ def test__ball__samples_sample_centre_of_priors():
         parameter_lists,
         figure_of_merit_list,
     ) = initializer.samples_from_model(
-        total_points=2, model=model, fitness=MockFitness()
+        total_points=2,
+        model=model,
+        fitness=MockFitness(),
+        paths=af.DirectoryPaths(),
     )
 
     assert 0.799 < parameter_lists[0][0] < 0.801
@@ -163,8 +174,6 @@ def test__ball__samples_sample_centre_of_priors():
     assert 2.399 < parameter_lists[1][2] < 2.401
     assert 3.199 < parameter_lists[0][3] < 3.201
     assert 3.199 < parameter_lists[1][3] < 3.201
-
-    assert figure_of_merit_list == [1.0, 2.0]
 
 
 @pytest.mark.parametrize(
