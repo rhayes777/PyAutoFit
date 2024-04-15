@@ -255,7 +255,7 @@ class SearchOutput(AbstractSearchOutput):
         The latent variables of the search, parsed from a CSV file.
         """
         if not self._latent_samples:
-            self._latent_samples = self._load_samples("latent_samples")
+            self._latent_samples = self._load_samples("latent")
         return self._latent_samples
 
     def _load_samples(self, name=None, model=None):
