@@ -265,7 +265,10 @@ class SearchOutput(AbstractSearchOutput):
                 sample_list = samples_from_iterator(csv.reader(f))
 
             if model is None:
-                model = simple_model_for_kwargs(sample_list[0].kwargs)
+                try:
+                    model = simple_model_for_kwargs(sample_list[0].kwargs)
+                except IndexError:
+                    model = None
 
             cls = cast(
                 Type[Samples],
