@@ -201,6 +201,11 @@ class AbstractDynesty(AbstractNest, ABC):
                     during_analysis=True,
                 )
 
+        try:
+            os.remove(self.checkpoint_file)
+        except TypeError:
+            pass
+
         return search_internal
 
     def samples_info_from(self, search_internal=None):
@@ -493,12 +498,6 @@ class AbstractDynesty(AbstractNest, ABC):
                 has been disabled and then enabled.
                 """
             )
-
-    def remove_state_files(self):
-        try:
-            os.remove(self.checkpoint_file)
-        except TypeError:
-            pass
 
     @property
     def number_live_points(self):
