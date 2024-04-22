@@ -1037,7 +1037,7 @@ class AbstractPriorModel(AbstractModel):
         """
         return list(
             map(
-                lambda prior_tuple, value: prior_tuple.prior.log_prior_from_value(
+                lambda prior_tuple, value: prior_tuple[1].log_prior_from_value(
                     value=value
                 ),
                 self.prior_tuples_ordered_by_id,
