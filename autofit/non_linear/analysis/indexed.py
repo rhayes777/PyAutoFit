@@ -104,7 +104,9 @@ class IndexCollectionAnalysis(CombinedAnalysis):
         """
         child_results = [
             analysis.make_result(
-                samples_summary,
+                samples_summary.subsamples(model)
+                if samples_summary is not None
+                else None,
                 paths,
                 samples.subsamples(model) if samples is not None else None,
                 search_internal,
