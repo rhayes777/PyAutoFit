@@ -1010,10 +1010,6 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
             if not during_analysis and self.remove_state_files_at_end:
                 self.logger.debug("Removing state files")
-                try:
-                    self.remove_state_files()
-                except FileNotFoundError:
-                    pass
 
         return samples
 
@@ -1075,9 +1071,6 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
     @property
     def samples_cls(self):
         raise NotImplementedError()
-
-    def remove_state_files(self):
-        pass
 
     def samples_from(self, model: AbstractPriorModel, search_internal=None) -> Samples:
         """
