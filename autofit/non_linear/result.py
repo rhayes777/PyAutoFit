@@ -285,7 +285,10 @@ class Result(AbstractResult):
         if self._samples is not None:
             return self._samples
 
-        return self.paths.samples
+        try:
+            return self.paths.samples
+        except FileNotFoundError:
+            return None
 
     @property
     def search_internal(self):
