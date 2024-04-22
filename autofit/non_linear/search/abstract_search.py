@@ -652,7 +652,6 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             analysis.save_attributes(paths=self.paths)
 
         if analysis.should_visualize(paths=self.paths):
-
             analysis.visualize_before_fit(
                 paths=self.paths,
                 model=model,
@@ -772,8 +771,16 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         model.freeze()
         samples_summary = self.paths.load_samples_summary()
+        try:
+            samples = self.paths.samples
+        except FileNotFoundError:
+            samples = None
 
-        result = analysis.make_result(samples_summary=samples_summary, paths=self.paths)
+        result = analysis.make_result(
+            samples_summary=samples_summary,
+            samples=samples,
+            paths=self.paths,
+        )
 
         if self.is_master:
             self.logger.info(f"Fit Already Completed: skipping non-linear search.")
@@ -970,9 +977,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                 latent_samples = analysis.compute_latent_samples(samples_save)
 
                 if latent_samples:
-                    self.paths.save_latent_samples(
-                        latent_samples
-                    )
+                    self.paths.save_latent_samples(latent_samples)
 
             self.perform_visualization(
                 model=model,
@@ -1094,7 +1099,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                 model=model, search_internal=search_internal
             )
         except (FileNotFoundError, NotImplementedError, AttributeError):
-            return self.samples_via_csv_from(model=model)
+            return self.paths.samples
 
     def samples_via_internal_from(
         self, model: AbstractPriorModel, search_internal=None
