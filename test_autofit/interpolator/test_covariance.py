@@ -45,9 +45,9 @@ def test_covariance_matrix(interpolator):
     "non_linear",
     "nest",
     "DynestyStatic",
-    "parallel",
-    "force_x1_cpu",
-    value=True,
+    "run",
+    "n_effective",
+    value=0,
 )
 def test_interpolate(interpolator):
     assert isinstance(interpolator[interpolator.t == 0.5].gaussian.centre, float)
