@@ -151,6 +151,10 @@ class DatabasePaths(AbstractPaths):
         """
         return self.fit.get_json(name)
 
+    @property
+    def samples(self):
+        return self.fit.samples
+
     @conditional_output
     def save_array(self, name, array: np.ndarray):
         """
