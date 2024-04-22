@@ -65,7 +65,8 @@ class AbstractInitializer(ABC):
             return self.samples_in_test_mode(total_points=total_points, model=model)
 
         logger.info(
-            "Generating initial samples of model, which are subject to prior limits and other constraints."
+            f"Generating initial samples of model, which are subject to prior limits and other constraints. "
+            f"Using {n_cores} cores."
         )
 
         unit_parameter_lists = []

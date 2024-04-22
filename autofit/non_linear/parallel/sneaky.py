@@ -10,14 +10,10 @@ from autoconf import conf
 from autofit.non_linear.paths.abstract import AbstractPaths
 from .process import AbstractJob, Process, StopCommand
 
-logger = logging.getLogger(
-    __name__
-)
+logger = logging.getLogger(__name__)
 
 
-def _is_likelihood_function(
-        function
-) -> bool:
+def _is_likelihood_function(function) -> bool:
     """
     Is the function a callable used to evaluate likelihood?
 
@@ -37,20 +33,15 @@ def _is_likelihood_function(
     from autofit.non_linear.fitness import Fitness
     from dynesty.dynesty import _function_wrapper
     from emcee.ensemble import _FunctionWrapper
-    return any([
-        isinstance(
-            function,
-            Fitness
-        ),
-        isinstance(
-            function,
-            _function_wrapper
-        ) and function.name == 'loglikelihood',
-        isinstance(
-            function,
-            _FunctionWrapper
-        )
-    ])
+
+    return any(
+        [
+            isinstance(function, Fitness),
+            isinstance(function, _function_wrapper)
+            and function.name == "loglikelihood",
+            isinstance(function, _FunctionWrapper),
+        ]
+    )
 
 
 class SneakyJob(AbstractJob):
@@ -83,9 +74,7 @@ class SneakyJob(AbstractJob):
         self.fitness_index = None
 
         for i, arg in enumerate(args):
-            if _is_likelihood_function(
-                    arg
-            ):
+            if _is_likelihood_function(arg):
                 if self.fitness_index is not None:
                     raise AssertionError(
                         f"Two arguments of type NonLinear.Fitness passed to {function.__name__}"
@@ -123,29 +112,25 @@ class SneakyJob(AbstractJob):
         The log likelihood
         """
         if self.function is None:
-            return likelihood_function(
-                self.args
-            )
+            return likelihood_function(self.args)
         if self.is_not_fitness:
             return self.function(self.args)
         args = (
-                self.args[:self.fitness_index]
-                + [likelihood_function]
-                + self.args[self.fitness_index:]
+            self.args[: self.fitness_index]
+            + [likelihood_function]
+            + self.args[self.fitness_index :]
         )
-        return self.function(
-            args
-        )
+        return self.function(args)
 
 
 class SneakyProcess(Process):
     def __init__(
-            self,
-            name: str,
-            paths: AbstractPaths,
-            initializer=None,
-            initargs=None,
-            job_args=tuple()
+        self,
+        name: str,
+        paths: AbstractPaths,
+        initializer=None,
+        initargs=None,
+        job_args=tuple(),
     ):
         """
         Each SneakyProcess creates its own queue to avoid locking during
@@ -179,16 +164,10 @@ class SneakyProcess(Process):
         while True:
             job = self.job_queue.get()
             if job is StopCommand:
-                self.logger.debug(
-                    "StopCommand found"
-                )
+                self.logger.debug("StopCommand found")
                 break
             try:
-                self.queue.put(
-                    job.perform(
-                        *self.job_args
-                    )
-                )
+                self.queue.put(job.perform(*self.job_args))
             except Exception as e:
                 self.logger.exception(e)
                 self.queue.put(e)
@@ -196,7 +175,6 @@ class SneakyProcess(Process):
         self.job_queue.close()
 
         if conf.instance["general"]["test"]["parallel_profile"]:
-
             try:
                 os.makedirs(self.paths.profile_path)
             except FileExistsError:
@@ -208,7 +186,6 @@ class SneakyProcess(Process):
             pr.disable()
 
     def open_profiler(self):
-
         if conf.instance["general"]["test"]["parallel_profile"]:
             pr = cProfile.Profile()
             pr.enable()
@@ -216,12 +193,12 @@ class SneakyProcess(Process):
 
 class SneakyPool:
     def __init__(
-            self,
-            processes: int,
-            fitness,
-            paths: AbstractPaths,
-            initializer=None,
-            initargs=None
+        self,
+        processes: int,
+        fitness,
+        paths: AbstractPaths,
+        initializer=None,
+        initargs=None,
     ):
         """
         Implements the same interface as multiprocessing's pool,
@@ -239,16 +216,14 @@ class SneakyPool:
         initializer
         initargs
         """
-        logger.debug(
-            f"Creating SneakyPool with {processes} processes"
-        )
+        logger.info(f"Creating pool with {processes} processes")
         self._processes = [
             SneakyProcess(
                 str(number),
                 paths=paths,
                 initializer=initializer,
                 initargs=initargs,
-                job_args=(fitness,)
+                job_args=(fitness,),
             )
             for number in range(processes)
         ]
@@ -278,27 +253,16 @@ class SneakyPool:
         """
         jobs = [
             SneakyJob(
-                function,
-                *(
-                    (args,) if not isinstance(
-                        args,
-                        Iterable
-                    ) else tuple(args)
-                )
-            ) for args in args_list
+                function, *((args,) if not isinstance(args, Iterable) else tuple(args))
+            )
+            for args in args_list
         ]
 
-        logger.debug(
-            f"Running {len(jobs)} jobs across {self.processes} processes"
-        )
+        logger.info(f"Running {len(jobs)} jobs across {self.processes} processes")
 
         for i, job in enumerate(jobs):
-            process = self.processes[
-                i % len(self.processes)
-                ]
-            process.job_queue.put(
-                job
-            )
+            process = self.processes[i % len(self.processes)]
+            process.job_queue.put(job)
 
         target = len(jobs)
         count = 0
@@ -310,17 +274,12 @@ class SneakyPool:
                 if not process.queue.empty():
                     item = process.queue.get()
                     count += 1
-                    if isinstance(
-                            item,
-                            Exception
-                    ):
+                    if isinstance(item, Exception):
                         exception = item
                     else:
                         yield item
 
-        logger.debug(
-            "All jobs complete"
-        )
+        logger.debug("All jobs complete")
 
         if exception is not None:
             raise exception
@@ -332,24 +291,19 @@ class SneakyPool:
         Tell each process to terminate with a StopCommand and then join
         each process with a timeout of one second.
         """
-        logger.debug(
-            "Deconstructing SneakyMap"
-        )
+        logger.debug("Deconstructing SneakyMap")
 
-        logger.debug(
-            "Terminating processes..."
-        )
+        logger.debug("Terminating processes...")
         for process in self.processes:
             process.job_queue.put(StopCommand)
 
-        logger.debug(
-            "Joining processes..."
-        )
+        logger.debug("Joining processes...")
         for process in self.processes:
             try:
                 process.join(0.5)
             except Exception as e:
                 logger.exception(e)
+
 
 class FunctionCache:
     """
@@ -358,12 +312,12 @@ class FunctionCache:
 
 
 def initializer(
-        fitness ,
-        prior_transform,
-        fitness_args,
-        fitness_kwargs,
-        prior_transform_args,
-        prior_transform_kwargs
+    fitness,
+    prior_transform,
+    fitness_args,
+    fitness_kwargs,
+    prior_transform_args,
+    prior_transform_kwargs,
 ):
     """
     Initialized function used to initialize the
@@ -381,8 +335,9 @@ def fitness_cache(x):
     """
     Likelihood function call
     """
-    return FunctionCache.fitness(x, *FunctionCache.fitness_args,
-                                 **FunctionCache.fitness_kwargs)
+    return FunctionCache.fitness(
+        x, *FunctionCache.fitness_args, **FunctionCache.fitness_kwargs
+    )
 
 
 def prior_transform_cache(x):
@@ -390,23 +345,22 @@ def prior_transform_cache(x):
     Prior transform call
     """
 
-    return FunctionCache.prior_transform(x, *FunctionCache.prior_transform_args,
-                                         **FunctionCache.prior_transform_kwargs)
-
+    return FunctionCache.prior_transform(
+        x, *FunctionCache.prior_transform_args, **FunctionCache.prior_transform_kwargs
+    )
 
 
 class SneakierPool:
     def __init__(
-            self,
-            processes: int,
-            fitness: Callable,
-            prior_transform: Optional[Callable] = None,
-            fitness_args: Optional[Iterable] = None,
-            fitness_kwargs: Optional[dict] = None,
-            prior_transform_args: Optional[Iterable] = None,
-            prior_transform_kwargs: Optional[dict] = None,
+        self,
+        processes: int,
+        fitness: Callable,
+        prior_transform: Optional[Callable] = None,
+        fitness_args: Optional[Iterable] = None,
+        fitness_kwargs: Optional[dict] = None,
+        prior_transform_args: Optional[Iterable] = None,
+        prior_transform_kwargs: Optional[dict] = None,
     ):
-
         self.fitness_init = fitness
         self.prior_transform_init = prior_transform
         self.fitness = fitness_cache
@@ -419,42 +373,41 @@ class SneakierPool:
         self.pool = None
         try:
             from mpi4py import MPI
+
             self.comm = MPI.COMM_WORLD
             self._processes = self.comm.size
         except ModuleNotFoundError:
             self._processes = 1
 
         init_args = (
-            self.fitness_init, self.prior_transform_init,
-            self.fitness_args, self.fitness_kwargs,
-            self.prior_transform_args, self.prior_transform_kwargs
+            self.fitness_init,
+            self.prior_transform_init,
+            self.fitness_args,
+            self.fitness_kwargs,
+            self.prior_transform_args,
+            self.prior_transform_kwargs,
         )
         initializer(*init_args)
 
     def check_if_mpi(self):
-
         return self._processes > 1
 
     def is_master(self):
-
         is_mpi = self.check_if_mpi()
         if is_mpi:
             return_value = self.comm.rank == 0
         else:
             return_value = True
-        
+
         return return_value
 
     def wait(self):
-
         is_mpi = self.check_if_mpi()
         if is_mpi:
             self.pool.wait()
         else:
             pass
-            warnings.warn(
-                "Cannot wait for pool to finish if not using MPI"
-            )
+            warnings.warn("Cannot wait for pool to finish if not using MPI")
 
     def __enter__(self):
         """
@@ -464,7 +417,6 @@ class SneakierPool:
         use_mpi = self.check_if_mpi()
 
         if use_mpi:
-
             from schwimmbad import MPIPool
 
             if self.is_master():
@@ -480,10 +432,7 @@ class SneakierPool:
 
         return self
 
-    def map(
-            self, function: Callable,
-            iterable: Iterable
-    ):
+    def map(self, function: Callable, iterable: Iterable):
         """
         Map a function over an iterable using the map method
         of the initialized pool.
@@ -497,26 +446,30 @@ class SneakierPool:
 
         """
         return self.pool.map(function, iterable)
-    
+
     def __exit__(self, exc_type, exc_val, exc_tb):
         try:
             self.pool.terminate()
         except:  # noqa
             pass
         try:
-            del (FunctionCache.fitness, FunctionCache.prior_transform,
-                 FunctionCache.fitness_args, FunctionCache.fitness_kwargs,
-                 FunctionCache.prior_transform_args, FunctionCache.prior_transform_kwargs)
+            del (
+                FunctionCache.fitness,
+                FunctionCache.prior_transform,
+                FunctionCache.fitness_args,
+                FunctionCache.fitness_kwargs,
+                FunctionCache.prior_transform_args,
+                FunctionCache.prior_transform_kwargs,
+            )
         except:  # noqa
             pass
-    
+
     @property
     def size(self):
-
         return self.njobs
-    
+
     def close(self):
         self.pool.close()
-    
+
     def join(self):
         self.pool.join()
