@@ -216,7 +216,7 @@ class SneakyPool:
         initializer
         initargs
         """
-        logger.info(f"Creating SneakyPool with {processes} processes")
+        logger.info(f"Creating pool with {processes} processes")
         self._processes = [
             SneakyProcess(
                 str(number),
