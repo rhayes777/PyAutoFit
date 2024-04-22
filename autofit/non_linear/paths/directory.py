@@ -285,8 +285,27 @@ class DirectoryPaths(AbstractPaths):
     def save_samples_summary(self, samples_summary: SamplesSummary):
         model = samples_summary.model
 
+        filter_args = tuple(
+            name
+            for name in (
+                "errors_at_sigma_1",
+                "errors_at_sigma_3",
+                "values_at_sigma_1",
+                "values_at_sigma_3",
+                "max_log_likelihood_sample",
+                "median_pdf_sample",
+            )
+            if should_output(name)
+        )
+
         samples_summary.model = None
-        self.save_json("samples_summary", to_dict(samples_summary))
+        self.save_json(
+            "samples_summary",
+            to_dict(
+                samples_summary,
+                filter_args=filter_args,
+            ),
+        )
         samples_summary.model = model
 
     def load_samples_summary(self) -> SamplesSummary:
