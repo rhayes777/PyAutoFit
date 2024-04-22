@@ -3,6 +3,9 @@ import pytest
 from autoconf.conf import with_config
 import numpy as np
 
+from autofit import CovarianceInterpolator
+import autofit as af
+
 
 @pytest.fixture(autouse=True)
 def do_remove_output(output_directory, remove_output):
@@ -41,24 +44,28 @@ def test_covariance_matrix(interpolator):
 #     )
 
 
-@with_config(
-    "non_linear",
-    "nest",
-    "DynestyStatic",
-    "run",
-    "n_effective",
-    value=0,
-)
+def n_effective(func):
+    return with_config(
+        "non_linear",
+        "nest",
+        "DynestyStatic",
+        "run",
+        "n_effective",
+        value=0,
+    )(func)
+
+
+@n_effective
 def test_interpolate(interpolator):
     assert isinstance(interpolator[interpolator.t == 0.5].gaussian.centre, float)
 
 
-#
-# def test_interpolate_other_field(interpolator):
-#     assert isinstance(
-#         interpolator[interpolator.gaussian.centre == 0.5].gaussian.centre,
-#         float,
-#     )
+@n_effective
+def test_interpolate_other_field(interpolator):
+    assert isinstance(
+        interpolator[interpolator.gaussian.centre == 0.5].gaussian.centre,
+        float,
+    )
 
 
 def test_linear_analysis_for_value(interpolator):
@@ -72,56 +79,58 @@ def test_model(interpolator):
     assert model.prior_count == 6
 
 
-# def test_single_variable():
-#     samples_list = [
-#         af.SamplesPDF(
-#             model=af.Collection(
-#                 t=value,
-#                 v=af.GaussianPrior(mean=1.0, sigma=1.0),
-#             ),
-#             sample_list=[
-#                 af.Sample(
-#                     log_likelihood=-value,
-#                     log_prior=1.0,
-#                     weight=1.0,
-#                     kwargs={
-#                         ("v",): value,
-#                     },
-#                 )
-#             ],
-#         )
-#         for value in range(100)
-#     ]
-#     interpolator = CovarianceInterpolator(
-#         samples_list,
-#     )
-#     assert interpolator[interpolator.t == 50.0].v == pytest.approx(50.0, abs=1.0)
-#
-#
-# def test_variable_and_constant():
-#     samples_list = [
-#         af.SamplesPDF(
-#             model=af.Collection(
-#                 t=value,
-#                 v=af.GaussianPrior(mean=1.0, sigma=1.0),
-#                 x=af.GaussianPrior(mean=1.0, sigma=1.0),
-#             ),
-#             sample_list=[
-#                 af.Sample(
-#                     log_likelihood=-value,
-#                     log_prior=1.0,
-#                     weight=1.0,
-#                     kwargs={
-#                         ("v",): value + 0.1 * (1 - np.random.random()),
-#                         ("x",): 0.5 * (1 - +np.random.random()),
-#                     },
-#                 )
-#                 for _ in range(100)
-#             ],
-#         )
-#         for value in range(100)
-#     ]
-#     interpolator = CovarianceInterpolator(
-#         samples_list,
-#     )
-#     assert interpolator[interpolator.t == 50.0].v == pytest.approx(50.0, abs=5.0)
+@n_effective
+def test_single_variable():
+    samples_list = [
+        af.SamplesPDF(
+            model=af.Collection(
+                t=value,
+                v=af.GaussianPrior(mean=1.0, sigma=1.0),
+            ),
+            sample_list=[
+                af.Sample(
+                    log_likelihood=-value,
+                    log_prior=1.0,
+                    weight=1.0,
+                    kwargs={
+                        ("v",): value,
+                    },
+                )
+            ],
+        )
+        for value in range(100)
+    ]
+    interpolator = CovarianceInterpolator(
+        samples_list,
+    )
+    assert interpolator[interpolator.t == 50.0].v == pytest.approx(50.0, abs=1.0)
+
+
+@n_effective
+def test_variable_and_constant():
+    samples_list = [
+        af.SamplesPDF(
+            model=af.Collection(
+                t=value,
+                v=af.GaussianPrior(mean=1.0, sigma=1.0),
+                x=af.GaussianPrior(mean=1.0, sigma=1.0),
+            ),
+            sample_list=[
+                af.Sample(
+                    log_likelihood=-value,
+                    log_prior=1.0,
+                    weight=1.0,
+                    kwargs={
+                        ("v",): value + 0.1 * (1 - np.random.random()),
+                        ("x",): 0.5 * (1 - +np.random.random()),
+                    },
+                )
+                for _ in range(100)
+            ],
+        )
+        for value in range(100)
+    ]
+    interpolator = CovarianceInterpolator(
+        samples_list,
+    )
+    assert interpolator[interpolator.t == 50.0].v == pytest.approx(50.0, abs=5.0)
