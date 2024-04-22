@@ -565,6 +565,8 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         """
         self.check_model(model=model)
 
+        logger.info(f"Starting non-linear search with {self.number_of_cores} cores.")
+
         model = analysis.modify_model(model)
         self.paths.model = model
         self.paths.unique_tag = self.unique_tag
