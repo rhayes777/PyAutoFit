@@ -93,6 +93,7 @@ from .non_linear.samples.pdf import marginalize
 from .example.model import Gaussian, Exponential
 from .text import formatter
 from .text import samples_text
+from .visualise import VisualiseGraph
 from .interpolator import (
     LinearInterpolator,
     SplineInterpolator,
