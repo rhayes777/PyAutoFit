@@ -295,7 +295,7 @@ class DirectoryPaths(AbstractPaths):
                 "max_log_likelihood_sample",
                 "median_pdf_sample",
             )
-            if should_output(name)
+            if not should_output(name)
         )
 
         samples_summary.model = None
