@@ -64,7 +64,7 @@ class TextFormatter:
 
     @property
     def text(self):
-        return "\n".join(self.list)
+        return "\n".join(map(str, self.list))
 
     @property
     def list(self):
