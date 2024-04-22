@@ -114,7 +114,11 @@ class IndexCollectionAnalysis(CombinedAnalysis):
             )
             for model, analysis in zip(samples_summary.model, self.analyses)
         ]
-        return CombinedResult(child_results)
+        return CombinedResult(
+            child_results,
+            samples=samples,
+            samples_summary=samples_summary,
+        )
 
     def modify_before_fit(self, paths: AbstractPaths, model: Collection):
         """

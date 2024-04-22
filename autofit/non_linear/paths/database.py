@@ -10,8 +10,6 @@ from autofit.database.model import Fit
 from autoconf.dictable import to_dict
 from autofit.database.aggregator.info import Info
 
-# from autofit.non_linear.analysis.latent_variables import LatentVariables
-
 
 class DatabasePaths(AbstractPaths):
     def __init__(
@@ -150,6 +148,10 @@ class DatabasePaths(AbstractPaths):
         The loaded dictionary
         """
         return self.fit.get_json(name)
+
+    @property
+    def samples(self):
+        return self.fit.samples
 
     @conditional_output
     def save_array(self, name, array: np.ndarray):
