@@ -16,7 +16,12 @@ logger = logging.getLogger(__name__)
 
 
 class CombinedResult:
-    def __init__(self, results: List[Result]):
+    def __init__(
+        self,
+        results: List[Result],
+        samples: Optional[SamplesPDF] = None,
+        samples_summary: Optional[SamplesSummary] = None,
+    ):
         """
         A `Result` object that is composed of multiple `Result` objects. This is used to combine the results of
         multiple `Analysis` objects into a single `Result` object, for example when performing a model-fitting
@@ -28,6 +33,8 @@ class CombinedResult:
             The list of `Result` objects that are combined into this `CombinedResult` object.
         """
         self.child_results = results
+        self.samples = samples
+        self.samples_summary = samples_summary
 
     def __getattr__(self, item: str):
         """
@@ -351,11 +358,7 @@ class CombinedAnalysis(Analysis):
     ):
         child_results = [
             analysis.make_result(
-                samples_summary,
-                paths,
-                samples,
-                search_internal,
-                analysis
+                samples_summary, paths, samples, search_internal, analysis
             )
             for analysis in self.analyses
         ]

@@ -285,13 +285,7 @@ class Result(AbstractResult):
         if self._samples is not None:
             return self._samples
 
-        try:
-            return Samples.from_csv(
-                paths=self.paths,
-                model=self.model,
-            )
-        except FileNotFoundError:
-            pass
+        return self.paths.samples
 
     @property
     def search_internal(self):

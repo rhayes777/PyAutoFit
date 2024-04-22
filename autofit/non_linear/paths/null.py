@@ -9,6 +9,10 @@ class NullPaths(AbstractPaths):
     Null version of paths object for avoiding writing of files to disk
     """
 
+    @property
+    def samples(self):
+        return None
+
     def save_latent_samples(self, latent_samples):
         pass
 

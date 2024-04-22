@@ -85,42 +85,6 @@ class Samples(SamplesInterface, ABC):
         return None
 
     @classmethod
-    def from_csv(cls, paths, model: AbstractPriorModel):
-        """
-        Returns a `Samples` object from the output paths of a non-linear search.
-
-        This function loads the sample values (e.g. parameters, log likelihoods) from a .csv file, which is a
-        standardized output for all **PyAutoFit** non-linear searches.
-
-        The samples object requires additional information on the non-linear search (e.g. the number of live points),
-        which is loaded from the `samples_info.json` file.
-
-        This function also looks for the internal results of the non-linear search and includes them in the samples if
-        they exists, which allows for the search's internal visualization and analysis tools to be used.
-
-        Parameters
-        ----------
-        paths
-            An object describing the paths for saving data (e.g. hard-disk directories or entries in sqlite database).
-        model
-            An object that represents possible instances of some model with a given dimensionality which is the number
-            of free dimensions of the model.
-
-        Returns
-        -------
-        The samples which have been loaded from hard-disk via .csv.
-        """
-
-        sample_list = paths.load_samples()
-        samples_info = paths.load_samples_info()
-
-        return cls.from_list_info_and_model(
-            sample_list=sample_list,
-            samples_info=samples_info,
-            model=model,
-        )
-
-    @classmethod
     def from_list_info_and_model(
         cls,
         sample_list,

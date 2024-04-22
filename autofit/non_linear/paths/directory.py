@@ -5,14 +5,16 @@ import json
 import os
 from os import path
 from pathlib import Path
-from typing import Optional, Union
+from typing import Optional, Union, cast, Type
 import logging
 
 from autoconf import conf
+from autoconf.class_path import get_class
 from autoconf.dictable import to_dict, from_dict
 from autoconf.output import conditional_output, should_output
 from autofit.text import formatter
 from autofit.tools.util import open_
+from autofit.non_linear.samples.samples import Samples
 
 from .abstract import AbstractPaths
 
@@ -238,6 +240,22 @@ class DirectoryPaths(AbstractPaths):
 
     def load_samples(self):
         return load_from_table(filename=self._samples_file)
+
+    @property
+    def samples(self):
+        """
+        Load the samples associated with the search from the output directory.
+        """
+        sample_list = self.load_samples()
+        samples_info = self.load_samples_info()
+
+        cls = cast(Type[Samples], get_class(samples_info["class_path"]))
+
+        return cls.from_list_info_and_model(
+            sample_list=sample_list,
+            samples_info=samples_info,
+            model=self.model,
+        )
 
     def save_latent_samples(
         self,
