@@ -22,6 +22,10 @@ class SamplesSummary(SamplesInterface):
         model: AbstractPriorModel = None,
         median_pdf_sample: Optional[Sample] = None,
         log_evidence: Optional[float] = None,
+        errors_at_sigma_1=None,
+        errors_at_sigma_3=None,
+        values_at_sigma_1=None,
+        values_at_sigma_3=None,
     ):
         """
         A summary of the results of a `NonLinearSearch` that has been run, including the maximum log likelihood
@@ -41,6 +45,11 @@ class SamplesSummary(SamplesInterface):
         self._median_pdf_sample = median_pdf_sample
         self._log_evidence = log_evidence
         self.derived_summary = None
+
+        self.errors_at_sigma_1 = errors_at_sigma_1
+        self.errors_at_sigma_3 = errors_at_sigma_3
+        self.values_at_sigma_1 = values_at_sigma_1
+        self.values_at_sigma_3 = values_at_sigma_3
 
     @property
     def max_log_likelihood_sample(self):
