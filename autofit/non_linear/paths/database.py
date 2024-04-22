@@ -10,8 +10,6 @@ from autofit.database.model import Fit
 from autoconf.dictable import to_dict
 from autofit.database.aggregator.info import Info
 
-# from autofit.non_linear.analysis.latent_variables import LatentVariables
-
 
 class DatabasePaths(AbstractPaths):
     def __init__(
