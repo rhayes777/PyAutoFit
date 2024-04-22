@@ -2,6 +2,11 @@ import copy
 from typing import List, Tuple, Union, Dict
 
 from autofit.mapper.model_object import ModelObject
+from autofit.mapper.prior_model.attribute_pair import (
+    cast_collection,
+    PriorNameValue,
+    InstanceNameValue,
+)
 from .abstract import Prior
 
 NameValue = Tuple[str, Union[Prior, float]]
@@ -18,6 +23,7 @@ class TuplePrior(ModelObject):
             setattr(self, key, value)
 
     @property
+    @cast_collection(PriorNameValue)
     def prior_tuples(self):
         """
         Returns
@@ -36,6 +42,7 @@ class TuplePrior(ModelObject):
         return self.prior_tuples
 
     @property
+    @cast_collection(InstanceNameValue)
     def instance_tuples(self):
         """
         Returns

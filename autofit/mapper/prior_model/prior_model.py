@@ -492,18 +492,18 @@ class Model(AbstractPriorModel):
 
         new_model._assertions = list()
 
-        model_arguments = {t[0]: arguments[t[1]] for t in self.direct_prior_tuples}
+        model_arguments = {t.name: arguments[t.prior] for t in self.direct_prior_tuples}
 
-        for name, prior in self.tuple_prior_tuples:
+        for tuple_prior_tuple in self.tuple_prior_tuples:
             setattr(
                 new_model,
-                name,
-                prior.gaussian_tuple_prior_for_arguments(arguments),
+                tuple_prior_tuple.name,
+                tuple_prior_tuple.prior.gaussian_tuple_prior_for_arguments(arguments),
             )
-        for name, _ in self.direct_prior_tuples:
-            setattr(new_model, name, model_arguments[name])
-        for name, value in self.direct_instance_tuples:
-            setattr(new_model, name, value)
+        for prior_tuple in self.direct_prior_tuples:
+            setattr(new_model, prior_tuple.name, model_arguments[prior_tuple.name])
+        for instance_tuple in self.direct_instance_tuples:
+            setattr(new_model, instance_tuple.name, instance_tuple.instance)
 
         for name, prior_model in self.direct_prior_model_tuples:
             setattr(

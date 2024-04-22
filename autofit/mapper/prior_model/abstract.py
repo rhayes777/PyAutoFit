@@ -20,8 +20,15 @@ from autofit.mapper.prior.abstract import Prior
 from autofit.mapper.prior.deferred import DeferredArgument
 from autofit.mapper.prior.tuple_prior import TuplePrior
 from autofit.mapper.prior.width_modifier import WidthModifier
+from autofit.mapper.prior_model.attribute_pair import DeferredNameValue
+from autofit.mapper.prior_model.attribute_pair import (
+    cast_collection,
+    PriorNameValue,
+    InstanceNameValue,
+)
 from autofit.mapper.prior_model.recursion import DynamicRecursionCache
 from autofit.mapper.prior_model.representative import find_groups
+from autofit.mapper.prior_model.util import PriorModelNameValue
 from autofit.text import formatter as frm
 from autofit.text.formatter import TextFormatter
 from autofit.tools.util import info_whitespace
@@ -529,8 +536,8 @@ class AbstractPriorModel(AbstractModel):
         arguments = dict(
             map(
                 lambda prior_tuple, unit: (
-                    prior_tuple[1],
-                    prior_tuple[1].value_for(
+                    prior_tuple.prior,
+                    prior_tuple.prior.value_for(
                         unit,
                         ignore_prior_limits=ignore_prior_limits,
                     ),
@@ -546,6 +553,7 @@ class AbstractPriorModel(AbstractModel):
         )
 
     @property
+    @cast_collection(PriorNameValue)
     @frozen_cache
     def unique_prior_tuples(self):
         """
@@ -562,6 +570,7 @@ class AbstractPriorModel(AbstractModel):
         )
 
     @property
+    @cast_collection(PriorNameValue)
     @frozen_cache
     def prior_tuples_ordered_by_id(self):
         """
@@ -571,7 +580,7 @@ class AbstractPriorModel(AbstractModel):
             An ordered list of unique priors associated with this mapper
         """
         return sorted(
-            list(self.unique_prior_tuples), key=lambda prior_tuple: prior_tuple[1].id
+            list(self.unique_prior_tuples), key=lambda prior_tuple: prior_tuple.prior.id
         )
 
     @property
@@ -596,7 +605,7 @@ class AbstractPriorModel(AbstractModel):
         """
         return list(
             map(
-                lambda prior_tuple, unit: prior_tuple[1].value_for(
+                lambda prior_tuple, unit: prior_tuple.prior.value_for(
                     unit, ignore_prior_limits=ignore_prior_limits
                 ),
                 self.prior_tuples_ordered_by_id,
@@ -743,7 +752,7 @@ class AbstractPriorModel(AbstractModel):
             )
         arguments = dict(
             map(
-                lambda prior_tuple, physical_unit: (prior_tuple[1], physical_unit),
+                lambda prior_tuple, physical_unit: (prior_tuple.prior, physical_unit),
                 self.prior_tuples_ordered_by_id,
                 vector,
             )
@@ -910,13 +919,15 @@ class AbstractPriorModel(AbstractModel):
         prior_class_dict = self.prior_class_dict
         arguments = {}
 
-        for (name, prior), mean in zip(prior_tuples, means):
+        for prior_tuple, mean in zip(prior_tuples, means):
+            prior = prior_tuple.prior
             cls = prior_class_dict[prior]
 
+            name = prior_tuple.name
             # Use the name of the collection for configuration when a prior's name
             # is just a number (i.e. its position in a collection)
             if name.isdigit():
-                name = self.path_for_prior(prior)[-2]
+                name = self.path_for_prior(prior_tuple.prior)[-2]
 
             width_modifier = (
                 prior.width_modifier
@@ -994,7 +1005,7 @@ class AbstractPriorModel(AbstractModel):
         arguments = {}
 
         for i, prior_tuple in enumerate(prior_tuples):
-            prior = prior_tuple[1]
+            prior = prior_tuple.prior
 
             new_prior = UniformPrior(
                 lower_limit=floats[i] - b, upper_limit=floats[i] + b
@@ -1035,7 +1046,7 @@ class AbstractPriorModel(AbstractModel):
         """
         return list(
             map(
-                lambda prior_tuple, value: prior_tuple[1].log_prior_from_value(
+                lambda prior_tuple, value: prior_tuple.prior.log_prior_from_value(
                     value=value
                 ),
                 self.prior_tuples_ordered_by_id,
@@ -1154,26 +1165,32 @@ class AbstractPriorModel(AbstractModel):
         ]
 
     @property
+    @cast_collection(PriorNameValue)
     def direct_prior_tuples(self):
         return self.direct_tuples_with_type(Prior)
 
     @property
+    @cast_collection(InstanceNameValue)
     def direct_instance_tuples(self):
         return self.direct_tuples_with_type(float)
 
     @property
+    @cast_collection(PriorModelNameValue)
     def prior_model_tuples(self):
         return self.direct_tuples_with_type(AbstractPriorModel)
 
     @property
+    @cast_collection(PriorModelNameValue)
     def direct_prior_model_tuples(self):
         return self.direct_tuples_with_type(AbstractPriorModel)
 
     @property
+    @cast_collection(PriorModelNameValue)
     def direct_tuple_priors(self):
         return self.direct_tuples_with_type(TuplePrior)
 
     @property
+    @cast_collection(PriorNameValue)
     def tuple_prior_tuples(self):
         """
         Returns
@@ -1183,6 +1200,7 @@ class AbstractPriorModel(AbstractModel):
         return self.direct_tuples_with_type(TuplePrior)
 
     @property
+    @cast_collection(PriorNameValue)
     def direct_prior_tuples(self):
         """
         Returns
@@ -1192,10 +1210,12 @@ class AbstractPriorModel(AbstractModel):
         return self.direct_tuples_with_type(Prior)
 
     @property
+    @cast_collection(DeferredNameValue)
     def direct_deferred_tuples(self):
         return self.direct_tuples_with_type(DeferredArgument)
 
     @property
+    @cast_collection(PriorNameValue)
     def prior_tuples(self):
         """
         Returns
@@ -1212,6 +1232,7 @@ class AbstractPriorModel(AbstractModel):
         )
 
     @property
+    @cast_collection(InstanceNameValue)
     def instance_tuples(self):
         """
         Returns
@@ -1375,7 +1396,7 @@ class AbstractPriorModel(AbstractModel):
 
     @property
     def priors(self):
-        return [prior_tuple[1] for prior_tuple in self.prior_tuples]
+        return [prior_tuple.prior for prior_tuple in self.prior_tuples]
 
     @property
     def _prior_id_map(self):
