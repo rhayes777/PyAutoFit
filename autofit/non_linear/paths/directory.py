@@ -14,6 +14,7 @@ from autoconf.dictable import to_dict, from_dict
 from autoconf.output import conditional_output, should_output
 from autofit.text import formatter
 from autofit.tools.util import open_
+from autofit.non_linear.samples.samples import Samples
 
 from .abstract import AbstractPaths
 
@@ -242,10 +243,13 @@ class DirectoryPaths(AbstractPaths):
 
     @property
     def samples(self):
+        """
+        Load the samples associated with the search from the output directory.
+        """
         sample_list = self.load_samples()
         samples_info = self.load_samples_info()
 
-        cls = get_class(samples_info["class_path"])
+        cls = cast(Type[Samples], get_class(samples_info["class_path"]))
 
         return cls.from_list_info_and_model(
             sample_list=sample_list,
