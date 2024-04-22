@@ -503,10 +503,7 @@ class Samples(SamplesInterface, ABC):
         if self.model is None:
             return None
 
-        path_map = {
-            tuple(self.model.all_paths_for_prior(prior)): path
-            for path, prior in model.path_priors_tuples
-        }
+        path_map = self.path_map_for_model(model)
         copied = copy(self)
         copied._paths = None
         copied._names = None
