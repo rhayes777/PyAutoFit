@@ -14,11 +14,13 @@ logger = logging.getLogger(__name__)
 
 
 class SamplesSummary(SamplesInterface):
+    __exclude_fields__ = ["model"]
+
     def __init__(
         self,
         max_log_likelihood_sample: Sample,
         model: AbstractPriorModel = None,
-        median_pdf_sample : Optional[Sample] = None,
+        median_pdf_sample: Optional[Sample] = None,
         log_evidence: Optional[float] = None,
     ):
         """
