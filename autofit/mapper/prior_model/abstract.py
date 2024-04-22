@@ -910,15 +910,13 @@ class AbstractPriorModel(AbstractModel):
         prior_class_dict = self.prior_class_dict
         arguments = {}
 
-        for prior_tuple, mean in zip(prior_tuples, means):
-            prior = prior_tuple[1]
+        for (name, prior), mean in zip(prior_tuples, means):
             cls = prior_class_dict[prior]
 
-            name = prior_tuple.name
             # Use the name of the collection for configuration when a prior's name
             # is just a number (i.e. its position in a collection)
             if name.isdigit():
-                name = self.path_for_prior(prior_tuple[1])[-2]
+                name = self.path_for_prior(prior)[-2]
 
             width_modifier = (
                 prior.width_modifier
