@@ -1,21 +1,19 @@
 import os
+from random import random
+
 import pytest
 
 import autofit as af
 
 
 class MockFitness:
-
-    def __init__(self, figure_of_merit=0.0, increase_figure_of_merit = True):
-
+    def __init__(self, figure_of_merit=0.0, change_figure_of_merit=True):
         self.figure_of_merit = figure_of_merit
-        self.increase_figure_of_merit = increase_figure_of_merit
+        self.change_figure_of_merit = change_figure_of_merit
 
     def __call__(self, parameters):
-
-        if self.increase_figure_of_merit:
-            self.figure_of_merit += 1
-
+        if self.change_figure_of_merit:
+            return -random() * 10
         return self.figure_of_merit
 
 
@@ -28,8 +26,15 @@ def test__priors__samples_from_model():
 
     initializer = af.InitializerPrior()
 
-    unit_parameter_lists, parameter_lists, figure_of_merit_list = initializer.samples_from_model(
-        total_points=2, model=model, fitness=MockFitness()
+    (
+        unit_parameter_lists,
+        parameter_lists,
+        figure_of_merit_list,
+    ) = initializer.samples_from_model(
+        total_points=2,
+        model=model,
+        fitness=MockFitness(),
+        paths=af.DirectoryPaths(),
     )
 
     assert 0.0 < unit_parameter_lists[0][0] < 1.0
@@ -50,7 +55,6 @@ def test__priors__samples_from_model():
     assert 0.399 < parameter_lists[0][3] < 0.401
     assert 0.399 < parameter_lists[1][3] < 0.401
 
-    assert figure_of_merit_list == [1.0, 2.0]
 
 def test__priors__samples_from_model__raise_exception_if_all_likelihoods_identical():
     model = af.Model(af.m.MockClassx4)
@@ -58,13 +62,15 @@ def test__priors__samples_from_model__raise_exception_if_all_likelihoods_identic
     initializer = af.InitializerPrior()
 
     with pytest.raises(af.exc.InitializerException):
-
         initializer.samples_from_model(
-            total_points=2, model=model, fitness=MockFitness(increase_figure_of_merit=False)
+            total_points=2,
+            model=model,
+            fitness=MockFitness(change_figure_of_merit=False),
+            paths=af.DirectoryPaths(),
         )
 
-def test__priors__samples_in_test_mode():
 
+def test__priors__samples_in_test_mode():
     os.environ["PYAUTOFIT_TEST_MODE"] = "1"
 
     model = af.Model(af.m.MockClassx4)
@@ -75,8 +81,15 @@ def test__priors__samples_in_test_mode():
 
     initializer = af.InitializerPrior()
 
-    unit_parameter_lists, parameter_lists, figure_of_merit_list = initializer.samples_from_model(
-        total_points=2, model=model, fitness=None
+    (
+        unit_parameter_lists,
+        parameter_lists,
+        figure_of_merit_list,
+    ) = initializer.samples_from_model(
+        total_points=2,
+        model=model,
+        fitness=None,
+        paths=af.DirectoryPaths(),
     )
 
     assert 0.0 < unit_parameter_lists[0][0] < 1.0
@@ -101,8 +114,8 @@ def test__priors__samples_in_test_mode():
 
     os.environ["PYAUTOFIT_TEST_MODE"] = "0"
 
-def test__ball__samples_sample_centre_of_priors():
 
+def test__ball__samples_sample_centre_of_priors():
     model = af.Model(af.m.MockClassx4)
     model.one = af.UniformPrior(lower_limit=0.0, upper_limit=1.0)
     model.two = af.UniformPrior(lower_limit=0.0, upper_limit=2.0)
@@ -111,8 +124,15 @@ def test__ball__samples_sample_centre_of_priors():
 
     initializer = af.InitializerBall(lower_limit=0.4999, upper_limit=0.5001)
 
-    unit_parameter_lists, parameter_lists, figure_of_merit_list = initializer.samples_from_model(
-        total_points=2, model=model, fitness=MockFitness()
+    (
+        unit_parameter_lists,
+        parameter_lists,
+        figure_of_merit_list,
+    ) = initializer.samples_from_model(
+        total_points=2,
+        model=model,
+        fitness=MockFitness(),
+        paths=af.DirectoryPaths(),
     )
 
     assert 0.4999 < unit_parameter_lists[0][0] < 0.5001
@@ -135,8 +155,15 @@ def test__ball__samples_sample_centre_of_priors():
 
     initializer = af.InitializerBall(lower_limit=0.7999, upper_limit=0.8001)
 
-    unit_parameter_lists, parameter_lists, figure_of_merit_list = initializer.samples_from_model(
-        total_points=2, model=model, fitness=MockFitness()
+    (
+        unit_parameter_lists,
+        parameter_lists,
+        figure_of_merit_list,
+    ) = initializer.samples_from_model(
+        total_points=2,
+        model=model,
+        fitness=MockFitness(),
+        paths=af.DirectoryPaths(),
     )
 
     assert 0.799 < parameter_lists[0][0] < 0.801
@@ -148,8 +175,6 @@ def test__ball__samples_sample_centre_of_priors():
     assert 3.199 < parameter_lists[0][3] < 3.201
     assert 3.199 < parameter_lists[1][3] < 3.201
 
-    assert figure_of_merit_list == [1.0, 2.0]
-
 
 @pytest.mark.parametrize(
     "unit_value, physical_value",
@@ -157,7 +182,7 @@ def test__ball__samples_sample_centre_of_priors():
         (0.0, 0.0),
         (0.5, 0.5),
         (1.0, 1.0),
-    ]
+    ],
 )
 def test_invert_physical(unit_value, physical_value):
     prior = af.UniformPrior(
@@ -173,7 +198,7 @@ def test_invert_physical(unit_value, physical_value):
         (1.0, 0.0),
         (2.0, 0.5),
         (3.0, 1.0),
-    ]
+    ],
 )
 def test_invert_physical_offset(unit_value, physical_value):
     prior = af.UniformPrior(
@@ -189,7 +214,7 @@ def test_invert_physical_offset(unit_value, physical_value):
         (-float("inf"), 0.0),
         (0.0, 0.5),
         (float("inf"), 1.0),
-    ]
+    ],
 )
 def test_invert_gaussian(unit_value, physical_value):
     prior = af.GaussianPrior(
@@ -210,11 +235,13 @@ def make_model():
 
 
 def test_starting_point_initializer(model):
-    initializer = af.SpecificRangeInitializer({
-        model.centre: (1.0, 2.0),
-        model.normalization: (2.0, 3.0),
-        model.sigma: (-2.0, -1.0),
-    })
+    initializer = af.SpecificRangeInitializer(
+        {
+            model.centre: (1.0, 2.0),
+            model.normalization: (2.0, 3.0),
+            model.sigma: (-2.0, -1.0),
+        }
+    )
 
     parameter_list = initializer._generate_unit_parameter_list(model)
     assert len(parameter_list) == 3
@@ -223,11 +250,13 @@ def test_starting_point_initializer(model):
 
 
 def test_offset(model):
-    initializer = af.SpecificRangeInitializer({
-        model.centre: (1.5, 2.0),
-        model.normalization: (2.5, 3.0),
-        model.sigma: (-1.5, -1.0),
-    })
+    initializer = af.SpecificRangeInitializer(
+        {
+            model.centre: (1.5, 2.0),
+            model.normalization: (2.5, 3.0),
+            model.sigma: (-1.5, -1.0),
+        }
+    )
 
     parameter_list = initializer._generate_unit_parameter_list(model)
     assert len(parameter_list) == 3

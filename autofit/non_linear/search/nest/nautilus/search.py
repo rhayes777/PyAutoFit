@@ -301,6 +301,7 @@ class Nautilus(abstract_nest.AbstractNest):
                 for key, value in self.config_dict_run.items()
                 if key != "n_like_max"
             }
+
             search_internal.run(
                 **config_dict_run,
                 n_like_max=iterations,

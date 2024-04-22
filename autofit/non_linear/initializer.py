@@ -3,13 +3,15 @@ import logging
 import os
 import random
 from abc import ABC, abstractmethod
-from typing import Dict, Tuple, List
+from typing import Dict, Tuple, List, Optional
 
 import numpy as np
 
 from autofit import exc
+from autofit.non_linear.paths.abstract import AbstractPaths
 from autofit.mapper.prior.abstract import Prior
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
+from autofit.non_linear.parallel import SneakyPool
 
 logger = logging.getLogger(__name__)
 
@@ -23,13 +25,28 @@ class AbstractInitializer(ABC):
     def _generate_unit_parameter_list(self, model):
         pass
 
+    @staticmethod
+    def figure_of_metric(args) -> Optional[float]:
+        fitness, parameter_list = args
+        try:
+            figure_of_merit = fitness(parameters=parameter_list)
+
+            if np.isnan(figure_of_merit) or figure_of_merit < -1e98:
+                return None
+
+            return figure_of_merit
+        except exc.FitException:
+            return None
+
     def samples_from_model(
         self,
         total_points: int,
         model: AbstractPriorModel,
         fitness,
+        paths: AbstractPaths,
         use_prior_medians: bool = False,
         test_mode_samples: bool = True,
+        n_cores: int = 1,
     ):
         """
         Generate the initial points of the non-linear search, by randomly drawing unit values from a uniform
@@ -55,31 +72,39 @@ class AbstractInitializer(ABC):
         parameter_lists = []
         figures_of_merit_list = []
 
-        point_index = 0
+        sneaky_pool = SneakyPool(n_cores, fitness, paths)
 
-        while point_index < total_points:
-            if not use_prior_medians:
-                unit_parameter_list = self._generate_unit_parameter_list(model)
-            else:
-                unit_parameter_list = [0.5] * model.prior_count
+        while len(figures_of_merit_list) < total_points:
+            remaining_points = total_points - len(figures_of_merit_list)
+            batch_size = min(remaining_points, n_cores)
+            parameter_lists_ = []
+            unit_parameter_lists_ = []
 
-            parameter_list = model.vector_from_unit_vector(
-                unit_vector=unit_parameter_list
-            )
+            for _ in range(batch_size):
+                if not use_prior_medians:
+                    unit_parameter_list = self._generate_unit_parameter_list(model)
+                else:
+                    unit_parameter_list = [0.5] * model.prior_count
 
-            try:
-                figure_of_merit = fitness(parameters=parameter_list)
+                parameter_list = model.vector_from_unit_vector(
+                    unit_vector=unit_parameter_list
+                )
 
-                if np.isnan(figure_of_merit) or figure_of_merit < -1e98:
-                    raise exc.FitException
+                parameter_lists_.append(parameter_list)
+                unit_parameter_lists_.append(unit_parameter_list)
 
-                unit_parameter_lists.append(unit_parameter_list)
-                parameter_lists.append(parameter_list)
-                figures_of_merit_list.append(figure_of_merit)
-                point_index += 1
-            except exc.FitException:
-                pass
-
+            for figure_of_merit, unit_parameter_list, parameter_list in zip(
+                sneaky_pool.map(
+                    self.figure_of_metric,
+                    [(fitness, parameter_list) for parameter_list in parameter_lists_],
+                ),
+                unit_parameter_lists_,
+                parameter_lists_,
+            ):
+                if figure_of_merit is not None:
+                    unit_parameter_lists.append(unit_parameter_list)
+                    parameter_lists.append(parameter_list)
+                    figures_of_merit_list.append(figure_of_merit)
 
         if total_points > 1 and np.allclose(
             a=figures_of_merit_list[0], b=figures_of_merit_list[1:]

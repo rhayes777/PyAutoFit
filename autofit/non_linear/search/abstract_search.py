@@ -16,7 +16,6 @@ if TYPE_CHECKING:
 
 from autoconf import conf, cached_property
 
-from autoconf.dictable import to_dict
 from autoconf.output import should_output
 
 from autofit import exc, jax_wrapper
@@ -653,23 +652,23 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             analysis.save_attributes(paths=self.paths)
 
         if analysis.should_visualize(paths=self.paths):
+
             analysis.visualize_before_fit(
                 paths=self.paths,
                 model=model,
             )
             analysis.visualize_before_fit_combined(
-                analyses=None,
                 paths=self.paths,
                 model=model,
             )
 
-            timeout_seconds = get_timeout_seconds()
+        timeout_seconds = get_timeout_seconds()
 
-            if timeout_seconds is not None:
-                logger.info(
-                    f"\n\n ***Log Likelihood Function timeout is "
-                    f"turned on and set to {timeout_seconds} seconds.***\n"
-                )
+        if timeout_seconds is not None:
+            logger.info(
+                f"\n\n ***Log Likelihood Function timeout is "
+                f"turned on and set to {timeout_seconds} seconds.***\n"
+            )
 
     @configure_handler
     def start_resume_fit(self, analysis: Analysis, model: AbstractPriorModel) -> Result:
@@ -957,20 +956,22 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         if self.is_master:
             self.paths.save_samples_summary(samples_summary=samples_summary)
 
-            samples = samples.samples_above_weight_threshold_from(
+            samples_save = samples
+            samples_save = samples_save.samples_above_weight_threshold_from(
                 log_message=not during_analysis
             )
-            self.paths.save_samples(samples=samples)
+            self.paths.save_samples(samples=samples_save)
+
+            latent_samples = None
 
             if (during_analysis and conf.instance["output"]["latent_during_fit"]) or (
                 not during_analysis and conf.instance["output"]["latent_after_fit"]
             ):
-                latent_variables = analysis.compute_all_latent_variables(samples)
+                latent_samples = analysis.compute_latent_samples(samples_save)
 
-                if latent_variables:
-                    self.paths.save_latent_variables(
-                        latent_variables,
-                        samples=samples,
+                if latent_samples:
+                    self.paths.save_latent_samples(
+                        latent_samples
                     )
 
             self.perform_visualization(
@@ -1001,6 +1002,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
                 self.paths.save_summary(
                     samples=samples,
+                    latent_samples=latent_samples,
                     log_likelihood_function_time=log_likelihood_function_time,
                 )
             except exc.FitException:
@@ -1008,10 +1010,6 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
             if not during_analysis and self.remove_state_files_at_end:
                 self.logger.debug("Removing state files")
-                try:
-                    self.remove_state_files()
-                except FileNotFoundError:
-                    pass
 
         return samples
 
@@ -1057,7 +1055,6 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                 during_analysis=during_analysis,
             )
             analysis.visualize_combined(
-                analyses=None,
                 paths=self.paths,
                 instance=samples_summary.instance,
                 during_analysis=during_analysis,
@@ -1074,9 +1071,6 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
     @property
     def samples_cls(self):
         raise NotImplementedError()
-
-    def remove_state_files(self):
-        pass
 
     def samples_from(self, model: AbstractPriorModel, search_internal=None) -> Samples:
         """

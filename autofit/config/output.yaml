@@ -89,5 +89,3 @@ data: true # `data.json`: The value of every data point in the data.
 noise_map: true # `noise_map.json`: The value of every RMS noise map value.
 
 search_log: true # `search.log`: logging produced whilst running the fit or fit_sequential method
-
-default: false

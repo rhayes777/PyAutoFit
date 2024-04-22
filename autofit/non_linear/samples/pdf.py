@@ -45,13 +45,10 @@ class SamplesPDF(Samples):
         """
 
         super().__init__(
-            model=model,
-            sample_list=sample_list,
-            samples_info=samples_info
+            model=model, sample_list=sample_list, samples_info=samples_info
         )
 
     def summary(self):
-
         median_pdf_sample = Sample.from_lists(
             model=self.model,
             parameter_lists=[self.median_pdf(as_instance=False)],
@@ -65,6 +62,10 @@ class SamplesPDF(Samples):
             max_log_likelihood_sample=self.max_log_likelihood_sample,
             median_pdf_sample=median_pdf_sample,
             log_evidence=self.log_evidence,
+            errors_at_sigma_1=self.errors_at_sigma(sigma=1.0, as_instance=False),
+            errors_at_sigma_3=self.errors_at_sigma(sigma=3.0, as_instance=False),
+            values_at_sigma_1=self.values_at_sigma(sigma=1.0, as_instance=False),
+            values_at_sigma_3=self.values_at_sigma(sigma=3.0, as_instance=False),
         )
 
     @classmethod
@@ -366,7 +367,9 @@ class SamplesPDF(Samples):
 
         with warnings.catch_warnings():
             warnings.simplefilter("ignore")
-            return np.cov(m=self.parameter_lists, rowvar=False, aweights=self.weight_list)
+            return np.cov(
+                m=self.parameter_lists, rowvar=False, aweights=self.weight_list
+            )
 
     def save_covariance_matrix(self, filename: Union[pathlib.Path, str]):
         """

@@ -46,7 +46,7 @@ class Collection(AbstractPriorModel):
         return item in self._dict or item in self._dict.values()
 
     def __getitem__(self, item):
-        if item in self._dict:
+        if isinstance(item, str):
             return self._dict[item]
         return self.values[item]
 

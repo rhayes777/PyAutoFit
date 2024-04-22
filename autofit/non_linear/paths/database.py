@@ -259,7 +259,12 @@ class DatabasePaths(AbstractPaths):
     def completed(self):
         self.fit.is_complete = True
 
-    def save_summary(self, samples, log_likelihood_function_time):
+    def save_summary(
+        self,
+        samples,
+        latent_samples,
+        log_likelihood_function_time,
+    ):
         self.fit.instance = samples.max_log_likelihood()
         self.fit.max_log_likelihood = samples.max_log_likelihood_sample.log_likelihood
 
@@ -270,15 +275,13 @@ class DatabasePaths(AbstractPaths):
         self.fit.samples = samples
         self.fit.set_json("samples_info", samples.samples_info)
 
-    def save_latent_variables(self, latent_variables, samples):
+    def save_latent_samples(self, latent_samples):
         if not self.save_all_samples:
-            latent_variables = latent_variables.minimise(
-                samples.max_log_likelihood_index
-            )
-        self.fit.latent_variables = latent_variables
+            latent_samples = latent_samples.minimise()
+        self.fit.latent_samples = latent_samples
 
-    def load_latent_variables(self):
-        return self.fit.latent_variables
+    def load_latent_samples(self):
+        return self.fit.latent_samples
 
     def _load_samples(self):
         samples = self.fit.samples

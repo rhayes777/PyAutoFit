@@ -40,7 +40,7 @@ def log_value_error(func):
         """
         try:
             return func(self, *args, **kwargs)
-        except (ValueError, KeyError, AssertionError, IndexError, TypeError, np.linalg.LinAlgError):
+        except (ValueError, KeyError, AssertionError, IndexError, TypeError, RuntimeError, np.linalg.LinAlgError):
             pass
 
     return wrapper

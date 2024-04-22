@@ -58,19 +58,15 @@ class IndexedAnalysis:
         return getattr(self.analysis, item)
 
     def make_result(
-            self,
-            samples_summary: SamplesSummary,
-            paths: AbstractPaths,
-            samples: Optional[SamplesPDF] = None,
-            search_internal: Optional[object] = None,
-            analysis: Optional[object] = None,
+        self,
+        samples_summary: SamplesSummary,
+        paths: AbstractPaths,
+        samples: Optional[SamplesPDF] = None,
+        search_internal: Optional[object] = None,
+        analysis: Optional[object] = None,
     ):
         return self.analysis.make_result(
-            samples_summary,
-            paths,
-            samples,
-            search_internal,
-            analysis
+            samples_summary, paths, samples, search_internal, analysis
         )
 
 
@@ -96,23 +92,25 @@ class IndexCollectionAnalysis(CombinedAnalysis):
         )
 
     def make_result(
-            self,
-            samples_summary: SamplesSummary,
-            paths: AbstractPaths,
-            samples: Optional[SamplesPDF] = None,
-            search_internal: Optional[object] = None,
-            analysis: Optional[object] = None,
+        self,
+        samples_summary: SamplesSummary,
+        paths: AbstractPaths,
+        samples: Optional[SamplesPDF] = None,
+        search_internal: Optional[object] = None,
+        analysis: Optional[object] = None,
     ):
         """
         Associate each model with an analysis when creating the result.
         """
         child_results = [
             analysis.make_result(
-                samples_summary,
+                samples_summary.subsamples(model)
+                if samples_summary is not None
+                else None,
                 paths,
-                samples.subsamples(model),
+                samples.subsamples(model) if samples is not None else None,
                 search_internal,
-                analysis
+                analysis,
             )
             for model, analysis in zip(samples_summary.model, self.analyses)
         ]

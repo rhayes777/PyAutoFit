@@ -7,6 +7,7 @@ import os
 from typing import Dict, List, Optional, Tuple, Union
 
 import numpy as np
+from pathlib import Path
 
 from autoconf import conf
 from autoconf.class_path import get_class_path
@@ -20,6 +21,7 @@ from .interface import SamplesInterface, to_instance
 from ...text.formatter import write_table
 
 logger = logging.getLogger(__name__)
+
 
 class Samples(SamplesInterface, ABC):
     def __init__(
@@ -306,7 +308,7 @@ class Samples(SamplesInterface, ABC):
                 weight_list[index],
             ]
 
-    def write_table(self, filename: str):
+    def write_table(self, filename: Union[str, Path]):
         """
         Write a table of parameters, posteriors, priors and likelihoods.
 
@@ -390,9 +392,7 @@ class Samples(SamplesInterface, ABC):
         return self.parameter_lists[sample_index]
 
     def samples_above_weight_threshold_from(
-            self,
-            weight_threshold: Optional[float] = None,
-            log_message : bool = False
+        self, weight_threshold: Optional[float] = None, log_message: bool = False
     ) -> "Samples":
         """
         Returns a new `Samples` object containing only the samples with a weight above the input threshold.
@@ -413,9 +413,7 @@ class Samples(SamplesInterface, ABC):
         """
 
         if weight_threshold is None:
-            weight_threshold = conf.instance["output"][
-                "samples_weight_threshold"
-            ]
+            weight_threshold = conf.instance["output"]["samples_weight_threshold"]
 
         if os.environ.get("PYAUTOFIT_TEST_MODE") == "1":
             weight_threshold = None
@@ -505,10 +503,7 @@ class Samples(SamplesInterface, ABC):
         if self.model is None:
             return None
 
-        path_map = {
-            tuple(self.model.all_paths_for_prior(prior)): path
-            for path, prior in model.path_priors_tuples
-        }
+        path_map = self.path_map_for_model(model)
         copied = copy(self)
         copied._paths = None
         copied._names = None

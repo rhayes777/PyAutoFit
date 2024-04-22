@@ -59,9 +59,9 @@ from .mapper.prior_model.collection import Collection
 from .mapper.prior_model.prior_model import Model
 from .mapper.prior_model.prior_model import Model
 from .non_linear.search.abstract_search import NonLinearSearch
+from .non_linear.analysis.visualize import Visualizer
 from .non_linear.analysis.analysis import Analysis
 from .non_linear.analysis.combined import CombinedAnalysis
-from .non_linear.analysis.latent_variables import LatentVariables
 from .non_linear.grid.grid_search import GridSearchResult
 from .non_linear.grid.sensitivity import Sensitivity
 from .non_linear.initializer import InitializerBall
@@ -88,6 +88,7 @@ from .non_linear.samples.pdf import marginalize
 from .example.model import Gaussian, Exponential
 from .text import formatter
 from .text import samples_text
+from .visualise import VisualiseGraph
 from .interpolator import (
     LinearInterpolator,
     SplineInterpolator,

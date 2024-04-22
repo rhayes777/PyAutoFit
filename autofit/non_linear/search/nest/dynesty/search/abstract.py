@@ -201,6 +201,11 @@ class AbstractDynesty(AbstractNest, ABC):
                     during_analysis=True,
                 )
 
+        try:
+            os.remove(self.checkpoint_file)
+        except TypeError:
+            pass
+
         return search_internal
 
     def samples_info_from(self, search_internal=None):
@@ -253,7 +258,7 @@ class AbstractDynesty(AbstractNest, ABC):
         return SamplesNest(
             model=model,
             sample_list=sample_list,
-            samples_info=self.samples_info_from(search_internal=search_internal)
+            samples_info=self.samples_info_from(search_internal=search_internal),
         )
 
     @property
@@ -334,7 +339,6 @@ class AbstractDynesty(AbstractNest, ABC):
         }
 
         if iterations > 0:
-
             with warnings.catch_warnings():
                 warnings.simplefilter("ignore")
 
@@ -444,6 +448,8 @@ class AbstractDynesty(AbstractNest, ABC):
             total_points=self.number_live_points,
             model=model,
             fitness=fitness,
+            paths=self.paths,
+            n_cores=self.number_of_cores,
         )
 
         init_unit_parameters = np.zeros(
@@ -492,12 +498,6 @@ class AbstractDynesty(AbstractNest, ABC):
                 has been disabled and then enabled.
                 """
             )
-
-    def remove_state_files(self):
-        try:
-            os.remove(self.checkpoint_file)
-        except TypeError:
-            pass
 
     @property
     def number_live_points(self):
