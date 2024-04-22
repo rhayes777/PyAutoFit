@@ -35,9 +35,9 @@ def test_model_info(collection):
         == """Total Free Parameters = 3
 
 model                                                                           Collection (N=3)
-    0 - 9                                                                       Gaussian (N=3)
+    0 - 19                                                                      Gaussian (N=3)
 
-0 - 9
+0 - 19
     centre                                                                      UniformPrior [0], lower_limit = 0.0, upper_limit = 1.0
     normalization                                                               UniformPrior [1], lower_limit = 0.0, upper_limit = 1.0
     sigma                                                                       UniformPrior [2], lower_limit = 0.0, upper_limit = 1.0"""
@@ -69,7 +69,7 @@ def test_model_results(samples):
 Maximum Log Posterior                                                           1.00000000
 
 model                                                                           Collection (N=3)
-    0 - 9                                                                       Gaussian (N=3)
+    0 - 19                                                                      Gaussian (N=3)
 
 Maximum Log Likelihood Model:
 

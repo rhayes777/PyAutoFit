@@ -41,6 +41,11 @@ def _find_groups(path_value_tuples, position):
             paths.append((path, value))
 
     for (before, after, value), names in groups.items():
+        try:
+            names = list(map(int, names))
+        except ValueError:
+            pass
+
         representative_key = (
             f"{min(names)} - {max(names)}" if len(set(names)) > 1 else names[0]
         )
