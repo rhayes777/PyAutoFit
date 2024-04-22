@@ -529,8 +529,8 @@ class AbstractPriorModel(AbstractModel):
         arguments = dict(
             map(
                 lambda prior_tuple, unit: (
-                    prior_tuple.prior,
-                    prior_tuple.prior.value_for(
+                    prior_tuple[1],
+                    prior_tuple[1].value_for(
                         unit,
                         ignore_prior_limits=ignore_prior_limits,
                     ),
@@ -911,14 +911,14 @@ class AbstractPriorModel(AbstractModel):
         arguments = {}
 
         for prior_tuple, mean in zip(prior_tuples, means):
-            prior = prior_tuple.prior
+            prior = prior_tuple[1]
             cls = prior_class_dict[prior]
 
             name = prior_tuple.name
             # Use the name of the collection for configuration when a prior's name
             # is just a number (i.e. its position in a collection)
             if name.isdigit():
-                name = self.path_for_prior(prior_tuple.prior)[-2]
+                name = self.path_for_prior(prior_tuple[1])[-2]
 
             width_modifier = (
                 prior.width_modifier
@@ -996,7 +996,7 @@ class AbstractPriorModel(AbstractModel):
         arguments = {}
 
         for i, prior_tuple in enumerate(prior_tuples):
-            prior = prior_tuple.prior
+            prior = prior_tuple[1]
 
             new_prior = UniformPrior(
                 lower_limit=floats[i] - b, upper_limit=floats[i] + b
@@ -1377,7 +1377,7 @@ class AbstractPriorModel(AbstractModel):
 
     @property
     def priors(self):
-        return [prior_tuple.prior for prior_tuple in self.prior_tuples]
+        return [prior_tuple[1] for prior_tuple in self.prior_tuples]
 
     @property
     def _prior_id_map(self):
