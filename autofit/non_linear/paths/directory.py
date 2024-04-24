@@ -1,4 +1,3 @@
-import csv
 import shutil
 
 import dill
@@ -6,24 +5,24 @@ import json
 import os
 from os import path
 from pathlib import Path
-from typing import Optional, Union
+from typing import Optional, Union, cast, Type
 import logging
 
 from autoconf import conf
-from autoconf.dictable import to_dict
+from autoconf.class_path import get_class
+from autoconf.dictable import to_dict, from_dict
 from autoconf.output import conditional_output, should_output
 from autofit.text import formatter
 from autofit.tools.util import open_
+from autofit.non_linear.samples.samples import Samples
 
 from .abstract import AbstractPaths
 
-# from ..analysis.latent_variables import LatentVariables
 from ..samples import load_from_table
 from autofit.non_linear.samples.pdf import SamplesPDF
+from autofit.non_linear.samples.summary import SamplesSummary
 import numpy as np
 
-from autofit.non_linear.samples.samples import Samples
-from autofit.text.formatter import write_table
 from ...visualise import VisualiseGraph
 
 logger = logging.getLogger(__name__)
@@ -34,6 +33,8 @@ class DirectoryPaths(AbstractPaths):
         return self._files_path / prefix / f"{name}.pickle"
 
     def _path_for_json(self, name, prefix: str = "") -> Path:
+        if isinstance(name, Path):
+            return name
         return self._files_path / prefix / f"{name}.json"
 
     def _path_for_csv(self, name) -> Path:
@@ -206,6 +207,15 @@ class DirectoryPaths(AbstractPaths):
         -------
         The results of the non-linear search in its internal representation.
         """
+
+        # This is a nasty hack to load emcee backends. It will be removed once the source code is more stable.
+
+        import emcee
+
+        backend_filename = self.search_internal_path / "search_internal.hdf"
+        if os.path.isfile(backend_filename):
+            return emcee.backends.HDFBackend(filename=str(backend_filename))
+
         filename = self.search_internal_path / "search_internal.dill"
 
         with open_(filename, "rb") as f:
@@ -231,53 +241,99 @@ class DirectoryPaths(AbstractPaths):
     def load_samples(self):
         return load_from_table(filename=self._samples_file)
 
-    def save_samples(self, samples):
+    @property
+    def samples(self):
         """
-        Save the final-result samples associated with the phase as a pickle
+        Load the samples associated with the search from the output directory.
         """
-        if conf.instance["general"]["output"]["samples_to_csv"] and should_output(
-            "samples"
-        ):
-            samples.write_table(filename=self._samples_file)
-            self.save_json("samples_info", samples.samples_info)
-            if isinstance(samples, SamplesPDF):
-                try:
-                    samples.save_covariance_matrix(self._covariance_file)
-                except ValueError as e:
-                    logger.warning(
-                        f"Could not save covariance matrix because of the following error:\n{e}"
-                    )
+        sample_list = self.load_samples()
+        samples_info = self.load_samples_info()
 
-    def save_latent_variables(
+        cls = cast(Type[Samples], get_class(samples_info["class_path"]))
+
+        return cls.from_list_info_and_model(
+            sample_list=sample_list,
+            samples_info=samples_info,
+            model=self.model,
+        )
+
+    def save_latent_samples(
         self,
-        latent_variables,
-        samples,
+        latent_samples,
     ):
         """
         Write out the latent variables of the model to a file.
 
         Parameters
         ----------
-        latent_variables
-            The latent variables of the model
-        samples
-            The samples of the model
+        latent_samples
+            Samples describing the latent variables of the model
         """
-        write_table(
-            filename=str(self._latent_variables_file),
-            headers=latent_variables.names,
-            rows=latent_variables.values,
+        self._save_samples(latent_samples, name="latent")
+
+    def save_samples(self, samples):
+        """
+        Save the final-result samples associated with the phase as a pickle
+        """
+        self._save_samples(samples)
+
+    def _save_samples(self, samples, name=None):
+        """
+        Save the final-result samples associated with the phase as a pickle
+        """
+
+        if name is not None:
+            directory = self._files_path / name
+        else:
+            directory = self._files_path
+            name = "samples"
+        if conf.instance["general"]["output"]["samples_to_csv"] and should_output(name):
+            self.save_json(directory / "samples_info.json", samples.samples_info)
+
+            if isinstance(samples, SamplesPDF):
+                try:
+                    samples.save_covariance_matrix(directory / "covariance.csv")
+                except (ValueError, ZeroDivisionError) as e:
+                    logger.warning(
+                        f"Could not save covariance matrix because of the following error:\n{e}"
+                    )
+
+            samples.write_table(filename=directory / "samples.csv")
+
+    def save_samples_summary(self, samples_summary: SamplesSummary):
+        model = samples_summary.model
+
+        filter_args = tuple(
+            name
+            for name in (
+                "errors_at_sigma_1",
+                "errors_at_sigma_3",
+                "values_at_sigma_1",
+                "values_at_sigma_3",
+                "max_log_likelihood_sample",
+                "median_pdf_sample",
+            )
+            if not should_output(name)
         )
 
-    def load_latent_variables(self):
-        with open(self._latent_variables_file, "r+", newline="") as f:
-            reader = csv.reader(f)
-            names = list(next(reader))
-            values = [list(map(float, row)) for row in reader]
+        samples_summary.model = None
+        self.save_json(
+            "samples_summary",
+            to_dict(
+                samples_summary,
+                filter_args=filter_args,
+            ),
+        )
+        samples_summary.model = model
 
-        from autofit.non_linear.analysis.latent_variables import LatentVariables
+    def load_samples_summary(self) -> SamplesSummary:
+        samples_summary = from_dict(self.load_json(name="samples_summary"))
+        samples_summary.model = self.model
 
-        return LatentVariables(names=names, values=values)
+        return samples_summary
+
+    def load_latent_samples(self):
+        return load_from_table(filename=self._files_path / "latent/samples.csv")
 
     def load_samples_info(self):
         with open_(self._info_file) as infile:

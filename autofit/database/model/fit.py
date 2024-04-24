@@ -256,8 +256,8 @@ class Fit(Base):
     _samples = sa.orm.relationship(
         Object, uselist=False, foreign_keys=[Object.samples_for_id]
     )
-    _latent_variables = sa.orm.relationship(
-        Object, uselist=False, foreign_keys=[Object.latent_variables_for_id]
+    _latent_samples = sa.orm.relationship(
+        Object, uselist=False, foreign_keys=[Object.latent_samples_for_id]
     )
 
     @property
@@ -273,12 +273,12 @@ class Fit(Base):
 
     @property
     @try_none
-    def latent_variables(self) -> dict:
-        return self._latent_variables()
+    def latent_samples(self) -> dict:
+        return self._latent_samples()
 
-    @latent_variables.setter
-    def latent_variables(self, latent_variables):
-        self._latent_variables = Object.from_object(latent_variables.efficient())
+    @latent_samples.setter
+    def latent_samples(self, latent_samples):
+        self._latent_samples = Object.from_object(latent_samples.minimise())
 
     @property
     def info(self):

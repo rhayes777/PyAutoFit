@@ -93,7 +93,10 @@ class AnalysisFactor(AbstractModelFactor):
         self.__dict__.update(state)
 
     def __getattr__(self, item):
-        return getattr(self.prior_model, item)
+        try:
+            return super().__getattr__(item)
+        except AttributeError:
+            return getattr(self.prior_model, item)
 
     def name_for_variable(self, variable):
         path = ".".join(self.prior_model.path_for_prior(variable))

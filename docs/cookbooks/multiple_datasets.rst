@@ -164,6 +164,11 @@ To fit multiple datasets via a non-linear search we use this summed analysis obj
 
     result_list = search.fit(model=model, analysis=analysis)
 
+In the example above, the same ``Analysis`` class was used twice (to set up ``analysis_0`` and ``analysis_1``) and summed.
+
+**PyAutoFit** supports the summing together of different ``Analysis`` classes, which may take as input completely different
+datasets and fit the model to them (via the ``log_likelihood_function``) following a completely different procedure.
+
 Result List
 -----------
 

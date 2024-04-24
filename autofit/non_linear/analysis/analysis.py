@@ -1,16 +1,19 @@
 import logging
 from abc import ABC
-import os
-from typing import Optional
-
-from autoconf import conf
+from typing import Optional, Dict
 
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
-from autofit.non_linear.analysis.latent_variables import LatentVariables
 from autofit.non_linear.paths.abstract import AbstractPaths
-from autofit.non_linear.paths.database import DatabasePaths
-from autofit.non_linear.paths.null import NullPaths
+from autofit.non_linear.samples.summary import SamplesSummary
+from autofit.non_linear.samples.pdf import SamplesPDF
 from autofit.non_linear.result import Result
+from autofit.non_linear.samples.samples import Samples
+from autofit.non_linear.samples.sample import Sample
+from autofit.mapper.prior_model.collection import Collection
+from autofit.mapper.prior.gaussian import GaussianPrior
+
+from .visualize import Visualizer
+from ..samples.util import simple_model_for_kwargs
 
 logger = logging.getLogger(__name__)
 
@@ -22,38 +25,84 @@ class Analysis(ABC):
     likelihood that some instance fits some data.
     """
 
-    @property
-    def latent_variables(self) -> Optional[LatentVariables]:
-        """
-        Custom quantities that are computed during the analysis.
+    Result = Result
+    Visualizer = Visualizer
 
-        If no latent variables have been saved, this will return None.
+    def __getattr__(self, item: str):
         """
-        try:
-            return self._latent_variables
-        except AttributeError:
-            return None
+        If a method starts with 'visualize_' then we assume it is associated with
+        the Visualizer and forward the call to the visualizer.
 
-    def save_latent_variables(self, **kwargs: float):
+        It may be desirable to remove this behaviour as the visualizer component of
+        the system becomes more sophisticated.
         """
-        Save latent variables that are computed during the analysis.
+        if item.startswith("visualize") or item.startswith("should_visualize"):
+            _method = getattr(self.Visualizer, item)
+        else:
+            raise AttributeError(f"Analysis has no attribute {item}")
 
-        This should only be called once per a fit and must always be passed the same latent variables.
+        def method(*args, **kwargs):
+            return _method(self, *args, **kwargs)
+
+        return method
+
+    def compute_latent_samples(self, samples: Samples) -> Optional[Samples]:
+        """
+        Internal method that manages computation of latent samples from samples.
 
         Parameters
         ----------
-        kwargs
-            The latent variables to save.
+        samples
+            The samples from the non-linear search.
 
-        Raises
-        ------
-        SamplesException
-            If the same latent variables are not passed to `add` each iteration.
+        Returns
+        -------
+        The computed latent samples or None if compute_latent_variable is not implemented.
         """
-        if not hasattr(self, "_latent_variables"):
-            # noinspection PyAttributeOutsideInit
-            self._latent_variables = LatentVariables()
-        self._latent_variables.add(**kwargs)
+        try:
+            latent_samples = []
+            model = samples.model
+            for sample in samples.sample_list:
+                latent_samples.append(
+                    Sample(
+                        log_likelihood=sample.log_likelihood,
+                        log_prior=sample.log_prior,
+                        weight=sample.weight,
+                        kwargs=self.compute_latent_variables(
+                            sample.instance_for_model(model)
+                        ),
+                    )
+                )
+
+            return type(samples)(
+                sample_list=latent_samples,
+                model=simple_model_for_kwargs(latent_samples[0].kwargs),
+                samples_info=samples.samples_info,
+            )
+        except NotImplementedError:
+            return None
+
+    def compute_latent_variables(self, instance) -> Dict[str, float]:
+        """
+        Override to compute latent variables from the instance.
+
+        Latent variables are expressed as a dictionary:
+        {"name": value}
+
+        More complex models can be expressed by separating variables
+        names by '.'
+        {"name.attribute": value}
+
+        Parameters
+        ----------
+        instance
+            An instance of the model.
+
+        Returns
+        -------
+        The computed latent variables.
+        """
+        raise NotImplementedError()
 
     def with_model(self, model):
         """
@@ -74,70 +123,8 @@ class Analysis(ABC):
 
         return ModelAnalysis(analysis=self, model=model)
 
-    def should_visualize(
-        self, paths: AbstractPaths, during_analysis: bool = True
-    ) -> bool:
-        """
-        Whether a visualize method should be called perform visualization, which depends on the following:
-
-        1) If a model-fit has already completed, the default behaviour is for visualization to be bypassed in order
-        to make model-fits run faster.
-
-        2) If a model-fit has completed, but it is the final visualization output where `during_analysis` is False,
-        it should be performed.
-
-        3) Visualization can be forced to run via the `force_visualization_overwrite`, for example if a user
-        wants to plot additional images that were not output on the original run.
-
-        4) If the analysis is running a database session visualization is switched off.
-
-        5) If PyAutoFit test mode is on visualization is disabled, irrespective of the `force_visualization_overwite`
-        config input.
-
-        Parameters
-        ----------
-        paths
-            The PyAutoFit paths object which manages all paths, e.g. where the non-linear search outputs are stored,
-            visualization and the pickled objects used by the aggregator output by this function.
-
-
-        Returns
-        -------
-        A bool determining whether visualization should be performed or not.
-        """
-
-        if os.environ.get("PYAUTOFIT_TEST_MODE") == "1":
-            return False
-
-        if isinstance(paths, DatabasePaths) or isinstance(paths, NullPaths):
-            return False
-
-        if conf.instance["general"]["output"]["force_visualize_overwrite"]:
-            return True
-
-        if not during_analysis:
-            return True
-
-        return not paths.is_complete
-
     def log_likelihood_function(self, instance):
         raise NotImplementedError()
-
-    def visualize_before_fit(self, paths: AbstractPaths, model: AbstractPriorModel):
-        pass
-
-    def visualize(self, paths: AbstractPaths, instance, during_analysis):
-        pass
-
-    def visualize_before_fit_combined(
-        self, analyses, paths: AbstractPaths, model: AbstractPriorModel
-    ):
-        pass
-
-    def visualize_combined(
-        self, analyses, paths: AbstractPaths, instance, during_analysis
-    ):
-        pass
 
     def save_attributes(self, paths: AbstractPaths):
         pass
@@ -171,11 +158,61 @@ class Analysis(ABC):
         """
         return self
 
-    def make_result(self, samples, search_internal=None):
-        return Result(
+    def make_result(
+        self,
+        samples_summary: SamplesSummary,
+        paths: AbstractPaths,
+        samples: Optional[SamplesPDF] = None,
+        search_internal: Optional[object] = None,
+        analysis: Optional[object] = None,
+    ) -> Result:
+        """
+        Returns the `Result` of the non-linear search after it is completed.
+
+        The result type is defined as a class variable in the `Analysis` class. It can be manually overwritten
+        by a user to return a user-defined result object, which can be extended with additional methods and attributes
+        specific to the model-fit.
+
+        The standard `Result` object may include:
+
+        - The samples summary, which contains the maximum log likelihood instance and median PDF model.
+
+        - The paths of the search, which are used for loading the samples and search internal below when a search
+        is resumed.
+
+        - The samples of the non-linear search (e.g. MCMC chains) also stored in `samples.csv`.
+
+        - The non-linear search used for the fit in its internal representation, which is used for resuming a search
+        and making bespoke visualization using the search's internal results.
+
+        - The analysis used to fit the model (default disabled to save memory, but option may be useful for certain
+        projects).
+
+        Parameters
+        ----------
+        samples_summary
+            The summary of the samples of the non-linear search, which include the maximum log likelihood instance and
+            median PDF model.
+        paths
+            An object describing the paths for saving data (e.g. hard-disk directories or entries in sqlite database).
+        samples
+            The samples of the non-linear search, for example the chains of an MCMC run.
+        search_internal
+            The internal representation of the non-linear search used to perform the model-fit.
+        analysis
+            The analysis used to fit the model.
+
+        Returns
+        -------
+        Result
+            The result of the non-linear search, which is defined as a class variable in the `Analysis` class.
+        """
+        return self.Result(
+            samples_summary=samples_summary,
+            paths=paths,
             samples=samples,
-            latent_variables=self.latent_variables,
             search_internal=search_internal,
+            analysis=analysis,
         )
 
     def profile_log_likelihood_function(self, paths: AbstractPaths, instance):

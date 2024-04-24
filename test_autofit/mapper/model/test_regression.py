@@ -158,6 +158,9 @@ def test_random_instance(model_with_assertion):
 
 
 class TestModel:
+
+    __test__ = False
+
     def __init__(self, items: List[float]):
         self.items = items
 

@@ -1,3 +1,4 @@
+import warnings
 from abc import ABC, abstractmethod
 from functools import wraps
 from typing import Tuple
@@ -38,11 +39,11 @@ class AbstractDensityTransform(ABC):
     This class allows the transformation of a probability density function, p(x)
     whilst preserving the measure of the distribution, i.e.
 
-    \int p(x) dx = 1
+    int p(x) dx = 1
 
     p'(f) = p(f(x)) * |df/dx|
 
-    \inf p'(f) df = 1
+    inf p'(f) df = 1
 
     Methods
     -------
@@ -173,7 +174,9 @@ class LinearShiftTransform(LinearTransform):
         super().__init__(DiagonalMatrix(np.reciprocal(self.scale)))
 
     def inv_transform(self, x: np.ndarray) -> np.ndarray:
-        return x * self.scale + self.shift
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            return x * self.scale + self.shift
 
     def transform(self, x: np.ndarray) -> np.ndarray:
         return (x - self.shift) / self.scale
@@ -192,17 +195,28 @@ class FunctionTransform(AbstractDensityTransform):
         self.func_grad_hess = func_grad_hess
 
     def transform(self, x):
-        return self.func(x, *self.args)
+
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+
+            return self.func(x, *self.args)
 
     def inv_transform(self, x):
-        return self.inv_func(x, *self.args)
+
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+
+            return self.inv_func(x, *self.args)
 
     def jacobian(self, x):
         return DiagonalMatrix(self.grad(x, *self.args))
 
     def log_det(self, x: np.ndarray) -> np.ndarray:
-        gs = self.grad(x, *self.args)
-        return np.log(gs)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+
+            gs = self.grad(x, *self.args)
+            return np.log(gs)
 
     def log_det_grad(self, x: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
         if self.func_grad_hess:
@@ -349,7 +363,9 @@ class MultinomialLogitTransform(AbstractDensityTransform):
 
     def inv_transform(self, x):
         expx = np.exp(x)
-        return expx / (expx.sum(axis=self.axis, keepdims=True) + 1)
+        with warnings.catch_warnings():
+            warnings.simplefilter("ignore")
+            return expx / (expx.sum(axis=self.axis, keepdims=True) + 1)
 
     def jacobian(self, p):
         p = np.asanyarray(p)

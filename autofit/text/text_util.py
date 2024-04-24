@@ -1,6 +1,7 @@
 import datetime as dt
 
 from autoconf import conf
+from autofit.mapper.prior_model.representative import find_groups
 from autofit.text import formatter as frm, samples_text
 from autofit.tools.util import info_whitespace
 
@@ -55,11 +56,16 @@ def result_info_from(samples) -> str:
 
     max_log_likelihood_sample = samples.max_log_likelihood(as_instance=False)
 
+    paths = []
+
     for prior_path, value in zip(
         samples.model.unique_prior_paths,
         max_log_likelihood_sample,
     ):
-        formatter.add(prior_path, format_str().format(value))
+        paths.append((prior_path, value))
+
+    for path, value in find_groups(paths):
+        formatter.add(path, format_str().format(value))
     results += [formatter.text + "\n"]
 
     if hasattr(samples, "pdf_converged"):
@@ -85,8 +91,8 @@ def result_info_from(samples) -> str:
 
     formatter = frm.TextFormatter(line_length=info_whitespace())
 
-    for t in samples.model.path_float_tuples:
-        formatter.add(*t)
+    for path, value in find_groups(samples.model.path_float_tuples):
+        formatter.add(path, value)
 
     results += ["\n" + formatter.text]
 

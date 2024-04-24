@@ -1,10 +1,14 @@
 import logging
+from typing import Optional
 
 from .analysis import Analysis
 from .combined import CombinedAnalysis, CombinedResult
 from ..paths.abstract import AbstractPaths
 
+from autofit.non_linear.paths.abstract import AbstractPaths
+from autofit.non_linear.samples.summary import SamplesSummary
 from autofit.mapper.prior_model.collection import Collection
+from autofit.non_linear.samples import SamplesPDF
 
 logger = logging.getLogger(__name__)
 
@@ -53,9 +57,16 @@ class IndexedAnalysis:
             raise AttributeError(item)
         return getattr(self.analysis, item)
 
-    def make_result(self, samples, search_internal=None):
+    def make_result(
+        self,
+        samples_summary: SamplesSummary,
+        paths: AbstractPaths,
+        samples: Optional[SamplesPDF] = None,
+        search_internal: Optional[object] = None,
+        analysis: Optional[object] = None,
+    ):
         return self.analysis.make_result(
-            samples, search_internal
+            samples_summary, paths, samples, search_internal, analysis
         )
 
 
@@ -80,15 +91,34 @@ class IndexCollectionAnalysis(CombinedAnalysis):
             ]
         )
 
-    def make_result(self, samples, search_internal):
+    def make_result(
+        self,
+        samples_summary: SamplesSummary,
+        paths: AbstractPaths,
+        samples: Optional[SamplesPDF] = None,
+        search_internal: Optional[object] = None,
+        analysis: Optional[object] = None,
+    ):
         """
         Associate each model with an analysis when creating the result.
         """
         child_results = [
-            analysis.make_result(samples.subsamples(model), search_internal)
-            for model, analysis in zip(samples.model, self.analyses)
+            analysis.make_result(
+                samples_summary.subsamples(model)
+                if samples_summary is not None
+                else None,
+                paths,
+                samples.subsamples(model) if samples is not None else None,
+                search_internal,
+                analysis,
+            )
+            for model, analysis in zip(samples_summary.model, self.analyses)
         ]
-        return CombinedResult(child_results)
+        return CombinedResult(
+            child_results,
+            samples=samples,
+            samples_summary=samples_summary,
+        )
 
     def modify_before_fit(self, paths: AbstractPaths, model: Collection):
         """

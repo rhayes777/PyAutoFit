@@ -11,11 +11,20 @@ def test_find_groups():
 def test_two_groups():
     info_paths = [((i, 1), 2) for i in range(3)] + [((i, 2), 2) for i in range(3)]
     groups = find_groups(info_paths)
+<<<<<<< HEAD
     assert groups == [(("0 - 2", "1 - 2"), 2)]
 
 
 def test_equal_prior_values():
     info_paths = [((i, 1), af.UniformPrior(0.0, 1.0)) for i in range(3)]
+=======
+    assert groups == [(("0 - 2", 1), 2), (("0 - 2", 2), 2)]
+
+
+def test_equal_prior_values():
+    prior = af.UniformPrior(0.0, 1.0)
+    info_paths = [((i, 1), prior) for i in range(3)]
+>>>>>>> feature/docs
     groups = find_groups(info_paths)
     assert len(groups) == 1
     ((path, _),) = groups

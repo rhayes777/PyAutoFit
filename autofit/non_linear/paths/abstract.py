@@ -13,6 +13,7 @@ import numpy as np
 
 from autoconf import conf
 from autofit.mapper.identifier import Identifier, IdentifierField
+from autofit.non_linear.samples.summary import SamplesSummary
 
 from autofit.text import text_util
 from autofit.tools.util import open_, zip_directory
@@ -85,6 +86,11 @@ class AbstractPaths(ABC):
                 self.remove_files = True
         except NoSectionError as e:
             logger.exception(e)
+
+    @property
+    @abstractmethod
+    def samples(self):
+        pass
 
     def save_parent_identifier(self):
         pass
@@ -241,7 +247,10 @@ class AbstractPaths(ABC):
         This is private for a reason, use the save_json etc. methods to save and load json
         """
         files_path = self.output_path / "files"
-        os.makedirs(files_path, exist_ok=True)
+        try:
+            os.makedirs(files_path, exist_ok=True)
+        except FileExistsError:
+            pass
         return files_path
 
     def zip_remove(self):
@@ -325,14 +334,20 @@ class AbstractPaths(ABC):
             shutil.rmtree(self.output_path, ignore_errors=True)
 
             try:
-                with zipfile.ZipFile(self._zip_path, "r") as f:
-                    f.extractall(self.output_path)
+                try:
+                    with zipfile.ZipFile(self._zip_path, "r") as f:
+                        f.extractall(self.output_path)
+                except FileExistsError:
+                    pass
             except zipfile.BadZipFile as e:
                 raise zipfile.BadZipFile(
                     f"Unable to restore the zip file at the path {self._zip_path}"
                 ) from e
 
-            os.remove(self._zip_path)
+            try:
+                os.remove(self._zip_path)
+            except FileNotFoundError:
+                pass
 
     def __eq__(self, other):
         return isinstance(other, AbstractPaths) and all(
@@ -421,8 +436,18 @@ class AbstractPaths(ABC):
         Save samples to the database
         """
 
+    def save_samples_summary(self, samples_summary: SamplesSummary):
+        """
+        Save samples summary to the database.
+        """
+
+    def load_samples_summary(self) -> SamplesSummary:
+        """
+        Load samples summary from the database.
+        """
+
     @abstractmethod
-    def save_latent_variables(self, latent_variables, samples):
+    def save_latent_samples(self, latent_samples):
         """
         Save latent variables. These are values computed from an instance and output
         during analysis.
@@ -432,15 +457,26 @@ class AbstractPaths(ABC):
     def load_samples_info(self):
         pass
 
-    def save_summary(self, samples, log_likelihood_function_time):
+    def save_summary(
+        self,
+        samples,
+        latent_samples,
+        log_likelihood_function_time,
+    ):
         result_info = text_util.result_info_from(
             samples=samples,
         )
-
         filename = self.output_path / "model.results"
-
         with open_(filename, "w") as f:
             f.write(result_info)
+
+        if latent_samples:
+            result_info = text_util.result_info_from(
+                samples=latent_samples,
+            )
+            filename = self.output_path / "latent.results"
+            with open_(filename, "w") as f:
+                f.write(result_info)
 
         text_util.search_summary_to_file(
             samples=samples,
@@ -454,7 +490,7 @@ class AbstractPaths(ABC):
 
     @property
     def _latent_variables_file(self) -> Path:
-        return self._files_path / "latent_variables.csv"
+        return self._files_path / "latent.csv"
 
     @property
     def _covariance_file(self) -> Path:

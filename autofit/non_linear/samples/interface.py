@@ -188,5 +188,11 @@ class SamplesInterface(ABC):
 
         try:
             return self.median_pdf(as_instance=False)
-        except AttributeError:
+        except (AttributeError, IndexError):
             return self.max_log_likelihood(as_instance=False)
+
+    def path_map_for_model(self, model):
+        return {
+            tuple(self.model.all_paths_for_prior(prior)): path
+            for path, prior in model.path_priors_tuples
+        }

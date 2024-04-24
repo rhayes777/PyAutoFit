@@ -1,5 +1,6 @@
 import logging
 
+from autofit.mapper.prior_model.representative import find_groups
 from autofit.text import formatter as frm
 
 logger = logging.getLogger(__name__)
@@ -35,6 +36,8 @@ def summary(
 
     sigma_formatter = frm.TextFormatter(indent=indent, line_length=line_length)
 
+    paths = []
+
     for i, prior_path in enumerate(samples.model.unique_prior_paths):
         value_result = frm.value_result_string_from(
             parameter_name=parameter_names[i],
@@ -42,7 +45,10 @@ def summary(
             values_at_sigma=values_at_sigma[i],
         )
 
-        sigma_formatter.add(prior_path, value_result)
+        paths.append((prior_path, value_result))
+
+    for path, value in find_groups(paths):
+        sigma_formatter.add(path, value)
 
     return f"\n\nSummary ({sigma} sigma limits):\n\n{sigma_formatter.text}"
 

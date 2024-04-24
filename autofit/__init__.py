@@ -16,6 +16,7 @@ from .graphical.declarative.collection import FactorGraphModel
 from .graphical.declarative.factor.hierarchical import HierarchicalFactor
 from .graphical.laplace import LaplaceOptimiser
 from .non_linear.grid.grid_list import GridList
+from .non_linear.samples.summary import SamplesSummary
 from .non_linear.samples import SamplesMCMC
 from .non_linear.samples import SamplesNest
 from .non_linear.samples import Samples
@@ -54,18 +55,18 @@ from .mapper.prior.tuple_prior import TuplePrior
 from .mapper.prior import UniformPrior
 from .mapper.prior_model.abstract import AbstractPriorModel
 from .mapper.prior_model.annotation import AnnotationPriorModel
-from .mapper.prior_model.attribute_pair import AttributeNameValue
-from .mapper.prior_model.attribute_pair import InstanceNameValue
-from .mapper.prior_model.attribute_pair import PriorNameValue
-from .mapper.prior_model.attribute_pair import cast_collection
 from .mapper.prior_model.collection import Collection
 from .mapper.prior_model.prior_model import Model
+<<<<<<< HEAD
 from .mapper.prior_model.representative import Representative
 from .mapper.prior_model.util import PriorModelNameValue
+=======
+from .mapper.prior_model.prior_model import Model
+>>>>>>> feature/docs
 from .non_linear.search.abstract_search import NonLinearSearch
+from .non_linear.analysis.visualize import Visualizer
 from .non_linear.analysis.analysis import Analysis
 from .non_linear.analysis.combined import CombinedAnalysis
-from .non_linear.analysis.latent_variables import LatentVariables
 from .non_linear.grid.grid_search import GridSearchResult
 from .non_linear.grid.sensitivity import Sensitivity
 from .non_linear.initializer import InitializerBall
@@ -82,6 +83,7 @@ from .non_linear.search.optimize.drawer.search import Drawer
 from .non_linear.search.optimize.lbfgs.search import LBFGS
 from .non_linear.search.optimize.pyswarms.search.globe import PySwarmsGlobal
 from .non_linear.search.optimize.pyswarms.search.local import PySwarmsLocal
+from .non_linear.paths.abstract import AbstractPaths
 from .non_linear.paths import DirectoryPaths
 from .non_linear.paths import DatabasePaths
 from .non_linear.result import Result
@@ -91,6 +93,7 @@ from .non_linear.samples.pdf import marginalize
 from .example.model import Gaussian, Exponential
 from .text import formatter
 from .text import samples_text
+from .visualise import VisualiseGraph
 from .interpolator import (
     LinearInterpolator,
     SplineInterpolator,

@@ -114,6 +114,7 @@ class Nautilus(abstract_nest.AbstractNest):
         fitness = Fitness(
             model=model,
             analysis=analysis,
+            paths=self.paths,
             fom_is_log_likelihood=True,
             resample_figure_of_merit=-1.0e99,
         )
@@ -159,9 +160,8 @@ class Nautilus(abstract_nest.AbstractNest):
                 )
 
         if self.checkpoint_file is not None:
+
             os.remove(self.checkpoint_file)
-
-
 
         return search_internal
 
@@ -301,6 +301,7 @@ class Nautilus(abstract_nest.AbstractNest):
                 for key, value in self.config_dict_run.items()
                 if key != "n_like_max"
             }
+
             search_internal.run(
                 **config_dict_run,
                 n_like_max=iterations,
@@ -322,8 +323,6 @@ class Nautilus(abstract_nest.AbstractNest):
                     during_analysis=True,
                     search_internal=search_internal
                 )
-
-                self.output_search_internal(search_internal=search_internal)
 
         return search_internal
 
@@ -370,7 +369,6 @@ class Nautilus(abstract_nest.AbstractNest):
 
             if checkpoint_exists:
                 if self.is_master:
-                    self.output_search_internal(search_internal=search_internal)
 
                     self.perform_update(
                         model=model,
@@ -382,8 +380,6 @@ class Nautilus(abstract_nest.AbstractNest):
             search_internal.run(
                 **self.config_dict_run,
             )
-
-            self.output_search_internal(search_internal=search_internal)
 
         return search_internal
 
@@ -459,6 +455,7 @@ class Nautilus(abstract_nest.AbstractNest):
         return {
             "log_evidence": search_internal.evidence(),
             "total_samples": int(search_internal.n_like),
+            "total_accepted_samples": int(search_internal.n_like),
             "time": self.timer.time if self.timer else None,
             "number_live_points": int(search_internal.n_live),
         }

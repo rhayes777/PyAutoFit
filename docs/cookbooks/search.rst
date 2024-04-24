@@ -11,6 +11,7 @@ It first covers standard options available for all non-linear searches:
 
 - **Example Fit**: A simple example of a non-linear search to remind us how it works.
 - **Output To Hard-Disk**: Output results to hard-disk so they can be inspected and used to restart a crashed search.
+- **Output Customization**: Customize the output of a non-linear search to hard-disk.
 - **Unique Identifier**: Ensure results are output in unique folders, so tthey do not overwrite each other.
 - **Iterations Per Update**: Control how often non-linear searches output results to hard-disk.
 - **Parallelization**: Use parallel processing to speed up the sampling of parameter space.
@@ -59,24 +60,56 @@ Output To Hard-Disk
 -------------------
 
 By default, a non-linear search does not output its results to hard-disk and its results can only be inspected
-in Python via the ``result`` object. 
+in a Jupyter Notebook or Python script via the ``result`` object.
 
 However, the results of any non-linear search can be output to hard-disk by passing the ``name`` and / or ``path_prefix``
 attributes, which are used to name files and output the results to a folder on your hard-disk.
 
 The benefits of doing this include:
 
-- Inspecting results via folders on your computer can be more efficient than using a Jupyter Notebook.
-- Results are output on-the-fly, making it possible to check that a fit i progressing as expected mid way through.
-- Additional information about a fit (e.g. visualization) is output.
+- Inspecting results via folders on your computer is more efficient than using a Jupyter Notebook for multiple datasets.
+- Results are output on-the-fly, making it possible to check that a fit is progressing as expected mid way through.
+- Additional information about a fit (e.g. visualization) can be output.
 - Unfinished runs can be resumed from where they left off if they are terminated.
-- On high performance super computers which use a batch system, results must be output in this way.
+- On high performance super computers results often must be output in this way.
 
-These outputs are fully described in the scientific workflow example.
+The code below shows how to enable outputting of results to hard-disk:
 
 .. code-block:: python
 
-    search = af.Emcee(path_prefix=path.join("folder_0", "folder_1"), name="example_mcmc")
+    search = af.Emcee(
+        path_prefix=path.join("folder_0", "folder_1"),
+        name="example_mcmc"
+    )
+
+
+These outputs are fully described in the scientific workflow example.
+
+Output Customization
+--------------------
+
+For large model fitting problems outputs may use up a lot of hard-disk space, therefore full customization of the 
+outputs is supported. 
+
+This is controlled by the ``output.yaml`` config file found in the ``config`` folder of the workspace. This file contains
+a full description of all customization options.
+
+A few examples of the options available include:
+
+- Control over every file which is output to the ``files`` folder (e.g. ``model.json``, ``samples.csv``, etc.).
+
+- For the ``samples.csv`` file, all samples with a weight below a certain value can be automatically removed.
+
+- Customization of the ``samples_summary.json`` file, which summarizes the results of the model-fit  (e.g. the maximum 
+  log likelihood model, the median PDF model and 3 sigma error). These results are computed using the full set of
+  samples, ensuring samples removal via a weight cut does not impact the results.
+
+In many use cases, the ``samples.csv`` takes up the significant majority of the hard-disk space, which for large-scale
+model-fitting problems can exceed gigabytes and be prohibitive to the analysis. 
+
+Careful customization of the ``output.yaml`` file enables a workflow where the ``samples.csv`` file is never output, 
+but all important information is output in the ``samples_summary.json`` file using the full samples to compute all 
+results to high numerical accuracy.
 
 Unique Identifier
 -----------------
@@ -147,9 +180,9 @@ Checkout the ``plot`` package for a complete description of the plots that can b
 
     samples = result.samples
 
-    search_plotter = aplt.EmceePlotter(samples=samples)
+    plotter = aplt.MCMCPlotter(samples=samples)
 
-    search_plotter.corner(
+    plotter.corner(
         bins=20,
         range=None,
         color="k",

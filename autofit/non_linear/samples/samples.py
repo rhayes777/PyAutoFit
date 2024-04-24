@@ -1,12 +1,16 @@
 from abc import ABC
 
 import json
-import warnings
 from copy import copy
+import logging
+import os
 from typing import Dict, List, Optional, Tuple, Union
 
 import numpy as np
+from pathlib import Path
 
+from autoconf import conf
+from autoconf.class_path import get_class_path
 from autofit import exc
 from autofit.mapper.model import ModelInstance
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
@@ -15,6 +19,8 @@ from autofit.non_linear.samples.sample import Sample
 from .summary import SamplesSummary
 from .interface import SamplesInterface, to_instance
 from ...text.formatter import write_table
+
+logger = logging.getLogger(__name__)
 
 
 class Samples(SamplesInterface, ABC):
@@ -48,7 +54,10 @@ class Samples(SamplesInterface, ABC):
         super().__init__(model=model)
 
         self.sample_list = sample_list
-        self.samples_info = samples_info
+        self.samples_info = {
+            **(samples_info or {}),
+            "class_path": get_class_path(self.__class__),
+        }
 
     def __str__(self):
         return f"{self.__class__.__name__}({len(self.sample_list)})"
@@ -76,42 +85,6 @@ class Samples(SamplesInterface, ABC):
         return None
 
     @classmethod
-    def from_csv(cls, paths, model: AbstractPriorModel):
-        """
-        Returns a `Samples` object from the output paths of a non-linear search.
-
-        This function loads the sample values (e.g. parameters, log likelihoods) from a .csv file, which is a
-        standardized output for all **PyAutoFit** non-linear searches.
-
-        The samples object requires additional information on the non-linear search (e.g. the number of live points),
-        which is loaded from the `samples_info.json` file.
-
-        This function also looks for the internal results of the non-linear search and includes them in the samples if
-        they exists, which allows for the search's internal visualization and analysis tools to be used.
-
-        Parameters
-        ----------
-        paths
-            An object describing the paths for saving data (e.g. hard-disk directories or entries in sqlite database).
-        model
-            An object that represents possible instances of some model with a given dimensionality which is the number
-            of free dimensions of the model.
-
-        Returns
-        -------
-        The samples which have been loaded from hard-disk via .csv.
-        """
-
-        sample_list = paths.load_samples()
-        samples_info = paths.load_samples_info()
-
-        return cls.from_list_info_and_model(
-            sample_list=sample_list,
-            samples_info=samples_info,
-            model=model,
-        )
-
-    @classmethod
     def from_list_info_and_model(
         cls,
         sample_list,
@@ -126,8 +99,8 @@ class Samples(SamplesInterface, ABC):
 
     def summary(self):
         return SamplesSummary(
-            max_log_likelihood_sample=self.max_log_likelihood_sample,
             model=self.model,
+            max_log_likelihood_sample=self.max_log_likelihood_sample,
         )
 
     def __add__(self, other: "Samples") -> "Samples":
@@ -299,7 +272,7 @@ class Samples(SamplesInterface, ABC):
                 weight_list[index],
             ]
 
-    def write_table(self, filename: str):
+    def write_table(self, filename: Union[str, Path]):
         """
         Write a table of parameters, posteriors, priors and likelihoods.
 
@@ -382,6 +355,53 @@ class Samples(SamplesInterface, ABC):
         """
         return self.parameter_lists[sample_index]
 
+    def samples_above_weight_threshold_from(
+        self, weight_threshold: Optional[float] = None, log_message: bool = False
+    ) -> "Samples":
+        """
+        Returns a new `Samples` object containing only the samples with a weight above the input threshold.
+
+        This function can be used after a non-linear search is complete, to reduce the samples to only the high weight
+        values. The benefit of this is that the corresponding `samples.csv` file will be reduced in hard-disk size.
+
+        For large libraries of results can significantly reduce the overall hard-disk space used and speed up the
+        time taken to load the samples from a .csv file and perform analysis on them.
+
+        For a sufficiently low threshold, this has a neglible impact on the numerical accuracy of the results, and
+        even higher values can be used for aggresive use cases where hard-disk space is at a premium.
+
+        Parameters
+        ----------
+        weight_threshold
+            The threshold of weight at which a sample is included in the new `Samples` object.
+        """
+
+        if weight_threshold is None:
+            weight_threshold = conf.instance["output"]["samples_weight_threshold"]
+
+        if os.environ.get("PYAUTOFIT_TEST_MODE") == "1":
+            weight_threshold = None
+
+        if weight_threshold is None:
+            return self
+
+        sample_list = []
+
+        for sample in self.sample_list:
+            if sample.weight > weight_threshold:
+                sample_list.append(sample)
+
+        if log_message:
+            logger.info(
+                f"Samples with weight less than {weight_threshold} removed from samples.csv."
+            )
+
+        return self.__class__(
+            model=self.model,
+            sample_list=sample_list,
+            samples_info=self.samples_info,
+        )
+
     def minimise(self) -> "Samples":
         """
         A copy of this object with only important samples retained
@@ -447,10 +467,7 @@ class Samples(SamplesInterface, ABC):
         if self.model is None:
             return None
 
-        path_map = {
-            tuple(self.model.all_paths_for_prior(prior)): path
-            for path, prior in model.path_priors_tuples
-        }
+        path_map = self.path_map_for_model(model)
         copied = copy(self)
         copied._paths = None
         copied._names = None

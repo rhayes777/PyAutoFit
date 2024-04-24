@@ -1,5 +1,5 @@
 import logging
-from typing import Union, List
+from typing import Union, List, Optional
 
 from autoconf import conf
 from autofit.mapper.prior.abstract import Prior
@@ -9,12 +9,19 @@ from autofit.non_linear.analysis.multiprocessing import AnalysisPool
 from autofit.non_linear.paths.abstract import AbstractPaths
 from autofit.non_linear.result import Result
 from .analysis import Analysis
+from autofit.non_linear.samples.summary import SamplesSummary
+from autofit.non_linear.samples import SamplesPDF
 
 logger = logging.getLogger(__name__)
 
 
 class CombinedResult:
-    def __init__(self, results: List[Result]):
+    def __init__(
+        self,
+        results: List[Result],
+        samples: Optional[SamplesPDF] = None,
+        samples_summary: Optional[SamplesSummary] = None,
+    ):
         """
         A `Result` object that is composed of multiple `Result` objects. This is used to combine the results of
         multiple `Analysis` objects into a single `Result` object, for example when performing a model-fitting
@@ -26,6 +33,8 @@ class CombinedResult:
             The list of `Result` objects that are combined into this `CombinedResult` object.
         """
         self.child_results = results
+        self.samples = samples
+        self.samples_summary = samples_summary
 
     def __getattr__(self, item: str):
         """
@@ -227,7 +236,7 @@ class CombinedAnalysis(Analysis):
         self._for_each_analysis(func, paths)
 
     def visualize_before_fit_combined(
-        self, analyses, paths: AbstractPaths, model: AbstractPriorModel
+        self, paths: AbstractPaths, model: AbstractPriorModel
     ):
         """
         Visualise images and quantities which are shared across all analyses.
@@ -244,7 +253,8 @@ class CombinedAnalysis(Analysis):
         paths
             An object describing the paths for saving data (e.g. hard-disk directories or entries in sqlite database).
         """
-        self.analyses[0].visualize_before_fit_combined(
+
+        self.analyses[0].Visualizer.visualize_before_fit_combined(
             analyses=self.analyses,
             paths=paths,
             model=model,
@@ -282,7 +292,6 @@ class CombinedAnalysis(Analysis):
 
     def visualize_combined(
         self,
-        analyses: List["Analysis"],
         instance,
         paths: AbstractPaths,
         during_analysis,
@@ -306,7 +315,7 @@ class CombinedAnalysis(Analysis):
         during_analysis
             Is this visualisation during analysis?
         """
-        self.analyses[0].visualize_combined(
+        self.analyses[0].Visualizer.visualize_combined(
             analyses=self.analyses,
             paths=paths,
             instance=instance,
@@ -339,10 +348,17 @@ class CombinedAnalysis(Analysis):
 
         self._for_each_analysis(func, paths)
 
-    def make_result(self, samples, search_internal=None):
+    def make_result(
+        self,
+        samples_summary: SamplesSummary,
+        paths: AbstractPaths,
+        samples: Optional[SamplesPDF] = None,
+        search_internal: Optional[object] = None,
+        analysis: Optional[object] = None,
+    ):
         child_results = [
             analysis.make_result(
-                samples, search_internal
+                samples_summary, paths, samples, search_internal, analysis
             )
             for analysis in self.analyses
         ]

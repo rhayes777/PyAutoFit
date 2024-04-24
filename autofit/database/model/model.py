@@ -35,9 +35,11 @@ class Object(Base):
         "Fit", uselist=False, foreign_keys=[samples_for_id]
     )
 
-    latent_variables_for_id = sa.Column(sa.String, sa.ForeignKey("fit.id"))
-    latent_variables_for = sa.orm.relationship(
-        "Fit", uselist=False, foreign_keys=[latent_variables_for_id]
+    latent_samples_for_id = sa.Column(sa.String, sa.ForeignKey("fit.id"))
+    latent_samples_for = sa.orm.relationship(
+        "Fit",
+        uselist=False,
+        foreign_keys=[latent_samples_for_id],
     )
 
     children: List["Object"] = sa.orm.relationship(
@@ -118,7 +120,11 @@ class Object(Base):
             from .instance import Collection
 
             instance = Collection._from_object(source)
-        elif isinstance(source, (Collection, dict)):
+        elif isinstance(source, dict):
+            from .common import Dict
+
+            instance = Dict._from_object(source)
+        elif isinstance(source, Collection):
             from .prior import Collection
 
             instance = Collection._from_object(source)

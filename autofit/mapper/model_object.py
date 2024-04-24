@@ -152,6 +152,7 @@ class ModelObject:
         from autofit.mapper.prior.abstract import Prior
         from autofit.mapper.prior.tuple_prior import TuplePrior
         from autofit.mapper.prior.arithmetic.compound import Compound
+        from autofit.mapper.prior.arithmetic.compound import ModifiedPrior
 
         if isinstance(d, list):
             return [
@@ -193,6 +194,12 @@ class ModelObject:
             return Compound.from_dict(
                 d,
                 reference=dereference(reference, "assertion"),
+                loaded_ids=loaded_ids,
+            )
+        elif type_ == "modified":
+            return ModifiedPrior.from_dict(
+                d,
+                reference=dereference(reference, "prior"),
                 loaded_ids=loaded_ids,
             )
         elif type_ == "dict":

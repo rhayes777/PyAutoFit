@@ -103,8 +103,9 @@ class Emcee(AbstractMCMC):
         fitness = Fitness(
             model=model,
             analysis=analysis,
+            paths=self.paths,
             fom_is_log_likelihood=False,
-            resample_figure_of_merit=-np.inf
+            resample_figure_of_merit=-np.inf,
         )
 
         pool = self.make_sneaky_pool(fitness)
@@ -146,6 +147,8 @@ class Emcee(AbstractMCMC):
                 total_points=search_internal.nwalkers,
                 model=model,
                 fitness=fitness,
+                paths=self.paths,
+                n_cores=self.number_of_cores,
             )
 
             state = np.zeros(shape=(search_internal.nwalkers, model.prior_count))
@@ -183,23 +186,38 @@ class Emcee(AbstractMCMC):
             samples = self.samples_from(model=model, search_internal=search_internal)
 
             if self.auto_correlation_settings.check_for_convergence:
-                if search_internal.iteration > self.auto_correlation_settings.check_size:
+                if (
+                    search_internal.iteration
+                    > self.auto_correlation_settings.check_size
+                ):
                     if samples.converged:
                         iterations_remaining = 0
 
             if iterations_remaining > 0:
-
                 self.perform_update(
                     model=model,
                     analysis=analysis,
                     search_internal=search_internal,
-                    during_analysis=True
+                    during_analysis=True,
                 )
 
         return search_internal
 
-    def samples_info_from(self, search_internal=None):
+    def output_search_internal(self, search_internal):
+        """
+        Output the sampler results to hard-disk in their internal format.
 
+        Emcee uses a backend to store and load results, therefore the outputting of the search internal to a
+        dill file is disabled.
+
+        Parameters
+        ----------
+        sampler
+            The nautilus sampler object containing the results of the model-fit.
+        """
+        pass
+
+    def samples_info_from(self, search_internal=None):
         search_internal = search_internal or self.backend
 
         auto_correlations = self.auto_correlations_from(search_internal=search_internal)
@@ -210,7 +228,7 @@ class Emcee(AbstractMCMC):
             "change_threshold": auto_correlations.change_threshold,
             "total_walkers": len(search_internal.get_chain()[0, :, 0]),
             "total_steps": len(search_internal.get_log_prob()),
-            "time": self.timer.time if self.timer else None
+            "time": self.timer.time if self.timer else None,
         }
 
     def samples_via_internal_from(self, model, search_internal=None):
@@ -232,14 +250,14 @@ class Emcee(AbstractMCMC):
         search_internal = search_internal or self.backend
 
         if os.environ.get("PYAUTOFIT_TEST_MODE") == "1":
-
             samples_after_burn_in = search_internal.get_chain(
-            discard=5, thin=5, flat=True
-        )
+                discard=5, thin=5, flat=True
+            )
 
         else:
-
-            auto_correlations = self.auto_correlations_from(search_internal=search_internal)
+            auto_correlations = self.auto_correlations_from(
+                search_internal=search_internal
+            )
 
             discard = int(3.0 * np.max(auto_correlations.times))
             thin = int(np.max(auto_correlations.times) / 2.0)
@@ -277,11 +295,12 @@ class Emcee(AbstractMCMC):
             sample_list=sample_list,
             samples_info=self.samples_info_from(search_internal=search_internal),
             auto_correlation_settings=self.auto_correlation_settings,
-            auto_correlations=self.auto_correlations_from(search_internal=search_internal),
+            auto_correlations=self.auto_correlations_from(
+                search_internal=search_internal
+            ),
         )
 
     def auto_correlations_from(self, search_internal=None):
-
         search_internal = search_internal or self.backend
 
         times = search_internal.get_autocorr_time(tol=0)

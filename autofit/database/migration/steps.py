@@ -20,6 +20,9 @@ steps = [
     Step(
         "ALTER TABLE object ADD COLUMN latent_variables_for_id INTEGER;",
     ),
+    Step(
+        "ALTER TABLE object RENAME COLUMN latent_variables_for_id TO latent_samples_for_id;",
+    ),
 ]
 
 migrator = Migrator(*steps)

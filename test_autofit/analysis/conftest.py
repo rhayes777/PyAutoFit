@@ -3,7 +3,7 @@ import pytest
 import autofit as af
 
 
-class Result(af.Result):
+class Result(af.mock.MockResult):
     pass
 
 

@@ -4,6 +4,7 @@ from typing import Dict, Optional, Tuple, Union
 
 import numpy as np
 from dynesty import NestedSampler, DynamicNestedSampler
+import warnings
 
 from autoconf import conf
 from autofit import exc
@@ -119,6 +120,7 @@ class AbstractDynesty(AbstractNest, ABC):
         fitness = Fitness(
             model=model,
             analysis=analysis,
+            paths=self.paths,
             fom_is_log_likelihood=True,
             resample_figure_of_merit=-1.0e99,
         )
@@ -199,9 +201,10 @@ class AbstractDynesty(AbstractNest, ABC):
                     during_analysis=True,
                 )
 
-        self.paths.save_search_internal(
-            obj=search_internal,
-        )
+        try:
+            os.remove(self.checkpoint_file)
+        except TypeError:
+            pass
 
         return search_internal
 
@@ -211,6 +214,7 @@ class AbstractDynesty(AbstractNest, ABC):
         return {
             "log_evidence": np.max(search_internal.results.logz),
             "total_samples": int(np.sum(search_internal.results.ncall)),
+            "total_accepted_samples": len(search_internal.results.logl),
             "time": self.timer.time if self.timer else None,
             "number_live_points": self.number_live_points,
         }
@@ -254,7 +258,7 @@ class AbstractDynesty(AbstractNest, ABC):
         return SamplesNest(
             model=model,
             sample_list=sample_list,
-            samples_info=self.samples_info_from(search_internal=search_internal)
+            samples_info=self.samples_info_from(search_internal=search_internal),
         )
 
     @property
@@ -335,12 +339,15 @@ class AbstractDynesty(AbstractNest, ABC):
         }
 
         if iterations > 0:
-            search_internal.run_nested(
-                maxcall=iterations,
-                print_progress=not self.silence,
-                checkpoint_file=self.checkpoint_file,
-                **config_dict_run,
-            )
+            with warnings.catch_warnings():
+                warnings.simplefilter("ignore")
+
+                search_internal.run_nested(
+                    maxcall=iterations,
+                    print_progress=not self.silence,
+                    checkpoint_file=self.checkpoint_file,
+                    **config_dict_run,
+                )
 
         iterations_after_run = np.sum(search_internal.results.ncall)
 
@@ -441,6 +448,8 @@ class AbstractDynesty(AbstractNest, ABC):
             total_points=self.number_live_points,
             model=model,
             fitness=fitness,
+            paths=self.paths,
+            n_cores=self.number_of_cores,
         )
 
         init_unit_parameters = np.zeros(
@@ -489,12 +498,6 @@ class AbstractDynesty(AbstractNest, ABC):
                 has been disabled and then enabled.
                 """
             )
-
-    def remove_state_files(self):
-        try:
-            os.remove(self.checkpoint_file)
-        except TypeError:
-            pass
 
     @property
     def number_live_points(self):

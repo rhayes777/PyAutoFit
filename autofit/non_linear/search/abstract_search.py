@@ -1,3 +1,4 @@
+from __future__ import annotations
 import copy
 import logging
 import multiprocessing as mp
@@ -8,10 +9,15 @@ from abc import ABC, abstractmethod
 from collections import Counter
 from functools import wraps
 from pathlib import Path
-from typing import Optional, Union, Tuple, List, Dict
+from typing import TYPE_CHECKING, Optional, Union, Tuple, List, Dict
+
+if TYPE_CHECKING:
+    from autofit.non_linear.result import Result
 
 from autoconf import conf, cached_property
-from autoconf.dictable import to_dict
+
+from autoconf.output import should_output
+
 from autofit import exc, jax_wrapper
 from autofit.database.sqlalchemy_ import sa
 from autofit.graphical import (
@@ -31,7 +37,7 @@ from autofit.non_linear.paths.database import DatabasePaths
 from autofit.non_linear.paths.directory import DirectoryPaths
 from autofit.non_linear.paths.sub_directory_paths import SubDirectoryPaths
 from autofit.non_linear.samples.samples import Samples
-from autofit.non_linear.result import Result
+from autofit.non_linear.samples.summary import SamplesSummary
 from autofit.non_linear.timer import Timer
 from autofit.non_linear.analysis import Analysis
 from autofit.non_linear.analysis.combined import CombinedResult
@@ -69,6 +75,45 @@ def check_cores(func):
         return func(self, *args, **kwargs)
 
     return wrapper
+
+
+def configure_handler(func):
+    """
+    Add a file handler for logging during the course of the search.
+
+    Optionally outputs 'search.log' to the search's output directory. Can be
+    turned on or off in the output.yaml file.
+
+    Parameters
+    ----------
+    func
+        Some function for which logging should be output to file
+
+    Returns
+    -------
+    A decorated version of the function
+    """
+    root_logger = logging.getLogger()
+
+    def decorated(self, *args, **kwargs):
+        if not should_output("search_log"):
+            return func(self, *args, **kwargs)
+        try:
+            os.makedirs(
+                self.paths.output_path,
+                exist_ok=True,
+            )
+            handler = logging.FileHandler(self.paths.output_path / "search.log")
+            root_logger.addHandler(handler)
+        except AttributeError:
+            return func(self, *args, **kwargs)
+
+        try:
+            return func(self, *args, **kwargs)
+        finally:
+            root_logger.removeHandler(handler)
+
+    return decorated
 
 
 class NonLinearSearch(AbstractFactorOptimiser, ABC):
@@ -156,11 +201,6 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         self.force_pickle_overwrite = conf.instance["general"]["output"][
             "force_pickle_overwrite"
         ]
-        self.skip_save_samples = kwargs.get("skip_save_samples")
-        if self.skip_save_samples is None:
-            self.skip_save_samples = conf.instance["general"]["output"].get(
-                "skip_save_samples"
-            )
 
         self.force_visualize_overwrite = conf.instance["general"]["output"][
             "force_visualize_overwrite"
@@ -222,43 +262,44 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                 "NUMEXPR_NUM_THREADS",
             )
         ):
-            warnings.warn(
-                exc.SearchWarning(
-                    """
-                    The non-linear search is using multiprocessing (number_of_cores>1). 
-
-                    However, the following environment variables have not been set to 1:
-
-                    OPENBLAS_NUM_THREADS
-                    MKL_NUM_THREADS
-                    OMP_NUM_THREADS
-                    VECLIB_MAXIMUM_THREADS
-                    NUMEXPR_NUM_THREADS
-
-                    This can lead to performance issues, because both the non-linear search and libraries that may be
-                    used in your `log_likelihood_function` evaluation (e.g. NumPy, SciPy, scikit-learn) may attempt to
-                    parallelize over all cores available.
-
-                    This will lead to slow-down, due to overallocation of tasks over the CPUs.
-
-                    To mitigate this, set the environment variables to 1 via the following command on your
-                    bash terminal / command line:
-
-                    export OPENBLAS_NUM_THREADS=1
-                    export MKL_NUM_THREADS=1
-                    export OMP_NUM_THREADS=1
-                    export VECLIB_MAXIMUM_THREADS=1
-                    export NUMEXPR_NUM_THREADS=1
-
-                    This means only the non-linear search is parallelized over multiple cores.
-
-                    If you "know what you are doing" and do not want these environment variables to be set to one, you 
-                    can disable this warning by changing the following entry in the config files:
-
-                    `config -> general.yaml -> parallel: -> warn_environment_variable=False`
-                    """
+            if conf.instance["general"]["parallel"]["warn_environment_variables"]:
+                warnings.warn(
+                    exc.SearchWarning(
+                        """
+                        The non-linear search is using multiprocessing (number_of_cores>1). 
+    
+                        However, the following environment variables have not been set to 1:
+    
+                        OPENBLAS_NUM_THREADS
+                        MKL_NUM_THREADS
+                        OMP_NUM_THREADS
+                        VECLIB_MAXIMUM_THREADS
+                        NUMEXPR_NUM_THREADS
+    
+                        This can lead to performance issues, because both the non-linear search and libraries that may be
+                        used in your `log_likelihood_function` evaluation (e.g. NumPy, SciPy, scikit-learn) may attempt to
+                        parallelize over all cores available.
+    
+                        This will lead to slow-down, due to overallocation of tasks over the CPUs.
+    
+                        To mitigate this, set the environment variables to 1 via the following command on your
+                        bash terminal / command line:
+    
+                        export OPENBLAS_NUM_THREADS=1
+                        export MKL_NUM_THREADS=1
+                        export OMP_NUM_THREADS=1
+                        export VECLIB_MAXIMUM_THREADS=1
+                        export NUMEXPR_NUM_THREADS=1
+    
+                        This means only the non-linear search is parallelized over multiple cores.
+    
+                        If you "know what you are doing" and do not want these environment variables to be set to one, you 
+                        can disable this warning by changing the following entry in the config files:
+    
+                        `config -> general.yaml -> parallel: -> warn_environment_variables=False`
+                        """
+                    )
                 )
-            )
 
         self.optimisation_counter = Counter()
 
@@ -485,7 +526,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         analysis: Analysis,
         info: Optional[Dict] = None,
         bypass_nuclear_if_on: bool = False,
-    ) -> Union["Result", List["Result"]]:
+    ) -> Union[Result, List[Result]]:
         """
         Fit a model, M with some function f that takes instances of the
         class represented by model M and gives a score for their fitness.
@@ -524,6 +565,8 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         """
         self.check_model(model=model)
 
+        logger.info(f"Starting non-linear search with {self.number_of_cores} cores.")
+
         model = analysis.modify_model(model)
         self.paths.model = model
         self.paths.unique_tag = self.unique_tag
@@ -560,6 +603,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
             self.post_fit_output(
                 bypass_nuclear_if_on=bypass_nuclear_if_on,
+                search_internal=result.search_internal,
             )
 
         return result
@@ -615,19 +659,19 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                 model=model,
             )
             analysis.visualize_before_fit_combined(
-                analyses=None,
                 paths=self.paths,
                 model=model,
             )
 
-            timeout_seconds = get_timeout_seconds()
+        timeout_seconds = get_timeout_seconds()
 
-            if timeout_seconds is not None:
-                logger.info(
-                    f"\n\n ***Log Likelihood Function timeout is "
-                    f"turned on and set to {timeout_seconds} seconds.***\n"
-                )
+        if timeout_seconds is not None:
+            logger.info(
+                f"\n\n ***Log Likelihood Function timeout is "
+                f"turned on and set to {timeout_seconds} seconds.***\n"
+            )
 
+    @configure_handler
     def start_resume_fit(self, analysis: Analysis, model: AbstractPriorModel) -> Result:
         """
         Start a non-linear search from scratch, or resumes one which was previously terminated mid-way through.
@@ -673,7 +717,10 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         )
 
         result = analysis.make_result(
-            samples=samples, search_internal=search_internal
+            samples_summary=samples.summary(),
+            paths=self.paths,
+            samples=samples,
+            search_internal=search_internal,
         )
 
         if self.is_master:
@@ -687,13 +734,18 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         return result
 
     def result_via_completed_fit(
-        self, analysis: Analysis, model: AbstractPriorModel,
+        self,
+        analysis: Analysis,
+        model: AbstractPriorModel,
     ) -> Result:
         """
         Returns the result of the non-linear search of a completed model-fit.
 
-        The result contains the non-linear search samples, which are loaded from the searches internal results,
-        or the `samples.csv` file if the internal results are not available.
+        The result contains the non-linear search samples summary, which contains the maximum log likelihood instance
+        that is used for visualization and prior passing via the search chaining API.
+
+        This funciton may also load the full samples of the completed fit, for example if visualization of the
+        seatch chains (e.g. a corner plot) is performed. This task is optional and be slow due to loading times.
 
         Optional tasks can be performed to update the results of the model-fit on hard-disk depending on the following
         entries of the `general.yaml` config file's `output` section:
@@ -720,21 +772,16 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         """
 
         model.freeze()
-        samples = self.samples_from(model=model)
-
+        samples_summary = self.paths.load_samples_summary()
         try:
-            search_internal = self.backend
-        except (AttributeError, FileNotFoundError):
-            search_internal = None
-
-        if search_internal is None:
-            try:
-                search_internal = self.paths.load_search_internal()
-            except FileNotFoundError:
-                search_internal = None
+            samples = self.paths.samples
+        except FileNotFoundError:
+            samples = None
 
         result = analysis.make_result(
-            samples=samples, search_internal=search_internal
+            samples_summary=samples_summary,
+            samples=samples,
+            paths=self.paths,
         )
 
         if self.is_master:
@@ -744,15 +791,12 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                 self.perform_visualization(
                     model=model,
                     analysis=analysis,
-                    search_internal=search_internal,
+                    samples_summary=samples_summary,
                     during_analysis=False,
                 )
 
             if self.force_pickle_overwrite:
                 self.logger.info("Forcing pickle overwrite")
-
-                if not self.skip_save_samples:
-                    self.paths.save_json("samples_summary", to_dict(samples.summary()))
 
                 analysis.save_results(paths=self.paths, result=result)
                 analysis.save_results_combined(paths=self.paths, result=result)
@@ -761,7 +805,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         return result
 
-    def post_fit_output(self, bypass_nuclear_if_on: bool):
+    def post_fit_output(self, search_internal, bypass_nuclear_if_on: bool):
         """
         Cleans up the output folderds after a completed non-linear search.
 
@@ -780,6 +824,8 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         if not conf.instance["output"]["search_internal"]:
             self.logger.info("Removing search internal folder.")
             self.paths.remove_search_internal()
+        else:
+            self.output_search_internal(search_internal=search_internal)
 
         self.logger.info("Removing all files except for .zip file")
         self.paths.zip_remove()
@@ -855,6 +901,11 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         """
         return self._class_config[section][attribute_name]
 
+    def output_search_internal(self, search_internal):
+        self.paths.save_search_internal(
+            obj=search_internal,
+        )
+
     def perform_update(
         self,
         model: AbstractPriorModel,
@@ -891,13 +942,11 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         self.iterations += self.iterations_per_update
         if during_analysis:
             self.logger.info(
-                f"Fit Still Running: Updating results after {self.iterations} iterations (see "
-                f"output folder for latest visualization, samples, etc.)"
+                f"""Fit Running: Updating results after {self.iterations} iterations (see output folder)."""
             )
         else:
             self.logger.info(
-                f"Fit Complete: Updating final results (see "
-                f"output folder for final visualization, samples, etc.)"
+                "Fit Complete: Updating final results (see output folder)."
             )
 
         if not isinstance(self.paths, DatabasePaths) and not isinstance(
@@ -906,28 +955,36 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             self.timer.update()
 
         samples = self.samples_from(model=model, search_internal=search_internal)
+        samples_summary = samples.summary()
 
         try:
-            instance = samples.max_log_likelihood()
+            instance = samples_summary.instance
         except exc.FitException:
             return samples
 
         if self.is_master:
-            self.paths.save_samples(samples=samples)
+            self.paths.save_samples_summary(samples_summary=samples_summary)
 
-            latent_variables = analysis.latent_variables
-            if latent_variables:
-                self.paths.save_latent_variables(
-                    latent_variables,
-                    samples=samples,
-                )
+            samples_save = samples
+            samples_save = samples_save.samples_above_weight_threshold_from(
+                log_message=not during_analysis
+            )
+            self.paths.save_samples(samples=samples_save)
 
-            if not self.skip_save_samples:
-                self.paths.save_json("samples_summary", to_dict(samples.summary()))
+            latent_samples = None
+
+            if (during_analysis and conf.instance["output"]["latent_during_fit"]) or (
+                not during_analysis and conf.instance["output"]["latent_after_fit"]
+            ):
+                latent_samples = analysis.compute_latent_samples(samples_save)
+
+                if latent_samples:
+                    self.paths.save_latent_samples(latent_samples)
 
             self.perform_visualization(
                 model=model,
                 analysis=analysis,
+                samples_summary=samples_summary,
                 during_analysis=during_analysis,
                 search_internal=search_internal,
             )
@@ -952,6 +1009,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
                 self.paths.save_summary(
                     samples=samples,
+                    latent_samples=latent_samples,
                     log_likelihood_function_time=log_likelihood_function_time,
                 )
             except exc.FitException:
@@ -959,10 +1017,6 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
             if not during_analysis and self.remove_state_files_at_end:
                 self.logger.debug("Removing state files")
-                try:
-                    self.remove_state_files()
-                except FileNotFoundError:
-                    pass
 
         return samples
 
@@ -970,6 +1024,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         self,
         model: AbstractPriorModel,
         analysis: AbstractPriorModel,
+        samples_summary: SamplesSummary,
         during_analysis: bool,
         search_internal=None,
     ):
@@ -982,9 +1037,9 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         The update performs the following tasks (if the settings indicate they should be performed):
 
-        1) Visualize the search results.
-        2) Visualize the maximum log likelihood model using model-specific visualization implented via the `Analysis`
+        1) Visualize the maximum log likelihood model using model-specific visualization implented via the `Analysis`
            object.
+        2) Visualize the search results.
 
         Parameters
         ----------
@@ -997,35 +1052,32 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             If the update is during a non-linear search, in which case tasks are only performed after a certain number
             of updates and only a subset of visualization may be performed.
         """
-        samples = self.samples_from(model=model, search_internal=search_internal)
 
-        try:
-            instance = samples.max_log_likelihood()
-        except exc.FitException:
-            return samples
+        self.logger.debug("Visualizing")
+
+        if analysis.should_visualize(paths=self.paths, during_analysis=during_analysis):
+            analysis.visualize(
+                paths=self.paths,
+                instance=samples_summary.instance,
+                during_analysis=during_analysis,
+            )
+            analysis.visualize_combined(
+                paths=self.paths,
+                instance=samples_summary.instance,
+                during_analysis=during_analysis,
+            )
 
         if analysis.should_visualize(paths=self.paths, during_analysis=during_analysis):
             if not isinstance(self.paths, NullPaths):
-                self.plot_results(samples=samples)
+                samples = self.samples_from(
+                    model=model, search_internal=search_internal
+                )
 
-        self.logger.debug("Visualizing")
-        if analysis.should_visualize(paths=self.paths, during_analysis=during_analysis):
-            analysis.visualize(
-                paths=self.paths, instance=instance, during_analysis=during_analysis
-            )
-            analysis.visualize_combined(
-                analyses=None,
-                paths=self.paths,
-                instance=instance,
-                during_analysis=during_analysis,
-            )
+                self.plot_results(samples=samples)
 
     @property
     def samples_cls(self):
         raise NotImplementedError()
-
-    def remove_state_files(self):
-        pass
 
     def samples_from(self, model: AbstractPriorModel, search_internal=None) -> Samples:
         """
@@ -1049,33 +1101,12 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                 model=model, search_internal=search_internal
             )
         except (FileNotFoundError, NotImplementedError, AttributeError):
-            return self.samples_via_csv_from(model=model)
+            return self.paths.samples
 
     def samples_via_internal_from(
         self, model: AbstractPriorModel, search_internal=None
     ):
         raise NotImplementedError
-
-    def samples_via_csv_from(self, model: AbstractPriorModel) -> Samples:
-        """
-        Returns a `Samples` object from the `samples.csv` and `samples_info.json` files.
-
-        The samples contain all information on the parameter space sampling (e.g. the parameters,
-        log likelihoods, etc.).
-
-        The samples in csv format are already converted to the autofit format, where samples are lists of values
-        (e.g. `parameter_lists`, `log_likelihood_list`).
-
-        Parameters
-        ----------
-        model
-            Maps input vectors of unit parameter values to physical values and model instances via priors.
-        """
-
-        return self.samples_cls.from_csv(
-            paths=self.paths,
-            model=model,
-        )
 
     @check_cores
     def make_pool(self):

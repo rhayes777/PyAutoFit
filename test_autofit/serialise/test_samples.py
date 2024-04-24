@@ -1,5 +1,3 @@
-import numpy as np
-
 import autofit as af
 import pytest
 
@@ -46,64 +44,66 @@ def make_summary(samples_pdf):
 def test_summary(summary, model, sample):
     assert summary.model is model
     assert summary.max_log_likelihood_sample == sample
-    assert isinstance(summary.covariance_matrix, np.ndarray)
 
 
 @pytest.fixture(name="summary_dict")
 def make_summary_dict():
     return {
+        "type": "instance",
+        "class_path": "autofit.non_linear.samples.summary.SamplesSummary",
         "arguments": {
-            "covariance_matrix": {
-                "array": [
-                    [2.0, 3.0, 3.9999999999999996],
-                    [3.0, 4.5, 6.0],
-                    [4.0, 6.0, 7.999999999999999],
-                ],
-                "dtype": "float64",
-                "type": "ndarray",
+            "errors_at_sigma_1": {
+                "type": "list",
+                "values": [(2.0, 0.0), (3.0, 0.0), (4.0, 0.0)],
             },
-            "log_evidence": None,
+            "errors_at_sigma_3": {
+                "type": "list",
+                "values": [(2.0, 0.0), (3.0, 0.0), (4.0, 0.0)],
+            },
+            "values_at_sigma_3": {
+                "type": "list",
+                "values": [(0.0, 2.0), (1.0, 4.0), (2.0, 6.0)],
+            },
             "max_log_likelihood_sample": {
+                "type": "instance",
+                "class_path": "autofit.non_linear.samples.sample.Sample",
                 "arguments": {
+                    "log_likelihood": 4.0,
+                    "log_prior": 5.0,
+                    "weight": 6.0,
                     "kwargs": {
+                        "type": "dict",
                         "arguments": {
                             "centre": 2.0,
                             "normalization": 4.0,
                             "sigma": 6.0,
                         },
-                        "type": "dict",
                     },
+                },
+            },
+            "values_at_sigma_1": {
+                "type": "list",
+                "values": [(0.0, 2.0), (1.0, 4.0), (2.0, 6.0)],
+            },
+            "log_evidence": None,
+            "median_pdf_sample": {
+                "type": "instance",
+                "class_path": "autofit.non_linear.samples.sample.Sample",
+                "arguments": {
                     "log_likelihood": 4.0,
                     "log_prior": 5.0,
                     "weight": 6.0,
-                },
-                "class_path": "autofit.non_linear.samples.sample.Sample",
-                "type": "instance",
-            },
-            "model": {
-                "arguments": {
-                    "centre": {
-                        "lower_limit": 0.0,
-                        "type": "Uniform",
-                        "upper_limit": 1.0,
-                    },
-                    "normalization": {
-                        "lower_limit": 0.0,
-                        "type": "Uniform",
-                        "upper_limit": 1.0,
-                    },
-                    "sigma": {
-                        "lower_limit": 0.0,
-                        "type": "Uniform",
-                        "upper_limit": 1.0,
+                    "kwargs": {
+                        "type": "dict",
+                        "arguments": {
+                            "centre": 2.0,
+                            "normalization": 4.0,
+                            "sigma": 6.0,
+                        },
                     },
                 },
-                "class_path": "autofit.example.model.Gaussian",
-                "type": "model",
             },
         },
-        "class_path": "autofit.non_linear.samples.summary.SamplesSummary",
-        "type": "instance",
     }
 
 
@@ -114,21 +114,9 @@ def test_dict(summary, summary_dict, remove_ids):
 def test_from_dict(summary_dict):
     summary = from_dict(summary_dict)
     assert isinstance(summary, SamplesSummary)
-    assert isinstance(summary.model, af.Model)
-    assert isinstance(summary.max_log_likelihood_sample, af.Sample)
-    assert isinstance(summary.covariance_matrix, np.ndarray)
-
-    assert isinstance(summary.max_log_likelihood(), af.Gaussian)
 
 
 def test_generic_from_dict(summary_dict):
     summary = from_dict(summary_dict)
     assert isinstance(summary, SamplesSummary)
-    assert isinstance(summary.model, af.Model)
     assert isinstance(summary.max_log_likelihood_sample, af.Sample)
-    assert isinstance(summary.covariance_matrix, np.ndarray)
-
-
-def test_covariance_interpolator(summary):
-    interpolator = af.CovarianceInterpolator([summary])
-    assert interpolator[interpolator.centre == 0.5]

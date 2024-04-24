@@ -1,8 +1,10 @@
 import pytest
 
-import autofit as af
-from autofit.interpolator import CovarianceInterpolator
+from autoconf.conf import with_config
 import numpy as np
+
+from autofit import CovarianceInterpolator
+import autofit as af
 
 
 @pytest.fixture(autouse=True)
@@ -31,21 +33,34 @@ def test_covariance_matrix(interpolator):
 
 
 # Fails due to poorly defined inversion?
-def _test_inverse_covariance_matrix(interpolator):
-    identity = np.dot(
-        interpolator.covariance_matrix(), interpolator.inverse_covariance_matrix()
-    )
-    print(identity)
-    assert np.allclose(
-        identity,
-        np.eye(9),
-    )
+# def _test_inverse_covariance_matrix(interpolator):
+#     identity = np.dot(
+#         interpolator.covariance_matrix(), interpolator.inverse_covariance_matrix()
+#     )
+#     print(identity)
+#     assert np.allclose(
+#         identity,
+#         np.eye(9),
+#     )
 
 
+def n_effective(func):
+    return with_config(
+        "non_linear",
+        "nest",
+        "DynestyStatic",
+        "run",
+        "n_effective",
+        value=0,
+    )(func)
+
+
+@n_effective
 def test_interpolate(interpolator):
     assert isinstance(interpolator[interpolator.t == 0.5].gaussian.centre, float)
 
 
+@n_effective
 def test_interpolate_other_field(interpolator):
     assert isinstance(
         interpolator[interpolator.gaussian.centre == 0.5].gaussian.centre,
@@ -64,6 +79,7 @@ def test_model(interpolator):
     assert model.prior_count == 6
 
 
+@n_effective
 def test_single_variable():
     samples_list = [
         af.SamplesPDF(
@@ -90,6 +106,7 @@ def test_single_variable():
     assert interpolator[interpolator.t == 50.0].v == pytest.approx(50.0, abs=1.0)
 
 
+@n_effective
 def test_variable_and_constant():
     samples_list = [
         af.SamplesPDF(

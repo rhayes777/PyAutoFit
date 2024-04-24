@@ -97,9 +97,9 @@ class UniformPrior(Prior):
 
         physical_value = prior.value_for(unit=0.2)
         """
-        return round(
+        return float(round(
             super().value_for(unit, ignore_prior_limits=ignore_prior_limits), 14
-        )
+        ))
 
     def log_prior_from_value(self, value):
         """
