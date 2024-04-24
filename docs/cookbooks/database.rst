@@ -3,7 +3,7 @@
 Database
 ========
 
-The default behaviour of model-fitting results output is to be written to hard-disc in folders. These are simple to
+The default behaviour of model-fitting results output is to be written to hard-disk in folders. These are simple to
 navigate and manually check.
 
 For small model-fitting tasks this is sufficient, however it does not scale well when performing many model fits to

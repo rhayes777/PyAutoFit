@@ -181,7 +181,7 @@ Visualization
 
 If a ``name`` is input into a non-linear search, all results are output to hard-disk in a folder.
 
-By overwriting the ``Visualizer`` object of an ``Analysis`` class with a custom `Visualizer` class, custom results of the
+By overwriting the ``Visualizer`` object of an ``Analysis`` class with a custom ``Visualizer`` class, custom results of the
 model-fit can be visualized during the model-fit.
 
 The ``Visualizer`` below has the methods ``visualize_before_fit`` and ``visualize``, which perform model specific
