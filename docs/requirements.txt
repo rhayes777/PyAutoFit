@@ -17,6 +17,7 @@ astunparse==1.6.3
 autoconf
 sphinx==5.2.3
 xxhash==3.0.0
+pyvis==0.3.2
 furo
 myst-parser
 sphinx_copybutton
