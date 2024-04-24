@@ -144,6 +144,7 @@ model and marginalized probability density functions.
 
    overview/the_basics
    overview/scientific_workflow
+   overview/statistical_methods
 
 .. toctree::
    :caption: Cookbooks:
