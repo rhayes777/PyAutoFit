@@ -145,7 +145,9 @@ The code below shows how to enable outputting of results to hard-disk:
 
 The screenshot below shows the output folder where all output is enabled:
 
+.. note::
 
+    Screenshot needs to be added here.
 
 Lets consider three parts of this output folder:
 
@@ -491,6 +493,15 @@ of the ``Analysis`` and define a ``make_result`` object describing what we want 
                 search_internal=search_internal,
                 analysis=self
             )
+
+Result customization has full support for **latent variables**, which are parameters that are not sampled by the non-linear
+search but are computed from the sampled parameters.
+
+They are often integral to assessing and interpreting the results of a model-fit, as they present information
+on the model in a different way to the sampled parameters.
+
+The `result cookbook <https://pyautofit.readthedocs.io/en/latest/cookbooks/result.html>`_ gives a full run-through of
+all the different ways the result can be customized.
 
 Model Composition
 -----------------
