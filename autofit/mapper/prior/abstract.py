@@ -6,7 +6,7 @@ from copy import copy
 from typing import Union, Tuple, Optional, Dict
 
 from autoconf import conf
-from autofit import exc
+from autofit import exc, jax_wrapper
 from autofit.mapper.prior.arithmetic import ArithmeticMixin
 from autofit.mapper.prior.deferred import DeferredArgument
 from autofit.mapper.variable import Variable
@@ -115,6 +115,10 @@ class Prior(Variable, ABC, ArithmeticMixin):
         return self.message.factor
 
     def assert_within_limits(self, value):
+
+        if jax_wrapper.use_jax:
+            return
+
         if not (self.lower_limit <= value <= self.upper_limit):
             raise exc.PriorLimitException(
                 "The physical value {} for a prior "
