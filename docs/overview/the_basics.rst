@@ -3,6 +3,27 @@
 The Basics
 ==========
 
+**PyAutoFit** is a Python based probabilistic programming language for model fitting and Bayesian inference
+of large datasets.
+
+The basic **PyAutoFit** API allows us a user to quickly compose a probabilistic model and fit it to data via a
+log likelihood function, using a range of non-linear search algorithms (e.g. MCMC, nested sampling).
+
+This overview gives a run through of:
+
+ - **Models**: Use Python classes to compose the model which is fitted to data.
+ - **Instances**: Create instances of the model via its Python class.
+ - **Analysis**: Define an ``Analysis`` class which includes the log likelihood function that fits the model to the data.
+ - **Searches**: Choose an MCMC, nested sampling or maximum likelihood estimator non-linear search algorithm that fits the model to the data.
+ - **Model Fit**: Fit the model to the data using the chosen non-linear search, with on-the-fly results and visualization.
+ - **Results**: Use the results of the search to interpret and visualize the model fit.
+
+This overviews provides a high level of the basic API, with more advanced functionality described in the following
+overviews and the **PyAutoFit** cookbooks.
+
+Example
+-------
+
 To illustrate **PyAutoFit** we'll use the example modeling problem of fitting a 1D Gaussian profile to noisy data.
 
 To begin, lets import ``autofit`` (and ``numpy``) using the convention below:
@@ -12,12 +33,10 @@ To begin, lets import ``autofit`` (and ``numpy``) using the convention below:
     import autofit as af
     import numpy as np
 
-Example
--------
 
-The example ``data`` with errors (black) and the model-fit (red), are shown below:
+The example ``data`` with errors (black) is shown below:
 
-.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/feature/docs_update/docs/images/data.png
+.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/main/docs/images/data.png
   :width: 600
   :alt: Alternative text
 
@@ -29,30 +48,23 @@ The 1D signal was generated using a 1D Gaussian profile of the form:
 
 Where:
 
-``x``: Is the x-axis coordinate where the ``Gaussian`` is evaluated.
+ ``x``: The x-axis coordinate where the ``Gaussian`` is evaluated.
 
-``N``: Describes the overall normalization of the Gaussian.
+ ``N``: The overall normalization of the Gaussian.
 
-``sigma``: Describes the size of the Gaussian (Full Width Half Maximum = $\mathrm {FWHM}$ = $2{\sqrt {2\ln 2}}\;\sigma$)
+ ``sigma``: Describes the size of the Gaussian.
 
-Our modeling task is to fit the signal with a 1D Gaussian and recover its parameters (``x``, ``N``, ``sigma``).
+Our modeling task is to fit the data with a 1D Gaussian and recover its parameters (``x``, ``N``, ``sigma``).
 
 Model
 -----
 
-We therefore need to define a 1D Gaussian as a "model component" in **PyAutoFit**.
+We therefore need to define a 1D Gaussian as a **PyAutoFit** model.
 
-A model component is written as a Python class using the following format:
-
-- The name of the class is the name of the model component, in this case, "Gaussian".
-
-- The input arguments of the constructor (the ``__init__`` method) are the parameters of the model, in this case ``centre``, ``normalization`` and ``sigma``.
-  
-- The default values of the input arguments define whether a parameter is a single-valued ``float`` or a multi-valued ``tuple``. In this case, all 3 input parameters are floats.
-  
-- It includes functions associated with that model component, which will be used when fitting the model to data.
+We do this by writing it as the following Python class:
 
 .. code-block:: python
+
     class Gaussian:
         def __init__(
             self,
@@ -100,6 +112,16 @@ A model component is written as a Python class using the following format:
                 np.exp(-0.5 * np.square(np.divide(transformed_xvalues, self.sigma))),
             )
 
+The **PyAutoFit** model above uses the following format:
+
+- The name of the class is the name of the model, in this case, "Gaussian".
+
+- The input arguments of the constructor (the ``__init__`` method) are the parameters of the model, in this case ``centre``, ``normalization`` and ``sigma``.
+  
+- The default values of the input arguments define whether a parameter is a single-valued ``float`` or a multi-valued ``tuple``. In this case, all 3 input parameters are floats.
+  
+- It includes functions associated with that model component, which are used when fitting the model to data.
+
 
 To compose a model using the ``Gaussian`` class above we use the ``af.Model`` object.
 
@@ -119,15 +141,19 @@ This gives the following output:
     (normalization, LogUniformPrior [2], lower_limit = 1e-06, upper_limit = 1000000.0),
     (sigma, UniformPrior [3], lower_limit = 0.0, upper_limit = 25.0)
 
+.. note::
+
+    You may be wondering where the priors above come from. **PyAutoFit** allows a user to set up configuration files that define
+    the default priors on every model parameter, to ensure that priors are defined in a consistent and concise way. More
+    information on configuration files is provided in the next overview and the cookbooks.
+
 The model has a total of 3 parameters:
 
 .. code-block:: python
 
     print(model.total_free_parameters)
 
-All model information is given by printing its ``info`` attribute.
-
-This shows that each model parameter has an associated prior.
+All model information is given by printing its ``info`` attribute:
 
 .. code-block:: python
 
@@ -145,16 +171,13 @@ This gives the following output:
     normalization                 LogUniformPrior [2], lower_limit = 1e-06, upper_limit = 1000000.0
     sigma                         UniformPrior [3], lower_limit = 0.0, upper_limit = 25.0
 
-
-The priors can be manually altered as follows, noting that these updated files will be used below when we fit the
-model to data.
+The priors can be manually altered as follows:
 
 .. code-block:: python
 
     model.centre = af.UniformPrior(lower_limit=0.0, upper_limit=100.0)
     model.normalization = af.UniformPrior(lower_limit=0.0, upper_limit=1e2)
     model.sigma = af.UniformPrior(lower_limit=0.0, upper_limit=30.0)
-
 
 Printing the ``model.info`` displayed these updated priors.
 
@@ -177,8 +200,8 @@ This gives the following output:
 Instances
 ---------
 
-Instances of the model components above (created via ``af.Model``) can be created, where an input ``vector`` of
-parameters is mapped to create an instance of the Python class of the model.
+Instances of a **PyAutoFit** model (created via ``af.Model``) can be created, where an input ``vector`` of parameter
+values is mapped to create an instance of the model's Python class.
 
 We first need to know the order of parameters in the model, so we know how to define the input ``vector``. This
 information is contained in the models ``paths`` attribute:
@@ -193,13 +216,7 @@ This gives the following output:
 
     [('centre',), ('normalization',), ('sigma',)]
 
-We input values for the 3 free parameters of our model following the order of paths above:
- 
-1) ``centre=30.0``
-2) ``normalization=2.0``
-3) ``sigma=3.0``
- 
-This creates an ``instance`` of the Gaussian class via the model. 
+We input values for the 3 free parameters of our model following the order of paths above (``centre=30.0``, ``normalization=2.0`` and ``sigma=3.0``):
 
 .. code-block:: python
 
@@ -257,26 +274,27 @@ create a realization of the ``Gaussian`` and plot it.
 
 Here is what the plot looks like:
 
-.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/feature/docs_update/docs/images/model_gaussian.png
+.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/main/docs/images/model_gaussian.png
   :width: 600
   :alt: Alternative text
 
-This "model mapping", whereby models map to an instances of their Python classes, is integral to the core **PyAutoFit**
-API for model composition and fitting.
+.. note::
+
+    Mapping models to instance of their Python classes is an integral part of the core **PyAutoFit** API. It enables
+    the advanced model composition and results management tools illustrated in the following overviews and cookbooks.
 
 Analysis
 --------
 
-Now we've defined our model, we need to inform **PyAutoFit** how to fit it to data.
+We now tell **PyAutoFit** how to fit the model to data.
 
-We therefore define an ``Analysis`` class, which includes:
+We define an ``Analysis`` class, which includes:
 
-- An ``__init__`` constructor, which takes as input the ``data`` and ``noise_map``. This could be extended to include anything else necessary to fit the model to the data.
+- An ``__init__`` constructor, which takes as input the ``data`` and ``noise_map`` (this can be extended with anything else necessary to fit the model to the data).
 
-- A ``log_likelihood_function``, which defines how given an ``instance`` of the model we fit it to the data and return a log likelihood value.
+- A ``log_likelihood_function``, defining how for an ``instance`` of the model we fit it to the data and return a log likelihood value.
 
-Read the comments and docstrings of the ``Analysis`` object below in detail for more insights into how this object
-works.
+Read the comments and docstrings of the ``Analysis`` object below in detail for a full description of how an analysis works.
 
 .. code-block:: python
 
@@ -297,8 +315,8 @@ works.
             Parameters
             ----------
             data
-                A 1D numpy array containing the data (e.g. a noisy 1D signal) f
-                itted in the workspace examples.
+                A 1D numpy array containing the data (e.g. a noisy 1D signal)
+                fitted in the readthedocs and workspace examples.
             noise_map
                 A 1D numpy array containing the noise values of the data, used
                 for computing the goodness of fit metric, the log likelihood.
@@ -322,14 +340,13 @@ works.
             The ``instance`` that comes into this method is an instance of the ``Gaussian``
             model above, which was created via ``af.Model()``.
 
-            The parameter values are chosen by the non-linear search, based on where
-            it thinks the high likelihood regions of parameter space are.
+            The parameter values are chosen by the non-linear search and therefore are based
+            on where it has mapped out the high likelihood regions of parameter space are.
 
             The lines of Python code are commented out below to prevent excessive print
             statements when we run the non-linear search, but feel free to uncomment
             them and run the search to see the parameters of every instance
             that it fits.
-
 
             # print("Gaussian Instance:")
             # print("Centre = ", instance.centre)
@@ -359,7 +376,6 @@ works.
 
             return log_likelihood
 
-
 Create an instance of the ``Analysis`` class by passing the ``data`` and ``noise_map``.
 
 .. code-block:: python
@@ -370,24 +386,31 @@ Create an instance of the ``Analysis`` class by passing the ``data`` and ``noise
 Non Linear Search
 -----------------
 
-We have defined the model that we want to fit the data, and the analysis class that performs this fit.
+We now have a model to fit to the data, and an analysis class that performs this fit.
 
 We now choose our fitting algorithm, called the "non-linear search", and fit the model to the data.
 
-For this example, we choose the nested sampling algorithm Dynesty. A wide variety of non-linear searches are 
-available in **PyAutoFit** (see ?).
+**PyAutoFit** supports many non-linear searches, which broadly speaking fall into three categories, MCMC, nested
+sampling and maximum likelihood estimators.
+
+For this example, we choose the nested sampling algorithm Dynesty.
 
 .. code-block:: python
 
     search = af.DynestyStatic(
         nlive=100,
-        number_of_cores=1,
     )
+
+.. note::
+
+    The default settings of the non-linear search are specified in the configuration files of **PyAutoFit**, just
+    like the default priors of the model components above. More information on configuration files is provided in the
+    next overview and the cookbooks.
 
 Model Fit
 ---------
 
-We begin the non-linear search by calling its ``fit`` method. 
+We begin the non-linear search by passing the model and analysis to its ``fit`` method.
 
 .. code-block:: python
 
@@ -443,7 +466,7 @@ The output is as follows:
     normalization                           24.80 (24.54, 25.11)
     sigma                                   9.84 (9.73, 9.97)
 
-Results are returned as instances of the model, as we illustrated above in the model mapping section.
+Results are returned as instances of the model, as illustrated above in the instance section.
 
 For example, we can print the result's maximum likelihood instance.
 
@@ -488,7 +511,7 @@ Below, we use the maximum likelihood instance to compare the maximum likelihood 
 
 The plot appears as follows:
 
-.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/feature/docs_update/docs/images/toy_model_fit.png
+.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/main/docs/images/toy_model_fit.png
   :width: 600
   :alt: Alternative text
 
@@ -510,409 +533,56 @@ corner of the results.
 
 The plot appears as follows:
 
-.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/feature/docs_update/docs/images/corner.png
+.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/main/docs/images/corner.png
   :width: 600
   :alt: Alternative text
 
-Extending Models
-----------------
+Wrap Up
+-------
 
-The model composition API is designed to make composing complex models, consisting of multiple components with many
-free parameters, straightforward and scalable.
+This overview explains the basic **PyAutoFit**. It used a simple model, a simple dataset, a simple model-fitting problem
+and pretty much the simplest parts of the **PyAutoFit** API.
 
-To illustrate this, we will extend our model to include a second component, representing a symmetric 1D Exponential
-profile, and fit it to data generated with both profiles.
+You should now have a good idea for how you would define and compose your own model, fit it to data with a chosen
+non-linear search, and use the results to interpret the fit.
 
-Lets begin by loading and plotting this data.
+The **PyAutoFit** API introduce here is very extensible and very customizable, and therefore easily adapted
+to your own model-fitting problems.
 
-.. code-block:: python
+The next overview describes how to use **PyAutoFit** to set up a scientific workflow, in a nutshell how to use the API
+to make your model-fitting efficient, manageable and scalable to large datasets.
 
-    dataset_path = path.join("dataset", "example_1d", "gaussian_x1__exponential_x1")
-    data = af.util.numpy_array_from_json(file_path=path.join(dataset_path, "data.json"))
-    noise_map = af.util.numpy_array_from_json(
-        file_path=path.join(dataset_path, "noise_map.json")
-    )
-    xvalues = range(data.shape[0])
-    plt.errorbar(
-        x=xvalues, y=data, yerr=noise_map, color="k", ecolor="k", elinewidth=1, capsize=2
-    )
-    plt.show()
-    plt.close()
+Resources
+---------
 
-The data appear as follows:
+The `autofit_workspace: <https://github.com/Jammy2211/autofit_workspace/>`_ has numerous examples of how to perform
+more complex model-fitting tasks:
 
-.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/feature/docs_update/docs/images/data_2.png
-  :width: 600
-  :alt: Alternative text
+The following cookbooks describe how to use the API for more complex model-fitting tasks:
 
-We define a Python class for the ``Exponential`` model component, exactly as we did for the ``Gaussian`` above.
+**Model Cookbook: https://pyautofit.readthedocs.io/en/latest/cookbooks/model.html**
 
-.. code-block:: python
+Compose complex models from multiple Python classes, lists, dictionaries and customize their parameterization.
 
-    class Exponential:
-        def __init__(
-            self,
-            centre=30.0,  # <- **PyAutoFit** recognises these constructor arguments
-            normalization=1.0,  # <- are the Exponentials``s model parameters.
-            rate=0.01,
-        ):
-            """
-            Represents a symmetric 1D Exponential profile.
+**Analysis Cookbook: https://pyautofit.readthedocs.io/en/latest/cookbooks/search.html**
 
-            Parameters
-            ----------
-            centre
-                The x coordinate of the profile centre.
-            normalization
-                Overall normalization of the profile.
-            ratw
-                The decay rate controlling has fast the Exponential declines.
-            """
+Customize the analysis with model-specific output and visualization.
 
-            self.centre = centre
-            self.normalization = normalization
-            self.rate = rate
+**Searches Cookbook: https://pyautofit.readthedocs.io/en/latest/cookbooks/analysis.html**
 
-        def model_data_1d_via_xvalues_from(self, xvalues: np.ndarray):
-            """
-            Returns the symmetric 1D Exponential on an input list of Cartesian
-            x coordinates.
+Choose from a variety of non-linear searches and customize their behaviour, for example outputting results to hard-disk and parallelizing the search.
 
-            The input xvalues are translated to a coordinate system centred on
-            the Exponential, via its ``centre``.
+**Results Cookbook: https://pyautofit.readthedocs.io/en/latest/cookbooks/result.html**
 
-            The output is referred to as the ``model_data`` to signify that it
-            is a representation of the data from the
-            model.
+The variety of results available from a fit, including parameter estimates, error estimates, model comparison and visualization.
 
-            Parameters
-            ----------
-            xvalues
-                The x coordinates in the original reference frame of the data.
-            """
+**Configs Cookbook: https://pyautofit.readthedocs.io/en/latest/cookbooks/configs.html**
 
-            transformed_xvalues = np.subtract(xvalues, self.centre)
-            return self.normalization * np.multiply(
-                self.rate, np.exp(-1.0 * self.rate * abs(transformed_xvalues))
-            )
+Customize default settings using configuration files, for example setting priors, search settings and visualization.
 
+**Multiple Dataset Cookbook: https://pyautofit.readthedocs.io/en/latest/cookbooks/multiple_datasets.html**
 
-We can easily compose a model consisting of 1 ``Gaussian`` object and 1 ``Exponential`` object using the ``af.Collection``
-object:
+Fit multiple datasets simultaneously, by combining their analysis classes such that their log likelihoods are summed.
 
-.. code-block:: python
 
-    model = af.Collection(gaussian=af.Model(Gaussian), exponential=af.Model(Exponential))
 
-A ``Collection`` behaves analogous to a ``Model``, but it contains a multiple model components.
-
-We can see this by printing its ``paths`` attribute, where paths to all 6 free parameters via both model components
-are shown.
-
-The paths have the entries ``.gaussian.`` and ``.exponential.``, which correspond to the names we input into  
-the ``af.Collection`` above. 
-
-.. code-block:: python
-
-    print(model.paths)
-
-The output is as follows:
-
-.. code-block:: bash
-
-    [
-        ('gaussian', 'centre'),
-        ('gaussian', 'normalization'),
-        ('gaussian', 'sigma'),
-        ('exponential', 'centre'),
-        ('exponential', 'normalization'),
-        ('exponential', 'rate')
-    ]
-
-We can use the paths to customize the priors of each parameter.
-
-.. code-block:: python
-
-    model.gaussian.centre = af.UniformPrior(lower_limit=0.0, upper_limit=100.0)
-    model.gaussian.normalization = af.UniformPrior(lower_limit=0.0, upper_limit=1e2)
-    model.gaussian.sigma = af.UniformPrior(lower_limit=0.0, upper_limit=30.0)
-    model.exponential.centre = af.UniformPrior(lower_limit=0.0, upper_limit=100.0)
-    model.exponential.normalization = af.UniformPrior(lower_limit=0.0, upper_limit=1e2)
-    model.exponential.rate = af.UniformPrior(lower_limit=0.0, upper_limit=10.0)
-
-All of the information about the model created via the collection can be printed at once using its ``info`` attribute:
-
-.. code-block:: python
-
-    print(model.info)
-
-The output appears as follows:
-
-.. code-block:: bash
-
-    Total Free Parameters = 6
-    model                                       Collection (N=6)
-            gaussian                            Gaussian (N=3)
-            exponential                         Exponential (N=3)
-        
-        gaussian
-            centre                              UniformPrior [13], lower_limit = 0.0, upper_limit = 100.0
-            normalization                       UniformPrior [14], lower_limit = 0.0, upper_limit = 100.0
-            sigma                               UniformPrior [15], lower_limit = 0.0, upper_limit = 30.0
-        exponential
-            centre                              UniformPrior [16], lower_limit = 0.0, upper_limit = 100.0
-            normalization                       UniformPrior [17], lower_limit = 0.0, upper_limit = 100.0
-            rate                                UniformPrior [18], lower_limit = 0.0, upper_limit = 10.0
-    
-
-A model instance can again be created by mapping an input ``vector``, which now has 6 entries.
-
-.. code-block:: python
-
-    instance = model.instance_from_vector(vector=[0.1, 0.2, 0.3, 0.4, 0.5, 0.01])
-
-This ``instance`` contains each of the model components we defined above. 
-
-The argument names input into the ``Collection`` define the attribute names of the ``instance``:
-
-.. code-block:: python
-
-    print("Instance Parameters \n")
-    print("x (Gaussian) = ", instance.gaussian.centre)
-    print("normalization (Gaussian) = ", instance.gaussian.normalization)
-    print("sigma (Gaussian) = ", instance.gaussian.sigma)
-    print("x (Exponential) = ", instance.exponential.centre)
-    print("normalization (Exponential) = ", instance.exponential.normalization)
-    print("sigma (Exponential) = ", instance.exponential.rate)
-
-The output appear as follows:
-
-.. code-block:: bash
-
-The ``Analysis`` class above assumed the ``instance`` contained only a single model-component.
-
-We update its ``log_likelihood_function`` to use both model components in the ``instance`` to fit the data.
-
-.. code-block:: python
-
-    class Analysis(af.Analysis):
-        def __init__(self, data: np.ndarray, noise_map: np.ndarray):
-            """
-            The `Analysis` class acts as an interface between the data and
-            model in **PyAutoFit**.
-
-            Its `log_likelihood_function` defines how the model is fitted to
-            the data and it is called many times by the non-linear search
-            fitting algorithm.
-
-            In this example the `Analysis` `__init__` constructor only
-            contains the `data` and `noise-map`, but it can be easily
-            extended to include other quantities.
-
-            Parameters
-            ----------
-            data
-                A 1D numpy array containing the data (e.g. a noisy 1D signal)
-                fitted in the workspace examples.
-            noise_map
-                A 1D numpy array containing the noise values of the data,
-                used for computing the goodness of fit metric, the log likelihood.
-            """
-
-            super().__init__()
-
-            self.data = data
-            self.noise_map = noise_map
-
-        def log_likelihood_function(self, instance) -> float:
-            """
-            Returns the log likelihood of a fit of a 1D Gaussian to the dataset.
-
-            The data is fitted using an `instance` of multiple 1D profiles
-            (e.g. a `Gaussian`, `Exponential`) where
-            their `model_data_1d_via_xvalues_from` methods are called and summed
-            in order to create a model data representation that is fitted to the data.
-            """
-
-            """
-            The `instance` that comes into this method is an instance of the
-            `Gaussian` and `Exponential` models above, which were created
-            via `af.Collection()`.
-
-            It contains instances of every class we instantiated it with, where
-            each instance is named following the names given to the Collection,
-            which in this example is a `Gaussian` (with name `gaussian) and
-            Exponential (with name `exponential`).
-
-            The parameter values are again chosen by the non-linear search,
-            based on where it thinks the high likelihood regions of parameter
-            space are. The lines of Python code are commented out below to
-            prevent excessive print statements.
-
-
-            # print("Gaussian Instance:")
-            # print("Centre = ", instance.gaussian.centre)
-            # print("Normalization = ", instance.gaussian.normalization)
-            # print("Sigma = ", instance.gaussian.sigma)
-
-            # print("Exponential Instance:")
-            # print("Centre = ", instance.exponential.centre)
-            # print("Normalization = ", instance.exponential.normalization)
-            # print("Rate = ", instance.exponential.rate)
-            """
-            """
-            Get the range of x-values the data is defined on, to evaluate
-            the model of the Gaussian.
-            """
-            xvalues = np.arange(self.data.shape[0])
-
-            """
-            Internally, the `instance` variable is a list of all model
-            omponents pass to the `Collection` above.
-
-            we can therefore iterate over them and use their
-            `model_data_1d_via_xvalues_from` methods to create the
-            summed overall model data.
-            """
-            model_data = sum(
-                [
-                    profile_1d.model_data_1d_via_xvalues_from(xvalues=xvalues)
-                    for profile_1d in instance
-                ]
-            )
-
-            """
-            Fit the model gaussian line data to the observed data, computing the residuals, chi-squared and log likelihood.
-            """
-            residual_map = self.data - model_data
-            chi_squared_map = (residual_map / self.noise_map) ** 2.0
-            chi_squared = sum(chi_squared_map)
-            noise_normalization = np.sum(np.log(2 * np.pi * noise_map**2.0))
-            log_likelihood = -0.5 * (chi_squared + noise_normalization)
-
-            return log_likelihood
-
-
-
-We can now fit this model to the data using the same API we did before.
-
-.. code-block:: python
-
-    analysis = Analysis(data=data, noise_map=noise_map)
-
-    search = af.DynestyStatic(
-        nlive=100,
-        number_of_cores=1,
-    )
-
-    result = search.fit(model=model, analysis=analysis)
-
-
-The ``info`` attribute shows the result in a readable format, showing that all 6 free parameters were fitted for.
-
-.. code-block:: python
-
-    print(result.info)
-
-The output appears as follows:
-
-.. code-block:: bash
-
-    Bayesian Evidence                       144.86032973
-    Maximum Log Likelihood                  181.14287034
-    Maximum Log Posterior                   181.14287034
-
-    model                                   Collection (N=6)
-        gaussian                            Gaussian (N=3)
-        exponential                         Exponential (N=3)
-
-    Maximum Log Likelihood Model:
-
-    gaussian
-        centre                              50.223
-        normalization                       26.108
-        sigma                               9.710
-    exponential
-        centre                              50.057
-        normalization                       39.948
-        rate                                0.048
-
-
-    Summary (3.0 sigma limits):
-
-    gaussian
-        centre                              50.27 (49.63, 50.88)
-        normalization                       26.22 (21.37, 32.41)
-        sigma                               9.75 (9.25, 10.27)
-    exponential
-        centre                              50.04 (49.60, 50.50)
-        normalization                       40.06 (37.60, 42.38)
-        rate                                0.05 (0.04, 0.05)
-
-
-    Summary (1.0 sigma limits):
-
-    gaussian
-        centre                              50.27 (50.08, 50.49)
-        normalization                       26.22 (24.33, 28.39)
-        sigma                               9.75 (9.60, 9.90)
-    exponential
-        centre                              50.04 (49.90, 50.18)
-        normalization                       40.06 (39.20, 40.88)
-        rate                                0.05 (0.05, 0.05)
-
-We can again use the max log likelihood instance to visualize the model data of the best fit model compared to the
-data.
-
-.. code-block:: python
-
-    instance = result.max_log_likelihood_instance
-
-    model_gaussian = instance.gaussian.model_data_1d_via_xvalues_from(
-        xvalues=np.arange(data.shape[0])
-    )
-    model_exponential = instance.exponential.model_data_1d_via_xvalues_from(
-        xvalues=np.arange(data.shape[0])
-    )
-    model_data = model_gaussian + model_exponential
-
-    plt.errorbar(
-        x=xvalues, y=data, yerr=noise_map, color="k", ecolor="k", elinewidth=1, capsize=2
-    )
-    plt.plot(range(data.shape[0]), model_data, color="r")
-    plt.plot(range(data.shape[0]), model_gaussian, "--")
-    plt.plot(range(data.shape[0]), model_exponential, "--")
-    plt.title("Dynesty model fit to 1D Gaussian + Exponential dataset.")
-    plt.xlabel("x values of profile")
-    plt.ylabel("Profile normalization")
-    plt.show()
-    plt.close()
-
-The plot appears as follows:
-
-.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/feature/docs_update/docs/images/toy_model_fit.png
-  :width: 600
-  :alt: Alternative text
-
-Cookbooks
-----------
-
-This overview shows the basics of model-fitting with **PyAutoFit**.
-
-The API is designed to be intuitive and extensible, and you should have a good feeling for how you would define
-and compose your own model, fit it to data with a chosen non-linear search, and use the results to interpret the
-fit.
-
-The following cookbooks give a concise API reference for using **PyAutoFit**, and you should use them as you define
-your own model to get a fit going:
-
-- Model Cookbook: https://pyautofit.readthedocs.io/en/latest/cookbooks/model.html
-- Searches Cookbook: https://pyautofit.readthedocs.io/en/latest/cookbooks/analysis.html
-- Analysis Cookbook: https://pyautofit.readthedocs.io/en/latest/cookbooks/search.html
-- Results Cookbook: https://pyautofit.readthedocs.io/en/latest/cookbooks/result.html
-
-There are additioal cookbooks which explain advanced PyAutoFit functionality
-which you should look into after you have a good understanding of the basics.
-
-The next overview describes how to set up a scientific workflow, where many other tasks required to perform detailed but
-scalable model-fitting can be delegated to **PyAutoFit**. 
