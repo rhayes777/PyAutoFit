@@ -11,8 +11,8 @@ Graphical Models
 For inference problems consisting of many datasets, the model composition is often very complex. Model parameters
 can depend on multiple datasets, and the datasets themselves may be interdependent.
 
-Graphical models concisely describe these model and dataset dependencies and allow for
-them to be fitted simultaneously, with a concise API and scientific workflow that ensures scalability to big datasets.
+Graphical models concisely describe these model and dataset dependencies, allowing them to be fitted simultaneously.
+This is achieved through a concise API and scientific workflow that ensures scalability to large datasets.
 
 A full description of using graphical models is given below:
 
@@ -21,11 +21,11 @@ https://github.com/Jammy2211/autofit_workspace/blob/release/notebooks/features/g
 Hierarchical Models
 -------------------
 
-Hierarchical models are where multiple parameters in the model are assumed to be drawn from a common distributio.
-The parameters of this parent distribution are themselves inferred from the data, which for many problems enables
+Hierarchical models are where multiple parameters in the model are assumed to be drawn from a common distribution.
+The parameters of this parent distribution are themselves inferred from the data, enabling
 more robust and informative model fitting.
 
-Anfull description of using hierarchical models is given below:
+A full description of using hierarchical models is given below:
 
 https://github.com/Jammy2211/autofit_workspace/blob/release/notebooks/howtofit/chapter_graphical_models/tutorial_4_hierachical_models.ipynb
 
@@ -61,7 +61,7 @@ https://github.com/Jammy2211/autofit_workspace/blob/release/notebooks/features/i
 Search Grid Search
 ------------------
 
-A classic method to perform model-fitting is a grid search, where the parameters of a model are divided on to a grid of
+A classic method to perform model-fitting is a grid search, where the parameters of a model are divided onto a grid of
 values and the likelihood of each set of parameters on this grid is sampled. For low dimensionality problems this
 simple approach can be sufficient to locate high likelihood solutions, however it scales poorly to higher dimensional
 problems.
