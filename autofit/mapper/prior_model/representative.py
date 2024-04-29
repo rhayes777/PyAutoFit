@@ -29,9 +29,6 @@ def find_groups(path_value_tuples, limit=1):
 
 
 def integers_representative_key(integers):
-    if len(integers) == 1:
-        return str(integers[0])
-
     integers = sorted(integers)
     ranges = []
     start = integers[0]
