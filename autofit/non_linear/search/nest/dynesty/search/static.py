@@ -21,7 +21,6 @@ class GradWrapper:
     def grad(self):
         import jax
         from jax import grad
-
         print("Compiling gradient")
         return jax.jit(grad(self.function))
 
@@ -135,6 +134,7 @@ class DynestyStatic(AbstractDynesty):
             The number of CPU's over which multiprocessing is performed, determining how many samples are stored
             in the dynesty queue for samples.
         """
+
         if self.use_gradient:
             gradient = GradWrapper(fitness)
         else:

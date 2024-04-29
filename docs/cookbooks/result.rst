@@ -102,11 +102,13 @@ The output appears as follows:
 Loading From Hard-disk
 ----------------------
 
-When performing fits which output results to hard-disc, a ``files`` folder is created containing .json / .csv files of 
-the model, samples, search, etc.
+When performing fits which output results to hard-disk, a `files` folder is created containing .json / .csv files of
+the model, samples, search, etc. You should check it out now for a completed fit on your hard-disk if you have
+not already!
 
-These files can be loaded from hard-disk to Python variables via the aggregator, making them accessible in a 
-Python script or Jupyter notebook.
+These files can be loaded from hard-disk to Python variables via the aggregator, making them accessible in a
+Python script or Jupyter notebook. They are loaded as the internal **PyAutoFit** objects we are familiar with,
+for example the `model` is loaded as the `Model` object we passed to the search above.
 
 Below, we will access these results using the aggregator's ``values`` method. A full list of what can be loaded is
 as follows:
@@ -126,7 +128,7 @@ the full non-linear search samples, for example every parameter sample and its l
 contains a summary of the results, for example the maximum log likelihood model and error estimates on parameters
 at 1 and 3 sigma confidence.
 
-Accessing results via the ``samples_summary`` is much faster, because as it does reperform calculations using the full 
+Accessing results via the ``samples_summary`` is much faster, because as it does not reperform calculations using the full
 list of samples. Therefore, if the result you want is accessible via the ``samples_summary`` you should use it
 but if not you can revert to the ``samples.
 
