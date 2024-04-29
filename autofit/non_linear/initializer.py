@@ -200,6 +200,8 @@ class SpecificRangeInitializer(AbstractInitializer):
         self.lower_limit = lower_limit
         self.upper_limit = upper_limit
 
+        self._generated_warnings = set()
+
     def _generate_unit_parameter_list(self, model: AbstractPriorModel) -> List[float]:
         """
         Generate a unit vector for the model. The default limits are used for any
@@ -221,10 +223,14 @@ class SpecificRangeInitializer(AbstractInitializer):
                 lower, upper = map(prior.unit_value_for, self.parameter_dict[prior])
                 value = random.uniform(lower, upper)
             except KeyError:
-                logger.warning(
-                    f"Range for {'.'.join(model.path_for_prior(prior))} not set in the SpecificRangeInitializer. "
-                    f"Using defaults."
-                )
+                key = ".".join(model.path_for_prior(prior))
+                if key not in self._generated_warnings:
+                    logger.warning(
+                        f"Range for {key} not set in the SpecificRangeInitializer. "
+                        f"Using defaults."
+                    )
+                    self._generated_warnings.add(key)
+
                 lower = self.lower_limit
                 upper = self.upper_limit
 
