@@ -3,6 +3,7 @@ import itertools
 import autofit as af
 import pytest
 
+from autofit.mapper.prior_model.representative import integers_representative_key
 from autofit.text.text_util import result_info_from
 
 
@@ -94,3 +95,21 @@ instances
 
 """
     )
+
+
+def test_non_consecutive(collection):
+    collection[10].centre = af.UniformPrior(0.0, 1.0)
+    print(collection.info)
+
+
+@pytest.mark.parametrize(
+    "integers, expected",
+    [
+        (list(range(1, 11)), "1 - 10"),
+        ([1], "1"),
+        ([1, 10], "1, 10"),
+        ([1, 2, 3, 8, 9, 10], "1 - 3, 8 - 10"),
+    ],
+)
+def test_integers_representative_key(integers, expected):
+    assert integers_representative_key(integers) == expected

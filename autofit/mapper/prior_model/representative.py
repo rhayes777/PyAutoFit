@@ -28,6 +28,30 @@ def find_groups(path_value_tuples, limit=1):
     return path_value_tuples
 
 
+def integers_representative_key(integers):
+    if len(integers) == 1:
+        return str(integers[0])
+
+    integers = sorted(integers)
+    ranges = []
+    start = integers[0]
+    end = integers[0]
+
+    for integer in integers[1:]:
+        if integer == end + 1:
+            end = integer
+        else:
+            ranges.append((start, end))
+            start = integer
+            end = integer
+
+    ranges.append((start, end))
+
+    return ", ".join(
+        f"{start} - {end}" if start != end else str(start) for start, end in ranges
+    )
+
+
 def _find_groups(path_value_tuples, position):
     groups = defaultdict(list)
     paths = []
@@ -43,11 +67,11 @@ def _find_groups(path_value_tuples, position):
     for (before, after, value), names in groups.items():
         try:
             names = list(map(int, names))
+            representative_key = integers_representative_key(names)
         except ValueError:
-            pass
+            representative_key = (
+                f"{min(names)} - {max(names)}" if len(set(names)) > 1 else names[0]
+            )
 
-        representative_key = (
-            f"{min(names)} - {max(names)}" if len(set(names)) > 1 else names[0]
-        )
         paths.append(((*before, representative_key, *after), value))
     return paths
