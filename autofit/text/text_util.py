@@ -58,11 +58,13 @@ def result_info_from(samples) -> str:
 
     paths = []
 
-    for prior_path, value in zip(
-        samples.model.unique_prior_paths,
+    model = samples.model
+    for (_, prior), value in zip(
+        model.unique_path_prior_tuples,
         max_log_likelihood_sample,
     ):
-        paths.append((prior_path, value))
+        for path in model.all_paths_for_prior(prior):
+            paths.append((path, value))
 
     for path, value in find_groups(paths):
         formatter.add(path, format_str().format(value))
