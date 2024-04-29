@@ -1,4 +1,5 @@
 from collections import defaultdict
+from typing import List
 
 
 def find_groups(path_value_tuples, limit=1):
@@ -28,7 +29,24 @@ def find_groups(path_value_tuples, limit=1):
     return path_value_tuples
 
 
-def integers_representative_key(integers):
+def integers_representative_key(integers: List[int]) -> str:
+    """
+    Given a list of integers, return a string that represents them in a concise way.
+
+    e.g.
+    [1, 2, 3, 4, 5, 6, 7, 8, 9, 10] -> "1 - 10"
+    [1, 2, 3, 5, 6, 7, 8, 9, 10] -> "1 - 3, 5 - 10"
+    [1, 2, 3, 5, 6, 7, 8, 9, 10, 12] -> "1 - 3, 5 - 10, 12"
+
+    Parameters
+    ----------
+    integers
+        The list of integers to represent
+
+    Returns
+    -------
+    A string representing the integers in a concise way
+    """
     integers = sorted(integers)
     ranges = []
     start = integers[0]
