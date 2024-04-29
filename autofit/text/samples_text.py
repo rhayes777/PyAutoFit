@@ -36,16 +36,18 @@ def summary(
 
     sigma_formatter = frm.TextFormatter(indent=indent, line_length=line_length)
 
-    paths = []
+    prior_result_map = {}
 
-    for i, prior_path in enumerate(samples.model.unique_prior_paths):
-        value_result = frm.value_result_string_from(
+    for i, (_, prior) in enumerate(samples.model.unique_path_prior_tuples):
+        prior_result_map[prior] = frm.value_result_string_from(
             parameter_name=parameter_names[i],
             value=values[i],
             values_at_sigma=values_at_sigma[i],
         )
 
-        paths.append((prior_path, value_result))
+    paths = []
+    for path, prior in samples.model.path_priors_tuples:
+        paths.append((path, prior_result_map[prior]))
 
     for path, value in find_groups(paths):
         sigma_formatter.add(path, value)

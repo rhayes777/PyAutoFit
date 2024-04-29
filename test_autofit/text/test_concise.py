@@ -73,7 +73,7 @@ model                                                                           
 
 Maximum Log Likelihood Model:
 
-19
+0 - 19
     centre                                                                      1.000
     normalization                                                               2.000
     sigma                                                                       3.000
@@ -85,7 +85,7 @@ Maximum Log Likelihood Model:
 
 Summary (1.0 sigma limits):
 
-19
+0 - 19
     centre                                                                      1.00 (1.00, 1.00)
     normalization                                                               2.00 (2.00, 2.00)
     sigma                                                                       3.00 (3.00, 3.00)
