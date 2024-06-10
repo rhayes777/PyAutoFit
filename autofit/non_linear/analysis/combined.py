@@ -358,7 +358,11 @@ class CombinedAnalysis(Analysis):
     ):
         child_results = [
             analysis.make_result(
-                samples_summary, paths, samples, search_internal, analysis
+                samples_summary=samples_summary,
+                paths=paths,
+                samples=samples,
+                search_internal=search_internal,
+                analysis=analysis
             )
             for analysis in self.analyses
         ]

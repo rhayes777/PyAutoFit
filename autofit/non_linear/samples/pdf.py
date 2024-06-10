@@ -170,10 +170,10 @@ class SamplesPDF(Samples):
             return [(lower, upper) for lower, upper in zip(lower_errors, upper_errors)]
 
         parameters_min = list(
-            np.min(self.parameter_lists[-self.unconverged_sample_size :], axis=0)
+            np.min(self.parameter_lists[-int(self.unconverged_sample_size) :], axis=0)
         )
         parameters_max = list(
-            np.max(self.parameter_lists[-self.unconverged_sample_size :], axis=0)
+            np.max(self.parameter_lists[-int(self.unconverged_sample_size) :], axis=0)
         )
 
         return [

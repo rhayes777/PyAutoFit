@@ -637,6 +637,48 @@ The output appears as follows:
 
     Example Prefix $x^{\rm{g}} = 49.88^{+0.37}_{-0.35}$ & $norm^{\rm{g}} = 24.83^{+0.82}_{-0.76}$ & $\sigma^{\rm{g}} = 9.84^{+0.35}_{-0.40}$ \[-2pt]
 
+Derived Quantities (Advanced)
+-----------------------------
+
+The parameters ``centre``, ``normalization`` and ``sigma`` are the model parameters of the ``Gaussian``. They are sampled
+directly by the non-linear search and we can therefore use the ``Samples`` object to easily determine their values and 
+errors.
+
+Derived quantities (also called latent variables) are those which are not sampled directly by the non-linear search, 
+but one may still wish to know their values and errors after the fit is complete. For example, what if we want the 
+error on the full width half maximum (FWHM) of the Gaussian? 
+
+This is achieved by adding them to the ``compute_latent_variables`` method of the ``Analysis`` class, which is called
+after the non-linear search has completed. The analysis cookbook illustrates how to do this.
+
+The example analysis used above includes a ``compute_latent_variables`` method that computes the FWHM of the Gaussian
+profile. 
+
+This leads to a number of noteworthy outputs:
+
+ - A ``latent.results`` file is output to the results folder, which includes the value and error of all derived quantities 
+   based on the non-linear search samples (in this example only the ``fwhm``).
+   
+ - A ``latent/samples.csv`` is output which lists every accepted sample's value of every derived quantity, which is again
+   analogous to the ``samples.csv`` file (in this example only the ``fwhm``). 
+     
+ - A ``latent/samples_summary.json`` is output which acts analogously to ``samples_summary.json`` but for the derived 
+   quantities of the model (in this example only the ``fwhm``).
+
+Derived quantities are also accessible via the ``Samples`` object, following a similar API to the model parameters:
+
+.. code-block:: python
+
+    latent = analysis.compute_latent_samples(result.samples)
+
+    instance = latent.max_log_likelihood()
+
+    print(f"Max Likelihood FWHM: {instance.gaussian.fwhm}")
+
+    instance = latent.median_pdf()
+
+    print(f"Median PDF FWHM {instance.gaussian.fwhm}")
+
 Derived Errors (Advanced)
 -------------------------
 
