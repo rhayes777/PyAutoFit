@@ -33,6 +33,8 @@ class Array(Object):
 
     @property
     def shape(self):
+        if self._shape == "":
+            return ()
         return tuple(map(int, self._shape.split(",")))
 
     @shape.setter
