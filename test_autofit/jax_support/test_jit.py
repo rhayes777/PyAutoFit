@@ -9,7 +9,7 @@ from test_autofit.graphical.gaussian import model as model_module
 
 import pytest
 
-jax = pytest.importorskip("jax")
+jax = pytest.importorskip("jax_support")
 
 
 @pytest.fixture(autouse=True)

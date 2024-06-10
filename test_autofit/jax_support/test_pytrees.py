@@ -5,7 +5,7 @@ from autofit.jax_wrapper import numpy as jnp
 import autofit as af
 
 
-jax = pytest.importorskip("jax")
+jax = pytest.importorskip("jax_support")
 
 
 def recreate(o):
