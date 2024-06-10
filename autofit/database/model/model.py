@@ -144,7 +144,16 @@ class Object(Base):
         else:
             from .instance import Instance
 
-            instance = Instance._from_object(source)
+            try:
+                if issubclass(source.dtype.type, np.inexact):
+                    from .instance import Value
+
+                    instance = Value._from_object(float(source))
+                else:
+                    instance = Instance._from_object(source)
+            except AttributeError:
+                instance = Instance._from_object(source)
+
         instance.name = name
         return instance
 

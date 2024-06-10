@@ -41,7 +41,9 @@ def test_set_database_paths(session, latent_samples):
         latent_samples=latent_samples,
     )
     loaded = database_paths.load_latent_samples()
-    assert loaded.max_log_likelihood_sample.kwargs == {"fwhm": 7.0644601350928475}
+    assert loaded.max_log_likelihood_sample.kwargs == {
+        "fwhm": pytest.approx(7.0644601350928475)
+    }
 
 
 @pytest.fixture(name="latent_samples")
