@@ -1,4 +1,4 @@
-import numpy as np
+from autofit.jax_wrapper import numpy as np
 import os
 from typing import Optional
 
@@ -16,7 +16,6 @@ from autofit import jax_wrapper
 
 
 def get_timeout_seconds():
-
     try:
         return conf.instance["general"]["test"]["lh_timeout_seconds"]
     except KeyError:
@@ -29,9 +28,9 @@ timeout_seconds = get_timeout_seconds()
 class Fitness:
     def __init__(
         self,
-        model : AbstractPriorModel,
-        analysis : Analysis,
-        paths : Optional[AbstractPaths] = None,
+        model: AbstractPriorModel,
+        analysis: Analysis,
+        paths: Optional[AbstractPaths] = None,
         fom_is_log_likelihood: bool = True,
         resample_figure_of_merit: float = -np.inf,
         convert_to_chi_squared: bool = False,
@@ -142,7 +141,7 @@ class Fitness:
             instance = self.model.instance_from_vector(vector=parameters)
             log_likelihood = self.log_likelihood_function(instance=instance)
 
-            if np.isnan(log_likelihood):
+            if not jax_wrapper.use_jax and np.isnan(log_likelihood):
                 return self.resample_figure_of_merit
 
         except exc.FitException:
@@ -198,7 +197,9 @@ class Fitness:
         max_log_likelihood_sample = samples_summary.max_log_likelihood_sample
         log_likelihood_old = samples_summary.max_log_likelihood_sample.log_likelihood
 
-        parameters = max_log_likelihood_sample.parameter_lists_for_model(model=self.model)
+        parameters = max_log_likelihood_sample.parameter_lists_for_model(
+            model=self.model
+        )
 
         log_likelihood_new = fitness(parameters=parameters)
 
@@ -213,5 +214,3 @@ class Fitness:
                 New Figure of Merit = {log_likelihood_new}
                 """
             )
-
-
