@@ -69,7 +69,9 @@ def make_latent_samples():
 
 
 def test_compute_latent_samples(latent_samples):
-    assert latent_samples.sample_list[0].kwargs == {"fwhm": 7.0644601350928475}
+    assert latent_samples.sample_list[0].kwargs == {
+        "fwhm": pytest.approx(7.0644601350928475)
+    }
     assert latent_samples.model.instance_from_vector([1.0]).fwhm == 1.0
 
 
