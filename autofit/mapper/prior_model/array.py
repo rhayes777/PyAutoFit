@@ -1,4 +1,4 @@
-from typing import Tuple
+from typing import Tuple, Dict
 
 from .abstract import AbstractPriorModel
 from autofit.mapper.prior.abstract import Prior
@@ -23,3 +23,18 @@ class Array(AbstractPriorModel):
         for key in np.ndindex(*shape):
             suffix = "_".join(map(str, key))
             setattr(self, f"prior_{suffix}", prior.new())
+
+    def _instance_for_arguments(
+        self,
+        arguments: Dict[Prior, float],
+        ignore_assertions: bool = False,
+    ):
+        return np.array(
+            [
+                [
+                    arguments[getattr(self, f"prior_{i}_{j}")]
+                    for j in range(self.shape[1])
+                ]
+                for i in range(self.shape[0])
+            ]
+        )
