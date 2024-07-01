@@ -19,22 +19,29 @@ class Array(AbstractPriorModel):
         """
         super().__init__()
         self.shape = shape
+        self.indices = np.ndindex(*shape)
 
-        for key in np.ndindex(*shape):
-            suffix = "_".join(map(str, key))
-            setattr(self, f"prior_{suffix}", prior.new())
+        for index in self.indices:
+            setattr(
+                self,
+                self._make_key(index),
+                prior.new(),
+            )
+
+    @staticmethod
+    def _make_key(index):
+        suffix = "_".join(map(str, index))
+        return f"prior_{suffix}"
 
     def _instance_for_arguments(
         self,
         arguments: Dict[Prior, float],
         ignore_assertions: bool = False,
     ):
-        return np.array(
-            [
-                [
-                    arguments[getattr(self, f"prior_{i}_{j}")]
-                    for j in range(self.shape[1])
-                ]
-                for i in range(self.shape[0])
-            ]
-        )
+        array = np.zeros(self.shape)
+        for index in self.indices:
+            key = self._make_key(index)
+            array[index] = getattr(self, key).instance_for_arguments(
+                arguments, ignore_assertions
+            )
+        return array
