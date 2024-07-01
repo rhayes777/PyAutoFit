@@ -48,7 +48,7 @@ class Array(AbstractPriorModel):
         The attribute name for the prior.
         """
         if isinstance(index, int):
-            suffix = f"_{index}"
+            suffix = str(index)
         else:
             suffix = "_".join(map(str, index))
         return f"prior_{suffix}"

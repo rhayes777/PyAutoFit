@@ -140,3 +140,9 @@ def array_1d():
 def test_1d_array(array_1d):
     assert array_1d.prior_count == 2
     assert (array_1d.instance_from_prior_medians() == [0.0, 0.0]).all()
+
+
+def test_1d_array_modify_prior(array_1d):
+    array_1d[0] = 1.0
+    assert array_1d.prior_count == 1
+    assert (array_1d.instance_from_prior_medians() == [1.0, 0.0]).all()
