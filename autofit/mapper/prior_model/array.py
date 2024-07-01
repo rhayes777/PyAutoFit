@@ -22,11 +22,7 @@ class Array(AbstractPriorModel):
         self.indices = np.ndindex(*shape)
 
         for index in self.indices:
-            setattr(
-                self,
-                self._make_key(index),
-                prior.new(),
-            )
+            self[index] = prior.new()
 
     @staticmethod
     def _make_key(index):
@@ -40,8 +36,13 @@ class Array(AbstractPriorModel):
     ):
         array = np.zeros(self.shape)
         for index in self.indices:
-            key = self._make_key(index)
-            array[index] = getattr(self, key).instance_for_arguments(
+            array[index] = self[index].instance_for_arguments(
                 arguments, ignore_assertions
             )
         return array
+
+    def __setitem__(self, key, value):
+        setattr(self, self._make_key(key), value)
+
+    def __getitem__(self, key):
+        return getattr(self, self._make_key(key))
