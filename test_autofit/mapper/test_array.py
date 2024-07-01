@@ -63,3 +63,21 @@ def test_correlation(array):
 
     assert instance[0, 0] == instance[1, 1]
     assert instance[0, 1] == instance[1, 0]
+
+
+def test_from_dict():
+    array = af.AbstractPriorModel.from_dict(
+        {
+            "type": "array",
+            "shape": (2, 2),
+            "prior": {"type": "Gaussian", "mean": 0.0, "sigma": 1.0},
+        }
+    )
+    assert array.prior_count == 4
+    assert (
+        array.instance_from_prior_medians()
+        == [
+            [0.0, 0.0],
+            [0.0, 0.0],
+        ]
+    ).all()

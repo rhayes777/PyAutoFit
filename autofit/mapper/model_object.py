@@ -234,7 +234,17 @@ class ModelObject:
                     f"Could not find type for class path {class_path}. Defaulting to Instance placeholder."
                 )
                 instance = ModelInstance()
+        elif type_ == "array":
+            from autofit.mapper.prior_model.array import Array
 
+            return Array(
+                shape=d["shape"],
+                prior=from_dict(
+                    d["prior"],
+                    reference=dereference(reference, "prior"),
+                    loaded_ids=loaded_ids,
+                ),
+            )
         else:
             try:
                 return Prior.from_dict(d, loaded_ids=loaded_ids)
