@@ -127,3 +127,16 @@ def test_from_dict(array_dict):
             [0.0, 0.0],
         ]
     ).all()
+
+
+@pytest.fixture
+def array_1d():
+    return af.Array(
+        shape=(2,),
+        prior=af.GaussianPrior(mean=0.0, sigma=1.0),
+    )
+
+
+def test_1d_array(array_1d):
+    assert array_1d.prior_count == 2
+    assert (array_1d.instance_from_prior_medians() == [0.0, 0.0]).all()
