@@ -53,3 +53,13 @@ def test_modify_prior(array):
             [0.0, 0.0],
         ]
     ).all()
+
+
+def test_correlation(array):
+    array[0, 0] = array[1, 1]
+    array[0, 1] = array[1, 0]
+
+    instance = array.random_instance()
+
+    assert instance[0, 0] == instance[1, 1]
+    assert instance[0, 1] == instance[1, 0]
