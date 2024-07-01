@@ -286,6 +286,7 @@ class ModelObject:
         from autofit.mapper.prior_model.collection import Collection
         from autofit.mapper.prior_model.prior_model import Model
         from autofit.mapper.prior.tuple_prior import TuplePrior
+        from autofit.mapper.prior_model.array import Array
 
         if isinstance(self, Collection):
             type_ = "collection"
@@ -295,6 +296,8 @@ class ModelObject:
             type_ = "model"
         elif isinstance(self, TuplePrior):
             type_ = "tuple_prior"
+        elif isinstance(self, Array):
+            type_ = "array"
         else:
             raise AssertionError(
                 f"{self.__class__.__name__} cannot be serialised to dict"

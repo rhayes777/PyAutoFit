@@ -1,6 +1,7 @@
 import pytest
 
 import autofit as af
+from autoconf.dictable import to_dict
 
 
 @pytest.fixture
@@ -81,3 +82,58 @@ def test_from_dict():
             [0.0, 0.0],
         ]
     ).all()
+
+
+@pytest.fixture
+def array_dict():
+    return {
+        "arguments": {
+            "indices": {
+                "type": "list",
+                "values": [
+                    {"type": "tuple", "values": [0, 0]},
+                    {"type": "tuple", "values": [0, 1]},
+                    {"type": "tuple", "values": [1, 0]},
+                    {"type": "tuple", "values": [1, 1]},
+                ],
+            },
+            "prior_0_0": {
+                "id": 1,
+                "lower_limit": float("-inf"),
+                "mean": 0.0,
+                "sigma": 1.0,
+                "type": "Gaussian",
+                "upper_limit": float("inf"),
+            },
+            "prior_0_1": {
+                "id": 2,
+                "lower_limit": float("-inf"),
+                "mean": 0.0,
+                "sigma": 1.0,
+                "type": "Gaussian",
+                "upper_limit": float("inf"),
+            },
+            "prior_1_0": {
+                "id": 3,
+                "lower_limit": float("-inf"),
+                "mean": 0.0,
+                "sigma": 1.0,
+                "type": "Gaussian",
+                "upper_limit": float("inf"),
+            },
+            "prior_1_1": {
+                "id": 4,
+                "lower_limit": float("-inf"),
+                "mean": 0.0,
+                "sigma": 1.0,
+                "type": "Gaussian",
+                "upper_limit": float("inf"),
+            },
+            "shape": {"type": "tuple", "values": [2, 2]},
+        },
+        "type": "array",
+    }
+
+
+def test_to_dict(array, array_dict):
+    assert to_dict(array) == array_dict
