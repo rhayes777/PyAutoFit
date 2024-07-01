@@ -150,6 +150,7 @@ class ModelObject:
         from autofit.mapper.prior_model.collection import Collection
         from autofit.mapper.prior_model.prior_model import Model
         from autofit.mapper.prior.abstract import Prior
+        from autofit.mapper.prior.gaussian import GaussianPrior
         from autofit.mapper.prior.tuple_prior import TuplePrior
         from autofit.mapper.prior.arithmetic.compound import Compound
         from autofit.mapper.prior.arithmetic.compound import ModifiedPrior
@@ -237,14 +238,7 @@ class ModelObject:
         elif type_ == "array":
             from autofit.mapper.prior_model.array import Array
 
-            return Array(
-                shape=d["shape"],
-                prior=from_dict(
-                    d["prior"],
-                    reference=dereference(reference, "prior"),
-                    loaded_ids=loaded_ids,
-                ),
-            )
+            return Array.from_dict(d)
         else:
             try:
                 return Prior.from_dict(d, loaded_ids=loaded_ids)

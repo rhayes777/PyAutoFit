@@ -66,24 +66,6 @@ def test_correlation(array):
     assert instance[0, 1] == instance[1, 0]
 
 
-def test_from_dict():
-    array = af.AbstractPriorModel.from_dict(
-        {
-            "type": "array",
-            "shape": (2, 2),
-            "prior": {"type": "Gaussian", "mean": 0.0, "sigma": 1.0},
-        }
-    )
-    assert array.prior_count == 4
-    assert (
-        array.instance_from_prior_medians()
-        == [
-            [0.0, 0.0],
-            [0.0, 0.0],
-        ]
-    ).all()
-
-
 @pytest.fixture
 def array_dict():
     return {
@@ -98,7 +80,6 @@ def array_dict():
                 ],
             },
             "prior_0_0": {
-                "id": 1,
                 "lower_limit": float("-inf"),
                 "mean": 0.0,
                 "sigma": 1.0,
@@ -106,7 +87,6 @@ def array_dict():
                 "upper_limit": float("inf"),
             },
             "prior_0_1": {
-                "id": 2,
                 "lower_limit": float("-inf"),
                 "mean": 0.0,
                 "sigma": 1.0,
@@ -114,7 +94,6 @@ def array_dict():
                 "upper_limit": float("inf"),
             },
             "prior_1_0": {
-                "id": 3,
                 "lower_limit": float("-inf"),
                 "mean": 0.0,
                 "sigma": 1.0,
@@ -122,7 +101,6 @@ def array_dict():
                 "upper_limit": float("inf"),
             },
             "prior_1_1": {
-                "id": 4,
                 "lower_limit": float("-inf"),
                 "mean": 0.0,
                 "sigma": 1.0,
@@ -135,5 +113,17 @@ def array_dict():
     }
 
 
-def test_to_dict(array, array_dict):
-    assert to_dict(array) == array_dict
+def test_to_dict(array, array_dict, remove_ids):
+    assert remove_ids(to_dict(array)) == array_dict
+
+
+def test_from_dict(array_dict):
+    array = af.AbstractPriorModel.from_dict(array_dict)
+    assert array.prior_count == 4
+    assert (
+        array.instance_from_prior_medians()
+        == [
+            [0.0, 0.0],
+            [0.0, 0.0],
+        ]
+    ).all()

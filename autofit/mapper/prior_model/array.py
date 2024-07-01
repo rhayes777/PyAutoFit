@@ -1,12 +1,17 @@
-from typing import Tuple, Dict
+from typing import Tuple, Dict, Optional
 
+from autoconf.dictable import from_dict
 from .abstract import AbstractPriorModel
 from autofit.mapper.prior.abstract import Prior
 import numpy as np
 
 
 class Array(AbstractPriorModel):
-    def __init__(self, shape: Tuple[int, ...], prior: Prior):
+    def __init__(
+        self,
+        shape: Tuple[int, ...],
+        prior: Optional[Prior] = None,
+    ):
         """
         An array of priors.
 
@@ -21,8 +26,9 @@ class Array(AbstractPriorModel):
         self.shape = shape
         self.indices = list(np.ndindex(*shape))
 
-        for index in self.indices:
-            self[index] = prior.new()
+        if prior is not None:
+            for index in self.indices:
+                self[index] = prior.new()
 
     @staticmethod
     def _make_key(index):
@@ -53,3 +59,19 @@ class Array(AbstractPriorModel):
 
     def __getitem__(self, key):
         return getattr(self, self._make_key(key))
+
+    @classmethod
+    def from_dict(
+        cls,
+        d,
+        reference: Optional[Dict[str, str]] = None,
+        loaded_ids: Optional[dict] = None,
+    ):
+        arguments = d["arguments"]
+        shape = from_dict(arguments["shape"])
+        array = cls(shape)
+        for key, value in arguments.items():
+            if key.startswith("prior"):
+                setattr(array, key, from_dict(value))
+
+        return array
