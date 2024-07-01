@@ -46,3 +46,10 @@ def test_instance_3d(array_3d):
 def test_modify_prior(array):
     array[0, 0] = 1.0
     assert array.prior_count == 3
+    assert (
+        array.instance_from_prior_medians()
+        == [
+            [1.0, 0.0],
+            [0.0, 0.0],
+        ]
+    ).all()

@@ -19,7 +19,7 @@ class Array(AbstractPriorModel):
         """
         super().__init__()
         self.shape = shape
-        self.indices = np.ndindex(*shape)
+        self.indices = list(np.ndindex(*shape))
 
         for index in self.indices:
             self[index] = prior.new()
@@ -36,9 +36,16 @@ class Array(AbstractPriorModel):
     ):
         array = np.zeros(self.shape)
         for index in self.indices:
-            array[index] = self[index].instance_for_arguments(
-                arguments, ignore_assertions
-            )
+            value = self[index]
+            try:
+                value = value.instance_for_arguments(
+                    arguments,
+                    ignore_assertions,
+                )
+            except AttributeError:
+                pass
+
+            array[index] = value
         return array
 
     def __setitem__(self, key, value):
