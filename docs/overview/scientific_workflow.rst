@@ -25,7 +25,6 @@ which are as follows:
 - **Model Composition**: Extensible model composition makes straight forward to fit many models with different parameterizations and assumptions.
 - **Searches**: Support for many non-linear searches (nested sampling, MCMC etc.), so that a user finds the right method for their problem.
 - **Configs**: Configuration files which set default model, fitting and visualization behaviour, streamlining model-fitting.
-- **Multiple Datasets**: Dedicated support for simultaneously fitting multiple datasets, enabling scalable analysis of large datasets.
 - **Database**: Store results in a relational sqlite3 database, enabling streamlined management of large modeling results.
 - **Scaling Up**: Advise on how to scale up your scientific workflow from small datasets to large datasets.
 
@@ -81,7 +80,7 @@ The example below shows how this is done for the simple example of fitting a 1D 
             """
             xvalues = np.arange(analysis.data.shape[0])
 
-            model_data = instance.model_data_1d_via_xvalues_from(xvalues=xvalues)
+            model_data = instance.model_data_from(xvalues=xvalues)
 
             """
             The visualizer now outputs images of the best-fit results to hard-disk (checkout `visualizer.py`).
@@ -233,7 +232,7 @@ as illustrated below.
             """
             xvalues = np.arange(analysis.data.shape[0])
 
-            model_data = instance.model_data_1d_via_xvalues_from(xvalues=xvalues)
+            model_data = instance.model_data_from(xvalues=xvalues)
             residual_map = analysis.data - model_data
 
             """
@@ -304,7 +303,7 @@ overwritten with the ``Visualizer`` class above.
             """
             xvalues = np.arange(self.data.shape[0])
 
-            model_data = instance.model_data_1d_via_xvalues_from(xvalues=xvalues)
+            model_data = instance.model_data_from(xvalues=xvalues)
             residual_map = self.data - model_data
             chi_squared_map = (residual_map / self.noise_map) ** 2.0
             chi_squared = sum(chi_squared_map)
@@ -389,7 +388,7 @@ property ``max_log_likelihood_model_data_1d``:
             """
             xvalues = np.arange(self.analysis.data.shape[0])
 
-            return self.instance.model_data_1d_via_xvalues_from(instance=xvalues)
+            return self.instance.model_data_from(instance=xvalues)
 
 The custom result has access to the analysis class, meaning that we can use any of its methods or properties to
 compute custom result properties.
@@ -421,7 +420,7 @@ of the ``Analysis`` and define a ``make_result`` object describing what we want 
             """
             xvalues = np.arange(self.data.shape[0])
 
-            model_data = instance.model_data_1d_via_xvalues_from(xvalues=xvalues)
+            model_data = instance.model_data_from(xvalues=xvalues)
             residual_map = self.data - model_data
             chi_squared_map = (residual_map / self.noise_map) ** 2.0
             chi_squared = sum(chi_squared_map)
@@ -561,42 +560,6 @@ performing model-fitting.
 
 The `configs cookbook <https://pyautofit.readthedocs.io/en/latest/cookbooks/configs.html>`_ gives a full run-through of
 configuration file setup.
-
-Multiple Datasets
------------------
-
-Many model-fitting problems require multiple datasets to be fitted simultaneously in order to provide the best constraints on the model.
-
-**PyAutoFit** makes it straight forward to scale-up your scientific workflow to fits to multiple datasets. All you
-do is define ``Analysis`` classes describing how the model fits each dataset and sum them together:
-
-.. code-block:: python
-
-    analysis_0 = Analysis(data=data_0, noise_map=noise_map_0)
-    analysis_1 = Analysis(data=data_1, noise_map=noise_map_1)
-
-    # This means the model is fitted to both datasets simultaneously.
-
-    analysis = analysis_0 + analysis_1
-
-    # summing a list of analysis objects is also a valid API:
-
-    analysis = sum([analysis_0, analysis_1])
-
-By summing analysis objects the following happen:
-
-- The log likelihood values computed by the ``log_likelihood_function`` of each individual analysis class are summed to give an overall log likelihood value that the non-linear search samples when model-fitting.
-
-- The output path structure of the results goes to a single folder, which includes sub-folders for the visualization of every individual analysis object based on the ``Analysis`` object's ``visualize`` method.
-
-In the example above, the same ``Analysis`` class was used twice (to set up ``analysis_0`` and ``analysis_1``) and summed.
-
-**PyAutoFit** supports the summing together of different ``Analysis`` classes, which may take as input completely different
-datasets and fit the model to them (via the ``log_likelihood_function``) following a completely different procedure.
-
-The `multiple datasets cookbook <https://pyautofit.readthedocs.io/en/latest/cookbooks/multiple_datasets.html>`_ gives a full run-through
-of fitting multiple dataset. This includes a dedicated API for customizing how the model changes over the different datasets
-and how the result return becomes a list containing information on the fit to every dataset.
 
 Database
 --------

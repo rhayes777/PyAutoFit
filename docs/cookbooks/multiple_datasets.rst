@@ -207,7 +207,7 @@ We can plot the model-fit to each dataset by iterating over the results:
     for data, result in zip(data_list, result_list):
         instance = result.max_log_likelihood_instance
 
-        model_data = instance.model_data_1d_via_xvalues_from(
+        model_data = instance.model_data_from(
             xvalues=np.arange(data.shape[0])
         )
 

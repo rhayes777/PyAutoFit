@@ -17,6 +17,8 @@ This overview gives a run through of:
  - **Searches**: Choose an MCMC, nested sampling or maximum likelihood estimator non-linear search algorithm that fits the model to the data.
  - **Model Fit**: Fit the model to the data using the chosen non-linear search, with on-the-fly results and visualization.
  - **Results**: Use the results of the search to interpret and visualize the model fit.
+- **Samples**: Use the samples of the search to inspect the parameter samples and visualize the probability density function of the results.
+- **Multiple Datasets**: Dedicated support for simultaneously fitting multiple datasets, enabling scalable analysis of large datasets.
 
 This overviews provides a high level of the basic API, with more advanced functionality described in the following
 overviews and the **PyAutoFit** cookbooks.
@@ -90,7 +92,7 @@ We do this by writing it as the following Python class:
             self.normalization = normalization
             self.sigma = sigma
 
-        def model_data_1d_via_xvalues_from(self, xvalues: np.ndarray) -> np.ndarray:
+        def model_data_from(self, xvalues: np.ndarray) -> np.ndarray:
             """
             Returns the 1D Gaussian profile on a line of Cartesian x coordinates.
 
@@ -143,9 +145,10 @@ This gives the following output:
 
 .. note::
 
-    You may be wondering where the priors above come from. **PyAutoFit** allows a user to set up configuration files that define
-    the default priors on every model parameter, to ensure that priors are defined in a consistent and concise way. More
-    information on configuration files is provided in the next overview and the cookbooks.
+    **PyAutoFit** supports the use of configuration files defining the default priors on every model parameter, which is
+    how the priors above were set. This allows the user to set up default priors in a consistent and concise way, but
+    with a high level of customization and extensibility. The use of config files to set up default behaviour is
+    described in the `configs cookbook <https://pyautofit.readthedocs.io/en/latest/cookbooks/configs.html>`_.
 
 The model has a total of 3 parameters:
 
@@ -196,6 +199,12 @@ This gives the following output:
     centre                                  UniformPrior [4], lower_limit = 0.0, upper_limit = 100.0
     normalization                           UniformPrior [5], lower_limit = 0.0, upper_limit = 100.0
     sigma                                   UniformPrior [6], lower_limit = 0.0, upper_limit = 30.0
+
+.. note::
+
+    The example above uses the most basic PyAutoFit API to compose a simple model. The API is highly extensible and
+    can scale to models with thousands of parameters, complex hierarchies and relationships between parameters.
+    A complete overview is given in the `model cookbook <https://pyautofit.readthedocs.io/en/latest/cookbooks/model.html>`_.
 
 Instances
 ---------
@@ -256,14 +265,14 @@ This gives the following output:
     normalization =  2.0
     sigma =  3.0
 
-We can use functions associated with the class, specifically the ``model_data_1d_via_xvalues_from`` function, to 
+We can use functions associated with the class, specifically the ``model_data_from`` function, to
 create a realization of the ``Gaussian`` and plot it.
 
 .. code-block:: python
 
     xvalues = np.arange(0.0, 100.0, 1.0)
 
-    model_data = instance.model_data_1d_via_xvalues_from(xvalues=xvalues)
+    model_data = instance.model_data_from(xvalues=xvalues)
 
     plt.plot(xvalues, model_data, color="r")
     plt.title("1D Gaussian Model Data.")
@@ -332,7 +341,7 @@ Read the comments and docstrings of the ``Analysis`` object below in detail for 
             Returns the log likelihood of a fit of a 1D Gaussian to the dataset.
 
             The data is fitted using an ``instance`` of the ``Gaussian`` class
-            where its ``model_data_1d_via_xvalues_from`` is called in order to
+            where its ``model_data_from`` is called in order to
             create a model data representation of the Gaussian that is fitted to the data.
             """
 
@@ -362,7 +371,7 @@ Read the comments and docstrings of the ``Analysis`` object below in detail for 
             """
             Use these xvalues to create model data of our Gaussian.
             """
-            model_data = instance.model_data_1d_via_xvalues_from(xvalues=xvalues)
+            model_data = instance.model_data_from(xvalues=xvalues)
 
             """
             Fit the model gaussian line data to the observed data, computing the residuals,
@@ -382,6 +391,11 @@ Create an instance of the ``Analysis`` class by passing the ``data`` and ``noise
 
     analysis = Analysis(data=data, noise_map=noise_map)
 
+.. note::
+
+    The `Analysis` class shown above is the simplest example possible. The API is highly extensible and can include
+    model-specific output, visualization and latent variable calculations. A complete overview is given in the
+    `analysis cookbook <https://pyautofit.readthedocs.io/en/latest/cookbooks/analysis.html>`_.
 
 Non Linear Search
 -----------------
@@ -401,11 +415,15 @@ For this example, we choose the nested sampling algorithm Dynesty.
         nlive=100,
     )
 
+The default settings of the non-linear search are specified in the configuration files of **PyAutoFit**, just
+like the default priors of the model components above. The ensures the basic API of your code is concise and
+readable, but with the flexibility to customize the search to your specific model-fitting problem.
+
 .. note::
 
-    The default settings of the non-linear search are specified in the configuration files of **PyAutoFit**, just
-    like the default priors of the model components above. More information on configuration files is provided in the
-    next overview and the cookbooks.
+    PyAutoFit supports a wide range of non-linear searches, including detailed visualuzation, support for parallel
+    processing, and GPU and gradient based methods using the library JAX (https://jax.readthedocs.io/en/latest/).
+    A complete overview is given in the `searches cookbook <https://pyautofit.readthedocs.io/en/latest/cookbooks/search.html>`_.
 
 Model Fit
 ---------
@@ -495,7 +513,7 @@ Below, we use the maximum likelihood instance to compare the maximum likelihood 
 
 .. code-block:: python
 
-    model_data = result.max_log_likelihood_instance.model_data_1d_via_xvalues_from(
+    model_data = result.max_log_likelihood_instance.model_data_from(
         xvalues=np.arange(data.shape[0])
     )
 
@@ -514,6 +532,12 @@ The plot appears as follows:
 .. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/main/docs/images/toy_model_fit.png
   :width: 600
   :alt: Alternative text
+
+.. note::
+
+    Result objects contain a wealth of information on the model-fit, including parameter and error estimates. They can
+    be extensively customized to include additional information specific to your scientific problem. A complete overview
+    is given in the `results cookbook <https://pyautofit.readthedocs.io/en/latest/cookbooks/result.html>`_.
 
 Samples
 -------
@@ -537,20 +561,52 @@ The plot appears as follows:
   :width: 600
   :alt: Alternative text
 
+Multiple Datasets
+-----------------
+
+Many model-fitting problems require multiple datasets to be fitted simultaneously in order to provide the best constraints on the model.
+
+In **PyAutoFit**, all you have to do to fit multiple datasets is sum your ``Analysis`` classes together:
+
+.. code-block:: python
+
+    analysis_0 = Analysis(data=data_0, noise_map=noise_map_0)
+    analysis_1 = Analysis(data=data_1, noise_map=noise_map_1)
+
+    # This means the model is fitted to both datasets simultaneously.
+
+    analysis = analysis_0 + analysis_1
+
+    # summing a list of analysis objects is also a valid API:
+
+    analysis = sum([analysis_0, analysis_1])
+
+By summing analysis objects the log likelihood values computed by the ``log_likelihood_function`` of each individual
+analysis class are summed to give an overall log likelihood value that the non-linear search samples when model-fitting.
+
+.. note::
+
+    In the simple example above, instance pf the same ``Analysis`` class were summed (``analysis_0`` and ``analysis_1``).
+    Different ``Analysis`` classes can be summed together, for example if different datasets requiring unique
+    ``log_likelihood_function`` are fitted simultaneously. More information, including a dedicated API for customizing
+    how the model changes over the different datasets, is given in the `multiple datasets cookbook <https://pyautofit.readthedocs.io/en/latest/cookbooks/multiple_datasets.html>`_.
+
+
 Wrap Up
 -------
 
 This overview explains the basic **PyAutoFit**. It used a simple model, a simple dataset, a simple model-fitting problem
-and pretty much the simplest parts of the **PyAutoFit** API.
+and therefore the simplest **PyAutoFit** API possible.
 
-You should now have a good idea for how you would define and compose your own model, fit it to data with a chosen
+You should now have a good idea for how you would define and compose your own model, fit it to data with a
 non-linear search, and use the results to interpret the fit.
 
 The **PyAutoFit** API introduce here is very extensible and very customizable, and therefore easily adapted
 to your own model-fitting problems.
 
-The next overview describes how to use **PyAutoFit** to set up a scientific workflow, in a nutshell how to use the API
-to make your model-fitting efficient, manageable and scalable to large datasets.
+The next overview describes how to use **PyAutoFit** to set up a scientific workflow, and use the PyAutoFit API
+to make your model-fitting efficient scalable to large datasets whilst ensuring you can still perform detailed
+scientific interpretation of the results.
 
 Resources
 ---------

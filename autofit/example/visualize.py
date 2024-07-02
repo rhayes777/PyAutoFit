@@ -100,11 +100,11 @@ class VisualizerExample(af.Visualizer):
         try:
             for profile in instance:
                 try:
-                    model_data_1d += profile.model_data_1d_via_xvalues_from(xvalues=xvalues)
+                    model_data_1d += profile.model_data_from(xvalues=xvalues)
                 except AttributeError:
                     pass
         except TypeError:
-            model_data_1d += instance.model_data_1d_via_xvalues_from(xvalues=xvalues)
+            model_data_1d += instance.model_data_from(xvalues=xvalues)
 
         plt.errorbar(
             x=xvalues,

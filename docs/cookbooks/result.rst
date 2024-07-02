@@ -265,7 +265,7 @@ This makes it straight forward to plot the median PDF model:
 
 .. code-block:: python
 
-    model_data = instance.model_data_1d_via_xvalues_from(xvalues=np.arange(data.shape[0]))
+    model_data = instance.model_data_from(xvalues=np.arange(data.shape[0]))
 
     plt.plot(range(data.shape[0]), data)
     plt.plot(range(data.shape[0]), model_data)
