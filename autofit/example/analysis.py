@@ -83,8 +83,8 @@ class Analysis(af.Analysis):
         The way this is generated changes depending on if the model is a `Model` (therefore having only one profile)
         or a `Collection` (therefore having multiple profiles).
 
-        If its a model, the model component's `model_data_1d_via_xvalues_from` is called and the output returned.
-        For a collection, each components `model_data_1d_via_xvalues_from` is called, iterated through and summed
+        If its a model, the model component's `model_data_from` is called and the output returned.
+        For a collection, each components `model_data_from` is called, iterated through and summed
         to return the combined model data.
 
         Parameters
@@ -103,13 +103,13 @@ class Analysis(af.Analysis):
         try:
             for profile in instance:
                 try:
-                    model_data_1d += profile.model_data_1d_via_xvalues_from(
+                    model_data_1d += profile.model_data_from(
                         xvalues=xvalues
                     )
                 except AttributeError:
                     pass
         except TypeError:
-            model_data_1d += instance.model_data_1d_via_xvalues_from(xvalues=xvalues)
+            model_data_1d += instance.model_data_from(xvalues=xvalues)
 
         return model_data_1d
 

@@ -1,7 +1,7 @@
-.. _chapter_graphical_models:
+.. _chapter_3_graphical_models:
 
-Chapter: Graphical Models
-=========================
+Chapter 3 : Graphical Models
+============================
 
 In this chapter, we take you through how to compose and fit graphical models in **PyAutoFit**. Graphical models
 simultaneously fit many datasets with a model that has 'local' parameters specific to each individual dataset

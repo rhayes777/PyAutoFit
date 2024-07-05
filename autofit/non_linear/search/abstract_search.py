@@ -98,6 +98,8 @@ def configure_handler(func):
     def decorated(self, *args, **kwargs):
         if not should_output("search_log"):
             return func(self, *args, **kwargs)
+        if self.disable_output:
+            return func(self, *args, **kwargs)
         try:
             os.makedirs(
                 self.paths.output_path,
@@ -150,6 +152,11 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             An SQLAlchemy session instance so the results of the model-fit are written to an SQLite database.
         """
         super().__init__()
+
+        if name is None and path_prefix is None:
+            self.disable_output = True
+        else:
+            self.disable_output = False
 
         from autofit.non_linear.paths.database import DatabasePaths
 
@@ -606,6 +613,8 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                 search_internal=result.search_internal,
             )
 
+        self.logger.info("Search complete, returning result")
+
         return result
 
     def pre_fit_output(
@@ -640,12 +649,17 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             (e.g. as `files/info.json`) and can be loaded via the database.
         """
 
-        self.logger.info(f"The output path of this fit is {self.paths.output_path}")
+        if not self.disable_output:
+            self.logger.info(f"The output path of this fit is {self.paths.output_path}")
+        else:
+            self.logger.info("Output to hard-disk disabled, input a search name to enable.")
 
         if not self.paths.is_complete or self.force_pickle_overwrite:
-            self.logger.info(
-                f"Outputting pre-fit files (e.g. model.info, visualization)."
-            )
+
+            if not self.disable_output:
+                self.logger.info(
+                    f"Outputting pre-fit files (e.g. model.info, visualization)."
+                )
 
             self.paths.save_all(
                 search_config_dict=self.config_dict_search,
@@ -827,7 +841,9 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         else:
             self.output_search_internal(search_internal=search_internal)
 
-        self.logger.info("Removing all files except for .zip file")
+        if not self.disable_output:
+            self.logger.info("Removing all files except for .zip file")
+
         self.paths.zip_remove()
 
         if not bypass_nuclear_if_on:
@@ -940,14 +956,17 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         """
 
         self.iterations += self.iterations_per_update
-        if during_analysis:
-            self.logger.info(
-                f"""Fit Running: Updating results after {self.iterations} iterations (see output folder)."""
-            )
-        else:
-            self.logger.info(
-                "Fit Complete: Updating final results (see output folder)."
-            )
+
+        if not self.disable_output:
+
+            if during_analysis:
+                self.logger.info(
+                    f"""Fit Running: Updating results after {self.iterations} iterations (see output folder)."""
+                )
+            else:
+                self.logger.info(
+                    "Fit Complete: Updating final results (see output folder)."
+                )
 
         if not isinstance(self.paths, DatabasePaths) and not isinstance(
             self.paths, NullPaths
@@ -966,8 +985,16 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             self.paths.save_samples_summary(samples_summary=samples_summary)
 
             samples_save = samples
+
+            log_message = True
+
+            if during_analysis:
+                log_message = False
+            elif self.disable_output:
+                log_message = False
+
             samples_save = samples_save.samples_above_weight_threshold_from(
-                log_message=not during_analysis
+                log_message=log_message
             )
             self.paths.save_samples(samples=samples_save)
 

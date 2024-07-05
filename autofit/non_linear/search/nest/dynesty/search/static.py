@@ -98,8 +98,6 @@ class DynestyStatic(AbstractDynesty):
 
         self.use_gradient = use_gradient
 
-        self.logger.debug("Creating DynestyStatic Search")
-
     @property
     def search_internal(self):
         return StaticSampler.restore(self.checkpoint_file)

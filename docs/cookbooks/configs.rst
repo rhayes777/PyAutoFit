@@ -48,7 +48,7 @@ not have a config file.
             self.normalization = normalization
             self.sigma = sigma
 
-        def model_data_1d_via_xvalues_from(self, xvalues: np.ndarray) -> np.ndarray:
+        def model_data_from(self, xvalues: np.ndarray) -> np.ndarray:
             """
             The usual method that returns the 1D data of the `Gaussian` profile.
             """
