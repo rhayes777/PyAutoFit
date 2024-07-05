@@ -3,38 +3,42 @@
 Scientific Workflow
 ===================
 
-A scientific workflow are the tasks that you perform to undertake scientific study. This includes fitting models to
-datasets, interpreting the results and gaining insight and intuition about your scientific problem.
+A scientific workflow comprises the tasks you perform to conduct a scientific study. This includes fitting models to
+datasets, interpreting the results, and gaining insights into your scientific problem.
 
-Different problems require different scientific workflows, depending on the complexity of the model, the size of the
-dataset and the computational run times of the analysis. For example, some problems have a single dataset, which
-is fitted with many different models in order to gain scientific insight. Other problems have many thousands of datasets,
-that are fitted with a single model, in order to perform a large scale scientific study.
+Different problems require different scientific workflows, depending on factors such as model complexity, dataset size,
+and computational run times. For example, some problems involve fitting a single dataset with many models to gain
+scientific insights, while others involve fitting thousands of datasets with a single model for large-scale studies.
 
-The **PyAutoFit** API is flexible, customisable and extensible, enabling user to a develop scientific workflow
-that is tailored to their specific problem.
+The **PyAutoFit** API is flexible, customizable, and extensible, enabling users to develop scientific workflows
+tailored to their specific problems.
 
-This overview covers the key features of **PyAutoFit** that enable the development of effective scientific workflows,
-which are as follows:
+This overview covers the key features of **PyAutoFit** that support the development of effective scientific workflows:
 
-- **On The Fly**: Displaying results on-the-fly (e.g. in a Jupyter notebooks), providing immediate feedback for adapting a scientific workflow.
-- **Hard Disk Output**: Output results to hard-disk with high levels of customization, enabling quick but detailed inspection of fits to many datasets.
-- **Visualization**: Output model specific visualization to produce custom plots that further streamline result inspection.
-- **Loading Results**: Load results from hard-disk to inspect and interpret the results of a model-fit.
-- **Result Customization**: Customize the result returned by a fit to streamline scientific interpretation.
-- **Model Composition**: Extensible model composition makes straight forward to fit many models with different parameterizations and assumptions.
-- **Searches**: Support for many non-linear searches (nested sampling, MCMC etc.), so that a user finds the right method for their problem.
-- **Configs**: Configuration files which set default model, fitting and visualization behaviour, streamlining model-fitting.
-- **Database**: Store results in a relational sqlite3 database, enabling streamlined management of large modeling results.
-- **Scaling Up**: Advise on how to scale up your scientific workflow from small datasets to large datasets.
+- **On The Fly**: Display results immediately (e.g., in Jupyter notebooks) to provide instant feedback for adapting your workflow.
+- **Hard Disk Output**: Output results to hard disk with high customization, allowing quick and detailed inspection of fits to many datasets.
+- **Visualization**: Generate model-specific visualizations to create custom plots that streamline result inspection.
+- **Loading Results**: Load results from the hard disk to inspect and interpret the outcomes of a model fit.
+- **Result Customization**: Customize the returned results to simplify scientific interpretation.
+- **Model Composition**: Extensible model composition makes it easy to fit many models with different parameterizations and assumptions.
+- **Searches**: Support for various non-linear searches (e.g., nested sampling, MCMC), including gradient based fitting using JAX, to find the right method for your problem.
+- **Configs**: Configuration files that set default model, fitting, and visualization behaviors, streamlining model fitting.
+- **Database**: Store results in a relational SQLite3 database, enabling efficient management of large modeling results.
+- **Scaling Up**: Guidance on scaling up your scientific workflow from small to large datasets.
 
 On The Fly
 ----------
 
-When a model-fit is running, information about the fit is displayed in user specified intervals on-the-fly.
+.. note::
 
-The frequency of on-the-fly output is controlled by a search's ``iterations_per_update``, which specifies how often
-this information is output. The example code below outputs on-the-fly information every 1000 iterations:
+    The on-the-fly feature described below is not implemented yet, we are working on it currently.
+    The best way to get on-the-fly output is to output to hard-disk, which is described in the next section.
+    This feature is fully implemented and provides on-the-fly output of results to hard-disk.
+
+When a model fit is running, information about the fit is displayed at user-specified intervals.
+
+The frequency of this on-the-fly output is controlled by a search's `iterations_per_update` parameter, which
+specifies how often this information is output. The example code below outputs on-the-fly information every 1000 iterations:
 
 .. code-block:: python
 
@@ -42,22 +46,23 @@ this information is output. The example code below outputs on-the-fly informatio
         iterations_per_update=1000
     )
 
-In a Jupyter notebook, the default behaviour is for this information to appear in the cell being run and for it to include:
+In a Jupyter notebook, the default behavior is for this information to appear in the cell being run and to include:
 
 - Text displaying the maximum likelihood model inferred so far and related information.
-- A visual showing how the search has sampler parameter space so far, giving intuition on how the search is performing.
+- A visual showing how the search has sampled parameter space so far, providing intuition on how the search is performing.
 
 Here is an image of how this looks:
 
-The most valuable on-the-fly output is often specific to the model and dataset you are fitting.
+![Example On-the-Fly Output](path/to/image.png)
 
-For example, it might be a ``matplotlib`` subplot showing the maximum likelihood model's fit to the dataset, complete
-with residuals and other diagnostic information.
+The most valuable on-the-fly output is often specific to the model and dataset you are fitting. For instance, it
+might be a ``matplotlib`` subplot showing the maximum likelihood model's fit to the dataset, complete with residuals
+and other diagnostic information.
 
-The on-the-fly output can be fully customized by extending the ``on_the_fly_output`` method of the ``Analysis`` class
-being used to fit the model.
+The on-the-fly output can be fully customized by extending the ``on_the_fly_output`` method of the ``Analysis``
+class being used to fit the model.
 
-The example below shows how this is done for the simple example of fitting a 1D Gaussian profile:
+The example below shows how this is done for the simple case of fitting a 1D Gaussian profile:
 
 .. code-block:: python
 
@@ -102,72 +107,71 @@ The example below shows how this is done for the simple example of fitting a 1D 
             plt.ylabel("Profile Normalization")
             plt.show() # By using `plt.show()` the plot will be displayed in the Jupyter notebook.
 
-Here is how the visuals appear in a Jupyter Notebook:
+Here's how the visuals appear in a Jupyter Notebook:
 
-In the early stages of setting up a scientific workflow, on-the-fly output is invaluable.
+![Example On-the-Fly Output](path/to/image.png)
 
-It provides immediate feedback on how your model fitting is performing (which at the start of a project is often not very well!).
-It also forces you to think first and foremost about how to visualize your fit and diagnose whether things are performing
-well or not.
+In the early stages of setting up a scientific workflow, on-the-fly output is invaluable. It provides immediate
+feedback on how your model fitting is performing, which is often crucial at the beginning of a project when things
+might not be going well. It also encourages you to prioritize visualizing your fit and diagnosing whether the process
+is working correctly.
 
-We recommend users starting a new model-fitting problem should always begin by setting up on-the-fly output!
-
-.. note::
-
-    The function ``on_the_fly_output`` is not implemented yet, we are working on this currently!
+We highly recommend users starting a new model-fitting problem begin by setting up on-the-fly output!
 
 Hard Disk Output
 ----------------
 
-By default, a non-linear search does not output its results to hard-disk and its results can only be inspected
-in a Jupyter Notebook or Python script via the ``result`` that is returned.
+By default, a non-linear search does not save its results to the hard disk; the results can only be inspected in a Jupyter Notebook or Python script via the returned `result`.
 
-However, the results of any non-linear search can be output to hard-disk by passing the ``name`` and / or ``path_prefix``
-attributes, which are used to name files and output the results to a folder on your hard-disk.
+However, you can enable the output of non-linear search results to the hard disk by specifying the `name` and/or `path_prefix` attributes. These attributes determine how files are named and where results are saved on your hard disk.
 
-The benefits of doing this include:
+Benefits of saving results to the hard disk include:
 
-- Inspecting results via folders on your computer is more efficient than using a Jupyter Notebook for multiple datasets.
-- Results are output on-the-fly, making it possible to check that a fit is progressing as expected mid way through.
-- Additional information about a fit (e.g. visualization) can be output (see below).
+- More efficient inspection of results for multiple datasets compared to using a Jupyter Notebook.
+- Results are saved on-the-fly, allowing you to check the progress of a fit midway.
+- Additional information about a fit, such as visualizations, can be saved (see below).
 - Unfinished runs can be resumed from where they left off if they are terminated.
-- On high performance super computers results often must be output in this way.
+- On high-performance supercomputers, results often need to be saved in this manner.
 
-The code below shows how to enable outputting of results to hard-disk:
+Here's how to enable the output of results to the hard disk:
 
 .. code-block:: python
 
     search = af.Emcee(
         path_prefix=path.join("folder_0", "folder_1"),
-        name="example_mcmc"
+        name="my_search_name"
     )
 
 The screenshot below shows the output folder where all output is enabled:
 
-.. note::
+.. image:: https://raw.githubusercontent.com/Jammy2211/PyAutoFit/main/docs/overview/image/output_example.png
+  :width: 400
+  :alt: Alternative text
 
-    Screenshot needs to be added here.
+Let's break down the output folder generated by **PyAutoFit**:
 
-Lets consider three parts of this output folder:
+- **Unique Identifier**: Results are saved in a folder named with a unique identifier composed of random characters. This identifier is automatically generated based on the specific model fit. For scientific workflows involving numerous model fits, this ensures that each fit is uniquely identified without requiring manual updates to output paths.
 
-- **Unique Identifier**: Results are output to a folder which is a collection of random characters, which is uniquely generated based on the model fit. For scientific workflows where many models are fitted this means many fits an be performed without manually updating the output paths.
-- **Info Files**: Files containing useful information about the fit are available, for example ``model.info`` contains the full model composition and ``search.summary`` contains information on how long the search has been running.
-- **Files Folder**: The ``files`` folder contains detailed information about the fit, as ``.json`` files which can be loaded as (e.g. ``model.json`` can be used to load the``Model``), so that if you return to results at a later date you can remind yourself how the fit was performed.
+- **Info Files**: These files contain valuable information about the fit. For instance, `model.info` provides the complete model composition used in the fit, while `search.summary` details how long the search has been running and other relevant search-specific information.
 
-**PyAutoFit** has lots more tools for customizing hard-disk output, for example configuration files controlling what gets output in order to manage hard-disk space use and model-specific ``.json`` files.
+- **Files Folder**: Within the output folder, the `files` directory contains detailed information saved as `.json` files. For example, `model.json` stores the model configuration used in the fit. This enables researchers to revisit the results later and review how the fit was performed.
 
-For many scientific workflows, being able to output so much information about each fit is integral to ensuring you inspect and interpret the results
-accurately. On the other hand, there are many problems where outputting so much information to hard-disk may overwhelm a user and prohibit
-scientific study, which is why it can be easily disabled by not passing the search a ``name`` or ``path prefix``!
+**PyAutoFit** offers extensive tools for customizing hard-disk output. This includes using configuration files to control what information is saved, which helps manage disk space utilization. Additionally, specific `.json` files tailored to different models can be utilized for more detailed output.
+
+For many scientific workflows, having detailed output for each fit is crucial for thorough inspection and accurate
+interpretation of results. However, in scenarios where the volume of output data might overwhelm users or impede
+scientific study, this feature can be easily disabled by omitting the `name` or `path prefix` when initiating the search.
 
 Visualization
 -------------
 
-If search hard-disk output is enabled, visualization of the model-fit can also be output to hard-disk, which
-for many scientific workflows is integral to assessing the quality of a fit quickly and effectively.
+When search hard-disk output is enabled in **PyAutoFit**, the visualization of model fits can also be saved directly
+to disk. This capability is crucial for many scientific workflows as it allows for quick and effective assessment of
+fit quality.
 
-This is done by overwriting the ``Visualizer`` object of an ``Analysis`` class with a custom ``Visualizer`` class,
-as illustrated below.
+To accomplish this, you can customize the `Visualizer` object of an `Analysis` class with a custom `Visualizer` class.
+This custom class is responsible for generating and saving visual representations of the model fits. By leveraging
+this approach, scientists can efficiently visualize and analyze the outcomes of model fitting processes.
 
 .. code-block:: python
 
@@ -194,7 +198,7 @@ as illustrated below.
 
             import matplotlib.pyplot as plt
 
-            xvalues = np.arange(analysis.data.shape[0])
+            xvalues = np.arange(self.data.shape[0])
 
             plt.errorbar(
                 x=xvalues,
@@ -312,26 +316,30 @@ overwritten with the ``Visualizer`` class above.
 
             return log_likelihood
 
-Visualization of the results of the search, such as the corner plot of what is called the "Probability Density
+Visualization of the results of the non-linear search, for example the "Probability Density
 Function", are also automatically output during the model-fit on the fly.
 
 Loading Results
 ---------------
 
-Your scientific workflow will likely involve many model-fits, which will be output to hard-disk in folders.
+In your scientific workflow, you'll likely conduct numerous model fits, each generating outputs stored in individual
+folders on your hard disk.
 
-A streamlined API for loading these results from hard-disk to Python variables, so they can be manipulated and
-inspected in a Python script or Jupiter notebook is therefore essential.
+To efficiently work with these results in Python scripts or Jupyter notebooks, **PyAutoFit** provides
+the `aggregator` API. This tool simplifies the process of loading results from hard disk into Python variables.
+By pointing the aggregator at the folder containing your results, it automatically loads all relevant information
+from each model fit.
 
-The **PyAutoFit** aggregator provides this API, you simply point it at the folder containing the results and it
-loads the results (and other information) of all model-fits in that folder.
+This capability streamlines the workflow by enabling easy manipulation and inspection of model-fit results directly
+within your Python environment. It's particularly useful for managing and analyzing large-scale studies where
+handling multiple model fits and their associated outputs is essential.
 
 .. code-block:: python
 
     from autofit.aggregator.aggregator import Aggregator
 
     agg = Aggregator.from_directory(
-        directory=path.join("output", "result_folder"),
+        directory=path.join("result_folder"),
     )
 
 The ``values`` method is used to specify the information that is loaded from the hard-disk, for example the
@@ -388,7 +396,7 @@ property ``max_log_likelihood_model_data_1d``:
             """
             xvalues = np.arange(self.analysis.data.shape[0])
 
-            return self.instance.model_data_from(instance=xvalues)
+            return self.instance.model_data_from(xvalues=xvalues)
 
 The custom result has access to the analysis class, meaning that we can use any of its methods or properties to
 compute custom result properties.
@@ -505,40 +513,47 @@ all the different ways the result can be customized.
 Model Composition
 -----------------
 
-Many scientific workflows require composing and fitting many different models.
+In many scientific workflows, there's often a need to construct and fit a variety of different models. This
+could range from making minor adjustments to a model's parameters to handling complex models with thousands of parameters and multiple components.
 
-The simplest examples are when slight tweaks to the model are required, for example:
+For simpler scenarios, adjustments might include:
 
-- **Parameter Assignment**: Fix certain parameters to input values or linking parameters in the model together so they have the same values.
-- **Parameter Assertions**: Place assertions on model parameters, for example requiring that one parameter is higher than another parameter.
-- **Model Arithmitic**: Use arithmitic to define relations between parameters, for example a ``y = mx + c`` where ``m`` and ``c`` are model parameters.
+- **Parameter Assignment**: Setting specific values for certain parameters or linking parameters together so they share the same value.
+- **Parameter Assertions**: Imposing constraints on model parameters, such as requiring one parameter to be greater than another.
+- **Model Arithmetic**: Defining relationships between parameters using arithmetic operations, such as defining a linear relationship like `y = mx + c`, where `m` and `c` are model parameters.
 
-In more complex situations, models with many thousands of parameters consisting of many model components may be fitted.
+In more intricate cases, models might involve numerous parameters and complex compositions of multiple model components.
 
-**PyAutoFit**'s advanced model composition API has many tools for compositing complex models, including constructing
-models from lists of Python classes and hierarchies of Python classes.
+**PyAutoFit** offers a sophisticated model composition API designed to handle these complexities. It provides
+tools for constructing elaborate models using lists of Python classes and hierarchical structures of Python classes.
 
-The `model cookbook <https://pyautofit.readthedocs.io/en/latest/cookbooks/model.html>`_ gives a full run-through of
-the model composition API.
+For a detailed exploration of these capabilities, you can refer to
+the `model cookbook <https://pyautofit.readthedocs.io/en/latest/cookbooks/model.html>`_, which provides comprehensive
+guidance on using the model composition API. This resource covers everything from basic parameter assignments to
+constructing complex models with hierarchical structures.
 
 Searches
 --------
 
-Different model-fitting problems require different methods to fit the model.
+Different model-fitting problems often require different approaches to fitting the model effectively.
 
-The search appropriate for your problem depends on many factors:
+The choice of the most suitable search method depends on several factors:
 
-- **Model Dimensions**: How many parameters does the model and its non-linear parameter space consist of?
-- **Model Complexity**: Different models have different parameter degeneracies requiring different non-linear search techniques.
-- **Run Times**: How fast does it take to evaluate a likelihood and perform the model-fit?
+- **Model Dimensions**: How many parameters constitute the model and its non-linear parameter space?
+- **Model Complexity**: Different models exhibit varying degrees of parameter degeneracy, which necessitates different non-linear search techniques.
+- **Run Times**: How efficiently can the likelihood function be evaluated and the model-fit performed?
+- **Gradients**: If your likelihood function is differentiable, leveraging JAX and using a search that exploits gradient information can be advantageous.
 
-**PyAutoFit** supports many non-linear searches ensuring that each user can find the best method for their problem.
+**PyAutoFit** provides support for a wide range of non-linear searches, ensuring that users can select the method
+best suited to their specific problem.
 
-In the early stages of setting up your scientific workflow, you should experiment with different searches, determine which
-reliable infer the maximum likelihood fits to the data and profile which ones do so in the faster times.
+During the initial stages of setting up your scientific workflow, it's beneficial to experiment with different
+searches. This process helps identify which methods reliably infer maximum likelihood fits to the data and assess
+their efficiency in terms of computational time.
 
-The `search cookbook <https://pyautofit.readthedocs.io/en/latest/cookbooks/search.html>`_ gives a full run-through of
-all non-linear searches that are available and how to customize them.
+For a comprehensive exploration of available search methods and customization options, refer to
+the `search cookbook <https://pyautofit.readthedocs.io/en/latest/cookbooks/search.html>`_. This resource covers
+detailed guides on all non-linear searches supported by PyAutoFit and provides insights into how to tailor them to your needs.
 
 .. note::
 
@@ -549,57 +564,58 @@ all non-linear searches that are available and how to customize them.
 Configs
 -------
 
-As you develop your scientific workflow, you will likely find that you are often setting up models with the same priors
-every time and using the same non-linear search settings.
+As you refine your scientific workflow, you'll often find yourself repeatedly setting up models with identical priors
+and using the same non-linear search configurations. This repetition can result in lengthy Python scripts with
+redundant inputs.
 
-This can lead to long lines of Python code repeating the same inputs.
+To streamline this process, configuration files can be utilized to define default values. This approach eliminates
+the need to specify identical prior inputs and search settings in every script, leading to more concise and
+readable Python code. Moreover, it reduces the cognitive load associated with performing model-fitting tasks.
 
-Configuration files can be set up to input default values, meaning that the same prior inputs and settings do not need
-to be repeated in every script. This produces more concise Python code and means you have less to think about when
-performing model-fitting.
-
-The `configs cookbook <https://pyautofit.readthedocs.io/en/latest/cookbooks/configs.html>`_ gives a full run-through of
-configuration file setup.
+For a comprehensive guide on setting up and utilizing configuration files effectively, refer
+to the `configs cookbook <https://pyautofit.readthedocs.io/en/latest/cookbooks/configs.html>`_. This resource provides
+detailed instructions on configuring and optimizing your PyAutoFit workflow through the use of configuration files.
 
 Database
 --------
 
-The default behaviour of model-fitting results output is to be written to hard-disk in folders. These are simple to
-navigate and manually check.
+By default, model-fitting results are written to folders on hard-disk, which is straightforward for navigating and
+manual inspection. However, this approach becomes impractical for large datasets or extensive scientific workflows,
+where manually checking each result can be time-consuming.
 
-For small scientific workflows and model-fitting tasks this is sufficient, however it does not scale well when
-performing many model fits to large datasets, because manual inspection of results becomes time consuming.
+To address this challenge, all results can be stored in an sqlite3 relational database. This enables loading results
+directly into Jupyter notebooks or Python scripts for inspection, analysis, and interpretation. The database
+supports advanced querying capabilities, allowing users to retrieve specific model-fits based on criteria such
+as the fitted model or dataset.
 
-All results can therefore be output to an sqlite3 (https://docs.python.org/3/library/sqlite3.html) relational database,
-meaning that results can be loaded into a Jupyter notebook or Python script for inspection, analysis and interpretation.
-This database supports advanced querying, so that specific model-fits (e.g., which fit a certain model or dataset) can
-be loaded.
-
-The `database cookbook <https://pyautofit.readthedocs.io/en/latest/cookbooks/multiple_datasets.html>`_ gives a full run-through
-of how to use the database functionality.
+For a comprehensive guide on using the database functionality within PyAutoFit, refer to
+the `database cookbook <https://pyautofit.readthedocs.io/en/latest/cookbooks/multiple_datasets.html>`. This resource
+provides detailed instructions on leveraging the database to manage and analyze model-fitting results efficiently.
 
 Scaling Up
 ----------
 
-Irrespective of your final scientific goal, you should always
+Regardless of your final scientific objective, it's crucial to consider scalability in your scientific workflow and
+ensure it remains flexible to accommodate varying scales of complexity.
 
-Initially, the study will be performed on a small number of datasets (e.g. ~10s of datasets), as the user develops
-their model and gains insight into what works well. This is a manual process of trial and error, which often involves
-fitting many different models to the datasets and inspecting the result to gain insight on what models are good.
-Their scientific workflow must be flexible enough to allow them to quickly fit many different models to their data,
-and output the results in a format that is quick and easy to inspect and interpret.
+Initially, scientific studies often begin with a small number of datasets (e.g., tens of datasets). During this phase,
+researchers iteratively refine their models and gain insights through trial and error. This involves fitting numerous
+models to datasets and manually inspecting results to evaluate model performance. A flexible workflow is essential
+here, allowing rapid iteration and outputting results in a format that facilitates quick inspection and interpretation.
 
-Eventually, one may then scale up to a large number of datasets (e.g. ~1000s of datasets). Manual inspection of
-individual results becomes infeasible, and the scientific workflow requires a more automated apporach to model fitting
-and interpretation. This may also see the analysis move to a high performance computing, meaning that result output
-must be suitable for this environment.
+As the study progresses, researchers may scale up to larger datasets (e.g., thousands of datasets). Manual inspection
+of individual results becomes impractical, necessitating a more automated approach to model fitting and interpretation.
+Additionally, analyses may transition to high-performance computing environments, requiring output formats suitable for these setups.
 
-**PyAutoFit** enables the development of effective scientific workflows for both small and large datasets, thanks
-to the following features:
+**PyAutoFit** is designed to enable the development of effective scientific workflows for both small and large datasets.
 
+Wrap Up
+-------
 
-**PyAutoFit** supports **on-the-fly** output whilst the model-fit is running.
+This overview has provided a comprehensive guide to the key features of **PyAutoFit** that support the development of
+effective scientific workflows. By leveraging these tools, researchers can tailor their workflows to specific problems,
+streamline model fitting, and gain valuable insights into their scientific studies.
 
-For example, in a Jupyter notebook, text displaying the maximum likelihood model inferred so far alongside visuals
-showing the parameter sampling are output to the cell as the search runs. On the fly output can be fully customized
-with visualization specific to your model and data, as shown in the following overviews and cookbooks.
+The final aspect of core functionality, described in the next overview, is the wide variety of statistical
+inference methods available in **PyAutoFit**. These methods include graphical models, hierarchical models,
+Bayesian model comparison and many more.

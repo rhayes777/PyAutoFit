@@ -4,14 +4,14 @@ HowToFit Lectures
 =================
 
 To learn how to use **PyAutoFit**, the best starting point is the **HowToFit** lecture series, which are found on
-the `autofit_workspace <https://github.com/Jammy2211/autofit_workspace>`_ and at
-our `binder <https://mybinder.org/v2/gh/Jammy2211/autofit_workspace/HEAD>`_.
+the ``autofit_workspace <https://github.com/Jammy2211/autofit_workspace>``_ and at
+our ``binder <https://mybinder.org/v2/gh/Jammy2211/autofit_workspace/HEAD>``_.
 
 The lectures are provided as *Jupyter notebooks* and currently consist of 3 chapters:
 
-- ``chapter_1_introduction``: Introduction lectures describing how to compose and fit a models in **PyAutoFit**.
-- ``chapter_database``: How to output results to a .sqlite database format and load them for analysis after model-fitting is complete.
-- ``chapter_graphical_models``: How to compose and fit graphical models which fit many datasets simultaneously.
+- ``chapter_1_introduction``: Introduction lectures describing how to compose and fit a models.
+- ``chapter_2_scientific_workflow``: Not written yet, but will describe how to build a scientific workflow as described the overview example.
+- ``chapter_3_graphical_models``: How to compose and fit graphical models which fit many datasets simultaneously.
 
 Statistics and Theory
 ---------------------
@@ -68,41 +68,38 @@ interested in, building on the scripts found in the 'autofit_workspace/examples'
 with the results and confident with your use of **PyAutoFit**, you can then begin to cover the advanced functionality
 covered in other chapters.
 
-Overview of Chapter 1 (Beginner)
---------------------------------
+Overview of Chapter 1: Introduction
+-----------------------------------
 
-**Model Fitting with PyAutoFit**
+In chapter 1, we'll learn about model composition and fitting and **PyAutoFit**:
 
-In chapter 1, we'll learn about model composition and fitting and **PyAutoFit**. At the end, you'll
-be able to:
+- ``tutorial_1_models.py``: What a probabilistic model is and how to compose a model using PyAutoFit.
+- ``tutorial_2_fitting_data.py``: Fitting a model to data and quantifying its goodness-of-fit.
+- ``tutorial_3_non_linear_search.py``: Searching a non-linear parameter spaces to find the model that best fits the data.
+- ``tutorial_4_why_modeling_is_hard.py``: Composing more complex models in a scalable and extensible way.
+- ``tutorial_5_results_and_samples.py``: Interpreting the results of a model-fit and using the samples to perform scientific analysis.
+- ``tutorial_6_multiple_datasets.py``: Fitting multiple datasets simultaneously and how to compose models that are shared between datasets.
+- ``tutorial_7_bayesian_inference``: A formal introduction to Bayesian inference and how it is used to perform model-fitting.
+- ``tutorial_8_astronomy_example.py``: An example of how PyAutoFit can be used to model-fit astronomical data.
 
-1) Compose a model in **PyAutoFit**.
-2) Define a ``log_likelihood_function()`` via an ``Analysis`` class to fit that model to data.
-3) The concept of a non-linear search and non-linear parameter space.
-4) Fit a model to data using a non-linear search.
-5) Compose and fit complex models using **PyAutoFit**'s advanced model composition API.
-6) Analyse the results of a model-fit, including parameter estimates and errors.
+Overview of Chapter 2: Scientific Workflow
+-------------------------------------------
 
-Overview of Chapter Database
-----------------------------
+Chapter 2 is not written yet, but will cover the following topics:
 
-**Writing Large Suites of Results to an SQLite3 Database**
+- ``tutorial_1_output``: Outputting as much information as possible about the model-fit to the hard-disk.
+- ``tutorial_2_loading_results``: Loading the results of a model-fit from the hard-disk (with and without database).
+- ``tutorial_3_model_customization``: Customizing the model in a way that enables more detailed analysis of the results.
+- ``tutorial_4_searches``: Customizing the search used to perform the model-fit.
+- ``tutorial_5_config``: Customizing the configuration of the model-fit.
+- ``tutorial_6_latent_variables``: Introducing latent variables and how they can be used to model complex datasets.
+- ``tutorial_7_astronomy_example``: An example of how PyAutoFit can be used to model-fit astronomical data.
 
-Here, we learn how to use **PyAutoFit**'s sqlite3 database feature. You'll be able too:
+Overview of Chapter 3: Graphical Models
+---------------------------------------
 
-1) Write results to the database.
-2) Load results from the database and analyse them (e.g. parameter estimates, errors).
-3) Query the database to get subsets of results.
-4) Interface the database and your model-fitting code to perform custom tasks.
-
-Overview of Chapter Graphical Models
-------------------------------------
-
-**Fitting a Graphical Model to a Large Dataset**
-
-Here, we learn how to compose and fit graphical models to extremely large datasets. You'll learn:
-
-1) Why fitting a model to many datasets one-by-one is suboptimal.
-2) How to fit a graphical to model all datasets simultaneously and why this improves the model results.
-3) Scaling graphical model fits up to extremely large datasets via Expectation Propagation.
-4) How to fit a hierachical model using the graphical modeling framework and Expectation Propagation.
+- ``tutorial_1_individual_models``: Inferring global parameters from a dataset by fitting the model to each individual dataset one-by-one.
+- ``tutorial_2_graphical_model``: Fitting the dataset with a graphical model that fits all datasets simultaneously to infer the global parameters.
+- ``tutorial_3_graphical_benefits``: Illustrating the benefits of graphical modeling over fitting individual datasets one-by-one.
+- ``tutorial_4_hierarchical_models``: Fitting hierarchical models using the graphical modeling framework.
+- ``tutorial_5_expectation_propagation``: Scaling graphical models up to fit extremely large datasets using Expectation Propagation (EP).

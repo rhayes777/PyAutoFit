@@ -155,9 +155,9 @@ model and marginalized probability density functions.
    cookbooks/analysis
    cookbooks/search
    cookbooks/result
+   cookbooks/samples
    cookbooks/configs
    cookbooks/multiple_datasets
-   cookbooks/database
    cookbooks/multi_level_model
 
 .. toctree::
@@ -201,8 +201,8 @@ model and marginalized probability density functions.
 
    howtofit/howtofit
    howtofit/chapter_1_introduction
-   howtofit/chapter_database
-   howtofit/chapter_graphical_models
+   howtofit/chapter_2_scientific_workflow
+   howtofit/chapter_3_graphical_models
 
 .. toctree::
    :caption: Science Examples:

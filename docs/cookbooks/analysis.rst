@@ -372,7 +372,7 @@ The custom result API allows us to do this. First, we define a custom ``Result``
             """
             xvalues = np.arange(self.analysis.data.shape[0])
             
-            return self.instance.model_data_from(instance=xvalues)
+            return self.instance.model_data_from(xvalues=xvalues)
 
 The custom result has access to the analysis class, meaning that we can use any of its methods or properties to 
 compute custom result properties.

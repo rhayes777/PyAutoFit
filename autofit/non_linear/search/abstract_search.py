@@ -988,7 +988,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
             log_message = True
 
-            if not during_analysis:
+            if during_analysis:
                 log_message = False
             elif self.disable_output:
                 log_message = False
