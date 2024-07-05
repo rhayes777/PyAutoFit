@@ -155,6 +155,8 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         if name is None and path_prefix is None:
             self.disable_output = True
+        else:
+            self.disable_output = False
 
         from autofit.non_linear.paths.database import DatabasePaths
 
@@ -650,7 +652,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         if not self.disable_output:
             self.logger.info(f"The output path of this fit is {self.paths.output_path}")
         else:
-            self.logger.info("Output to hard-disk disable, input a search name to enable.")
+            self.logger.info("Output to hard-disk disabled, input a search name to enable.")
 
         if not self.paths.is_complete or self.force_pickle_overwrite:
 
