@@ -1,7 +1,7 @@
-.. _result:
+.. _samples:
 
-Result
-======
+Samples
+=======
 
 After a non-linear search has completed, it returns a ``Result`` object that contains information on fit, such as
 the maximum likelihood model instance, the errors on each parameter and the Bayesian evidence.

@@ -1,7 +1,7 @@
-.. _database:
+.. _results:
 
-Database
-========
+Results
+=======
 
 A non-linear search fits a model to a dataset, returning a `Result` object that contains a lot of information on the
 model-fit. 
