@@ -64,16 +64,13 @@ class AbstractInitializer(ABC):
         if os.environ.get("PYAUTOFIT_TEST_MODE") == "1" and test_mode_samples:
             return self.samples_in_test_mode(total_points=total_points, model=model)
 
-        logger.info(
-            f"Generating initial samples of model, which are subject to prior limits and other constraints. "
-            f"Using {n_cores} cores."
-        )
-
         unit_parameter_lists = []
         parameter_lists = []
         figures_of_merit_list = []
 
         sneaky_pool = SneakyPool(n_cores, fitness, paths)
+
+        logger.info(f"Generating Initial Samples Of Model Using {n_cores} Cores")
 
         while len(figures_of_merit_list) < total_points:
             remaining_points = total_points - len(figures_of_merit_list)
@@ -96,8 +93,9 @@ class AbstractInitializer(ABC):
 
             for figure_of_merit, unit_parameter_list, parameter_list in zip(
                 sneaky_pool.map(
-                    self.figure_of_metric,
-                    [(fitness, parameter_list) for parameter_list in parameter_lists_],
+                    function=self.figure_of_metric,
+                    args_list=[(fitness, parameter_list) for parameter_list in parameter_lists_],
+                    log_info=False
                 ),
                 unit_parameter_lists_,
                 parameter_lists_,
@@ -123,6 +121,8 @@ class AbstractInitializer(ABC):
                 - The`log_likelihood_function`  is always returning `nan` values.            
                 """
             )
+
+        logger.info(f"Generating Initial Samples Complete, Beginning Main Non-linear Search")
 
         return unit_parameter_lists, parameter_lists, figures_of_merit_list
 

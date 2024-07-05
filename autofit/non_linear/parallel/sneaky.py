@@ -234,7 +234,7 @@ class SneakyPool:
     def processes(self):
         return self._processes
 
-    def map(self, function, args_list):
+    def map(self, function, args_list, log_info : bool = True):
         """
         Execute the function with the given arguments across all of the
         processes. The likelihood  argument is removed from each args in
@@ -258,7 +258,8 @@ class SneakyPool:
             for args in args_list
         ]
 
-        logger.info(f"Running {len(jobs)} jobs across {self.processes} processes")
+        if log_info:
+            logger.info(f"Running {len(jobs)} jobs across {self.processes} processes")
 
         for i, job in enumerate(jobs):
             process = self.processes[i % len(self.processes)]
