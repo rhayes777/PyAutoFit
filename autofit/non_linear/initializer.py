@@ -70,7 +70,7 @@ class AbstractInitializer(ABC):
 
         sneaky_pool = SneakyPool(n_cores, fitness, paths)
 
-        logger.info(f"Generating Initial Samples Of Model Using {n_cores} Cores")
+        logger.info(f"Generating initial samples of model using {n_cores} cores")
 
         while len(figures_of_merit_list) < total_points:
             remaining_points = total_points - len(figures_of_merit_list)
@@ -122,7 +122,7 @@ class AbstractInitializer(ABC):
                 """
             )
 
-        logger.info(f"Generating Initial Samples Complete, Beginning Main Non-linear Search")
+        logger.info(f"Initial samples generated, starting non-linear search")
 
         return unit_parameter_lists, parameter_lists, figures_of_merit_list
 
