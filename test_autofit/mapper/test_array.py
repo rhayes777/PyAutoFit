@@ -146,3 +146,19 @@ def test_1d_array_modify_prior(array_1d):
     array_1d[0] = 1.0
     assert array_1d.prior_count == 1
     assert (array_1d.instance_from_prior_medians() == [1.0, 0.0]).all()
+
+
+def test_tree_flatten(array):
+    children, aux = array.tree_flatten()
+    assert len(children) == 4
+    assert aux == ((2, 2),)
+
+    new_array = af.Array.tree_unflatten(aux, children)
+    assert new_array.prior_count == 4
+    assert (
+        new_array.instance_from_prior_medians()
+        == [
+            [0.0, 0.0],
+            [0.0, 0.0],
+        ]
+    ).all()

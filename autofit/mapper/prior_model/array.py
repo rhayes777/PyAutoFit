@@ -5,7 +5,10 @@ from .abstract import AbstractPriorModel
 from autofit.mapper.prior.abstract import Prior
 import numpy as np
 
+from autofit.jax_wrapper import register_pytree_node_class
 
+
+@register_pytree_node_class
 class Array(AbstractPriorModel):
     def __init__(
         self,
@@ -160,3 +163,22 @@ class Array(AbstractPriorModel):
                 setattr(array, key, from_dict(value))
 
         return array
+
+    def tree_flatten(self):
+        """
+        Flatten this array model as a PyTree.
+        """
+        members = [self[index] for index in self.indices]
+        return members, (self.shape,)
+
+    @classmethod
+    def tree_unflatten(cls, aux_data, children):
+        """
+        Unflatten a PyTree into an array model.
+        """
+        (shape,) = aux_data
+        instance = cls(shape)
+        for index, child in zip(instance.indices, children):
+            instance[index] = child
+
+        return instance
