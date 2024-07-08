@@ -194,7 +194,20 @@ class Array(AbstractPriorModel):
             **{prior: np.ndarray for _, prior in self.direct_prior_tuples},
         }
 
-    def gaussian_prior_model_for_arguments(self, arguments):
+    def gaussian_prior_model_for_arguments(self, arguments: Dict[Prior, Prior]):
+        """
+        Returns a new instance of model mapper with a set of Gaussian priors based on
+        tuples provided by a previous nonlinear search.
+
+        Parameters
+        ----------
+        arguments
+            Tuples providing the mean and sigma of gaussians
+
+        Returns
+        -------
+        A new model mapper populated with Gaussian priors
+        """
         new_array = Array(self.shape)
         for index in self.indices:
             new_array[index] = self[index].gaussian_prior_model_for_arguments(arguments)
