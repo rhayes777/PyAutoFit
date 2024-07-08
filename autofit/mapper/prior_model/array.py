@@ -182,3 +182,21 @@ class Array(AbstractPriorModel):
             instance[index] = child
 
         return instance
+
+    @property
+    def prior_class_dict(self):
+        return {
+            **{
+                prior: cls
+                for prior_model in self.direct_prior_model_tuples
+                for prior, cls in prior_model[1].prior_class_dict.items()
+            },
+            **{prior: np.ndarray for _, prior in self.direct_prior_tuples},
+        }
+
+    def gaussian_prior_model_for_arguments(self, arguments):
+        new_array = Array(self.shape)
+        for index in self.indices:
+            new_array[index] = self[index].gaussian_prior_model_for_arguments(arguments)
+
+        return new_array
