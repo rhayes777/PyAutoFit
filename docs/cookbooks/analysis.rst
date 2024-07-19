@@ -56,13 +56,13 @@ This can be adapted for your use case.
             Returns the log likelihood of a fit of a 1D Gaussian to the dataset.
 
             The data is fitted using an `instance` of the `Gaussian` class where
-            its `model_data_1d_via_xvalues_from` is called in order to create a
+            its `model_data_from` is called in order to create a
             model data representation of the Gaussian that is fitted to the data.
             """
 
             xvalues = np.arange(self.data.shape[0])
 
-            model_data = instance.model_data_1d_via_xvalues_from(xvalues=xvalues)
+            model_data = instance.model_data_from(xvalues=xvalues)
 
             residual_map = self.data - model_data
             chi_squared_map = (residual_map / self.noise_map) ** 2.0
@@ -255,7 +255,7 @@ Function", are also automatically output during the model-fit on the fly.
             """
             xvalues = np.arange(analysis.data.shape[0])
 
-            model_data = instance.model_data_1d_via_xvalues_from(xvalues=xvalues)
+            model_data = instance.model_data_from(xvalues=xvalues)
             residual_map = analysis.data - model_data
 
             """
@@ -326,7 +326,7 @@ overwritten with the `Visualizer` class above.
             """
             xvalues = np.arange(self.data.shape[0])
 
-            model_data = instance.model_data_1d_via_xvalues_from(xvalues=xvalues)
+            model_data = instance.model_data_from(xvalues=xvalues)
             residual_map = self.data - model_data
             chi_squared_map = (residual_map / self.noise_map) ** 2.0
             chi_squared = sum(chi_squared_map)
@@ -372,7 +372,7 @@ The custom result API allows us to do this. First, we define a custom ``Result``
             """
             xvalues = np.arange(self.analysis.data.shape[0])
             
-            return self.instance.model_data_1d_via_xvalues_from(instance=xvalues)
+            return self.instance.model_data_from(xvalues=xvalues)
 
 The custom result has access to the analysis class, meaning that we can use any of its methods or properties to 
 compute custom result properties.
@@ -404,7 +404,7 @@ of the ``Analysis`` and define a ``make_result`` object describing what we want 
             """
             xvalues = np.arange(self.data.shape[0])
     
-            model_data = instance.model_data_1d_via_xvalues_from(xvalues=xvalues)
+            model_data = instance.model_data_from(xvalues=xvalues)
             residual_map = self.data - model_data
             chi_squared_map = (residual_map / self.noise_map) ** 2.0
             chi_squared = sum(chi_squared_map)
@@ -518,7 +518,7 @@ contains settings customizing what files are output and how often.
             """
             xvalues = np.arange(self.data.shape[0])
 
-            model_data = instance.model_data_1d_via_xvalues_from(xvalues=xvalues)
+            model_data = instance.model_data_from(xvalues=xvalues)
             residual_map = self.data - model_data
             chi_squared_map = (residual_map / self.noise_map) ** 2.0
             chi_squared = sum(chi_squared_map)
@@ -613,7 +613,7 @@ These files can then also be loaded via the database, as described in the databa
 
             xvalues = np.arange(self.data.shape[0])
 
-            model_data = instance.model_data_1d_via_xvalues_from(xvalues=xvalues)
+            model_data = instance.model_data_from(xvalues=xvalues)
 
             residual_map = self.data - model_data
             chi_squared_map = (residual_map / self.noise_map) ** 2.0
@@ -685,7 +685,7 @@ These files can then also be loaded via the database, as described in the databa
 
             instance = result.max_log_likelihood_instance
 
-            model_data = instance.model_data_1d_via_xvalues_from(xvalues=xvalues)
+            model_data = instance.model_data_from(xvalues=xvalues)
 
             # The path where model_data.json is saved, e.g. output/dataset_name/unique_id/files/model_data.json
 

@@ -194,7 +194,10 @@ class Fitness:
         except FileNotFoundError:
             return
 
-        max_log_likelihood_sample = samples_summary.max_log_likelihood_sample
+        try:
+            max_log_likelihood_sample = samples_summary.max_log_likelihood_sample
+        except AttributeError:
+            return
         log_likelihood_old = samples_summary.max_log_likelihood_sample.log_likelihood
 
         parameters = max_log_likelihood_sample.parameter_lists_for_model(

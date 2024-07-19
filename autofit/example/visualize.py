@@ -95,16 +95,18 @@ class VisualizerExample(af.Visualizer):
         """
 
         xvalues = np.arange(analysis.data.shape[0])
-        model_data_1d = np.zeros(analysis.data.shape[0])
+        model_data_1d_list = []
 
         try:
             for profile in instance:
                 try:
-                    model_data_1d += profile.model_data_1d_via_xvalues_from(xvalues=xvalues)
+                    model_data_1d_list.append(profile.model_data_from(xvalues=xvalues))
                 except AttributeError:
                     pass
         except TypeError:
-            model_data_1d += instance.model_data_1d_via_xvalues_from(xvalues=xvalues)
+            model_data_1d_list.append(instance.model_data_from(xvalues=xvalues))
+
+        model_data_1d = sum(model_data_1d_list)
 
         plt.errorbar(
             x=xvalues,
@@ -116,7 +118,12 @@ class VisualizerExample(af.Visualizer):
             capsize=2,
         )
         plt.plot(xvalues, model_data_1d, color="r")
-        plt.title("Model fit to 1D Gaussian + Exponential dataset.")
+
+        for model_data_1d_profile in model_data_1d_list:
+
+            plt.plot(xvalues, model_data_1d_profile, color="b", linestyle="--")
+
+        plt.title("Model fit to multiple 1D profiles dataset.")
         plt.xlabel("x values of profile")
         plt.ylabel("Profile normalization")
 
