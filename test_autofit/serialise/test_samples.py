@@ -52,18 +52,6 @@ def make_summary_dict():
         "type": "instance",
         "class_path": "autofit.non_linear.samples.summary.SamplesSummary",
         "arguments": {
-            "errors_at_sigma_1": {
-                "type": "list",
-                "values": [(2.0, 0.0), (3.0, 0.0), (4.0, 0.0)],
-            },
-            "errors_at_sigma_3": {
-                "type": "list",
-                "values": [(2.0, 0.0), (3.0, 0.0), (4.0, 0.0)],
-            },
-            "values_at_sigma_3": {
-                "type": "list",
-                "values": [(0.0, 2.0), (1.0, 4.0), (2.0, 6.0)],
-            },
             "max_log_likelihood_sample": {
                 "type": "instance",
                 "class_path": "autofit.non_linear.samples.sample.Sample",
@@ -81,11 +69,14 @@ def make_summary_dict():
                     },
                 },
             },
-            "values_at_sigma_1": {
+            "values_at_sigma_3": {
                 "type": "list",
-                "values": [(0.0, 2.0), (1.0, 4.0), (2.0, 6.0)],
+                "values": [
+                    {"type": "tuple", "values": [0.0, 2.0]},
+                    {"type": "tuple", "values": [1.0, 4.0]},
+                    {"type": "tuple", "values": [2.0, 6.0]},
+                ],
             },
-            "log_evidence": None,
             "median_pdf_sample": {
                 "type": "instance",
                 "class_path": "autofit.non_linear.samples.sample.Sample",
@@ -103,6 +94,31 @@ def make_summary_dict():
                     },
                 },
             },
+            "errors_at_sigma_3": {
+                "type": "list",
+                "values": [
+                    {"type": "tuple", "values": [2.0, 0.0]},
+                    {"type": "tuple", "values": [3.0, 0.0]},
+                    {"type": "tuple", "values": [4.0, 0.0]},
+                ],
+            },
+            "values_at_sigma_1": {
+                "type": "list",
+                "values": [
+                    {"type": "tuple", "values": [0.0, 2.0]},
+                    {"type": "tuple", "values": [1.0, 4.0]},
+                    {"type": "tuple", "values": [2.0, 6.0]},
+                ],
+            },
+            "errors_at_sigma_1": {
+                "type": "list",
+                "values": [
+                    {"type": "tuple", "values": [2.0, 0.0]},
+                    {"type": "tuple", "values": [3.0, 0.0]},
+                    {"type": "tuple", "values": [4.0, 0.0]},
+                ],
+            },
+            "log_evidence": None,
         },
     }
 
