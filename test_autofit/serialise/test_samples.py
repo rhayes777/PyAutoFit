@@ -45,29 +45,12 @@ def test_summary(summary, model, sample):
     assert summary.model is model
     assert summary.max_log_likelihood_sample == sample
 
-
 @pytest.fixture(name="summary_dict")
 def make_summary_dict():
     return {
         "type": "instance",
         "class_path": "autofit.non_linear.samples.summary.SamplesSummary",
         "arguments": {
-            "values_at_sigma_3": {
-                "type": "list",
-                "values": [
-                    {"type": "tuple", "values": [0.0, 2.0]},
-                    {"type": "tuple", "values": [1.0, 4.0]},
-                    {"type": "tuple", "values": [2.0, 6.0]},
-                ],
-            },
-            "errors_at_sigma_3": {
-                "type": "list",
-                "values": [
-                    {"type": "tuple", "values": [2.0, 0.0]},
-                    {"type": "tuple", "values": [3.0, 0.0]},
-                    {"type": "tuple", "values": [4.0, 0.0]},
-                ],
-            },
             "max_log_likelihood_sample": {
                 "type": "instance",
                 "class_path": "autofit.non_linear.samples.sample.Sample",
@@ -84,6 +67,39 @@ def make_summary_dict():
                         },
                     },
                 },
+            },
+            "values_at_sigma_3": {
+                "type": "list",
+                "values": [
+                    {"type": "tuple", "values": [0.0, 2.0]},
+                    {"type": "tuple", "values": [1.0, 4.0]},
+                    {"type": "tuple", "values": [2.0, 6.0]},
+                ],
+            },
+            "median_pdf_sample": {
+                "type": "instance",
+                "class_path": "autofit.non_linear.samples.sample.Sample",
+                "arguments": {
+                    "log_likelihood": 4.0,
+                    "log_prior": 5.0,
+                    "weight": 6.0,
+                    "kwargs": {
+                        "type": "dict",
+                        "arguments": {
+                            "centre": 2.0,
+                            "normalization": 4.0,
+                            "sigma": 6.0,
+                        },
+                    },
+                },
+            },
+            "errors_at_sigma_3": {
+                "type": "list",
+                "values": [
+                    {"type": "tuple", "values": [2.0, 0.0]},
+                    {"type": "tuple", "values": [3.0, 0.0]},
+                    {"type": "tuple", "values": [4.0, 0.0]},
+                ],
             },
             "values_at_sigma_1": {
                 "type": "list",
@@ -102,25 +118,9 @@ def make_summary_dict():
                 ],
             },
             "log_evidence": None,
-            "median_pdf_sample": {
-                "type": "instance",
-                "class_path": "autofit.non_linear.samples.sample.Sample",
-                "arguments": {
-                    "log_likelihood": 4.0,
-                    "log_prior": 5.0,
-                    "weight": 6.0,
-                    "kwargs": {
-                        "type": "dict",
-                        "arguments": {
-                            "centre": 2.0,
-                            "normalization": 4.0,
-                            "sigma": 6.0,
-                        },
-                    },
-                },
-            },
         },
     }
+
 
 
 def test_dict(summary, summary_dict, remove_ids):

@@ -58,7 +58,7 @@ We define a Python class for the ``Exponential`` model component, exactly as we 
             self.normalization = normalization
             self.rate = rate
 
-        def model_data_1d_via_xvalues_from(self, xvalues: np.ndarray):
+        def model_data_from(self, xvalues: np.ndarray):
             """
             Returns the symmetric 1D Exponential on an input list of Cartesian
             x coordinates.
@@ -215,7 +215,7 @@ We update its ``log_likelihood_function`` to use both model components in the ``
 
             The data is fitted using an `instance` of multiple 1D profiles
             (e.g. a `Gaussian`, `Exponential`) where
-            their `model_data_1d_via_xvalues_from` methods are called and summed
+            their `model_data_from` methods are called and summed
             in order to create a model data representation that is fitted to the data.
             """
 
@@ -256,12 +256,12 @@ We update its ``log_likelihood_function`` to use both model components in the ``
             omponents pass to the `Collection` above.
 
             we can therefore iterate over them and use their
-            `model_data_1d_via_xvalues_from` methods to create the
+            `model_data_from` methods to create the
             summed overall model data.
             """
             model_data = sum(
                 [
-                    profile_1d.model_data_1d_via_xvalues_from(xvalues=xvalues)
+                    profile_1d.model_data_from(xvalues=xvalues)
                     for profile_1d in instance
                 ]
             )
@@ -353,10 +353,10 @@ data.
 
     instance = result.max_log_likelihood_instance
 
-    model_gaussian = instance.gaussian.model_data_1d_via_xvalues_from(
+    model_gaussian = instance.gaussian.model_data_from(
         xvalues=np.arange(data.shape[0])
     )
-    model_exponential = instance.exponential.model_data_1d_via_xvalues_from(
+    model_exponential = instance.exponential.model_data_from(
         xvalues=np.arange(data.shape[0])
     )
     model_data = model_gaussian + model_exponential

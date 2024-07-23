@@ -210,6 +210,10 @@ class AbstractPaths(ABC):
         """
         The path to the image folder.
         """
+
+        if not os.path.exists(self.output_path / "image"):
+            os.makedirs(self.output_path / "image")
+
         return self.output_path / "image"
 
     @property
