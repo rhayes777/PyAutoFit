@@ -39,3 +39,12 @@ def test_model_with_parameterless_component():
 def test_instance_in_collection():
     collection = af.Collection(gaussian=af.Gaussian())
     assert list(collection.items()) == [("gaussian", af.Gaussian())]
+
+
+def test_samples_summary_model():
+    fit = af.db.Fit()
+    model = af.Model(af.Gaussian)
+    fit["samples_summary"] = af.Samples(model=model, sample_list=[])
+    fit.model = model
+
+    assert fit["samples_summary"].model.cls == af.Gaussian

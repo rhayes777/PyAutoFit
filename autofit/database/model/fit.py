@@ -332,7 +332,10 @@ class Fit(Base):
         """
         for p in self.jsons + self.arrays + self.hdus + self.pickles:
             if p.name == item:
-                return p.value
+                value = p.value
+                if item == "samples_summary":
+                    value.model = self.model
+                return value
 
         return getattr(self, item)
 
