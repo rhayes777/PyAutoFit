@@ -1,4 +1,4 @@
-from typing import List, Tuple
+from typing import List, Tuple, Union
 
 from autofit.non_linear.grid.grid_list import GridList, as_grid_list
 from autofit.non_linear.samples.interface import SamplesInterface
@@ -9,6 +9,7 @@ class SensitivityResult:
             self,
             samples: List[SamplesInterface],
             perturb_samples: List[SamplesInterface],
+            physical_values : Union[List, GridList],
             shape : Tuple[int, ...]
     ):
         """
@@ -18,11 +19,14 @@ class SensitivityResult:
         ----------
         results
             The results of each sensitivity job.
+        physical_values
+            A list of lists of values representing the physical values of the sensitivity grid values.
         shape
             The shape of the sensitivity mapping grid.
         """
         self.samples = GridList(samples, shape)
         self.perturb_samples = GridList(perturb_samples, shape)
+        self.physical_values = GridList(physical_values, shape)
         self.shape = shape
 
     def __getitem__(self, item):
