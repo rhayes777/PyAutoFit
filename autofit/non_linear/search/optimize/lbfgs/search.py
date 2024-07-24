@@ -27,6 +27,7 @@ class LBFGS(AbstractOptimizer):
         initializer: Optional[AbstractInitializer] = None,
         iterations_per_update: int = None,
         session: Optional[sa.orm.Session] = None,
+        x0: Optional[np.ndarray] = None,
         **kwargs
     ):
         """
@@ -65,6 +66,8 @@ class LBFGS(AbstractOptimizer):
             session=session,
             **kwargs
         )
+
+        self.x0 = x0
 
         self.logger.debug("Creating LBFGS Search")
 
@@ -122,19 +125,26 @@ class LBFGS(AbstractOptimizer):
             )
 
         except (FileNotFoundError, TypeError):
-            (
-                unit_parameter_lists,
-                parameter_lists,
-                log_posterior_list,
-            ) = self.initializer.samples_from_model(
-                total_points=1,
-                model=model,
-                fitness=fitness,
-                paths=self.paths,
-                n_cores=self.number_of_cores,
-            )
 
-            x0 = np.asarray(parameter_lists[0])
+            if self.x0 is None:
+
+                (
+                    unit_parameter_lists,
+                    parameter_lists,
+                    log_posterior_list,
+                ) = self.initializer.samples_from_model(
+                    total_points=1,
+                    model=model,
+                    fitness=fitness,
+                    paths=self.paths,
+                    n_cores=self.number_of_cores,
+                )
+
+                x0 = np.asarray(parameter_lists[0])
+
+            else:
+
+                x0 = self.x0
 
             total_iterations = 0
 
