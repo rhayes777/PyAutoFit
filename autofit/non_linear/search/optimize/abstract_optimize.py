@@ -30,6 +30,12 @@ class AbstractOptimizer(NonLinearSearch, ABC):
             output=Output(path=self.paths.image_path / "search", format="png"),
         )
 
+        if should_plot("subplot_parameters"):
+
+            plotter.subplot_parameters()
+            plotter.subplot_parameters(use_log_y=True)
+            plotter.subplot_parameters(use_last_50_percent=True)
+
         if should_plot("log_likelihood_vs_iteration"):
 
             plotter.log_likelihood_vs_iteration()
