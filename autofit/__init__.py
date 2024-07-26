@@ -75,7 +75,8 @@ from .non_linear.search.nest.dynesty.search.dynamic import DynestyDynamic
 from .non_linear.search.nest.dynesty.search.static import DynestyStatic
 from .non_linear.search.nest.ultranest.search import UltraNest
 from .non_linear.search.optimize.drawer.search import Drawer
-from .non_linear.search.optimize.lbfgs.search import LBFGS
+from .non_linear.search.optimize.bfgs.search import BFGS
+from .non_linear.search.optimize.bfgs.search import LBFGS
 from .non_linear.search.optimize.pyswarms.search.globe import PySwarmsGlobal
 from .non_linear.search.optimize.pyswarms.search.local import PySwarmsLocal
 from .non_linear.paths.abstract import AbstractPaths

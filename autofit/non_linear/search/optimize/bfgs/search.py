@@ -16,8 +16,10 @@ from scipy import optimize
 import numpy as np
 
 
-class LBFGS(AbstractOptimizer):
+class AbstractBFGS(AbstractOptimizer):
     __identifier_fields__ = ()
+
+    method = None
 
     def __init__(
         self,
@@ -31,42 +33,9 @@ class LBFGS(AbstractOptimizer):
         **kwargs
     ):
         """
-        A L-BFGS scipy non-linear search.
+        Abstract wrapper for the BFGS and L-BFGS scipy non-linear searches.
 
-        For a full description of the scipy L-BFGS method, checkout its documentation:
-
-        https://docs.scipy.org/doc/scipy/reference/optimize.minimize-lbfgsb.html
-
-        If you use `LBFGS` as part of a published work, please cite the package via scipy following the instructions
-        under the *Attribution* section of the GitHub page.
-
-        By default, the L-BFGS method scipy implementation does not store the history of parameter values and
-        log likelihood values during the non-linear search. This is because storing these values can require a large
-        amount of memory, in contradiction to the L-BFGS method's primary advantage of being memory efficient.
-        This means that it is difficult to visualize the L-BFGS method results (e.g. log likelihood vs iteration).
-
-        **PyAutoFit** extends the class with the option of using visualize mode, which stores the history of parameter
-        values and log likelihood values during the non-linear search. This allows the results of the L-BFGS method to be
-        visualized after the search has completed, and it is enabled by setting the `visualize` flag to `True`.
-
-        Parameters
-        ----------
-        name
-            The name of the search, controlling the last folder results are output.
-        path_prefix
-            The path of folders prefixing the name folder where results are output.
-        unique_tag
-            The name of a unique tag for this model-fit, which will be given a unique entry in the sqlite database
-            and also acts as the folder after the path prefix and before the search name.
-        initializer
-            Generates the initialize samples of non-linear parameter space (see autofit.non_linear.initializer).
-        number_of_cores: int
-            The number of cores sampling is performed using a Python multiprocessing Pool instance.
-        session
-            An SQLalchemy session instance so the results of the model-fit are written to an SQLite database.
-        visualize
-            If True, visualization of the search is enabled, which requires storing the history of parameter values and
-            log likelihood values during the non-linear search.
+        See the docstrings of the `BFGS` and `LBFGS` classes for a description of the arguments of this class.
         """
 
         super().__init__(
@@ -81,7 +50,7 @@ class LBFGS(AbstractOptimizer):
 
         self.visualize = visualize
 
-        self.logger.debug("Creating LBFGS Search")
+        self.logger.debug(f"Creating {self.method} Search")
 
     @cached_property
     def config_dict_options(self):
@@ -162,7 +131,7 @@ class LBFGS(AbstractOptimizer):
             total_iterations = 0
 
             self.logger.info(
-                "Starting new LBFGS non-linear search (no previous samples found)."
+               f"Starting new {self.method} non-linear search (no previous samples found)."
             )
 
         maxiter = self.config_dict_options.get("maxiter", 1e8)
@@ -179,7 +148,7 @@ class LBFGS(AbstractOptimizer):
                 search_internal = optimize.minimize(
                     fun=fitness.__call__,
                     x0=x0,
-                    method="L-BFGS-B",
+                    method=self.method,
                     options=config_dict_options,
                     **self.config_dict_search
                 )
@@ -211,7 +180,7 @@ class LBFGS(AbstractOptimizer):
                     search_internal=search_internal,
                 )
 
-        self.logger.info("L-BFGS sampling complete.")
+        self.logger.info(f"{self.method} sampling complete.")
 
         return search_internal
 
@@ -275,3 +244,93 @@ class LBFGS(AbstractOptimizer):
             sample_list=sample_list,
             samples_info=samples_info,
         )
+
+
+class BFGS(AbstractBFGS):
+    """
+    The BFGS non-linear search, which wraps the scipy Broyden-Fletcher-Goldfarb-Shanno (BFGS) algorithm.
+
+    See the docstrings of the `BFGS` and `LBFGS` classes for a description of the arguments of this class.
+
+    For a full description of the scipy BFGS method, checkout its documentation:
+
+    https://docs.scipy.org/doc/scipy/reference/optimize.minimize-bfgs.html#optimize-minimize-bfgs
+
+    If you use `BFGS` as part of a published work, please cite the package via scipy following the instructions
+    under the *Attribution* section of the GitHub page.
+
+    By default, the BFGS method scipy implementation does not store the history of parameter values and
+    log likelihood values during the non-linear search. This is because storing these values can require a large
+    amount of memory, in contradiction to the BFGS method's primary advantage of being memory efficient.
+    This means that it is difficult to visualize the BFGS method results (e.g. log likelihood vs iteration).
+
+    **PyAutoFit** extends the class with the option of using visualize mode, which stores the history of parameter
+    values and log likelihood values during the non-linear search. This allows the results of the BFGS method to be
+    visualized after the search has completed, and it is enabled by setting the `visualize` flag to `True`.
+
+    Parameters
+    ----------
+    name
+        The name of the search, controlling the last folder results are output.
+    path_prefix
+        The path of folders prefixing the name folder where results are output.
+    unique_tag
+        The name of a unique tag for this model-fit, which will be given a unique entry in the sqlite database
+        and also acts as the folder after the path prefix and before the search name.
+    initializer
+        Generates the initialize samples of non-linear parameter space (see autofit.non_linear.initializer).
+    number_of_cores: int
+        The number of cores sampling is performed using a Python multiprocessing Pool instance.
+    session
+        An SQLalchemy session instance so the results of the model-fit are written to an SQLite database.
+    visualize
+        If True, visualization of the search is enabled, which requires storing the history of parameter values and
+        log likelihood values during the non-linear search.
+    """
+
+    method = "BFGS"
+
+class LBFGS(AbstractBFGS):
+    """
+    The L-BFGS non-linear search, which wraps the scipy Limited-memory Broyden-Fletcher-Goldfarb-Shanno (L-BFGS)
+    algorithm.
+
+    See the docstrings of the `BFGS` and `LBFGS` classes for a description of the arguments of this class.
+
+    For a full description of the scipy L-BFGS method, checkout its documentation:
+
+    https://docs.scipy.org/doc/scipy/reference/optimize.minimize-lbfgsb.html
+
+    If you use `LBFGS` as part of a published work, please cite the package via scipy following the instructions
+    under the *Attribution* section of the GitHub page.
+
+    By default, the L-BFGS method scipy implementation does not store the history of parameter values and
+    log likelihood values during the non-linear search. This is because storing these values can require a large
+    amount of memory, in contradiction to the L-BFGS method's primary advantage of being memory efficient.
+    This means that it is difficult to visualize the L-BFGS method results (e.g. log likelihood vs iteration).
+
+    **PyAutoFit** extends the class with the option of using visualize mode, which stores the history of parameter
+    values and log likelihood values during the non-linear search. This allows the results of the L-BFGS method to be
+    visualized after the search has completed, and it is enabled by setting the `visualize` flag to `True`.
+
+    Parameters
+    ----------
+    name
+        The name of the search, controlling the last folder results are output.
+    path_prefix
+        The path of folders prefixing the name folder where results are output.
+    unique_tag
+        The name of a unique tag for this model-fit, which will be given a unique entry in the sqlite database
+        and also acts as the folder after the path prefix and before the search name.
+    initializer
+        Generates the initialize samples of non-linear parameter space (see autofit.non_linear.initializer).
+    number_of_cores: int
+        The number of cores sampling is performed using a Python multiprocessing Pool instance.
+    session
+        An SQLalchemy session instance so the results of the model-fit are written to an SQLite database.
+    visualize
+        If True, visualization of the search is enabled, which requires storing the history of parameter values and
+        log likelihood values during the non-linear search.
+    """
+
+    method = "L-BFGS-B"
