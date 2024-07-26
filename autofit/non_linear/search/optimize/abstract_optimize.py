@@ -29,5 +29,9 @@ class AbstractOptimizer(NonLinearSearch, ABC):
             samples=samples,
             output=Output(path=self.paths.image_path / "search", format="png"),
         )
+
         if should_plot("log_likelihood_vs_iteration"):
+
             plotter.log_likelihood_vs_iteration()
+            plotter.log_likelihood_vs_iteration(use_log_y=True)
+            plotter.log_likelihood_vs_iteration(use_last_50_percent=True)
