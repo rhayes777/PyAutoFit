@@ -57,7 +57,7 @@ from .mapper.prior_model.abstract import AbstractPriorModel
 from .mapper.prior_model.annotation import AnnotationPriorModel
 from .mapper.prior_model.collection import Collection
 from .mapper.prior_model.prior_model import Model
-from .mapper.prior_model.prior_model import Model
+from .mapper.prior_model.array import Array
 from .non_linear.search.abstract_search import NonLinearSearch
 from .non_linear.analysis.visualize import Visualizer
 from .non_linear.analysis.analysis import Analysis
