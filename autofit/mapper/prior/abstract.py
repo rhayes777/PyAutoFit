@@ -1,5 +1,4 @@
 import itertools
-import os
 import random
 from abc import ABC, abstractmethod
 from copy import copy
@@ -115,7 +114,6 @@ class Prior(Variable, ABC, ArithmeticMixin):
         return self.message.factor
 
     def assert_within_limits(self, value):
-
         if jax_wrapper.use_jax:
             return
 

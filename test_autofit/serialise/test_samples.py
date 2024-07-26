@@ -45,7 +45,6 @@ def test_summary(summary, model, sample):
     assert summary.model is model
     assert summary.max_log_likelihood_sample == sample
 
-
 @pytest.fixture(name="summary_dict")
 def make_summary_dict():
     return {
@@ -121,6 +120,7 @@ def make_summary_dict():
             "log_evidence": None,
         },
     }
+
 
 
 def test_dict(summary, summary_dict, remove_ids):
