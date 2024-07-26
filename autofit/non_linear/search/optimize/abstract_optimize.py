@@ -25,7 +25,9 @@ class AbstractOptimizer(NonLinearSearch, ABC):
         def should_plot(name):
             return conf.instance["visualize"]["plots_search"]["optimize"][name]
 
-        plotter = OptimizePlotter(
+        plotter = self.plotter_cls(
             samples=samples,
-            output=Output(path=self.paths.image_path / "search", format="png")
+            output=Output(path=self.paths.image_path / "search", format="png"),
         )
+        if should_plot("log_likelihood_vs_iteration"):
+            plotter.log_likelihood_vs_iteration()

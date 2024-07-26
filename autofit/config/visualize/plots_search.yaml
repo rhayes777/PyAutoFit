@@ -3,4 +3,4 @@ nest:
 mcmc:
   corner_cornerpy: true     # Output corner figure (using corner.py) during a non-linear search fit?
 optimize:
-  corner_cornerpy: true     # Output corner figure (using corner.py) during a non-linear search fit?
+  log_likelihood_vs_iteration: true  # Output a plot of the log likelihood versus iteration number?

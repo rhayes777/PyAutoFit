@@ -27,7 +27,7 @@ class LBFGS(AbstractOptimizer):
         initializer: Optional[AbstractInitializer] = None,
         iterations_per_update: int = None,
         session: Optional[sa.orm.Session] = None,
-        x0: Optional[np.ndarray] = None,
+        visualize : bool = False,
         **kwargs
     ):
         """
@@ -39,6 +39,15 @@ class LBFGS(AbstractOptimizer):
 
         If you use `LBFGS` as part of a published work, please cite the package via scipy following the instructions
         under the *Attribution* section of the GitHub page.
+
+        By default, the L-BFGS method scipy implementation does not store the history of parameter values and
+        log likelihood values during the non-linear search. This is because storing these values can require a large
+        amount of memory, in contradiction to the L-BFGS method's primary advantage of being memory efficient.
+        This means that it is difficult to visualize the L-BFGS method results (e.g. log likelihood vs iteration).
+
+        **PyAutoFit** extends the class with the option of using visualize mode, which stores the history of parameter
+        values and log likelihood values during the non-linear search. This allows the results of the L-BFGS method to be
+        visualized after the search has completed, and it is enabled by setting the `visualize` flag to `True`.
 
         Parameters
         ----------
@@ -55,6 +64,9 @@ class LBFGS(AbstractOptimizer):
             The number of cores sampling is performed using a Python multiprocessing Pool instance.
         session
             An SQLalchemy session instance so the results of the model-fit are written to an SQLite database.
+        visualize
+            If True, visualization of the search is enabled, which requires storing the history of parameter values and
+            log likelihood values during the non-linear search.
         """
 
         super().__init__(
@@ -67,7 +79,7 @@ class LBFGS(AbstractOptimizer):
             **kwargs
         )
 
-        self.x0 = x0
+        self.visualize = visualize
 
         self.logger.debug("Creating LBFGS Search")
 
@@ -112,6 +124,7 @@ class LBFGS(AbstractOptimizer):
             fom_is_log_likelihood=False,
             resample_figure_of_merit=-np.inf,
             convert_to_chi_squared=True,
+            store_history=self.visualize,
         )
 
         try:
@@ -126,7 +139,11 @@ class LBFGS(AbstractOptimizer):
 
         except (FileNotFoundError, TypeError):
 
-            if self.x0 is None:
+            if "x0" in self.kwargs:
+
+                x0 = self.kwargs["x0"]
+
+            else:
 
                 (
                     unit_parameter_lists,
@@ -141,10 +158,6 @@ class LBFGS(AbstractOptimizer):
                 )
 
                 x0 = np.asarray(parameter_lists[0])
-
-            else:
-
-                x0 = self.x0
 
             total_iterations = 0
 
@@ -176,6 +189,11 @@ class LBFGS(AbstractOptimizer):
                 search_internal.log_posterior_list = -0.5 * fitness(
                     parameters=search_internal.x
                 )
+
+                if self.visualize:
+
+                    search_internal.parameters_history_list = fitness.parameters_history_list
+                    search_internal.log_likelihood_history_list = fitness.log_likelihood_history_list
 
                 self.paths.save_search_internal(
                     obj=search_internal,
@@ -220,14 +238,23 @@ class LBFGS(AbstractOptimizer):
 
         x0 = search_internal.x
         total_iterations = search_internal.nit
-        log_posterior_list = np.array([search_internal.log_posterior_list])
 
-        parameter_lists = [list(x0)]
-        log_prior_list = model.log_prior_list_from(parameter_lists=parameter_lists)
 
-        log_likelihood_list = [
-            lp - prior for lp, prior in zip(log_posterior_list, log_prior_list)
-        ]
+        if self.visualize:
+
+            parameter_lists = search_internal.parameters_history_list
+            log_prior_list = model.log_prior_list_from(parameter_lists=parameter_lists)
+            log_likelihood_list = search_internal.log_likelihood_history_list
+
+        else:
+
+            parameter_lists = [list(x0)]
+            log_prior_list = model.log_prior_list_from(parameter_lists=parameter_lists)
+            log_posterior_list = np.array([search_internal.log_posterior_list])
+            log_likelihood_list = [
+                lp - prior for lp, prior in zip(log_posterior_list, log_prior_list)
+            ]
+
         weight_list = len(log_likelihood_list) * [1.0]
 
         sample_list = Sample.from_lists(
