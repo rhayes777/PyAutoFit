@@ -351,11 +351,6 @@ class DirectoryPaths(AbstractPaths):
 
         if info:
             self.save_json("info", info)
-            
-        # try:
-        #     self.save_json("search", to_dict(self.search))
-        # except TypeError:
-        #     pass
 
         self.save_json("search", to_dict(self.search))
         try:
