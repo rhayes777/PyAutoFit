@@ -1,5 +1,6 @@
 from abc import ABC
 import copy
+from typing import List
 
 from autoconf import conf
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
@@ -25,6 +26,7 @@ class AbstractOptimizer(NonLinearSearch, ABC):
 
     def plot_start_point(
         self,
+        parameter_vector : List[float],
         model: AbstractPriorModel,
         analysis: Analysis,
     ):
@@ -51,7 +53,7 @@ class AbstractOptimizer(NonLinearSearch, ABC):
             f"Visualizing Starting Point Model in image_start folder."
         )
 
-        instance = model.instance_from_vector(vector=x0)
+        instance = model.instance_from_vector(vector=parameter_vector)
         paths = copy.copy(self.paths)
         paths.image_path_suffix = "_start"
 

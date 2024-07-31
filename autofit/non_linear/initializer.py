@@ -25,6 +25,9 @@ class AbstractInitializer(ABC):
     def _generate_unit_parameter_list(self, model):
         pass
 
+    def info_from_model(self, model : AbstractPriorModel) -> str:
+        raise NotImplementedError
+
     @staticmethod
     def figure_of_metric(args) -> Optional[float]:
         fitness, parameter_list = args
@@ -244,7 +247,8 @@ class InitializerParamBounds(AbstractInitializer):
         """
         Returns a string showing the bounds of the parameters in the initializer.
         """
-        info = "Initializer Parameters:\n"
+        info = "Total Free Parameters = " + str(model.prior_count) + "\n"
+        info += "Total Starting Points = " + str(len(self.parameter_dict)) + "\n\n"
         for prior in model.priors_ordered_by_id:
 
             key = ".".join(model.path_for_prior(prior))
@@ -253,7 +257,7 @@ class InitializerParamBounds(AbstractInitializer):
 
                 value = self.info_value_from(self.parameter_dict[prior])
 
-                info += f"{key} : {value}\n"
+                info += f"{key}: Start[{value}]\n"
 
             except KeyError:
 

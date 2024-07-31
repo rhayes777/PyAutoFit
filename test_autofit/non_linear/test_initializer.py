@@ -298,8 +298,8 @@ def test__initializer_bounds__info_from_model(model):
 
     info = initializer.info_from_model(model)
 
-    assert "Initializer Parameters" in info
-    assert "centre : (1.0, 2.0)" in info
+    assert "Total Free Parameters = 3" in info
+    assert "centre: Start[(1.0, 2.0)]" in info
 
 
 def test__initializer_start_point(model):
@@ -327,8 +327,8 @@ def test__initializer_start_point__info_from_model(model):
     )
     info = initializer.info_from_model(model)
 
-    assert "Initializer Parameters" in info
-    assert "centre : 1.5" in info
+    assert "Total Free Parameters = 3" in info
+    assert "centre: Start[1.5]" in info
 
 
 def test_offset(model):

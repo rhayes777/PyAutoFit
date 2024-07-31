@@ -130,9 +130,11 @@ class AbstractBFGS(AbstractOptimizer):
 
             if self.visualize:
 
-                self.plot_start_point()
-
-
+                self.plot_start_point(
+                    parameter_vector=x0,
+                    model=model,
+                    analysis=analysis,
+                )
 
         maxiter = self.config_dict_options.get("maxiter", 1e8)
 
