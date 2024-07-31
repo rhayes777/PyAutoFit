@@ -190,7 +190,7 @@ class InitializerParamBounds(AbstractInitializer):
         ----------
         parameter_dict
             A dictionary mapping each parameter path to bounded ranges of physical values that
-            the initial values for that dimension in the search may take
+            are where the search begins.
         lower_limit
             A default, unit lower limit used when a prior is not specified
         upper_limit
@@ -239,6 +239,34 @@ class InitializerParamBounds(AbstractInitializer):
             unit_parameter_list.append(value)
 
         return unit_parameter_list
+
+
+class InitializerParamStartPoints(InitializerParamBounds):
+    def __init__(
+        self,
+        parameter_dict: Dict[Prior, float],
+    ):
+        """
+        Initializer which input values of the parameters as the starting point for the search (e.g. where
+        an MLE optimization starts or MCMC walkers are initialized).
+
+        Parameters
+        ----------
+        parameter_dict
+            A dictionary mapping each parameter path to the starting point physical values that
+            are where the search begins.
+        lower_limit
+            A default, unit lower limit used when a prior is not specified
+        upper_limit
+            A default, unit upper limit used when a prior is not specified
+        """
+        parameter_dict_new = {}
+
+        for key, value in parameter_dict.items():
+            parameter_dict_new[key] = (value - 1.0e-8, value + 1.0e-8)
+
+        super().__init__(parameter_dict=parameter_dict_new)
+
 
 
 class Initializer(AbstractInitializer):

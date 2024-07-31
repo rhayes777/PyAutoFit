@@ -54,6 +54,43 @@ def test__priors__samples_from_model():
     assert 0.299 < parameter_lists[1][2] < 0.301
     assert 0.399 < parameter_lists[0][3] < 0.401
     assert 0.399 < parameter_lists[1][3] < 0.401
+def test__priors__samples_from_model():
+    model = af.Model(af.m.MockClassx4)
+    model.one = af.UniformPrior(lower_limit=0.099, upper_limit=0.101)
+    model.two = af.UniformPrior(lower_limit=0.199, upper_limit=0.201)
+    model.three = af.UniformPrior(lower_limit=0.299, upper_limit=0.301)
+    model.four = af.UniformPrior(lower_limit=0.399, upper_limit=0.401)
+
+    initializer = af.InitializerPrior()
+
+    (
+        unit_parameter_lists,
+        parameter_lists,
+        figure_of_merit_list,
+    ) = initializer.samples_from_model(
+        total_points=2,
+        model=model,
+        fitness=MockFitness(),
+        paths=af.DirectoryPaths(),
+    )
+
+    assert 0.0 < unit_parameter_lists[0][0] < 1.0
+    assert 0.0 < unit_parameter_lists[1][0] < 1.0
+    assert 0.0 < unit_parameter_lists[0][1] < 1.0
+    assert 0.0 < unit_parameter_lists[1][1] < 1.0
+    assert 0.0 < unit_parameter_lists[0][2] < 1.0
+    assert 0.0 < unit_parameter_lists[1][2] < 1.0
+    assert 0.0 < unit_parameter_lists[0][3] < 1.0
+    assert 0.0 < unit_parameter_lists[1][3] < 1.0
+
+    assert 0.099 < parameter_lists[0][0] < 0.101
+    assert 0.099 < parameter_lists[1][0] < 0.101
+    assert 0.199 < parameter_lists[0][1] < 0.201
+    assert 0.199 < parameter_lists[1][1] < 0.201
+    assert 0.299 < parameter_lists[0][2] < 0.301
+    assert 0.299 < parameter_lists[1][2] < 0.301
+    assert 0.399 < parameter_lists[0][3] < 0.401
+    assert 0.399 < parameter_lists[1][3] < 0.401
 
 
 def test__priors__samples_from_model__raise_exception_if_all_likelihoods_identical():
@@ -234,12 +271,27 @@ def make_model():
     )
 
 
-def test_starting_point_initializer(model):
+def test_initializer_bounds(model):
     initializer = af.InitializerParamBounds(
         {
             model.centre: (1.0, 2.0),
             model.normalization: (2.0, 3.0),
             model.sigma: (-2.0, -1.0),
+        }
+    )
+
+    parameter_list = initializer._generate_unit_parameter_list(model)
+    assert len(parameter_list) == 3
+    for parameter in parameter_list:
+        assert 0.0 <= parameter <= 1.0
+
+
+def test__initializer_start_point(model):
+    initializer = af.InitializerParamStartPoints(
+        {
+            model.centre: 1.5,
+            model.normalization: 2.5,
+            model.sigma: -1.5,
         }
     )
 

@@ -126,6 +126,9 @@ class AbstractBFGS(AbstractOptimizer):
                     n_cores=self.number_of_cores,
                 )
 
+                print(parameter_lists)
+                fdsdffsd
+
                 x0 = np.asarray(parameter_lists[0])
 
             total_iterations = 0

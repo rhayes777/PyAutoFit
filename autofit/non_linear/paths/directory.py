@@ -350,7 +350,10 @@ class DirectoryPaths(AbstractPaths):
         ).save(str(self.output_path / "model_graph.html"))
         if info:
             self.save_json("info", info)
-        self.save_json("search", to_dict(self.search))
+        try:
+            self.save_json("search", to_dict(self.search))
+        except TypeError:
+            pass
         self.save_json("model", to_dict(self.model))
         self._save_metadata(search_name=type(self.search).__name__.lower())
 
