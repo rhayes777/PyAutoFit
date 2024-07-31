@@ -250,11 +250,32 @@ class InitializerParamBounds(AbstractInitializer):
             key = ".".join(model.path_for_prior(prior))
 
             try:
-                info += f"{key} : {self.parameter_dict[prior]}\n"
+
+                value = self.info_value_from(self.parameter_dict[prior])
+
+                info += f"{key} : {value}\n"
+
             except KeyError:
+
                 info += f"{key} : {prior})\n"
 
         return info
+
+    def info_value_from(self, value : Tuple[float, float]) -> Tuple[float, float]:
+        """
+        Returns the value that is used to display the bounds of the parameters in the initializer.
+
+        This function simply returns the input value, but it can be overridden in subclasses for diffferent
+        initializers.
+
+        Parameters
+        ----------
+        value
+            The value to be displayed in the initializer info which is a tuple of the lower and upper bounds of the
+            parameter.
+        """
+        return value
+
 
 class InitializerParamStartPoints(InitializerParamBounds):
     def __init__(
@@ -282,7 +303,20 @@ class InitializerParamStartPoints(InitializerParamBounds):
 
         super().__init__(parameter_dict=parameter_dict_new)
 
+    def info_value_from(self, value : Tuple[float, float]) -> float:
+        """
+        Returns the value that is used to display the starting point of the parameters in the initializer.
 
+        This function returns the mean of the input value, as the starting point is a single value in the center of the
+        bounds.
+
+        Parameters
+        ----------
+        value
+            The value to be displayed in the initializer info which is a tuple of the lower and upper bounds of the
+            parameter.
+        """
+        return (value[1] + value[0]) / 2.0
 
 class Initializer(AbstractInitializer):
     def __init__(self, lower_limit: float, upper_limit: float):

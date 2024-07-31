@@ -317,6 +317,20 @@ def test__initializer_start_point(model):
         assert 0.0 <= parameter <= 1.0
 
 
+def test__initializer_start_point__info_from_model(model):
+    initializer = af.InitializerParamStartPoints(
+        {
+            model.centre: 1.5,
+            model.normalization: 2.5,
+            model.sigma: -1.5,
+        }
+    )
+    info = initializer.info_from_model(model)
+
+    assert "Initializer Parameters" in info
+    assert "centre : 1.5" in info
+
+
 def test_offset(model):
     initializer = af.InitializerParamBounds(
         {
