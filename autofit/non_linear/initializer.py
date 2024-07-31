@@ -183,13 +183,13 @@ class InitializerParamBounds(AbstractInitializer):
         upper_limit=1.0,
     ):
         """
-        Initializer that allows the range of possible starting points for each prior
-        to be specified explicitly.
+        Initializer which uses the bounds on input parameters as the starting point for the search (e.g. where
+        an MLE optimization starts or MCMC walkers are initialized).
 
         Parameters
         ----------
         parameter_dict
-            A dictionary mapping priors to inclusive ranges of physical values that
+            A dictionary mapping each parameter path to bounded ranges of physical values that
             the initial values for that dimension in the search may take
         lower_limit
             A default, unit lower limit used when a prior is not specified
