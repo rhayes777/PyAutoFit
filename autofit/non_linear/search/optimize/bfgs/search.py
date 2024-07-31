@@ -128,6 +128,25 @@ class AbstractBFGS(AbstractOptimizer):
                f"Starting new {self.method} non-linear search (no previous samples found)."
             )
 
+
+            if self.visualize:
+
+                self.logger.info(
+                    f"Visualizing Starting Point Model in image_start folder."
+                )
+
+                instance = model.instance_from_vector(vector=x0)
+                paths = copy.copy(self.paths)
+                paths.image_path_suffix = "_start"
+
+                self.perform_visualization(
+                    model=model,
+                    analysis=analysis,
+                    instance=instance,
+                    during_analysis=False,
+                    paths_override=paths,
+                )
+
         maxiter = self.config_dict_options.get("maxiter", 1e8)
 
         while total_iterations < maxiter:

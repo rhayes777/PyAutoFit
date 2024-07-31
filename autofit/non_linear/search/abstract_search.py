@@ -29,6 +29,7 @@ from autofit.graphical import (
 from autofit.graphical.utils import Status
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.mapper.prior_model.collection import Collection
+from autofit.mapper.model import ModelInstance
 from autofit.non_linear.initializer import Initializer
 from autofit.non_linear.fitness import Fitness
 from autofit.non_linear.parallel import SneakyPool, SneakierPool
@@ -1050,9 +1051,11 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
     def perform_visualization(
         self,
         model: AbstractPriorModel,
-        analysis: AbstractPriorModel,
-        samples_summary: SamplesSummary,
+        analysis: Analysis,
         during_analysis: bool,
+        samples_summary: Optional[SamplesSummary] = None,
+        instance : Optional[ModelInstance] = None,
+        paths_override : Optional[AbstractPaths] = None,
         search_internal=None,
     ):
         """
@@ -1075,32 +1078,57 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         analysis
             Contains the data and the log likelihood function which fits an instance of the model to the data, returning
             the log likelihood the `NonLinearSearch` maximizes.
+        samples_summary
+            The summary of the samples of the non-linear search, which are used for visualization.
         during_analysis
             If the update is during a non-linear search, in which case tasks are only performed after a certain number
             of updates and only a subset of visualization may be performed.
+        instance
+            The instance of the model that is used for visualization. If not input, the maximum log likelihood
+            instance from the samples is used.
         """
 
         self.logger.debug("Visualizing")
 
-        if analysis.should_visualize(paths=self.paths, during_analysis=during_analysis):
+        if paths_override is None:
+            paths = self.paths
+        else:
+            paths = paths_override
+
+        if instance is None and samples_summary is None:
+            raise AssertionError(
+                """The search's perform_visualization method has been called without an input instance or 
+                samples_summary. 
+
+                This should not occur, please ensure one of these inputs is provided.
+                """
+            )
+
+        if instance is None:
+            instance = samples_summary.instance
+
+        if analysis.should_visualize(paths=paths, during_analysis=during_analysis):
             analysis.visualize(
-                paths=self.paths,
-                instance=samples_summary.instance,
+                paths=paths,
+                instance=instance,
                 during_analysis=during_analysis,
             )
             analysis.visualize_combined(
-                paths=self.paths,
-                instance=samples_summary.instance,
+                paths=paths,
+                instance=instance,
                 during_analysis=during_analysis,
             )
 
-        if analysis.should_visualize(paths=self.paths, during_analysis=during_analysis):
-            if not isinstance(self.paths, NullPaths):
-                samples = self.samples_from(
-                    model=model, search_internal=search_internal
-                )
+        if analysis.should_visualize(paths=paths, during_analysis=during_analysis):
+            if not isinstance(paths, NullPaths):
+                try:
+                    samples = self.samples_from(
+                        model=model, search_internal=search_internal
+                    )
 
-                self.plot_results(samples=samples)
+                    self.plot_results(samples=samples)
+                except FileNotFoundError:
+                    pass
 
     @property
     def samples_cls(self):
