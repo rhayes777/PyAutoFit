@@ -66,7 +66,7 @@ from .non_linear.grid.grid_search import GridSearchResult
 from .non_linear.grid.sensitivity import Sensitivity
 from .non_linear.initializer import InitializerBall
 from .non_linear.initializer import InitializerPrior
-from .non_linear.initializer import SpecificRangeInitializer
+from .non_linear.initializer import InitializerParamBounds
 from .non_linear.search.mcmc.auto_correlations import AutoCorrelationsSettings
 from .non_linear.search.mcmc.emcee.search import Emcee
 from .non_linear.search.mcmc.zeus.search import Zeus

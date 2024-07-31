@@ -235,7 +235,7 @@ def make_model():
 
 
 def test_starting_point_initializer(model):
-    initializer = af.SpecificRangeInitializer(
+    initializer = af.InitializerParamBounds(
         {
             model.centre: (1.0, 2.0),
             model.normalization: (2.0, 3.0),
@@ -250,7 +250,7 @@ def test_starting_point_initializer(model):
 
 
 def test_offset(model):
-    initializer = af.SpecificRangeInitializer(
+    initializer = af.InitializerParamBounds(
         {
             model.centre: (1.5, 2.0),
             model.normalization: (2.5, 3.0),
@@ -265,7 +265,7 @@ def test_offset(model):
 
 
 def test_missing_parameter(model):
-    initializer = af.SpecificRangeInitializer(
+    initializer = af.InitializerParamBounds(
         {
             model.centre: (1.5, 2.0),
             model.normalization: (2.5, 3.0),

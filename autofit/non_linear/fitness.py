@@ -154,6 +154,8 @@ class Fitness:
             instance = self.model.instance_from_vector(vector=parameters)
             log_likelihood = self.log_likelihood_function(instance=instance)
 
+            print(log_likelihood)
+
             if np.isnan(log_likelihood):
                 return self.resample_figure_of_merit
 

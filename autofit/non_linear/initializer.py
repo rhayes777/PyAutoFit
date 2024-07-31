@@ -175,7 +175,7 @@ class AbstractInitializer(ABC):
         return unit_parameter_lists, parameter_lists, figure_of_merit_list
 
 
-class SpecificRangeInitializer(AbstractInitializer):
+class InitializerParamBounds(AbstractInitializer):
     def __init__(
         self,
         parameter_dict: Dict[Prior, Tuple[float, float]],
@@ -226,7 +226,7 @@ class SpecificRangeInitializer(AbstractInitializer):
                 key = ".".join(model.path_for_prior(prior))
                 if key not in self._generated_warnings:
                     logger.warning(
-                        f"Range for {key} not set in the SpecificRangeInitializer. "
+                        f"Range for {key} not set in the InitializerParamBounds. "
                         f"Using defaults."
                     )
                     self._generated_warnings.add(key)
