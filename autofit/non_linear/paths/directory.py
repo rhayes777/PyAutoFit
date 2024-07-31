@@ -348,13 +348,16 @@ class DirectoryPaths(AbstractPaths):
         VisualiseGraph(
             model=self.model,
         ).save(str(self.output_path / "model_graph.html"))
+
         if info:
             self.save_json("info", info)
-        try:
-            self.save_json("search", to_dict(self.search))
-        except TypeError:
-            pass
+            
+        # try:
+        #     self.save_json("search", to_dict(self.search))
+        # except TypeError:
+        #     pass
 
+        self.save_json("search", to_dict(self.search))
         try:
             info_start = self.search.initializer.info_from_model(model=self.model)
             self._save_model_start_point(info=info_start)
