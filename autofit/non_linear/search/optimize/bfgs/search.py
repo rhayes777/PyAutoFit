@@ -108,28 +108,19 @@ class AbstractBFGS(AbstractOptimizer):
 
         except (FileNotFoundError, TypeError):
 
-            if "x0" in self.kwargs:
+            (
+                unit_parameter_lists,
+                parameter_lists,
+                log_posterior_list,
+            ) = self.initializer.samples_from_model(
+                total_points=1,
+                model=model,
+                fitness=fitness,
+                paths=self.paths,
+                n_cores=self.number_of_cores,
+            )
 
-                x0 = self.kwargs["x0"]
-
-            else:
-
-                (
-                    unit_parameter_lists,
-                    parameter_lists,
-                    log_posterior_list,
-                ) = self.initializer.samples_from_model(
-                    total_points=1,
-                    model=model,
-                    fitness=fitness,
-                    paths=self.paths,
-                    n_cores=self.number_of_cores,
-                )
-
-                print(parameter_lists)
-                fdsdffsd
-
-                x0 = np.asarray(parameter_lists[0])
+            x0 = np.asarray(parameter_lists[0])
 
             total_iterations = 0
 
