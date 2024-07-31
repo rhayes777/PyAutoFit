@@ -240,6 +240,21 @@ class InitializerParamBounds(AbstractInitializer):
 
         return unit_parameter_list
 
+    def info_from_model(self, model : AbstractPriorModel) -> str:
+        """
+        Returns a string showing the bounds of the parameters in the initializer.
+        """
+        info = "Initializer Parameters:\n"
+        for prior in model.priors_ordered_by_id:
+
+            key = ".".join(model.path_for_prior(prior))
+
+            try:
+                info += f"{key} : {self.parameter_dict[prior]}\n"
+            except KeyError:
+                info += f"{key} : {prior})\n"
+
+        return info
 
 class InitializerParamStartPoints(InitializerParamBounds):
     def __init__(
