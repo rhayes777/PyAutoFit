@@ -1,11 +1,11 @@
 # Configuration files that customize the default behaviour of non-linear searches.
 
-# **PyAutoFit** supports the following optimizer algorithms:
+# **PyAutoFit** supports the following maximum likelihood estimator (MLE) algorithms:
 
 # - PySwarms: https://github.com/ljvmiranda921/pyswarms / https://pyswarms.readthedocs.io/en/latest/index.html
 
 # Settings in the [search], [run] and [options] entries are specific to each nested algorithm and should be
-# determined by consulting that optimizers method's own readthedocs.
+# determined by consulting that method's own readthedocs.
 
 PySwarmsGlobal:
   run:

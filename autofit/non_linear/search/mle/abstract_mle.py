@@ -7,14 +7,14 @@ from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.analysis import Analysis
 from autofit.non_linear.search.abstract_search import NonLinearSearch
 from autofit.non_linear.samples import Samples
-from autofit.non_linear.plot.optimize_plotters import OptimizePlotter
+from autofit.non_linear.plot.mle_plotters import MLEPlotter
 from autofit.non_linear.plot.output import Output
 
 
-class AbstractOptimizer(NonLinearSearch, ABC):
+class AbstractMLE(NonLinearSearch, ABC):
     @property
     def config_type(self):
-        return conf.instance["non_linear"]["optimize"]
+        return conf.instance["non_linear"]["mle"]
 
     @property
     def samples_cls(self):
@@ -22,7 +22,7 @@ class AbstractOptimizer(NonLinearSearch, ABC):
 
     @property
     def plotter_cls(self):
-        return OptimizePlotter
+        return MLEPlotter
 
     def plot_start_point(
         self,
@@ -68,7 +68,7 @@ class AbstractOptimizer(NonLinearSearch, ABC):
     def plot_results(self, samples):
 
         def should_plot(name):
-            return conf.instance["visualize"]["plots_search"]["optimize"][name]
+            return conf.instance["visualize"]["plots_search"]["mle"][name]
 
         plotter = self.plotter_cls(
             samples=samples,

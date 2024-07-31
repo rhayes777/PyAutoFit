@@ -142,14 +142,14 @@ class TestGridSearchablePriors:
 
 @pytest.fixture(name="grid_search_05")
 def make_grid_search_05():
-    search = af.SearchGridSearch(search=af.m.MockOptimizer(), number_of_steps=2)
+    search = af.SearchGridSearch(search=af.m.MockMLE(), number_of_steps=2)
     search.search.paths = af.DirectoryPaths(name="sample_name")
     return search
 
 
 @pytest.fixture(autouse=True)
 def empty_args():
-    af.m.MockOptimizer.init_args = list()
+    af.m.MockMLE.init_args = list()
 
 
 def test_csv_headers(grid_search_10_result, sample_name_paths):

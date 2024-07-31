@@ -195,8 +195,8 @@ class CovarianceInterpolator(AbstractInterpolator):
         """
         analysis = self._analysis_for_value(value)
         model = self.model(path_relationship_map=path_relationship_map or {})
-        optimizer = DynestyStatic()
-        result = optimizer.fit(model=model, analysis=analysis)
+        search = DynestyStatic()
+        result = search.fit(model=model, analysis=analysis)
         return result.instance
 
     def __getitem__(self, value: Equality) -> float:

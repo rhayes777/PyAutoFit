@@ -358,7 +358,7 @@ class DirectoryPaths(AbstractPaths):
         try:
             info_start = self.search.initializer.info_from_model(model=self.model)
             self._save_model_start_point(info=info_start)
-        except NotImplementedError:
+        except (NotImplementedError, AttributeError):
             pass
 
         self.save_json("model", to_dict(self.model))

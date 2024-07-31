@@ -4,7 +4,7 @@ from autoconf import cached_property
 from autofit.database.sqlalchemy_ import sa
 
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
-from autofit.non_linear.search.optimize.abstract_optimize import AbstractOptimizer
+from autofit.non_linear.search.mle.abstract_mle import AbstractMLE
 from autofit.non_linear.analysis import Analysis
 from autofit.non_linear.fitness import Fitness
 from autofit.non_linear.initializer import AbstractInitializer
@@ -16,7 +16,7 @@ from scipy import optimize
 import numpy as np
 
 
-class AbstractBFGS(AbstractOptimizer):
+class AbstractBFGS(AbstractMLE):
     __identifier_fields__ = ()
 
     method = None

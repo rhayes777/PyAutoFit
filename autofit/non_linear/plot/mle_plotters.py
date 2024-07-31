@@ -8,7 +8,7 @@ from autofit.non_linear.plot.samples_plotters import skip_plot_in_test_mode
 
 logger = logging.getLogger(__name__)
 
-class OptimizePlotter(SamplesPlotter):
+class MLEPlotter(SamplesPlotter):
 
     def subplot_parameters(self, use_log_y : bool = False, use_last_50_percent : bool = False, **kwargs):
         """

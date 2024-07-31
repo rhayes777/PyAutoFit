@@ -125,13 +125,13 @@ venv.bak/
 .idea
 workspace/output/
 output
-test/optimize/test_fit
+test/mle/test_fit
 test/test_files/text/
 test/
-test_autofit/optimize/test_fit/
+test_autofit/mle/test_fit/
 test_autofit/test_files/text/psycopg2-binary==2.8.1
 test_autofit/test_files/text/
-fit/test_autofit/optimize/test_fit
+fit/test_autofit/mle/test_fit
 *.DS_Store
 
 test_autofit/config/priors/old
@@ -157,7 +157,7 @@ test_autofit/samples.csv
 __MACOSX
 *.swp
 test/autofit/test_fit
-# Byte-compiled / optimized / DLL files
+# Byte-compiled / mled / DLL files
 __pycache__/
 *.py[cod]
 *$py.class
@@ -264,13 +264,13 @@ venv.bak/
 .idea
 workspace/output/
 output
-test/optimize/test_fit
+test/mle/test_fit
 test/test_files/text/
 test/
-test_autofit/optimize/test_fit/
+test_autofit/mle/test_fit/
 test_autofit/test_files/text/psycopg2-binary==2.8.1
 test_autofit/test_files/text/
-fit/test_autofit/optimize/test_fit
+fit/test_autofit/mle/test_fit
 *.DS_Store
 
 test_autofit/config/priors/old
