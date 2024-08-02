@@ -39,7 +39,8 @@ def test_result(job_result):
     result = SensitivityResult(
         samples=[job_result.result.samples.summary()],
         perturb_samples=[job_result.perturb_result.samples.summary()],
-        shape=(1,)
+        shape=(1,),
+        physical_values=[[0.0]],
     )
 
     assert result.log_likelihoods_base == [1.0]
