@@ -24,4 +24,4 @@ Plotters
 
    NestPlotter
    MCMCPlotter
-   OptimizePlotter
+   MLEPlotter

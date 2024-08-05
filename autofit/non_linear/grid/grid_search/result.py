@@ -1,4 +1,4 @@
-from typing import List, Optional, Union, Iterable
+from typing import List, Optional, Union, Iterable, Tuple
 
 import numpy as np
 
@@ -11,8 +11,66 @@ from autofit.mapper.prior.abstract import Prior
 from autofit.non_linear.samples.interface import SamplesInterface
 
 
+class AbstractGridSearchResult:
+    def __init__(self, samples: GridList):
+        self.samples = samples
+
+    # noinspection PyTypeChecker
+    @as_grid_list
+    def physical_centres_lists_from(
+        self,
+        path: Union[str, Tuple[str, ...]],
+    ) -> GridList:
+        """
+        Get the physical centres of the grid search from a path to an attribute of the instance in the samples.
+
+        Parameters
+        ----------
+        path
+            The path to the attribute to get from the instance
+
+        Returns
+        -------
+        A list of lists of physical values
+        """
+        return self._physical_centres_lists_from(self.samples, path)
+
+    # noinspection PyTypeChecker
+    @as_grid_list
+    def _physical_centres_lists_from(
+        self,
+        samples: GridList,
+        path: Union[str, Tuple[str, ...]],
+    ) -> GridList:
+        """
+        Get the physical centres of the grid search from a path to an attribute of the instance in the samples.
+
+        Parameters
+        ----------
+        path
+            The path to the attribute to get from the instance
+
+        Returns
+        -------
+        A list of lists of physical values
+        """
+        if isinstance(path, str):
+            path = path.split(".")
+
+            def value_for_samples(samples):
+                return samples.model.object_for_path(path).mean
+
+        else:
+            paths = [p.split(".") for p in path]
+
+            def value_for_samples(samples):
+                return tuple(samples.model.object_for_path(p).mean for p in paths)
+
+        return [value_for_samples(samples) for samples in samples]
+
+
 # noinspection PyTypeChecker
-class GridSearchResult:
+class GridSearchResult(AbstractGridSearchResult):
     def __init__(
         self,
         samples: List[SamplesInterface],
@@ -34,12 +92,13 @@ class GridSearchResult:
         self.no_steps = len(lower_limits_lists)
 
         self.lower_limits_lists = GridList(lower_limits_lists, self.shape)
-        self.samples = GridList(samples, self.shape) if samples is not None else None
         self.side_length = int(self.no_steps ** (1 / self.no_dimensions))
         self.step_size = 1 / self.side_length
         self.grid_priors = grid_priors
 
         self.parent = parent
+
+        super().__init__(GridList(samples, self.shape) if samples is not None else None)
 
     @property
     @as_grid_list
@@ -209,7 +268,8 @@ class GridSearchResult:
 
     @as_grid_list
     def log_likelihoods(
-        self, relative_to_value: float = 0.0,
+        self,
+        relative_to_value: float = 0.0,
     ) -> GridList:
         """
         The maximum log likelihood of every grid search on a NumPy array whose shape is the native dimensions of the

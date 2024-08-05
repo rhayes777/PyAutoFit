@@ -14,18 +14,18 @@ def test_no_priors():
         search.fit(model, af.Analysis())
 
 
-@pytest.fixture(name="optimizer")
-def make_optimizer():
+@pytest.fixture(name="search")
+def make_search():
     return af.DynestyStatic("name")
 
 
-def test_serialize_optimiser(optimizer):
-    optimizer = pickle.loads(pickle.dumps(optimizer))
-    assert optimizer.name == "name"
+def test_serialize_optimiser(search):
+    search = pickle.loads(pickle.dumps(search))
+    assert search.name == "name"
 
 
-def test_serialize_grid_search(optimizer):
-    grid_search = af.SearchGridSearch(optimizer)
+def test_serialize_grid_search(search):
+    grid_search = af.SearchGridSearch(search)
     assert grid_search.logger.name == "GridSearch (name)"
     assert "logger" not in grid_search.__getstate__()
 

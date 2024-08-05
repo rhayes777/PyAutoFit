@@ -32,6 +32,7 @@ class AbstractPaths(ABC):
         parent: Optional["AbstractPaths"] = None,
         unique_tag: Optional[str] = None,
         identifier: str = None,
+        image_path_suffix : str = "",
     ):
         """
         Manages the path structure for `NonLinearSearch` output, for analyses both not using and using the search
@@ -63,6 +64,16 @@ class AbstractPaths(ABC):
         is_identifier_in_paths
             If True output path and symlink path terminate with an identifier generated from the
             search and model
+        parent
+            The parent paths object of this paths object.
+        unique_tag
+            A unique tag for the search, used to differentiate between searches with the same name.
+        identifier
+            A custom identifier for the search, if this is not None it will be used instead of the automatically
+            generated identifier
+        image_path_suffix
+            A suffix which is appended to the image path. This is used to differentiate between different
+            image outputs, for example the image of the starting point of an MLE.
         """
 
         self.name = name or ""
@@ -86,6 +97,8 @@ class AbstractPaths(ABC):
                 self.remove_files = True
         except NoSectionError as e:
             logger.exception(e)
+
+        self.image_path_suffix = image_path_suffix
 
     @property
     @abstractmethod
@@ -211,10 +224,10 @@ class AbstractPaths(ABC):
         The path to the image folder.
         """
 
-        if not os.path.exists(self.output_path / "image"):
-            os.makedirs(self.output_path / "image")
+        if not os.path.exists(self.output_path / f"image{self.image_path_suffix}"):
+            os.makedirs(self.output_path / f"image{self.image_path_suffix}")
 
-        return self.output_path / "image"
+        return self.output_path / f"image{self.image_path_suffix}"
 
     @property
     def profile_path(self) -> Path:

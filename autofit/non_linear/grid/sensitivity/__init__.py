@@ -148,7 +148,6 @@ class Sensitivity:
             perturb_samples=[
                 result.perturb_result.samples_summary for result in results
             ],
-            physical_values=physical_values,
             shape=self.shape,
         )
 
