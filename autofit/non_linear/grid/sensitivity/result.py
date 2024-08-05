@@ -1,4 +1,4 @@
-from typing import List, Tuple
+from typing import List, Tuple, Union
 
 from autofit.non_linear.grid.grid_list import GridList, as_grid_list
 from autofit.non_linear.grid.grid_search.result import AbstractGridSearchResult
@@ -26,6 +26,22 @@ class SensitivityResult(AbstractGridSearchResult):
         super().__init__(GridList(samples, shape))
         self.perturb_samples = GridList(perturb_samples, shape)
         self.shape = shape
+
+    def perturbed_physical_centres_list_from(
+        self, path: Union[str, Tuple[str, ...]]
+    ) -> List:
+        """
+        Returns the physical centres of the perturbed model for each sensitivity fit
+
+        Parameters
+        ----------
+        path
+            The path to the physical centres in the samples
+        """
+        return self._physical_centres_lists_from(
+            self.perturb_samples,
+            path,
+        )
 
     def __getitem__(self, item):
         return self.samples[item]

@@ -2,18 +2,25 @@ import pytest
 
 from autofit.non_linear.grid.sensitivity.job import JobResult
 from autofit.non_linear.grid.sensitivity.result import SensitivityResult
+import autofit as af
 
 
 class Samples:
-
     def __init__(self, log_likelihood):
         self.log_likelihood = log_likelihood
+        self.model = af.Model(
+            af.Gaussian,
+            centre=af.UniformPrior(
+                0.0,
+                1.0,
+            ),
+        )
 
     def summary(self):
         return self
 
-class Result:
 
+class Result:
     def __init__(self, samples):
         self.samples = samples
 
@@ -35,13 +42,21 @@ def test_job_result(job_result):
     assert job_result.log_likelihood_increase == 1.0
 
 
-def test_result(job_result):
-    result = SensitivityResult(
+@pytest.fixture(name="sensitivity_result")
+def make_sensitivity_result(job_result):
+    return SensitivityResult(
         samples=[job_result.result.samples.summary()],
         perturb_samples=[job_result.perturb_result.samples.summary()],
-        shape=(1,)
+        shape=(1,),
     )
 
-    assert result.log_likelihoods_base == [1.0]
-    assert result.log_likelihoods_perturbed == [2.0]
-    assert result.log_likelihood_differences == [1.0]
+
+def test_result(sensitivity_result):
+    assert sensitivity_result.log_likelihoods_base == [1.0]
+    assert sensitivity_result.log_likelihoods_perturbed == [2.0]
+    assert sensitivity_result.log_likelihood_differences == [1.0]
+
+
+def test_physical_centres(sensitivity_result):
+    assert sensitivity_result.physical_centres_lists_from("centre") == [0.5]
+    assert sensitivity_result.perturbed_physical_centres_list_from("centre") == [0.5]

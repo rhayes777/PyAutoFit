@@ -33,6 +33,27 @@ class AbstractGridSearchResult:
         -------
         A list of lists of physical values
         """
+        return self._physical_centres_lists_from(self.samples, path)
+
+    # noinspection PyTypeChecker
+    @as_grid_list
+    def _physical_centres_lists_from(
+        self,
+        samples: GridList,
+        path: Union[str, Tuple[str, ...]],
+    ) -> GridList:
+        """
+        Get the physical centres of the grid search from a path to an attribute of the instance in the samples.
+
+        Parameters
+        ----------
+        path
+            The path to the attribute to get from the instance
+
+        Returns
+        -------
+        A list of lists of physical values
+        """
         if isinstance(path, str):
             path = path.split(".")
 
@@ -45,7 +66,7 @@ class AbstractGridSearchResult:
             def value_for_samples(samples):
                 return tuple(samples.model.object_for_path(p).mean for p in paths)
 
-        return [value_for_samples(samples) for samples in self.samples]
+        return [value_for_samples(samples) for samples in samples]
 
 
 # noinspection PyTypeChecker
