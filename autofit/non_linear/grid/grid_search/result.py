@@ -41,6 +41,25 @@ class GridSearchResult:
 
         self.parent = parent
 
+    @as_grid_list
+    def physical_centres_lists_from(self, path: str):
+        """
+        Get the physical centres of the grid search from a path to an attribute of the instance in the samples.
+
+        Parameters
+        ----------
+        path
+            The path to the attribute to get from the instance
+
+        Returns
+        -------
+        A list of lists of physical values
+        """
+        return [
+            samples.model.object_for_path(path.split(".")).mean
+            for samples in self.samples
+        ]
+
     @property
     @as_grid_list
     def physical_lower_limits_lists(self) -> GridList:
@@ -209,7 +228,8 @@ class GridSearchResult:
 
     @as_grid_list
     def log_likelihoods(
-        self, relative_to_value: float = 0.0,
+        self,
+        relative_to_value: float = 0.0,
     ) -> GridList:
         """
         The maximum log likelihood of every grid search on a NumPy array whose shape is the native dimensions of the
