@@ -11,36 +11,11 @@ from autofit.mapper.prior.abstract import Prior
 from autofit.non_linear.samples.interface import SamplesInterface
 
 
-# noinspection PyTypeChecker
-class GridSearchResult:
-    def __init__(
-        self,
-        samples: List[SamplesInterface],
-        lower_limits_lists: Union[List, GridList],
-        grid_priors: List[Prior],
-        parent: Optional[NonLinearSearch] = None,
-    ):
-        """
-        The sample of a grid search.
+class AbstractGridSearchResult:
+    def __init__(self, samples: GridList):
+        self.samples = samples
 
-        Parameters
-        ----------
-        samples
-            The samples of the non linear optimizations performed at each grid step
-        lower_limits_lists
-            A list of lists of values representing the lower bounds of the grid searched values at each step
-        """
-        self.no_dimensions = len(lower_limits_lists[0])
-        self.no_steps = len(lower_limits_lists)
-
-        self.lower_limits_lists = GridList(lower_limits_lists, self.shape)
-        self.samples = GridList(samples, self.shape) if samples is not None else None
-        self.side_length = int(self.no_steps ** (1 / self.no_dimensions))
-        self.step_size = 1 / self.side_length
-        self.grid_priors = grid_priors
-
-        self.parent = parent
-
+    # noinspection PyTypeChecker
     @as_grid_list
     def physical_centres_lists_from(
         self,
@@ -71,6 +46,38 @@ class GridSearchResult:
                 return tuple(samples.model.object_for_path(p).mean for p in paths)
 
         return [value_for_samples(samples) for samples in self.samples]
+
+
+# noinspection PyTypeChecker
+class GridSearchResult(AbstractGridSearchResult):
+    def __init__(
+        self,
+        samples: List[SamplesInterface],
+        lower_limits_lists: Union[List, GridList],
+        grid_priors: List[Prior],
+        parent: Optional[NonLinearSearch] = None,
+    ):
+        """
+        The sample of a grid search.
+
+        Parameters
+        ----------
+        samples
+            The samples of the non linear optimizations performed at each grid step
+        lower_limits_lists
+            A list of lists of values representing the lower bounds of the grid searched values at each step
+        """
+        self.no_dimensions = len(lower_limits_lists[0])
+        self.no_steps = len(lower_limits_lists)
+
+        self.lower_limits_lists = GridList(lower_limits_lists, self.shape)
+        self.side_length = int(self.no_steps ** (1 / self.no_dimensions))
+        self.step_size = 1 / self.side_length
+        self.grid_priors = grid_priors
+
+        self.parent = parent
+
+        super().__init__(GridList(samples, self.shape) if samples is not None else None)
 
     @property
     @as_grid_list
