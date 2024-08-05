@@ -127,6 +127,7 @@ class Sensitivity:
             results = sorted(results)
 
             os.makedirs(self.paths.output_path, exist_ok=True)
+
             with open(self.results_path, "w+") as f:
                 writer = csv.writer(f)
                 writer.writerow(headers)

@@ -20,6 +20,8 @@ class SensitivityResult(AbstractGridSearchResult):
         ----------
         results
             The results of each sensitivity job.
+        physical_values
+            A list of lists of values representing the physical values of the sensitivity grid values.
         shape
             The shape of the sensitivity mapping grid.
         """
