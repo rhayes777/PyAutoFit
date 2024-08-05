@@ -29,7 +29,7 @@ class SensitivityResult(AbstractGridSearchResult):
 
     def perturbed_physical_centres_list_from(
         self, path: Union[str, Tuple[str, ...]]
-    ) -> List:
+    ) -> GridList:
         """
         Returns the physical centres of the perturbed model for each sensitivity fit
 
