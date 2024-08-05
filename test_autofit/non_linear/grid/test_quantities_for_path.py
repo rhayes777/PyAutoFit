@@ -65,3 +65,12 @@ def make_result():
 def test_physical_centres_from(result, name, expected):
     assert result.physical_centres_lists_from(name) == expected
     assert result.shape == (2, 2)
+
+
+def test_two_physical_centres(result):
+    assert result.physical_centres_lists_from(("centre", "normalization")) == [
+        (1.0, 1.5),
+        (1.0, 2.5),
+        (3.0, 1.5),
+        (3.0, 2.5),
+    ]

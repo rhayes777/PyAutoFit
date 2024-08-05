@@ -1,4 +1,4 @@
-from typing import List, Optional, Union, Iterable
+from typing import List, Optional, Union, Iterable, Tuple
 
 import numpy as np
 
@@ -42,7 +42,10 @@ class GridSearchResult:
         self.parent = parent
 
     @as_grid_list
-    def physical_centres_lists_from(self, path: str):
+    def physical_centres_lists_from(
+        self,
+        path: Union[str, Tuple[str, ...]],
+    ) -> GridList:
         """
         Get the physical centres of the grid search from a path to an attribute of the instance in the samples.
 
@@ -55,10 +58,19 @@ class GridSearchResult:
         -------
         A list of lists of physical values
         """
-        return [
-            samples.model.object_for_path(path.split(".")).mean
-            for samples in self.samples
-        ]
+        if isinstance(path, str):
+            path = path.split(".")
+
+            def value_for_samples(samples):
+                return samples.model.object_for_path(path).mean
+
+        else:
+            paths = [p.split(".") for p in path]
+
+            def value_for_samples(samples):
+                return tuple(samples.model.object_for_path(p).mean for p in paths)
+
+        return [value_for_samples(samples) for samples in self.samples]
 
     @property
     @as_grid_list
