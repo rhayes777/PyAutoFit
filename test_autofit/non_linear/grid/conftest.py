@@ -26,7 +26,7 @@ def make_sample_name_paths():
 @pytest.fixture(name="grid_search_10_result")
 def make_grid_search_10_result(mapper, sample_name_paths):
     grid_search = af.SearchGridSearch(
-        search=af.m.MockOptimizer(
+        search=af.m.MockMLE(
             samples_summary=MockSamplesSummary(
                 model=mapper,
                 median_pdf_sample=Sample(

@@ -2,6 +2,7 @@ import shutil
 
 import dill
 import json
+import numpy as np
 import os
 from os import path
 from pathlib import Path
@@ -21,7 +22,6 @@ from .abstract import AbstractPaths
 from ..samples import load_from_table
 from autofit.non_linear.samples.pdf import SamplesPDF
 from autofit.non_linear.samples.summary import SamplesSummary
-import numpy as np
 
 from ...visualise import VisualiseGraph
 
@@ -348,9 +348,17 @@ class DirectoryPaths(AbstractPaths):
         VisualiseGraph(
             model=self.model,
         ).save(str(self.output_path / "model_graph.html"))
+
         if info:
             self.save_json("info", info)
+
         self.save_json("search", to_dict(self.search))
+        try:
+            info_start = self.search.initializer.info_from_model(model=self.model)
+            self._save_model_start_point(info=info_start)
+        except (NotImplementedError, AttributeError):
+            pass
+
         self.save_json("model", to_dict(self.model))
         self._save_metadata(search_name=type(self.search).__name__.lower())
 
@@ -457,6 +465,13 @@ class DirectoryPaths(AbstractPaths):
         """
         with open_(self.output_path / "model.info", "w+") as f:
             f.write(model.info)
+
+    def _save_model_start_point(self, info):
+        """
+        Save the model.start file, which summarizes the start point of every parameter.
+        """
+        with open_(self.output_path / "model.start", "w+") as f:
+            f.write(info)
 
     def _save_parameter_names_file(self, model):
         """

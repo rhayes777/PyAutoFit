@@ -17,7 +17,8 @@ class MockFitness:
         return self.figure_of_merit
 
 
-def test__priors__samples_from_model():
+@pytest.fixture
+def model_and_samples():
     model = af.Model(af.m.MockClassx4)
     model.one = af.UniformPrior(lower_limit=0.099, upper_limit=0.101)
     model.two = af.UniformPrior(lower_limit=0.199, upper_limit=0.201)
@@ -26,34 +27,42 @@ def test__priors__samples_from_model():
 
     initializer = af.InitializerPrior()
 
-    (
-        unit_parameter_lists,
-        parameter_lists,
-        figure_of_merit_list,
-    ) = initializer.samples_from_model(
+    unit_parameter_lists, parameter_lists, _ = initializer.samples_from_model(
         total_points=2,
         model=model,
         fitness=MockFitness(),
         paths=af.DirectoryPaths(),
     )
 
-    assert 0.0 < unit_parameter_lists[0][0] < 1.0
-    assert 0.0 < unit_parameter_lists[1][0] < 1.0
-    assert 0.0 < unit_parameter_lists[0][1] < 1.0
-    assert 0.0 < unit_parameter_lists[1][1] < 1.0
-    assert 0.0 < unit_parameter_lists[0][2] < 1.0
-    assert 0.0 < unit_parameter_lists[1][2] < 1.0
-    assert 0.0 < unit_parameter_lists[0][3] < 1.0
-    assert 0.0 < unit_parameter_lists[1][3] < 1.0
+    return unit_parameter_lists, parameter_lists
 
-    assert 0.099 < parameter_lists[0][0] < 0.101
-    assert 0.099 < parameter_lists[1][0] < 0.101
-    assert 0.199 < parameter_lists[0][1] < 0.201
-    assert 0.199 < parameter_lists[1][1] < 0.201
-    assert 0.299 < parameter_lists[0][2] < 0.301
-    assert 0.299 < parameter_lists[1][2] < 0.301
-    assert 0.399 < parameter_lists[0][3] < 0.401
-    assert 0.399 < parameter_lists[1][3] < 0.401
+@pytest.mark.parametrize("index, param_index, lower, upper", [
+    (0, 0, 0.0, 1.0),
+    (1, 0, 0.0, 1.0),
+    (0, 1, 0.0, 1.0),
+    (1, 1, 0.0, 1.0),
+    (0, 2, 0.0, 1.0),
+    (1, 2, 0.0, 1.0),
+    (0, 3, 0.0, 1.0),
+    (1, 3, 0.0, 1.0),
+])
+def test_unit_parameter_lists(model_and_samples, index, param_index, lower, upper):
+    unit_parameter_lists, _ = model_and_samples
+    assert lower < unit_parameter_lists[index][param_index] < upper
+
+@pytest.mark.parametrize("index, param_index, lower, upper", [
+    (0, 0, 0.099, 0.101),
+    (1, 0, 0.099, 0.101),
+    (0, 1, 0.199, 0.201),
+    (1, 1, 0.199, 0.201),
+    (0, 2, 0.299, 0.301),
+    (1, 2, 0.299, 0.301),
+    (0, 3, 0.399, 0.401),
+    (1, 3, 0.399, 0.401),
+])
+def test_parameter_lists(model_and_samples, index, param_index, lower, upper):
+    _, parameter_lists = model_and_samples
+    assert lower < parameter_lists[index][param_index] < upper
 
 
 def test__priors__samples_from_model__raise_exception_if_all_likelihoods_identical():
@@ -234,8 +243,8 @@ def make_model():
     )
 
 
-def test_starting_point_initializer(model):
-    initializer = af.SpecificRangeInitializer(
+def test_initializer_bounds(model):
+    initializer = af.InitializerParamBounds(
         {
             model.centre: (1.0, 2.0),
             model.normalization: (2.0, 3.0),
@@ -249,8 +258,53 @@ def test_starting_point_initializer(model):
         assert 0.0 <= parameter <= 1.0
 
 
+def test__initializer_bounds__info_from_model(model):
+
+    initializer =  af.InitializerParamBounds(
+        {
+            model.centre: (1.0, 2.0),
+            model.normalization: (2.0, 3.0),
+            model.sigma: (-2.0, -1.0),
+        }
+    )
+
+    info = initializer.info_from_model(model)
+
+    assert "Total Free Parameters = 3" in info
+    assert "centre: Start[(1.0, 2.0)]" in info
+
+
+def test__initializer_start_point(model):
+    initializer = af.InitializerParamStartPoints(
+        {
+            model.centre: 1.5,
+            model.normalization: 2.5,
+            model.sigma: -1.5,
+        }
+    )
+
+    parameter_list = initializer._generate_unit_parameter_list(model)
+    assert len(parameter_list) == 3
+    for parameter in parameter_list:
+        assert 0.0 <= parameter <= 1.0
+
+
+def test__initializer_start_point__info_from_model(model):
+    initializer = af.InitializerParamStartPoints(
+        {
+            model.centre: 1.5,
+            model.normalization: 2.5,
+            model.sigma: -1.5,
+        }
+    )
+    info = initializer.info_from_model(model)
+
+    assert "Total Free Parameters = 3" in info
+    assert "centre: Start[1.5]" in info
+
+
 def test_offset(model):
-    initializer = af.SpecificRangeInitializer(
+    initializer = af.InitializerParamBounds(
         {
             model.centre: (1.5, 2.0),
             model.normalization: (2.5, 3.0),
@@ -265,7 +319,7 @@ def test_offset(model):
 
 
 def test_missing_parameter(model):
-    initializer = af.SpecificRangeInitializer(
+    initializer = af.InitializerParamBounds(
         {
             model.centre: (1.5, 2.0),
             model.normalization: (2.5, 3.0),

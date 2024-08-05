@@ -24,7 +24,7 @@ def make_database_parent_search(session):
 
 def _make_grid_search(mapper, session=None):
     search = af.SearchGridSearch(
-        search=af.m.MockOptimizer(session=session), number_of_steps=2
+        search=af.m.MockMLE(session=session), number_of_steps=2
     )
     search.fit(
         model=mapper,
