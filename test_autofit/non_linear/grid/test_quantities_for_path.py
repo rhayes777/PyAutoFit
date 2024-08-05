@@ -1,12 +1,20 @@
+import pytest
+
 import autofit as af
 
 
-def test_physical_centres_from():
+@pytest.fixture(name="result")
+def make_result():
     model = af.Model(
         af.Gaussian,
     )
-    grid_priors = [model.centre]
-    lower_limits_lists = [[0.0], [2.0]]
+    grid_priors = [model.centre, model.normalization]
+    lower_limits_lists = [
+        [0.0, 1.0],
+        [0.0, 2.0],
+        [2.0, 1.0],
+        [2.0, 2.0],
+    ]
 
     sample = af.Sample(
         1.0,
@@ -19,33 +27,41 @@ def test_physical_centres_from():
         },
     )
 
+    def make_samples(centre, normalization):
+        return af.Samples(
+            model=af.Model(
+                af.Gaussian,
+                centre=af.UniformPrior(
+                    lower_limit=centre,
+                    upper_limit=centre + 2.0,
+                ),
+                normalization=af.UniformPrior(
+                    lower_limit=normalization,
+                    upper_limit=normalization + 1.0,
+                ),
+            ),
+            sample_list=[sample],
+        )
+
     samples = [
-        af.Samples(
-            model=af.Model(
-                af.Gaussian,
-                centre=af.UniformPrior(
-                    lower_limit=0.0,
-                    upper_limit=2.0,
-                ),
-            ),
-            sample_list=[sample],
-        ),
-        af.Samples(
-            model=af.Model(
-                af.Gaussian,
-                centre=af.UniformPrior(
-                    lower_limit=2.0,
-                    upper_limit=4.0,
-                ),
-            ),
-            sample_list=[sample],
-        ),
+        make_samples(centre, normalisation)
+        for centre, normalisation in lower_limits_lists
     ]
 
-    result = af.GridSearchResult(
+    return af.GridSearchResult(
         samples=samples,
         lower_limits_lists=lower_limits_lists,
         grid_priors=grid_priors,
     )
 
-    assert result.physical_centres_lists_from("centre") == [[1.0], [3.0]]
+
+@pytest.mark.parametrize(
+    "name, expected",
+    [
+        ("centre", [1.0, 1.0, 3.0, 3.0]),
+        ("normalization", [1.5, 2.5, 1.5, 2.5]),
+    ],
+)
+def test_physical_centres_from(result, name, expected):
+    assert result.physical_centres_lists_from(name) == expected
+    assert result.shape == (2, 2)
