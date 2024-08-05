@@ -1466,6 +1466,14 @@ class AbstractPriorModel(AbstractModel):
         return [path for path, _ in self.path_priors_tuples]
 
     @property
+    def paths_formatted(self) -> List[Path]:
+        """
+        A list of paths to all the priors in the model, ordered by their
+        ids
+        """
+        return [path for path, _ in self.path_priors_tuples]
+
+    @property
     def composition(self):
         return [".".join(path) for path in self.paths]
 
