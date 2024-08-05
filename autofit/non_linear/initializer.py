@@ -261,7 +261,7 @@ class InitializerParamBounds(AbstractInitializer):
 
             except KeyError:
 
-                info += f"{key} : {prior})\n"
+                info += f"{key}: {prior})\n"
 
         return info
 

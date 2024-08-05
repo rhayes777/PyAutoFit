@@ -17,7 +17,6 @@ import numpy as np
 
 
 class AbstractBFGS(AbstractMLE):
-    __identifier_fields__ = ()
 
     method = None
 

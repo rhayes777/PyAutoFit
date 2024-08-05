@@ -1090,10 +1090,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         self.logger.debug("Visualizing")
 
-        if paths_override is None:
-            paths = self.paths
-        else:
-            paths = paths_override
+        paths = paths_override or self.paths
 
         if instance is None and samples_summary is None:
             raise AssertionError(
