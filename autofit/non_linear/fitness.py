@@ -102,12 +102,13 @@ class Fitness:
         self.fom_is_log_likelihood = fom_is_log_likelihood
         self.resample_figure_of_merit = resample_figure_of_merit
         self.convert_to_chi_squared = convert_to_chi_squared
+        self.store_history = store_history
+
         self._log_likelihood_function = None
 
         if self.paths is not None:
             self.check_log_likelihood(fitness=self)
 
-        self.store_history = store_history
         self.parameters_history_list = []
         self.log_likelihood_history_list = []
 
