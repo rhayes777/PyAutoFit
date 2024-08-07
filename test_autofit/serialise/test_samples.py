@@ -45,13 +45,14 @@ def test_summary(summary, model, sample):
     assert summary.model is model
     assert summary.max_log_likelihood_sample == sample
 
+
 @pytest.fixture(name="summary_dict")
 def make_summary_dict():
     return {
         "type": "instance",
         "class_path": "autofit.non_linear.samples.summary.SamplesSummary",
         "arguments": {
-            "max_log_likelihood_sample": {
+            "median_pdf_sample": {
                 "type": "instance",
                 "class_path": "autofit.non_linear.samples.sample.Sample",
                 "arguments": {
@@ -76,7 +77,28 @@ def make_summary_dict():
                     {"type": "tuple", "values": [2.0, 6.0]},
                 ],
             },
-            "median_pdf_sample": {
+            "model": {
+                "class_path": "autofit.example.model.Gaussian",
+                "type": "model",
+                "arguments": {
+                    "centre": {
+                        "lower_limit": 0.0,
+                        "upper_limit": 1.0,
+                        "type": "Uniform",
+                    },
+                    "normalization": {
+                        "lower_limit": 0.0,
+                        "upper_limit": 1.0,
+                        "type": "Uniform",
+                    },
+                    "sigma": {
+                        "lower_limit": 0.0,
+                        "upper_limit": 1.0,
+                        "type": "Uniform",
+                    },
+                },
+            },
+            "max_log_likelihood_sample": {
                 "type": "instance",
                 "class_path": "autofit.non_linear.samples.sample.Sample",
                 "arguments": {
@@ -92,14 +114,6 @@ def make_summary_dict():
                         },
                     },
                 },
-            },
-            "errors_at_sigma_3": {
-                "type": "list",
-                "values": [
-                    {"type": "tuple", "values": [2.0, 0.0]},
-                    {"type": "tuple", "values": [3.0, 0.0]},
-                    {"type": "tuple", "values": [4.0, 0.0]},
-                ],
             },
             "values_at_sigma_1": {
                 "type": "list",
@@ -117,10 +131,17 @@ def make_summary_dict():
                     {"type": "tuple", "values": [4.0, 0.0]},
                 ],
             },
+            "errors_at_sigma_3": {
+                "type": "list",
+                "values": [
+                    {"type": "tuple", "values": [2.0, 0.0]},
+                    {"type": "tuple", "values": [3.0, 0.0]},
+                    {"type": "tuple", "values": [4.0, 0.0]},
+                ],
+            },
             "log_evidence": None,
         },
     }
-
 
 
 def test_dict(summary, summary_dict, remove_ids):
