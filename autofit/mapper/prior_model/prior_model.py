@@ -250,7 +250,10 @@ class Model(AbstractPriorModel):
         -------
         An instance of this model.
         """
-        return self.cls(**dict(zip(self.direct_argument_names, children)))
+        instance = object.__new__(self.cls)
+        for name, child in zip(self.direct_argument_names, children):
+            setattr(instance, name, child)
+        return instance
 
     def tree_flatten(self):
         """
