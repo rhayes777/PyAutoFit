@@ -177,11 +177,15 @@ class Model(AbstractPriorModel):
                         continue
 
                     if (
-                        hasattr(annotation, "__origin__")
-                        and issubclass(
-                            annotation.__origin__, collections.abc.Collection
+                        (
+                            hasattr(annotation, "__origin__")
+                            and issubclass(
+                                annotation.__origin__, collections.abc.Collection
+                            )
                         )
-                    ) or isinstance(annotation, collections.abc.Collection):
+                        or isinstance(annotation, collections.abc.Collection)
+                        or issubclass(annotation, collections.abc.Collection)
+                    ):
                         from autofit.mapper.prior_model.collection import Collection
 
                         value = Collection()
