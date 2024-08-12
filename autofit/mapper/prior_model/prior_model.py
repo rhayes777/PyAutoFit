@@ -116,7 +116,10 @@ class Model(AbstractPriorModel):
             annotations = inspect.getfullargspec(cls).annotations
             for key, value in annotations.items():
                 if isinstance(value, str):
-                    annotations[key] = getattr(builtins, value)
+                    try:
+                        annotations[key] = getattr(builtins, value)
+                    except AttributeError:
+                        pass
         except TypeError:
             annotations = dict()
 
@@ -169,6 +172,9 @@ class Model(AbstractPriorModel):
                     setattr(self, arg, None)
                 else:
                     annotation = annotations[arg]
+
+                    if isinstance(annotation, str):
+                        continue
 
                     if (
                         hasattr(annotation, "__origin__")
