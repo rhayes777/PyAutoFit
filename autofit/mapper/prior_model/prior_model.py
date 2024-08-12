@@ -125,6 +125,10 @@ class Model(AbstractPriorModel):
             defaults = dict(
                 zip(arg_spec.args[-len(arg_spec.defaults) :], arg_spec.defaults)
             )
+            defaults = {
+                key: value.default if hasattr(value, "default") else value
+                for key, value in defaults.items()
+            }
         except TypeError:
             defaults = {}
 
@@ -173,7 +177,9 @@ class Model(AbstractPriorModel):
                     if isinstance(annotation, str):
                         continue
 
-                    if (
+                    if arg in defaults:
+                        value = self._convert_value(defaults[arg])
+                    elif (
                         (
                             hasattr(annotation, "__origin__")
                             and issubclass(
