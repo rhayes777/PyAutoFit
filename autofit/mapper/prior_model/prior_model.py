@@ -232,9 +232,17 @@ class Model(AbstractPriorModel):
         """
         Flatten an instance of this model as a PyTree.
         """
+        attribute_names = [
+            name
+            for name in self.direct_argument_names
+            if hasattr(instance, name) and name not in self.constructor_argument_names
+        ]
         return (
-            [getattr(instance, name) for name in self.constructor_argument_names],
-            None,
+            (
+                [getattr(instance, name) for name in self.constructor_argument_names],
+                [getattr(instance, name) for name in attribute_names],
+            ),
+            (attribute_names,),
         )
 
     def instance_unflatten(self, aux_data, children):
@@ -250,7 +258,12 @@ class Model(AbstractPriorModel):
         -------
         An instance of this model.
         """
-        return self.cls(*children)
+        constructor_arguments, other_arguments = children
+        attribute_names = aux_data[0]
+        instance = self.cls(*constructor_arguments)
+        for name, value in zip(attribute_names, other_arguments):
+            setattr(instance, name, value)
+        return instance
 
     def tree_flatten(self):
         """
