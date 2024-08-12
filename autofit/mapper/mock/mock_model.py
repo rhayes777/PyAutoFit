@@ -41,7 +41,7 @@ class MockClassx3(MockClassx4):
 class MockClassx2Tuple:
     def __init__(self, one_tuple=(0.0, 0.0)):
         """Abstract MockParent, describing an object with y, x cartesian
-        coordinates """
+        coordinates"""
         self.one_tuple = one_tuple
 
     def __eq__(self, other):
@@ -94,7 +94,6 @@ class MockWithTuple:
 
 
 class MockOverload:
-
     def __init__(self, one=1.0):
         self.one = one
 
@@ -112,11 +111,11 @@ class MockOverload:
 
 class MockComponents:
     def __init__(
-            self,
-            components_0: list = None,
-            components_1: list = None,
-            parameter=None,
-            **kwargs
+        self,
+        components_0: list = None,
+        components_1: list = None,
+        parameter=None,
+        **kwargs
     ):
         self.parameter = parameter
         self.group_0 = components_0
@@ -134,7 +133,7 @@ class MockParent:
 
 class MockChildTuple(MockParent):
     def __init__(self, tup=(0.0, 0.0)):
-        """ Generic circular profiles class to contain functions shared by light and
+        """Generic circular profiles class to contain functions shared by light and
         mass profiles.
 
         Parameters
@@ -147,7 +146,7 @@ class MockChildTuple(MockParent):
 
 class MockChildTuplex2(MockChildTuple):
     def __init__(self, tup=(0.0, 0.0), one=1.0, two=0.0):
-        """ Generic elliptical profiles class to contain functions shared by light
+        """Generic elliptical profiles class to contain functions shared by light
         and mass profiles.
 
         Parameters
@@ -166,7 +165,7 @@ class MockChildTuplex2(MockChildTuple):
 
 class MockChildTuplex3(MockChildTuple):
     def __init__(self, tup=(0.0, 0.0), one=1.0, two=0.0, three=0.0):
-        """ Generic elliptical profiles class to contain functions shared by light
+        """Generic elliptical profiles class to contain functions shared by light
         and mass profiles.
 
         Parameters
@@ -182,3 +181,13 @@ class MockChildTuplex3(MockChildTuple):
         self.one = one
         self.two = two
         self.three = three
+
+
+class Parameter:
+    def __init__(self, value: float = 0.5):
+        self.value = value
+
+
+class WithString:
+    def __init__(self, arg: "Parameter"):
+        self.arg = arg

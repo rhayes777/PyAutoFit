@@ -112,16 +112,7 @@ class Model(AbstractPriorModel):
 
         self.cls = cls
 
-        try:
-            annotations = inspect.getfullargspec(cls).annotations
-            for key, value in annotations.items():
-                if isinstance(value, str):
-                    try:
-                        annotations[key] = getattr(builtins, value)
-                    except AttributeError:
-                        pass
-        except TypeError:
-            annotations = dict()
+        annotations = typing.get_type_hints(cls.__init__)
 
         try:
             arg_spec = inspect.getfullargspec(cls)
