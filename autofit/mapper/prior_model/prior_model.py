@@ -1,10 +1,9 @@
-import builtins
 import collections.abc
 import copy
 import inspect
 import logging
-from typing import List
 import typing
+from typing import *
 
 from autofit.jax_wrapper import register_pytree_node_class, register_pytree_node
 
@@ -16,6 +15,7 @@ from autofit.mapper.prior.abstract import Prior
 from autofit.mapper.prior.deferred import DeferredInstance
 from autofit.mapper.prior.tuple_prior import TuplePrior
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
+from autofit.mapper.prior_model.util import gather_namespaces
 from autofit.tools.namer import namer
 
 logger = logging.getLogger(__name__)
@@ -112,7 +112,9 @@ class Model(AbstractPriorModel):
 
         self.cls = cls
 
-        annotations = typing.get_type_hints(cls.__init__)
+        namespaces = gather_namespaces(cls)
+
+        annotations = typing.get_type_hints(cls.__init__, namespaces, namespaces)
 
         try:
             arg_spec = inspect.getfullargspec(cls)
