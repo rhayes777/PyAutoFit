@@ -114,7 +114,11 @@ class Model(AbstractPriorModel):
 
         namespaces = gather_namespaces(cls)
 
-        annotations = typing.get_type_hints(cls.__init__, namespaces, namespaces)
+        annotations = typing.get_type_hints(
+            cls.__init__,
+            namespaces,
+            namespaces,
+        )
 
         try:
             arg_spec = inspect.getfullargspec(cls)

@@ -17,14 +17,16 @@ def gather_namespaces(cls: Type) -> Dict[str, Dict]:
     """
     namespaces = {}
 
-    for base in inspect.getmro(cls):
-        if base is object:
-            continue  # Skip the base object class
+    try:
+        for base in inspect.getmro(cls):
+            if base is object:
+                continue
 
-        # Fetch the global and local namespaces where the class was defined
-        module = inspect.getmodule(base)
-        if module:
-            namespaces.update(vars(module))
+            module = inspect.getmodule(base)
+            if module:
+                namespaces.update(vars(module))
+    except AttributeError:
+        pass
 
     namespaces.update(vars(typing))
 
