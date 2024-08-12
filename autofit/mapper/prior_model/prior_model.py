@@ -289,7 +289,11 @@ class Model(AbstractPriorModel):
         """
         if self.cls not in class_args_dict:
             try:
-                class_args_dict[self.cls] = inspect.getfullargspec(self.cls).args[1:]
+                class_args_dict[self.cls] = [
+                    arg
+                    for arg in inspect.getfullargspec(self.cls).args
+                    if arg != "self"
+                ]
             except TypeError:
                 class_args_dict[self.cls] = []
         return class_args_dict[self.cls]
