@@ -5,6 +5,7 @@ import pytest
 import autofit as af
 from autoconf.exc import ConfigException
 from autofit.example.model import PhysicalNFW
+from autofit.mapper.mock.mock_model import WithString
 from autofit.mapper.model_object import Identifier
 
 
@@ -158,7 +159,6 @@ def test_random_instance(model_with_assertion):
 
 
 class TestModel:
-
     __test__ = False
 
     def __init__(self, items: List[float]):
@@ -173,3 +173,8 @@ def test_typing_annotations():
 def test_no_default_tuple_priors():
     model = af.Model(PhysicalNFW)
     assert model.prior_count == 6
+
+
+def test_string_annotation():
+    model = af.Model(WithString)
+    assert model.instance_from_prior_medians().arg.value == 0.5
