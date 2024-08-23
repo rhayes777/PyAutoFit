@@ -1,5 +1,6 @@
 import abc
 import inspect
+from sqlalchemy.orm import Mapped
 from typing import List, Tuple, Any, Iterable, Union, ItemsView, Type
 
 import numpy as np
@@ -42,7 +43,7 @@ class Object(Base):
         foreign_keys=[latent_samples_for_id],
     )
 
-    children: List["Object"] = sa.orm.relationship(
+    children: Mapped[List["Object"]] = sa.orm.relationship(
         "Object",
         uselist=True,
     )
