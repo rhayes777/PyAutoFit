@@ -12,16 +12,16 @@ def make_q_cavity():
 
 
 def test_integration(q_cavity, probit_factor):
-    x = np.linspace(-3, 3, 2 ** 10)
+    x = np.linspace(-3, 3, 2**10)
 
     probit = stats.norm(loc=0.0, scale=1.0).cdf(x)
     q = stats.norm(loc=q_cavity.mean, scale=q_cavity.sigma).pdf(x)
     tilted_distribution = probit * q
 
-    assert tilted_distribution.shape == (2 ** 10,)
+    assert tilted_distribution.shape == (2**10,)
 
     ni_0, ni_1, ni_2 = (
-        integrate.trapz(x ** i * tilted_distribution, x) for i in range(3)
+        integrate.simpson(x**i * tilted_distribution, x=x) for i in range(3)
     )
 
     q_numerical = autofit.messages.normal.NormalMessage.from_sufficient_statistics(
