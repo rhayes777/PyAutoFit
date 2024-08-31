@@ -1,6 +1,7 @@
 from typing import Dict, Optional
 
 import numpy as np
+import os
 
 from autofit.database.sqlalchemy_ import sa
 from autofit.mapper.model_mapper import ModelMapper
@@ -116,7 +117,7 @@ class Zeus(AbstractMCMC):
                 "You are attempting to perform a model-fit using Zeus. \n\n"
                 "However, the optional library Zeus (https://zeus-mcmc.readthedocs.io/en/latest/) is "
                 "not installed.\n\n"
-                "Install it via the command `pip install zeus==3.5.5`.\n\n"
+                "Install it via the command `pip install zeus-mcmc==2.5.4`.\n\n"
                 "----------------------"
             )
 
@@ -274,13 +275,23 @@ class Zeus(AbstractMCMC):
 
         search_internal = search_internal or self.paths.load_search_internal()
 
-        auto_correlations = self.auto_correlations_from(search_internal=search_internal)
+        if os.environ.get("PYAUTOFIT_TEST_MODE") == "1":
 
-        discard = int(3.0 * np.max(auto_correlations.times))
-        thin = int(np.max(auto_correlations.times) / 2.0)
-        samples_after_burn_in = search_internal.get_chain(
-            discard=discard, thin=thin, flat=True
-        )
+            samples_after_burn_in = search_internal.get_chain(
+                discard=5, thin=5, flat=True
+            )
+
+        else:
+            auto_correlations = self.auto_correlations_from(
+                search_internal=search_internal
+            )
+
+            discard = int(3.0 * np.max(auto_correlations.times))
+            thin = int(np.max(auto_correlations.times) / 2.0)
+            samples_after_burn_in = search_internal.get_chain(
+                discard=discard, thin=thin, flat=True
+            )
+
 
         parameter_lists = samples_after_burn_in.tolist()
         log_posterior_list = search_internal.get_log_prob(flat=True).tolist()
@@ -306,7 +317,9 @@ class Zeus(AbstractMCMC):
             sample_list=sample_list,
             samples_info=self.samples_info_from(search_internal=search_internal),
             auto_correlation_settings=self.auto_correlation_settings,
-            auto_correlations=auto_correlations,
+            auto_correlations=self.auto_correlations_from(
+                search_internal=search_internal
+            ),
         )
 
     def auto_correlations_from(self, search_internal=None):
