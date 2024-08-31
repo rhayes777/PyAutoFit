@@ -84,6 +84,11 @@ class Emcee(AbstractMCMC):
 
         self.logger.debug("Creating Emcee Search")
 
+        # TODO : Emcee visualization tools rely on the .hdf file and thus require that the search internal is
+        # TODO : On hard-disk, which this forces to occur.
+
+        conf.instance["output"]["search_internal"] = True
+
     def _fit(self, model: AbstractPriorModel, analysis):
         """
         Fit a model using Emcee and the Analysis class which contains the data and returns the log likelihood from
