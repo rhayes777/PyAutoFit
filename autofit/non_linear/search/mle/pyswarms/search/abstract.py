@@ -218,12 +218,7 @@ class AbstractPySwarms(AbstractMLE):
                 # TODO : Running PySwarms in NoteBook raises
                 # TODO: TypeError: cannot pickle '_hashlib.HMAC' object
 
-                try:
-                    self.paths.save_search_internal(
-                        obj=search_internal,
-                    )
-                except TypeError:
-                    pass
+                self.output_search_internal(search_internal=search_internal)
 
                 self.perform_update(
                     model=model,
@@ -235,6 +230,14 @@ class AbstractPySwarms(AbstractMLE):
                 init_pos = search_internal.pos_history[-1]
 
         return search_internal
+
+    def output_search_internal(self, search_internal):
+        try:
+            self.paths.save_search_internal(
+                obj=search_internal,
+            )
+        except TypeError:
+            pass
 
     def samples_via_internal_from(self, model, search_internal=None):
         """
