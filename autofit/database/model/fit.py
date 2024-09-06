@@ -30,7 +30,11 @@ class Pickle(Base):
     name = sa.Column(sa.String)
     string = sa.Column(sa.String)
     fit_id = sa.Column(sa.String, sa.ForeignKey("fit.id"))
-    fit = sa.orm.relationship("Fit", uselist=False)
+    fit = sa.orm.relationship(
+        "Fit",
+        uselist=False,
+        back_populates="pickles",
+    )
 
     @property
     def value(self):
@@ -64,7 +68,11 @@ class JSON(Base):
     name = sa.Column(sa.String)
     string = sa.Column(sa.String)
     fit_id = sa.Column(sa.String, sa.ForeignKey("fit.id"))
-    fit = sa.orm.relationship("Fit", uselist=False)
+    fit = sa.orm.relationship(
+        "Fit",
+        uselist=False,
+        back_populates="jsons",
+    )
 
     @property
     def dict(self):
@@ -308,7 +316,10 @@ class Fit(Base):
     def model(self, model: AbstractPriorModel):
         self.__model = Object.from_object(model)
 
-    pickles: Mapped[List[Pickle]] = sa.orm.relationship("Pickle", lazy="joined")
+    pickles: Mapped[List[Pickle]] = sa.orm.relationship(
+        "Pickle",
+        lazy="joined",
+    )
     jsons: Mapped[List[JSON]] = sa.orm.relationship("JSON", lazy="joined")
     arrays: Mapped[List[Array]] = sa.orm.relationship(
         "Array",
