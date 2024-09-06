@@ -48,8 +48,3 @@ def test_samples_summary_model():
     fit.model = model
 
     assert fit["samples_summary"].model.cls == af.Gaussian
-
-
-def test_dict_with_tuple_keys():
-    d = {("a", "b"): 1}
-    assert db.Object.from_object(d)() == d

@@ -30,11 +30,7 @@ class Pickle(Base):
     name = sa.Column(sa.String)
     string = sa.Column(sa.String)
     fit_id = sa.Column(sa.String, sa.ForeignKey("fit.id"))
-    fit = sa.orm.relationship(
-        "Fit",
-        uselist=False,
-        back_populates="pickles",
-    )
+    fit = sa.orm.relationship("Fit", uselist=False)
 
     @property
     def value(self):
@@ -68,11 +64,7 @@ class JSON(Base):
     name = sa.Column(sa.String)
     string = sa.Column(sa.String)
     fit_id = sa.Column(sa.String, sa.ForeignKey("fit.id"))
-    fit = sa.orm.relationship(
-        "Fit",
-        uselist=False,
-        back_populates="jsons",
-    )
+    fit = sa.orm.relationship("Fit", uselist=False)
 
     @property
     def dict(self):
@@ -119,10 +111,7 @@ class NamedInstance(Base):
     instance_id = sa.Column(sa.Integer, sa.ForeignKey("object.id"))
 
     __instance = sa.orm.relationship(
-        "Object",
-        uselist=False,
-        backref="named_instance",
-        foreign_keys=[instance_id],
+        "Object", uselist=False, backref="named_instance", foreign_keys=[instance_id]
     )
 
     @property
@@ -193,10 +182,7 @@ class Fit(Base):
     )
     is_complete = sa.Column(sa.Boolean)
 
-    _named_instances: Mapped[List[NamedInstance]] = sa.orm.relationship(
-        "NamedInstance",
-        back_populates="fit",
-    )
+    _named_instances: Mapped[List[NamedInstance]] = sa.orm.relationship("NamedInstance")
 
     @property
     @try_none
@@ -218,7 +204,7 @@ class Fit(Base):
     def total_parameters(self):
         return self.model.prior_count if self.model else 0
 
-    _info: Mapped[List[Info]] = sa.orm.relationship("Info", back_populates="fit")
+    _info: Mapped[List[Info]] = sa.orm.relationship("Info")
 
     def __init__(self, **kwargs):
         try:
@@ -316,22 +302,17 @@ class Fit(Base):
     def model(self, model: AbstractPriorModel):
         self.__model = Object.from_object(model)
 
-    pickles: Mapped[List[Pickle]] = sa.orm.relationship(
-        "Pickle",
-        lazy="joined",
-    )
+    pickles: Mapped[List[Pickle]] = sa.orm.relationship("Pickle", lazy="joined")
     jsons: Mapped[List[JSON]] = sa.orm.relationship("JSON", lazy="joined")
     arrays: Mapped[List[Array]] = sa.orm.relationship(
         "Array",
         lazy="joined",
         foreign_keys=[Array.fit_id],
-        viewonly=True,
     )
     hdus: Mapped[List[HDU]] = sa.orm.relationship(
         "HDU",
         lazy="joined",
         foreign_keys=[HDU.fit_id],
-        viewonly=True,
     )
 
     def __getitem__(self, item: str):
