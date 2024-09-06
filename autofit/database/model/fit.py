@@ -210,7 +210,7 @@ class Fit(Base):
     def total_parameters(self):
         return self.model.prior_count if self.model else 0
 
-    _info: Mapped[List[Info]] = sa.orm.relationship("Info")
+    _info: Mapped[List[Info]] = sa.orm.relationship("Info", back_populates="fit")
 
     def __init__(self, **kwargs):
         try:
