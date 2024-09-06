@@ -325,11 +325,13 @@ class Fit(Base):
         "Array",
         lazy="joined",
         foreign_keys=[Array.fit_id],
+        viewonly=True,
     )
     hdus: Mapped[List[HDU]] = sa.orm.relationship(
         "HDU",
         lazy="joined",
         foreign_keys=[HDU.fit_id],
+        viewonly=True,
     )
 
     def __getitem__(self, item: str):
