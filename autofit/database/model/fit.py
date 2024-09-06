@@ -111,7 +111,10 @@ class NamedInstance(Base):
     instance_id = sa.Column(sa.Integer, sa.ForeignKey("object.id"))
 
     __instance = sa.orm.relationship(
-        "Object", uselist=False, backref="named_instance", foreign_keys=[instance_id]
+        "Object",
+        uselist=False,
+        backref="named_instance",
+        foreign_keys=[instance_id],
     )
 
     @property
@@ -182,7 +185,10 @@ class Fit(Base):
     )
     is_complete = sa.Column(sa.Boolean)
 
-    _named_instances: Mapped[List[NamedInstance]] = sa.orm.relationship("NamedInstance")
+    _named_instances: Mapped[List[NamedInstance]] = sa.orm.relationship(
+        "NamedInstance",
+        back_populates="fit",
+    )
 
     @property
     @try_none

@@ -46,6 +46,7 @@ class Object(Base):
     children: Mapped[List["Object"]] = sa.orm.relationship(
         "Object",
         uselist=True,
+        back_populates="parent",
     )
 
     def __len__(self):
