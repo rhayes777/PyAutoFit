@@ -1,10 +1,6 @@
-from typing import Union
+from typing import Union, ItemsView, Any, Iterable, Tuple
 
 from ..sqlalchemy_ import sa
-
-from autofit.mapper.prior import abstract
-from autofit.mapper.prior_model import prior_model
-from autofit.mapper.prior_model import collection
 
 from .model import Object
 
@@ -26,7 +22,7 @@ class Dict(Object):
     __mapper_args__ = {"polymorphic_identity": "dict"}
 
     def __call__(self):
-        return {child.name: child() for child in self.children}
+        return dict(child() for child in self.children)
 
     @classmethod
     def _from_object(cls, source: dict):
@@ -34,3 +30,17 @@ class Dict(Object):
         instance._add_children(source.items())
         instance.cls = dict
         return instance
+
+    def _add_children(
+        self, items: Union[ItemsView[str, Any], Iterable[Tuple[str, Any]]]
+    ):
+        """
+        Add database representations of child attributes
+
+        Parameters
+        ----------
+        items
+            Attributes such as floats or priors that are associated
+            with the real object
+        """
+        self.children = [Object.from_object(item) for item in items]
