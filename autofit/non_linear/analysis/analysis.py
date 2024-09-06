@@ -72,7 +72,10 @@ class Analysis(ABC):
                         log_prior=sample.log_prior,
                         weight=sample.weight,
                         kwargs=self.compute_latent_variables(
-                            sample.instance_for_model(model)
+                            sample.instance_for_model(
+                                model,
+                                ignore_assertions=True,
+                            )
                         ),
                     )
                 )
