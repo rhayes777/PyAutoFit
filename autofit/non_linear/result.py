@@ -311,7 +311,7 @@ class Result(AbstractResult):
 
         try:
             return self.paths.load_search_internal()
-        except (FileNotFoundError, RecursionError):
+        except FileNotFoundError:
             pass
 
     @property
