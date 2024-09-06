@@ -4,6 +4,8 @@ from typing import Dict, Optional
 import emcee
 import numpy as np
 
+from autoconf import conf
+
 from autofit.database.sqlalchemy_ import sa
 from autofit.mapper.model_mapper import ModelMapper
 from autofit.mapper.prior_model.abstract import AbstractPriorModel

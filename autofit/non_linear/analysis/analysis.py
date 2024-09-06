@@ -9,8 +9,6 @@ from autofit.non_linear.samples.pdf import SamplesPDF
 from autofit.non_linear.result import Result
 from autofit.non_linear.samples.samples import Samples
 from autofit.non_linear.samples.sample import Sample
-from autofit.mapper.prior_model.collection import Collection
-from autofit.mapper.prior.gaussian import GaussianPrior
 
 from .visualize import Visualizer
 from ..samples.util import simple_model_for_kwargs
