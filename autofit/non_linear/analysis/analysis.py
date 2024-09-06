@@ -1,3 +1,4 @@
+import inspect
 import logging
 from abc import ABC
 from typing import Optional, Dict
@@ -40,6 +41,10 @@ class Analysis(ABC):
             raise AttributeError(f"Analysis has no attribute {item}")
 
         def method(*args, **kwargs):
+            parameters = inspect.signature(_method).parameters
+            if "analyses" in parameters:
+                logger.debug(f"Skipping {item} as this is not a combined analysis")
+                return
             return _method(self, *args, **kwargs)
 
         return method

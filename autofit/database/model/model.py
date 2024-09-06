@@ -34,7 +34,10 @@ class Object(Base):
 
     samples_for_id = sa.Column(sa.String, sa.ForeignKey("fit.id"))
     samples_for = sa.orm.relationship(
-        "Fit", uselist=False, foreign_keys=[samples_for_id]
+        "Fit",
+        uselist=False,
+        foreign_keys=[samples_for_id],
+        back_populates="_samples",
     )
 
     latent_samples_for_id = sa.Column(sa.String, sa.ForeignKey("fit.id"))
@@ -42,11 +45,13 @@ class Object(Base):
         "Fit",
         uselist=False,
         foreign_keys=[latent_samples_for_id],
+        back_populates="_latent_samples",
     )
 
     children: Mapped[List["Object"]] = sa.orm.relationship(
         "Object",
         uselist=True,
+        back_populates="parent",
     )
 
     def __len__(self):

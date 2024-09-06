@@ -29,7 +29,12 @@ class Array(Object):
     _shape = sa.Column(sa.String)
 
     fit_id = sa.Column(sa.String, sa.ForeignKey("fit.id"))
-    fit = sa.orm.relationship("Fit", uselist=False, foreign_keys=[fit_id])
+    fit = sa.orm.relationship(
+        "Fit",
+        uselist=False,
+        foreign_keys=[fit_id],
+        back_populates="arrays",
+    )
 
     @property
     def shape(self):
@@ -83,6 +88,13 @@ class HDU(Array):
     __mapper_args__ = {
         "polymorphic_identity": "hdu",
     }
+
+    fit = sa.orm.relationship(
+        "Fit",
+        uselist=False,
+        foreign_keys=[Array.fit_id],
+        back_populates="hdus",
+    )
 
     @property
     def header(self):
