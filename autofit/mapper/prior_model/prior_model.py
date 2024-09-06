@@ -350,6 +350,8 @@ class Model(AbstractPriorModel):
             If no configuration can be found
         """
         cls = self.cls
+        if isinstance(cls, ConfigException):
+            return cls
         if not inspect.isclass(cls):
             # noinspection PyProtectedMember
             cls = inspect._findclass(cls)
