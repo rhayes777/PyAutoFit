@@ -22,7 +22,15 @@ class Dict(Object):
     __mapper_args__ = {"polymorphic_identity": "dict"}
 
     def __call__(self):
-        return dict(child() for child in self.children)
+        d = {}
+        for child in self.children:
+            instance = child()
+            if child.name != "":
+                d[child.name] = instance
+            else:
+                d[instance[0]] = instance[1]
+
+        return d
 
     @classmethod
     def _from_object(cls, source: dict):
@@ -43,4 +51,9 @@ class Dict(Object):
             Attributes such as floats or priors that are associated
             with the real object
         """
-        self.children = [Object.from_object(item) for item in items]
+        self.children = [
+            Object.from_object(value, name=key)
+            if isinstance(key, str)
+            else Object.from_object((key, value))
+            for key, value in items
+        ]
