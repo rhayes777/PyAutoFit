@@ -116,7 +116,7 @@ class Analysis(af.Analysis):
     def save_attributes(self, paths: af.DirectoryPaths):
         """
         Before the model-fit via the non-linear search begins, this routine saves attributes of the `Analysis` object
-        to the `pickles` folder such that they can be loaded after the analysis using PyAutoFit's database and
+        to the `files` folder such that they can be loaded after the analysis using PyAutoFit's database and
         aggregator tools.
 
         For this analysis the following are output:
