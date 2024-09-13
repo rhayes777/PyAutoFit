@@ -319,19 +319,22 @@ class Fit(Base):
     pickles: Mapped[List[Pickle]] = sa.orm.relationship(
         "Pickle",
         lazy="joined",
+        foreign_keys=[Pickle.fit_id],
     )
-    jsons: Mapped[List[JSON]] = sa.orm.relationship("JSON", lazy="joined")
+    jsons: Mapped[List[JSON]] = sa.orm.relationship(
+        "JSON",
+        lazy="joined",
+        foreign_keys=[JSON.fit_id],
+    )
     arrays: Mapped[List[Array]] = sa.orm.relationship(
         "Array",
         lazy="joined",
         foreign_keys=[Array.fit_id],
-        viewonly=True,
     )
     hdus: Mapped[List[HDU]] = sa.orm.relationship(
         "HDU",
         lazy="joined",
         foreign_keys=[HDU.fit_id],
-        viewonly=True,
     )
 
     def __getitem__(self, item: str):
