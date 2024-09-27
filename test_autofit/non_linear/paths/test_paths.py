@@ -39,7 +39,9 @@ class TestPathDecorator:
         self.assert_paths_as_expected(search.paths)
 
     def test_combination_argument(self):
-        search = af.m.MockSearch("other",)
+        search = af.m.MockSearch(
+            "other",
+        )
         search.paths = af.DirectoryPaths(name="name")
         self.assert_paths_as_expected(search.paths)
 
@@ -69,3 +71,8 @@ def test_serialize(model):
     pickled_paths = pickle.loads(pickle.dumps(paths))
 
     assert pickled_paths.model is not None
+
+
+def test_unique_tag():
+    paths = af.DirectoryPaths(unique_tag="unique_tag")
+    assert "unique_tag" in paths.output_path.parts

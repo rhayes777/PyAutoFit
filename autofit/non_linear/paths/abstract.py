@@ -32,7 +32,7 @@ class AbstractPaths(ABC):
         parent: Optional["AbstractPaths"] = None,
         unique_tag: Optional[str] = None,
         identifier: str = None,
-        image_path_suffix : str = "",
+        image_path_suffix: str = "",
     ):
         """
         Manages the path structure for `NonLinearSearch` output, for analyses both not using and using the search
@@ -244,11 +244,12 @@ class AbstractPaths(ABC):
 
         strings = list(
             filter(
-                len,
+                None,
                 [
                     str(conf.instance.output_path),
                     str(self.path_prefix),
                     str(self.name),
+                    self.unique_tag,
                 ],
             )
         )
