@@ -1,6 +1,8 @@
 import csv
 import logging
-from typing import Tuple
+from typing import Tuple, Union
+
+from pathlib import Path
 
 from autoconf import conf
 from autofit.tools.util import open_
@@ -221,7 +223,7 @@ def output_list_of_strings_to_file(file, list_of_strings):
         f.write("".join(list_of_strings))
 
 
-def write_table(headers, rows, filename: str):
+def write_table(headers, rows, filename: Union[str, Path]):
     """
     Write a table of parameters, posteriors, priors and likelihoods.
 
