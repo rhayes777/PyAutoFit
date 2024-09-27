@@ -248,8 +248,8 @@ class AbstractPaths(ABC):
                 [
                     str(conf.instance.output_path),
                     str(self.path_prefix),
-                    str(self.name),
                     self.unique_tag,
+                    str(self.name),
                 ],
             )
         )
