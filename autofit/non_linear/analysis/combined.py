@@ -362,11 +362,15 @@ class CombinedAnalysis(Analysis):
                 paths=paths,
                 samples=samples,
                 search_internal=search_internal,
-                analysis=analysis
+                analysis=analysis,
             )
             for analysis in self.analyses
         ]
-        return CombinedResult(child_results)
+        return CombinedResult(
+            child_results,
+            samples,
+            samples_summary,
+        )
 
     def __len__(self):
         return len(self.analyses)
