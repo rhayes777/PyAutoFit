@@ -182,9 +182,6 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         self._logger = None
 
-        if unique_tag is not None and path_prefix is not None:
-            path_prefix = path_prefix / unique_tag
-
         self.unique_tag = unique_tag
 
         if paths:
@@ -653,10 +650,11 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         if not self.disable_output:
             self.logger.info(f"The output path of this fit is {self.paths.output_path}")
         else:
-            self.logger.info("Output to hard-disk disabled, input a search name to enable.")
+            self.logger.info(
+                "Output to hard-disk disabled, input a search name to enable."
+            )
 
         if not self.paths.is_complete or self.force_pickle_overwrite:
-
             if not self.disable_output:
                 self.logger.info(
                     f"Outputting pre-fit files (e.g. model.info, visualization)."
@@ -959,7 +957,6 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         self.iterations += self.iterations_per_update
 
         if not self.disable_output:
-
             if during_analysis:
                 self.logger.info(
                     f"""Fit Running: Updating results after {self.iterations} iterations (see output folder)."""
@@ -1054,8 +1051,8 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         analysis: Analysis,
         during_analysis: bool,
         samples_summary: Optional[SamplesSummary] = None,
-        instance : Optional[ModelInstance] = None,
-        paths_override : Optional[AbstractPaths] = None,
+        instance: Optional[ModelInstance] = None,
+        paths_override: Optional[AbstractPaths] = None,
         search_internal=None,
     ):
         """
