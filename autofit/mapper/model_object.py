@@ -150,6 +150,7 @@ class ModelObject:
         from autofit.mapper.prior_model.collection import Collection
         from autofit.mapper.prior_model.prior_model import Model
         from autofit.mapper.prior.abstract import Prior
+        from autofit.mapper.prior.gaussian import GaussianPrior
         from autofit.mapper.prior.tuple_prior import TuplePrior
         from autofit.mapper.prior.arithmetic.compound import Compound
         from autofit.mapper.prior.arithmetic.compound import ModifiedPrior
@@ -234,7 +235,10 @@ class ModelObject:
                     f"Could not find type for class path {class_path}. Defaulting to Instance placeholder."
                 )
                 instance = ModelInstance()
+        elif type_ == "array":
+            from autofit.mapper.prior_model.array import Array
 
+            return Array.from_dict(d)
         else:
             try:
                 return Prior.from_dict(d, loaded_ids=loaded_ids)
@@ -276,6 +280,7 @@ class ModelObject:
         from autofit.mapper.prior_model.collection import Collection
         from autofit.mapper.prior_model.prior_model import Model
         from autofit.mapper.prior.tuple_prior import TuplePrior
+        from autofit.mapper.prior_model.array import Array
 
         if isinstance(self, Collection):
             type_ = "collection"
@@ -285,6 +290,8 @@ class ModelObject:
             type_ = "model"
         elif isinstance(self, TuplePrior):
             type_ = "tuple_prior"
+        elif isinstance(self, Array):
+            type_ = "array"
         else:
             raise AssertionError(
                 f"{self.__class__.__name__} cannot be serialised to dict"

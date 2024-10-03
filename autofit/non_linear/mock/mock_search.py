@@ -157,13 +157,13 @@ class MockSearch(NonLinearSearch):
         )
 
 
-class MockOptimizer(MockSearch):
+class MockMLE(MockSearch):
     def __init__(self, **kwargs):
         super().__init__(fit_fast=False, **kwargs)
 
     @property
     def samples_cls(self):
-        return MockOptimizer
+        return MockMLE
 
     def project(
         self, factor_approx: FactorApproximation, status: Status = Status()

@@ -13,6 +13,7 @@ from autofit.non_linear.grid.sensitivity.job import Job
 from autofit.non_linear.grid.sensitivity.job import JobResult
 from autofit.non_linear.grid.sensitivity.result import SensitivityResult
 from autofit.non_linear.parallel import Process
+from autofit.text.formatter import write_table
 from autofit.text.text_util import padding
 
 
@@ -127,22 +128,22 @@ class Sensitivity:
             results = sorted(results)
 
             os.makedirs(self.paths.output_path, exist_ok=True)
-            with open(self.results_path, "w+") as f:
-                writer = csv.writer(f)
-                writer.writerow(headers)
-                for result_ in results:
-                    values = physical_values[result_.number]
-                    writer.writerow(
-                        padding(item)
-                        for item in [
-                            result_.number,
-                            *values,
-                            result_.log_evidence_increase,
-                            result_.log_likelihood_increase,
-                        ]
-                    )
 
-        result = SensitivityResult(
+            write_table(
+                headers=headers,
+                rows=[
+                    [
+                        result.number,
+                        *physical_values[result.number],
+                        result.log_evidence_increase,
+                        result.log_likelihood_increase,
+                    ]
+                    for result in results
+                ],
+                filename=self.results_path,
+            )
+
+        sensitivity_result = SensitivityResult(
             samples=[result.result.samples_summary for result in results],
             perturb_samples=[
                 result.perturb_result.samples_summary for result in results
@@ -150,9 +151,9 @@ class Sensitivity:
             shape=self.shape,
         )
 
-        self.paths.save_json("result", to_dict(result))
+        self.paths.save_json("result", to_dict(sensitivity_result))
 
-        return result
+        return sensitivity_result
 
     @property
     def shape(self) -> Tuple[int, ...]:

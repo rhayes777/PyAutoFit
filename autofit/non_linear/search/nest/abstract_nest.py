@@ -8,7 +8,7 @@ from autofit.non_linear.search.abstract_search import NonLinearSearch
 from autofit.non_linear.initializer import (
     InitializerPrior,
     AbstractInitializer,
-    SpecificRangeInitializer,
+    InitializerParamBounds,
 )
 from autofit.non_linear.samples import SamplesNest
 from autofit.non_linear.plot.nest_plotters import NestPlotter
@@ -44,9 +44,9 @@ class AbstractNest(NonLinearSearch, ABC):
         session
             An SQLAlchemy session instance so the results of the model-fit are written to an SQLite database.
         """
-        if isinstance(initializer, SpecificRangeInitializer):
+        if isinstance(initializer, InitializerParamBounds):
             raise ValueError(
-                "SpecificRangeInitializer cannot be used for nested sampling"
+                "InitializerParamBounds cannot be used for nested sampling"
             )
 
         super().__init__(

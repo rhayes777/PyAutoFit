@@ -241,7 +241,7 @@ We now define the start point of certain parameters in the model as follows.
 
 .. code-block:: python
 
-    initializer = af.SpecificRangeInitializer(
+    initializer = af.InitializerParamBounds(
         {
             model.centre: (49.0, 51.0),
             model.normalization: (4.0, 6.0),

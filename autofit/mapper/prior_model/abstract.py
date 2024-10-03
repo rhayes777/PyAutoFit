@@ -1334,7 +1334,9 @@ class AbstractPriorModel(AbstractModel):
         raise AssertionError(f"No path was found matching {name}")
 
     def instance_from_prior_name_arguments(
-        self, prior_name_arguments: Dict[str, float]
+        self,
+        prior_name_arguments: Dict[str, float],
+        ignore_assertions: bool = False,
     ):
         """
         Instantiate the model from the names of priors and
@@ -1346,6 +1348,8 @@ class AbstractPriorModel(AbstractModel):
             The names of priors where names of models and the
             name of the prior have been joined by underscores,
             mapped to corresponding values.
+        ignore_assertions
+            If True, assertions will not be checked
 
         Returns
         -------
@@ -1355,10 +1359,15 @@ class AbstractPriorModel(AbstractModel):
             {
                 self.path_for_name(name): value
                 for name, value in prior_name_arguments.items()
-            }
+            },
+            ignore_assertions=ignore_assertions,
         )
 
-    def instance_from_path_arguments(self, path_arguments: Dict[Tuple[str], float]):
+    def instance_from_path_arguments(
+        self,
+        path_arguments: Dict[Tuple[str], float],
+        ignore_assertions: bool = False,
+    ):
         """
         Create an instance from a dictionary mapping paths to tuples
         to corresponding values.
@@ -1370,6 +1379,8 @@ class AbstractPriorModel(AbstractModel):
             Note that, for linked priors, each path only needs to be
             specified once. If multiple paths for the same prior are
             specified then the value for the last path will be used.
+        ignore_assertions
+            If True, assertions will not be checked
 
         Returns
         -------
@@ -1378,7 +1389,10 @@ class AbstractPriorModel(AbstractModel):
         arguments = {
             self.object_for_path(path): value for path, value in path_arguments.items()
         }
-        return self._instance_for_arguments(arguments)
+        return self._instance_for_arguments(
+            arguments,
+            ignore_assertions=ignore_assertions,
+        )
 
     @property
     def prior_count(self) -> int:
@@ -1459,6 +1473,14 @@ class AbstractPriorModel(AbstractModel):
 
     @property
     def paths(self) -> List[Path]:
+        """
+        A list of paths to all the priors in the model, ordered by their
+        ids
+        """
+        return [path for path, _ in self.path_priors_tuples]
+
+    @property
+    def paths_formatted(self) -> List[Path]:
         """
         A list of paths to all the priors in the model, ordered by their
         ids

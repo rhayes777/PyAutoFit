@@ -8,7 +8,7 @@ import autofit as af
 )
 def make_search(session):
     return af.SearchGridSearch(
-        search=af.m.MockOptimizer(
+        search=af.m.MockMLE(
             session=session
         ),
         number_of_steps=2

@@ -16,8 +16,8 @@ class Simulate:
     def __call__(self, instance: af.ModelInstance, simulate_path: Optional[str]):
         image = instance.gaussian(x)
 
-        if hasattr(instance, "perturbation"):
-            image += instance.perturbation(x)
+        if hasattr(instance, "perturb"):
+            image += instance.perturb(x)
 
         return image
 

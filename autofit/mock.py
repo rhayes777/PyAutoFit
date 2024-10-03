@@ -2,7 +2,7 @@ from autofit.non_linear.mock.mock_analysis import MockAnalysis
 from autofit.non_linear.mock.mock_result import MockResult
 from autofit.non_linear.mock.mock_result import MockResultGrid
 from autofit.non_linear.mock.mock_search import MockSearch
-from autofit.non_linear.mock.mock_search import MockOptimizer
+from autofit.non_linear.mock.mock_search import MockMLE
 from autofit.non_linear.mock.mock_samples_summary import MockSamplesSummary
 from autofit.non_linear.mock.mock_samples import MockSamples
 from autofit.non_linear.mock.mock_samples import MockSamplesNest

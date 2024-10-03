@@ -1,22 +1,3 @@
-DownhillSimplex:
-  initialize:
-    method: prior
-  printing:
-    silence: false
-  search:
-    disp: 1
-    ftol: 0.0001
-    full_output: 0
-    maxfun: null
-    maxiter: null
-    retall: 0
-    xtol: 0.0001
-  updates:
-    iterations_per_update: 11
-    log_every_update: 1
-    model_results_every_update: 1
-    remove_state_files_at_end: true
-    visualize_every_update: 1
 Drawer:
   initialize:
     ball_lower_limit: 0.49

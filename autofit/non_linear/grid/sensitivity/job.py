@@ -114,7 +114,7 @@ class Job(AbstractJob):
         )
 
         perturb_model = copy(self.model)
-        perturb_model.perturbation = self.perturb_model
+        perturb_model.perturb = self.perturb_model
 
         perturb_result = self.perturb_fit_cls(
             model=perturb_model,

@@ -2,7 +2,7 @@ import pytest
 
 import autofit as af
 from autofit.non_linear.analysis import FreeParameterAnalysis
-from autofit.non_linear.mock.mock_search import MockOptimizer
+from autofit.non_linear.mock.mock_search import MockMLE
 
 
 def test_copy():
@@ -77,8 +77,8 @@ def make_result(
     combined_analysis,
     model,
 ):
-    optimizer = MockOptimizer()
-    return optimizer.fit(model, combined_analysis)
+    search = MockMLE()
+    return search.fit(model, combined_analysis)
 
 
 @pytest.fixture(autouse=True)

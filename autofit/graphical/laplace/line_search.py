@@ -11,7 +11,7 @@ import warnings
 from typing import Optional, Dict, Tuple
 
 import numpy as np
-from scipy.optimize import linesearch
+from scipy.optimize import _linesearch as linesearch
 
 from autoconf import cached_property
 from autofit.graphical.factor_graphs.abstract import (
@@ -188,7 +188,6 @@ class OptimisationState:
         return next_state
 
     def step(self, stepsize):
-
         if not stepsize:
             return self
 
