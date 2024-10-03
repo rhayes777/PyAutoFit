@@ -407,7 +407,6 @@ class Samples(SamplesInterface, ABC):
         A copy of this object with only important samples retained
         """
         samples = copy(self)
-        samples.model = None
         samples.sample_list = list(
             {self.max_log_likelihood_sample, self.max_log_posterior_sample}
         )

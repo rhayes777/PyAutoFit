@@ -1,4 +1,4 @@
-MockOptimizer:
+MockMLE:
   initialize:
     method: prior
   printing:

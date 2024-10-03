@@ -7,7 +7,7 @@ from autofit.database.sqlalchemy_ import sa
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.fitness import Fitness
 from autofit.non_linear.initializer import AbstractInitializer
-from autofit.non_linear.search.optimize.abstract_optimize import AbstractOptimizer
+from autofit.non_linear.search.mle.abstract_mle import AbstractMLE
 from autofit.non_linear.samples.sample import Sample
 from autofit.non_linear.samples.samples import Samples
 
@@ -66,7 +66,7 @@ class FitnessPySwarms(Fitness):
         return np.asarray(figure_of_merit_list)
 
 
-class AbstractPySwarms(AbstractOptimizer):
+class AbstractPySwarms(AbstractMLE):
     def __init__(
         self,
         name: Optional[str] = None,
@@ -79,7 +79,7 @@ class AbstractPySwarms(AbstractOptimizer):
         **kwargs
     ):
         """
-        A PySwarms Particle Swarm Optimizer global non-linear search.
+        A PySwarms Particle Swarm MLE global non-linear search.
 
         For a full description of PySwarms, checkout its Github and readthedocs webpages:
 
@@ -215,9 +215,10 @@ class AbstractPySwarms(AbstractOptimizer):
 
                 total_iterations += iterations
 
-                self.paths.save_search_internal(
-                    obj=search_internal,
-                )
+                # TODO : Running PySwarms in NoteBook raises
+                # TODO: TypeError: cannot pickle '_hashlib.HMAC' object
+
+                self.output_search_internal(search_internal=search_internal)
 
                 self.perform_update(
                     model=model,
@@ -229,6 +230,14 @@ class AbstractPySwarms(AbstractOptimizer):
                 init_pos = search_internal.pos_history[-1]
 
         return search_internal
+
+    def output_search_internal(self, search_internal):
+        try:
+            self.paths.save_search_internal(
+                obj=search_internal,
+            )
+        except TypeError:
+            pass
 
     def samples_via_internal_from(self, model, search_internal=None):
         """

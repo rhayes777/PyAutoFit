@@ -1,5 +1,4 @@
 import itertools
-import os
 import random
 from abc import ABC, abstractmethod
 from copy import copy

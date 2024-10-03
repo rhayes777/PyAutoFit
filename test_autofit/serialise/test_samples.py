@@ -46,6 +46,7 @@ def test_summary(summary, model, sample):
     assert summary.max_log_likelihood_sample == sample
 
 
+
 @pytest.fixture(name="summary_dict")
 def make_summary_dict():
     return {
@@ -69,7 +70,6 @@ def make_summary_dict():
                     },
                 },
             },
-            "log_evidence": None,
             "values_at_sigma_3": {
                 "type": "list",
                 "values": [
@@ -78,21 +78,26 @@ def make_summary_dict():
                     {"type": "tuple", "values": [2.0, 6.0]},
                 ],
             },
-            "values_at_sigma_1": {
-                "type": "list",
-                "values": [
-                    {"type": "tuple", "values": [0.0, 2.0]},
-                    {"type": "tuple", "values": [1.0, 4.0]},
-                    {"type": "tuple", "values": [2.0, 6.0]},
-                ],
-            },
-            "errors_at_sigma_3": {
-                "type": "list",
-                "values": [
-                    {"type": "tuple", "values": [2.0, 0.0]},
-                    {"type": "tuple", "values": [3.0, 0.0]},
-                    {"type": "tuple", "values": [4.0, 0.0]},
-                ],
+            "model": {
+                "class_path": "autofit.example.model.Gaussian",
+                "type": "model",
+                "arguments": {
+                    "centre": {
+                        "lower_limit": 0.0,
+                        "upper_limit": 1.0,
+                        "type": "Uniform",
+                    },
+                    "normalization": {
+                        "lower_limit": 0.0,
+                        "upper_limit": 1.0,
+                        "type": "Uniform",
+                    },
+                    "sigma": {
+                        "lower_limit": 0.0,
+                        "upper_limit": 1.0,
+                        "type": "Uniform",
+                    },
+                },
             },
             "max_log_likelihood_sample": {
                 "type": "instance",
@@ -111,6 +116,14 @@ def make_summary_dict():
                     },
                 },
             },
+            "values_at_sigma_1": {
+                "type": "list",
+                "values": [
+                    {"type": "tuple", "values": [0.0, 2.0]},
+                    {"type": "tuple", "values": [1.0, 4.0]},
+                    {"type": "tuple", "values": [2.0, 6.0]},
+                ],
+            },
             "errors_at_sigma_1": {
                 "type": "list",
                 "values": [
@@ -119,6 +132,15 @@ def make_summary_dict():
                     {"type": "tuple", "values": [4.0, 0.0]},
                 ],
             },
+            "errors_at_sigma_3": {
+                "type": "list",
+                "values": [
+                    {"type": "tuple", "values": [2.0, 0.0]},
+                    {"type": "tuple", "values": [3.0, 0.0]},
+                    {"type": "tuple", "values": [4.0, 0.0]},
+                ],
+            },
+            "log_evidence": None,
         },
     }
 

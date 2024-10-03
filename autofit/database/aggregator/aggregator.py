@@ -1,5 +1,6 @@
 import logging
 from abc import ABC, abstractmethod
+from sqlalchemy import text
 from typing import Optional, List, Union, cast
 
 from ..sqlalchemy_ import sa
@@ -370,7 +371,7 @@ class Aggregator(AbstractAggregator):
         query
         """
         logger.debug(f"Executing query: {query}")
-        fit_ids = {row[0] for row in self.session.execute(query)}
+        fit_ids = {row[0] for row in self.session.execute(text(query))}
 
         logger.info(f"{len(fit_ids)} fit(s) found matching query")
         query = self.session.query(m.Fit).filter(m.Fit.id.in_(fit_ids))
