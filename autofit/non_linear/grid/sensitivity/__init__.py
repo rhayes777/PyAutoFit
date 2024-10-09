@@ -169,7 +169,6 @@ class Sensitivity:
                 result.perturb_result.samples_summary for result in results
             ],
             shape=self.shape,
-            mask=self.mask,
         )
 
         self.paths.save_json("result", to_dict(sensitivity_result))

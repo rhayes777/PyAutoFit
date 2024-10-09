@@ -111,6 +111,7 @@ class Job(AbstractJob):
             model=self.model,
             dataset=dataset,
             paths=self.paths.for_sub_analysis("[base]"),
+            instance=self.simulate_instance,
         )
 
         perturb_model = copy(self.model)
@@ -120,6 +121,7 @@ class Job(AbstractJob):
             model=perturb_model,
             dataset=dataset,
             paths=self.paths.for_sub_analysis("[perturb]"),
+            instance=self.simulate_instance,
         )
 
         return JobResult(
