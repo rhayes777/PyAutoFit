@@ -1,7 +1,7 @@
-import csv
 import logging
 import os
 from copy import copy
+import numpy as np
 from pathlib import Path
 from typing import List, Generator, Callable, ClassVar, Optional, Union, Tuple
 
@@ -14,7 +14,6 @@ from autofit.non_linear.grid.sensitivity.job import JobResult
 from autofit.non_linear.grid.sensitivity.result import SensitivityResult
 from autofit.non_linear.parallel import Process
 from autofit.text.formatter import write_table
-from autofit.text.text_util import padding
 
 
 class Sensitivity:
@@ -30,6 +29,7 @@ class Sensitivity:
         job_cls: ClassVar = Job,
         perturb_model_prior_func: Optional[Callable] = None,
         number_of_steps: Union[Tuple[int, ...], int] = 4,
+        mask: Optional[List[bool]] = None,
         number_of_cores: int = 2,
         limit_scale: int = 1,
     ):
@@ -94,6 +94,21 @@ class Sensitivity:
         self.job_cls = job_cls
 
         self.number_of_steps = number_of_steps
+        self.mask = mask
+
+        if mask is not None:
+            if self.shape != np.asarray(mask).shape:
+                raise ValueError(
+                    f"""
+                    The mask of the Sensitivity object must have the same shape as the sensitivity grid.
+                    
+                    For your inputs, the shape of each are as follows:
+                    
+                    Sensitivity Grid: {self.shape}
+                    Mask: {np.asarray(mask).shape}
+                    """
+                )
+
         self.number_of_cores = number_of_cores
 
         self.limit_scale = limit_scale

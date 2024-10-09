@@ -1,5 +1,3 @@
-from anesthetic.samples import NestedSamples
-from anesthetic import make_2d_axes
 from functools import wraps
 import numpy as np
 import warnings
@@ -59,6 +57,8 @@ class NestPlotter(SamplesPlotter):
 
         config_dict = conf.instance["visualize"]["plots_settings"]["corner_anesthetic"]
 
+        from anesthetic.samples import NestedSamples
+        from anesthetic import make_2d_axes
         import matplotlib.pylab as pylab
 
         params = {'font.size' : int(config_dict["fontsize"])}
