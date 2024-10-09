@@ -140,6 +140,7 @@ class Sensitivity:
         for result in process_class.run_jobs(
             self._make_jobs(), number_of_cores=self.number_of_cores
         ):
+
             if isinstance(result, Exception):
                 raise result
 
@@ -168,6 +169,7 @@ class Sensitivity:
                 result.perturb_result.samples_summary for result in results
             ],
             shape=self.shape,
+            mask=self.mask,
         )
 
         self.paths.save_json("result", to_dict(sensitivity_result))
@@ -195,6 +197,21 @@ class Sensitivity:
         return tuple(
             self.number_of_steps for _ in range(self.perturb_model.prior_count)
         )
+
+    def shape_index_from_number(self, number: int) -> Tuple[int, ...]:
+        """
+        Returns the index of the sensitivity grid from a number.
+
+        Parameters
+        ----------
+        number
+            The number of the sensitivity grid.
+
+        Returns
+        -------
+        The index of the sensitivity grid.
+        """
+        return np.unravel_index(number, self.shape)
 
     @property
     def step_size(self) -> Union[float, Tuple]:
@@ -309,26 +326,36 @@ class Sensitivity:
         for number, (perturb_instance, perturb_model, label) in enumerate(
             zip(self._perturb_instances, self._perturb_models, self._labels)
         ):
-            if self.perturb_model_prior_func is not None:
-                perturb_model = self.perturb_model_prior_func(
-                    perturb_instance=perturb_instance, perturb_model=perturb_model
+
+            shape_index = self.shape_index_from_number(number=number)
+
+            should_bypass = False
+
+            if self.mask is not None:
+                should_bypass = np.asarray(self.mask)[shape_index]
+
+            if not should_bypass:
+
+                if self.perturb_model_prior_func is not None:
+                    perturb_model = self.perturb_model_prior_func(
+                        perturb_instance=perturb_instance, perturb_model=perturb_model
+                    )
+
+                simulate_instance = copy(self.instance)
+                simulate_instance.perturb = perturb_instance
+
+                paths = self.paths.for_sub_analysis(
+                    label,
                 )
 
-            simulate_instance = copy(self.instance)
-            simulate_instance.perturb = perturb_instance
-
-            paths = self.paths.for_sub_analysis(
-                label,
-            )
-
-            yield self.job_cls(
-                simulate_instance=simulate_instance,
-                model=self.model,
-                perturb_model=perturb_model,
-                base_instance=self.instance,
-                simulate_cls=self.simulate_cls,
-                base_fit_cls=self.base_fit_cls,
-                perturb_fit_cls=self.perturb_fit_cls,
-                paths=paths,
-                number=number,
-            )
+                yield self.job_cls(
+                    simulate_instance=simulate_instance,
+                    model=self.model,
+                    perturb_model=perturb_model,
+                    base_instance=self.instance,
+                    simulate_cls=self.simulate_cls,
+                    base_fit_cls=self.base_fit_cls,
+                    perturb_fit_cls=self.perturb_fit_cls,
+                    paths=paths,
+                    number=number,
+                )
