@@ -65,6 +65,10 @@ class Sensitivity:
             The number of steps for each dimension of the sensitivity grid. If input as a float the dimensions are
             all that value. If input as a tuple of length the number of dimensions, each tuple value is the number of
             steps in that dimension.
+        mask
+            A mask to apply to the sensitivity grid, such that all `True` values are not included in the sensitivity
+            mapping. This is useful for removing regions of the sensitivity grid that are expected to have no
+            sensitivity, for example because they have no signal.
         number_of_cores
             How many cores does this computer have?
         limit_scale
