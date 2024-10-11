@@ -9,7 +9,7 @@ from autoconf.dictable import to_dict
 from autofit.mapper.model import ModelInstance
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.grid.grid_search import make_lists, Sequential
-from autofit.non_linear.grid.sensitivity.job import Job
+from autofit.non_linear.grid.sensitivity.job import Job, MaskedJobResult
 from autofit.non_linear.grid.sensitivity.job import JobResult
 from autofit.non_linear.grid.sensitivity.result import SensitivityResult
 from autofit.non_linear.parallel import Process
@@ -136,9 +136,17 @@ class Sensitivity:
 
         process_class = Process if self.number_of_cores > 1 else Sequential
 
-        results = list()
+        results = []
+        jobs = []
+
+        for number in range(len(self._perturb_instances)):
+            if self._should_bypass(number=number):
+                results.append(MaskedJobResult(number=number))
+            else:
+                jobs.append(self._make_job(number))
+
         for result in process_class.run_jobs(
-            self._make_jobs(), number_of_cores=self.number_of_cores
+            jobs, number_of_cores=self.number_of_cores
         ):
             if isinstance(result, Exception):
                 raise result

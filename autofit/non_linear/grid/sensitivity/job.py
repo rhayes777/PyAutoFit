@@ -56,6 +56,10 @@ class MaskedJobResult(AbstractJobResult):
     def result(self):
         return self
 
+    @property
+    def perturb_result(self):
+        return self
+
     def __getattr__(self, item):
         return None
 
