@@ -1,4 +1,5 @@
 import logging
+from collections import defaultdict
 from typing import Tuple
 
 from autofit.mapper.prior.abstract import Prior
@@ -11,6 +12,26 @@ from ..paths.abstract import AbstractPaths
 
 
 logger = logging.getLogger(__name__)
+
+
+def _unpack(free_parameters: Tuple[Prior, ...]):
+    return [
+        parameter for parameter in free_parameters if isinstance(parameter, Prior)
+    ] + [
+        prior
+        for parameter in free_parameters
+        if isinstance(parameter, (AbstractPriorModel, TuplePrior))
+        for prior in parameter.priors
+    ]
+
+
+class PositionalParameters:
+    def __init__(self, analysis: "FreeParameterAnalysis", position: int):
+        self.analysis = analysis
+        self.position = position
+
+    def __setitem__(self, key, value):
+        self.analysis.positional_parameters[self.position][key] = value
 
 
 class FreeParameterAnalysis(IndexCollectionAnalysis):
@@ -30,16 +51,11 @@ class FreeParameterAnalysis(IndexCollectionAnalysis):
             A list of priors which are independent for each analysis
         """
         super().__init__(*analyses)
-        self.free_parameters = [
-            parameter for parameter in free_parameters if isinstance(parameter, Prior)
-        ]
-        # noinspection PyUnresolvedReferences
-        self.free_parameters += [
-            prior
-            for parameter in free_parameters
-            if isinstance(parameter, (AbstractPriorModel, TuplePrior))
-            for prior in parameter.priors
-        ]
+        self.free_parameters = _unpack(free_parameters)
+        self.positional_parameters = defaultdict(dict)
+
+    def __getitem__(self, item):
+        return PositionalParameters(self, item)
 
     def modify_model(self, model: AbstractPriorModel) -> AbstractPriorModel:
         """
@@ -60,19 +76,27 @@ class FreeParameterAnalysis(IndexCollectionAnalysis):
         A new model with all the same priors except for those associated
         with free parameters.
         """
-        return Collection(
+        collection = Collection(
             [
                 analysis.modify_model(
-                    model.mapper_from_partial_prior_arguments(
-                        {
-                            free_parameter: free_parameter.new()
-                            for free_parameter in self.free_parameters
-                        }
-                    )
+                    model.mapper_from_partial_prior_arguments(self._arguments)
                 )
                 for analysis in self.analyses
             ]
         )
+        for i, positional_parameters in self.positional_parameters.items():
+            for key, value in positional_parameters.items():
+                path = model.path_for_prior(key)
+                collection[i].set_item_at_path(path, value)
+
+        return collection
+
+    @property
+    def _arguments(self):
+        return {
+            free_parameter: free_parameter.new()
+            for free_parameter in self.free_parameters
+        }
 
     def modify_before_fit(self, paths: AbstractPaths, model: Collection):
         """

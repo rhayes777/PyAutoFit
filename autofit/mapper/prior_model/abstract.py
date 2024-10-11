@@ -206,6 +206,23 @@ class AbstractPriorModel(AbstractModel):
                 f"{number_of_failed_assertions} assertions failed!\n{name_string}"
             )
 
+    def set_item_at_path(self, path: Tuple[str, ...], value):
+        """
+        Set an item at a path in the model.
+
+        Parameters
+        ----------
+        path
+            A tuple of strings representing a path to an attribute
+        value
+            The value to be set at the path
+        """
+        obj = self
+        for attribute in path[:-1]:
+            obj = getattr(obj, attribute)
+
+        setattr(obj, path[-1], value)
+
     def cast(
         self,
         value_dict: Dict["AbstractModel", dict],

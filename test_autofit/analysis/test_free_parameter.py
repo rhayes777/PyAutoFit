@@ -41,6 +41,14 @@ def make_combined_analysis(model, Analysis):
     return (Analysis() + Analysis()).with_free_parameters(model.centre)
 
 
+def test_override_specific_free_parameter(model, combined_analysis):
+    combined_analysis[0][model.centre] = 2
+
+    new_model = combined_analysis.modify_model(model)
+    assert new_model[0].centre == 2
+    assert new_model[1].centre != 2
+
+
 def test_multiple_free_parameters(model, Analysis):
     combined_analysis = (Analysis() + Analysis()).with_free_parameters(
         model.centre, model.sigma
