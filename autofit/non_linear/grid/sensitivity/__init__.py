@@ -363,7 +363,7 @@ class Sensitivity:
                 label,
             )
 
-            yield self.job_cls(
+            return self.job_cls(
                 simulate_instance=simulate_instance,
                 model=self.model,
                 perturb_model=perturb_model,
