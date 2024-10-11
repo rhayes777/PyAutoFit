@@ -86,8 +86,11 @@ class FreeParameterAnalysis(IndexCollectionAnalysis):
         )
         for i, positional_parameters in self.positional_parameters.items():
             for key, value in positional_parameters.items():
-                path = model.path_for_prior(key)
-                collection[i].set_item_at_path(path, value)
+                path = model.path_for_object(key)
+                if path == ():
+                    collection[i] = value
+                else:
+                    collection[i].set_item_at_path(path, value)
 
         return collection
 

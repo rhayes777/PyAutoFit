@@ -49,6 +49,26 @@ def test_override_specific_free_parameter(model, combined_analysis):
     assert new_model[1].centre != 2
 
 
+def test_override_model(model, combined_analysis):
+    new_model = af.Model(af.Gaussian, centre=2)
+    combined_analysis[0][model] = new_model
+
+    new_model = combined_analysis.modify_model(model)
+    assert new_model[0].centre == 2
+    assert new_model[1].centre != 2
+
+
+def test_override_child_model(Analysis):
+    model = af.Collection(gaussian=af.Gaussian)
+    combined_analysis = (Analysis() + Analysis()).with_free_parameters(
+        model.gaussian.centre
+    )
+    combined_analysis[0][model.gaussian] = af.Model(af.Gaussian, centre=2)
+
+    new_model = combined_analysis.modify_model(model)
+    assert new_model[0].gaussian.centre == 2
+
+
 def test_multiple_free_parameters(model, Analysis):
     combined_analysis = (Analysis() + Analysis()).with_free_parameters(
         model.centre, model.sigma
