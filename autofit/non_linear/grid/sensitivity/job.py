@@ -35,7 +35,10 @@ class JobResult(AbstractJobResult):
 
         if hasattr(self.result.samples, "log_evidence"):
             if self.result.samples.log_evidence is not None:
-                return float(self.perturb_result.samples.log_evidence - self.result.samples.log_evidence)
+                return float(
+                    self.perturb_result.samples.log_evidence
+                    - self.result.samples.log_evidence
+                )
 
     @property
     def log_likelihood_increase(self) -> Optional[float]:
@@ -46,6 +49,15 @@ class JobResult(AbstractJobResult):
         """
 
         return float(self.perturb_result.log_likelihood - self.result.log_likelihood)
+
+
+class MaskedJobResult(AbstractJobResult):
+    @property
+    def result(self):
+        return self
+
+    def __getattr__(self, item):
+        return None
 
 
 class Job(AbstractJob):
