@@ -262,31 +262,36 @@ class Sensitivity:
             yield path
 
     @property
-    def _labels(self) -> Generator[str, None, None]:
+    def _labels(self) -> List[str]:
         """
         One label for each perturbation, used to distinguish
         fits for each perturbation by placing them in separate
         directories.
         """
+        labels = []
         for list_ in self._lists:
             strings = list()
             for value, prior_tuple in zip(list_, self.perturb_model.prior_tuples):
                 path, prior = prior_tuple
                 value = prior.value_for(value)
                 strings.append(f"{path}_{value}")
-            yield "_".join(strings)
+            labels.append("_".join(strings))
+
+        return labels
 
     @property
-    def _perturb_instances(self) -> Generator[ModelInstance, None, None]:
+    def _perturb_instances(self) -> List[ModelInstance]:
         """
         A list of instances each of which defines a perturbation to
         be applied to the image.
         """
-        for list_ in self._lists:
-            yield self.perturb_model.instance_from_unit_vector(list_)
+
+        return [
+            self.perturb_model.instance_from_unit_vector(list_) for list_ in self._lists
+        ]
 
     @property
-    def _perturb_models(self) -> Generator[AbstractPriorModel, None, None]:
+    def _perturb_models(self) -> List[AbstractPriorModel]:
         """
         A list of models representing a perturbation at each grid square.
 
@@ -300,6 +305,8 @@ class Sensitivity:
             step_sizes = (self.step_size,) * self.perturb_model.prior_count
 
         half_steps = [self.limit_scale * step_size / 2 for step_size in step_sizes]
+
+        perturb_models = []
         for list_ in self._lists:
             limits = [
                 (
@@ -312,43 +319,49 @@ class Sensitivity:
                     half_steps,
                 )
             ]
-            yield self.perturb_model.with_limits(limits)
+            perturb_models.append(self.perturb_model.with_limits(limits))
+        return perturb_models
 
     def _should_bypass(self, number: int) -> bool:
         shape_index = self.shape_index_from_number(number=number)
         return self.mask is not None and np.asarray(self.mask)[shape_index]
 
     def _make_jobs(self) -> Generator[Job, None, None]:
+        for number, _ in enumerate(self._perturb_instances):
+            yield self._make_job(number)
+
+    def _make_job(self, number) -> Generator[Job, None, None]:
         """
         Create a list of jobs to be run on separate processes.
 
         Each job fits a perturb image with the original model
         and a model which includes a perturbation.
         """
-        for number, (perturb_instance, perturb_model, label) in enumerate(
-            zip(self._perturb_instances, self._perturb_models, self._labels)
-        ):
-            if not self._should_bypass(number=number):
-                if self.perturb_model_prior_func is not None:
-                    perturb_model = self.perturb_model_prior_func(
-                        perturb_instance=perturb_instance, perturb_model=perturb_model
-                    )
+        perturb_instance = self._perturb_instances[number]
+        perturb_model = self._perturb_models[number]
+        label = self._labels[number]
 
-                simulate_instance = copy(self.instance)
-                simulate_instance.perturb = perturb_instance
-
-                paths = self.paths.for_sub_analysis(
-                    label,
+        if not self._should_bypass(number=number):
+            if self.perturb_model_prior_func is not None:
+                perturb_model = self.perturb_model_prior_func(
+                    perturb_instance=perturb_instance, perturb_model=perturb_model
                 )
 
-                yield self.job_cls(
-                    simulate_instance=simulate_instance,
-                    model=self.model,
-                    perturb_model=perturb_model,
-                    base_instance=self.instance,
-                    simulate_cls=self.simulate_cls,
-                    base_fit_cls=self.base_fit_cls,
-                    perturb_fit_cls=self.perturb_fit_cls,
-                    paths=paths,
-                    number=number,
-                )
+            simulate_instance = copy(self.instance)
+            simulate_instance.perturb = perturb_instance
+
+            paths = self.paths.for_sub_analysis(
+                label,
+            )
+
+            yield self.job_cls(
+                simulate_instance=simulate_instance,
+                model=self.model,
+                perturb_model=perturb_model,
+                base_instance=self.instance,
+                simulate_cls=self.simulate_cls,
+                base_fit_cls=self.base_fit_cls,
+                perturb_fit_cls=self.perturb_fit_cls,
+                paths=paths,
+                number=number,
+            )
