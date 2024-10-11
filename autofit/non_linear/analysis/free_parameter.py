@@ -15,6 +15,18 @@ logger = logging.getLogger(__name__)
 
 
 def _unpack(free_parameters: Tuple[Prior, ...]):
+    """
+    Unpack free parameters from a tuple of free parameters and priors.
+
+    Parameters
+    ----------
+    free_parameters
+        A tuple of free parameters and priors.
+
+    Returns
+    -------
+    A list of free parameters.
+    """
     return [
         parameter for parameter in free_parameters if isinstance(parameter, Prior)
     ] + [
@@ -26,11 +38,35 @@ def _unpack(free_parameters: Tuple[Prior, ...]):
 
 
 class PositionalParameters:
-    def __init__(self, analysis: "FreeParameterAnalysis", position: int):
+    def __init__(
+        self,
+        analysis: "FreeParameterAnalysis",
+        position: int,
+    ):
+        """
+        Manage overriding positional parameters for a given analysis.
+
+        Parameters
+        ----------
+        analysis
+            The analysis
+        position
+            The position of the model in the collection
+        """
         self.analysis = analysis
         self.position = position
 
     def __setitem__(self, key, value):
+        """
+        Override some component of the model at the index.
+
+        Parameters
+        ----------
+        key
+            The key of the component (e.g. a prior)
+        value
+            The new value
+        """
         self.analysis.positional_parameters[self.position][key] = value
 
 
@@ -54,7 +90,19 @@ class FreeParameterAnalysis(IndexCollectionAnalysis):
         self.free_parameters = _unpack(free_parameters)
         self.positional_parameters = defaultdict(dict)
 
-    def __getitem__(self, item):
+    def __getitem__(self, item: int):
+        """
+        Used to override some model component for the model at a given index.
+
+        Parameters
+        ----------
+        item
+            The index of the model in the collection
+
+        Returns
+        -------
+        A manager for overriding the model components
+        """
         return PositionalParameters(self, item)
 
     def modify_model(self, model: AbstractPriorModel) -> AbstractPriorModel:
