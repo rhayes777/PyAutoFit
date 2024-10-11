@@ -52,6 +52,10 @@ class JobResult(AbstractJobResult):
 
 
 class MaskedJobResult(AbstractJobResult):
+    """
+    A placeholder result for a job that has been masked out.
+    """
+
     @property
     def result(self):
         return self
