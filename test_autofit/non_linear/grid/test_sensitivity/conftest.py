@@ -38,7 +38,7 @@ class BaseFit:
     def __init__(self, analysis_cls):
         self.analysis_cls = analysis_cls
 
-    def __call__(self, dataset, model, paths):
+    def __call__(self, dataset, model, paths, instance):
         search = af.m.MockSearch(
             return_sensitivity_results=True,
             samples_summary=MockSamplesSummary(model=model),
@@ -53,7 +53,7 @@ class PerturbFit:
     def __init__(self, analysis_cls):
         self.analysis_cls = analysis_cls
 
-    def __call__(self, dataset, model, paths):
+    def __call__(self, dataset, model, paths, instance):
         search = af.m.MockSearch(
             return_sensitivity_results=True,
             samples_summary=MockSamplesSummary(model=model),
