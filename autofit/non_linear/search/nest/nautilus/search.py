@@ -290,15 +290,17 @@ class Nautilus(abstract_nest.AbstractNest):
 
         finished = False
 
-        if self.iterations_per_update < self.config_dict_search["n_live"] * 3.0:
+        minimum_iterations_per_updates = 3 * self.config_dict_search["n_live"]
+        if self.iterations_per_update < minimum_iterations_per_updates:
 
-            self.iterations_per_update = int(self.config_dict_search["n_live"] * 3)
+            self.iterations_per_update = minimum_iterations_per_updates
 
             logger.info(
-                """
+                f"""
                 The number of iterations_per_update is less than 3 times the number of live points, which can cause
-                issues where Nautilus loses sampling infomation due to stopping to output results. The number of
-                iterations per update has been increased to 3 times the number of live points.
+                issues where Nautilus loses sampling information due to stopping to output results. The number of
+                iterations per update has been increased to 3 times the number of live points, therefore a value
+                of {minimum_iterations_per_updates}.
 
                 To remove this warning, increase the number of iterations_per_update to three or more times the
                 number of live points.
