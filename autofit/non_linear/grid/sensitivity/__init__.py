@@ -98,9 +98,10 @@ class Sensitivity:
         self.job_cls = job_cls
 
         self.number_of_steps = number_of_steps
-        self.mask = np.array(mask)
+        self.mask = None
 
-        if self.mask is not None:
+        if mask is not None:
+            self.mask = np.asarray(mask)
             if self.shape != self.mask.shape:
                 raise ValueError(
                     f"""
