@@ -88,6 +88,37 @@ def make_sensitivity(
     )
 
 
+@pytest.fixture(name="masked_sensitivity")
+def make_masked_sensitivity(
+    perturb_model,
+):
+    # noinspection PyTypeChecker
+    instance = af.ModelInstance()
+    instance.gaussian = af.Gaussian()
+    return s.Sensitivity(
+        simulation_instance=instance,
+        base_model=af.Collection(gaussian=af.Model(af.Gaussian)),
+        perturb_model=perturb_model,
+        simulate_cls=Simulate(),
+        base_fit_cls=BaseFit(Analysis),
+        perturb_fit_cls=PerturbFit(Analysis),
+        paths=af.DirectoryPaths(),
+        number_of_steps=2,
+        mask=np.array(
+            [
+                [
+                    [True, True],
+                    [True, True],
+                ],
+                [
+                    [True, True],
+                    [True, True],
+                ],
+            ]
+        ),
+    )
+
+
 @pytest.fixture(name="job")
 def make_job(
     perturb_model,
