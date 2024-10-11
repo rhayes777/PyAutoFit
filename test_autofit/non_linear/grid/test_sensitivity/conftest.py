@@ -42,6 +42,7 @@ class BaseFit:
         search = af.m.MockSearch(
             return_sensitivity_results=True,
             samples_summary=MockSamplesSummary(model=model),
+            paths=paths,
         )
 
         analysis = self.analysis_cls(dataset=dataset)
@@ -57,6 +58,7 @@ class PerturbFit:
         search = af.m.MockSearch(
             return_sensitivity_results=True,
             samples_summary=MockSamplesSummary(model=model),
+            paths=paths,
         )
 
         analysis = self.analysis_cls(dataset=dataset)

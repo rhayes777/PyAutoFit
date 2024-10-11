@@ -112,6 +112,24 @@ class Job(AbstractJob):
         self.perturb_fit_cls = perturb_fit_cls
         self.paths = paths
 
+    @property
+    def base_paths(self):
+        return self.paths.for_sub_analysis("[base]")
+
+    @property
+    def perturb_paths(self):
+        return self.paths.for_sub_analysis("[perturb]")
+
+    @property
+    def is_complete(self) -> bool:
+        """
+        Returns True if the job has been completed, False otherwise.
+        """
+        return (self.base_paths.is_complete and self.perturb_paths.is_complete) or (
+            (self.paths.output_path / "[base].zip").exists()
+            and (self.paths.output_path / "[perturb].zip").exists()
+        )
+
     def perform(self) -> JobResult:
         """
         - Create one model with a perturbation and another without
@@ -130,7 +148,7 @@ class Job(AbstractJob):
         result = self.base_fit_cls(
             model=self.model,
             dataset=dataset,
-            paths=self.paths.for_sub_analysis("[base]"),
+            paths=self.base_paths,
             instance=self.simulate_instance,
         )
 
@@ -140,7 +158,7 @@ class Job(AbstractJob):
         perturb_result = self.perturb_fit_cls(
             model=perturb_model,
             dataset=dataset,
-            paths=self.paths.for_sub_analysis("[perturb]"),
+            paths=self.perturb_paths,
             instance=self.simulate_instance,
         )
 
