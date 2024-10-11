@@ -1524,6 +1524,18 @@ class AbstractPriorModel(AbstractModel):
         return sorted(priors, key=lambda prior: self.path_for_prior(prior))
 
     def path_for_object(self, obj) -> Optional[Path]:
+        """
+        Find a path that points at the given object.
+
+        Parameters
+        ----------
+        obj
+            An object in the model.
+
+        Returns
+        -------
+        A path, a series of attributes that point to one location of the object.
+        """
         for path, instance in self.path_instance_tuples_for_class(
             object, ignore_children=False
         ):
