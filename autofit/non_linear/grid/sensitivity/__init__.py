@@ -350,27 +350,26 @@ class Sensitivity:
         perturb_model = self._perturb_models[number]
         label = self._labels[number]
 
-        if not self._should_bypass(number=number):
-            if self.perturb_model_prior_func is not None:
-                perturb_model = self.perturb_model_prior_func(
-                    perturb_instance=perturb_instance, perturb_model=perturb_model
-                )
-
-            simulate_instance = copy(self.instance)
-            simulate_instance.perturb = perturb_instance
-
-            paths = self.paths.for_sub_analysis(
-                label,
+        if self.perturb_model_prior_func is not None:
+            perturb_model = self.perturb_model_prior_func(
+                perturb_instance=perturb_instance, perturb_model=perturb_model
             )
 
-            return self.job_cls(
-                simulate_instance=simulate_instance,
-                model=self.model,
-                perturb_model=perturb_model,
-                base_instance=self.instance,
-                simulate_cls=self.simulate_cls,
-                base_fit_cls=self.base_fit_cls,
-                perturb_fit_cls=self.perturb_fit_cls,
-                paths=paths,
-                number=number,
-            )
+        simulate_instance = copy(self.instance)
+        simulate_instance.perturb = perturb_instance
+
+        paths = self.paths.for_sub_analysis(
+            label,
+        )
+
+        return self.job_cls(
+            simulate_instance=simulate_instance,
+            model=self.model,
+            perturb_model=perturb_model,
+            base_instance=self.instance,
+            simulate_cls=self.simulate_cls,
+            base_fit_cls=self.base_fit_cls,
+            perturb_fit_cls=self.perturb_fit_cls,
+            paths=paths,
+            number=number,
+        )
