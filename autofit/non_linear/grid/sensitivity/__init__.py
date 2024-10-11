@@ -98,10 +98,10 @@ class Sensitivity:
         self.job_cls = job_cls
 
         self.number_of_steps = number_of_steps
-        self.mask = mask
+        self.mask = np.array(mask)
 
-        if mask is not None:
-            if self.shape != np.asarray(mask).shape:
+        if self.mask is not None:
+            if self.shape != self.mask.shape:
                 raise ValueError(
                     f"""
                     The mask of the Sensitivity object must have the same shape as the sensitivity grid.
@@ -109,7 +109,7 @@ class Sensitivity:
                     For your inputs, the shape of each are as follows:
                     
                     Sensitivity Grid: {self.shape}
-                    Mask: {np.asarray(mask).shape}
+                    Mask: {self.mask.shape}
                     """
                 )
 
@@ -140,7 +140,6 @@ class Sensitivity:
         for result in process_class.run_jobs(
             self._make_jobs(), number_of_cores=self.number_of_cores
         ):
-
             if isinstance(result, Exception):
                 raise result
 
@@ -315,6 +314,10 @@ class Sensitivity:
             ]
             yield self.perturb_model.with_limits(limits)
 
+    def _should_bypass(self, number: int) -> bool:
+        shape_index = self.shape_index_from_number(number=number)
+        return self.mask is not None and np.asarray(self.mask)[shape_index]
+
     def _make_jobs(self) -> Generator[Job, None, None]:
         """
         Create a list of jobs to be run on separate processes.
@@ -325,16 +328,7 @@ class Sensitivity:
         for number, (perturb_instance, perturb_model, label) in enumerate(
             zip(self._perturb_instances, self._perturb_models, self._labels)
         ):
-
-            shape_index = self.shape_index_from_number(number=number)
-
-            should_bypass = False
-
-            if self.mask is not None:
-                should_bypass = np.asarray(self.mask)[shape_index]
-
-            if not should_bypass:
-
+            if not self._should_bypass(number=number):
                 if self.perturb_model_prior_func is not None:
                     perturb_model = self.perturb_model_prior_func(
                         perturb_instance=perturb_instance, perturb_model=perturb_model
