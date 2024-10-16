@@ -10,13 +10,7 @@ from autofit.non_linear.result import Result
 
 
 class JobResult(AbstractJobResult):
-    def __init__(
-        self,
-        number: int,
-        result: Result,
-        perturb_result: Result,
-        path_value_dicts,
-    ):
+    def __init__(self, number: int, result: Result, perturb_result: Result):
         """
         The result of a single sensitivity comparison
 
@@ -28,7 +22,6 @@ class JobResult(AbstractJobResult):
         super().__init__(number)
         self.result = result
         self.perturb_result = perturb_result
-        self.path_value_dicts = path_value_dicts
 
     @property
     def log_evidence_increase(self) -> Optional[float]:
@@ -63,10 +56,9 @@ class MaskedJobResult(AbstractJobResult):
     A placeholder result for a job that has been masked out.
     """
 
-    def __init__(self, number, model, path_value_dict):
+    def __init__(self, number, model):
         super().__init__(number)
         self.model = model
-        self.path_value_dict = path_value_dict
 
     @property
     def result(self):
@@ -106,7 +98,6 @@ class Job(AbstractJob):
         perturb_fit_cls: Callable,
         paths: AbstractPaths,
         number: int,
-        path_value_dicts=None,
     ):
         """
         Job to run non-linear searches comparing how well a model and a model with a perturbation fit the image.
@@ -125,9 +116,6 @@ class Job(AbstractJob):
             sensitivity map.
         paths
             The paths defining the output directory structure of the sensitivity mapping.
-        path_value_dicts
-            A list of dictionaries containing the values of the perturbation parameters for each sensitivity mapping
-            dataset.
         """
         super().__init__(number=number)
 
@@ -139,7 +127,6 @@ class Job(AbstractJob):
         self.base_fit_cls = base_fit_cls
         self.perturb_fit_cls = perturb_fit_cls
         self.paths = paths
-        self.path_value_dicts = path_value_dicts
 
     def perform(self) -> JobResult:
         """
@@ -174,8 +161,5 @@ class Job(AbstractJob):
         )
 
         return JobResult(
-            number=self.number,
-            result=result,
-            perturb_result=perturb_result,
-            path_value_dicts=self.path_value_dicts,
+            number=self.number, result=result, perturb_result=perturb_result
         )
