@@ -206,6 +206,23 @@ class AbstractPriorModel(AbstractModel):
                 f"{number_of_failed_assertions} assertions failed!\n{name_string}"
             )
 
+    def set_item_at_path(self, path: Tuple[str, ...], value):
+        """
+        Set an item at a path in the model.
+
+        Parameters
+        ----------
+        path
+            A tuple of strings representing a path to an attribute
+        value
+            The value to be set at the path
+        """
+        obj = self
+        for attribute in path[:-1]:
+            obj = getattr(obj, attribute)
+
+        setattr(obj, path[-1], value)
+
     def cast(
         self,
         value_dict: Dict["AbstractModel", dict],
@@ -1505,6 +1522,26 @@ class AbstractPriorModel(AbstractModel):
         Those priors sorted alphabetically by path.
         """
         return sorted(priors, key=lambda prior: self.path_for_prior(prior))
+
+    def path_for_object(self, obj) -> Optional[Path]:
+        """
+        Find a path that points at the given object.
+
+        Parameters
+        ----------
+        obj
+            An object in the model.
+
+        Returns
+        -------
+        A path, a series of attributes that point to one location of the object.
+        """
+        for path, instance in self.path_instance_tuples_for_class(
+            object, ignore_children=False
+        ):
+            if instance is obj:
+                return path
+        return None
 
     def path_for_prior(self, prior: Prior) -> Optional[Path]:
         """
