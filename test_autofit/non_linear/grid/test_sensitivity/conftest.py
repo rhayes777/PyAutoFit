@@ -38,10 +38,11 @@ class BaseFit:
     def __init__(self, analysis_cls):
         self.analysis_cls = analysis_cls
 
-    def __call__(self, dataset, model, paths):
+    def __call__(self, dataset, model, paths, instance):
         search = af.m.MockSearch(
             return_sensitivity_results=True,
             samples_summary=MockSamplesSummary(model=model),
+            paths=paths,
         )
 
         analysis = self.analysis_cls(dataset=dataset)
@@ -53,10 +54,11 @@ class PerturbFit:
     def __init__(self, analysis_cls):
         self.analysis_cls = analysis_cls
 
-    def __call__(self, dataset, model, paths):
+    def __call__(self, dataset, model, paths, instance):
         search = af.m.MockSearch(
             return_sensitivity_results=True,
             samples_summary=MockSamplesSummary(model=model),
+            paths=paths,
         )
 
         analysis = self.analysis_cls(dataset=dataset)
@@ -85,6 +87,37 @@ def make_sensitivity(
         perturb_fit_cls=PerturbFit(Analysis),
         paths=af.DirectoryPaths(),
         number_of_steps=2,
+    )
+
+
+@pytest.fixture(name="masked_sensitivity")
+def make_masked_sensitivity(
+    perturb_model,
+):
+    # noinspection PyTypeChecker
+    instance = af.ModelInstance()
+    instance.gaussian = af.Gaussian()
+    return s.Sensitivity(
+        simulation_instance=instance,
+        base_model=af.Collection(gaussian=af.Model(af.Gaussian)),
+        perturb_model=perturb_model,
+        simulate_cls=Simulate(),
+        base_fit_cls=BaseFit(Analysis),
+        perturb_fit_cls=PerturbFit(Analysis),
+        paths=af.DirectoryPaths(),
+        number_of_steps=2,
+        mask=np.array(
+            [
+                [
+                    [True, True],
+                    [True, True],
+                ],
+                [
+                    [True, True],
+                    [True, True],
+                ],
+            ]
+        ),
     )
 
 

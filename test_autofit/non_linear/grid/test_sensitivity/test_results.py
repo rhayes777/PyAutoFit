@@ -48,6 +48,9 @@ def make_sensitivity_result(job_result):
         samples=[job_result.result.samples.summary()],
         perturb_samples=[job_result.perturb_result.samples.summary()],
         shape=(1,),
+        path_values={
+            ("centre",): [0.5],
+        },
     )
 
 

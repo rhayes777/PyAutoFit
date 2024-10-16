@@ -641,7 +641,7 @@ These files can then also be loaded via the database, as described in the databa
             Parameters
             ----------
             paths
-                The PyAutoFit paths object which manages all paths, e.g. where
+                The paths object which manages all paths, e.g. where
                 the non-linear search outputs are stored, visualization, and the
                 pickled objects used by the aggregator output by this function.
             """
@@ -674,7 +674,7 @@ These files can then also be loaded via the database, as described in the databa
             Parameters
             ----------
             paths
-                The PyAutoFit paths object which manages all paths, e.g. where the
+                The paths object which manages all paths, e.g. where the
                 non-linear search outputs are stored, visualization and the pickled
                 objects used by the aggregator output by this function.
             result

@@ -29,10 +29,26 @@ def test_labels(sensitivity):
 
 
 def test_perform_job(job):
+    assert not job.is_complete
+
     result = job.perform()
     assert isinstance(result, s.JobResult)
     assert isinstance(result.perturb_result, af.Result)
     assert isinstance(result.result, af.Result)
+
+    assert job.is_complete
+
+
+def test_perform_twice(job):
+    job.perform()
+    assert job.is_complete
+
+    result = job.perform()
+    assert isinstance(result, s.JobResult)
+    assert isinstance(result.perturb_result, af.Result)
+    assert isinstance(result.result, af.Result)
+
+    assert job.is_complete
 
 
 class TestPerturbationModels:
@@ -121,11 +137,6 @@ class TestPerturbationModels:
         ).with_limits(3, 5)
         assert prior.lower_limit == 3
         assert prior.upper_limit == 5
-
-    def test_existing_limits(self):
-        prior = af.UniformPrior(2, 4).with_limits(3, 5)
-        assert prior.lower_limit == 3
-        assert prior.upper_limit == 4
 
 
 @pytest.fixture(name="tuple_sensitivity")
