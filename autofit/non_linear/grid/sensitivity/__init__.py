@@ -148,6 +148,7 @@ class Sensitivity:
                     MaskedJobResult(
                         number=number,
                         model=model,
+                        path_value_dict=self.path_value_dicts[number],
                     )
                 )
             else:
@@ -374,6 +375,7 @@ class Sensitivity:
         perturb_instance = self._perturb_instances[number]
         perturb_model = self._perturb_models[number]
         label = self._labels[number]
+        path_value_dict = self.path_value_dicts[number]
 
         if self.perturb_model_prior_func is not None:
             perturb_model = self.perturb_model_prior_func(
@@ -397,4 +399,5 @@ class Sensitivity:
             perturb_fit_cls=self.perturb_fit_cls,
             paths=paths,
             number=number,
+            path_value_dict=path_value_dict,
         )
