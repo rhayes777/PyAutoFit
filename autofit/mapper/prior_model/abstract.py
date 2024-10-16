@@ -458,6 +458,9 @@ class AbstractPriorModel(AbstractModel):
             obj.__init__(t)
         else:
             obj = t
+
+        if isinstance(obj, float):
+            return Constant(obj)
         return obj
 
     def take_attributes(self, source: object):

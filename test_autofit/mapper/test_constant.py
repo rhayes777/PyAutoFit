@@ -76,3 +76,18 @@ def test_set_constant(model):
     model.constant_2 = 2.0
     assert model.constant_2 == 2.0
     assert model.constant_1 != model.constant_2
+
+
+def test_set_value_in_collection():
+    collection = af.Collection(1.0, 1.0)
+
+    assert collection[0] == 1.0
+    assert collection[1] == 1.0
+    assert collection[0] != collection[1]
+
+    collection[0] = 2.0
+    assert collection[0] == 2.0
+
+    collection[1] = 2.0
+    assert collection[1] == 2.0
+    assert collection[0] != collection[1]
