@@ -7,6 +7,6 @@ class Constant(Variable):
         self.value = value
 
     def __eq__(self, other):
-        if isinstance(other, float):
+        if isinstance(other, (int, float)):
             return self.value == other
         return super().__eq__(other)

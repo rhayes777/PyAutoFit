@@ -281,6 +281,7 @@ class ModelObject:
         from autofit.mapper.prior_model.prior_model import Model
         from autofit.mapper.prior.tuple_prior import TuplePrior
         from autofit.mapper.prior_model.array import Array
+        from autofit.mapper.prior.constant import Constant
 
         if isinstance(self, Collection):
             type_ = "collection"
@@ -292,6 +293,8 @@ class ModelObject:
             type_ = "tuple_prior"
         elif isinstance(self, Array):
             type_ = "array"
+        elif isinstance(self, Constant):
+            type_ = "constant"
         else:
             raise AssertionError(
                 f"{self.__class__.__name__} cannot be serialised to dict"
