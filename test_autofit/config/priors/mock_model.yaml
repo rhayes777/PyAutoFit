@@ -428,3 +428,12 @@ WithConstants:
   constant_2:
     value: 1.0
     type: Constant
+
+
+ModelWithTupleConstant:
+  constant_0:
+    value: 1.0
+    type: Constant
+  constant_1:
+    value: 1.0
+    type: Constant

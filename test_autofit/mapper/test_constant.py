@@ -1,7 +1,11 @@
 import pytest
 
 import autofit as af
-from autofit.mapper.mock.mock_model import WithConstants, Parameter
+from autofit.mapper.mock.mock_model import (
+    WithConstants,
+    Parameter,
+    ModelWithTupleConstant,
+)
 from autofit.mapper.prior.constant import Constant
 
 
@@ -42,3 +46,12 @@ def test_collection(model):
 def test_kwarg():
     model = af.Model(Parameter, value=1.0)
     assert model.value != af.Model(Parameter, value=1.0).value
+
+
+def test_tuple_constant():
+    model = af.Model(ModelWithTupleConstant)
+
+    assert model.constant.constant_0 != model.constant.constant_1
+
+    instance = model.instance_from_unit_vector([])
+    assert instance.constant[0] == instance.constant[1]
