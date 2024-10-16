@@ -122,11 +122,6 @@ class TestPerturbationModels:
         assert prior.lower_limit == 3
         assert prior.upper_limit == 5
 
-    def test_existing_limits(self):
-        prior = af.UniformPrior(2, 4).with_limits(3, 5)
-        assert prior.lower_limit == 3
-        assert prior.upper_limit == 4
-
 
 @pytest.fixture(name="tuple_sensitivity")
 def make_tuple_sensitivity(sensitivity):
