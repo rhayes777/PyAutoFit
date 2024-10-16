@@ -191,3 +191,9 @@ class Parameter:
 class WithString:
     def __init__(self, arg: "Parameter"):
         self.arg = arg
+
+
+class WithConstants:
+    def __init__(self, constant_1, constant_2):
+        self.constant_1 = constant_1
+        self.constant_2 = constant_2

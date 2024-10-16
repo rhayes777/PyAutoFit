@@ -12,6 +12,7 @@ from autoconf.exc import ConfigException
 from autofit.mapper.model import assert_not_frozen
 from autofit.mapper.model_object import ModelObject
 from autofit.mapper.prior.abstract import Prior
+from autofit.mapper.prior.constant import Constant
 from autofit.mapper.prior.deferred import DeferredInstance
 from autofit.mapper.prior.tuple_prior import TuplePrior
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
@@ -473,6 +474,11 @@ class Model(AbstractPriorModel):
             **prior_arguments,
         }
 
+        constructor_arguments = {
+            key: value.value if isinstance(value, Constant) else value
+            for key, value in constructor_arguments.items()
+        }
+
         if self.is_deferred_arguments:
             return DeferredInstance(self.cls, constructor_arguments)
 
@@ -495,6 +501,8 @@ class Model(AbstractPriorModel):
                         arguments,
                         ignore_assertions=ignore_assertions,
                     )
+                elif isinstance(value, Constant):
+                    value = value.value
                 elif isinstance(value, Prior):
                     value = arguments[value]
                 try:

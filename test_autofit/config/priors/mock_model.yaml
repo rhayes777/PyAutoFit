@@ -419,3 +419,12 @@ MockWithTuple:
     width_modifier:
       type: Absolute
       value: 0.2
+
+
+WithConstants:
+  constant_1:
+    value: 1.0
+    type: Constant
+  constant_2:
+    value: 1.0
+    type: Constant
