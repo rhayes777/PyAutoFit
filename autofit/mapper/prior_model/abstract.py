@@ -17,6 +17,7 @@ from autofit.mapper.model import AbstractModel, frozen_cache
 from autofit.mapper.prior import GaussianPrior
 from autofit.mapper.prior import UniformPrior
 from autofit.mapper.prior.abstract import Prior
+from autofit.mapper.prior.constant import Constant
 from autofit.mapper.prior.deferred import DeferredArgument
 from autofit.mapper.prior.tuple_prior import TuplePrior
 from autofit.mapper.prior.width_modifier import WidthModifier
@@ -1189,7 +1190,9 @@ class AbstractPriorModel(AbstractModel):
     @property
     @cast_collection(InstanceNameValue)
     def direct_instance_tuples(self):
-        return self.direct_tuples_with_type(float)
+        return self.direct_tuples_with_type(float) + self.direct_tuples_with_type(
+            Constant
+        )
 
     @property
     @cast_collection(PriorModelNameValue)
