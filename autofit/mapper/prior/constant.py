@@ -3,6 +3,19 @@ from autofit.mapper.variable import Variable
 
 class Constant(Variable):
     def __init__(self, value: float):
+        """
+        Represents a constant value in a model.
+
+        This is equivalent to a prior.
+
+        Note that two different instances of this class with the same value are not equal,
+        but are equal once instantiated or in comparison to a float or int.
+
+        Parameters
+        ----------
+        value
+            The constant value.
+        """
         super().__init__()
         self.value = value
 
