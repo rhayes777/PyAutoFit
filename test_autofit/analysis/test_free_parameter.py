@@ -67,6 +67,24 @@ def test_override_multiple_one_analysis(model, combined_analysis):
     assert new_model[0].sigma == 3
 
 
+def test_complex_path(Analysis):
+    model = af.Collection(
+        collection=af.Collection(
+            gaussian=af.Model(af.Gaussian),
+        )
+    )
+    combined_analysis = (Analysis() + Analysis()).with_free_parameters(
+        model.collection.gaussian
+    )
+
+    combined_analysis[0][model.collection.gaussian.centre] = 2
+    combined_analysis[0][model.collection.gaussian.sigma] = 3
+
+    new_model = combined_analysis.modify_model(model)
+    assert new_model[0].collection.gaussian.centre == 2
+    assert new_model[0].collection.gaussian.sigma == 3
+
+
 def test_override_model(model, combined_analysis):
     new_model = af.Model(af.Gaussian, centre=2)
     combined_analysis[0][model] = new_model
