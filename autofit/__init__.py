@@ -123,7 +123,7 @@ for type_ in (
     "Gaussian",
     "LogGaussian",
     "compound",
-    "constant",
+    "Constant",
 ):
     register_parser(type_, ModelObject.from_dict)
 

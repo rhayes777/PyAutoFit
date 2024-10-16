@@ -1,5 +1,4 @@
 import pytest
-import autofit as af
 
 
 @pytest.fixture(name="model_dict")
@@ -24,5 +23,9 @@ def make_instance_dict():
     return {
         "class_path": "autofit.example.model.Gaussian",
         "type": "instance",
-        "arguments": {"centre": 0.0, "normalization": 0.1, "sigma": 0.01},
+        "arguments": {
+            "centre": {"type": "Constant", "value": 0.0},
+            "normalization": {"type": "Constant", "value": 0.1},
+            "sigma": {"type": "Constant", "value": 0.01},
+        },
     }

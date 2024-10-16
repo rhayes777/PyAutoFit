@@ -11,6 +11,5 @@ class Constant(Variable):
             return self.value == other
         return super().__eq__(other)
 
-    @property
     def dict(self):
-        return {"type": "constant", "value": self.value}
+        return {"type": "Constant", "value": self.value}
