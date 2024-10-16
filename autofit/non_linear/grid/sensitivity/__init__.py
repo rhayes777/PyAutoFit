@@ -184,6 +184,7 @@ class Sensitivity:
                 result.perturb_result.samples_summary for result in results
             ],
             shape=self.shape,
+            path_values=self.path_values,
         )
 
         self.paths.save_json("result", to_dict(sensitivity_result))
@@ -255,22 +256,15 @@ class Sensitivity:
         return make_lists(self.perturb_model.prior_count, step_size=self.step_size)
 
     @property
-    def path_value_dicts(self):
+    def path_values(self):
         paths = [
             self.perturb_model.path_for_prior(prior)
             for prior in self.perturb_model.priors_ordered_by_id
         ]
 
-        return [
-            {
-                path: value
-                for path, value in zip(
-                    paths,
-                    list_,
-                )
-            }
-            for list_ in self._lists
-        ]
+        return {
+            path: list(values) for path, *values in zip(paths, *self._physical_values)
+        }
 
     @property
     def _physical_values(self) -> List[List[float]]:

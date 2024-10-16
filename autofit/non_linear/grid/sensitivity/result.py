@@ -1,4 +1,4 @@
-from typing import List, Tuple, Union
+from typing import List, Tuple, Union, Dict
 
 from autofit.non_linear.grid.grid_list import GridList, as_grid_list
 from autofit.non_linear.grid.grid_search.result import AbstractGridSearchResult
@@ -12,22 +12,22 @@ class SensitivityResult(AbstractGridSearchResult):
         samples: List[SamplesInterface],
         perturb_samples: List[SamplesInterface],
         shape: Tuple[int, ...],
+        path_values: Dict[Tuple[str, ...], List[float]],
     ):
         """
         The result of a sensitivity mapping
 
         Parameters
         ----------
-        results
-            The results of each sensitivity job.
-        physical_values
-            A list of lists of values representing the physical values of the sensitivity grid values.
         shape
             The shape of the sensitivity mapping grid.
+        path_values
+            A list of tuples of the path to the grid priors and the physical values themselves.
         """
         super().__init__(GridList(samples, shape))
         self.perturb_samples = GridList(perturb_samples, shape)
         self.shape = shape
+        self.path_values = path_values
 
     def perturbed_physical_centres_list_from(
         self, path: Union[str, Tuple[str, ...]]
@@ -40,10 +40,9 @@ class SensitivityResult(AbstractGridSearchResult):
         path
             The path to the physical centres in the samples
         """
-        return self._physical_centres_lists_from(
-            self.perturb_samples,
-            path,
-        )
+        if isinstance(path, str):
+            path = tuple(path.split("."))
+        return self.path_values[path]
 
     def __getitem__(self, item):
         return self.samples[item]
