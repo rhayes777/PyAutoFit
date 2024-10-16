@@ -25,6 +25,9 @@ class AbstractInitializer(ABC):
     def _generate_unit_parameter_list(self, model):
         pass
 
+    def info_from_model(self, model : AbstractPriorModel) -> str:
+        raise NotImplementedError
+
     @staticmethod
     def figure_of_metric(args) -> Optional[float]:
         fitness, parameter_list = args
@@ -175,7 +178,7 @@ class AbstractInitializer(ABC):
         return unit_parameter_lists, parameter_lists, figure_of_merit_list
 
 
-class SpecificRangeInitializer(AbstractInitializer):
+class InitializerParamBounds(AbstractInitializer):
     def __init__(
         self,
         parameter_dict: Dict[Prior, Tuple[float, float]],
@@ -183,14 +186,14 @@ class SpecificRangeInitializer(AbstractInitializer):
         upper_limit=1.0,
     ):
         """
-        Initializer that allows the range of possible starting points for each prior
-        to be specified explicitly.
+        Initializer which uses the bounds on input parameters as the starting point for the search (e.g. where
+        an MLE optimization starts or MCMC walkers are initialized).
 
         Parameters
         ----------
         parameter_dict
-            A dictionary mapping priors to inclusive ranges of physical values that
-            the initial values for that dimension in the search may take
+            A dictionary mapping each parameter path to bounded ranges of physical values that
+            are where the search begins.
         lower_limit
             A default, unit lower limit used when a prior is not specified
         upper_limit
@@ -226,7 +229,7 @@ class SpecificRangeInitializer(AbstractInitializer):
                 key = ".".join(model.path_for_prior(prior))
                 if key not in self._generated_warnings:
                     logger.warning(
-                        f"Range for {key} not set in the SpecificRangeInitializer. "
+                        f"Range for {key} not set in the InitializerParamBounds. "
                         f"Using defaults."
                     )
                     self._generated_warnings.add(key)
@@ -240,6 +243,84 @@ class SpecificRangeInitializer(AbstractInitializer):
 
         return unit_parameter_list
 
+    def info_from_model(self, model : AbstractPriorModel) -> str:
+        """
+        Returns a string showing the bounds of the parameters in the initializer.
+        """
+        info = "Total Free Parameters = " + str(model.prior_count) + "\n"
+        info += "Total Starting Points = " + str(len(self.parameter_dict)) + "\n\n"
+        for prior in model.priors_ordered_by_id:
+
+            key = ".".join(model.path_for_prior(prior))
+
+            try:
+
+                value = self.info_value_from(self.parameter_dict[prior])
+
+                info += f"{key}: Start[{value}]\n"
+
+            except KeyError:
+
+                info += f"{key}: {prior})\n"
+
+        return info
+
+    def info_value_from(self, value : Tuple[float, float]) -> Tuple[float, float]:
+        """
+        Returns the value that is used to display the bounds of the parameters in the initializer.
+
+        This function simply returns the input value, but it can be overridden in subclasses for diffferent
+        initializers.
+
+        Parameters
+        ----------
+        value
+            The value to be displayed in the initializer info which is a tuple of the lower and upper bounds of the
+            parameter.
+        """
+        return value
+
+
+class InitializerParamStartPoints(InitializerParamBounds):
+    def __init__(
+        self,
+        parameter_dict: Dict[Prior, float],
+    ):
+        """
+        Initializer which input values of the parameters as the starting point for the search (e.g. where
+        an MLE optimization starts or MCMC walkers are initialized).
+
+        Parameters
+        ----------
+        parameter_dict
+            A dictionary mapping each parameter path to the starting point physical values that
+            are where the search begins.
+        lower_limit
+            A default, unit lower limit used when a prior is not specified
+        upper_limit
+            A default, unit upper limit used when a prior is not specified
+        """
+        parameter_dict_new = {}
+
+        for key, value in parameter_dict.items():
+            parameter_dict_new[key] = (value - 1.0e-8, value + 1.0e-8)
+
+        super().__init__(parameter_dict=parameter_dict_new)
+
+    def info_value_from(self, value : Tuple[float, float]) -> float:
+        """
+        Returns the value that is used to display the starting point of the parameters in the initializer.
+
+        This function returns the mean of the input value, as the starting point is a single value in the center of the
+        bounds.
+
+        Parameters
+        ----------
+        value
+            The value to be displayed in the initializer info which is a tuple of the lower and upper bounds of the
+            parameter.
+        """
+        return (value[1] + value[0]) / 2.0
 
 class Initializer(AbstractInitializer):
     def __init__(self, lower_limit: float, upper_limit: float):

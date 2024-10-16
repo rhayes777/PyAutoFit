@@ -4,6 +4,8 @@ from typing import Dict, Optional
 import emcee
 import numpy as np
 
+from autoconf import conf
+
 from autofit.database.sqlalchemy_ import sa
 from autofit.mapper.model_mapper import ModelMapper
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
@@ -81,6 +83,11 @@ class Emcee(AbstractMCMC):
         )
 
         self.logger.debug("Creating Emcee Search")
+
+        # TODO : Emcee visualization tools rely on the .hdf file and thus require that the search internal is
+        # TODO : On hard-disk, which this forces to occur.
+
+        conf.instance["output"]["search_internal"] = True
 
     def _fit(self, model: AbstractPriorModel, analysis):
         """

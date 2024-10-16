@@ -64,6 +64,16 @@ class UniformPrior(Prior):
     def tree_flatten(self):
         return (self.lower_limit, self.upper_limit), (self.id,)
 
+    def with_limits(
+        self,
+        lower_limit: float,
+        upper_limit: float,
+    ) -> "Prior":
+        return UniformPrior(
+            lower_limit=lower_limit,
+            upper_limit=upper_limit,
+        )
+
     def logpdf(self, x):
         # TODO: handle x as a numpy array
         if x == self.lower_limit:
@@ -97,9 +107,9 @@ class UniformPrior(Prior):
 
         physical_value = prior.value_for(unit=0.2)
         """
-        return float(round(
-            super().value_for(unit, ignore_prior_limits=ignore_prior_limits), 14
-        ))
+        return float(
+            round(super().value_for(unit, ignore_prior_limits=ignore_prior_limits), 14)
+        )
 
     def log_prior_from_value(self, value):
         """

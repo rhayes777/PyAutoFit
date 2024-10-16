@@ -33,7 +33,7 @@ class VisualizerExample(af.Visualizer):
         analysis
             The analysis class used to perform the model-fit whose quantities are being visualized.
         paths
-            The PyAutoFit paths object which manages all paths, e.g. where the non-linear search outputs are stored,
+            The paths object which manages all paths, e.g. where the non-linear search outputs are stored,
             visualization, and the pickled objects used by the aggregator output by this function.
         model
             The model which is fitted to the data, which may be used to customize the visualization.
@@ -84,7 +84,7 @@ class VisualizerExample(af.Visualizer):
         analysis
             The analysis class used to perform the model-fit whose quantities are being visualized.
         paths
-            The PyAutoFit paths object which manages all paths, e.g. where the non-linear search outputs are stored,
+            The paths object which manages all paths, e.g. where the non-linear search outputs are stored,
             visualization, and the pickled objects used by the aggregator output by this function.
         instance
             An instance of the model that is being fitted to the data by this analysis (whose parameters have been set
@@ -163,7 +163,7 @@ class VisualizerExample(af.Visualizer):
         analyses
             A list of the analysis classes used to perform the model-fit whose quantities are being visualized.
         paths
-            The PyAutoFit paths object which manages all paths, e.g. where the non-linear search outputs are stored,
+            The paths object which manages all paths, e.g. where the non-linear search outputs are stored,
             visualization, and the pickled objects used by the aggregator output by this function.
         model
             The model which is fitted to the data, which may be used to customize the visualization.
@@ -202,7 +202,7 @@ class VisualizerExample(af.Visualizer):
         analyses
             A list of the analysis classes used to perform the model-fit whose quantities are being visualized.
         paths
-            The PyAutoFit paths object which manages all paths, e.g. where the non-linear search outputs are stored,
+            The paths object which manages all paths, e.g. where the non-linear search outputs are stored,
             visualization, and the pickled objects used by the aggregator output by this function.
         model
             The model which is fitted to the data, which may be used to customize the visualization.

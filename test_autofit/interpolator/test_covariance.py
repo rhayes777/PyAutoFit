@@ -44,23 +44,23 @@ def test_covariance_matrix(interpolator):
 #     )
 
 
-def n_effective(func):
+def maxcall(func):
     return with_config(
         "non_linear",
         "nest",
         "DynestyStatic",
         "run",
-        "n_effective",
-        value=0,
+        "maxcall",
+        value=1,
     )(func)
 
 
-@n_effective
+@maxcall
 def test_interpolate(interpolator):
     assert isinstance(interpolator[interpolator.t == 0.5].gaussian.centre, float)
 
 
-@n_effective
+@maxcall
 def test_interpolate_other_field(interpolator):
     assert isinstance(
         interpolator[interpolator.gaussian.centre == 0.5].gaussian.centre,
@@ -79,7 +79,7 @@ def test_model(interpolator):
     assert model.prior_count == 6
 
 
-@n_effective
+@maxcall
 def test_single_variable():
     samples_list = [
         af.SamplesPDF(
@@ -106,7 +106,7 @@ def test_single_variable():
     assert interpolator[interpolator.t == 50.0].v == pytest.approx(50.0, abs=1.0)
 
 
-@n_effective
+@maxcall
 def test_variable_and_constant():
     samples_list = [
         af.SamplesPDF(

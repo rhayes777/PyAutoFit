@@ -136,6 +136,7 @@ class MockSearch(NonLinearSearch):
         )
 
         self.paths.save_samples_summary(self.samples_summary)
+        self.paths.completed()
 
         return analysis.make_result(
             samples_summary=samples_summary,
@@ -157,13 +158,13 @@ class MockSearch(NonLinearSearch):
         )
 
 
-class MockOptimizer(MockSearch):
+class MockMLE(MockSearch):
     def __init__(self, **kwargs):
         super().__init__(fit_fast=False, **kwargs)
 
     @property
     def samples_cls(self):
-        return MockOptimizer
+        return MockMLE
 
     def project(
         self, factor_approx: FactorApproximation, status: Status = Status()

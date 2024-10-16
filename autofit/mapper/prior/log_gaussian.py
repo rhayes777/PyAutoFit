@@ -71,6 +71,37 @@ class LogGaussianPrior(Prior):
             id_=id_,
         )
 
+    @classmethod
+    def with_limits(cls, lower_limit: float, upper_limit: float) -> "LogGaussianPrior":
+        """
+        Create a new gaussian prior centred between two limits
+        with sigma distance between this limits.
+
+        Note that these limits are not strict so exceptions will not
+        be raised for values outside of the limits.
+
+        This function is typically used in prior passing, where the
+        result of a model-fit are used to create new Gaussian priors
+        centred on the previously estimated median PDF model.
+
+        Parameters
+        ----------
+        lower_limit
+            The lower limit of the new Gaussian prior.
+        upper_limit
+            The upper limit of the new Gaussian Prior.
+
+        Returns
+        -------
+        A new GaussianPrior
+        """
+        return cls(
+            mean=(lower_limit + upper_limit) / 2,
+            sigma=upper_limit - lower_limit,
+            lower_limit=lower_limit,
+            upper_limit=upper_limit,
+        )
+
     def _new_for_base_message(self, message):
         """
         Create a new instance of this wrapper but change the parameters used

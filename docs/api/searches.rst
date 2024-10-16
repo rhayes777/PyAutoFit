@@ -4,8 +4,8 @@ Non-Linear Searches
 
 A non-linear search is an algorithm which fits a model to data.
 
-**PyAutoFit** currently supports three types of non-linear search algorithms: nested samplers,
-Markov Chain Monte Carlo (MCMC) and optimizers.
+**PyAutoFit** currently supports three types of non-linear search algorithms: nested samplers (nest),
+Markov Chain Monte Carlo (MCMC) and Maximum Likelihood Estimators (MLE).
 
 **Examples / Tutorials:**
 
@@ -41,8 +41,8 @@ MCMC
    Emcee
    Zeus
 
-Optimizers
-----------
+Maximum Likelihood Estimators
+-----------------------------
 
 .. currentmodule:: autofit
 
@@ -51,6 +51,8 @@ Optimizers
    :template: custom-class-template.rst
    :recursive:
 
+   BFGS
+   LBFGS
    PySwarmsLocal
    PySwarmsGlobal
 

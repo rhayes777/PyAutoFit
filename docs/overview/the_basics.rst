@@ -298,13 +298,13 @@ Analysis
 
 We now tell **PyAutoFit** how to fit the model to the data.
 
-We define an `Analysis` class, which includes:
+We define an ``Analysis`` class, which includes:
 
-- An `__init__` constructor that takes `data` and `noise_map` as inputs (this can be extended with additional elements necessary for fitting the model to the data).
+- An ``__init__`` constructor that takes ``data`` and ``noise_map`` as inputs (this can be extended with additional elements necessary for fitting the model to the data).
 
-- A `log_likelihood_function` that defines how to fit an `instance` of the model to the data and return a log likelihood value.
+- A ``log_likelihood_function`` that defines how to fit an ``instance`` of the model to the data and return a log likelihood value.
 
-Read the comments and docstrings of the `Analysis` class in detail for a full description of how the analysis works.
+Read the comments and docstrings of the ``Analysis`` class in detail for a full description of how the analysis works.
 
 .. code-block:: python
 
@@ -623,7 +623,7 @@ examples demonstrating more complex model-fitting tasks.
 
 This includes cookbooks, which provide a concise reference guide to the **PyAutoFit** API for advanced model-fitting:
 
-- [Model Cookbook](https://pyautofit.readthedocs.io/en/latest/cookbooks/model.html): Learn how to compose complex models using multiple Python classes, lists, dictionaries, and customize their parameterization.
+- [Model Cookbook](https://pyautofit.readthedocs.io/en/latest/cookbooks/model.html): Learn how to compose complex models using multiple Python classes, lists, dictionaries, NumPy arrays and customize their parameterization.
 
 - [Analysis Cookbook](https://pyautofit.readthedocs.io/en/latest/cookbooks/search.html): Customize the analysis with model-specific output and visualization to gain deeper insights into your model fits.
 

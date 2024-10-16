@@ -56,8 +56,8 @@ class TestDynesty:
 
     @pytest.mark.filterwarnings('ignore::RuntimeWarning')
     def test_null_paths(self, factor_model):
-        optimizer = af.DynestyStatic(maxcall=10)
-        result, status = optimizer.optimise(
+        search = af.DynestyStatic(maxcall=10)
+        result, status = search.optimise(
             factor_model.mean_field_approximation().factor_approximation(factor_model)
         )
 
