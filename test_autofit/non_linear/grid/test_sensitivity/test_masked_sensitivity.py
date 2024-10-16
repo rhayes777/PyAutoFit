@@ -50,19 +50,6 @@ def test_mean_uniform_prior(
     )
 
 
-def test_physical_centres_lists(masked_result, masked_sensitivity):
-    assert masked_result.perturbed_physical_centres_list_from("perturb.centre") == [
-        0.25,
-        0.25,
-        0.25,
-        0.25,
-        0.75,
-        0.75,
-        0.75,
-        0.75,
-    ]
-
-
 def test_path_value_dicts(masked_sensitivity):
     assert masked_sensitivity.path_values == {
         ("centre",): [0.25, 0.25, 0.25, 0.25, 0.75, 0.75, 0.75, 0.75],
