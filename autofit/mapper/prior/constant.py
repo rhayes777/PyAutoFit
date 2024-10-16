@@ -11,5 +11,8 @@ class Constant(Variable):
             return self.value == other
         return super().__eq__(other)
 
+    def __hash__(self):
+        return self.id
+
     def dict(self):
         return {"type": "Constant", "value": self.value}
