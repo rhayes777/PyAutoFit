@@ -132,7 +132,7 @@ class Analysis(af.Analysis):
         Parameters
         ----------
         paths
-            The PyAutoFit paths object which manages all paths, e.g. where the non-linear search outputs are stored,
+            The paths object which manages all paths, e.g. where the non-linear search outputs are stored,
             visualization, and the pickled objects used by the aggregator output by this function.
         """
         paths.save_json(name="data", object_dict=self.data.tolist(), prefix="dataset")

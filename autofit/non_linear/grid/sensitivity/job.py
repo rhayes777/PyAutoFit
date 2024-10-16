@@ -35,7 +35,10 @@ class JobResult(AbstractJobResult):
 
         if hasattr(self.result.samples, "log_evidence"):
             if self.result.samples.log_evidence is not None:
-                return float(self.perturb_result.samples.log_evidence - self.result.samples.log_evidence)
+                return float(
+                    self.perturb_result.samples.log_evidence
+                    - self.result.samples.log_evidence
+                )
 
     @property
     def log_likelihood_increase(self) -> Optional[float]:
@@ -46,6 +49,39 @@ class JobResult(AbstractJobResult):
         """
 
         return float(self.perturb_result.log_likelihood - self.result.log_likelihood)
+
+
+class MaskedJobResult(AbstractJobResult):
+    """
+    A placeholder result for a job that has been masked out.
+    """
+
+    def __init__(self, number, model):
+        super().__init__(number)
+        self.model = model
+
+    @property
+    def result(self):
+        return self
+
+    @property
+    def perturb_result(self):
+        return self
+
+    def __getattr__(self, item):
+        return None
+
+    @property
+    def samples_summary(self):
+        return self
+
+    @property
+    def log_evidence(self):
+        return 0.0
+
+    @property
+    def log_likelihood(self):
+        return 0.0
 
 
 class Job(AbstractJob):
@@ -111,6 +147,7 @@ class Job(AbstractJob):
             model=self.model,
             dataset=dataset,
             paths=self.paths.for_sub_analysis("[base]"),
+            instance=self.simulate_instance,
         )
 
         perturb_model = copy(self.model)
@@ -120,6 +157,7 @@ class Job(AbstractJob):
             model=perturb_model,
             dataset=dataset,
             paths=self.paths.for_sub_analysis("[perturb]"),
+            instance=self.simulate_instance,
         )
 
         return JobResult(
