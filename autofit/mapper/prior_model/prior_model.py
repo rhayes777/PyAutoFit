@@ -393,8 +393,12 @@ class Model(AbstractPriorModel):
                     ]
                     setattr(tuple_prior, key, value)
                     return
+
             except IndexError:
                 pass
+
+            if isinstance(value, float):
+                value = Constant(value)
         try:
             super().__setattr__(key, value)
         except AttributeError as e:

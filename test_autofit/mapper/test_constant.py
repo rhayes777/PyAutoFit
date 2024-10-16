@@ -67,3 +67,12 @@ model                                                                           
 constant_1                                                                      1.0
 constant_2                                                                      1.0"""
     )
+
+
+def test_set_constant(model):
+    model.constant_1 = 2.0
+    assert model.constant_1 == 2.0
+
+    model.constant_2 = 2.0
+    assert model.constant_2 == 2.0
+    assert model.constant_1 != model.constant_2
