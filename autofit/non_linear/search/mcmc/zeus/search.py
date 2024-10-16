@@ -1,3 +1,4 @@
+import logging
 from typing import Dict, Optional
 
 import numpy as np
@@ -292,6 +293,22 @@ class Zeus(AbstractMCMC):
                 discard=discard, thin=thin, flat=True
             )
 
+            if len(samples_after_burn_in) == 0:
+
+                logging.info(
+                    """
+                    After thinnng the Zeus samples in order to remove burn-in, no samples were left.
+                    
+                    To create a samples object containing samples, so that the code can continue and results
+                    can be inspected, the full list of samples before removing burn-in has been used. This may 
+                    indicate that the sampler has not converged and therefore your results may not be reliable.
+                    
+                    To fix this, run Zeus with more steps to ensure convergence is achieved or change the auto
+                    correlation settings to be less aggressive in thinning samples.                
+                    """
+                )
+
+                samples_after_burn_in = search_internal.get_chain(flat=True)
 
         parameter_lists = samples_after_burn_in.tolist()
         log_posterior_list = search_internal.get_log_prob(flat=True).tolist()
