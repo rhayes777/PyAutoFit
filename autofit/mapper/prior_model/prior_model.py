@@ -225,6 +225,8 @@ class Model(AbstractPriorModel):
             value = Model(value)
         if isinstance(value, int):
             value = float(value)
+        if isinstance(value, float):
+            value = Constant(value)
         return value
 
     @property

@@ -1,7 +1,7 @@
 import pytest
 
 import autofit as af
-from autofit.mapper.mock.mock_model import WithConstants
+from autofit.mapper.mock.mock_model import WithConstants, Parameter
 from autofit.mapper.prior.constant import Constant
 
 
@@ -37,3 +37,8 @@ def test_collection(model):
 
     assert isinstance(instance[0].constant_1, float)
     assert isinstance(instance[1], float)
+
+
+def test_kwarg():
+    model = af.Model(Parameter, value=1.0)
+    assert model.value != af.Model(Parameter, value=1.0).value
