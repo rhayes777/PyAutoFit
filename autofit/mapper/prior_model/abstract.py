@@ -1627,7 +1627,8 @@ class AbstractPriorModel(AbstractModel):
             [
                 t
                 for t in self.path_instance_tuples_for_class(
-                    (Prior, float, int, tuple, ConfigException), ignore_children=True
+                    (Prior, float, Constant, int, tuple, ConfigException),
+                    ignore_children=True,
                 )
                 if t[0][-1] not in ("id", "item_number")
             ],
@@ -1681,6 +1682,7 @@ class AbstractPriorModel(AbstractModel):
             (
                 Prior,
                 float,
+                Constant,
                 tuple,
             ),
             ignore_children=True,

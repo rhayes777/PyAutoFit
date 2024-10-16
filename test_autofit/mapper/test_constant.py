@@ -55,3 +55,15 @@ def test_tuple_constant():
 
     instance = model.instance_from_unit_vector([])
     assert instance.constant[0] == instance.constant[1]
+
+
+def test_model_info(model):
+    assert (
+        model.info
+        == """Total Free Parameters = 0
+
+model                                                                           WithConstants (N=0)
+
+constant_1                                                                      1.0
+constant_2                                                                      1.0"""
+    )

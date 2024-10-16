@@ -19,6 +19,9 @@ class Constant(Variable):
         super().__init__()
         self.value = value
 
+    def __str__(self):
+        return str(self.value)
+
     def __eq__(self, other):
         if isinstance(other, (int, float)):
             return self.value == other
