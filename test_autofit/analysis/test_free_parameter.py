@@ -85,6 +85,28 @@ def test_complex_path(Analysis):
     assert new_model[0].collection.gaussian.sigma == 3
 
 
+def test_tuple_prior_override(Analysis):
+    model = af.Collection(
+        model=af.Model(
+            af.mock.MockChildTuple,
+        )
+    )
+
+    combined_analysis = (Analysis() + Analysis()).with_free_parameters(
+        model.model.tup,
+    )
+
+    first = af.UniformPrior(lower_limit=0.0, upper_limit=1.0)
+    second = af.UniformPrior(lower_limit=0.0, upper_limit=1.0)
+
+    combined_analysis[0][model.model.tup.tup_0] = first
+    combined_analysis[0][model.model.tup.tup_1] = second
+
+    new_model = combined_analysis.modify_model(model)
+    assert new_model[0].model.tup.tup_0 is first
+    assert new_model[0].model.tup.tup_1 is second
+
+
 def test_override_model(model, combined_analysis):
     new_model = af.Model(af.Gaussian, centre=2)
     combined_analysis[0][model] = new_model
