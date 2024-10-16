@@ -61,3 +61,16 @@ def test_physical_centres_lists(masked_result, masked_sensitivity):
         0.75,
         0.75,
     ]
+
+
+def test_path_value_dicts(masked_sensitivity):
+    assert masked_sensitivity.path_value_dicts == [
+        {("centre",): 0.25, ("normalization",): 0.25, ("sigma",): 0.25},
+        {("centre",): 0.25, ("normalization",): 0.25, ("sigma",): 0.75},
+        {("centre",): 0.25, ("normalization",): 0.75, ("sigma",): 0.25},
+        {("centre",): 0.25, ("normalization",): 0.75, ("sigma",): 0.75},
+        {("centre",): 0.75, ("normalization",): 0.25, ("sigma",): 0.25},
+        {("centre",): 0.75, ("normalization",): 0.25, ("sigma",): 0.75},
+        {("centre",): 0.75, ("normalization",): 0.75, ("sigma",): 0.25},
+        {("centre",): 0.75, ("normalization",): 0.75, ("sigma",): 0.75},
+    ]

@@ -255,6 +255,24 @@ class Sensitivity:
         return make_lists(self.perturb_model.prior_count, step_size=self.step_size)
 
     @property
+    def path_value_dicts(self):
+        paths = [
+            self.perturb_model.path_for_prior(prior)
+            for prior in self.perturb_model.priors_ordered_by_id
+        ]
+
+        return [
+            {
+                path: value
+                for path, value in zip(
+                    paths,
+                    list_,
+                )
+            }
+            for list_ in self._lists
+        ]
+
+    @property
     def _physical_values(self) -> List[List[float]]:
         """
         Lists of physical values for each grid square
