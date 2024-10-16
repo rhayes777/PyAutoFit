@@ -10,3 +10,7 @@ class Constant(Variable):
         if isinstance(other, (int, float)):
             return self.value == other
         return super().__eq__(other)
+
+    @property
+    def dict(self):
+        return {"type": "constant", "value": self.value}
