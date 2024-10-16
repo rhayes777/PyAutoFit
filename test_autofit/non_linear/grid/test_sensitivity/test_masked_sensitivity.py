@@ -16,3 +16,5 @@ def test_result_size(masked_sensitivity, masked_result):
 def test_sample(masked_result):
     sample = masked_result.samples[0]
     assert sample.model is not None
+    assert sample.log_evidence == 0.0
+    assert sample.log_likelihood == 0.0

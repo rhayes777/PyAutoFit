@@ -75,6 +75,14 @@ class MaskedJobResult(AbstractJobResult):
     def samples_summary(self):
         return self
 
+    @property
+    def log_evidence(self):
+        return 0.0
+
+    @property
+    def log_likelihood(self):
+        return 0.0
+
 
 class Job(AbstractJob):
     _number = count()
