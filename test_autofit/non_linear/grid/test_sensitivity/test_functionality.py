@@ -29,10 +29,26 @@ def test_labels(sensitivity):
 
 
 def test_perform_job(job):
+    assert not job.is_complete
+
     result = job.perform()
     assert isinstance(result, s.JobResult)
     assert isinstance(result.perturb_result, af.Result)
     assert isinstance(result.result, af.Result)
+
+    assert job.is_complete
+
+
+def test_perform_twice(job):
+    job.perform()
+    assert job.is_complete
+
+    result = job.perform()
+    assert isinstance(result, s.JobResult)
+    assert isinstance(result.perturb_result, af.Result)
+    assert isinstance(result.result, af.Result)
+
+    assert job.is_complete
 
 
 class TestPerturbationModels:

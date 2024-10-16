@@ -136,6 +136,7 @@ class MockSearch(NonLinearSearch):
         )
 
         self.paths.save_samples_summary(self.samples_summary)
+        self.paths.completed()
 
         return analysis.make_result(
             samples_summary=samples_summary,
