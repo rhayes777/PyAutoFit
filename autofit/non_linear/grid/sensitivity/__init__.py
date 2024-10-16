@@ -142,7 +142,12 @@ class Sensitivity:
 
         for number in range(len(self._perturb_instances)):
             if self._should_bypass(number=number):
-                results.append(MaskedJobResult(number=number))
+                results.append(
+                    MaskedJobResult(
+                        number=number,
+                        model=self.model,
+                    )
+                )
             else:
                 jobs.append(self._make_job(number))
 

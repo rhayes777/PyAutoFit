@@ -8,6 +8,11 @@ def make_masked_result(masked_sensitivity):
     return masked_sensitivity.run()
 
 
-def test_run(masked_sensitivity, masked_result):
+def test_result_size(masked_sensitivity, masked_result):
     number_elements = prod(masked_sensitivity.shape)
     assert len(masked_result.samples) == number_elements
+
+
+def test_sample(masked_result):
+    sample = masked_result.samples[0]
+    assert sample.model is not None

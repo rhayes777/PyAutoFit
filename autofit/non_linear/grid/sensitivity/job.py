@@ -56,6 +56,10 @@ class MaskedJobResult(AbstractJobResult):
     A placeholder result for a job that has been masked out.
     """
 
+    def __init__(self, number, model):
+        super().__init__(number)
+        self.model = model
+
     @property
     def result(self):
         return self
@@ -66,6 +70,10 @@ class MaskedJobResult(AbstractJobResult):
 
     def __getattr__(self, item):
         return None
+
+    @property
+    def samples_summary(self):
+        return self
 
 
 class Job(AbstractJob):
