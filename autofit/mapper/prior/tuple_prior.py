@@ -8,6 +8,7 @@ from autofit.mapper.prior_model.attribute_pair import (
     InstanceNameValue,
 )
 from .abstract import Prior
+from .constant import Constant
 
 NameValue = Tuple[str, Union[Prior, float]]
 
@@ -52,10 +53,16 @@ class TuplePrior(ModelObject):
         """
         return list(
             sorted(
-                filter(
-                    lambda t: isinstance(t[1], float) and t[0] != "id",
-                    self.__dict__.items(),
-                ),
+                [
+                    (key, value)
+                    for key, value in self.__dict__.items()
+                    if key != "id" and isinstance(value, (int, float))
+                ]
+                + [
+                    (key, value.value)
+                    for key, value in self.__dict__.items()
+                    if isinstance(value, Constant)
+                ],
                 key=lambda tup: tup[0],
             )
         )

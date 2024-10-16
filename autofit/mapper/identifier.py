@@ -93,6 +93,11 @@ class Identifier:
             An object
         """
         from .model_object import ModelObject
+        from autofit.mapper.prior.constant import Constant
+
+        if isinstance(value, Constant):
+            self.add_value_to_hash_list(value.value)
+            return
 
         if inspect.isclass(value):
             self.add_value_to_hash_list(get_class_path(value))

@@ -136,6 +136,18 @@ def test_multiple_free_parameters(model, Analysis):
     assert first.sigma is not second.sigma
 
 
+def test_free_parameters_for_constants(combined_analysis):
+    model = af.Model(af.Gaussian, centre=1.0, sigma=1.0)
+
+    combined_analysis[0][model.centre] = 2
+    combined_analysis[0][model.sigma] = 3
+
+    new_model = combined_analysis.modify_model(model)
+
+    assert new_model[0].centre == 2
+    assert new_model[0].sigma == 3
+
+
 def test_add_free_parameter(combined_analysis):
     assert isinstance(combined_analysis, FreeParameterAnalysis)
 

@@ -4,6 +4,7 @@ from autofit.jax_wrapper import register_pytree_node_class
 
 from autofit.mapper.model import ModelInstance, assert_not_frozen
 from autofit.mapper.prior.abstract import Prior
+from autofit.mapper.prior.constant import Constant
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 
 
@@ -260,6 +261,8 @@ class Collection(AbstractPriorModel):
                 )
             elif isinstance(value, Prior):
                 value = arguments[value]
+            elif isinstance(value, Constant):
+                value = value.value
             setattr(result, key, value)
         return result
 
