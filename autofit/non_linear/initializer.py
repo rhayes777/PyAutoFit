@@ -222,6 +222,7 @@ class InitializerParamBounds(AbstractInitializer):
 
         unit_parameter_list = []
         for prior in model.priors_ordered_by_id:
+
             try:
                 lower, upper = map(prior.unit_value_for, self.parameter_dict[prior])
                 value = random.uniform(lower, upper)
