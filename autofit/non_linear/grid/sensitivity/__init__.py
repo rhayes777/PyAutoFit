@@ -5,6 +5,7 @@ import numpy as np
 from pathlib import Path
 from typing import List, Generator, Callable, ClassVar, Optional, Union, Tuple
 
+from autoconf import cached_property
 from autoconf.dictable import to_dict
 from autofit.mapper.model import ModelInstance
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
@@ -248,7 +249,7 @@ class Sensitivity:
     def results_path(self) -> Path:
         return self.paths.output_path / "results.csv"
 
-    @property
+    @cached_property
     def _lists(self) -> List[List[float]]:
         """
         A list of hypercube vectors, used to instantiate
@@ -257,7 +258,7 @@ class Sensitivity:
         """
         return make_lists(self.perturb_model.prior_count, step_size=self.step_size)
 
-    @property
+    @cached_property
     def path_values(self):
         paths = [
             self.perturb_model.path_for_prior(prior)
@@ -268,7 +269,7 @@ class Sensitivity:
             path: list(values) for path, *values in zip(paths, *self._physical_values)
         }
 
-    @property
+    @cached_property
     def _physical_values(self) -> List[List[float]]:
         """
         Lists of physical values for each grid square
@@ -283,7 +284,7 @@ class Sensitivity:
             for unit_values in self._lists
         ]
 
-    @property
+    @cached_property
     def _headers(self) -> Generator[str, None, None]:
         """
         A name for each of the perturb priors
@@ -291,7 +292,7 @@ class Sensitivity:
         for path, _ in self.perturb_model.prior_tuples:
             yield path
 
-    @property
+    @cached_property
     def _labels(self) -> List[str]:
         """
         One label for each perturbation, used to distinguish
@@ -309,7 +310,7 @@ class Sensitivity:
 
         return labels
 
-    @property
+    @cached_property
     def _perturb_instances(self) -> List[ModelInstance]:
         """
         A list of instances each of which defines a perturbation to
@@ -320,7 +321,7 @@ class Sensitivity:
             self.perturb_model.instance_from_unit_vector(list_) for list_ in self._lists
         ]
 
-    @property
+    @cached_property
     def _perturb_models(self) -> List[AbstractPriorModel]:
         """
         A list of models representing a perturbation at each grid square.
