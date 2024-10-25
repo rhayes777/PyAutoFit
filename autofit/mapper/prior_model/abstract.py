@@ -17,6 +17,7 @@ from autofit.mapper.model import AbstractModel, frozen_cache
 from autofit.mapper.prior import GaussianPrior
 from autofit.mapper.prior import UniformPrior
 from autofit.mapper.prior.abstract import Prior
+from autofit.mapper.prior.constant import Constant
 from autofit.mapper.prior.deferred import DeferredArgument
 from autofit.mapper.prior.tuple_prior import TuplePrior
 from autofit.mapper.prior.width_modifier import WidthModifier
@@ -205,6 +206,23 @@ class AbstractPriorModel(AbstractModel):
             raise exc.FitException(
                 f"{number_of_failed_assertions} assertions failed!\n{name_string}"
             )
+
+    def set_item_at_path(self, path: Tuple[str, ...], value):
+        """
+        Set an item at a path in the model.
+
+        Parameters
+        ----------
+        path
+            A tuple of strings representing a path to an attribute
+        value
+            The value to be set at the path
+        """
+        obj = self
+        for attribute in path[:-1]:
+            obj = getattr(obj, attribute)
+
+        setattr(obj, path[-1], value)
 
     def cast(
         self,
@@ -440,6 +458,9 @@ class AbstractPriorModel(AbstractModel):
             obj.__init__(t)
         else:
             obj = t
+
+        if isinstance(obj, float):
+            return Constant(obj)
         return obj
 
     def take_attributes(self, source: object):
@@ -1172,7 +1193,9 @@ class AbstractPriorModel(AbstractModel):
     @property
     @cast_collection(InstanceNameValue)
     def direct_instance_tuples(self):
-        return self.direct_tuples_with_type(float)
+        return self.direct_tuples_with_type(float) + self.direct_tuples_with_type(
+            Constant
+        )
 
     @property
     @cast_collection(PriorModelNameValue)
@@ -1506,6 +1529,26 @@ class AbstractPriorModel(AbstractModel):
         """
         return sorted(priors, key=lambda prior: self.path_for_prior(prior))
 
+    def path_for_object(self, obj) -> Optional[Path]:
+        """
+        Find a path that points at the given object.
+
+        Parameters
+        ----------
+        obj
+            An object in the model.
+
+        Returns
+        -------
+        A path, a series of attributes that point to one location of the object.
+        """
+        for path, instance in self.path_instance_tuples_for_class(
+            object, ignore_children=False
+        ):
+            if instance is obj:
+                return path
+        return None
+
     def path_for_prior(self, prior: Prior) -> Optional[Path]:
         """
         Find a path that points at the given tuple.
@@ -1587,7 +1630,8 @@ class AbstractPriorModel(AbstractModel):
             [
                 t
                 for t in self.path_instance_tuples_for_class(
-                    (Prior, float, int, tuple, ConfigException), ignore_children=True
+                    (Prior, float, Constant, int, tuple, ConfigException),
+                    ignore_children=True,
                 )
                 if t[0][-1] not in ("id", "item_number")
             ],
@@ -1641,6 +1685,7 @@ class AbstractPriorModel(AbstractModel):
             (
                 Prior,
                 float,
+                Constant,
                 tuple,
             ),
             ignore_children=True,

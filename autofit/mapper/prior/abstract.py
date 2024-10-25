@@ -7,6 +7,7 @@ from typing import Union, Tuple, Optional, Dict
 from autoconf import conf
 from autofit import exc, jax_wrapper
 from autofit.mapper.prior.arithmetic import ArithmeticMixin
+from autofit.mapper.prior.constant import Constant
 from autofit.mapper.prior.deferred import DeferredArgument
 from autofit.mapper.variable import Variable
 
@@ -260,9 +261,6 @@ class Prior(Variable, ABC, ArithmeticMixin):
             return loaded_ids[id_]
         except KeyError:
             pass
-
-        if prior_dict["type"] == "Constant":
-            return prior_dict["value"]
         if prior_dict["type"] == "Deferred":
             return DeferredArgument()
 
@@ -276,6 +274,7 @@ class Prior(Variable, ABC, ArithmeticMixin):
             "LogUniform": LogUniformPrior,
             "Gaussian": GaussianPrior,
             "LogGaussian": LogGaussianPrior,
+            "Constant": Constant,
         }
 
         # noinspection PyProtectedMember

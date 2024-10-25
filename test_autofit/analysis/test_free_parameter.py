@@ -41,6 +41,92 @@ def make_combined_analysis(model, Analysis):
     return (Analysis() + Analysis()).with_free_parameters(model.centre)
 
 
+def test_override_specific_free_parameter(model, combined_analysis):
+    combined_analysis[0][model.centre] = 2
+
+    new_model = combined_analysis.modify_model(model)
+    assert new_model[0].centre == 2
+    assert new_model[1].centre != 2
+
+
+def test_override_multiple(model, combined_analysis):
+    combined_analysis[0][model.centre] = 2
+    combined_analysis[1][model.centre] = 3
+
+    new_model = combined_analysis.modify_model(model)
+    assert new_model[0].centre == 2
+    assert new_model[1].centre == 3
+
+
+def test_override_multiple_one_analysis(model, combined_analysis):
+    combined_analysis[0][model.centre] = 2
+    combined_analysis[0][model.sigma] = 3
+
+    new_model = combined_analysis.modify_model(model)
+    assert new_model[0].centre == 2
+    assert new_model[0].sigma == 3
+
+
+def test_complex_path(Analysis):
+    model = af.Collection(
+        collection=af.Collection(
+            gaussian=af.Model(af.Gaussian),
+        )
+    )
+    combined_analysis = (Analysis() + Analysis()).with_free_parameters(
+        model.collection.gaussian
+    )
+
+    combined_analysis[0][model.collection.gaussian.centre] = 2
+    combined_analysis[0][model.collection.gaussian.sigma] = 3
+
+    new_model = combined_analysis.modify_model(model)
+    assert new_model[0].collection.gaussian.centre == 2
+    assert new_model[0].collection.gaussian.sigma == 3
+
+
+def test_tuple_prior_override(Analysis):
+    model = af.Collection(
+        model=af.Model(
+            af.mock.MockChildTuple,
+        )
+    )
+
+    combined_analysis = (Analysis() + Analysis()).with_free_parameters(
+        model.model.tup,
+    )
+
+    first = af.UniformPrior(lower_limit=0.0, upper_limit=1.0)
+    second = af.UniformPrior(lower_limit=0.0, upper_limit=1.0)
+
+    combined_analysis[0][model.model.tup.tup_0] = first
+    combined_analysis[0][model.model.tup.tup_1] = second
+
+    new_model = combined_analysis.modify_model(model)
+    assert new_model[0].model.tup.tup_0 is first
+    assert new_model[0].model.tup.tup_1 is second
+
+
+def test_override_model(model, combined_analysis):
+    new_model = af.Model(af.Gaussian, centre=2)
+    combined_analysis[0][model] = new_model
+
+    new_model = combined_analysis.modify_model(model)
+    assert new_model[0].centre == 2
+    assert new_model[1].centre != 2
+
+
+def test_override_child_model(Analysis):
+    model = af.Collection(gaussian=af.Gaussian)
+    combined_analysis = (Analysis() + Analysis()).with_free_parameters(
+        model.gaussian.centre
+    )
+    combined_analysis[0][model.gaussian] = af.Model(af.Gaussian, centre=2)
+
+    new_model = combined_analysis.modify_model(model)
+    assert new_model[0].gaussian.centre == 2
+
+
 def test_multiple_free_parameters(model, Analysis):
     combined_analysis = (Analysis() + Analysis()).with_free_parameters(
         model.centre, model.sigma
@@ -48,6 +134,18 @@ def test_multiple_free_parameters(model, Analysis):
     first, second = combined_analysis.modify_model(model)
     assert first.centre is not second.centre
     assert first.sigma is not second.sigma
+
+
+def test_free_parameters_for_constants(combined_analysis):
+    model = af.Model(af.Gaussian, centre=1.0, sigma=1.0)
+
+    combined_analysis[0][model.centre] = 2
+    combined_analysis[0][model.sigma] = 3
+
+    new_model = combined_analysis.modify_model(model)
+
+    assert new_model[0].centre == 2
+    assert new_model[0].sigma == 3
 
 
 def test_add_free_parameter(combined_analysis):

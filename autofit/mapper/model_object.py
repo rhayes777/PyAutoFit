@@ -154,6 +154,7 @@ class ModelObject:
         from autofit.mapper.prior.tuple_prior import TuplePrior
         from autofit.mapper.prior.arithmetic.compound import Compound
         from autofit.mapper.prior.arithmetic.compound import ModifiedPrior
+        from .prior.constant import Constant
 
         if isinstance(d, list):
             return [
@@ -187,6 +188,8 @@ class ModelObject:
                     f"Could not find type for class path {class_path}. Defaulting to Collection placeholder."
                 )
                 instance = Collection()
+        elif type == "constant":
+            return Constant(value=d["value"])
         elif type_ == "collection":
             instance = Collection()
         elif type_ == "tuple_prior":
@@ -281,6 +284,7 @@ class ModelObject:
         from autofit.mapper.prior_model.prior_model import Model
         from autofit.mapper.prior.tuple_prior import TuplePrior
         from autofit.mapper.prior_model.array import Array
+        from autofit.mapper.prior.constant import Constant
 
         if isinstance(self, Collection):
             type_ = "collection"
