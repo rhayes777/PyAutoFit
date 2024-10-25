@@ -1,10 +1,9 @@
-import builtins
 import collections.abc
 import copy
 import inspect
 import logging
-from typing import List
 import typing
+from typing import *
 
 from autofit.jax_wrapper import register_pytree_node_class, register_pytree_node
 
@@ -16,6 +15,7 @@ from autofit.mapper.prior.abstract import Prior
 from autofit.mapper.prior.deferred import DeferredInstance
 from autofit.mapper.prior.tuple_prior import TuplePrior
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
+from autofit.mapper.prior_model.util import gather_namespaces
 from autofit.tools.namer import namer
 
 logger = logging.getLogger(__name__)
@@ -112,19 +112,23 @@ class Model(AbstractPriorModel):
 
         self.cls = cls
 
-        try:
-            annotations = inspect.getfullargspec(cls).annotations
-            for key, value in annotations.items():
-                if isinstance(value, str):
-                    annotations[key] = getattr(builtins, value)
-        except TypeError:
-            annotations = dict()
+        namespaces = gather_namespaces(cls)
+
+        annotations = typing.get_type_hints(
+            cls.__init__,
+            namespaces,
+            namespaces,
+        )
 
         try:
             arg_spec = inspect.getfullargspec(cls)
             defaults = dict(
                 zip(arg_spec.args[-len(arg_spec.defaults) :], arg_spec.defaults)
             )
+            defaults = {
+                key: value.default if hasattr(value, "default") else value
+                for key, value in defaults.items()
+            }
         except TypeError:
             defaults = {}
 
@@ -170,12 +174,21 @@ class Model(AbstractPriorModel):
                 else:
                     annotation = annotations[arg]
 
-                    if (
-                        hasattr(annotation, "__origin__")
-                        and issubclass(
-                            annotation.__origin__, collections.abc.Collection
+                    if isinstance(annotation, str):
+                        continue
+
+                    if arg in defaults:
+                        value = self._convert_value(defaults[arg])
+                    elif (
+                        (
+                            hasattr(annotation, "__origin__")
+                            and issubclass(
+                                annotation.__origin__, collections.abc.Collection
+                            )
                         )
-                    ) or isinstance(annotation, collections.abc.Collection):
+                        or isinstance(annotation, collections.abc.Collection)
+                        or issubclass(annotation, collections.abc.Collection)
+                    ):
                         from autofit.mapper.prior_model.collection import Collection
 
                         value = Collection()
@@ -232,9 +245,17 @@ class Model(AbstractPriorModel):
         """
         Flatten an instance of this model as a PyTree.
         """
+        attribute_names = [
+            name
+            for name in self.direct_argument_names
+            if hasattr(instance, name) and name not in self.constructor_argument_names
+        ]
         return (
-            [getattr(instance, name) for name in self.direct_argument_names],
-            None,
+            (
+                [getattr(instance, name) for name in self.constructor_argument_names],
+                [getattr(instance, name) for name in attribute_names],
+            ),
+            (attribute_names,),
         )
 
     def instance_unflatten(self, aux_data, children):
@@ -250,7 +271,12 @@ class Model(AbstractPriorModel):
         -------
         An instance of this model.
         """
-        return self.cls(**dict(zip(self.direct_argument_names, children)))
+        constructor_arguments, other_arguments = children
+        attribute_names = aux_data[0]
+        instance = self.cls(*constructor_arguments)
+        for name, value in zip(attribute_names, other_arguments):
+            setattr(instance, name, value)
+        return instance
 
     def tree_flatten(self):
         """
@@ -279,7 +305,11 @@ class Model(AbstractPriorModel):
         """
         if self.cls not in class_args_dict:
             try:
-                class_args_dict[self.cls] = inspect.getfullargspec(self.cls).args[1:]
+                class_args_dict[self.cls] = [
+                    arg
+                    for arg in inspect.getfullargspec(self.cls).args
+                    if arg != "self"
+                ]
             except TypeError:
                 class_args_dict[self.cls] = []
         return class_args_dict[self.cls]
@@ -320,6 +350,8 @@ class Model(AbstractPriorModel):
             If no configuration can be found
         """
         cls = self.cls
+        if isinstance(cls, ConfigException):
+            return cls
         if not inspect.isclass(cls):
             # noinspection PyProtectedMember
             cls = inspect._findclass(cls)

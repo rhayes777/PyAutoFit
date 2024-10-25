@@ -1,6 +1,7 @@
 import json
 import pickle
 from functools import wraps
+from sqlalchemy.orm import Mapped
 from typing import List
 
 import numpy as np
@@ -29,7 +30,11 @@ class Pickle(Base):
     name = sa.Column(sa.String)
     string = sa.Column(sa.String)
     fit_id = sa.Column(sa.String, sa.ForeignKey("fit.id"))
-    fit = sa.orm.relationship("Fit", uselist=False)
+    fit = sa.orm.relationship(
+        "Fit",
+        uselist=False,
+        back_populates="pickles",
+    )
 
     @property
     def value(self):
@@ -63,7 +68,11 @@ class JSON(Base):
     name = sa.Column(sa.String)
     string = sa.Column(sa.String)
     fit_id = sa.Column(sa.String, sa.ForeignKey("fit.id"))
-    fit = sa.orm.relationship("Fit", uselist=False)
+    fit = sa.orm.relationship(
+        "Fit",
+        uselist=False,
+        back_populates="jsons",
+    )
 
     @property
     def dict(self):
@@ -110,7 +119,10 @@ class NamedInstance(Base):
     instance_id = sa.Column(sa.Integer, sa.ForeignKey("object.id"))
 
     __instance = sa.orm.relationship(
-        "Object", uselist=False, backref="named_instance", foreign_keys=[instance_id]
+        "Object",
+        uselist=False,
+        backref="named_instance",
+        foreign_keys=[instance_id],
     )
 
     @property
@@ -181,7 +193,10 @@ class Fit(Base):
     )
     is_complete = sa.Column(sa.Boolean)
 
-    _named_instances: List[NamedInstance] = sa.orm.relationship("NamedInstance")
+    _named_instances: Mapped[List[NamedInstance]] = sa.orm.relationship(
+        "NamedInstance",
+        back_populates="fit",
+    )
 
     @property
     @try_none
@@ -203,7 +218,7 @@ class Fit(Base):
     def total_parameters(self):
         return self.model.prior_count if self.model else 0
 
-    _info: List[Info] = sa.orm.relationship("Info")
+    _info: Mapped[List[Info]] = sa.orm.relationship("Info", back_populates="fit")
 
     def __init__(self, **kwargs):
         try:
@@ -216,7 +231,7 @@ class Fit(Base):
 
     parent_id = sa.Column(sa.String, sa.ForeignKey("fit.id"))
 
-    children: List["Fit"] = sa.orm.relationship(
+    children: Mapped[List["Fit"]] = sa.orm.relationship(
         "Fit", backref=sa.orm.backref("parent", remote_side=[id])
     )
 
@@ -301,14 +316,22 @@ class Fit(Base):
     def model(self, model: AbstractPriorModel):
         self.__model = Object.from_object(model)
 
-    pickles: List[Pickle] = sa.orm.relationship("Pickle", lazy="joined")
-    jsons: List[JSON] = sa.orm.relationship("JSON", lazy="joined")
-    arrays: List[Array] = sa.orm.relationship(
+    pickles: Mapped[List[Pickle]] = sa.orm.relationship(
+        "Pickle",
+        lazy="joined",
+        foreign_keys=[Pickle.fit_id],
+    )
+    jsons: Mapped[List[JSON]] = sa.orm.relationship(
+        "JSON",
+        lazy="joined",
+        foreign_keys=[JSON.fit_id],
+    )
+    arrays: Mapped[List[Array]] = sa.orm.relationship(
         "Array",
         lazy="joined",
         foreign_keys=[Array.fit_id],
     )
-    hdus: List[HDU] = sa.orm.relationship(
+    hdus: Mapped[List[HDU]] = sa.orm.relationship(
         "HDU",
         lazy="joined",
         foreign_keys=[HDU.fit_id],
@@ -332,7 +355,10 @@ class Fit(Base):
         """
         for p in self.jsons + self.arrays + self.hdus + self.pickles:
             if p.name == item:
-                return p.value
+                value = p.value
+                if item == "samples_summary":
+                    value.model = self.model
+                return value
 
         return getattr(self, item)
 

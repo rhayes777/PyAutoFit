@@ -45,7 +45,7 @@ The following links are useful for new starters:
 
 - `The introduction Jupyter Notebook on Binder <https://mybinder.org/v2/gh/Jammy2211/autofit_workspace/release?filepath=notebooks/overview/overview_1_the_basics.ipynb>`_, where you can try **PyAutoFit** in a web browser (without installation).
 
-- `The autofit_workspace GitHub repository <https://github.com/Jammy2211/autofit_workspace>`_, which includes example scripts and the `HowToFit Jupyter notebook lectures <https://github.com/Jammy2211/autofit_workspace/tree/master/notebooks/howtofit>`_ which give new users a step-by-step introduction to **PyAutoFit**.
+- `The autofit_workspace GitHub repository <https://github.com/Jammy2211/autofit_workspace>`_, which includes example scripts and the `HowToFit Jupyter notebook lectures <https://github.com/Jammy2211/autofit_workspace/tree/main/notebooks/howtofit>`_ which give new users a step-by-step introduction to **PyAutoFit**.
 
 Support
 -------
@@ -72,7 +72,7 @@ API Overview
 To illustrate the **PyAutoFit** API, we use an illustrative toy model of fitting a one-dimensional Gaussian to
 noisy 1D data. Here's the ``data`` (black) and the model (red) we'll fit:
 
-.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/master/files/toy_model_fit.png
+.. image:: https://raw.githubusercontent.com/rhayes777/PyAutoFit/main/files/toy_model_fit.png
   :width: 400
 
 We define our model, a 1D Gaussian by writing a Python class using the format below:

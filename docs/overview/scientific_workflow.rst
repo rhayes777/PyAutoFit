@@ -525,7 +525,7 @@ For simpler scenarios, adjustments might include:
 In more intricate cases, models might involve numerous parameters and complex compositions of multiple model components.
 
 **PyAutoFit** offers a sophisticated model composition API designed to handle these complexities. It provides
-tools for constructing elaborate models using lists of Python classes and hierarchical structures of Python classes.
+tools for constructing elaborate models using lists of Python classes, NumPy arrays and hierarchical structures of Python classes.
 
 For a detailed exploration of these capabilities, you can refer to
 the `model cookbook <https://pyautofit.readthedocs.io/en/latest/cookbooks/model.html>`_, which provides comprehensive

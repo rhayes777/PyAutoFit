@@ -34,6 +34,7 @@ class Fitness:
         fom_is_log_likelihood: bool = True,
         resample_figure_of_merit: float = -np.inf,
         convert_to_chi_squared: bool = False,
+        store_history: bool = False,
     ):
         """
         Interfaces with any non-linear search to fit the model to the data and return a log likelihood via
@@ -66,6 +67,11 @@ class Fitness:
         instead. The appropriate value depends on the search, but is typically either `None`, `-np.inf` or `1.0e99`.
         All values indicate to the non-linear search that the model-fit should be resampled or ignored.
 
+        Many searches do not store the history of the parameters and log likelihood values, often to save
+        memory on large model-fits. However, this can be useful, for example to plot the results of a model-fit
+        versus iteration number. If the `store_history` bool is `True`, the parameters and log likelihoods are stored
+        in the `parameters_history_list` and `figure_of_merit_history_list` attribute of the fitness object.
+
         Parameters
         ----------
         analysis
@@ -85,6 +91,8 @@ class Fitness:
         convert_to_chi_squared
             If `True`, the figure of merit returned is the log likelihood multiplied by -2.0, such that it is a
             chi-squared value that is minimized.
+        store_history
+            If `True`, the parameters and log likelihood values of every model-fit are stored in lists.
         """
 
         self.analysis = analysis
@@ -93,10 +101,15 @@ class Fitness:
         self.fom_is_log_likelihood = fom_is_log_likelihood
         self.resample_figure_of_merit = resample_figure_of_merit
         self.convert_to_chi_squared = convert_to_chi_squared
+        self.store_history = store_history
+
         self._log_likelihood_function = None
 
         if self.paths is not None:
             self.check_log_likelihood(fitness=self)
+
+        self.parameters_history_list = []
+        self.log_likelihood_history_list = []
 
     def __getstate__(self):
         state = self.__dict__.copy()
@@ -152,6 +165,11 @@ class Fitness:
         else:
             log_prior_list = self.model.log_prior_list_from_vector(vector=parameters)
             figure_of_merit = log_likelihood + sum(log_prior_list)
+
+        if self.store_history:
+
+            self.parameters_history_list.append(parameters)
+            self.log_likelihood_history_list.append(log_likelihood)
 
         if self.convert_to_chi_squared:
             figure_of_merit *= -2.0

@@ -2,5 +2,6 @@ nest:
   corner_anesthetic: true   # Output corner figure (using anestetic) during a non-linear search fit?
 mcmc:
   corner_cornerpy: true     # Output corner figure (using corner.py) during a non-linear search fit?
-optimize:
-  corner_cornerpy: true     # Output corner figure (using corner.py) during a non-linear search fit?
+mle:
+  subplot_parameters: true   # Output a subplot of the best-fit parameters of the model?
+  log_likelihood_vs_iteration: true  # Output a plot of the log likelihood versus iteration number?

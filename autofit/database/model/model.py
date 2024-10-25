@@ -1,13 +1,15 @@
 import abc
 import inspect
+from sqlalchemy.orm import Mapped
 from typing import List, Tuple, Any, Iterable, Union, ItemsView, Type
 
 import numpy as np
 
 from autoconf.class_path import get_class, get_class_path
-from ..sqlalchemy_ import sa, declarative
+from ..sqlalchemy_ import sa
+from sqlalchemy.orm import declarative_base
 
-Base = declarative.declarative_base()
+Base = declarative_base()
 
 _schema_version = 1
 
@@ -32,7 +34,10 @@ class Object(Base):
 
     samples_for_id = sa.Column(sa.String, sa.ForeignKey("fit.id"))
     samples_for = sa.orm.relationship(
-        "Fit", uselist=False, foreign_keys=[samples_for_id]
+        "Fit",
+        uselist=False,
+        foreign_keys=[samples_for_id],
+        back_populates="_samples",
     )
 
     latent_samples_for_id = sa.Column(sa.String, sa.ForeignKey("fit.id"))
@@ -40,11 +45,13 @@ class Object(Base):
         "Fit",
         uselist=False,
         foreign_keys=[latent_samples_for_id],
+        back_populates="_latent_samples",
     )
 
-    children: List["Object"] = sa.orm.relationship(
+    children: Mapped[List["Object"]] = sa.orm.relationship(
         "Object",
         uselist=True,
+        back_populates="parent",
     )
 
     def __len__(self):

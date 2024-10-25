@@ -71,6 +71,7 @@ class SamplesPlotter:
 
     def close(self):
         if plt.fignum_exists(num=1):
+            plt.clf()
             plt.close()
 
     def log_plot_exception(self, plot_name : str):
