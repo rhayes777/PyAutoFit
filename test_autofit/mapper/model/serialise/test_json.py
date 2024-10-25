@@ -80,10 +80,15 @@ class TestToDict:
 
     def test_collection_instance(self, instance_dict):
         collection = af.Collection(gaussian=af.Gaussian())
-        print(collection.dict())
         assert collection.dict() == {
-            "arguments": {"gaussian": instance_dict},
             "type": "collection",
+            "arguments": {
+                "gaussian": {
+                    "type": "instance",
+                    "class_path": "autofit.example.model.Gaussian",
+                    "arguments": {"sigma": 0.01, "normalization": 0.1, "centre": 0.0},
+                }
+            },
         }
 
     @pytest.mark.parametrize(

@@ -17,6 +17,7 @@ from autofit.mapper.model import AbstractModel, frozen_cache
 from autofit.mapper.prior import GaussianPrior
 from autofit.mapper.prior import UniformPrior
 from autofit.mapper.prior.abstract import Prior
+from autofit.mapper.prior.constant import Constant
 from autofit.mapper.prior.deferred import DeferredArgument
 from autofit.mapper.prior.tuple_prior import TuplePrior
 from autofit.mapper.prior.width_modifier import WidthModifier
@@ -457,6 +458,9 @@ class AbstractPriorModel(AbstractModel):
             obj.__init__(t)
         else:
             obj = t
+
+        if isinstance(obj, float):
+            return Constant(obj)
         return obj
 
     def take_attributes(self, source: object):
@@ -1189,7 +1193,9 @@ class AbstractPriorModel(AbstractModel):
     @property
     @cast_collection(InstanceNameValue)
     def direct_instance_tuples(self):
-        return self.direct_tuples_with_type(float)
+        return self.direct_tuples_with_type(float) + self.direct_tuples_with_type(
+            Constant
+        )
 
     @property
     @cast_collection(PriorModelNameValue)
@@ -1624,7 +1630,8 @@ class AbstractPriorModel(AbstractModel):
             [
                 t
                 for t in self.path_instance_tuples_for_class(
-                    (Prior, float, int, tuple, ConfigException), ignore_children=True
+                    (Prior, float, Constant, int, tuple, ConfigException),
+                    ignore_children=True,
                 )
                 if t[0][-1] not in ("id", "item_number")
             ],
@@ -1678,6 +1685,7 @@ class AbstractPriorModel(AbstractModel):
             (
                 Prior,
                 float,
+                Constant,
                 tuple,
             ),
             ignore_children=True,
