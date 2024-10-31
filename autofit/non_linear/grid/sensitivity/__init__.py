@@ -28,6 +28,7 @@ class Sensitivity:
         base_fit_cls: Callable,
         perturb_fit_cls: Callable,
         job_cls: ClassVar = Job,
+        visualizer_cls: Optional[Callable] = None,
         perturb_model_prior_func: Optional[Callable] = None,
         number_of_steps: Union[Tuple[int, ...], int] = 4,
         mask: Optional[List[bool]] = None,
@@ -62,6 +63,9 @@ class Sensitivity:
             The class which fits the base model to each simulated dataset of the sensitivity map.
         perturb_fit_cls
             The class which fits the perturb model to each simulated dataset of the sensitivity map.
+        visualizer_cls
+            A class which can be used to visualize the results of the sensitivity mapping after each fit is performed,
+            therefore providing visualization on the fly.
         number_of_steps
             The number of steps for each dimension of the sensitivity grid. If input as a float the dimensions are
             all that value. If input as a tuple of length the number of dimensions, each tuple value is the number of
@@ -97,6 +101,7 @@ class Sensitivity:
         self.perturb_model_prior_func = perturb_model_prior_func
 
         self.job_cls = job_cls
+        self.visualizer_cls = visualizer_cls
 
         self.number_of_steps = number_of_steps
         self.mask = None
@@ -165,6 +170,18 @@ class Sensitivity:
             results.append(result)
             results = sorted(results)
 
+            sensitivity_result = SensitivityResult(
+                samples=[result.result.samples_summary for result in results],
+                perturb_samples=[
+                    result.perturb_result.samples_summary for result in results
+                ],
+                shape=self.shape,
+                path_values=self.path_values,
+            )
+
+            if self.visualizer_cls is not None:
+                self.visualizer_cls(sensitivity_result=sensitivity_result, paths=self.paths)
+
             os.makedirs(self.paths.output_path, exist_ok=True)
 
             write_table(
@@ -180,6 +197,8 @@ class Sensitivity:
                 ],
                 filename=self.results_path,
             )
+
+        # TODO : Had to repeat this code block to get certain unit tests to pass which presumably bypass run_jobs.
 
         sensitivity_result = SensitivityResult(
             samples=[result.result.samples_summary for result in results],
