@@ -124,6 +124,9 @@ class Drawer(AbstractMLE):
             n_cores=self.number_of_cores,
         )
 
+        print(parameter_lists)
+        fdsfdsdsf
+
         search_internal = {
             "parameter_lists": parameter_lists,
             "log_posterior_list": log_posterior_list,

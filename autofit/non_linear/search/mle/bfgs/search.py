@@ -28,7 +28,6 @@ class AbstractBFGS(AbstractMLE):
         initializer: Optional[AbstractInitializer] = None,
         iterations_per_update: int = None,
         session: Optional[sa.orm.Session] = None,
-        visualize : bool = False,
         **kwargs
     ):
         """
@@ -47,9 +46,11 @@ class AbstractBFGS(AbstractMLE):
             **kwargs
         )
 
-        self.visualize = visualize
-
         self.logger.debug(f"Creating {self.method} Search")
+
+    @property
+    def should_plot_start_point(self) -> bool:
+        return self.initializer.should_plot_start_point if self.initializer else False
 
     @cached_property
     def config_dict_options(self):
@@ -92,7 +93,7 @@ class AbstractBFGS(AbstractMLE):
             fom_is_log_likelihood=False,
             resample_figure_of_merit=-np.inf,
             convert_to_chi_squared=True,
-            store_history=self.visualize,
+            store_history=self.should_plot_start_point
         )
 
         try:
@@ -127,7 +128,7 @@ class AbstractBFGS(AbstractMLE):
                f"Starting new {self.method} non-linear search (no previous samples found)."
             )
 
-            if self.visualize:
+            if self.should_plot_start_point:
 
                 self.plot_start_point(
                     parameter_vector=x0,
@@ -160,7 +161,7 @@ class AbstractBFGS(AbstractMLE):
                     parameters=search_internal.x
                 )
 
-                if self.visualize:
+                if self.should_plot_start_point:
 
                     search_internal.parameters_history_list = fitness.parameters_history_list
                     search_internal.log_likelihood_history_list = fitness.log_likelihood_history_list
@@ -210,7 +211,7 @@ class AbstractBFGS(AbstractMLE):
         total_iterations = search_internal.nit
 
 
-        if self.visualize:
+        if self.should_plot_start_point:
 
             parameter_lists = search_internal.parameters_history_list
             log_prior_list = model.log_prior_list_from(parameter_lists=parameter_lists)
@@ -290,6 +291,7 @@ class BFGS(AbstractBFGS):
     """
 
     method = "BFGS"
+
 
 class LBFGS(AbstractBFGS):
     """

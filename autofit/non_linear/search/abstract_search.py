@@ -1124,6 +1124,47 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                 except FileNotFoundError:
                     pass
 
+    def plot_start_point(
+        self,
+        parameter_vector : List[float],
+        model: AbstractPriorModel,
+        analysis: Analysis,
+    ):
+        """
+        Visualize the starting point of the non-linear search, using an instance of the model at the starting point
+        of the maximum likelihood estimator.
+
+        Plots are output to a folder named `image_start` in the output path, so that the starting point model
+        can be compared to the final model inferred by the non-linear search.
+
+        Parameters
+        ----------
+        model
+            The model used by the non-linear search
+        analysis
+            The analysis which contains the visualization methods which plot the starting point model.
+
+        Returns
+        -------
+
+        """
+
+        self.logger.info(
+            f"Visualizing Starting Point Model in image_start folder."
+        )
+
+        instance = model.instance_from_vector(vector=parameter_vector)
+        paths = copy.copy(self.paths)
+        paths.image_path_suffix = "_start"
+
+        self.perform_visualization(
+            model=model,
+            analysis=analysis,
+            instance=instance,
+            during_analysis=False,
+            paths_override=paths,
+        )
+
     @property
     def samples_cls(self):
         raise NotImplementedError()
