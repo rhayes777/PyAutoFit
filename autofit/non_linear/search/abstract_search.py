@@ -1124,6 +1124,10 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                 except FileNotFoundError:
                     pass
 
+    @property
+    def should_plot_start_point(self) -> bool:
+        return conf.instance["output"]["start_point"]
+
     def plot_start_point(
         self,
         parameter_vector : List[float],
@@ -1148,6 +1152,9 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         -------
 
         """
+
+        if not self.should_plot_start_point:
+            return
 
         self.logger.info(
             f"Visualizing Starting Point Model in image_start folder."

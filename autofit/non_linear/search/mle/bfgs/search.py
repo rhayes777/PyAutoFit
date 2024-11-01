@@ -48,10 +48,6 @@ class AbstractBFGS(AbstractMLE):
 
         self.logger.debug(f"Creating {self.method} Search")
 
-    @property
-    def should_plot_start_point(self) -> bool:
-        return self.initializer.should_plot_start_point if self.initializer else False
-
     @cached_property
     def config_dict_options(self):
         config_dict = copy.deepcopy(self._class_config["options"])
@@ -128,13 +124,11 @@ class AbstractBFGS(AbstractMLE):
                f"Starting new {self.method} non-linear search (no previous samples found)."
             )
 
-            if self.should_plot_start_point:
-
-                self.plot_start_point(
-                    parameter_vector=x0,
-                    model=model,
-                    analysis=analysis,
-                )
+            self.plot_start_point(
+                parameter_vector=x0,
+                model=model,
+                analysis=analysis,
+            )
 
         maxiter = self.config_dict_options.get("maxiter", 1e8)
 

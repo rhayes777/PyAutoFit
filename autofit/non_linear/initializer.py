@@ -18,12 +18,6 @@ logger = logging.getLogger(__name__)
 
 class AbstractInitializer(ABC):
 
-    def __init__(self, should_plot_start_point : bool = False):
-        """
-        Family of classes used to provide initial points for non-linear search
-        """
-        self.should_plot_start_point = should_plot_start_point
-
     @abstractmethod
     def _generate_unit_parameter_list(self, model):
         pass
@@ -187,7 +181,6 @@ class InitializerParamBounds(AbstractInitializer):
         parameter_dict: Dict[Prior, Tuple[float, float]],
         lower_limit=0.0,
         upper_limit=1.0,
-        should_plot_start_point : bool = False
     ):
         """
         Initializer which uses the bounds on input parameters as the starting point for the search (e.g. where
@@ -202,10 +195,7 @@ class InitializerParamBounds(AbstractInitializer):
             A default, unit lower limit used when a prior is not specified
         upper_limit
             A default, unit upper limit used when a prior is not specified
-        should_plot_start_point
-            If True, the starting point of the parameters will be plotted.
         """
-        super().__init__(should_plot_start_point=should_plot_start_point)
         
         self.parameter_dict = parameter_dict
         self.lower_limit = lower_limit
@@ -294,7 +284,6 @@ class InitializerParamStartPoints(InitializerParamBounds):
     def __init__(
         self,
         parameter_dict: Dict[Prior, float],
-        should_plot_start_point: bool = False
     ):
         """
         Initializer which input values of the parameters as the starting point for the search (e.g. where
@@ -309,15 +298,13 @@ class InitializerParamStartPoints(InitializerParamBounds):
             A default, unit lower limit used when a prior is not specified
         upper_limit
             A default, unit upper limit used when a prior is not specified
-        should_plot_start_point
-            If True, the starting point of the parameters will be plotted.
         """
         parameter_dict_new = {}
 
         for key, value in parameter_dict.items():
             parameter_dict_new[key] = (value - 1.0e-8, value + 1.0e-8)
 
-        super().__init__(parameter_dict=parameter_dict_new, should_plot_start_point=should_plot_start_point)
+        super().__init__(parameter_dict=parameter_dict_new)
 
     def info_value_from(self, value : Tuple[float, float]) -> float:
         """
@@ -335,7 +322,7 @@ class InitializerParamStartPoints(InitializerParamBounds):
         return (value[1] + value[0]) / 2.0
 
 class Initializer(AbstractInitializer):
-    def __init__(self, lower_limit: float, upper_limit: float, should_plot_start_point : bool = False):
+    def __init__(self, lower_limit: float, upper_limit: float):
         """
         The Initializer creates the initial set of samples in non-linear parameter space that can be passed into a
         `NonLinearSearch` to define where to begin sampling.
@@ -391,7 +378,7 @@ class InitializerPrior(Initializer):
 
 
 class InitializerBall(Initializer):
-    def __init__(self, lower_limit: float, upper_limit: float, should_plot_start_point : bool = False):
+    def __init__(self, lower_limit: float, upper_limit: float):
         """
         The Initializer creates the initial set of samples in non-linear parameter space that can be passed into a
         `NonLinearSearch` to define where to begin sampling.
@@ -410,7 +397,5 @@ class InitializerBall(Initializer):
         upper_limit
             The upper limit of the uniform distribution unit values are drawn from when initializing walkers in a small
             compact ball.
-        should_plot_start_point
-            If True, the starting point of the parameters will be plotted.
         """
-        super().__init__(lower_limit=lower_limit, upper_limit=upper_limit, should_plot_start_point=should_plot_start_point)
+        super().__init__(lower_limit=lower_limit, upper_limit=upper_limit)
