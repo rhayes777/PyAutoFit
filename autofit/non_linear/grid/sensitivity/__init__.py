@@ -147,18 +147,16 @@ class Sensitivity:
         jobs = []
 
         for number in range(len(self._perturb_instances)):
-
-            if self._should_bypass(number=number):
-
-                model = self.model.copy()
-                model.perturb = self._perturb_models[number]
-                results.append(
-                    MaskedJobResult(
-                        number=number,
-                        model=model,
-                    )
+            model = self.model.copy()
+            model.perturb = self._perturb_models[number]
+            results.append(
+                MaskedJobResult(
+                    number=number,
+                    model=model,
                 )
-            else:
+            )
+
+            if not self._should_bypass(number=number):
                 jobs.append(self._make_job(number))
 
         for result in process_class.run_jobs(
@@ -167,8 +165,7 @@ class Sensitivity:
             if isinstance(result, Exception):
                 raise result
 
-            results.append(result)
-            results = sorted(results)
+            results[result.number] = result
 
             sensitivity_result = SensitivityResult(
                 samples=[result.result.samples_summary for result in results],
@@ -180,7 +177,9 @@ class Sensitivity:
             )
 
             if self.visualizer_cls is not None:
-                self.visualizer_cls(sensitivity_result=sensitivity_result, paths=self.paths)
+                self.visualizer_cls(
+                    sensitivity_result=sensitivity_result, paths=self.paths
+                )
 
             os.makedirs(self.paths.output_path, exist_ok=True)
 
