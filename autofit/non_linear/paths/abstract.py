@@ -2,9 +2,9 @@ import logging
 import os
 import re
 import shutil
-import zipfile
 from abc import ABC, abstractmethod
 from configparser import NoSectionError
+import zipfile
 from os import path
 from pathlib import Path
 from typing import Optional
@@ -16,7 +16,7 @@ from autofit.mapper.identifier import Identifier, IdentifierField
 from autofit.non_linear.samples.summary import SamplesSummary
 
 from autofit.text import text_util
-from autofit.tools.util import open_, zip_directory
+from autofit.tools.util import open_, zip_directory, restore_directory
 
 logger = logging.getLogger(__name__)
 
@@ -344,28 +344,8 @@ class AbstractPaths(ABC):
                     pass
 
     def restore(self):
-        """
-        Copy files from the ``.zip`` file to the samples folder.
-        """
+        restore_directory(zip_path=self._zip_path, output_path=self.output_path)
 
-        if path.exists(self._zip_path):
-            shutil.rmtree(self.output_path, ignore_errors=True)
-
-            try:
-                try:
-                    with zipfile.ZipFile(self._zip_path, "r") as f:
-                        f.extractall(self.output_path)
-                except FileExistsError:
-                    pass
-            except zipfile.BadZipFile as e:
-                raise zipfile.BadZipFile(
-                    f"Unable to restore the zip file at the path {self._zip_path}"
-                ) from e
-
-            try:
-                os.remove(self._zip_path)
-            except FileNotFoundError:
-                pass
 
     def __eq__(self, other):
         return isinstance(other, AbstractPaths) and all(

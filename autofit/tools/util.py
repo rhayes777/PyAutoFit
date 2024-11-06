@@ -3,9 +3,11 @@ import json
 import os
 import sys
 import zipfile
+from os import path
 from contextlib import contextmanager
 from functools import wraps
 from pathlib import Path
+import shutil
 from typing import Union
 
 import numpy as np
@@ -49,6 +51,31 @@ def zip_directory(source_directory, output=None):
                     os.path.join(root, file),
                     os.path.join(root[len(str(source_directory)) :], file),
                 )
+
+def restore_directory(zip_path, output_path):
+    """
+    Copy files from the ``.zip`` file to the samples folder.
+    """
+
+    if path.exists(zip_path):
+        shutil.rmtree(output_path, ignore_errors=True)
+
+        try:
+            try:
+                with zipfile.ZipFile(zip_path, "r") as f:
+                    f.extractall(output_path)
+            except FileExistsError:
+                pass
+        except zipfile.BadZipFile as e:
+            raise zipfile.BadZipFile(
+                f"Unable to restore the zip file at the path {zip_path}"
+            ) from e
+
+        try:
+            os.remove(zip_path)
+        except FileNotFoundError:
+            pass
+
 
 
 def open_(filename, *flags):
