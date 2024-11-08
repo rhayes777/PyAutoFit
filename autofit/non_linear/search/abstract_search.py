@@ -2,7 +2,10 @@ from __future__ import annotations
 import copy
 import logging
 import multiprocessing as mp
+import psutil
 import os
+import signal
+import sys
 import time
 import warnings
 from abc import ABC, abstractmethod
@@ -52,11 +55,6 @@ from autofit.graphical.expectation_propagation import AbstractFactorOptimiser
 from autofit.non_linear.fitness import get_timeout_seconds
 
 logger = logging.getLogger(__name__)
-
-import psutil
-import os
-import signal
-import sys
 
 
 def cleanup(signal_received, frame):
