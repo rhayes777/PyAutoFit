@@ -11,6 +11,8 @@ from functools import wraps
 from pathlib import Path
 from typing import TYPE_CHECKING, Optional, Union, Tuple, List, Dict
 
+import psutil
+
 if TYPE_CHECKING:
     from autofit.non_linear.result import Result
 
@@ -571,6 +573,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         self.check_model(model=model)
 
         logger.info(f"Starting non-linear search with {self.number_of_cores} cores.")
+        self._log_process_state()
 
         model = analysis.modify_model(model)
         self.paths.model = model
@@ -614,6 +617,13 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         self.logger.info("Search complete, returning result")
 
         return result
+
+    @staticmethod
+    def _log_process_state():
+        process = psutil.Process()
+        logger.debug(f"Process ID: {process.pid} has the following open files:")
+        for file in process.open_files():
+            logger.debug(file)
 
     def pre_fit_output(
         self, analysis: Analysis, model: AbstractPriorModel, info: Optional[Dict] = None
@@ -1042,6 +1052,8 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
             if not during_analysis and self.remove_state_files_at_end:
                 self.logger.debug("Removing state files")
+
+        self._log_process_state()
 
         return samples
 
