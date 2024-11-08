@@ -2,7 +2,6 @@ from __future__ import annotations
 import copy
 import logging
 import multiprocessing as mp
-import psutil
 import os
 import signal
 import sys
