@@ -620,10 +620,24 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
     @staticmethod
     def _log_process_state():
-        process = psutil.Process()
-        logger.debug(f"Process ID: {process.pid} has the following open files:")
-        for file in process.open_files():
-            logger.debug(file)
+        # process = psutil.Process()
+        # logger.debug(f"Process ID: {process.pid} has the following open files:")
+        # for file in process.open_files():
+        #     logger.debug(file)
+
+        for process in psutil.process_iter(attrs=["pid"]):
+            try:
+                proc_info = process.as_dict(attrs=["pid"])
+                logger.debug(
+                    f"Process ID: {proc_info['pid']} has the following open files:"
+                )
+
+                open_files = process.open_files()
+                for file in open_files:
+                    logger.debug(file)
+
+            except (psutil.NoSuchProcess, psutil.AccessDenied):
+                pass
 
     def pre_fit_output(
         self, analysis: Analysis, model: AbstractPriorModel, info: Optional[Dict] = None
@@ -1142,7 +1156,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
     def plot_start_point(
         self,
-        parameter_vector : List[float],
+        parameter_vector: List[float],
         model: AbstractPriorModel,
         analysis: Analysis,
     ):
@@ -1168,9 +1182,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         if not self.should_plot_start_point:
             return
 
-        self.logger.info(
-            f"Visualizing Starting Point Model in image_start folder."
-        )
+        self.logger.info(f"Visualizing Starting Point Model in image_start folder.")
 
         instance = model.instance_from_vector(vector=parameter_vector)
         paths = copy.copy(self.paths)
