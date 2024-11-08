@@ -53,6 +53,29 @@ from autofit.non_linear.fitness import get_timeout_seconds
 
 logger = logging.getLogger(__name__)
 
+import psutil
+import os
+import signal
+import sys
+
+
+def cleanup(signal_received, frame):
+    process = psutil.Process(os.getpid())
+    open_files = process.open_files()
+
+    for file in open_files:
+        try:
+            os.close(file.fd)
+            logger.debug(f"Closed file {file.path} on signal {signal_received}")
+        except Exception as e:
+            logger.debug(e)
+
+    sys.exit(0)
+
+
+signal.signal(signal.SIGTERM, cleanup)
+signal.signal(signal.SIGINT, cleanup)
+
 
 def check_cores(func):
     """
