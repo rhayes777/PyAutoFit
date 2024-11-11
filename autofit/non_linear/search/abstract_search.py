@@ -3,6 +3,8 @@ import copy
 import logging
 import multiprocessing as mp
 import os
+import signal
+import sys
 import time
 import warnings
 from abc import ABC, abstractmethod
@@ -10,6 +12,8 @@ from collections import Counter
 from functools import wraps
 from pathlib import Path
 from typing import TYPE_CHECKING, Optional, Union, Tuple, List, Dict
+
+import psutil
 
 if TYPE_CHECKING:
     from autofit.non_linear.result import Result
@@ -50,6 +54,24 @@ from autofit.graphical.expectation_propagation import AbstractFactorOptimiser
 from autofit.non_linear.fitness import get_timeout_seconds
 
 logger = logging.getLogger(__name__)
+
+
+def cleanup(signal_received, frame):
+    process = psutil.Process(os.getpid())
+    open_files = process.open_files()
+
+    for file in open_files:
+        try:
+            os.close(file.fd)
+            logger.debug(f"Closed file {file.path} on signal {signal_received}")
+        except Exception as e:
+            logger.debug(e)
+
+    sys.exit(0)
+
+
+signal.signal(signal.SIGTERM, cleanup)
+signal.signal(signal.SIGINT, cleanup)
 
 
 def check_cores(func):
@@ -571,6 +593,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         self.check_model(model=model)
 
         logger.info(f"Starting non-linear search with {self.number_of_cores} cores.")
+        self._log_process_state()
 
         model = analysis.modify_model(model)
         self.paths.model = model
@@ -614,6 +637,27 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         self.logger.info("Search complete, returning result")
 
         return result
+
+    @staticmethod
+    def _log_process_state():
+        # process = psutil.Process()
+        # logger.debug(f"Process ID: {process.pid} has the following open files:")
+        # for file in process.open_files():
+        #     logger.debug(file)
+
+        for process in psutil.process_iter(attrs=["pid"]):
+            try:
+                proc_info = process.as_dict(attrs=["pid"])
+                logger.debug(
+                    f"Process ID: {proc_info['pid']} has the following open files:"
+                )
+
+                open_files = process.open_files()
+                for file in open_files:
+                    logger.debug(file)
+
+            except (psutil.NoSuchProcess, psutil.AccessDenied):
+                pass
 
     def pre_fit_output(
         self, analysis: Analysis, model: AbstractPriorModel, info: Optional[Dict] = None
@@ -1043,6 +1087,8 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             if not during_analysis and self.remove_state_files_at_end:
                 self.logger.debug("Removing state files")
 
+        self._log_process_state()
+
         return samples
 
     def perform_visualization(
@@ -1130,7 +1176,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
     def plot_start_point(
         self,
-        parameter_vector : List[float],
+        parameter_vector: List[float],
         model: AbstractPriorModel,
         analysis: Analysis,
     ):
@@ -1156,9 +1202,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         if not self.should_plot_start_point:
             return
 
-        self.logger.info(
-            f"Visualizing Starting Point Model in image_start folder."
-        )
+        self.logger.info(f"Visualizing Starting Point Model in image_start folder.")
 
         instance = model.instance_from_vector(vector=parameter_vector)
         paths = copy.copy(self.paths)
