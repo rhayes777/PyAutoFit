@@ -56,24 +56,6 @@ from autofit.non_linear.fitness import get_timeout_seconds
 logger = logging.getLogger(__name__)
 
 
-def cleanup(signal_received, frame):
-    process = psutil.Process(os.getpid())
-    open_files = process.open_files()
-
-    for file in open_files:
-        try:
-            os.close(file.fd)
-            logger.debug(f"Closed file {file.path} on signal {signal_received}")
-        except Exception as e:
-            logger.debug(e)
-
-    sys.exit(0)
-
-
-signal.signal(signal.SIGTERM, cleanup)
-signal.signal(signal.SIGINT, cleanup)
-
-
 def check_cores(func):
     """
     Checks how many cores the search has been configured to
@@ -640,10 +622,6 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
     @staticmethod
     def _log_process_state():
-        # process = psutil.Process()
-        # logger.debug(f"Process ID: {process.pid} has the following open files:")
-        # for file in process.open_files():
-        #     logger.debug(file)
 
         for process in psutil.process_iter(attrs=["pid"]):
             try:
