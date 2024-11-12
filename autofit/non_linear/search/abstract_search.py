@@ -641,6 +641,9 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
             return pipes
 
+        import gc
+        gc.collect()
+
         all_pipes = get_all_pipes(master_pid)
         print("Open pipes:", all_pipes)
 
@@ -655,6 +658,8 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         # Close all retrieved pipes
         close_pipes(all_pipes)
+
+        gc.collect()
 
         return result
 
