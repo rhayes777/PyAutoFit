@@ -618,6 +618,44 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         self.logger.info("Search complete, returning result")
 
+        import psutil
+
+        # Master process PID
+        master_pid = 12345  # Replace with actual master PID
+
+        def get_all_pipes(pid):
+            pipes = []
+            try:
+                process = psutil.Process(pid)
+                # Get all file descriptors in use by this process
+                for fd in process.open_files() + process.connections():
+                    if fd.fd != -1:
+                        pipes.append(fd.fd)
+
+                # Recursively fetch pipes for child processes
+                for child in process.children(recursive=True):
+                    pipes.extend(get_all_pipes(child.pid))
+
+            except psutil.NoSuchProcess:
+                pass  # Process might have already terminated
+
+            return pipes
+
+        all_pipes = get_all_pipes(master_pid)
+        print("Open pipes:", all_pipes)
+
+        import os
+
+        def close_pipes(pipes):
+            for fd in pipes:
+                try:
+                    os.close(fd)
+                except OSError as e:
+                    print(f"Error closing pipe {fd}: {e}")
+
+        # Close all retrieved pipes
+        close_pipes(all_pipes)
+
         return result
 
     @staticmethod
