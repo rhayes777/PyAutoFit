@@ -1,5 +1,6 @@
 from __future__ import annotations
 import copy
+import gc
 import logging
 import multiprocessing as mp
 import os
@@ -80,7 +81,6 @@ def check_cores(func):
         return func(self, *args, **kwargs)
 
     return wrapper
-
 
 def configure_handler(func):
     """
@@ -616,12 +616,16 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                 search_internal=result.search_internal,
             )
 
+        gc.collect()
+
         self.logger.info("Search complete, returning result")
 
         return result
 
     @staticmethod
     def _log_process_state():
+
+        total_files = 0
 
         for process in psutil.process_iter(attrs=["pid"]):
             try:
@@ -633,9 +637,13 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                 open_files = process.open_files()
                 for file in open_files:
                     logger.debug(file)
+                    total_files += 1
 
             except (psutil.NoSuchProcess, psutil.AccessDenied):
                 pass
+
+        if conf.instance["logging"]["total_files_open"]:
+            logger.info(f"Total Files Open: {total_files}")
 
     def pre_fit_output(
         self, analysis: Analysis, model: AbstractPriorModel, info: Optional[Dict] = None
