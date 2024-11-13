@@ -1,5 +1,6 @@
 from __future__ import annotations
 import copy
+import gc
 import logging
 import multiprocessing as mp
 import os
@@ -125,6 +126,7 @@ def configure_handler(func):
 def cleanup(signal_received, frame):
     process = psutil.Process(os.getpid())
     open_files = process.open_files()
+    aaa
 
     for file in open_files:
         try:
@@ -632,6 +634,8 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                 bypass_nuclear_if_on=bypass_nuclear_if_on,
                 search_internal=result.search_internal,
             )
+
+        gc.collect()
 
         self.logger.info("Search complete, returning result")
 
