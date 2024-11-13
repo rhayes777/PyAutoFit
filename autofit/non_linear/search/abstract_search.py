@@ -81,7 +81,6 @@ def check_cores(func):
 
     return wrapper
 
-
 def configure_handler(func):
     """
     Add a file handler for logging during the course of the search.
@@ -641,6 +640,8 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
     @staticmethod
     def _log_process_state():
 
+        total_files = 0
+
         for process in psutil.process_iter(attrs=["pid"]):
             try:
                 proc_info = process.as_dict(attrs=["pid"])
@@ -651,9 +652,13 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                 open_files = process.open_files()
                 for file in open_files:
                     logger.debug(file)
+                    total_files += 1
 
             except (psutil.NoSuchProcess, psutil.AccessDenied):
                 pass
+
+        if conf.instance["logging"]["total_files_open"]:
+            logger.info(f"Total Files Open: {total_files}")
 
     def pre_fit_output(
         self, analysis: Analysis, model: AbstractPriorModel, info: Optional[Dict] = None
