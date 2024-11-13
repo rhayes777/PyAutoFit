@@ -126,7 +126,6 @@ def configure_handler(func):
 def cleanup(signal_received, frame):
     process = psutil.Process(os.getpid())
     open_files = process.open_files()
-    aaa
 
     for file in open_files:
         try:
