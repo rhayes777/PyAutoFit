@@ -619,9 +619,9 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         self.logger.info("Search complete, returning result")
 
         import psutil
+        import os
 
-        # Master process PID
-        master_pid = 12345  # Replace with actual master PID
+        master_pid = os.getpid()
 
         def get_all_pipes(pid):
             pipes = []
