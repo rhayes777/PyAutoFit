@@ -123,6 +123,24 @@ def configure_handler(func):
     return decorated
 
 
+def cleanup(signal_received, frame):
+    process = psutil.Process(os.getpid())
+    open_files = process.open_files()
+
+    for file in open_files:
+        try:
+            os.close(file.fd)
+            logger.debug(f"Closed file {file.path} on signal {signal_received}")
+        except Exception as e:
+            logger.debug(e)
+
+    sys.exit(0)
+
+
+signal.signal(signal.SIGTERM, cleanup)
+signal.signal(signal.SIGINT, cleanup)
+
+
 class NonLinearSearch(AbstractFactorOptimiser, ABC):
     def __init__(
         self,
