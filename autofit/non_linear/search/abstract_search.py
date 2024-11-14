@@ -272,7 +272,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             )
         ):
             if conf.instance["general"]["parallel"]["warn_environment_variables"]:
-                logger.info(
+                logger.warning(
                         """
                         The non-linear search is using multiprocessing (number_of_cores>1). 
     
