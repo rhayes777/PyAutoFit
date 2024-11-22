@@ -104,7 +104,7 @@ class AbstractSearchOutput:
         """
         return self._outputs(".pickle")
 
-    @property
+    @cached_property
     def hdus(self):
         """
         The fits files in the search output files directory
