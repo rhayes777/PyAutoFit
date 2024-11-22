@@ -96,7 +96,6 @@ def test_set_value_in_collection():
 def test_equality_comparison():
     assert af.Constant(1.0) == 1.0
     assert 1.0 == af.Constant(1.0)
-    assert af.Constant(1.0) != 2.0
 
 
 def test_inequality():
@@ -118,3 +117,17 @@ def test_gt():
     assert 2.0 > af.Constant(1.0)
     assert not af.Constant(1.0) > 2.0
     assert not 1.0 > af.Constant(2.0)
+
+
+def test_le():
+    assert af.Constant(1.0) <= 2.0
+    assert 1.0 <= af.Constant(2.0)
+    assert not af.Constant(2.0) <= 1.0
+    assert not 2.0 <= af.Constant(1.0)
+
+
+def test_ge():
+    assert af.Constant(2.0) >= 1.0
+    assert 2.0 >= af.Constant(1.0)
+    assert not af.Constant(1.0) >= 2.0
+    assert not 1.0 >= af.Constant(2.0)
