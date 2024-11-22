@@ -110,6 +110,7 @@ def test_lt():
     assert 1.0 < af.Constant(2.0)
     assert not af.Constant(2.0) < 1.0
     assert not 2.0 < af.Constant(1.0)
+    assert af.Constant(1.0) < Constant(2.0)
 
 
 def test_gt():
@@ -117,6 +118,7 @@ def test_gt():
     assert 2.0 > af.Constant(1.0)
     assert not af.Constant(1.0) > 2.0
     assert not 1.0 > af.Constant(2.0)
+    assert af.Constant(2.0) > Constant(1.0)
 
 
 def test_le():
@@ -124,6 +126,7 @@ def test_le():
     assert 1.0 <= af.Constant(2.0)
     assert not af.Constant(2.0) <= 1.0
     assert not 2.0 <= af.Constant(1.0)
+    assert af.Constant(1.0) <= Constant(2.0)
 
 
 def test_ge():
@@ -131,3 +134,4 @@ def test_ge():
     assert 2.0 >= af.Constant(1.0)
     assert not af.Constant(1.0) >= 2.0
     assert not 1.0 >= af.Constant(2.0)
+    assert af.Constant(2.0) >= Constant(1.0)
