@@ -1,7 +1,9 @@
+from numbers import Number
+
 from autofit.mapper.model_object import ModelObject
 
 
-class Constant(ModelObject):
+class Constant(ModelObject, Number):
     def __init__(self, value: float):
         """
         Represents a constant value in a model.

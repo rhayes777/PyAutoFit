@@ -1,3 +1,5 @@
+from numbers import Number
+
 import pytest
 
 import autofit as af
@@ -135,3 +137,7 @@ def test_ge():
     assert not af.Constant(1.0) >= 2.0
     assert not 1.0 >= af.Constant(2.0)
     assert af.Constant(2.0) >= Constant(1.0)
+
+
+def test_is_number():
+    assert isinstance(Constant(1.0), Number)
