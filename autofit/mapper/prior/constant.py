@@ -4,7 +4,7 @@ from autofit.mapper.model_object import ModelObject
 
 
 class Constant(ModelObject, Number):
-    def __init__(self, value: float):
+    def __init__(self, value: float, id_=None):
         """
         Represents a constant value in a model.
 
@@ -18,7 +18,9 @@ class Constant(ModelObject, Number):
         value
             The constant value.
         """
-        super().__init__()
+        super().__init__(
+            id_=id_,
+        )
         self.value = value
 
     def __str__(self):
