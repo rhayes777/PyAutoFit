@@ -1,8 +1,10 @@
+from numbers import Number
+
 from autofit.mapper.model_object import ModelObject
 
 
-class Constant(ModelObject):
-    def __init__(self, value: float):
+class Constant(ModelObject, Number):
+    def __init__(self, value: float, id_=None):
         """
         Represents a constant value in a model.
 
@@ -16,7 +18,9 @@ class Constant(ModelObject):
         value
             The constant value.
         """
-        super().__init__()
+        super().__init__(
+            id_=id_,
+        )
         self.value = value
 
     def __str__(self):
@@ -62,3 +66,15 @@ class Constant(ModelObject):
 
     def __rpow__(self, other):
         return other**self.value
+
+    def __lt__(self, other):
+        return self.value < other
+
+    def __le__(self, other):
+        return self.value <= other
+
+    def __gt__(self, other):
+        return self.value > other
+
+    def __ge__(self, other):
+        return self.value >= other

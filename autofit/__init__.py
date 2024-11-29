@@ -38,6 +38,7 @@ from .mapper.model_mapper import ModelMapper
 from .mapper.model_mapper import ModelMapper as Mapper
 from .mapper.model_object import ModelObject
 from .mapper.operator import DiagonalMatrix
+from .mapper.prior.constant import Constant
 from .mapper.prior.arithmetic.assertion import ComparisonAssertion
 from .mapper.prior.arithmetic.assertion import ComparisonAssertion
 from .mapper.prior.arithmetic.assertion import GreaterThanLessThanAssertion
