@@ -1,3 +1,5 @@
+from numbers import Number
+
 import pytest
 
 import autofit as af
@@ -91,3 +93,7 @@ def test_set_value_in_collection():
     collection[1] = 2.0
     assert collection[1] == 2.0
     assert collection[0] != collection[1]
+
+
+def test_is_number():
+    assert isinstance(Constant(1.0), Number)
