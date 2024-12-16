@@ -1,3 +1,5 @@
+from numbers import Number
+
 import pytest
 
 import autofit as af
@@ -91,3 +93,51 @@ def test_set_value_in_collection():
     collection[1] = 2.0
     assert collection[1] == 2.0
     assert collection[0] != collection[1]
+
+
+def test_equality_comparison():
+    assert af.Constant(1.0) == 1.0
+    assert 1.0 == af.Constant(1.0)
+
+
+def test_inequality():
+    assert af.Constant(1.0) != 2.0
+    assert 2.0 != af.Constant(1.0)
+    assert af.Constant(1.0) != 2.0
+    assert 2.0 != af.Constant(1)
+
+
+def test_lt():
+    assert af.Constant(1.0) < 2.0
+    assert 1.0 < af.Constant(2.0)
+    assert not af.Constant(2.0) < 1.0
+    assert not 2.0 < af.Constant(1.0)
+    assert af.Constant(1.0) < Constant(2.0)
+
+
+def test_gt():
+    assert af.Constant(2.0) > 1.0
+    assert 2.0 > af.Constant(1.0)
+    assert not af.Constant(1.0) > 2.0
+    assert not 1.0 > af.Constant(2.0)
+    assert af.Constant(2.0) > Constant(1.0)
+
+
+def test_le():
+    assert af.Constant(1.0) <= 2.0
+    assert 1.0 <= af.Constant(2.0)
+    assert not af.Constant(2.0) <= 1.0
+    assert not 2.0 <= af.Constant(1.0)
+    assert af.Constant(1.0) <= Constant(2.0)
+
+
+def test_ge():
+    assert af.Constant(2.0) >= 1.0
+    assert 2.0 >= af.Constant(1.0)
+    assert not af.Constant(1.0) >= 2.0
+    assert not 1.0 >= af.Constant(2.0)
+    assert af.Constant(2.0) >= Constant(1.0)
+
+
+def test_is_number():
+    assert isinstance(Constant(1.0), Number)
