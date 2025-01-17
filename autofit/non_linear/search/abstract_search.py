@@ -1034,6 +1034,10 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
                 if latent_samples:
                     self.paths.save_latent_samples(latent_samples)
+                    self.paths.save_samples_summary(
+                        latent_samples.summary(),
+                        "latent_summary",
+                    )
 
             self.perform_visualization(
                 model=model,
