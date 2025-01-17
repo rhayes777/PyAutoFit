@@ -1,18 +1,40 @@
 {
-  "median_pdf_sample": {
-    "type": "instance",
-    "class_path": "autofit.non_linear.samples.sample.Sample",
-    "arguments": {
-      "log_likelihood": 20000.0,
-      "log_prior": 1.5,
-      "weight": 6.5e-05,
-      "kwargs": {
-        "type": "dict",
-        "arguments": {
-          "galaxies.lens.bulge.centre.centre_0": -5.0,
-          "galaxies.lens.bulge..centre.centre_1": -6.0,
-          "galaxies.lens.shear.gamma_1": 7.0,
-          "galaxies.lens.shear.gamma_2": 8.0
+  "type": "instance",
+  "class_path": "autofit.non_linear.samples.summary.SamplesSummary",
+  "arguments": {
+    "median_pdf_sample": {
+      "type": "instance",
+      "class_path": "autofit.non_linear.samples.sample.Sample",
+      "arguments": {
+        "log_likelihood": 20000.0,
+        "log_prior": 1.5,
+        "weight": 6.5e-05,
+        "kwargs": {
+          "type": "dict",
+          "arguments": {
+            "galaxies.lens.bulge.centre.centre_0": -5.0,
+            "galaxies.lens.bulge..centre.centre_1": -6.0,
+            "galaxies.lens.shear.gamma_1": 7.0,
+            "galaxies.lens.shear.gamma_2": 8.0
+          }
+        }
+      }
+    },
+    "max_log_likelihood_sample": {
+      "type": "instance",
+      "class_path": "autofit.non_linear.samples.sample.Sample",
+      "arguments": {
+        "log_likelihood": 20000.0,
+        "log_prior": 1.5,
+        "weight": 6.5e-05,
+        "kwargs": {
+          "type": "dict",
+          "arguments": {
+            "galaxies.lens.bulge.centre.centre_0": -5.0,
+            "galaxies.lens.bulge..centre.centre_1": -6.0,
+            "galaxies.lens.shear.gamma_1": 7.0,
+            "galaxies.lens.shear.gamma_2": 8.0
+          }
         }
       }
     }

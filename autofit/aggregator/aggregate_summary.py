@@ -1,13 +1,21 @@
-from dataclasses import dataclass
+from typing import Optional
 
 from autofit.aggregator import Aggregator
 
 import csv
 
 
-@dataclass
 class Column:
-    argument: str
+    def __init__(
+        self,
+        column: str,
+        name: Optional[str] = None,
+    ):
+        self.column = column
+        self.name = name or column.replace(
+            ".",
+            "_",
+        )
 
 
 class AggregateSummary:
@@ -26,3 +34,5 @@ class AggregateSummary:
             writer.writeheader()
             for result in self.aggregator:
                 writer.writerow({"id": result.id})
+                samples_summary = result.value("samples_summary")
+                print(samples_summary)
