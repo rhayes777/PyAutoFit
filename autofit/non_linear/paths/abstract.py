@@ -457,7 +457,7 @@ class AbstractPaths(ABC):
     def save_samples_summary(
         self,
         samples_summary: SamplesSummary,
-        name: str = "samples_summary",
+        name: str = "",
     ):
         """
         Save samples summary to the database.

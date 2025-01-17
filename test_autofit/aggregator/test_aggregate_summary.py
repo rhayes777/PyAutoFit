@@ -86,3 +86,22 @@ def test_add_latent_column(
 
     assert dicts[0]["latent_value"] == "1.0"
     assert dicts[1]["latent_value"] == "2.0"
+
+
+def test_computed_column(
+    output_path,
+    summary,
+    load_output,
+):
+    def compute(samples):
+        return 1
+
+    summary.add_computed_column(
+        "computed",
+        compute,
+    )
+    summary.save(output_path)
+
+    dicts = load_output()
+
+    assert dicts[0]["computed"] == "1"
