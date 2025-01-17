@@ -27,8 +27,17 @@ class AggregateSummary:
         self._aggregator = aggregator
         self._columns = []
 
-    def add_column(self, argument):
-        self._columns.append(Column(argument))
+    def add_column(
+        self,
+        argument: str,
+        name: Optional[str] = None,
+    ):
+        self._columns.append(
+            Column(
+                argument,
+                name=name,
+            )
+        )
 
     @property
     def fieldnames(self):
