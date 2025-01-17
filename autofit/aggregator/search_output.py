@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Generator, Tuple, Optional, List, cast, Type
 
 import dill
+from PIL import Image
 
 from autoconf import cached_property
 from autoconf.class_path import get_class
@@ -128,6 +129,21 @@ class AbstractSearchOutput:
         dataset.pickle, meta_dataset.pickle etc.
         """
         return self.value(name)
+
+    def image(self, name: str) -> Image.Image:
+        """
+        Load an image from the files directory for the search.
+
+        Parameters
+        ----------
+        name
+            The name of the file to load without a file suffix.
+
+        Returns
+        -------
+        The loaded image
+        """
+        return Image.open(self.directory / "image" / f"{name}.png")
 
     def value(self, name: str):
         """
