@@ -1,3 +1,5 @@
+import csv
+
 from autofit.aggregator import Aggregator
 from pathlib import Path
 
@@ -23,4 +25,12 @@ def summary():
 def test_writes(output_path, summary):
     summary.save(output_path)
 
-    assert output_path.exists()
+    with open(output_path) as f:
+        dicts = list(csv.DictReader(f))
+
+    assert dicts[0]["id"] is not None
+    assert dicts[1]["id"] is not None
+
+
+def test_add_column(output_path, summary):
+    pass
