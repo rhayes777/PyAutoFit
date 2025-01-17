@@ -33,4 +33,11 @@ def test_writes(output_path, summary):
 
 
 def test_add_column(output_path, summary):
-    pass
+    summary.add_column("galaxies.lens.bulge.centre.centre_0")
+    summary.save(output_path)
+
+    with open(output_path) as f:
+        dicts = list(csv.DictReader(f))
+
+    assert dicts[0]["galaxies_lens_bulge_centre_centre_0"] == -1.0
+    assert dicts[1]["galaxies_lens_bulge_centre_centre_0"] == -5.0

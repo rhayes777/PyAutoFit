@@ -8,31 +8,43 @@ import csv
 class Column:
     def __init__(
         self,
-        column: str,
+        argument: str,
         name: Optional[str] = None,
     ):
-        self.column = column
-        self.name = name or column.replace(
+        self.argument = argument
+        self.name = name or argument.replace(
             ".",
             "_",
         )
 
+    @property
+    def path(self):
+        return tuple(self.argument.split("."))
+
 
 class AggregateSummary:
     def __init__(self, aggregator: Aggregator):
-        self.aggregator = aggregator
+        self._aggregator = aggregator
+        self._columns = []
 
     def add_column(self, argument):
-        pass
+        self._columns.append(Column(argument))
+
+    @property
+    def fieldnames(self):
+        return ["id"] + [column.name for column in self._columns]
 
     def save(self, path):
         with open(path, "w") as f:
             writer = csv.DictWriter(
                 f,
-                fieldnames=["id"],
+                fieldnames=self.fieldnames,
             )
             writer.writeheader()
-            for result in self.aggregator:
+            for result in self._aggregator:
                 writer.writerow({"id": result.id})
                 samples_summary = result.value("samples_summary")
-                print(samples_summary)
+                kwargs = samples_summary.median_pdf_sample.kwargs
+                for column in self._columns:
+                    value = kwargs[column.path]
+                    writer.writerow({column.name: value})
