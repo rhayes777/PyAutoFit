@@ -11,6 +11,16 @@ class Column:
         argument: str,
         name: Optional[str] = None,
     ):
+        """
+        A column in the summary table.
+
+        Parameters
+        ----------
+        argument
+            The argument as it appears in the median_pdf_sample arguments
+        name
+            An optional name for the column
+        """
         self.argument = argument
         self.name = name or argument.replace(
             ".",
@@ -18,12 +28,22 @@ class Column:
         )
 
     @property
-    def path(self):
+    def path(self) -> tuple:
+        """
+        The path of an argument in the median_pdf_sample arguments.
+        """
         return tuple(self.argument.split("."))
 
 
 class AggregateSummary:
     def __init__(self, aggregator: Aggregator):
+        """
+        Summarise results from the aggregator as a CSV.
+
+        Parameters
+        ----------
+        aggregator
+        """
         self._aggregator = aggregator
         self._columns = []
 
