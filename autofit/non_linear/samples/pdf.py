@@ -1,4 +1,3 @@
-import logging
 import math
 import pathlib
 import warnings
@@ -62,10 +61,10 @@ class SamplesPDF(Samples):
             max_log_likelihood_sample=self.max_log_likelihood_sample,
             median_pdf_sample=median_pdf_sample,
             log_evidence=self.log_evidence,
-            errors_at_sigma_1=self.errors_at_sigma(sigma=1.0, as_instance=False),
-            errors_at_sigma_3=self.errors_at_sigma(sigma=3.0, as_instance=False),
-            values_at_sigma_1=self.values_at_sigma(sigma=1.0, as_instance=False),
-            values_at_sigma_3=self.values_at_sigma(sigma=3.0, as_instance=False),
+            errors_at_sigma_1=self.errors_at_sigma(sigma=1.0),
+            errors_at_sigma_3=self.errors_at_sigma(sigma=3.0),
+            values_at_sigma_1=self.values_at_sigma(sigma=1.0),
+            values_at_sigma_3=self.values_at_sigma(sigma=3.0),
         )
 
     @classmethod
