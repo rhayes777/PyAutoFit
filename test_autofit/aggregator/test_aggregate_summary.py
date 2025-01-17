@@ -22,6 +22,15 @@ def summary():
     return AggregateSummary(aggregator)
 
 
+@pytest.fixture
+def load_output(output_path):
+    def _load_output():
+        with open(output_path) as f:
+            return list(csv.DictReader(f))
+
+    return _load_output
+
+
 def test_writes(output_path, summary):
     summary.save(output_path)
 
@@ -32,26 +41,48 @@ def test_writes(output_path, summary):
     assert dicts[1]["id"] is not None
 
 
-def test_add_column(output_path, summary):
+def test_add_column(
+    output_path,
+    summary,
+    load_output,
+):
     summary.add_column("galaxies.lens.bulge.centre.centre_0")
     summary.save(output_path)
 
-    with open(output_path) as f:
-        dicts = list(csv.DictReader(f))
+    dicts = load_output()
 
     assert dicts[0]["galaxies_lens_bulge_centre_centre_0"] == "-1.0"
     assert dicts[1]["galaxies_lens_bulge_centre_centre_0"] == "-5.0"
 
 
-def test_add_named_column(output_path, summary):
+def test_add_named_column(
+    output_path,
+    summary,
+    load_output,
+):
     summary.add_column(
         "galaxies.lens.bulge.centre.centre_0",
         name="centre_0",
     )
     summary.save(output_path)
 
-    with open(output_path) as f:
-        dicts = list(csv.DictReader(f))
+    dicts = load_output()
 
     assert dicts[0]["centre_0"] == "-1.0"
     assert dicts[1]["centre_0"] == "-5.0"
+
+
+def test_add_latent_column(
+    output_path,
+    summary,
+    load_output,
+):
+    summary.add_column(
+        "latent.value",
+    )
+    summary.save(output_path)
+
+    dicts = load_output()
+
+    assert dicts[0]["latent_value"] == "1.0"
+    assert dicts[1]["latent_value"] == "2.0"

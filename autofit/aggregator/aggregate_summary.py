@@ -73,6 +73,11 @@ class AggregateSummary:
             for result in self._aggregator:
                 samples_summary = result.value("samples_summary")
                 kwargs = samples_summary.median_pdf_sample.kwargs
+
+                latent_summary = result.value("latent_summary")
+                if latent_summary is not None:
+                    kwargs.update(latent_summary.median_pdf_sample.kwargs)
+
                 row = {"id": result.id}
                 for column in self._columns:
                     value = kwargs[column.path]

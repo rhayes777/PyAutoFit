@@ -1,0 +1,36 @@
+{
+  "type": "instance",
+  "class_path": "autofit.non_linear.samples.summary.SamplesSummary",
+  "arguments": {
+    "median_pdf_sample": {
+      "type": "instance",
+      "class_path": "autofit.non_linear.samples.sample.Sample",
+      "arguments": {
+        "log_likelihood": 20000.0,
+        "log_prior": 1.5,
+        "weight": 6.5e-05,
+        "kwargs": {
+          "type": "dict",
+          "arguments": {
+            "latent.value": 1.0
+          }
+        }
+      }
+    },
+    "max_log_likelihood_sample": {
+      "type": "instance",
+      "class_path": "autofit.non_linear.samples.sample.Sample",
+      "arguments": {
+        "log_likelihood": 20000.0,
+        "log_prior": 1.5,
+        "weight": 6.5e-05,
+        "kwargs": {
+          "type": "dict",
+          "arguments": {
+            "latent.value": 2.0
+          }
+        }
+      }
+    }
+  }
+}
