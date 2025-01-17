@@ -82,6 +82,7 @@ def check_cores(func):
 
     return wrapper
 
+
 def configure_handler(func):
     """
     Add a file handler for logging during the course of the search.
@@ -274,7 +275,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             if conf.instance["general"]["parallel"]["warn_environment_variables"]:
                 warnings.warn(exc.SearchWarning(""))
                 logger.warning(
-                        """
+                    """
                         The non-linear search is using multiprocessing (number_of_cores>1). 
     
                         However, the following environment variables have not been set to 1:
@@ -307,7 +308,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
     
                         `config -> general.yaml -> parallel: -> warn_environment_variables=False`
                         """
-                    )
+                )
 
         self.optimisation_counter = Counter()
 
@@ -623,7 +624,6 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
     @staticmethod
     def _log_process_state():
-
         total_files = 0
 
         for process in psutil.process_iter(attrs=["pid"]):
