@@ -42,9 +42,11 @@ class AggregateSummary:
             )
             writer.writeheader()
             for result in self._aggregator:
-                writer.writerow({"id": result.id})
                 samples_summary = result.value("samples_summary")
                 kwargs = samples_summary.median_pdf_sample.kwargs
+                row = {"id": result.id}
                 for column in self._columns:
                     value = kwargs[column.path]
-                    writer.writerow({column.name: value})
+                    row[column.name] = value
+
+                writer.writerow(row)
