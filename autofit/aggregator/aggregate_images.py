@@ -1,14 +1,17 @@
 from enum import Enum
-from pathlib import Path
-from typing import List
 
-import PIL
 from PIL import Image
 
 from autofit.aggregator.aggregator import Aggregator
 
 
 class Subplot(Enum):
+    """
+    The subplots that can be extracted from the subplot_fit image.
+
+    The values correspond to the position of the subplot in the 4x3 grid.
+    """
+
     Data = (0, 0)
     DataSourceScaled = (1, 0)
     SignalToNoiseMap = (2, 0)
@@ -25,12 +28,37 @@ class Subplot(Enum):
 
 class SubplotFitImage:
     def __init__(self, image: Image.Image):
+        """
+        The subplot_fit image associated with one fit.
+
+        Parameters
+        ----------
+        image
+            The subplot_fit image.
+        """
         self._image = image
 
         self._single_image_width = self._image.width // 4
         self._single_image_height = self._image.height // 3
 
-    def image_at_coordinates(self, x, y):
+    def image_at_coordinates(
+        self,
+        x: int,
+        y: int,
+    ) -> Image.Image:
+        """
+        Extract the image at the specified coordinates.
+
+        Parameters
+        ----------
+        x
+        y
+            The integer coordinates of the plot (see Subplot).
+
+        Returns
+        -------
+        The extracted image.
+        """
         return self._image.crop(
             (
                 x * self._single_image_width,
@@ -46,12 +74,35 @@ class AggregateImages:
         self,
         aggregator: Aggregator,
     ):
+        """
+        Extracts images from the aggregator and combines them into one
+        overall image.
+
+        Parameters
+        ----------
+        aggregator
+            The aggregator containing the fit results.
+        """
         self._aggregator = aggregator
 
     def extract_image(
         self,
         *subplots: Subplot,
-    ):
+    ) -> Image.Image:
+        """
+        Extract the images at the specified subplots and combine them into
+        one overall image including those subplots for all fits in the
+        aggregator.
+
+        Parameters
+        ----------
+        subplots
+            The subplots to extract.
+
+        Returns
+        -------
+        The combined image.
+        """
         matrix = []
         for result in self._aggregator:
             subplot_fit_image = SubplotFitImage(result.image("subplot_fit"))
