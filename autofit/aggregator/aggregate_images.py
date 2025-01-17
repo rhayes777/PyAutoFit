@@ -50,7 +50,7 @@ class AggregateImages:
 
     def extract_image(
         self,
-        subplots: List[Subplot],
+        *subplots: Subplot,
     ):
         matrix = []
         for result in self._aggregator:
