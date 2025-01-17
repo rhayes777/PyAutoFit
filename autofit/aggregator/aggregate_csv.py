@@ -116,7 +116,7 @@ class Row:
         return row
 
 
-class AggregateSummary:
+class AggregateCSV:
     def __init__(self, aggregator: Aggregator):
         """
         Summarise results from the aggregator as a CSV.

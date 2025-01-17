@@ -3,7 +3,7 @@ import csv
 from autofit.aggregator import Aggregator
 from pathlib import Path
 
-from autofit.aggregator.aggregate_summary import AggregateSummary
+from autofit.aggregator.aggregate_summary import AggregateCSV
 
 import pytest
 
@@ -19,7 +19,7 @@ def output_path():
 def summary():
     directory = Path(__file__).parent / "aggregate_summary"
     aggregator = Aggregator.from_directory(directory)
-    return AggregateSummary(aggregator)
+    return AggregateCSV(aggregator)
 
 
 @pytest.fixture
