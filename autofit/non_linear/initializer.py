@@ -17,9 +17,6 @@ logger = logging.getLogger(__name__)
 
 
 class AbstractInitializer(ABC):
-    """
-    Family of classes used to provide initial points for non-linear search
-    """
 
     @abstractmethod
     def _generate_unit_parameter_list(self, model):
@@ -199,6 +196,7 @@ class InitializerParamBounds(AbstractInitializer):
         upper_limit
             A default, unit upper limit used when a prior is not specified
         """
+        
         self.parameter_dict = parameter_dict
         self.lower_limit = lower_limit
         self.upper_limit = upper_limit
@@ -222,6 +220,7 @@ class InitializerParamBounds(AbstractInitializer):
 
         unit_parameter_list = []
         for prior in model.priors_ordered_by_id:
+
             try:
                 lower, upper = map(prior.unit_value_for, self.parameter_dict[prior])
                 value = random.uniform(lower, upper)

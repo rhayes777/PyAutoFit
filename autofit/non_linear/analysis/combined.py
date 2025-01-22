@@ -413,3 +413,6 @@ class CombinedAnalysis(Analysis):
         from .free_parameter import FreeParameterAnalysis
 
         return FreeParameterAnalysis(*self.analyses, free_parameters=free_parameters)
+
+    def compute_latent_samples(self, samples):
+        return self.analyses[0].compute_latent_samples(samples=samples)

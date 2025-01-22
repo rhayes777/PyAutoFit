@@ -158,6 +158,12 @@ class Emcee(AbstractMCMC):
                 n_cores=self.number_of_cores,
             )
 
+            self.plot_start_point(
+                parameter_vector=parameter_lists[0],
+                model=model,
+                analysis=analysis,
+            )
+
             state = np.zeros(shape=(search_internal.nwalkers, model.prior_count))
 
             self.logger.info(

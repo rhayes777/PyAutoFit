@@ -300,7 +300,9 @@ class DirectoryPaths(AbstractPaths):
 
             samples.write_table(filename=directory / "samples.csv")
 
-    def save_samples_summary(self, samples_summary: SamplesSummary):
+    def save_samples_summary(
+        self, samples_summary: SamplesSummary, name="samples_summary"
+    ):
         model = samples_summary.model
 
         filter_args = tuple(
@@ -318,7 +320,7 @@ class DirectoryPaths(AbstractPaths):
 
         samples_summary.model = None
         self.save_json(
-            "samples_summary",
+            name,
             to_dict(
                 samples_summary,
                 filter_args=filter_args,

@@ -1,10 +1,10 @@
-import itertools
 import multiprocessing
 import os
 import shutil
 import sys
 from os import path
 from pathlib import Path
+from unittest.mock import MagicMock
 
 import pytest
 from matplotlib import pyplot
@@ -13,11 +13,17 @@ from autoconf import conf
 from autofit import database as db
 from autofit import fixtures
 from autofit.database.model import sa
+from autofit.non_linear.search import abstract_search
 
 if sys.platform == "darwin":
     multiprocessing.set_start_method("fork")
 
 directory = Path(__file__).parent
+
+
+@pytest.fixture(autouse=True)
+def turn_off_gc(monkeypatch):
+    monkeypatch.setattr(abstract_search, "gc", MagicMock())
 
 
 @pytest.fixture(name="remove_ids")

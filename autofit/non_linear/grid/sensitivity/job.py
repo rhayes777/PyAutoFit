@@ -34,7 +34,7 @@ class JobResult(AbstractJobResult):
         """
 
         if hasattr(self.result.samples, "log_evidence"):
-            if self.result.samples.log_evidence is not None:
+            if self.result.samples.log_evidence is not None and self.perturb_result.samples.log_evidence is not None:
                 return float(
                     self.perturb_result.samples.log_evidence
                     - self.result.samples.log_evidence

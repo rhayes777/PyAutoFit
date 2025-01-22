@@ -15,3 +15,5 @@ root:
 formatters:
   formatter:
     format: '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+
+total_files_open : false # Whether to output info on the total number of open files in the system, used for debugging parallelism issues.

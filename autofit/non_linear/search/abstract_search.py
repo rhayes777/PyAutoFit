@@ -1,8 +1,11 @@
 from __future__ import annotations
 import copy
+import gc
 import logging
 import multiprocessing as mp
 import os
+import signal
+import sys
 import time
 import warnings
 from abc import ABC, abstractmethod
@@ -10,6 +13,8 @@ from collections import Counter
 from functools import wraps
 from pathlib import Path
 from typing import TYPE_CHECKING, Optional, Union, Tuple, List, Dict
+
+import psutil
 
 if TYPE_CHECKING:
     from autofit.non_linear.result import Result
@@ -268,9 +273,9 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             )
         ):
             if conf.instance["general"]["parallel"]["warn_environment_variables"]:
-                warnings.warn(
-                    exc.SearchWarning(
-                        """
+                warnings.warn(exc.SearchWarning(""))
+                logger.warning(
+                    """
                         The non-linear search is using multiprocessing (number_of_cores>1). 
     
                         However, the following environment variables have not been set to 1:
@@ -303,7 +308,6 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
     
                         `config -> general.yaml -> parallel: -> warn_environment_variables=False`
                         """
-                    )
                 )
 
         self.optimisation_counter = Counter()
@@ -571,6 +575,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         self.check_model(model=model)
 
         logger.info(f"Starting non-linear search with {self.number_of_cores} cores.")
+        self._log_process_state()
 
         model = analysis.modify_model(model)
         self.paths.model = model
@@ -611,9 +616,33 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                 search_internal=result.search_internal,
             )
 
+        gc.collect()
+
         self.logger.info("Search complete, returning result")
 
         return result
+
+    @staticmethod
+    def _log_process_state():
+        total_files = 0
+
+        for process in psutil.process_iter(attrs=["pid"]):
+            try:
+                proc_info = process.as_dict(attrs=["pid"])
+                logger.debug(
+                    f"Process ID: {proc_info['pid']} has the following open files:"
+                )
+
+                open_files = process.open_files()
+                for file in open_files:
+                    logger.debug(file)
+                    total_files += 1
+
+            except (psutil.NoSuchProcess, psutil.AccessDenied):
+                pass
+
+        if conf.instance["logging"]["total_files_open"]:
+            logger.info(f"Total Files Open: {total_files}")
 
     def pre_fit_output(
         self, analysis: Analysis, model: AbstractPriorModel, info: Optional[Dict] = None
@@ -1005,6 +1034,10 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
                 if latent_samples:
                     self.paths.save_latent_samples(latent_samples)
+                    self.paths.save_samples_summary(
+                        latent_samples.summary(),
+                        "latent_summary",
+                    )
 
             self.perform_visualization(
                 model=model,
@@ -1042,6 +1075,8 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
             if not during_analysis and self.remove_state_files_at_end:
                 self.logger.debug("Removing state files")
+
+        self._log_process_state()
 
         return samples
 
@@ -1123,6 +1158,52 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                     self.plot_results(samples=samples)
                 except FileNotFoundError:
                     pass
+
+    @property
+    def should_plot_start_point(self) -> bool:
+        return conf.instance["output"]["start_point"]
+
+    def plot_start_point(
+        self,
+        parameter_vector: List[float],
+        model: AbstractPriorModel,
+        analysis: Analysis,
+    ):
+        """
+        Visualize the starting point of the non-linear search, using an instance of the model at the starting point
+        of the maximum likelihood estimator.
+
+        Plots are output to a folder named `image_start` in the output path, so that the starting point model
+        can be compared to the final model inferred by the non-linear search.
+
+        Parameters
+        ----------
+        model
+            The model used by the non-linear search
+        analysis
+            The analysis which contains the visualization methods which plot the starting point model.
+
+        Returns
+        -------
+
+        """
+
+        if not self.should_plot_start_point:
+            return
+
+        self.logger.info(f"Visualizing Starting Point Model in image_start folder.")
+
+        instance = model.instance_from_vector(vector=parameter_vector)
+        paths = copy.copy(self.paths)
+        paths.image_path_suffix = "_start"
+
+        self.perform_visualization(
+            model=model,
+            analysis=analysis,
+            instance=instance,
+            during_analysis=False,
+            paths_override=paths,
+        )
 
     @property
     def samples_cls(self):

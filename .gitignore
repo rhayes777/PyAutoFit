@@ -3,6 +3,7 @@ phase_output_path.zip
 example/
 temp/
 test_autofit/mapper/model/model.json
+test_autofit/database/mass_sie__source_sersic
 
 *.sqlite
 test_autofit/non_linear/samples.csv
