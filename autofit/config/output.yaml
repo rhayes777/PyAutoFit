@@ -55,6 +55,15 @@ samples_weight_threshold: 1.0e-10
 
 search_internal: false
 
+### Start Point ###
+
+# If an Initalizer is used to provide a start point for the non-linear search, visualization of that start point can be
+# output to hard-disk to show the user the initial model-fit that is used to start the search. This visualization is
+# the visualizer wrapped in the Analysis class, and therefore should show things like the quality of the fit
+# to the data and the residuals at the start point.
+
+start_point: true
+
 ### Latent Variables ###
 
 # A latent variable is not a model parameter but can be derived from the model. Its value and errors may be of interest

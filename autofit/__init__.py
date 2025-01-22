@@ -38,6 +38,7 @@ from .mapper.model_mapper import ModelMapper
 from .mapper.model_mapper import ModelMapper as Mapper
 from .mapper.model_object import ModelObject
 from .mapper.operator import DiagonalMatrix
+from .mapper.prior.constant import Constant
 from .mapper.prior.arithmetic.assertion import ComparisonAssertion
 from .mapper.prior.arithmetic.assertion import ComparisonAssertion
 from .mapper.prior.arithmetic.assertion import GreaterThanLessThanAssertion
@@ -135,4 +136,4 @@ def save_abc(pickler, obj):
 
 conf.instance.register(__file__)
 
-__version__ = "2024.9.21.2"
+__version__ = "2025.1.18.7"

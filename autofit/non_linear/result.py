@@ -170,7 +170,7 @@ class AbstractResult(ABC):
 
     def model_bounded(self, b: float) -> AbstractPriorModel:
         """
-        Returns a model where every free parameter is a `UniformPrior` with `lower_limit` and `upper_limit the previous
+        Returns a model where every free parameter is a `UniformPrior` with `lower_limit` and `upper_limit` the previous
         result's inferred maximum log likelihood parameter values minus and plus the bound `b`.
 
         For example, a previous result may infer a parameter to have a maximum log likelihood value of 2.
