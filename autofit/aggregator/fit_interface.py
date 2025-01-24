@@ -10,6 +10,8 @@ class Fit(ABC):
     a database-backed Fit and a file-backed SearchOutput.
     """
 
+    children: List["Fit"]
+
     @property
     @abstractmethod
     def id(self) -> str:
