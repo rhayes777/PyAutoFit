@@ -149,3 +149,10 @@ def test_hash():
     constant = af.Constant(1.0)
     deserialized = af.Constant.from_dict(constant.dict())
     assert hash(deserialized)
+
+
+def test_float_id():
+    constant = af.Constant(1.0)
+    constant.id = 1.0
+
+    assert hash(constant)

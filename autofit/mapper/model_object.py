@@ -44,8 +44,17 @@ class ModelObject:
             A label which can optionally be set for visualising this object in a
             graph.
         """
-        self.id = int(self.next_id() if id_ is None else id_)
+        self._id = None
+        self.id = id_
         self._label = label
+
+    @property
+    def id(self):
+        return self._id
+
+    @id.setter
+    def id(self, id_):
+        self._id = int(self.next_id() if id_ is None else id_)
 
     def replacing_for_path(self, path: Tuple[str, ...], value) -> "ModelObject":
         """
