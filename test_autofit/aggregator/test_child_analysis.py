@@ -19,7 +19,7 @@ def make_search_output(directory):
 
 @pytest.fixture(name="child_analyses")
 def make_child_analyses(search_output):
-    return search_output.child_analyses
+    return search_output.children
 
 
 def test_child_analysis(child_analyses):

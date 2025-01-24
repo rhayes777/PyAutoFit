@@ -310,7 +310,7 @@ class SearchOutput(AbstractSearchOutput):
             yield name, file
 
     @property
-    def child_analyses(self):
+    def children(self):
         """
         A list of child analyses loaded from the analyses directory
         """
@@ -362,7 +362,7 @@ class SearchOutput(AbstractSearchOutput):
         """
         Get the values of a given key for all children
         """
-        return [getattr(child, name) for child in self.child_analyses]
+        return [getattr(child, name) for child in self.children]
 
     @property
     def path_prefix(self):
