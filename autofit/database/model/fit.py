@@ -12,6 +12,7 @@ from autofit.non_linear.samples import Samples
 from .model import Base, Object
 from ..sqlalchemy_ import sa
 from .array import Array, HDU
+from ...aggregator import fit_interface
 from ...non_linear.samples.efficient import EfficientSamples
 
 
@@ -184,7 +185,7 @@ class NamedInstancesWrapper:
         raise KeyError(f"Instance {item} not found")
 
 
-class Fit(Base):
+class Fit(Base, fit_interface.Fit):
     __tablename__ = "fit"
 
     id = sa.Column(
