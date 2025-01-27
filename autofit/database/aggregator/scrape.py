@@ -91,7 +91,7 @@ class Scraper:
                 )
 
             _add_files_fit(fit, item)
-            for i, child_analysis in enumerate(item.child_analyses):
+            for i, child_analysis in enumerate(item.children):
                 child_fit = m.Fit(
                     id=f"{item.id}_{i}",
                 )
