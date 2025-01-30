@@ -14,7 +14,7 @@ This cookbook provides an overview of how to use and extend ``Analysis`` objects
 - **Customization**: Customizing an analysis class with different data inputs and editing the ``log_likelihood_function``.
 - **Visualization**: Using a `visualize` method so that model-specific visuals are output to hard-disk.
 - **Custom Result**: Return a custom Result object with methods specific to your model fitting problem.
-- **Latent Variables**: Adding a `compute_latent_variable` method to the analysis to output latent variables to hard-disk.
+- **Latent Variables**: Adding a `compute_latent_variables` method to the analysis to output latent variables to hard-disk.
 - **Custom Output**: Add methods which output model-specific results to hard-disk in the ``files`` folder (e.g. as .json files) to aid in the interpretation of results.
 
 Example
@@ -493,7 +493,7 @@ and aid in the interpretation of a model-fit.
 For example, for the simple 1D Gaussian example, it could be the full-width half maximum (FWHM) of the Gaussian.
 This is not included in the model but can be easily derived from the Gaussian's sigma value.
 
-By overwriting the Analysis class's ``compute_latent_variable`` method we can manually specify latent variables that
+By overwriting the Analysis class's ``compute_latent_variables`` method we can manually specify latent variables that
 are calculated. If the search has a ``name``, these are output to a ``latent.csv`` file, which mirrors
 the ``samples.csv`` file.
 
@@ -527,7 +527,7 @@ contains settings customizing what files are output and how often.
 
             return log_likelihood
 
-        def compute_latent_variable(self, instance) -> Dict[str, float]:
+        def compute_latent_variables(self, instance) -> Dict[str, float]:
             """
             A latent variable is not a model parameter but can be derived from the model. Its value and errors may be
             of interest and aid in the interpretation of a model-fit.
@@ -559,7 +559,7 @@ contains settings customizing what files are output and how often.
             }
 
 Outputting latent variables manually after a fit is complete is simple, just call
-the ``analysis.compute_all_latent_variables()`` function.
+the ``analysis.compute_latent_variables()`` function.
 
 For many use cases, the best set disables autofit latent variable output during a fit via
 the ``output.yaml`` file and perform it manually after completing a successful model-fit. This will save computational
@@ -571,7 +571,7 @@ run time by not computing latent variables during a any model-fit which is unsuc
 
     # You need to have run a fit to retrieve a result to do this.
 
-    analysis.compute_all_latent_variables(samples=result.samples)
+    analysis.compute_latent_variables(samples=result.samples)
 
 Analysing and interpreting latent variables is described fully in the result cookbook.
 

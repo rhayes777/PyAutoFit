@@ -72,7 +72,7 @@ start_point: true
 # For example, for the simple 1D Gaussian example, it could be the full-width half maximum (FWHM) of the Gaussian. This
 # is not included in the model but can be easily derived from the Gaussian's sigma value.
 
-# By overwriting an Analysis class's `compute_latent_variable` method we can manually specify latent variables that
+# By overwriting an Analysis class's `compute_latent_variables` method we can manually specify latent variables that
 # are calculated and output to a `latent.csv` file, which mirrors the `samples.csv` file. The `latent.csv` file has
 # the same weight resampling performed on the `samples.csv` file, controlled via the `samples_weight_threshold` above.
 
@@ -80,7 +80,7 @@ start_point: true
 # they are output and how often.
 
 # Outputting latent variables manually after a fit is complete is simple, just call
-# the `analysis.compute_all_latent_variables()` function.
+# the `analysis.compute_latent_variables()` function.
 
 # For many use cases, the best set up may be to disable autofit latent variable output during the fit and perform it
 # manually after completing a successful model-fit. This will save computational run time by not computing latent

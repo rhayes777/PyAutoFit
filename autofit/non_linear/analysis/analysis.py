@@ -60,7 +60,7 @@ class Analysis(ABC):
 
         Returns
         -------
-        The computed latent samples or None if compute_latent_variable is not implemented.
+        The computed latent samples or None if compute_latent_variables is not implemented.
         """
         try:
             latent_samples = []
