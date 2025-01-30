@@ -80,7 +80,7 @@ class AggBase(ABC):
         """
 
         def func_gen(fit: af.Fit, minimum_weight: float) -> List[object]:
-            samples = fit.value(name="samples")
+            samples = fit.samples
 
             weight_list = []
 
@@ -117,7 +117,7 @@ class AggBase(ABC):
         """
 
         def func_gen(fit: af.Fit, minimum_weight: float) -> List[object]:
-            samples = fit.value(name="samples")
+            samples = fit.samples
 
             all_above_weight_list = []
 
@@ -156,7 +156,7 @@ class AggBase(ABC):
         """
 
         def func_gen(fit: af.Fit, total_samples: int) -> List[object]:
-            samples = fit.value(name="samples")
+            samples = fit.samples
 
             return [
                 self.object_via_gen_from(

@@ -2,7 +2,8 @@ import pytest
 import numpy as np
 
 import autofit as af
-from autofit import database as db, Fit
+from autofit import database as db
+from autofit.database import Fit
 
 
 @pytest.fixture(name="model")

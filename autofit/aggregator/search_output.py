@@ -2,6 +2,7 @@ import csv
 import json
 import logging
 import pickle
+from abc import ABC
 from os import path
 from pathlib import Path
 from typing import Generator, Tuple, Optional, List, cast, Type
@@ -23,6 +24,7 @@ from autofit.non_linear.samples.sample import samples_from_iterator
 from autoconf.dictable import from_dict
 from autofit.non_linear.samples.summary import SamplesSummary
 from autofit.non_linear.samples.util import simple_model_for_kwargs
+from . import fit_interface
 
 # noinspection PyProtectedMember
 original_create_file_handle = dill._dill._create_filehandle
@@ -47,7 +49,7 @@ def _create_file_handle(*args, **kwargs):
 dill._dill._create_filehandle = _create_file_handle
 
 
-class AbstractSearchOutput:
+class AbstractSearchOutput(ABC):
     def __init__(self, directory: Path, reference: Optional[dict] = None):
         self.directory = directory
         self._reference = reference
@@ -175,7 +177,7 @@ class AbstractSearchOutput:
         return None
 
 
-class SearchOutput(AbstractSearchOutput):
+class SearchOutput(AbstractSearchOutput, fit_interface.Fit):
     """
     @DynamicAttrs
     """
@@ -326,7 +328,7 @@ class SearchOutput(AbstractSearchOutput):
             yield name, file
 
     @property
-    def child_analyses(self):
+    def children(self):
         """
         A list of child analyses loaded from the analyses directory
         """
@@ -378,7 +380,7 @@ class SearchOutput(AbstractSearchOutput):
         """
         Get the values of a given key for all children
         """
-        return [getattr(child, name) for child in self.child_analyses]
+        return [getattr(child, name) for child in self.children]
 
     @property
     def path_prefix(self):

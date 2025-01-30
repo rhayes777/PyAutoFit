@@ -25,9 +25,8 @@ from .non_linear.samples import Sample
 from .non_linear.samples import load_from_table
 from .non_linear.samples import SamplesStored
 from .database.aggregator import Aggregator
-from .database.model import Fit
 from .database.aggregator import Query
-from .database.model.fit import Fit
+from autofit.aggregator.fit_interface import Fit
 from .aggregator.search_output import SearchOutput
 from .mapper import prior
 from .mapper.model import AbstractModel
@@ -136,4 +135,4 @@ def save_abc(pickler, obj):
 
 conf.instance.register(__file__)
 
-__version__ = "2024.11.13.2"
+__version__ = "2025.1.18.7"
