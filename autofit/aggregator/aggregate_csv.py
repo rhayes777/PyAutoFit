@@ -84,7 +84,7 @@ class Row:
         self._computed_columns = computed_columns
 
     @property
-    def kwargs(self) -> dict:
+    def median_pdf_sample_kwargs(self) -> dict:
         """
         The median_pdf_sample arguments for the search from the samples_summary and latent_summary.
         """
@@ -115,17 +115,17 @@ class Row:
         """
         The row as a dictionary including an id and one entry for each column.
         """
-        kwargs = self.kwargs
-        max_log_likelihood_sample = self.max_likelihood_kwargs
+        median_pdf_sample_kwargs = self.median_pdf_sample_kwargs
+        max_log_likelihood_sample_kwargs = self.max_likelihood_kwargs
 
         row = {"id": self._result.id}
         for column in self._columns:
-            value = (
-                max_log_likelihood_sample
-                if column.use_max_log_likelihood
-                else kwargs[column.path]
-            )
-            row[column.name] = value
+            if column.use_max_log_likelihood:
+                kwargs = max_log_likelihood_sample_kwargs
+            else:
+                kwargs = median_pdf_sample_kwargs
+
+            row[column.name] = kwargs[column.path]
 
         for column in self._computed_columns:
             try:

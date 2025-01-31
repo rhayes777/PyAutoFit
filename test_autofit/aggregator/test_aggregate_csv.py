@@ -55,6 +55,26 @@ def test_add_column(
     assert dicts[1]["galaxies_lens_bulge_centre_centre_0"] == "-5.0"
 
 
+def test_use_max_log_likelihood(
+    output_path,
+    summary,
+    load_output,
+):
+    summary.add_column(
+        "galaxies.lens.bulge.centre.centre_0",
+        use_max_log_likelihood=True,
+    )
+    summary.save(output_path)
+
+    dicts = load_output()
+
+    print(dicts[0]["galaxies_lens_bulge_centre_centre_0"])
+    print(dicts[1]["galaxies_lens_bulge_centre_centre_0"])
+
+    assert dicts[0]["galaxies_lens_bulge_centre_centre_0"] == "-1.0"
+    assert dicts[1]["galaxies_lens_bulge_centre_centre_0"] == "-5.0"
+
+
 def test_add_named_column(
     output_path,
     summary,
