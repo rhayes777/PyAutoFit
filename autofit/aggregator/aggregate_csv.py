@@ -102,7 +102,7 @@ class Row:
         samples_summary = self._result.value("samples_summary")
         kwargs = self._add_paths(samples_summary.median_pdf_sample.kwargs)
 
-        latent_summary = self._result.value("latent_summary")
+        latent_summary = self._result.value("latent.latent_summary")
         if latent_summary is not None:
             kwargs.update(latent_summary.median_pdf_sample.kwargs)
 
@@ -116,7 +116,7 @@ class Row:
         samples_summary = self._result.value("samples_summary")
         kwargs = self._add_paths(samples_summary.median_pdf_sample.kwargs)
 
-        latent_summary = self._result.value("latent_summary")
+        latent_summary = self._result.value("latent.latent_summary")
         if latent_summary is not None:
             kwargs.update(latent_summary.max_log_likelihood_sample.kwargs)
 
