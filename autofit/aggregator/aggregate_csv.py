@@ -1,4 +1,4 @@
-from typing import Optional, Callable, List, Union
+from typing import Optional, Callable, List, Union, Tuple
 
 from pathlib import Path
 
@@ -83,13 +83,24 @@ class Row:
         self._columns = columns
         self._computed_columns = computed_columns
 
+    def _all_paths(self, path: Tuple[str, ...]):
+        model = self._result.model
+        return model.all_paths_for_prior(model.object_for_path(path))
+
+    def _add_paths(self, kwargs):
+        return {
+            path: value
+            for key, value in kwargs.items()
+            for path in self._all_paths(key)
+        }
+
     @property
     def median_pdf_sample_kwargs(self) -> dict:
         """
         The median_pdf_sample arguments for the search from the samples_summary and latent_summary.
         """
         samples_summary = self._result.value("samples_summary")
-        kwargs = samples_summary.median_pdf_sample.kwargs
+        kwargs = self._add_paths(samples_summary.median_pdf_sample.kwargs)
 
         latent_summary = self._result.value("latent_summary")
         if latent_summary is not None:
@@ -103,7 +114,7 @@ class Row:
         The median_pdf_sample arguments for the search from the samples_summary and latent_summary.
         """
         samples_summary = self._result.value("samples_summary")
-        kwargs = samples_summary.max_log_likelihood_sample.kwargs
+        kwargs = self._add_paths(samples_summary.median_pdf_sample.kwargs)
 
         latent_summary = self._result.value("latent_summary")
         if latent_summary is not None:
