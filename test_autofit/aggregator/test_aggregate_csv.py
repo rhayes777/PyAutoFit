@@ -41,6 +41,20 @@ def test_writes(output_path, summary):
     assert dicts[1]["id"] is not None
 
 
+def test_add_label_colum(
+    output_path,
+    summary,
+    load_output,
+):
+    summary.add_label_column("label", ["a", "b"])
+    summary.save(output_path)
+
+    dicts = load_output()
+
+    assert dicts[0]["label"] == "a"
+    assert dicts[1]["label"] == "b"
+
+
 def test_add_column(
     output_path,
     summary,

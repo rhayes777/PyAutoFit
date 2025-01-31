@@ -43,12 +43,14 @@ class Column(AbstractColumn):
         name
             An optional name for the column
         """
-        super().__init__(name)
-        self.argument = argument
-        self.name = name or argument.replace(
-            ".",
-            "_",
+        super().__init__(
+            name
+            or argument.replace(
+                ".",
+                "_",
+            )
         )
+        self.argument = argument
         self.use_max_log_likelihood = use_max_log_likelihood
 
     def value(self, row: "Row"):
@@ -91,7 +93,7 @@ class ComputedColumn(AbstractColumn):
             ) from e
 
 
-class LabelColumn:
+class LabelColumn(AbstractColumn):
     def __init__(self, name: str, values: list):
         """
         A column in the summary table that is a label.
@@ -101,8 +103,11 @@ class LabelColumn:
         name
             The name of the column
         """
-        self.name = name
+        super().__init__(name)
         self.values = values
+
+    def value(self, row: "Row"):
+        return self.values[row.number]
 
 
 class Row:
