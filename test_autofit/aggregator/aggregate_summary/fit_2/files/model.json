@@ -1,24 +1,37 @@
 {
-  "class_path": "autofit.example.model.Gaussian",
-  "type": "model",
+  "type": "collection",
   "arguments": {
-    "centre": {
-      "lower_limit": 0.0,
-      "upper_limit": 1.0,
-      "type": "Uniform",
-      "id": 0
-    },
-    "normalization": {
-      "lower_limit": 0.0,
-      "upper_limit": 1.0,
-      "type": "Uniform",
-      "id": 1
-    },
-    "sigma": {
-      "lower_limit": 0.0,
-      "upper_limit": 1.0,
-      "type": "Uniform",
-      "id": 2
+    "galaxies": {
+      "type": "collection",
+      "arguments": {
+        "lens": {
+          "type": "collection",
+          "arguments": {
+            "bulge": {
+              "type": "collection",
+              "arguments": {
+                "centre": {
+                  "type": "collection",
+                  "arguments": {
+                    "centre_0": {
+                      "type": "Gaussian",
+                      "id": 0,
+                      "mean": 0.0,
+                      "sigma": 0.1
+                    },
+                    "centre_1": {
+                      "type": "Gaussian",
+                      "id": 1,
+                      "mean": 0.0,
+                      "sigma": 0.1
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
     }
   }
 }
