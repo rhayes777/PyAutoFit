@@ -1,0 +1,37 @@
+{
+  "type": "collection",
+  "arguments": {
+    "galaxies": {
+      "type": "collection",
+      "arguments": {
+        "lens": {
+          "type": "collection",
+          "arguments": {
+            "bulge": {
+              "type": "collection",
+              "arguments": {
+                "centre": {
+                  "type": "collection",
+                  "arguments": {
+                    "centre_0": {
+                      "type": "Gaussian",
+                      "id": 0,
+                      "mean": 0.0,
+                      "sigma": 0.1
+                    },
+                    "centre_1": {
+                      "type": "Gaussian",
+                      "id": 1,
+                      "mean": 0.0,
+                      "sigma": 0.1
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
