@@ -68,9 +68,6 @@ def test_use_max_log_likelihood(
 
     dicts = load_output()
 
-    print(dicts[0]["galaxies_lens_bulge_centre_centre_0"])
-    print(dicts[1]["galaxies_lens_bulge_centre_centre_0"])
-
     assert dicts[0]["galaxies_lens_bulge_centre_centre_0"] == "-1.0"
     assert dicts[1]["galaxies_lens_bulge_centre_centre_0"] == "-5.0"
 

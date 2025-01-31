@@ -64,8 +64,7 @@ class Row:
     def __init__(
         self,
         result: SearchOutput,
-        columns: List[Column],
-        computed_columns: List[ComputedColumn],
+        columns: List[Union[Column, ComputedColumn]],
     ):
         """
         A row in the summary table corresponding to one search.
@@ -76,12 +75,9 @@ class Row:
             The search output from the aggregator
         columns
             The columns to include in the summary. These are taken from samples_summary or latent_summary
-        computed_columns
-            Columns filled with values computed from the samples
         """
         self._result = result
         self._columns = columns
-        self._computed_columns = computed_columns
 
     def _all_paths(self, path: Tuple[str, ...]):
         model = self._result.model
@@ -131,21 +127,22 @@ class Row:
 
         row = {"id": self._result.id}
         for column in self._columns:
+            if isinstance(column, ComputedColumn):
+                try:
+                    value = column.compute(self._result.samples)
+                    row[column.name] = value
+                except AttributeError as e:
+                    raise AssertionError(
+                        "Cannot compute additional fields if no samples.json present"
+                    ) from e
+                continue
+
             if column.use_max_log_likelihood:
                 kwargs = max_log_likelihood_sample_kwargs
             else:
                 kwargs = median_pdf_sample_kwargs
 
             row[column.name] = kwargs[column.path]
-
-        for column in self._computed_columns:
-            try:
-                value = column.compute(self._result.samples)
-                row[column.name] = value
-            except AttributeError as e:
-                raise AssertionError(
-                    "Cannot compute additional fields if no samples.json present"
-                ) from e
 
         return row
 
@@ -161,7 +158,6 @@ class AggregateCSV:
         """
         self._aggregator = aggregator
         self._columns = []
-        self._computed_columns = []
 
     def add_column(
         self,
@@ -207,7 +203,7 @@ class AggregateCSV:
         compute
             A function that takes the median_pdf_sample arguments and returns the computed value
         """
-        self._computed_columns.append(
+        self._columns.append(
             ComputedColumn(
                 name,
                 compute,
@@ -219,11 +215,7 @@ class AggregateCSV:
         """
         The fieldnames for the CSV file.
         """
-        return (
-            ["id"]
-            + [column.name for column in self._columns]
-            + [column.name for column in self._computed_columns]
-        )
+        return ["id"] + [column.name for column in self._columns]
 
     def save(self, path: Union[str, Path]):
         """
@@ -244,7 +236,6 @@ class AggregateCSV:
                 row = Row(
                     result,
                     self._columns,
-                    self._computed_columns,
                 )
 
                 writer.writerow(row.dict())
