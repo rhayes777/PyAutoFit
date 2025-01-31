@@ -13,6 +13,7 @@ class Column:
         self,
         argument: str,
         name: Optional[str] = None,
+        use_max_log_likelihood: Optional[bool] = False,
     ):
         """
         A column in the summary table.
@@ -29,6 +30,7 @@ class Column:
             ".",
             "_",
         )
+        self.use_max_log_likelihood = use_max_log_likelihood
 
     @property
     def path(self) -> tuple:
@@ -95,13 +97,34 @@ class Row:
 
         return kwargs
 
+    @property
+    def max_likelihood_kwargs(self):
+        """
+        The median_pdf_sample arguments for the search from the samples_summary and latent_summary.
+        """
+        samples_summary = self._result.value("samples_summary")
+        kwargs = samples_summary.max_log_likelihood_sample.kwargs
+
+        latent_summary = self._result.value("latent_summary")
+        if latent_summary is not None:
+            kwargs.update(latent_summary.max_log_likelihood_sample.kwargs)
+
+        return kwargs
+
     def dict(self) -> dict:
         """
         The row as a dictionary including an id and one entry for each column.
         """
+        kwargs = self.kwargs
+        max_log_likelihood_sample = self.max_likelihood_kwargs
+
         row = {"id": self._result.id}
         for column in self._columns:
-            value = self.kwargs[column.path]
+            value = (
+                max_log_likelihood_sample
+                if column.use_max_log_likelihood
+                else kwargs[column.path]
+            )
             row[column.name] = value
 
         for column in self._computed_columns:
@@ -133,6 +156,7 @@ class AggregateCSV:
         self,
         argument: str,
         name: Optional[str] = None,
+        use_max_log_likelihood: Optional[bool] = False,
     ):
         """
         Add a column to the summary table.
@@ -146,11 +170,14 @@ class AggregateCSV:
             e.g. "galaxies.lens.bulge.centre.centre_0"
         name
             An optional name for the column. If not provided, the argument will be used.
+        use_max_log_likelihood
+            If True, the maximum likelihood value will be used instead of the median PDF value.
         """
         self._columns.append(
             Column(
                 argument,
                 name=name,
+                use_max_log_likelihood=use_max_log_likelihood,
             )
         )
 
