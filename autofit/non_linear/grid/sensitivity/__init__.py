@@ -156,6 +156,8 @@ class Sensitivity:
                 )
             )
 
+            print(number)
+
             if not self._should_bypass(number=number):
                 jobs.append(self._make_job(number))
 
@@ -373,6 +375,7 @@ class Sensitivity:
 
     def _should_bypass(self, number: int) -> bool:
         shape_index = self.shape_index_from_number(number=number)
+        print(shape_index)
         return self.mask is not None and np.asarray(self.mask)[shape_index]
 
     def _make_jobs(self) -> Generator[Job, None, None]:

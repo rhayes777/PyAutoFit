@@ -38,8 +38,8 @@ class SubplotFitImage:
         """
         self._image = image
 
-        self._single_image_width = self._image.width // 4
-        self._single_image_height = self._image.height // 3
+        self._single_image_width = self._image.width // 3
+        self._single_image_height = self._image.height // 2
 
     def image_at_coordinates(
         self,
