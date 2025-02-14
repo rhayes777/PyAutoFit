@@ -18,13 +18,21 @@ def make_linear_interpolator(instances):
     return af.LinearInterpolator(instances)
 
 
-def test_spline_interpolator(instances):
-    interpolator = af.SplineInterpolator(instances)
+@pytest.fixture(name="spline_interpolator")
+def make_spline_interpolator(instances):
+    return af.SplineInterpolator(instances)
 
-    result = interpolator[interpolator.t == 1.5]
+
+def test_spline_interpolator(spline_interpolator):
+    result = spline_interpolator[spline_interpolator.t == 1.5]
 
     assert result.t == 1.5
     assert result.gaussian.centre == 0.5
+
+
+def test_spline_relationships(spline_interpolator):
+    relationships = spline_interpolator.relationships(spline_interpolator.t)
+    assert relationships.gaussian.centre(1.5) == 0.5
 
 
 def test_smooth_spline_interpolator(instances):
