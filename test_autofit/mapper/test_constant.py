@@ -141,3 +141,29 @@ def test_ge():
 
 def test_is_number():
     assert isinstance(Constant(1.0), Number)
+
+
+def test_hash():
+    assert hash(af.Constant(1.0)) != hash(af.Constant(1.0))
+
+    constant = af.Constant(1.0)
+    deserialized = af.Constant.from_dict(constant.dict())
+    assert hash(deserialized)
+
+
+def test_float_id():
+    constant = af.Constant(1.0)
+    constant.id = 1.0
+
+    assert hash(constant)
+
+
+def test_model_with_constants():
+    instance = af.Model(
+        af.Gaussian,
+        centre=af.Constant(1.0),
+    ).instance_from_prior_medians()
+
+    assert instance.centre == 1.0
+    assert isinstance(instance.centre, float)
+    assert not isinstance(instance.centre, Constant)
