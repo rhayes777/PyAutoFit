@@ -4,40 +4,13 @@ from typing import List, Dict
 
 from autofit.non_linear.samples.pdf import SamplesPDF
 from .abstract import AbstractInterpolator
+from .linear_relationship import LinearRelationship
 from .query import Equality, InterpolatorPath
 from autofit.non_linear.analysis.analysis import Analysis
 from autofit.non_linear.search.nest.dynesty.search.static import DynestyStatic
 from autofit.mapper.prior_model.prior_model import Model
 from autofit.mapper.prior_model.collection import Collection
 from autofit.mapper.prior.gaussian import GaussianPrior
-
-
-class LinearRelationship:
-    def __init__(self, m: float, c: float):
-        """
-        Describes a linear relationship between x and y, y = mx + c
-
-        Parameters
-        ----------
-        m
-            The gradient of the relationship
-        c
-            The y-intercept of the relationship
-        """
-        self.m = m
-        self.c = c
-
-    def __call__(self, x: float) -> float:
-        """
-        Calculate the value of y for a given value of x
-        """
-        return self.m * x + self.c
-
-    def __str__(self):
-        return f"y = {self.m}x + {self.c}"
-
-    def __repr__(self):
-        return str(self)
 
 
 class CovarianceAnalysis(Analysis):
