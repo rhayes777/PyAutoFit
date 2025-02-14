@@ -2,6 +2,7 @@ from typing import Optional
 
 import numpy as np
 
+from autofit.jax_wrapper import register_pytree_node_class
 from autofit import exc
 from autofit.messages.normal import UniformNormalMessage
 from autofit.messages.transform import log_10_transform, LinearShiftTransform
@@ -9,6 +10,7 @@ from .abstract import Prior
 from ...messages.composed_transform import TransformedMessage
 
 
+@register_pytree_node_class
 class LogUniformPrior(Prior):
     def __init__(
         self,
@@ -66,6 +68,9 @@ class LogUniformPrior(Prior):
             upper_limit=upper_limit,
             id_=id_,
         )
+
+    def tree_flatten(self):
+        return (self.lower_limit, self.upper_limit), (self.id,)
 
     @classmethod
     def with_limits(cls, lower_limit: float, upper_limit: float) -> "LogUniformPrior":
