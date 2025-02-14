@@ -161,14 +161,14 @@ class CovarianceInterpolator(AbstractInterpolator):
     def _interpolate(x, y, value):
         raise NotImplementedError()
 
-    def _analysis_for_value(self, value: Equality) -> CovarianceAnalysis:
+    def _analysis_for_path(self, path: InterpolatorPath) -> CovarianceAnalysis:
         """
         Create a covariance analysis for a given value. That is an analysis that will
         optimise relationships between each variable and that value.
 
         Parameters
         ----------
-        value
+        path
             The value to which the variables are related (e.g. time)
 
         Returns
@@ -179,10 +179,10 @@ class CovarianceInterpolator(AbstractInterpolator):
         y = []
         for sample in sorted(
             self.samples_list,
-            key=lambda s: value.path.get_value(s.max_log_likelihood()),
+            key=lambda s: path.get_value(s.max_log_likelihood()),
         ):
             # noinspection PyTypeChecker
-            x.append(value.path.get_value(sample.max_log_likelihood()))
+            x.append(path.get_value(sample.max_log_likelihood()))
             y.extend([value for value in sample.max_log_likelihood(as_instance=False)])
 
         return CovarianceAnalysis(
@@ -191,9 +191,9 @@ class CovarianceInterpolator(AbstractInterpolator):
             inverse_covariance_matrix=self.inverse_covariance_matrix(),
         )
 
-    def _relationships_for_value(
+    def _relationships_for_path(
         self,
-        value: Equality,
+        path: InterpolatorPath,
         path_relationship_map=None,
     ) -> List[LinearRelationship]:
         """
@@ -201,14 +201,14 @@ class CovarianceInterpolator(AbstractInterpolator):
 
         Parameters
         ----------
-        value
+        path
             The value to which the variables are related (e.g. time)
 
         Returns
         -------
         A list of linear relationships
         """
-        analysis = self._analysis_for_value(value)
+        analysis = self._analysis_for_path(path)
         model = self.model(path_relationship_map=path_relationship_map or {})
         search = DynestyStatic()
         result = search.fit(model=model, analysis=analysis)
@@ -217,11 +217,24 @@ class CovarianceInterpolator(AbstractInterpolator):
     def __getitem__(self, value: Equality) -> float:
         return self.get(value)
 
+    def relationships(self, path: InterpolatorPath):
+        relationships = self._relationships_for_path(path)
+
+        model = self._single_model
+        arguments = {
+            prior: relationship
+            for prior, relationship in zip(
+                model.priors_ordered_by_id,
+                relationships,
+            )
+        }
+        return model.instance_for_arguments(arguments)
+
     def get(
         self,
         value: Equality,
         path_relationship_map: Dict[InterpolatorPath, Model] = None,
-    ) -> float:
+    ):
         """
         Calculate the value of the variable for a given value of the variable to which it is related
 
@@ -237,8 +250,8 @@ class CovarianceInterpolator(AbstractInterpolator):
         -------
         The value of the variable at the given time
         """
-        relationships = self._relationships_for_value(
-            value,
+        relationships = self._relationships_for_path(
+            value.path,
             path_relationship_map=path_relationship_map,
         )
         model = self._single_model
