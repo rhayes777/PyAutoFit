@@ -23,7 +23,7 @@ class FactorCallable:
 
     def __call__(self, **kwargs: np.ndarray) -> float:
         """
-        Returns an instance of the prior model and evaluates it, forming
+        Creates an instance of the prior model and evaluates it, forming
         a factor.
 
         Parameters
@@ -88,6 +88,7 @@ class AnalysisFactor(AbstractModelFactor):
             prior_variable_dict=prior_variable_dict,
             name=name,
         )
+        print(name)
 
     def tree_flatten(self):
         return (

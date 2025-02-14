@@ -11,8 +11,8 @@ from autoconf import cached_property
 from autofit.mapper.model_object import ModelObject
 
 if TYPE_CHECKING:
-    from autofit.mapper.operator import LinearOperator 
-    from autofit.mapper.variable_operator import VariableFullOperator, VariableOperator 
+    from autofit.mapper.operator import LinearOperator
+    from autofit.mapper.variable_operator import VariableFullOperator, VariableOperator
 
 
 class Plate:
@@ -86,7 +86,11 @@ class Variable(ModelObject):
         """
         self.plates = plates
         super().__init__(id_=id_)
-        self.name = name or f"{self.__class__.__name__.lower()}_{self.id}"
+        self._name = name
+
+    @property
+    def name(self):
+        return self._name or f"{self.__class__.__name__.lower()}_{self.id}"
 
     def __repr__(self):
         args = ", ".join(chain([self.name], map(repr, self.plates)))
@@ -418,7 +422,7 @@ class VariableData(Dict[Variable, np.ndarray]):
             elif ord == -np.Inf:
                 return absval.min()
             else:
-                return (absval ** ord).sum() ** (1.0 / ord)
+                return (absval**ord).sum() ** (1.0 / ord)
         else:
             return VariableData.norm(self)
 
@@ -434,19 +438,22 @@ class VariableData(Dict[Variable, np.ndarray]):
         sizes = {}
         for v, val in self.items():
             shape = np.shape(val)
-            assert len(shape) == len(v.plates), f"shape must match the number of plates of {v}"
+            assert len(shape) == len(
+                v.plates
+            ), f"shape must match the number of plates of {v}"
             for p, s in zip(v.plates, shape):
-                assert sizes.setdefault(p, s) == s, f"plate sizes must be consistent, {sizes[p]} != {s}"
+                assert (
+                    sizes.setdefault(p, s) == s
+                ), f"plate sizes must be consistent, {sizes[p]} != {s}"
         return sizes
 
     def full_like(self, fill_value, **kwargs):
-        return type(self)({
-            v: np.full_like(val, fill_value, **kwargs)
-            for v, val in self.items()
-        })
+        return type(self)(
+            {v: np.full_like(val, fill_value, **kwargs) for v, val in self.items()}
+        )
 
     def zeros_like(self, **kwargs):
-        return self.full_like(0.)
+        return self.full_like(0.0)
 
 
 class VariableLinearOperator(ABC):
@@ -555,7 +562,7 @@ class InverseVariableOperator(VariableLinearOperator):
     def update(self, *args: Tuple[VariableData, VariableData]):
         # apply Sherman-Morrison formulat
         A = self.operator
-        for (u, v) in args:
+        for u, v in args:
             A1u = A * u
             A1v = v * A
             vTA1u = -A1u.dot(v)
@@ -564,7 +571,7 @@ class InverseVariableOperator(VariableLinearOperator):
         return type(self)(A)
 
     def diagonalupdate(self, d: VariableData):
-        A = self.operator.diagonalupdate(d ** -1)
+        A = self.operator.diagonalupdate(d**-1)
         return type(self)(A)
 
     def to_full(self) -> "VariableFullOperator":
