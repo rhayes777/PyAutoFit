@@ -85,6 +85,7 @@ class AnalysisFactor(AbstractModelFactor):
             prior_variable_dict=prior_variable_dict,
             name=name,
         )
+        print(name)
 
     def __getstate__(self):
         return self.__dict__
