@@ -32,7 +32,7 @@ class Constant(ModelObject, Number):
         return super().__eq__(other)
 
     def __hash__(self):
-        return self.id
+        return hash(self.id)
 
     def dict(self):
         return {"type": "Constant", "value": self.value}

@@ -5,6 +5,7 @@ from typing import List, Dict, cast
 from autofit.mapper.model import ModelInstance
 
 from .query import InterpolatorPath, Equality
+from .. import Model
 
 
 class AbstractInterpolator(ABC):
@@ -105,13 +106,28 @@ class AbstractInterpolator(ABC):
                     self._interpolate(x, cast(List[float], y), item.value),
                 )
 
-        new_instance.replacing_for_path(tuple(item.path.keys), item.value)
+        # noinspection PyTypeChecker
+        return new_instance.replacing_for_path(tuple(item.path.keys), item.value)
+
+    def relationships(self, path: InterpolatorPath) -> Model:
+        instance = self.instances[0]
+        new_instance = copy.copy(instance)
+
+        value_map = self._value_map(path)
+        x = sorted(value_map)
+
+        for path, _ in instance.path_instance_tuples_for_class(float):
+            y = [value_map[value].object_for_path(path) for value in x]
+
+            new_instance = new_instance.replacing_for_path(
+                path,
+                self._relationship(x, cast(List[float], y)),
+            )
 
         return new_instance
 
-    @staticmethod
-    @abstractmethod
-    def _interpolate(x: List[float], y: List[float], value: float) -> float:
+    @classmethod
+    def _interpolate(cls, x: List[float], y: List[float], value: float) -> float:
         """
         Interpolate a given attribute to find its effective value at some time
 
@@ -127,4 +143,23 @@ class AbstractInterpolator(ABC):
         Returns
         -------
         An interpolated value for the attribute
+        """
+        return cls._relationship(x, y)(value)
+
+    @staticmethod
+    @abstractmethod
+    def _relationship(x: List[float], y: List[float]):
+        """
+        Calculate the relationship between two values
+
+        Parameters
+        ----------
+        x
+            The first value
+        y
+            The second value
+
+        Returns
+        -------
+        The relationship between the two values
         """
