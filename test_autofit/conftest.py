@@ -21,6 +21,18 @@ if sys.platform == "darwin":
 directory = Path(__file__).parent
 
 
+@pytest.fixture(name="recreate")
+def recreate():
+    jax = pytest.importorskip("jax")
+
+    def _recreate(o):
+        flatten_func, unflatten_func = jax._src.tree_util._registry[type(o)]
+        children, aux_data = flatten_func(o)
+        return unflatten_func(aux_data, children)
+
+    return _recreate
+
+
 @pytest.fixture(autouse=True)
 def turn_off_gc(monkeypatch):
     monkeypatch.setattr(abstract_search, "gc", MagicMock())
