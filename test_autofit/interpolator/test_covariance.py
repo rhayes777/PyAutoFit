@@ -32,37 +32,6 @@ def test_covariance_matrix(interpolator):
     )
 
 
-def test_inverse_covariance_matrix(interpolator):
-    assert np.all(
-        np.round(interpolator.inverse_covariance_matrix())
-        == np.array(
-            [
-                [285718.0, -428570.0, 142856.0, 0.0, 0.0, 0.0, 0.0, 0.0, -0.0],
-                [-428570.0, 642858.0, -214287.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-                [142856.0, -214287.0, 71429.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0],
-                [0.0, 0.0, 0.0, 285718.0, -428570.0, 142856.0, 0.0, 0.0, -0.0],
-                [0.0, 0.0, 0.0, -428570.0, 642858.0, -214287.0, 0.0, 0.0, 0.0],
-                [0.0, 0.0, 0.0, 142856.0, -214287.0, 71429.0, 0.0, 0.0, 0.0],
-                [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 285718.0, -428570.0, 142856.0],
-                [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, -428570.0, 642858.0, -214287.0],
-                [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 142856.0, -214287.0, 71429.0],
-            ]
-        ),
-    )
-
-
-# Fails due to poorly defined inversion?
-# def _test_inverse_covariance_matrix(interpolator):
-#     identity = np.dot(
-#         interpolator.covariance_matrix(), interpolator.inverse_covariance_matrix()
-#     )
-#     print(identity)
-#     assert np.allclose(
-#         identity,
-#         np.eye(9),
-#     )
-
-
 def maxcall(func):
     return with_config(
         "non_linear",

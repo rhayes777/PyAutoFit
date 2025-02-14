@@ -123,6 +123,30 @@ class CovarianceInterpolator(AbstractInterpolator):
         This comprises covariance matrices for each sample, subsumed along the diagonal
         """
         matrices = [samples.covariance_matrix for samples in self.samples_list]
+        return self._subsume(matrices)
+
+    def inverse_covariance_matrix(self) -> np.ndarray:
+        """
+        Calculate the inverse covariance matrix of the samples
+        """
+        matrices = [
+            scipy.linalg.inv(samples.covariance_matrix) for samples in self.samples_list
+        ]
+        return self._subsume(matrices)
+
+    def _subsume(self, matrices: List[np.ndarray]) -> np.ndarray:
+        """
+        Subsume a list of matrices along the diagonal
+
+        Parameters
+        ----------
+        matrices
+            The matrices to subsume
+
+        Returns
+        -------
+        The subsumed matrix
+        """
         prior_count = self.samples_list[0].model.prior_count
         size = prior_count * len(self.samples_list)
         array = np.zeros((size, size))
@@ -132,15 +156,6 @@ class CovarianceInterpolator(AbstractInterpolator):
                 i * prior_count : (i + 1) * prior_count,
             ] = matrix
         return array
-
-    def inverse_covariance_matrix(self) -> np.ndarray:
-        """
-        Calculate the inverse covariance matrix of the samples
-        """
-        covariance_matrix = self.covariance_matrix()
-        return scipy.linalg.inv(
-            covariance_matrix + 1e-6 * np.eye(covariance_matrix.shape[0])
-        )
 
     @staticmethod
     def _interpolate(x, y, value):
