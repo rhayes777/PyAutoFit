@@ -8,6 +8,5 @@ class SplineInterpolator(AbstractInterpolator):
     """
 
     @staticmethod
-    def _interpolate(x, y, value):
-        f = CubicSpline(x, y)
-        return f(value)
+    def _relationship(x, y):
+        return CubicSpline(x, y)

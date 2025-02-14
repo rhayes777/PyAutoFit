@@ -4,40 +4,13 @@ from typing import List, Dict
 
 from autofit.non_linear.samples.pdf import SamplesPDF
 from .abstract import AbstractInterpolator
+from .linear_relationship import LinearRelationship
 from .query import Equality, InterpolatorPath
 from autofit.non_linear.analysis.analysis import Analysis
 from autofit.non_linear.search.nest.dynesty.search.static import DynestyStatic
 from autofit.mapper.prior_model.prior_model import Model
 from autofit.mapper.prior_model.collection import Collection
 from autofit.mapper.prior.gaussian import GaussianPrior
-
-
-class LinearRelationship:
-    def __init__(self, m: float, c: float):
-        """
-        Describes a linear relationship between x and y, y = mx + c
-
-        Parameters
-        ----------
-        m
-            The gradient of the relationship
-        c
-            The y-intercept of the relationship
-        """
-        self.m = m
-        self.c = c
-
-    def __call__(self, x: float) -> float:
-        """
-        Calculate the value of y for a given value of x
-        """
-        return self.m * x + self.c
-
-    def __str__(self):
-        return f"y = {self.m}x + {self.c}"
-
-    def __repr__(self):
-        return str(self)
 
 
 class CovarianceAnalysis(Analysis):
@@ -123,6 +96,30 @@ class CovarianceInterpolator(AbstractInterpolator):
         This comprises covariance matrices for each sample, subsumed along the diagonal
         """
         matrices = [samples.covariance_matrix for samples in self.samples_list]
+        return self._subsume(matrices)
+
+    def inverse_covariance_matrix(self) -> np.ndarray:
+        """
+        Calculate the inverse covariance matrix of the samples
+        """
+        matrices = [
+            scipy.linalg.inv(samples.covariance_matrix) for samples in self.samples_list
+        ]
+        return self._subsume(matrices)
+
+    def _subsume(self, matrices: List[np.ndarray]) -> np.ndarray:
+        """
+        Subsume a list of matrices along the diagonal
+
+        Parameters
+        ----------
+        matrices
+            The matrices to subsume
+
+        Returns
+        -------
+        The subsumed matrix
+        """
         prior_count = self.samples_list[0].model.prior_count
         size = prior_count * len(self.samples_list)
         array = np.zeros((size, size))
@@ -133,27 +130,18 @@ class CovarianceInterpolator(AbstractInterpolator):
             ] = matrix
         return array
 
-    def inverse_covariance_matrix(self) -> np.ndarray:
-        """
-        Calculate the inverse covariance matrix of the samples
-        """
-        covariance_matrix = self.covariance_matrix()
-        return scipy.linalg.inv(
-            covariance_matrix + 1e-6 * np.eye(covariance_matrix.shape[0])
-        )
-
     @staticmethod
-    def _interpolate(x, y, value):
+    def _relationship(x, y) -> float:
         raise NotImplementedError()
 
-    def _analysis_for_value(self, value: Equality) -> CovarianceAnalysis:
+    def _analysis_for_path(self, path: InterpolatorPath) -> CovarianceAnalysis:
         """
         Create a covariance analysis for a given value. That is an analysis that will
         optimise relationships between each variable and that value.
 
         Parameters
         ----------
-        value
+        path
             The value to which the variables are related (e.g. time)
 
         Returns
@@ -164,10 +152,10 @@ class CovarianceInterpolator(AbstractInterpolator):
         y = []
         for sample in sorted(
             self.samples_list,
-            key=lambda s: value.path.get_value(s.max_log_likelihood()),
+            key=lambda s: path.get_value(s.max_log_likelihood()),
         ):
             # noinspection PyTypeChecker
-            x.append(value.path.get_value(sample.max_log_likelihood()))
+            x.append(path.get_value(sample.max_log_likelihood()))
             y.extend([value for value in sample.max_log_likelihood(as_instance=False)])
 
         return CovarianceAnalysis(
@@ -176,9 +164,9 @@ class CovarianceInterpolator(AbstractInterpolator):
             inverse_covariance_matrix=self.inverse_covariance_matrix(),
         )
 
-    def _relationships_for_value(
+    def _relationships_for_path(
         self,
-        value: Equality,
+        path: InterpolatorPath,
         path_relationship_map=None,
     ) -> List[LinearRelationship]:
         """
@@ -186,14 +174,14 @@ class CovarianceInterpolator(AbstractInterpolator):
 
         Parameters
         ----------
-        value
+        path
             The value to which the variables are related (e.g. time)
 
         Returns
         -------
         A list of linear relationships
         """
-        analysis = self._analysis_for_value(value)
+        analysis = self._analysis_for_path(path)
         model = self.model(path_relationship_map=path_relationship_map or {})
         search = DynestyStatic()
         result = search.fit(model=model, analysis=analysis)
@@ -202,11 +190,24 @@ class CovarianceInterpolator(AbstractInterpolator):
     def __getitem__(self, value: Equality) -> float:
         return self.get(value)
 
+    def relationships(self, path: InterpolatorPath):
+        relationships = self._relationships_for_path(path)
+
+        model = self._single_model
+        arguments = {
+            prior: relationship
+            for prior, relationship in zip(
+                model.priors_ordered_by_id,
+                relationships,
+            )
+        }
+        return model.instance_for_arguments(arguments)
+
     def get(
         self,
         value: Equality,
         path_relationship_map: Dict[InterpolatorPath, Model] = None,
-    ) -> float:
+    ):
         """
         Calculate the value of the variable for a given value of the variable to which it is related
 
@@ -222,8 +223,8 @@ class CovarianceInterpolator(AbstractInterpolator):
         -------
         The value of the variable at the given time
         """
-        relationships = self._relationships_for_value(
-            value,
+        relationships = self._relationships_for_path(
+            value.path,
             path_relationship_map=path_relationship_map,
         )
         model = self._single_model
