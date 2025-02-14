@@ -13,9 +13,7 @@
           "type": "dict",
           "arguments": {
             "galaxies.lens.bulge.centre.centre_0": -1.0,
-            "galaxies.lens.bulge..centre.centre_1": -2.0,
-            "galaxies.lens.shear.gamma_1": 3.0,
-            "galaxies.lens.shear.gamma_2": 4.0
+            "galaxies.lens.bulge.centre.centre_1": -2.0
           }
         }
       }
@@ -31,9 +29,7 @@
           "type": "dict",
           "arguments": {
             "galaxies.lens.bulge.centre.centre_0": -1.0,
-            "galaxies.lens.bulge..centre.centre_1": -2.0,
-            "galaxies.lens.shear.gamma_1": 3.0,
-            "galaxies.lens.shear.gamma_2": 4.0
+            "galaxies.lens.bulge.centre.centre_1": -2.0
           }
         }
       }
