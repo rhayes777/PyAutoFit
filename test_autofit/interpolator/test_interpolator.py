@@ -199,3 +199,8 @@ def test_instance_from_dict(model_instance, instance_dict):
     assert gaussian.centre == 0.0
     assert gaussian.normalization == 1.0
     assert gaussian.sigma == -1.0
+
+
+def test_relationships(linear_interpolator):
+    relationships = linear_interpolator.relationships(linear_interpolator.t)
+    assert relationships.gaussian.centre(1.0) == 0.0
