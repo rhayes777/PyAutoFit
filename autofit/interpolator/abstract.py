@@ -109,9 +109,8 @@ class AbstractInterpolator(ABC):
 
         return new_instance
 
-    @staticmethod
-    @abstractmethod
-    def _interpolate(x: List[float], y: List[float], value: float) -> float:
+    @classmethod
+    def _interpolate(cls, x: List[float], y: List[float], value: float) -> float:
         """
         Interpolate a given attribute to find its effective value at some time
 
@@ -127,4 +126,23 @@ class AbstractInterpolator(ABC):
         Returns
         -------
         An interpolated value for the attribute
+        """
+        return cls._relationship(x, y)(value)
+
+    @staticmethod
+    @abstractmethod
+    def _relationship(x: List[float], y: List[float]):
+        """
+        Calculate the relationship between two values
+
+        Parameters
+        ----------
+        x
+            The first value
+        y
+            The second value
+
+        Returns
+        -------
+        The relationship between the two values
         """

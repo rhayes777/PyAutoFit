@@ -131,7 +131,7 @@ class CovarianceInterpolator(AbstractInterpolator):
         return array
 
     @staticmethod
-    def _interpolate(x, y, value):
+    def _relationship(x, y) -> float:
         raise NotImplementedError()
 
     def _analysis_for_path(self, path: InterpolatorPath) -> CovarianceAnalysis:
