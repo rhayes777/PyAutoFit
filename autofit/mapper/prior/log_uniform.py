@@ -70,7 +70,11 @@ class LogUniformPrior(Prior):
         )
 
     def tree_flatten(self):
-        return (self.lower_limit, self.upper_limit), (self.id,)
+        return (
+            self.lower_limit,
+            self.upper_limit,
+            self.id,
+        ), ()
 
     @classmethod
     def with_limits(cls, lower_limit: float, upper_limit: float) -> "LogUniformPrior":
