@@ -175,5 +175,12 @@ def test_prior_model_node(likelihood_model):
     assert isinstance(result, ep.FactorValue)
 
 
-def test_pytrees(recreate, factor_model):
+def test_pytrees(
+    recreate,
+    factor_model,
+    make_model_factor,
+):
     recreate(factor_model)
+
+    model_factor = make_model_factor(centre=60, sigma=15)
+    recreate(model_factor)

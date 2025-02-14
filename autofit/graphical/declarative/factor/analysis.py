@@ -9,6 +9,8 @@ from autofit.non_linear.analysis import Analysis
 from autofit.non_linear.paths.abstract import AbstractPaths
 from .abstract import AbstractModelFactor
 
+from autofit.jax_wrapper import register_pytree_node_class
+
 
 class FactorCallable:
     def __init__(
@@ -43,6 +45,7 @@ class FactorCallable:
         return self.analysis.log_likelihood_function(instance)
 
 
+@register_pytree_node_class
 class AnalysisFactor(AbstractModelFactor):
     @property
     def prior_model(self):
@@ -84,6 +87,25 @@ class AnalysisFactor(AbstractModelFactor):
             optimiser=optimiser,
             prior_variable_dict=prior_variable_dict,
             name=name,
+        )
+
+    def tree_flatten(self):
+        return (
+            (self.prior_model,),
+            (
+                self.analysis,
+                self.optimiser,
+                self.name,
+            ),
+        )
+
+    @classmethod
+    def tree_unflatten(cls, aux_data, children):
+        return cls(
+            children[0],
+            analysis=aux_data[0],
+            optimiser=aux_data[1],
+            name=aux_data[2],
         )
 
     def __getstate__(self):
