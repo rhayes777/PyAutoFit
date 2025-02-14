@@ -156,3 +156,14 @@ def test_float_id():
     constant.id = 1.0
 
     assert hash(constant)
+
+
+def test_model_with_constants():
+    instance = af.Model(
+        af.Gaussian,
+        centre=af.Constant(1.0),
+    ).instance_from_prior_medians()
+
+    assert instance.centre == 1.0
+    assert isinstance(instance.centre, float)
+    assert not isinstance(instance.centre, Constant)
