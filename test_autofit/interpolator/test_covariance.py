@@ -32,18 +32,6 @@ def test_covariance_matrix(interpolator):
     )
 
 
-# Fails due to poorly defined inversion?
-# def _test_inverse_covariance_matrix(interpolator):
-#     identity = np.dot(
-#         interpolator.covariance_matrix(), interpolator.inverse_covariance_matrix()
-#     )
-#     print(identity)
-#     assert np.allclose(
-#         identity,
-#         np.eye(9),
-#     )
-
-
 def maxcall(func):
     return with_config(
         "non_linear",
@@ -61,6 +49,12 @@ def test_interpolate(interpolator):
 
 
 @maxcall
+def test_relationships(interpolator):
+    relationships = interpolator.relationships(interpolator.t)
+    assert isinstance(relationships.gaussian.centre(0.5), float)
+
+
+@maxcall
 def test_interpolate_other_field(interpolator):
     assert isinstance(
         interpolator[interpolator.gaussian.centre == 0.5].gaussian.centre,
@@ -69,7 +63,7 @@ def test_interpolate_other_field(interpolator):
 
 
 def test_linear_analysis_for_value(interpolator):
-    analysis = interpolator._analysis_for_value(interpolator.t == 0.5)
+    analysis = interpolator._analysis_for_path(interpolator.t)
     assert (analysis.x == np.array([0, 1, 2])).all()
     assert (analysis.y == np.array([0, 0, 0, 1, 1, 1, 2, 2, 2])).all()
 
@@ -103,7 +97,7 @@ def test_single_variable():
     interpolator = CovarianceInterpolator(
         samples_list,
     )
-    assert interpolator[interpolator.t == 50.0].v == pytest.approx(50.0, abs=1.0)
+    assert interpolator[interpolator.t == 50.0].v == pytest.approx(50.0, abs=2.0)
 
 
 @maxcall

@@ -207,33 +207,6 @@ class Collection(AbstractPriorModel):
             if value == item:
                 del self.__dict__[key]
 
-    def gaussian_prior_model_for_arguments(self, arguments):
-        """
-        Create a new collection, updating its priors according to the argument
-        dictionary.
-
-        Parameters
-        ----------
-        arguments
-            A dictionary of arguments
-
-        Returns
-        -------
-        A new collection
-        """
-        collection = Collection()
-
-        for key, value in self.items():
-            if key in ("component_number", "item_number", "id") or key.startswith("_"):
-                continue
-
-            if isinstance(value, AbstractPriorModel):
-                collection[key] = value.gaussian_prior_model_for_arguments(arguments)
-            if isinstance(value, Prior):
-                collection[key] = arguments[value]
-
-        return collection
-
     def _instance_for_arguments(
         self,
         arguments,
@@ -288,8 +261,10 @@ class Collection(AbstractPriorModel):
 
             if isinstance(value, AbstractPriorModel):
                 collection[key] = value.gaussian_prior_model_for_arguments(arguments)
-            if isinstance(value, Prior):
+            elif isinstance(value, Prior):
                 collection[key] = arguments[value]
+            else:
+                collection[key] = value
 
         return collection
 
