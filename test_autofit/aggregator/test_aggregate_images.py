@@ -103,3 +103,17 @@ def test_custom_images(
     )
 
     assert result.size == (193, 120)
+
+
+def test_custom_function(aggregate):
+    def make_image(output):
+        return Image.new("RGB", (10, 10), "white")
+
+    result = aggregate.extract_image(
+        Subplot.Data,
+        Subplot.SourcePlaneZoomed,
+        Subplot.SourceModelImage,
+        make_image,
+    )
+
+    assert result.size == (193, 120)

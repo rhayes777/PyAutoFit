@@ -1,6 +1,6 @@
 import sys
 from enum import Enum
-from typing import Optional, List, Union
+from typing import Optional, List, Union, Callable
 from pathlib import Path
 
 from PIL import Image
@@ -91,7 +91,7 @@ class AggregateImages:
 
     def extract_image(
         self,
-        *subplots: Union[Subplot, List[Image.Image]],
+        *subplots: Union[Subplot, List[Image.Image], Callable],
         subplot_width: Optional[int] = sys.maxsize,
     ) -> Image.Image:
         """
@@ -130,7 +130,7 @@ class AggregateImages:
     def output_to_folder(
         self,
         folder: Path,
-        *subplots: Union[Subplot, List[Image.Image]],
+        *subplots: Union[Subplot, List[Image.Image], Callable],
         subplot_width: Optional[int] = sys.maxsize,
         name: str = "name",
     ):
@@ -169,7 +169,7 @@ class AggregateImages:
     def _matrix_for_result(
         i: int,
         result: SearchOutput,
-        *subplots: Union[Subplot, List[Image.Image]],
+        *subplots: Union[Subplot, List[Image.Image], Callable],
         subplot_width: int = sys.maxsize,
     ) -> List[List[Image.Image]]:
         """
@@ -199,8 +199,18 @@ class AggregateImages:
                         *subplot.value,
                     )
                 )
-            else:
+            elif isinstance(subplot, list):
                 row.append(subplot[i])
+            else:
+                try:
+                    row.append(subplot(result))
+                except TypeError:
+                    raise TypeError(
+                        "The subplots must be of type Subplot or a list of "
+                        "images or a function that takes a SearchOutput as an "
+                        "argument."
+                    )
+
             if len(row) == subplot_width:
                 matrix.append(row)
                 row = []
