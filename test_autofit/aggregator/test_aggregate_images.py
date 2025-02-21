@@ -41,4 +41,4 @@ def test_longer(aggregate):
         Subplot.SourceModelImage,
     )
 
-    assert result.size == (183, 120)
+    assert result.size == (243, 180)
