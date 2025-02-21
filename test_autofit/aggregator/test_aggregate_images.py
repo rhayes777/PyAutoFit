@@ -53,3 +53,13 @@ def test_subplot_width(aggregate):
     )
 
     assert result.size == (122, 240)
+
+
+def test_output_to_folder(aggregate, output_directory):
+    aggregate.output_to_folder(
+        output_directory,
+        Subplot.Data,
+        Subplot.SourcePlaneZoomed,
+        Subplot.SourceModelImage,
+    )
+    assert list(Path(output_directory).glob("*.png"))
