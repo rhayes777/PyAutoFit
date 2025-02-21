@@ -1,3 +1,4 @@
+import re
 import sys
 from enum import Enum
 from typing import Optional, List, Union, Callable, Type
@@ -9,7 +10,7 @@ from autofit.aggregator.search_output import SearchOutput
 from autofit.aggregator.aggregator import Aggregator
 
 
-class Subplot(Enum):
+class SubplotFit(Enum):
     """
     The subplots that can be extracted from the subplot_fit image.
 
@@ -34,7 +35,7 @@ class SubplotFitImage:
     def __init__(
         self,
         image: Image.Image,
-        suplot_type: Type[Subplot] = Subplot,
+        suplot_type: Type[SubplotFit] = SubplotFit,
     ):
         """
         The subplot_fit image associated with one fit.
@@ -100,10 +101,11 @@ class AggregateImages:
             The aggregator containing the fit results.
         """
         self._aggregator = aggregator
+        self._source_images = None
 
     def extract_image(
         self,
-        *subplots: Union[Subplot, List[Image.Image], Callable],
+        *subplots: Union[Enum, List[Image.Image], Callable],
         subplot_width: Optional[int] = sys.maxsize,
     ) -> Image.Image:
         """
@@ -145,7 +147,7 @@ class AggregateImages:
     def output_to_folder(
         self,
         folder: Path,
-        *subplots: Union[Subplot, List[Image.Image], Callable],
+        *subplots: Union[SubplotFit, List[Image.Image], Callable],
         subplot_width: Optional[int] = sys.maxsize,
         name: str = "name",
     ):
@@ -187,7 +189,7 @@ class AggregateImages:
     def _matrix_for_result(
         i: int,
         result: SearchOutput,
-        *subplots: Union[Subplot, List[Image.Image], Callable],
+        *subplots: Union[SubplotFit, List[Image.Image], Callable],
         subplot_width: int = sys.maxsize,
     ) -> List[List[Image.Image]]:
         """
@@ -210,13 +212,45 @@ class AggregateImages:
         -------
         The matrix of images.
         """
-        subplot_fit_image = SubplotFitImage(result.image("subplot_fit"))
+        _images = {}
+
+        def get_image(subplot_: Enum) -> SubplotFitImage:
+            """
+            Get the image for the subplot.
+
+            This assumes that the subplot filename is the same as the subplot
+            class name but using snake_case.
+
+            Parameters
+            ----------
+            subplot_
+                The type of subplot to get the image for.
+
+            Returns
+            -------
+            The image for the subplot.
+            """
+            subplot_type = subplot_.__class__
+            name = (
+                re.sub(
+                    r"([A-Z])",
+                    r"_\1",
+                    subplot_type.__name__,
+                )
+                .lower()
+                .lstrip("_")
+            )
+
+            if subplot_type not in _images:
+                _images[subplot_type] = SubplotFitImage(result.image(name))
+            return _images[subplot_type]
+
         matrix = []
         row = []
         for subplot in subplots:
-            if isinstance(subplot, Subplot):
+            if isinstance(subplot, SubplotFit):
                 row.append(
-                    subplot_fit_image.image_at_coordinates(
+                    get_image(subplot).image_at_coordinates(
                         *subplot.value,
                     )
                 )

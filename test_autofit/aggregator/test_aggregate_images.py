@@ -4,7 +4,7 @@ from pathlib import Path
 from PIL import Image
 
 from autofit.aggregator import Aggregator
-from autofit.aggregator.aggregate_images import AggregateImages, Subplot
+from autofit.aggregator.aggregate_images import AggregateImages, SubplotFit
 
 
 @pytest.fixture
@@ -20,31 +20,31 @@ def aggregate(aggregator):
 
 def test(aggregate):
     result = aggregate.extract_image(
-        Subplot.Data,
-        Subplot.SourcePlaneZoomed,
+        SubplotFit.Data,
+        SubplotFit.SourcePlaneZoomed,
     )
     assert result.size == (122, 120)
     assert result == aggregate.extract_image(
-        Subplot.Data,
-        Subplot.SourcePlaneZoomed,
+        SubplotFit.Data,
+        SubplotFit.SourcePlaneZoomed,
     )
 
 
 def test_different_plots(aggregate):
     assert aggregate.extract_image(
-        Subplot.Data,
-        Subplot.SourcePlaneZoomed,
+        SubplotFit.Data,
+        SubplotFit.SourcePlaneZoomed,
     ) != aggregate.extract_image(
-        Subplot.SourcePlaneZoomed,
-        Subplot.Data,
+        SubplotFit.SourcePlaneZoomed,
+        SubplotFit.Data,
     )
 
 
 def test_longer(aggregate):
     result = aggregate.extract_image(
-        Subplot.NormalizedResidualMap,
-        Subplot.SourcePlaneNoZoom,
-        Subplot.SourceModelImage,
+        SubplotFit.NormalizedResidualMap,
+        SubplotFit.SourcePlaneNoZoom,
+        SubplotFit.SourceModelImage,
     )
 
     assert result.size == (183, 120)
@@ -52,9 +52,9 @@ def test_longer(aggregate):
 
 def test_subplot_width(aggregate):
     result = aggregate.extract_image(
-        Subplot.NormalizedResidualMap,
-        Subplot.SourcePlaneNoZoom,
-        Subplot.SourceModelImage,
+        SubplotFit.NormalizedResidualMap,
+        SubplotFit.SourcePlaneNoZoom,
+        SubplotFit.SourceModelImage,
         subplot_width=2,
     )
 
@@ -64,9 +64,9 @@ def test_subplot_width(aggregate):
 def test_output_to_folder(aggregate, output_directory):
     aggregate.output_to_folder(
         output_directory,
-        Subplot.Data,
-        Subplot.SourcePlaneZoomed,
-        Subplot.SourceModelImage,
+        SubplotFit.Data,
+        SubplotFit.SourcePlaneZoomed,
+        SubplotFit.SourceModelImage,
     )
     assert list(Path(output_directory).glob("*.png"))
 
@@ -78,9 +78,9 @@ def test_output_to_folder_name(
 ):
     aggregate.output_to_folder(
         output_directory,
-        Subplot.Data,
-        Subplot.SourcePlaneZoomed,
-        Subplot.SourceModelImage,
+        SubplotFit.Data,
+        SubplotFit.SourcePlaneZoomed,
+        SubplotFit.SourceModelImage,
         name="id",
     )
 
@@ -96,9 +96,9 @@ def test_custom_images(
     images = [image for _ in aggregator]
 
     result = aggregate.extract_image(
-        Subplot.Data,
-        Subplot.SourcePlaneZoomed,
-        Subplot.SourceModelImage,
+        SubplotFit.Data,
+        SubplotFit.SourcePlaneZoomed,
+        SubplotFit.SourceModelImage,
         images,
     )
 
@@ -110,9 +110,9 @@ def test_custom_function(aggregate):
         return Image.new("RGB", (10, 10), "white")
 
     result = aggregate.extract_image(
-        Subplot.Data,
-        Subplot.SourcePlaneZoomed,
-        Subplot.SourceModelImage,
+        SubplotFit.Data,
+        SubplotFit.SourcePlaneZoomed,
+        SubplotFit.SourceModelImage,
         make_image,
     )
 
