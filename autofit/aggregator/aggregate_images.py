@@ -224,8 +224,10 @@ class AggregateImages:
         -------
         The combined image.
         """
-        total_width = sum(image.width for image in matrix[0])
-        total_height = sum(image.height for image in list(zip(*matrix))[0])
+        total_width = max(sum(image.width for image in row) for row in matrix)
+        total_height = max(
+            sum(image.height for image in column) for column in list(zip(*matrix))
+        )
 
         image = Image.new("RGB", (total_width, total_height))
 

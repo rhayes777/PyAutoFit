@@ -102,4 +102,4 @@ def test_custom_images(
         images,
     )
 
-    result.show()
+    assert result.size == (193, 120)
