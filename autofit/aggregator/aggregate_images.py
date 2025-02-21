@@ -131,7 +131,23 @@ class AggregateImages:
         folder: Path,
         *subplots: Subplot,
         subplot_width: Optional[int] = sys.maxsize,
-    ) -> None:
+    ):
+        """
+        Output one subplot image for each fit in the aggregator.
+
+        Parameters
+        ----------
+        folder
+            The target folder in which to store the subplots.
+        subplots
+            The subplots to output.
+        subplot_width
+
+
+        Returns
+        -------
+
+        """
         folder.mkdir(exist_ok=True)
 
         for result in self._aggregator:
