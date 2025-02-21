@@ -26,6 +26,7 @@ from .non_linear.samples import load_from_table
 from .non_linear.samples import SamplesStored
 from .database.aggregator import Aggregator
 from .aggregator.aggregate_csv import AggregateCSV
+from .aggregator.aggregate_images import AggregateImages
 from .database.aggregator import Query
 from autofit.aggregator.fit_interface import Fit
 from .aggregator.search_output import SearchOutput
