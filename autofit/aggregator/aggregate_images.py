@@ -131,6 +131,7 @@ class AggregateImages:
         folder: Path,
         *subplots: Subplot,
         subplot_width: Optional[int] = sys.maxsize,
+        name: str = "name",
     ):
         """
         Output one subplot image for each fit in the aggregator.
@@ -142,11 +143,11 @@ class AggregateImages:
         subplots
             The subplots to output.
         subplot_width
-
-
-        Returns
-        -------
-
+            Defines the width of each subplot in number of images.
+            If this is greater than the number of subplots then it defaults to
+            the number of subplots.
+            If this is less than the number of subplots then it causes the
+            images to wrap.
         """
         folder.mkdir(exist_ok=True)
 
@@ -158,7 +159,7 @@ class AggregateImages:
                     subplot_width=subplot_width,
                 )
             )
-            image.save(folder / f"{result.name}.png")
+            image.save(folder / f"{getattr(result, name)}.png")
 
     @staticmethod
     def _matrix_for_result(

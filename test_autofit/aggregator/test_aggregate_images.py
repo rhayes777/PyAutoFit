@@ -6,9 +6,13 @@ from autofit.aggregator.aggregate_images import AggregateImages, Subplot
 
 
 @pytest.fixture
-def aggregate():
+def aggregator():
     directory = Path(__file__).parent / "aggregate_summary"
-    aggregator = Aggregator.from_directory(directory)
+    return Aggregator.from_directory(directory)
+
+
+@pytest.fixture
+def aggregate(aggregator):
     return AggregateImages(aggregator)
 
 
@@ -63,3 +67,20 @@ def test_output_to_folder(aggregate, output_directory):
         Subplot.SourceModelImage,
     )
     assert list(Path(output_directory).glob("*.png"))
+
+
+def test_output_to_folder_name(
+    aggregate,
+    output_directory,
+    aggregator,
+):
+    aggregate.output_to_folder(
+        output_directory,
+        Subplot.Data,
+        Subplot.SourcePlaneZoomed,
+        Subplot.SourceModelImage,
+        name="id",
+    )
+
+    id_ = next(iter(aggregator)).id
+    assert list(Path(output_directory).glob(f"{id_}.png"))
