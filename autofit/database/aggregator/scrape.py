@@ -183,5 +183,5 @@ def _add_files(fit: m.Fit, item: SearchOutput):
         except ValueError:
             logger.debug(f"Failed to load array {array_output.name} for {fit.id}")
 
-    for hdu_output in item.hdus:
-        fit.set_hdu(hdu_output.name, hdu_output.value)
+    for fits in item.fits:
+        fit.set_fits(fits.name, fits.value)
