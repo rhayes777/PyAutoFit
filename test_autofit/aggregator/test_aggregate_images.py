@@ -41,4 +41,15 @@ def test_longer(aggregate):
         Subplot.SourceModelImage,
     )
 
-    assert result.size == (243, 180)
+    assert result.size == (183, 120)
+
+
+def test_subplot_width(aggregate):
+    result = aggregate.extract_image(
+        Subplot.NormalizedResidualMap,
+        Subplot.SourcePlaneNoZoom,
+        Subplot.SourceModelImage,
+        subplot_width=2,
+    )
+
+    assert result.size == (122, 240)
