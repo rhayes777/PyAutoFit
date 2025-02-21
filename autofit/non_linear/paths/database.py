@@ -209,7 +209,7 @@ class DatabasePaths(AbstractPaths):
         -------
         The loaded hdu
         """
-        return self.fit.get_hdu(name)
+        return self.fit.get_fits(name)
 
     @conditional_output
     def save_object(self, name: str, obj: object, prefix: str = ""):

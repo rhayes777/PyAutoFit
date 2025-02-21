@@ -442,39 +442,6 @@ class Fit(Base, fit_interface.Fit):
                 return p.array
         raise KeyError(f"Array {key} not found")
 
-    def set_hdu(self, key: str, value):
-        """
-        Add an HDU to the database. Overwrites any existing HDU
-        with the same name.
-
-        Parameters
-        ----------
-        key
-            The name of the HDU
-        value
-            A fits HDUList
-        """
-        new = HDU(name=key, hdu=value)
-        self.hdus = [p for p in self.hdus if p.name != key] + [new]
-
-    def get_hdu(self, key: str):
-        """
-        Retrieve an HDU from the database.
-
-        Parameters
-        ----------
-        key
-            The name of the HDU
-
-        Returns
-        -------
-        A fits HDUList
-        """
-        for p in self.hdus:
-            if p.name == key:
-                return p.hdu
-        raise KeyError(f"HDU {key} not found")
-
     def set_fits(self, key: str, value):
         """
         Add a fits object to the database. Overwrites any existing fits
