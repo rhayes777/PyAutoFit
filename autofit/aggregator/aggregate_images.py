@@ -1,4 +1,6 @@
+import sys
 from enum import Enum
+from typing import Optional
 
 from PIL import Image
 
@@ -88,6 +90,7 @@ class AggregateImages:
     def extract_image(
         self,
         *subplots: Subplot,
+        subplot_width: Optional[int] = sys.maxsize,
     ) -> Image.Image:
         """
         Extract the images at the specified subplots and combine them into
@@ -106,12 +109,19 @@ class AggregateImages:
         matrix = []
         for result in self._aggregator:
             subplot_fit_image = SubplotFitImage(result.image("subplot_fit"))
-            matrix.append(
-                [
-                    subplot_fit_image.image_at_coordinates(*subplot.value)
-                    for subplot in subplots
-                ]
-            )
+            row = []
+            for subplot in subplots:
+                row.append(
+                    subplot_fit_image.image_at_coordinates(
+                        *subplot.value,
+                    )
+                )
+                if len(row) == subplot_width:
+                    matrix.append(row)
+                    row = []
+
+            if len(row) > 0:
+                matrix.append(row)
 
         total_width = sum(image.width for image in matrix[0])
         total_height = sum(image.height for image in list(zip(*matrix))[0])
