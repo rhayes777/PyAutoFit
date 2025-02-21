@@ -101,6 +101,12 @@ class AggregateImages:
         ----------
         subplots
             The subplots to extract.
+        subplot_width
+            Defines the width of each subplot in number of images.
+            If this is greater than the number of subplots then it defaults to
+            the number of subplots.
+            If this is less than the number of subplots then it causes the
+            images to wrap.
 
         Returns
         -------
