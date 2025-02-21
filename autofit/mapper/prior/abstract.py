@@ -61,7 +61,7 @@ class Prior(Variable, ABC, ArithmeticMixin):
         -------
         An instance of this class
         """
-        return cls(*children, id_=aux_data[0])
+        return cls(*children)
 
     @property
     def lower_unit_limit(self) -> float:
