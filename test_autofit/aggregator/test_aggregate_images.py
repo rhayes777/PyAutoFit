@@ -17,7 +17,7 @@ def test(aggregate):
         Subplot.Data,
         Subplot.SourcePlaneZoomed,
     )
-    assert result.size == (162, 180)
+    assert result.size == (122, 120)
     assert result == aggregate.extract_image(
         Subplot.Data,
         Subplot.SourcePlaneZoomed,
