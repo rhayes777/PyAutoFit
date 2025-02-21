@@ -148,6 +148,8 @@ class AggregateImages:
             the number of subplots.
             If this is less than the number of subplots then it causes the
             images to wrap.
+        name
+            The attribute of each fit to use as the name of the output file.
         """
         folder.mkdir(exist_ok=True)
 
@@ -167,6 +169,23 @@ class AggregateImages:
         *subplots: Subplot,
         subplot_width: int = sys.maxsize,
     ) -> List[List[Image.Image]]:
+        """
+        Create a matrix of images each in the position they will be in the
+        final image.
+
+        Parameters
+        ----------
+        result
+            The fit result.
+        subplots
+            The subplots to extract
+        subplot_width
+            The number of subplots to include in each row of the matrix.
+
+        Returns
+        -------
+        The matrix of images.
+        """
         subplot_fit_image = SubplotFitImage(result.image("subplot_fit"))
         matrix = []
         row = []
@@ -187,6 +206,18 @@ class AggregateImages:
 
     @staticmethod
     def _matrix_to_image(matrix: List[List[Image.Image]]) -> Image.Image:
+        """
+        Create an image including all the images in the matrix.
+
+        Parameters
+        ----------
+        matrix
+            The matrix of images to combine into one image
+
+        Returns
+        -------
+        The combined image.
+        """
         total_width = sum(image.width for image in matrix[0])
         total_height = sum(image.height for image in list(zip(*matrix))[0])
 
