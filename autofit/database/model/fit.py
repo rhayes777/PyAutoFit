@@ -11,7 +11,7 @@ from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.samples import Samples
 from .model import Base, Object
 from ..sqlalchemy_ import sa
-from .array import Array, HDU
+from .array import Array, HDU, Fits
 from ...aggregator import fit_interface
 from ...non_linear.samples.efficient import EfficientSamples
 
@@ -337,6 +337,11 @@ class Fit(Base, fit_interface.Fit):
         lazy="joined",
         foreign_keys=[HDU.fit_id],
     )
+    fits: Mapped[List[Fits]] = sa.orm.relationship(
+        "Fits",
+        lazy="joined",
+        foreign_keys=[Fits.fit_id],
+    )
 
     def __getitem__(self, item: str):
         """
@@ -469,6 +474,39 @@ class Fit(Base, fit_interface.Fit):
             if p.name == key:
                 return p.hdu
         raise KeyError(f"HDU {key} not found")
+
+    def set_fits(self, key: str, value):
+        """
+        Add a fits object to the database. Overwrites any existing fits
+        with the same name.
+
+        Parameters
+        ----------
+        key
+            The name of the fits
+        value
+            A fits HDUList
+        """
+        new = Fits(name=key, hdu_list=value)
+        self.fits = [p for p in self.fits if p.name != key] + [new]
+
+    def get_fits(self, key: str):
+        """
+        Retrieve a fits object from the database.
+
+        Parameters
+        ----------
+        key
+            The name of the fits
+
+        Returns
+        -------
+        A fits HDUList
+        """
+        for p in self.fits:
+            if p.name == key:
+                return p.hdu_list
+        raise KeyError(f"Fits {key} not found")
 
     def __contains__(self, item):
         for i in self.pickles + self.jsons + self.arrays + self.hdus:
