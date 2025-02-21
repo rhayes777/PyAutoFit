@@ -102,7 +102,10 @@ class AggregateImages:
         Parameters
         ----------
         subplots
-            The subplots to extract.
+            The subplots to output. These can be:
+            - enum values
+            - lists of the same length as the aggregator output
+            - functions that take a SearchOutput as an argument
         subplot_width
             Defines the width of each subplot in number of images.
             If this is greater than the number of subplots then it defaults to
@@ -142,7 +145,10 @@ class AggregateImages:
         folder
             The target folder in which to store the subplots.
         subplots
-            The subplots to output.
+            The subplots to output. These can be:
+            - enum values
+            - lists of the same length as the aggregator output
+            - functions that take a SearchOutput as an argument
         subplot_width
             Defines the width of each subplot in number of images.
             If this is greater than the number of subplots then it defaults to
@@ -181,7 +187,10 @@ class AggregateImages:
         result
             The fit result.
         subplots
-            The subplots to extract
+            The subplots to output. These can be:
+            - enum values
+            - lists of the same length as the aggregator output
+            - functions that take a SearchOutput as an argument
         subplot_width
             The number of subplots to include in each row of the matrix.
 
