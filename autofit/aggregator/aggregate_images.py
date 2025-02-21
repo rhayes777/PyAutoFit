@@ -1,6 +1,6 @@
 import sys
 from enum import Enum
-from typing import Optional, List, Union, Callable
+from typing import Optional, List, Union, Callable, Type
 from pathlib import Path
 
 from PIL import Image
@@ -31,7 +31,11 @@ class Subplot(Enum):
 
 
 class SubplotFitImage:
-    def __init__(self, image: Image.Image):
+    def __init__(
+        self,
+        image: Image.Image,
+        suplot_type: Type[Subplot] = Subplot,
+    ):
         """
         The subplot_fit image associated with one fit.
 
@@ -42,8 +46,16 @@ class SubplotFitImage:
         """
         self._image = image
 
-        self._single_image_width = self._image.width // 4
-        self._single_image_height = self._image.height // 3
+        x_max = 0
+        y_max = 0
+
+        for subplot in suplot_type:
+            x, y = subplot.value
+            x_max = max(x_max, x)
+            y_max = max(y_max, y)
+
+        self._single_image_width = self._image.width // (x_max + 1)
+        self._single_image_height = self._image.height // (y_max + 1)
 
     def image_at_coordinates(
         self,
