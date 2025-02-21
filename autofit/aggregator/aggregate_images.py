@@ -1,6 +1,6 @@
 import sys
 from enum import Enum
-from typing import Optional, List
+from typing import Optional, List, Union
 from pathlib import Path
 
 from PIL import Image
@@ -91,7 +91,7 @@ class AggregateImages:
 
     def extract_image(
         self,
-        *subplots: Subplot,
+        *subplots: Union[Subplot, List[Image.Image]],
         subplot_width: Optional[int] = sys.maxsize,
     ) -> Image.Image:
         """
@@ -115,9 +115,10 @@ class AggregateImages:
         The combined image.
         """
         matrix = []
-        for result in self._aggregator:
+        for i, result in enumerate(self._aggregator):
             matrix.extend(
                 self._matrix_for_result(
+                    i,
                     result,
                     *subplots,
                     subplot_width=subplot_width,
@@ -129,7 +130,7 @@ class AggregateImages:
     def output_to_folder(
         self,
         folder: Path,
-        *subplots: Subplot,
+        *subplots: Union[Subplot, List[Image.Image]],
         subplot_width: Optional[int] = sys.maxsize,
         name: str = "name",
     ):
@@ -153,9 +154,10 @@ class AggregateImages:
         """
         folder.mkdir(exist_ok=True)
 
-        for result in self._aggregator:
+        for i, result in enumerate(self._aggregator):
             image = self._matrix_to_image(
                 self._matrix_for_result(
+                    i,
                     result,
                     *subplots,
                     subplot_width=subplot_width,
@@ -165,8 +167,9 @@ class AggregateImages:
 
     @staticmethod
     def _matrix_for_result(
+        i: int,
         result: SearchOutput,
-        *subplots: Subplot,
+        *subplots: Union[Subplot, List[Image.Image]],
         subplot_width: int = sys.maxsize,
     ) -> List[List[Image.Image]]:
         """
@@ -190,11 +193,14 @@ class AggregateImages:
         matrix = []
         row = []
         for subplot in subplots:
-            row.append(
-                subplot_fit_image.image_at_coordinates(
-                    *subplot.value,
+            if isinstance(subplot, Subplot):
+                row.append(
+                    subplot_fit_image.image_at_coordinates(
+                        *subplot.value,
+                    )
                 )
-            )
+            else:
+                row.append(subplot[i])
             if len(row) == subplot_width:
                 matrix.append(row)
                 row = []

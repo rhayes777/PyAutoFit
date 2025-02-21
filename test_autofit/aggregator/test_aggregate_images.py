@@ -1,6 +1,8 @@
 import pytest
 from pathlib import Path
 
+from PIL import Image
+
 from autofit.aggregator import Aggregator
 from autofit.aggregator.aggregate_images import AggregateImages, Subplot
 
@@ -84,3 +86,20 @@ def test_output_to_folder_name(
 
     id_ = next(iter(aggregator)).id
     assert list(Path(output_directory).glob(f"{id_}.png"))
+
+
+def test_custom_images(
+    aggregate,
+    aggregator,
+):
+    image = Image.new("RGB", (10, 10), "white")
+    images = [image for _ in aggregator]
+
+    result = aggregate.extract_image(
+        Subplot.Data,
+        Subplot.SourcePlaneZoomed,
+        Subplot.SourceModelImage,
+        images,
+    )
+
+    result.show()
