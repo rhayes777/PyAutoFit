@@ -397,7 +397,7 @@ class AbstractPaths(ABC):
         pass
 
     @abstractmethod
-    def save_fits(self, name: str, hdu, prefix: str = ""):
+    def save_fits(self, name: str, fits, prefix: str = ""):
         pass
 
     @abstractmethod

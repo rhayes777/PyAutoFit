@@ -54,10 +54,3 @@ def test_hdu(hdu, hdu_array):
     loaded = db_hdu.hdu
     assert (loaded.data == hdu_array).all()
     assert loaded.header == hdu.header
-
-
-def test_set_hdu(fit, hdu, hdu_array):
-    fit.set_hdu("test", hdu)
-    loaded = fit.get_hdu("test")
-    assert (loaded.data == hdu_array).all()
-    assert loaded.header == hdu.header

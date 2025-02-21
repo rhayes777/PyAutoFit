@@ -108,7 +108,7 @@ class AbstractSearchOutput(ABC):
         return self._outputs(".pickle")
 
     @cached_property
-    def hdus(self):
+    def fits(self):
         """
         The fits files in the search output files directory
         """
@@ -170,7 +170,7 @@ class AbstractSearchOutput(ABC):
         for item in self.jsons:
             if item.name == name:
                 return item.value_using_reference(self._reference)
-        for item in self.pickles + self.arrays + self.hdus:
+        for item in self.pickles + self.arrays + self.fits:
             if item.name == name:
                 return item.value
 

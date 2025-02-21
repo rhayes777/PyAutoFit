@@ -20,7 +20,7 @@ class FileOutput(ABC):
         elif suffix == ".csv":
             return super().__new__(ArrayOutput)
         elif suffix == ".fits":
-            return super().__new__(HDUOutput)
+            return super().__new__(FITSOutput)
         raise ValueError(f"File {path} is not a valid output file")
 
     def __init__(self, name: str, path: Path):
@@ -92,17 +92,7 @@ class PickleOutput(FileOutput):
             return dill.load(f)
 
 
-class HDUOutput(FileOutput):
-    def __init__(self, name: str, path: Path):
-        super().__init__(name, path)
-        self._file = None
-
-    @property
-    def file(self):
-        if self._file is None:
-            self._file = open(self.path, "rb")
-        return self._file
-
+class FITSOutput(FileOutput):
     @property
     def value(self):
         """
@@ -110,8 +100,4 @@ class HDUOutput(FileOutput):
         """
         from astropy.io import fits
 
-        return fits.PrimaryHDU.readfrom(self.file)
-
-    def __del__(self):
-        if self._file is not None:
-            self._file.close()
+        return fits.open(self.path)
