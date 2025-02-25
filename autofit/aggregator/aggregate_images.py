@@ -1,11 +1,16 @@
+import re
+import sys
 from enum import Enum
+from typing import Optional, List, Union, Callable, Type
+from pathlib import Path
 
 from PIL import Image
 
+from autofit.aggregator.search_output import SearchOutput
 from autofit.aggregator.aggregator import Aggregator
 
 
-class Subplot(Enum):
+class SubplotFit(Enum):
     """
     The subplots that can be extracted from the subplot_fit image.
 
@@ -27,7 +32,11 @@ class Subplot(Enum):
 
 
 class SubplotFitImage:
-    def __init__(self, image: Image.Image):
+    def __init__(
+        self,
+        image: Image.Image,
+        suplot_type: Type[SubplotFit] = SubplotFit,
+    ):
         """
         The subplot_fit image associated with one fit.
 
@@ -38,8 +47,16 @@ class SubplotFitImage:
         """
         self._image = image
 
-        self._single_image_width = self._image.width // 3
-        self._single_image_height = self._image.height // 2
+        x_max = 0
+        y_max = 0
+
+        for subplot in suplot_type:
+            x, y = subplot.value
+            x_max = max(x_max, x)
+            y_max = max(y_max, y)
+
+        self._single_image_width = self._image.width // (x_max + 1)
+        self._single_image_height = self._image.height // (y_max + 1)
 
     def image_at_coordinates(
         self,
@@ -84,10 +101,12 @@ class AggregateImages:
             The aggregator containing the fit results.
         """
         self._aggregator = aggregator
+        self._source_images = None
 
     def extract_image(
         self,
-        *subplots: Subplot,
+        *subplots: Union[Enum, List[Image.Image], Callable],
+        subplot_width: Optional[int] = sys.maxsize,
     ) -> Image.Image:
         """
         Extract the images at the specified subplots and combine them into
@@ -97,24 +116,183 @@ class AggregateImages:
         Parameters
         ----------
         subplots
-            The subplots to extract.
+            The subplots to output. These can be:
+            - enum values
+            - lists of the same length as the aggregator output
+            - functions that take a SearchOutput as an argument
+        subplot_width
+            Defines the width of each subplot in number of images.
+            If this is greater than the number of subplots then it defaults to
+            the number of subplots.
+            If this is less than the number of subplots then it causes the
+            images to wrap.
 
         Returns
         -------
         The combined image.
         """
         matrix = []
-        for result in self._aggregator:
-            subplot_fit_image = SubplotFitImage(result.image("subplot_fit"))
-            matrix.append(
-                [
-                    subplot_fit_image.image_at_coordinates(*subplot.value)
-                    for subplot in subplots
-                ]
+        for i, result in enumerate(self._aggregator):
+            matrix.extend(
+                self._matrix_for_result(
+                    i,
+                    result,
+                    *subplots,
+                    subplot_width=subplot_width,
+                )
             )
 
-        total_width = sum(image.width for image in matrix[0])
-        total_height = sum(image.height for image in list(zip(*matrix))[0])
+        return self._matrix_to_image(matrix)
+
+    def output_to_folder(
+        self,
+        folder: Path,
+        *subplots: Union[SubplotFit, List[Image.Image], Callable],
+        subplot_width: Optional[int] = sys.maxsize,
+        name: str = "name",
+    ):
+        """
+        Output one subplot image for each fit in the aggregator.
+
+        Parameters
+        ----------
+        folder
+            The target folder in which to store the subplots.
+        subplots
+            The subplots to output. These can be:
+            - enum values
+            - lists of the same length as the aggregator output
+            - functions that take a SearchOutput as an argument
+        subplot_width
+            Defines the width of each subplot in number of images.
+            If this is greater than the number of subplots then it defaults to
+            the number of subplots.
+            If this is less than the number of subplots then it causes the
+            images to wrap.
+        name
+            The attribute of each fit to use as the name of the output file.
+        """
+        folder.mkdir(exist_ok=True)
+
+        for i, result in enumerate(self._aggregator):
+            image = self._matrix_to_image(
+                self._matrix_for_result(
+                    i,
+                    result,
+                    *subplots,
+                    subplot_width=subplot_width,
+                )
+            )
+            image.save(folder / f"{getattr(result, name)}.png")
+
+    @staticmethod
+    def _matrix_for_result(
+        i: int,
+        result: SearchOutput,
+        *subplots: Union[SubplotFit, List[Image.Image], Callable],
+        subplot_width: int = sys.maxsize,
+    ) -> List[List[Image.Image]]:
+        """
+        Create a matrix of images each in the position they will be in the
+        final image.
+
+        Parameters
+        ----------
+        result
+            The fit result.
+        subplots
+            The subplots to output. These can be:
+            - enum values
+            - lists of the same length as the aggregator output
+            - functions that take a SearchOutput as an argument
+        subplot_width
+            The number of subplots to include in each row of the matrix.
+
+        Returns
+        -------
+        The matrix of images.
+        """
+        _images = {}
+
+        def get_image(subplot_: Enum) -> SubplotFitImage:
+            """
+            Get the image for the subplot.
+
+            This assumes that the subplot filename is the same as the subplot
+            class name but using snake_case.
+
+            Parameters
+            ----------
+            subplot_
+                The type of subplot to get the image for.
+
+            Returns
+            -------
+            The image for the subplot.
+            """
+            subplot_type = subplot_.__class__
+            name = (
+                re.sub(
+                    r"([A-Z])",
+                    r"_\1",
+                    subplot_type.__name__,
+                )
+                .lower()
+                .lstrip("_")
+            )
+
+            if subplot_type not in _images:
+                _images[subplot_type] = SubplotFitImage(result.image(name))
+            return _images[subplot_type]
+
+        matrix = []
+        row = []
+        for subplot in subplots:
+            if isinstance(subplot, SubplotFit):
+                row.append(
+                    get_image(subplot).image_at_coordinates(
+                        *subplot.value,
+                    )
+                )
+            elif isinstance(subplot, list):
+                row.append(subplot[i])
+            else:
+                try:
+                    row.append(subplot(result))
+                except TypeError:
+                    raise TypeError(
+                        "The subplots must be of type Subplot or a list of "
+                        "images or a function that takes a SearchOutput as an "
+                        "argument."
+                    )
+
+            if len(row) == subplot_width:
+                matrix.append(row)
+                row = []
+
+        if len(row) > 0:
+            matrix.append(row)
+
+        return matrix
+
+    @staticmethod
+    def _matrix_to_image(matrix: List[List[Image.Image]]) -> Image.Image:
+        """
+        Create an image including all the images in the matrix.
+
+        Parameters
+        ----------
+        matrix
+            The matrix of images to combine into one image
+
+        Returns
+        -------
+        The combined image.
+        """
+        total_width = max(sum(image.width for image in row) for row in matrix)
+        total_height = max(
+            sum(image.height for image in column) for column in list(zip(*matrix))
+        )
 
         image = Image.new("RGB", (total_width, total_height))
 
