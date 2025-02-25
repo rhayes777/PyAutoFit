@@ -1,5 +1,6 @@
 from scipy.stats import linregress
 from .abstract import AbstractInterpolator
+from autofit.interpolator.linear_relationship import LinearRelationship
 
 
 class LinearInterpolator(AbstractInterpolator):
@@ -8,6 +9,7 @@ class LinearInterpolator(AbstractInterpolator):
     """
 
     @staticmethod
-    def _interpolate(x, y, value):
+    def _relationship(x, y):
         slope, intercept, r, p, std_err = linregress(x, y)
-        return slope * value + intercept
+
+        return LinearRelationship(slope, intercept)
