@@ -5,7 +5,7 @@ from typing import List
 from astropy.io import fits
 from pathlib import Path
 
-from autofit import SearchOutput
+from autofit.aggregator.search_output import SearchOutput
 from autofit.aggregator import Aggregator
 
 
