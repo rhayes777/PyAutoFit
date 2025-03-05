@@ -8,6 +8,7 @@ from PIL import Image
 
 from autofit.aggregator.search_output import SearchOutput
 from autofit.aggregator.aggregator import Aggregator
+from autofit.aggregator.summary.subplot_filename import subplot_filename
 
 
 class SubplotFit(Enum):
@@ -231,18 +232,12 @@ class AggregateImages:
             The image for the subplot.
             """
             subplot_type = subplot_.__class__
-            name = (
-                re.sub(
-                    r"([A-Z])",
-                    r"_\1",
-                    subplot_type.__name__,
-                )
-                .lower()
-                .lstrip("_")
-            )
-
             if subplot_type not in _images:
-                _images[subplot_type] = SubplotFitImage(result.image(name))
+                _images[subplot_type] = SubplotFitImage(
+                    result.image(
+                        subplot_filename(subplot_),
+                    )
+                )
             return _images[subplot_type]
 
         matrix = []
