@@ -107,7 +107,7 @@ class FactorGraphModel(AbstractDeclarativeFactor):
     ) -> CombinedResult:
         child_results = [
             model_factor.analysis.make_result(
-                samples_summary=samples_summary,
+                samples_summary=samples_summary.subsamples(model_factor.prior_model),
                 paths=paths,
                 samples=samples,
                 search_internal=search_internal,

@@ -12,7 +12,16 @@ def test_make_result():
     )
     result = factor_graph_model.make_result(
         samples_summary=af.SamplesSummary(
-            max_log_likelihood_sample=af.Sample(0, 0, 0),
+            max_log_likelihood_sample=af.Sample(
+                0,
+                0,
+                0,
+                kwargs={
+                    ("0", "centre"): 1.0,
+                    ("0", "normalization"): 1.0,
+                    ("0", "sigma"): 1.0,
+                },
+            ),
             model=af.Collection(model),
         ),
         paths=NullPaths(),
