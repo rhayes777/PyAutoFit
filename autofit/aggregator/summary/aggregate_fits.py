@@ -1,12 +1,25 @@
+import re
 from enum import Enum
 
 from astropy.io import fits
 
 from autofit.aggregator import Aggregator
-from autofit.aggregator.summary.subplot_filename import subplot_filename
 
 
-class Fit(Enum):
+def subplot_filename(subplot: Enum) -> str:
+    subplot_type = subplot.__class__
+    return (
+        re.sub(
+            r"([A-Z])",
+            r"_\1",
+            subplot_type.__name__.replace("FITS", ""),
+        )
+        .lower()
+        .lstrip("_")
+    )
+
+
+class FitFITS(Enum):
     ModelImage = "MODEL_IMAGE"
     ResidualMap = "RESIDUAL_MAP"
     NormalizedResidualMap = "NORMALIZED_RESIDUAL_MAP"

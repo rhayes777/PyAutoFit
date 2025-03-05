@@ -1,6 +1,4 @@
-import re
 import sys
-from enum import Enum
 from typing import Optional, List, Union, Callable, Type
 from pathlib import Path
 
@@ -8,7 +6,22 @@ from PIL import Image
 
 from autofit.aggregator.search_output import SearchOutput
 from autofit.aggregator.aggregator import Aggregator
-from autofit.aggregator.summary.subplot_filename import subplot_filename
+
+import re
+from enum import Enum
+
+
+def subplot_filename(subplot: Enum) -> str:
+    subplot_type = subplot.__class__
+    return (
+        re.sub(
+            r"([A-Z])",
+            r"_\1",
+            subplot_type.__name__,
+        )
+        .lower()
+        .lstrip("_")
+    )
 
 
 class SubplotFit(Enum):
