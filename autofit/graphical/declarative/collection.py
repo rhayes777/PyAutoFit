@@ -124,7 +124,7 @@ class FactorGraphModel(AbstractDeclarativeFactor):
 
         Returns
         -------
-
+        A result with child results for each model factor
         """
         child_results = [
             model_factor.analysis.make_result(
@@ -142,6 +142,9 @@ class FactorGraphModel(AbstractDeclarativeFactor):
         ]
         return CombinedResult(
             child_results,
-            samples,
-            samples_summary,
+            samples_summary=samples_summary,
+            paths=paths,
+            samples=samples,
+            search_internal=search_internal,
+            analysis=analysis,
         )

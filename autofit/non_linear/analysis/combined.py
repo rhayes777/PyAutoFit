@@ -21,6 +21,9 @@ class CombinedResult(Result):
         results: List[Result],
         samples: Optional[SamplesPDF] = None,
         samples_summary: Optional[SamplesSummary] = None,
+        paths: Optional[AbstractPaths] = None,
+        search_internal: Optional[object] = None,
+        analysis: Optional[Analysis] = None,
     ):
         """
         A `Result` object that is composed of multiple `Result` objects. This is used to combine the results of
@@ -35,6 +38,9 @@ class CombinedResult(Result):
         super().__init__(
             samples_summary=samples_summary,
             samples=samples,
+            paths=paths,
+            search_internal=search_internal,
+            analysis=analysis,
         )
         self.child_results = results
 
