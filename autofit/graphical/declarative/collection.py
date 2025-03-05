@@ -5,16 +5,16 @@ from autofit.mapper.model import ModelInstance
 from autofit.tools.namer import namer
 from .abstract import AbstractDeclarativeFactor
 
+from autofit.jax_wrapper import register_pytree_node_class
 
+
+@register_pytree_node_class
 class FactorGraphModel(AbstractDeclarativeFactor):
     def __init__(
-            self,
-            *model_factors: Union[
-                AbstractDeclarativeFactor,
-                HierarchicalFactor
-            ],
-            name=None,
-            include_prior_factors=True,
+        self,
+        *model_factors: Union[AbstractDeclarativeFactor, HierarchicalFactor],
+        name=None,
+        include_prior_factors=True,
     ):
         """
         A collection of factors that describe models, which can be
@@ -33,6 +33,20 @@ class FactorGraphModel(AbstractDeclarativeFactor):
         self._model_factors = list(model_factors)
         self._name = name or namer(self.__class__.__name__)
 
+    def tree_flatten(self):
+        return (
+            (self._model_factors,),
+            (self._name, self.include_prior_factors),
+        )
+
+    @classmethod
+    def tree_unflatten(cls, aux_data, children):
+        return cls(
+            *children[0],
+            name=aux_data[0],
+            include_prior_factors=aux_data[1],
+        )
+
     @property
     def prior_model(self):
         """
@@ -40,11 +54,10 @@ class FactorGraphModel(AbstractDeclarativeFactor):
         in each model factor
         """
         from autofit.mapper.prior_model.collection import Collection
-        return Collection({
-            factor.name: factor.prior_model
-            for factor
-            in self.model_factors
-        })
+
+        return Collection(
+            {factor.name: factor.prior_model for factor in self.model_factors}
+        )
 
     @property
     def optimiser(self):
@@ -61,21 +74,13 @@ class FactorGraphModel(AbstractDeclarativeFactor):
     def name(self):
         return self._name
 
-    def add(
-            self,
-            model_factor: AbstractDeclarativeFactor
-    ):
+    def add(self, model_factor: AbstractDeclarativeFactor):
         """
         Add another factor to this collection.
         """
-        self._model_factors.append(
-            model_factor
-        )
+        self._model_factors.append(model_factor)
 
-    def log_likelihood_function(
-            self,
-            instance: ModelInstance
-    ) -> float:
+    def log_likelihood_function(self, instance: ModelInstance) -> float:
         """
         Compute the combined likelihood of each factor from a collection of instances
         with the same ordering as the factors.
@@ -90,13 +95,8 @@ class FactorGraphModel(AbstractDeclarativeFactor):
         The combined likelihood of all factors
         """
         log_likelihood = 0
-        for model_factor, instance_ in zip(
-                self.model_factors,
-                instance
-        ):
-            log_likelihood += model_factor.log_likelihood_function(
-                instance_
-            )
+        for model_factor, instance_ in zip(self.model_factors, instance):
+            log_likelihood += model_factor.log_likelihood_function(instance_)
 
         return log_likelihood
 
@@ -104,15 +104,8 @@ class FactorGraphModel(AbstractDeclarativeFactor):
     def model_factors(self):
         model_factors = list()
         for model_factor in self._model_factors:
-            if isinstance(
-                    model_factor,
-                    HierarchicalFactor
-            ):
-                model_factors.extend(
-                    model_factor.factors
-                )
+            if isinstance(model_factor, HierarchicalFactor):
+                model_factors.extend(model_factor.factors)
             else:
-                model_factors.append(
-                    model_factor
-                )
+                model_factors.append(model_factor)
         return model_factors
