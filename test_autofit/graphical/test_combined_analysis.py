@@ -28,3 +28,6 @@ def test_make_result():
     )
     assert len(result.child_results) == 1
     assert isinstance(result.model, af.Collection)
+
+    (child_result,) = result.child_results
+    assert child_result.model == model
