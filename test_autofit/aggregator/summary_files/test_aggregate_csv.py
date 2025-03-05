@@ -1,6 +1,5 @@
 import csv
 
-from autofit.aggregator import Aggregator
 from pathlib import Path
 
 from autofit.aggregator.aggregate_csv import AggregateCSV
@@ -16,9 +15,7 @@ def output_path():
 
 
 @pytest.fixture
-def summary():
-    directory = Path(__file__).parent / "aggregate_summary"
-    aggregator = Aggregator.from_directory(directory)
+def summary(aggregator):
     return AggregateCSV(aggregator)
 
 

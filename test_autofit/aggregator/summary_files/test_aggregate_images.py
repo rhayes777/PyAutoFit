@@ -8,12 +8,6 @@ from autofit.aggregator.aggregate_images import AggregateImages, SubplotFit
 
 
 @pytest.fixture
-def aggregator():
-    directory = Path(__file__).parent / "aggregate_summary"
-    return Aggregator.from_directory(directory)
-
-
-@pytest.fixture
 def aggregate(aggregator):
     return AggregateImages(aggregator)
 
