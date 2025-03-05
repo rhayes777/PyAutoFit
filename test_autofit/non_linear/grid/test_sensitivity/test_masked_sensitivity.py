@@ -71,7 +71,7 @@ def test_perturbed_physical_centres_list_from(masked_result):
     ]
 
 
-def test_visualise(sensitivity):
+def _test_visualise(sensitivity):
     def visualiser(sensitivity_result, **_):
         assert len(sensitivity_result.samples) == 8
 

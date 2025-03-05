@@ -3,14 +3,7 @@ from pathlib import Path
 
 from PIL import Image
 
-from autofit.aggregator import Aggregator
-from autofit.aggregator.aggregate_images import AggregateImages, SubplotFit
-
-
-@pytest.fixture
-def aggregator():
-    directory = Path(__file__).parent / "aggregate_summary"
-    return Aggregator.from_directory(directory)
+from autofit.aggregator.summary.aggregate_images import AggregateImages, SubplotFit
 
 
 @pytest.fixture
