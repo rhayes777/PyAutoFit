@@ -5,8 +5,7 @@ from typing import List
 from astropy.io import fits
 from pathlib import Path
 
-from astropy.io.fits.hdu.image import _ImageBaseHDU
-
+from autofit import SearchOutput
 from autofit.aggregator import Aggregator
 
 
@@ -24,6 +23,10 @@ def subplot_filename(subplot: Enum) -> str:
 
 
 class FitFITS(Enum):
+    """
+    The HDUs that can be extracted from the fit.fits file.
+    """
+
     ModelImage = "MODEL_IMAGE"
     ResidualMap = "RESIDUAL_MAP"
     NormalizedResidualMap = "NORMALIZED_RESIDUAL_MAP"
@@ -32,9 +35,35 @@ class FitFITS(Enum):
 
 class AggregateFITS:
     def __init__(self, aggregator: Aggregator):
+        """
+        A class for extracting fits files from the aggregator.
+
+        Parameters
+        ----------
+        aggregator
+            The aggregator containing the fits files.
+        """
         self.aggregator = aggregator
 
-    def _hdus(self, result, *hdus) -> List[fits.ImageHDU]:
+    @staticmethod
+    def _hdus(
+        result: SearchOutput,
+        *hdus: Enum,
+    ) -> List[fits.ImageHDU]:
+        """
+        Extract the HDUs from a given fits for a given search.
+
+        Parameters
+        ----------
+        result
+            The search output.
+        hdus
+            The HDUs to extract.
+
+        Returns
+        -------
+        The extracted HDUs.
+        """
         row = []
         for hdu in hdus:
             source = result.value(subplot_filename(hdu))
@@ -47,7 +76,21 @@ class AggregateFITS:
             )
         return row
 
-    def extract_fits(self, *hdus: Enum):
+    def extract_fits(self, *hdus: Enum) -> List[fits.HDUList]:
+        """
+        Extract the HDUs from the fits files for every search in the aggregator.
+
+        Return the result as a list of HDULists. The first HDU in each list is an empty PrimaryHDU.
+
+        Parameters
+        ----------
+        hdus
+            The HDUs to extract.
+
+        Returns
+        -------
+        The extracted HDUs.
+        """
         output = [fits.PrimaryHDU()]
         for result in self.aggregator:
             output.extend(self._hdus(result, *hdus))
@@ -60,6 +103,20 @@ class AggregateFITS:
         *hdus: Enum,
         name: str = "name",
     ):
+        """
+        Output the fits files for every search in the aggregator to a folder.
+
+        Only include HDUs specific in the hdus argument.
+
+        Parameters
+        ----------
+        folder
+            The folder to output the fits files to.
+        hdus
+            The HDUs to output.
+        name
+            The name of the fits file. This is the attribute of the search output that is used to name the file.
+        """
         folder.mkdir(parents=True, exist_ok=True)
 
         for result in self.aggregator:
