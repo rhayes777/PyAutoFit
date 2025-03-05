@@ -105,15 +105,38 @@ class FactorGraphModel(AbstractDeclarativeFactor):
         search_internal: Optional[object] = None,
         analysis: Optional[object] = None,
     ) -> CombinedResult:
+        """
+        Make a result from the samples summary and paths.
+
+        The top level result accounts for the combined model.
+        There is one child result for each model factor.
+
+        Parameters
+        ----------
+        samples_summary
+            A summary of the samples
+        paths
+            Handles saving and loading data
+        samples
+            The full list of samples
+        search_internal
+        analysis
+
+        Returns
+        -------
+
+        """
         child_results = [
             model_factor.analysis.make_result(
                 samples_summary=samples_summary.subsamples(
                     model_factor.prior_model,
                 ),
                 paths=paths,
-                samples=samples,
+                samples=samples.subsamples(model_factor.prior_model)
+                if samples
+                else None,
                 search_internal=search_internal,
-                analysis=analysis,
+                analysis=model_factor,
             )
             for model_factor in self.model_factors
         ]
