@@ -186,7 +186,7 @@ class AggregateImages:
         name
             The attribute of each fit to use as the name of the output file.
         """
-        folder.mkdir(exist_ok=True)
+        folder.mkdir(exist_ok=True, parents=True)
 
         for i, result in enumerate(self._aggregator):
             image = self._matrix_to_image(
