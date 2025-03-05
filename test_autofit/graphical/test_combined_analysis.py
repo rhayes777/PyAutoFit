@@ -27,3 +27,4 @@ def test_make_result():
         paths=NullPaths(),
     )
     assert len(result.child_results) == 1
+    assert isinstance(result.model, af.Collection)

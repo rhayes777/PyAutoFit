@@ -15,7 +15,7 @@ from autofit.non_linear.samples import SamplesPDF
 logger = logging.getLogger(__name__)
 
 
-class CombinedResult:
+class CombinedResult(Result):
     def __init__(
         self,
         results: List[Result],
@@ -32,9 +32,11 @@ class CombinedResult:
         results
             The list of `Result` objects that are combined into this `CombinedResult` object.
         """
+        super().__init__(
+            samples_summary=samples_summary,
+            samples=samples,
+        )
         self.child_results = results
-        self.samples = samples
-        self.samples_summary = samples_summary
 
     def __getattr__(self, item: str):
         """
