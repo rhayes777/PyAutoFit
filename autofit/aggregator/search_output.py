@@ -78,11 +78,15 @@ class AbstractSearchOutput(ABC):
         return self.directory / "files"
 
     def _outputs(self, suffix):
+        return self._outputs_in_directory("files", suffix) + self._outputs_in_directory(
+            "image", suffix
+        )
+
+    def _outputs_in_directory(self, name: str, suffix: str):
+        files_path = self.directory / name
         outputs = []
-        for file_path in self.files_path.rglob(f"*{suffix}"):
-            name = ".".join(
-                file_path.relative_to(self.files_path).with_suffix("").parts
-            )
+        for file_path in files_path.rglob(f"*{suffix}"):
+            name = ".".join(file_path.relative_to(files_path).with_suffix("").parts)
             outputs.append(FileOutput(name, file_path))
         return outputs
 

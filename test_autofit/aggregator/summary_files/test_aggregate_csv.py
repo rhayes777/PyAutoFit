@@ -2,7 +2,7 @@ import csv
 
 from pathlib import Path
 
-from autofit.aggregator.aggregate_csv import AggregateCSV
+from autofit.aggregator.summary.aggregate_csv import AggregateCSV
 
 import pytest
 
