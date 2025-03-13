@@ -28,6 +28,7 @@ class Sensitivity:
         base_fit_cls: Callable,
         perturb_fit_cls: Callable,
         job_cls: ClassVar = Job,
+        batch_range : Tuple[int, int] = None,
         visualizer_cls: Optional[Callable] = None,
         perturb_model_prior_func: Optional[Callable] = None,
         number_of_steps: Union[Tuple[int, ...], int] = 4,
@@ -63,6 +64,10 @@ class Sensitivity:
             The class which fits the base model to each simulated dataset of the sensitivity map.
         perturb_fit_cls
             The class which fits the perturb model to each simulated dataset of the sensitivity map.
+        batch_range
+            The integer range of sensitivity mapping jobs to perform. If None, all jobs are performed. If not None,
+            only the jobs with indices within this range are performed. This means, for example, the range can be
+            used to distribute jobs to different machines.
         visualizer_cls
             A class which can be used to visualize the results of the sensitivity mapping after each fit is performed,
             therefore providing visualization on the fly.
@@ -101,6 +106,7 @@ class Sensitivity:
         self.perturb_model_prior_func = perturb_model_prior_func
 
         self.job_cls = job_cls
+        self.batch_range = batch_range
         self.visualizer_cls = visualizer_cls
 
         self.number_of_steps = number_of_steps
@@ -158,6 +164,9 @@ class Sensitivity:
 
             if not self._should_bypass(number=number):
                 jobs.append(self._make_job(number))
+
+        if self.batch_range is not None:
+            jobs = jobs[self.batch_range[0]:self.batch_range[1]]
 
         for result in process_class.run_jobs(
             jobs, number_of_cores=self.number_of_cores
