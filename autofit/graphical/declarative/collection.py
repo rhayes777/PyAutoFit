@@ -1,9 +1,13 @@
-from typing import Union
+from typing import Union, Optional
 
 from autofit.graphical.declarative.factor.hierarchical import HierarchicalFactor
 from autofit.mapper.model import ModelInstance
 from autofit.tools.namer import namer
 from .abstract import AbstractDeclarativeFactor
+from autofit.non_linear.paths.abstract import AbstractPaths
+from autofit.non_linear.samples.pdf import SamplesPDF
+from autofit.non_linear.samples.summary import SamplesSummary
+from autofit.non_linear.analysis.combined import CombinedResult
 
 from autofit.jax_wrapper import register_pytree_node_class
 
@@ -109,3 +113,55 @@ class FactorGraphModel(AbstractDeclarativeFactor):
             else:
                 model_factors.append(model_factor)
         return model_factors
+
+    def make_result(
+        self,
+        samples_summary: SamplesSummary,
+        paths: AbstractPaths,
+        samples: Optional[SamplesPDF] = None,
+        search_internal: Optional[object] = None,
+        analysis: Optional[object] = None,
+    ) -> CombinedResult:
+        """
+        Make a result from the samples summary and paths.
+
+        The top level result accounts for the combined model.
+        There is one child result for each model factor.
+
+        Parameters
+        ----------
+        samples_summary
+            A summary of the samples
+        paths
+            Handles saving and loading data
+        samples
+            The full list of samples
+        search_internal
+        analysis
+
+        Returns
+        -------
+        A result with child results for each model factor
+        """
+        child_results = [
+            model_factor.analysis.make_result(
+                samples_summary=samples_summary.subsamples(
+                    model_factor.prior_model,
+                ),
+                paths=paths,
+                samples=samples.subsamples(model_factor.prior_model)
+                if samples
+                else None,
+                search_internal=search_internal,
+                analysis=model_factor,
+            )
+            for model_factor in self.model_factors
+        ]
+        return CombinedResult(
+            child_results,
+            samples_summary=samples_summary,
+            paths=paths,
+            samples=samples,
+            search_internal=search_internal,
+            analysis=analysis,
+        )
