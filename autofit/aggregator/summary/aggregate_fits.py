@@ -43,6 +43,9 @@ class AggregateFITS:
         aggregator
             The aggregator containing the fits files.
         """
+        if len(aggregator) == 0:
+            raise ValueError("The aggregator is empty.")
+
         self.aggregator = aggregator
 
     @staticmethod

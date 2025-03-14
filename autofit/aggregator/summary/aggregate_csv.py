@@ -190,6 +190,9 @@ class AggregateCSV:
         ----------
         aggregator
         """
+        if len(aggregator) == 0:
+            raise ValueError("The aggregator is empty.")
+
         self._aggregator = aggregator
         self._columns = []
 
