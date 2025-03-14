@@ -22,7 +22,7 @@ class MockFit:
     def set_array(self, key, value):
         pass
 
-    def set_hdu(self, key, value):
+    def set_fits(self, key, value):
         pass
 
 

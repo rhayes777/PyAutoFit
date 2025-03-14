@@ -1,16 +1,12 @@
+from enum import Enum
+
 import pytest
 from pathlib import Path
 
 from PIL import Image
 
 from autofit.aggregator import Aggregator
-from autofit.aggregator.aggregate_images import AggregateImages, SubplotFit
-
-
-@pytest.fixture
-def aggregator():
-    directory = Path(__file__).parent / "aggregate_summary"
-    return Aggregator.from_directory(directory)
+from autofit.aggregator.summary.aggregate_images import AggregateImages, SubplotFit
 
 
 @pytest.fixture
@@ -67,8 +63,23 @@ def test_output_to_folder(aggregate, output_directory):
         SubplotFit.Data,
         SubplotFit.SourcePlaneZoomed,
         SubplotFit.SourceModelImage,
+        name="name",
     )
     assert list(Path(output_directory).glob("*.png"))
+
+
+def test_list_of_names(aggregate, output_directory):
+    aggregate.output_to_folder(
+        output_directory,
+        SubplotFit.Data,
+        SubplotFit.SourcePlaneZoomed,
+        SubplotFit.SourceModelImage,
+        name=["one", "two"],
+    )
+    assert [path.name for path in Path(output_directory).glob("*.png")] == [
+        "two.png",
+        "one.png",
+    ]
 
 
 def test_output_to_folder_name(
@@ -117,3 +128,27 @@ def test_custom_function(aggregate):
     )
 
     assert result.size == (193, 120)
+
+
+def test_custom_subplot_fit(aggregate):
+    class SubplotFit(Enum):
+        """
+        The subplots that can be extracted from the subplot_fit image.
+
+        The values correspond to the position of the subplot in the 4x3 grid.
+        """
+
+        Data = (0, 0)
+
+    result = aggregate.extract_image(
+        SubplotFit.Data,
+    )
+    assert result.size == (61, 120)
+
+
+def test_bad_aggregator():
+    directory = Path(__file__).parent / "aggregate_summaries"
+    aggregator = Aggregator.from_directory(directory)
+
+    with pytest.raises(ValueError):
+        AggregateImages(aggregator)

@@ -69,6 +69,53 @@ class Array(Object):
         return self.value
 
 
+class Fits(Object):
+    """
+    A serialised astropy.io.fits.HDUList
+    """
+
+    __tablename__ = "fits"
+
+    id = sa.Column(
+        sa.Integer,
+        sa.ForeignKey("object.id"),
+        primary_key=True,
+        index=True,
+    )
+
+    __mapper_args__ = {
+        "polymorphic_identity": "fits",
+    }
+
+    hdus = sa.orm.relationship(
+        "HDU",
+        back_populates="fits",
+        foreign_keys="HDU.fits_id",
+    )
+
+    fit_id = sa.Column(sa.String, sa.ForeignKey("fit.id"))
+    fit = sa.orm.relationship(
+        "Fit",
+        uselist=False,
+        foreign_keys=[fit_id],
+        back_populates="fits",
+    )
+
+    @property
+    def hdu_list(self):
+        from astropy.io import fits
+
+        return fits.HDUList([hdu.hdu for hdu in self.hdus])
+
+    @hdu_list.setter
+    def hdu_list(self, hdu_list):
+        self.hdus = [HDU(hdu=hdu) for hdu in hdu_list]
+
+    @property
+    def value(self):
+        return self.hdu_list
+
+
 class HDU(Array):
     """
     A serialised astropy.io.fits.PrimaryHDU
@@ -89,10 +136,23 @@ class HDU(Array):
         "polymorphic_identity": "hdu",
     }
 
+    is_primary = sa.Column(sa.Boolean)
+
     fit = sa.orm.relationship(
         "Fit",
         uselist=False,
         foreign_keys=[Array.fit_id],
+        back_populates="hdus",
+    )
+
+    fits_id = sa.Column(
+        sa.Integer,
+        sa.ForeignKey("fits.id"),
+    )
+    fits = sa.orm.relationship(
+        "Fits",
+        uselist=False,
+        foreign_keys=[fits_id],
         back_populates="hdus",
     )
 
@@ -113,13 +173,18 @@ class HDU(Array):
     def hdu(self):
         from astropy.io import fits
 
-        return fits.PrimaryHDU(
+        type_ = fits.PrimaryHDU if self.is_primary else fits.ImageHDU
+
+        return type_(
             self.array,
             self.header,
         )
 
     @hdu.setter
     def hdu(self, hdu):
+        from astropy.io import fits
+
+        self.is_primary = isinstance(hdu, fits.PrimaryHDU)
         self.array = hdu.data
         self.header = hdu.header
 

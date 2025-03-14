@@ -11,7 +11,7 @@ from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.samples import Samples
 from .model import Base, Object
 from ..sqlalchemy_ import sa
-from .array import Array, HDU
+from .array import Array, HDU, Fits
 from ...aggregator import fit_interface
 from ...non_linear.samples.efficient import EfficientSamples
 
@@ -337,6 +337,11 @@ class Fit(Base, fit_interface.Fit):
         lazy="joined",
         foreign_keys=[HDU.fit_id],
     )
+    fits: Mapped[List[Fits]] = sa.orm.relationship(
+        "Fits",
+        lazy="joined",
+        foreign_keys=[Fits.fit_id],
+    )
 
     def __getitem__(self, item: str):
         """
@@ -354,7 +359,7 @@ class Fit(Base, fit_interface.Fit):
         -------
         An unpickled object
         """
-        for p in self.jsons + self.arrays + self.hdus + self.pickles:
+        for p in self.jsons + self.arrays + self.hdus + self.pickles + self.fits:
             if p.name == item:
                 value = p.value
                 if item == "samples_summary":
@@ -437,38 +442,38 @@ class Fit(Base, fit_interface.Fit):
                 return p.array
         raise KeyError(f"Array {key} not found")
 
-    def set_hdu(self, key: str, value):
+    def set_fits(self, key: str, value):
         """
-        Add an HDU to the database. Overwrites any existing HDU
+        Add a fits object to the database. Overwrites any existing fits
         with the same name.
 
         Parameters
         ----------
         key
-            The name of the HDU
+            The name of the fits
         value
             A fits HDUList
         """
-        new = HDU(name=key, hdu=value)
-        self.hdus = [p for p in self.hdus if p.name != key] + [new]
+        new = Fits(name=key, hdu_list=value)
+        self.fits = [p for p in self.fits if p.name != key] + [new]
 
-    def get_hdu(self, key: str):
+    def get_fits(self, key: str):
         """
-        Retrieve an HDU from the database.
+        Retrieve a fits object from the database.
 
         Parameters
         ----------
         key
-            The name of the HDU
+            The name of the fits
 
         Returns
         -------
         A fits HDUList
         """
-        for p in self.hdus:
+        for p in self.fits:
             if p.name == key:
-                return p.hdu
-        raise KeyError(f"HDU {key} not found")
+                return p.hdu_list
+        raise KeyError(f"Fits {key} not found")
 
     def __contains__(self, item):
         for i in self.pickles + self.jsons + self.arrays + self.hdus:
