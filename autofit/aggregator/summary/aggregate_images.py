@@ -256,7 +256,7 @@ class AggregateImages:
         matrix = []
         row = []
         for subplot in subplots:
-            if isinstance(subplot, SubplotFit):
+            if isinstance(subplot, Enum):
                 row.append(
                     get_image(subplot).image_at_coordinates(
                         *subplot.value,
