@@ -51,7 +51,7 @@ class AggregateFITS:
     @staticmethod
     def _hdus(
         result: SearchOutput,
-        *hdus: Enum,
+        hdus: List[Enum],
     ) -> List[fits.ImageHDU]:
         """
         Extract the HDUs from a given fits for a given search.
@@ -79,7 +79,7 @@ class AggregateFITS:
             )
         return row
 
-    def extract_fits(self, *hdus: Enum) -> List[fits.HDUList]:
+    def extract_fits(self, hdus: List[Enum]) -> List[fits.HDUList]:
         """
         Extract the HDUs from the fits files for every search in the aggregator.
 
@@ -96,15 +96,15 @@ class AggregateFITS:
         """
         output = [fits.PrimaryHDU()]
         for result in self.aggregator:
-            output.extend(self._hdus(result, *hdus))
+            output.extend(self._hdus(result, hdus))
 
         return fits.HDUList(output)
 
     def output_to_folder(
         self,
         folder: Path,
-        *hdus: Enum,
         name: Union[str, List[str]],
+        hdus: List[Enum],
     ):
         """
         Output the fits files for every search in the aggregator to a folder.
@@ -133,7 +133,7 @@ class AggregateFITS:
                 [fits.PrimaryHDU()]
                 + self._hdus(
                     result,
-                    *hdus,
+                    hdus,
                 )
             )
             with open(folder / f"{output_name}.fits", "wb") as file:

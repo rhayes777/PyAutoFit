@@ -11,8 +11,10 @@ def make_summary(aggregator):
 
 def test_aggregate(summary):
     result = summary.extract_fits(
-        af.FitFITS.ModelImage,
-        af.FitFITS.ResidualMap,
+        [
+            af.FitFITS.ModelImage,
+            af.FitFITS.ResidualMap,
+        ],
     )
     assert len(result) == 5
 
@@ -21,9 +23,11 @@ def test_output_to_file(summary, output_directory):
     folder = output_directory / "fits"
     summary.output_to_folder(
         folder,
-        af.FitFITS.ModelImage,
-        af.FitFITS.ResidualMap,
-        name="id",
+        name="name",
+        hdus=[
+            af.FitFITS.ModelImage,
+            af.FitFITS.ResidualMap,
+        ],
     )
     assert len((list(folder.glob("*")))) == 2
 
@@ -31,9 +35,11 @@ def test_output_to_file(summary, output_directory):
 def test_list_of_names(summary, output_directory):
     summary.output_to_folder(
         output_directory,
-        af.FitFITS.ModelImage,
-        af.FitFITS.ResidualMap,
-        name=["one", "two"],
+        ["one", "two"],
+        [
+            af.FitFITS.ModelImage,
+            af.FitFITS.ResidualMap,
+        ],
     )
     assert [path.name for path in Path(output_directory).glob("*.fits")] == [
         "one.fits",
