@@ -135,3 +135,11 @@ def test_custom_subplot_fit(aggregate):
         SubplotFit.Data,
     )
     assert result.size == (61, 120)
+
+
+def test_bad_aggregator():
+    directory = Path(__file__).parent / "aggregate_summaries"
+    aggregator = Aggregator.from_directory(directory)
+
+    with pytest.raises(ValueError):
+        AggregateImages(aggregator)

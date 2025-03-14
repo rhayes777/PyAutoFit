@@ -114,6 +114,9 @@ class AggregateImages:
         aggregator
             The aggregator containing the fit results.
         """
+        if len(aggregator) == 0:
+            raise ValueError("The aggregator is empty.")
+
         self._aggregator = aggregator
         self._source_images = None
 
