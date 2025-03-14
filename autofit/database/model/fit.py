@@ -359,7 +359,7 @@ class Fit(Base, fit_interface.Fit):
         -------
         An unpickled object
         """
-        for p in self.jsons + self.arrays + self.hdus + self.pickles:
+        for p in self.jsons + self.arrays + self.hdus + self.pickles + self.fits:
             if p.name == item:
                 value = p.value
                 if item == "samples_summary":
