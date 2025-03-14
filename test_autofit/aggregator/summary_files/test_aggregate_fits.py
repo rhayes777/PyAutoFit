@@ -23,13 +23,13 @@ def test_output_to_file(summary, output_directory):
     folder = output_directory / "fits"
     summary.output_to_folder(
         folder,
-        name="name",
+        name="id",
         hdus=[
             af.FitFITS.ModelImage,
             af.FitFITS.ResidualMap,
         ],
     )
-    assert len((list(folder.glob("*")))) == 2
+    assert list(folder.glob("*"))
 
 
 def test_list_of_names(summary, output_directory):

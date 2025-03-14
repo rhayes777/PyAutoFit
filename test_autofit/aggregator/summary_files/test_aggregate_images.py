@@ -72,7 +72,7 @@ def test_subplot_width(aggregate):
 def test_output_to_folder(aggregate, output_directory):
     aggregate.output_to_folder(
         output_directory,
-        "name",
+        "id",
         [
             SubplotFit.Data,
             SubplotFit.SourcePlaneZoomed,
