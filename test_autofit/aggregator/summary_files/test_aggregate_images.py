@@ -1,3 +1,5 @@
+from enum import Enum
+
 import pytest
 from pathlib import Path
 
@@ -110,3 +112,27 @@ def test_custom_function(aggregate):
     )
 
     assert result.size == (193, 120)
+
+
+def test_custom_subplot_fit(aggregate):
+    class SubplotFit(Enum):
+        """
+        The subplots that can be extracted from the subplot_fit image.
+
+        The values correspond to the position of the subplot in the 4x3 grid.
+        """
+
+        Data = (0, 0)
+
+    result = aggregate.extract_image(
+        SubplotFit.Data,
+    )
+    assert result.size == (61, 120)
+
+
+def test_bad_aggregator():
+    directory = Path(__file__).parent / "aggregate_summaries"
+    aggregator = Aggregator.from_directory(directory)
+
+    with pytest.raises(ValueError):
+        AggregateImages(aggregator)
