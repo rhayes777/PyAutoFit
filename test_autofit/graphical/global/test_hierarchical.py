@@ -35,7 +35,7 @@ def reset_ids():
 
 def test_info(model):
     assert (
-        model.info
+        model.graph_info
         == """PriorFactors
 
 PriorFactor0 (HierarchicalFactor0)                                                        GaussianPrior [3], mean = 1.0, sigma = 0.01
