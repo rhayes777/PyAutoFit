@@ -48,11 +48,7 @@ class AbstractDeclarativeFactor(Analysis, ABC):
         A set of all priors encompassed by the contained likelihood models
         """
         return {
-            prior
-            for model
-            in self.model_factors
-            for prior
-            in model.prior_model.priors
+            prior for model in self.model_factors for prior in model.prior_model.priors
         }
 
     @property
@@ -67,8 +63,7 @@ class AbstractDeclarativeFactor(Analysis, ABC):
                 counter[prior] += 1
         return [
             (prior, count + 1 if self.include_prior_factors else count)
-            for prior, count
-            in counter.items()
+            for prior, count in counter.items()
         ]
 
     @property
@@ -91,8 +86,7 @@ class AbstractDeclarativeFactor(Analysis, ABC):
         """
         return {
             prior: prior.message ** (1 / (count - 1)) if count > 1 else prior.message
-            for prior, count
-            in self.prior_counts
+            for prior, count in self.prior_counts
         }
 
     @property
@@ -100,20 +94,13 @@ class AbstractDeclarativeFactor(Analysis, ABC):
         """
         The complete graph made by combining all factors and priors
         """
-        factors = [
-            model
-            for model
-            in self.model_factors
-        ]
+        factors = [model for model in self.model_factors]
         if self.include_prior_factors:
             factors += self.prior_factors
         # noinspection PyTypeChecker
         return DeclarativeFactorGraph(factors)
 
-    def draw_graph(
-            self,
-            **kwargs
-    ):
+    def draw_graph(self, **kwargs):
         """
         Visualise the graph.
 
@@ -128,28 +115,23 @@ class AbstractDeclarativeFactor(Analysis, ABC):
         graph = self.graph
 
         factor_labels = {
-            factor: factor.name
-            if factor.label is None
-            else factor.label
+            factor: factor.name if factor.label is None else factor.label
             for factor in graph.factors
         }
         variable_labels = {
-            variable: variable.name
-            if variable.label is None
-            else variable.label
+            variable: variable.name if variable.label is None else variable.label
             for variable in graph.all_variables
         }
 
         import matplotlib.pyplot as plt
+
         if "draw_labels" not in kwargs:
             kwargs["draw_labels"] = True
         if "variable_labels" not in kwargs:
             kwargs["variable_labels"] = variable_labels
         if "factor_labels" not in kwargs:
             kwargs["factor_labels"] = factor_labels
-        graph.draw_graph(
-            **kwargs
-        )
+        graph.draw_graph(**kwargs)
         plt.show()
         plt.close()
 
@@ -161,16 +143,13 @@ class AbstractDeclarativeFactor(Analysis, ABC):
         """
         Returns a EPMeanField of the factor graph
         """
-        return EPMeanField.from_approx_dists(
-            self.graph,
-            self.message_dict
-        )
+        return EPMeanField.from_approx_dists(self.graph, self.message_dict)
 
     def _make_ep_optimiser(
-            self,
-            optimiser: AbstractFactorOptimiser,
-            paths: Optional[AbstractPaths] = None,
-            ep_history: Optional = None,
+        self,
+        optimiser: AbstractFactorOptimiser,
+        paths: Optional[AbstractPaths] = None,
+        ep_history: Optional = None,
     ) -> EPOptimiser:
         return EPOptimiser(
             self.graph,
@@ -181,15 +160,15 @@ class AbstractDeclarativeFactor(Analysis, ABC):
                 if factor.optimiser is not None
             },
             ep_history=ep_history,
-            paths=paths
+            paths=paths,
         )
 
     def optimise(
-            self,
-            optimiser: AbstractFactorOptimiser,
-            paths: Optional[AbstractPaths] = None,
-            ep_history: Optional = None,
-            **kwargs
+        self,
+        optimiser: AbstractFactorOptimiser,
+        paths: Optional[AbstractPaths] = None,
+        ep_history: Optional = None,
+        **kwargs
     ):
         """
         Use an EP Optimiser to optimise the graph associated with this collection
@@ -209,15 +188,9 @@ class AbstractDeclarativeFactor(Analysis, ABC):
             A collection of prior models
         """
         from autofit.graphical.declarative.result import EPResult
-        opt = self._make_ep_optimiser(
-            optimiser,
-            paths=paths,
-            ep_history=ep_history
-        )
-        updated_ep_mean_field = opt.run(
-            self.mean_field_approximation(),
-            **kwargs
-        )
+
+        opt = self._make_ep_optimiser(optimiser, paths=paths, ep_history=ep_history)
+        updated_ep_mean_field = opt.run(self.mean_field_approximation(), **kwargs)
 
         return EPResult(
             ep_history=opt.ep_history,
@@ -228,10 +201,7 @@ class AbstractDeclarativeFactor(Analysis, ABC):
     # TODO : Visualize method before fit?
 
     def visualize(
-            self,
-            paths: AbstractPaths,
-            instance: ModelInstance,
-            during_analysis: bool
+        self, paths: AbstractPaths, instance: ModelInstance, during_analysis: bool
     ):
         """
         Visualise the instances provided using each factor.
@@ -247,21 +217,9 @@ class AbstractDeclarativeFactor(Analysis, ABC):
         during_analysis
             Is this visualisation during analysis?
         """
-        for model_factor, instance in zip(
-                self.model_factors,
-                instance
-        ):
-            model_factor.visualize(
-                paths,
-                instance,
-                during_analysis
-            )
-            model_factor.visualize_combined(
-                None,
-                paths,
-                instance,
-                during_analysis
-            )
+        for model_factor, instance in zip(self.model_factors, instance):
+            model_factor.visualize(paths, instance, during_analysis)
+            model_factor.visualize_combined(None, paths, instance, during_analysis)
 
     @property
     def global_prior_model(self) -> Collection:
@@ -272,10 +230,7 @@ class AbstractDeclarativeFactor(Analysis, ABC):
 
 
 class GlobalPriorModel(Collection):
-    def __init__(
-            self,
-            factor: AbstractDeclarativeFactor
-    ):
+    def __init__(self, factor: AbstractDeclarativeFactor):
         """
         A global model comprising all factors which can be used to compare
         results between global optimisation and expectation propagation.
@@ -285,15 +240,13 @@ class GlobalPriorModel(Collection):
         factor
             A factor comprising one or more factors, usually a graph
         """
-        super().__init__([
-            model_factor.prior_model
-            for model_factor
-            in factor.model_factors
-        ])
+        super().__init__(
+            [model_factor.prior_model for model_factor in factor.model_factors]
+        )
         self.factor = factor
 
     @property
-    def info(self) -> str:
+    def graph_info(self) -> str:
         """
         A string describing the collection of factors in the graphical style
         """
