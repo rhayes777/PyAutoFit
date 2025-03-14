@@ -121,10 +121,12 @@ class AggregateFITS:
 
         for result in self.aggregator:
             name = f"{getattr(result, name)}.fits"
-            fits.HDUList(
+            hdu_list = fits.HDUList(
                 [fits.PrimaryHDU()]
                 + self._hdus(
                     result,
                     *hdus,
                 )
-            ).writeto(folder / name)
+            )
+            with open(folder / name, "wb") as file:
+                hdu_list.writeto(file)
