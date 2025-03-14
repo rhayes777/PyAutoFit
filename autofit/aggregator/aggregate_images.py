@@ -1,6 +1,4 @@
-import re
 import sys
-from enum import Enum
 from typing import Optional, List, Union, Callable, Type
 from pathlib import Path
 
@@ -8,6 +6,22 @@ from PIL import Image
 
 from autofit.aggregator.search_output import SearchOutput
 from autofit.aggregator.aggregator import Aggregator
+
+import re
+from enum import Enum
+
+
+def subplot_filename(subplot: Enum) -> str:
+    subplot_type = subplot.__class__
+    return (
+        re.sub(
+            r"([A-Z])",
+            r"_\1",
+            subplot_type.__name__,
+        )
+        .lower()
+        .lstrip("_")
+    )
 
 
 class SubplotFit(Enum):
@@ -172,7 +186,7 @@ class AggregateImages:
         name
             The attribute of each fit to use as the name of the output file.
         """
-        folder.mkdir(exist_ok=True)
+        folder.mkdir(exist_ok=True, parents=True)
 
         for i, result in enumerate(self._aggregator):
             image = self._matrix_to_image(
@@ -231,30 +245,30 @@ class AggregateImages:
             The image for the subplot.
             """
             subplot_type = subplot_.__class__
-            name = (
-                re.sub(
-                    r"([A-Z])",
-                    r"_\1",
-                    subplot_type.__name__,
-                )
-                .lower()
-                .lstrip("_")
-            )
-
             if subplot_type not in _images:
-                _images[subplot_type] = SubplotFitImage(result.image(name))
+                _images[subplot_type] = SubplotFitImage(
+                    result.image(
+                        subplot_filename(subplot_),
+                    )
+                )
             return _images[subplot_type]
 
         matrix = []
         row = []
         for subplot in subplots:
-            if isinstance(subplot, SubplotFit):
+            if isinstance(subplot, Enum):
                 row.append(
                     get_image(subplot).image_at_coordinates(
                         *subplot.value,
                     )
                 )
             elif isinstance(subplot, list):
+                if not isinstance(subplot[i], Image.Image):
+                    raise TypeError(
+                        "The subplots must be of type Subplot or a list of "
+                        "images or a function that takes a SearchOutput as an "
+                        "argument."
+                    )
                 row.append(subplot[i])
             else:
                 try:
