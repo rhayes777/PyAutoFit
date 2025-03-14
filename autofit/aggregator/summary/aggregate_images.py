@@ -190,6 +190,9 @@ class AggregateImages:
             The attribute of each fit to use as the name of the output file.
             OR a list of names, one for each fit.
         """
+        if len(subplots) == 0:
+            raise ValueError("At least one subplot must be provided.")
+
         folder.mkdir(exist_ok=True, parents=True)
 
         for i, result in enumerate(self._aggregator):
