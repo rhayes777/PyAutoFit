@@ -68,7 +68,7 @@ def make_remove_output(output_directory):
     return remove_output
 
 
-@pytest.fixture(autouse=True, scope="session")
+@pytest.fixture(autouse=True)
 def do_remove_output(output_directory, remove_output):
     yield
     remove_output()

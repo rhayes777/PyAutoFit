@@ -122,7 +122,7 @@ class AggregateImages:
 
     def extract_image(
         self,
-        *subplots: Union[Enum, List[Image.Image], Callable],
+        subplots: List[Union[Enum, List[Image.Image], Callable]],
         subplot_width: Optional[int] = sys.maxsize,
     ) -> Image.Image:
         """
@@ -154,7 +154,7 @@ class AggregateImages:
                 self._matrix_for_result(
                     i,
                     result,
-                    *subplots,
+                    subplots,
                     subplot_width=subplot_width,
                 )
             )
@@ -164,9 +164,9 @@ class AggregateImages:
     def output_to_folder(
         self,
         folder: Path,
-        *subplots: Union[SubplotFit, List[Image.Image], Callable],
-        subplot_width: Optional[int] = sys.maxsize,
         name: Union[str, List[str]],
+        subplots: List[Union[SubplotFit, List[Image.Image], Callable]],
+        subplot_width: Optional[int] = sys.maxsize,
     ):
         """
         Output one subplot image for each fit in the aggregator.
@@ -190,6 +190,9 @@ class AggregateImages:
             The attribute of each fit to use as the name of the output file.
             OR a list of names, one for each fit.
         """
+        if len(subplots) == 0:
+            raise ValueError("At least one subplot must be provided.")
+
         folder.mkdir(exist_ok=True, parents=True)
 
         for i, result in enumerate(self._aggregator):
@@ -197,7 +200,7 @@ class AggregateImages:
                 self._matrix_for_result(
                     i,
                     result,
-                    *subplots,
+                    subplots,
                     subplot_width=subplot_width,
                 )
             )
@@ -213,7 +216,7 @@ class AggregateImages:
     def _matrix_for_result(
         i: int,
         result: SearchOutput,
-        *subplots: Union[SubplotFit, List[Image.Image], Callable],
+        subplots: List[Union[SubplotFit, List[Image.Image], Callable]],
         subplot_width: int = sys.maxsize,
     ) -> List[List[Image.Image]]:
         """
