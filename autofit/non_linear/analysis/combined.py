@@ -15,12 +15,15 @@ from autofit.non_linear.samples import SamplesPDF
 logger = logging.getLogger(__name__)
 
 
-class CombinedResult:
+class CombinedResult(Result):
     def __init__(
         self,
         results: List[Result],
         samples: Optional[SamplesPDF] = None,
         samples_summary: Optional[SamplesSummary] = None,
+        paths: Optional[AbstractPaths] = None,
+        search_internal: Optional[object] = None,
+        analysis: Optional[Analysis] = None,
     ):
         """
         A `Result` object that is composed of multiple `Result` objects. This is used to combine the results of
@@ -32,9 +35,14 @@ class CombinedResult:
         results
             The list of `Result` objects that are combined into this `CombinedResult` object.
         """
+        super().__init__(
+            samples_summary=samples_summary,
+            samples=samples,
+            paths=paths,
+            search_internal=search_internal,
+            analysis=analysis,
+        )
         self.child_results = results
-        self.samples = samples
-        self.samples_summary = samples_summary
 
     def __getattr__(self, item: str):
         """
