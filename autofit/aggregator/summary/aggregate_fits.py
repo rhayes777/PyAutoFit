@@ -1,6 +1,6 @@
 import re
 from enum import Enum
-from typing import List
+from typing import List, Union
 
 from astropy.io import fits
 from pathlib import Path
@@ -104,7 +104,7 @@ class AggregateFITS:
         self,
         folder: Path,
         *hdus: Enum,
-        name: str,
+        name: Union[str, List[str]],
     ):
         """
         Output the fits files for every search in the aggregator to a folder.
@@ -119,11 +119,16 @@ class AggregateFITS:
             The HDUs to output.
         name
             The name of the fits file. This is the attribute of the search output that is used to name the file.
+            OR a list of names for each HDU.
         """
         folder.mkdir(parents=True, exist_ok=True)
 
-        for result in self.aggregator:
-            name = f"{getattr(result, name)}.fits"
+        for i, result in enumerate(self.aggregator):
+            if isinstance(name, str):
+                output_name = getattr(result, name)
+            else:
+                output_name = name[i]
+
             hdu_list = fits.HDUList(
                 [fits.PrimaryHDU()]
                 + self._hdus(
@@ -131,5 +136,5 @@ class AggregateFITS:
                     *hdus,
                 )
             )
-            with open(folder / name, "wb") as file:
+            with open(folder / f"{output_name}.fits", "wb") as file:
                 hdu_list.writeto(file)
