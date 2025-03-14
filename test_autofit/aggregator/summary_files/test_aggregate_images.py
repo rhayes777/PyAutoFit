@@ -68,6 +68,20 @@ def test_output_to_folder(aggregate, output_directory):
     assert list(Path(output_directory).glob("*.png"))
 
 
+def test_list_of_names(aggregate, output_directory):
+    aggregate.output_to_folder(
+        output_directory,
+        SubplotFit.Data,
+        SubplotFit.SourcePlaneZoomed,
+        SubplotFit.SourceModelImage,
+        name=["one", "two"],
+    )
+    assert [path.name for path in Path(output_directory).glob("*.png")] == [
+        "two.png",
+        "one.png",
+    ]
+
+
 def test_output_to_folder_name(
     aggregate,
     output_directory,

@@ -166,7 +166,7 @@ class AggregateImages:
         folder: Path,
         *subplots: Union[SubplotFit, List[Image.Image], Callable],
         subplot_width: Optional[int] = sys.maxsize,
-        name: str,
+        name: Union[str, List[str]],
     ):
         """
         Output one subplot image for each fit in the aggregator.
@@ -188,6 +188,7 @@ class AggregateImages:
             images to wrap.
         name
             The attribute of each fit to use as the name of the output file.
+            OR a list of names, one for each fit.
         """
         folder.mkdir(exist_ok=True, parents=True)
 
@@ -200,7 +201,13 @@ class AggregateImages:
                     subplot_width=subplot_width,
                 )
             )
-            image.save(folder / f"{getattr(result, name)}.png")
+
+            if isinstance(name, str):
+                output_name = getattr(result, name)
+            else:
+                output_name = name[i]
+
+            image.save(folder / f"{output_name}.png")
 
     @staticmethod
     def _matrix_for_result(
