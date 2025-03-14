@@ -263,6 +263,12 @@ class AggregateImages:
                     )
                 )
             elif isinstance(subplot, list):
+                if not isinstance(subplot[i], Image.Image):
+                    raise TypeError(
+                        "The subplots must be of type Subplot or a list of "
+                        "images or a function that takes a SearchOutput as an "
+                        "argument."
+                    )
                 row.append(subplot[i])
             else:
                 try:
