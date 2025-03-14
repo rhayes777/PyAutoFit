@@ -1305,7 +1305,6 @@ class AbstractPriorModel(AbstractModel):
         ):
             self.check_assertions(arguments)
 
-        # logger.debug(f"Creating an instance for arguments")
         return self._instance_for_arguments(
             arguments,
             ignore_assertions=ignore_assertions,
