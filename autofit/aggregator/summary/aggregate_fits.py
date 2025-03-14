@@ -104,7 +104,7 @@ class AggregateFITS:
         self,
         folder: Path,
         *hdus: Enum,
-        name: str = "name",
+        name: str,
     ):
         """
         Output the fits files for every search in the aggregator to a folder.

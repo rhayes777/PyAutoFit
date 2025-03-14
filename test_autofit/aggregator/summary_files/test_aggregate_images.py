@@ -5,6 +5,7 @@ from pathlib import Path
 
 from PIL import Image
 
+from autofit.aggregator import Aggregator
 from autofit.aggregator.summary.aggregate_images import AggregateImages, SubplotFit
 
 
@@ -62,6 +63,7 @@ def test_output_to_folder(aggregate, output_directory):
         SubplotFit.Data,
         SubplotFit.SourcePlaneZoomed,
         SubplotFit.SourceModelImage,
+        name="name",
     )
     assert list(Path(output_directory).glob("*.png"))
 

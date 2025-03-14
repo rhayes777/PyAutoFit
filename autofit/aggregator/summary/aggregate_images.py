@@ -166,7 +166,7 @@ class AggregateImages:
         folder: Path,
         *subplots: Union[SubplotFit, List[Image.Image], Callable],
         subplot_width: Optional[int] = sys.maxsize,
-        name: str = "name",
+        name: str,
     ):
         """
         Output one subplot image for each fit in the aggregator.
