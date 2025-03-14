@@ -9,7 +9,7 @@ from test_autofit.graphical.gaussian.model import Gaussian, make_data, Analysis
 @pytest.fixture(name="make_model_factor")
 def make_make_model_factor(normalization, normalization_prior, x):
     def make_factor_model(
-            centre: float, sigma: float, optimiser=None
+        centre: float, sigma: float, optimiser=None
     ) -> ep.AnalysisFactor:
         """
         We'll make a LikelihoodModel for each Gaussian we're fitting.
@@ -108,7 +108,9 @@ def _test_optimise_factor_model(factor_model):
     """
     laplace = ep.LaplaceOptimiser()
 
-    collection = factor_model.optimise(laplace, )
+    collection = factor_model.optimise(
+        laplace,
+    )
 
     """
     And what we get back is actually a PriorModelCollection
@@ -171,3 +173,14 @@ def test_prior_model_node(likelihood_model):
     )
 
     assert isinstance(result, ep.FactorValue)
+
+
+def test_pytrees(
+    recreate,
+    factor_model,
+    make_model_factor,
+):
+    recreate(factor_model)
+
+    model_factor = make_model_factor(centre=60, sigma=15)
+    recreate(model_factor)

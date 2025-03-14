@@ -2,12 +2,14 @@ from typing import Optional
 
 import numpy as np
 
+from autofit.jax_wrapper import register_pytree_node_class
 from autofit.messages.normal import NormalMessage
 from .abstract import Prior
 from ...messages.composed_transform import TransformedMessage
 from ...messages.transform import log_transform
 
 
+@register_pytree_node_class
 class LogGaussianPrior(Prior):
     __identifier_fields__ = ("lower_limit", "upper_limit", "mean", "sigma")
     __database_args__ = ("mean", "sigma", "lower_limit", "upper_limit", "id_")
@@ -70,6 +72,15 @@ class LogGaussianPrior(Prior):
             upper_limit=upper_limit,
             id_=id_,
         )
+
+    def tree_flatten(self):
+        return (
+            self.mean,
+            self.sigma,
+            self.lower_limit,
+            self.upper_limit,
+            self.id,
+        ), ()
 
     @classmethod
     def with_limits(cls, lower_limit: float, upper_limit: float) -> "LogGaussianPrior":

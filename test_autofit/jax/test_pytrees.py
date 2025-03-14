@@ -4,14 +4,7 @@ from autofit.jax_wrapper import numpy as jnp
 
 import autofit as af
 
-
 jax = pytest.importorskip("jax")
-
-
-def recreate(o):
-    flatten_func, unflatten_func = jax._src.tree_util._registry[type(o)]
-    children, aux_data = flatten_func(o)
-    return unflatten_func(aux_data, children)
 
 
 @pytest.fixture(name="gaussian")
@@ -33,7 +26,7 @@ def vmapped(gaussian, size=1000):
     return list(f(np.arange(size)))
 
 
-def test_gaussian_prior():
+def test_gaussian_prior(recreate):
     prior = af.GaussianPrior(mean=1.0, sigma=1.0)
 
     new = recreate(prior)
@@ -56,7 +49,7 @@ def _model():
     )
 
 
-def test_model(model):
+def test_model(model, recreate):
     new = recreate(model)
     assert new.cls == af.Gaussian
 
@@ -66,7 +59,7 @@ def test_model(model):
     assert centre.id == model.centre.id
 
 
-def test_instance(model):
+def test_instance(model, recreate):
     instance = model.instance_from_prior_medians()
     new = recreate(instance)
 
@@ -77,7 +70,7 @@ def test_instance(model):
     assert new.sigma == instance.sigma
 
 
-def test_uniform_prior():
+def test_uniform_prior(recreate):
     prior = af.UniformPrior(lower_limit=0.0, upper_limit=1.0)
 
     new = recreate(prior)
@@ -87,7 +80,7 @@ def test_uniform_prior():
     assert new.id == prior.id
 
 
-def test_model_instance(model):
+def test_model_instance(model, recreate):
     collection = af.Collection(gaussian=model)
     instance = collection.instance_from_prior_medians()
     new = recreate(instance)
@@ -96,7 +89,7 @@ def test_model_instance(model):
     assert isinstance(new.gaussian, af.Gaussian)
 
 
-def test_collection(model):
+def test_collection(model, recreate):
     collection = af.Collection(gaussian=model)
     new = recreate(collection)
 
@@ -120,7 +113,7 @@ class KwargClass:
         self.__dict__.update(kwargs)
 
 
-def test_kwargs():
+def test_kwargs(recreate):
     model = af.Model(KwargClass, a=1, b=2)
     instance = model.instance_from_prior_medians()
 
