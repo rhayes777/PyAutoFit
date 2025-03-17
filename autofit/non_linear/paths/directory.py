@@ -468,6 +468,12 @@ class DirectoryPaths(AbstractPaths):
         with open_(self.output_path / "model.info", "w+") as f:
             f.write(model.info)
 
+        try:
+            with open_(self.output_path / "model.graph", "w+") as f:
+                f.write( model.graph_info)
+        except AttributeError:
+            pass
+
     def _save_model_start_point(self, info):
         """
         Save the model.start file, which summarizes the start point of every parameter.
