@@ -23,6 +23,15 @@ steps = [
     Step(
         "ALTER TABLE object RENAME COLUMN latent_variables_for_id TO latent_samples_for_id;",
     ),
+    Step(
+        "CREATE TABLE fits (id INTEGER NOT NULL, name VARCHAR, fit_id VARCHAR, PRIMARY KEY (id), FOREIGN KEY (fit_id) REFERENCES fit (id));"
+    ),
+    Step(
+        "ALTER TABLE hdu ADD COLUMN fits_id INTEGER;",
+    ),
+    Step(
+        "ALTER TABLE hdu ADD COLUMN is_primary BOOLEAN;",
+    ),
 ]
 
 migrator = Migrator(*steps)

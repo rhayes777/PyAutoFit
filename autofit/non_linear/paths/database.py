@@ -183,7 +183,7 @@ class DatabasePaths(AbstractPaths):
         return self.fit.get_array(name)
 
     @conditional_output
-    def save_fits(self, name: str, hdu, prefix: str = ""):
+    def save_fits(self, name: str, fits, prefix: str = ""):
         """
         Save a fits file in the database
 
@@ -191,10 +191,10 @@ class DatabasePaths(AbstractPaths):
         ----------
         name
             The name of the fits file
-        hdu
-            The hdu to save
+        fits
+            The fits file to save
         """
-        self.fit.set_hdu(name, hdu)
+        self.fit.set_fits(name, fits)
 
     def load_fits(self, name: str, prefix: str = ""):
         """
@@ -209,7 +209,7 @@ class DatabasePaths(AbstractPaths):
         -------
         The loaded hdu
         """
-        return self.fit.get_hdu(name)
+        return self.fit.get_fits(name)
 
     @conditional_output
     def save_object(self, name: str, obj: object, prefix: str = ""):

@@ -33,9 +33,36 @@ def reset_ids():
     af.Prior._ids = itertools.count()
 
 
-def test_info(model):
+def test_model_info(model):
     assert (
         model.info
+        == """Total Free Parameters = 4
+
+model                                                                           GlobalPriorModel (N=4)
+    0 - 1                                                                       Collection (N=3)
+        distribution_model                                                      GaussianPrior (N=2)
+    2 - 3                                                                       Collection (N=1)
+
+0 - 1
+    distribution_model
+        mean                                                                    GaussianPrior [2], mean = 0.5, sigma = 0.1
+        sigma                                                                   GaussianPrior [3], mean = 1.0, sigma = 0.01
+        lower_limit                                                             -inf
+        upper_limit                                                             inf
+0
+    drawn_prior                                                                 UniformPrior [0], lower_limit = 0.0, upper_limit = 1.0
+1
+    drawn_prior                                                                 UniformPrior [1], lower_limit = 0.0, upper_limit = 1.0
+2 - 3
+    one                                                                         UniformPrior [0], lower_limit = 0.0, upper_limit = 1.0
+factor
+    include_prior_factors                                                       True"""
+    )
+
+
+def test_graph_info(model):
+    assert (
+        model.graph_info
         == """PriorFactors
 
 PriorFactor0 (HierarchicalFactor0)                                                        GaussianPrior [3], mean = 1.0, sigma = 0.01

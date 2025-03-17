@@ -103,7 +103,7 @@ class DirectoryPaths(AbstractPaths):
         return np.loadtxt(self._path_for_csv(name), delimiter=",")
 
     @conditional_output
-    def save_fits(self, name: str, hdu, prefix: str = ""):
+    def save_fits(self, name: str, fits, prefix: str = ""):
         """
         Save an HDU as a fits file in the fits directory of the search.
 
@@ -111,12 +111,12 @@ class DirectoryPaths(AbstractPaths):
         ----------
         name
             The name of the fits file
-        hdu
-            The HDU to save
+        fits
+            The HDUList to save
         prefix
             A prefix to add to the path which is the name of the folder the file is saved in.
         """
-        hdu.writeto(self._path_for_fits(name, prefix), overwrite=True)
+        fits.writeto(self._path_for_fits(name, prefix), overwrite=True)
 
     def load_fits(self, name: str, prefix: str = ""):
         """
@@ -467,6 +467,12 @@ class DirectoryPaths(AbstractPaths):
         """
         with open_(self.output_path / "model.info", "w+") as f:
             f.write(model.info)
+
+        try:
+            with open_(self.output_path / "model.graph", "w+") as f:
+                f.write( model.graph_info)
+        except AttributeError:
+            pass
 
     def _save_model_start_point(self, info):
         """
