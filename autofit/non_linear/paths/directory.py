@@ -469,7 +469,8 @@ class DirectoryPaths(AbstractPaths):
             f.write(model.info)
 
         try:
-            self.save_json("model.graph", model.graph_info)
+            with open_(self.output_path / "model.graph", "w+") as f:
+                f.write( model.graph_info)
         except AttributeError:
             pass
 
