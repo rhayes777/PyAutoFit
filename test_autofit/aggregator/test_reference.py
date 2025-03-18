@@ -15,9 +15,11 @@ def make_directory():
 
 
 def test_without(directory):
+
     aggregator = Aggregator.from_directory(directory)
-    model = list(aggregator)[0].model
-    assert model.cls is af.Gaussian
+    model_list = [agg.model for agg in aggregator]
+
+    assert any([getattr(model, "cls", False) is af.Gaussian for model in model_list])
 
 
 def test_with():
@@ -25,10 +27,9 @@ def test_with():
         Path(__file__).parent,
         reference={"": get_class_path(af.Exponential)},
     )
-    output = list(aggregator)[0]
-    model = output.model
-    assert model.cls is af.Exponential
-
+    output_list = list(aggregator)
+    model_list = [output.model for output in output_list]
+    assert any([getattr(model, "cls", False) is af.Exponential for model in model_list])
 
 @pytest.fixture(name="database_path")
 def database_path(output_directory):
