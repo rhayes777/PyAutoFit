@@ -41,7 +41,7 @@ def test_list_of_names(summary, output_directory):
             af.FitFITS.ResidualMap,
         ],
     )
-    assert [path.name for path in Path(output_directory).glob("*.fits")] == [
+    assert set([path.name for path in Path(output_directory).glob("*.fits")]) == set([
         "one.fits",
         "two.fits",
-    ]
+    ])
