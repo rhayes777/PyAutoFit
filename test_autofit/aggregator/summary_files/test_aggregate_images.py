@@ -92,10 +92,10 @@ def test_list_of_names(aggregate, output_directory):
             SubplotFit.SourceModelImage,
         ],
     )
-    assert [path.name for path in Path(output_directory).glob("*.png")] == [
+    assert set([path.name for path in Path(output_directory).glob("*.png")]) == set([
         "two.png",
         "one.png",
-    ]
+    ])
 
 
 def test_output_to_folder_name(

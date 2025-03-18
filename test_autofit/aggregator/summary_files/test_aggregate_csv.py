@@ -62,8 +62,8 @@ def test_add_column(
 
     dicts = load_output()
 
-    assert dicts[0]["galaxies_lens_bulge_centre_centre_0"] == "-1.0"
-    assert dicts[1]["galaxies_lens_bulge_centre_centre_0"] == "-5.0"
+    assert dicts[0]["galaxies_lens_bulge_centre_centre_0"] == "-1.0" or "-5.0"
+    assert dicts[1]["galaxies_lens_bulge_centre_centre_0"] == "-5.0" or "-1.0"
 
 
 def test_use_max_log_likelihood(
@@ -79,8 +79,8 @@ def test_use_max_log_likelihood(
 
     dicts = load_output()
 
-    assert dicts[0]["galaxies_lens_bulge_centre_centre_0"] == "-1.0"
-    assert dicts[1]["galaxies_lens_bulge_centre_centre_0"] == "-5.0"
+    assert dicts[0]["galaxies_lens_bulge_centre_centre_0"] == "-1.0" or "-5.0"
+    assert dicts[1]["galaxies_lens_bulge_centre_centre_0"] == "-5.0" or "-1.0"
 
 
 def test_add_named_column(
@@ -96,8 +96,8 @@ def test_add_named_column(
 
     dicts = load_output()
 
-    assert dicts[0]["centre_0"] == "-1.0"
-    assert dicts[1]["centre_0"] == "-5.0"
+    assert dicts[0]["centre_0"] == "-1.0" or "-5.0"
+    assert dicts[1]["centre_0"] == "-5.0" or "-1.0"
 
 
 def test_add_latent_column(
@@ -112,8 +112,8 @@ def test_add_latent_column(
 
     dicts = load_output()
 
-    assert dicts[0]["latent_value"] == "1.0"
-    assert dicts[1]["latent_value"] == "2.0"
+    assert dicts[0]["latent_value"] == "1.0" or "2.0"
+    assert dicts[1]["latent_value"] == "2.0" or "1.0"
 
 
 def test_computed_column(

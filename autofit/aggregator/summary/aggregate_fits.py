@@ -22,7 +22,7 @@ def subplot_filename(subplot: Enum) -> str:
     )
 
 
-class FitFITS(Enum):
+class FITSFit(Enum):
     """
     The HDUs that can be extracted from the fit.fits file.
     """
