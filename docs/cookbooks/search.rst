@@ -100,7 +100,7 @@ A few examples of the options available include:
 
 - For the ``samples.csv`` file, all samples with a weight below a certain value can be automatically removed.
 
-- Customization of the ``samples_summary.json`` file, which summarizes the results of the model-fit  (e.g. the maximum 
+- Customization of the ``samples_summary.json`` file, which summarises the results of the model-fit  (e.g. the maximum
   log likelihood model, the median PDF model and 3 sigma error). These results are computed using the full set of
   samples, ensuring samples removal via a weight cut does not impact the results.
 

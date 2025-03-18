@@ -285,6 +285,10 @@ class AggregateCSV:
         path
             The path to save the file to
         """
+
+        folder_path = path.parent if path.suffix else path
+        folder_path.mkdir(parents=True, exist_ok=True)
+
         with open(path, "w") as f:
             writer = csv.DictWriter(
                 f,
