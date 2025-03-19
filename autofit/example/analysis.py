@@ -233,4 +233,7 @@ class Analysis(af.Analysis):
         try:
             return {"fwhm": instance.fwhm}
         except AttributeError:
-            return {"gaussian.fwhm": instance[0].fwhm}
+            try:
+                return {"gaussian.fwhm": instance[0].fwhm}
+            except AttributeError:
+                return {"gaussian.fwhm": instance[0].gaussian.fwhm}
