@@ -38,7 +38,14 @@ class Gaussian:
         self.sigma = sigma
 
     @property
-    def fwhm(self):
+    def fwhm(self) -> float:
+        """
+        The full-width half-maximum of the Gaussian profile.
+
+        This is used to illustrate latent variables in **PyAutoFit**, which are values that can be inferred from
+        the free parameters of the model which we are interested and may want to store the full samples information
+        on (e.g. to create posteriors).
+        """
         return 2 * np.sqrt(2 * np.log(2)) * self.sigma
 
     def _tree_flatten(self):
