@@ -463,7 +463,7 @@ class DirectoryPaths(AbstractPaths):
 
     def _save_model_info(self, model):
         """
-        Save the model.info file, which summarizes every parameter and prior.
+        Save the model.info file, which summarises every parameter and prior.
         """
         with open_(self.output_path / "model.info", "w+") as f:
             f.write(model.info)
@@ -476,7 +476,7 @@ class DirectoryPaths(AbstractPaths):
 
     def _save_model_start_point(self, info):
         """
-        Save the model.start file, which summarizes the start point of every parameter.
+        Save the model.start file, which summarises the start point of every parameter.
         """
         with open_(self.output_path / "model.start", "w+") as f:
             f.write(info)

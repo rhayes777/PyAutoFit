@@ -41,7 +41,7 @@ class Fitness:
         Interfaces with any non-linear search to fit the model to the data and return a log likelihood via
         the analysis.
 
-        The interface of a non-linear search and fitness function is summarized as follows:
+        The interface of a non-linear search and fitness function is summarised as follows:
 
         1) The non-linear search samples a new set of model parameters, which are passed to the fitness
         function's `__call__` method.
