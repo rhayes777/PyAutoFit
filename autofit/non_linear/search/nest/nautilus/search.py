@@ -159,10 +159,6 @@ class Nautilus(abstract_nest.AbstractNest):
                     checkpoint_exists=checkpoint_exists,
                 )
 
-        if self.checkpoint_file is not None:
-
-            os.remove(self.checkpoint_file)
-
         return search_internal
 
     @property
