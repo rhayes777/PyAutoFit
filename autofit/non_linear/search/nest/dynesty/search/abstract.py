@@ -483,7 +483,7 @@ class AbstractDynesty(AbstractNest, ABC):
     def output_search_internal(self, search_internal):
         try:
             os.remove(self.checkpoint_file)
-        except TypeError:
+        except (TypeError, FileNotFoundError):
             pass
 
     def check_pool(self, uses_pool: bool, pool):
