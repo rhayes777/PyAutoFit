@@ -481,6 +481,11 @@ class AbstractDynesty(AbstractNest, ABC):
         raise NotImplementedError()
 
     def output_search_internal(self, search_internal):
+
+        self.paths.save_search_internal(
+            obj=search_internal,
+        )
+
         try:
             os.remove(self.checkpoint_file)
         except (TypeError, FileNotFoundError):
