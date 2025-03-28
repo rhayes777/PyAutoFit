@@ -480,6 +480,12 @@ class AbstractDynesty(AbstractNest, ABC):
     ):
         raise NotImplementedError()
 
+    def output_search_internal(self, search_internal):
+        try:
+            os.remove(self.checkpoint_file)
+        except TypeError:
+            pass
+
     def check_pool(self, uses_pool: bool, pool):
         if (uses_pool and pool is None) or (not uses_pool and pool is not None):
             raise exc.SearchException(
