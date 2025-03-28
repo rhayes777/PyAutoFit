@@ -201,11 +201,6 @@ class AbstractDynesty(AbstractNest, ABC):
                     during_analysis=True,
                 )
 
-        try:
-            os.remove(self.checkpoint_file)
-        except TypeError:
-            pass
-
         return search_internal
 
     def samples_info_from(self, search_internal=None):
