@@ -291,58 +291,6 @@ class AbstractPaths(ABC):
         except FileNotFoundError:
             pass
 
-    def zip_remove_nuclear(self):
-        """
-        When multiple model-fits are performed using the same `path_prefix` and `name`,
-        the results are populated in the same folder with different unique identifiers.
-
-        By accident, one may perform runs where additional results are placed
-        in these folders which are not wanted for the subsequent analysis.
-
-        Removing these results from the directory can be cumbersome, as determining
-        the unwanted results based on their unique identifier requires visually inspecting
-        them.
-
-        These unwanted results can also make manipulating the results via the database
-        problematic, as one may need to again filter based on unique identifier.
-
-        When a run is performed in nuclear mode, all results in every folder are
-        deleted except the results corresponding to the unique identifier of that run.
-
-        Therefore, provided the user is 100% certain that the run corresponds to the
-        results they want to keep, nuclear mode can be used to remove all unwanted results.
-
-        For example, suppose a folder has 5 results, 4 of which are unwanted and 1 which is
-        wanted. If nuclear mode runs, and the model-fit is set up correctly such that the
-        identifier created corresponds to the wanted result, all 4 unwanted results
-        will be deleted.
-
-        To enable nuclear mode, set the environment variable ``PYAUTOFIT_NUCLEAR_MODE=1``.
-
-        Nuclear mode is dangerous, and must be used with CAUTION AND CARE!
-        """
-
-        if os.environ.get("PYAUTOFIT_NUCLEAR_MODE") == "1":
-            file_path = Path(os.path.split(self.output_path)[0])
-
-            file_list = os.listdir(file_path)
-            file_list = [file for file in file_list if self.identifier not in file]
-
-            for file in file_list:
-                file_to_remove = file_path / file
-
-                try:
-                    os.remove(file_to_remove)
-                    logger.info(f"NUCLEAR MODE -- Removed {file_to_remove}")
-                except (IsADirectoryError, FileNotFoundError):
-                    pass
-
-                try:
-                    shutil.rmtree(file_to_remove)
-                    logger.info(f"NUCLEAR MODE -- Removed {file_to_remove}")
-                except (NotADirectoryError, FileNotFoundError):
-                    pass
-
     def restore(self):
         """
         Copy files from the ``.zip`` file to the samples folder.

@@ -159,10 +159,6 @@ class Nautilus(abstract_nest.AbstractNest):
                     checkpoint_exists=checkpoint_exists,
                 )
 
-        if self.checkpoint_file is not None:
-
-            os.remove(self.checkpoint_file)
-
         return search_internal
 
     @property
@@ -467,6 +463,11 @@ class Nautilus(abstract_nest.AbstractNest):
 
         search_internal.pool_l = pool_l
         search_internal.pool_s = pool_s
+
+        try:
+            os.remove(self.checkpoint_file)
+        except (TypeError, FileNotFoundError):
+            pass
 
     def samples_info_from(self, search_internal=None):
         return {
