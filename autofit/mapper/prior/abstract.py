@@ -110,16 +110,29 @@ class Prior(Variable, ABC, ArithmeticMixin):
         return self.message.factor
 
     def assert_within_limits(self, value):
-        if jax_wrapper.use_jax:
-            return
 
-        if not (self.lower_limit <= value <= self.upper_limit):
+        def exception_message():
             raise exc.PriorLimitException(
                 "The physical value {} for a prior "
                 "was not within its limits {}, {}".format(
                     value, self.lower_limit, self.upper_limit
                 )
             )
+
+        if jax_wrapper.use_jax:
+            import jax
+            jax.lax.cond(
+                jax.numpy.logical_or(
+                    value < self.lower_limit,
+                    value > self.upper_limit
+                ),
+                lambda _: jax.debug.callback(exception_message),
+                lambda _: None,
+                None
+            )
+
+        elif not (self.lower_limit <= value <= self.upper_limit):
+            exception_message()
 
     @staticmethod
     def for_class_and_attribute_name(cls, attribute_name):
