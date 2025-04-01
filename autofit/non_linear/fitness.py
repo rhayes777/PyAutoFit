@@ -156,9 +156,7 @@ class Fitness:
         try:
             instance = self.model.instance_from_vector(vector=parameters)
             log_likelihood = self.log_likelihood_function(instance=instance)
-
-            if not jax_wrapper.use_jax and np.isnan(log_likelihood):
-                return self.resample_figure_of_merit
+            log_likelihood = np.where(np.isnan(log_likelihood), self.resample_figure_of_merit, log_likelihood)
 
         except exc.FitException:
             return self.resample_figure_of_merit
