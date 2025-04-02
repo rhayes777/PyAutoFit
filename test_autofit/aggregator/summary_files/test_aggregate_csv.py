@@ -133,3 +133,24 @@ def test_computed_column(
     dicts = load_output()
 
     assert dicts[0]["computed"] == "1"
+
+
+def test_dict_computed_column(
+    output_path,
+    summary,
+    load_output,
+):
+    def compute(samples):
+        return {"a": 1, "b": 2}
+
+    summary.add_computed_column(
+        "computed",
+        compute,
+    )
+    summary.save(output_path)
+
+    dicts = load_output()
+
+    first = dicts[0]
+    assert first["computed_a"] == "1"
+    assert first["computed_b"] == "2"

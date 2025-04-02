@@ -176,9 +176,21 @@ class Row:
         """
         row = {"id": self.result.id}
         for column in self._columns:
-            row[column.name] = column.value(self)
+            value = column.value(self)
+            if isinstance(value, dict):
+                for key, value in value.items():
+                    row[f"{column.name}_{key}"] = value
+            else:
+                row[column.name] = column.value(self)
 
         return row
+
+    @property
+    def column_names(self):
+        """
+        The names of the columns.
+        """
+        return list(self.dict().keys())
 
 
 class AggregateCSV:
@@ -274,7 +286,13 @@ class AggregateCSV:
         """
         The fieldnames for the CSV file.
         """
-        return ["id"] + [column.name for column in self._columns]
+        for i, result in enumerate(self._aggregator):
+            row = Row(
+                result,
+                self._columns,
+                i,
+            )
+            return row.column_names
 
     def save(self, path: Union[str, Path]):
         """
