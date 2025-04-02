@@ -156,7 +156,7 @@ def test_dict_computed_column(
     assert first["computed_b"] == "2"
 
 
-def test_values_at_sigma(
+def test_values_at_1_sigma(
     output_path,
     summary,
     load_output,
@@ -171,8 +171,33 @@ def test_values_at_sigma(
 
     first = dicts[0]
     assert (
-        first["galaxies_lens_bulge_centre_centre_0_lower_1_sigma"] == 3.4319440071038327
+        first["galaxies_lens_bulge_centre_centre_0_lower_1_sigma"]
+        == "3.4319440071038327"
     )
     assert (
-        first["galaxies_lens_bulge_centre_centre_0_upper_1_sigma"] == 3.4319440071038327
+        first["galaxies_lens_bulge_centre_centre_0_upper_1_sigma"]
+        == "5.134685987907622"
+    )
+
+
+def test_values_at_3_sigma(
+    output_path,
+    summary,
+    load_output,
+):
+    summary.add_column(
+        "galaxies.lens.bulge.centre.centre_0",
+        value_types=[ValueType.ValuesAt3Sigma],
+    )
+    summary.save(output_path)
+
+    dicts = load_output()
+
+    first = dicts[0]
+    assert (
+        first["galaxies_lens_bulge_centre_centre_0_lower_3_sigma"]
+        == "1.6742483855526449"
+    )
+    assert (
+        first["galaxies_lens_bulge_centre_centre_0_upper_3_sigma"] == "5.93749816282317"
     )

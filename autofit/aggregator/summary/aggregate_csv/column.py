@@ -65,8 +65,8 @@ class Column(AbstractColumn):
 
         if ValueType.ValuesAt1Sigma in self.value_types:
             lower, upper = row.values_at_sigma_1_kwargs[self.path]
-            result["lower_1_sigma"] = lower
-            result["upper_1_sigma"] = upper
+            result["lower_1_sigma"] = float(lower)
+            result["upper_1_sigma"] = float(upper)
 
         if ValueType.ValuesAt3Sigma in self.value_types:
             lower, upper = row.values_at_sigma_3_kwargs[self.path]
