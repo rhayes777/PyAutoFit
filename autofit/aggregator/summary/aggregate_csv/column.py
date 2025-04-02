@@ -47,12 +47,12 @@ class Column(AbstractColumn):
         self.use_max_log_likelihood = use_max_log_likelihood
 
     def value(self, row: "Row"):
-        if self.use_max_log_likelihood:
-            kwargs = row.max_likelihood_kwargs
-        else:
-            kwargs = row.median_pdf_sample_kwargs
+        result = {"": row.median_pdf_sample_kwargs[self.path]}
 
-        return kwargs[self.path]
+        if self.use_max_log_likelihood:
+            result["max_lh"] = row.max_likelihood_kwargs
+
+        return result
 
     @property
     def path(self) -> tuple:

@@ -83,7 +83,7 @@ class Row:
             value = column.value(self)
             if isinstance(value, dict):
                 for key, value in value.items():
-                    row[f"{column.name}_{key}"] = value
+                    row[f"{column.name}_{key}" if key else column.name] = value
             else:
                 row[column.name] = column.value(self)
 
