@@ -57,7 +57,7 @@ def test_add_column(
     summary,
     load_output,
 ):
-    summary.add_column("galaxies.lens.bulge.centre.centre_0")
+    summary.add_variable("galaxies.lens.bulge.centre.centre_0")
     summary.save(output_path)
 
     dicts = load_output()
@@ -71,7 +71,7 @@ def test_use_max_log_likelihood(
     summary,
     load_output,
 ):
-    summary.add_column(
+    summary.add_variable(
         "galaxies.lens.bulge.centre.centre_0",
         value_types=[ValueType.MaxLogLikelihood],
     )
@@ -88,7 +88,7 @@ def test_add_named_column(
     summary,
     load_output,
 ):
-    summary.add_column(
+    summary.add_variable(
         "galaxies.lens.bulge.centre.centre_0",
         name="centre_0",
     )
@@ -105,7 +105,7 @@ def test_add_latent_column(
     summary,
     load_output,
 ):
-    summary.add_column(
+    summary.add_variable(
         "latent.value",
     )
     summary.save(output_path)
@@ -161,7 +161,7 @@ def test_values_at_1_sigma(
     summary,
     load_output,
 ):
-    summary.add_column(
+    summary.add_variable(
         "galaxies.lens.bulge.centre.centre_0",
         value_types=[ValueType.ValuesAt1Sigma],
     )
@@ -185,7 +185,7 @@ def test_values_at_3_sigma(
     summary,
     load_output,
 ):
-    summary.add_column(
+    summary.add_variable(
         "galaxies.lens.bulge.centre.centre_0",
         value_types=[ValueType.ValuesAt3Sigma],
     )

@@ -30,14 +30,14 @@ class AggregateCSV:
         self._aggregator = aggregator
         self._columns = []
 
-    def add_column(
+    def add_variable(
         self,
         argument: str,
         name: Optional[str] = None,
         value_types: list = (ValueType.Median,),
     ):
         """
-        Add a column to the summary table.
+        Add a variable to include columns for in the summary table.
 
         This will be taken from the samples_summary or latent_summary.
 
@@ -49,7 +49,7 @@ class AggregateCSV:
         name
             An optional name for the column. If not provided, the argument will be used.
         value_types
-            Value types to include. Each one actually gets its own column.
+            Value types to include. See ValueType.
         """
         self._columns.append(
             Column(

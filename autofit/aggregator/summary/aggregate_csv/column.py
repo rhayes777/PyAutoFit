@@ -21,10 +21,14 @@ class AbstractColumn(ABC):
 
 
 class ValueType(Enum):
-    Median = 0
-    MaxLogLikelihood = 1
-    ValuesAt1Sigma = 2
-    ValuesAt3Sigma = 3
+    """
+    Possible value types to create columns for.
+    """
+
+    Median = 0  # The median_pdf_sample value
+    MaxLogLikelihood = 1  # The max likelihood value
+    ValuesAt1Sigma = 2  # The values at 1 sigma. This includes a lower and upper value
+    ValuesAt3Sigma = 3  # The values at 3 sigma. This includes a lower and upper value
 
 
 class Column(AbstractColumn):
