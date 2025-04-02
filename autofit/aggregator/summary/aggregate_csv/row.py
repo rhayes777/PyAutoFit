@@ -68,7 +68,9 @@ class Row:
         return self.result.model.all_paths
 
     def _dict_for_list(self, list_):
-        return {key: value for key, value in zip(self.model_paths, list_)}
+        return {
+            key: value for paths, value in zip(self.model_paths, list_) for key in paths
+        }
 
     @cached_property
     def errors_at_sigma_1_kwargs(self):

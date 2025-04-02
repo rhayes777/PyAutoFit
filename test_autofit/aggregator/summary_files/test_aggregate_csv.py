@@ -169,4 +169,10 @@ def test_values_at_sigma(
 
     dicts = load_output()
 
-    print(dicts)
+    first = dicts[0]
+    assert (
+        first["galaxies_lens_bulge_centre_centre_0_lower_1_sigma"] == 3.4319440071038327
+    )
+    assert (
+        first["galaxies_lens_bulge_centre_centre_0_upper_1_sigma"] == 3.4319440071038327
+    )
