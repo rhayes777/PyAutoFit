@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from enum import Enum
 from typing import Optional, Callable
 
 
@@ -19,12 +20,19 @@ class AbstractColumn(ABC):
         pass
 
 
+class ValueType(Enum):
+    Median = 0
+    MaxLogLikelihood = 1
+    ValuesAt1Sigma = 2
+    ValuesAt3Sigma = 3
+
+
 class Column(AbstractColumn):
     def __init__(
         self,
         argument: str,
         name: Optional[str] = None,
-        use_max_log_likelihood: Optional[bool] = False,
+        value_types: list[ValueType] = (ValueType.Median,),
     ):
         """
         A column in the summary table.
@@ -44,12 +52,15 @@ class Column(AbstractColumn):
             )
         )
         self.argument = argument
-        self.use_max_log_likelihood = use_max_log_likelihood
+        self.value_types = value_types
 
     def value(self, row: "Row"):
-        result = {"": row.median_pdf_sample_kwargs[self.path]}
+        result = {}
 
-        if self.use_max_log_likelihood:
+        if ValueType.Median in self.value_types:
+            result[""] = row.median_pdf_sample_kwargs[self.path]
+
+        if ValueType.MaxLogLikelihood in self.value_types:
             result["max_lh"] = row.max_likelihood_kwargs
 
         return result

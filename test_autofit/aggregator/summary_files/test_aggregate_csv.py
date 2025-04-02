@@ -2,7 +2,7 @@ import csv
 
 from pathlib import Path
 
-from autofit.aggregator.summary.aggregate_csv import AggregateCSV
+from autofit.aggregator.summary.aggregate_csv import AggregateCSV, ValueType
 
 import pytest
 
@@ -73,7 +73,7 @@ def test_use_max_log_likelihood(
 ):
     summary.add_column(
         "galaxies.lens.bulge.centre.centre_0",
-        use_max_log_likelihood=True,
+        value_types=[ValueType.MaxLogLikelihood],
     )
     summary.save(output_path)
 
@@ -154,3 +154,19 @@ def test_dict_computed_column(
     first = dicts[0]
     assert first["computed_a"] == "1"
     assert first["computed_b"] == "2"
+
+
+def test_values_at_sigma(
+    output_path,
+    summary,
+    load_output,
+):
+    summary.add_column(
+        "galaxies.lens.bulge.centre.centre_0",
+        value_types=[ValueType.ValuesAt1Sigma],
+    )
+    summary.save(output_path)
+
+    dicts = load_output()
+
+    print(dicts)

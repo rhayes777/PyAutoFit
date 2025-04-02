@@ -10,6 +10,7 @@ from autofit.aggregator.summary.aggregate_csv.column import (
     LabelColumn,
     Column,
     ComputedColumn,
+    ValueType,
 )
 from autofit.aggregator.summary.aggregate_csv.row import Row
 
@@ -33,7 +34,7 @@ class AggregateCSV:
         self,
         argument: str,
         name: Optional[str] = None,
-        use_max_log_likelihood: Optional[bool] = False,
+        value_types: list = (ValueType.Median,),
     ):
         """
         Add a column to the summary table.
@@ -47,14 +48,14 @@ class AggregateCSV:
             e.g. "galaxies.lens.bulge.centre.centre_0"
         name
             An optional name for the column. If not provided, the argument will be used.
-        use_max_log_likelihood
-            If True, the maximum likelihood value will be used instead of the median PDF value.
+        value_types
+            Value types to include. Each one actually gets its own column.
         """
         self._columns.append(
             Column(
                 argument,
                 name=name,
-                use_max_log_likelihood=use_max_log_likelihood,
+                value_types=value_types,
             )
         )
 
