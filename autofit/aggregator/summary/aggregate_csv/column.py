@@ -47,6 +47,8 @@ class Column(AbstractColumn):
             The argument as it appears in the median_pdf_sample arguments
         name
             An optional name for the column
+        value_types
+            Value types to include. See ValueType.
         """
         super().__init__(
             name
