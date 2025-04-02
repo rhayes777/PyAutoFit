@@ -1,3 +1,4 @@
+from functools import cached_property
 from typing import Tuple
 from autofit.aggregator.search_output import SearchOutput
 
@@ -61,6 +62,17 @@ class Row:
             kwargs.update(latent_summary.max_log_likelihood_sample.kwargs)
 
         return kwargs
+
+    @cached_property
+    def model_paths(self):
+        return self.result.model.all_paths
+
+    def _dict_for_list(self, list_):
+        return {key: value for key, value in zip(self.model_paths, list_)}
+
+    @cached_property
+    def errors_at_sigma_1_kwargs(self):
+        return self._dict_for_list(self.result.samples_summary.errors_at_sigma_1)
 
     def dict(self) -> dict:
         """
