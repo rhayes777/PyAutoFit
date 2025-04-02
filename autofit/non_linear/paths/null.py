@@ -28,7 +28,7 @@ class NullPaths(AbstractPaths):
     def load_array(self, name):
         pass
 
-    def save_fits(self, name: str, hdu, prefix: str = ""):
+    def save_fits(self, name: str, fits, prefix: str = ""):
         pass
 
     def load_fits(self, name: str, prefix: str = ""):
