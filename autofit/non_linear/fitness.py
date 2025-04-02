@@ -1,10 +1,12 @@
-import numpy as np
+
 import os
 from typing import Optional
 
 from autoconf import conf
 
 from autofit import exc
+
+from autofit.jax_wrapper import numpy as np
 
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.paths.abstract import AbstractPaths
@@ -154,9 +156,7 @@ class Fitness:
         try:
             instance = self.model.instance_from_vector(vector=parameters)
             log_likelihood = self.log_likelihood_function(instance=instance)
-
-            if np.isnan(log_likelihood):
-                return self.resample_figure_of_merit
+            log_likelihood = np.where(np.isnan(log_likelihood), self.resample_figure_of_merit, log_likelihood)
 
         except exc.FitException:
             return self.resample_figure_of_merit
