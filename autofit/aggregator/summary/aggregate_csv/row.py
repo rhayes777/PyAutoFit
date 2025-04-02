@@ -74,6 +74,14 @@ class Row:
     def errors_at_sigma_1_kwargs(self):
         return self._dict_for_list(self.result.samples_summary.errors_at_sigma_1)
 
+    @cached_property
+    def values_at_sigma_1_kwargs(self):
+        return self._dict_for_list(self.result.samples_summary.values_at_sigma_1)
+
+    @cached_property
+    def values_at_sigma_3_kwargs(self):
+        return self._dict_for_list(self.result.samples_summary.values_at_sigma_3)
+
     def dict(self) -> dict:
         """
         The row as a dictionary including an id and one entry for each column.

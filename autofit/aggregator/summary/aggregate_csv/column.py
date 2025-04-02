@@ -63,6 +63,16 @@ class Column(AbstractColumn):
         if ValueType.MaxLogLikelihood in self.value_types:
             result["max_lh"] = row.max_likelihood_kwargs
 
+        if ValueType.ValuesAt1Sigma in self.value_types:
+            lower, upper = row.values_at_sigma_1_kwargs[self.path]
+            result["lower_1_sigma"] = lower
+            result["upper_1_sigma"] = upper
+
+        if ValueType.ValuesAt3Sigma in self.value_types:
+            lower, upper = row.values_at_sigma_3_kwargs[self.path]
+            result["lower_3_sigma"] = lower
+            result["upper_3_sigma"] = upper
+
         return result
 
     @property
