@@ -55,7 +55,6 @@ class Job(AbstractJob):
             model=self.model,
             analysis=self.analysis,
             info=self.info,
-            bypass_nuclear_if_on=True,
         )
         result_list_row = [
             self.index,

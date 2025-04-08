@@ -273,7 +273,6 @@ class GridSearch:
 
     def save_metadata(self):
         self.paths.save_unique_tag(is_grid_search=True)
-        self.paths.zip_remove_nuclear()
 
     def make_jobs(self, model, analysis, grid_priors, info: Optional[Dict] = None):
         grid_priors = model.sort_priors_alphabetically(set(grid_priors))

@@ -201,11 +201,6 @@ class AbstractDynesty(AbstractNest, ABC):
                     during_analysis=True,
                 )
 
-        try:
-            os.remove(self.checkpoint_file)
-        except TypeError:
-            pass
-
         return search_internal
 
     def samples_info_from(self, search_internal=None):
@@ -484,6 +479,17 @@ class AbstractDynesty(AbstractNest, ABC):
         queue_size: Optional[int],
     ):
         raise NotImplementedError()
+
+    def output_search_internal(self, search_internal):
+
+        self.paths.save_search_internal(
+            obj=search_internal,
+        )
+
+        try:
+            os.remove(self.checkpoint_file)
+        except (TypeError, FileNotFoundError):
+            pass
 
     def check_pool(self, uses_pool: bool, pool):
         if (uses_pool and pool is None) or (not uses_pool and pool is not None):
