@@ -67,7 +67,7 @@ class Column(AbstractColumn):
             result[""] = row.median_pdf_sample_kwargs[self.path]
 
         if ValueType.MaxLogLikelihood in self.value_types:
-            result["max_lh"] = row.max_likelihood_kwargs
+            result["max_lh"] = row.max_likelihood_kwargs[self.path]
 
         if ValueType.ValuesAt1Sigma in self.value_types:
             lower, upper = row.values_at_sigma_1_kwargs[self.path]
