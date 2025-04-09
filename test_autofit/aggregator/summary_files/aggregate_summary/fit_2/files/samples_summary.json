@@ -34,25 +34,6 @@
         }
       }
     },
-    "errors_at_sigma_1": {
-      "type": "list",
-      "values": [
-        {
-          "type": "tuple",
-          "values": [
-            0.8219585320794973,
-            0.8807834487242916
-          ]
-        },
-        {
-          "type": "tuple",
-          "values": [
-            0.4098203614718814,
-            0.49773247178232705
-          ]
-        }
-      ]
-    },
     "values_at_sigma_3": {
       "type": "list",
       "values": [
@@ -73,25 +54,6 @@
       ]
     },
     "log_evidence": -4.214938026111044,
-    "errors_at_sigma_3": {
-      "type": "list",
-      "values": [
-        {
-          "type": "tuple",
-          "values": [
-            2.579654153630685,
-            1.6835956236398397
-          ]
-        },
-        {
-          "type": "tuple",
-          "values": [
-            1.2322215615775107,
-            1.5982882571693717
-          ]
-        }
-      ]
-    },
     "values_at_sigma_1": {
       "type": "list",
       "values": [
