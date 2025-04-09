@@ -62,7 +62,7 @@ class UniformPrior(Prior):
         )
 
     def tree_flatten(self):
-        return (self.lower_limit, self.upper_limit), (self.id,)
+        return (self.lower_limit, self.upper_limit, self.id), ()
 
     def with_limits(
         self,
