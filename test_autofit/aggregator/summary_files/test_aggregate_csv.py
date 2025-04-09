@@ -201,3 +201,22 @@ def test_values_at_3_sigma(
     assert (
         first["galaxies_lens_bulge_centre_centre_0_upper_3_sigma"] == "5.93749816282317"
     )
+
+
+def test_latent_values_at_1_sigma(
+    output_path,
+    summary,
+    load_output,
+):
+    summary.add_variable(
+        "galaxies.lens.bulge.centre.latent",
+        value_types=[ValueType.ValuesAt1Sigma],
+    )
+    summary.save(output_path)
+
+    dicts = load_output()
+
+    first = dicts[0]
+    assert (
+        first["galaxies_lens_bulge_centre_latent_lower_1_sigma"] == "3.4319440071038327"
+    )

@@ -74,7 +74,12 @@ class Row:
 
         latent_summary = self.result.value("latent.latent_summary")
         if latent_summary is not None:
-            kwargs.update(latent_summary.values_at_sigma_1)
+            kwargs.update(
+                {
+                    tuple(key.split(".")): value
+                    for key, value in latent_summary.values_at_sigma_1.items()
+                }
+            )
 
         return kwargs
 
@@ -87,7 +92,12 @@ class Row:
 
         latent_summary = self.result.value("latent.latent_summary")
         if latent_summary is not None:
-            kwargs.update(latent_summary.values_at_sigma_3)
+            kwargs.update(
+                {
+                    tuple(key.split(".")): value
+                    for key, value in latent_summary.values_at_sigma_1.items()
+                }
+            )
 
         return kwargs
 
