@@ -66,11 +66,17 @@ class Row:
         return kwargs
 
     @cached_property
-    def values_at_sigma_1_kwargs(self):
+    def values_at_sigma_1_kwargs(self) -> dict:
+        """
+        The values_at_sigma_1 arguments for the search from the samples_summary.
+        """
         return self._add_paths(self.result.samples_summary.values_at_sigma_1)
 
     @cached_property
-    def values_at_sigma_3_kwargs(self):
+    def values_at_sigma_3_kwargs(self) -> dict:
+        """
+        The values_at_sigma_3 arguments for the search from the samples_summary.
+        """
         return self._add_paths(self.result.samples_summary.values_at_sigma_3)
 
     def dict(self) -> dict:
