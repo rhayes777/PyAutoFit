@@ -32,7 +32,9 @@ class Row:
         return {
             path: value
             for key, value in kwargs.items()
-            for path in self._all_paths(key)
+            for path in self._all_paths(
+                key.split(".") if isinstance(key, str) else key,
+            )
         }
 
     @property
@@ -54,7 +56,7 @@ class Row:
         """
         The median_pdf_sample arguments for the search from the samples_summary and latent_summary.
         """
-        samples_summary = self.result.value("samples_summary")
+        samples_summary = self.result.samples_summary
         kwargs = self._add_paths(samples_summary.median_pdf_sample.kwargs)
 
         latent_summary = self.result.value("latent.latent_summary")
@@ -67,22 +69,13 @@ class Row:
     def model_paths(self):
         return self.result.model.all_paths
 
-    def _dict_for_list(self, list_):
-        return {
-            key: value for paths, value in zip(self.model_paths, list_) for key in paths
-        }
-
-    @cached_property
-    def errors_at_sigma_1_kwargs(self):
-        return self._dict_for_list(self.result.samples_summary.errors_at_sigma_1)
-
     @cached_property
     def values_at_sigma_1_kwargs(self):
-        return self._dict_for_list(self.result.samples_summary.values_at_sigma_1)
+        return self._add_paths(self.result.samples_summary.values_at_sigma_1)
 
     @cached_property
     def values_at_sigma_3_kwargs(self):
-        return self._dict_for_list(self.result.samples_summary.values_at_sigma_3)
+        return self._add_paths(self.result.samples_summary.values_at_sigma_3)
 
     def dict(self) -> dict:
         """
