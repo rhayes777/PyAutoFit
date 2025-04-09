@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from functools import wraps
-from typing import Union, List, Tuple
+from typing import Union, List, Tuple, Dict
 
 from autofit.mapper.model import ModelInstance
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
@@ -23,9 +23,16 @@ def to_instance(func):
 
     @wraps(func)
     def wrapper(
-        self, *args, as_instance: bool = True, **kwargs
-    ) -> Union[List, ModelInstance]:
+        self,
+        *args,
+        as_instance: bool = True,
+        as_dict: bool = False,
+        **kwargs,
+    ) -> Union[List, Dict, ModelInstance]:
         vector = func(self, *args, **kwargs)
+
+        if as_dict:
+            return {name: value for name, value in zip(self.names, vector)}
 
         if as_instance:
             return self._instance_from_vector(vector)
