@@ -534,7 +534,6 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         model: AbstractPriorModel,
         analysis: Analysis,
         info: Optional[Dict] = None,
-        bypass_nuclear_if_on: bool = False,
     ) -> Union[Result, List[Result]]:
         """
         Fit a model, M with some function f that takes instances of the
@@ -557,9 +556,6 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         info
             Optional dictionary containing information about the fit that can be saved in the `files` folder
             (e.g. as `files/info.json`) and can be loaded via the database.
-        bypass_nuclear_if_on
-            If nuclear mode is on (environment variable "PYAUTOFIT_NUCLEAR_MODE=1") passing this as True will
-            bypass it.
 
         Returns
         -------
@@ -612,7 +608,6 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             )
 
             self.post_fit_output(
-                bypass_nuclear_if_on=bypass_nuclear_if_on,
                 search_internal=result.search_internal,
             )
 
@@ -847,7 +842,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         return result
 
-    def post_fit_output(self, search_internal, bypass_nuclear_if_on: bool):
+    def post_fit_output(self, search_internal):
         """
         Cleans up the output folderds after a completed non-linear search.
 
@@ -860,8 +855,8 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         Parameters
         ----------
-        bypass_nuclear_if_on
-            Whether to use nuclear mode to delete a lot of files (see nuclear mode description).
+        search_internal
+            The internal search.
         """
         if not conf.instance["output"]["search_internal"]:
             self.logger.info("Removing search internal folder.")
@@ -873,9 +868,6 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             self.logger.info("Removing all files except for .zip file")
 
         self.paths.zip_remove()
-
-        if not bypass_nuclear_if_on:
-            self.paths.zip_remove_nuclear()
 
     @abstractmethod
     def _fit(self, model: AbstractPriorModel, analysis: Analysis):
