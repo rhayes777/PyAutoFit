@@ -32,7 +32,7 @@ def to_instance(func):
         vector = func(self, *args, **kwargs)
 
         if as_dict:
-            return {name: value for name, value in zip(self.paths, vector)}
+            return {".".join(path[0]): value for path, value in zip(self.paths, vector)}
 
         if as_instance:
             return self._instance_from_vector(vector)
