@@ -70,14 +70,26 @@ class Row:
         """
         The values_at_sigma_1 arguments for the search from the samples_summary.
         """
-        return self._add_paths(self.result.samples_summary.values_at_sigma_1)
+        kwargs = self._add_paths(self.result.samples_summary.values_at_sigma_1)
+
+        latent_summary = self.result.value("latent.latent_summary")
+        if latent_summary is not None:
+            kwargs.update(latent_summary.values_at_sigma_1)
+
+        return kwargs
 
     @cached_property
     def values_at_sigma_3_kwargs(self) -> dict:
         """
         The values_at_sigma_3 arguments for the search from the samples_summary.
         """
-        return self._add_paths(self.result.samples_summary.values_at_sigma_3)
+        kwargs = self._add_paths(self.result.samples_summary.values_at_sigma_3)
+
+        latent_summary = self.result.value("latent.latent_summary")
+        if latent_summary is not None:
+            kwargs.update(latent_summary.values_at_sigma_3)
+
+        return kwargs
 
     def dict(self) -> dict:
         """
