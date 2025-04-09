@@ -2,7 +2,7 @@ import csv
 
 from pathlib import Path
 
-from autofit.aggregator.summary.aggregate_csv import AggregateCSV
+from autofit.aggregator.summary.aggregate_csv import AggregateCSV, ValueType
 
 import pytest
 
@@ -57,7 +57,7 @@ def test_add_column(
     summary,
     load_output,
 ):
-    summary.add_column("galaxies.lens.bulge.centre.centre_0")
+    summary.add_variable("galaxies.lens.bulge.centre.centre_0")
     summary.save(output_path)
 
     dicts = load_output()
@@ -71,16 +71,16 @@ def test_use_max_log_likelihood(
     summary,
     load_output,
 ):
-    summary.add_column(
+    summary.add_variable(
         "galaxies.lens.bulge.centre.centre_0",
-        use_max_log_likelihood=True,
+        value_types=[ValueType.MaxLogLikelihood],
     )
     summary.save(output_path)
 
     dicts = load_output()
 
-    assert dicts[0]["galaxies_lens_bulge_centre_centre_0"] == "-1.0" or "-5.0"
-    assert dicts[1]["galaxies_lens_bulge_centre_centre_0"] == "-5.0" or "-1.0"
+    assert dicts[0]["galaxies_lens_bulge_centre_centre_0_max_lh"] == "-1.0" or "-5.0"
+    assert dicts[1]["galaxies_lens_bulge_centre_centre_0_max_lh"] == "-5.0" or "-1.0"
 
 
 def test_add_named_column(
@@ -88,7 +88,7 @@ def test_add_named_column(
     summary,
     load_output,
 ):
-    summary.add_column(
+    summary.add_variable(
         "galaxies.lens.bulge.centre.centre_0",
         name="centre_0",
     )
@@ -105,7 +105,7 @@ def test_add_latent_column(
     summary,
     load_output,
 ):
-    summary.add_column(
+    summary.add_variable(
         "latent.value",
     )
     summary.save(output_path)
@@ -133,3 +133,90 @@ def test_computed_column(
     dicts = load_output()
 
     assert dicts[0]["computed"] == "1"
+
+
+def test_dict_computed_column(
+    output_path,
+    summary,
+    load_output,
+):
+    def compute(samples):
+        return {"a": 1, "b": 2}
+
+    summary.add_computed_column(
+        "computed",
+        compute,
+    )
+    summary.save(output_path)
+
+    dicts = load_output()
+
+    first = dicts[0]
+    assert first["computed_a"] == "1"
+    assert first["computed_b"] == "2"
+
+
+def test_values_at_1_sigma(
+    output_path,
+    summary,
+    load_output,
+):
+    summary.add_variable(
+        "galaxies.lens.bulge.centre.centre_0",
+        value_types=[ValueType.ValuesAt1Sigma],
+    )
+    summary.save(output_path)
+
+    dicts = load_output()
+
+    first = dicts[0]
+    assert (
+        first["galaxies_lens_bulge_centre_centre_0_lower_1_sigma"]
+        == "3.4319440071038327"
+    )
+    assert (
+        first["galaxies_lens_bulge_centre_centre_0_upper_1_sigma"]
+        == "5.134685987907622"
+    )
+
+
+def test_values_at_3_sigma(
+    output_path,
+    summary,
+    load_output,
+):
+    summary.add_variable(
+        "galaxies.lens.bulge.centre.centre_0",
+        value_types=[ValueType.ValuesAt3Sigma],
+    )
+    summary.save(output_path)
+
+    dicts = load_output()
+
+    first = dicts[0]
+    assert (
+        first["galaxies_lens_bulge_centre_centre_0_lower_3_sigma"]
+        == "1.6742483855526449"
+    )
+    assert (
+        first["galaxies_lens_bulge_centre_centre_0_upper_3_sigma"] == "5.93749816282317"
+    )
+
+
+def test_latent_values_at_1_sigma(
+    output_path,
+    summary,
+    load_output,
+):
+    summary.add_variable(
+        "galaxies.lens.bulge.centre.latent",
+        value_types=[ValueType.ValuesAt1Sigma],
+    )
+    summary.save(output_path)
+
+    dicts = load_output()
+
+    first = dicts[0]
+    assert (
+        first["galaxies_lens_bulge_centre_latent_lower_1_sigma"] == "3.4319440071038327"
+    )

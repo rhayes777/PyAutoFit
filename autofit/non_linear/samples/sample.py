@@ -31,7 +31,7 @@ class Sample:
         kwargs
             Dictionary mapping model paths to values for the sample
         """
-        self.log_likelihood = log_likelihood
+        self.log_likelihood = float(log_likelihood)
         self.log_prior = log_prior
         self.weight = weight
         self.kwargs = {
