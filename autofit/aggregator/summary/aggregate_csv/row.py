@@ -66,10 +66,6 @@ class Row:
         return kwargs
 
     @cached_property
-    def model_paths(self):
-        return self.result.model.all_paths
-
-    @cached_property
     def values_at_sigma_1_kwargs(self):
         return self._add_paths(self.result.samples_summary.values_at_sigma_1)
 
