@@ -9,7 +9,10 @@ from autofit.non_linear.samples.pdf import SamplesPDF
 from autofit.non_linear.samples.summary import SamplesSummary
 from autofit.non_linear.analysis.combined import CombinedResult
 
+from autofit.jax_wrapper import register_pytree_node_class
 
+
+@register_pytree_node_class
 class FactorGraphModel(AbstractDeclarativeFactor):
     def __init__(
         self,
@@ -33,6 +36,20 @@ class FactorGraphModel(AbstractDeclarativeFactor):
         )
         self._model_factors = list(model_factors)
         self._name = name or namer(self.__class__.__name__)
+
+    def tree_flatten(self):
+        return (
+            (self._model_factors,),
+            (self._name, self.include_prior_factors),
+        )
+
+    @classmethod
+    def tree_unflatten(cls, aux_data, children):
+        return cls(
+            *children[0],
+            name=aux_data[0],
+            include_prior_factors=aux_data[1],
+        )
 
     @property
     def prior_model(self):
