@@ -49,7 +49,7 @@ def test_longer(aggregate):
         [
             SubplotFit.NormalizedResidualMap,
             SubplotFit.SourcePlaneNoZoom,
-            SubplotFit.SourceModelImage,
+            SubplotFit.SourceModelData,
         ],
     )
 
@@ -61,7 +61,7 @@ def test_subplot_width(aggregate):
         [
             SubplotFit.NormalizedResidualMap,
             SubplotFit.SourcePlaneNoZoom,
-            SubplotFit.SourceModelImage,
+            SubplotFit.SourceModelData,
         ],
         subplot_width=2,
     )
@@ -76,7 +76,7 @@ def test_output_to_folder(aggregate, output_directory):
         [
             SubplotFit.Data,
             SubplotFit.SourcePlaneZoomed,
-            SubplotFit.SourceModelImage,
+            SubplotFit.SourceModelData,
         ],
     )
     assert list(Path(output_directory).glob("*.png"))
@@ -89,7 +89,7 @@ def test_list_of_names(aggregate, output_directory):
         [
             SubplotFit.Data,
             SubplotFit.SourcePlaneZoomed,
-            SubplotFit.SourceModelImage,
+            SubplotFit.SourceModelData,
         ],
     )
     assert set([path.name for path in Path(output_directory).glob("*.png")]) == set([
@@ -109,7 +109,7 @@ def test_output_to_folder_name(
         [
             SubplotFit.Data,
             SubplotFit.SourcePlaneZoomed,
-            SubplotFit.SourceModelImage,
+            SubplotFit.SourceModelData,
         ],
     )
 
@@ -128,7 +128,7 @@ def test_custom_images(
         [
             SubplotFit.Data,
             SubplotFit.SourcePlaneZoomed,
-            SubplotFit.SourceModelImage,
+            SubplotFit.SourceModelData,
             images,
         ]
     )
@@ -144,7 +144,7 @@ def test_custom_function(aggregate):
         [
             SubplotFit.Data,
             SubplotFit.SourcePlaneZoomed,
-            SubplotFit.SourceModelImage,
+            SubplotFit.SourceModelData,
             make_image,
         ]
     )

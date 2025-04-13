@@ -1,7 +1,8 @@
 import re
 from enum import Enum
-from typing import List, Union
+from typing import Dict, List, Union
 
+from astropy.table import Table
 from astropy.io import fits
 from pathlib import Path
 
@@ -27,7 +28,7 @@ class FITSFit(Enum):
     The HDUs that can be extracted from the fit.fits file.
     """
 
-    ModelImage = "MODEL_IMAGE"
+    ModelData = "MODEL_IMAGE"
     ResidualMap = "RESIDUAL_MAP"
     NormalizedResidualMap = "NORMALIZED_RESIDUAL_MAP"
     ChiSquaredMap = "CHI_SQUARED_MAP"
@@ -99,6 +100,28 @@ class AggregateFITS:
             output.extend(self._hdus(result, hdus))
 
         return fits.HDUList(output)
+
+    def extract_csv(self, filename : str) -> List[Dict]:
+        """
+        Extract .csv files which store imaging results that are typically on irregular grids and thus don't suit
+        a .fits file.
+
+        Return the result as a list of Dicts corresponding to the fits in the aggregator.
+
+        Parameters
+        ----------
+        filename
+            The name of the .csv file to extract.
+
+        Returns
+        -------
+        The extracted HDUs.
+        """
+        output = []
+        for result in self.aggregator:
+            output.append(Table.read(result.value(filename), format="fits"))
+
+        return output
 
     def output_to_folder(
         self,
