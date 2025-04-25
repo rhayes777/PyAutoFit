@@ -59,7 +59,13 @@ class TestAnalysis(af.Analysis):
                 instance,
                 during_analysis,
             ):
-                calls.append(("visualize", paths.analysis_name))
+                calls.append(
+                    (
+                        "visualize",
+                        paths.analysis_name,
+                        during_analysis,
+                    )
+                )
 
         self.Visualizer = Visualizer
 
@@ -98,17 +104,26 @@ def instance(model):
     return af.Collection(model).instance_from_prior_medians()
 
 
+@pytest.mark.parametrize(
+    "during_analysis",
+    [True, False],
+)
 def test_visualize(
     analysis,
     factor_graph,
     instance,
+    during_analysis,
 ):
     factor_graph.visualize(
         DirectoryPaths(),
         instance,
-        False,
+        during_analysis,
     )
 
     assert analysis.calls == [
-        ("visualize", "analyses/analysis_0"),
+        (
+            "visualize",
+            "analyses/analysis_0",
+            during_analysis,
+        ),
     ]
