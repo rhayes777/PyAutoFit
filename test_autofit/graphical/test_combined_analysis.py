@@ -143,3 +143,17 @@ def test_visualize_before_fit(
     assert analysis.calls == [
         ("visualize_before_fit", "analyses/analysis_0"),
     ]
+
+
+def test_save_attributes(
+    analysis,
+    factor_graph,
+    instance,
+):
+    factor_graph.save_attributes(
+        DirectoryPaths(),
+    )
+
+    assert analysis.calls == [
+        ("save_attributes", "analyses/analysis_0"),
+    ]

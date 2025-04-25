@@ -165,5 +165,16 @@ class AnalysisFactor(AbstractModelFactor):
         """
         self.analysis.visualize_before_fit(paths=paths, model=model)
 
+    def save_attributes(self, paths: AbstractPaths):
+        """
+        Save the attributes of the analysis object to a file.
+
+        Parameters
+        ----------
+        paths
+            Object describing where data should be saved to
+        """
+        self.analysis.save_attributes(paths=paths)
+
     def log_likelihood_function(self, instance: ModelInstance) -> float:
         return self.analysis.log_likelihood_function(instance)
