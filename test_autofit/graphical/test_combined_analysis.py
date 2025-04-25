@@ -1,4 +1,5 @@
 import autofit as af
+from autofit import AbstractPaths
 from autofit.non_linear.paths.null import NullPaths
 
 
@@ -31,3 +32,28 @@ def test_make_result():
 
     (child_result,) = result.child_results
     assert child_result.model == model
+
+
+class TestAnalysis(af.Analysis):
+    def __init__(self):
+        super().__init__()
+
+    def log_likelihood_function(self, instance):
+        return 0.0
+
+    def save_attributes(self, paths: AbstractPaths):
+        pass
+
+    def save_results(self, paths: AbstractPaths, result):
+        pass
+
+    def visualize_before_fit(self, paths: AbstractPaths, result):
+        pass
+
+    def visualize(self, paths: AbstractPaths, result):
+        pass
+
+
+def test_output():
+    model = af.Model(af.Gaussian)
+    model_analysis = TestAnalysis()
