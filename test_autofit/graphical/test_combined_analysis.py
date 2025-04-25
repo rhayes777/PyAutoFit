@@ -1,3 +1,5 @@
+import pytest
+
 import autofit as af
 from autofit import AbstractPaths, DirectoryPaths, AbstractPriorModel
 from autofit.non_linear.paths.null import NullPaths
@@ -71,18 +73,39 @@ class TestAnalysis(af.Analysis):
         self.calls.append(("save_results", paths.analysis_name))
 
 
-def test_visualize():
-    model = af.Model(af.Gaussian)
-    analysis = TestAnalysis()
+@pytest.fixture
+def analysis():
+    return TestAnalysis()
 
-    analysis_factor = af.AnalysisFactor(
-        prior_model=model,
-        analysis=analysis,
+
+@pytest.fixture
+def model():
+    return af.Model(af.Gaussian)
+
+
+@pytest.fixture
+def factor_graph(analysis, model):
+    return af.FactorGraphModel(
+        af.AnalysisFactor(
+            prior_model=model,
+            analysis=analysis,
+        )
     )
-    factor_graph = af.FactorGraphModel(analysis_factor)
+
+
+@pytest.fixture
+def instance(model):
+    return af.Collection(model).instance_from_prior_medians()
+
+
+def test_visualize(
+    analysis,
+    factor_graph,
+    instance,
+):
     factor_graph.visualize(
         DirectoryPaths(),
-        af.Collection(model).instance_from_prior_medians(),
+        instance,
         False,
     )
 
