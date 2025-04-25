@@ -168,7 +168,7 @@ class AbstractDeclarativeFactor(Analysis, ABC):
         optimiser: AbstractFactorOptimiser,
         paths: Optional[AbstractPaths] = None,
         ep_history: Optional = None,
-        **kwargs
+        **kwargs,
     ):
         """
         Use an EP Optimiser to optimise the graph associated with this collection
@@ -200,8 +200,47 @@ class AbstractDeclarativeFactor(Analysis, ABC):
 
     # TODO : Visualize method before fit?
 
+    def _for_each_analysis(
+        self,
+        name,
+        paths,
+        *args,
+        **kwargs,
+    ):
+        """
+        Convenience function to call an underlying function for each
+        analysis with a paths object with an integer attached to the
+        end.
+
+        Parameters
+        ----------
+        func
+            Some function of the analysis class
+        paths
+            An object describing the paths for saving data (e.g. hard-disk directories or entries in sqlite database).
+        """
+        results = []
+        for (i, analysis), *args in zip(
+            enumerate(self.model_factors),
+            *args,
+        ):
+            child_paths = paths.for_sub_analysis(analysis_name=f"analyses/analysis_{i}")
+            func = getattr(analysis, name)
+            results.append(
+                func(
+                    child_paths,
+                    *args,
+                    **kwargs,
+                )
+            )
+
+        return results
+
     def visualize(
-        self, paths: AbstractPaths, instance: ModelInstance, during_analysis: bool
+        self,
+        paths: AbstractPaths,
+        instance: ModelInstance,
+        during_analysis: bool,
     ):
         """
         Visualise the instances provided using each factor.
@@ -217,9 +256,12 @@ class AbstractDeclarativeFactor(Analysis, ABC):
         during_analysis
             Is this visualisation during analysis?
         """
-        for model_factor, instance in zip(self.model_factors, instance):
-            model_factor.visualize(paths, instance, during_analysis)
-            model_factor.visualize_combined(None, paths, instance, during_analysis)
+        self._for_each_analysis(
+            "visualize",
+            paths,
+            instance,
+            during_analysis=during_analysis,
+        )
 
     @property
     def global_prior_model(self) -> Collection:
