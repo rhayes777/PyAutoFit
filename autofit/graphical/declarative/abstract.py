@@ -293,6 +293,12 @@ class AbstractDeclarativeFactor(Analysis, ABC):
         """
         self._for_each_analysis("save_attributes", paths)
 
+    def save_results(self, paths: AbstractPaths, result):
+        """
+        Save the results of the analysis to the paths object.
+        """
+        self._for_each_analysis("save_results", paths, result)
+
     @staticmethod
     def visualize_combined(
         analyses,

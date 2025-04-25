@@ -157,3 +157,18 @@ def test_save_attributes(
     assert analysis.calls == [
         ("save_attributes", "analyses/analysis_0"),
     ]
+
+
+def test_save_results(
+    analysis,
+    factor_graph,
+    instance,
+):
+    factor_graph.save_results(
+        DirectoryPaths(),
+        [None],
+    )
+
+    assert analysis.calls == [
+        ("save_results", "analyses/analysis_0"),
+    ]

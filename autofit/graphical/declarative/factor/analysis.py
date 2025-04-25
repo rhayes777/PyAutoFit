@@ -176,5 +176,18 @@ class AnalysisFactor(AbstractModelFactor):
         """
         self.analysis.save_attributes(paths=paths)
 
+    def save_results(self, paths: AbstractPaths, result):
+        """
+        Save the results of the analysis to a file.
+
+        Parameters
+        ----------
+        paths
+            Object describing where data should be saved to
+        result
+            The result of the analysis
+        """
+        self.analysis.save_results(paths=paths, result=result)
+
     def log_likelihood_function(self, instance: ModelInstance) -> float:
         return self.analysis.log_likelihood_function(instance)
