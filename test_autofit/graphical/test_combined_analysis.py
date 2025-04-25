@@ -1,6 +1,7 @@
 import autofit as af
-from autofit import AbstractPaths
+from autofit import AbstractPaths, DirectoryPaths, AbstractPriorModel
 from autofit.non_linear.paths.null import NullPaths
+from autofit.non_linear.paths.sub_directory_paths import SubDirectoryPaths
 
 
 def test_make_result():
@@ -37,23 +38,50 @@ def test_make_result():
 class TestAnalysis(af.Analysis):
     def __init__(self):
         super().__init__()
+        calls = []
+        self.calls = calls
+
+        class Visualizer(af.Visualizer):
+            @staticmethod
+            def visualize_before_fit(
+                analysis,
+                paths: SubDirectoryPaths,
+                model: AbstractPriorModel,
+            ):
+                calls.append(("visualize_before_fit", paths.analysis_name))
+
+            @staticmethod
+            def visualize(
+                analysis,
+                paths: SubDirectoryPaths,
+                instance,
+                during_analysis,
+            ):
+                calls.append(("visualize", paths.analysis_name))
+
+        self.Visualizer = Visualizer
 
     def log_likelihood_function(self, instance):
         return 0.0
 
-    def save_attributes(self, paths: AbstractPaths):
-        pass
+    def save_attributes(self, paths: SubDirectoryPaths):
+        self.calls.append(("save_attributes", paths.analysis_name))
 
-    def save_results(self, paths: AbstractPaths, result):
-        pass
-
-    def visualize_before_fit(self, paths: AbstractPaths, result):
-        pass
-
-    def visualize(self, paths: AbstractPaths, result):
-        pass
+    def save_results(self, paths: SubDirectoryPaths, result):
+        self.calls.append(("save_results", paths.analysis_name))
 
 
 def test_output():
     model = af.Model(af.Gaussian)
-    model_analysis = TestAnalysis()
+    analysis = TestAnalysis()
+
+    analysis_factor = af.AnalysisFactor(
+        prior_model=model,
+        analysis=analysis,
+    )
+    factor_graph = af.FactorGraphModel(analysis_factor)
+    factor_graph.visualize(
+        DirectoryPaths(),
+        af.Collection(model).instance_from_prior_medians(),
+        False,
+    )
