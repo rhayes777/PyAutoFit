@@ -127,3 +127,19 @@ def test_visualize(
             during_analysis,
         ),
     ]
+
+
+def test_visualize_before_fit(
+    analysis,
+    factor_graph,
+    instance,
+    model,
+):
+    factor_graph.visualize_before_fit(
+        DirectoryPaths(),
+        af.Collection(model),
+    )
+
+    assert analysis.calls == [
+        ("visualize_before_fit", "analyses/analysis_0"),
+    ]

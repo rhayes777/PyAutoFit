@@ -8,6 +8,7 @@ from autofit.graphical.declarative.graph import DeclarativeFactorGraph
 from autofit.graphical.expectation_propagation import AbstractFactorOptimiser
 from autofit.graphical.expectation_propagation import EPMeanField, EPOptimiser
 from autofit.mapper.model import ModelInstance
+from autofit.mapper.prior_model.prior_model import Model
 from autofit.mapper.prior.abstract import Prior
 from autofit.mapper.prior_model.collection import Collection
 from autofit.mapper.variable import Plate
@@ -258,6 +259,43 @@ class AbstractDeclarativeFactor(Analysis, ABC):
         """
         self._for_each_analysis(
             "visualize",
+            paths,
+            instance,
+            during_analysis=during_analysis,
+        )
+
+    def visualize_before_fit(
+        self,
+        paths: AbstractPaths,
+        model: Model,
+    ):
+        """
+        Visualise the model provided using each factor.
+
+        Models in the ModelInstance must have the same order as the factors.
+
+        Parameters
+        ----------
+        paths
+            Object describing where data should be saved to
+        model
+            A collection of models, each corresponding to a factor
+        """
+        self._for_each_analysis(
+            "visualize_before_fit",
+            paths,
+            model,
+        )
+
+    @staticmethod
+    def visualize_combined(
+        analyses,
+        paths: AbstractPaths,
+        instance,
+        during_analysis,
+    ):
+        analyses[0].visualize_combined(
+            analyses,
             paths,
             instance,
             during_analysis=during_analysis,
