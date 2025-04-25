@@ -71,7 +71,7 @@ class TestAnalysis(af.Analysis):
         self.calls.append(("save_results", paths.analysis_name))
 
 
-def test_output():
+def test_visualize():
     model = af.Model(af.Gaussian)
     analysis = TestAnalysis()
 
@@ -85,3 +85,7 @@ def test_output():
         af.Collection(model).instance_from_prior_medians(),
         False,
     )
+
+    assert analysis.calls == [
+        ("visualize", "analyses/analysis_0"),
+    ]
