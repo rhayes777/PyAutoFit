@@ -267,15 +267,14 @@ class FactorGraphModel(AbstractDeclarativeFactor):
         """
         self._for_each_analysis("save_results", paths, result)
 
-    @staticmethod
     def visualize_combined(
-        analyses,
-        paths: AbstractPaths,
+        self,
         instance,
+        paths: AbstractPaths,
         during_analysis,
     ):
-        analyses[0].visualize_combined(
-            analyses,
+        self.model_factors[0].visualize_combined(
+            self.model_factors,
             paths,
             instance,
             during_analysis=during_analysis,
