@@ -55,6 +55,7 @@ def test_jit_dynesty_static(
     search = af.DynestyStatic(
         use_gradient=True,
         number_of_cores=1,
+        maxcall=1,
     )
 
     print(search.fit(model=model, analysis=analysis))
