@@ -11,7 +11,7 @@ def simple_model_for_kwargs(kwargs: Dict[Union[str, Tuple[str, ...]], float]):
             path = (path,)
         component = model
         if len(path) > 1:
-            for part in path[:1]:
+            for part in path[:-1]:
                 try:
                     component = component[part]
                 except KeyError:
