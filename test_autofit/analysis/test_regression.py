@@ -1,15 +1,4 @@
-import pickle
-
-import pytest
-
 import autofit as af
-from autofit.non_linear.analysis import CombinedAnalysis
-
-
-def test_pickle(Analysis):
-    analysis = Analysis() + Analysis()
-    loaded = pickle.loads(pickle.dumps(analysis))
-    assert isinstance(loaded, CombinedAnalysis)
 
 
 class MyResult(af.mock.MockResult):
@@ -51,27 +40,3 @@ def test_result_type():
     result = analysis.make_result(None, None)
 
     assert isinstance(result, MyResult)
-
-
-@pytest.fixture(name="combined_analysis")
-def make_combined_analysis():
-    return MyAnalysis() + MyAnalysis()
-
-
-@pytest.fixture(name="paths")
-def make_paths():
-    return af.DirectoryPaths()
-
-
-def test_combined_before_fit(combined_analysis, paths):
-    combined_analysis = combined_analysis.modify_before_fit(paths, [None])
-
-    assert combined_analysis[0].is_modified_before
-
-
-def test_combined_after_fit(combined_analysis, paths):
-    result = combined_analysis.make_result(None, None)
-
-    combined_analysis = combined_analysis.modify_after_fit(paths, [None], result)
-
-    assert combined_analysis[0].is_modified_after

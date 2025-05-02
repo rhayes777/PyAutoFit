@@ -7,9 +7,9 @@ from .abstract import AbstractDeclarativeFactor
 from autofit.non_linear.paths.abstract import AbstractPaths
 from autofit.non_linear.samples.pdf import SamplesPDF
 from autofit.non_linear.samples.summary import SamplesSummary
-from autofit.non_linear.analysis.combined import CombinedResult
 
 from autofit.jax_wrapper import register_pytree_node_class
+from ...non_linear.combined_result import CombinedResult
 
 
 @register_pytree_node_class
