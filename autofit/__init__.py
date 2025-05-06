@@ -65,7 +65,6 @@ from .mapper.prior_model.array import Array
 from .non_linear.search.abstract_search import NonLinearSearch
 from .non_linear.analysis.visualize import Visualizer
 from .non_linear.analysis.analysis import Analysis
-from .non_linear.analysis.combined import CombinedAnalysis
 from .non_linear.grid.grid_search import GridSearchResult
 from .non_linear.grid.sensitivity import Sensitivity
 from .non_linear.initializer import InitializerBall
