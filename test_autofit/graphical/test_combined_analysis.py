@@ -1,5 +1,9 @@
+import pytest
+
 import autofit as af
+from autofit import AbstractPaths, DirectoryPaths, AbstractPriorModel
 from autofit.non_linear.paths.null import NullPaths
+from autofit.non_linear.paths.sub_directory_paths import SubDirectoryPaths
 
 
 def test_make_result():
@@ -31,3 +35,140 @@ def test_make_result():
 
     (child_result,) = result.child_results
     assert child_result.model == model
+
+
+class TestAnalysis(af.Analysis):
+    def __init__(self):
+        super().__init__()
+        calls = []
+        self.calls = calls
+
+        class Visualizer(af.Visualizer):
+            @staticmethod
+            def visualize_before_fit(
+                analysis,
+                paths: SubDirectoryPaths,
+                model: AbstractPriorModel,
+            ):
+                calls.append(("visualize_before_fit", paths.analysis_name))
+
+            @staticmethod
+            def visualize(
+                analysis,
+                paths: SubDirectoryPaths,
+                instance,
+                during_analysis,
+            ):
+                calls.append(
+                    (
+                        "visualize",
+                        paths.analysis_name,
+                        during_analysis,
+                    )
+                )
+
+        self.Visualizer = Visualizer
+
+    def log_likelihood_function(self, instance):
+        return 0.0
+
+    def save_attributes(self, paths: SubDirectoryPaths):
+        self.calls.append(("save_attributes", paths.analysis_name))
+
+    def save_results(self, paths: SubDirectoryPaths, result):
+        self.calls.append(("save_results", paths.analysis_name))
+
+
+@pytest.fixture
+def analysis():
+    return TestAnalysis()
+
+
+@pytest.fixture
+def model():
+    return af.Model(af.Gaussian)
+
+
+@pytest.fixture
+def factor_graph(analysis, model):
+    return af.FactorGraphModel(
+        af.AnalysisFactor(
+            prior_model=model,
+            analysis=analysis,
+        )
+    )
+
+
+@pytest.fixture
+def instance(model):
+    return af.Collection(model).instance_from_prior_medians()
+
+
+@pytest.mark.parametrize(
+    "during_analysis",
+    [True, False],
+)
+def test_visualize(
+    analysis,
+    factor_graph,
+    instance,
+    during_analysis,
+):
+    factor_graph.visualize(
+        DirectoryPaths(),
+        instance,
+        during_analysis,
+    )
+
+    assert analysis.calls == [
+        (
+            "visualize",
+            "analyses/analysis_0",
+            during_analysis,
+        ),
+    ]
+
+
+def test_visualize_before_fit(
+    analysis,
+    factor_graph,
+    instance,
+    model,
+):
+    factor_graph.visualize_before_fit(
+        DirectoryPaths(),
+        af.Collection(model),
+    )
+
+    assert analysis.calls == [
+        ("visualize_before_fit", "analyses/analysis_0"),
+    ]
+
+
+def test_save_attributes(
+    analysis,
+    factor_graph,
+    instance,
+):
+    factor_graph.save_attributes(
+        DirectoryPaths(),
+    )
+
+    assert analysis.calls == [
+        ("save_attributes", "analyses/analysis_0"),
+    ]
+
+
+def test_save_results(
+    analysis,
+    factor_graph,
+    instance,
+):
+    factor_graph.save_results(
+        DirectoryPaths(),
+        [None],
+    )
+
+    assert analysis.calls == [
+        ("save_results", "analyses/analysis_0"),
+    ]

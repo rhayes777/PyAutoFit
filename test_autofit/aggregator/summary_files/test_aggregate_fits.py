@@ -12,7 +12,7 @@ def make_summary(aggregator):
 def test_aggregate(summary):
     result = summary.extract_fits(
         [
-            af.FITSFit.ModelImage,
+            af.FITSFit.ModelData,
             af.FITSFit.ResidualMap,
         ],
     )
@@ -25,7 +25,7 @@ def test_output_to_file(summary, output_directory):
         folder,
         name="id",
         hdus=[
-            af.FITSFit.ModelImage,
+            af.FITSFit.ModelData,
             af.FITSFit.ResidualMap,
         ],
     )
@@ -37,7 +37,7 @@ def test_list_of_names(summary, output_directory):
         output_directory,
         ["one", "two"],
         [
-            af.FITSFit.ModelImage,
+            af.FITSFit.ModelData,
             af.FITSFit.ResidualMap,
         ],
     )

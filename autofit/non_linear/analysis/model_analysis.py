@@ -1,9 +1,7 @@
 from typing import Optional
 
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
-from autofit.mapper.prior_model.collection import Collection
 from .analysis import Analysis
-from .indexed import IndexCollectionAnalysis
 from ... import SamplesSummary, AbstractPaths, SamplesPDF
 
 
@@ -48,28 +46,3 @@ class ModelAnalysis(Analysis):
             )
         except TypeError:
             raise
-
-
-class CombinedModelAnalysis(IndexCollectionAnalysis):
-    def modify_model(self, model: AbstractPriorModel) -> Collection:
-        """
-        Creates a collection with one model for each analysis. For each ModelAnalysis
-        the model is used; for other analyses the default model is used.
-
-        Parameters
-        ----------
-        model
-            A default model
-
-        Returns
-        -------
-        A collection of models, one for each analysis.
-        """
-        return Collection(
-            [
-                analysis.modify_model(analysis.analysis.model)
-                if isinstance(analysis.analysis, ModelAnalysis)
-                else analysis.modify_model(model)
-                for analysis in self.analyses
-            ]
-        )
