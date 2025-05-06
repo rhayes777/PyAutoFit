@@ -2,6 +2,7 @@ from typing import Optional
 
 import numpy as np
 
+from autofit.mapper.prior_model.prior_model import Model
 from autofit.graphical.expectation_propagation import AbstractFactorOptimiser
 from autofit.mapper.model import ModelInstance
 from autofit.mapper.prior_model.prior_model import AbstractPriorModel
@@ -144,12 +145,49 @@ class AnalysisFactor(AbstractModelFactor):
         self.analysis.visualize(
             paths=paths, instance=instance, during_analysis=during_analysis
         )
-        self.analysis.visualize_combined(
-            analyses=None,
-            paths=paths,
-            instance=instance,
-            during_analysis=during_analysis,
-        )
+
+    def visualize_before_fit(
+        self,
+        paths: AbstractPaths,
+        model: Model,
+    ):
+        """
+        Visualise the model provided using each factor.
+
+        Models in the ModelInstance must have the same order as the factors.
+
+        Parameters
+        ----------
+        paths
+            Object describing where data should be saved to
+        model
+            A collection of models, each corresponding to a factor
+        """
+        self.analysis.visualize_before_fit(paths=paths, model=model)
+
+    def save_attributes(self, paths: AbstractPaths):
+        """
+        Save the attributes of the analysis object to a file.
+
+        Parameters
+        ----------
+        paths
+            Object describing where data should be saved to
+        """
+        self.analysis.save_attributes(paths=paths)
+
+    def save_results(self, paths: AbstractPaths, result):
+        """
+        Save the results of the analysis to a file.
+
+        Parameters
+        ----------
+        paths
+            Object describing where data should be saved to
+        result
+            The result of the analysis
+        """
+        self.analysis.save_results(paths=paths, result=result)
 
     def log_likelihood_function(self, instance: ModelInstance) -> float:
         return self.analysis.log_likelihood_function(instance)

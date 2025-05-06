@@ -1,13 +1,16 @@
 from typing import Union, Optional
 
 from autofit.graphical.declarative.factor.hierarchical import HierarchicalFactor
-from autofit.mapper.model import ModelInstance
+
 from autofit.tools.namer import namer
 from .abstract import AbstractDeclarativeFactor
 from autofit.non_linear.paths.abstract import AbstractPaths
 from autofit.non_linear.samples.pdf import SamplesPDF
 from autofit.non_linear.samples.summary import SamplesSummary
 from autofit.non_linear.analysis.combined import CombinedResult
+
+from autofit.mapper.model import ModelInstance
+from autofit.mapper.prior_model.prior_model import Model
 
 from autofit.jax_wrapper import register_pytree_node_class
 
@@ -164,4 +167,115 @@ class FactorGraphModel(AbstractDeclarativeFactor):
             samples=samples,
             search_internal=search_internal,
             analysis=analysis,
+        )
+
+    def _for_each_analysis(
+        self,
+        name,
+        paths,
+        *args,
+        **kwargs,
+    ):
+        """
+        Convenience function to call an underlying function for each
+        analysis with a paths object with an integer attached to the
+        end.
+
+        Parameters
+        ----------
+        func
+            Some function of the analysis class
+        paths
+            An object describing the paths for saving data (e.g. hard-disk directories or entries in sqlite database).
+        """
+        results = []
+        for (i, analysis), *args in zip(
+            enumerate(self.model_factors),
+            *args,
+        ):
+            child_paths = paths.for_sub_analysis(analysis_name=f"analyses/analysis_{i}")
+            func = getattr(analysis, name)
+            results.append(
+                func(
+                    child_paths,
+                    *args,
+                    **kwargs,
+                )
+            )
+
+        return results
+
+    def visualize(
+        self,
+        paths: AbstractPaths,
+        instance: ModelInstance,
+        during_analysis: bool,
+    ):
+        """
+        Visualise the instances provided using each factor.
+
+        Instances in the ModelInstance must have the same order as the factors.
+
+        Parameters
+        ----------
+        paths
+            Object describing where data should be saved to
+        instance
+            A collection of instances, each corresponding to a factor
+        during_analysis
+            Is this visualisation during analysis?
+        """
+        self._for_each_analysis(
+            "visualize",
+            paths,
+            instance,
+            during_analysis=during_analysis,
+        )
+
+    def visualize_before_fit(
+        self,
+        paths: AbstractPaths,
+        model: Model,
+    ):
+        """
+        Visualise the model provided using each factor.
+
+        Models in the ModelInstance must have the same order as the factors.
+
+        Parameters
+        ----------
+        paths
+            Object describing where data should be saved to
+        model
+            A collection of models, each corresponding to a factor
+        """
+        self._for_each_analysis(
+            "visualize_before_fit",
+            paths,
+            model,
+        )
+
+    def save_attributes(self, paths: AbstractPaths):
+        """
+        Save the attributes of the analysis to the paths object.
+        """
+        self._for_each_analysis("save_attributes", paths)
+
+    def save_results(self, paths: AbstractPaths, result):
+        """
+        Save the results of the analysis to the paths object.
+        """
+        self._for_each_analysis("save_results", paths, result)
+
+    def visualize_combined(
+        self,
+        instance,
+        paths: AbstractPaths,
+        during_analysis,
+    ):
+        self.model_factors[0].visualize_combined(
+            self.model_factors,
+            paths,
+            instance,
+            during_analysis=during_analysis,
         )

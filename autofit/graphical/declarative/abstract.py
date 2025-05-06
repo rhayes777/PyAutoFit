@@ -7,7 +7,6 @@ from autofit.graphical.declarative.factor.prior import PriorFactor
 from autofit.graphical.declarative.graph import DeclarativeFactorGraph
 from autofit.graphical.expectation_propagation import AbstractFactorOptimiser
 from autofit.graphical.expectation_propagation import EPMeanField, EPOptimiser
-from autofit.mapper.model import ModelInstance
 from autofit.mapper.prior.abstract import Prior
 from autofit.mapper.prior_model.collection import Collection
 from autofit.mapper.variable import Plate
@@ -168,7 +167,7 @@ class AbstractDeclarativeFactor(Analysis, ABC):
         optimiser: AbstractFactorOptimiser,
         paths: Optional[AbstractPaths] = None,
         ep_history: Optional = None,
-        **kwargs
+        **kwargs,
     ):
         """
         Use an EP Optimiser to optimise the graph associated with this collection
@@ -197,29 +196,6 @@ class AbstractDeclarativeFactor(Analysis, ABC):
             declarative_factor=self,
             updated_ep_mean_field=updated_ep_mean_field,
         )
-
-    # TODO : Visualize method before fit?
-
-    def visualize(
-        self, paths: AbstractPaths, instance: ModelInstance, during_analysis: bool
-    ):
-        """
-        Visualise the instances provided using each factor.
-
-        Instances in the ModelInstance must have the same order as the factors.
-
-        Parameters
-        ----------
-        paths
-            Object describing where data should be saved to
-        instance
-            A collection of instances, each corresponding to a factor
-        during_analysis
-            Is this visualisation during analysis?
-        """
-        for model_factor, instance in zip(self.model_factors, instance):
-            model_factor.visualize(paths, instance, during_analysis)
-            model_factor.visualize_combined(None, paths, instance, during_analysis)
 
     @property
     def global_prior_model(self) -> Collection:
