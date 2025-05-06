@@ -1,37 +1,16 @@
 from __future__ import annotations
 
-from autoconf import cached_property
-
 from pathlib import Path
 from typing import Optional, Union
 
 from dynesty import NestedSampler as StaticSampler
 
+from autofit import jax_wrapper
 from autofit.database.sqlalchemy_ import sa
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
+from autofit.non_linear.grad_wrapper import GradWrapper
 
 from .abstract import AbstractDynesty, prior_transform
-
-
-class GradWrapper:
-    def __init__(self, function):
-        self.function = function
-
-    @cached_property
-    def grad(self):
-        import jax
-        from jax import grad
-        print("Compiling gradient")
-        return jax.jit(grad(self.function))
-
-    def __getstate__(self):
-        return {"function": self.function}
-
-    def __setstate__(self, state):
-        self.__init__(state["function"])
-
-    def __call__(self, *args, **kwargs):
-        return self.grad(*args, **kwargs)
 
 
 class DynestyStatic(AbstractDynesty):
@@ -133,7 +112,7 @@ class DynestyStatic(AbstractDynesty):
             in the dynesty queue for samples.
         """
 
-        if self.use_gradient:
+        if jax_wrapper.use_jax:
             gradient = GradWrapper(fitness)
         else:
             gradient = None

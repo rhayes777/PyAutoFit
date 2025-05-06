@@ -131,8 +131,8 @@ class Prior(Variable, ABC, ArithmeticMixin):
                 None
             )
 
-        elif not (self.lower_limit <= value <= self.upper_limit):
-            exception_message()
+        # if not (self.lower_limit <= value <= self.upper_limit):
+        #     exception_message()
 
     @staticmethod
     def for_class_and_attribute_name(cls, attribute_name):
