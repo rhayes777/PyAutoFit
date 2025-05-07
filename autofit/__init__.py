@@ -138,4 +138,4 @@ def save_abc(pickler, obj):
 
 conf.instance.register(__file__)
 
-__version__ = "2025.5.7.15"
+__version__ = "2025.5.7.16"
