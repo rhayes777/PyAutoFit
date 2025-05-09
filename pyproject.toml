@@ -61,9 +61,6 @@ include-package-data = true
 [tool.setuptools.packages.find]
 exclude = ["docs", "test_autofit", "test_autofit*"]
 
-[tool.setuptools.dynamic]
-dependencies = { file = "requirements.txt" }
-
 [tool.setuptools_scm]
 version_scheme = "post-release"
 local_scheme = "no-local-version"
