@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "autofit"
-dynamic = ["version", "dependencies"]
+dynamic = ["version"]
 description = "Classy Probabilistic Programming"
 readme = { file = "README.rst", content-type = "text/x-rst" }
 license-files = [
