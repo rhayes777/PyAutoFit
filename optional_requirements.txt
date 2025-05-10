@@ -1,7 +1,0 @@
-astropy>=5.0
-getdist==1.4
-#jax>=0.4.13
-#jaxlib>=0.4.13
-nautilus-sampler==1.0.4
-ultranest==4.3.2
-zeus-mcmc==2.5.4
