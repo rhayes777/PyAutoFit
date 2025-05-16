@@ -103,7 +103,7 @@ class SubplotFitImage:
 class AggregateImages:
     def __init__(
         self,
-        aggregator: Aggregator,
+        aggregator: Union[Aggregator, List[SearchOutput]],
     ):
         """
         Extracts images from the aggregator and combines them into one
