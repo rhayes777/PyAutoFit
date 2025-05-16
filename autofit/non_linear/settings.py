@@ -5,12 +5,12 @@ from autofit.database.sqlalchemy_ import sa
 
 class SettingsSearch:
     def __init__(
-            self,
-            path_prefix: str,
-            unique_tag: Optional[str] = None,
-            number_of_cores: Optional[int] = 1,
-            session: Optional[sa.orm.Session] = None,
-            info: Optional[dict] = None,
+        self,
+        path_prefix: str,
+        unique_tag: Optional[str] = None,
+        number_of_cores: Optional[int] = 1,
+        session: Optional[sa.orm.Session] = None,
+        info: Optional[dict] = None,
     ):
         """
         Stores all the input settings that are used in search's and their `fit functions.
@@ -49,15 +49,6 @@ class SettingsSearch:
             "path_prefix": self.path_prefix,
             "unique_tag": self.unique_tag,
             "number_of_cores": self.number_of_cores,
-            "session": self.session,
-        }
-
-    @property
-    def search_dict_x1_core(self):
-        return {
-            "path_prefix": self.path_prefix,
-            "unique_tag": self.unique_tag,
-            "number_of_cores": 1,
             "session": self.session,
         }
 
