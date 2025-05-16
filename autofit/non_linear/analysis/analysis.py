@@ -237,32 +237,3 @@ class Analysis(ABC):
             The maximum likliehood instance of the model so far in the non-linear search.
         """
         pass
-
-    def __add__(self, other: "Analysis"):
-        """
-        Analyses can be added together. The resultant
-        log likelihood function returns the sum of the
-        underlying log likelihood functions.
-
-        Parameters
-        ----------
-        other
-            Another analysis class
-
-        Returns
-        -------
-        A class that computes log likelihood based on both analyses
-        """
-        from .combined import CombinedAnalysis
-
-        if isinstance(other, CombinedAnalysis):
-            return other + self
-        return CombinedAnalysis(self, other)
-
-    def __radd__(self, other):
-        """
-        Allows analysis to be used in sum
-        """
-        if other == 0:
-            return self
-        return self + other

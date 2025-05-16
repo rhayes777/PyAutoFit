@@ -1,0 +1,85 @@
+[build-system]
+requires = ["setuptools>=79.0", "setuptools-scm", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "autofit"
+dynamic = ["version"]
+description = "Classy Probabilistic Programming"
+readme = { file = "README.rst", content-type = "text/x-rst" }
+license-files = [
+    "LICENSE",
+]
+requires-python = ">=3.9"
+authors = [
+    { name = "James Nightingale", email = "James.Nightingale@newcastle.ac.uk" },
+    { name = "Richard Hayes", email = "richard@rghsoftware.co.uk" },
+]
+classifiers = [
+  "Intended Audience :: Science/Research",
+  "Topic :: Scientific/Engineering :: Physics",
+  "Natural Language :: English",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3.9",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12"
+]
+keywords = ["cli"]
+dependencies = [
+    "autoconf",
+    "anesthetic==2.8.14",
+    "corner==2.2.2",
+    "decorator>=4.2.1",
+    "dill>=0.3.1.1",
+    "dynesty==2.1.4",
+    "typing-inspect>=0.4.0",
+    "emcee>=3.1.6",
+    "gprof2dot==2021.2.21",
+    "matplotlib",
+    "numpydoc>=1.0.0",
+    "pyprojroot==0.2.0",
+    "pyswarms==1.3.0",
+    "h5py>=3.11.0",
+    "SQLAlchemy==2.0.32",
+    "scipy<=1.14.0",
+    "astunparse==1.6.3",
+    "threadpoolctl>=3.1.0,<=3.2.0",
+    "timeout-decorator==0.5.0",
+    "xxhash<=3.4.1",
+    "networkx==3.1",
+    "pyvis==0.3.2",
+    "psutil==6.1.0"
+]
+
+[project.urls]
+Homepage = "https://github.com/rhayes777/PyAutoFit"
+
+[tool.setuptools]
+include-package-data = true
+
+[tool.setuptools.packages.find]
+exclude = ["docs", "test_autofit", "test_autofit*"]
+
+[tool.setuptools_scm]
+version_scheme = "post-release"
+local_scheme = "no-local-version"
+
+
+[project.optional-dependencies]
+optional=[
+    "astropy>=5.0",
+    "getdist==1.4",
+    "nautilus-sampler==1.0.4",
+    "ultranest==4.3.2",
+    "zeus-mcmc==2.5.4",
+]
+
+test = ["pytest"]
+dev = ["pytest", "black"]
+
+[tool.setuptools.package-data]
+"autofit.config" = ["*"]
+
+[tool.pytest.ini_options]
+testpaths = ["test_autofit"]
