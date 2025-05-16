@@ -35,7 +35,7 @@ class FITSFit(Enum):
 
 
 class AggregateFITS:
-    def __init__(self, aggregator: Aggregator):
+    def __init__(self, aggregator: Union[Aggregator, List[SearchOutput]]):
         """
         A class for extracting fits files from the aggregator.
 
@@ -80,7 +80,7 @@ class AggregateFITS:
             )
         return row
 
-    def extract_fits(self, hdus: List[Enum]) -> List[fits.HDUList]:
+    def extract_fits(self, hdus: List[Enum]) -> fits.HDUList:
         """
         Extract the HDUs from the fits files for every search in the aggregator.
 
@@ -101,7 +101,7 @@ class AggregateFITS:
 
         return fits.HDUList(output)
 
-    def extract_csv(self, filename : str) -> List[Dict]:
+    def extract_csv(self, filename: str) -> List[Dict]:
         """
         Extract .csv files which store imaging results that are typically on irregular grids and thus don't suit
         a .fits file.
