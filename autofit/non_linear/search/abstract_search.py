@@ -254,13 +254,13 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         except KeyError:
             pass
 
-        self.number_of_cores = number_of_cores
-
         if jax_wrapper.use_jax:
             self.number_of_cores = 1
             logger.warning(f"JAX is enabled. Setting number of cores to 1.")
 
-        if self.number_of_cores > 1 and any(
+        self.number_of_cores = number_of_cores
+
+        if number_of_cores > 1 and any(
             os.environ.get(key) != "1"
             for key in (
                 "OPENBLAS_NUM_THREADS",

@@ -1,4 +1,4 @@
-import logging
+
 import os
 from typing import Optional
 
@@ -16,7 +16,6 @@ from timeout_decorator import timeout
 
 from autofit import jax_wrapper
 
-logger = logging.getLogger(__name__)
 
 def get_timeout_seconds():
 
@@ -127,15 +126,9 @@ class Fitness:
     @property
     def log_likelihood_function(self):
         if self._log_likelihood_function is None:
-
-            logger.info(
-                "JAX Jitting the log likelihood function. This may take a few seconds, but will speed up the model-fit."
-            )
-
             self._log_likelihood_function = jax_wrapper.jit(
                 self.analysis.log_likelihood_function
             )
-
 
         return self._log_likelihood_function
 
@@ -162,12 +155,9 @@ class Fitness:
 
         try:
             instance = self.model.instance_from_vector(vector=parameters)
-        except exc.PriorLimitException:
-            return self.resample_figure_of_merit
-
-        try:
             log_likelihood = self.log_likelihood_function(instance=instance)
             log_likelihood = np.where(np.isnan(log_likelihood), self.resample_figure_of_merit, log_likelihood)
+
         except exc.FitException:
             return self.resample_figure_of_merit
 
