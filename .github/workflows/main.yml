@@ -61,6 +61,7 @@ jobs:
         pip3 install pytest coverage pytest-cov
         pip install ./PyAutoConf
         pip install ./PyAutoFit
+        pip install ./PyAutoFit[optional]
     - name: Run tests
       run: |
         export ROOT_DIR=`pwd`
