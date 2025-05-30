@@ -185,7 +185,6 @@ class Fitness:
         return jax.grad(self._call)
 
     def grad(self, *args, **kwargs):
-        print(self._grad(*args, **kwargs))
         return self._grad(*args, **kwargs)
 
     def check_log_likelihood(self, fitness):
