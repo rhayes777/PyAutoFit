@@ -78,3 +78,6 @@ class Constant(ModelObject, Number):
 
     def __ge__(self, other):
         return self.value >= other
+
+    def __float__(self):
+        return float(self.value)
