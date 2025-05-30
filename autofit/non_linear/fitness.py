@@ -112,7 +112,7 @@ class Fitness:
         self.parameters_history_list = []
         self.log_likelihood_history_list = []
 
-    def call(self, parameters, *kwargs):
+    def call(self, parameters):
         """
         A private method that calls the fitness function with the given parameters and additional keyword arguments.
         This method is intended for internal use only.
@@ -192,6 +192,9 @@ class Fitness:
     @cached_property
     def _grad(self):
         return jax_wrapper.grad(self._call)
+
+    def grad(self, *args, **kwargs):
+        return self._grad(*args, **kwargs)
 
     def check_log_likelihood(self, fitness):
         """
