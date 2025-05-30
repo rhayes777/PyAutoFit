@@ -167,18 +167,19 @@ class AbstractBFGS(AbstractMLE):
                 x0 = search_internal.x
 
                 if search_internal.nit < iterations:
-                    return search_internal
+                    return search_internal, fitness
 
                 self.perform_update(
                     model=model,
                     analysis=analysis,
                     during_analysis=True,
+                    fitness=fitness,
                     search_internal=search_internal,
                 )
 
         self.logger.info(f"{self.method} sampling complete.")
 
-        return search_internal
+        return search_internal, fitness
 
     def samples_via_internal_from(
         self, model: AbstractPriorModel, search_internal=None

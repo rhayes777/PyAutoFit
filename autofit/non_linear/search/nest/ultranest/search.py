@@ -203,10 +203,11 @@ class UltraNest(abstract_nest.AbstractNest):
                     model=model,
                     analysis=analysis,
                     during_analysis=True,
+                    fitness=fitness,
                     search_internal=search_internal
                 )
 
-        return search_internal
+        return search_internal, fitness
 
     def output_search_internal(self, search_internal):
         """

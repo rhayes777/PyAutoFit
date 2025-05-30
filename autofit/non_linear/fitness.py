@@ -1,8 +1,8 @@
-
 import os
 from typing import Optional
 
 from autoconf import conf
+from autoconf import cached_property
 
 from autofit import exc
 
@@ -106,31 +106,52 @@ class Fitness:
         self.convert_to_chi_squared = convert_to_chi_squared
         self.store_history = store_history
 
-        self._log_likelihood_function = None
-
         if self.paths is not None:
             self.check_log_likelihood(fitness=self)
 
         self.parameters_history_list = []
         self.log_likelihood_history_list = []
 
-    def __getstate__(self):
-        state = self.__dict__.copy()
-        del state["_log_likelihood_function"]
-        return state
+    def call(self, parameters):
+        """
+        A private method that calls the fitness function with the given parameters and additional keyword arguments.
+        This method is intended for internal use only.
 
-    def __setstate__(self, state):
-        self.__dict__.update(state)
-        self._log_likelihood_function = None
+        Parameters
+        ----------
+        parameters
+            The parameters (typically a list) chosen by a non-linear search, which are mapped to an instance of the
+            model via its priors and fitted to the data.
+        kwargs
+            Additional key-word arguments that may be necessary for specific non-linear searches.
 
-    @property
-    def log_likelihood_function(self):
-        if self._log_likelihood_function is None:
-            self._log_likelihood_function = jax_wrapper.jit(
-                self.analysis.log_likelihood_function
-            )
+        Returns
+        -------
+        The figure of merit returned to the non-linear search, which is either the log likelihood or log posterior.
+        """
+        try:
+            instance = self.model.instance_from_vector(vector=parameters)
+            log_likelihood = self.analysis.log_likelihood_function(instance=instance)
+            log_likelihood = np.where(np.isnan(log_likelihood), self.resample_figure_of_merit, log_likelihood)
 
-        return self._log_likelihood_function
+        except exc.FitException:
+            return self.resample_figure_of_merit
+
+        if self.fom_is_log_likelihood:
+            figure_of_merit = log_likelihood
+        else:
+            log_prior_list = self.model.log_prior_list_from_vector(vector=parameters)
+            figure_of_merit = log_likelihood + sum(log_prior_list)
+
+        if self.store_history:
+
+            self.parameters_history_list.append(parameters)
+            self.log_likelihood_history_list.append(log_likelihood)
+
+        if self.convert_to_chi_squared:
+            figure_of_merit *= -2.0
+
+        return figure_of_merit
 
     @timeout(timeout_seconds)
     def __call__(self, parameters, *kwargs):
@@ -152,30 +173,28 @@ class Fitness:
         -------
         The figure of merit returned to the non-linear search, which is either the log likelihood or log posterior.
         """
+        return self._call(parameters)
 
-        try:
-            instance = self.model.instance_from_vector(vector=parameters)
-            log_likelihood = self.log_likelihood_function(instance=instance)
-            log_likelihood = np.where(np.isnan(log_likelihood), self.resample_figure_of_merit, log_likelihood)
+    def __getstate__(self):
+        state = self.__dict__.copy()
+        # Remove non-pickleable attributes
+        state.pop('_call', None)
+        state.pop('_grad', None)
+        return state
 
-        except exc.FitException:
-            return self.resample_figure_of_merit
+    def __setstate__(self, state):
+        self.__dict__.update(state)
 
-        if self.fom_is_log_likelihood:
-            figure_of_merit = log_likelihood
-        else:
-            log_prior_list = self.model.log_prior_list_from_vector(vector=parameters)
-            figure_of_merit = log_likelihood + sum(log_prior_list)
+    @cached_property
+    def _call(self):
+        return jax_wrapper.jit(self.call)
 
-        if self.store_history:
+    @cached_property
+    def _grad(self):
+        return jax_wrapper.grad(self._call)
 
-            self.parameters_history_list.append(parameters)
-            self.log_likelihood_history_list.append(log_likelihood)
-
-        if self.convert_to_chi_squared:
-            figure_of_merit *= -2.0
-
-        return figure_of_merit
+    def grad(self, *args, **kwargs):
+        return self._grad(*args, **kwargs)
 
     def check_log_likelihood(self, fitness):
         """
