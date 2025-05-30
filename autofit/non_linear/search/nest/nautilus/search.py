@@ -14,6 +14,7 @@ from autofit.non_linear.paths.null import NullPaths
 from autofit.non_linear.search.nest import abstract_nest
 from autofit.non_linear.samples.sample import Sample
 from autofit.non_linear.samples.nest import SamplesNest
+from autogalaxy_workspace_test.jax_examples.func_grad import fitness
 
 logger = logging.getLogger(__name__)
 
@@ -159,7 +160,7 @@ class Nautilus(abstract_nest.AbstractNest):
                     checkpoint_exists=checkpoint_exists,
                 )
 
-        return search_internal
+        return search_internal, fitness
 
     @property
     def sampler_cls(self):
@@ -334,10 +335,11 @@ class Nautilus(abstract_nest.AbstractNest):
                     model=model,
                     analysis=analysis,
                     during_analysis=True,
+                    fitness=fitness,
                     search_internal=search_internal
                 )
 
-        return search_internal
+        return search_internal, fitness
 
     def fit_mpi(self, fitness, model, analysis, checkpoint_exists: bool):
         """
@@ -387,6 +389,7 @@ class Nautilus(abstract_nest.AbstractNest):
                         model=model,
                         analysis=analysis,
                         during_analysis=True,
+                        fitness=fitness,
                         search_internal=search_internal,
                     )
 
@@ -394,7 +397,7 @@ class Nautilus(abstract_nest.AbstractNest):
                 **self.config_dict_run,
             )
 
-        return search_internal
+        return search_internal, fitness
 
     def iterations_from(
         self, search_internal
