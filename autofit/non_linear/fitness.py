@@ -187,12 +187,10 @@ class Fitness:
 
     @cached_property
     def _call(self):
-        print("aaa")
         return jax_wrapper.jit(self.call)
 
     @cached_property
     def _grad(self):
-        print("bbb")
         return jax_wrapper.grad(self._call)
 
     def grad(self, *args, **kwargs):
