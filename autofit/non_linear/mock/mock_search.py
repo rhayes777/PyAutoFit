@@ -103,7 +103,7 @@ class MockSearch(NonLinearSearch):
         fitness = Fitness(model.instance_from_vector, result=self.result)
         fitness([prior.mean for prior in model.priors_ordered_by_id])
 
-        return fitness.result
+        return fitness.result, fitness
 
     def _fit(self, model, analysis):
         if self.fit_fast:
@@ -141,9 +141,9 @@ class MockSearch(NonLinearSearch):
         return analysis.make_result(
             samples_summary=samples_summary,
             paths=self.paths,
-        )
+        ), None
 
-    def perform_update(self, model, analysis, during_analysis, search_internal=None):
+    def perform_update(self, model, analysis, during_analysis, fitness=None, search_internal=None):
         if self.samples_summary is not None and not self.return_sensitivity_results:
             self.paths.save_samples_summary(self.samples_summary)
 

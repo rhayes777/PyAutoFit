@@ -159,7 +159,7 @@ class Nautilus(abstract_nest.AbstractNest):
                     checkpoint_exists=checkpoint_exists,
                 )
 
-        return search_internal
+        return search_internal, fitness
 
     @property
     def sampler_cls(self):
@@ -224,7 +224,7 @@ class Nautilus(abstract_nest.AbstractNest):
             **self.config_dict_search,
         )
 
-        return self.call_search(search_internal=search_internal, model=model, analysis=analysis)
+        return self.call_search(search_internal=search_internal, model=model, analysis=analysis, fitness=fitness)
 
     def fit_multiprocessing(self, fitness, model, analysis):
         """
@@ -258,9 +258,9 @@ class Nautilus(abstract_nest.AbstractNest):
             **self.config_dict_search,
         )
 
-        return self.call_search(search_internal=search_internal, model=model, analysis=analysis)
+        return self.call_search(search_internal=search_internal, model=model, analysis=analysis, fitness=fitness)
 
-    def call_search(self, search_internal, model, analysis):
+    def call_search(self, search_internal, model, analysis, fitness):
         """
         The x1 CPU and multiprocessing searches both call this function to perform the non-linear search.
 
@@ -334,10 +334,11 @@ class Nautilus(abstract_nest.AbstractNest):
                     model=model,
                     analysis=analysis,
                     during_analysis=True,
+                    fitness=fitness,
                     search_internal=search_internal
                 )
 
-        return search_internal
+        return search_internal, fitness
 
     def fit_mpi(self, fitness, model, analysis, checkpoint_exists: bool):
         """
@@ -387,6 +388,7 @@ class Nautilus(abstract_nest.AbstractNest):
                         model=model,
                         analysis=analysis,
                         during_analysis=True,
+                        fitness=fitness,
                         search_internal=search_internal,
                     )
 
@@ -394,7 +396,7 @@ class Nautilus(abstract_nest.AbstractNest):
                 **self.config_dict_run,
             )
 
-        return search_internal
+        return search_internal, fitness
 
     def iterations_from(
         self, search_internal

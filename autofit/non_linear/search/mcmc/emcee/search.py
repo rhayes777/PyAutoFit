@@ -211,10 +211,11 @@ class Emcee(AbstractMCMC):
                     model=model,
                     analysis=analysis,
                     search_internal=search_internal,
+                    fitness=fitness,
                     during_analysis=True,
                 )
 
-        return search_internal
+        return search_internal, fitness
 
     def output_search_internal(self, search_internal):
         """

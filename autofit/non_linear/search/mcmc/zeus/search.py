@@ -245,10 +245,11 @@ class Zeus(AbstractMCMC):
                     model=model,
                     analysis=analysis,
                     search_internal=search_internal,
+                    fitness=fitness,
                     during_analysis=True,
                 )
 
-        return search_internal
+        return search_internal, fitness
 
     def samples_info_from(self, search_internal=None):
         search_internal = search_internal or self.paths.load_search_internal()

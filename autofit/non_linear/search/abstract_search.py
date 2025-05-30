@@ -678,7 +678,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                 self.timer.start()
 
         model.freeze()
-        search_internal = self._fit(
+        search_internal, fitness = self._fit(
             model=model,
             analysis=analysis,
         )
@@ -686,6 +686,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             model=model,
             analysis=analysis,
             search_internal=search_internal,
+            fitness=fitness,
             during_analysis=False,
         )
 
@@ -883,6 +884,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         model: AbstractPriorModel,
         analysis: Analysis,
         during_analysis: bool,
+        fitness: Optional[Fitness] = None,
         search_internal=None,
     ) -> Samples:
         """
@@ -984,13 +986,10 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
             self.logger.debug("Outputting model result")
             try:
-                log_likelihood_function = jax_wrapper.jit(
-                    analysis.log_likelihood_function,
-                )
-                log_likelihood_function(instance=instance)
+                parameters = samples.max_log_likelihood(as_instance=False)
 
                 start = time.time()
-                log_likelihood_function(instance=instance)
+                fitness(parameters)
                 log_likelihood_function_time = time.time() - start
 
                 self.paths.save_summary(
