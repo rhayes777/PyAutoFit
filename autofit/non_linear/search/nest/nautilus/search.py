@@ -14,7 +14,6 @@ from autofit.non_linear.paths.null import NullPaths
 from autofit.non_linear.search.nest import abstract_nest
 from autofit.non_linear.samples.sample import Sample
 from autofit.non_linear.samples.nest import SamplesNest
-from autogalaxy_workspace_test.jax_examples.func_grad import fitness
 
 logger = logging.getLogger(__name__)
 
@@ -225,7 +224,7 @@ class Nautilus(abstract_nest.AbstractNest):
             **self.config_dict_search,
         )
 
-        return self.call_search(search_internal=search_internal, model=model, analysis=analysis)
+        return self.call_search(search_internal=search_internal, model=model, analysis=analysis, fitness=fitness)
 
     def fit_multiprocessing(self, fitness, model, analysis):
         """
@@ -259,9 +258,9 @@ class Nautilus(abstract_nest.AbstractNest):
             **self.config_dict_search,
         )
 
-        return self.call_search(search_internal=search_internal, model=model, analysis=analysis)
+        return self.call_search(search_internal=search_internal, model=model, analysis=analysis, fitness=fitness)
 
-    def call_search(self, search_internal, model, analysis):
+    def call_search(self, search_internal, model, analysis, fitness):
         """
         The x1 CPU and multiprocessing searches both call this function to perform the non-linear search.
 
