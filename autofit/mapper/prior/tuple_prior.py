@@ -51,8 +51,9 @@ class TuplePrior(ModelObject):
         instances: [(String, instance)]
             A list of instances
         """
-        return list(
-            sorted(
+        return [
+            (key, value.value if isinstance(value, Constant) else value)
+            for key, value in sorted(
                 [
                     (key, value)
                     for key, value in self.__dict__.items()
@@ -60,7 +61,7 @@ class TuplePrior(ModelObject):
                 ],
                 key=lambda tup: tup[0],
             )
-        )
+        ]
 
     def value_for_arguments(self, arguments):
         """
