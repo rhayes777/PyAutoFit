@@ -573,31 +573,69 @@ Multiple Datasets
 Many model-fitting problems require multiple datasets to be fitted simultaneously in order to provide the best
 constraints on the model.
 
-In **PyAutoFit**, all you have to do to fit multiple datasets is sum your ``Analysis`` classes together:
+In **PyAutoFit**, all you have to do to fit multiple datasets is combine them with the model via ``AnalysisFactor``
+objects.
 
 .. code-block:: python
 
-    analysis_0 = Analysis(data=data_0, noise_map=noise_map_0)
-    analysis_1 = Analysis(data=data_1, noise_map=noise_map_1)
+    analysis_0 = Analysis(data=data, noise_map=noise_map)
+    analysis_1 = Analysis(data=data, noise_map=noise_map)
 
-    # This means the model is fitted to both datasets simultaneously.
+    analysis_list = [analysis_0, analysis_1]
 
-    analysis = analysis_0 + analysis_1
+    analysis_factor_list = []
 
-    # summing a list of analysis objects is also a valid API:
+    for analysis in analysis_list:
 
-    analysis = sum([analysis_0, analysis_1])
+        # The model can be customized here so that different model parameters are tied to each analysis.
+        model_analysis = model.copy()
 
-By summing analysis objects the log likelihood values computed by the ``log_likelihood_function`` of each individual
-analysis class are summed to give an overall log likelihood value that the non-linear search samples when model-fitting.
+        analysis_factor = af.AnalysisFactor(prior_model=model_analysis, analysis=analysis)
+
+        analysis_factor_list.append(analysis_factor)
+
+All ``AnalysisFactor`` objects are combined into a ``FactorGraphModel``, which represents a global model fit to
+multiple datasets using a graphical model structure.
+
+The key outcomes of this setup are:
+
+ - The individual log likelihoods from each ``Analysis`` object are summed to form the total log likelihood
+   evaluated during the model-fitting process.
+
+ - Results from all datasets are output to a unified directory, with subdirectories for visualizations
+   from each analysis object, as defined by their ``visualize`` methods.
+
+This is a basic use of **PyAutoFit**'s graphical modeling capabilities, which support advanced hierarchical
+and probabilistic modeling for large, multi-dataset analyses.
+
+To inspect the model, we print ``factor_graph.global_prior_model.info``.
+
+.. code-block:: python
+
+    print(factor_graph.global_prior_model.info)
+
+To fit multiple datasets, we pass the ``FactorGraphModel`` to a non-linear search.
+
+Unlike single-dataset fitting, we now pass the ``factor_graph.global_prior_model`` as the model and
+the ``factor_graph`` itself as the analysis object.
+
+This structure enables simultaneous fitting of multiple datasets in a consistent and scalable way.
+
+.. code-block:: python
+
+    search = af.DynestyStatic(
+        nlive=100,
+    )
+
+    result_list = search.fit(model=factor_graph.global_prior_model, analysis=factor_graph)
 
 .. note::
 
     In the simple example above, instances of the same ``Analysis`` class (``analysis_0`` and ``analysis_1``) were
-summed. However, different ``Analysis`` classes can also be summed together. This is useful when fitting different
-datasets that each require a unique ``log_likelihood_function`` to be fitted simultaneously. For more detailed
-information and a dedicated API for customizing how the model changes across different datasets, refer to
-the [multiple datasets cookbook](https://pyautofit.readthedocs.io/en/latest/cookbooks/multiple_datasets.html).
+    combined. However, different ``Analysis`` classes can also be combined. This is useful when fitting different
+    datasets that each require a unique ``log_likelihood_function`` to be fitted simultaneously. For more detailed
+    information and a dedicated API for customizing how the model changes across different datasets, refer to
+    the [multiple datasets cookbook](https://pyautofit.readthedocs.io/en/latest/cookbooks/multiple_datasets.html).
 
 Wrap Up
 -------
