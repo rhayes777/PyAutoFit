@@ -112,7 +112,7 @@ class Fitness:
         self.parameters_history_list = []
         self.log_likelihood_history_list = []
 
-    def call(self, parameters, *kwargs):
+    def call(self, parameters):
         """
         A private method that calls the fitness function with the given parameters and additional keyword arguments.
         This method is intended for internal use only.
@@ -173,19 +173,28 @@ class Fitness:
         -------
         The figure of merit returned to the non-linear search, which is either the log likelihood or log posterior.
         """
-        return self.call(parameters)
+        return self._call(parameters)
+
+    def __getstate__(self):
+        state = self.__dict__.copy()
+        # Remove non-pickleable attributes
+        state.pop('_call', None)
+        state.pop('_grad', None)
+        return state
+
+    def __setstate__(self, state):
+        self.__dict__.update(state)
 
     @cached_property
     def _call(self):
-        return jax_wrapper.jit(self.__call__)
+        print("aaa")
+        return jax_wrapper.jit(self.call)
 
     @cached_property
     def _grad(self):
-        import jax
-        return jax.grad(self._call)
+        return jax_wrapper.grad(self._call)
 
     def grad(self, *args, **kwargs):
-        print(self._grad(*args, **kwargs))
         return self._grad(*args, **kwargs)
 
     def check_log_likelihood(self, fitness):

@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from autoconf import cached_property
-
 from pathlib import Path
 from typing import Optional, Union
 

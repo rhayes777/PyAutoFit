@@ -15,6 +15,9 @@ if use_jax:
         def jit(function, *args, **kwargs):
             return jax.jit(function, *args, **kwargs)
 
+        def grad(function, *args, **kwargs):
+            return jax.grad(function, *args, **kwargs)
+
         print("JAX mode enabled")
     except ImportError:
         raise ImportError(
@@ -27,6 +30,8 @@ else:
     def jit(function, *_, **__):
         return function
 
+    def grad(function, *_, **__):
+        return function
 
 try:
     from jax._src.tree_util import (
