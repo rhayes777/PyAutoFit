@@ -57,11 +57,6 @@ class TuplePrior(ModelObject):
                     (key, value)
                     for key, value in self.__dict__.items()
                     if key != "id" and isinstance(value, (int, float))
-                ]
-                + [
-                    (key, value.value)
-                    for key, value in self.__dict__.items()
-                    if isinstance(value, Constant)
                 ],
                 key=lambda tup: tup[0],
             )
