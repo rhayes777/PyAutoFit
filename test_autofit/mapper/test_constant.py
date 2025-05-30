@@ -179,3 +179,9 @@ def test_as_float():
     assert constant.id != constant_2.id
 
     assert isinstance(float(constant), float)
+
+
+def test_is_instance():
+    constant = af.Constant(1.0)
+
+    assert isinstance(constant, float)
