@@ -224,12 +224,13 @@ class AbstractPySwarms(AbstractMLE):
                     model=model,
                     analysis=analysis,
                     during_analysis=True,
+                    fitness=fitness,
                     search_internal=search_internal,
                 )
 
                 init_pos = search_internal.pos_history[-1]
 
-        return search_internal
+        return search_internal, fitness
 
     def output_search_internal(self, search_internal):
         try:
