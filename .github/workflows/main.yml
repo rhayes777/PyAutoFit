@@ -59,10 +59,9 @@ jobs:
         pip3 install setuptools
         pip3 install wheel
         pip3 install pytest coverage pytest-cov
-        pip3 install -r PyAutoConf/requirements.txt
-        pip3 install -r PyAutoFit/requirements.txt
-        pip3 install -r PyAutoFit/optional_requirements.txt
-        pip3 install -r PyAutoFit/build_requirements.txt
+        pip install ./PyAutoConf
+        pip install ./PyAutoFit
+        pip install ./PyAutoFit[optional]
     - name: Run tests
       run: |
         export ROOT_DIR=`pwd`
