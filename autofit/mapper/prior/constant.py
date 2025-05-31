@@ -3,7 +3,11 @@ from numbers import Number
 from autofit.mapper.model_object import ModelObject
 
 
-class Constant(ModelObject, Number):
+class Constant(float, ModelObject):
+    def __new__(cls, value: float, id_=None):
+        obj = super().__new__(cls, value)
+        return obj
+
     def __init__(self, value: float, id_=None):
         """
         Represents a constant value in a model.
@@ -18,63 +22,27 @@ class Constant(ModelObject, Number):
         value
             The constant value.
         """
-        super().__init__(
-            id_=id_,
-        )
+        if isinstance(value, Constant):
+            value = value.value
+
+        ModelObject.__init__(self, id_=id_)
         self.value = value
 
     def __str__(self):
         return str(self.value)
 
     def __eq__(self, other):
-        if isinstance(other, (int, float)):
-            return self.value == other
-        return super().__eq__(other)
+        if isinstance(other, ModelObject):
+            return ModelObject.__eq__(self, other)
+        return self.value == other
+
+    def __ne__(self, other):
+        if isinstance(other, ModelObject):
+            return ModelObject.__ne__(self, other)
+        return self.value != other
 
     def __hash__(self):
         return hash(self.id)
 
     def dict(self):
         return {"type": "Constant", "value": self.value}
-
-    def __add__(self, other):
-        return self.value + other
-
-    def __sub__(self, other):
-        return self.value - other
-
-    def __mul__(self, other):
-        return self.value * other
-
-    def __truediv__(self, other):
-        return self.value / other
-
-    def __pow__(self, other):
-        return self.value**other
-
-    def __radd__(self, other):
-        return other + self.value
-
-    def __rsub__(self, other):
-        return other - self.value
-
-    def __rmul__(self, other):
-        return other * self.value
-
-    def __rtruediv__(self, other):
-        return other / self.value
-
-    def __rpow__(self, other):
-        return other**self.value
-
-    def __lt__(self, other):
-        return self.value < other
-
-    def __le__(self, other):
-        return self.value <= other
-
-    def __gt__(self, other):
-        return self.value > other
-
-    def __ge__(self, other):
-        return self.value >= other
