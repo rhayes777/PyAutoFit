@@ -167,3 +167,21 @@ def test_model_with_constants():
     assert instance.centre == 1.0
     assert isinstance(instance.centre, float)
     assert not isinstance(instance.centre, Constant)
+
+
+def test_as_float():
+    constant = af.Constant(1.0)
+    assert float(constant) == 1.0
+
+    constant_2 = af.Constant(2.0)
+    assert float(constant_2) == 2.0
+
+    assert constant.id != constant_2.id
+
+    assert isinstance(float(constant), float)
+
+
+def test_is_instance():
+    constant = af.Constant(1.0)
+
+    assert isinstance(constant, float)

@@ -296,6 +296,8 @@ class ModelObject:
             type_ = "tuple_prior"
         elif isinstance(self, Array):
             type_ = "array"
+        elif isinstance(self, Constant):
+            type_ = "constant"
         else:
             raise AssertionError(
                 f"{self.__class__.__name__} cannot be serialised to dict"
