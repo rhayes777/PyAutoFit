@@ -6,6 +6,8 @@ from typing import Optional, Union
 from dynesty import NestedSampler as StaticSampler
 
 from autofit.database.sqlalchemy_ import sa
+from autofit import jax_wrapper
+
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 
 from .abstract import AbstractDynesty, prior_transform
@@ -109,6 +111,8 @@ class DynestyStatic(AbstractDynesty):
             in the dynesty queue for samples.
         """
 
+        gradient = fitness.grad if self.use_gradient else None
+
         if checkpoint_exists:
             search_internal = StaticSampler.restore(
                 fname=self.checkpoint_file, pool=pool
@@ -127,7 +131,7 @@ class DynestyStatic(AbstractDynesty):
                 self.write_uses_pool(uses_pool=True)
                 return StaticSampler(
                     loglikelihood=pool.loglike,
-                    gradient=fitness.grad,
+                    gradient=gradient,
                     prior_transform=pool.prior_transform,
                     ndim=model.prior_count,
                     live_points=live_points,
@@ -139,7 +143,7 @@ class DynestyStatic(AbstractDynesty):
             self.write_uses_pool(uses_pool=False)
             return StaticSampler(
                 loglikelihood=fitness,
-                gradient=fitness.grad,
+                gradient=gradient,
                 prior_transform=prior_transform,
                 ndim=model.prior_count,
                 logl_args=[model, fitness],
