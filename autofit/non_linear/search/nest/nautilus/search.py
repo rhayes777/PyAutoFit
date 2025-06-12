@@ -338,7 +338,7 @@ class Nautilus(abstract_nest.AbstractNest):
                     search_internal=search_internal
                 )
 
-        return search_internal, fitness
+        return search_internal
 
     def fit_mpi(self, fitness, model, analysis, checkpoint_exists: bool):
         """
@@ -396,7 +396,7 @@ class Nautilus(abstract_nest.AbstractNest):
                 **self.config_dict_run,
             )
 
-        return search_internal, fitness
+        return search_internal
 
     def iterations_from(
         self, search_internal
