@@ -109,6 +109,8 @@ class DynestyStatic(AbstractDynesty):
             in the dynesty queue for samples.
         """
 
+        gradient = fitness.grad if self.use_gradient else None
+
         if checkpoint_exists:
             search_internal = StaticSampler.restore(
                 fname=self.checkpoint_file, pool=pool
@@ -127,7 +129,7 @@ class DynestyStatic(AbstractDynesty):
                 self.write_uses_pool(uses_pool=True)
                 return StaticSampler(
                     loglikelihood=pool.loglike,
-                    gradient=fitness.grad,
+                    gradient=gradient,
                     prior_transform=pool.prior_transform,
                     ndim=model.prior_count,
                     live_points=live_points,
@@ -139,7 +141,7 @@ class DynestyStatic(AbstractDynesty):
             self.write_uses_pool(uses_pool=False)
             return StaticSampler(
                 loglikelihood=fitness,
-                gradient=fitness.grad,
+                gradient=gradient,
                 prior_transform=prior_transform,
                 ndim=model.prior_count,
                 logl_args=[model, fitness],

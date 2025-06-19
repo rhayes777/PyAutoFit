@@ -1,3 +1,5 @@
+jax:
+  use_jax: false                    # If True, PyAutoFit uses JAX internally, whereas False uses normal Numpy.
 analysis:
   n_cores: 1                        # The number of cores a parallelized sum of Analysis classes uses by default.
 hpc:

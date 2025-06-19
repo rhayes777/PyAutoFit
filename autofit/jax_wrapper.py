@@ -3,9 +3,9 @@ Allows the user to switch between using NumPy and JAX for linear algebra operati
 
 If USE_JAX=1 then JAX's NumPy is used, otherwise vanilla NumPy is used.
 """
-from os import environ
+from autoconf import conf
 
-use_jax = environ.get("USE_JAX", "0") == "1"
+use_jax = conf.instance["general"]["jax"]["use_jax"]
 
 if use_jax:
     try:
@@ -21,7 +21,11 @@ if use_jax:
         print("JAX mode enabled")
     except ImportError:
         raise ImportError(
-            "JAX is not installed. Please install it with `pip install jax`."
+            """
+            JAX is not installed, but the use_jax setting in config -> general.yaml is true. 
+            
+            Please install it with `pip install jax` or set the use_jax setting to false.
+            """
         )
 else:
     import numpy  # noqa
