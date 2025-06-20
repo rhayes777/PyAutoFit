@@ -1,11 +1,3 @@
-try:
-    import jax
-
-    _HAS_JAX = True
-except ImportError:
-    _HAS_JAX = False
-
-
 import numpy as np
 
 from autoconf import cached_property
