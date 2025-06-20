@@ -11,7 +11,7 @@ class TestPriorLimits:
         with pytest.raises(af.exc.PriorException):
             af.UniformPrior(1.0, 0)
         with pytest.raises(af.exc.PriorException):
-            af.GaussianPrior(0, 1, 1, 0)
+            af.GaussianPrior(0, 1)
 
     def test_no_limits(self):
         prior = af.GaussianPrior(0, 1)

@@ -19,7 +19,7 @@ def make_centre_model():
     return g.HierarchicalFactor(
         af.GaussianPrior,
         mean=af.GaussianPrior(mean=100, sigma=10),
-        sigma=af.GaussianPrior(mean=10, sigma=5, lower_limit=0),
+        sigma=af.GaussianPrior(mean=10, sigma=5),
     )
 
 

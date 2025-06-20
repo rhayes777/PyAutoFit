@@ -130,7 +130,7 @@ class TestGridSearchablePriors:
 
     def test_raises_exception_for_bad_limits(self, grid_search, mapper):
         mapper.component.one_tuple.one_tuple_0 = af.GaussianPrior(
-            0.0, 2.0, lower_limit=float("-inf"), upper_limit=float("inf")
+            0.0, 2.0,
         )
         with pytest.raises(exc.PriorException):
             list(

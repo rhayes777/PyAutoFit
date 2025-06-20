@@ -16,32 +16,23 @@ epsilon = 1e-14
 
 
 class Prior(Variable, ABC, ArithmeticMixin):
-    __database_args__ = ("lower_limit", "upper_limit", "id_")
+    __database_args__ = ("id_")
 
     _ids = itertools.count()
 
-    def __init__(self, message, lower_limit=0.0, upper_limit=1.0, id_=None):
+    def __init__(self, message, id_=None):
         """
         An object used to mappers a unit value to an attribute value for a specific
         class attribute.
 
         Parameters
         ----------
-        lower_limit: Float
-            The lowest value this prior can return
-        upper_limit: Float
-            The highest value this prior can return
+        message
+
         """
         super().__init__(id_=id_)
         self.message = message
         message.id_ = self.id
-
-        self.lower_limit = float(lower_limit)
-        self.upper_limit = float(upper_limit)
-        if self.lower_limit >= self.upper_limit:
-            raise exc.PriorException(
-                "The upper limit of a prior must be greater than its lower limit"
-            )
 
         self.width_modifier = None
 
@@ -63,20 +54,6 @@ class Prior(Variable, ABC, ArithmeticMixin):
         An instance of this class
         """
         return cls(*children)
-
-    @property
-    def lower_unit_limit(self) -> float:
-        """
-        The lower limit for this prior in unit vector space
-        """
-        return self.unit_value_for(self.lower_limit)
-
-    @property
-    def upper_unit_limit(self) -> float:
-        """
-        The upper limit for this prior in unit vector space
-        """
-        return self.unit_value_for(self.upper_limit)
 
     def unit_value_for(self, physical_value: float) -> float:
         """
@@ -117,22 +94,16 @@ class Prior(Variable, ABC, ArithmeticMixin):
         )
         return Prior.from_dict(prior_dict)
 
-    @property
-    def width(self):
-        return self.upper_limit - self.lower_limit
-
     def random(
         self,
-        lower_limit=0.0,
-        upper_limit=1.0,
     ) -> float:
         """
         A random value sampled from this prior
         """
         return self.value_for(
             random.uniform(
-                max(lower_limit, self.lower_unit_limit),
-                min(upper_limit, self.upper_unit_limit),
+                0.0,
+                1.0,
             )
         )
 
@@ -166,8 +137,6 @@ class Prior(Variable, ABC, ArithmeticMixin):
             samples=samples,
             log_weight_list=weights,
             id_=self.id,
-            lower_limit=self.lower_limit,
-            upper_limit=self.upper_limit,
         )
         return result
 
@@ -189,8 +158,8 @@ class Prior(Variable, ABC, ArithmeticMixin):
         return hash(self.id)
 
     def __repr__(self):
-        return "<{} id={} lower_limit={} upper_limit={}>".format(
-            self.__class__.__name__, self.id, self.lower_limit, self.upper_limit
+        return "<{} id={}>".format(
+            self.__class__.__name__, self.id,
         )
 
     def __str__(self):
@@ -267,8 +236,6 @@ class Prior(Variable, ABC, ArithmeticMixin):
         A dictionary representation of this prior
         """
         prior_dict = {
-            "lower_limit": self.lower_limit,
-            "upper_limit": self.upper_limit,
             "type": self.name_of_class(),
             "id": self.id,
         }
@@ -280,10 +247,6 @@ class Prior(Variable, ABC, ArithmeticMixin):
         A string name for the class, with the prior suffix removed.
         """
         return cls.__name__.replace("Prior", "")
-
-    @property
-    def limits(self) -> Tuple[float, float]:
-        return self.lower_limit, self.upper_limit
 
     def gaussian_prior_model_for_arguments(self, arguments):
         return arguments[self]

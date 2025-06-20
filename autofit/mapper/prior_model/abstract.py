@@ -642,8 +642,8 @@ class AbstractPriorModel(AbstractModel):
         """
         return [
             random.uniform(
-                max(lower_limit, prior.lower_unit_limit),
-                min(upper_limit, prior.upper_unit_limit),
+                lower_limit,
+                upper_limit,
             )
             for prior in self.priors_ordered_by_id
         ]

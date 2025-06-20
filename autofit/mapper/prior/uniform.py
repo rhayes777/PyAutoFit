@@ -62,6 +62,10 @@ class UniformPrior(Prior):
     def tree_flatten(self):
         return (self.lower_limit, self.upper_limit, self.id), ()
 
+    @property
+    def width(self):
+        return self.upper_limit - self.lower_limit
+
     def with_limits(
         self,
         lower_limit: float,

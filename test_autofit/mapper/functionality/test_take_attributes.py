@@ -267,8 +267,6 @@ def test_limits(
     source_gaussian.centre = af.GaussianPrior(
         mean=0,
         sigma=1,
-        lower_limit=-1,
-        upper_limit=1
     )
     target_gaussian.take_attributes(
         source_gaussian

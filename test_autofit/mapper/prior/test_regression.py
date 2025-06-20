@@ -7,7 +7,7 @@ import autofit as af
 
 @pytest.fixture(name="prior")
 def make_prior():
-    return af.GaussianPrior(mean=1, sigma=2, lower_limit=3, upper_limit=4)
+    return af.GaussianPrior(mean=1, sigma=2)
 
 
 @pytest.fixture(name="message")

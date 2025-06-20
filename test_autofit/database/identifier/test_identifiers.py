@@ -204,7 +204,7 @@ def test__identifier_description():
             centre=af.UniformPrior(lower_limit=0.0, upper_limit=1.0),
             normalization=af.LogUniformPrior(lower_limit=0.001, upper_limit=0.01),
             sigma=af.GaussianPrior(
-                mean=0.5, sigma=2.0, lower_limit=-1.0, upper_limit=1.0
+                mean=0.5, sigma=2.0,
             ),
         )
     )
@@ -257,14 +257,6 @@ def test__identifier_description():
     i += 1
     assert description[i] == "GaussianPrior"
     i += 1
-    assert description[i] == "lower_limit"
-    i += 1
-    assert description[i] == "-1.0"
-    i += 1
-    assert description[i] == "upper_limit"
-    i += 1
-    assert description[i] == "1.0"
-    i += 1
     assert description[i] == "mean"
     i += 1
     assert description[i] == "0.5"
@@ -282,7 +274,7 @@ def test__identifier_description__after_model_and_instance():
             centre=af.UniformPrior(lower_limit=0.0, upper_limit=1.0),
             normalization=af.LogUniformPrior(lower_limit=0.001, upper_limit=0.01),
             sigma=af.GaussianPrior(
-                mean=0.5, sigma=2.0, lower_limit=-1.0, upper_limit=1.0
+                mean=0.5, sigma=2.0,
             ),
         )
     )
@@ -328,10 +320,6 @@ normalization
 0.00316228
 sigma
 GaussianPrior
-lower_limit
--1.0
-upper_limit
-1.0
 mean
 0.5
 sigma
@@ -346,7 +334,7 @@ def test__identifier_description__after_take_attributes():
             centre=af.UniformPrior(lower_limit=0.0, upper_limit=1.0),
             normalization=af.LogUniformPrior(lower_limit=0.001, upper_limit=0.01),
             sigma=af.GaussianPrior(
-                mean=0.5, sigma=2.0, lower_limit=-1.0, upper_limit=1.0
+                mean=0.5, sigma=2.0,
             ),
         )
     )
@@ -402,14 +390,6 @@ def test__identifier_description__after_take_attributes():
     assert description[i] == "sigma"
     i += 1
     assert description[i] == "GaussianPrior"
-    i += 1
-    assert description[i] == "lower_limit"
-    i += 1
-    assert description[i] == "-1.0"
-    i += 1
-    assert description[i] == "upper_limit"
-    i += 1
-    assert description[i] == "1.0"
     i += 1
     assert description[i] == "mean"
     i += 1
