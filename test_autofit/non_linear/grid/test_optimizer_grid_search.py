@@ -138,6 +138,15 @@ class TestGridSearchablePriors:
                     [[0, 1]], grid_priors=[mapper.component.one_tuple.one_tuple_0]
                 )
             )
+        mapper.component.one_tuple.one_tuple_0 = af.UniformPrior(
+            lower_limit=float("-inf"), upper_limit=float("inf")
+        )
+        with pytest.raises(exc.PriorException):
+            list(
+                grid_search.make_arguments(
+                    [[0, 1]], grid_priors=[mapper.component.one_tuple.one_tuple_0]
+                )
+            )
 
 
 @pytest.fixture(name="grid_search_05")
