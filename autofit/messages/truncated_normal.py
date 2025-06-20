@@ -52,6 +52,8 @@ class NormalMessage(AbstractMessage):
         self,
         mean : Union[float, np.ndarray],
         sigma : Union[float, np.ndarray],
+        lower_limit=-math.inf,
+        upper_limit=math.inf,
         log_norm : Optional[float] = 0.0,
         id_ : Optional[Hashable] = None,
     ):
@@ -82,6 +84,8 @@ class NormalMessage(AbstractMessage):
             mean,
             sigma,
             log_norm=log_norm,
+            lower_limit=lower_limit,
+            upper_limit=upper_limit,
             id_=id_,
         )
         self.mean, self.sigma = self.parameters
@@ -379,7 +383,7 @@ class NormalMessage(AbstractMessage):
 
         Examples
         --------
-        >>> prior = af.GaussianPrior(mean=1.0, sigma=2.0)
+        >>> prior = af.GaussianPrior(mean=1.0, sigma=2.0, lower_limit=0.0, upper_limit=2.0)
         >>> physical_value = prior.value_for(unit=0.5)
         """
         try:
@@ -418,8 +422,9 @@ class NormalMessage(AbstractMessage):
         the ID, mean, sigma, and optional bounds.
         """
         return (
-            "<NormalMessage id={} mean={} sigma={}>".format(
-                self.id, self.mean, self.sigma,
+            "<NormalMessage id={} mean={} sigma={} "
+            "lower_limit={} upper_limit={}>".format(
+                self.id, self.mean, self.sigma, self.lower_limit, self.upper_limit
             )
         )
 
@@ -461,6 +466,8 @@ class NaturalNormal(NormalMessage):
         self,
         eta1 : float,
         eta2 : float,
+        lower_limit=-math.inf,
+        upper_limit=math.inf,
         log_norm : Optional[float] = 0.0,
         id_ : Optional[Hashable] = None,
     ):
@@ -492,6 +499,8 @@ class NaturalNormal(NormalMessage):
             eta1,
             eta2,
             log_norm=log_norm,
+            lower_limit=lower_limit,
+            upper_limit=upper_limit,
             id_=id_,
         )
 
