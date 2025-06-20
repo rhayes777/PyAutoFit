@@ -62,6 +62,7 @@ class Process(multiprocessing.Process):
         job_queue: multiprocessing.Queue
             The queue through which jobs are submitted
         """
+
         super().__init__(name=name)
         self.logger = logging.getLogger(
             f"process {name}"

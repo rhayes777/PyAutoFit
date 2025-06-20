@@ -35,7 +35,7 @@ DynestyStatic:
   initialize:
     method: prior
   parallel:
-    force_x1_cpu: false
+    force_x1_cpu: true
     number_of_cores: 1
   printing:
     silence: true

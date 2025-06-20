@@ -4,17 +4,16 @@ from typing import Optional
 from autoconf import conf
 from autoconf import cached_property
 
-from autofit import exc
-
 from autofit import jax_wrapper
 from autofit.jax_wrapper import numpy as np
+from autofit import exc
+
 
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.paths.abstract import AbstractPaths
 from autofit.non_linear.analysis import Analysis
 
 from timeout_decorator import timeout
-
 
 def get_timeout_seconds():
 
@@ -23,9 +22,7 @@ def get_timeout_seconds():
     except KeyError:
         pass
 
-
 timeout_seconds = get_timeout_seconds()
-
 
 class Fitness:
     def __init__(

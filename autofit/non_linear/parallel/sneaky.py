@@ -64,6 +64,7 @@ class SneakyJob(AbstractJob):
         args
             The arguments to that function
         """
+
         super().__init__()
         if _is_likelihood_function(function):
             self.function = None

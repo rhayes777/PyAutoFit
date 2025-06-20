@@ -4,8 +4,6 @@ import gc
 import logging
 import multiprocessing as mp
 import os
-import signal
-import sys
 import time
 import warnings
 from abc import ABC, abstractmethod
@@ -1196,6 +1194,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         -------
         An implementation of a multiprocessing pool
         """
+
         self.logger.warning(
             "...using SneakyPool. This copies the likelihood function "
             "to each process on instantiation to avoid copying multiple "

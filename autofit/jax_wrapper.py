@@ -11,9 +11,15 @@ use_jax = conf.instance["general"]["jax"]["use_jax"]
 
 if use_jax:
 
-    print("""
-    JAX is enabled. Using JAX for grad/jit and GPU/TPU acceleration.
-    To disable JAX, set: config -> general -> jax -> use_jax = false
+    from jax import numpy
+
+    print(
+
+    """
+***JAX ENABLED*** 
+    
+Using JAX for grad/jit and GPU/TPU acceleration. 
+To disable JAX, set: config -> general -> jax -> use_jax = false
     """)
 
     def jit(function, *args, **kwargs):
@@ -22,11 +28,16 @@ if use_jax:
     def grad(function, *args, **kwargs):
         return jax.grad(function, *args, **kwargs)
 
+    from jax._src.scipy.special import erfinv
+
 else:
 
-    print("""
-    JAX is disabled. Falling back to standard NumPy (no grad/jit or GPU support).
-    To enable JAX (if supported), set: config -> general -> jax -> use_jax = true
+    print(
+    """
+***JAX DISABLED*** 
+    
+Falling back to standard NumPy (no grad/jit or GPU support).
+To enable JAX (if supported), set: config -> general -> jax -> use_jax = true
     """)
 
     import numpy  # noqa
@@ -38,20 +49,8 @@ else:
     def grad(function, *_, **__):
         return function
 
-try:
-    from jax._src.tree_util import (
-        register_pytree_node_class as register_pytree_node_class,
-        register_pytree_node as register_pytree_node,
-    )
-    from jax._src.scipy.special import erfinv
+from jax._src.tree_util import (
+    register_pytree_node_class as register_pytree_node_class,
+    register_pytree_node as register_pytree_node,
+)
 
-except ImportError:
-
-    def register_pytree_node_class(cls):
-        return cls
-
-    def register_pytree_node(*_, **__):
-        def decorator(cls):
-            return cls
-
-        return decorator

@@ -115,8 +115,6 @@ class AbstractDynesty(AbstractNest, ABC):
         set of accepted samples of the fit.
         """
 
-        from dynesty.pool import Pool
-
         fitness = Fitness(
             model=model,
             analysis=analysis,
@@ -151,6 +149,8 @@ class AbstractDynesty(AbstractNest, ABC):
                     or jax_wrapper.use_jax
                 ):
                     raise RuntimeError
+
+                from dynesty.pool import Pool
 
                 with Pool(
                     njobs=self.number_of_cores,

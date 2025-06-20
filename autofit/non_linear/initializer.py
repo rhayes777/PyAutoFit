@@ -66,7 +66,7 @@ class AbstractInitializer(ABC):
         if os.environ.get("PYAUTOFIT_TEST_MODE") == "1" and test_mode_samples:
             return self.samples_in_test_mode(total_points=total_points, model=model)
 
-        if jax_wrapper.use_jax:
+        if jax_wrapper.use_jax or n_cores == 1:
             return self.samples_jax(
                 total_points=total_points,
                 model=model,
