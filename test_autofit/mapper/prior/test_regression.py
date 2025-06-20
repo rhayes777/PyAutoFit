@@ -5,6 +5,33 @@ import pytest
 import autofit as af
 
 
+# TODO : Use TruncatedGaussianPrior
+
+# @pytest.fixture(name="prior")
+# def make_prior():
+#     return af.GaussianPrior(mean=1, sigma=2)
+#
+#
+# @pytest.fixture(name="message")
+# def make_message(prior):
+#     return prior.message
+#
+#
+# def test_copy_limits(message):
+#     copied = message.copy()
+#     assert message.lower_limit == copied.lower_limit
+#     assert message.upper_limit == copied.upper_limit
+#
+#
+# def test_multiply_limits(message):
+#     multiplied = message * message
+#     assert message.lower_limit == multiplied.lower_limit
+#     assert message.upper_limit == multiplied.upper_limit
+#
+#     multiplied = 1 * message
+#     assert message.lower_limit == multiplied.lower_limit
+#     assert message.upper_limit == multiplied.upper_limit
+
 @pytest.fixture(name="uniform_prior")
 def make_uniform_prior():
     return af.UniformPrior(

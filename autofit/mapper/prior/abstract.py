@@ -96,14 +96,16 @@ class Prior(Variable, ABC, ArithmeticMixin):
 
     def random(
         self,
+        lower_limit : float = 0.0,
+        upper_limit : float = 1.0
     ) -> float:
         """
         A random value sampled from this prior
         """
         return self.value_for(
             random.uniform(
-                0.0,
-                1.0,
+                lower_limit,
+                upper_limit,
             )
         )
 
