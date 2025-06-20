@@ -1,5 +1,6 @@
+from collections.abc import Hashable
 import math
-from typing import Tuple, Union
+from typing import Optional, Tuple, Union
 
 import numpy as np
 from autofit.jax_wrapper import erfinv
@@ -28,6 +29,18 @@ def is_nan(value):
 class NormalMessage(AbstractMessage):
     @cached_property
     def log_partition(self):
+        """
+        Compute the log-partition function (also called log-normalizer or cumulant function)
+        for the normal distribution in its natural (canonical) parameterization.
+        #
+        Let the natural parameters be:
+          η₁ = μ / σ²
+          η₂ = -1 / (2σ²)
+
+        Then the log-partition function A(η) for the Gaussian is:
+           A(η) = η₁² / (-4η₂) - 0.5 * log(-2η₂)
+        This ensures normalization of the exponential-family distribution.
+        """
         eta1, eta2 = self.natural_parameters
         return -(eta1**2) / 4 / eta2 - np.log(-2 * eta2) / 2
 
@@ -37,13 +50,33 @@ class NormalMessage(AbstractMessage):
 
     def __init__(
         self,
-        mean,
-        sigma,
+        mean : Union[float, np.ndarray],
+        sigma : Union[float, np.ndarray],
         lower_limit=-math.inf,
         upper_limit=math.inf,
-        log_norm=0.0,
-        id_=None,
+        log_norm : Optional[float] = 0.0,
+        id_ : Optional[Hashable] = None,
     ):
+        """
+        A Gaussian (Normal) message representing a probability distribution over a continuous variable.
+
+        This message defines a Normal distribution parameterized by its mean and standard deviation (sigma).
+
+        Parameters
+        ----------
+        mean
+            The mean (μ) of the normal distribution.
+
+        sigma
+            The standard deviation (σ) of the distribution. Must be non-negative.
+
+        log_norm
+            An additive constant to the log probability of the message. Used internally for message-passing normalization.
+            Default is 0.0.
+
+        id_
+            An optional unique identifier used to track the message in larger probabilistic graphs or models.
+        """
         if (np.array(sigma) < 0).any():
             raise exc.MessageException("Sigma cannot be negative")
 
@@ -57,43 +90,155 @@ class NormalMessage(AbstractMessage):
         )
         self.mean, self.sigma = self.parameters
 
-    def cdf(self, x):
+    def cdf(self, x : Union[float, np.ndarray]) -> Union[float, np.ndarray]:
+        """
+        Compute the cumulative distribution function (CDF) of the Gaussian distribution
+        at a given value or array of values `x`.
+
+        Parameters
+        ----------
+        x
+            The value(s) at which to evaluate the CDF.
+
+        Returns
+        -------
+        The cumulative probability P(X ≤ x).
+        """
         return norm.cdf(x, loc=self.mean, scale=self.sigma)
 
-    def ppf(self, x):
+    def ppf(self, x : Union[float, np.ndarray]) -> Union[float, np.ndarray]:
+        """
+        Compute the percent-point function (inverse CDF) of the Gaussian distribution.
+
+        This function maps a probability value `x` in [0, 1] to the corresponding value
+        of the distribution with that cumulative probability.
+
+        Parameters
+        ----------
+        x
+            The cumulative probability or array of probabilities.
+
+        Returns
+        -------
+        The value(s) corresponding to the input quantiles.
+        """
         return norm.ppf(x, loc=self.mean, scale=self.sigma)
 
     @cached_property
-    def natural_parameters(self):
+    def natural_parameters(self) -> np.ndarray:
+        """
+        The natural (canonical) parameters of the Gaussian distribution in exponential-family form.
+
+        For a Normal distribution with mean μ and standard deviation σ, the natural parameters η are:
+
+            η₁ = μ / σ²
+            η₂ = -1 / (2σ²)
+
+        Returns
+        -------
+        A NumPy array containing the two natural parameters [η₁, η₂].
+        """
         return self.calc_natural_parameters(self.mean, self.sigma)
 
     @staticmethod
-    def calc_natural_parameters(mu, sigma):
+    def calc_natural_parameters(mu : Union[float, np.ndarray], sigma : Union[float, np.ndarray]) -> np.ndarray:
+        """
+        Convert standard parameters of a Gaussian distribution (mean and standard deviation)
+        into natural parameters used in its exponential family representation.
+
+        Parameters
+        ----------
+        mu
+            Mean of the Gaussian distribution.
+        sigma
+            Standard deviation of the Gaussian distribution.
+
+        Returns
+        -------
+        Natural parameters [η₁, η₂], where:
+            η₁ = μ / σ²
+            η₂ = -1 / (2σ²)
+        """
         precision = 1 / sigma**2
         return np.array([mu * precision, -precision / 2])
 
     @staticmethod
-    def invert_natural_parameters(natural_parameters):
+    def invert_natural_parameters(natural_parameters : np.ndarray) -> Tuple[float, float]:
+        """
+        Convert natural parameters [η₁, η₂] back into standard parameters (mean and sigma)
+        of a Gaussian distribution.
+
+        Parameters
+        ----------
+        natural_parameters
+            The natural parameters [η₁, η₂] from the exponential family form.
+
+        Returns
+        -------
+        The corresponding (mean, sigma) of the Gaussian distribution.
+        """
         eta1, eta2 = natural_parameters
         mu = -0.5 * eta1 / eta2
         sigma = np.sqrt(-0.5 / eta2)
         return mu, sigma
 
     @staticmethod
-    def to_canonical_form(x):
+    def to_canonical_form(x : Union[float, np.ndarray]) -> np.ndarray:
+        """
+        Convert a scalar input `x` to its sufficient statistics for the Gaussian exponential family.
+
+        The sufficient statistics for a normal distribution are [x, x²], which correspond to the
+        inner product with the natural parameters in the exponential-family log-likelihood.
+
+        Parameters
+        ----------
+        x
+            Input data point or array of points.
+
+        Returns
+        -------
+        The sufficient statistics [x, x²].
+        """
         return np.array([x, x**2])
 
     @classmethod
-    def invert_sufficient_statistics(cls, suff_stats):
+    def invert_sufficient_statistics(cls, suff_stats: Tuple[float, float]) -> np.ndarray:
+        """
+        Convert sufficient statistics [E[x], E[x²]] into natural parameters [η₁, η₂].
+
+        Parameters
+        ----------
+        suff_stats
+            First and second moments of the distribution.
+
+        Returns
+        -------
+        Natural parameters of the Gaussian.
+        """
         m1, m2 = suff_stats
         sigma = np.sqrt(m2 - m1**2)
         return cls.calc_natural_parameters(m1, sigma)
 
     @cached_property
-    def variance(self):
+    def variance(self) -> np.ndarray:
+        """
+        Return the variance σ² of the Gaussian distribution.
+        """
         return self.sigma**2
 
-    def sample(self, n_samples=None):
+    def sample(self, n_samples: Optional[int] = None) -> np.ndarray:
+        """
+        Draw samples from the Gaussian distribution.
+
+        Parameters
+        ----------
+        n_samples
+            Number of samples to draw. If None, returns a single sample.
+
+        Returns
+        -------
+        Sample(s) from the distribution.
+        """
         if n_samples:
             x = np.random.randn(n_samples, *self.shape)
             if self.shape:
@@ -103,7 +248,20 @@ class NormalMessage(AbstractMessage):
 
         return x * self.sigma + self.mean
 
-    def kl(self, dist):
+    def kl(self, dist : "NormalMessage") -> float:
+        """
+        Compute the Kullback-Leibler (KL) divergence to another Gaussian distribution.
+
+        Parameters
+        ----------
+        dist : Gaussian
+            The target distribution for the KL divergence.
+
+        Returns
+        -------
+        float
+            The KL divergence KL(self || dist).
+        """
         return (
             np.log(dist.sigma / self.sigma)
             + (self.sigma**2 + (self.mean - dist.mean) ** 2) / 2 / dist.sigma**2
@@ -112,8 +270,25 @@ class NormalMessage(AbstractMessage):
 
     @classmethod
     def from_mode(
-        cls, mode: np.ndarray, covariance: Union[float, LinearOperator] = 1.0, **kwargs
-    ):
+        cls,
+        mode: np.ndarray,
+        covariance: Union[float, LinearOperator] = 1.0,
+        **kwargs
+    ) -> "NormalMessage":
+        """
+        Construct a Gaussian from its mode and covariance.
+
+        Parameters
+        ----------
+        mode
+            The mode (same as mean for Gaussian).
+        covariance
+            The covariance or a linear operator with `.diagonal()` method.
+
+        Returns
+        -------
+        An instance of the NormalMessage class.
+        """
         if isinstance(covariance, LinearOperator):
             variance = covariance.diagonal()
         else:
@@ -123,6 +298,18 @@ class NormalMessage(AbstractMessage):
     def _normal_gradient_hessian(
         self, x: np.ndarray
     ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+        """
+        Compute the log-pdf, gradient, and Hessian of a Gaussian with respect to x.
+
+        Parameters
+        ----------
+        x
+            Points at which to evaluate.
+
+        Returns
+        -------
+        Log-pdf values, gradients, and Hessians.
+        """
         # raise Exception
         shape = np.shape(x)
         if shape:
@@ -148,9 +335,33 @@ class NormalMessage(AbstractMessage):
         return logl, grad_logl, hess_logl
 
     def logpdf_gradient(self, x: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
+        """
+        Return the gradient of the log-pdf of the Gaussian evaluated at `x`.
+
+        Parameters
+        ----------
+        x
+            Evaluation points.
+
+        Returns
+        -------
+        Log-pdf values and gradients.
+        """
         return self._normal_gradient_hessian(x)[:2]
 
     def logpdf_gradient_hessian(self, x: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
+        """
+        Return the gradient and Hessian of the log-pdf of the Gaussian at `x`.
+
+        Parameters
+        ----------
+        x
+            Evaluation points.
+
+        Returns
+        -------
+        Gradient and Hessian of the log-pdf.
+        """
         return self._normal_gradient_hessian(x)
 
     __name__ = "gaussian_prior"
@@ -159,24 +370,21 @@ class NormalMessage(AbstractMessage):
 
     def value_for(self, unit: float) -> float:
         """
-        Returns a physical value from an input unit value according to the Gaussian distribution of the prior.
+        Map a unit value in [0, 1] to a physical value drawn from this Gaussian prior.
 
         Parameters
         ----------
         unit
-            A unit value between 0 and 1.
+            A unit value between 0 and 1 representing a uniform draw.
 
         Returns
         -------
-        value
-            The unit value mapped to a physical value according to the prior.
+        A physical value sampled from the Gaussian prior corresponding to the given unit.
 
         Examples
         --------
-
-        prior = af.GaussianPrior(mean=1.0, sigma=2.0, lower_limit=0.0, upper_limit=2.0)
-
-        physical_value = prior.value_for(unit=0.5)
+        >>> prior = af.GaussianPrior(mean=1.0, sigma=2.0, lower_limit=0.0, upper_limit=2.0)
+        >>> physical_value = prior.value_for(unit=0.5)
         """
         try:
             inv = erfinv(1 - 2.0 * (1.0 - unit))
@@ -185,25 +393,34 @@ class NormalMessage(AbstractMessage):
             inv = scipy_erfinv(1 - 2.0 * (1.0 - unit))
         return self.mean + (self.sigma * np.sqrt(2) * inv)
 
-    def log_prior_from_value(self, value):
+    def log_prior_from_value(self, value: float) -> float:
         """
-        Returns the log prior of a physical value, so the log likelihood of a model evaluation can be converted to a
-        posterior as log_prior + log_likelihood.
-        This is used by certain non-linear searches (e.g. Emcee) in the log likelihood function evaluation.
+        Compute the log prior probability of a given physical value under this Gaussian prior.
+
+        Used to convert a likelihood to a posterior in non-linear searches (e.g., Emcee).
+
         Parameters
         ----------
         value
-            The physical value of this prior's corresponding parameter in a `NonLinearSearch` sample.
+            A physical parameter value for which the log prior is evaluated.
+
+        Returns
+        -------
+        The log prior probability of the given value.
         """
         return (value - self.mean) ** 2.0 / (2 * self.sigma**2.0)
 
     def __str__(self):
         """
-        The line of text describing this prior for the model_mapper.info file
+        Generate a short string summary describing the prior for use in model summaries.
         """
         return f"NormalMessage, mean = {self.mean}, sigma = {self.sigma}"
 
     def __repr__(self):
+        """
+        Return the official string representation of this Gaussian prior including
+        the ID, mean, sigma, and optional bounds.
+        """
         return (
             "<NormalMessage id={} mean={} sigma={} "
             "lower_limit={} upper_limit={}>".format(
@@ -212,12 +429,28 @@ class NormalMessage(AbstractMessage):
         )
 
     @property
-    def natural(self):
+    def natural(self)-> "NaturalNormal":
+        """
+        Return a 'zeroed' natural parameterization of this Gaussian prior.
+
+        Returns
+        -------
+        A natural form Gaussian with zeroed parameters but same configuration.
+        """
         return NaturalNormal.from_natural_parameters(
             self.natural_parameters * 0.0, **self._init_kwargs
         )
 
     def zeros_like(self) -> "AbstractMessage":
+        """
+        Return a new instance of this prior with the same structure but zeroed natural parameters.
+
+        Useful for initializing messages in variational inference frameworks.
+
+        Returns
+        -------
+        A new prior object with zeroed natural parameters.
+        """
         return self.natural.zeros_like()
 
 
@@ -231,13 +464,36 @@ class NaturalNormal(NormalMessage):
 
     def __init__(
         self,
-        eta1,
-        eta2,
+        eta1 : float,
+        eta2 : float,
         lower_limit=-math.inf,
         upper_limit=math.inf,
-        log_norm=0.0,
-        id_=None,
+        log_norm : Optional[float] = 0.0,
+        id_ : Optional[Hashable] = None,
     ):
+        """
+        A natural parameterization of a Gaussian distribution.
+
+        This class behaves like `NormalMessage`, but allows non-normalized or degenerate distributions,
+        including those with negative or infinite variance. This flexibility is useful in advanced
+        inference settings like message passing or variational approximations, where intermediate
+        natural parameter values may fall outside standard constraints.
+
+        In natural form, the parameters `eta1` and `eta2` correspond to:
+            - eta1 = mu / sigma^2
+            - eta2 = -1 / (2 * sigma^2)
+
+        Parameters
+        ----------
+        eta1
+            First natural parameter, related to the mean.
+        eta2
+            Second natural parameter, related to the variance (must be < 0).
+        log_norm
+            Optional additive normalization term for use in message passing.
+        id_
+            Optional identifier for the distribution instance.
+        """
         AbstractMessage.__init__(
             self,
             eta1,
@@ -249,36 +505,107 @@ class NaturalNormal(NormalMessage):
         )
 
     @cached_property
-    def sigma(self):
+    def sigma(self)-> float:
+        """
+        Return the standard deviation corresponding to the natural parameters.
+
+        Returns
+        -------
+        The standard deviation σ, derived from eta2 via σ² = -1/(2η₂).
+        """
         precision = -2 * self.parameters[1]
         return precision**-0.5
 
     @cached_property
-    def mean(self):
+    def mean(self) -> float:
+        """
+        Return the mean corresponding to the natural parameters.
+
+        Returns
+        -------
+        The mean μ = -η₁ / (2η₂), with NaNs replaced by 0 for numerical stability.
+        """
         return np.nan_to_num(-self.parameters[0] / self.parameters[1] / 2)
 
     @staticmethod
-    def calc_natural_parameters(eta1, eta2):
+    def calc_natural_parameters(eta1: float, eta2: float) -> np.ndarray:
+        """
+        Return the natural parameters in array form (identity function for this class).
+
+        Parameters
+        ----------
+        eta1
+            The first natural parameter.
+        eta2
+            The second natural parameter.
+        """
         return np.array([eta1, eta2])
 
     @cached_property
-    def natural_parameters(self):
+    def natural_parameters(self) -> np.ndarray:
+        """
+        Return the natural parameters of this distribution.
+        """
         return self.calc_natural_parameters(*self.parameters)
 
     @classmethod
-    def invert_sufficient_statistics(cls, suff_stats):
+    def invert_sufficient_statistics(cls, suff_stats: Tuple[float, float]) -> np.ndarray:
+        """
+        Convert sufficient statistics back to natural parameters.
+
+        Parameters
+        ----------
+        suff_stats
+            Tuple of first and second moments: (mean, second_moment).
+
+        Returns
+        -------
+        Natural parameters [eta1, eta2] recovered from the sufficient statistics.
+        """
         m1, m2 = suff_stats
         precision = 1 / (m2 - m1**2)
         return cls.calc_natural_parameters(m1 * precision, -precision / 2)
 
     @staticmethod
-    def invert_natural_parameters(natural_parameters):
+    def invert_natural_parameters(natural_parameters: np.ndarray) -> np.ndarray:
+        """
+        Identity function for natural parameters (no inversion needed).
+
+        Parameters
+        ----------
+        natural_parameters : np.ndarray
+            Natural parameters [eta1, eta2].
+
+        Returns
+        -------
+        np.ndarray
+            The same input array.
+        """
         return natural_parameters
 
     @classmethod
     def from_mode(
-        cls, mode: np.ndarray, covariance: Union[float, LinearOperator] = 1.0, **kwargs
-    ):
+            cls,
+            mode: np.ndarray,
+            covariance: Union[float, LinearOperator] = 1.0,
+            **kwargs
+    ) -> "NaturalNormal":
+        """
+        Construct a `NaturalNormal` distribution from mode and covariance.
+
+        Parameters
+        ----------
+        mode
+            The mode (mean) of the distribution.
+        covariance
+            Covariance of the distribution. If a `LinearOperator`, its inverse is used for precision.
+        kwargs
+            Additional keyword arguments passed to the constructor.
+
+        Returns
+        -------
+        An instance of `NaturalNormal` with the corresponding natural parameters.
+        """
         if isinstance(covariance, LinearOperator):
             precision = covariance.inv().diagonal()
         else:
@@ -290,7 +617,10 @@ class NaturalNormal(NormalMessage):
     zeros_like = AbstractMessage.zeros_like
 
     @property
-    def natural(self):
+    def natural(self) -> "NaturalNormal":
+        """
+        Return self — already in natural form -- for clean API.
+        """
         return self
 
 
