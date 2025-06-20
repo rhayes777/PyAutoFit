@@ -256,7 +256,6 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         if jax_wrapper.use_jax:
             self.number_of_cores = 1
-            logger.warning(f"JAX is enabled. Setting number of cores to 1.")
 
         self.number_of_cores = number_of_cores
 
