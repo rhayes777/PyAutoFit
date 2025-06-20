@@ -35,8 +35,6 @@ def make_log_uniform_prior(log_uniform_dict):
 def make_gaussian_dict():
     return {
         "type": "Gaussian",
-        "lower_limit": -10.0,
-        "upper_limit": 10.0,
         "mean": 3,
         "sigma": 4,
         "id": 0,
