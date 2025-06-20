@@ -180,7 +180,7 @@ class SamplesInterface(ABC):
         )
 
     def _instance_from_vector(self, vector: List[float]) -> ModelInstance:
-        return self.model.instance_from_vector(vector=vector, ignore_prior_limits=True)
+        return self.model.instance_from_vector(vector=vector)
 
     @property
     def prior_means(self) -> [List]:

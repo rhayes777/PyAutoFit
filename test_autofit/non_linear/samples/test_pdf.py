@@ -180,7 +180,7 @@ def test__median_pdf__unconverged():
     assert median_pdf[1] == pytest.approx(1.9, 1.0e-4)
 
 
-@with_config("general", "model", "ignore_prior_limits", value=True)
+@with_config("general", "model")
 def test__converged__vector_and_instance_at_upper_and_lower_sigma():
     parameters = [
         [0.1, 0.4],

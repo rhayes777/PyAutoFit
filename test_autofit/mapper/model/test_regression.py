@@ -150,12 +150,11 @@ def make_model_with_assertion():
 def test_instance_from_vector(model_with_assertion):
     model_with_assertion.instance_from_vector(
         [0.5, 0.5, 0.5],
-        ignore_prior_limits=True,
     )
 
 
 def test_random_instance(model_with_assertion):
-    model_with_assertion.random_instance(ignore_prior_limits=True)
+    model_with_assertion.random_instance()
 
 
 class TestModel:

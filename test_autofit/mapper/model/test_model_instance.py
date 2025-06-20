@@ -71,7 +71,7 @@ class TestModelInstance:
         mapper.mock_class = af.m.MockClassx2
 
         model_map = mapper.instance_from_unit_vector(
-            [1.0, 1.0], ignore_prior_limits=True
+            [1.0, 1.0]=True
         )
 
         assert isinstance(model_map.mock_class, af.m.MockClassx2)
@@ -85,7 +85,7 @@ class TestModelInstance:
         mapper.mock_class_2 = af.m.MockClassx2
 
         model_map = mapper.instance_from_unit_vector(
-            [1.0, 0.0, 0.0, 1.0], ignore_prior_limits=True
+            [1.0, 0.0, 0.0, 1.0]=True
         )
 
         assert isinstance(model_map.mock_class_1, af.m.MockClassx2)

@@ -91,7 +91,7 @@ def test_uniform_prior(lower_limit, upper_limit, unit_value, physical_value):
         lower_limit=lower_limit,
         upper_limit=upper_limit,
     ).value_for(
-        unit_value, ignore_prior_limits=True
+        unit_value=True
     ) == pytest.approx(physical_value)
 
 

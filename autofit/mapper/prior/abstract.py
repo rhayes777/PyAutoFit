@@ -136,7 +136,7 @@ class Prior(Variable, ABC, ArithmeticMixin):
             )
         )
 
-    def value_for(self, unit: float, ignore_prior_limits=False) -> float:
+    def value_for(self, unit: float) -> float:
         """
         Return a physical value for a value between 0 and 1 with the transformation
         described by this prior.

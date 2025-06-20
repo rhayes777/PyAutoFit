@@ -127,7 +127,7 @@ class LogGaussianPrior(Prior):
             id_=self.instance().id,
         )
 
-    def value_for(self, unit: float, ignore_prior_limits: bool = False) -> float:
+    def value_for(self, unit: float) -> float:
         """
         Return a physical value for a value between 0 and 1 with the transformation
         described by this prior.
@@ -141,7 +141,7 @@ class LogGaussianPrior(Prior):
         -------
         A physical value, mapped from the unit value accoridng to the prior.
         """
-        return super().value_for(unit, ignore_prior_limits=ignore_prior_limits)
+        return super().value_for(unit)
 
     @property
     def parameter_string(self) -> str:

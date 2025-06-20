@@ -121,7 +121,7 @@ class LogUniformPrior(Prior):
         """
         return 1.0 / value
 
-    def value_for(self, unit: float, ignore_prior_limits: bool = False) -> float:
+    def value_for(self, unit: float) -> float:
         """
         Returns a physical value from an input unit value according to the limits of the log10 uniform prior.
 
@@ -142,7 +142,7 @@ class LogUniformPrior(Prior):
 
         physical_value = prior.value_for(unit=0.2)
         """
-        return super().value_for(unit, ignore_prior_limits=ignore_prior_limits)
+        return super().value_for(unit)
 
     @property
     def parameter_string(self) -> str:

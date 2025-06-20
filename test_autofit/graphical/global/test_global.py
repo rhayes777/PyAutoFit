@@ -48,7 +48,6 @@ class TestGlobalLikelihood:
             model_factor.log_likelihood_function(
                 model_factor.global_prior_model.instance_from_unit_vector(
                     [unit_value],
-                    ignore_prior_limits=True,
                 )[0]
             )
             == likelihood
@@ -60,7 +59,7 @@ class TestGlobalLikelihood:
         assert (
             collection.log_likelihood_function(
                 collection.global_prior_model.instance_from_unit_vector(
-                    [unit_value], ignore_prior_limits=True
+                    [unit_value]=True
                 )
             )
             == likelihood
@@ -75,7 +74,7 @@ class TestGlobalLikelihood:
         assert (
             collection.log_likelihood_function(
                 collection.global_prior_model.instance_from_unit_vector(
-                    unit_vector, ignore_prior_limits=True
+                    unit_vector=True
                 )
             )
             == likelihood

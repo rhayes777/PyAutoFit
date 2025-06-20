@@ -522,7 +522,7 @@ class AbstractPriorModel(AbstractModel):
             except AttributeError:
                 pass
 
-    def instance_from_unit_vector(self, unit_vector, ignore_prior_limits=False):
+    def instance_from_unit_vector(self, unit_vector):
         """
         Returns a ModelInstance, which has an attribute and class instance corresponding
         to every `Model` attributed to this instance.
@@ -530,8 +530,6 @@ class AbstractPriorModel(AbstractModel):
         physical values via their priors.
         Parameters
         ----------
-        ignore_prior_limits
-            If true then no exception is thrown if priors fall outside defined limits
         unit_vector: [float]
             A unit hypercube vector that is mapped to an instance of physical values via the priors.
         Returns
@@ -563,7 +561,6 @@ class AbstractPriorModel(AbstractModel):
                     prior_tuple.prior,
                     prior_tuple.prior.value_for(
                         unit,
-                        ignore_prior_limits=ignore_prior_limits,
                     ),
                 ),
                 self.prior_tuples_ordered_by_id,
@@ -573,7 +570,6 @@ class AbstractPriorModel(AbstractModel):
 
         return self.instance_for_arguments(
             arguments,
-            ignore_assertions=ignore_prior_limits,
         )
 
     @property
@@ -611,16 +607,12 @@ class AbstractPriorModel(AbstractModel):
     def priors_ordered_by_id(self):
         return [prior for _, prior in self.prior_tuples_ordered_by_id]
 
-    def vector_from_unit_vector(self, unit_vector, ignore_prior_limits=False):
+    def vector_from_unit_vector(self, unit_vector):
         """
         Parameters
         ----------
         unit_vector: [float]
             A unit hypercube vector
-        ignore_prior_limits
-            Set to True to prevent an exception being raised if
-            the physical value of a prior is outside the allowable
-            limits
 
         Returns
         -------
@@ -630,7 +622,7 @@ class AbstractPriorModel(AbstractModel):
         return list(
             map(
                 lambda prior_tuple, unit: prior_tuple.prior.value_for(
-                    unit, ignore_prior_limits=ignore_prior_limits
+                    unit,
                 ),
                 self.prior_tuples_ordered_by_id,
                 unit_vector,
@@ -752,7 +744,7 @@ class AbstractPriorModel(AbstractModel):
         """
         return self.vector_from_unit_vector([0.5] * len(self.unique_prior_tuples))
 
-    def instance_from_vector(self, vector, ignore_prior_limits=False):
+    def instance_from_vector(self, vector):
         """
         Returns a ModelInstance, which has an attribute and class instance corresponding
         to every `Model` attributed to this instance.
@@ -762,8 +754,6 @@ class AbstractPriorModel(AbstractModel):
         ----------
         vector: [float]
             A vector of physical parameter values that is mapped to an instance.
-        ignore_prior_limits
-            If True don't check that physical values are within expected limits.
 
         Returns
         -------
@@ -784,7 +774,6 @@ class AbstractPriorModel(AbstractModel):
 
         return self.instance_for_arguments(
             arguments,
-            ignore_assertions=ignore_prior_limits,
         )
 
     def has(self, cls: Union[Type, Tuple[Type, ...]]) -> bool:
@@ -1035,7 +1024,7 @@ class AbstractPriorModel(AbstractModel):
 
         return self.mapper_from_prior_arguments(arguments)
 
-    def instance_from_prior_medians(self, ignore_prior_limits=False):
+    def instance_from_prior_medians(self):
         """
         Returns a list of physical values from the median values of the priors.
         Returns
@@ -1045,7 +1034,6 @@ class AbstractPriorModel(AbstractModel):
         """
         return self.instance_from_unit_vector(
             unit_vector=[0.5] * self.prior_count,
-            ignore_prior_limits=ignore_prior_limits,
         )
 
     def log_prior_list_from_vector(
@@ -1074,18 +1062,12 @@ class AbstractPriorModel(AbstractModel):
             )
         )
 
-    def random_instance(self, ignore_prior_limits=False):
+    def random_instance(self):
         """
         Returns a random instance of the model.
         """
-        logger.debug(f"Creating a random instance")
-        if ignore_prior_limits:
-            return self.instance_from_unit_vector(
-                unit_vector=[random.random() for _ in range(self.prior_count)],
-                ignore_prior_limits=ignore_prior_limits,
-            )
-        return self.instance_for_arguments(
-            {prior: prior.random() for prior in self.priors}
+        return self.instance_from_unit_vector(
+            unit_vector=[random.random() for _ in range(self.prior_count)],
         )
 
     @staticmethod
