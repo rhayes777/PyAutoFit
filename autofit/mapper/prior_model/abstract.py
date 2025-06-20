@@ -898,7 +898,7 @@ class AbstractPriorModel(AbstractModel):
     def gaussian_prior_model_for_arguments(self, arguments):
         raise NotImplementedError()
 
-    def mapper_from_prior_means(self, means, a=None, r=None, no_limits=False):
+    def mapper_from_prior_means(self, means, a=None, r=None):
         """
         The widths of the new priors are taken from the
         width_config. The new gaussian priors must be provided in the same order as
@@ -909,8 +909,6 @@ class AbstractPriorModel(AbstractModel):
         ----------
         means
             The median PDF value of every Gaussian, which centres each `GaussianPrior`.
-        no_limits
-            If `True` generated priors have infinite limits
         r
             The relative width to be assigned to gaussian priors
         a
@@ -954,17 +952,9 @@ class AbstractPriorModel(AbstractModel):
             else:
                 width = width_modifier(mean)
 
-            if no_limits:
-                limits = (float("-inf"), float("inf"))
-            else:
-                try:
-                    limits = Limits.for_class_and_attributes_name(cls, name)
-                except ConfigException:
-                    limits = prior.limits
-
             sigma = width
 
-            new_prior = GaussianPrior(mean, sigma, *limits)
+            new_prior = GaussianPrior(mean, sigma)
             new_prior.id = prior.id
             new_prior.width_modifier = prior.width_modifier
             arguments[prior] = new_prior
