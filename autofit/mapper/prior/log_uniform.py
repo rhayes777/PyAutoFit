@@ -9,6 +9,7 @@ from autofit.messages.transform import log_10_transform, LinearShiftTransform
 from .abstract import Prior
 from ...messages.composed_transform import TransformedMessage
 
+from autofit import exc
 
 @register_pytree_node_class
 class LogUniformPrior(Prior):
@@ -48,13 +49,17 @@ class LogUniformPrior(Prior):
         physical_value = prior.value_for(unit=0.2)
         """
 
-        if lower_limit <= 0.0:
+        self.lower_limit = float(lower_limit)
+        self.upper_limit = float(upper_limit)
+
+        if self.lower_limit <= 0.0:
             raise exc.PriorException(
                 "The lower limit of a LogUniformPrior cannot be zero or negative."
             )
-
-        self.lower_limit = float(lower_limit)
-        self.upper_limit = float(upper_limit)
+        if self.lower_limit >= self.upper_limit:
+            raise exc.PriorException(
+                "The upper limit of a prior must be greater than its lower limit"
+            )
 
         message = TransformedMessage(
             UniformNormalMessage,

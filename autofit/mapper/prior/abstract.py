@@ -212,12 +212,14 @@ class Prior(Variable, ABC, ArithmeticMixin):
         from .log_uniform import LogUniformPrior
         from .gaussian import GaussianPrior
         from .log_gaussian import LogGaussianPrior
+        from .truncated_gaussian import TruncatedGaussianPrior
 
         prior_type_dict = {
             "Uniform": UniformPrior,
             "LogUniform": LogUniformPrior,
             "Gaussian": GaussianPrior,
             "LogGaussian": LogGaussianPrior,
+            "TruncatedGaussian" : TruncatedGaussianPrior,
             "Constant": Constant,
         }
 

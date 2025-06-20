@@ -127,12 +127,12 @@ class TestFromDict:
         assert gaussian_prior.mean == 3
         assert gaussian_prior.sigma == 4
 
-    def test_gaussian(self, truncated_gaussian_prior):
-        assert isinstance(gaussian_prior, af.TruncatedGaussianPrior)
-        assert gaussian_prior.lower_limit == -10
-        assert gaussian_prior.upper_limit == 10
-        assert gaussian_prior.mean == 3
-        assert gaussian_prior.sigma == 4
+    def test_truncated_gaussian(self, truncated_gaussian_prior):
+        assert isinstance(truncated_gaussian_prior, af.TruncatedGaussianPrior)
+        assert truncated_gaussian_prior.lower_limit == -10
+        assert truncated_gaussian_prior.upper_limit == 10
+        assert truncated_gaussian_prior.mean == 3
+        assert truncated_gaussian_prior.sigma == 4
 
     def test_constant(self):
         result = af.Prior.from_dict({"type": "Constant", "value": 1.5})

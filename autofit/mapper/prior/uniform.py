@@ -7,6 +7,7 @@ from .abstract import epsilon
 from ...messages.composed_transform import TransformedMessage
 from ...messages.transform import LinearShiftTransform
 
+from autofit import exc
 
 @register_pytree_node_class
 class UniformPrior(Prior):
@@ -48,6 +49,11 @@ class UniformPrior(Prior):
 
         self.lower_limit = float(lower_limit)
         self.upper_limit = float(upper_limit)
+
+        if self.lower_limit >= self.upper_limit:
+            raise exc.PriorException(
+                "The upper limit of a prior must be greater than its lower limit"
+            )
 
         message = TransformedMessage(
             UniformNormalMessage,

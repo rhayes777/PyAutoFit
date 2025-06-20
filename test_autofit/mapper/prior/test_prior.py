@@ -10,16 +10,6 @@ class TestPriorLimits:
     def test_out_of_order_prior_limits(self):
         with pytest.raises(af.exc.PriorException):
             af.UniformPrior(1.0, 0)
-        with pytest.raises(af.exc.PriorException):
-            af.GaussianPrior(0, 1)
-
-    def test_no_limits(self):
-        prior = af.GaussianPrior(0, 1)
-
-        prior.assert_within_limits(100)
-        prior.assert_within_limits(-100)
-        prior.assert_within_limits(0)
-        prior.assert_within_limits(0.5)
 
     def test_prior_creation(self):
         mapper = af.ModelMapper()

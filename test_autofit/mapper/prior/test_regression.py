@@ -7,16 +7,16 @@ import autofit as af
 
 # TODO : Use TruncatedGaussianPrior
 
-# @pytest.fixture(name="prior")
-# def make_prior():
-#     return af.GaussianPrior(mean=1, sigma=2)
-#
-#
-# @pytest.fixture(name="message")
-# def make_message(prior):
-#     return prior.message
-#
-#
+@pytest.fixture(name="prior")
+def make_prior():
+    return af.GaussianPrior(mean=1, sigma=2)
+
+
+@pytest.fixture(name="message")
+def make_message(prior):
+    return prior.message
+
+
 # def test_copy_limits(message):
 #     copied = message.copy()
 #     assert message.lower_limit == copied.lower_limit
