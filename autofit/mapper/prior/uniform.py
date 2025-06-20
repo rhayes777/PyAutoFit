@@ -51,8 +51,6 @@ class UniformPrior(Prior):
         message = TransformedMessage(
             UniformNormalMessage,
             LinearShiftTransform(shift=lower_limit, scale=upper_limit - lower_limit),
-            lower_limit=lower_limit,
-            upper_limit=upper_limit,
         )
         super().__init__(
             message,

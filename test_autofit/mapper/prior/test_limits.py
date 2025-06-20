@@ -38,7 +38,7 @@ def test_vector_ignore_limits(model):
     [
         af.LogUniformPrior(),
         af.UniformPrior(),
-        af.GaussianPrior(mean=0, sigma=1, lower_limit=0.0, upper_limit=1.0,),
+        af.GaussianPrior(mean=0, sigma=1),
     ],
 )
 @pytest.mark.parametrize("value", [-1.0, 2.0])

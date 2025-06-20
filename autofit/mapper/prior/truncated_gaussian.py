@@ -15,6 +15,8 @@ class GaussianPrior(Prior):
         self,
         mean: float,
         sigma: float,
+        lower_limit: float = float("-inf"),
+        upper_limit: float = float("inf"),
         id_: Optional[int] = None,
     ):
         """
@@ -50,11 +52,13 @@ class GaussianPrior(Prior):
         >>> physical_value = prior.value_for(unit=0.5)  # Returns ~1.0 (mean)
         """
         super().__init__(
-            lower_limit=float("-inf"),
-            upper_limit=float("inf"),
+            lower_limit=lower_limit,
+            upper_limit=upper_limit,
             message=NormalMessage(
                 mean=mean,
                 sigma=sigma,
+                lower_limit=lower_limit,
+                upper_limit=upper_limit,
             ),
             id_=id_,
         )
