@@ -12,6 +12,7 @@ import numpy as np
 from autoconf import conf
 from autoconf.exc import ConfigException
 from autofit import exc
+from autofit import jax_wrapper
 from autofit.mapper import model
 from autofit.mapper.model import AbstractModel, frozen_cache
 from autofit.mapper.prior import GaussianPrior
@@ -781,7 +782,25 @@ class AbstractPriorModel(AbstractModel):
 
         if not ignore_prior_limits:
             for prior, value in arguments.items():
-                prior.assert_within_limits(value)
+
+                if not jax_wrapper.use_jax:
+
+                    prior.assert_within_limits(value)
+
+                else:
+
+                    import jax.numpy as jnp
+                    import jax
+
+                    valid = prior.assert_within_limits(value)
+
+                    return jax.lax.cond(
+                        jnp.isnan(valid),
+                        lambda _: jnp.nan,  # or return -jnp.inf
+                        lambda _: 0.0,  # normal computation
+                        operand=None,
+                    )
+
 
         return self.instance_for_arguments(
             arguments,

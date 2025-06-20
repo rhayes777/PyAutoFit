@@ -6,6 +6,7 @@ from autoconf import cached_property
 
 from autofit import exc
 
+from autofit import jax_wrapper
 from autofit.jax_wrapper import numpy as np
 
 from autofit.mapper.prior_model.abstract import AbstractPriorModel

@@ -1,33 +1,34 @@
 """
 Allows the user to switch between using NumPy and JAX for linear algebra operations.
 
-If USE_JAX=1 then JAX's NumPy is used, otherwise vanilla NumPy is used.
+If USE_JAX=true in general.yaml then JAX's NumPy is used, otherwise vanilla NumPy is used.
 """
+import jax
+
 from autoconf import conf
 
 use_jax = conf.instance["general"]["jax"]["use_jax"]
 
 if use_jax:
-    try:
-        import jax
-        from jax import numpy
 
-        def jit(function, *args, **kwargs):
-            return jax.jit(function, *args, **kwargs)
+    print("""
+    JAX is enabled. Using JAX for grad/jit and GPU/TPU acceleration.
+    To disable JAX, set: config -> general -> jax -> use_jax = false
+    """)
 
-        def grad(function, *args, **kwargs):
-            return jax.grad(function, *args, **kwargs)
+    def jit(function, *args, **kwargs):
+        return jax.jit(function, *args, **kwargs)
 
-        print("JAX mode enabled")
-    except ImportError:
-        raise ImportError(
-            """
-            JAX is not installed, but the use_jax setting in config -> general.yaml is true. 
-            
-            Please install it with `pip install jax` or set the use_jax setting to false.
-            """
-        )
+    def grad(function, *args, **kwargs):
+        return jax.grad(function, *args, **kwargs)
+
 else:
+
+    print("""
+    JAX is disabled. Falling back to standard NumPy (no grad/jit or GPU support).
+    To enable JAX (if supported), set: config -> general -> jax -> use_jax = true
+    """)
+
     import numpy  # noqa
     from scipy.special.cython_special import erfinv  # noqa
 
