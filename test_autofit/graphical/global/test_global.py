@@ -59,7 +59,7 @@ class TestGlobalLikelihood:
         assert (
             collection.log_likelihood_function(
                 collection.global_prior_model.instance_from_unit_vector(
-                    [unit_value]=True
+                    [unit_value]
                 )
             )
             == likelihood
@@ -74,7 +74,7 @@ class TestGlobalLikelihood:
         assert (
             collection.log_likelihood_function(
                 collection.global_prior_model.instance_from_unit_vector(
-                    unit_vector=True
+                    unit_vector
                 )
             )
             == likelihood
