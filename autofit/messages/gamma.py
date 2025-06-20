@@ -22,8 +22,6 @@ class GammaMessage(AbstractMessage):
             self,
             alpha=1.0,
             beta=1.0,
-            lower_limit=-math.inf,
-            upper_limit=math.inf,
             log_norm=0.0,
             id_=None
     ):
@@ -32,8 +30,6 @@ class GammaMessage(AbstractMessage):
         super().__init__(
             alpha,
             beta,
-            lower_limit=lower_limit,
-            upper_limit=upper_limit,
             log_norm=log_norm,
             id_=id_
         )

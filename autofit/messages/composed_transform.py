@@ -64,8 +64,6 @@ class TransformedMessage(MessageInterface):
         base_message: MessageInterface,
         *transforms: AbstractDensityTransform,
         id_: Optional[int] = None,
-        lower_limit=float("-inf"),
-        upper_limit=float("inf"),
     ):
         """
         Comprises a base message such as a normal message and a list of transforms
@@ -80,8 +78,6 @@ class TransformedMessage(MessageInterface):
             A list of transforms applied left to right. For example, a shifted uniform
             normal message is first converted to uniform normal then shifted
         id_
-        lower_limit
-        upper_limit
         """
         while isinstance(base_message, TransformedMessage):
             transforms = base_message.transforms + transforms
@@ -90,9 +86,6 @@ class TransformedMessage(MessageInterface):
         self.transforms = transforms
         self.base_message = base_message
         self.id = id_
-
-        self.lower_limit = lower_limit
-        self.upper_limit = upper_limit
 
         x0, x1 = zip(*base_message._support)
         z0 = self._inverse_transform(np.array(x0))

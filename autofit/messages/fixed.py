@@ -13,16 +13,12 @@ class FixedMessage(AbstractMessage):
     def __init__(
             self,
             value: np.ndarray,
-            lower_limit=-math.inf,
-            upper_limit=math.inf,
             log_norm: np.ndarray = 0.,
             id_=None
     ):
         self.value = value
         super().__init__(
             value,
-            lower_limit=lower_limit,
-            upper_limit=upper_limit,
             log_norm=log_norm,
             id_=id_
         )

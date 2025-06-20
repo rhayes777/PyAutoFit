@@ -121,8 +121,6 @@ class BetaMessage(AbstractMessage):
         self,
         alpha: float = 0.5,
         beta: float = 0.5,
-        lower_limit: float = -math.inf,
-        upper_limit: float = math.inf,
         log_norm: float = 0,
         id_: Union[str, None] = None,
     ):
@@ -135,10 +133,6 @@ class BetaMessage(AbstractMessage):
             Alpha (shape) parameter of the Beta distribution. Default is 0.5.
         beta
             Beta (shape) parameter of the Beta distribution. Default is 0.5.
-        lower_limit
-            Lower bound on the support of the distribution. Defaults to -infinity.
-        upper_limit
-            Upper bound on the support of the distribution. Defaults to infinity.
         log_norm
             Logarithm of normalization constant for message passing. Default is 0.
         id_
@@ -149,8 +143,6 @@ class BetaMessage(AbstractMessage):
         super().__init__(
             alpha,
             beta,
-            lower_limit=lower_limit,
-            upper_limit=upper_limit,
             log_norm=log_norm,
             id_=id_
         )
