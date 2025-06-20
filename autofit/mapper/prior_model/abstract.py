@@ -1,5 +1,7 @@
 import copy
 import inspect
+import jax.numpy as jnp
+import jax
 import json
 import logging
 import random
@@ -788,9 +790,6 @@ class AbstractPriorModel(AbstractModel):
                     prior.assert_within_limits(value)
 
                 else:
-
-                    import jax.numpy as jnp
-                    import jax
 
                     valid = prior.assert_within_limits(value)
 

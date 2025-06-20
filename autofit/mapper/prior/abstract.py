@@ -2,6 +2,7 @@ import itertools
 import random
 from abc import ABC, abstractmethod
 from copy import copy
+import jax
 from typing import Union, Tuple, Optional, Dict
 
 from autoconf import conf
@@ -120,7 +121,7 @@ class Prior(Variable, ABC, ArithmeticMixin):
             )
 
         if jax_wrapper.use_jax:
-            import jax
+
             jax.lax.cond(
                 jax.numpy.logical_or(
                     value < self.lower_limit,

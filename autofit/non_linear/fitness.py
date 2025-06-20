@@ -15,8 +15,6 @@ from autofit.non_linear.analysis import Analysis
 
 from timeout_decorator import timeout
 
-from autofit import jax_wrapper
-
 
 def get_timeout_seconds():
 
