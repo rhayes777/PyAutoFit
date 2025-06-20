@@ -23,6 +23,7 @@ def test_without(directory):
 
 
 def test_with():
+
     aggregator = Aggregator.from_directory(
         Path(__file__).parent,
         reference={"": get_class_path(af.Exponential)},
