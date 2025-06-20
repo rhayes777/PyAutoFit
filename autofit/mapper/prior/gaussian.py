@@ -8,8 +8,8 @@ from .abstract import Prior
 
 @register_pytree_node_class
 class GaussianPrior(Prior):
-    __identifier_fields__ = ("lower_limit", "upper_limit", "mean", "sigma")
-    __database_args__ = ("mean", "sigma", "lower_limit", "upper_limit", "id_")
+    __identifier_fields__ = ("mean", "sigma")
+    __database_args__ = ("mean", "sigma", "id_")
 
     def __init__(
         self,
@@ -46,12 +46,10 @@ class GaussianPrior(Prior):
         --------
         Create a GaussianPrior with mean 1.0, sigma 2.0, truncated between 0.0 and 2.0:
 
-        >>> prior = GaussianPrior(mean=1.0, sigma=2.0, lower_limit=0.0, upper_limit=2.0)
+        >>> prior = GaussianPrior(mean=1.0, sigma=2.0)
         >>> physical_value = prior.value_for(unit=0.5)  # Returns ~1.0 (mean)
         """
         super().__init__(
-            lower_limit=float("-inf"),
-            upper_limit=float("inf"),
             message=NormalMessage(
                 mean=mean,
                 sigma=sigma,
@@ -60,7 +58,7 @@ class GaussianPrior(Prior):
         )
 
     def tree_flatten(self):
-        return (self.mean, self.sigma, self.lower_limit, self.upper_limit, self.id), ()
+        return (self.mean, self.sigma, self.id), ()
 
     @classmethod
     def with_limits(cls, lower_limit: float, upper_limit: float) -> "GaussianPrior":

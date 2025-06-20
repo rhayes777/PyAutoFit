@@ -11,15 +11,13 @@ from ...messages.transform import log_transform
 
 @register_pytree_node_class
 class LogGaussianPrior(Prior):
-    __identifier_fields__ = ("lower_limit", "upper_limit", "mean", "sigma")
-    __database_args__ = ("mean", "sigma", "lower_limit", "upper_limit", "id_")
+    __identifier_fields__ = ("mean", "sigma")
+    __database_args__ = ("mean", "sigma", "id_")
 
     def __init__(
         self,
         mean: float,
         sigma: float,
-        lower_limit: float = 0.0,
-        upper_limit: float = float("inf"),
         id_: Optional[int] = None,
     ):
         """
@@ -43,20 +41,14 @@ class LogGaussianPrior(Prior):
         sigma
             The spread of this distribution in *natural log* space, e.g. sigma=1.0 means P(ln x) has a
             standard deviation of 1.
-        lower_limit
-            A lower limit in *real space* (not log); physical values below this are rejected.
-        upper_limit
-            A upper limit in *real space* (not log); physical values above this are rejected.
 
         Examples
         --------
 
-        prior = af.LogGaussianPrior(mean=1.0, sigma=2.0, lower_limit=0.0, upper_limit=2.0)
+        prior = af.LogGaussianPrior(mean=1.0, sigma=2.0)
 
         physical_value = prior.value_for(unit=0.5)
         """
-        lower_limit = float(lower_limit)
-        upper_limit = float(upper_limit)
 
         self.mean = mean
         self.sigma = sigma
@@ -68,8 +60,6 @@ class LogGaussianPrior(Prior):
 
         super().__init__(
             message=message,
-            lower_limit=lower_limit,
-            upper_limit=upper_limit,
             id_=id_,
         )
 
@@ -77,8 +67,6 @@ class LogGaussianPrior(Prior):
         return (
             self.mean,
             self.sigma,
-            self.lower_limit,
-            self.upper_limit,
             self.id,
         ), ()
 

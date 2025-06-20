@@ -45,17 +45,15 @@ class UniformPrior(Prior):
         physical_value = prior.value_for(unit=0.2)
         """
 
-        lower_limit = float(lower_limit)
-        upper_limit = float(upper_limit)
+        self.lower_limit = float(lower_limit)
+        self.upper_limit = float(upper_limit)
 
         message = TransformedMessage(
             UniformNormalMessage,
-            LinearShiftTransform(shift=lower_limit, scale=upper_limit - lower_limit),
+            LinearShiftTransform(shift=self.lower_limit, scale=self.upper_limit - self.lower_limit),
         )
         super().__init__(
             message,
-            lower_limit=lower_limit,
-            upper_limit=upper_limit,
             id_=id_,
         )
 

@@ -50,22 +50,20 @@ class LogUniformPrior(Prior):
                 "The lower limit of a LogUniformPrior cannot be zero or negative."
             )
 
-        lower_limit = float(lower_limit)
-        upper_limit = float(upper_limit)
+        self.lower_limit = float(lower_limit)
+        self.upper_limit = float(upper_limit)
 
         message = TransformedMessage(
             UniformNormalMessage,
             LinearShiftTransform(
-                shift=np.log10(lower_limit),
-                scale=np.log10(upper_limit / lower_limit),
+                shift=np.log10(self.lower_limit),
+                scale=np.log10(self.upper_limit / self.lower_limit),
             ),
             log_10_transform,
         )
 
         super().__init__(
             message=message,
-            lower_limit=lower_limit,
-            upper_limit=upper_limit,
             id_=id_,
         )
 
