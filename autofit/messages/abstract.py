@@ -247,7 +247,6 @@ class AbstractMessage(MessageInterface, ABC):
     __repr__ = __str__
 
     def factor(self, x):
-        # self.assert_within_limits(x)
         return self.logpdf(x)
 
     @classmethod

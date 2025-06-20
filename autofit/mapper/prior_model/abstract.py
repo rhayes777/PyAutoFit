@@ -782,25 +782,6 @@ class AbstractPriorModel(AbstractModel):
             )
         )
 
-        if not ignore_prior_limits:
-            for prior, value in arguments.items():
-
-                if not jax_wrapper.use_jax:
-
-                    prior.assert_within_limits(value)
-
-                else:
-
-                    valid = prior.assert_within_limits(value)
-
-                    return jax.lax.cond(
-                        jnp.isnan(valid),
-                        lambda _: jnp.nan,  # or return -jnp.inf
-                        lambda _: 0.0,  # normal computation
-                        operand=None,
-                    )
-
-
         return self.instance_for_arguments(
             arguments,
             ignore_assertions=ignore_prior_limits,

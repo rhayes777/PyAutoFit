@@ -150,10 +150,7 @@ class Prior(Variable, ABC, ArithmeticMixin):
         -------
         A physical value, mapped from the unit value accoridng to the prior.
         """
-        result = self.message.value_for(unit)
-        if not ignore_prior_limits:
-            self.assert_within_limits(result)
-        return result
+        return self.message.value_for(unit)
 
     def instance_for_arguments(
         self,
