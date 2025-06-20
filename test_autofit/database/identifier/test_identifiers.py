@@ -213,8 +213,8 @@ def test__identifier_description():
 
     description = identifier.description.splitlines()
 
-    i = 0
 
+    i = 0
     assert description[i] == "Collection"
     i += 1
     assert description[i] == "item_number"
@@ -297,6 +297,7 @@ def test__identifier_description__after_model_and_instance():
     identifier = Identifier([model])
 
     description = identifier.description
+
     assert (
         description
         == """Collection
@@ -308,10 +309,6 @@ cls
 autofit.example.model.Gaussian
 centre
 GaussianPrior
-lower_limit
-0.0
-upper_limit
-1.0
 mean
 1.0
 sigma
