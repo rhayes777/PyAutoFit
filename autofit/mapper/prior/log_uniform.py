@@ -12,6 +12,9 @@ from ...messages.composed_transform import TransformedMessage
 
 @register_pytree_node_class
 class LogUniformPrior(Prior):
+    __identifier_fields__ = ("lower_limit", "upper_limit")
+    __database_args__ = ("lower_limit", "upper_limit", "id_")
+
     def __init__(
         self,
         lower_limit: float = 1e-6,

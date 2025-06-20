@@ -11,6 +11,7 @@ from ...messages.transform import LinearShiftTransform
 @register_pytree_node_class
 class UniformPrior(Prior):
     __identifier_fields__ = ("lower_limit", "upper_limit")
+    __database_args__ = ("lower_limit", "upper_limit", "id_")
 
     def __init__(
         self,

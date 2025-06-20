@@ -1,10 +1,3 @@
-GaussianPrior:
-  lower_limit:
-    type: Constant
-    value: -inf
-  upper_limit:
-    type: Constant
-    value: inf
 centre:
   gaussian_limits:
     lower: -inf
