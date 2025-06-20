@@ -26,7 +26,7 @@ def is_nan(value):
     return is_nan_
 
 
-class NormalMessage(AbstractMessage):
+class TruncatedNormalMessage(AbstractMessage):
     @cached_property
     def log_partition(self):
         """
@@ -83,12 +83,12 @@ class NormalMessage(AbstractMessage):
         super().__init__(
             mean,
             sigma,
+            lower_limit,
+            upper_limit,
             log_norm=log_norm,
-            lower_limit=lower_limit,
-            upper_limit=upper_limit,
             id_=id_,
         )
-        self.mean, self.sigma = self.parameters
+        self.mean, self.sigma, self.lower_limit, self.upper_limit = self.parameters
 
     def cdf(self, x : Union[float, np.ndarray]) -> Union[float, np.ndarray]:
         """
@@ -248,7 +248,7 @@ class NormalMessage(AbstractMessage):
 
         return x * self.sigma + self.mean
 
-    def kl(self, dist : "NormalMessage") -> float:
+    def kl(self, dist : "TruncatedNormalMessage") -> float:
         """
         Compute the Kullback-Leibler (KL) divergence to another Gaussian distribution.
 
@@ -274,7 +274,7 @@ class NormalMessage(AbstractMessage):
         mode: np.ndarray,
         covariance: Union[float, LinearOperator] = 1.0,
         **kwargs
-    ) -> "NormalMessage":
+    ) -> "TruncatedNormalMessage":
         """
         Construct a Gaussian from its mode and covariance.
 
@@ -287,7 +287,7 @@ class NormalMessage(AbstractMessage):
 
         Returns
         -------
-        An instance of the NormalMessage class.
+        An instance of the TruncatedNormalMessage class.
         """
         if isinstance(covariance, LinearOperator):
             variance = covariance.diagonal()
@@ -414,7 +414,7 @@ class NormalMessage(AbstractMessage):
         """
         Generate a short string summary describing the prior for use in model summaries.
         """
-        return f"NormalMessage, mean = {self.mean}, sigma = {self.sigma}"
+        return f"TruncatedNormalMessage, mean = {self.mean}, sigma = {self.sigma}"
 
     def __repr__(self):
         """
@@ -422,7 +422,7 @@ class NormalMessage(AbstractMessage):
         the ID, mean, sigma, and optional bounds.
         """
         return (
-            "<NormalMessage id={} mean={} sigma={} "
+            "<TruncatedNormalMessage id={} mean={} sigma={} "
             "lower_limit={} upper_limit={}>".format(
                 self.id, self.mean, self.sigma, self.lower_limit, self.upper_limit
             )
@@ -454,9 +454,9 @@ class NormalMessage(AbstractMessage):
         return self.natural.zeros_like()
 
 
-class NaturalNormal(NormalMessage):
+class TruncatedNaturalNormal(TruncatedNormalMessage):
     """
-    Identical to the NormalMessage but allows non-normalised values,
+    Identical to the TruncatedNormalMessage but allows non-normalised values,
     e.g negative or infinite variances
     """
 
@@ -474,7 +474,7 @@ class NaturalNormal(NormalMessage):
         """
         A natural parameterization of a Gaussian distribution.
 
-        This class behaves like `NormalMessage`, but allows non-normalized or degenerate distributions,
+        This class behaves like `TruncatedNormalMessage`, but allows non-normalized or degenerate distributions,
         including those with negative or infinite variance. This flexibility is useful in advanced
         inference settings like message passing or variational approximations, where intermediate
         natural parameter values may fall outside standard constraints.
@@ -624,14 +624,14 @@ class NaturalNormal(NormalMessage):
         return self
 
 
-UniformNormalMessage = TransformedMessage(NormalMessage(0, 1), phi_transform)
+UniformNormalMessage = TransformedMessage(TruncatedNormalMessage(0, 1), phi_transform)
 
 Log10UniformNormalMessage = TransformedMessage(UniformNormalMessage, log_10_transform)
 
-LogNormalMessage = TransformedMessage(NormalMessage(0, 1), log_transform)
-Log10NormalMessage = TransformedMessage(NormalMessage(0, 1), log_10_transform)
+LogNormalMessage = TransformedMessage(TruncatedNormalMessage(0, 1), log_transform)
+Log10NormalMessage = TransformedMessage(TruncatedNormalMessage(0, 1), log_10_transform)
 
 # Support is the simplex
 MultiLogitNormalMessage = TransformedMessage(
-    NormalMessage(0, 1), multinomial_logit_transform
+    TruncatedNormalMessage(0, 1), multinomial_logit_transform
 )

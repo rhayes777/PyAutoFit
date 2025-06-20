@@ -28,11 +28,5 @@ def test_pickle(log_gaussian):
     loaded = pickle.loads(pickle.dumps(log_gaussian))
     assert loaded == log_gaussian
 
-
-def test_attributes(log_gaussian):
-    assert log_gaussian.lower_limit == 0
-    assert log_gaussian.upper_limit == float("inf")
-
-
 def test_identifier(log_gaussian):
     Identifier(log_gaussian)

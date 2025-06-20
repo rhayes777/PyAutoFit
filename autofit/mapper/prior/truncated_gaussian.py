@@ -2,12 +2,12 @@ from typing import Optional
 
 from autofit.jax_wrapper import register_pytree_node_class
 
-from autofit.messages.normal import NormalMessage
+from autofit.messages.truncated_normal import TruncatedNormalMessage
 from .abstract import Prior
 
 
 @register_pytree_node_class
-class GaussianPrior(Prior):
+class TruncatedGaussianPrior(Prior):
     __identifier_fields__ = ("lower_limit", "upper_limit", "mean", "sigma")
     __database_args__ = ("mean", "sigma", "lower_limit", "upper_limit", "id_")
 
@@ -52,9 +52,7 @@ class GaussianPrior(Prior):
         >>> physical_value = prior.value_for(unit=0.5)  # Returns ~1.0 (mean)
         """
         super().__init__(
-            lower_limit=lower_limit,
-            upper_limit=upper_limit,
-            message=NormalMessage(
+            message=TruncatedNormalMessage(
                 mean=mean,
                 sigma=sigma,
                 lower_limit=lower_limit,

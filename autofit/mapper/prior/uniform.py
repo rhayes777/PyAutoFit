@@ -83,6 +83,18 @@ class UniformPrior(Prior):
             x -= epsilon
         return self.message.logpdf(x)
 
+    def dict(self) -> dict:
+        """
+        Return a dictionary representation of this GaussianPrior instance,
+        including mean and sigma.
+
+        Returns
+        -------
+        Dictionary containing prior parameters.
+        """
+        prior_dict = super().dict()
+        return {**prior_dict, "lower_limit": self.lower_limit, "upper_limit": self.upper_limit}
+
     @property
     def parameter_string(self) -> str:
         return f"lower_limit = {self.lower_limit}, upper_limit = {self.upper_limit}"

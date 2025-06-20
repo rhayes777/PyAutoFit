@@ -271,7 +271,7 @@ class TestGaussianPrior:
 
 def test_log_gaussian_prior_log_prior_from_value():
     log_gaussian_prior = af.LogGaussianPrior(
-        mean=0.0, sigma=1.0, lower_limit=0.0, upper_limit=1.0
+        mean=0.0, sigma=1.0,
     )
 
     assert log_gaussian_prior.log_prior_from_value(value=0.0) == float("-inf")

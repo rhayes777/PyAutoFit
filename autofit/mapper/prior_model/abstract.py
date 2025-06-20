@@ -18,6 +18,7 @@ from autofit import jax_wrapper
 from autofit.mapper import model
 from autofit.mapper.model import AbstractModel, frozen_cache
 from autofit.mapper.prior import GaussianPrior
+from autofit.mapper.prior import TruncatedGaussianPrior
 from autofit.mapper.prior import UniformPrior
 from autofit.mapper.prior.abstract import Prior
 from autofit.mapper.prior.constant import Constant
@@ -898,7 +899,7 @@ class AbstractPriorModel(AbstractModel):
     def gaussian_prior_model_for_arguments(self, arguments):
         raise NotImplementedError()
 
-    def mapper_from_prior_means(self, means, a=None, r=None):
+    def mapper_from_prior_means(self, means, a=None, r=None, no_limits=False):
         """
         The widths of the new priors are taken from the
         width_config. The new gaussian priors must be provided in the same order as
@@ -952,9 +953,17 @@ class AbstractPriorModel(AbstractModel):
             else:
                 width = width_modifier(mean)
 
+            if no_limits:
+                limits = (float("-inf"), float("inf"))
+            else:
+                try:
+                    limits = Limits.for_class_and_attributes_name(cls, name)
+                except ConfigException:
+                    limits = prior.limits
+
             sigma = width
 
-            new_prior = GaussianPrior(mean, sigma)
+            new_prior = TruncatedGaussianPrior(mean, sigma, *limits)
             new_prior.id = prior.id
             new_prior.width_modifier = prior.width_modifier
             arguments[prior] = new_prior

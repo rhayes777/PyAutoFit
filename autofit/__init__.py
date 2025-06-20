@@ -56,6 +56,7 @@ from .mapper.prior.width_modifier import WidthModifier
 from .mapper.prior import GaussianPrior
 from .mapper.prior import LogGaussianPrior
 from .mapper.prior import LogUniformPrior
+from .mapper.prior import TruncatedGaussianPrior
 from .mapper.prior.abstract import Prior
 from .mapper.prior.tuple_prior import TuplePrior
 from .mapper.prior import UniformPrior
