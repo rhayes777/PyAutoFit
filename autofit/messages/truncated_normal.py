@@ -1,5 +1,6 @@
 from collections.abc import Hashable
 import math
+from scipy.stats import truncnorm
 from typing import Optional, Tuple, Union
 
 import numpy as np
@@ -28,24 +29,32 @@ def is_nan(value):
 
 class TruncatedNormalMessage(AbstractMessage):
     @cached_property
-    def log_partition(self):
+    def log_partition(self) -> float:
         """
-        Compute the log-partition function (also called log-normalizer or cumulant function)
-        for the normal distribution in its natural (canonical) parameterization.
-        #
-        Let the natural parameters be:
-          η₁ = μ / σ²
-          η₂ = -1 / (2σ²)
+        Compute the log-partition function (normalizer) of the truncated Gaussian.
 
-        Then the log-partition function A(η) for the Gaussian is:
-           A(η) = η₁² / (-4η₂) - 0.5 * log(-2η₂)
-        This ensures normalization of the exponential-family distribution.
+        This is the log of the normalization constant Z of the truncated normal:
+
+            Z = Φ((b - μ)/σ) - Φ((a - μ)/σ)
+
+        where Φ is the standard normal CDF and [a, b] are the truncation bounds.
+
+        Returns
+        -------
+        float
+            The log-partition (log of the normalizing constant).
         """
-        eta1, eta2 = self.natural_parameters
-        return -(eta1**2) / 4 / eta2 - np.log(-2 * eta2) / 2
+        a = (self.lower_limit - self.mean) / self.sigma
+        b = (self.upper_limit - self.mean) / self.sigma
+        Z = norm.cdf(b) - norm.cdf(a)
+        return np.log(Z) if Z > 0 else -np.inf
 
     log_base_measure = -0.5 * np.log(2 * np.pi)
-    _support = ((-np.inf, np.inf),)
+
+    @property
+    def _support(self):
+        return ((self.lower_limit, self.upper_limit),)
+
     _parameter_support = ((-np.inf, np.inf), (0, np.inf))
 
     def __init__(
@@ -90,10 +99,13 @@ class TruncatedNormalMessage(AbstractMessage):
         )
         self.mean, self.sigma, self.lower_limit, self.upper_limit = self.parameters
 
-    def cdf(self, x : Union[float, np.ndarray]) -> Union[float, np.ndarray]:
+    def cdf(self, x: Union[float, np.ndarray]) -> Union[float, np.ndarray]:
         """
-        Compute the cumulative distribution function (CDF) of the Gaussian distribution
+        Compute the cumulative distribution function (CDF) of the truncated Gaussian distribution
         at a given value or array of values `x`.
+
+        The CDF is computed using `scipy.stats.truncnorm`, which handles the normalization
+        over the truncated interval [lower_limit, upper_limit].
 
         Parameters
         ----------
@@ -102,16 +114,18 @@ class TruncatedNormalMessage(AbstractMessage):
 
         Returns
         -------
-        The cumulative probability P(X ≤ x).
+        The cumulative probability P(X ≤ x) under the truncated Gaussian.
         """
-        return norm.cdf(x, loc=self.mean, scale=self.sigma)
+        a = (self.lower_limit - self.mean) / self.sigma
+        b = (self.upper_limit - self.mean) / self.sigma
+        return truncnorm.cdf(x, a=a, b=b, loc=self.mean, scale=self.sigma)
 
-    def ppf(self, x : Union[float, np.ndarray]) -> Union[float, np.ndarray]:
+    def ppf(self, x: Union[float, np.ndarray]) -> Union[float, np.ndarray]:
         """
-        Compute the percent-point function (inverse CDF) of the Gaussian distribution.
+        Compute the percent-point function (inverse CDF) of the truncated Gaussian distribution.
 
         This function maps a probability value `x` in [0, 1] to the corresponding value
-        of the distribution with that cumulative probability.
+        under the truncated Gaussian distribution.
 
         Parameters
         ----------
@@ -122,21 +136,27 @@ class TruncatedNormalMessage(AbstractMessage):
         -------
         The value(s) corresponding to the input quantiles.
         """
-        return norm.ppf(x, loc=self.mean, scale=self.sigma)
+        a = (self.lower_limit - self.mean) / self.sigma
+        b = (self.upper_limit - self.mean) / self.sigma
+        return truncnorm.ppf(x, a=a, b=b, loc=self.mean, scale=self.sigma)
 
     @cached_property
     def natural_parameters(self) -> np.ndarray:
         """
-        The natural (canonical) parameters of the Gaussian distribution in exponential-family form.
+        The pseudo-natural (canonical) parameters of a truncated Gaussian distribution.
 
-        For a Normal distribution with mean μ and standard deviation σ, the natural parameters η are:
+        For a Gaussian with mean μ and standard deviation σ, the untruncated natural parameters η are:
 
             η₁ = μ / σ²
             η₂ = -1 / (2σ²)
 
+        These are returned here even for the truncated case, but note that due to truncation,
+        the distribution is no longer in the exponential family and the log-partition function
+        depends on the lower and upper truncation limits.
+
         Returns
         -------
-        A NumPy array containing the two natural parameters [η₁, η₂].
+        A NumPy array containing the pseudo-natural parameters [η₁, η₂].
         """
         return self.calc_natural_parameters(self.mean, self.sigma)
 
@@ -145,6 +165,15 @@ class TruncatedNormalMessage(AbstractMessage):
         """
         Convert standard parameters of a Gaussian distribution (mean and standard deviation)
         into natural parameters used in its exponential family representation.
+
+        This function does **not** directly account for truncation. In the case of a truncated Gaussian,
+        these parameters are treated as pseudo-natural parameters, meaning they are defined analogously
+        to the untruncated case but do not fully characterize the distribution. This is because truncation
+        modifies the normalization constant (log-partition function), making the distribution fall outside
+        the strict exponential family.
+
+        For truncated Gaussians, any computations involving expectations, gradients, or log-partition
+        functions must incorporate the effects of truncation separately.
 
         Parameters
         ----------
@@ -168,6 +197,10 @@ class TruncatedNormalMessage(AbstractMessage):
         Convert natural parameters [η₁, η₂] back into standard parameters (mean and sigma)
         of a Gaussian distribution.
 
+        For a truncated Gaussian, this inversion treats the natural parameters as if they
+        came from an untruncated distribution. That is, the computed (mean, sigma) are
+        the parameters of the *underlying* Gaussian prior to truncation.
+
         Parameters
         ----------
         natural_parameters
@@ -187,8 +220,9 @@ class TruncatedNormalMessage(AbstractMessage):
         """
         Convert a scalar input `x` to its sufficient statistics for the Gaussian exponential family.
 
-        The sufficient statistics for a normal distribution are [x, x²], which correspond to the
-        inner product with the natural parameters in the exponential-family log-likelihood.
+        This form is unchanged by truncation, as sufficient statistics remain [x, x²] regardless
+        of whether the distribution is truncated. However, note that for a truncated Gaussian,
+        expectations (e.g. E[x], E[x²]) must be computed over the truncated support.
 
         Parameters
         ----------
@@ -205,6 +239,9 @@ class TruncatedNormalMessage(AbstractMessage):
     def invert_sufficient_statistics(cls, suff_stats: Tuple[float, float]) -> np.ndarray:
         """
         Convert sufficient statistics [E[x], E[x²]] into natural parameters [η₁, η₂].
+
+        These moments are assumed to be expectations *under the truncated Gaussian* distribution,
+        meaning that the inferred natural parameters correspond to the truncated form indirectly.
 
         Parameters
         ----------
@@ -228,7 +265,10 @@ class TruncatedNormalMessage(AbstractMessage):
 
     def sample(self, n_samples: Optional[int] = None) -> np.ndarray:
         """
-        Draw samples from the Gaussian distribution.
+        Draw samples from a truncated Gaussian distribution using inverse transform sampling.
+
+        Samples are drawn from a standard Normal distribution, transformed using the mean and sigma,
+        and then rejected if they fall outside the [lower_limit, upper_limit] bounds.
 
         Parameters
         ----------
@@ -237,24 +277,25 @@ class TruncatedNormalMessage(AbstractMessage):
 
         Returns
         -------
-        Sample(s) from the distribution.
+        Sample(s) from the truncated Gaussian distribution.
         """
-        if n_samples:
-            x = np.random.randn(n_samples, *self.shape)
-            if self.shape:
-                return x * self.sigma[None, ...] + self.mean[None, ...]
-        else:
-            x = np.random.randn(*self.shape)
+        a, b = (self.lower_limit - self.mean) / self.sigma, (self.upper_limit - self.mean) / self.sigma
+        shape = (n_samples,) + self.shape if n_samples else self.shape
+        samples = truncnorm.rvs(a, b, loc=self.mean, scale=self.sigma, size=shape)
 
-        return x * self.sigma + self.mean
+        return samples
 
     def kl(self, dist : "TruncatedNormalMessage") -> float:
         """
-        Compute the Kullback-Leibler (KL) divergence to another Gaussian distribution.
+        Compute the Kullback-Leibler (KL) divergence between two truncated Gaussian distributions.
+
+        This is an approximate KL divergence that assumes both distributions are truncated Gaussians
+        with the same support (i.e. the same lower and upper limits). If the supports differ, this
+        expression is invalid and should raise an error or be corrected for normalization.
 
         Parameters
         ----------
-        dist : Gaussian
+        dist
             The target distribution for the KL divergence.
 
         Returns
@@ -262,6 +303,9 @@ class TruncatedNormalMessage(AbstractMessage):
         float
             The KL divergence KL(self || dist).
         """
+        if (self.lower_limit != dist.lower_limit) or (self.upper_limit != dist.upper_limit):
+            raise ValueError("KL divergence between truncated Gaussians with different support is not implemented.")
+
         return (
             np.log(dist.sigma / self.sigma)
             + (self.sigma**2 + (self.mean - dist.mean) ** 2) / 2 / dist.sigma**2
@@ -276,7 +320,10 @@ class TruncatedNormalMessage(AbstractMessage):
         **kwargs
     ) -> "TruncatedNormalMessage":
         """
-        Construct a Gaussian from its mode and covariance.
+        Construct a truncated Gaussian from its mode and covariance.
+
+        For a Gaussian, the mode equals the mean. This method uses that identity to construct
+        the message from point estimates.
 
         Parameters
         ----------
@@ -284,6 +331,8 @@ class TruncatedNormalMessage(AbstractMessage):
             The mode (same as mean for Gaussian).
         covariance
             The covariance or a linear operator with `.diagonal()` method.
+        **kwargs
+            Additional keyword arguments passed to the constructor, such as truncation bounds.
 
         Returns
         -------
@@ -298,41 +347,7 @@ class TruncatedNormalMessage(AbstractMessage):
     def _normal_gradient_hessian(
         self, x: np.ndarray
     ) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
-        """
-        Compute the log-pdf, gradient, and Hessian of a Gaussian with respect to x.
-
-        Parameters
-        ----------
-        x
-            Points at which to evaluate.
-
-        Returns
-        -------
-        Log-pdf values, gradients, and Hessians.
-        """
-        # raise Exception
-        shape = np.shape(x)
-        if shape:
-            x = np.asanyarray(x)
-            deltax = x - self.mean
-            hess_logl = -self.sigma**-2
-            grad_logl = deltax * hess_logl
-            eta_t = 0.5 * grad_logl * deltax
-            logl = self.log_base_measure + eta_t - np.log(self.sigma)
-
-            if shape[1:] == self.shape:
-                hess_logl = np.repeat(
-                    np.reshape(hess_logl, (1,) + np.shape(hess_logl)), shape[0], 0
-                )
-
-        else:
-            deltax = x - self.mean
-            hess_logl = -self.sigma**-2
-            grad_logl = deltax * hess_logl
-            eta_t = 0.5 * grad_logl * deltax
-            logl = self.log_base_measure + eta_t - np.log(self.sigma)
-
-        return logl, grad_logl, hess_logl
+        raise NotImplementedError
 
     def logpdf_gradient(self, x: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
         """
@@ -364,13 +379,16 @@ class TruncatedNormalMessage(AbstractMessage):
         """
         return self._normal_gradient_hessian(x)
 
-    __name__ = "gaussian_prior"
+    __name__ = "truncated_gaussian_prior"
 
     __default_fields__ = ("log_norm", "id_")
 
     def value_for(self, unit: float) -> float:
         """
-        Map a unit value in [0, 1] to a physical value drawn from this Gaussian prior.
+        Map a unit value in [0, 1] to a physical value drawn from this truncated Gaussian prior.
+
+        For a truncated Gaussian, this is done using the percent-point function (inverse CDF)
+        that accounts for the truncation bounds.
 
         Parameters
         ----------
@@ -379,25 +397,33 @@ class TruncatedNormalMessage(AbstractMessage):
 
         Returns
         -------
-        A physical value sampled from the Gaussian prior corresponding to the given unit.
+        A physical value sampled from the truncated Gaussian prior corresponding to the given unit.
 
         Examples
         --------
-        >>> prior = af.GaussianPrior(mean=1.0, sigma=2.0, lower_limit=0.0, upper_limit=2.0)
+        >>> prior = af.TruncatedNormalMessage(mean=1.0, sigma=2.0, lower_limit=0.0, upper_limit=2.0)
         >>> physical_value = prior.value_for(unit=0.5)
         """
-        try:
-            inv = erfinv(1 - 2.0 * (1.0 - unit))
-        except TypeError:
-            from scipy.special import erfinv as scipy_erfinv
-            inv = scipy_erfinv(1 - 2.0 * (1.0 - unit))
-        return self.mean + (self.sigma * np.sqrt(2) * inv)
+        # Standardized truncation bounds
+        a = (self.lower_limit - self.mean) / self.sigma
+        b = (self.upper_limit - self.mean) / self.sigma
+
+        # Interpolate unit into [Phi(a), Phi(b)]
+        lower_cdf = norm.cdf(a)
+        upper_cdf = norm.cdf(b)
+        truncated_cdf = lower_cdf + unit * (upper_cdf - lower_cdf)
+
+        # Map back to x using inverse CDF, then rescale
+        x_standard = norm.ppf(truncated_cdf)
+        return self.mean + self.sigma * x_standard
 
     def log_prior_from_value(self, value: float) -> float:
         """
-        Compute the log prior probability of a given physical value under this Gaussian prior.
+        Compute the log prior probability of a given physical value under this truncated Gaussian prior.
 
-        Used to convert a likelihood to a posterior in non-linear searches (e.g., Emcee).
+        This accounts for truncation by normalizing the Gaussian density over the
+        interval [lower_limit, upper_limit], returning -inf if the value lies outside
+        these limits.
 
         Parameters
         ----------
@@ -406,15 +432,33 @@ class TruncatedNormalMessage(AbstractMessage):
 
         Returns
         -------
-        The log prior probability of the given value.
+        The log prior probability of the given value, or -inf if outside truncation bounds.
         """
-        return (value - self.mean) ** 2.0 / (2 * self.sigma**2.0)
+        # Check truncation bounds
+        if not (self.lower_limit <= value <= self.upper_limit):
+            return -np.inf
+
+        # Standardized truncation limits
+        a, b = (self.lower_limit - self.mean) / self.sigma, (self.upper_limit - self.mean) / self.sigma
+
+        # Normalization constant for truncated Gaussian
+        Z = norm.cdf(b) - norm.cdf(a)
+
+        # Standardized value
+        z = (value - self.mean) / self.sigma
+
+        # Log probability density of normal (up to normalization)
+        log_pdf = -0.5 * z ** 2 - np.log(self.sigma) - 0.5 * np.log(2 * np.pi)
+
+        # Adjust for truncation normalization
+        return log_pdf - np.log(Z)
 
     def __str__(self):
         """
         Generate a short string summary describing the prior for use in model summaries.
         """
-        return f"TruncatedNormalMessage, mean = {self.mean}, sigma = {self.sigma}"
+        return (f"TruncatedNormalMessage, mean = {self.mean}, sigma = {self.sigma}, "
+                f"lower_limit = {self.lower_limit}, upper_limit = {self.upper_limit}")
 
     def __repr__(self):
         """
@@ -437,7 +481,7 @@ class TruncatedNormalMessage(AbstractMessage):
         -------
         A natural form Gaussian with zeroed parameters but same configuration.
         """
-        return NaturalNormal.from_natural_parameters(
+        return TruncatedNaturalNormal.from_natural_parameters(
             self.natural_parameters * 0.0, **self._init_kwargs
         )
 
@@ -505,32 +549,69 @@ class TruncatedNaturalNormal(TruncatedNormalMessage):
         )
 
     @cached_property
-    def sigma(self)-> float:
+    def sigma(self) -> float:
         """
-        Return the standard deviation corresponding to the natural parameters.
+        Return the standard deviation σ of the truncated Gaussian corresponding to
+        the natural parameters and truncation limits.
+
+        Uses scipy.stats.truncnorm to compute std dev on the truncated interval.
 
         Returns
         -------
-        The standard deviation σ, derived from eta2 via σ² = -1/(2η₂).
+        The truncated Gaussian standard deviation σ.
         """
         precision = -2 * self.parameters[1]
-        return precision**-0.5
+        if precision <= 0 or np.isinf(precision) or np.isnan(precision):
+            # Degenerate or invalid precision: fallback to NaN or zero
+            return np.nan
+
+        mean = -self.parameters[0] / (2 * self.parameters[1])
+        std = precision ** -0.5
+
+        a, b = (self.lower_limit - mean) / std, (self.upper_limit - mean) / std
+
+        # Compute truncated std dev
+        truncated_std = truncnorm.std(a, b, loc=mean, scale=std)
+        return truncated_std
 
     @cached_property
     def mean(self) -> float:
         """
-        Return the mean corresponding to the natural parameters.
+        Return the mean μ of the truncated Gaussian corresponding to the natural parameters
+        and truncation limits.
+
+        Uses scipy.stats.truncnorm to compute mean on the truncated interval.
 
         Returns
         -------
-        The mean μ = -η₁ / (2η₂), with NaNs replaced by 0 for numerical stability.
+        The truncated Gaussian mean μ.
         """
-        return np.nan_to_num(-self.parameters[0] / self.parameters[1] / 2)
+        precision = -2 * self.parameters[1]
+        if precision <= 0 or np.isinf(precision) or np.isnan(precision):
+            # Degenerate or invalid precision: fallback to NaN or zero
+            return np.nan
+
+        mean = -self.parameters[0] / (2 * self.parameters[1])
+        std = precision**-0.5
+
+        a, b = (self.lower_limit - mean) / std, (self.upper_limit - mean) / std
+
+        # Compute truncated mean
+        truncated_mean = truncnorm.mean(a, b, loc=mean, scale=std)
+        return truncated_mean
 
     @staticmethod
-    def calc_natural_parameters(eta1: float, eta2: float) -> np.ndarray:
+    def calc_natural_parameters(
+            eta1: float,
+            eta2: float,
+            lower_limit: float = -np.inf,
+            upper_limit: float = np.inf
+    ) -> np.ndarray:
         """
         Return the natural parameters in array form (identity function for this class).
+
+        Currently returns eta1 and eta2 ignoring truncation,
+        but can be extended to adjust natural parameters based on truncation.
 
         Parameters
         ----------
@@ -546,10 +627,15 @@ class TruncatedNaturalNormal(TruncatedNormalMessage):
         """
         Return the natural parameters of this distribution.
         """
-        return self.calc_natural_parameters(*self.parameters)
+        return self.calc_natural_parameters(*self.parameters, self.lower_limit, self.upper_limit)
 
     @classmethod
-    def invert_sufficient_statistics(cls, suff_stats: Tuple[float, float]) -> np.ndarray:
+    def invert_sufficient_statistics(
+            cls,
+            suff_stats: Tuple[float, float],
+            lower_limit: float = -np.inf,
+            upper_limit: float = np.inf
+    ) -> np.ndarray:
         """
         Convert sufficient statistics back to natural parameters.
 
@@ -564,7 +650,7 @@ class TruncatedNaturalNormal(TruncatedNormalMessage):
         """
         m1, m2 = suff_stats
         precision = 1 / (m2 - m1**2)
-        return cls.calc_natural_parameters(m1 * precision, -precision / 2)
+        return cls.calc_natural_parameters(m1 * precision, -precision / 2, lower_limit, upper_limit)
 
     @staticmethod
     def invert_natural_parameters(natural_parameters: np.ndarray) -> np.ndarray:
@@ -588,6 +674,8 @@ class TruncatedNaturalNormal(TruncatedNormalMessage):
             cls,
             mode: np.ndarray,
             covariance: Union[float, LinearOperator] = 1.0,
+            lower_limit: float = -np.inf,
+            upper_limit: float = np.inf,
             **kwargs
     ) -> "NaturalNormal":
         """
@@ -612,7 +700,7 @@ class TruncatedNaturalNormal(TruncatedNormalMessage):
             mode, variance = cls._get_mean_variance(mode, covariance)
             precision = 1 / variance
 
-        return cls(mode * precision, -precision / 2, **kwargs)
+        return cls(mode * precision, -precision / 2, lower_limit=lower_limit, upper_limit=upper_limit, **kwargs)
 
     zeros_like = AbstractMessage.zeros_like
 
