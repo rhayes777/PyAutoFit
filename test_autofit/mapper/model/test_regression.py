@@ -96,8 +96,8 @@ def test_passing_priors():
     model = af.Model(af.m.MockWithTuple)
 
     new_model = model.mapper_from_prior_means([1, 1])
-    assert isinstance(new_model.tup_0, af.GaussianPrior)
-    assert isinstance(new_model.tup_1, af.GaussianPrior)
+    assert isinstance(new_model.tup_0, af.TruncatedGaussianPrior)
+    assert isinstance(new_model.tup_1, af.TruncatedGaussianPrior)
 
 
 def test_passing_fixed():
@@ -150,11 +150,12 @@ def make_model_with_assertion():
 def test_instance_from_vector(model_with_assertion):
     model_with_assertion.instance_from_vector(
         [0.5, 0.5, 0.5],
+        ignore_assertions=True
     )
 
 
 def test_random_instance(model_with_assertion):
-    model_with_assertion.random_instance()
+    model_with_assertion.random_instance(ignore_assertions=True)
 
 
 class TestModel:

@@ -538,7 +538,8 @@ class AbstractPriorModel(AbstractModel):
         model_instance : autofit.mapper.model.ModelInstance
             An object containing reconstructed model_mapper instances
         ignore_assertions
-            If True, any assertions attached to this object are ignored and not checked.
+            If True, the assertions attached to this model (e.g. that one parameter > another parameter) are ignored.
+
         Raises
         ------
         exc.FitException
@@ -748,7 +749,7 @@ class AbstractPriorModel(AbstractModel):
         """
         return self.vector_from_unit_vector([0.5] * len(self.unique_prior_tuples))
 
-    def instance_from_vector(self, vector):
+    def instance_from_vector(self, vector, ignore_assertions: bool = False):
         """
         Returns a ModelInstance, which has an attribute and class instance corresponding
         to every `Model` attributed to this instance.
@@ -758,6 +759,8 @@ class AbstractPriorModel(AbstractModel):
         ----------
         vector: [float]
             A vector of physical parameter values that is mapped to an instance.
+        ignore_assertions
+            If True, any assertions attached to this object are ignored and not checked.
 
         Returns
         -------
@@ -778,6 +781,7 @@ class AbstractPriorModel(AbstractModel):
 
         return self.instance_for_arguments(
             arguments,
+            ignore_assertions=ignore_assertions,
         )
 
     def has(self, cls: Union[Type, Tuple[Type, ...]]) -> bool:
@@ -1066,10 +1070,20 @@ class AbstractPriorModel(AbstractModel):
             )
         )
 
-    def random_instance(self):
+    def random_instance(self, ignore_assertions : bool  = False):
         """
         Returns a random instance of the model.
+
+        Parameters
+        ----------
+        ignore_assertions
+            If True, the assertions attached to this model (e.g. that one parameter > another parameter) are ignored.
         """
+        if ignore_assertions:
+            return self.instance_from_unit_vector(
+                unit_vector=[random.random() for _ in range(self.prior_count)],
+                ignore_assertions=ignore_assertions,
+            )
         return self.instance_from_unit_vector(
             unit_vector=[random.random() for _ in range(self.prior_count)],
         )
