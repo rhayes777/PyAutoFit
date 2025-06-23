@@ -38,9 +38,9 @@ class MockResult(Result):
         self.search = search
         self.model = model
 
-    def model_absolute(self, a):
+    def model_centred_absolute(self, a):
         try:
-            return self.samples_summary.model_absolute(a)
+            return self.samples_summary.model_centred_absolute(a)
         except AttributeError:
             return self.model
 

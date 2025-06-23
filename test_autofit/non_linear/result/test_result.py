@@ -43,7 +43,7 @@ class TestResult:
         assert component.one_tuple.one_tuple_1.sigma == 0.2
 
     def test_model_absolute(self, result):
-        component = result.model_absolute(a=2.0).component
+        component = result.model_centred_absolute(a=2.0).component
         assert component.one_tuple.one_tuple_0.mean == 0
         assert component.one_tuple.one_tuple_1.mean == 1
         assert component.one_tuple.one_tuple_0.sigma == 2.0

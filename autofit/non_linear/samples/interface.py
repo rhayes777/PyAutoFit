@@ -110,14 +110,14 @@ class SamplesInterface(ABC):
     def log_evidence(self):
         pass
 
-    def model_absolute(self, a: float) -> AbstractPriorModel:
+    def model_centred_absolute(self, a: float) -> AbstractPriorModel:
         """
         Returns a model where every free parameter is a `GaussianPrior` with `mean` the previous result's
         inferred maximum log likelihood parameter values and `sigma` the input absolute value `a`.
 
         For example, a previous result may infer a parameter to have a maximum log likelihood value of 2.
 
-        If this result is used for search chaining, `model_absolute(a=0.1)` will assign this free parameter
+        If this result is used for search chaining, `model_centred_absolute(a=0.1)` will assign this free parameter
         `GaussianPrior(mean=2.0, sigma=0.1)` in the new model, where `sigma` is linked to the input `a`.
 
         Parameters

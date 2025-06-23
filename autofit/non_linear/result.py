@@ -123,14 +123,14 @@ class AbstractResult(ABC):
     def max_log_likelihood_instance(self):
         return self.instance
 
-    def model_absolute(self, a: float) -> AbstractPriorModel:
+    def model_centred_absolute(self, a: float) -> AbstractPriorModel:
         """
         Returns a model where every free parameter is a `GaussianPrior` with `mean` the previous result's
         inferred maximum log likelihood parameter values and `sigma` the input absolute value `a`.
 
         For example, a previous result may infer a parameter to have a maximum log likelihood value of 2.
 
-        If this result is used for search chaining, `model_absolute(a=0.1)` will assign this free parameter
+        If this result is used for search chaining, `model_centred_absolute(a=0.1)` will assign this free parameter
         `GaussianPrior(mean=2.0, sigma=0.1)` in the new model, where `sigma` is linked to the input `a`.
 
         Parameters
@@ -143,7 +143,7 @@ class AbstractResult(ABC):
         A model mapper created by taking results from this search and creating priors with the defined absolute
         width.
         """
-        return self.samples_summary.model_absolute(a)
+        return self.samples_summary.model_centred_absolute(a)
 
     def model_relative(self, r: float) -> AbstractPriorModel:
         """
