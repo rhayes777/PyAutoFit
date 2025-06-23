@@ -20,20 +20,22 @@ class TruncatedGaussianPrior(Prior):
         id_: Optional[int] = None,
     ):
         """
-        A Gaussian prior defined by a normal distribution.
+        A Gaussian prior defined by a normal distribution with optional truncation limits.
 
-        The prior transforms a unit interval input `u` in [0, 1] into a physical parameter `p` via
-        the inverse error function (erfcinv) based on the Gaussian CDF:
+        This prior represents a Gaussian (normal) distribution with mean `mean`
+        and standard deviation `sigma`, optionally truncated between `lower_limit`
+        and `upper_limit`. The transformation from a unit interval input `u ∈ [0, 1]`
+        to a physical parameter value `p` uses the inverse error function (erfcinv) applied
+        to the Gaussian CDF, adjusted for truncation:
 
         .. math::
             p = \mu + \sigma \sqrt{2} \, \mathrm{erfcinv}(2 \times (1 - u))
 
         where :math:`\mu` is the mean and :math:`\sigma` the standard deviation.
 
-        For example, with `mean=1.0` and `sigma=2.0`, the value at `u=0.5` corresponds to the mean, 1.0.
-
-        This mapping is implemented using a NormalMessage instance, encapsulating
-        the Gaussian distribution and any specified truncation limits.
+        If truncation limits are specified, values outside the interval
+        [`lower_limit`, `upper_limit`] are disallowed and the distribution is
+        normalized over this interval.
 
         Parameters
         ----------
@@ -41,15 +43,19 @@ class TruncatedGaussianPrior(Prior):
             The mean (center) of the Gaussian prior distribution.
         sigma
             The standard deviation (spread) of the Gaussian prior.
+        lower_limit : float, optional
+            The lower truncation limit (default: -∞).
+        upper_limit : float, optional
+            The upper truncation limit (default: +∞).
         id_ : Optional[int], optional
             Optional identifier for the prior instance.
 
         Examples
         --------
-        Create a GaussianPrior with mean 1.0, sigma 2.0, truncated between 0.0 and 2.0:
+        Create a TruncatedGaussianPrior with mean 1.0, sigma 2.0, truncated between 0.0 and 2.0:
 
-        >>> prior = GaussianPrior(mean=1.0, sigma=2.0, lower_limit=0.0, upper_limit=2.0)
-        >>> physical_value = prior.value_for(unit=0.5)  # Returns ~1.0 (mean)
+        >>> prior = TruncatedGaussianPrior(mean=1.0, sigma=2.0, lower_limit=0.0, upper_limit=2.0)
+        >>> physical_value = prior.value_for(unit=0.5)  # Returns a value near 1.0 (mean)
         """
         super().__init__(
             message=TruncatedNormalMessage(
@@ -65,9 +71,9 @@ class TruncatedGaussianPrior(Prior):
         return (self.mean, self.sigma, self.lower_limit, self.upper_limit, self.id), ()
 
     @classmethod
-    def with_limits(cls, lower_limit: float, upper_limit: float) -> "GaussianPrior":
+    def with_limits(cls, lower_limit: float, upper_limit: float) -> "TruncatedGaussianPrior":
         """
-        Create a new gaussian prior centred between two limits
+        Create a new truncated gaussian prior centred between two limits
         with sigma distance between this limits.
 
         Note that these limits are not strict so exceptions will not
@@ -86,11 +92,13 @@ class TruncatedGaussianPrior(Prior):
 
         Returns
         -------
-        A new GaussianPrior
+        A new prior instance centered between the limits.
         """
         return cls(
             mean=(lower_limit + upper_limit) / 2,
-            sigma=upper_limit - lower_limit,
+            sigma=(upper_limit - lower_limit),
+            lower_limit=lower_limit,
+            upper_limit=upper_limit,
         )
 
     def dict(self) -> dict:
