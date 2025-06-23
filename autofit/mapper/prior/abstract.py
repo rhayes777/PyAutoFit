@@ -252,5 +252,9 @@ class Prior(Variable, ABC, ArithmeticMixin):
         """
         return cls.__name__.replace("Prior", "")
 
+    @property
+    def limits(self) -> Tuple[float, float]:
+        return (float("-inf"), float("inf"))
+
     def gaussian_prior_model_for_arguments(self, arguments):
         return arguments[self]

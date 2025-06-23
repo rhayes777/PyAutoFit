@@ -1,9 +1,8 @@
-from typing import Optional
+from typing import Optional, Tuple
 
 import numpy as np
 
 from autofit.jax_wrapper import register_pytree_node_class
-from autofit import exc
 from autofit.messages.normal import UniformNormalMessage
 from autofit.messages.transform import log_10_transform, LinearShiftTransform
 from .abstract import Prior
@@ -161,6 +160,10 @@ class LogUniformPrior(Prior):
         """
         prior_dict = super().dict()
         return {**prior_dict, "lower_limit": self.lower_limit, "upper_limit": self.upper_limit}
+
+    @property
+    def limits(self) -> Tuple[float, float]:
+        return self.lower_limit, self.upper_limit
 
     @property
     def parameter_string(self) -> str:

@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Tuple
 
 from autofit.jax_wrapper import register_pytree_node_class
 
@@ -104,6 +104,10 @@ class TruncatedGaussianPrior(Prior):
         """
         prior_dict = super().dict()
         return {**prior_dict, "mean": self.mean, "sigma": self.sigma}
+
+    @property
+    def limits(self) -> Tuple[float, float]:
+        return self.lower_limit, self.upper_limit
 
     @property
     def parameter_string(self) -> str:

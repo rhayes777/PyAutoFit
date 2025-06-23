@@ -1,5 +1,5 @@
 from autofit.jax_wrapper import register_pytree_node_class
-from typing import Optional
+from typing import Optional, Tuple
 
 from autofit.messages.normal import UniformNormalMessage
 from .abstract import Prior
@@ -140,3 +140,7 @@ class UniformPrior(Prior):
         For a UniformPrior this is always zero, provided the value is between the lower and upper limit.
         """
         return 0.0
+
+    @property
+    def limits(self) -> Tuple[float, float]:
+        return self.lower_limit, self.upper_limit

@@ -1356,7 +1356,7 @@ class AbstractPriorModel(AbstractModel):
             name of the prior have been joined by underscores,
             mapped to corresponding values.
         ignore_assertions
-            If True, assertions will not be checked
+            If True, the assertions attached to this model (e.g. that one parameter > another parameter) are ignored.
 
         Returns
         -------
@@ -1387,7 +1387,7 @@ class AbstractPriorModel(AbstractModel):
             specified once. If multiple paths for the same prior are
             specified then the value for the last path will be used.
         ignore_assertions
-            If True, assertions will not be checked
+            If True, the assertions attached to this model (e.g. that one parameter > another parameter) are ignored.
 
         Returns
         -------
