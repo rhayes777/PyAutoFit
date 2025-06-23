@@ -298,6 +298,8 @@ def test__identifier_description__after_model_and_instance():
 
     description = identifier.description
 
+    print(description)
+
     assert (
         description
         == """Collection
@@ -308,7 +310,11 @@ Model
 cls
 autofit.example.model.Gaussian
 centre
-GaussianPrior
+TruncatedGaussianPrior
+lower_limit
+0.0
+upper_limit
+1.0
 mean
 1.0
 sigma
