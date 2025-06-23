@@ -110,6 +110,25 @@ class SamplesInterface(ABC):
     def log_evidence(self):
         pass
 
+    @property
+    def model_centred(self) -> AbstractPriorModel:
+        """
+        Returns a model where every free parameter is a `GaussianPrior` with `mean` the previous result's
+        inferred maximum log likelihood parameter values and `sigma` values determined from the errors on
+        each parameter or the prior config files
+
+        For example, a previous result may infer a parameter to have a maximum log likelihood value of 2.
+
+        If this result is used for search chaining, `model_centred` will assign this free parameter
+        `GaussianPrior(mean=2.0, sigma=0.1)` in the new model, where `sigma` is determined from the errors on
+        each parameter or the prior config files.
+
+        Returns
+        -------
+        A model mapper created by taking results from this search.
+        """
+        return self.model.mapper_from_prior_means(means=self.prior_means)
+
     def model_centred_absolute(self, a: float) -> AbstractPriorModel:
         """
         Returns a model where every free parameter is a `GaussianPrior` with `mean` the previous result's

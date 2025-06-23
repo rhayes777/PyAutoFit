@@ -906,6 +906,41 @@ class AbstractPriorModel(AbstractModel):
     def gaussian_prior_model_for_arguments(self, arguments):
         raise NotImplementedError()
 
+    def mapper_via_defaults_from(self):
+        """
+        The widths of the new priors are taken from the
+        width_config. The new gaussian priors must be provided in the same order as
+        the priors associated with model.
+        If a is not None then all priors are created with an absolute width of a.
+        If r is not None then all priors are created with a relative width of r.
+        Parameters
+        ----------
+        means
+            The median PDF value of every Gaussian, which centres each `GaussianPrior`.
+        r
+            The relative width to be assigned to gaussian priors
+        a
+            print(tuples[i][1], width)
+            The absolute width to be assigned to gaussian priors
+        tuples
+            A list of tuples each containing the mean and width of a prior
+        Returns
+        -------
+        mapper: ModelMapper
+            A new model mapper with all priors replaced by gaussian priors.
+        """
+
+        prior_tuples = self.prior_tuples_ordered_by_id
+        arguments = {}
+
+        for prior_tuple in prior_tuples:
+
+            prior = prior_tuple.prior
+
+            arguments[prior] = prior
+
+        return self.mapper_from_prior_arguments(arguments)
+
     def mapper_from_prior_means(self, means, a=None, r=None, no_limits=False):
         """
         The widths of the new priors are taken from the

@@ -334,9 +334,7 @@ class Result(AbstractResult):
     @property
     def model(self):
         if self.__model is None:
-            self.__model = self.samples_summary.model.mapper_from_prior_means(
-                means=self.samples_summary.prior_means
-            )
+            self.__model = self.samples_summary.model.mapper_via_defaults_from()
 
         return self.__model
 
