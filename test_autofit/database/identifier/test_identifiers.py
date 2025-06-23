@@ -298,8 +298,6 @@ def test__identifier_description__after_model_and_instance():
 
     description = identifier.description
 
-    print(description)
-
     assert (
         description
         == """Collection
