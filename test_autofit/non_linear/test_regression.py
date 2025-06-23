@@ -50,7 +50,7 @@ def test_skip_assertions(model):
     with pytest.raises(exc.FitException):
         model.instance_from_prior_medians()
 
-    model.instance_from_prior_medians()
+    model.instance_from_prior_medians(ignore_assertions=True)
 
 
 def test_recursive_skip_assertions(model):
@@ -58,4 +58,4 @@ def test_recursive_skip_assertions(model):
     with pytest.raises(exc.FitException):
         model.instance_from_prior_medians()
 
-    model.instance_from_prior_medians()
+    model.instance_from_prior_medians(ignore_assertions=True)

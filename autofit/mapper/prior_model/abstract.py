@@ -523,7 +523,7 @@ class AbstractPriorModel(AbstractModel):
             except AttributeError:
                 pass
 
-    def instance_from_unit_vector(self, unit_vector):
+    def instance_from_unit_vector(self, unit_vector, ignore_assertions : bool = False):
         """
         Returns a ModelInstance, which has an attribute and class instance corresponding
         to every `Model` attributed to this instance.
@@ -537,6 +537,8 @@ class AbstractPriorModel(AbstractModel):
         -------
         model_instance : autofit.mapper.model.ModelInstance
             An object containing reconstructed model_mapper instances
+        ignore_assertions
+            If True, any assertions attached to this object are ignored and not checked.
         Raises
         ------
         exc.FitException
@@ -571,6 +573,7 @@ class AbstractPriorModel(AbstractModel):
 
         return self.instance_for_arguments(
             arguments,
+            ignore_assertions=ignore_assertions
         )
 
     @property
@@ -1023,16 +1026,18 @@ class AbstractPriorModel(AbstractModel):
 
         return self.mapper_from_prior_arguments(arguments)
 
-    def instance_from_prior_medians(self):
+    def instance_from_prior_medians(self, ignore_assertions : bool = False):
         """
         Returns a list of physical values from the median values of the priors.
         Returns
         -------
-        physical_values : [float]
-            A list of physical values
+        ignore_assertions
+            If True, the assertions attached to this model (e.g. that one parameter > another parameter) are ignored
+            and not checked.
         """
         return self.instance_from_unit_vector(
             unit_vector=[0.5] * self.prior_count,
+            ignore_assertions=ignore_assertions
         )
 
     def log_prior_list_from_vector(
@@ -1274,7 +1279,7 @@ class AbstractPriorModel(AbstractModel):
         arguments
             Dictionary mapping priors to attribute analysis_path and value pairs
         ignore_assertions
-            If True, assertions will not be checked
+            If True, the assertions attached to this model (e.g. that one parameter > another parameter) are ignored.
 
         Returns
         -------
