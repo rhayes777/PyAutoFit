@@ -680,6 +680,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             model=model,
             analysis=analysis,
         )
+
         samples = self.perform_update(
             model=model,
             analysis=analysis,

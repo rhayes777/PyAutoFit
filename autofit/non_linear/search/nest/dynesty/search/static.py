@@ -6,6 +6,8 @@ from typing import Optional, Union
 from dynesty import NestedSampler as StaticSampler
 
 from autofit.database.sqlalchemy_ import sa
+from autofit import jax_wrapper
+
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 
 from .abstract import AbstractDynesty, prior_transform
