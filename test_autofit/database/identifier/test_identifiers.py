@@ -291,12 +291,14 @@ def test__identifier_description__after_model_and_instance():
         samples_summary=samples_summary,
     )
 
-    model.gaussian.centre = result.model.gaussian.centre
+    model.gaussian.centre = result.model_centred.gaussian.centre
     model.gaussian.normalization = result.instance.gaussian.normalization
 
     identifier = Identifier([model])
 
     description = identifier.description
+
+    print(description)
 
     assert (
         description
