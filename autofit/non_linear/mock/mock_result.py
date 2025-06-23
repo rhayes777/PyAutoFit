@@ -38,6 +38,13 @@ class MockResult(Result):
         self.search = search
         self.model = model
 
+    @property
+    def model_centred(self):
+        try:
+            return self.samples_summary.model_centred
+        except AttributeError:
+            return self.model
+
     def model_centred_absolute(self, a):
         try:
             return self.samples_summary.model_centred_absolute(a)
