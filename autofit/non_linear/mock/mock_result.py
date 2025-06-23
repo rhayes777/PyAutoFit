@@ -44,9 +44,9 @@ class MockResult(Result):
         except AttributeError:
             return self.model
 
-    def model_relative(self, r):
+    def model_centred_relative(self, r):
         try:
-            return self.samples_summary.model_relative(r)
+            return self.samples_summary.model_centred_relative(r)
         except AttributeError:
             return self.model
 
