@@ -1,5 +1,5 @@
 centre:
-  gaussian_limits:
+  limits:
     lower: -inf
     upper: inf
   lower_limit: 0.0
@@ -9,7 +9,7 @@ centre:
     type: Absolute
     value: 20.0
 normalization:
-  gaussian_limits:
+  limits:
     lower: 0.0
     upper: inf
   lower_limit: 1.0e-06
@@ -19,7 +19,7 @@ normalization:
     type: Relative
     value: 0.5
 rate:
-  gaussian_limits:
+  limits:
     lower: 0.0
     upper: inf
   lower_limit: 0.0

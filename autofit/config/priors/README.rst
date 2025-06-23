@@ -13,7 +13,7 @@ They appear as follows:
         width_modifier:
           type: Absolute
           value: 20.0
-        gaussian_limits:
+        limits:
           lower: -inf
           upper: inf
 
@@ -28,9 +28,9 @@ The sections of this example config set the following:
         When the results of a search are passed to a subsequent search to set up the priors of its non-linear search,
         this entry describes how the Prior is passed. For a full description of prior passing, checkout the examples
         in 'autolens_workspace/examples/complex/linking'.
-    gaussian_limits
+    limits
         When the results of a search are passed to a subsequent search, they are passed using a GaussianPrior. The
-        gaussian_limits set the physical lower and upper limits of this GaussianPrior, such that parameter samples
+        limits set the physical lower and upper limits of this GaussianPrior, such that parameter samples
         can not go beyond these limits.
 
 The files ``template_module.yaml`` and ``TemplateObject.yaml`` give templates one can use to set up prior default

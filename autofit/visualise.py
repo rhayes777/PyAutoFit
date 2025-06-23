@@ -11,6 +11,7 @@ from autofit.mapper.prior.uniform import UniformPrior
 from autofit.mapper.prior.gaussian import GaussianPrior
 from autofit.mapper.prior.log_gaussian import LogGaussianPrior
 from autofit.mapper.prior.log_uniform import LogUniformPrior
+from autofit.mapper.prior.truncated_gaussian import TruncatedGaussianPrior
 from autofit.mapper.prior_model.prior_model import ModelObject
 from autofit.mapper.prior_model.prior_model import Model
 from autofit.mapper.prior_model.collection import Collection
@@ -42,6 +43,8 @@ def str_for_object(obj: ModelObject) -> str:
         return f"{obj.id}:LogGaussianPrior({obj.mean}, {obj.sigma})"
     if isinstance(obj, LogUniformPrior):
         return f"{obj.id}:LogUniformPrior({obj.lower_limit}, {obj.upper_limit})"
+    if isinstance(obj, TruncatedGaussianPrior):
+        return f"{obj.id}:TruncatedGaussianPrior({obj.mean}, {obj.sigma}, ({obj.lower_limit}, {obj.upper_limit})"
 
     return repr(obj)
 
@@ -115,6 +118,7 @@ class VisualiseGraph:
             GaussianPrior,
             LogGaussianPrior,
             LogUniformPrior,
+            TruncatedGaussianPrior,
         } | {model.cls for _, model in self.model.attribute_tuples_with_type(Model)}
         if isinstance(self.model, Model):
             types.add(self.model.cls)

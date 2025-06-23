@@ -1,5 +1,5 @@
 higher_level_centre:
-  gaussian_limits:
+  limits:
     lower: -inf
     upper: inf
   lower_limit: 0.0

@@ -1,6 +1,6 @@
 Gaussian:
   centre:
-    gaussian_limits:
+    limits:
       lower: 0.0
       upper: 1.0
     lower_limit: 0.0
@@ -10,7 +10,7 @@ Gaussian:
       type: Absolute
       value: 1.0
   normalization:
-    gaussian_limits:
+    limits:
       lower: 0.0
       upper: 1.0
     lower_limit: 0.0
@@ -20,7 +20,7 @@ Gaussian:
       type: Absolute
       value: 1.0
   sigma:
-    gaussian_limits:
+    limits:
       lower: 0.0
       upper: 1.0
     lower_limit: 0.0
@@ -47,7 +47,7 @@ PhysicalNFW:
     width_modifier:
       type: Absolute
       value: 0.2
-    gaussian_limits:
+    limits:
       lower: -1.0
       upper: 1.0
   ell_comps_1:
@@ -57,7 +57,7 @@ PhysicalNFW:
     width_modifier:
       type: Absolute
       value: 0.2
-    gaussian_limits:
+    limits:
       lower: -1.0
       upper: 1.0
   log10m:
