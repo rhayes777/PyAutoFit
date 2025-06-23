@@ -49,6 +49,7 @@ class AbstractMessage(MessageInterface, ABC):
 
         self.lower_limit = lower_limit
         self.upper_limit = upper_limit
+
         self.id = next(self.ids) if id_ is None else id_
         self.log_norm = log_norm
         self._broadcast = np.broadcast(*parameters)

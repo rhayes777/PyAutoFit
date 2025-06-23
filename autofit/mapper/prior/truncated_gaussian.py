@@ -111,7 +111,12 @@ class TruncatedGaussianPrior(Prior):
         Dictionary containing prior parameters.
         """
         prior_dict = super().dict()
-        return {**prior_dict, "mean": self.mean, "sigma": self.sigma}
+        return {
+            **prior_dict, "mean": self.mean,
+            "sigma": self.sigma,
+            "lower_limit": self.lower_limit,
+            "upper_limit": self.upper_limit
+        }
 
     @property
     def limits(self) -> Tuple[float, float]:
@@ -122,4 +127,8 @@ class TruncatedGaussianPrior(Prior):
         """
         Return a human-readable string summarizing the GaussianPrior parameters.
         """
-        return f"mean = {self.mean}, sigma = {self.sigma}"
+        return (f"mean = {self.mean}, "
+                f"sigma = {self.sigma}, "
+                f"lower_limit = {self.lower_limit}, "
+                f"upper_limit = {self.upper_limit}"
+                )

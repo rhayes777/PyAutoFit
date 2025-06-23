@@ -92,8 +92,8 @@ class TruncatedNormalMessage(AbstractMessage):
         super().__init__(
             mean,
             sigma,
-            lower_limit,
-            upper_limit,
+            float(lower_limit),
+            float(upper_limit),
             log_norm=log_norm,
             id_=id_,
         )
