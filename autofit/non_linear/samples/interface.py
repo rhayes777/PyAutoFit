@@ -155,7 +155,7 @@ class SamplesInterface(ABC):
         """
         return self.model.mapper_from_prior_means(means=self.prior_means, r=r)
 
-    def model_bounded(self, b: float) -> AbstractPriorModel:
+    def model_centred_max_lh_bounded(self, b: float) -> AbstractPriorModel:
         """
         Returns a model where every free parameter is a `UniformPrior` with `lower_limit` and `upper_limit the previous
         result's inferred maximum log likelihood parameter values minus and plus the bound `b`.

@@ -57,7 +57,7 @@ class TestResult:
         assert component.one_tuple.one_tuple_1.sigma == 1.0
 
     def test_model_bounded(self, result):
-        component = result.model_bounded(b=1.0).component
+        component = result.model_centred_max_lh_bounded(b=1.0).component
 
         assert component.one_tuple.one_tuple_0.lower_limit == -1.0
         assert component.one_tuple.one_tuple_1.lower_limit == 0.0

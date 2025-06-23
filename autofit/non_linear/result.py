@@ -168,7 +168,7 @@ class AbstractResult(ABC):
         """
         return self.samples_summary.model_centred_relative(r)
 
-    def model_bounded(self, b: float) -> AbstractPriorModel:
+    def model_centred_max_lh_bounded(self, b: float) -> AbstractPriorModel:
         """
         Returns a model where every free parameter is a `UniformPrior` with `lower_limit` and `upper_limit` the previous
         result's inferred maximum log likelihood parameter values minus and plus the bound `b`.
@@ -188,7 +188,7 @@ class AbstractResult(ABC):
         A model mapper created by taking results from this search and creating priors with the defined bounded
         uniform priors.
         """
-        return self.samples_summary.model_bounded(b)
+        return self.samples_summary.model_centred_max_lh_bounded(b)
 
 
 class Result(AbstractResult):
