@@ -289,6 +289,13 @@ class NormalMessage(AbstractMessage):
             variance = covariance.diagonal()
         else:
             mode, variance = cls._get_mean_variance(mode, covariance)
+
+        if kwargs.get("upper_limit") is not None:
+            kwargs.pop("upper_limit")
+
+        if kwargs.get("lower_limit") is not None:
+            kwargs.pop("lower_limit")
+
         return cls(mode, np.abs(variance) ** 0.5, **kwargs)
 
     def _normal_gradient_hessian(

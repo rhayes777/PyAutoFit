@@ -42,9 +42,13 @@ class AbstractMessage(MessageInterface, ABC):
         self,
         *parameters: Union[np.ndarray, float],
         log_norm=0.0,
+        lower_limit=-math.inf,
+        upper_limit=math.inf,
         id_=None,
     ):
 
+        self.lower_limit = lower_limit
+        self.upper_limit = upper_limit
         self.id = next(self.ids) if id_ is None else id_
         self.log_norm = log_norm
         self._broadcast = np.broadcast(*parameters)
