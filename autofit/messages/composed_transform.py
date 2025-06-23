@@ -64,6 +64,8 @@ class TransformedMessage(MessageInterface):
         base_message: MessageInterface,
         *transforms: AbstractDensityTransform,
         id_: Optional[int] = None,
+        lower_limit=float("-inf"),
+        upper_limit=float("inf"),
     ):
         """
         Comprises a base message such as a normal message and a list of transforms
@@ -86,6 +88,9 @@ class TransformedMessage(MessageInterface):
         self.transforms = transforms
         self.base_message = base_message
         self.id = id_
+
+        self.lower_limit = lower_limit
+        self.upper_limit = upper_limit
 
         x0, x1 = zip(*base_message._support)
         z0 = self._inverse_transform(np.array(x0))
