@@ -14,10 +14,8 @@ import numpy as np
 from autoconf import conf
 from autoconf.exc import ConfigException
 from autofit import exc
-from autofit import jax_wrapper
 from autofit.mapper import model
 from autofit.mapper.model import AbstractModel, frozen_cache
-from autofit.mapper.prior import GaussianPrior
 from autofit.mapper.prior import TruncatedGaussianPrior
 from autofit.mapper.prior import UniformPrior
 from autofit.mapper.prior.abstract import Prior

@@ -100,7 +100,6 @@ class Prior(Object):
     def _from_object(cls, model: abstract.Prior):
         instance = cls()
         instance.cls = type(model)
-        print(model.__database_args__)
         instance._add_children(
             [(key, getattr(model, key)) for key in model.__database_args__]
         )
