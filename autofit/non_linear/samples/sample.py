@@ -207,10 +207,9 @@ class Sample:
                 )
 
         except KeyError:
-            # TODO: Does this get used? If so, why?
             return model.instance_from_vector(
                 self.parameter_lists_for_model(model),
-                ignore_prior_limits=ignore_assertions,
+                ignore_assertions=ignore_assertions,
             )
 
     @split_paths

@@ -123,14 +123,14 @@ class AbstractResult(ABC):
     def max_log_likelihood_instance(self):
         return self.instance
 
-    def model_absolute(self, a: float) -> AbstractPriorModel:
+    def model_centred_absolute(self, a: float) -> AbstractPriorModel:
         """
         Returns a model where every free parameter is a `GaussianPrior` with `mean` the previous result's
         inferred maximum log likelihood parameter values and `sigma` the input absolute value `a`.
 
         For example, a previous result may infer a parameter to have a maximum log likelihood value of 2.
 
-        If this result is used for search chaining, `model_absolute(a=0.1)` will assign this free parameter
+        If this result is used for search chaining, `model_centred_absolute(a=0.1)` will assign this free parameter
         `GaussianPrior(mean=2.0, sigma=0.1)` in the new model, where `sigma` is linked to the input `a`.
 
         Parameters
@@ -143,9 +143,9 @@ class AbstractResult(ABC):
         A model mapper created by taking results from this search and creating priors with the defined absolute
         width.
         """
-        return self.samples_summary.model_absolute(a)
+        return self.samples_summary.model_centred_absolute(a)
 
-    def model_relative(self, r: float) -> AbstractPriorModel:
+    def model_centred_relative(self, r: float) -> AbstractPriorModel:
         """
         Returns a model where every free parameter is a `GaussianPrior` with `mean` the previous result's
         inferred maximum log likelihood parameter values and `sigma` a relative value from the result `r`.
@@ -153,7 +153,7 @@ class AbstractResult(ABC):
         For example, a previous result may infer a parameter to have a maximum log likelihood value of 2 and
         an error at the input `sigma` of 0.5.
 
-        If this result is used for search chaining, `model_relative(r=0.1)` will assign this free parameter
+        If this result is used for search chaining, `model_centred_relative(r=0.1)` will assign this free parameter
         `GaussianPrior(mean=2.0, sigma=0.5*0.1)` in the new model, where `sigma` is the inferred error times `r`.
 
         Parameters
@@ -166,9 +166,9 @@ class AbstractResult(ABC):
         A model mapper created by taking results from this search and creating priors with the defined relative
         width.
         """
-        return self.samples_summary.model_relative(r)
+        return self.samples_summary.model_centred_relative(r)
 
-    def model_bounded(self, b: float) -> AbstractPriorModel:
+    def model_centred_max_lh_bounded(self, b: float) -> AbstractPriorModel:
         """
         Returns a model where every free parameter is a `UniformPrior` with `lower_limit` and `upper_limit` the previous
         result's inferred maximum log likelihood parameter values minus and plus the bound `b`.
@@ -188,7 +188,7 @@ class AbstractResult(ABC):
         A model mapper created by taking results from this search and creating priors with the defined bounded
         uniform priors.
         """
-        return self.samples_summary.model_bounded(b)
+        return self.samples_summary.model_centred_max_lh_bounded(b)
 
 
 class Result(AbstractResult):
@@ -334,9 +334,7 @@ class Result(AbstractResult):
     @property
     def model(self):
         if self.__model is None:
-            self.__model = self.samples_summary.model.mapper_from_prior_means(
-                means=self.samples_summary.prior_means
-            )
+            self.__model = self.samples_summary.model.mapper_via_defaults_from()
 
         return self.__model
 

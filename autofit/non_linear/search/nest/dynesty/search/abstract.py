@@ -20,7 +20,7 @@ from autofit.non_linear.samples.nest import SamplesNest
 
 def prior_transform(cube, model):
     phys_cube = model.vector_from_unit_vector(
-        unit_vector=cube, ignore_prior_limits=True
+        unit_vector=cube,
     )
 
     for i in range(len(phys_cube)):
@@ -115,8 +115,6 @@ class AbstractDynesty(AbstractNest, ABC):
         set of accepted samples of the fit.
         """
 
-        from dynesty.pool import Pool
-
         fitness = Fitness(
             model=model,
             analysis=analysis,
@@ -151,6 +149,8 @@ class AbstractDynesty(AbstractNest, ABC):
                     or jax_wrapper.use_jax
                 ):
                     raise RuntimeError
+
+                from dynesty.pool import Pool
 
                 with Pool(
                     njobs=self.number_of_cores,

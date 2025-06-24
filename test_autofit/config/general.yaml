@@ -1,3 +1,5 @@
+jax:
+  use_jax: false                    # If True, PyAutoFit uses JAX internally, whereas False uses normal Numpy.
 analysis:
   n_cores: 1                        # The number of cores a parallelized sum of Analysis classes uses by default.
 hpc:
@@ -6,8 +8,6 @@ hpc:
 inversion:
   check_reconstruction: true        # If True, the inversion's reconstruction is checked to ensure the solution of a meshs's mapper is not an invalid solution where the values are all the same.
   reconstruction_vmax_factor: 0.5   # Plots of an Inversion's reconstruction use the reconstructed data's bright value multiplied by this factor.  
-model:
-  ignore_prior_limits: false        # If ``True`` the limits applied to priors will be ignored, where limits set upper / lower limits. This stops PriorLimitException's from being raised.
 output:
   force_pickle_overwrite: false     # If True pickle files output by a search (e.g. samples.pickle) are recreated when a new model-fit is performed.
   info_whitespace_length: 80        # Length of whitespace between the parameter names and values in the model.info / result.info

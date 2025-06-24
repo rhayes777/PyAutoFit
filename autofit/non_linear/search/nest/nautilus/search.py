@@ -19,7 +19,7 @@ logger = logging.getLogger(__name__)
 
 
 def prior_transform(cube, model):
-    return model.vector_from_unit_vector(unit_vector=cube, ignore_prior_limits=True)
+    return model.vector_from_unit_vector(unit_vector=cube)
 
 
 class Nautilus(abstract_nest.AbstractNest):

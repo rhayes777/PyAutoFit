@@ -9,6 +9,7 @@ Emcee:
     ball_upper_limit: 0.51
     method: prior
   parallel:
+    force_x1_cpu: true
     number_of_cores: 1
   printing:
     silence: false

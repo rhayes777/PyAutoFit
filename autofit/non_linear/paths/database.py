@@ -86,9 +86,7 @@ class DatabasePaths(AbstractPaths):
         """
         self.fit.is_grid_search = True
         if self.fit.instance is None:
-            self.fit.instance = self.model.instance_from_prior_medians(
-                ignore_prior_limits=True
-            )
+            self.fit.instance = self.model.instance_from_prior_medians()
         child = type(self)(
             session=self.session,
             name=name or self.name,

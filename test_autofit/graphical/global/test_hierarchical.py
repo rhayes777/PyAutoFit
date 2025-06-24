@@ -34,6 +34,7 @@ def reset_ids():
 
 
 def test_model_info(model):
+    print(model.info)
     assert (
         model.info
         == """Total Free Parameters = 4
@@ -47,8 +48,6 @@ model                                                                           
     distribution_model
         mean                                                                    GaussianPrior [2], mean = 0.5, sigma = 0.1
         sigma                                                                   GaussianPrior [3], mean = 1.0, sigma = 0.01
-        lower_limit                                                             -inf
-        upper_limit                                                             inf
 0
     drawn_prior                                                                 UniformPrior [0], lower_limit = 0.0, upper_limit = 1.0
 1

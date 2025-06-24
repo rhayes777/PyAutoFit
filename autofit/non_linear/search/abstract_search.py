@@ -4,8 +4,6 @@ import gc
 import logging
 import multiprocessing as mp
 import os
-import signal
-import sys
 import time
 import warnings
 from abc import ABC, abstractmethod
@@ -256,7 +254,6 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         if jax_wrapper.use_jax:
             self.number_of_cores = 1
-            logger.warning(f"JAX is enabled. Setting number of cores to 1.")
 
         self.number_of_cores = number_of_cores
 
@@ -1198,6 +1195,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         -------
         An implementation of a multiprocessing pool
         """
+
         self.logger.warning(
             "...using SneakyPool. This copies the likelihood function "
             "to each process on instantiation to avoid copying multiple "

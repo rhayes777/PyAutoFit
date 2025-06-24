@@ -27,7 +27,7 @@ def vmapped(gaussian, size=1000):
 
 
 def test_gaussian_prior(recreate):
-    prior = af.GaussianPrior(mean=1.0, sigma=1.0)
+    prior = af.TruncatedGaussianPrior(mean=1.0, sigma=1.0)
 
     new = recreate(prior)
 
@@ -44,8 +44,8 @@ def _model():
     return af.Model(
         af.Gaussian,
         centre=af.GaussianPrior(mean=1.0, sigma=1.0),
-        normalization=af.GaussianPrior(mean=1.0, sigma=1.0, lower_limit=0.0),
-        sigma=af.GaussianPrior(mean=1.0, sigma=1.0, lower_limit=0.0),
+        normalization=af.GaussianPrior(mean=1.0, sigma=1.0),
+        sigma=af.GaussianPrior(mean=1.0, sigma=1.0),
     )
 
 

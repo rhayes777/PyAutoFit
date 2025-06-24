@@ -1,6 +1,6 @@
 ModelComponent0:
   parameter0:
-    gaussian_limits:
+    limits:
       lower: -inf
       upper: inf
     lower_limit: 0.0
@@ -10,7 +10,7 @@ ModelComponent0:
       type: Absolute
       value: 20.0
   parameter1:
-    gaussian_limits:
+    limits:
       lower: 0.0
       upper: inf
     lower_limit: 1.0e-06
@@ -20,7 +20,7 @@ ModelComponent0:
       type: Relative
       value: 0.5
   parameter2:
-    gaussian_limits:
+    limits:
       lower: 0.0
       upper: inf
     lower_limit: 0.0
@@ -31,7 +31,7 @@ ModelComponent0:
       value: 0.5
 ModelComponent1:
   parameter0:
-    gaussian_limits:
+    limits:
       lower: -inf
       upper: inf
     lower_limit: 0.0
@@ -41,7 +41,7 @@ ModelComponent1:
       type: Absolute
       value: 20.0
   parameter1:
-    gaussian_limits:
+    limits:
       lower: 0.0
       upper: inf
     lower_limit: 1.0e-06
@@ -51,7 +51,7 @@ ModelComponent1:
       type: Relative
       value: 0.5
   parameter2:
-    gaussian_limits:
+    limits:
       lower: 0.0
       upper: inf
     lower_limit: 0.0

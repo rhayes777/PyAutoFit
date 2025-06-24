@@ -8,64 +8,57 @@ from .abstract import Prior
 
 @register_pytree_node_class
 class GaussianPrior(Prior):
-    __identifier_fields__ = ("lower_limit", "upper_limit", "mean", "sigma")
-    __database_args__ = ("mean", "sigma", "lower_limit", "upper_limit", "id_")
+    __identifier_fields__ = ("mean", "sigma")
+    __database_args__ = ("mean", "sigma", "id_")
 
     def __init__(
         self,
         mean: float,
         sigma: float,
-        lower_limit: float = float("-inf"),
-        upper_limit: float = float("inf"),
         id_: Optional[int] = None,
     ):
         """
-        A prior with a uniform distribution, defined between a lower limit and upper limit.
+        A Gaussian prior defined by a normal distribution.
 
-        The conversion of an input unit value, ``u``, to a physical value, ``p``, via the prior is as follows:
+        The prior transforms a unit interval input `u` in [0, 1] into a physical parameter `p` via
+        the inverse error function (erfcinv) based on the Gaussian CDF:
 
         .. math::
+            p = \mu + \sigma \sqrt{2} \, \mathrm{erfcinv}(2 \times (1 - u))
 
-            p = \mu + (\sigma * sqrt(2) * erfcinv(2.0 * (1.0 - u))
+        where :math:`\mu` is the mean and :math:`\sigma` the standard deviation.
 
-        For example for ``prior = GaussianPrior(mean=1.0, sigma=2.0)``, an
-        input ``prior.value_for(unit=0.5)`` is equal to 1.0.
+        For example, with `mean=1.0` and `sigma=2.0`, the value at `u=0.5` corresponds to the mean, 1.0.
 
-        The mapping is performed using the message functionality, where a message represents the distirubtion
-        of this prior.
+        This mapping is implemented using a NormalMessage instance, encapsulating
+        the Gaussian distribution and any specified truncation limits.
 
         Parameters
         ----------
         mean
-            The mean of the Gaussian distribution defining the prior.
+            The mean (center) of the Gaussian prior distribution.
         sigma
-            The sigma value of the Gaussian distribution defining the prior.
-        lower_limit
-            A lower limit of the Gaussian distribution; physical values below this value are rejected.
-        upper_limit
-            A upper limit of the Gaussian distribution; physical values below this value are rejected.
+            The standard deviation (spread) of the Gaussian prior.
+        id_ : Optional[int], optional
+            Optional identifier for the prior instance.
 
         Examples
         --------
+        Create a GaussianPrior with mean 1.0, sigma 2.0, truncated between 0.0 and 2.0:
 
-        prior = af.GaussianPrior(mean=1.0, sigma=2.0, lower_limit=0.0, upper_limit=2.0)
-
-        physical_value = prior.value_for(unit=0.5)
+        >>> prior = GaussianPrior(mean=1.0, sigma=2.0)
+        >>> physical_value = prior.value_for(unit=0.5)  # Returns ~1.0 (mean)
         """
         super().__init__(
-            lower_limit=lower_limit,
-            upper_limit=upper_limit,
             message=NormalMessage(
                 mean=mean,
                 sigma=sigma,
-                lower_limit=lower_limit,
-                upper_limit=upper_limit,
             ),
             id_=id_,
         )
 
     def tree_flatten(self):
-        return (self.mean, self.sigma, self.lower_limit, self.upper_limit, self.id), ()
+        return (self.mean, self.sigma, self.id), ()
 
     @classmethod
     def with_limits(cls, lower_limit: float, upper_limit: float) -> "GaussianPrior":
@@ -98,11 +91,19 @@ class GaussianPrior(Prior):
 
     def dict(self) -> dict:
         """
-        A dictionary representation of this prior
+        Return a dictionary representation of this GaussianPrior instance,
+        including mean and sigma.
+
+        Returns
+        -------
+        Dictionary containing prior parameters.
         """
         prior_dict = super().dict()
         return {**prior_dict, "mean": self.mean, "sigma": self.sigma}
 
     @property
     def parameter_string(self) -> str:
+        """
+        Return a human-readable string summarizing the GaussianPrior parameters.
+        """
         return f"mean = {self.mean}, sigma = {self.sigma}"

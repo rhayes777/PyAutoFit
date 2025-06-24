@@ -1,7 +1,7 @@
 # from autoconf.conf import with_config
 #
 #
-# @with_config("general", "model", "ignore_prior_limits", value=True)
+# @with_config("general", "model", value=True)
 # def test_sensitivity(sensitivity):
 #     results = sensitivity.run()
 #     assert len(results) == 8

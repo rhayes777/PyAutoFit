@@ -42,24 +42,18 @@ def test_add_files(fit):
         "type": "model",
         "arguments": {
             "centre": {
-                "lower_limit": "-inf",
-                "upper_limit": "inf",
                 "type": "Gaussian",
                 "id": 0,
                 "mean": 1.0,
                 "sigma": 1.0,
             },
             "normalization": {
-                "lower_limit": "-inf",
-                "upper_limit": "inf",
                 "type": "Gaussian",
                 "id": 1,
                 "mean": 1.0,
                 "sigma": 1.0,
             },
             "sigma": {
-                "lower_limit": "-inf",
-                "upper_limit": "inf",
                 "type": "Gaussian",
                 "id": 2,
                 "mean": 1.0,

@@ -1,29 +1,45 @@
 """
 Allows the user to switch between using NumPy and JAX for linear algebra operations.
 
-If USE_JAX=1 then JAX's NumPy is used, otherwise vanilla NumPy is used.
+If USE_JAX=true in general.yaml then JAX's NumPy is used, otherwise vanilla NumPy is used.
 """
-from os import environ
+import jax
 
-use_jax = environ.get("USE_JAX", "0") == "1"
+from autoconf import conf
+
+use_jax = conf.instance["general"]["jax"]["use_jax"]
 
 if use_jax:
-    try:
-        import jax
-        from jax import numpy
 
-        def jit(function, *args, **kwargs):
-            return jax.jit(function, *args, **kwargs)
+    from jax import numpy
 
-        def grad(function, *args, **kwargs):
-            return jax.grad(function, *args, **kwargs)
+    print(
 
-        print("JAX mode enabled")
-    except ImportError:
-        raise ImportError(
-            "JAX is not installed. Please install it with `pip install jax`."
-        )
+    """
+***JAX ENABLED*** 
+    
+Using JAX for grad/jit and GPU/TPU acceleration. 
+To disable JAX, set: config -> general -> jax -> use_jax = false
+    """)
+
+    def jit(function, *args, **kwargs):
+        return jax.jit(function, *args, **kwargs)
+
+    def grad(function, *args, **kwargs):
+        return jax.grad(function, *args, **kwargs)
+
+    from jax._src.scipy.special import erfinv
+
 else:
+
+    print(
+    """
+***JAX DISABLED*** 
+    
+Falling back to standard NumPy (no grad/jit or GPU support).
+To enable JAX (if supported), set: config -> general -> jax -> use_jax = true
+    """)
+
     import numpy  # noqa
     from scipy.special.cython_special import erfinv  # noqa
 
@@ -33,20 +49,8 @@ else:
     def grad(function, *_, **__):
         return function
 
-try:
-    from jax._src.tree_util import (
-        register_pytree_node_class as register_pytree_node_class,
-        register_pytree_node as register_pytree_node,
-    )
-    from jax._src.scipy.special import erfinv
+from jax._src.tree_util import (
+    register_pytree_node_class as register_pytree_node_class,
+    register_pytree_node as register_pytree_node,
+)
 
-except ImportError:
-
-    def register_pytree_node_class(cls):
-        return cls
-
-    def register_pytree_node(*_, **__):
-        def decorator(cls):
-            return cls
-
-        return decorator
