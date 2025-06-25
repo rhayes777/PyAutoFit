@@ -2,7 +2,6 @@ from abc import abstractmethod
 from typing import Dict, Tuple, Optional, List
 
 import numpy as np
-from scipy.linalg import cho_factor
 
 from autoconf import cached_property
 from autofit.graphical.factor_graphs.abstract import AbstractNode, Value, FactorValue
@@ -63,12 +62,16 @@ class VariableTransform:
 
     @classmethod
     def from_covariances(cls, covs):
+        from scipy.linalg import cho_factor
+
         return cls(
             {v: InvCholeskyTransform(cho_factor(cov)) for v, cov in covs.items()}
         )
 
     @classmethod
     def from_inv_covariances(cls, inv_covs):
+        from scipy.linalg import cho_factor
+
         return cls(
             {
                 v: CholeskyOperator(cho_factor(inv_cov))

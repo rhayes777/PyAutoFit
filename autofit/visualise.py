@@ -1,9 +1,5 @@
 from typing import Dict, List
 
-import networkx as nx
-from pyvis.network import Network
-import colorsys
-
 from autoconf import cached_property
 
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
@@ -53,6 +49,8 @@ def generate_n_colors(n: int) -> List[str]:
     """
     Generate n distinct colors.
     """
+    import colorsys
+
     colors = []
     for i in range(n):
         hue = i / n
@@ -77,11 +75,13 @@ class VisualiseGraph:
         """
         self.model = model
 
-    def graph(self) -> nx.DiGraph:
+    def graph(self) -> "nx.DiGraph":
         """
         Generate a graph of the model with just edges. Could
         be superseded by the network method.
         """
+        import networkx as nx
+
         graph = nx.DiGraph()
 
         def add_model(model):
@@ -130,7 +130,7 @@ class VisualiseGraph:
             )
         }
 
-    def network(self, notebook: bool = False) -> Network:
+    def network(self, notebook: bool = False) -> "Network":
         """
         Generate a network of the model including stylised nodes and edges.
 
@@ -146,6 +146,7 @@ class VisualiseGraph:
         -------
         A network of the model.
         """
+        from pyvis.network import Network
 
         net = Network(
             notebook=notebook,

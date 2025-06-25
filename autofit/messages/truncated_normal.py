@@ -1,11 +1,8 @@
 from collections.abc import Hashable
 import math
-from scipy.stats import truncnorm
 from typing import Optional, Tuple, Union
 
 import numpy as np
-from autofit.jax_wrapper import erfinv
-from scipy.stats import norm
 
 from autoconf import cached_property
 from autofit.mapper.operator import LinearOperator
@@ -44,6 +41,8 @@ class TruncatedNormalMessage(AbstractMessage):
         float
             The log-partition (log of the normalizing constant).
         """
+        from scipy.stats import norm
+
         a = (self.lower_limit - self.mean) / self.sigma
         b = (self.upper_limit - self.mean) / self.sigma
         Z = norm.cdf(b) - norm.cdf(a)
@@ -116,6 +115,8 @@ class TruncatedNormalMessage(AbstractMessage):
         -------
         The cumulative probability P(X ≤ x) under the truncated Gaussian.
         """
+        from scipy.stats import truncnorm
+
         a = (self.lower_limit - self.mean) / self.sigma
         b = (self.upper_limit - self.mean) / self.sigma
         return truncnorm.cdf(x, a=a, b=b, loc=self.mean, scale=self.sigma)
@@ -136,6 +137,8 @@ class TruncatedNormalMessage(AbstractMessage):
         -------
         The value(s) corresponding to the input quantiles.
         """
+        from scipy.stats import truncnorm
+
         a = (self.lower_limit - self.mean) / self.sigma
         b = (self.upper_limit - self.mean) / self.sigma
         return truncnorm.ppf(x, a=a, b=b, loc=self.mean, scale=self.sigma)
@@ -279,6 +282,8 @@ class TruncatedNormalMessage(AbstractMessage):
         -------
         Sample(s) from the truncated Gaussian distribution.
         """
+        from scipy.stats import truncnorm
+
         a, b = (self.lower_limit - self.mean) / self.sigma, (self.upper_limit - self.mean) / self.sigma
         shape = (n_samples,) + self.shape if n_samples else self.shape
         samples = truncnorm.rvs(a, b, loc=self.mean, scale=self.sigma, size=shape)
@@ -404,6 +409,8 @@ class TruncatedNormalMessage(AbstractMessage):
         >>> prior = af.TruncatedNormalMessage(mean=1.0, sigma=2.0, lower_limit=0.0, upper_limit=2.0)
         >>> physical_value = prior.value_for(unit=0.5)
         """
+        from scipy.stats import norm
+
         # Standardized truncation bounds
         a = (self.lower_limit - self.mean) / self.sigma
         b = (self.upper_limit - self.mean) / self.sigma
@@ -434,6 +441,8 @@ class TruncatedNormalMessage(AbstractMessage):
         -------
         The log prior probability of the given value, or -inf if outside truncation bounds.
         """
+        from scipy.stats import norm
+
         # Check truncation bounds
         if not (self.lower_limit <= value <= self.upper_limit):
             return -np.inf
@@ -560,6 +569,8 @@ class TruncatedNaturalNormal(TruncatedNormalMessage):
         -------
         The truncated Gaussian standard deviation σ.
         """
+        from scipy.stats import truncnorm
+
         precision = -2 * self.parameters[1]
         if precision <= 0 or np.isinf(precision) or np.isnan(precision):
             # Degenerate or invalid precision: fallback to NaN or zero
@@ -586,6 +597,8 @@ class TruncatedNaturalNormal(TruncatedNormalMessage):
         -------
         The truncated Gaussian mean μ.
         """
+        from scipy.stats import truncnorm
+
         precision = -2 * self.parameters[1]
         if precision <= 0 or np.isinf(precision) or np.isnan(precision):
             # Degenerate or invalid precision: fallback to NaN or zero

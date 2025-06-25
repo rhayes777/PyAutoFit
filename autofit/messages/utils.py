@@ -1,5 +1,5 @@
 import numpy as np
-from scipy import special
+
 
 
 def psilog(x: np.ndarray) -> np.ndarray:
@@ -7,6 +7,8 @@ def psilog(x: np.ndarray) -> np.ndarray:
     psi(x) - log(x)
     needed when calculating E[ln[x]] when x is a Gamma variable
     """
+    from scipy import special
+
     return special.digamma(x) - np.log(x)
 
 
@@ -19,6 +21,8 @@ def grad_psilog(x: np.ndarray) -> np.ndarray:
     see:
     invpsilog(c)
     """
+    from scipy import special
+
     return special.polygamma(1, x) - 1 / x
 
 

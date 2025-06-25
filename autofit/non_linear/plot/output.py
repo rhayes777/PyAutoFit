@@ -1,4 +1,3 @@
-import matplotlib
 from pathlib import Path
 from os import path
 from typing import List, Optional, Union
@@ -7,6 +6,9 @@ from autoconf import conf
 
 
 def set_backend():
+
+    import matplotlib
+
     backend = conf.get_matplotlib_backend()
 
     if backend not in "default":
@@ -21,7 +23,6 @@ def set_backend():
         matplotlib.use("Agg")
 
 
-import matplotlib.pyplot as plt
 import os
 
 
@@ -91,6 +92,8 @@ class Output:
             The 2D array of image to be output, required for outputting the image as a fits file.
         """
 
+        import matplotlib.pyplot as plt
+
         filename = auto_filename if self.filename is None else self.filename
 
         for format in self.format_list:
@@ -109,6 +112,8 @@ class Output:
         Output a subplot figure, either as an image on the screen or to the hard-disk as a png or fits file.
         """
 
+        import matplotlib.pyplot as plt
+
         filename = auto_filename if self.filename is None else self.filename
 
         for format in self.format_list:
@@ -123,6 +128,9 @@ class Output:
 
 
     def to_figure_output_mode(self, filename: str):
+
+        import matplotlib.pyplot as plt
+
         global COUNT
 
         try:

@@ -4,7 +4,6 @@ import operator
 from collections import ChainMap
 
 import numpy as np
-from scipy.linalg import block_diag
 
 from autoconf import cached_property
 
@@ -14,13 +13,11 @@ from autofit.mapper.operator import (
     DiagonalMatrix,
     CholeskyOperator,
     MatrixOperator,
-    QROperator,
 )
 from autofit.mapper.variable import (
     Variable,
     VariableData,
     VariableLinearOperator,
-    InverseVariableOperator,
     rtruediv,
     rmul,
 )
@@ -86,6 +83,9 @@ class MergedVariableOperator(VariableLinearOperator):
         return VariableOperator(blocks)
 
     def to_full(self):
+
+        from scipy.linalg import block_diag
+
         full_ops = [op.to_full() for op in self.operators]
         full = block_diag(*(op.operator.to_dense() for op in full_ops))
         param_shapes = FlattenArrays(
