@@ -150,7 +150,6 @@ class ModelObject:
         from autofit.mapper.prior_model.collection import Collection
         from autofit.mapper.prior_model.prior_model import Model
         from autofit.mapper.prior.abstract import Prior
-        from autofit.mapper.prior.gaussian import GaussianPrior
         from autofit.mapper.prior.tuple_prior import TuplePrior
         from autofit.mapper.prior.arithmetic.compound import Compound
         from autofit.mapper.prior.arithmetic.compound import ModifiedPrior

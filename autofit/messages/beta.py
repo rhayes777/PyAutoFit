@@ -3,8 +3,6 @@ import warnings
 from typing import Tuple, Union
 
 import numpy as np
-from scipy.special import betaln
-from scipy.special import psi, polygamma
 
 from autoconf import cached_property
 from ..messages.abstract import AbstractMessage
@@ -23,6 +21,8 @@ def grad_betaln(ab: np.ndarray) -> np.ndarray:
     -------
     Gradient array of shape (N, 2) with derivatives of log Beta function w.r.t a and b.
     """
+    from scipy.special import psi
+
     psiab = psi(ab.sum(axis=1, keepdims=True))
     return psi(ab) - psiab
 
@@ -40,6 +40,8 @@ def jac_grad_betaln(ab: np.ndarray) -> np.ndarray:
     -------
     Array of shape (N, 2, 2), the Jacobian matrices for each parameter pair.
     """
+    from scipy.special import polygamma
+
     psi1ab = polygamma(1, ab.sum(axis=1, keepdims=True))
     fii = polygamma(1, ab) - psi1ab
     fij = -psi1ab[:, 0]
@@ -330,6 +332,9 @@ class BetaMessage(AbstractMessage):
         TypeError
             If the support of the two distributions does not match.
         """
+        from scipy.special import betaln
+        from scipy.special import psi
+
         # TODO check this is correct
         # https://arxiv.org/pdf/0911.4863.pdf
         if self._support != dist._support:

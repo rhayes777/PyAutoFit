@@ -3,10 +3,8 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Optional, Union
 
-from dynesty import NestedSampler as StaticSampler
 
 from autofit.database.sqlalchemy_ import sa
-from autofit import jax_wrapper
 
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 
@@ -78,6 +76,7 @@ class DynestyStatic(AbstractDynesty):
 
     @property
     def search_internal(self):
+        from dynesty import NestedSampler as StaticSampler
         return StaticSampler.restore(self.checkpoint_file)
 
     def search_internal_from(
@@ -110,6 +109,7 @@ class DynestyStatic(AbstractDynesty):
             The number of CPU's over which multiprocessing is performed, determining how many samples are stored
             in the dynesty queue for samples.
         """
+        from dynesty import NestedSampler as StaticSampler
 
         gradient = fitness.grad if self.use_gradient else None
 

@@ -125,25 +125,25 @@ class Fitness:
         -------
         The figure of merit returned to the non-linear search, which is either the log likelihood or log posterior.
         """
-        try:
-            instance = self.model.instance_from_vector(vector=parameters)
-            log_likelihood = self.analysis.log_likelihood_function(instance=instance)
-            log_likelihood = np.where(np.isnan(log_likelihood), self.resample_figure_of_merit, log_likelihood)
 
-        except exc.FitException:
-            return self.resample_figure_of_merit
+        # Get instance from model
+        instance = self.model.instance_from_vector(vector=parameters)
 
+        # Evaluate log likelihood (must be side-effect free and exception-free)
+        log_likelihood = self.analysis.log_likelihood_function(instance=instance)
+
+        # Penalize NaNs in the log-likelihood
+        log_likelihood = np.where(np.isnan(log_likelihood), self.resample_figure_of_merit, log_likelihood)
+
+        # Determine final figure of merit
         if self.fom_is_log_likelihood:
             figure_of_merit = log_likelihood
         else:
-            log_prior_list = self.model.log_prior_list_from_vector(vector=parameters)
-            figure_of_merit = log_likelihood + sum(log_prior_list)
+            # Ensure prior list is compatible with JAX (must return a JAX array, not list)
+            log_prior_array = np.array(self.model.log_prior_list_from_vector(vector=parameters))
+            figure_of_merit = log_likelihood + np.sum(log_prior_array)
 
-        if self.store_history:
-
-            self.parameters_history_list.append(parameters)
-            self.log_likelihood_history_list.append(log_likelihood)
-
+        # Convert to chi-squared scale if requested
         if self.convert_to_chi_squared:
             figure_of_merit *= -2.0
 

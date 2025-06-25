@@ -1,10 +1,8 @@
 from collections.abc import Hashable
-import math
+
 from typing import Optional, Tuple, Union
 
 import numpy as np
-from autofit.jax_wrapper import erfinv
-from scipy.stats import norm
 
 from autoconf import cached_property
 from autofit.mapper.operator import LinearOperator
@@ -100,6 +98,8 @@ class NormalMessage(AbstractMessage):
         -------
         The cumulative probability P(X ≤ x).
         """
+        from scipy.stats import norm
+
         return norm.cdf(x, loc=self.mean, scale=self.sigma)
 
     def ppf(self, x : Union[float, np.ndarray]) -> Union[float, np.ndarray]:
@@ -118,6 +118,8 @@ class NormalMessage(AbstractMessage):
         -------
         The value(s) corresponding to the input quantiles.
         """
+        from scipy.stats import norm
+
         return norm.ppf(x, loc=self.mean, scale=self.sigma)
 
     @cached_property
@@ -389,9 +391,13 @@ class NormalMessage(AbstractMessage):
         >>> prior = af.GaussianPrior(mean=1.0, sigma=2.0)
         >>> physical_value = prior.value_for(unit=0.5)
         """
-        try:
+
+        from autofit import jax_wrapper
+
+        if jax_wrapper.use_jax:
+            from jax._src.scipy.special import erfinv
             inv = erfinv(1 - 2.0 * (1.0 - unit))
-        except TypeError:
+        else:
             from scipy.special import erfinv as scipy_erfinv
             inv = scipy_erfinv(1 - 2.0 * (1.0 - unit))
         return self.mean + (self.sigma * np.sqrt(2) * inv)

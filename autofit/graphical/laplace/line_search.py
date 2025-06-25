@@ -11,7 +11,6 @@ import warnings
 from typing import Optional, Dict, Tuple
 
 import numpy as np
-from scipy.optimize import _linesearch as linesearch
 
 from autoconf import cached_property
 from autofit.graphical.factor_graphs.abstract import (
@@ -280,6 +279,8 @@ def line_search_wolfe1(
     gval : array
         Gradient of `f` at the final point
     """
+    from scipy.optimize import _linesearch as linesearch
+
     derphi0 = state.derphi(0)
     old_fval = state.value
     stepsize, _, _ = linesearch.scalar_search_wolfe1(
@@ -339,6 +340,8 @@ def line_search_wolfe2(
     gval : array
         Gradient of `f` at the final point
     """
+    from scipy.optimize import _linesearch as linesearch
+
     derphi0 = state.derphi(0)
     old_fval = state.value
     stepsize, _, _, _ = linesearch.scalar_search_wolfe2(
@@ -364,6 +367,8 @@ def line_search_wolfe2(
 def line_search(
     state: OptimisationState, old_state: Optional[FactorValue] = None, **kwargs
 ) -> Tuple[Optional[float], OptimisationState]:
+    from scipy.optimize import _linesearch as linesearch
+
     stepsize, next_state = line_search_wolfe1(state, old_state, **kwargs)
 
     if stepsize is None:

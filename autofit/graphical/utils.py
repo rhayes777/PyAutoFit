@@ -1,15 +1,16 @@
+from __future__ import annotations
 import logging
 import warnings
 from collections import abc
 from enum import Enum
 from functools import reduce
 from operator import mul
-from typing import Iterable, Tuple, TypeVar, Dict, NamedTuple, Optional, Union
+from typing import Iterable, Tuple, TypeVar, Dict, NamedTuple, Optional, Union, TYPE_CHECKING
 
 import numpy as np
-import six
-from scipy.linalg import block_diag
-from scipy.optimize import OptimizeResult
+
+if TYPE_CHECKING:
+    from scipy.optimize import OptimizeResult
 
 from autofit.mapper.variable import Variable, VariableData
 from autofit.non_linear.result import Result
@@ -50,6 +51,9 @@ def is_variable(v, *args):
 
 
 def is_iterable(arg):
+
+    import six
+
     return isinstance(arg, abc.Iterable) and not isinstance(
         arg, six.string_types
     )
@@ -369,6 +373,9 @@ class FlattenArrays(dict):
         })
 
     def flatten2d(self, values: Dict[Variable, np.ndarray]) -> np.ndarray:
+
+        from scipy.linalg import block_diag
+
         assert all(np.shape(values[k]) == shape * 2 for k, shape in self.items())
 
         return block_diag(
@@ -386,7 +393,9 @@ class FlattenArrays(dict):
         return self.splits[-1]
 
 
+
 class OptResult(NamedTuple):
+
     mode: Dict[Variable, np.ndarray]
     hess_inv: Dict[Variable, np.ndarray]
     log_norm: float

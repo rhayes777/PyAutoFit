@@ -3,15 +3,7 @@ from functools import wraps
 from typing import Tuple, List
 
 import numpy as np
-from scipy._lib._util import _asarray_validated
-from scipy.linalg import (
-    cho_factor,
-    solve_triangular,
-    get_blas_funcs,
-    block_diag,
-    qr_update,
-    qr,
-)
+
 
 from autoconf import cached_property
 
@@ -421,6 +413,11 @@ def _mul_triangular(
         Disabling may give a performance gain, but may result in problems
         (crashes, non-termination) if the inputs do contain infinities or NaNs.
     """
+    from scipy._lib._util import _asarray_validated
+    from scipy.linalg import (
+        get_blas_funcs,
+    )
+
     a1 = _asarray_validated(c, check_finite=check_finite)
     b1 = _asarray_validated(b, check_finite=check_finite)
 
@@ -480,6 +477,9 @@ class QROperator(MatrixOperator):
 
     @classmethod
     def from_dense(cls, hess, shape=None, ldim=None):
+
+        from scipy.linalg import qr
+
         shape = np.shape(hess)
         ldim = ldim or np.ndim(hess) // 2
         length = np.prod(shape[:ldim])
@@ -496,10 +496,16 @@ class QROperator(MatrixOperator):
 
     @_wrap_rightop
     def __rtruediv__(self, x):
+        from scipy.linalg import (
+            solve_triangular,
+        )
         return solve_triangular(self.R.T, x.T @ self.Q.T, lower=True).T
 
     @_wrap_leftop
     def ldiv(self, x):
+        from scipy.linalg import (
+            solve_triangular,
+        )
         return self.Q.T @ solve_triangular(self.R, x, lower=False)
 
     @cached_property
@@ -515,6 +521,9 @@ class QROperator(MatrixOperator):
         return self.M.copy()
 
     def update(self, *args):
+        from scipy.linalg import (
+            qr_update,
+        )
         Q, R = self.Q, self.R
         for u, v in args:
             Q, R = qr_update(Q, R, np.ravel(u), np.ravel(v))
@@ -543,6 +552,9 @@ class CholeskyOperator(MatrixOperator):
 
     @classmethod
     def from_dense(cls, hess, shape=None, ldim=None):
+        from scipy.linalg import (
+            cho_factor,
+        )
         shape = np.shape(hess)
         ldim = ldim or np.ndim(hess) // 2
         length = np.prod(shape[:ldim])
@@ -558,10 +570,16 @@ class CholeskyOperator(MatrixOperator):
 
     @_wrap_rightop
     def __rtruediv__(self, x):
+
+        from scipy.linalg import solve_triangular
+
         return solve_triangular(self.L, x.T, lower=True).T
 
     @_wrap_leftop
     def ldiv(self, x):
+
+        from scipy.linalg import solve_triangular
+
         return solve_triangular(self.U, x, lower=False)
 
     @cached_property
@@ -601,6 +619,9 @@ class InvCholeskyTransform(CholeskyOperator):
         return -np.sum(np.log(self.U.diagonal()))
 
     def to_dense(self):
+
+        from scipy.linalg import solve_triangular
+
         return solve_triangular(self.U, np.triul(self.L), lower=False)
 
 
@@ -816,6 +837,9 @@ class MultiVecOuterProduct(LinearOperator):
         return self.shape[2:]
 
     def to_dense(self):
+
+        from scipy.linalg import block_diag
+
         return block_diag(*(self.vec[:, :, None] * self.vecT[:, None, :])).reshape(
             self.shape
         )
