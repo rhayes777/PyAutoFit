@@ -8,7 +8,7 @@ from .abstract import Prior
 
 @register_pytree_node_class
 class TruncatedGaussianPrior(Prior):
-    __identifier_fields__ = ("lower_limit", "upper_limit", "mean", "sigma")
+    __identifier_fields__ = ("mean", "sigma", "lower_limit", "upper_limit")
     __database_args__ = ("mean", "sigma", "lower_limit", "upper_limit", "id_")
 
     def __init__(
@@ -61,8 +61,8 @@ class TruncatedGaussianPrior(Prior):
             message=TruncatedNormalMessage(
                 mean=mean,
                 sigma=sigma,
-                lower_limit=lower_limit,
-                upper_limit=upper_limit,
+                lower_limit=float(lower_limit),
+                upper_limit=float(upper_limit),
             ),
             id_=id_,
         )
@@ -112,7 +112,8 @@ class TruncatedGaussianPrior(Prior):
         """
         prior_dict = super().dict()
         return {
-            **prior_dict, "mean": self.mean,
+            **prior_dict,
+            "mean": self.mean,
             "sigma": self.sigma,
             "lower_limit": self.lower_limit,
             "upper_limit": self.upper_limit

@@ -28,7 +28,6 @@ To disable JAX, set: config -> general -> jax -> use_jax = false
     def grad(function, *args, **kwargs):
         return jax.grad(function, *args, **kwargs)
 
-    from jax._src.scipy.special import erfinv
 
 else:
 
@@ -41,7 +40,6 @@ To enable JAX (if supported), set: config -> general -> jax -> use_jax = true
     """)
 
     import numpy  # noqa
-    from scipy.special.cython_special import erfinv  # noqa
 
     def jit(function, *_, **__):
         return function

@@ -1,4 +1,3 @@
-import matplotlib.pyplot as plt
 import numpy as np
 from functools import wraps
 import logging
@@ -70,6 +69,9 @@ class SamplesPlotter:
         return self.samples.log_posterior_list
 
     def close(self):
+
+        import matplotlib.pyplot as plt
+
         if plt.fignum_exists(num=1):
             plt.clf()
             plt.close()

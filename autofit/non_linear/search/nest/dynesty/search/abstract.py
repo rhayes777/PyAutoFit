@@ -3,7 +3,6 @@ from abc import ABC
 from typing import Dict, Optional, Tuple, Union
 
 import numpy as np
-from dynesty import NestedSampler, DynamicNestedSampler
 import warnings
 
 from autoconf import conf
@@ -262,7 +261,7 @@ class AbstractDynesty(AbstractNest, ABC):
         raise NotImplementedError
 
     def iterations_from(
-        self, search_internal: Union[NestedSampler, DynamicNestedSampler]
+        self, search_internal: "Union[NestedSampler, DynamicNestedSampler]"
     ) -> Tuple[int, int]:
         """
         Returns the next number of iterations that a dynesty call will use and the total number of iterations
@@ -302,7 +301,7 @@ class AbstractDynesty(AbstractNest, ABC):
         return self.iterations_per_update, int(total_iterations)
 
     def run_search_internal(
-        self, search_internal: Union[NestedSampler, DynamicNestedSampler]
+        self, search_internal: "Union[NestedSampler, DynamicNestedSampler]"
     ):
         """
         Run the Dynesty sampler, which could be either the static of dynamic sampler.

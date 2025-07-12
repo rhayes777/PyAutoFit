@@ -3,8 +3,6 @@ import os
 from pathlib import Path
 import warnings
 
-import matplotlib.pyplot as plt
-
 from autofit.graphical.expectation_propagation.history import EPHistory
 
 logger = logging.getLogger(__name__)
@@ -34,6 +32,8 @@ class Visualise:
         """
         Save a plot of Evidence and KL Divergence for the ep_history
         """
+        import matplotlib.pyplot as plt
+
         fig, (evidence_plot, kl_plot) = plt.subplots(2)
         fig.suptitle("Evidence and KL Divergence")
         evidence_plot.plot(self.ep_history.evidences(), label="evidence")
