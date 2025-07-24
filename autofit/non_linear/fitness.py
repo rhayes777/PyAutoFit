@@ -183,6 +183,7 @@ class Fitness:
 
     @cached_property
     def _call(self):
+        print("Compiling fitness function for JAX...")
         return jax_wrapper.jit(self.call)
 
     @cached_property

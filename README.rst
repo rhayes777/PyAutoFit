@@ -17,6 +17,18 @@ PyAutoFit: Classy Probabilistic Programming
 .. |JOSS| image:: https://joss.theoj.org/papers/10.21105/joss.02550/status.svg
    :target: https://doi.org/10.21105/joss.02550
 
+.. image:: https://www.repostatus.org/badges/latest/active.svg
+    :target: https://www.repostatus.org/#active
+    :alt: Project Status: Active
+
+.. image:: https://img.shields.io/pypi/pyversions/autofit
+    :target: https://pypi.org/project/autofit/
+    :alt: Python Versions
+
+.. image:: https://img.shields.io/pypi/v/autofit.svg
+    :target: https://pypi.org/project/autofit/
+    :alt: PyPI Version
+
 |binder| |Tests| |Build| |RTD| |JOSS|
 
 `Installation Guide <https://pyautofit.readthedocs.io/en/latest/installation/overview.html>`_ |

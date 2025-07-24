@@ -114,11 +114,22 @@ def search_summary_from_samples(samples) -> [str]:
     return line
 
 
-def search_summary_to_file(samples, log_likelihood_function_time, filename):
+def search_summary_to_file(
+        samples,
+        log_likelihood_function_time,
+        visualization_time,
+        log_likelihood_function_time_no_jax,
+        filename
+):
     summary = search_summary_from_samples(samples=samples)
     summary.append(
         f"Log Likelihood Function Evaluation Time (seconds) = {log_likelihood_function_time}\n"
     )
+
+    if log_likelihood_function_time_no_jax is not None:
+        summary.append(
+            f"Log Likelihood Function Evaluation Time No JAX (seconds) = {log_likelihood_function_time_no_jax}\n"
+        )
 
     expected_time = dt.timedelta(
         seconds=float(samples.total_samples * log_likelihood_function_time)
@@ -128,10 +139,15 @@ def search_summary_to_file(samples, log_likelihood_function_time, filename):
     try:
         speed_up_factor = float(expected_time.total_seconds()) / float(samples.time)
         summary.append(
-            f"Speed Up Factor (e.g. due to parallelization) = {speed_up_factor}"
+            f"Speed Up Factor (e.g. due to parallelization) = {speed_up_factor}\n"
         )
     except TypeError:
         pass
+
+    summary.append(
+        f"Visualization Time (seconds) = {visualization_time}"
+    )
+
     frm.output_list_of_strings_to_file(file=filename, list_of_strings=summary)
 
 

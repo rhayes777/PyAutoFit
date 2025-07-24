@@ -911,7 +911,6 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             If the update is during a non-linear search, in which case tasks are only performed after a certain number
             of updates and only a subset of visualization may be performed.
         """
-
         self.iterations += self.iterations_per_update
 
         if not self.disable_output:
@@ -968,6 +967,8 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                         "latent/latent_summary",
                     )
 
+            start = time.time()
+
             self.perform_visualization(
                 model=model,
                 analysis=analysis,
@@ -976,26 +977,42 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                 search_internal=search_internal,
             )
 
+            visualization_time = time.time() - start
+
             if self.should_profile:
+
                 self.logger.debug("Profiling Maximum Likelihood Model")
+
                 analysis.profile_log_likelihood_function(
                     paths=self.paths,
                     instance=instance,
                 )
 
             self.logger.debug("Outputting model result")
+
             try:
+
                 parameters = samples.max_log_likelihood(as_instance=False)
 
                 start = time.time()
                 fitness(parameters)
                 log_likelihood_function_time = time.time() - start
 
+                if jax_wrapper.use_jax:
+                    start = time.time()
+                    fitness.call(parameters)
+                    log_likelihood_function_time_no_jax = time.time() - start
+                else:
+                    log_likelihood_function_time_no_jax = None
+
                 self.paths.save_summary(
                     samples=samples,
                     latent_samples=latent_samples,
                     log_likelihood_function_time=log_likelihood_function_time,
+                    visualization_time=visualization_time,
+                    log_likelihood_function_time_no_jax=log_likelihood_function_time_no_jax,
                 )
+
             except exc.FitException:
                 pass
 
