@@ -144,9 +144,10 @@ def search_summary_to_file(
     except TypeError:
         pass
 
-    summary.append(
-        f"Visualization Time (seconds) = {visualization_time}"
-    )
+    if visualization_time is not None:
+        summary.append(
+            f"Visualization Time (seconds) = {visualization_time}"
+        )
 
     frm.output_list_of_strings_to_file(file=filename, list_of_strings=summary)
 

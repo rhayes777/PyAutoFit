@@ -1,5 +1,7 @@
+import logging
 import os
 from typing import Optional
+import time
 
 from autoconf import conf
 from autoconf import cached_property
@@ -22,6 +24,7 @@ def get_timeout_seconds():
     except KeyError:
         pass
 
+logger = logging.getLogger(__name__)
 timeout_seconds = get_timeout_seconds()
 
 class Fitness:
@@ -183,7 +186,7 @@ class Fitness:
 
     @cached_property
     def _call(self):
-        print("Compiling fitness function for JAX...")
+        logger.info("Compiling fitness function for JAX...")
         return jax_wrapper.jit(self.call)
 
     @cached_property
