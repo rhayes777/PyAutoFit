@@ -221,6 +221,9 @@ class Nautilus(abstract_nest.AbstractNest):
         vectoized = self.config_dict_search.get("vectorized")
 
         if vectoized:
+
+            self.logger.info("Running search with vectorized Nautilus fitness function.")
+
             func = jax.vmap(fitness)
             prior_t = prior_transform_vectorized
         else:
