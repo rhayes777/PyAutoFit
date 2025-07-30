@@ -1,3 +1,5 @@
+import jax
+import jax.numpy as jnp
 import numpy as np
 import logging
 import os
@@ -21,6 +23,8 @@ logger = logging.getLogger(__name__)
 def prior_transform(cube, model):
     return model.vector_from_unit_vector(unit_vector=cube)
 
+def prior_transform_vectorized(cube, model):
+    return np.array([model.vector_from_unit_vector(row) for row in cube])
 
 class Nautilus(abstract_nest.AbstractNest):
     __identifier_fields__ = (
@@ -214,9 +218,18 @@ class Nautilus(abstract_nest.AbstractNest):
             """
         )
 
+        vectoized = self.config_dict_search.get("vectorized")
+
+        if vectoized:
+            func = jax.vmap(fitness)
+            prior_t = prior_transform_vectorized
+        else:
+            func = fitness.__call__
+            prior_t = prior_transform
+
         search_internal = self.sampler_cls(
-            prior=prior_transform,
-            likelihood=fitness.__call__,
+            prior=prior_t,
+            likelihood=func,
             n_dim=model.prior_count,
             prior_kwargs={"model": model},
             filepath=self.checkpoint_file,

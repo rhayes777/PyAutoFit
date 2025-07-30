@@ -2,7 +2,6 @@ from collections.abc import Hashable
 import math
 from typing import Optional, Tuple, Union
 
-import jax.numpy as jnp
 import numpy as np
 
 from autoconf import cached_property
@@ -442,18 +441,18 @@ class TruncatedNormalMessage(AbstractMessage):
         -------
         The log prior probability of the given value, or -inf if outside truncation bounds.
         """
-        from jax.scipy.stats import norm
+        from scipy.stats import norm
 
         a = (self.lower_limit - self.mean) / self.sigma
         b = (self.upper_limit - self.mean) / self.sigma
         Z = norm.cdf(b) - norm.cdf(a)
 
         z = (value -self.mean) / self.sigma
-        log_pdf = -0.5 * z ** 2 - jnp.log(self.sigma) - 0.5 * jnp.log(2 * jnp.pi)
-        log_trunc_pdf = log_pdf - jnp.log(Z)
+        log_pdf = -0.5 * z ** 2 - np.log(self.sigma) - 0.5 * np.log(2 * np.pi)
+        log_trunc_pdf = log_pdf - np.log(Z)
 
         in_bounds = (self.lower_limit <= value) & (value <= self.upper_limit)
-        return jnp.where(in_bounds, log_trunc_pdf, -jnp.inf)
+        return np.where(in_bounds, log_trunc_pdf, -np.inf)
 
     def __str__(self):
         """

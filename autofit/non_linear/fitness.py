@@ -24,6 +24,8 @@ def get_timeout_seconds():
     except KeyError:
         pass
 
+from jax import debug
+
 logger = logging.getLogger(__name__)
 timeout_seconds = get_timeout_seconds()
 
@@ -187,6 +189,7 @@ class Fitness:
     @cached_property
     def _call(self):
         logger.info("Compiling fitness function for JAX...")
+        debug.print("aaa")
         return jax_wrapper.jit(self.call)
 
     @cached_property
