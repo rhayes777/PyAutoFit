@@ -19,12 +19,22 @@ from autofit.non_linear.samples.nest import SamplesNest
 
 logger = logging.getLogger(__name__)
 
+import time
 
 def prior_transform(cube, model):
     return model.vector_from_unit_vector(unit_vector=cube)
 
 def prior_transform_vectorized(cube, model):
-    return np.array([model.vector_from_unit_vector(row) for row in cube])
+
+    start = time.time()
+
+    trans = np.array([model.vector_from_unit_vector(row) for row in cube])
+
+    end = time.time()
+
+    print(f"Time taken for prior transform vectorized: {end - start:.4f} seconds")
+
+    return trans
 
 class Nautilus(abstract_nest.AbstractNest):
     __identifier_fields__ = (
@@ -141,7 +151,7 @@ class Nautilus(abstract_nest.AbstractNest):
         if (
             self.config_dict.get("force_x1_cpu")
             or self.kwargs.get("force_x1_cpu")
-            or jax_wrapper.use_jax
+      #      or jax_wrapper.use_jax
         ):
             search_internal = self.fit_x1_cpu(
                 fitness=fitness,
@@ -227,7 +237,7 @@ class Nautilus(abstract_nest.AbstractNest):
             func = jax.vmap(fitness)
             prior_t = prior_transform_vectorized
         else:
-            func = fitness.__call__
+            func = fitness.call_numpy_wrapper
             prior_t = prior_transform
 
         search_internal = self.sampler_cls(
@@ -264,12 +274,16 @@ class Nautilus(abstract_nest.AbstractNest):
             the log likelihood the search maximizes.
         """
 
+        # from dask.distributed import Client
+        # client = Client(processes=True, n_workers=4, threads_per_worker=1)
+
         search_internal = self.sampler_cls(
             prior=prior_transform,
-            likelihood=fitness.__call__,
+            likelihood=fitness.call_numpy_wrapper,
             n_dim=model.prior_count,
             prior_kwargs={"model": model},
             filepath=self.checkpoint_file,
+          #  pool=client,
             pool=self.number_of_cores,
             **self.config_dict_search,
         )

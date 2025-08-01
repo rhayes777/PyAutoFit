@@ -1,3 +1,4 @@
+import numpy as np_excplicit
 import logging
 import os
 from typing import Optional
@@ -188,9 +189,16 @@ class Fitness:
 
     @cached_property
     def _call(self):
-        logger.info("Compiling fitness function for JAX...")
-        debug.print("aaa")
+        debug.print(str(jax_wrapper.use_jax))
+        debug.print("Compiling fitness function for JAX...")
         return jax_wrapper.jit(self.call)
+
+    def call_numpy_wrapper(self, parameters):
+
+        figure_of_merit = self.__call__(parameters=np_excplicit.array(parameters))
+
+        return figure_of_merit.item()
+
 
     @cached_property
     def _grad(self):

@@ -3,6 +3,7 @@ import copy
 import gc
 import logging
 import multiprocessing as mp
+import numpy as np
 import os
 import time
 import warnings
@@ -31,7 +32,6 @@ from autofit.graphical import (
 )
 from autofit.graphical.utils import Status
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
-from autofit.mapper.prior_model.collection import Collection
 from autofit.mapper.model import ModelInstance
 from autofit.non_linear.initializer import Initializer
 from autofit.non_linear.fitness import Fitness
@@ -995,7 +995,11 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                 parameters = samples.max_log_likelihood(as_instance=False)
 
                 start = time.time()
-                fitness(parameters)
+                figure_of_merit = fitness(parameters)
+
+                # account for asynchronous JAX calls
+                np.array(figure_of_merit)
+
                 log_likelihood_function_time = time.time() - start
 
                 if jax_wrapper.use_jax:
