@@ -177,15 +177,15 @@ class Fitness:
         """
         return self._call(parameters)
 
-    def __getstate__(self):
-        state = self.__dict__.copy()
-        # Remove non-pickleable attributes
-        state.pop('_call', None)
-        state.pop('_grad', None)
-        return state
-
-    def __setstate__(self, state):
-        self.__dict__.update(state)
+    # def __getstate__(self):
+    #     state = self.__dict__.copy()
+    #     # Remove non-pickleable attributes
+    #     state.pop('_call', None)
+    #     state.pop('_grad', None)
+    #     return state
+    #
+    # def __setstate__(self, state):
+    #     self.__dict__.update(state)
 
     @cached_property
     def _call(self):
@@ -198,7 +198,6 @@ class Fitness:
         figure_of_merit = self.__call__(parameters=np_excplicit.array(parameters))
 
         return figure_of_merit.item()
-
 
     @cached_property
     def _grad(self):

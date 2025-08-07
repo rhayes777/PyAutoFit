@@ -151,7 +151,7 @@ class Nautilus(abstract_nest.AbstractNest):
         if (
             self.config_dict.get("force_x1_cpu")
             or self.kwargs.get("force_x1_cpu")
-      #      or jax_wrapper.use_jax
+     #       or jax_wrapper.use_jax
         ):
             search_internal = self.fit_x1_cpu(
                 fitness=fitness,
@@ -242,7 +242,7 @@ class Nautilus(abstract_nest.AbstractNest):
 
         search_internal = self.sampler_cls(
             prior=prior_t,
-            likelihood=func,
+            likelihood=fitness.call_numpy_wrapper,
             n_dim=model.prior_count,
             prior_kwargs={"model": model},
             filepath=self.checkpoint_file,
@@ -273,22 +273,21 @@ class Nautilus(abstract_nest.AbstractNest):
             Contains the data and the log likelihood function which fits an instance of the model to the data, returning
             the log likelihood the search maximizes.
         """
-
-        # from dask.distributed import Client
-        # client = Client(processes=True, n_workers=4, threads_per_worker=1)
-
         search_internal = self.sampler_cls(
             prior=prior_transform,
             likelihood=fitness.call_numpy_wrapper,
             n_dim=model.prior_count,
             prior_kwargs={"model": model},
             filepath=self.checkpoint_file,
-          #  pool=client,
             pool=self.number_of_cores,
             **self.config_dict_search,
         )
 
-        return self.call_search(search_internal=search_internal, model=model, analysis=analysis, fitness=fitness)
+        search_internal = self.call_search(search_internal=search_internal, model=model, analysis=analysis, fitness=fitness)
+
+        search_internal.client_l.close()
+
+        return search_internal
 
     def call_search(self, search_internal, model, analysis, fitness):
         """
