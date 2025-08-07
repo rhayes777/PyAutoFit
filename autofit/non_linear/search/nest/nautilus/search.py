@@ -11,6 +11,7 @@ from autofit.database.sqlalchemy_ import sa
 
 from autoconf import conf
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
+from autofit.mapper.prior.vectorized import PriorVectorized
 from autofit.non_linear.fitness import Fitness
 from autofit.non_linear.paths.null import NullPaths
 from autofit.non_linear.search.nest import abstract_nest
@@ -274,16 +275,21 @@ class Nautilus(abstract_nest.AbstractNest):
             the log likelihood the search maximizes.
         """
         search_internal = self.sampler_cls(
-            prior=prior_transform,
+            prior=PriorVectorized(model=model),
             likelihood=fitness.call_numpy_wrapper,
             n_dim=model.prior_count,
-            prior_kwargs={"model": model},
+          #  prior_kwargs={"model": model},
             filepath=self.checkpoint_file,
             pool=self.number_of_cores,
             **self.config_dict_search,
         )
 
-        search_internal = self.call_search(search_internal=search_internal, model=model, analysis=analysis, fitness=fitness)
+        search_internal = self.call_search(
+            search_internal=search_internal,
+            model=model,
+            analysis=analysis,
+            fitness=fitness
+        )
 
         search_internal.client_l.close()
 
