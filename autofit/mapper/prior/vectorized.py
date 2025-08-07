@@ -86,16 +86,16 @@ class PriorVectorized:
 
         if self.loguniform_idx:
 
-            self.loguniformlowers = np.array(
+            self.loguniform_lowers = np.array(
                 [self.prior_list[i].lower_limit for i in self.loguniform_idx]
             )  # (n_loguniforms,)
-            self.loguniformuppers = np.array(
+            self.loguniform_uppers = np.array(
                 [self.prior_list[i].upper_limit for i in self.loguniform_idx]
             )  # (n_loguniforms,)
             # Map unit interval to log scale:
             # x = exp(log(lower) + unit * (log(upper) - log(lower)))
-            self.loguniformlog_lowers = np.log(lowers)
-            self.loguniformlog_uppers = np.log(uppers)
+            self.loguniform_log_lowers = np.log(self.loguniform_lowers)
+            self.loguniform_log_uppers = np.log(self.loguniform_uppers)
 
     def __call__(self, cube: np.ndarray) -> np.ndarray:
         """
@@ -141,8 +141,8 @@ class PriorVectorized:
             subcube = cube[:, self.loguniform_idx]  # (n_samples, n_loguniforms)
 
             out[:, self.loguniform_idx] = np.exp(
-                self.loguniformlog_lowers
-                + subcube * (self.loguniformlog_uppers - self.loguniformlog_lowers)
+                self.loguniform_log_lowers
+                + subcube * (self.loguniform_log_uppers - self.loguniform_log_lowers)
             )
 
         return out
