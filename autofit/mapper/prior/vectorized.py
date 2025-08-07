@@ -5,10 +5,32 @@ from autofit.mapper.prior.gaussian import GaussianPrior
 from autofit.mapper.prior.truncated_gaussian import TruncatedGaussianPrior
 from autofit.mapper.prior.uniform import UniformPrior
 from autofit.mapper.prior.log_uniform import LogUniformPrior
+from autofit.mapper.prior_model.abstract import AbstractPriorModel
+
 
 class PriorVectorized:
 
-    def __init__(self, model):
+    def __init__(self, model: AbstractPriorModel):
+        """
+        Vectorized transformer for a model's priors that batches together priors by type
+        and applies inverse transformations from unit cube to physical parameter space.
+
+        This performs the same unit transformation as the individual prior classes
+        `value_for` functions, it simply groups and performs them all in one go
+        in order to make the mapping from unit cube to physical parameter space
+        more efficient.
+
+        Supports Uniform, Gaussian, Truncated Gaussian, and LogUniform priors.
+
+        Raises exceptions if the model contains unsupported prior types.
+
+
+        Parameters
+        ----------
+        model : Model
+            A model object that contains priors ordered by ID, accessible via
+            `model.priors_ordered_by_id`.
+        """
 
         self.model = model
         self.prior_list = model.priors_ordered_by_id
@@ -99,8 +121,18 @@ class PriorVectorized:
 
     def __call__(self, cube: np.ndarray) -> np.ndarray:
         """
-        Vectorized transform of a (n_samples, n_priors) `cube` array
-        by grouping priors by type and processing each group in one go.
+        Apply vectorized prior transformation from unit cube [0, 1] to physical space.
+
+        Parameters
+        ----------
+        cube
+            Array of shape (n_samples, n_priors) with values in [0, 1] which are mapped
+            to physical parameter space via the priors defined in the model.
+
+        Returns
+        -------
+        out
+            Transformed parameters of shape (n_samples, n_priors).
         """
 
         n_samples, n_priors = cube.shape

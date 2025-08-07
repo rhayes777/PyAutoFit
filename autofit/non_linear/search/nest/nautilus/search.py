@@ -22,21 +22,6 @@ logger = logging.getLogger(__name__)
 
 import time
 
-def prior_transform(cube, model):
-    return model.vector_from_unit_vector(unit_vector=cube)
-
-def prior_transform_vectorized(cube, model):
-
-    start = time.time()
-
-    trans = np.array([model.vector_from_unit_vector(row) for row in cube])
-
-    end = time.time()
-
-    print(f"Time taken for prior transform vectorized: {end - start:.4f} seconds")
-
-    return trans
-
 class Nautilus(abstract_nest.AbstractNest):
     __identifier_fields__ = (
         "n_live",
