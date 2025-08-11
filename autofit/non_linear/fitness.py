@@ -1,3 +1,5 @@
+import jax
+import jax.numpy as jnp
 import numpy as np_excplicit
 import logging
 import os
@@ -189,13 +191,12 @@ class Fitness:
 
     @cached_property
     def _call(self):
-        debug.print(str(jax_wrapper.use_jax))
         debug.print("Compiling fitness function for JAX...")
         return jax_wrapper.jit(self.call)
 
     def call_numpy_wrapper(self, parameters):
 
-        figure_of_merit = self.__call__(parameters=np_excplicit.array(parameters))
+        figure_of_merit = self.__call__(np_excplicit.array(parameters))
 
         return figure_of_merit.item()
 
@@ -265,3 +266,14 @@ class Fitness:
             )
 
 
+class FitnessActor(Fitness):
+
+    def call_numpy_wrapper_batch(self, pts_batch):
+        """
+        Process a batch of points in one go.
+        pts_batch: shape (batch_size, n_dim)
+        """
+        results = []
+        for pt in pts_batch:
+            results.append(self.call_numpy_wrapper(pt))
+        return results

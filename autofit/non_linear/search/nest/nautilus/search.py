@@ -12,7 +12,7 @@ from autofit.database.sqlalchemy_ import sa
 from autoconf import conf
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.mapper.prior.vectorized import PriorVectorized
-from autofit.non_linear.fitness import Fitness
+from autofit.non_linear.fitness import Fitness, FitnessActor
 from autofit.non_linear.paths.null import NullPaths
 from autofit.non_linear.search.nest import abstract_nest
 from autofit.non_linear.samples.sample import Sample
@@ -137,7 +137,6 @@ class Nautilus(abstract_nest.AbstractNest):
         if (
             self.config_dict.get("force_x1_cpu")
             or self.kwargs.get("force_x1_cpu")
-     #       or jax_wrapper.use_jax
         ):
             search_internal = self.fit_x1_cpu(
                 fitness=fitness,
@@ -146,10 +145,26 @@ class Nautilus(abstract_nest.AbstractNest):
             )
         else:
             if not self.using_mpi:
+
+                actors = None
+
+                if jax_wrapper.use_jax:
+
+                    from dask.distributed import Client
+
+                    client = Client(n_workers=self.number_of_cores, threads_per_worker=1, processes=True)
+
+                    actors = [
+                        client.submit(FitnessActor, model, analysis, None, True, -1.0e99, False, False,
+                                      actor=True).result()
+                        for _ in range(self.number_of_cores)
+                    ]
+
                 search_internal = self.fit_multiprocessing(
                     fitness=fitness,
                     model=model,
                     analysis=analysis,
+                    actors=actors,
                 )
             else:
                 search_internal = self.fit_mpi(
@@ -214,31 +229,27 @@ class Nautilus(abstract_nest.AbstractNest):
             """
         )
 
-        vectoized = self.config_dict_search.get("vectorized")
-
-        if vectoized:
-
-            self.logger.info("Running search with vectorized Nautilus fitness function.")
-
-            func = jax.vmap(fitness)
-            prior_t = prior_transform_vectorized
-        else:
-            func = fitness.call_numpy_wrapper
-            prior_t = prior_transform
+        # vectoized = self.config_dict_search.get("vectorized")
+        #
+        # if vectoized:
+        #
+        #     self.logger.info("Running search with vectorized Nautilus fitness function.")
+        #
+        #     func = jax.vmap(fitness)
 
         search_internal = self.sampler_cls(
-            prior=prior_t,
+            prior=PriorVectorized(model=model),
             likelihood=fitness.call_numpy_wrapper,
             n_dim=model.prior_count,
-            prior_kwargs={"model": model},
             filepath=self.checkpoint_file,
             pool=None,
+            force_x1_cpu=True,
             **self.config_dict_search,
         )
 
         return self.call_search(search_internal=search_internal, model=model, analysis=analysis, fitness=fitness)
 
-    def fit_multiprocessing(self, fitness, model, analysis):
+    def fit_multiprocessing(self, fitness, model, analysis, actors=None):
         """
         Perform the non-linear search, using multiple CPU cores parallelized via Python's multiprocessing module.
 
@@ -263,9 +274,9 @@ class Nautilus(abstract_nest.AbstractNest):
             prior=PriorVectorized(model=model),
             likelihood=fitness.call_numpy_wrapper,
             n_dim=model.prior_count,
-          #  prior_kwargs={"model": model},
             filepath=self.checkpoint_file,
             pool=self.number_of_cores,
+            actors=actors,
             **self.config_dict_search,
         )
 
