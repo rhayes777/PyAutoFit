@@ -154,17 +154,25 @@ class Nautilus(abstract_nest.AbstractNest):
 
                     client = Client(n_workers=self.number_of_cores, threads_per_worker=1, processes=True)
 
-                    actors = [
+                    # actors = [
+                    #     client.submit(FitnessActor, model, analysis, None, True, -1.0e99, False, False,
+                    #                   actor=True).result()
+                    #     for _ in range(self.number_of_cores)
+                    # ]
+
+                    actor_futures = [
                         client.submit(FitnessActor, model, analysis, None, True, -1.0e99, False, False,
-                                      actor=True).result()
+                                      actor=True)
                         for _ in range(self.number_of_cores)
                     ]
+                    actors = client.gather(actor_futures)
 
                 search_internal = self.fit_multiprocessing(
                     fitness=fitness,
                     model=model,
                     analysis=analysis,
                     actors=actors,
+                    client=client,
                 )
             else:
                 search_internal = self.fit_mpi(
@@ -249,7 +257,7 @@ class Nautilus(abstract_nest.AbstractNest):
 
         return self.call_search(search_internal=search_internal, model=model, analysis=analysis, fitness=fitness)
 
-    def fit_multiprocessing(self, fitness, model, analysis, actors=None):
+    def fit_multiprocessing(self, fitness, model, analysis, actors=None, client=None):
         """
         Perform the non-linear search, using multiple CPU cores parallelized via Python's multiprocessing module.
 
@@ -287,7 +295,7 @@ class Nautilus(abstract_nest.AbstractNest):
             fitness=fitness
         )
 
-        search_internal.client_l.close()
+        client.close()
 
         return search_internal
 
