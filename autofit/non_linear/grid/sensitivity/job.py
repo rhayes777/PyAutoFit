@@ -159,6 +159,13 @@ class Job(AbstractJob):
         if self.is_complete:
             dataset = None
         else:
+
+            return JobResult(
+                number=self.number,
+                result=MaskedJobResult(self.number, self.model),
+                perturb_result=MaskedJobResult(self.number, self.perturb_model),
+            )
+
             dataset = self.simulate_cls(
                 instance=self.simulate_instance,
                 simulate_path=self.paths.image_path.with_name("simulate"),
