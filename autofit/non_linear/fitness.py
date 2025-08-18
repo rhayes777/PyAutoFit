@@ -191,7 +191,7 @@ class Fitness:
 
     @cached_property
     def _call(self):
-        debug.print("Compiling fitness function for JAX...")
+       # debug.print("Compiling fitness function for JAX...")
         return jax_wrapper.jit(self.call)
 
     def call_numpy_wrapper(self, parameters):
@@ -277,3 +277,4 @@ class FitnessActor(Fitness):
         for pt in pts_batch:
             results.append(self.call_numpy_wrapper(pt))
         return results
+
