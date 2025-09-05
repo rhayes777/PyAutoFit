@@ -18,8 +18,8 @@ def test():
     )
 
     model_3 = af.Collection(
-        2 * np.sqrt(2 * np.log(2)) * model_1.sigma,
-        2 * np.sqrt(2 * np.log(2)) * model_2.sigma,
+        model_1.fwhm,
+        model_2.fwhm,
     )
     analysis_factor_3 = af.AnalysisFactor(
         prior_model=model_3,
