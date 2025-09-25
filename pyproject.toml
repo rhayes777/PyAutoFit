@@ -28,6 +28,7 @@ classifiers = [
 keywords = ["cli"]
 dependencies = [
     "autoconf",
+    "array_api_compat",
     "anesthetic==2.8.14",
     "corner==2.2.2",
     "decorator>=4.2.1",

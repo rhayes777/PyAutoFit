@@ -1,10 +1,7 @@
 import jax
-import jax.numpy as jnp
-import numpy as np_excplicit
 import logging
 import os
 from typing import Optional
-import time
 
 from autoconf import conf
 from autoconf import cached_property
@@ -26,8 +23,6 @@ def get_timeout_seconds():
         return conf.instance["general"]["test"]["lh_timeout_seconds"]
     except KeyError:
         pass
-
-from jax import debug
 
 logger = logging.getLogger(__name__)
 timeout_seconds = get_timeout_seconds()
@@ -190,18 +185,18 @@ class Fitness:
     #     self.__dict__.update(state)
 
     @cached_property
+    def _vmap(self):
+        print("JAX: Applying vmap and jit to likelihood function -- may take a few seconds.")
+        return jax.vmap(jax.jit(self.call))
+
+    @cached_property
     def _call(self):
-       # debug.print("Compiling fitness function for JAX...")
+        print("JAX: Applying jit to likelihood function -- may take a few seconds.")
         return jax_wrapper.jit(self.call)
-
-    def call_numpy_wrapper(self, parameters):
-
-        figure_of_merit = self.__call__(np_excplicit.array(parameters))
-
-        return figure_of_merit.item()
 
     @cached_property
     def _grad(self):
+        print("JAX: Applying grad to likelihood function -- may take a few seconds.")
         return jax_wrapper.grad(self._call)
 
     def grad(self, *args, **kwargs):
@@ -264,17 +259,3 @@ class Fitness:
                 New Figure of Merit = {log_likelihood_new}
                 """
             )
-
-
-class FitnessActor(Fitness):
-
-    def call_numpy_wrapper_batch(self, pts_batch):
-        """
-        Process a batch of points in one go.
-        pts_batch: shape (batch_size, n_dim)
-        """
-        results = []
-        for pt in pts_batch:
-            results.append(self.call_numpy_wrapper(pt))
-        return results
-
