@@ -1,6 +1,8 @@
 import jax
 import logging
 import os
+import time
+from timeout_decorator import timeout
 from typing import Optional
 
 from autoconf import conf
@@ -14,8 +16,6 @@ from autofit import exc
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.paths.abstract import AbstractPaths
 from autofit.non_linear.analysis import Analysis
-
-from timeout_decorator import timeout
 
 def get_timeout_seconds():
 
@@ -186,18 +186,28 @@ class Fitness:
 
     @cached_property
     def _vmap(self):
+        start = time.time()
         print("JAX: Applying vmap and jit to likelihood function -- may take a few seconds.")
-        return jax.vmap(jax.jit(self.call))
+        func = jax.vmap(jax.jit(self.call))
+        print(f"JAX: vmap and jit applied in {time.time() - start} seconds.")
+        return func
 
     @cached_property
     def _call(self):
+        start = time.time()
         print("JAX: Applying jit to likelihood function -- may take a few seconds.")
-        return jax_wrapper.jit(self.call)
+        func = jax_wrapper.jit(self.call)
+        print(f"JAX: jit applied in {time.time() - start} seconds.")
+        return func
+
 
     @cached_property
     def _grad(self):
+        start = time.time()
         print("JAX: Applying grad to likelihood function -- may take a few seconds.")
-        return jax_wrapper.grad(self._call)
+        func = jax_wrapper.grad(self._call)
+        print(f"JAX: grad applied in {time.time() - start} seconds.")
+        return func
 
     def grad(self, *args, **kwargs):
         return self._grad(*args, **kwargs)
