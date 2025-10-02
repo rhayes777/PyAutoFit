@@ -1,7 +1,13 @@
 import inspect
 import logging
 from abc import ABC
+import functools
+import numpy as np
+import jax
+import jax.numpy as jnp
 from typing import Optional, Dict
+
+from autofit.jax_wrapper import use_jax
 
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.paths.abstract import AbstractPaths
@@ -26,6 +32,8 @@ class Analysis(ABC):
 
     Result = Result
     Visualizer = Visualizer
+
+    LATENT_KEYS = []
 
     def __getattr__(self, item: str):
         """
@@ -64,36 +72,50 @@ class Analysis(ABC):
         """
         try:
 
+            compute_latent_for_model = functools.partial(self.compute_latent_variables, model=samples.model)
+
+            if use_jax:
+                batched_compute_latent = jax.jit(jax.vmap(compute_latent_for_model))
+            else:
+                def batched_compute_latent(x):
+                    return np.array([compute_latent_for_model(xx) for xx in x])
+
+            parameter_array = np.array(samples.parameter_lists)
+            batch_size = 50
             latent_samples = []
-            model = samples.model
-            for sample in samples.sample_list:
 
-                kwargs = self.compute_latent_variables(
-                    sample.instance_for_model(model, ignore_assertions=True)
-                )
+            # process in batches
+            for i in range(0, len(parameter_array), batch_size):
 
-                # convert all values to Python floats to remove JAX arrays
-                kwargs = {k: float(v) if hasattr(v, "__array__") or isinstance(v, (np.generic,)) else v
-                          for k, v in kwargs.items()}
+                batch = parameter_array[i:i + batch_size]
 
-                latent_samples.append(
-                    Sample(
-                        log_likelihood=sample.log_likelihood,
-                        log_prior=sample.log_prior,
-                        weight=sample.weight,
-                        kwargs=kwargs
+                # batched JAX call on this chunk
+                latent_values_batch = batched_compute_latent(batch)
+                if use_jax:
+                    latent_values_batch = jnp.stack(latent_values_batch, axis=-1)
+
+                for sample, values in zip(samples.sample_list[i:i + batch_size], latent_values_batch):
+                    kwargs = {k: float(v) for k, v in zip(self.LATENT_KEYS, values)}
+
+                    latent_samples.append(
+                        Sample(
+                            log_likelihood=sample.log_likelihood,
+                            log_prior=sample.log_prior,
+                            weight=sample.weight,
+                            kwargs=kwargs,
                         )
-                )
+                    )
 
             return type(samples)(
                 sample_list=latent_samples,
                 model=simple_model_for_kwargs(latent_samples[0].kwargs),
                 samples_info=samples.samples_info,
             )
+
         except NotImplementedError:
             return None
 
-    def compute_latent_variables(self, instance) -> Dict[str, float]:
+    def compute_latent_variables(self, parameters, model) -> Dict[str, float]:
         """
         Override to compute latent variables from the instance.
 
@@ -242,3 +264,6 @@ class Analysis(ABC):
             The maximum likliehood instance of the model so far in the non-linear search.
         """
         pass
+
+    def latent_lh_dict_from(self, **kwargs):
+        return None

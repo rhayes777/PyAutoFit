@@ -86,7 +86,7 @@ start_point: true
 # manually after completing a successful model-fit. This will save computational run time by not computing latent
 # variables during a any model-fit which is unsuccessful.
 
-latent_during_fit: true # Whether to output the `latent.csv`, `latent.results` and `latent_summary.json` files during the fit when it performs on-the-fly output.
+latent_during_fit: false # Whether to output the `latent.csv`, `latent.results` and `latent_summary.json` files during the fit when it performs on-the-fly output.
 latent_after_fit: true # If `latent_during_fit` is False, whether to output the `latent.csv`, `latent.results` and `latent_summary.json` files after the fit is complete.
 latent_csv: true # Whether to ouptut the `latent.csv` file.
 latent_results: true # Whether to output the `latent.results` file.
