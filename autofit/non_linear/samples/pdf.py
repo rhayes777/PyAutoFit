@@ -328,6 +328,37 @@ class SamplesPDF(Samples):
 
         return self.parameter_lists[sample_index][:]
 
+    def samples_drawn_randomly_via_pdf_from(self, total_draws: int = 100) -> "SamplesPDF":
+        """
+        Draw one or more samples randomly from the PDF, weighted by the sample weights.
+
+        Parameters
+        ----------
+        total_draws : int, optional
+            The number of samples to draw. Defaults to 100.
+
+        Returns
+        -------
+        SamplesPDF
+            A new SamplesPDF object containing the drawn samples.
+        """
+        # Normalize weights to sum to 1
+        weights = np.asarray(self.weight_list, dtype=float)
+        weights /= weights.sum()
+
+        sample_indices = np.random.choice(
+            a=len(self.sample_list),
+            size=total_draws,
+            replace=True,
+            p=weights,
+        )
+
+        return SamplesPDF(
+            model=self.model,
+            sample_list=[self.sample_list[i] for i in sample_indices],
+            samples_info=self.samples_info,
+        )
+
     @to_instance
     def offset_values_via_input_values(
         self, input_vector: List
