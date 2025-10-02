@@ -63,21 +63,26 @@ class Analysis(ABC):
         The computed latent samples or None if compute_latent_variables is not implemented.
         """
         try:
+
             latent_samples = []
             model = samples.model
             for sample in samples.sample_list:
+
+                kwargs = self.compute_latent_variables(
+                    sample.instance_for_model(model, ignore_assertions=True)
+                )
+
+                # convert all values to Python floats to remove JAX arrays
+                kwargs = {k: float(v) if hasattr(v, "__array__") or isinstance(v, (np.generic,)) else v
+                          for k, v in kwargs.items()}
+
                 latent_samples.append(
                     Sample(
                         log_likelihood=sample.log_likelihood,
                         log_prior=sample.log_prior,
                         weight=sample.weight,
-                        kwargs=self.compute_latent_variables(
-                            sample.instance_for_model(
-                                model,
-                                ignore_assertions=True,
-                            )
-                        ),
-                    )
+                        kwargs=kwargs
+                        )
                 )
 
             return type(samples)(
