@@ -95,7 +95,10 @@ class Analysis(ABC):
             compute_latent_for_model = functools.partial(self.compute_latent_variables, model=samples.model)
 
             if use_jax:
+                start = time.time()
+                logger.info("JAX: Applying vmap and jit to likelihood function for latent variables -- may take a few seconds.")
                 batched_compute_latent = jax.jit(jax.vmap(compute_latent_for_model))
+                logger.info(f"JAX: vmap and jit applied in {time.time() - start} seconds.")
             else:
                 def batched_compute_latent(x):
                     return np.array([compute_latent_for_model(xx) for xx in x])
@@ -113,11 +116,10 @@ class Analysis(ABC):
                 latent_values_batch = batched_compute_latent(batch)
 
                 if use_jax:
-               #     latent_values_batch = jnp.stack(latent_values_batch, axis=-1)  # (batch, n_latents)
+                    latent_values_batch = jnp.stack(latent_values_batch, axis=-1)  # (batch, n_latents)
                     mask = jnp.all(jnp.isfinite(latent_values_batch), axis=0)
                     latent_values_batch = latent_values_batch[:, mask]
                 else:
-               #     latent_values_batch = np.stack(latent_values_batch, axis=-1)  # (batch, n_latents)
                     mask = np.all(np.isfinite(latent_values_batch), axis=0)
                     latent_values_batch = latent_values_batch[:, mask]
 
