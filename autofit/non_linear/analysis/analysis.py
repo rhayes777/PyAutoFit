@@ -5,6 +5,7 @@ import functools
 import numpy as np
 import jax
 import jax.numpy as jnp
+import time
 from typing import Optional, Dict
 
 from autofit.jax_wrapper import use_jax
@@ -92,6 +93,8 @@ class Analysis(ABC):
         """
         try:
 
+            start_latent = time.time()
+
             compute_latent_for_model = functools.partial(self.compute_latent_variables, model=samples.model)
 
             if use_jax:
@@ -125,7 +128,6 @@ class Analysis(ABC):
 
                 for sample, values in zip(samples.sample_list[i:i + batch_size], latent_values_batch):
 
-
                     kwargs = {k: float(v) for k, v in zip(self.LATENT_KEYS, values)}
 
                     latent_samples.append(
@@ -136,6 +138,8 @@ class Analysis(ABC):
                             kwargs=kwargs,
                         )
                     )
+
+            print(f"Time to compute latent variables: {time.time() - start_latent} seconds for {len(samples)} samples.")
 
             return type(samples)(
                 sample_list=latent_samples,
