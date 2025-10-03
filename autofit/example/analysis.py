@@ -34,8 +34,9 @@ class Analysis(af.Analysis):
     It has been extended, based on the model that is input into the analysis, to include a 
     property `max_log_likelihood_model_data`, which is the model data of the best-fit model.
     """
-
     Result = ResultExample
+
+    LATENT_KEYS = ["fwhm"]
 
     def __init__(self, data: np.ndarray, noise_map: np.ndarray):
         """
@@ -231,9 +232,9 @@ class Analysis(af.Analysis):
 
         """
         try:
-            return {"fwhm": instance.fwhm}
+            return (instance.fwhm, )
         except AttributeError:
             try:
-                return {"gaussian.fwhm": instance[0].fwhm}
+                return (instance[0].fwhm,)
             except AttributeError:
-                return {"gaussian.fwhm": instance[0].gaussian.fwhm}
+                return (instance[0].gaussian.fwhm,)
