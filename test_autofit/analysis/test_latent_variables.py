@@ -13,7 +13,10 @@ class Analysis(af.Analysis):
     def log_likelihood_function(self, instance):
         return 1.0
 
-    def compute_latent_variables(self, instance, model):
+    def compute_latent_variables(self, parameters, model):
+
+        instance = model.instance_from_vector(vector=parameters)
+
         return (instance.fwhm,)
 
 
@@ -109,7 +112,10 @@ class ComplexAnalysis(af.Analysis):
     def log_likelihood_function(self, instance):
         return 1.0
 
-    def compute_latent_variables(self, instance, model):
+    def compute_latent_variables(self, parameters, model):
+
+        instance = model.instance_from_vector(vector=parameters)
+
         return (1.0, 2.0, 3.0)
 
 
@@ -136,8 +142,6 @@ def test_complex_model():
     instance = latent_samples.model.instance_from_prior_medians()
 
     lens = instance.lens
-
-    print(lens)
 
     assert lens.mass == 1.0
     assert lens.brightness == 2.0
