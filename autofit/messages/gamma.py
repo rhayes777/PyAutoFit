@@ -1,4 +1,7 @@
+import math
+
 import numpy as np
+from scipy import special
 
 from autoconf import cached_property
 from autofit.messages.abstract import AbstractMessage
@@ -8,8 +11,6 @@ from autofit.messages.utils import invpsilog
 class GammaMessage(AbstractMessage):
     @property
     def log_partition(self):
-        from scipy import special
-
         alpha, beta = GammaMessage.invert_natural_parameters(self.natural_parameters)
         return special.gammaln(alpha) - alpha * np.log(beta)
 
@@ -21,6 +22,8 @@ class GammaMessage(AbstractMessage):
             self,
             alpha=1.0,
             beta=1.0,
+            lower_limit=-math.inf,
+            upper_limit=math.inf,
             log_norm=0.0,
             id_=None
     ):
@@ -29,6 +32,8 @@ class GammaMessage(AbstractMessage):
         super().__init__(
             alpha,
             beta,
+            lower_limit=lower_limit,
+            upper_limit=upper_limit,
             log_norm=log_norm,
             id_=id_
         )
@@ -82,8 +87,6 @@ class GammaMessage(AbstractMessage):
         return cls(alpha, beta, **kwargs)
 
     def kl(self, dist):
-        from scipy import special
-
         P, Q = dist, self
         logP = np.log(P.alpha)
         # TODO check this is correct

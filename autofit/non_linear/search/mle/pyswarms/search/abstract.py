@@ -188,10 +188,10 @@ class AbstractPySwarms(AbstractMLE):
         ## TODO : Use actual limits
 
         vector_lower = model.vector_from_unit_vector(
-            unit_vector=[1e-6] * model.prior_count,
+            unit_vector=[1e-6] * model.prior_count, ignore_prior_limits=True
         )
         vector_upper = model.vector_from_unit_vector(
-            unit_vector=[0.9999999] * model.prior_count,
+            unit_vector=[0.9999999] * model.prior_count, ignore_prior_limits=True
         )
 
         lower_bounds = [lower for lower in vector_lower]

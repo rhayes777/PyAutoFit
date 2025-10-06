@@ -46,10 +46,8 @@ class AbstractMessage(MessageInterface, ABC):
         upper_limit=math.inf,
         id_=None,
     ):
-
-        self.lower_limit = float(lower_limit)
-        self.upper_limit = float(upper_limit)
-
+        self.lower_limit = lower_limit
+        self.upper_limit = upper_limit
         self.id = next(self.ids) if id_ is None else id_
         self.log_norm = log_norm
         self._broadcast = np.broadcast(*parameters)
@@ -68,6 +66,8 @@ class AbstractMessage(MessageInterface, ABC):
         return dict(
             log_norm=self.log_norm,
             id_=self.id,
+            lower_limit=self.lower_limit,
+            upper_limit=self.upper_limit,
         )
 
     def check_support(self) -> np.ndarray:
@@ -92,6 +92,8 @@ class AbstractMessage(MessageInterface, ABC):
         result = cls(
             *(copy(params) for params in self.parameters),
             log_norm=self.log_norm,
+            lower_limit=self.lower_limit,
+            upper_limit=self.upper_limit,
         )
         result.id = self.id
         return result
@@ -197,6 +199,8 @@ class AbstractMessage(MessageInterface, ABC):
                 *self.parameters,
                 log_norm=log_norm,
                 id_=self.id,
+                lower_limit=self.lower_limit,
+                upper_limit=self.upper_limit,
             )
 
     def __rmul__(self, other: "AbstractMessage") -> "AbstractMessage":
@@ -212,6 +216,8 @@ class AbstractMessage(MessageInterface, ABC):
                 *self.parameters,
                 log_norm=log_norm,
                 id_=self.id,
+                lower_limit=self.lower_limit,
+                upper_limit=self.upper_limit,
             )
 
     def __pow__(self, other: Real) -> "AbstractMessage":
@@ -222,6 +228,8 @@ class AbstractMessage(MessageInterface, ABC):
             new_params,
             log_norm=log_norm,
             id_=self.id,
+            lower_limit=self.lower_limit,
+            upper_limit=self.upper_limit,
         )
         return new
 
@@ -252,6 +260,7 @@ class AbstractMessage(MessageInterface, ABC):
     __repr__ = __str__
 
     def factor(self, x):
+        # self.assert_within_limits(x)
         return self.logpdf(x)
 
     @classmethod
@@ -332,6 +341,8 @@ class AbstractMessage(MessageInterface, ABC):
             *valid_parameters,
             log_norm=self.log_norm,
             id_=self.id,
+            lower_limit=self.lower_limit,
+            upper_limit=self.upper_limit,
         )
         return new
 
@@ -399,12 +410,16 @@ class AbstractMessage(MessageInterface, ABC):
         parameters: Tuple[np.ndarray, ...],
         log_norm: float,
         id_,
+        lower_limit,
+        upper_limit,
         *args,
     ):
         return cls(
             *parameters,
             log_norm=log_norm,
             id_=id_,
+            lower_limit=lower_limit,
+            upper_limit=upper_limit,
         )
 
     def __reduce__(self):
@@ -415,6 +430,8 @@ class AbstractMessage(MessageInterface, ABC):
                 self.parameters,
                 self.log_norm,
                 self.id,
+                self.lower_limit,
+                self.upper_limit,
             ),
         )
 

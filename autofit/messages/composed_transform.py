@@ -80,6 +80,8 @@ class TransformedMessage(MessageInterface):
             A list of transforms applied left to right. For example, a shifted uniform
             normal message is first converted to uniform normal then shifted
         id_
+        lower_limit
+        upper_limit
         """
         while isinstance(base_message, TransformedMessage):
             transforms = base_message.transforms + transforms

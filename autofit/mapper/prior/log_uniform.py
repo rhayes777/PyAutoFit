@@ -1,20 +1,17 @@
-from typing import Optional, Tuple
+from typing import Optional
 
 import numpy as np
 
 from autofit.jax_wrapper import register_pytree_node_class
+from autofit import exc
 from autofit.messages.normal import UniformNormalMessage
 from autofit.messages.transform import log_10_transform, LinearShiftTransform
 from .abstract import Prior
 from ...messages.composed_transform import TransformedMessage
 
-from autofit import exc
 
 @register_pytree_node_class
 class LogUniformPrior(Prior):
-    __identifier_fields__ = ("lower_limit", "upper_limit")
-    __database_args__ = ("lower_limit", "upper_limit", "id_")
-
     def __init__(
         self,
         lower_limit: float = 1e-6,
@@ -48,29 +45,27 @@ class LogUniformPrior(Prior):
         physical_value = prior.value_for(unit=0.2)
         """
 
-        self.lower_limit = float(lower_limit)
-        self.upper_limit = float(upper_limit)
-
-        if self.lower_limit <= 0.0:
+        if lower_limit <= 0.0:
             raise exc.PriorException(
                 "The lower limit of a LogUniformPrior cannot be zero or negative."
             )
-        if self.lower_limit >= self.upper_limit:
-            raise exc.PriorException(
-                "The upper limit of a prior must be greater than its lower limit"
-            )
+
+        lower_limit = float(lower_limit)
+        upper_limit = float(upper_limit)
 
         message = TransformedMessage(
             UniformNormalMessage,
             LinearShiftTransform(
-                shift=np.log10(self.lower_limit),
-                scale=np.log10(self.upper_limit / self.lower_limit),
+                shift=np.log10(lower_limit),
+                scale=np.log10(upper_limit / lower_limit),
             ),
             log_10_transform,
         )
 
         super().__init__(
             message=message,
+            lower_limit=lower_limit,
+            upper_limit=upper_limit,
             id_=id_,
         )
 
@@ -126,7 +121,7 @@ class LogUniformPrior(Prior):
         """
         return 1.0 / value
 
-    def value_for(self, unit: float) -> float:
+    def value_for(self, unit: float, ignore_prior_limits: bool = False) -> float:
         """
         Returns a physical value from an input unit value according to the limits of the log10 uniform prior.
 
@@ -147,23 +142,7 @@ class LogUniformPrior(Prior):
 
         physical_value = prior.value_for(unit=0.2)
         """
-        return super().value_for(unit)
-
-    def dict(self) -> dict:
-        """
-        Return a dictionary representation of this GaussianPrior instance,
-        including mean and sigma.
-
-        Returns
-        -------
-        Dictionary containing prior parameters.
-        """
-        prior_dict = super().dict()
-        return {**prior_dict, "lower_limit": self.lower_limit, "upper_limit": self.upper_limit}
-
-    @property
-    def limits(self) -> Tuple[float, float]:
-        return self.lower_limit, self.upper_limit
+        return super().value_for(unit, ignore_prior_limits=ignore_prior_limits)
 
     @property
     def parameter_string(self) -> str:

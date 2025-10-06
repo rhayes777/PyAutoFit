@@ -1,4 +1,5 @@
 import os
+import matplotlib.pyplot as plt
 import numpy as np
 from typing import List
 
@@ -37,8 +38,6 @@ class VisualizerExample(af.Visualizer):
         model
             The model which is fitted to the data, which may be used to customize the visualization.
         """
-
-        import matplotlib.pyplot as plt
 
         xvalues = np.arange(analysis.data.shape[0])
 
@@ -94,8 +93,6 @@ class VisualizerExample(af.Visualizer):
             If True the visualization is being performed midway through the non-linear search before it is finished,
             which may change which images are output.
         """
-
-        import matplotlib.pyplot as plt
 
         xvalues = np.arange(analysis.data.shape[0])
         model_data_1d_list = []

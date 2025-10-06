@@ -12,6 +12,7 @@ from autofit.non_linear.samples.sample import Sample
 from autofit.non_linear.samples.samples import Samples
 
 import copy
+from scipy import optimize
 import numpy as np
 
 
@@ -81,8 +82,6 @@ class AbstractBFGS(AbstractMLE):
         A result object comprising the Samples object that inclues the maximum log likelihood instance and full
         chains used by the fit.
         """
-        from scipy import optimize
-
         fitness = Fitness(
             model=model,
             analysis=analysis,

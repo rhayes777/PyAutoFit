@@ -10,12 +10,16 @@ def make_prior_dict():
         "type": "compound",
         "compound_type": "SumPrior",
         "left": {
+            "lower_limit": float("-inf"),
+            "upper_limit": float("inf"),
             "type": "Gaussian",
             "id": 0,
             "mean": 1.0,
             "sigma": 2.0,
         },
         "right": {
+            "lower_limit": float("-inf"),
+            "upper_limit": float("inf"),
             "type": "Gaussian",
             "id": 0,
             "mean": 1.0,

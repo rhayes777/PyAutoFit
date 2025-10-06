@@ -2,7 +2,6 @@ import itertools
 import random
 from abc import ABC, abstractmethod
 from copy import copy
-import jax
 from typing import Union, Tuple, Optional, Dict
 
 from autoconf import conf
@@ -16,23 +15,32 @@ epsilon = 1e-14
 
 
 class Prior(Variable, ABC, ArithmeticMixin):
-    __database_args__ = ("id_")
+    __database_args__ = ("lower_limit", "upper_limit", "id_")
 
     _ids = itertools.count()
 
-    def __init__(self, message, id_=None):
+    def __init__(self, message, lower_limit=0.0, upper_limit=1.0, id_=None):
         """
         An object used to mappers a unit value to an attribute value for a specific
         class attribute.
 
         Parameters
         ----------
-        message
-
+        lower_limit: Float
+            The lowest value this prior can return
+        upper_limit: Float
+            The highest value this prior can return
         """
         super().__init__(id_=id_)
         self.message = message
         message.id_ = self.id
+
+        self.lower_limit = float(lower_limit)
+        self.upper_limit = float(upper_limit)
+        if self.lower_limit >= self.upper_limit:
+            raise exc.PriorException(
+                "The upper limit of a prior must be greater than its lower limit"
+            )
 
         self.width_modifier = None
 
@@ -54,6 +62,20 @@ class Prior(Variable, ABC, ArithmeticMixin):
         An instance of this class
         """
         return cls(*children)
+
+    @property
+    def lower_unit_limit(self) -> float:
+        """
+        The lower limit for this prior in unit vector space
+        """
+        return self.unit_value_for(self.lower_limit)
+
+    @property
+    def upper_unit_limit(self) -> float:
+        """
+        The upper limit for this prior in unit vector space
+        """
+        return self.unit_value_for(self.upper_limit)
 
     def unit_value_for(self, physical_value: float) -> float:
         """
@@ -87,6 +109,31 @@ class Prior(Variable, ABC, ArithmeticMixin):
         """
         return self.message.factor
 
+    def assert_within_limits(self, value):
+
+        def exception_message():
+            raise exc.PriorLimitException(
+                "The physical value {} for a prior "
+                "was not within its limits {}, {}".format(
+                    value, self.lower_limit, self.upper_limit
+                )
+            )
+
+        if jax_wrapper.use_jax:
+            import jax
+            jax.lax.cond(
+                jax.numpy.logical_or(
+                    value < self.lower_limit,
+                    value > self.upper_limit
+                ),
+                lambda _: jax.debug.callback(exception_message),
+                lambda _: None,
+                None
+            )
+
+        elif not (self.lower_limit <= value <= self.upper_limit):
+            exception_message()
+
     @staticmethod
     def for_class_and_attribute_name(cls, attribute_name):
         prior_dict = conf.instance.prior_config.for_class_and_suffix_path(
@@ -94,22 +141,26 @@ class Prior(Variable, ABC, ArithmeticMixin):
         )
         return Prior.from_dict(prior_dict)
 
+    @property
+    def width(self):
+        return self.upper_limit - self.lower_limit
+
     def random(
         self,
-        lower_limit : float = 0.0,
-        upper_limit : float = 1.0
+        lower_limit=0.0,
+        upper_limit=1.0,
     ) -> float:
         """
         A random value sampled from this prior
         """
         return self.value_for(
             random.uniform(
-                lower_limit,
-                upper_limit,
+                max(lower_limit, self.lower_unit_limit),
+                min(upper_limit, self.upper_unit_limit),
             )
         )
 
-    def value_for(self, unit: float) -> float:
+    def value_for(self, unit: float, ignore_prior_limits=False) -> float:
         """
         Return a physical value for a value between 0 and 1 with the transformation
         described by this prior.
@@ -123,7 +174,10 @@ class Prior(Variable, ABC, ArithmeticMixin):
         -------
         A physical value, mapped from the unit value accoridng to the prior.
         """
-        return self.message.value_for(unit)
+        result = self.message.value_for(unit)
+        if not ignore_prior_limits:
+            self.assert_within_limits(result)
+        return result
 
     def instance_for_arguments(
         self,
@@ -139,6 +193,8 @@ class Prior(Variable, ABC, ArithmeticMixin):
             samples=samples,
             log_weight_list=weights,
             id_=self.id,
+            lower_limit=self.lower_limit,
+            upper_limit=self.upper_limit,
         )
         return result
 
@@ -160,8 +216,8 @@ class Prior(Variable, ABC, ArithmeticMixin):
         return hash(self.id)
 
     def __repr__(self):
-        return "<{} id={}>".format(
-            self.__class__.__name__, self.id,
+        return "<{} id={} lower_limit={} upper_limit={}>".format(
+            self.__class__.__name__, self.id, self.lower_limit, self.upper_limit
         )
 
     def __str__(self):
@@ -212,14 +268,12 @@ class Prior(Variable, ABC, ArithmeticMixin):
         from .log_uniform import LogUniformPrior
         from .gaussian import GaussianPrior
         from .log_gaussian import LogGaussianPrior
-        from .truncated_gaussian import TruncatedGaussianPrior
 
         prior_type_dict = {
             "Uniform": UniformPrior,
             "LogUniform": LogUniformPrior,
             "Gaussian": GaussianPrior,
             "LogGaussian": LogGaussianPrior,
-            "TruncatedGaussian" : TruncatedGaussianPrior,
             "Constant": Constant,
         }
 
@@ -228,7 +282,7 @@ class Prior(Variable, ABC, ArithmeticMixin):
             **{
                 key: value
                 for key, value in prior_dict.items()
-                if key not in ("type", "width_modifier", "limits", "id")
+                if key not in ("type", "width_modifier", "gaussian_limits", "id")
             },
         )
         if id_ is not None:
@@ -240,6 +294,8 @@ class Prior(Variable, ABC, ArithmeticMixin):
         A dictionary representation of this prior
         """
         prior_dict = {
+            "lower_limit": self.lower_limit,
+            "upper_limit": self.upper_limit,
             "type": self.name_of_class(),
             "id": self.id,
         }
@@ -254,7 +310,7 @@ class Prior(Variable, ABC, ArithmeticMixin):
 
     @property
     def limits(self) -> Tuple[float, float]:
-        return (float("-inf"), float("inf"))
+        return self.lower_limit, self.upper_limit
 
     def gaussian_prior_model_for_arguments(self, arguments):
         return arguments[self]

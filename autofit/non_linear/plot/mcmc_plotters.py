@@ -1,3 +1,4 @@
+import matplotlib.pyplot as plt
 import logging
 
 from autofit.non_linear.plot.samples_plotters import SamplesPlotter

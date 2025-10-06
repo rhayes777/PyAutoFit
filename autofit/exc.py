@@ -19,6 +19,10 @@ class FitException(Exception):
     pass
 
 
+class PriorLimitException(FitException, PriorException):
+    pass
+
+
 class PipelineException(Exception):
     pass
 

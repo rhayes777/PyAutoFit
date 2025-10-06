@@ -3,6 +3,7 @@ from abc import ABC
 from typing import Dict, Optional, Tuple, Union
 
 import numpy as np
+from dynesty import NestedSampler, DynamicNestedSampler
 import warnings
 
 from autoconf import conf
@@ -19,7 +20,7 @@ from autofit.non_linear.samples.nest import SamplesNest
 
 def prior_transform(cube, model):
     phys_cube = model.vector_from_unit_vector(
-        unit_vector=cube,
+        unit_vector=cube, ignore_prior_limits=True
     )
 
     for i in range(len(phys_cube)):
@@ -114,6 +115,8 @@ class AbstractDynesty(AbstractNest, ABC):
         set of accepted samples of the fit.
         """
 
+        from dynesty.pool import Pool
+
         fitness = Fitness(
             model=model,
             analysis=analysis,
@@ -148,8 +151,6 @@ class AbstractDynesty(AbstractNest, ABC):
                     or jax_wrapper.use_jax
                 ):
                     raise RuntimeError
-
-                from dynesty.pool import Pool
 
                 with Pool(
                     njobs=self.number_of_cores,
@@ -261,7 +262,7 @@ class AbstractDynesty(AbstractNest, ABC):
         raise NotImplementedError
 
     def iterations_from(
-        self, search_internal: "Union[NestedSampler, DynamicNestedSampler]"
+        self, search_internal: Union[NestedSampler, DynamicNestedSampler]
     ) -> Tuple[int, int]:
         """
         Returns the next number of iterations that a dynesty call will use and the total number of iterations
@@ -301,7 +302,7 @@ class AbstractDynesty(AbstractNest, ABC):
         return self.iterations_per_update, int(total_iterations)
 
     def run_search_internal(
-        self, search_internal: "Union[NestedSampler, DynamicNestedSampler]"
+        self, search_internal: Union[NestedSampler, DynamicNestedSampler]
     ):
         """
         Run the Dynesty sampler, which could be either the static of dynamic sampler.

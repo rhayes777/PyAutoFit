@@ -1,5 +1,12 @@
+GaussianPrior:
+  lower_limit:
+    type: Constant
+    value: -inf
+  upper_limit:
+    type: Constant
+    value: inf
 centre:
-  limits:
+  gaussian_limits:
     lower: -inf
     upper: inf
   lower_limit: 0.0
@@ -9,7 +16,7 @@ centre:
     type: Absolute
     value: 20.0
 kurtosis:
-  limits:
+  gaussian_limits:
     lower: -inf
     upper: inf
   lower_limit: 0.0
@@ -19,7 +26,7 @@ kurtosis:
     type: Absolute
     value: 20.0
 normalization:
-  limits:
+  gaussian_limits:
     lower: 0.0
     upper: inf
   lower_limit: 1.0e-06
@@ -29,7 +36,7 @@ normalization:
     type: Relative
     value: 0.5
 sigma:
-  limits:
+  gaussian_limits:
     lower: 0.0
     upper: inf
   lower_limit: 0.0

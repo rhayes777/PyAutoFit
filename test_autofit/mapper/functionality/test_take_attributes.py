@@ -264,7 +264,7 @@ def test_limits(
         source_gaussian,
         target_gaussian
 ):
-    source_gaussian.centre = af.TruncatedGaussianPrior(
+    source_gaussian.centre = af.GaussianPrior(
         mean=0,
         sigma=1,
         lower_limit=-1,

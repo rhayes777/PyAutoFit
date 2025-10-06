@@ -1,4 +1,3 @@
-import jax
 import multiprocessing
 import os
 import shutil
@@ -24,6 +23,7 @@ directory = Path(__file__).parent
 
 @pytest.fixture(name="recreate")
 def recreate():
+    jax = pytest.importorskip("jax")
 
     def _recreate(o):
         flatten_func, unflatten_func = jax._src.tree_util._registry[type(o)]

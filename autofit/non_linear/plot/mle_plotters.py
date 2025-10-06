@@ -1,4 +1,6 @@
+import matplotlib.pyplot as plt
 import logging
+import numpy as np
 
 from autofit.non_linear.plot.samples_plotters import SamplesPlotter
 
@@ -31,8 +33,6 @@ class MLEPlotter(SamplesPlotter):
         -------
 
         """
-
-        import matplotlib.pyplot as plt
 
         parameter_lists = self.samples.parameters_extract
 
@@ -87,8 +87,6 @@ class MLEPlotter(SamplesPlotter):
         use_log_y
             If True, the y-axis is plotted on a log-scale.
         """
-
-        import matplotlib.pyplot as plt
 
         log_likelihood_list = self.samples.log_likelihood_list
         iteration_list = range(len(log_likelihood_list))

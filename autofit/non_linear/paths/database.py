@@ -86,7 +86,9 @@ class DatabasePaths(AbstractPaths):
         """
         self.fit.is_grid_search = True
         if self.fit.instance is None:
-            self.fit.instance = self.model.instance_from_prior_medians()
+            self.fit.instance = self.model.instance_from_prior_medians(
+                ignore_prior_limits=True
+            )
         child = type(self)(
             session=self.session,
             name=name or self.name,
@@ -264,8 +266,6 @@ class DatabasePaths(AbstractPaths):
         samples,
         latent_samples,
         log_likelihood_function_time,
-        visualization_time = None,
-        log_likelihood_function_time_no_jax = None,
     ):
         self.fit.instance = samples.max_log_likelihood()
         self.fit.max_log_likelihood = samples.max_log_likelihood_sample.log_likelihood

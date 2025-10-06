@@ -5,42 +5,39 @@ from autofit.mapper.identifier import Identifier
 
 
 @pytest.fixture(
-    name="truncated_gaussian_prior"
+    name="gaussian_prior"
 )
-def make_truncated_gaussian_prior():
+def make_gaussian_prior():
     return Identifier(
-        af.TruncatedGaussianPrior(
+        af.GaussianPrior(
             mean=1.0,
-            sigma=2.0,
-            lower_limit="-inf",
-            upper_limit="inf"
+            sigma=2.0
         )
     )
 
 
-def test_truncated_gaussian_prior_fields(
-        truncated_gaussian_prior
+def test_gaussian_prior_fields(
+        gaussian_prior
 ):
-
-    assert truncated_gaussian_prior.hash_list == [
-        'TruncatedGaussianPrior',
-        'mean',
-        '1.0',
-        'sigma',
-        '2.0',
+    assert gaussian_prior.hash_list == [
+        'GaussianPrior',
         'lower_limit',
         '-inf',
         'upper_limit',
-        'inf'
+        'inf',
+        'mean',
+        '1.0',
+        'sigma',
+        '2.0'
     ]
 
 
-def test_truncated_gaussian_prior(
-        truncated_gaussian_prior
+def test_gaussian_prior(
+        gaussian_prior
 ):
     assert str(
-        truncated_gaussian_prior
-    ) == "9a49114940e683d133b12a6d182c85b3"
+        gaussian_prior
+    ) == "218e05b43472cb7661b4712da640a81c"
 
 
 @pytest.fixture(

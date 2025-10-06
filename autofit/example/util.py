@@ -1,5 +1,6 @@
 import os
 from os import path
+import matplotlib.pyplot as plt
 import numpy as np
 from typing import Optional
 
@@ -36,8 +37,6 @@ def plot_profile_1d(
     output_format
         Determines where the plot is displayed on your screen ("show") or output to the hard-disk as a png ("png").
     """
-    import matplotlib.pyplot as plt
-
     plt.errorbar(
         x=xvalues, y=profile_1d, yerr=errors, color=color, ecolor="k", elinewidth=1, capsize=2
     )

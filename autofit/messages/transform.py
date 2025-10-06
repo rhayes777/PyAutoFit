@@ -4,6 +4,8 @@ from functools import wraps
 from typing import Tuple
 
 import numpy as np
+from scipy.special import ndtr, ndtri as ndtri_
+from scipy.stats._continuous_distns import _norm_pdf
 
 from ..mapper.operator import DiagonalMatrix, LinearOperator, ShermanMorrison
 
@@ -11,13 +13,10 @@ epsilon = 1e-14
 
 
 def ndtri(x):
-
-    from scipy.special import ndtri
-
     x = np.array(x, dtype=float)
     x[(x <= 0) & (x >= -epsilon)] = epsilon
     x[(x >= 1) & (x <= 1 + epsilon)] = 1 - epsilon
-    return ndtri(x)
+    return ndtri_(x)
 
 
 def numerical_jacobian(x, func, eps=1e-8, args=(), **kwargs):
@@ -315,30 +314,19 @@ def shifted_logistic(shift=0, scale=1):
 
 
 def ndtri_grad(x):
-    from scipy.stats._continuous_distns import _norm_pdf
-
     return np.reciprocal(_norm_pdf(ndtri(x)))
 
 
 def ndtri_grad_hess(x):
-    from scipy.stats._continuous_distns import _norm_pdf
-
     f = ndtri(x)
     phi = _norm_pdf(f)
     grad = np.reciprocal(phi)
     hess = grad**2 * f
     return f, grad, hess
 
-def lazy_ndtr(x):
-    from scipy.special import ndtr
-    return ndtr(x)
-
-def lazy_ndtri(x):
-    from scipy.special import ndtri
-    return ndtri(x)
 
 phi_transform = FunctionTransform(
-    lazy_ndtri, lazy_ndtr, ndtri_grad, func_grad_hess=ndtri_grad_hess
+    ndtri, ndtr, ndtri_grad, func_grad_hess=ndtri_grad_hess
 )
 
 
