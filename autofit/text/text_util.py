@@ -117,9 +117,9 @@ def search_summary_from_samples(samples) -> [str]:
 def search_summary_to_file(
         samples,
         log_likelihood_function_time,
-        visualization_time,
-        log_likelihood_function_time_no_jax,
-        filename
+        filename,
+        visualization_time=None,
+        log_likelihood_function_time_no_jax=None,
 ):
     summary = search_summary_from_samples(samples=samples)
     summary.append(
