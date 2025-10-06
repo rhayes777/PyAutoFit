@@ -84,6 +84,9 @@ class CompoundPrior(AbstractPriorModel, ArithmeticMixin, Compound, ABC):
         self.left = left
         self.right = right
 
+    def __repr__(self):
+        return str(self)
+
     def dict(self) -> dict:
         from autofit import ModelObject
 

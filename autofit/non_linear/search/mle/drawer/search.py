@@ -136,6 +136,8 @@ class Drawer(AbstractMLE):
 
         self.logger.info("Drawer complete")
 
+        return search_internal, fitness
+
     def samples_from(self, model, search_internal):
         search_internal_dict = self.paths.load_search_internal()
 
