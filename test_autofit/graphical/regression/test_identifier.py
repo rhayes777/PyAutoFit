@@ -21,16 +21,19 @@ def make_truncated_gaussian_prior():
 def test_truncated_gaussian_prior_fields(
         truncated_gaussian_prior
 ):
+
+    print(truncated_gaussian_prior.hash_list)
+
     assert truncated_gaussian_prior.hash_list == [
         'TruncatedGaussianPrior',
-        'lower_limit',
-        '-inf',
-        'upper_limit',
-        'inf',
         'mean',
         '1.0',
         'sigma',
-        '2.0'
+        '2.0',
+        'lower_limit',
+        '-inf',
+        'upper_limit',
+        'inf'
     ]
 
 
