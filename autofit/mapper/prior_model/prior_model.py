@@ -406,12 +406,11 @@ class Model(AbstractPriorModel):
             logger.exception(key)
 
     def __getattr__(self, item):
+        if item in ("_is_frozen", "tuple_prior_tuples"):
+            return self.__getattribute__(item)
+
         try:
-            if (
-                "_" in item
-                and item not in ("_is_frozen", "tuple_prior_tuples")
-                and not item.startswith("_")
-            ):
+            if "_" in item and not item.startswith("_"):
                 return getattr(
                     [v for k, v in self.tuple_prior_tuples if item.split("_")[0] == k][
                         0
@@ -420,6 +419,16 @@ class Model(AbstractPriorModel):
                 )
 
         except IndexError:
+            pass
+
+        try:
+            return getattr(
+                self.instance_for_arguments(
+                    {prior: prior for prior in self.priors},
+                ),
+                item,
+            )
+        except (AttributeError, TypeError):
             pass
 
         self.__getattribute__(item)
