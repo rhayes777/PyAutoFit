@@ -40,7 +40,7 @@ def test_truncated_gaussian_prior(
 ):
     assert str(
         truncated_gaussian_prior
-    ) == "b9d2c8e380214bf0888a5f65f651eb5c"
+    ) == "9a49114940e683d133b12a6d182c85b3"
 
 
 @pytest.fixture(
