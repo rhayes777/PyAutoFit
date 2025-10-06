@@ -192,7 +192,7 @@ def test__samples_drawn_randomly_via_pdf_from():
     )
 
     assert len(samples_drawn_randomly_via_pdf) == 3
-    assert samples_drawn_randomly_via_pdf.sample_list[0].weight == 1.0
+    assert samples_drawn_randomly_via_pdf.sample_list[0].weight == 0.2
 
 def test__addition_of_samples(samples_x5):
     samples = samples_x5 + samples_x5
