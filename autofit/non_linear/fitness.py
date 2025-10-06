@@ -1,21 +1,21 @@
+import jax
+import logging
 import os
+import time
+from timeout_decorator import timeout
 from typing import Optional
 
 from autoconf import conf
 from autoconf import cached_property
 
+from autofit import jax_wrapper
+from autofit.jax_wrapper import numpy as np
 from autofit import exc
 
-from autofit.jax_wrapper import numpy as np
 
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.paths.abstract import AbstractPaths
 from autofit.non_linear.analysis import Analysis
-
-from timeout_decorator import timeout
-
-from autofit import jax_wrapper
-
 
 def get_timeout_seconds():
 
@@ -24,9 +24,8 @@ def get_timeout_seconds():
     except KeyError:
         pass
 
-
+logger = logging.getLogger(__name__)
 timeout_seconds = get_timeout_seconds()
-
 
 class Fitness:
     def __init__(
@@ -129,25 +128,25 @@ class Fitness:
         -------
         The figure of merit returned to the non-linear search, which is either the log likelihood or log posterior.
         """
-        try:
-            instance = self.model.instance_from_vector(vector=parameters)
-            log_likelihood = self.analysis.log_likelihood_function(instance=instance)
-            log_likelihood = np.where(np.isnan(log_likelihood), self.resample_figure_of_merit, log_likelihood)
 
-        except exc.FitException:
-            return self.resample_figure_of_merit
+        # Get instance from model
+        instance = self.model.instance_from_vector(vector=parameters)
 
+        # Evaluate log likelihood (must be side-effect free and exception-free)
+        log_likelihood = self.analysis.log_likelihood_function(instance=instance)
+
+        # Penalize NaNs in the log-likelihood
+        log_likelihood = np.where(np.isnan(log_likelihood), self.resample_figure_of_merit, log_likelihood)
+
+        # Determine final figure of merit
         if self.fom_is_log_likelihood:
             figure_of_merit = log_likelihood
         else:
-            log_prior_list = self.model.log_prior_list_from_vector(vector=parameters)
-            figure_of_merit = log_likelihood + sum(log_prior_list)
+            # Ensure prior list is compatible with JAX (must return a JAX array, not list)
+            log_prior_array = np.array(self.model.log_prior_list_from_vector(vector=parameters))
+            figure_of_merit = log_likelihood + np.sum(log_prior_array)
 
-        if self.store_history:
-
-            self.parameters_history_list.append(parameters)
-            self.log_likelihood_history_list.append(log_likelihood)
-
+        # Convert to chi-squared scale if requested
         if self.convert_to_chi_squared:
             figure_of_merit *= -2.0
 
@@ -175,23 +174,40 @@ class Fitness:
         """
         return self._call(parameters)
 
-    def __getstate__(self):
-        state = self.__dict__.copy()
-        # Remove non-pickleable attributes
-        state.pop('_call', None)
-        state.pop('_grad', None)
-        return state
+    # def __getstate__(self):
+    #     state = self.__dict__.copy()
+    #     # Remove non-pickleable attributes
+    #     state.pop('_call', None)
+    #     state.pop('_grad', None)
+    #     return state
+    #
+    # def __setstate__(self, state):
+    #     self.__dict__.update(state)
 
-    def __setstate__(self, state):
-        self.__dict__.update(state)
+    @cached_property
+    def _vmap(self):
+        start = time.time()
+        logger.info("JAX: Applying vmap and jit to likelihood function -- may take a few seconds.")
+        func = jax.vmap(jax.jit(self.call))
+        logger.info(f"JAX: vmap and jit applied in {time.time() - start} seconds.")
+        return func
 
     @cached_property
     def _call(self):
-        return jax_wrapper.jit(self.call)
+        start = time.time()
+        logger.info("JAX: Applying jit to likelihood function -- may take a few seconds.")
+        func = jax_wrapper.jit(self.call)
+        logger.info(f"JAX: jit applied in {time.time() - start} seconds.")
+        return func
+
 
     @cached_property
     def _grad(self):
-        return jax_wrapper.grad(self._call)
+        start = time.time()
+        logger.info("JAX: Applying grad to likelihood function -- may take a few seconds.")
+        func = jax_wrapper.grad(self._call)
+        logger.info(f"JAX: grad applied in {time.time() - start} seconds.")
+        return func
 
     def grad(self, *args, **kwargs):
         return self._grad(*args, **kwargs)
@@ -253,5 +269,3 @@ class Fitness:
                 New Figure of Merit = {log_likelihood_new}
                 """
             )
-
-

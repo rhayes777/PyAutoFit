@@ -232,7 +232,6 @@ def test_nested_items():
         ],
     ]
 
-    # Need jax version > 0.4
     if hasattr(tree_util, "tree_flatten_with_path"):
         jax_flat = tree_util.tree_flatten_with_path(obj1)[0]
         af_flat = utils.nested_items(obj2)

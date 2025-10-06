@@ -35,29 +35,35 @@ def make_result():
 
 
 class TestResult:
+
     def test_model(self, result):
         component = result.model.component
+        assert component.one_tuple.one_tuple_0.mean == 0.5
+        assert component.one_tuple.one_tuple_1.mean == 1
+
+    def test_model_centred(self, result):
+        component = result.model_centred.component
         assert component.one_tuple.one_tuple_0.mean == 0
         assert component.one_tuple.one_tuple_1.mean == 1
         assert component.one_tuple.one_tuple_0.sigma == 0.2
         assert component.one_tuple.one_tuple_1.sigma == 0.2
 
     def test_model_absolute(self, result):
-        component = result.model_absolute(a=2.0).component
+        component = result.model_centred_absolute(a=2.0).component
         assert component.one_tuple.one_tuple_0.mean == 0
         assert component.one_tuple.one_tuple_1.mean == 1
         assert component.one_tuple.one_tuple_0.sigma == 2.0
         assert component.one_tuple.one_tuple_1.sigma == 2.0
 
     def test_model_relative(self, result):
-        component = result.model_relative(r=1.0).component
+        component = result.model_centred_relative(r=1.0).component
         assert component.one_tuple.one_tuple_0.mean == 0
         assert component.one_tuple.one_tuple_1.mean == 1
         assert component.one_tuple.one_tuple_0.sigma == 0.0
         assert component.one_tuple.one_tuple_1.sigma == 1.0
 
     def test_model_bounded(self, result):
-        component = result.model_bounded(b=1.0).component
+        component = result.model_centred_max_lh_bounded(b=1.0).component
 
         assert component.one_tuple.one_tuple_0.lower_limit == -1.0
         assert component.one_tuple.one_tuple_1.lower_limit == 0.0

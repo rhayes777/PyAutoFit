@@ -1,13 +1,15 @@
+from autoconf.dictable import register_parser
+from . import conf
+
+conf.instance.register(__file__)
+
 import abc
 import pickle
-
 from dill import register
 
-from autoconf.dictable import register_parser
-from .non_linear.grid.grid_search import GridSearch as SearchGridSearch
-from . import conf
 from . import exc
 from . import mock as m
+from .non_linear.grid.grid_search import GridSearch as SearchGridSearch
 from .aggregator.base import AggBase
 from .database.aggregator.aggregator import GridSearchAggregator
 from .graphical.expectation_propagation.history import EPHistory
@@ -54,6 +56,8 @@ from .mapper.prior.width_modifier import WidthModifier
 from .mapper.prior import GaussianPrior
 from .mapper.prior import LogGaussianPrior
 from .mapper.prior import LogUniformPrior
+from .mapper.prior import TruncatedGaussianPrior
+from .mapper.prior.vectorized import PriorVectorized
 from .mapper.prior.abstract import Prior
 from .mapper.prior.tuple_prior import TuplePrior
 from .mapper.prior import UniformPrior
@@ -136,6 +140,6 @@ def save_abc(pickler, obj):
     pickle._Pickler.save_type(pickler, obj)
 
 
-conf.instance.register(__file__)
+
 
 __version__ = "2025.5.10.1"

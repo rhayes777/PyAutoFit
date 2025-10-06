@@ -432,6 +432,8 @@ class AbstractPaths(ABC):
         samples,
         latent_samples,
         log_likelihood_function_time,
+        visualization_time = None,
+        log_likelihood_function_time_no_jax = None,
     ):
         result_info = text_util.result_info_from(
             samples=samples,
@@ -451,6 +453,8 @@ class AbstractPaths(ABC):
         text_util.search_summary_to_file(
             samples=samples,
             log_likelihood_function_time=log_likelihood_function_time,
+            visualization_time=visualization_time,
+            log_likelihood_function_time_no_jax=log_likelihood_function_time_no_jax,
             filename=self.output_path / "search.summary",
         )
 

@@ -15,8 +15,6 @@ class MessageInterface(ABC):
     log_base_measure: float
     log_norm: float
     id: int
-    lower_limit: float
-    upper_limit: float
 
     @property
     @abstractmethod
@@ -212,8 +210,6 @@ class MessageInterface(ABC):
         return self.from_natural_parameters(
             new_params,
             id_=self.id,
-            lower_limit=self.lower_limit,
-            upper_limit=self.upper_limit,
         )
 
     def sub_natural_parameters(self, other: "MessageInterface") -> "MessageInterface":
@@ -226,8 +222,6 @@ class MessageInterface(ABC):
             new_params,
             log_norm=log_norm,
             id_=self.id,
-            lower_limit=self.lower_limit,
-            upper_limit=self.upper_limit,
         )
 
     @abstractmethod

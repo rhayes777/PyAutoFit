@@ -125,7 +125,6 @@ class UltraNest(abstract_nest.AbstractNest):
         def prior_transform(cube):
             return model.vector_from_unit_vector(
                 unit_vector=cube,
-                ignore_prior_limits=True
             )
 
         log_dir = self.paths.search_internal_path

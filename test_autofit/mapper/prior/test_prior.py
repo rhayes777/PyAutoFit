@@ -10,41 +10,6 @@ class TestPriorLimits:
     def test_out_of_order_prior_limits(self):
         with pytest.raises(af.exc.PriorException):
             af.UniformPrior(1.0, 0)
-        with pytest.raises(af.exc.PriorException):
-            af.GaussianPrior(0, 1, 1, 0)
-
-    def test_in_or_out(self):
-        prior = af.GaussianPrior(0, 1, 0, 1)
-        with pytest.raises(af.exc.PriorLimitException):
-            prior.assert_within_limits(-1)
-
-        with pytest.raises(af.exc.PriorLimitException):
-            prior.assert_within_limits(1.1)
-
-        prior.assert_within_limits(0.0)
-        prior.assert_within_limits(0.5)
-        prior.assert_within_limits(1.0)
-
-    def test_no_limits(self):
-        prior = af.GaussianPrior(0, 1)
-
-        prior.assert_within_limits(100)
-        prior.assert_within_limits(-100)
-        prior.assert_within_limits(0)
-        prior.assert_within_limits(0.5)
-
-    def test_uniform_prior(self):
-        prior = af.UniformPrior(0, 1)
-
-        with pytest.raises(af.exc.PriorLimitException):
-            prior.assert_within_limits(-1)
-
-        with pytest.raises(af.exc.PriorLimitException):
-            prior.assert_within_limits(1.1)
-
-        prior.assert_within_limits(0.0)
-        prior.assert_within_limits(0.5)
-        prior.assert_within_limits(1.0)
 
     def test_prior_creation(self):
         mapper = af.ModelMapper()
@@ -57,18 +22,6 @@ class TestPriorLimits:
 
         assert prior_tuples[1].prior.lower_limit == 0
         assert prior_tuples[1].prior.upper_limit == 2
-
-    def test_out_of_limits(self):
-        mm = af.ModelMapper()
-        mm.mock_class_gaussian = af.m.MockClassx2
-
-        assert mm.instance_from_vector([1, 2]) is not None
-
-        with pytest.raises(af.exc.PriorLimitException):
-            mm.instance_from_vector(([1, 3]))
-
-        with pytest.raises(af.exc.PriorLimitException):
-            mm.instance_from_vector(([-1, 2]))
 
     def test_inf(self):
         mm = af.ModelMapper()
@@ -83,12 +36,6 @@ class TestPriorLimits:
         assert prior_tuples[1].prior.upper_limit == float("inf")
 
         assert mm.instance_from_vector([-10000, 10000]) is not None
-
-        with pytest.raises(af.exc.PriorLimitException):
-            mm.instance_from_vector(([1, 0]))
-
-        with pytest.raises(af.exc.PriorLimitException):
-            mm.instance_from_vector(([0, -1]))
 
     def test_preserve_limits_tuples(self):
         mm = af.ModelMapper()
@@ -314,7 +261,7 @@ class TestGaussianPrior:
 
 def test_log_gaussian_prior_log_prior_from_value():
     log_gaussian_prior = af.LogGaussianPrior(
-        mean=0.0, sigma=1.0, lower_limit=0.0, upper_limit=1.0
+        mean=0.0, sigma=1.0,
     )
 
     assert log_gaussian_prior.log_prior_from_value(value=0.0) == float("-inf")

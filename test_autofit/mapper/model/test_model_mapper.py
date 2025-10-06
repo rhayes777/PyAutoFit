@@ -532,7 +532,7 @@ class TestPriorReplacement:
         mapper = af.ModelMapper(mock_class=af.m.MockClassx2)
         result = mapper.mapper_from_prior_means([10, 5])
 
-        assert isinstance(result.mock_class.one, af.GaussianPrior)
+        assert isinstance(result.mock_class.one, af.TruncatedGaussianPrior)
         assert {prior.id for prior in mapper.priors} == {
             prior.id for prior in result.priors
         }
@@ -541,19 +541,19 @@ class TestPriorReplacement:
         mapper = af.ModelMapper(mock_class=af.m.MockClassx2)
         result = mapper.mapper_from_prior_means([10, 5])
 
-        assert isinstance(result.mock_class.one, af.GaussianPrior)
+        assert isinstance(result.mock_class.one, af.TruncatedGaussianPrior)
 
     def test_replacing_priors_for_profile(self):
         mapper = af.ModelMapper(mock_class=af.m.MockClassx3TupleFloat)
         result = mapper.mapper_from_prior_means([10, 5, 5])
 
         assert isinstance(
-            result.mock_class.one_tuple.unique_prior_tuples[0][1], af.GaussianPrior
+            result.mock_class.one_tuple.unique_prior_tuples[0][1], af.TruncatedGaussianPrior
         )
         assert isinstance(
-            result.mock_class.one_tuple.unique_prior_tuples[1][1], af.GaussianPrior
+            result.mock_class.one_tuple.unique_prior_tuples[1][1], af.TruncatedGaussianPrior
         )
-        assert isinstance(result.mock_class.two, af.GaussianPrior)
+        assert isinstance(result.mock_class.two, af.TruncatedGaussianPrior)
 
     def test_replace_priors_for_two_classes(self):
         mapper = af.ModelMapper(one=af.m.MockClassx2, two=af.m.MockClassx2)

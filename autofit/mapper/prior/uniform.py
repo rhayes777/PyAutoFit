@@ -1,5 +1,5 @@
 from autofit.jax_wrapper import register_pytree_node_class
-from typing import Optional
+from typing import Optional, Tuple
 
 from autofit.messages.normal import UniformNormalMessage
 from .abstract import Prior
@@ -7,10 +7,12 @@ from .abstract import epsilon
 from ...messages.composed_transform import TransformedMessage
 from ...messages.transform import LinearShiftTransform
 
+from autofit import exc
 
 @register_pytree_node_class
 class UniformPrior(Prior):
     __identifier_fields__ = ("lower_limit", "upper_limit")
+    __database_args__ = ("lower_limit", "upper_limit", "id_")
 
     def __init__(
         self,
@@ -45,24 +47,29 @@ class UniformPrior(Prior):
         physical_value = prior.value_for(unit=0.2)
         """
 
-        lower_limit = float(lower_limit)
-        upper_limit = float(upper_limit)
+        self.lower_limit = float(lower_limit)
+        self.upper_limit = float(upper_limit)
+
+        if self.lower_limit >= self.upper_limit:
+            raise exc.PriorException(
+                "The upper limit of a prior must be greater than its lower limit"
+            )
 
         message = TransformedMessage(
             UniformNormalMessage,
-            LinearShiftTransform(shift=lower_limit, scale=upper_limit - lower_limit),
-            lower_limit=lower_limit,
-            upper_limit=upper_limit,
+            LinearShiftTransform(shift=self.lower_limit, scale=self.upper_limit - self.lower_limit),
         )
         super().__init__(
             message,
-            lower_limit=lower_limit,
-            upper_limit=upper_limit,
             id_=id_,
         )
 
     def tree_flatten(self):
         return (self.lower_limit, self.upper_limit, self.id), ()
+
+    @property
+    def width(self):
+        return self.upper_limit - self.lower_limit
 
     def with_limits(
         self,
@@ -82,11 +89,23 @@ class UniformPrior(Prior):
             x -= epsilon
         return self.message.logpdf(x)
 
+    def dict(self) -> dict:
+        """
+        Return a dictionary representation of this GaussianPrior instance,
+        including mean and sigma.
+
+        Returns
+        -------
+        Dictionary containing prior parameters.
+        """
+        prior_dict = super().dict()
+        return {**prior_dict, "lower_limit": self.lower_limit, "upper_limit": self.upper_limit}
+
     @property
     def parameter_string(self) -> str:
         return f"lower_limit = {self.lower_limit}, upper_limit = {self.upper_limit}"
 
-    def value_for(self, unit: float, ignore_prior_limits: bool = False) -> float:
+    def value_for(self, unit: float) -> float:
         """
         Returns a physical value from an input unit value according to the limits of the uniform prior.
 
@@ -108,7 +127,7 @@ class UniformPrior(Prior):
         physical_value = prior.value_for(unit=0.2)
         """
         return float(
-            round(super().value_for(unit, ignore_prior_limits=ignore_prior_limits), 14)
+            round(super().value_for(unit), 14)
         )
 
     def log_prior_from_value(self, value):
@@ -121,3 +140,7 @@ class UniformPrior(Prior):
         For a UniformPrior this is always zero, provided the value is between the lower and upper limit.
         """
         return 0.0
+
+    @property
+    def limits(self) -> Tuple[float, float]:
+        return self.lower_limit, self.upper_limit

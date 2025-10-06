@@ -3,9 +3,8 @@ import copy
 import gc
 import logging
 import multiprocessing as mp
+import numpy as np
 import os
-import signal
-import sys
 import time
 import warnings
 from abc import ABC, abstractmethod
@@ -33,7 +32,6 @@ from autofit.graphical import (
 )
 from autofit.graphical.utils import Status
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
-from autofit.mapper.prior_model.collection import Collection
 from autofit.mapper.model import ModelInstance
 from autofit.non_linear.initializer import Initializer
 from autofit.non_linear.fitness import Fitness
@@ -256,7 +254,6 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         if jax_wrapper.use_jax:
             self.number_of_cores = 1
-            logger.warning(f"JAX is enabled. Setting number of cores to 1.")
 
         self.number_of_cores = number_of_cores
 
@@ -914,7 +911,6 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             If the update is during a non-linear search, in which case tasks are only performed after a certain number
             of updates and only a subset of visualization may be performed.
         """
-
         self.iterations += self.iterations_per_update
 
         if not self.disable_output:
@@ -962,14 +958,32 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             if (during_analysis and conf.instance["output"]["latent_during_fit"]) or (
                 not during_analysis and conf.instance["output"]["latent_after_fit"]
             ):
-                latent_samples = analysis.compute_latent_samples(samples_save)
+
+                if conf.instance["output"]["latent_draw_via_pdf"]:
+
+                    total_draws = conf.instance["output"]["latent_draw_via_pdf_size"]
+
+                    logger.info(f"Creating latent samples by drawing {total_draws} from the PDF.")
+
+                    latent_samples = samples.samples_drawn_randomly_via_pdf_from(total_draws=total_draws)
+
+                else:
+
+                    logger.info(f"Creating latent samples using all samples above the samples weight threshold.")
+
+                    latent_samples = samples_save
+
+                latent_samples = analysis.compute_latent_samples(latent_samples)
 
                 if latent_samples:
-                    self.paths.save_latent_samples(latent_samples)
+                    if not conf.instance["output"]["latent_draw_via_pdf"]:
+                        self.paths.save_latent_samples(latent_samples)
                     self.paths.save_samples_summary(
                         latent_samples.summary(),
                         "latent/latent_summary",
                     )
+
+            start = time.time()
 
             self.perform_visualization(
                 model=model,
@@ -979,26 +993,46 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                 search_internal=search_internal,
             )
 
+            visualization_time = time.time() - start
+
             if self.should_profile:
+
                 self.logger.debug("Profiling Maximum Likelihood Model")
+
                 analysis.profile_log_likelihood_function(
                     paths=self.paths,
                     instance=instance,
                 )
 
             self.logger.debug("Outputting model result")
+
             try:
+
                 parameters = samples.max_log_likelihood(as_instance=False)
 
                 start = time.time()
-                fitness(parameters)
+                figure_of_merit = fitness(parameters)
+
+                # account for asynchronous JAX calls
+                np.array(figure_of_merit)
+
                 log_likelihood_function_time = time.time() - start
+
+                if jax_wrapper.use_jax:
+                    start = time.time()
+                    fitness.call(parameters)
+                    log_likelihood_function_time_no_jax = time.time() - start
+                else:
+                    log_likelihood_function_time_no_jax = None
 
                 self.paths.save_summary(
                     samples=samples,
                     latent_samples=latent_samples,
                     log_likelihood_function_time=log_likelihood_function_time,
+                    visualization_time=visualization_time,
+                    log_likelihood_function_time_no_jax=log_likelihood_function_time_no_jax,
                 )
+
             except exc.FitException:
                 pass
 
@@ -1198,6 +1232,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         -------
         An implementation of a multiprocessing pool
         """
+
         self.logger.warning(
             "...using SneakyPool. This copies the likelihood function "
             "to each process on instantiation to avoid copying multiple "

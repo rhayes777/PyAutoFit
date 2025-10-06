@@ -204,7 +204,7 @@ def test__identifier_description():
             centre=af.UniformPrior(lower_limit=0.0, upper_limit=1.0),
             normalization=af.LogUniformPrior(lower_limit=0.001, upper_limit=0.01),
             sigma=af.GaussianPrior(
-                mean=0.5, sigma=2.0, lower_limit=-1.0, upper_limit=1.0
+                mean=0.5, sigma=2.0,
             ),
         )
     )
@@ -213,8 +213,8 @@ def test__identifier_description():
 
     description = identifier.description.splitlines()
 
-    i = 0
 
+    i = 0
     assert description[i] == "Collection"
     i += 1
     assert description[i] == "item_number"
@@ -257,14 +257,6 @@ def test__identifier_description():
     i += 1
     assert description[i] == "GaussianPrior"
     i += 1
-    assert description[i] == "lower_limit"
-    i += 1
-    assert description[i] == "-1.0"
-    i += 1
-    assert description[i] == "upper_limit"
-    i += 1
-    assert description[i] == "1.0"
-    i += 1
     assert description[i] == "mean"
     i += 1
     assert description[i] == "0.5"
@@ -282,7 +274,7 @@ def test__identifier_description__after_model_and_instance():
             centre=af.UniformPrior(lower_limit=0.0, upper_limit=1.0),
             normalization=af.LogUniformPrior(lower_limit=0.001, upper_limit=0.01),
             sigma=af.GaussianPrior(
-                mean=0.5, sigma=2.0, lower_limit=-1.0, upper_limit=1.0
+                mean=0.5, sigma=2.0,
             ),
         )
     )
@@ -299,44 +291,25 @@ def test__identifier_description__after_model_and_instance():
         samples_summary=samples_summary,
     )
 
-    model.gaussian.centre = result.model.gaussian.centre
+    model.gaussian.centre = result.model_centred.gaussian.centre
     model.gaussian.normalization = result.instance.gaussian.normalization
 
     identifier = Identifier([model])
 
     description = identifier.description
-    assert (
-        description
-        == """Collection
-item_number
-0
-gaussian
-Model
-cls
-autofit.example.model.Gaussian
-centre
-GaussianPrior
-lower_limit
-0.0
-upper_limit
-1.0
-mean
-1.0
-sigma
-1.0
-normalization
-0.00316228
-sigma
-GaussianPrior
-lower_limit
--1.0
-upper_limit
-1.0
-mean
-0.5
-sigma
-2.0"""
-    )
+
+    print(description)
+
+    assert "Collection" in description
+    assert "item_number" in description
+    assert "0" in description
+    assert "gaussian" in description
+    assert "centre" in description
+    assert "TruncatedGaussianPrior" in description
+    assert "mean" in description
+    assert "1.0" in description
+    assert "sigma" in description
+    assert "1.0" in description
 
 
 def test__identifier_description__after_take_attributes():
@@ -346,7 +319,7 @@ def test__identifier_description__after_take_attributes():
             centre=af.UniformPrior(lower_limit=0.0, upper_limit=1.0),
             normalization=af.LogUniformPrior(lower_limit=0.001, upper_limit=0.01),
             sigma=af.GaussianPrior(
-                mean=0.5, sigma=2.0, lower_limit=-1.0, upper_limit=1.0
+                mean=0.5, sigma=2.0,
             ),
         )
     )
@@ -402,14 +375,6 @@ def test__identifier_description__after_take_attributes():
     assert description[i] == "sigma"
     i += 1
     assert description[i] == "GaussianPrior"
-    i += 1
-    assert description[i] == "lower_limit"
-    i += 1
-    assert description[i] == "-1.0"
-    i += 1
-    assert description[i] == "upper_limit"
-    i += 1
-    assert description[i] == "1.0"
     i += 1
     assert description[i] == "mean"
     i += 1

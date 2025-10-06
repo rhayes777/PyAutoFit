@@ -1,5 +1,4 @@
 import numpy as np
-import scipy
 from typing import List, Dict
 
 from autofit.non_linear.samples.pdf import SamplesPDF
@@ -102,8 +101,10 @@ class CovarianceInterpolator(AbstractInterpolator):
         """
         Calculate the inverse covariance matrix of the samples
         """
+        from scipy.linalg import inv
+
         matrices = [
-            scipy.linalg.inv(samples.covariance_matrix) for samples in self.samples_list
+            inv(samples.covariance_matrix) for samples in self.samples_list
         ]
         return self._subsume(matrices)
 

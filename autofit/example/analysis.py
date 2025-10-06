@@ -34,8 +34,9 @@ class Analysis(af.Analysis):
     It has been extended, based on the model that is input into the analysis, to include a 
     property `max_log_likelihood_model_data`, which is the model data of the best-fit model.
     """
-
     Result = ResultExample
+
+    LATENT_KEYS = ["fwhm"]
 
     def __init__(self, data: np.ndarray, noise_map: np.ndarray):
         """
@@ -204,7 +205,7 @@ class Analysis(af.Analysis):
             analysis=self,
         )
 
-    def compute_latent_variables(self, instance) -> Dict[str, float]:
+    def compute_latent_variables(self, parameters, model) -> Dict[str, float]:
         """
         A latent variable is not a model parameter but can be derived from the model. Its value and errors may be
         of interest and aid in the interpretation of a model-fit.
@@ -218,8 +219,15 @@ class Analysis(af.Analysis):
         In the example below, the `latent.csv` file will contain one column with the FWHM of every Gausian model
         sampled by the non-linear search.
 
-        This function is called for every non-linear search sample, where the `instance` passed in corresponds to
-        each sample.
+        This function is called at the end of search, following one of two schemes depending on the settings in
+        `output.yaml`:
+
+        1) Call for every search sample, which produces a complete `latent/samples.csv` which mirrors the normal
+        `samples.csv` file but takes a long time to compute.
+
+        2) Call only for N random draws from the posterior inferred at the end of the search, which only produces a
+        `latent/latent_summary.json` file with the median and 1 and 3 sigma errors of the latent variables but is
+        fast to compute.
 
         Parameters
         ----------
@@ -230,10 +238,12 @@ class Analysis(af.Analysis):
         -------
 
         """
+        instance = model.instance_from_vector(vector=parameters)
+
         try:
-            return {"fwhm": instance.fwhm}
+            return (instance.fwhm, )
         except AttributeError:
             try:
-                return {"gaussian.fwhm": instance[0].fwhm}
+                return (instance[0].fwhm,)
             except AttributeError:
-                return {"gaussian.fwhm": instance[0].gaussian.fwhm}
+                return (instance[0].gaussian.fwhm,)

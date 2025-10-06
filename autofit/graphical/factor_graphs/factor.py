@@ -1,15 +1,9 @@
 from copy import deepcopy
 from inspect import getfullargspec
+import jax
 from typing import Tuple, Dict, Any, Callable, Union, List, Optional, TYPE_CHECKING
 
 import numpy as np
-
-try:
-    import jax
-
-    _HAS_JAX = True
-except ImportError:
-    _HAS_JAX = False
 
 from autofit.graphical.utils import (
     nested_filter,
@@ -294,13 +288,7 @@ class Factor(AbstractFactor):
         self._vjp = vjp
         self._jacfwd = jacfwd
         if vjp or factor_vjp:
-            if factor_vjp:
-                self._factor_vjp = factor_vjp
-            elif not _HAS_JAX:
-                raise ModuleNotFoundError(
-                    "jax needed if `factor_vjp` not passed with vjp=True"
-                )
-
+            self._factor_vjp = factor_vjp
             self.func_jacobian = self._vjp_func_jacobian
         else:
             # This is set by default
@@ -312,11 +300,10 @@ class Factor(AbstractFactor):
                 self._jacobian = jacobian
             elif numerical_jacobian:
                 self._factor_jacobian = self._numerical_factor_jacobian
-            elif _HAS_JAX:
-                if jacfwd:
-                    self._jacobian = jax.jacfwd(self._factor, range(self.n_args))
-                else:
-                    self._jacobian = jax.jacobian(self._factor, range(self.n_args))
+            elif jacfwd:
+                self._jacobian = jax.jacfwd(self._factor, range(self.n_args))
+            else:
+                self._jacobian = jax.jacobian(self._factor, range(self.n_args))
 
     def _factor_value(self, raw_fval) -> FactorValue:
         """Converts the raw output of the factor into a `FactorValue`

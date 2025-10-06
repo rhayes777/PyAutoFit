@@ -123,6 +123,13 @@ class GridSearch:
     def make_arguments(self, values, grid_priors):
         arguments = {}
         for value, grid_prior in zip(values, grid_priors):
+            try:
+                grid_prior.lower_limit
+                grid_prior.upper_limit
+            except AttributeError:
+                raise exc.PriorException(
+                    "Priors passed to the grid search must have upper and lower limit (e.g. be UniformPrior)"
+                )
             if (
                 float("-inf") == grid_prior.lower_limit
                 or float("inf") == grid_prior.upper_limit

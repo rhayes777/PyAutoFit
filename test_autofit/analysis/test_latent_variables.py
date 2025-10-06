@@ -7,11 +7,17 @@ from autofit.text.text_util import result_info_from
 
 
 class Analysis(af.Analysis):
+
+    LATENT_KEYS = ["fwhm"]
+
     def log_likelihood_function(self, instance):
         return 1.0
 
-    def compute_latent_variables(self, instance):
-        return {"fwhm": instance.fwhm}
+    def compute_latent_variables(self, parameters, model):
+
+        instance = model.instance_from_vector(vector=parameters)
+
+        return (instance.fwhm,)
 
 
 @with_config(
@@ -100,15 +106,17 @@ instances
 
 
 class ComplexAnalysis(af.Analysis):
+
+    LATENT_KEYS = ["lens.mass", "lens.brightness", "source.brightness"]
+
     def log_likelihood_function(self, instance):
         return 1.0
 
-    def compute_latent_variables(self, instance):
-        return {
-            "lens.mass": 1.0,
-            "lens.brightness": 2.0,
-            "source.brightness": 3.0,
-        }
+    def compute_latent_variables(self, parameters, model):
+
+        instance = model.instance_from_vector(vector=parameters)
+
+        return (1.0, 2.0, 3.0)
 
 
 def test_complex_model():
@@ -134,6 +142,7 @@ def test_complex_model():
     instance = latent_samples.model.instance_from_prior_medians()
 
     lens = instance.lens
+
     assert lens.mass == 1.0
     assert lens.brightness == 2.0
 

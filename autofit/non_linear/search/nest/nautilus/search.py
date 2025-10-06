@@ -1,3 +1,5 @@
+import jax
+import jax.numpy as jnp
 import numpy as np
 import logging
 import os
@@ -9,6 +11,7 @@ from autofit.database.sqlalchemy_ import sa
 
 from autoconf import conf
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
+from autofit.mapper.prior.vectorized import PriorVectorized
 from autofit.non_linear.fitness import Fitness
 from autofit.non_linear.paths.null import NullPaths
 from autofit.non_linear.search.nest import abstract_nest
@@ -16,11 +19,6 @@ from autofit.non_linear.samples.sample import Sample
 from autofit.non_linear.samples.nest import SamplesNest
 
 logger = logging.getLogger(__name__)
-
-
-def prior_transform(cube, model):
-    return model.vector_from_unit_vector(unit_vector=cube, ignore_prior_limits=True)
-
 
 class Nautilus(abstract_nest.AbstractNest):
     __identifier_fields__ = (
@@ -158,7 +156,6 @@ class Nautilus(abstract_nest.AbstractNest):
                     analysis=analysis,
                     checkpoint_exists=checkpoint_exists,
                 )
-
         return search_internal, fitness
 
     @property
@@ -214,14 +211,18 @@ class Nautilus(abstract_nest.AbstractNest):
             """
         )
 
+        config_dict = self.config_dict_search
+        config_dict.pop("vectorized")
+
         search_internal = self.sampler_cls(
-            prior=prior_transform,
-            likelihood=fitness.__call__,
+            prior=PriorVectorized(model=model),
+            likelihood=fitness._vmap,
             n_dim=model.prior_count,
-            prior_kwargs={"model": model},
+         #   prior_kwargs={"model": model},
             filepath=self.checkpoint_file,
             pool=None,
-            **self.config_dict_search,
+            vectorized=True,
+            **config_dict,
         )
 
         return self.call_search(search_internal=search_internal, model=model, analysis=analysis, fitness=fitness)
@@ -247,9 +248,8 @@ class Nautilus(abstract_nest.AbstractNest):
             Contains the data and the log likelihood function which fits an instance of the model to the data, returning
             the log likelihood the search maximizes.
         """
-
         search_internal = self.sampler_cls(
-            prior=prior_transform,
+            prior=PriorVectorized(model=model),
             likelihood=fitness.__call__,
             n_dim=model.prior_count,
             prior_kwargs={"model": model},
@@ -258,7 +258,14 @@ class Nautilus(abstract_nest.AbstractNest):
             **self.config_dict_search,
         )
 
-        return self.call_search(search_internal=search_internal, model=model, analysis=analysis, fitness=fitness)
+        search_internal = self.call_search(
+            search_internal=search_internal,
+            model=model,
+            analysis=analysis,
+            fitness=fitness
+        )
+
+        return search_internal
 
     def call_search(self, search_internal, model, analysis, fitness):
         """
@@ -364,7 +371,7 @@ class Nautilus(abstract_nest.AbstractNest):
         """
         with self.make_sneakier_pool(
             fitness_function=fitness.__call__,
-            prior_transform=prior_transform,
+            prior_transform=PriorVectorized(model=model),
             fitness_args=(model, fitness.__call__),
             prior_transform_args=(model,),
         ) as pool:

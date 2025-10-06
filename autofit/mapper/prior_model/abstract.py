@@ -1,5 +1,7 @@
 import copy
 import inspect
+import jax.numpy as jnp
+import jax
 import json
 import logging
 import random
@@ -14,7 +16,7 @@ from autoconf.exc import ConfigException
 from autofit import exc
 from autofit.mapper import model
 from autofit.mapper.model import AbstractModel, frozen_cache
-from autofit.mapper.prior import GaussianPrior
+from autofit.mapper.prior import TruncatedGaussianPrior
 from autofit.mapper.prior import UniformPrior
 from autofit.mapper.prior.abstract import Prior
 from autofit.mapper.prior.constant import Constant
@@ -42,7 +44,7 @@ class Limits:
     @staticmethod
     def for_class_and_attributes_name(cls, attribute_name):
         limit_dict = conf.instance.prior_config.for_class_and_suffix_path(
-            cls, [attribute_name, "gaussian_limits"]
+            cls, [attribute_name, "limits"]
         )
         return limit_dict["lower"], limit_dict["upper"]
 
@@ -519,7 +521,7 @@ class AbstractPriorModel(AbstractModel):
             except AttributeError:
                 pass
 
-    def instance_from_unit_vector(self, unit_vector, ignore_prior_limits=False):
+    def instance_from_unit_vector(self, unit_vector, ignore_assertions : bool = False):
         """
         Returns a ModelInstance, which has an attribute and class instance corresponding
         to every `Model` attributed to this instance.
@@ -527,14 +529,15 @@ class AbstractPriorModel(AbstractModel):
         physical values via their priors.
         Parameters
         ----------
-        ignore_prior_limits
-            If true then no exception is thrown if priors fall outside defined limits
         unit_vector: [float]
             A unit hypercube vector that is mapped to an instance of physical values via the priors.
         Returns
         -------
         model_instance : autofit.mapper.model.ModelInstance
             An object containing reconstructed model_mapper instances
+        ignore_assertions
+            If True, the assertions attached to this model (e.g. that one parameter > another parameter) are ignored.
+
         Raises
         ------
         exc.FitException
@@ -560,7 +563,6 @@ class AbstractPriorModel(AbstractModel):
                     prior_tuple.prior,
                     prior_tuple.prior.value_for(
                         unit,
-                        ignore_prior_limits=ignore_prior_limits,
                     ),
                 ),
                 self.prior_tuples_ordered_by_id,
@@ -570,7 +572,7 @@ class AbstractPriorModel(AbstractModel):
 
         return self.instance_for_arguments(
             arguments,
-            ignore_assertions=ignore_prior_limits,
+            ignore_assertions=ignore_assertions
         )
 
     @property
@@ -608,16 +610,12 @@ class AbstractPriorModel(AbstractModel):
     def priors_ordered_by_id(self):
         return [prior for _, prior in self.prior_tuples_ordered_by_id]
 
-    def vector_from_unit_vector(self, unit_vector, ignore_prior_limits=False):
+    def vector_from_unit_vector(self, unit_vector):
         """
         Parameters
         ----------
         unit_vector: [float]
             A unit hypercube vector
-        ignore_prior_limits
-            Set to True to prevent an exception being raised if
-            the physical value of a prior is outside the allowable
-            limits
 
         Returns
         -------
@@ -627,7 +625,7 @@ class AbstractPriorModel(AbstractModel):
         return list(
             map(
                 lambda prior_tuple, unit: prior_tuple.prior.value_for(
-                    unit, ignore_prior_limits=ignore_prior_limits
+                    unit,
                 ),
                 self.prior_tuples_ordered_by_id,
                 unit_vector,
@@ -647,8 +645,8 @@ class AbstractPriorModel(AbstractModel):
         """
         return [
             random.uniform(
-                max(lower_limit, prior.lower_unit_limit),
-                min(upper_limit, prior.upper_unit_limit),
+                lower_limit,
+                upper_limit,
             )
             for prior in self.priors_ordered_by_id
         ]
@@ -749,7 +747,7 @@ class AbstractPriorModel(AbstractModel):
         """
         return self.vector_from_unit_vector([0.5] * len(self.unique_prior_tuples))
 
-    def instance_from_vector(self, vector, ignore_prior_limits=False):
+    def instance_from_vector(self, vector, ignore_assertions: bool = False):
         """
         Returns a ModelInstance, which has an attribute and class instance corresponding
         to every `Model` attributed to this instance.
@@ -759,8 +757,8 @@ class AbstractPriorModel(AbstractModel):
         ----------
         vector: [float]
             A vector of physical parameter values that is mapped to an instance.
-        ignore_prior_limits
-            If True don't check that physical values are within expected limits.
+        ignore_assertions
+            If True, any assertions attached to this object are ignored and not checked.
 
         Returns
         -------
@@ -779,13 +777,9 @@ class AbstractPriorModel(AbstractModel):
             )
         )
 
-        if not ignore_prior_limits:
-            for prior, value in arguments.items():
-                prior.assert_within_limits(value)
-
         return self.instance_for_arguments(
             arguments,
-            ignore_assertions=ignore_prior_limits,
+            ignore_assertions=ignore_assertions,
         )
 
     def has(self, cls: Union[Type, Tuple[Type, ...]]) -> bool:
@@ -910,6 +904,41 @@ class AbstractPriorModel(AbstractModel):
     def gaussian_prior_model_for_arguments(self, arguments):
         raise NotImplementedError()
 
+    def mapper_via_defaults_from(self):
+        """
+        The widths of the new priors are taken from the
+        width_config. The new gaussian priors must be provided in the same order as
+        the priors associated with model.
+        If a is not None then all priors are created with an absolute width of a.
+        If r is not None then all priors are created with a relative width of r.
+        Parameters
+        ----------
+        means
+            The median PDF value of every Gaussian, which centres each `GaussianPrior`.
+        r
+            The relative width to be assigned to gaussian priors
+        a
+            print(tuples[i][1], width)
+            The absolute width to be assigned to gaussian priors
+        tuples
+            A list of tuples each containing the mean and width of a prior
+        Returns
+        -------
+        mapper: ModelMapper
+            A new model mapper with all priors replaced by gaussian priors.
+        """
+
+        prior_tuples = self.prior_tuples_ordered_by_id
+        arguments = {}
+
+        for prior_tuple in prior_tuples:
+
+            prior = prior_tuple.prior
+
+            arguments[prior] = prior
+
+        return self.mapper_from_prior_arguments(arguments)
+
     def mapper_from_prior_means(self, means, a=None, r=None, no_limits=False):
         """
         The widths of the new priors are taken from the
@@ -921,8 +950,6 @@ class AbstractPriorModel(AbstractModel):
         ----------
         means
             The median PDF value of every Gaussian, which centres each `GaussianPrior`.
-        no_limits
-            If `True` generated priors have infinite limits
         r
             The relative width to be assigned to gaussian priors
         a
@@ -976,7 +1003,7 @@ class AbstractPriorModel(AbstractModel):
 
             sigma = width
 
-            new_prior = GaussianPrior(mean, sigma, *limits)
+            new_prior = TruncatedGaussianPrior(mean, sigma, *limits)
             new_prior.id = prior.id
             new_prior.width_modifier = prior.width_modifier
             arguments[prior] = new_prior
@@ -1036,17 +1063,18 @@ class AbstractPriorModel(AbstractModel):
 
         return self.mapper_from_prior_arguments(arguments)
 
-    def instance_from_prior_medians(self, ignore_prior_limits=False):
+    def instance_from_prior_medians(self, ignore_assertions : bool = False):
         """
         Returns a list of physical values from the median values of the priors.
         Returns
         -------
-        physical_values : [float]
-            A list of physical values
+        ignore_assertions
+            If True, the assertions attached to this model (e.g. that one parameter > another parameter) are ignored
+            and not checked.
         """
         return self.instance_from_unit_vector(
             unit_vector=[0.5] * self.prior_count,
-            ignore_prior_limits=ignore_prior_limits,
+            ignore_assertions=ignore_assertions
         )
 
     def log_prior_list_from_vector(
@@ -1075,18 +1103,22 @@ class AbstractPriorModel(AbstractModel):
             )
         )
 
-    def random_instance(self, ignore_prior_limits=False):
+    def random_instance(self, ignore_assertions : bool  = False):
         """
         Returns a random instance of the model.
+
+        Parameters
+        ----------
+        ignore_assertions
+            If True, the assertions attached to this model (e.g. that one parameter > another parameter) are ignored.
         """
-        logger.debug(f"Creating a random instance")
-        if ignore_prior_limits:
+        if ignore_assertions:
             return self.instance_from_unit_vector(
                 unit_vector=[random.random() for _ in range(self.prior_count)],
-                ignore_prior_limits=ignore_prior_limits,
+                ignore_assertions=ignore_assertions,
             )
-        return self.instance_for_arguments(
-            {prior: prior.random() for prior in self.priors}
+        return self.instance_from_unit_vector(
+            unit_vector=[random.random() for _ in range(self.prior_count)],
         )
 
     @staticmethod
@@ -1294,7 +1326,7 @@ class AbstractPriorModel(AbstractModel):
         arguments
             Dictionary mapping priors to attribute analysis_path and value pairs
         ignore_assertions
-            If True, assertions will not be checked
+            If True, the assertions attached to this model (e.g. that one parameter > another parameter) are ignored.
 
         Returns
         -------
@@ -1371,7 +1403,7 @@ class AbstractPriorModel(AbstractModel):
             name of the prior have been joined by underscores,
             mapped to corresponding values.
         ignore_assertions
-            If True, assertions will not be checked
+            If True, the assertions attached to this model (e.g. that one parameter > another parameter) are ignored.
 
         Returns
         -------
@@ -1402,7 +1434,7 @@ class AbstractPriorModel(AbstractModel):
             specified once. If multiple paths for the same prior are
             specified then the value for the last path will be used.
         ignore_assertions
-            If True, assertions will not be checked
+            If True, the assertions attached to this model (e.g. that one parameter > another parameter) are ignored.
 
         Returns
         -------

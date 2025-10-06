@@ -23,6 +23,7 @@ def test_without(directory):
 
 
 def test_with():
+
     aggregator = Aggregator.from_directory(
         Path(__file__).parent,
         reference={"": get_class_path(af.Exponential)},
@@ -84,11 +85,12 @@ def test_database_info(
     database_aggregator,
     output_directory,
 ):
+    print((output_directory / "database.info").read_text())
     assert (
         (output_directory / "database.info").read_text()
         == """                         unique_id,name,unique_tag,total_free_parameters,is_complete
-  c4bf344d706947aa66b129ed2e05e1bd,    ,          ,                    4,       True
-c4bf344d706947aa66b129ed2e05e1bd_0,    ,          ,                    0,           
-c4bf344d706947aa66b129ed2e05e1bd_1,    ,          ,                    0,           
+  d05be1e6380082adea5c918af392d2b9,    ,          ,                    4,       True
+d05be1e6380082adea5c918af392d2b9_0,    ,          ,                    0,           
+d05be1e6380082adea5c918af392d2b9_1,    ,          ,                    0,           
 """
     )

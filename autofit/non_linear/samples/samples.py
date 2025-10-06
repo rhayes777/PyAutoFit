@@ -75,7 +75,6 @@ class Samples(SamplesInterface, ABC):
                 sample.parameter_lists_for_paths(
                     self.paths if sample.is_path_kwargs else self.names
                 ),
-                ignore_prior_limits=True,
             )
             for sample in self.sample_list
         ]

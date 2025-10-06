@@ -231,9 +231,9 @@ class TestFromResult:
     def test_model(self, result):
         model = result.model
 
-        assert model.gaussian.centre.mean == 0.1
-        assert model.gaussian.normalization.mean == 0.2
-        assert model.gaussian.sigma.mean == 0.3
+        assert model.gaussian.centre.mean == 0.5
+        assert model.gaussian.normalization.mean == 0.5
+        assert model.gaussian.sigma.mean == 0.5
 
     def test_modified_instance(self, modified_result):
         instance = modified_result.max_log_likelihood_instance
@@ -245,6 +245,6 @@ class TestFromResult:
     def test_modified_model(self, modified_result):
         model = modified_result.model
 
-        assert model.gaussian.centre.mean == 0.1
-        assert model.gaussian.normalization.mean == 0.2
-        assert model.gaussian.sigma.mean == 0.3
+        assert model.gaussian.centre.mean == 0.5
+        assert model.gaussian.normalization.mean == 0.5
+        assert model.gaussian.sigma.mean == 0.5

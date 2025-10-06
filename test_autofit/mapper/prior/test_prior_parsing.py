@@ -35,6 +35,15 @@ def make_log_uniform_prior(log_uniform_dict):
 def make_gaussian_dict():
     return {
         "type": "Gaussian",
+        "mean": 3,
+        "sigma": 4,
+        "id": 0,
+    }
+
+@pytest.fixture(name="truncated_gaussian_dict")
+def make_truncated_gaussian_dict():
+    return {
+        "type": "TruncatedGaussian",
         "lower_limit": -10.0,
         "upper_limit": 10.0,
         "mean": 3,
@@ -42,11 +51,13 @@ def make_gaussian_dict():
         "id": 0,
     }
 
-
 @pytest.fixture(name="gaussian_prior")
 def make_gaussian_prior(gaussian_dict):
     return af.Prior.from_dict(gaussian_dict)
 
+@pytest.fixture(name="truncated_gaussian_prior")
+def make_truncated_gaussian_prior(truncated_gaussian_dict):
+    return af.Prior.from_dict(truncated_gaussian_dict)
 
 @pytest.fixture(name="relative_width_dict")
 def make_relative_width_dict():
@@ -87,6 +98,10 @@ class TestWidth:
 
 class TestDict:
     def test_uniform(self, uniform_prior, uniform_dict, remove_ids):
+
+        print(uniform_dict)
+        print(remove_ids(uniform_prior.dict()))
+
         assert remove_ids(uniform_prior.dict()) == uniform_dict
 
     def test_log_uniform(self, log_uniform_prior, log_uniform_dict, remove_ids):
@@ -109,10 +124,15 @@ class TestFromDict:
 
     def test_gaussian(self, gaussian_prior):
         assert isinstance(gaussian_prior, af.GaussianPrior)
-        assert gaussian_prior.lower_limit == -10
-        assert gaussian_prior.upper_limit == 10
         assert gaussian_prior.mean == 3
         assert gaussian_prior.sigma == 4
+
+    def test_truncated_gaussian(self, truncated_gaussian_prior):
+        assert isinstance(truncated_gaussian_prior, af.TruncatedGaussianPrior)
+        assert truncated_gaussian_prior.lower_limit == -10
+        assert truncated_gaussian_prior.upper_limit == 10
+        assert truncated_gaussian_prior.mean == 3
+        assert truncated_gaussian_prior.sigma == 4
 
     def test_constant(self):
         result = af.Prior.from_dict({"type": "Constant", "value": 1.5})

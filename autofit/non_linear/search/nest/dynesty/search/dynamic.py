@@ -1,7 +1,6 @@
 from __future__ import annotations
 from typing import Optional
 
-from dynesty.dynesty import DynamicNestedSampler
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 
 from .abstract import AbstractDynesty, prior_transform
@@ -67,6 +66,7 @@ class DynestyDynamic(AbstractDynesty):
 
     @property
     def search_internal(self):
+        from dynesty.dynesty import DynamicNestedSampler
         return DynamicNestedSampler.restore(self.checkpoint_file)
 
     def search_internal_from(
@@ -99,6 +99,7 @@ class DynestyDynamic(AbstractDynesty):
             The number of CPU's over which multiprocessing is performed, determining how many samples are stored
             in the dynesty queue for samples.
         """
+        from dynesty.dynesty import DynamicNestedSampler
 
         try:
 

@@ -1,4 +1,3 @@
-from scipy.interpolate import CubicSpline
 from .abstract import AbstractInterpolator
 
 
@@ -9,4 +8,7 @@ class SplineInterpolator(AbstractInterpolator):
 
     @staticmethod
     def _relationship(x, y):
+
+        from scipy.interpolate import CubicSpline
+
         return CubicSpline(x, y)

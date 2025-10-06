@@ -2,8 +2,6 @@ import re
 from enum import Enum
 from typing import Dict, List, Union
 
-from astropy.table import Table
-from astropy.io import fits
 from pathlib import Path
 
 from autofit.aggregator.search_output import SearchOutput
@@ -53,7 +51,7 @@ class AggregateFITS:
     def _hdus(
         result: SearchOutput,
         hdus: List[Enum],
-    ) -> List[fits.ImageHDU]:
+    ) -> "List[fits.ImageHDU]":
         """
         Extract the HDUs from a given fits for a given search.
 
@@ -68,6 +66,8 @@ class AggregateFITS:
         -------
         The extracted HDUs.
         """
+        from astropy.io import fits
+
         row = []
         for hdu in hdus:
             source = result.value(subplot_filename(hdu))
@@ -80,7 +80,7 @@ class AggregateFITS:
             )
         return row
 
-    def extract_fits(self, hdus: List[Enum]) -> fits.HDUList:
+    def extract_fits(self, hdus: List[Enum]) -> "fits.HDUList":
         """
         Extract the HDUs from the fits files for every search in the aggregator.
 
@@ -95,6 +95,8 @@ class AggregateFITS:
         -------
         The extracted HDUs.
         """
+        from astropy.io import fits
+
         output = [fits.PrimaryHDU()]
         for result in self.aggregator:
             output.extend(self._hdus(result, hdus))
@@ -117,6 +119,8 @@ class AggregateFITS:
         -------
         The extracted HDUs.
         """
+        from astropy.table import Table
+
         output = []
         for result in self.aggregator:
             output.append(Table.read(result.value(filename), format="fits"))
@@ -144,6 +148,8 @@ class AggregateFITS:
             The name of the fits file. This is the attribute of the search output that is used to name the file.
             OR a list of names for each HDU.
         """
+        from astropy.io import fits
+
         folder.mkdir(parents=True, exist_ok=True)
 
         for i, result in enumerate(self.aggregator):

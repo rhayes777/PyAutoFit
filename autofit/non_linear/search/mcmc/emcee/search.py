@@ -1,7 +1,6 @@
 import os
 from typing import Dict, Optional
 
-import emcee
 import numpy as np
 
 from autoconf import conf
@@ -107,6 +106,8 @@ class Emcee(AbstractMCMC):
         A result object comprising the Samples object that inclues the maximum log likelihood instance and full
         chains used by the fit.
         """
+        import emcee
+
         fitness = Fitness(
             model=model,
             analysis=analysis,
@@ -315,6 +316,8 @@ class Emcee(AbstractMCMC):
         )
 
     def auto_correlations_from(self, search_internal=None):
+        import emcee
+
         search_internal = search_internal or self.backend
 
         times = search_internal.get_autocorr_time(tol=0)
@@ -363,12 +366,13 @@ class Emcee(AbstractMCMC):
         return self.paths.search_internal_path / "search_internal.hdf"
 
     @property
-    def backend(self) -> emcee.backends.HDFBackend:
+    def backend(self) -> "emcee.backends.HDFBackend":
         """
         The `Emcee` hdf5 backend, which provides access to all samples, likelihoods, etc. of the non-linear search.
 
         The sampler is described in the "Results" section at https://dynesty.readthedocs.io/en/latest/quickstart.html
         """
+        import emcee
 
         if os.path.isfile(self.backend_filename):
             return emcee.backends.HDFBackend(filename=str(self.backend_filename))

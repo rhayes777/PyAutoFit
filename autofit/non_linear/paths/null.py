@@ -39,7 +39,14 @@ class NullPaths(AbstractPaths):
         self.objects = dict()
         self._samples_path = tempfile.mkdtemp()
 
-    def save_summary(self, samples, latent_samples, log_likelihood_function_time):
+    def save_summary(
+        self,
+        samples,
+        latent_samples,
+        log_likelihood_function_time,
+        visualization_time = None,
+        log_likelihood_function_time_no_jax = None,
+    ):
         pass
 
     @property
