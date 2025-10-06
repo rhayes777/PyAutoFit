@@ -164,6 +164,36 @@ def test__samples_above_weight_threshold_from():
     assert len(samples_above_weight_threshold) == 3
     assert samples_above_weight_threshold.sample_list[0].weight == 1.0
 
+def test__samples_drawn_randomly_via_pdf_from():
+
+    model = af.Collection(mock_class=af.m.MockClassx4)
+
+    parameters = [
+        [1.0, 2.0, 3.0, 4.0],
+        [5.0, 6.0, 7.0, 8.0],
+        [1.0, 2.0, 3.0, 4.0],
+        [1.0, 2.0, 3.0, 4.0],
+        [1.1, 2.1, 3.1, 4.1],
+    ]
+
+    samples_x5 = af.m.MockSamples(
+        model=model,
+        sample_list=af.Sample.from_lists(
+            model=model,
+            parameter_lists=parameters,
+            log_likelihood_list=[0.0, 0.0, 0.0, 0.0, 0.0],
+            log_prior_list=[0.0, 0.0, 0.0, 0.0, 0.0],
+            weight_list=[0.2, 0.2, 1.0, 1.0, 1.0],
+        ),
+    )
+
+    samples_drawn_randomly_via_pdf = samples_x5.samples_drawn_randomly_via_pdf_from(
+        total_draws=3
+    )
+
+    assert len(samples_drawn_randomly_via_pdf) == 3
+    assert samples_drawn_randomly_via_pdf.sample_list[0].weight == 1.0
+
 def test__addition_of_samples(samples_x5):
     samples = samples_x5 + samples_x5
 

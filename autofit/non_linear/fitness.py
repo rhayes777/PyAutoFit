@@ -187,26 +187,26 @@ class Fitness:
     @cached_property
     def _vmap(self):
         start = time.time()
-        print("JAX: Applying vmap and jit to likelihood function -- may take a few seconds.")
+        logger.info("JAX: Applying vmap and jit to likelihood function -- may take a few seconds.")
         func = jax.vmap(jax.jit(self.call))
-        print(f"JAX: vmap and jit applied in {time.time() - start} seconds.")
+        logger.info(f"JAX: vmap and jit applied in {time.time() - start} seconds.")
         return func
 
     @cached_property
     def _call(self):
         start = time.time()
-        print("JAX: Applying jit to likelihood function -- may take a few seconds.")
+        logger.info("JAX: Applying jit to likelihood function -- may take a few seconds.")
         func = jax_wrapper.jit(self.call)
-        print(f"JAX: jit applied in {time.time() - start} seconds.")
+        logger.info(f"JAX: jit applied in {time.time() - start} seconds.")
         return func
 
 
     @cached_property
     def _grad(self):
         start = time.time()
-        print("JAX: Applying grad to likelihood function -- may take a few seconds.")
+        logger.info("JAX: Applying grad to likelihood function -- may take a few seconds.")
         func = jax_wrapper.grad(self._call)
-        print(f"JAX: grad applied in {time.time() - start} seconds.")
+        logger.info(f"JAX: grad applied in {time.time() - start} seconds.")
         return func
 
     def grad(self, *args, **kwargs):

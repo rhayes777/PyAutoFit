@@ -250,7 +250,7 @@ class Nautilus(abstract_nest.AbstractNest):
         """
         search_internal = self.sampler_cls(
             prior=PriorVectorized(model=model),
-            likelihood=fitness.call_numpy_wrapper,
+            likelihood=fitness.__call__,
             n_dim=model.prior_count,
             prior_kwargs={"model": model},
             filepath=self.checkpoint_file,

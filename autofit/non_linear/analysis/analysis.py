@@ -1,7 +1,13 @@
 import inspect
 import logging
 from abc import ABC
+import functools
+import numpy as np
+import jax
+import jax.numpy as jnp
 from typing import Optional, Dict
+
+from autofit.jax_wrapper import use_jax
 
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.paths.abstract import AbstractPaths
@@ -27,6 +33,8 @@ class Analysis(ABC):
     Result = Result
     Visualizer = Visualizer
 
+    LATENT_KEYS = []
+
     def __getattr__(self, item: str):
         """
         If a method starts with 'visualize_' then we assume it is associated with
@@ -51,44 +59,94 @@ class Analysis(ABC):
 
     def compute_latent_samples(self, samples: Samples) -> Optional[Samples]:
         """
-        Internal method that manages computation of latent samples from samples.
+        Compute latent variables from a model instance.
+
+        A latent variable is not itself a free parameter of the model but can be derived from it.
+        Latent variables may provide physically meaningful quantities that help interpret a model
+        fit, and their values (with errors) are stored in `latent.csv` in parallel with `samples.csv`.
+
+        This implementation is designed to be compatible with both NumPy and JAX:
+
+        - It is written to be side-effect free, so it can be JIT-compiled with `jax.jit`.
+        - It can be vectorized over many parameter sets at once using `jax.vmap`, enabling efficient
+          batched evaluation of latent variables for multiple samples.
+        - Returned values should be simple JAX/NumPy scalars or arrays (no Python objects), so they
+          can be stacked into arrays of shape `(n_samples, n_latents)` for batching.
+        - Any NaNs introduced (e.g. from invalid model states) can be masked or replaced downstream.
 
         Parameters
         ----------
-        samples
-            The samples from the non-linear search.
+        parameters : array-like
+            The parameter vector of the model sample. This will typically come from the non-linear search.
+            Inside this method it is mapped back to a model instance via `model.instance_from_vector`.
+        model : Model
+            The model object defining how the parameter vector is mapped to an instance. Passed explicitly
+            so that this function can be used inside JAX transforms (`vmap`, `jit`) with `functools.partial`.
 
         Returns
         -------
-        The computed latent samples or None if compute_latent_variables is not implemented.
+        tuple of (float or jax.numpy scalar)
+            A tuple containing the latent variables in a fixed order:
+            `(intensity_total, magnitude, angle)`. Each entry may be NaN if the corresponding component
+            of the model is not present.
         """
         try:
+
+            compute_latent_for_model = functools.partial(self.compute_latent_variables, model=samples.model)
+
+            if use_jax:
+                start = time.time()
+                logger.info("JAX: Applying vmap and jit to likelihood function for latent variables -- may take a few seconds.")
+                batched_compute_latent = jax.jit(jax.vmap(compute_latent_for_model))
+                logger.info(f"JAX: vmap and jit applied in {time.time() - start} seconds.")
+            else:
+                def batched_compute_latent(x):
+                    return np.array([compute_latent_for_model(xx) for xx in x])
+
+            parameter_array = np.array(samples.parameter_lists)
+            batch_size = 50
             latent_samples = []
-            model = samples.model
-            for sample in samples.sample_list:
-                latent_samples.append(
-                    Sample(
-                        log_likelihood=sample.log_likelihood,
-                        log_prior=sample.log_prior,
-                        weight=sample.weight,
-                        kwargs=self.compute_latent_variables(
-                            sample.instance_for_model(
-                                model,
-                                ignore_assertions=True,
-                            )
-                        ),
+
+            # process in batches
+            for i in range(0, len(parameter_array), batch_size):
+
+                batch = parameter_array[i:i + batch_size]
+
+                # batched JAX call on this chunk
+                latent_values_batch = batched_compute_latent(batch)
+
+                if use_jax:
+                    latent_values_batch = jnp.stack(latent_values_batch, axis=-1)  # (batch, n_latents)
+                    mask = jnp.all(jnp.isfinite(latent_values_batch), axis=0)
+                    latent_values_batch = latent_values_batch[:, mask]
+                else:
+                    mask = np.all(np.isfinite(latent_values_batch), axis=0)
+                    latent_values_batch = latent_values_batch[:, mask]
+
+                for sample, values in zip(samples.sample_list[i:i + batch_size], latent_values_batch):
+
+
+                    kwargs = {k: float(v) for k, v in zip(self.LATENT_KEYS, values)}
+
+                    latent_samples.append(
+                        Sample(
+                            log_likelihood=sample.log_likelihood,
+                            log_prior=sample.log_prior,
+                            weight=sample.weight,
+                            kwargs=kwargs,
+                        )
                     )
-                )
 
             return type(samples)(
                 sample_list=latent_samples,
                 model=simple_model_for_kwargs(latent_samples[0].kwargs),
                 samples_info=samples.samples_info,
             )
+
         except NotImplementedError:
             return None
 
-    def compute_latent_variables(self, instance) -> Dict[str, float]:
+    def compute_latent_variables(self, parameters, model) -> Dict[str, float]:
         """
         Override to compute latent variables from the instance.
 
@@ -237,3 +295,6 @@ class Analysis(ABC):
             The maximum likliehood instance of the model so far in the non-linear search.
         """
         pass
+
+    def latent_lh_dict_from(self, **kwargs):
+        return None
