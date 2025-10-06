@@ -22,8 +22,6 @@ def test_truncated_gaussian_prior_fields(
         truncated_gaussian_prior
 ):
 
-    print(truncated_gaussian_prior.hash_list)
-
     assert truncated_gaussian_prior.hash_list == [
         'TruncatedGaussianPrior',
         'mean',

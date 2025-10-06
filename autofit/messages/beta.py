@@ -78,6 +78,7 @@ def inv_beta_suffstats(
     --------
     Emits a RuntimeWarning if negative parameters are found, and clamps them to 0.5.
     """
+
     _lnX, _ln1X = np.ravel(lnX), np.ravel(ln1X)
     lnXs = np.c_[_lnX, _ln1X]
 
@@ -179,6 +180,8 @@ class BetaMessage(AbstractMessage):
         -------
         The value of the log Beta function, i.e. betaln(alpha, beta).
         """
+        from scipy.special import betaln
+
         return betaln(*self.parameters)
 
     @cached_property
