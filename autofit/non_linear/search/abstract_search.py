@@ -965,7 +965,14 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
                     logger.info(f"Creating latent samples by drawing {total_draws} from the PDF.")
 
-                    latent_samples = samples.samples_drawn_randomly_via_pdf_from(total_draws=total_draws)
+                    try:
+                        latent_samples = samples.samples_drawn_randomly_via_pdf_from(total_draws=total_draws)
+                    except AttributeError:
+                        latent_samples = samples_save
+                        logger.info(
+                            "Drawing via PDF not available for this search, "
+                            "using all samples above the samples weight threshold instead."
+                            "")
 
                 else:
 
