@@ -62,7 +62,7 @@ def graph_path(output_directory):
 
 def test_complex_object(graph_path):
     second = af.Model(af.ex.Gaussian)
-    exp = af.Model(af.Exponential)
+    exp = af.Model(af.ex.Exponential)
     third = af.Model(af.ex.Gaussian)
 
     collection = af.Collection(

@@ -26,11 +26,11 @@ def test_with():
 
     aggregator = Aggregator.from_directory(
         Path(__file__).parent,
-        reference={"": get_class_path(af.Exponential)},
+        reference={"": get_class_path(af.ex.Exponential)},
     )
     output_list = list(aggregator)
     model_list = [output.model for output in output_list]
-    assert any([getattr(model, "cls", False) is af.Exponential for model in model_list])
+    assert any([getattr(model, "cls", False) is af.ex.Exponential for model in model_list])
 
 @pytest.fixture(name="database_path")
 def database_path(output_directory):
@@ -49,7 +49,7 @@ def database_aggregator(
     )
     aggregator.add_directory(
         directory,
-        reference={"": get_class_path(af.Exponential)},
+        reference={"": get_class_path(af.ex.Exponential)},
         completed_only=True,
     )
 
@@ -59,7 +59,7 @@ def database_aggregator(
 def test_database(database_aggregator):
     fit = list(database_aggregator)[0]
     model = fit.model
-    assert model.cls is af.Exponential
+    assert model.cls is af.ex.Exponential
 
 
 @pytest.fixture(name="info")
