@@ -33,7 +33,7 @@ class MyAnalysis(af.Analysis):
 
 
 def test_result_type():
-    model = af.Model(af.Gaussian)
+    model = af.Model(af.ex.Gaussian)
 
     analysis = MyAnalysis().with_model(model)
 

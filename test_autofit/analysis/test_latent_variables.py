@@ -55,7 +55,7 @@ def make_latent_samples():
     analysis = Analysis()
     return analysis.compute_latent_samples(
         SamplesPDF(
-            model=af.Model(af.Gaussian),
+            model=af.Model(af.ex.Gaussian),
             sample_list=[
                 af.Sample(
                     log_likelihood=1.0,
@@ -123,7 +123,7 @@ def test_complex_model():
     analysis = ComplexAnalysis()
     latent_samples = analysis.compute_latent_samples(
         SamplesPDF(
-            model=af.Model(af.Gaussian),
+            model=af.Model(af.ex.Gaussian),
             sample_list=[
                 af.Sample(
                     log_likelihood=1.0,

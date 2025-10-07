@@ -8,7 +8,7 @@ import autofit as af
 )
 def make_frozen_model():
     model = af.Model(
-        af.Gaussian
+        af.ex.Gaussian
     )
 
     model.freeze()
@@ -21,7 +21,7 @@ def make_frozen_model():
 def make_frozen_collection():
     model = af.Collection(
         gaussian=af.Model(
-            af.Gaussian
+            af.ex.Gaussian
         )
     )
 
@@ -53,7 +53,7 @@ class TestFrozenCollection:
                 AssertionError
         ):
             frozen_collection.append(
-                af.Gaussian()
+                af.ex.Gaussian()
             )
 
     def test_set_item(

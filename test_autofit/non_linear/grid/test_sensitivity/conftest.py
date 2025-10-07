@@ -68,7 +68,7 @@ class PerturbFit:
 
 @pytest.fixture(name="perturb_model")
 def make_perturb_model():
-    return af.Model(af.Gaussian)
+    return af.Model(af.ex.Gaussian)
 
 
 @pytest.fixture(name="sensitivity")
@@ -77,10 +77,10 @@ def make_sensitivity(
 ):
     # noinspection PyTypeChecker
     instance = af.ModelInstance()
-    instance.gaussian = af.Gaussian()
+    instance.gaussian = af.ex.Gaussian()
     return s.Sensitivity(
         simulation_instance=instance,
-        base_model=af.Collection(gaussian=af.Model(af.Gaussian)),
+        base_model=af.Collection(gaussian=af.Model(af.ex.Gaussian)),
         perturb_model=perturb_model,
         simulate_cls=Simulate(),
         base_fit_cls=BaseFit(Analysis),
@@ -96,10 +96,10 @@ def make_masked_sensitivity(
 ):
     # noinspection PyTypeChecker
     instance = af.ModelInstance()
-    instance.gaussian = af.Gaussian()
+    instance.gaussian = af.ex.Gaussian()
     return s.Sensitivity(
         simulation_instance=instance,
-        base_model=af.Collection(gaussian=af.Model(af.Gaussian)),
+        base_model=af.Collection(gaussian=af.Model(af.ex.Gaussian)),
         perturb_model=perturb_model,
         simulate_cls=Simulate(),
         base_fit_cls=BaseFit(Analysis),
@@ -126,13 +126,13 @@ def make_job(
     perturb_model,
 ):
     instance = af.ModelInstance()
-    instance.gaussian = af.Gaussian()
+    instance.gaussian = af.ex.Gaussian()
     base_instance = instance
-    instance.perturb = af.Gaussian()
+    instance.perturb = af.ex.Gaussian()
     # noinspection PyTypeChecker
     return s.Job(
-        model=af.Collection(gaussian=af.Model(af.Gaussian)),
-        perturb_model=af.Model(af.Gaussian),
+        model=af.Collection(gaussian=af.Model(af.ex.Gaussian)),
+        perturb_model=af.Model(af.ex.Gaussian),
         simulate_instance=instance,
         base_instance=base_instance,
         simulate_cls=Simulate(),

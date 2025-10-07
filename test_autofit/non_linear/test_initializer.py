@@ -236,7 +236,7 @@ def test_invert_gaussian(unit_value, physical_value):
 @pytest.fixture(name="model")
 def make_model():
     return af.Model(
-        af.Gaussian,
+        af.ex.Gaussian,
         centre=af.UniformPrior(1.0, 2.0),
         normalization=af.UniformPrior(2.0, 3.0),
         sigma=af.UniformPrior(-2.0, -1.0),

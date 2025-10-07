@@ -26,7 +26,7 @@ def test_reference_model(model_dict, reference):
         reference=reference,
     )
 
-    assert model.gaussian.cls is af.Gaussian
+    assert model.gaussian.cls is af.ex.Gaussian
 
 
 def test_root_reference(model_dict, root_reference):
@@ -36,7 +36,7 @@ def test_root_reference(model_dict, root_reference):
         reference=root_reference,
     )
 
-    assert model.cls is af.Gaussian
+    assert model.cls is af.ex.Gaussian
 
 
 def test_instance(instance_dict, reference):
@@ -48,7 +48,7 @@ def test_instance(instance_dict, reference):
         reference=reference,
     )
 
-    assert isinstance(instance.gaussian, af.Gaussian)
+    assert isinstance(instance.gaussian, af.ex.Gaussian)
 
 
 def test_root_instance(instance_dict, root_reference):
@@ -59,7 +59,7 @@ def test_root_instance(instance_dict, root_reference):
         reference=root_reference,
     )
 
-    assert isinstance(instance, af.Gaussian)
+    assert isinstance(instance, af.ex.Gaussian)
 
 
 def test_deep_reference(instance_dict, reference):
@@ -79,4 +79,4 @@ def test_deep_reference(instance_dict, reference):
         reference=reference,
     )
 
-    assert isinstance(instance.collection.gaussian, af.Gaussian)
+    assert isinstance(instance.collection.gaussian, af.ex.Gaussian)

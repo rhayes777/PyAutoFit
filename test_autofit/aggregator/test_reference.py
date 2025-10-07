@@ -19,7 +19,7 @@ def test_without(directory):
     aggregator = Aggregator.from_directory(directory)
     model_list = [agg.model for agg in aggregator]
 
-    assert any([getattr(model, "cls", False) is af.Gaussian for model in model_list])
+    assert any([getattr(model, "cls", False) is af.ex.Gaussian for model in model_list])
 
 
 def test_with():

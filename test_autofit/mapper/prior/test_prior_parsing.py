@@ -90,7 +90,7 @@ class TestWidth:
 
     def test_default(self):
         modifier = af.WidthModifier.for_class_and_attribute_name(
-            af.Gaussian, "not_real"
+            af.ex.Gaussian, "not_real"
         )
         assert modifier.value == 0.5
         assert isinstance(modifier, af.RelativeWidthModifier)

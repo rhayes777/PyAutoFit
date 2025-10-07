@@ -42,7 +42,7 @@ def test_smooth_spline_interpolator(instances):
             af.ModelInstance(
                 dict(
                     t=3.0,
-                    gaussian=af.Gaussian(centre=4.0, normalization=3.0, sigma=-3.0),
+                    gaussian=af.ex.Gaussian(centre=4.0, normalization=3.0, sigma=-3.0),
                 )
             ),
         ]
@@ -78,7 +78,7 @@ def test_alternate_attribute(linear_interpolator, sigma):
 def test_deeper_attributes():
     collection = af.Collection(
         model=af.Model(
-            af.Gaussian,
+            af.ex.Gaussian,
             centre=0.0,
             normalization=1.0,
             sigma=-1.0,
@@ -203,7 +203,7 @@ def test_instance_from_dict(model_instance, instance_dict):
     assert instance.t == 1.0
 
     gaussian = instance.gaussian
-    assert isinstance(gaussian, af.Gaussian)
+    assert isinstance(gaussian, af.ex.Gaussian)
     assert gaussian.centre == 0.0
     assert gaussian.normalization == 1.0
     assert gaussian.sigma == -1.0

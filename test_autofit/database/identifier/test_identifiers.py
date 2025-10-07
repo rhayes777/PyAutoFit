@@ -106,10 +106,10 @@ def test_missing_field():
 
 def test_change_class():
     gaussian_0 = af.Model(
-        af.Gaussian, normalization=af.UniformPrior(lower_limit=1e-6, upper_limit=1e6)
+        af.ex.Gaussian, normalization=af.UniformPrior(lower_limit=1e-6, upper_limit=1e6)
     )
     gaussian_1 = af.Model(
-        af.Gaussian, normalization=af.LogUniformPrior(lower_limit=1e-6, upper_limit=1e6)
+        af.ex.Gaussian, normalization=af.LogUniformPrior(lower_limit=1e-6, upper_limit=1e6)
     )
 
     assert Identifier(gaussian_0) != Identifier(gaussian_1)
@@ -143,14 +143,14 @@ def test_identifier_fields():
 def test_unique_tag():
     search = af.m.MockSearch()
 
-    search.fit(model=af.Model(af.Gaussian), analysis=af.m.MockAnalysis())
+    search.fit(model=af.Model(af.ex.Gaussian), analysis=af.m.MockAnalysis())
 
     identifier = search.paths.identifier
 
     search = af.m.MockSearch(unique_tag="dataset")
 
     search.fit(
-        model=af.Model(af.Gaussian),
+        model=af.Model(af.ex.Gaussian),
         analysis=af.m.MockAnalysis(),
     )
 
@@ -165,42 +165,42 @@ def test_prior():
 
 
 def test_model():
-    identifier = af.Model(af.Gaussian, centre=af.UniformPrior()).identifier
-    assert identifier == af.Model(af.Gaussian, centre=af.UniformPrior()).identifier
+    identifier = af.Model(af.ex.Gaussian, centre=af.UniformPrior()).identifier
+    assert identifier == af.Model(af.ex.Gaussian, centre=af.UniformPrior()).identifier
     assert (
         identifier
-        != af.Model(af.Gaussian, centre=af.UniformPrior(upper_limit=0.5)).identifier
+        != af.Model(af.ex.Gaussian, centre=af.UniformPrior(upper_limit=0.5)).identifier
     )
 
 
 def test_collection():
     identifier = af.Collection(
-        gaussian=af.Model(af.Gaussian, centre=af.UniformPrior())
+        gaussian=af.Model(af.ex.Gaussian, centre=af.UniformPrior())
     ).identifier
     assert (
         identifier
         == af.Collection(
-            gaussian=af.Model(af.Gaussian, centre=af.UniformPrior())
+            gaussian=af.Model(af.ex.Gaussian, centre=af.UniformPrior())
         ).identifier
     )
     assert (
         identifier
         != af.Collection(
-            gaussian=af.Model(af.Gaussian, centre=af.UniformPrior(upper_limit=0.5))
+            gaussian=af.Model(af.ex.Gaussian, centre=af.UniformPrior(upper_limit=0.5))
         ).identifier
     )
 
 
 def test_instance():
-    identifier = af.Collection(gaussian=af.Gaussian()).identifier
-    assert identifier == af.Collection(gaussian=af.Gaussian()).identifier
-    assert identifier != af.Collection(gaussian=af.Gaussian(centre=0.5)).identifier
+    identifier = af.Collection(gaussian=af.ex.Gaussian()).identifier
+    assert identifier == af.Collection(gaussian=af.ex.Gaussian()).identifier
+    assert identifier != af.Collection(gaussian=af.ex.Gaussian(centre=0.5)).identifier
 
 
 def test__identifier_description():
     model = af.Collection(
         gaussian=af.Model(
-            af.Gaussian,
+            af.ex.Gaussian,
             centre=af.UniformPrior(lower_limit=0.0, upper_limit=1.0),
             normalization=af.LogUniformPrior(lower_limit=0.001, upper_limit=0.01),
             sigma=af.GaussianPrior(
@@ -270,7 +270,7 @@ def test__identifier_description():
 def test__identifier_description__after_model_and_instance():
     model = af.Collection(
         gaussian=af.Model(
-            af.Gaussian,
+            af.ex.Gaussian,
             centre=af.UniformPrior(lower_limit=0.0, upper_limit=1.0),
             normalization=af.LogUniformPrior(lower_limit=0.001, upper_limit=0.01),
             sigma=af.GaussianPrior(
@@ -315,7 +315,7 @@ def test__identifier_description__after_model_and_instance():
 def test__identifier_description__after_take_attributes():
     model = af.Collection(
         gaussian=af.Model(
-            af.Gaussian,
+            af.ex.Gaussian,
             centre=af.UniformPrior(lower_limit=0.0, upper_limit=1.0),
             normalization=af.LogUniformPrior(lower_limit=0.001, upper_limit=0.01),
             sigma=af.GaussianPrior(

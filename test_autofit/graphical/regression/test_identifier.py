@@ -113,7 +113,7 @@ def test_logarithmic_prior(
 def make_model():
     return Identifier(
         af.Model(
-            af.Gaussian
+            af.ex.Gaussian
         )
     )
 

@@ -9,7 +9,7 @@ from autofit import graphical as g
 @pytest.fixture(name="analysis_factor")
 def make_analysis_factor():
     return g.AnalysisFactor(
-        prior_model=af.Model(af.Gaussian),
+        prior_model=af.Model(af.ex.Gaussian),
         analysis=af.m.MockAnalysis(),
         name="AnalysisFactor0",
     )

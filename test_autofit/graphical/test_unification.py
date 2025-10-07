@@ -35,7 +35,7 @@ def make_x():
 
 
 def test_projected_model():
-    model = af.Model(af.Gaussian, centre=af.UniformPrior())
+    model = af.Model(af.ex.Gaussian, centre=af.UniformPrior())
     samples = af.Samples(
         model,
         [
