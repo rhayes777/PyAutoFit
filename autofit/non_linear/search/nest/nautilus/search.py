@@ -109,14 +109,6 @@ class Nautilus(abstract_nest.AbstractNest):
         set of accepted ssamples of the fit.
         """
 
-        fitness = Fitness(
-            model=model,
-            analysis=analysis,
-            paths=self.paths,
-            fom_is_log_likelihood=True,
-            resample_figure_of_merit=-1.0e99,
-        )
-
         if not isinstance(self.paths, NullPaths):
             checkpoint_exists = os.path.exists(self.checkpoint_file)
         else:
@@ -137,6 +129,16 @@ class Nautilus(abstract_nest.AbstractNest):
             or self.kwargs.get("force_x1_cpu")
             or jax_wrapper.use_jax
         ):
+
+            fitness = Fitness(
+                model=model,
+                analysis=analysis,
+                paths=self.paths,
+                fom_is_log_likelihood=True,
+                resample_figure_of_merit=-1.0e99,
+                use_jax_vmap=True,
+            )
+
             search_internal = self.fit_x1_cpu(
                 fitness=fitness,
                 model=model,
@@ -144,6 +146,15 @@ class Nautilus(abstract_nest.AbstractNest):
             )
         else:
             if not self.using_mpi:
+
+                fitness = Fitness(
+                    model=model,
+                    analysis=analysis,
+                    paths=self.paths,
+                    fom_is_log_likelihood=True,
+                    resample_figure_of_merit=-1.0e99,
+                )
+
                 search_internal = self.fit_multiprocessing(
                     fitness=fitness,
                     model=model,
@@ -170,7 +181,7 @@ class Nautilus(abstract_nest.AbstractNest):
                 "You are attempting to perform a model-fit using Nautilus. \n\n"
                 "However, the optional library Nautilus (https://nautilus-sampler.readthedocs.io/en/stable/index.html) is "
                 "not installed.\n\n"
-                "Install it via the command `pip install nautilus-sampler==0.7.2`.\n\n"
+                "Install it via the command `pip install nautilus-sampler==1.0.5`.\n\n"
                 "----------------------"
             )
 
@@ -216,7 +227,7 @@ class Nautilus(abstract_nest.AbstractNest):
 
         search_internal = self.sampler_cls(
             prior=PriorVectorized(model=model),
-            likelihood=fitness._vmap,
+            likelihood=fitness.call_wrap,
             n_dim=model.prior_count,
          #   prior_kwargs={"model": model},
             filepath=self.checkpoint_file,
@@ -344,6 +355,9 @@ class Nautilus(abstract_nest.AbstractNest):
                     fitness=fitness,
                     search_internal=search_internal
                 )
+
+        print(fitness.log_likelihood_history_list)
+        ffff
 
         return search_internal
 

@@ -4,12 +4,15 @@ Allows the user to switch between using NumPy and JAX for linear algebra operati
 If USE_JAX=true in general.yaml then JAX's NumPy is used, otherwise vanilla NumPy is used.
 """
 import jax
+import os
 
 from autoconf import conf
 
+DISABLE_JAX = os.environ.get("DISABLE_JAX", 0)
+
 use_jax = conf.instance["general"]["jax"]["use_jax"]
 
-if use_jax:
+if use_jax and DISABLE_JAX == 0:
 
     from jax import numpy
 

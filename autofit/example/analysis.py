@@ -36,7 +36,7 @@ class Analysis(af.Analysis):
     """
     Result = ResultExample
 
-    LATENT_KEYS = ["fwhm"]
+    LATENT_KEYS = ["gaussian.fwhm"]
 
     def __init__(self, data: np.ndarray, noise_map: np.ndarray):
         """

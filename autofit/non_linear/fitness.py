@@ -2,6 +2,7 @@ import jax
 import logging
 import os
 import time
+
 from timeout_decorator import timeout
 from typing import Optional
 
@@ -16,6 +17,7 @@ from autofit import exc
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.paths.abstract import AbstractPaths
 from autofit.non_linear.analysis import Analysis
+
 
 def get_timeout_seconds():
 
@@ -37,6 +39,7 @@ class Fitness:
         resample_figure_of_merit: float = -np.inf,
         convert_to_chi_squared: bool = False,
         store_history: bool = False,
+        use_jax_vmap : bool =  True
     ):
         """
         Interfaces with any non-linear search to fit the model to the data and return a log likelihood via
@@ -111,6 +114,14 @@ class Fitness:
         self.parameters_history_list = []
         self.log_likelihood_history_list = []
 
+        self.use_jax_vmap = use_jax_vmap
+
+        self._call = self.call
+
+        if jax_wrapper.use_jax:
+            if self.use_jax_vmap:
+                self._call = self._vmap
+
     def call(self, parameters):
         """
         A private method that calls the fitness function with the given parameters and additional keyword arguments.
@@ -152,6 +163,47 @@ class Fitness:
 
         return figure_of_merit
 
+    def call_wrap(self, parameters):
+        """
+        Wrapper around a JAX-jitted likelihood function that optionally stores
+        the history of evaluated parameters and likelihood values.
+
+        Depending on whether the figure of merit
+        (FoM) is defined as a log-likelihood (`self.fom_is_log_likelihood`), it
+        either uses the FoM directly or subtracts the summed log-prior to obtain
+        the log-likelihood.
+
+        If `self.store_history` is True, both the input parameters and the
+        corresponding log-likelihood are appended to internal history lists
+        (`self.parameters_history_list`, `self.log_likelihood_history_list`).
+
+        Parameters
+        ----------
+        parameters
+            A vector of model parameters to evaluate.
+
+        Returns
+        -------
+        float
+            The computed figure of merit for the input parameters. This is either
+            the log-likelihood itself or another objective function value,
+            depending on configuration.
+        """
+        figure_of_merit = self._call(parameters)
+
+        if self.fom_is_log_likelihood:
+            log_likelihood = figure_of_merit
+        else:
+            log_prior_list = np.array(self.model.log_prior_list_from_vector(vector=parameters))
+            log_likelihood = figure_of_merit - np.sum(log_prior_list)
+
+        if self.store_history:
+
+            self.parameters_history_list.append(parameters)
+            self.log_likelihood_history_list.append(log_likelihood)
+
+        return figure_of_merit
+
     @timeout(timeout_seconds)
     def __call__(self, parameters, *kwargs):
         """
@@ -186,6 +238,18 @@ class Fitness:
 
     @cached_property
     def _vmap(self):
+        """
+        Vectorized and JIT-compiled likelihood function.
+
+        This wraps the base likelihood function (`self.call`) with both
+        `jax.jit` and `jax.vmap`, producing a function that can evaluate
+        batches of parameter vectors efficiently in parallel. The first
+        call incurs compilation time, but subsequent calls are highly
+        optimized.
+
+        Because this is a `cached_property`, the compiled function is stored
+        after its first creation, avoiding repeated JIT compilation overhead.
+        """
         start = time.time()
         logger.info("JAX: Applying vmap and jit to likelihood function -- may take a few seconds.")
         func = jax.vmap(jax.jit(self.call))
@@ -193,19 +257,41 @@ class Fitness:
         return func
 
     @cached_property
-    def _call(self):
+    def _jit(self):
+        """
+        JIT-compiled likelihood function.
+
+        This wraps the base likelihood function (`self.call`) with `jax.jit`,
+        producing a compiled version optimized for repeated evaluation on a
+        single set of parameters. The first call triggers compilation, while
+        later calls benefit from the compiled execution.
+
+        As a `cached_property`, the compiled function is cached after its
+        first use, so JIT compilation only occurs once.
+        """
         start = time.time()
         logger.info("JAX: Applying jit to likelihood function -- may take a few seconds.")
         func = jax_wrapper.jit(self.call)
         logger.info(f"JAX: jit applied in {time.time() - start} seconds.")
         return func
 
-
     @cached_property
     def _grad(self):
+        """
+        Gradient of the JIT-compiled likelihood function.
+
+        This wraps the JIT-compiled likelihood function (`self._call`) with
+        `jax.grad`, returning a function that computes gradients of the
+        likelihood with respect to its input parameters. Useful for gradient-
+        based optimization and inference methods.
+
+        Since this is a `cached_property`, the gradient function is compiled
+        and cached on first access, ensuring that expensive setup is done
+        only once.
+        """
         start = time.time()
         logger.info("JAX: Applying grad to likelihood function -- may take a few seconds.")
-        func = jax_wrapper.grad(self._call)
+        func = jax_wrapper.grad(self.call)
         logger.info(f"JAX: grad applied in {time.time() - start} seconds.")
         return func
 
