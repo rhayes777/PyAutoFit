@@ -162,18 +162,6 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         from autofit.non_linear.paths.database import DatabasePaths
 
-        try:
-            from mpi4py import MPI
-
-            comm = MPI.COMM_WORLD
-            self.is_master = comm.Get_rank() == 0
-
-            logger.debug(f"Creating non-linear search: {comm.Get_rank()}")
-
-        except ModuleNotFoundError:
-            self.is_master = True
-            logger.debug(f"Creating non-linear search")
-
         if name:
             path_prefix = Path(path_prefix or "")
 
@@ -442,27 +430,6 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
 
         return search_instance
 
-    @property
-    def using_mpi(self) -> bool:
-        """
-        Whether the search is being performing using MPI for parallelisation or not.
-
-        This is performed by checking the size of the MPI.COMM_WORLD communicator.
-
-        Returns
-        -------
-        A bool indicating if the search is using MPI.
-        """
-
-        try:
-            from mpi4py import MPI
-
-            comm = MPI.COMM_WORLD
-            return comm.size > 1
-
-        except ModuleNotFoundError:
-            return False
-
     def fit(
         self,
         model: AbstractPriorModel,
@@ -511,19 +478,17 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         self.paths.model = model
         self.paths.unique_tag = self.unique_tag
 
-        if self.is_master:
-            self.paths.restore()
+        self.paths.restore()
 
         model.freeze()
         analysis = analysis.modify_before_fit(paths=self.paths, model=model)
         model.unfreeze()
 
-        if self.is_master:
-            self.pre_fit_output(
-                analysis=analysis,
-                model=model,
-                info=info,
-            )
+        self.pre_fit_output(
+            analysis=analysis,
+            model=model,
+            info=info,
+        )
 
         if not self.paths.is_complete:
             result = self.start_resume_fit(
@@ -536,14 +501,13 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                 model=model,
             )
 
-        if self.is_master:
-            analysis = analysis.modify_after_fit(
-                paths=self.paths, model=model, result=result
-            )
+        analysis = analysis.modify_after_fit(
+            paths=self.paths, model=model, result=result
+        )
 
-            self.post_fit_output(
-                search_internal=result.search_internal,
-            )
+        self.post_fit_output(
+            search_internal=result.search_internal,
+        )
 
         gc.collect()
 
@@ -669,11 +633,10 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         The result of the non-linear search, which includes the best-fit model instance and best-fit log likelihood
         and errors on the model parameters.
         """
-        if self.is_master:
-            if not isinstance(self.paths, DatabasePaths) and not isinstance(
-                self.paths, NullPaths
-            ):
-                self.timer.start()
+        if not isinstance(self.paths, DatabasePaths) and not isinstance(
+            self.paths, NullPaths
+        ):
+            self.timer.start()
 
         model.freeze()
         search_internal, fitness = self._fit(
@@ -696,9 +659,8 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             search_internal=search_internal,
         )
 
-        if self.is_master:
-            analysis.save_results(paths=self.paths, result=result)
-            analysis.save_results_combined(paths=self.paths, result=result)
+        analysis.save_results(paths=self.paths, result=result)
+        analysis.save_results_combined(paths=self.paths, result=result)
 
         model.unfreeze()
 
@@ -757,22 +719,21 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
             paths=self.paths,
         )
 
-        if self.is_master:
-            self.logger.info(f"Fit Already Completed: skipping non-linear search.")
+        self.logger.info(f"Fit Already Completed: skipping non-linear search.")
 
-            if self.force_visualize_overwrite:
-                self.perform_visualization(
-                    model=model,
-                    analysis=analysis,
-                    samples_summary=samples_summary,
-                    during_analysis=False,
-                )
+        if self.force_visualize_overwrite:
+            self.perform_visualization(
+                model=model,
+                analysis=analysis,
+                samples_summary=samples_summary,
+                during_analysis=False,
+            )
 
-            if self.force_pickle_overwrite:
-                self.logger.info("Forcing pickle overwrite")
+        if self.force_pickle_overwrite:
+            self.logger.info("Forcing pickle overwrite")
 
-                analysis.save_results(paths=self.paths, result=result)
-                analysis.save_results_combined(paths=self.paths, result=result)
+            analysis.save_results(paths=self.paths, result=result)
+            analysis.save_results_combined(paths=self.paths, result=result)
 
         model.unfreeze()
 
@@ -936,59 +897,58 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         except exc.FitException:
             return samples
 
-        if self.is_master:
-            self.paths.save_samples_summary(samples_summary=samples_summary)
+        self.paths.save_samples_summary(samples_summary=samples_summary)
 
-            samples_save = samples
+        samples_save = samples
 
-            log_message = True
+        log_message = True
 
-            if during_analysis:
-                log_message = False
-            elif self.disable_output:
-                log_message = False
+        if during_analysis:
+            log_message = False
+        elif self.disable_output:
+            log_message = False
 
-            samples_save = samples_save.samples_above_weight_threshold_from(
-                log_message=log_message
-            )
-            self.paths.save_samples(samples=samples_save)
+        samples_save = samples_save.samples_above_weight_threshold_from(
+            log_message=log_message
+        )
+        self.paths.save_samples(samples=samples_save)
 
-            latent_samples = None
+        latent_samples = None
 
-            if (during_analysis and conf.instance["output"]["latent_during_fit"]) or (
-                not during_analysis and conf.instance["output"]["latent_after_fit"]
-            ):
+        if (during_analysis and conf.instance["output"]["latent_during_fit"]) or (
+            not during_analysis and conf.instance["output"]["latent_after_fit"]
+        ):
 
-                if conf.instance["output"]["latent_draw_via_pdf"]:
+            if conf.instance["output"]["latent_draw_via_pdf"]:
 
-                    total_draws = conf.instance["output"]["latent_draw_via_pdf_size"]
+                total_draws = conf.instance["output"]["latent_draw_via_pdf_size"]
 
-                    logger.info(f"Creating latent samples by drawing {total_draws} from the PDF.")
+                logger.info(f"Creating latent samples by drawing {total_draws} from the PDF.")
 
-                    try:
-                        latent_samples = samples.samples_drawn_randomly_via_pdf_from(total_draws=total_draws)
-                    except AttributeError:
-                        latent_samples = samples_save
-                        logger.info(
-                            "Drawing via PDF not available for this search, "
-                            "using all samples above the samples weight threshold instead."
-                            "")
-
-                else:
-
-                    logger.info(f"Creating latent samples using all samples above the samples weight threshold.")
-
+                try:
+                    latent_samples = samples.samples_drawn_randomly_via_pdf_from(total_draws=total_draws)
+                except AttributeError:
                     latent_samples = samples_save
+                    logger.info(
+                        "Drawing via PDF not available for this search, "
+                        "using all samples above the samples weight threshold instead."
+                        "")
 
-                latent_samples = analysis.compute_latent_samples(latent_samples)
+            else:
 
-                if latent_samples:
-                    if not conf.instance["output"]["latent_draw_via_pdf"]:
-                        self.paths.save_latent_samples(latent_samples)
-                    self.paths.save_samples_summary(
-                        latent_samples.summary(),
-                        "latent/latent_summary",
-                    )
+                logger.info(f"Creating latent samples using all samples above the samples weight threshold.")
+
+                latent_samples = samples_save
+
+            latent_samples = analysis.compute_latent_samples(latent_samples)
+
+            if latent_samples:
+                if not conf.instance["output"]["latent_draw_via_pdf"]:
+                    self.paths.save_latent_samples(latent_samples)
+                self.paths.save_samples_summary(
+                    latent_samples.summary(),
+                    "latent/latent_summary",
+                )
 
             start = time.time()
 
@@ -1250,14 +1210,13 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         )
 
     def make_sneakier_pool(self, fitness_function: Fitness, **kwargs) -> SneakierPool:
-        if self.is_master:
-            self.logger.info(f"number of cores == {self.number_of_cores}")
 
-        if self.is_master:
-            if self.number_of_cores > 1:
-                self.logger.info("Creating SneakierPool...")
-            else:
-                self.logger.info("Creating multiprocessing Pool of size 1...")
+        self.logger.info(f"number of cores == {self.number_of_cores}")
+
+        if self.number_of_cores > 1:
+            self.logger.info("Creating SneakierPool...")
+        else:
+            self.logger.info("Creating multiprocessing Pool of size 1...")
 
         pool = SneakierPool(
             processes=self.number_of_cores, fitness=fitness_function, **kwargs

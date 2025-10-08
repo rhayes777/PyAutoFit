@@ -32,7 +32,6 @@ class DynestyStatic(AbstractDynesty):
         iterations_per_update: int = None,
         number_of_cores: int = None,
         session: Optional[sa.orm.Session] = None,
-        use_gradient: bool = False,
         **kwargs,
     ):
         """
@@ -58,8 +57,6 @@ class DynestyStatic(AbstractDynesty):
             The number of cores sampling is performed using a Python multiprocessing Pool instance.
         session
             An SQLalchemy session instance so the results of the model-fit are written to an SQLite database.
-        use_gradient
-            Determines whether the gradient should be passed to the Dynesty sampler.
         """
 
         super().__init__(
@@ -71,8 +68,6 @@ class DynestyStatic(AbstractDynesty):
             session=session,
             **kwargs,
         )
-
-        self.use_gradient = use_gradient
 
     @property
     def search_internal(self):
@@ -111,8 +106,6 @@ class DynestyStatic(AbstractDynesty):
         """
         from dynesty import NestedSampler as StaticSampler
 
-        gradient = fitness.grad if self.use_gradient else None
-
         if checkpoint_exists:
             search_internal = StaticSampler.restore(
                 fname=self.checkpoint_file, pool=pool
@@ -131,7 +124,6 @@ class DynestyStatic(AbstractDynesty):
                 self.write_uses_pool(uses_pool=True)
                 return StaticSampler(
                     loglikelihood=pool.loglike,
-                    gradient=gradient,
                     prior_transform=pool.prior_transform,
                     ndim=model.prior_count,
                     live_points=live_points,
@@ -143,7 +135,6 @@ class DynestyStatic(AbstractDynesty):
             self.write_uses_pool(uses_pool=False)
             return StaticSampler(
                 loglikelihood=fitness,
-                gradient=gradient,
                 prior_transform=prior_transform,
                 ndim=model.prior_count,
                 logl_args=[model, fitness],

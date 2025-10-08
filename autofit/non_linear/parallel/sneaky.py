@@ -373,13 +373,6 @@ class SneakierPool:
         self.prior_transform_kwargs = prior_transform_kwargs or {}
         self.processes = processes
         self.pool = None
-        try:
-            from mpi4py import MPI
-
-            self.comm = MPI.COMM_WORLD
-            self._processes = self.comm.size
-        except ModuleNotFoundError:
-            self._processes = 1
 
         init_args = (
             self.fitness_init,
@@ -391,46 +384,16 @@ class SneakierPool:
         )
         initializer(*init_args)
 
-    def check_if_mpi(self):
-        return self._processes > 1
-
-    def is_master(self):
-        is_mpi = self.check_if_mpi()
-        if is_mpi:
-            return_value = self.comm.rank == 0
-        else:
-            return_value = True
-
-        return return_value
-
-    def wait(self):
-        is_mpi = self.check_if_mpi()
-        if is_mpi:
-            self.pool.wait()
-        else:
-            pass
-            warnings.warn("Cannot wait for pool to finish if not using MPI")
-
     def __enter__(self):
         """
         Activate the mp / mpi pool
         """
 
-        use_mpi = self.check_if_mpi()
+        logger.info("... using multiprocessing")
 
-        if use_mpi:
-            from schwimmbad import MPIPool
-
-            if self.is_master():
-                logger.info("... using Schwimmbad MPIPool")
-            self.pool = MPIPool(use_dill=True)
-
-        else:
-            if self.is_master():
-                logger.info("... using multiprocessing")
-            self.pool = mp.Pool(
-                processes=self.processes,
-            )
+        self.pool = mp.Pool(
+            processes=self.processes,
+        )
 
         return self
 

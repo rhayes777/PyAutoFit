@@ -358,64 +358,6 @@ class Nautilus(abstract_nest.AbstractNest):
 
         return search_internal
 
-    def fit_mpi(self, fitness, model, analysis, checkpoint_exists: bool):
-        """
-        Perform the non-linear search, using MPI to distribute the model-fit across multiple computing nodes.
-
-        This uses PyAutoFit's sneaky pool class, which allows us to use the multiprocessing module in a way that plays
-        nicely with the non-linear search (e.g. exception handling, keyboard interupts, etc.).
-
-        MPI parallelization can be distributed across multiple devices or computing nodes.
-
-        Parameters
-        ----------
-        fitness
-            The function which takes a model instance and returns its log likelihood via the Analysis class
-        model
-            The model which maps parameters chosen via the non-linear search (e.g. via the priors or sampling) to
-            instances of the model, which are passed to the fitness function.
-        analysis
-            Contains the data and the log likelihood function which fits an instance of the model to the data, returning
-            the log likelihood the search maximizes.
-        checkpoint_exists
-            Does the checkpoint file corresponding do a previous run of this search exist?
-        """
-        with self.make_sneakier_pool(
-            fitness_function=fitness.__call__,
-            prior_transform=PriorVectorized(model=model),
-            fitness_args=(model, fitness.__call__),
-            prior_transform_args=(model,),
-        ) as pool:
-            if not pool.is_master():
-                pool.wait()
-                sys.exit(0)
-
-            search_internal = self.sampler_cls(
-                prior=pool.prior_transform,
-                likelihood=pool.fitness,
-                n_dim=model.prior_count,
-                filepath=self.checkpoint_file,
-                pool=pool,
-                **self.config_dict_search,
-            )
-
-            if checkpoint_exists:
-                if self.is_master:
-
-                    self.perform_update(
-                        model=model,
-                        analysis=analysis,
-                        during_analysis=True,
-                        fitness=fitness,
-                        search_internal=search_internal,
-                    )
-
-            search_internal.run(
-                **self.config_dict_run,
-            )
-
-        return search_internal
-
     def iterations_from(
         self, search_internal
     ) -> Tuple[int, int]:

@@ -10,7 +10,7 @@ from autoconf import conf
 from autoconf import cached_property
 
 from autofit import jax_wrapper
-from autofit.jax_wrapper import numpy as np
+from autofit.jax_wrapper import numpy as xp
 from autofit import exc
 
 
@@ -36,10 +36,10 @@ class Fitness:
         analysis : Analysis,
         paths : Optional[AbstractPaths] = None,
         fom_is_log_likelihood: bool = True,
-        resample_figure_of_merit: float = -np.inf,
+        resample_figure_of_merit: float = -xp.inf,
         convert_to_chi_squared: bool = False,
         store_history: bool = False,
-        use_jax_vmap : bool =  True
+        use_jax_vmap : bool = False
     ):
         """
         Interfaces with any non-linear search to fit the model to the data and return a log likelihood via
@@ -147,15 +147,15 @@ class Fitness:
         log_likelihood = self.analysis.log_likelihood_function(instance=instance)
 
         # Penalize NaNs in the log-likelihood
-        log_likelihood = np.where(np.isnan(log_likelihood), self.resample_figure_of_merit, log_likelihood)
+        log_likelihood = xp.where(xp.isnan(log_likelihood), self.resample_figure_of_merit, log_likelihood)
 
         # Determine final figure of merit
         if self.fom_is_log_likelihood:
             figure_of_merit = log_likelihood
         else:
             # Ensure prior list is compatible with JAX (must return a JAX array, not list)
-            log_prior_array = np.array(self.model.log_prior_list_from_vector(vector=parameters))
-            figure_of_merit = log_likelihood + np.sum(log_prior_array)
+            log_prior_array = xp.array(self.model.log_prior_list_from_vector(vector=parameters))
+            figure_of_merit = log_likelihood + xp.sum(log_prior_array)
 
         # Convert to chi-squared scale if requested
         if self.convert_to_chi_squared:
@@ -194,8 +194,8 @@ class Fitness:
         if self.fom_is_log_likelihood:
             log_likelihood = figure_of_merit
         else:
-            log_prior_list = np.array(self.model.log_prior_list_from_vector(vector=parameters))
-            log_likelihood = figure_of_merit - np.sum(log_prior_list)
+            log_prior_list = xp.array(self.model.log_prior_list_from_vector(vector=parameters))
+            log_likelihood = figure_of_merit - xp.sum(log_prior_list)
 
         if self.store_history:
 
@@ -322,6 +322,7 @@ class Fitness:
         result
             The result containing the maximum log likelihood fit of the model.
         """
+        import numpy as np
 
         if os.environ.get("PYAUTOFIT_TEST_MODE") == "1":
             return

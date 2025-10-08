@@ -1,6 +1,6 @@
 import pickle
 
-from autofit.jax_wrapper import numpy as np, jit
+from autofit.jax_wrapper import numpy as xp, jit
 
 import autofit as af
 from autofit import jax_wrapper
@@ -14,7 +14,7 @@ jax = pytest.importorskip("jax")
 
 @pytest.fixture(autouse=True)
 def monkeypatch_jax_np(monkeypatch):
-    monkeypatch.setattr(model_module, "np", np)
+    monkeypatch.setattr(model_module, "np", xp)
 
 
 @pytest.fixture(autouse=True, name="model")
@@ -24,7 +24,7 @@ def make_model():
 
 @pytest.fixture(name="analysis")
 def make_analysis():
-    x = np.arange(100)
+    x = xp.arange(100)
     y = make_data(Gaussian(centre=50.0, normalization=25.0, sigma=10.0), x)
     return Analysis(x, y)
 
