@@ -4,6 +4,7 @@ Allows the user to switch between using NumPy and JAX for linear algebra operati
 If USE_JAX=true in general.yaml then JAX's NumPy is used, otherwise vanilla NumPy is used.
 """
 import jax
+import os
 
 from autoconf import conf
 

@@ -9,7 +9,7 @@ def test_embedded_query(
     model_1 = db.Fit(
         id="model_1",
         instance=af.Collection(
-            gaussian=af.Gaussian(
+            gaussian=af.ex.Gaussian(
                 centre=1
             )
         ),
@@ -18,7 +18,7 @@ def test_embedded_query(
     model_2 = db.Fit(
         id="model_2",
         instance=af.Collection(
-            gaussian=af.Gaussian(
+            gaussian=af.ex.Gaussian(
                 centre=2
             )
         ),

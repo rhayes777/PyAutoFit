@@ -109,14 +109,6 @@ class Nautilus(abstract_nest.AbstractNest):
         set of accepted ssamples of the fit.
         """
 
-        fitness = Fitness(
-            model=model,
-            analysis=analysis,
-            paths=self.paths,
-            fom_is_log_likelihood=True,
-            resample_figure_of_merit=-1.0e99,
-        )
-
         if not isinstance(self.paths, NullPaths):
             checkpoint_exists = os.path.exists(self.checkpoint_file)
         else:
@@ -137,25 +129,37 @@ class Nautilus(abstract_nest.AbstractNest):
             or self.kwargs.get("force_x1_cpu")
             or jax_wrapper.use_jax
         ):
+
+            fitness = Fitness(
+                model=model,
+                analysis=analysis,
+                paths=self.paths,
+                fom_is_log_likelihood=True,
+                resample_figure_of_merit=-1.0e99,
+                use_jax_vmap=True,
+            )
+
             search_internal = self.fit_x1_cpu(
                 fitness=fitness,
                 model=model,
                 analysis=analysis,
             )
         else:
-            if not self.using_mpi:
-                search_internal = self.fit_multiprocessing(
-                    fitness=fitness,
-                    model=model,
-                    analysis=analysis,
-                )
-            else:
-                search_internal = self.fit_mpi(
-                    fitness=fitness,
-                    model=model,
-                    analysis=analysis,
-                    checkpoint_exists=checkpoint_exists,
-                )
+
+            fitness = Fitness(
+                model=model,
+                analysis=analysis,
+                paths=self.paths,
+                fom_is_log_likelihood=True,
+                resample_figure_of_merit=-1.0e99,
+            )
+
+            search_internal = self.fit_multiprocessing(
+                fitness=fitness,
+                model=model,
+                analysis=analysis,
+            )
+
         return search_internal, fitness
 
     @property
@@ -170,7 +174,7 @@ class Nautilus(abstract_nest.AbstractNest):
                 "You are attempting to perform a model-fit using Nautilus. \n\n"
                 "However, the optional library Nautilus (https://nautilus-sampler.readthedocs.io/en/stable/index.html) is "
                 "not installed.\n\n"
-                "Install it via the command `pip install nautilus-sampler==0.7.2`.\n\n"
+                "Install it via the command `pip install nautilus-sampler==1.0.5`.\n\n"
                 "----------------------"
             )
 
@@ -216,9 +220,8 @@ class Nautilus(abstract_nest.AbstractNest):
 
         search_internal = self.sampler_cls(
             prior=PriorVectorized(model=model),
-            likelihood=fitness._vmap,
+            likelihood=fitness.call_wrap,
             n_dim=model.prior_count,
-         #   prior_kwargs={"model": model},
             filepath=self.checkpoint_file,
             pool=None,
             vectorized=True,
@@ -250,9 +253,8 @@ class Nautilus(abstract_nest.AbstractNest):
         """
         search_internal = self.sampler_cls(
             prior=PriorVectorized(model=model),
-            likelihood=fitness.__call__,
+            likelihood=fitness.call_wrap,
             n_dim=model.prior_count,
-            prior_kwargs={"model": model},
             filepath=self.checkpoint_file,
             pool=self.number_of_cores,
             **self.config_dict_search,
@@ -344,64 +346,6 @@ class Nautilus(abstract_nest.AbstractNest):
                     fitness=fitness,
                     search_internal=search_internal
                 )
-
-        return search_internal
-
-    def fit_mpi(self, fitness, model, analysis, checkpoint_exists: bool):
-        """
-        Perform the non-linear search, using MPI to distribute the model-fit across multiple computing nodes.
-
-        This uses PyAutoFit's sneaky pool class, which allows us to use the multiprocessing module in a way that plays
-        nicely with the non-linear search (e.g. exception handling, keyboard interupts, etc.).
-
-        MPI parallelization can be distributed across multiple devices or computing nodes.
-
-        Parameters
-        ----------
-        fitness
-            The function which takes a model instance and returns its log likelihood via the Analysis class
-        model
-            The model which maps parameters chosen via the non-linear search (e.g. via the priors or sampling) to
-            instances of the model, which are passed to the fitness function.
-        analysis
-            Contains the data and the log likelihood function which fits an instance of the model to the data, returning
-            the log likelihood the search maximizes.
-        checkpoint_exists
-            Does the checkpoint file corresponding do a previous run of this search exist?
-        """
-        with self.make_sneakier_pool(
-            fitness_function=fitness.__call__,
-            prior_transform=PriorVectorized(model=model),
-            fitness_args=(model, fitness.__call__),
-            prior_transform_args=(model,),
-        ) as pool:
-            if not pool.is_master():
-                pool.wait()
-                sys.exit(0)
-
-            search_internal = self.sampler_cls(
-                prior=pool.prior_transform,
-                likelihood=pool.fitness,
-                n_dim=model.prior_count,
-                filepath=self.checkpoint_file,
-                pool=pool,
-                **self.config_dict_search,
-            )
-
-            if checkpoint_exists:
-                if self.is_master:
-
-                    self.perform_update(
-                        model=model,
-                        analysis=analysis,
-                        during_analysis=True,
-                        fitness=fitness,
-                        search_internal=search_internal,
-                    )
-
-            search_internal.run(
-                **self.config_dict_run,
-            )
 
         return search_internal
 

@@ -135,7 +135,12 @@ class PriorVectorized:
             Transformed parameters of shape (n_samples, n_priors).
         """
 
-        n_samples, n_priors = cube.shape
+        cube_reshaped = False
+
+        if len(cube.shape) == 1:
+            cube = cube[None, :]
+            cube_reshaped = True
+
         out = np.empty_like(cube)
 
         # 2) Batch‐process all UniformPriors
@@ -176,5 +181,9 @@ class PriorVectorized:
                 self.loguniform_log_lowers
                 + subcube * (self.loguniform_log_uppers - self.loguniform_log_lowers)
             )
+
+        if cube_reshaped:
+
+            return out[0]
 
         return out

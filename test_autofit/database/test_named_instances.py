@@ -8,13 +8,13 @@ def test_set_and_retrieve(
     fit = db.Fit()
     fit.named_instances[
         "one"
-    ] = af.Gaussian()
+    ] = af.ex.Gaussian()
 
     assert isinstance(
         fit.named_instances[
             "one"
         ],
-        af.Gaussian
+        af.ex.Gaussian
     )
 
 
@@ -26,7 +26,7 @@ def test_query(
     )
     fit.named_instances[
         "one"
-    ] = af.Gaussian()
+    ] = af.ex.Gaussian()
 
     session.add(fit)
     session.commit()
@@ -39,5 +39,5 @@ def test_query(
         fit.named_instances[
             "one"
         ],
-        af.Gaussian
+        af.ex.Gaussian
     )

@@ -8,7 +8,7 @@ import autofit as af
 )
 def make_model():
     model = af.Model(
-        af.Gaussian
+        af.ex.Gaussian
     )
     return model
 

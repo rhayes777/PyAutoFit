@@ -19,7 +19,7 @@ def test_save_all_samples_boolean(session, save_all_samples):
 
 def test_unique_tag(session):
     analysis = af.m.MockAnalysis()
-    model = af.Model(af.Gaussian)
+    model = af.Model(af.ex.Gaussian)
 
     unique_tag = "unique"
 

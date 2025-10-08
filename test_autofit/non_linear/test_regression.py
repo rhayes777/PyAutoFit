@@ -36,8 +36,8 @@ def test_serialize_grid_search(search):
 
 @pytest.fixture(name="model")
 def make_model():
-    one = af.Model(af.Gaussian)
-    two = af.Model(af.Gaussian)
+    one = af.Model(af.ex.Gaussian)
+    two = af.Model(af.ex.Gaussian)
     model = af.Collection(
         one=one,
         two=two,

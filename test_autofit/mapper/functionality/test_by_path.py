@@ -5,7 +5,7 @@ import autofit as af
 
 @pytest.fixture(name="model")
 def make_model():
-    return af.Collection(gaussian=af.Model(af.Gaussian))
+    return af.Collection(gaussian=af.Model(af.ex.Gaussian))
 
 
 class TestInstanceFromPathArguments:
@@ -58,7 +58,7 @@ class TestInstanceFromPathArguments:
 
 @pytest.fixture(name="underscore_model")
 def make_underscore_model():
-    return af.Collection(gaussian_component=af.Model(af.Gaussian))
+    return af.Collection(gaussian_component=af.Model(af.ex.Gaussian))
 
 
 class TestInstanceFromPriorNames:
@@ -112,7 +112,7 @@ class TestInstanceFromPriorNames:
 
 
 def test_component_names():
-    model = af.Model(af.Gaussian)
+    model = af.Model(af.ex.Gaussian)
     assert model.model_component_and_parameter_names == [
         "centre",
         "normalization",
@@ -127,14 +127,14 @@ def test_with_tuple():
 
 @pytest.fixture(name="linked_model")
 def make_linked_model():
-    model = af.Model(af.Gaussian)
+    model = af.Model(af.ex.Gaussian)
     model.sigma = model.centre
     return model
 
 
 class TestAllPaths:
     def test_independent(self):
-        model = af.Model(af.Gaussian)
+        model = af.Model(af.ex.Gaussian)
 
         assert model.all_paths_prior_tuples == [
             ((("centre",),), model.centre),
@@ -149,7 +149,7 @@ class TestAllPaths:
         ]
 
     def test_names_independent(self):
-        model = af.Model(af.Gaussian)
+        model = af.Model(af.ex.Gaussian)
 
         assert model.all_name_prior_tuples == [
             (("centre",), model.centre),

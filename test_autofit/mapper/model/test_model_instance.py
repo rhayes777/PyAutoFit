@@ -166,23 +166,23 @@ class TestModelInstance:
         assert model_map.mock_profile.two == 0.0
 
 
-class Child(af.Gaussian):
+class Child(af.ex.Gaussian):
     pass
 
 
-class Child2(af.Gaussian):
+class Child2(af.ex.Gaussian):
     pass
 
 
 @pytest.fixture(name="exclude_instance")
 def make_excluded_instance():
     return af.ModelInstance(
-        {"child": Child(), "gaussian": af.Gaussian(), "child2": Child2(),}
+        {"child": Child(), "gaussian": af.ex.Gaussian(), "child2": Child2(),}
     )
 
 
 def test_single_argument(exclude_instance):
-    model = exclude_instance.as_model(af.Gaussian)
+    model = exclude_instance.as_model(af.ex.Gaussian)
 
     assert isinstance(model.gaussian, af.Model)
     assert isinstance(model.child, af.Model)
@@ -190,7 +190,7 @@ def test_single_argument(exclude_instance):
 
 
 def test_filter_child(exclude_instance):
-    model = exclude_instance.as_model(af.Gaussian, excluded_classes=Child)
+    model = exclude_instance.as_model(af.ex.Gaussian, excluded_classes=Child)
 
     assert isinstance(model.gaussian, af.Model)
     assert not isinstance(model.child, af.Model)
@@ -198,7 +198,7 @@ def test_filter_child(exclude_instance):
 
 
 def test_filter_multiple(exclude_instance):
-    model = exclude_instance.as_model(af.Gaussian, excluded_classes=(Child, Child2),)
+    model = exclude_instance.as_model(af.ex.Gaussian, excluded_classes=(Child, Child2),)
 
     assert isinstance(model.gaussian, af.Model)
     assert not isinstance(model.child, af.Model)

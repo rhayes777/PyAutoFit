@@ -4,7 +4,7 @@ import autofit as af
 
 
 class OptionalClass:
-    def __init__(self, optional: Optional[af.Gaussian]):
+    def __init__(self, optional: Optional[af.ex.Gaussian]):
         self.optional = optional
 
 

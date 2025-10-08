@@ -143,7 +143,7 @@ class AbstractBFGS(AbstractMLE):
                 config_dict_options["maxiter"] = iterations
 
                 search_internal = optimize.minimize(
-                    fun=fitness.__call__,
+                    fun=fitness.call_wrap,
                     x0=x0,
                     method=self.method,
                     options=config_dict_options,

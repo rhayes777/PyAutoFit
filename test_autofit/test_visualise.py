@@ -15,8 +15,8 @@ def reset_ids():
 @pytest.fixture
 def model():
     collection = af.Collection(
-        first=af.Model(af.Gaussian),
-        second=af.Model(af.Gaussian),
+        first=af.Model(af.ex.Gaussian),
+        second=af.Model(af.ex.Gaussian),
     )
     collection.first.centre = collection.second.centre
     return collection
@@ -61,9 +61,9 @@ def graph_path(output_directory):
 
 
 def test_complex_object(graph_path):
-    second = af.Model(af.Gaussian)
-    exp = af.Model(af.Exponential)
-    third = af.Model(af.Gaussian)
+    second = af.Model(af.ex.Gaussian)
+    exp = af.Model(af.ex.Exponential)
+    third = af.Model(af.ex.Gaussian)
 
     collection = af.Collection(
         first=af.Collection(

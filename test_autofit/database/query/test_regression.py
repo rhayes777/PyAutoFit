@@ -16,7 +16,7 @@ def test_float_inequality(session):
             af.db.Fit(
                 id=str(uuid4()),
                 instance={
-                    "gaussian": af.Gaussian(
+                    "gaussian": af.ex.Gaussian(
                         sigma=sigma
                     )
                 }

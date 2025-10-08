@@ -7,7 +7,7 @@ from autoconf.dictable import from_dict, to_dict
 
 @pytest.fixture(name="model")
 def make_model():
-    return af.Model(af.Gaussian)
+    return af.Model(af.ex.Gaussian)
 
 
 @pytest.fixture(name="sample")

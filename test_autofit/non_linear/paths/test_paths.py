@@ -51,7 +51,7 @@ output_path = Path(__file__).parent / "path"
 
 @pytest.fixture(name="model")
 def make_model():
-    return af.Model(af.Gaussian)
+    return af.Model(af.ex.Gaussian)
 
 
 @output_path_for_test(output_path)

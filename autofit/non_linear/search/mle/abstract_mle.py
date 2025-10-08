@@ -1,10 +1,6 @@
 from abc import ABC
-import copy
-from typing import List
 
 from autoconf import conf
-from autofit.mapper.prior_model.abstract import AbstractPriorModel
-from autofit.non_linear.analysis import Analysis
 from autofit.non_linear.search.abstract_search import NonLinearSearch
 from autofit.non_linear.samples import Samples
 from autofit.non_linear.plot.mle_plotters import MLEPlotter

@@ -6,13 +6,13 @@ def test():
 
     pass
 
-    # model_1 = af.Model(af.Gaussian)
+    # model_1 = af.Model(af.ex.Gaussian)
     # analysis_factor_1 = af.AnalysisFactor(
     #     prior_model=model_1,
     #     analysis=MockAnalysis(),
     # )
     #
-    # model_2 = af.Model(af.Gaussian)
+    # model_2 = af.Model(af.ex.Gaussian)
     # analysis_factor_2 = af.AnalysisFactor(
     #     prior_model=model_2,
     #     analysis=MockAnalysis(),

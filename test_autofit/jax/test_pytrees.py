@@ -9,7 +9,7 @@ jax = pytest.importorskip("jax")
 
 @pytest.fixture(name="gaussian")
 def make_gaussian():
-    return af.Gaussian(centre=1.0, sigma=1.0, normalization=1.0)
+    return af.ex.Gaussian(centre=1.0, sigma=1.0, normalization=1.0)
 
 
 @pytest.fixture(autouse=True)
@@ -42,7 +42,7 @@ def test_gaussian_prior(recreate):
 @pytest.fixture(name="model")
 def _model():
     return af.Model(
-        af.Gaussian,
+        af.ex.Gaussian,
         centre=af.GaussianPrior(mean=1.0, sigma=1.0),
         normalization=af.GaussianPrior(mean=1.0, sigma=1.0),
         sigma=af.GaussianPrior(mean=1.0, sigma=1.0),
@@ -51,7 +51,7 @@ def _model():
 
 def test_model(model, recreate):
     new = recreate(model)
-    assert new.cls == af.Gaussian
+    assert new.cls == af.ex.Gaussian
 
     centre = new.centre
     assert centre.mean == model.centre.mean
@@ -63,7 +63,7 @@ def test_instance(model, recreate):
     instance = model.instance_from_prior_medians()
     new = recreate(instance)
 
-    assert isinstance(new, af.Gaussian)
+    assert isinstance(new, af.ex.Gaussian)
 
     assert new.centre == instance.centre
     assert new.normalization == instance.normalization
@@ -86,7 +86,7 @@ def test_model_instance(model, recreate):
     new = recreate(instance)
 
     assert isinstance(new, af.ModelInstance)
-    assert isinstance(new.gaussian, af.Gaussian)
+    assert isinstance(new.gaussian, af.ex.Gaussian)
 
 
 def test_collection(model, recreate):
@@ -96,7 +96,7 @@ def test_collection(model, recreate):
     assert isinstance(new, af.Collection)
     assert isinstance(new.gaussian, af.Model)
 
-    assert new.gaussian.cls == af.Gaussian
+    assert new.gaussian.cls == af.ex.Gaussian
 
     centre = new.gaussian.centre
     assert centre.mean == model.centre.mean

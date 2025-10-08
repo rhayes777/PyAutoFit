@@ -17,7 +17,7 @@ def make_result_builder():
 def make_add_results(result_builder):
     def add_results(*numbers):
         for number in numbers:
-            model = af.Model(af.Gaussian)
+            model = af.Model(af.ex.Gaussian)
             samples_summary = MockSamplesSummary(model=model)
             result_builder.add(
                 JobResult(
