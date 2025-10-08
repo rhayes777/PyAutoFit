@@ -34,7 +34,6 @@ def make_dynesty_dict():
             "sample": "auto",
             "slices": 5,
             "unique_tag": None,
-            "use_gradient": False,
             "walks": 5,
         },
         "class_path": "autofit.non_linear.search.nest.dynesty.search.static.DynestyStatic",

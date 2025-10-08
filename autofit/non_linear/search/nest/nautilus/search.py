@@ -145,28 +145,21 @@ class Nautilus(abstract_nest.AbstractNest):
                 analysis=analysis,
             )
         else:
-            if not self.using_mpi:
 
-                fitness = Fitness(
-                    model=model,
-                    analysis=analysis,
-                    paths=self.paths,
-                    fom_is_log_likelihood=True,
-                    resample_figure_of_merit=-1.0e99,
-                )
+            fitness = Fitness(
+                model=model,
+                analysis=analysis,
+                paths=self.paths,
+                fom_is_log_likelihood=True,
+                resample_figure_of_merit=-1.0e99,
+            )
 
-                search_internal = self.fit_multiprocessing(
-                    fitness=fitness,
-                    model=model,
-                    analysis=analysis,
-                )
-            else:
-                search_internal = self.fit_mpi(
-                    fitness=fitness,
-                    model=model,
-                    analysis=analysis,
-                    checkpoint_exists=checkpoint_exists,
-                )
+            search_internal = self.fit_multiprocessing(
+                fitness=fitness,
+                model=model,
+                analysis=analysis,
+            )
+
         return search_internal, fitness
 
     @property
@@ -229,7 +222,6 @@ class Nautilus(abstract_nest.AbstractNest):
             prior=PriorVectorized(model=model),
             likelihood=fitness.call_wrap,
             n_dim=model.prior_count,
-         #   prior_kwargs={"model": model},
             filepath=self.checkpoint_file,
             pool=None,
             vectorized=True,
@@ -263,7 +255,6 @@ class Nautilus(abstract_nest.AbstractNest):
             prior=PriorVectorized(model=model),
             likelihood=fitness.call_wrap,
             n_dim=model.prior_count,
-            prior_kwargs={"model": model},
             filepath=self.checkpoint_file,
             pool=self.number_of_cores,
             **self.config_dict_search,

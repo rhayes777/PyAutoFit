@@ -22,6 +22,8 @@ from autoconf import conf, cached_property
 
 from autoconf.output import should_output
 
+from autofit.jax_wrapper import numpy as xp
+
 from autofit import exc, jax_wrapper
 from autofit.database.sqlalchemy_ import sa
 from autofit.graphical import (
@@ -913,7 +915,6 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
         )
         self.paths.save_samples(samples=samples_save)
 
-        latent_samples = None
 
         if (during_analysis and conf.instance["output"]["latent_during_fit"]) or (
             not during_analysis and conf.instance["output"]["latent_after_fit"]
@@ -978,7 +979,7 @@ class NonLinearSearch(AbstractFactorOptimiser, ABC):
                 parameters = samples.max_log_likelihood(as_instance=False)
 
                 start = time.time()
-                figure_of_merit = fitness(parameters)
+                figure_of_merit = fitness.call_wrap(parameters)
 
                 # account for asynchronous JAX calls
                 np.array(figure_of_merit)

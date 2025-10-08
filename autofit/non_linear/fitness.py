@@ -1,5 +1,6 @@
 import jax
 import logging
+import numpy as np
 import os
 import time
 
@@ -108,9 +109,6 @@ class Fitness:
         self.convert_to_chi_squared = convert_to_chi_squared
         self.store_history = store_history
 
-        if self.paths is not None:
-            self.check_log_likelihood(fitness=self)
-
         self.parameters_history_list = []
         self.log_likelihood_history_list = []
 
@@ -121,6 +119,9 @@ class Fitness:
         if jax_wrapper.use_jax:
             if self.use_jax_vmap:
                 self._call = self._vmap
+
+        if self.paths is not None:
+            self.check_log_likelihood(fitness=self)
 
     def call(self, parameters):
         """
@@ -189,7 +190,13 @@ class Fitness:
             the log-likelihood itself or another objective function value,
             depending on configuration.
         """
+        if self.use_jax_vmap:
+            if len(np.array(parameters).shape) == 1:
+                parameters = np.array(parameters)[None, :]
+
         figure_of_merit = self._call(parameters)
+
+        print(figure_of_merit)
 
         if self.fom_is_log_likelihood:
             log_likelihood = figure_of_merit
@@ -224,7 +231,7 @@ class Fitness:
         -------
         The figure of merit returned to the non-linear search, which is either the log likelihood or log posterior.
         """
-        return self._call(parameters)
+        return self.call_wrap(parameters)
 
     # def __getstate__(self):
     #     state = self.__dict__.copy()
