@@ -140,17 +140,11 @@ class Fitness:
         -------
         The figure of merit returned to the non-linear search, which is either the log likelihood or log posterior.
         """
-        print(parameters)
-        print(type(parameters))
-        print(parameters.shape)
-
         # Get instance from model
         instance = self.model.instance_from_vector(vector=parameters)
 
         # Evaluate log likelihood (must be side-effect free and exception-free)
         log_likelihood = self.analysis.log_likelihood_function(instance=instance)
-
-        print(log_likelihood)
 
         # Penalize NaNs in the log-likelihood
         log_likelihood = xp.where(xp.isnan(log_likelihood), self.resample_figure_of_merit, log_likelihood)
