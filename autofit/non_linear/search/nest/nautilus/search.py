@@ -261,7 +261,7 @@ class Nautilus(abstract_nest.AbstractNest):
         """
         search_internal = self.sampler_cls(
             prior=PriorVectorized(model=model),
-            likelihood=fitness.__call__,
+            likelihood=fitness.call_wrap,
             n_dim=model.prior_count,
             prior_kwargs={"model": model},
             filepath=self.checkpoint_file,
@@ -355,9 +355,6 @@ class Nautilus(abstract_nest.AbstractNest):
                     fitness=fitness,
                     search_internal=search_internal
                 )
-
-        print(fitness.log_likelihood_history_list)
-        ffff
 
         return search_internal
 

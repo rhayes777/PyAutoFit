@@ -210,7 +210,7 @@ class AbstractPySwarms(AbstractMLE):
 
             if iterations > 0:
                 search_internal.optimize(
-                    objective_func=fitness.__call__, iters=iterations
+                    objective_func=fitness.call_wrap, iters=iterations
                 )
 
                 total_iterations += iterations

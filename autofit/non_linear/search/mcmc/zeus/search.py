@@ -155,7 +155,7 @@ class Zeus(AbstractMCMC):
             search_internal = zeus.EnsembleSampler(
                 nwalkers=self.config_dict_search["nwalkers"],
                 ndim=model.prior_count,
-                logprob_fn=fitness.__call__,
+                logprob_fn=fitness.call_wrap,
                 pool=pool,
             )
 
