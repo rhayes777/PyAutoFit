@@ -139,9 +139,7 @@ class PriorVectorized:
 
         if len(cube.shape) == 1:
             cube = cube[None, :]
-
             cube_reshaped = True
-
 
         out = np.empty_like(cube)
 

@@ -8,14 +8,9 @@ import os
 
 from autoconf import conf
 
-DISABLE_JAX = os.environ.get("DISABLE_JAX", 0)
-
 use_jax = conf.instance["general"]["jax"]["use_jax"]
 
-if DISABLE_JAX != 0:
-    use_jax = False
-
-if use_jax and DISABLE_JAX == 0:
+if use_jax:
 
     from jax import numpy
 
