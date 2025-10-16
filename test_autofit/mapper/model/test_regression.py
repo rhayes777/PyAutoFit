@@ -32,7 +32,7 @@ def test_mapper_from_prior_arguments_simple_collection():
 
 def test_direct_instances_only():
     child = af.Model(
-        af.Gaussian,
+        af.ex.Gaussian,
         centre=0.0,
         normalization=0.1,
         sigma=0.01,
@@ -40,7 +40,7 @@ def test_direct_instances_only():
     child.constant = 1.0
 
     model = af.Model(
-        af.Gaussian,
+        af.ex.Gaussian,
         centre=child,
         normalization=0.1,
         sigma=0.01,
@@ -74,7 +74,7 @@ def test_as_model_tuples():
 
 
 def test_info_prints_number_of_parameters():
-    model = af.Model(af.Gaussian)
+    model = af.Model(af.ex.Gaussian)
     assert "Total Free Parameters" in model.info
 
 
@@ -118,7 +118,7 @@ def test_independent_ids():
 
 @pytest.fixture(name="gaussian")
 def make_gaussian():
-    return af.Gaussian()
+    return af.ex.Gaussian()
 
 
 @pytest.fixture(name="instance")
@@ -132,7 +132,7 @@ def make_path():
 
 
 def test_lists(instance, gaussian, path):
-    assert instance.path_instance_tuples_for_class(af.Gaussian) == [(path, gaussian)]
+    assert instance.path_instance_tuples_for_class(af.ex.Gaussian) == [(path, gaussian)]
 
 
 def test_replace_positional_path(instance, gaussian, path):
@@ -142,7 +142,7 @@ def test_replace_positional_path(instance, gaussian, path):
 
 @pytest.fixture(name="model_with_assertion")
 def make_model_with_assertion():
-    model = af.Model(af.Gaussian)
+    model = af.Model(af.ex.Gaussian)
     model.add_assertion(model.centre < -10)
     return model
 

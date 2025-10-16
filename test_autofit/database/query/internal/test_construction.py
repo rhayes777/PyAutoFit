@@ -7,11 +7,11 @@ def test_simple(aggregator):
 
 
 def test_and(aggregator):
-    construction = ((aggregator.model.centre == af.Gaussian) & (aggregator.model.centre.x == 0))
+    construction = ((aggregator.model.centre == af.ex.Gaussian) & (aggregator.model.centre.x == 0))
     assert construction.query == q.Q(
         "centre",
         q.And(
-            q.T(af.Gaussian),
+            q.T(af.ex.Gaussian),
             q.Q(
                 "x",
                 q.V(
@@ -23,11 +23,11 @@ def test_and(aggregator):
 
 
 def test_or(aggregator):
-    construction = ((aggregator.model.centre == af.Gaussian) | (aggregator.model.centre.x == 0))
+    construction = ((aggregator.model.centre == af.ex.Gaussian) | (aggregator.model.centre.x == 0))
     assert construction.query == q.Q(
         "centre",
         q.Or(
-            q.T(af.Gaussian),
+            q.T(af.ex.Gaussian),
             q.Q(
                 "x",
                 q.V(
@@ -51,7 +51,7 @@ def test_third_level(aggregator):
 
 
 def test_with_type(aggregator):
-    assert (aggregator.model.centre == af.Gaussian).query == q.Q("centre", q.T(af.Gaussian)).query
+    assert (aggregator.model.centre == af.ex.Gaussian).query == q.Q("centre", q.T(af.ex.Gaussian)).query
 
 
 def test_with_string(aggregator):

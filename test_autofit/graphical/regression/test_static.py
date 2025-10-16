@@ -54,7 +54,7 @@ def make_analysis_factor_factory(centre):
     def factory():
         return af.AnalysisFactor(
             prior_model=af.Model(
-                af.Gaussian,
+                af.ex.Gaussian,
                 centre=centre,
                 normalization=af.GaussianPrior(mean=1.0, sigma=2.0),
                 sigma=af.GaussianPrior(mean=1.0, sigma=2.0),

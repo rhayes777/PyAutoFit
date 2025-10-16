@@ -126,7 +126,7 @@ class Emcee(AbstractMCMC):
         search_internal = emcee.EnsembleSampler(
             nwalkers=self.config_dict_search["nwalkers"],
             ndim=model.prior_count,
-            log_prob_fn=fitness.__call__,
+            log_prob_fn=fitness.call_wrap,
             backend=backend,
             pool=pool,
         )

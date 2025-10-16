@@ -9,7 +9,7 @@ class Samples:
     def __init__(self, log_likelihood):
         self.log_likelihood = log_likelihood
         self.model = af.Model(
-            af.Gaussian,
+            af.ex.Gaussian,
             centre=af.UniformPrior(
                 0.0,
                 1.0,

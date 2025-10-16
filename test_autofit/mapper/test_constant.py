@@ -160,7 +160,7 @@ def test_float_id():
 
 def test_model_with_constants():
     instance = af.Model(
-        af.Gaussian,
+        af.ex.Gaussian,
         centre=af.Constant(1.0),
     ).instance_from_prior_medians()
 

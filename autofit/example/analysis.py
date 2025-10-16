@@ -1,7 +1,7 @@
+import numpy as np
+from typing import Dict, Optional
 
-from typing import Dict, List, Optional
-
-from autofit.jax_wrapper import numpy as np
+from autofit.jax_wrapper import numpy as xp
 
 import autofit as af
 
@@ -36,7 +36,7 @@ class Analysis(af.Analysis):
     """
     Result = ResultExample
 
-    LATENT_KEYS = ["fwhm"]
+    LATENT_KEYS = ["gaussian.fwhm"]
 
     def __init__(self, data: np.ndarray, noise_map: np.ndarray):
         """
@@ -98,8 +98,8 @@ class Analysis(af.Analysis):
         The model data of the profiles.
         """
 
-        xvalues = np.arange(self.data.shape[0])
-        model_data_1d = np.zeros(self.data.shape[0])
+        xvalues = xp.arange(self.data.shape[0])
+        model_data_1d = xp.zeros(self.data.shape[0])
 
         try:
             for profile in instance:

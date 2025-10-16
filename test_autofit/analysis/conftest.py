@@ -9,7 +9,7 @@ class Result(af.mock.MockResult):
 
 class Analysis(af.Analysis):
     def log_likelihood_function(self, instance):
-        return 1.0 if isinstance(instance, af.Gaussian) else 0.0
+        return 1.0 if isinstance(instance, af.ex.Gaussian) else 0.0
 
     def make_result(self, samples):
         return Result(
@@ -29,4 +29,4 @@ def analysis_class():
 
 @pytest.fixture(name="model")
 def make_model():
-    return af.Model(af.Gaussian)
+    return af.Model(af.ex.Gaussian)

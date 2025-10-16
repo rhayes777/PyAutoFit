@@ -20,7 +20,7 @@ def make_collection():
     return af.Collection(
         [
             af.Model(
-                af.Gaussian,
+                af.ex.Gaussian,
                 centre=centre,
                 normalization=normalization,
                 sigma=sigma,

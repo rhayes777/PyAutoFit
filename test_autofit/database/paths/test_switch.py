@@ -23,7 +23,7 @@ def make_search(session):
 )
 def make_model():
     return af.Model(
-        af.Gaussian
+        af.ex.Gaussian
     )
 
 

@@ -233,6 +233,7 @@ class Prior(Variable, ABC, ArithmeticMixin):
         )
         if id_ is not None:
             loaded_ids[id_] = prior
+
         return prior
 
     def dict(self) -> dict:

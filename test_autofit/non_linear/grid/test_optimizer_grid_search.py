@@ -11,7 +11,7 @@ from autofit import exc
 def test_unpickle_result():
     # noinspection PyTypeChecker
     result = af.GridSearchResult(
-        samples=[af.Samples(model=af.Model(af.Gaussian), sample_list=[])],
+        samples=[af.Samples(model=af.Model(af.ex.Gaussian), sample_list=[])],
         lower_limits_lists=[[1]],
         grid_priors=[],
     )
@@ -296,7 +296,7 @@ class TestGridSearchResult:
 def test_higher_dimensions(n_dimensions, n_steps):
     shape = n_dimensions * (n_steps,)
     total = n_steps**n_dimensions
-    model = af.Model(af.Gaussian)
+    model = af.Model(af.ex.Gaussian)
     result = af.GridSearchResult(
         samples=total
         * [

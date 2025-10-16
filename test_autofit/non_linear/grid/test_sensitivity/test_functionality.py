@@ -118,7 +118,7 @@ class TestPerturbationModels:
         assert model.sigma.upper_limit == 5
 
     def test_model_with_limits(self):
-        model = af.Model(af.Gaussian)
+        model = af.Model(af.ex.Gaussian)
 
         with_limits = model.with_limits(
             [

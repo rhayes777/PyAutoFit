@@ -16,7 +16,7 @@ class Analysis(af.Analysis):
 @pytest.fixture(name="model")
 def make_model():
     return af.Model(
-        af.Gaussian,
+        af.ex.Gaussian,
         centre=af.GaussianPrior(mean=50, sigma=20),
         normalization=af.GaussianPrior(mean=25, sigma=10),
         sigma=af.GaussianPrior(mean=10, sigma=10),

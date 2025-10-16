@@ -6,7 +6,7 @@ import autofit as af
 @pytest.fixture(name="result")
 def make_result():
     model = af.Model(
-        af.Gaussian,
+        af.ex.Gaussian,
     )
     grid_priors = [model.centre, model.normalization]
     lower_limits_lists = [
@@ -30,7 +30,7 @@ def make_result():
     def make_samples(centre, normalization):
         return af.Samples(
             model=af.Model(
-                af.Gaussian,
+                af.ex.Gaussian,
                 centre=af.UniformPrior(
                     lower_limit=centre,
                     upper_limit=centre + 2.0,

@@ -7,7 +7,7 @@ from autofit.non_linear.paths.sub_directory_paths import SubDirectoryPaths
 
 
 def test_make_result():
-    model = af.Model(af.Gaussian)
+    model = af.Model(af.ex.Gaussian)
     factor_graph_model = af.FactorGraphModel(
         af.AnalysisFactor(
             model,
@@ -86,7 +86,7 @@ def analysis():
 
 @pytest.fixture
 def model():
-    return af.Model(af.Gaussian)
+    return af.Model(af.ex.Gaussian)
 
 
 @pytest.fixture

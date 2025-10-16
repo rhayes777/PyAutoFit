@@ -15,7 +15,7 @@ pass
 # def test_visualize():
 #     analysis = Analysis()
 #
-#     gaussian = af.Model(af.Gaussian)
+#     gaussian = af.Model(af.ex.Gaussian)
 #
 #     analysis_factor = g.AnalysisFactor(
 #         prior_model=gaussian,

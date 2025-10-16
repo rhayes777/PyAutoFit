@@ -145,7 +145,7 @@ class UltraNest(abstract_nest.AbstractNest):
 
         search_internal = ultranest.ReactiveNestedSampler(
             param_names=model.parameter_names,
-            loglike=fitness.__call__,
+            loglike=fitness.call_wrap,
             transform=prior_transform,
             log_dir=log_dir,
             **self.config_dict_search

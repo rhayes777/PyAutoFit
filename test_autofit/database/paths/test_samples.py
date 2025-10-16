@@ -14,7 +14,7 @@ def save_samples(
 ):
     samples =af.m.MockSamples(
         model=af.Model(
-            af.Gaussian
+            af.ex.Gaussian
         ),
 
     )
@@ -57,7 +57,7 @@ def test_load_samples(
 ):
     samples = paths._load_samples()
 
-    assert samples.model.cls is af.Gaussian
+    assert samples.model.cls is af.ex.Gaussian
 
     sample, = samples.sample_list
     assert sample.weight == 0.5

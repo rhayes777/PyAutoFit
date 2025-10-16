@@ -19,7 +19,7 @@ def make_run_search():
         search = af.mock.MockSearch("name", fit_fast=False)
         search.paths.remove_files = False
         analysis = Analysis()
-        model = af.Model(af.Gaussian)
+        model = af.Model(af.ex.Gaussian)
         search.fit(model, analysis)
         return search
 

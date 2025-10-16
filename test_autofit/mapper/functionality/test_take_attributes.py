@@ -8,7 +8,7 @@ import autofit as af
 )
 def make_target_gaussian():
     return af.Model(
-        af.Gaussian
+        af.ex.Gaussian
     )
 
 
@@ -24,7 +24,7 @@ def make_prior():
 )
 def make_source_gaussian(prior):
     return af.Model(
-        af.Gaussian,
+        af.ex.Gaussian,
         centre=prior
     )
 
@@ -126,7 +126,7 @@ def test_tuple_in_instance(
         prior
 ):
     # noinspection PyTypeChecker
-    source_gaussian = af.Gaussian(
+    source_gaussian = af.ex.Gaussian(
         centre=(prior, 1.0)
     )
     target_gaussian.take_attributes(
@@ -159,7 +159,7 @@ def test_tuple_in_instance_in_collection(
         prior
 ):
     # noinspection PyTypeChecker
-    source_gaussian = af.Gaussian(
+    source_gaussian = af.ex.Gaussian(
         centre=(prior, 1.0)
     )
 
@@ -280,11 +280,11 @@ def test_limits(
 def test_tuples():
     centre = (0.0, 1.0)
     source = af.Model(
-        af.Gaussian,
+        af.ex.Gaussian,
         centre=centre
     )
     target = af.Model(
-        af.Gaussian
+        af.ex.Gaussian
     )
     target.take_attributes(source)
     assert target.centre == centre

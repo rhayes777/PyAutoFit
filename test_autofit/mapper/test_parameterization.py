@@ -13,7 +13,7 @@ def reset_ids():
 
 
 def test_parameterization():
-    model = af.Collection(collection=af.Collection(gaussian=af.Model(af.Gaussian)))
+    model = af.Collection(collection=af.Collection(gaussian=af.Model(af.ex.Gaussian)))
 
     parameterization = model.parameterization
     assert parameterization == (
@@ -24,7 +24,7 @@ def test_parameterization():
 
 
 def test_root():
-    model = af.Model(af.Gaussian)
+    model = af.Model(af.ex.Gaussian)
     parameterization = model.parameterization
     assert parameterization == (
         "model                                                                           Gaussian (N=3)"
@@ -32,7 +32,7 @@ def test_root():
 
 
 def test_instance():
-    model = af.Collection(collection=af.Collection(gaussian=af.Gaussian()))
+    model = af.Collection(collection=af.Collection(gaussian=af.ex.Gaussian()))
 
     parameterization = model.parameterization
     assert parameterization == (
@@ -47,7 +47,7 @@ def test_tuple_prior():
     centre.centre_0 = af.UniformPrior()
     centre.centre_1 = af.UniformPrior()
 
-    model = af.Model(af.Gaussian, centre=centre)
+    model = af.Model(af.ex.Gaussian, centre=centre)
     parameterization = model.parameterization
     assert parameterization == (
         "model                                                                           Gaussian (N=4)"
@@ -142,7 +142,7 @@ tuple                                                                           
 
 
 def test_integer_attributes():
-    model = af.Model(af.Gaussian)
+    model = af.Model(af.ex.Gaussian)
 
     model.centre = 2
 

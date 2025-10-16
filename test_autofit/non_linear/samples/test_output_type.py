@@ -9,7 +9,7 @@ from autofit.non_linear.samples.efficient import EfficientSamples
 @pytest.fixture(name="samples")
 def make_samples():
     return SamplesNest(
-        model=af.Model(af.Gaussian),
+        model=af.Model(af.ex.Gaussian),
         sample_list=[],
         samples_info=None,
     )

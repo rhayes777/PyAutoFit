@@ -46,8 +46,8 @@ def make_factor_graph_model():
     name="non_trivial_model"
 )
 def make_non_trivial_model():
-    one = af.Model(af.Gaussian)
-    two = af.Model(af.Gaussian)
+    one = af.Model(af.ex.Gaussian)
+    two = af.Model(af.ex.Gaussian)
 
     one.centre = two.centre
 

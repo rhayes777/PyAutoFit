@@ -7,7 +7,7 @@ from autofit.non_linear.samples import Samples
 
 @pytest.fixture(name="model")
 def make_model():
-    return af.Model(af.Gaussian)
+    return af.Model(af.ex.Gaussian)
 
 
 @pytest.fixture(name="serialized_model")
@@ -27,7 +27,7 @@ def make_serialized_collection(collection):
 
 class TestInstance:
     def test_serialize(self):
-        serialized_instance = db.Object.from_object(af.Gaussian())
+        serialized_instance = db.Object.from_object(af.ex.Gaussian())
         assert len(serialized_instance.children) == 3
 
     def test_tuple(self):
@@ -37,15 +37,15 @@ class TestInstance:
 class TestModel:
     def test_serialize(self, serialized_model):
         assert isinstance(serialized_model, db.Model)
-        assert serialized_model.cls is af.Gaussian
+        assert serialized_model.cls is af.ex.Gaussian
 
     def test_deserialize(self, serialized_model):
-        assert serialized_model().cls is af.Gaussian
+        assert serialized_model().cls is af.ex.Gaussian
 
 
 @pytest.fixture(name="collection_with_cache")
 def make_collection_with_cache():
-    model = af.Collection(gaussian=af.Gaussian)
+    model = af.Collection(gaussian=af.ex.Gaussian)
     model.freeze()
     _ = model.unique_prior_tuples
     return model
@@ -53,7 +53,7 @@ def make_collection_with_cache():
 
 class TestFrozenCache:
     def test_model_with_cache(self):
-        gaussian = af.Model(af.Gaussian)
+        gaussian = af.Model(af.ex.Gaussian)
         gaussian.freeze()
         _ = gaussian.unique_prior_tuples
         serialized = db.Object.from_object(gaussian)
@@ -140,7 +140,7 @@ def test_none():
 
 
 def test_commit(session):
-    model = af.Model(af.Gaussian)
+    model = af.Model(af.ex.Gaussian)
     serialized = db.Object.from_object(model)
     session.add(serialized)
     session.commit()

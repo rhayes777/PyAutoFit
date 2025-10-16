@@ -12,7 +12,7 @@ def make_gaussian_none(
 ):
     gaussian_none = db.Fit(
         id="gaussian_none",
-        instance=af.Gaussian(
+        instance=af.ex.Gaussian(
             centre=None
         )
     )

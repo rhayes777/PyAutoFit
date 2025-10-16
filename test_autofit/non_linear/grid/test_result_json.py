@@ -73,7 +73,7 @@ def test_embedded_sample_model_dict():
 
 
 def test_result_json(sample):
-    model = af.Model(af.Gaussian)
+    model = af.Model(af.ex.Gaussian)
     result = af.mock.MockResult(
         samples_summary=af.m.MockSamplesSummary(
             model=model,
