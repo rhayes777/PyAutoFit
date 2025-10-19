@@ -27,7 +27,7 @@ class Emcee(AbstractMCMC):
         unique_tag: Optional[str] = None,
         initializer: Optional[Initializer] = None,
         auto_correlation_settings=AutoCorrelationsSettings(),
-        iterations_per_update: int = None,
+        iterations_per_full_update: int = None,
         number_of_cores: int = None,
         session: Optional[sa.orm.Session] = None,
         **kwargs,
@@ -75,7 +75,7 @@ class Emcee(AbstractMCMC):
             unique_tag=unique_tag,
             initializer=initializer,
             auto_correlation_settings=auto_correlation_settings,
-            iterations_per_update=iterations_per_update,
+            iterations_per_full_update=iterations_per_full_update,
             number_of_cores=number_of_cores,
             session=session,
             **kwargs,
@@ -178,10 +178,10 @@ class Emcee(AbstractMCMC):
             iterations_remaining = self.config_dict_run["nsteps"]
 
         while iterations_remaining > 0:
-            if self.iterations_per_update > iterations_remaining:
+            if self.iterations_per_full_update > iterations_remaining:
                 iterations = iterations_remaining
             else:
-                iterations = self.iterations_per_update
+                iterations = self.iterations_per_full_update
 
             for sample in search_internal.sample(
                 initial_state=state,

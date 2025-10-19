@@ -24,11 +24,11 @@ def test__loads_from_config_file_if_not_input():
     search = af.DynestyStatic(
         nlive=151,
         dlogz=0.1,
-        iterations_per_update=501,
+        iterations_per_full_update=501,
         number_of_cores=2,
     )
 
-    assert search.iterations_per_update == 501
+    assert search.iterations_per_full_update == 501
 
     assert search.config_dict_search["nlive"] == 151
     assert search.config_dict_run["dlogz"] == 0.1
@@ -36,7 +36,7 @@ def test__loads_from_config_file_if_not_input():
 
     search = af.DynestyStatic()
 
-    assert search.iterations_per_update == 500
+    assert search.iterations_per_full_update == 500
 
     assert search.config_dict_search["nlive"] == 150
     assert search.config_dict_run["dlogz"] == None
@@ -44,12 +44,12 @@ def test__loads_from_config_file_if_not_input():
 
     search = af.DynestyDynamic(
         facc=0.4,
-        iterations_per_update=501,
+        iterations_per_full_update=501,
         dlogz_init=0.2,
         number_of_cores=3,
     )
 
-    assert search.iterations_per_update == 501
+    assert search.iterations_per_full_update == 501
 
     assert search.config_dict_search["facc"] == 0.4
     assert search.config_dict_run["dlogz_init"] == 0.2
@@ -57,7 +57,7 @@ def test__loads_from_config_file_if_not_input():
 
     search = af.DynestyDynamic()
 
-    assert search.iterations_per_update == 501
+    assert search.iterations_per_full_update == 501
 
     assert search.config_dict_search["facc"] == 0.6
     assert search.config_dict_run["dlogz_init"] == 0.01

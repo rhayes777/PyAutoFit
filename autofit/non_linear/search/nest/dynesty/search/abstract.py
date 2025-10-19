@@ -34,7 +34,7 @@ class AbstractDynesty(AbstractNest, ABC):
         name: Optional[str] = None,
         path_prefix: Optional[str] = None,
         unique_tag: Optional[str] = None,
-        iterations_per_update: int = None,
+        iterations_per_full_update: int = None,
         number_of_cores: int = None,
         session: Optional[sa.orm.Session] = None,
         **kwargs,
@@ -56,7 +56,7 @@ class AbstractDynesty(AbstractNest, ABC):
         unique_tag
             The name of a unique tag for this model-fit, which will be given a unique entry in the sqlite database
             and also acts as the folder after the path prefix and before the search name.
-        iterations_per_update
+        iterations_per_full_update
             The number of iterations performed between every Dynesty back-up (via dumping the Dynesty instance as a
             pickle)
         number_of_cores
@@ -75,7 +75,7 @@ class AbstractDynesty(AbstractNest, ABC):
             name=name,
             path_prefix=path_prefix,
             unique_tag=unique_tag,
-            iterations_per_update=iterations_per_update,
+            iterations_per_full_update=iterations_per_full_update,
             number_of_cores=number_of_cores,
             session=session,
             **kwargs,
@@ -267,7 +267,7 @@ class AbstractDynesty(AbstractNest, ABC):
         Returns the next number of iterations that a dynesty call will use and the total number of iterations
         that have been performed so far.
 
-        This is used so that the `iterations_per_update` input leads to on-the-fly output of dynesty results.
+        This is used so that the `iterations_per_full_update` input leads to on-the-fly output of dynesty results.
 
         It also ensures dynesty does not perform more samples than the `maxcall` input variable.
 
@@ -298,7 +298,7 @@ class AbstractDynesty(AbstractNest, ABC):
             iterations = self.config_dict_run["maxcall"] - total_iterations
 
             return int(iterations), int(total_iterations)
-        return self.iterations_per_update, int(total_iterations)
+        return self.iterations_per_full_update, int(total_iterations)
 
     def run_search_internal(
         self, search_internal: "Union[NestedSampler, DynamicNestedSampler]"

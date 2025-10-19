@@ -1,10 +1,14 @@
 jax:
   use_jax: false                    # If True, PyAutoFit uses JAX internally, whereas False uses normal Numpy.
+updates:
+  iterations_per_quick_update: 1e99 # Non-linear search iterations between every quick update, which just displays the maximum likelihood model fit.
+  iterations_per_full_update: 1e99  # Non-linear search iterations between every full update, which outputs all visuals and result fits (e.g. model.result, search.summary), this exits the search and can be slow.  
 analysis:
   n_cores: 1                        # The number of cores a parallelized sum of Analysis classes uses by default.
 hpc:
   hpc_mode: false                   # If True, use HPC mode, which disables GUI visualization, logging to screen and other settings which are not suited to running on a super computer.
-  iterations_per_update: 5000       # The number of iterations between every update (visualization, results output, etc) in HPC mode.
+  iterations_per_quick_update: 500 #  Non-linear search iterations between every quick update, which just displays the maximum likelihood model fit.  
+  iterations_per_full_update: 5000  # Non-linear search iterations between every full update, which outputs all visuals and result fits (e.g. model.result, search.summary), this exits the search and can be slow.
 inversion:
   check_reconstruction: true        # If True, the inversion's reconstruction is checked to ensure the solution of a meshs's mapper is not an invalid solution where the values are all the same.
   reconstruction_vmax_factor: 0.5   # Plots of an Inversion's reconstruction use the reconstructed data's bright value multiplied by this factor.  

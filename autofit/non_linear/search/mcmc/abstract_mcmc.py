@@ -18,7 +18,7 @@ class AbstractMCMC(NonLinearSearch):
             unique_tag: Optional[str] = None,
             initializer: Optional[Initializer] = None,
             auto_correlation_settings=AutoCorrelationsSettings(),
-            iterations_per_update: Optional[int] = None,
+            iterations_per_full_update: Optional[int] = None,
             number_of_cores: Optional[int] = None,
             session: Optional[sa.orm.Session] = None,
             **kwargs
@@ -34,7 +34,7 @@ class AbstractMCMC(NonLinearSearch):
             path_prefix=path_prefix,
             unique_tag=unique_tag,
             initializer=initializer,
-            iterations_per_update=iterations_per_update,
+            iterations_per_full_update=iterations_per_full_update,
             number_of_cores=number_of_cores,
             session=session,
             **kwargs

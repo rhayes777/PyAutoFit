@@ -73,7 +73,7 @@ class AbstractPySwarms(AbstractMLE):
         path_prefix: Optional[str] = None,
         unique_tag: Optional[str] = None,
         initializer: Optional[AbstractInitializer] = None,
-        iterations_per_update: int = None,
+        iterations_per_full_update: int = None,
         number_of_cores: int = None,
         session: Optional[sa.orm.Session] = None,
         **kwargs
@@ -114,7 +114,7 @@ class AbstractPySwarms(AbstractMLE):
             path_prefix=path_prefix,
             unique_tag=unique_tag,
             initializer=initializer,
-            iterations_per_update=iterations_per_update,
+            iterations_per_full_update=iterations_per_full_update,
             number_of_cores=number_of_cores,
             session=session,
             **kwargs
@@ -206,7 +206,7 @@ class AbstractPySwarms(AbstractMLE):
 
             iterations_remaining = self.config_dict_run["iters"] - total_iterations
 
-            iterations = min(self.iterations_per_update, iterations_remaining)
+            iterations = min(self.iterations_per_full_update, iterations_remaining)
 
             if iterations > 0:
                 search_internal.optimize(

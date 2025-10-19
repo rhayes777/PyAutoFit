@@ -42,7 +42,7 @@ We therefore fit the data using two models, one where the model is a single ``Ga
     search = af.DynestyStatic(
         path_prefix=path.join("features", "sensitivity_mapping", "single_gaussian"),
         nlive=100,
-        iterations_per_update=500,
+        iterations_per_full_update=500,
     )
 
     result_single = search.fit(model=model, analysis=analysis)
@@ -59,7 +59,7 @@ model comparison, we restrict the centre of the ``gaussian_feature`` to its true
     search = af.DynestyStatic(
         path_prefix=path.join("features", "sensitivity_mapping", "two_gaussians"),
         nlive=100,
-        iterations_per_update=500,
+        iterations_per_full_update=500,
     )
 
     result_multiple = search.fit(model=model, analysis=analysis)

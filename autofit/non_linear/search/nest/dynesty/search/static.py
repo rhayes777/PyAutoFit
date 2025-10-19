@@ -29,7 +29,7 @@ class DynestyStatic(AbstractDynesty):
         name: Optional[str] = None,
         path_prefix: Optional[Union[str, Path]] = None,
         unique_tag: Optional[str] = None,
-        iterations_per_update: int = None,
+        iterations_per_full_update: int = None,
         number_of_cores: int = None,
         session: Optional[sa.orm.Session] = None,
         **kwargs,
@@ -51,7 +51,7 @@ class DynestyStatic(AbstractDynesty):
         unique_tag
             The name of a unique tag for this model-fit, which will be given a unique entry in the sqlite database
             and also acts as the folder after the path prefix and before the search name.
-        iterations_per_update
+        iterations_per_full_update
             The number of iterations performed between update (e.g. output latest model to hard-disk, visualization).
         number_of_cores
             The number of cores sampling is performed using a Python multiprocessing Pool instance.
@@ -63,7 +63,7 @@ class DynestyStatic(AbstractDynesty):
             name=name,
             path_prefix=path_prefix,
             unique_tag=unique_tag,
-            iterations_per_update=iterations_per_update,
+            iterations_per_full_update=iterations_per_full_update,
             number_of_cores=number_of_cores,
             session=session,
             **kwargs,

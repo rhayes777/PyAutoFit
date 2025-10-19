@@ -40,7 +40,7 @@ class Nautilus(abstract_nest.AbstractNest):
         path_prefix: Optional[str] = None,
         unique_tag: Optional[str] = None,
         iterations_per_quick_update: Optional[int] = None,
-        iterations_per_update: int = None,
+        iterations_per_full_update: int = None,
         number_of_cores: int = None,
         session: Optional[sa.orm.Session] = None,
         **kwargs
@@ -65,7 +65,7 @@ class Nautilus(abstract_nest.AbstractNest):
         unique_tag
             The name of a unique tag for this model-fit, which will be given a unique entry in the sqlite database
             and also acts as the folder after the path prefix and before the search name.
-        iterations_per_update
+        iterations_per_full_update
             The number of iterations performed between update (e.g. output latest model to hard-disk, visualization).
         number_of_cores
             The number of cores sampling is performed using a Python multiprocessing Pool instance.
@@ -83,7 +83,7 @@ class Nautilus(abstract_nest.AbstractNest):
             name=name,
             path_prefix=path_prefix,
             unique_tag=unique_tag,
-            iterations_per_update=iterations_per_update,
+            iterations_per_full_update=iterations_per_full_update,
             iterations_per_quick_update=iterations_per_quick_update,
             number_of_cores=number_of_cores,
             session=session,
@@ -279,7 +279,7 @@ class Nautilus(abstract_nest.AbstractNest):
         """
         The x1 CPU and multiprocessing searches both call this function to perform the non-linear search.
 
-        This function calls the search a reduced number of times, corresponding to the `iterations_per_update` of the
+        This function calls the search a reduced number of times, corresponding to the `iterations_per_full_update` of the
         search. This allows the search to output results on-the-fly, for example writing to the hard-disk the latest
         model and samples.
 
@@ -301,20 +301,20 @@ class Nautilus(abstract_nest.AbstractNest):
 
         finished = False
 
-        minimum_iterations_per_updates = 3 * self.config_dict_search["n_live"]
+        minimum_iterations_per_full_updates = 3 * self.config_dict_search["n_live"]
 
-        if self.iterations_per_update < minimum_iterations_per_updates:
+        if self.iterations_per_full_update < minimum_iterations_per_full_updates:
 
-            self.iterations_per_update = minimum_iterations_per_updates
+            self.iterations_per_full_update = minimum_iterations_per_full_updates
 
             logger.info(
                 f"""
-                The number of iterations_per_update is less than 3 times the number of live points, which can cause
+                The number of iterations_per_full_update is less than 3 times the number of live points, which can cause
                 issues where Nautilus loses sampling information due to stopping to output results. The number of
                 iterations per update has been increased to 3 times the number of live points, therefore a value
-                of {minimum_iterations_per_updates}.
+                of {minimum_iterations_per_full_updates}.
 
-                To remove this warning, increase the number of iterations_per_update to three or more times the
+                To remove this warning, increase the number of iterations_per_full_update to three or more times the
                 number of live points.
                 """
             )
@@ -363,7 +363,7 @@ class Nautilus(abstract_nest.AbstractNest):
         Returns the next number of iterations that a dynesty call will use and the total number of iterations
         that have been performed so far.
 
-        This is used so that the `iterations_per_update` input leads to on-the-fly output of dynesty results.
+        This is used so that the `iterations_per_full_update` input leads to on-the-fly output of dynesty results.
 
         It also ensures dynesty does not perform more samples than the `n_like_max` input variable.
 
@@ -390,7 +390,7 @@ class Nautilus(abstract_nest.AbstractNest):
         except ValueError:
             total_iterations = 0
 
-        iterations = total_iterations + self.iterations_per_update
+        iterations = total_iterations + self.iterations_per_full_update
 
         if self.config_dict_run["n_like_max"] is not None:
             if iterations > self.config_dict_run["n_like_max"]:

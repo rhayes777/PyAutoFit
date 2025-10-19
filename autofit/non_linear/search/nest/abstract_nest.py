@@ -22,7 +22,7 @@ class AbstractNest(NonLinearSearch, ABC):
         path_prefix: Optional[str] = None,
         unique_tag: Optional[str] = None,
         iterations_per_quick_update: Optional[int] = None,
-        iterations_per_update: Optional[int] = None,
+        iterations_per_full_update: Optional[int] = None,
         number_of_cores: Optional[int] = None,
         session: Optional[sa.orm.Session] = None,
         initializer: Optional[AbstractInitializer] = None,
@@ -56,7 +56,7 @@ class AbstractNest(NonLinearSearch, ABC):
             unique_tag=unique_tag,
             initializer=initializer or InitializerPrior(),
             iterations_per_quick_update=iterations_per_quick_update,
-            iterations_per_update=iterations_per_update,
+            iterations_per_full_update=iterations_per_full_update,
             number_of_cores=number_of_cores,
             session=session,
             **kwargs
