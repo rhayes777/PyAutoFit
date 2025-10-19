@@ -1,6 +1,7 @@
 import jax
 import logging
 import numpy as np
+from IPython.display import clear_output
 import os
 import time
 
@@ -20,7 +21,6 @@ from autofit.text import text_util
 from autofit.mapper.prior_model.abstract import AbstractPriorModel
 from autofit.non_linear.paths.abstract import AbstractPaths
 from autofit.non_linear.analysis import Analysis
-
 
 def get_timeout_seconds():
 
@@ -293,6 +293,8 @@ class Fitness:
         self.quick_update_count += total_updates
 
         if self.quick_update_count >= self.iterations_per_quick_update:
+
+            clear_output(wait=True)
 
             start_time = time.time()
 
