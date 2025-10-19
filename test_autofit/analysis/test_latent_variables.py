@@ -82,7 +82,6 @@ def test_info(latent_samples):
     assert (
         info
         == """Maximum Log Likelihood                                                          1.00000000
-Maximum Log Posterior                                                           1.00000000
 
 model                                                                           Collection (N=1)
 

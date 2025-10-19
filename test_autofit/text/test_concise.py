@@ -67,7 +67,6 @@ def test_model_results(samples):
     assert (
         result_info_from(samples)
         == """Maximum Log Likelihood                                                          1.00000000
-Maximum Log Posterior                                                           1.00000000
 
 model                                                                           Collection (N=3)
     0 - 19                                                                      Gaussian (N=3)
